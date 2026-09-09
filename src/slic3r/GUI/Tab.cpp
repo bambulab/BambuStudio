@@ -83,6 +83,14 @@ namespace GUI {
 
 static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence", "spiral_mode"};
 
+static void append_multi_nozzle_auto_line(const ConfigOptionsGroupShp& group, const std::string& key,
+                                          const std::string& path = std::string(), int index = -1)
+{
+    Line line = group->create_single_option_line(key, path, index);
+    line.multi_nozzle_auto = true;
+    group->append_line(line);
+}
+
 static std::pair<std::string, std::string> extruder_variant_keys[]{
     {},                                                  // invalid
     {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
@@ -263,7 +271,7 @@ void Tab::create_preset_tab()
                     m_preset_bundle->physical_printers.unselect_printer();
 
                 // select preset
-                std::string preset_name = m_presets_choice->GetString(selection).ToUTF8().data();
+                std::string preset_name = m_presets_choice->preset_name_for_selection(selection);
                 select_preset(Preset::remove_suffix_modified(preset_name));
             }
         });
@@ -3203,21 +3211,26 @@ void TabPrint::build()
     load_initial_data();
 
     auto page = add_options_page(L("Quality"), "empty");
+        auto append_nozzle_scaled_option = [](const ConfigOptionsGroupShp& group, const std::string& key, const std::string& path) {
+            Line line = group->create_single_option_line(key, path);
+            line.nozzle_diameter_mirror = true;
+            group->append_line(line);
+        };
         auto optgroup = page->new_optgroup(L("Layer height"), L"param_layer_height");
-    optgroup->append_single_option_line("layer_height", "layer-height");
-        optgroup->append_single_option_line("initial_layer_print_height", "layer-height");
+        append_nozzle_scaled_option(optgroup, "layer_height", "layer-height");
+        append_nozzle_scaled_option(optgroup, "initial_layer_print_height", "layer-height");
         optgroup->append_single_option_line("enable_mixed_color_sublayer");
 
         optgroup = page->new_optgroup(L("Line width"), L"param_line_width");
-        optgroup->append_single_option_line("line_width","parameter/line-width");
-        optgroup->append_single_option_line("initial_layer_line_width","parameter/line-width");
-        optgroup->append_single_option_line("initial_layer_infill_line_width","parameter/line-width");
-        optgroup->append_single_option_line("outer_wall_line_width","parameter/line-width");
-        optgroup->append_single_option_line("inner_wall_line_width","parameter/line-width");
-        optgroup->append_single_option_line("top_surface_line_width","parameter/line-width");
-        optgroup->append_single_option_line("sparse_infill_line_width","parameter/line-width");
-        optgroup->append_single_option_line("internal_solid_infill_line_width","parameter/line-width");
-        optgroup->append_single_option_line("support_line_width","parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "line_width", "parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "initial_layer_line_width", "parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "initial_layer_infill_line_width", "parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "outer_wall_line_width", "parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "inner_wall_line_width", "parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "top_surface_line_width", "parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "sparse_infill_line_width", "parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "internal_solid_infill_line_width", "parameter/line-width");
+        append_nozzle_scaled_option(optgroup, "support_line_width", "parameter/line-width");
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
         optgroup->append_single_option_line("seam_position", "Seam");
@@ -3255,7 +3268,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_speed");
         optgroup->append_single_option_line("ironing_flow");
         optgroup->append_single_option_line("ironing_spacing");
-        optgroup->append_single_option_line("ironing_inset");
+        append_multi_nozzle_auto_line(optgroup, "ironing_inset");
         optgroup->append_single_option_line("ironing_direction");
 
         optgroup = page->new_optgroup(L("Wall generator"), L"param_wall");
@@ -3289,7 +3302,7 @@ void TabPrint::build()
 
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
-        optgroup->append_single_option_line("wall_loops","wall-generator");
+        append_multi_nozzle_auto_line(optgroup, "wall_loops", "wall-generator");
         optgroup->append_single_option_line("alternate_extra_wall");
         optgroup->append_single_option_line("embedding_wall_into_infill");
 
@@ -3299,14 +3312,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("interface_shells");
         optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("top_surface_density");
-        optgroup->append_single_option_line("top_shell_layers");
-        optgroup->append_single_option_line("top_shell_thickness");
-        optgroup->append_single_option_line("top_color_penetration_layers");
+        append_multi_nozzle_auto_line(optgroup, "top_shell_layers");
+        append_multi_nozzle_auto_line(optgroup, "top_shell_thickness");
+        append_multi_nozzle_auto_line(optgroup, "top_color_penetration_layers");
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_surface_density");
-        optgroup->append_single_option_line("bottom_shell_layers");
+        append_multi_nozzle_auto_line(optgroup, "bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
-        optgroup->append_single_option_line("bottom_color_penetration_layers");
+        append_multi_nozzle_auto_line(optgroup, "bottom_color_penetration_layers");
         optgroup->append_single_option_line("infill_instead_top_bottom_surfaces");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
 
@@ -3453,8 +3466,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("raft_first_layer_density");   // not only for raft, but for support too
         optgroup->append_single_option_line("raft_first_layer_expansion"); // not only for raft, but for support too
         optgroup->append_single_option_line("tree_support_wall_count");
-        optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
-        optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
+        append_multi_nozzle_auto_line(optgroup, "support_top_z_distance", "support#top-z-distance");
+        append_multi_nozzle_auto_line(optgroup, "support_bottom_z_distance", "support#bottom-z-distance");
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_angle");
@@ -5913,7 +5926,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("nozzle_diameter", "", extruder_idx);
             //optgroup->append_single_option_line("default_nozzle_volume_type", "", extruder_idx);
 
-            optgroup->append_single_option_line("nozzle_volume", "", extruder_idx);
+            append_multi_nozzle_auto_line(optgroup, "nozzle_volume", "", extruder_idx);
             optgroup->append_single_option_line("extruder_printable_height", "", extruder_idx);
             Option option         = optgroup->get_option("extruder_printable_area", extruder_idx);
             option.opt.full_width = true;
@@ -5957,15 +5970,15 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             };
 
             optgroup = page->new_optgroup(L("Layer height limits"), L"param_layer_height", -1, true);
-            optgroup->append_single_option_line("min_layer_height", "adaptive-layer-height", extruder_idx);
-            optgroup->append_single_option_line("max_layer_height", "adaptive-layer-height", extruder_idx);
+            append_multi_nozzle_auto_line(optgroup, "min_layer_height", "adaptive-layer-height", extruder_idx);
+            append_multi_nozzle_auto_line(optgroup, "max_layer_height", "adaptive-layer-height", extruder_idx);
 
             optgroup = page->new_optgroup(L("Position"), L"param_retraction", -1, true);
             optgroup->append_single_option_line("extruder_offset");
 
             //BBS: don't show retract related config menu in machine page
             optgroup = page->new_optgroup(L("Retraction"), L"param_retraction");
-            optgroup->append_single_option_line("retraction_length", "parameter/retraction#length", extruder_idx);
+            append_multi_nozzle_auto_line(optgroup, "retraction_length", "parameter/retraction#length", extruder_idx);
             optgroup->append_single_option_line("z_hop", "parameter/retraction#z-hop-when-retracting", extruder_idx);
             optgroup->append_single_option_line("retract_lift_above", "parameter/retraction#z-hop-upper-and-lower-boundary", extruder_idx);
             optgroup->append_single_option_line("retract_lift_below", "parameter/retraction#z-hop-upper-and-lower-boundary", extruder_idx);
@@ -6449,6 +6462,8 @@ void TabPrinter::toggle_options()
         size_t i = size_t(val - 1);
         int variant_index = get_index_for_extruder(i);
         bool have_retract_length = m_config->opt_float_nullable("retraction_length", variant_index) > 0;
+        const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
+            multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
 
         //BBS
         for (auto el : { "extruder_type" , "nozzle_diameter"}) {
@@ -6457,6 +6472,7 @@ void TabPrinter::toggle_options()
 
         toggle_option("extruder_type", !is_BBL_printer, i);
         toggle_option("nozzle_diameter", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
+        toggle_line("nozzle_diameter", !multi_nozzle_mode, i);
         toggle_option("extruder_offset", !is_BBL_printer || config_mode == ConfigOptionMode::comDevelop, i);
 
         toggle_option("extruder_printable_area", false, i);          // disable

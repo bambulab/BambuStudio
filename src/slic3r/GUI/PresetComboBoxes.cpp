@@ -2,6 +2,7 @@
 #include "libslic3r/Utils.hpp"
 
 #include <cstddef>
+#include <cstdlib>
 #include <cmath>
 #include <utility>
 #include <vector>
@@ -1258,6 +1259,20 @@ wxString PlaterPresetComboBox::get_preset_name(const Preset& preset)
     return from_u8(preset.label(false));
 }
 
+static bool supports_multi_nozzle_diameter_mode(const PresetCollection& printers, const Preset& preset)
+{
+    const Preset* base = printers.get_preset_base(preset);
+    return base != nullptr && base->is_system && is_single_ext_multi_nozzle(base->config);
+}
+
+static bool is_canonical_multi_nozzle_diameter_printer_preset(const PresetCollection& printers, const Preset& preset)
+{
+    const Preset* base = printers.get_preset_base(preset);
+    return base != nullptr && base->is_system &&
+        is_single_ext_multi_nozzle(base->config) &&
+        base->config.opt_string("printer_variant") == "0.2";
+}
+
 // Only the compatible presets are shown.
 // If an incompatible preset is selected, it is shown as well.
 void PlaterPresetComboBox::update()
@@ -1314,6 +1329,8 @@ void PlaterPresetComboBox::update()
     wxString selected_uncompatible_preset;
     wxString tooltip;
     const std::deque<Preset>& presets = m_collection->get_presets();
+    const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
+        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
 
     //BBS:  move system to the end
     /*if (!presets.front().is_visible)
@@ -1322,6 +1339,12 @@ void PlaterPresetComboBox::update()
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
         const Preset& preset = presets[i];
+        if (multi_nozzle_mode && m_type == Preset::TYPE_PRINTER &&
+            (preset.is_system || preset.is_user() || preset.is_project_embedded) &&
+            supports_multi_nozzle_diameter_mode(*m_collection, preset) &&
+            !is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset))
+            continue;
+
         bool is_selected =  m_type == Preset::TYPE_FILAMENT ?
                             m_preset_bundle->filament_presets[m_filament_idx] == preset.name :
                             // The case, when some physical printer is selected
@@ -1745,9 +1768,57 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
 #endif
 }
 
+static bool numeric_text(const std::string& text)
+{
+    if (text.empty())
+        return false;
+    char* end = nullptr;
+    std::strtod(text.c_str(), &end);
+    return end == text.c_str() + text.size();
+}
+
+static std::string multi_nozzle_preset_name(const Preset& preset, Preset::Type type)
+{
+    std::string name = preset.name;
+    if (type == Preset::TYPE_PRINT) {
+        const size_t first_space = name.find(' ');
+        if (first_space != std::string::npos && first_space > 2 &&
+            name.compare(first_space - 2, 2, "mm") == 0 &&
+            numeric_text(name.substr(0, first_space - 2)))
+            name.erase(0, first_space + 1);
+    }
+
+    const std::string nozzle_suffix = " nozzle";
+    if (boost::algorithm::ends_with(name, nozzle_suffix)) {
+        const size_t suffix_pos = name.size() - nozzle_suffix.size();
+        const size_t diameter_pos = name.rfind(' ', suffix_pos - 1);
+        if (diameter_pos != std::string::npos &&
+            numeric_text(name.substr(diameter_pos + 1, suffix_pos - diameter_pos - 1)))
+            name.replace(diameter_pos + 1, name.size() - diameter_pos - 1, "Multiple nozzle");
+    }
+
+    return (preset.is_dirty ? Preset::suffix_modified() : "") + name;
+}
+
 wxString TabPresetComboBox::get_preset_name(const Preset& preset)
 {
+    const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
+        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
+    const bool supported_printer = m_type == Preset::TYPE_PRINTER ?
+        is_single_ext_multi_nozzle(preset.config) :
+        m_type == Preset::TYPE_PRINT && m_preset_bundle != nullptr &&
+        is_single_ext_multi_nozzle(m_preset_bundle->printers.get_edited_preset().config);
+    if (multi_nozzle_mode && preset.is_system && supported_printer)
+        return from_u8(multi_nozzle_preset_name(preset, m_type));
     return from_u8(preset.label(true));
+}
+
+std::string TabPresetComboBox::preset_name_for_selection(int selection) const
+{
+    const auto it = m_item_preset_names.find(selection);
+    if (it != m_item_preset_names.end())
+        return it->second;
+    return selection >= 0 && selection < int(GetCount()) ? GetString(selection).ToUTF8().data() : std::string();
 }
 
 // Update the choice UI from the list of presets.
@@ -1757,12 +1828,17 @@ void TabPresetComboBox::update()
 {
     const std::deque<Preset>& presets = m_collection->get_presets();
 
-    std::map<wxString, std::pair<wxBitmap*, bool>> nonsys_presets;
+    struct PresetItem {
+        wxBitmap* bitmap;
+        bool enabled;
+        std::string preset_name;
+        wxString description;
+    };
+    std::map<wxString, PresetItem> nonsys_presets;
     //BBS: add project embedded presets logic
-    std::map<wxString, std::pair<wxBitmap*, bool>>  project_embedded_presets;
+    std::map<wxString, PresetItem>  project_embedded_presets;
     //BBS:  move system to the end
-    std::map<wxString, std::pair<wxBitmap*, bool>>  system_presets;
-    std::map<wxString, wxString>                    preset_descriptions;
+    std::map<wxString, PresetItem>  system_presets;
     std::vector<wxString> available_presets;
 
     wxString selected = "";
@@ -1770,6 +1846,8 @@ void TabPresetComboBox::update()
     /*if (!presets.front().is_visible)
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));*/
     size_t idx_selected = m_collection->get_selected_idx();
+    const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
+        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
 
     // unselect printer
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
@@ -1783,6 +1861,11 @@ void TabPresetComboBox::update()
         const Preset& preset = presets[i];
         if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
             continue;
+        if (multi_nozzle_mode && m_type == Preset::TYPE_PRINTER &&
+            (preset.is_system || preset.is_user() || preset.is_project_embedded) &&
+            supports_multi_nozzle_diameter_mode(*m_collection, preset) &&
+            !is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset))
+            continue;
 
         // marker used for disable incompatible printer models for the selected physical printer
         bool is_enabled = true;
@@ -1793,12 +1876,11 @@ void TabPresetComboBox::update()
         const wxString name = get_preset_name(preset);
         available_presets.push_back(name);
 
-        if (preset.is_system)
-            preset_descriptions.emplace(name, _L(preset.description));
+        const wxString description = preset.is_system ? _L(preset.description) : wxString();
 
         if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
-            system_presets.emplace(name, std::pair<wxBitmap *, bool>(bmp, is_enabled));
+            system_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description});
             if (i == idx_selected)
                 selected = name;
             //int item_id = Append(get_preset_name(preset), *bmp);
@@ -1810,14 +1892,13 @@ void TabPresetComboBox::update()
         else if (preset.is_project_embedded)
         {
             //std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
-            project_embedded_presets.emplace(name, std::pair<wxBitmap *, bool>(bmp, is_enabled));
+            project_embedded_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description});
             if (i == idx_selected)
                 selected = name;
         }
         else
         {
-            std::pair<wxBitmap*, bool> pair(bmp, is_enabled);
-            nonsys_presets.emplace(name, std::pair<wxBitmap *, bool>(bmp, is_enabled));
+            nonsys_presets.emplace(name, PresetItem{bmp, is_enabled, preset.name, description});
             if (i == idx_selected)
                 selected = name;
         }
@@ -1836,16 +1917,18 @@ void TabPresetComboBox::update()
 
     Freeze();
     Clear();
+    m_item_preset_names.clear();
     invalidate_selection();
 
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
     {
         set_label_marker(Append(_L("Project-inside presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.first);
-            SetItemTooltip(item_id, preset_descriptions[it->first]);
-            bool is_enabled = it->second.second;
+        for (auto it = project_embedded_presets.begin(); it != project_embedded_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.bitmap);
+            m_item_preset_names.emplace(item_id, it->second.preset_name);
+            SetItemTooltip(item_id, it->second.description);
+            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
@@ -1854,10 +1937,11 @@ void TabPresetComboBox::update()
     if (!nonsys_presets.empty())
     {
         set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.first);
-            SetItemTooltip(item_id, preset_descriptions[it->first]);
-            bool is_enabled = it->second.second;
+        for (auto it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.bitmap);
+            m_item_preset_names.emplace(item_id, it->second.preset_name);
+            SetItemTooltip(item_id, it->second.description);
+            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
@@ -1867,10 +1951,11 @@ void TabPresetComboBox::update()
     if (!system_presets.empty())
     {
         set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.first);
-            SetItemTooltip(item_id, preset_descriptions[it->first]);
-            bool is_enabled = it->second.second;
+        for (auto it = system_presets.begin(); it != system_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.bitmap);
+            m_item_preset_names.emplace(item_id, it->second.preset_name);
+            SetItemTooltip(item_id, it->second.description);
+            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
@@ -1943,7 +2028,9 @@ void TabPresetComboBox::update_dirty()
             continue;
 
         std::string   old_label = GetString(ui_id).utf8_str().data();
-        std::string   preset_name = Preset::remove_suffix_modified(old_label);
+        const auto    mapped_name = m_item_preset_names.find(ui_id);
+        std::string   preset_name = mapped_name == m_item_preset_names.end() ?
+            Preset::remove_suffix_modified(old_label) : mapped_name->second;
         std::string   ph_printer_name;
 
         if (marker == LABEL_ITEM_PHYSICAL_PRINTER) {
@@ -1953,7 +2040,7 @@ void TabPresetComboBox::update_dirty()
 
         Preset* preset = m_collection->find_preset(preset_name, false);
         if (preset) {
-            std::string new_label = preset->label(true);
+            std::string new_label = get_preset_name(*preset).ToUTF8().data();
 
             if (marker == LABEL_ITEM_PHYSICAL_PRINTER)
                 new_label = ph_printer_name + PhysicalPrinter::separator() + new_label;

@@ -6,6 +6,8 @@
 #include <wx/gdicmn.h>
 #include <wx/clrpicker.h>
 
+#include <map>
+
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
 #include "BitmapComboBox.hpp"
@@ -242,6 +244,7 @@ public:
     void update_dirty();
     void msw_rescale() override;
     void OnSelect(wxCommandEvent& evt) override;
+    std::string preset_name_for_selection(int selection) const;
 
     void set_enable_all(bool enable=true) { m_enable_all = enable; }
 
@@ -251,6 +254,7 @@ public:
 private:
     std::vector<wxString> m_last_presets;
     wxString m_last_select_name;
+    std::map<int, std::string> m_item_preset_names;
 };
 
 // ---------------------------------

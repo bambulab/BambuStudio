@@ -62,6 +62,8 @@ public:
 	wxColour*	full_Label_color {nullptr};
 	bool		blink	{false};
     bool        subline {false};
+    bool        nozzle_diameter_mirror {false};
+    bool        multi_nozzle_auto {false};
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 	wxWindow*	near_label_widget_win {nullptr};
