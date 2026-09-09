@@ -8262,6 +8262,134 @@
         {
             "name": "Generic TPU for AMS @BBL X2D 0.4 nozzle",
             "sub_path": "filament/Generic TPU for AMS @BBL X2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone ABS+-HS @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone ABS+-HS @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone ABS-GF @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone ABS-GF @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone ASA-CF @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone ASA-CF @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone ASA-GF @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone ASA-GF @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PA-CF @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PA-CF @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-Burnt Titanium @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-Burnt Titanium @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-CF @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-CF @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone petg-Galaxy @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone petg-Galaxy @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-GF @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-GF @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-Matte @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-Matte @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PLA+ @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PLA+ @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PLA+HS @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PLA+HS @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PLA-Matte @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PLA-Matte @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PLA-Matte HS @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PLA-Matte HS @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PLA-Silk @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PLA-Silk @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone pla-Ultra Silk @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone pla-Ultra Silk @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone ppa-cf @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone ppa-cf @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone ABS-GF @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone ABS-GF @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone ASA-CF @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone ASA-CF @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone ASA-GF @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone ASA-GF @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PA-CF @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PA-CF @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-Burnt Titanium @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-Burnt Titanium @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-CF @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-CF @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone petg-Galaxy @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone petg-Galaxy @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-GF @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-GF @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-Lite @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-Lite @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PETG-Matte @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PETG-Matte @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PLA+ @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PLA+ @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone PLA+HS @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone PLA+HS @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Eryone pla-Ultra Silk @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/ERYONE/Eryone pla-Ultra Silk @BBL H2D 0.4 nozzle.json"
         }
     ],
     "machine_list": [
