@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.48mm Draft @Elegoo CC 0.8 nozzle",
+    "inherits": "fdm_process_elegoo_common",
+    "from": "system",
+    "instantiation": "true",
+    "layer_height": "0.48",
+    "compatible_printers": [
+        "Elegoo Centauri Carbon 0.8 nozzle"
+    ]
+}
