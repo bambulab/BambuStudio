@@ -7,7 +7,9 @@
 
 #include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
+#include "slic3r/GUI/AMSRFIDMaterialView.hpp"
 #include "slic3r/GUI/AMSSetting.hpp"
+#include "slic3r/GUI/EncodedFilament.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
 #include "slic3r/GUI/DeviceTab/wgtDeviceAutoRefillWebDialog.h"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -80,42 +82,21 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
     } catch (...) { return; }
 
     wxWindow* parent = wxGetApp().mainframe;
-    AMSMaterialsSetting dlg(parent, wxID_ANY);
-    dlg.obj = machine_obj;
-    dlg.ams_id = ams_id_int;
-    dlg.slot_id = slot_id_int;
 
-    std::string filament;
-    std::string sn_number;
-    std::string temp_max;
-    std::string temp_min;
-    wxString total_weight;
-    wxString remain_weight;
-    wxString k_val = wxString::Format("%.3f", tray.k);
-    wxString n_val = wxString::Format("%.3f", tray.n);
     wxColor color = DevAmsTray::decode_color(tray.color);
-
     std::vector<wxColour> cols;
     for (const auto& col : tray.cols) cols.push_back(DevAmsTray::decode_color(col));
 
-    dlg.set_ctype(tray.ctype);
-    dlg.ams_filament_id = tray.setting_id;
-    if (dlg.ams_filament_id.empty()) dlg.set_empty_color(color);
-    else {
-        dlg.set_color(color);
-        dlg.set_colors(cols);
-    }
+    wxString k_val = wxString::Format("%.3f", tray.k);
+    wxString n_val = wxString::Format("%.3f", tray.n);
 
-    dlg.m_is_third = !DevFilaSystem::IsBBL_Filament(tray.tag_uid);
+    std::string sn_number;
     if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01") {
         sn_number = tray.uuid;
     }
-    if (!dlg.m_is_third) {
-        filament = tray.sub_brands;
-        temp_max = tray.nozzle_temp_max;
-        temp_min = tray.nozzle_temp_min;
-    }
 
+    wxString total_weight;
+    wxString remain_weight;
     if (!tray.setting_id.empty()) {
         if (tray.weight != "-1" && tray.weight != "0") {
             total_weight = wxString::FromUTF8(tray.weight.c_str());
@@ -124,6 +105,50 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
         if (auto weight = tray.get_filament_remain_weight(); weight.has_value() && weight.value() >= 0) {
             remain_weight = wxString::Format("%d", *weight);
         }
+    }
+
+    if (DevFilaSystem::IsBBL_Filament(tray.tag_uid)) {
+        // Official BBL filament with an RFID tag: show the read-only RFID view
+        // instead of the editable materials-setting dialog (mirrors StatusPanel::open_rfid_view).
+        wxString color_name;
+        if (!tray.setting_id.empty()) {
+            if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
+                FilamentColor fila_color;
+                if (!cols.empty()) {
+                    for (const auto& c : cols) fila_color.AddColor(c);
+                } else {
+                    fila_color.AddColor(color);
+                }
+                fila_color.EndSet(static_cast<int>(tray.ctype));
+                color_name = clr_query->GetFilaColorName(wxString::FromUTF8(tray.setting_id), fila_color);
+            }
+        }
+
+        AMSRFIDMaterialView dlg(parent, wxID_ANY);
+        dlg.Popup(machine_obj, ams_id_int, slot_id_int,
+                  tray.sub_brands, color_name, color, cols,
+                  static_cast<int>(tray.ctype),
+                  tray.nozzle_temp_min, tray.nozzle_temp_max,
+                  sn_number, k_val, total_weight, remain_weight);
+        return;
+    }
+
+    AMSMaterialsSetting dlg(parent, wxID_ANY);
+    dlg.obj = machine_obj;
+    dlg.ams_id = ams_id_int;
+    dlg.slot_id = slot_id_int;
+    dlg.m_is_third = true; // reaching here means non-official (RFID path returns above)
+
+    std::string filament;
+    std::string temp_max;
+    std::string temp_min;
+
+    dlg.set_ctype(tray.ctype);
+    dlg.ams_filament_id = tray.setting_id;
+    if (dlg.ams_filament_id.empty()) dlg.set_empty_color(color);
+    else {
+        dlg.set_color(color);
+        dlg.set_colors(cols);
     }
 
     dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
@@ -309,6 +334,10 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         wxGetApp().CallAfter([vm_ptr = &vm, ams_id, slot_id]() {
             open_ams_materials_setting(ams_id, slot_id);
             vm_ptr->ReportState("state", "changed");
+        });
+    } else if (action == "open_filament_mgr_hint" && !ams_id.empty() && !slot_id.empty()) {
+        wxGetApp().CallAfter([ams_id, slot_id]() {
+            wxGetApp().open_new_official_filament_hint(ams_id, slot_id);
         });
     } else if (action == "load" && fila_system && !ams_id.empty() && !slot_id.empty()) {
         if (DevicePageDeviceStateResolver::BlockIfBusy(machine_obj)) {

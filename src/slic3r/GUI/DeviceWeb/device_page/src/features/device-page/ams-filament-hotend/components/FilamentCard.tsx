@@ -7,6 +7,7 @@ import { LoadingArcIcon } from './LoadingArcIcon';
 import { PrefeedIndicator } from './PrefeedIndicator';
 import { SpoolDisc } from './SpoolDisc';
 import { CardText } from './CardText';
+import amsFilamentHintUrl from '../assets/ams_filament_hint.svg';
 
 export function FilamentCard({
   slot,
@@ -97,6 +98,19 @@ export function FilamentCard({
         <SpoolDisc slot={slot} notAllowed={notAllowed} />
       </div>
       <CardText slot={slot} />
+      {slot.filament_card.new_filament_hint && (
+        <button
+          type="button"
+          aria-label="New filament"
+          className="filament-card-hint-badge"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAction('open_filament_mgr_hint', slot);
+          }}
+        >
+          <img src={amsFilamentHintUrl} alt="" aria-hidden width={14} height={14} />
+        </button>
+      )}
       {ctx.open && ctx.anchor && (
         <CardContextMenu
           slot={slot}

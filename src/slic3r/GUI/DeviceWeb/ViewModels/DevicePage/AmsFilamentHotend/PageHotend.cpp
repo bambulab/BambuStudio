@@ -12,6 +12,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/fila_manager/wgtFilaManagerSync.h"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 
@@ -409,6 +410,12 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::menu_actions::can_ams_operation, can_ams_operation }
     };
 
+    bool new_filament_hint = false;
+    if (machine_obj && slot_id.has_value()) {
+        if (auto* sync = wxGetApp().fila_manager_sync())
+            new_filament_hint = sync->has_pending_badge(machine_obj->get_dev_id(), ams_id, tray_id);
+    }
+
     const nlohmann::json card_section = {
         {SK::filament_card::state, card_state},
         {SK::filament_card::color, slot_color},
@@ -419,7 +426,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_card::type, slot_filament_type},
         {SK::filament_card::remain, filament_remain},
         {SK::filament_card::prefeed_indicator, prefeed_indicator},
-        {SK::filament_card::status_text, DevicePageFilamentSlotStateResolver::ResolveStatusText(card_state)}
+        {SK::filament_card::status_text, DevicePageFilamentSlotStateResolver::ResolveStatusText(card_state)},
+        {SK::filament_card::new_filament_hint, new_filament_hint}
     };
 
     bool filament_line_has_filament = false;

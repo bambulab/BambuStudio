@@ -185,6 +185,13 @@ void wgtFilaManagerSync::dismiss_pending_badge(const std::string& dev_id,
     m_pending_badges.erase(dev_id + ":" + ams_id + ":" + slot_id);
 }
 
+bool wgtFilaManagerSync::has_pending_badge(const std::string& dev_id,
+                                           const std::string& ams_id,
+                                           const std::string& slot_id) const
+{
+    return m_pending_badges.find(dev_id + ":" + ams_id + ":" + slot_id) != m_pending_badges.end();
+}
+
 bool wgtFilaManagerSync::on_device_disconnect(const std::string& dev_id,
                                               const std::string& dev_name)
 {
@@ -352,7 +359,6 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         }
     }
 
-    // 拔出事件由路径 C 独占，从路径 B 列表中排除，避免同时发两个接口
     if (!ejected_snapshots.empty()) {
         std::set<std::string> ejected_ids;
         for (const auto& snap : ejected_snapshots)

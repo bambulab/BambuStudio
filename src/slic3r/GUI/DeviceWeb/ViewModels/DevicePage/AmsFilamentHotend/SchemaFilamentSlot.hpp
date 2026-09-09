@@ -51,6 +51,9 @@ namespace filament_card {
     inline constexpr const char* type          = "type";           // filament type,  e.g. "PLA"
     inline constexpr const char* remain        = "remain";         // 0..100
     inline constexpr const char* status_text   = "status_text";
+    // True when a newly auto-recorded official filament badge is pending for
+    // this slot (see wgtFilaManagerSync::has_pending_badge).
+    inline constexpr const char* new_filament_hint = "new_filament_hint";
 }
 
 // slot.filament_card.prefeed_indicator - top-right color marker for AMS

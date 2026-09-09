@@ -24,6 +24,7 @@ interface SlotSeed {
   filament_remain?: number;
   ams_operation?: AmsFilamentHotendSlotViewModel['ams_operation'];
   hotend?: HotendSlotInfo;
+  new_filament_hint?: boolean;
 }
 
 const lineFor = (state: AmsFilamentHotendCardState): AmsFilamentHotendLineState => {
@@ -84,6 +85,7 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
       type: seed.filament_name?.split(' ')[0] ?? '',
       remain: seed.filament_remain ?? 100,
       status_text: seed.status_text ?? '',
+      new_filament_hint: seed.new_filament_hint ?? false,
     },
     filament_line: {
       state: lineState,
@@ -176,7 +178,7 @@ const mockHotend = (display_index: number): HotendSlotInfo => {
 const slotSeeds: SlotSeed[] = [
   { display_index: 1, card_state: 'Loading',     filament_name: 'PLA Basic', status_text: 'Loading/Unloading Filament', color: '#00AE42', selected: true, is_on_extruder: true, is_external_spool: true, hotend: mockHotend(1) },
   { display_index: 2, card_state: 'Reading',                                  status_text: 'Reading', hotend: mockHotend(2) },
-  { display_index: 3, card_state: 'ReadyToLoad', filament_name: 'PLA Basic', status_text: 'Ready to load', color: '#00AE42', hotend: mockHotend(3) },
+  { display_index: 3, card_state: 'ReadyToLoad', filament_name: 'PLA Basic', status_text: 'Ready to load', color: '#00AE42', new_filament_hint: true, hotend: mockHotend(3) },
   { display_index: 4, card_state: 'Empty',                                    status_text: '--', hotend: mockHotend(4) },
   {
     display_index: 5,

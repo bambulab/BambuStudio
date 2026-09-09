@@ -4269,6 +4269,12 @@ void StatusPanel::update_ams(MachineObject *obj)
             m_filament_setting_dlg->TryRefreshPAProfiles();
         }
     }
+    if (m_rfid_view_dlg) {
+        m_rfid_view_dlg->obj = obj;
+        if (m_rfid_view_dlg->IsShown()) {
+            m_rfid_view_dlg->TryRefreshPAProfiles();
+        }
+    }
 
     if (obj && obj->is_security_control_ready()) { obj->check_ams_filament_valid(); }
 
@@ -5453,6 +5459,37 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
     }
 }
 
+void StatusPanel::open_rfid_view(int ams_id, int slot_id,
+                                 const std::string& setting_id, int ctype,
+                                 const wxString& filament, const wxColour& color,
+                                 const std::vector<wxColour>& cols,
+                                 const std::string& temp_min, const std::string& temp_max,
+                                 const std::string& sn_number, const wxString& k_val,
+                                 wxPoint pos,
+                                 const wxString& total_weight, const wxString& remain_weight)
+{
+    if (!m_rfid_view_dlg)
+        m_rfid_view_dlg = new AMSRFIDMaterialView((wxWindow*)this, wxID_ANY);
+    wxString color_name;
+    if (!setting_id.empty()) {
+        if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
+            FilamentColor fila_color;
+            if (!cols.empty()) {
+                for (const auto& c : cols) fila_color.AddColor(c);
+            } else {
+                fila_color.AddColor(color);
+            }
+            fila_color.EndSet(ctype);
+            color_name = clr_query->GetFilaColorName(wxString::FromUTF8(setting_id), fila_color);
+        }
+    }
+    m_rfid_view_dlg->Move(pos);
+    m_rfid_view_dlg->Popup(obj, ams_id, slot_id,
+                            filament, color_name, color, cols, ctype,
+                            temp_min, temp_max, sn_number, k_val,
+                            total_weight, remain_weight);
+}
+
 void StatusPanel::on_filament_edit(wxCommandEvent &event)
 {
     int  current_position_x = m_ams_control->GetScreenPosition().x;
@@ -5503,6 +5540,17 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                     if (auto weight = tray->get_filament_remain_weight(); weight.has_value() && weight.value() >= 0) {
                         remain_weight = wxString::Format("%d", *weight);
                     }
+                }
+
+                // RFID filament: open the view-only dialog instead of the editable one.
+                if (!is_third) {
+                    open_rfid_view(ams_id, slot_id, tray->setting_id,
+                                   static_cast<int>(tray->ctype),
+                                   filament, color, cols,
+                                   temp_min, temp_max, sn_number, k_val,
+                                   wxPoint(current_position_x, current_position_y),
+                                   total_weight, remain_weight);
+                    return;
                 }
 
                 if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
@@ -5588,6 +5636,10 @@ void StatusPanel::dismiss_filament_hint_ui(const std::string& dev_id, const std:
     if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown())
         m_ams_control_web_panel->UpdateByMachine(obj);
 #endif
+    if (m_filament_hotend_web_panel && obj && obj->get_dev_id() == dev_id)
+        m_filament_hotend_web_panel->UpdateByMachine(obj);
+    if (m_filament_hotend_web_dlg && obj && obj->get_dev_id() == dev_id)
+        m_filament_hotend_web_dlg->UpdateByMachine(obj);
 }
 
 void StatusPanel::show_new_official_filament_dlg(
@@ -5785,6 +5837,17 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
                 remain_weight = wxString::Format("%d", *weight);
             }
 
+            // RFID filament: open the view-only dialog instead of the editable one.
+            if (!is_third) {
+                open_rfid_view(ams_id, slot_id, vt_tray->setting_id,
+                               static_cast<int>(vt_tray->ctype),
+                               filament, color, cols,
+                               temp_min, temp_max, sn_number, k_val,
+                               wxPoint(current_position_x, current_position_y),
+                               total_weight, remain_weight);
+                return;
+            }
+
             if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
             m_filament_setting_dlg->obj        = obj;
             m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
@@ -5799,7 +5862,6 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
                 m_filament_setting_dlg->set_color(color);
                 m_filament_setting_dlg->set_colors(cols);
             }
-
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
             m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
         } catch (...) {

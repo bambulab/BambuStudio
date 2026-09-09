@@ -89,6 +89,8 @@ export interface FilamentCardInfo {
   type: string;                               // was slot.filament_type
   remain?: number;                            // 0..100; default 100
   status_text: string;
+  /** True when a newly auto-recorded official filament badge is pending for this slot. */
+  new_filament_hint?: boolean;
 }
 
 // Feed-line render group. Mirrors C++ keys::filament_line.

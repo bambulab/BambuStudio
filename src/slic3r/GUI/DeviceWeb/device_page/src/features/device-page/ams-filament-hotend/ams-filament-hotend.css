@@ -359,6 +359,18 @@
   box-shadow: 0 0 0 1px var(--ams-brand);
 }
 
+.filament-card-hint-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: block;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
 .card-spool-wrap {
   display: flex;
   flex-direction: column;
