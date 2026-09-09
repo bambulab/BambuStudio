@@ -7,7 +7,14 @@ if (IN_GIT_REPO)
 endif ()
 
 if (MSVC)
-    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+    # Prefer the generator platform (-A ...) over the host processor so that an
+    # ARM64 host building an x64 (or ARM64EC) target stages the right blobs.
+    set(_gmp_plat "${CMAKE_GENERATOR_PLATFORM}")
+    if (NOT _gmp_plat)
+        set(_gmp_plat "${CMAKE_SYSTEM_PROCESSOR}")
+    endif ()
+    string(TOUPPER "${_gmp_plat}" _gmp_plat)
+    if (_gmp_plat MATCHES "^(ARM64|AARCH64)$")
         set(_gmpheader win_arm64/gmp.h)
         set(_gmplib win_arm64/libgmp-10.lib)
         set(_gmpdll win_arm64/gmp-10.dll)

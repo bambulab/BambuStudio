@@ -37,7 +37,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Get the version and date on Ubuntu and macOS
-        if: inputs.os != 'windows-latest'
+        if: ${{ !startsWith(inputs.os, 'windows') }}
         run: |
           ver_pure=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
@@ -51,7 +51,7 @@ jobs:
         shell: bash
 
       - name: Get the version and date on Windows
-        if: inputs.os == 'windows-latest'
+        if: startsWith(inputs.os, 'windows')
         run: |
           $date = Get-Date -Format 'yyyyMMdd'
           $ref = "${{ github.ref }}"
@@ -114,11 +114,11 @@ jobs:
 
   # Windows
       - name: setup MSVC
-        if: inputs.os == 'windows-latest'
+        if: startsWith(inputs.os, 'windows')
         uses: microsoft/setup-msbuild@v2
 
       - name: Install nsis and pkgconfig
-        if: inputs.os == 'windows-latest'
+        if: startsWith(inputs.os, 'windows')
         run: |
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
           choco install nsis
@@ -133,6 +133,25 @@ jobs:
           cmake .. -G "Visual Studio 18 2026" -A X64 -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
           cmake --build . --target install --config Release -- -m
 
+      # Windows on ARM64/ARM64EC: VS 2022 generator (the arm runner has no VS
+      # 2026), and the newest installed 10.* SDK is resolved at runtime rather
+      # than pinned, since the arm image may not ship the exact SDK the x64 job
+      # hard-codes. arm64ec produces the variant that can load the x64-only
+      # Bambu network plugin in-process at native speed.
+      - name: Build slicer Win ARM64/ARM64EC
+        if: inputs.os == 'windows-11-arm'
+        working-directory: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          $sdkRoot = "C:/Program Files (x86)/Windows Kits/10/Include"
+          $sdk = (Get-ChildItem $sdkRoot -Directory | Where-Object { $_.Name -match '^10\.' } | Sort-Object Name -Descending | Select-Object -First 1).FullName
+          Write-Output "Using Windows SDK: $sdk"
+          $platform = "${{ inputs.arch }}" -eq "arm64ec" ? "ARM64EC" : "ARM64"
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -A $platform -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="$sdk"
+          cmake --build . --target install --config Release -- -m
+
       # - name: Create installer Win
       #   if: inputs.os == 'windows-latest'
       #   working-directory: ${{ github.workspace }}/build
@@ -144,6 +163,12 @@ jobs:
         working-directory: ${{ github.workspace }}
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/install-dir'
+
+      - name: Pack app ARM64
+        if: inputs.os == 'windows-11-arm'
+        working-directory: ${{ github.workspace }}
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio_Windows_${{ env.ver }}_${{ inputs.arch }}_portable.zip ${{ github.workspace }}/install-dir'
 
       # - name: Pack PDB
       #   if: inputs.os == 'windows-latest'
@@ -157,6 +182,13 @@ jobs:
         with:
           name: BambuStudio_Windows_${{ env.ver }}_portable
           path: ${{ github.workspace }}/BambuStudio_Windows_${{ env.ver }}_portable.zip
+
+      - name: Upload artifacts Win ARM64 zip
+        if: inputs.os == 'windows-11-arm'
+        uses: actions/upload-artifact@v6
+        with:
+          name: BambuStudio_Windows_${{ env.ver }}_${{ inputs.arch }}_portable
+          path: ${{ github.workspace }}/BambuStudio_Windows_${{ env.ver }}_${{ inputs.arch }}_portable.zip
 
 
   # Ubuntu

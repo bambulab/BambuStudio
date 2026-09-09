@@ -15,6 +15,12 @@ if (MSVC)
     if (_msvc_target_arch STREQUAL "ARM64" OR _msvc_target_arch STREQUAL "AARCH64")
         set(_is_arm64 TRUE)
     endif ()
+    if (_msvc_target_arch STREQUAL "ARM64EC")
+        # Intel IPP has no ARM64EC-linkable distribution (prebuilt x64 IPP
+        # members fail to resolve in an EC link), and softintrin'd SSE dispatch
+        # would be slower than plain C++ compiled native - treat like arm64.
+        set(_is_arm64 TRUE)
+    endif ()
 else ()
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$")
         set(_is_arm64 TRUE)
