@@ -3104,8 +3104,26 @@ bool GUI_App::on_init_inner()
     //CBaseException::set_log_folder(data_dir());
 // #endif
 
-    wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received wxEVT_QUERY_END_SESSION";
+    wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto &e) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "received wxEVT_QUERY_END_SESSION, dialogs=" << dialogStack.size();
+
+        // Native modal sessions are strictly LIFO: only the top one can be ended
+        // now. End it and keep dialogStackForceEnd set; each loop, as it unwinds,
+        // ends the next (now-top) dialog (see DPIAware::ShowModal). Re-drive from
+        // the main loop once the stack is drained to close the mainframe.
+        if (!dialogStack.empty()) {
+            dialogStackForceEnd = true;
+            dialogStack.front()->EndModal(wxID_ABORT);
+            CallAfter([] {
+                wxCloseEvent evt(wxEVT_QUERY_END_SESSION);
+                evt.SetCanVeto(true);
+                wxGetApp().ProcessEvent(evt);
+            });
+            e.Veto();
+            return;
+        }
+        dialogStackForceEnd = false;
+
         if (mainframe) {
             wxCloseEvent e2(wxEVT_CLOSE_WINDOW);
             e2.SetCanVeto(true);
@@ -3115,8 +3133,6 @@ bool GUI_App::on_init_inner()
                 return;
             }
         }
-        for (auto d : dialogStack)
-            d->EndModal(wxID_ABORT);
     });
 
     // Verify resources path
