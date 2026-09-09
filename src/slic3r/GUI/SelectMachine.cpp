@@ -3349,6 +3349,13 @@ void SelectMachineDialog::on_send_print()
 
     m_print_job->has_sdcard = obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
     m_print_job->could_emmc_print = obj_->is_support_print_with_emmc;
+    /* Send to the USB stick when there is one, and to the internal cache only when
+       there is not. Until now the capability bit was forwarded as the destination,
+       so every printer that could use its cache always did -- a file that Bambu
+       Handy cannot list, that no FTP client on the network can read, and that the
+       printer's own screen will not offer for a reprint. The send dialog picks the
+       same way; see update_storage_list in SendToPrinter.cpp. (#10481) */
+    m_print_job->use_emmc_storage = !m_print_job->has_sdcard;
 
 
     bool timelapse_option = m_checkbox_list["timelapse"]->IsShown()?true:false;

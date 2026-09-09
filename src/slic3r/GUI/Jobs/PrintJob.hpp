@@ -85,6 +85,13 @@ public:
     bool        cloud_print_only { false };
     bool        has_sdcard { false };
     bool        could_emmc_print { false };
+    /* Where this job's file should be stored, for a printer that could do either.
+       ``could_emmc_print`` is a firmware capability bit and says only that the
+       internal cache is available; this says whether to use it. Defaults to true
+       so a caller that does not care keeps the historical behaviour of preferring
+       the cache whenever the printer supports it -- only the print dialog, which
+       knows whether a USB stick is in, sets it. (#10481) */
+    bool        use_emmc_storage { true };
     bool        task_use_ams { true };
     bool        task_ext_change_assist { false };
     bool        task_timelapse_use_internal { false };

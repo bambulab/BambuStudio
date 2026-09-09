@@ -134,7 +134,7 @@ private:
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
     std::vector<RadioBox *>             m_storage_radioBox;
     std::string                         m_selected_storage;
-    bool                                m_if_has_sdcard;
+    bool                                m_if_has_sdcard{ false };
     bool                                m_waiting_support{ false };
     bool                                m_waiting_enable{ false };
     std::vector<std::string>            m_ability_list;
