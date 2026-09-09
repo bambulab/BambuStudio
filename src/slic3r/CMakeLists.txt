@@ -320,6 +320,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp
     GUI/WebViewDialog.hpp
+    GUI/SystemShare.hpp
+    GUI/SystemShare.cpp
     GUI/PrinterWebView.cpp
     GUI/PrinterWebView.hpp
     GUI/WebDownPluginDlg.hpp
@@ -710,6 +712,7 @@ if (WIN32)
             GUI/dark_mode/UAHMenuBar.hpp
             GUI/dark_mode.hpp
             GUI/dark_mode.cpp
+            GUI/SystemShare_win.cpp
         )
 endif ()
 
@@ -726,6 +729,7 @@ if (APPLE)
             GUI/CameraFullscreenMac.hpp
             GUI/MacIME.mm
             GUI/MacIME.hpp
+            GUI/SystemShare_mac.mm
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
             GUI/wxMediaCtrl3.h
@@ -746,6 +750,7 @@ endif ()
 if (UNIX AND NOT APPLE)
     list(APPEND SLIC3R_GUI_SOURCES
         GUI/Printer/gstbambusrc.c
+        GUI/SystemShare_fallback.cpp
     )
 endif ()
 
