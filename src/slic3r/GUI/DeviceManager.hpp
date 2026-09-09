@@ -539,6 +539,7 @@ public:
         DOOR_OPEN_CHECK_DISABLE            = 0,/*do nothing*/
         DOOR_OPEN_CHECK_ENABLE_WARNING     = 1,/*warning*/
         DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT = 2,/*pause print*/
+        DOOR_OPEN_CHECK_ENABLE_SLOW_DOWN   = 3,/*keep printing but slow down the toolhead, only when fun2[27] is set*/
     };
 
     bool        file_model_download{false};
@@ -868,6 +869,8 @@ public:
 
     /* xcam door open check*/
     bool               support_door_open_check() const { return is_support_door_open_check;};
+    /* whether the "slow down the toolhead" behaviour can be selected in addition to warning/pause */
+    bool               support_door_open_check_slow_down() const { return is_support_door_open_check_slow_down;};
     DoorOpenCheckState get_door_open_check_state() const { return xcam_door_open_check;};
     void               command_set_door_open_check(DoorOpenCheckState state);
 
@@ -879,6 +882,7 @@ private:
 
     /* xcam door open check*/
     bool is_support_door_open_check = false;
+    bool is_support_door_open_check_slow_down = false;
     DoorOpenCheckState xcam_door_open_check  = DoorOpenCheckState::DOOR_OPEN_CHECK_DISABLE;
     time_t xcam_door_open_check_start_time   = 0;
 

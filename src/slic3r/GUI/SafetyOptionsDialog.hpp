@@ -19,6 +19,7 @@
 
 // Previous definitions
 class SwitchBoard;
+class MultiSwitchButton;
 
 namespace Slic3r { namespace GUI {
 
@@ -34,6 +35,12 @@ protected:
     Label*       m_text_idel_heating_protection;
     Label*       m_text_idel_heating_protection_caption;
     SwitchBoard* m_open_door_switch_board;
+    // Three-state variant, only used when the device reports fun2[27]. The two-state
+    // board above stays in place for firmwares without the slow down behaviour.
+    Label*             m_text_open_door_caption { nullptr };
+    MultiSwitchButton* m_open_door_mode_switch { nullptr };
+    // Guards the selection event while the switch is being synced from a device push.
+    bool               m_open_door_mode_syncing { false };
     wxPanel*    m_idel_heating_container { nullptr };
 
     // toast for idle heating unavailable
@@ -57,6 +64,8 @@ public:
 
 private:
     void updateOpenDoorCheck(MachineObject *obj);
+    // Sync the three-state switch with the device state without emitting a command.
+    void syncOpenDoorModeSwitch(MachineObject *obj);
     void updateIdelHeatingProtect(MachineObject *obj);
     void show_idel_heating_toast(const wxString &text);
 };

@@ -22,6 +22,24 @@ class MultiSwitchButton;
 
 namespace Slic3r { namespace GUI {
 
+// Open door detection behaviour, shared by PrintOptionsDialog and SafetyOptionsDialog.
+// The three-state switch is only shown when the device reports fun2[27]; otherwise the
+// legacy two-state board (notification / pause printing) stays in use.
+namespace OpenDoorCheck
+{
+    // Labels of the three-state switch, in UI order.
+    std::vector<wxString> ModeSwitchOptions();
+
+    // UI index <-> protocol state. An index or state outside the three-state set maps
+    // back to "notification", which is the behaviour used when the detection is enabled.
+    int                               IndexFromState(MachineObject::DoorOpenCheckState state);
+    MachineObject::DoorOpenCheckState StateFromIndex(int index);
+
+    // Slowing the toolhead down costs print time and may degrade quality, so ask first.
+    // Returns true when the user confirms.
+    bool ConfirmSlowDown(wxWindow *parent);
+}
+
 class PrinterPartsDialog : public DPIDialog
 {
 protected:
@@ -163,6 +181,10 @@ protected:
     StaticLine* line6;
     StaticLine* line7;
     SwitchBoard* open_door_switch_board;
+    // Three-state variant of open_door_switch_board, used when the device reports fun2[27].
+    MultiSwitchButton* m_open_door_mode_switch{nullptr};
+    // Guards the selection event while the switch is being synced from a device push.
+    bool               m_open_door_mode_syncing{false};
     SwitchBoard *purify_air_switch_board;
     wxBoxSizer* create_settings_group(wxWindow* parent);
     wxPanel     *m_line;
@@ -234,6 +256,8 @@ public:
 private:
     void UpdateOptionSavePrintFileToStorage(MachineObject *obj);
     void UpdateOptionOpenDoorCheck(MachineObject *obj);
+    // Sync the three-state switch with the device state without emitting a command.
+    void SyncOpenDoorModeSwitch(MachineObject *obj);
     void UpdateOptionSnapshot(MachineObject *obj);
 };
 

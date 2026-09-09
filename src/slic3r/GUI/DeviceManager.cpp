@@ -4721,6 +4721,7 @@ void MachineObject::parse_new_info(json print)
         is_support_filament_manual_multi_color = (get_flag_bits_no_border(fun2, 23) == 1);
         m_fila_system->GetAutoRefillMgr().SetVersion(get_flag_bits_no_border(fun2, 25) == 1 ? DevFilaAutoRefillMgr::RefillVersion::RefillInfo : DevFilaAutoRefillMgr::RefillVersion::FilaBackup);
         m_fila_system->GetAutoRefillMgr().SetSupportManualEdit(get_flag_bits_no_border(fun2, 26) == 1);
+        is_support_door_open_check_slow_down = (get_flag_bits_no_border(fun2, 27) == 1);
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = DevUtil::get_flag_bits_no_border(fun2, 7) == 1;
@@ -5146,6 +5147,12 @@ void MachineObject::check_ams_filament_valid()
 
 void MachineObject::command_set_door_open_check(DoorOpenCheckState state)
 {
+    // The slow down behaviour only exists on firmwares reporting fun2[27]; never push it elsewhere.
+    if (state == DOOR_OPEN_CHECK_ENABLE_SLOW_DOWN && !is_support_door_open_check_slow_down) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": slow down state is not supported by this device";
+        return;
+    }
+
     json j;
     j["system"]["command"]       = "set_door_stat";
     j["system"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
@@ -5154,6 +5161,7 @@ void MachineObject::command_set_door_open_check(DoorOpenCheckState state)
          case Slic3r::MachineObject::DOOR_OPEN_CHECK_DISABLE:            j["system"]["config"] = 0; break;
          case Slic3r::MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING:     j["system"]["config"] = 1; break;
          case Slic3r::MachineObject::DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT: j["system"]["config"] = 2; break;
+         case Slic3r::MachineObject::DOOR_OPEN_CHECK_ENABLE_SLOW_DOWN:   j["system"]["config"] = 3; break;
          default: assert(0); return;
     }
 

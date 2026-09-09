@@ -23,6 +23,52 @@ static StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(194, 194, 194),
                                std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                                std::pair<wxColour, int>(wxColour(0, 177, 66), StateColor::Normal));
 
+namespace OpenDoorCheck
+{
+
+// UI order of the three-state switch, kept next to the label list below.
+static const MachineObject::DoorOpenCheckState MODE_BY_INDEX[] = {
+    MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING,
+    MachineObject::DOOR_OPEN_CHECK_ENABLE_SLOW_DOWN,
+    MachineObject::DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT,
+};
+static const int MODE_COUNT = (int) (sizeof(MODE_BY_INDEX) / sizeof(MODE_BY_INDEX[0]));
+
+std::vector<wxString> ModeSwitchOptions()
+{
+    return {_L("Notify only"), _L("Slow down toolhead"), _L("Pause printing")};
+}
+
+int IndexFromState(MachineObject::DoorOpenCheckState state)
+{
+    for (int i = 0; i < MODE_COUNT; i++) {
+        if (MODE_BY_INDEX[i] == state) return i;
+    }
+    return 0;
+}
+
+MachineObject::DoorOpenCheckState StateFromIndex(int index)
+{
+    if (index < 0 || index >= MODE_COUNT) return MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING;
+    return MODE_BY_INDEX[index];
+}
+
+bool ConfirmSlowDown(wxWindow *parent)
+{
+    wxString message = _L("When the door is opened during printing, the printer slows down the toolhead related moves for safety. "
+                          "This may increase the toolhead switching time and affect the print quality.");
+    wxString caption = _L("Enable Slow Down Toolhead?");
+
+    // Same pattern as the nozzle clumping confirmation: Cancel is the highlighted default so
+    // the user has to actively pick the option that may degrade the print.
+    MessageDialog dialog(parent, message, caption, wxICON_WARNING);
+    dialog.AddButton(wxID_CANCEL, _L("Cancel"), true);
+    dialog.AddButton(wxID_OK, _L("Enable Anyway"), false);
+    return dialog.ShowModal() == wxID_OK;
+}
+
+} // namespace OpenDoorCheck
+
 PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
     : DPIDialog(parent, wxID_ANY, _L("Print Options"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
@@ -262,6 +308,21 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         {
             if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING); }
         }
+        evt.Skip();
+    });
+
+    m_open_door_mode_switch->Bind(wxCUSTOMEVT_MULTISWITCH_SELECTION, [this](wxCommandEvent& evt)
+    {
+        if (m_open_door_mode_syncing || !obj) { evt.Skip(); return; }
+
+        const MachineObject::DoorOpenCheckState state = OpenDoorCheck::StateFromIndex(evt.GetInt());
+        if (state == MachineObject::DOOR_OPEN_CHECK_ENABLE_SLOW_DOWN && !OpenDoorCheck::ConfirmSlowDown(this)) {
+            SyncOpenDoorModeSwitch(obj); // roll back to the state reported by the device
+            evt.Skip();
+            return;
+        }
+
+        obj->command_set_door_open_check(state);
         evt.Skip();
     });
 
@@ -860,6 +921,9 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     update_purify_air_at_print_end(obj_);
 
     this->Thaw();
+    // The options above show/hide rows; that alone does not re-run the sizer of the
+    // scrolled window, so lay it out explicitly before the dialog itself.
+    m_scrollwindow->Layout();
     Layout();
 }
 
@@ -885,6 +949,7 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj)
         text_open_door->Hide();
         text_open_door_caption->Hide();
         open_door_switch_board->Hide();
+        m_open_door_mode_switch->Hide();
         return;
     }
 
@@ -898,11 +963,19 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj)
         text_open_door_caption->Hide();
         text_open_door->Hide();
         open_door_switch_board->Hide();
+        m_open_door_mode_switch->Hide();
         return;
     }
 
-    if (obj->get_door_open_check_state() != MachineObject::DOOR_OPEN_CHECK_DISABLE) {
-        m_cb_open_door->SetValue(true);
+    // Devices reporting fun2[27] get the extra "slow down toolhead" behaviour.
+    const bool support_slow_down = obj->support_door_open_check_slow_down();
+    const bool enabled           = obj->get_door_open_check_state() != MachineObject::DOOR_OPEN_CHECK_DISABLE;
+
+    m_cb_open_door->SetValue(enabled);
+    if (support_slow_down) {
+        SyncOpenDoorModeSwitch(obj);
+        m_open_door_mode_switch->Enable(enabled);
+    } else if (enabled) {
         open_door_switch_board->Enable();
 
         if (obj->get_door_open_check_state() == MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING) {
@@ -912,16 +985,29 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj)
             open_door_switch_board->updateState("right");
             open_door_switch_board->Refresh();
         }
-
     } else {
-        m_cb_open_door->SetValue(false);
         open_door_switch_board->Disable();
     }
 
     m_cb_open_door->Show();
     text_open_door->Show();
     text_open_door_caption->Show();
-    open_door_switch_board->Show();
+    open_door_switch_board->Show(!support_slow_down);
+    m_open_door_mode_switch->Show(support_slow_down);
+}
+
+void PrintOptionsDialog::SyncOpenDoorModeSwitch(MachineObject *obj)
+{
+    if (!obj) return;
+
+    // Keep the last selected behaviour visible while the detection is off, so the user
+    // can see what turning it back on will do.
+    const MachineObject::DoorOpenCheckState state = obj->get_door_open_check_state();
+    if (state == MachineObject::DOOR_OPEN_CHECK_DISABLE) return;
+
+    m_open_door_mode_syncing = true;
+    m_open_door_mode_switch->SetSelection(OpenDoorCheck::IndexFromState(state));
+    m_open_door_mode_syncing = false;
 }
 
 void PrintOptionsDialog::UpdateOptionSnapshot(MachineObject *obj)
@@ -1539,6 +1625,12 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_open_door_caption->SetFont(Label::Body_12);
     open_door_switch_board = new SwitchBoard(parent, _L("Notification"), _L("Pause printing"), wxSize(FromDIP(200), FromDIP(26)));
     open_door_switch_board->Disable();
+    m_open_door_mode_switch = new MultiSwitchButton(parent);
+    m_open_door_mode_switch->SetFitOptionsToText();
+    m_open_door_mode_switch->SetOptions(OpenDoorCheck::ModeSwitchOptions());
+    m_open_door_mode_switch->SetSelection(0);
+    // Match the height of the two-state board; the width follows the option labels.
+    m_open_door_mode_switch->SetMinSize(wxSize(-1, FromDIP(26)));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_open_door, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_open_door, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1546,7 +1638,18 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     sizer->Add(text_open_door_caption, 0, wxLEFT, FromDIP(58));
     sizer->Add(open_door_switch_board, 0, wxLEFT, FromDIP(58));
+
+    // A vertical sizer stretches its children to the full width, which would blow the
+    // switch up to the dialog width, so keep it at its own size with a trailing spacer.
+    wxBoxSizer *open_door_mode_sizer = new wxBoxSizer(wxHORIZONTAL);
+    open_door_mode_sizer->AddSpacer(FromDIP(58));
+    open_door_mode_sizer->Add(m_open_door_mode_switch, 0, wxALIGN_CENTER_VERTICAL | wxTOP, FromDIP(5));
+    open_door_mode_sizer->AddStretchSpacer();
+    sizer->Add(open_door_mode_sizer, 0, wxEXPAND | wxRIGHT, FromDIP(18));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    // Only one of the two behaviour selectors is shown, decided by UpdateOptionOpenDoorCheck().
+    m_open_door_mode_switch->Hide();
 
     m_snapshot_sizer = new wxBoxSizer(wxVERTICAL);
 
