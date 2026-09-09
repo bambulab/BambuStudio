@@ -240,7 +240,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "zigzag",             ipZigZag },
     { "crosszag",           ipCrossZag },
     { "lockedzag",          ipLockedZag },
-    { "2dlattice",          ip2DLattice  }
+    { "2dlattice",          ip2DLattice  },
+    { "ironingarchimedeanspiral", ipIroningArchimedeanSpiral }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -572,12 +573,36 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     return variant_string;
 }
 
+std::set<NozzleVolumeType> get_extruder_supported_nozzle_volume_types(const DynamicPrintConfig &printer_config, int extruder_id)
+{
+    std::set<NozzleVolumeType> supported_types;
+
+    auto *variant_list   = printer_config.option<ConfigOptionStrings>("extruder_variant_list");
+    auto *extruder_types = printer_config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    if (!variant_list || !extruder_types || extruder_id < 0 ||
+        extruder_id >= (int) variant_list->values.size() || extruder_id >= (int) extruder_types->values.size())
+        return supported_types;
+
+    const ExtruderType extruder_type = ExtruderType(extruder_types->values[extruder_id]);
+    for (NozzleVolumeType volume_type : get_valid_nozzle_volume_type()) {
+        // An unsupported extruder type yields an empty name, which would match any list.
+        const std::string variant = get_extruder_variant_string(extruder_type, volume_type);
+        if (!variant.empty() && variant_list->values[extruder_id].find(variant) != std::string::npos)
+            supported_types.insert(volume_type);
+    }
+    return supported_types;
+}
+
 int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id_1based, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids_1based)
 {
     assert(variant_list.size() == variant_ids_1based.size());
     std::string extruder_variant = get_extruder_variant_string(extruder_type, volume_type);
     for (int index = 0; index < int(variant_list.size()); ++index) {
         if (extruder_variant == variant_list[index] && variant_ids_1based[index] == variant_id_1based) { return index; }
+    }
+    // index 是同一套耗材参数数组的行下标；找不到当前喷嘴流量时，返回该耗材已有行的下标（一般为 Standard）。
+    for (int index = 0; index < int(variant_list.size()); ++index) {
+        if (variant_ids_1based[index] == variant_id_1based) { return index; }
     }
     // BOOST_LOG_TRIVIAL(error) << __FUNCTION__
     //                          << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
@@ -837,59 +862,74 @@ bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::v
     return false;
 }
 
-void DynamicPrintConfig::repair_nil_filament_max_volumetric_speed()
+void DynamicPrintConfig::repair_invalid_filament_extrusion_parameters()
 {
-    auto* speed_opt   = this->option<ConfigOptionFloats>("filament_max_volumetric_speed");
     auto* variant_opt = this->option<ConfigOptionStrings>("filament_extruder_variant");
     auto* self_opt    = this->option<ConfigOptionInts>("filament_self_index");
-    if (!speed_opt || !variant_opt || !self_opt)
+    if (!variant_opt || !self_opt)
         return;
 
-    std::vector<double>& speeds = speed_opt->values;
     const std::vector<std::string>& variants = variant_opt->values;
     const std::vector<int>& self_idx = self_opt->values;
-    const size_t n = speeds.size();
-    if (variants.size() != n || self_idx.size() != n)
+    const size_t n = variants.size();
+    if (self_idx.size() != n)
         return; // arrays not aligned, skip repair to stay safe
 
-    // First valid (finite, positive) speed of `filament_id` whose variant satisfies `variant_pred`.
-    auto find_speed = [&](int filament_id, auto variant_pred) -> double {
-        for (size_t i = 0; i < n; ++i) {
-            if (self_idx[i] != filament_id) continue;
-            if (!variant_pred(variants[i])) continue;
-            if (std::isfinite(speeds[i]) && speeds[i] > 0.) return speeds[i];
-        }
-        return 0.;
+    struct RepairParameter {
+        const char* key;
+        double      fallback;
     };
 
-    for (size_t i = 0; i < n; ++i) {
-        if (std::isfinite(speeds[i]) && speeds[i] > 0.)
-            continue; // valid, nothing to repair
+    static const RepairParameter repair_parameters[] = {
+        { "filament_max_volumetric_speed", 3. },
+        { "filament_flow_ratio",           1. }
+    };
 
-        const int              filament_id  = self_idx[i];
-        const std::string&     slot_variant = variants[i];
-        const NozzleVolumeType nvt          = convert_to_nvt_type(slot_variant);
+    for (const RepairParameter& parameter : repair_parameters) {
+        auto* option = this->option<ConfigOptionFloats>(parameter.key);
+        if (!option || option->values.size() != n)
+            continue; // Keep other parameters repairable when this array is missing or misaligned.
 
-        double filled = 0.;
+        std::vector<double>& values = option->values;
 
-        // 1) DD High Flow: borrow the same nozzle volume type from the Bowden extruder of the same
-        if (nvt != nvtStandard) {
-            const std::string bowden_variant = get_extruder_variant_string(etBowden, nvt);
-            filled = find_speed(filament_id, [&](const std::string& v) { return v == bowden_variant; });
+        // First valid (finite, positive) value of `filament_id` whose variant satisfies `variant_pred`.
+        auto find_value = [&](int filament_id, auto variant_pred) -> double {
+            for (size_t i = 0; i < n; ++i) {
+                if (self_idx[i] != filament_id) continue;
+                if (!variant_pred(variants[i])) continue;
+                if (std::isfinite(values[i]) && values[i] > 0.) return values[i];
+            }
+            return 0.;
+        };
+
+        for (size_t i = 0; i < n; ++i) {
+            if (std::isfinite(values[i]) && values[i] > 0.)
+                continue; // valid, nothing to repair
+
+            const int              filament_id  = self_idx[i];
+            const std::string&     slot_variant = variants[i];
+            const NozzleVolumeType nvt          = convert_to_nvt_type(slot_variant);
+
+            double filled = 0.;
+
+            // 1) DD High Flow: borrow the same nozzle volume type from the Bowden extruder of the same
+            if (nvt != nvtStandard) {
+                const std::string bowden_variant = get_extruder_variant_string(etBowden, nvt);
+                filled = find_value(filament_id, [&](const std::string& v) { return v == bowden_variant; });
+            }
+
+            // 2) any Standard value of the same filament (Direct Drive / Bowden interchangeable):
+            //    Standard <= High Flow, so it is always safe to fill any remaining slot.
+            if (filled <= 0.)
+                filled = find_value(filament_id, [&](const std::string& v) { return convert_to_nvt_type(v) == nvtStandard; });
+
+            const double repaired = filled > 0. ? filled : parameter.fallback;
+
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
+                << boost::format(": repaired invalid %1% at index %2% (filament %3%, variant '%4%') -> %5%")
+                   % parameter.key % i % filament_id % slot_variant % repaired;
+            values[i] = repaired;
         }
-
-        // 2) any Standard value of the same filament (Direct Drive / Bowden interchangeable):
-        //    Standard <= High Flow, so it is always safe to fill any remaining slot.
-        if (filled <= 0.)
-            filled = find_speed(filament_id, [&](const std::string& v) { return convert_to_nvt_type(v) == nvtStandard; });
-
-        // 3) safe floor when the filament has no usable value at all.
-        const double repaired = filled > 0. ? filled : 3.;
-
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
-            << boost::format(": repaired nil filament_max_volumetric_speed at index %1% (filament %2%, variant '%3%') -> %4% mm3/s")
-               % i % filament_id % slot_variant % repaired;
-        speeds[i] = repaired;
     }
 }
 
@@ -1158,8 +1198,9 @@ void PrintConfigDef::init_fff_params()
 {
     ConfigOptionDef* def;
 
-    // Maximum extruder temperature, bumped to 1500 to support printing of glass.
-    const int max_temp = 1500;
+    // the upper limit supported by machine currently is 350
+    // limit to the max with some margin
+    const int max_temp = 360;
 
     def = this->add("reduce_crossing_wall", coBool);
     def->label = L("Avoid crossing wall");
@@ -1420,6 +1461,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
                      "Expressed as percentage which indicides how much width of the line without support from lower layer. "
                      "0% means forcing cooling for all outer wall no matter how much overhang degree");
@@ -1442,6 +1484,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhang_threshold_participating_cooling", coEnums);
     def->label = L("Overhang threshold for participating cooling");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Decide which overhang part join the cooling function to slow down the speed."
                      "Expressed as percentage which indicides how much width of the line without support from lower layer. "
                      "100% means forcing cooling for all outer wall no matter how much overhang degree");
@@ -1510,6 +1553,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->max = 2;
     def->mode = comDevelop;
+    def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{1});
 
     def = this->add("initial_layer_flow_ratio", coFloat);
@@ -1607,7 +1651,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("100%");
     def->category = L("Speed");
     def->full_label = "100%";
-    def->tooltip    = L("Speed of 100%% overhang wall which has 0 overlap with the lower layer.");
+    // xgettext:no-c-format, no-boost-format
+    def->tooltip    = L("Speed of 100% overhang wall which has 0 overlap with the lower layer.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2128,6 +2173,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("bottom_surface_density", coPercent);
     def->label    = L("Bottom surface density");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip  = L("Density of bottom surface infill, 100% means a fully solid filled top layer."
                        "Lower values create a textured bottom surface, "
                        "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
@@ -2146,6 +2192,16 @@ void PrintConfigDef::init_fff_params()
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+
+    def                = this->add("sub_top_surface_pattern", coEnum);
+    def->label         = L("Sub-top surface pattern");
+    def->category      = L("Strength");
+    def->tooltip       = L("Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it.");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values   = def_top_fill_pattern->enum_values;
+    def->enum_labels   = def_top_fill_pattern->enum_labels;
+    def->mode          = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
 
     def = this->add("outer_wall_line_width", coFloat);
     def->label = L("Outer wall");
@@ -3085,6 +3141,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Density of internal sparse infill, 100% means solid throughout");
     def->sidetext = "%";
     def->min = 0;
@@ -3357,6 +3414,17 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
+
+    def = this->add("initial_layer_infill_line_width", coFloat);
+    def->label = L("Initial layer infill");
+    def->category = L("Quality");
+    def->tooltip = L("Line width of the infill of initial layer, including sparse infill, solid infill and top surface. "
+                     "Walls, support and everything else of the initial layer are not affected and keep using the line width "
+                     "of initial layer. Zero means to use the line width of initial layer.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("initial_layer_print_height", coFloat);
     def->label = L("Initial layer height");
@@ -4089,8 +4157,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
+    def->enum_values.push_back("ironingarchimedeanspiral");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
@@ -4605,12 +4675,14 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Embedding the wall into the infill");
     def->category = L("Strength");
     def->tooltip  = L("Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill.");
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("alternate_extra_wall", coBool);
     def->label = L("Alternate extra wall");
     def->category = L("Strength");
     def->tooltip  = L("Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall.");
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("post_process", coStrings);
@@ -5306,7 +5378,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
-    def->tooltip = L("If smooth or traditional mode is selected, a timelapse video will be generated for each print. "
+    def->tooltip = L("If smooth or instant mode is selected, a timelapse video will be generated for each print. "
                      "After each layer is printed, a snapshot is taken with the chamber camera. "
                      "All of these snapshots are composed into a timelapse video when printing completes. "
                      "If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed "
@@ -5316,7 +5388,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<TimelapseType>::get_enum_values();
     def->enum_values.emplace_back("0");
     def->enum_values.emplace_back("1");
-    def->enum_labels.emplace_back(L("Traditional"));
+    def->enum_labels.emplace_back(L("Instant"));
     def->enum_labels.emplace_back(L("Smooth"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlTraditional));
@@ -5325,7 +5397,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Farthest point timelapse");
     def->tooltip = L("When enabled, the timelapse snapshot is taken at the farthest point from camera "
                      "instead of traveling to the wipe tower or excess chute. "
-                     "Only effective in traditional timelapse mode on non-I3 printers.");
+                     "Only effective in instant timelapse mode on non-I3 printers.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -6282,7 +6354,7 @@ void PrintConfigDef::init_fff_params()
     def->label   = L("Rib wall");
     def->tooltip = L("The wall of prime tower will add four ribs and make its "
                      "cross-section as close to a square as possible, so the width will be fixed.");
-    def->mode    = comSimple;
+    def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def          = this->add("prime_tower_fillet_wall", coBool);
@@ -7670,6 +7742,9 @@ void DynamicPrintConfig::normalize_fdm()
         // Resolution will be above 1um.
         opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
 
+    // Repair invalid filament extrusion parameters carried by corrupted/legacy project files,
+    // before they propagate NaN into slicing speeds or extrusion amounts.
+    this->repair_invalid_filament_extrusion_parameters();
 }
 
 //BBS:divide normalize_fdm to 2 steps and call them one by one in Print::Apply
@@ -9524,10 +9599,15 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
         error_message.emplace("internal_solid_infill_pattern", L("invalid value ") + cfg.internal_solid_infill_pattern.serialize());
     }
 
+    if (!print_config_def.get("sub_top_surface_pattern")->has_enum_value(cfg.sub_top_surface_pattern.serialize())) {
+        error_message.emplace("sub_top_surface_pattern", L("invalid value ") + cfg.sub_top_surface_pattern.serialize());
+    }
+
     // --fill-density
     if (fabs(cfg.sparse_infill_density.value - 100.) < EPSILON &&
         ! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize())) {
-        error_message.emplace("sparse_infill_pattern", cfg.sparse_infill_pattern.serialize() + L(" doesn't work at 100%% density "));
+        // xgettext:no-c-format, no-boost-format
+        error_message.emplace("sparse_infill_pattern", cfg.sparse_infill_pattern.serialize() + L(" doesn't work at 100% density "));
     }
 
     // --skirt-height
@@ -10245,6 +10325,8 @@ Polygon get_shared_poly(const std::vector<Pointfs>& extruder_polys)
             Polygon extruer_poly;
             extruer_poly.points = to_points(extruder_area);
             Polygons result_polygon = intersection(extruer_poly, result);
+            if (result_polygon.empty())
+                return {};
             result = result_polygon[0];
         }
     }
@@ -10269,6 +10351,8 @@ Points get_bed_shape(const DynamicPrintConfig &config, bool use_share)
         if (extruder_area_opt && (extruder_area_opt->size() > 0)) {
             const std::vector<Pointfs>& extruder_areas = extruder_area_opt->values;
             bed_poly = get_shared_poly(extruder_areas);
+            if (bed_poly.points.empty())
+                bed_poly.points = to_points(bed_shape_opt->values);
         }
         else
             bed_poly.points = to_points(bed_shape_opt->values);
@@ -10286,6 +10370,8 @@ Points get_bed_shape(const PrintConfig &cfg, bool use_share)
         const std::vector<Pointfs>& extruder_areas = cfg.extruder_printable_area.values;
         if (extruder_areas.size() > 0) {
             bed_poly = get_shared_poly(extruder_areas);
+            if (bed_poly.points.empty())
+                bed_poly.points = to_points(cfg.printable_area.values);
         }
         else
             bed_poly.points = to_points(cfg.printable_area.values);

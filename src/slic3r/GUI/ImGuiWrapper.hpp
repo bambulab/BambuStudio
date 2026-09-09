@@ -51,6 +51,8 @@ class ImGuiWrapper
     // Chinese, Japanese, Korean
     bool m_font_cjk{ false };
     bool m_is_korean{ false };
+    // Thai glyphs are absent from every bundled font, so a Thai-only font is merged on top.
+    bool m_is_thai{ false };
     float m_font_size{ 18.0 };
     unsigned m_font_texture{ 0 };
     unsigned m_font_another_texture{ 0 };

@@ -412,26 +412,15 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
             if (remain_polines.size() != 0) {
-                if (!((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) &&
-                      perimeter_generator.object_config->support_top_z_distance.value == 0)) {
-                    //detect if the overhang perimeter is bridge
-                    detect_bridge_wall(perimeter_generator,
-                                       paths,
-                                       remain_polines,
-                                       erOverhangPerimeter,
-                                       perimeter_generator.mm3_per_mm_overhang(),
-                                       perimeter_generator.overhang_flow.width(),
-                                       perimeter_generator.overhang_flow.height());
-                } else {
-                    detect_bridge_wall( perimeter_generator,
-                                        paths,
-                                        remain_polines,
-                                        role,
-                                        extrusion_mm3_per_mm,
-                                        extrusion_width,
-                                        (float)perimeter_generator.layer_height);
-                }
-
+                // Detect overhang perimeter / bridge. Zero-gap support must not force normal wall role/flow here:
+                // unsupported walls still need erOverhangPerimeter + overhang_flow. See GitHub #11462.
+                detect_bridge_wall(perimeter_generator,
+                                   paths,
+                                   remain_polines,
+                                   erOverhangPerimeter,
+                                   perimeter_generator.mm3_per_mm_overhang(),
+                                   perimeter_generator.overhang_flow.width(),
+                                   perimeter_generator.overhang_flow.height());
             }
 
             if (paths.empty())
@@ -722,12 +711,9 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             // the loop centerline and original lower slices is >= half nozzle diameter
             // detect if the overhang perimeter is bridge
             ZPaths path_overhang = clip_extrusion(subject_path, clip_paths, ClipperLib_Z::ctDifference);
-            bool zero_z_support = (perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) && perimeter_generator.object_config->support_top_z_distance.value == 0;
-
-            if(zero_z_support)
-                detect_brigde_wall_arachne(perimeter_generator, paths, path_overhang, role, is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
-            else
-                detect_brigde_wall_arachne(perimeter_generator, paths, path_overhang, erOverhangPerimeter, perimeter_generator.overhang_flow);
+            // Zero-gap support must not force normal wall role/flow: unsupported walls still need
+            // erOverhangPerimeter + overhang_flow. See GitHub #11462.
+            detect_brigde_wall_arachne(perimeter_generator, paths, path_overhang, erOverhangPerimeter, perimeter_generator.overhang_flow);
             // Reapply the nearest point search for starting point.
             // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
             // Arachne sometimes creates extrusion with zero-length (just two same endpoints);

@@ -106,7 +106,6 @@ private:
     int last_wifi_signal = -1;
     int last_status;
     bool m_initialized { false };
-    bool m_first_enter { true };
     bool update_flag{false};
     wxTimer* m_refresh_timer = nullptr;
 

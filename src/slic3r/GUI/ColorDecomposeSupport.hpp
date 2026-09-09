@@ -40,6 +40,16 @@ struct DecomposeMissingComponent {
 
 struct MixedFilamentResult;
 
+enum class DecomposeColorBlockReason {
+    None,
+    Gradient,
+    Transparent,
+    MultiColor
+};
+
+DecomposeColorBlockReason decompose_color_block_reason(int filament_idx);
+wxString decompose_color_menu_label(DecomposeColorBlockReason reason);
+
 // ---- Functions ----
 
 std::string decompose_normalize_color_hex(std::string color);
@@ -71,11 +81,12 @@ std::string official_basic_type_from_preset_name(const std::string& preset_name)
 // get_filament_type when preset name matches; empty/missing -> "PLA".
 std::string filament_type_for_color_decompose(Preset* preset);
 
+// The source slot is eligible: a 100% official base (or a mix that uses that
+// base) should reuse the existing filament instead of duplicating it.
 int find_existing_decompose_component(
     const DecomposeOfficialComponent& component,
     const std::vector<std::string>& physical_colors,
-    const std::vector<size_t>& physical_config_indices,
-    size_t source_config_idx);
+    const std::vector<size_t>& physical_config_indices);
 
 bool prepare_decompose_mixed_result(
     const ColorDecomposeResult& result,
@@ -95,6 +106,19 @@ size_t count_decompose_new_physical_filaments(
     const std::vector<std::string>& physical_types,
     size_t source_physical_idx,
     const std::vector<size_t>* physical_config_indices);
+
+// Preview sidebar IDs that would be assigned if the current result were
+// confirmed. Matches prepare_decompose_mixed_result + add_custom_filament
+// (missing bases appended first) then create_mixed_filament_from_result
+// (mixed slot always last). Single-base 100% results do not create a mixed
+// filament; mixed_id then reuses that base's project-filament ID.
+DecomposePreviewIds preview_decompose_filament_ids(
+    const ColorDecomposeResult& result,
+    int source_physical_idx,
+    size_t current_filament_count,
+    const std::vector<std::string>& physical_colors,
+    const std::vector<std::string>& physical_types,
+    const std::vector<size_t>& physical_config_indices);
 
 bool confirm_create_decompose_missing_components(wxWindow* parent,
     const std::vector<DecomposeMissingComponent>& missing);

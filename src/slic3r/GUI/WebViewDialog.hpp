@@ -73,7 +73,7 @@ public:
     void OnRedo(wxCommandEvent& evt);
     void OnMode(wxCommandEvent& evt);
     void RunScript(const wxString& javascript);
-    void RunScriptLeft(const wxString &javascript);
+    void RunScriptLeft(const wxString &javascript, bool force_execute = false);
     void OnRunScriptString(wxCommandEvent& evt);
     void OnRunScriptInteger(wxCommandEvent& evt);
     void OnRunScriptDouble(wxCommandEvent& evt);

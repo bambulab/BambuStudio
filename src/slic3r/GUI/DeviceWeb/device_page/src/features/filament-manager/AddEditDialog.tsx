@@ -9,6 +9,7 @@ import { SpoolColorChip } from './SpoolColorChip';
 import useStore from '../../store/AppStore';
 import { useDeviceBridge } from '../../hooks/Bridge';
 import { buildVendorOptions } from './vendorOptions';
+import { CustomSelectDropdown } from './CustomSelectDropdown';
 // STUDIO-18114: shared draft -> commit helper for the custom color picker so
 // the OK/Cancel popover and the existing edit-dialog state stay aligned.
 import { commitCustomColorSelection } from './customColorSelection';
@@ -168,14 +169,20 @@ export function AddEditDialog({
   // the user has configured in the cloud but not yet locally.
   const cloudConfig = useStore((s) => s.filament.cloudConfig);
   const spools = useStore((s) => s.filament.spools);
+  const customFilamentCreateResult = useStore((s) => s.filament.customFilamentCreateResult);
+  const setCustomFilamentCreateResult = useStore((s) => s.filament.setCustomFilamentCreateResult);
   // F4.7: mirror of Studio's global selected machine. Used to default the
   // AMS-tab printer and to follow external changes made via
   // DeviceManager::OnSelectedMachineChanged.
   const globalSelectedDev = useStore((s) => s.filament.selectedMachineDevId);
+  const [customBrands, setCustomBrands] = useState<string[]>([]);
+
   const mergedVendorNames = useMemo(() => {
     const cloudVendors = Array.isArray(cloudConfig?.vendors) ? cloudConfig.vendors : undefined;
-    return buildVendorOptions(presets, cloudVendors, spools);
-  }, [presets, cloudConfig, spools]);
+    const base = buildVendorOptions(presets, cloudVendors, spools);
+    const set = new Set([...base, ...customBrands]);
+    return [...set].sort();
+  }, [presets, cloudConfig, spools, customBrands]);
 
   // Dialog mode
   const [mode, setMode] = useState<'manual' | 'ams'>('manual');
@@ -196,6 +203,12 @@ export function AddEditDialog({
   // outgoing spool is unambiguously single-colour.
   const [colors, setColors] = useState<string[]>([]);
   const [colorType, setColorType] = useState<0 | 1 | 2>(2);
+  // Raw (un-canonicalised) color_code preserving the alpha byte from the
+  // original #RRGGBBAA value. Used only by the preview-bar SpoolColorChip so
+  // single-colour translucent filaments render a tinted checkerboard instead
+  // of a solid fill. NOT used for palette matching, CSS gradient strings, or
+  // any other logic that requires a canonical #RRGGBB form.
+  const [rawColorCode, setRawColorCode] = useState('');
   // STUDIO-17977 F1.3: BBL 官方耗材代码（如 "Q01B00" / "13903"），来自
   // FilamentColorCodeQuery 中匹配的 candidate。仅用于 form 当前会话内的
   // UI 展示（预览栏右侧），**不持久化**到 FilamentSpool / cloud schema：
@@ -286,6 +299,11 @@ export function AddEditDialog({
     | { kind: 'batch'; creates: Partial<Spool>[]; updates: Partial<Spool>[] }
     | null
   >(null);
+  const customFilamentRequestRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open) customFilamentRequestRef.current = null;
+  }, [open]);
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -319,6 +337,7 @@ export function AddEditDialog({
       setSeries(initSpool.series || '');
       const initialColor = normalizeColorCode(initSpool.color_code);
       setColorCode(initialColor);
+      setRawColorCode(initSpool.color_code || '');
       setCustomColors(initialColor && !isPresetColor(initialColor) ? [initialColor] : []);
       setColorName(initSpool.color_name || '');
       // Restore multicolor / gradient state (W4 added these to the wire
@@ -422,8 +441,12 @@ export function AddEditDialog({
   //   选项直接显示云端 `get_filament_config` 返回的 filamentName 完整名
   //   （例如 "PLA Basic" / "PETG Translucent" / "PLA-S Support For PLA/PETG"）。
   //   这样下拉值与云端创建/更新耗材接口的 filamentName 字段语义一致，不再
-  //   依赖本地 preset 的 "type + series[]" 拼接。本地 preset 仅作为云端
-  //   config 尚未拉回来时的 fallback 兜底。
+  //   依赖本地 preset 的 "type + series[]" 拼接。
+  //   数据源为「云端 filamentSettings ∪ 本地 PresetBundle（含用户自定义
+  //   preset，STUDIO-18110 之后由 build_preset_options 附带 is_user 输出）」，
+  //   由共享 Set<string> 去重。这样云端未覆盖但用户已建的类型（例如自定义
+  //   eSUN PLA Basic / PLA Matte）也能出现在下拉里；纯官方品牌因命名对齐，
+  //   Set 折叠后与旧行为一致。
   const typeSeriesOptions = useMemo<string[]>(() => {
     const set = new Set<string>();
 
@@ -457,6 +480,7 @@ export function AddEditDialog({
     });
     return [...set].sort();
   }, [brand, cloudConfig, presets, getCloudSettingDisplayName]);
+
 
   // Split a combined "PLA Basic" string back into (type, series) using the
   // vendor's known types as anchors (longest-first to tolerate types with
@@ -660,10 +684,61 @@ export function AddEditDialog({
   // doubles as a negative cache so a transient C++ error doesn't make the
   // dialog spam the dispatcher on every state tick.
   const requestRpc = useDeviceBridge();
+  // Dedup in-flight color queries. Cache-only guards miss the window between
+  // dispatch and setColorCandidates, so a fallback effect re-run (or a
+  // concurrent primary/fallback kick) would re-issue the same query_for_id.
+  const candidateLoadInflight = useRef<Set<string>>(new Set());
+  const handleCreateCustomFilament = useCallback(() => {
+    const vendor = brand.trim();
+    if (!vendor) return;
+    const clientRequestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    customFilamentRequestRef.current = clientRequestId;
+    void requestRpc<{
+      module: 'filament'; submod: 'preset'; action: 'create_custom';
+      payload: { vendor: string; client_request_id: string };
+    }, BridgeResponseBody>({
+      module: 'filament', submod: 'preset', action: 'create_custom',
+      payload: { vendor, client_request_id: clientRequestId },
+    }).then((res) => {
+      if ((!res.ok || res.value.error_code !== 0) && customFilamentRequestRef.current === clientRequestId) {
+        customFilamentRequestRef.current = null;
+      }
+    });
+  }, [brand, requestRpc]);
+
+  useEffect(() => {
+    const result = customFilamentCreateResult;
+    if (!result || result.clientRequestId !== customFilamentRequestRef.current) return;
+    if (!result.ok || !result.created) {
+      customFilamentRequestRef.current = null;
+      setCustomFilamentCreateResult(null);
+      return;
+    }
+
+    const { vendor, type, name, filament_id } = result.created;
+    const createdItem = presets.flatMap((presetVendor) =>
+      presetVendor.name === vendor ? presetVendor.types.flatMap((presetType) =>
+        presetType.name === type ? (presetType.items ?? []).map((item) => ({ presetVendor, presetType, item })) : [],
+      ) : [],
+    ).find(({ item }) => item.filament_id === filament_id && item.name === name);
+    if (!open || !createdItem || !createdItem.item.name) return;
+
+    setBrand(vendor);
+    setMaterialType(type);
+    setSeries(normalizePresetFilamentName(
+      createdItem.item.name,
+      createdItem.presetVendor.name,
+      createdItem.presetType.name,
+      createdItem.item.series || '',
+    ));
+    customFilamentRequestRef.current = null;
+    setCustomFilamentCreateResult(null);
+  }, [customFilamentCreateResult, open, presets, setCustomFilamentCreateResult]);
   const loadCandidates = useCallback(async (id: string) => {
     if (!id) return;
     const cur = useStore.getState().filament.candidatesByFilaId;
-    if (cur[id]) return;
+    if (cur[id] || candidateLoadInflight.current.has(id)) return;
+    candidateLoadInflight.current.add(id);
     try {
       const res = await requestRpc<{
         module: 'filament'; submod: 'colors'; action: 'query_for_id';
@@ -700,6 +775,8 @@ export function AddEditDialog({
       const after = useStore.getState().filament.candidatesByFilaId[id];
       if (Array.isArray(after) && after.length > 0) return;
       setColorCandidates(id, []);
+    } finally {
+      candidateLoadInflight.current.delete(id);
     }
   }, [requestRpc, setColorCandidates]);
 
@@ -712,18 +789,21 @@ export function AddEditDialog({
   // material_type matches the current form selection so the type-aggregated
   // fallback panel has data to render. Fires only when the strict per-
   // fila_id panel would otherwise be empty (no filaId, or filaId resolved
-  // but its cached entry is empty). The loader is idempotent (cache-checked
-  // inside), so this is safe to fire on every dependency change.
+  // but its cached entry is empty). Do not subscribe to candidatesByFilaId:
+  // custom brands never get a primary filaId, so each cache write would
+  // re-kick the whole fallback list and storm query_for_id. loadCandidates
+  // already skips cached / in-flight ids.
   useEffect(() => {
     if (!open) return;
-    const primaryHasData = !!filaId && (candidatesByFilaId[filaId]?.length ?? 0) > 0;
+    const cache = useStore.getState().filament.candidatesByFilaId;
+    const primaryHasData = !!filaId && (cache[filaId]?.length ?? 0) > 0;
     if (primaryHasData) return;
     if (fallbackFilaIds.length === 0) return;
     for (const id of fallbackFilaIds) {
       if (id === filaId) continue;
       void loadCandidates(id);
     }
-  }, [open, filaId, fallbackFilaIds, candidatesByFilaId, loadCandidates]);
+  }, [open, filaId, fallbackFilaIds, loadCandidates]);
 
   // Comparing the form's current selection against a candidate. Delegates
   // to `candidateMatchesFormState` from the shared `colors/` module so the
@@ -890,13 +970,14 @@ export function AddEditDialog({
     userTouchedColorRef.current = true;
   }, []);
 
-  // 下拉切换时：
-  //  - series 直接存下拉选中的完整 filamentName（例如 "PLA Basic"）。这与
-  //    云端 PUT/POST 的 filamentName 字段语义一致，避免本地短名上云后丢类型前缀。
-  //  - material_type 优先从云端 filamentSettings 查该 filamentName 对应的
-  //    filamentType（云端是权威来源，能覆盖形如 "PLA-S Support For PLA/PETG"
-  //    这种本地 anchor 匹配会误切的复杂名称）。云端没命中再退回本地 preset
-  //    的前缀 anchor 匹配。
+  const handleAddBrand = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed || mergedVendorNames.includes(trimmed)) return;
+    setCustomBrands(prev => [...prev, trimmed]);
+    setBrand(trimmed);
+    if (!lockMaterial) { setMaterialType(''); setSeries(''); }
+  };
+
   const handleTypeSeriesChange = (full: string) => {
     const name = (full || '').trim();
     let type = '';
@@ -930,36 +1011,34 @@ export function AddEditDialog({
     setSeries(name);
   };
 
+
   // F4.5: validation no longer depends on `series` — the combined type field
   // covers both, and plenty of materials legitimately have no series (e.g. ABS).
-  // Weight rule: both values must be positive and 当前 ≤ 总 so the derived
-  // remain_percent never goes negative / > 100.
-  // STUDIO-17959: also enforce a max cap on both fields so users can't submit
-  // values that the backend silently clamps to 0.
-  const weightError = (() => {
-    if (totalNetWeight <= 0) return '';
+  // Keep the disabled-button explanation and the actual submit guard derived
+  // from this same list so they cannot drift apart.
+  const isAmsBatch = !isEdit && mode === 'ams' && selectedSlotKeys.size >= 2;
+  const confirmInvalidReasons = (() => {
+    if (isAmsBatch) return [];
+
+    const reasons: string[] = [];
+    if (!brand) reasons.push(t('Brand is required'));
+    if (!materialType) reasons.push(t('Material Type is required'));
+    if (!colorCode) reasons.push(t('Color is required'));
+    if (totalNetWeight <= 0) reasons.push(t('Total Net Weight must be greater than 0'));
+    if (currentNetWeight < 0) reasons.push(t('Current Net Weight cannot be negative'));
     if (totalNetWeight > MAX_NET_WEIGHT_GRAMS || currentNetWeight > MAX_NET_WEIGHT_GRAMS) {
-      return t('Weight cannot exceed {{max}}g', { max: MAX_NET_WEIGHT_GRAMS });
+      reasons.push(t('Weight cannot exceed {{max}}g', { max: MAX_NET_WEIGHT_GRAMS }));
     }
     if (currentNetWeight > totalNetWeight) {
-      return t('Current Net Weight cannot exceed Total Net Weight');
+      reasons.push(t('Current Net Weight cannot exceed Total Net Weight'));
     }
-    return '';
+    return reasons;
   })();
-  // STUDIO-18344: in AMS multi-select mode the editable form is hidden, so
-  // the per-field validation above is irrelevant — every payload is built
-  // directly from the AMS tray. The form's `isValid` guard is therefore
-  // skipped and we only require at least one slot to be selected.
-  const isAmsBatch = !isEdit && mode === 'ams' && selectedSlotKeys.size >= 2;
-  const isValid = isAmsBatch
-    ? selectedSlotKeys.size >= 2
-    : !!(
-        brand && materialType && colorCode &&
-        totalNetWeight > 0 && currentNetWeight >= 0 &&
-        totalNetWeight <= MAX_NET_WEIGHT_GRAMS &&
-        currentNetWeight <= MAX_NET_WEIGHT_GRAMS &&
-        currentNetWeight <= totalNetWeight
-      );
+  const isValid = confirmInvalidReasons.length === 0;
+  const weightError = confirmInvalidReasons.find((reason) =>
+    reason === t('Weight cannot exceed {{max}}g', { max: MAX_NET_WEIGHT_GRAMS }) ||
+    reason === t('Current Net Weight cannot exceed Total Net Weight'),
+  ) || '';
 
   // STUDIO-17977 F1.3: the previous F4.4 isCustomColor flag relied on a
   // BAMBU_COLORS hex-membership check, which became stale once the palette
@@ -1090,7 +1169,6 @@ export function AddEditDialog({
       remain_percent: remainPct,
       note,
       setting_id: matchedCloudFilamentId
-        || matchedPresetItem?.setting_id
         || matchedPresetItem?.filament_id
         || initSpool?.setting_id
         || '',
@@ -1692,7 +1770,10 @@ export function AddEditDialog({
     // preview-hex label) gets a canonical value.  Without this, an
     // un-prefixed hex flows into a CSS gradient and silently breaks.
     const sanitizedColor = normalizeColorCode(tray.color);
-    if (sanitizedColor) setColorCode(sanitizedColor);
+    if (sanitizedColor) {
+      setColorCode(sanitizedColor);
+      setRawColorCode(tray.color || '');
+    }
 
     // STUDIO-17977 F1.3: switching AMS slots must also reset the
     // gradient/multicolor pair (cols / ctype on the device side) and clear
@@ -2216,50 +2297,41 @@ export function AddEditDialog({
               <div className="flex gap-[12px]">
                 <div className="flex flex-col gap-[4px] flex-1 pb-[24px]">
                   <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Brand')}</label>
-                  <select
+                  <CustomSelectDropdown
                     data-testid="filament-brand"
-                    className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     value={brand}
+                    options={mergedVendorNames}
+                    placeholder={t('Select Brand')}
                     disabled={lockBrand}
-                    onChange={(e) => {
-                      setBrand(e.target.value);
-                      if (!lockMaterial) {
-                        setMaterialType('');
-                        setSeries('');
-                      }
+                    customInput={{
+                      placeholder: t('Enter brand name'),
+                      duplicateTooltip: t('Brand already exists'),
+                      onAdd: handleAddBrand,
                     }}
-                  >
-                    <option value="">{t('Select Brand')}</option>
-                    {mergedVendorNames.map((n) => <option key={n} value={n}>{n}</option>)}
-                  </select>
+                    onSelect={(v) => {
+                      setBrand(v);
+                      if (!lockMaterial) { setMaterialType(''); setSeries(''); }
+                    }}
+                  />
                 </div>
                 <div className="flex flex-col gap-[4px] flex-1 pb-[24px]">
                   <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Material Type')}</label>
-                  {/* F4.3: Must pick a brand first.  When brand is empty the
-                      options list would be the union of all vendors' types
-                      and that confuses users into thinking they can pick
-                      before a brand is set — disable the control instead and
-                      show a hint placeholder. */}
-                  <select
+                  <CustomSelectDropdown
                     data-testid="filament-material"
-                    className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     value={typeSeriesFull}
-                    onChange={(e) => handleTypeSeriesChange(e.target.value)}
+                    options={typeSeriesOptions}
+                    placeholder={!brand ? t('Select Brand First') : t('Select Type')}
                     disabled={!brand || lockMaterial}
-                  >
-                    <option value="">{!brand ? t('Select Brand First') : t('Select Type')}</option>
-                    {/* Edit 场景兜底：本地 spool 的 material_type/series 组合可能来源于
-                        AMS 同步、自定义添加、或更早版本的 presets 数据，不一定出现在当前
-                        brand 的 typeSeriesOptions 里。没有这个 fallback option 时 <select>
-                        找不到匹配项会回落到 placeholder "Select Type"，造成编辑时看上去
-                        "耗材类型未展示"。把当前值单独补一条，保证可回显、可修改。*/}
-                    {typeSeriesFull && !typeSeriesOptions.includes(typeSeriesFull) && (
-                      <option value={typeSeriesFull}>{typeSeriesFull}</option>
-                    )}
-                    {typeSeriesOptions.map((n) => <option key={n} value={n}>{n}</option>)}
-                  </select>
+                    footerAction={{
+                      label: t('Click to create custom filament'),
+                      onClick: handleCreateCustomFilament,
+                      testId: 'create-custom-filament',
+                    }}
+                    onSelect={handleTypeSeriesChange}
+                  />
                 </div>
               </div>
+
 
               {/* Color palette. F4.4 feedback: 自定义颜色需要"可保存 / 能看到已选"。
                   "+" 始终保留为取色入口；新取的自定义色追加到预设色之后。 */}
@@ -2448,7 +2520,7 @@ export function AddEditDialog({
                       className="inline-flex shrink-0"
                     >
                       <SpoolColorChip
-                        colorCode={colorCode}
+                        colorCode={rawColorCode || colorCode}
                         colors={colors}
                         colorType={colorType as 0 | 1 | 2 | undefined}
                         size={16}
@@ -2505,7 +2577,7 @@ export function AddEditDialog({
                           pure decoration so users don't have to guess
                           whether the field expects grams or kilograms. */}
                       <div className="flex items-center gap-[6px]">
-                        <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] disabled:cursor-not-allowed disabled:opacity-60" type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Current Net Weight')} value={currentNetWeight} disabled={lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
+                        <input data-testid="current-net-weight-input" className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] disabled:cursor-not-allowed disabled:opacity-60" type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Current Net Weight')} value={currentNetWeight} disabled={lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
                         <span className="text-[12px] leading-[19px] text-fm-text-secondary shrink-0">g</span>
                       </div>
                     </div>
@@ -2517,7 +2589,7 @@ export function AddEditDialog({
                           tracks consumption over time. Same trailing "g"
                           unit indicator as the sibling input. */}
                       <div className="flex items-center gap-[6px]">
-                        <input className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit || lockWeight ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit || lockWeight} disabled={isEdit || lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
+                        <input data-testid="total-net-weight-input" className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit || lockWeight ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit || lockWeight} disabled={isEdit || lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
                         <span className="text-[12px] leading-[19px] text-fm-text-secondary shrink-0">g</span>
                       </div>
                     </div>
@@ -2531,7 +2603,6 @@ export function AddEditDialog({
               </div>
             </div>
 
-            {/* 备注 — 唯一与云端同步的扩展字段，直接显示，不再折叠在高级设置里 */}
             <div className="flex flex-col gap-[4px]">
               <label className="text-[12px] leading-[19px] text-fm-text-secondary">{t('Note')}</label>
               <div className="relative">
@@ -2601,17 +2672,34 @@ export function AddEditDialog({
           {(isEdit || mode !== 'manual') && <div />}
           <div className="flex gap-[12px] items-center">
             <button data-testid="dialog-cancel" className="h-[30px] px-[32px] rounded-[8px] cursor-pointer text-[12px] leading-[19px] whitespace-nowrap transition-colors duration-150 bg-fm-input text-fm-text-primary border-none hover:bg-fm-hover" onClick={onClose}>{t('Cancel')}</button>
-            <button
-              data-testid="dialog-confirm"
-              data-batch={isAmsBatch ? 'true' : 'false'}
-              className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default"
-              disabled={!isValid}
-              onClick={handleSubmit}
+            <span
+              data-testid="dialog-confirm-tooltip-trigger"
+              className="relative inline-flex group"
+              data-tooltip={isValid ? undefined : confirmInvalidReasons.join('\n')}
             >
-              {isEdit
-                ? t('Save')
-                : (isAmsBatch ? t('Batch Add ({{count}})', { count: slotSelectionCount }) : t('Add'))}
-            </button>
+              <button
+                data-testid="dialog-confirm"
+                data-batch={isAmsBatch ? 'true' : 'false'}
+                aria-describedby={isValid ? undefined : 'dialog-confirm-tooltip'}
+                className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default"
+                disabled={!isValid}
+                onClick={handleSubmit}
+              >
+                {isEdit
+                  ? t('Save')
+                  : (isAmsBatch ? t('Batch Add ({{count}})', { count: slotSelectionCount }) : t('Add'))}
+              </button>
+              {!isValid && (
+                <span
+                  id="dialog-confirm-tooltip"
+                  role="tooltip"
+                  data-testid="dialog-confirm-tooltip"
+                  className="absolute right-0 bottom-[calc(100%+6px)] z-[60] w-max max-w-[280px] rounded-[6px] bg-fm-base border border-fm-border px-[8px] py-[6px] text-[12px] leading-[18px] text-fm-text-strong whitespace-pre-line shadow-lg opacity-0 pointer-events-none transition-opacity duration-100 group-hover:opacity-100"
+                >
+                  {confirmInvalidReasons.map((reason) => `• ${reason}`).join('\n')}
+                </span>
+              )}
+            </span>
           </div>
         </div>
       </div>
@@ -2637,7 +2725,11 @@ function AmsUnitIcon({ unit, isActive }: { unit: AmsUnit; isActive: boolean }) {
   const trays = unit.trays || [];
   const colors = [0, 1, 2, 3].map((i) => {
     const t = trays[i];
-    return t && t.is_exists && t.color ? t.color : 'rgba(255,255,255,0.1)';
+    // Canonicalise to #RRGGBB: SVG 1.1 fill does not support 8-char #RRGGBBAA
+    // hex — WebView2 would render it as black or transparent.
+    return t && t.is_exists && t.color
+      ? (normalizeColorCode(t.color) || 'rgba(255,255,255,0.1)')
+      : 'rgba(255,255,255,0.1)';
   });
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">

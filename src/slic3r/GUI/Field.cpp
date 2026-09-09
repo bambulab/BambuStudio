@@ -17,6 +17,7 @@
 #include <wx/tokenzr.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include "OG_CustomCtrl.hpp"
+#include "ParamTooltip.hpp"
 #include "MsgDialog.hpp"
 #include "BitmapComboBox.hpp"
 
@@ -167,23 +168,12 @@ void Field::toggle(bool en) { en && !m_opt.readonly ? enable() : disable(); }
 
 wxString Field::get_tooltip_text(const wxString &default_string)
 {
-	wxString tooltip_text("");
-#ifdef NDEBUG
-	wxString tooltip = _(m_opt.tooltip);
-    edit_tooltip(tooltip);
-
-    std::string opt_id = m_opt_id;
-    auto hash_pos = opt_id.find("#");
-    if (hash_pos != std::string::npos) {
-        opt_id.replace(hash_pos, 1,"[");
-        opt_id += "]";
-    }
-
-	if (tooltip.length() > 0)
-        tooltip_text = tooltip + "\n" +
-        _(L("parameter name")) + "\t: " + opt_id;
- #endif
-	return tooltip_text;
+    // Deliberately empty: by product decision the edit controls carry no native tooltip. The rich
+    // ParamTooltip card shown on the option label is the single source for the parameter
+    // description (and, in developer mode, the opt_key pill), so a second tip on the control would
+    // duplicate it. All the SetToolTip(get_tooltip_text(...)) call sites are kept so the control
+    // tip can be reinstated by returning text here if that decision changes.
+    return wxString();
 }
 
 bool Field::is_matched(const std::string& string, const std::string& pattern)
@@ -1226,6 +1216,9 @@ void Choice::BUILD()
                 } else {
                     temp->Append(_(el));
                 }
+                // Per-value tip shown when hovering this dropdown item
+                const wxString item_tip = ParamTooltip::ItemTooltip(m_opt_id, m_opt.enum_values[i]);
+                if (!item_tip.IsEmpty()) temp->SetItemTooltip(i, item_tip);
                 ++i;
             }
 		}
@@ -1436,8 +1429,9 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (m_opt_id.compare("host_type") == 0 && val != 0 &&
 			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
 			val--;
-        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
-            m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" || m_opt_id == "locked_skeleton_infill_pattern")
+        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sub_top_surface_pattern" || m_opt_id == "sparse_infill_pattern" ||
+            m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" || m_opt_id == "locked_skeleton_infill_pattern" ||
+            m_opt_id == "ironing_pattern")
 		{
 			std::string key;
 			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
@@ -1524,8 +1518,8 @@ boost::any& Choice::get_value()
 	{
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
-        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" ||
-                 m_opt_id == "locked_skeleton_infill_pattern") {
+        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sub_top_surface_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" ||
+                 m_opt_id == "locked_skeleton_infill_pattern" || m_opt_id == "ironing_pattern") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(m_opt.enum_keys_map->at(key));
 		}

@@ -3182,6 +3182,7 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
         full_stats.open_edges              += stats.open_edges;
         full_stats.non_manifold_edges      += stats.non_manifold_edges;
         full_stats.non_manifold_vertices   += stats.non_manifold_vertices;
+        full_stats.has_reversed_faces       = full_stats.has_reversed_faces || stats.has_reversed_faces;
         full_stats.repaired_errors.merge(stats.repaired_errors);
 
         // another used satistics value
@@ -4081,7 +4082,11 @@ void Model::setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConf
             exclude_poly.points.clear();
         }
     }
-    printSpeedMap.bed_poly = diff({ printSpeedMap.bed_poly }, exclude_polys)[0];
+    Polygons available_bed = diff({printSpeedMap.bed_poly}, exclude_polys);
+    if (!available_bed.empty())
+        printSpeedMap.bed_poly = std::move(available_bed.front());
+    else
+        printSpeedMap.bed_poly.points.clear();
 }
 
 // find temperature of heatend and bed and matierial of an given extruder

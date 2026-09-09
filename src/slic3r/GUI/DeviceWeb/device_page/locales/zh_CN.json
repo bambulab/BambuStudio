@@ -177,5 +177,16 @@
   "day_Fri": "五",
   "day_Sat": "六",
   "No predefined colors for this filament": "该耗材暂无预设颜色",
-  "Bambu Color Code": "Bambu 色号"
+  "Bambu Color Code": "Bambu 色号",
+  "Add Option": "添加选项",
+  "Already exists": "已存在",
+  "Brand already exists": "品牌已存在",
+  "Brand is required": "品牌为必填项",
+  "Click to create custom filament": "点击创建自定义耗材",
+  "Color is required": "颜色为必填项",
+  "Current Net Weight cannot be negative": "当前净重不能为负数",
+  "Enter brand name": "输入品牌名称",
+  "Material Type is required": "类型为必填项",
+  "No options": "无可选项",
+  "Total Net Weight must be greater than 0": "总净重必须大于 0"
 }

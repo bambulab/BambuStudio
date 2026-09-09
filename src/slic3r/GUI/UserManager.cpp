@@ -4,6 +4,7 @@
 #include "NetworkAgent.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "BindDialog.hpp"
 #include "MsgDialog.hpp"
 
 #include "DeviceCore/DevManager.h"

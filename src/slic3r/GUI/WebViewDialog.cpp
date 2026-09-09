@@ -1053,7 +1053,7 @@ void WebViewPanel::ShowNetpluginTip()
 
     wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
-    RunScriptLeft(strJS);
+    RunScriptLeft(strJS, true);
 }
 
 void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback)
@@ -1967,7 +1967,7 @@ void WebViewPanel::RunScript(const wxString& javascript)
     WebView::RunScript(m_browser, javascript);
 }
 
-void WebViewPanel::RunScriptLeft(const wxString &javascript)
+void WebViewPanel::RunScriptLeft(const wxString &javascript, bool force_execute)
 {
     // Remember the script we run in any case, so the next time the user opens
     // the "Run Script" dialog box, it is shown there for convenient updating.
@@ -1975,7 +1975,7 @@ void WebViewPanel::RunScriptLeft(const wxString &javascript)
 
     if (!m_browserLeft) return;
 
-    WebView::RunScript(m_browserLeft, javascript);
+    WebView::RunScript(m_browserLeft, javascript, force_execute);
 }
 
 
@@ -2253,7 +2253,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         std::string strRegion = wxGetApp().app_config->get_country_code();
         wxString    MakerSupplyUrl;
         if (strRegion == "CN")
-            MakerSupplyUrl = "https://bambulab.tmall.com/category-1761686934.htm?from=bambustudio&from=mw_homepage_ms";
+            MakerSupplyUrl = "https://mall.jd.com/view_search-2380482-25151560-99-1-20-1.html";
         else
             MakerSupplyUrl = "https://store.bambulab.com/collections/makers-supply?from=bambustudio&from=mw_homepage_ms";
 

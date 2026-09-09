@@ -2007,7 +2007,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
                     msg_text = _L("When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos.");
                 }
                 else if (warning.error_code == "10014002") {
-                    msg_text = _L("The current printer does not support timelapse in Traditional Mode when printing By-Object.");
+                    msg_text = _L("The current printer does not support timelapse in Instant Mode when printing By-Object.");
                 }
             }
         }
@@ -2663,7 +2663,7 @@ void SelectMachineDialog::timelapse_button_click()
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto* message = new Label(&dlg, _L("After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."));
+    auto* message = new Label(&dlg, _L("After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."));
     message->SetFont(Label::Body_14);
     message->Wrap(FromDIP(360));
     main_sizer->Add(message, 0, wxALL, FromDIP(20));
@@ -3002,6 +3002,25 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
         const std::string &val = config->get(obj->printer_type, item.first);
+
+        // Default to auto or on, when reopen the software in !BBL_RELEASE_TO_PUBLIC
+#if !BBL_RELEASE_TO_PUBLIC
+        static bool s_time_lapse_option_init = false;
+        if (!s_time_lapse_option_init && item.first == "timelapse") {
+            wxString error_messgae;
+            if (obj->canEnableTimelapse(error_messgae) && !has_timelapse_warning(error_messgae)) {
+                if (opt->contain_opt("auto")) {
+                    opt->setValue("auto");
+                } else if (opt->contain_opt("on")) {
+                    opt->setValue("on");
+                }
+
+                s_time_lapse_option_init = true;
+                continue;
+            }
+        }
+#endif
+
         if (opt->contain_opt(val)) {
             opt->setValue(val);
         } else if (opt->contain_opt("auto")) {
@@ -4371,7 +4390,7 @@ bool SelectMachineDialog::has_timelapse_warning(wxString &msg_text)
             if (warning.error_code == "10014001") {
                 msg_text = _L("When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos.");
             } else if (warning.error_code == "10014002") {
-                msg_text = _L("The current printer does not support timelapse in Traditional Mode when printing By-Object.");
+                msg_text = _L("The current printer does not support timelapse in Instant Mode when printing By-Object.");
             }
 
             return true;

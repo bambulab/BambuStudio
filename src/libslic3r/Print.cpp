@@ -370,6 +370,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSimplifySupportPath);
         } else if (
                opt_key == "initial_layer_line_width"
+            || opt_key == "initial_layer_infill_line_width"
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
             //|| opt_key == "resolution"
@@ -1494,6 +1495,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             // Some of the objects has variable layer height applied by painting or by a table.
             bool has_custom_layering = std::any_of(m_objects.begin(), m_objects.end(),
                 [](const PrintObject* object) { return object->model_object()->has_custom_layering(); });
+            // precise_z_height 是造成对象各自 Z 网格的第二个来源：它会微调每个对象顶部若干层，
+            // 使其正好落在该对象自身的高度上，因此高度不同的对象最终会得到对不上的 Z 序列。
+            // 而料塔的层高就是与上一个料塔层的 Z 差值，这种错位会让某个料塔层的层高塌缩到接近 0，
+            // 进而把料塔的占地面积撑爆。所以它必须和手工层高数据一样，去武装下面那段 Z 序列比对。
+            bool has_precise_z_height = std::any_of(m_objects.begin(), m_objects.end(),
+                [](const PrintObject* object) { return object->config().precise_z_height.value; });
 
             const SlicingParameters &slicing_params0 = m_objects.front()->slicing_parameters();
             size_t            tallest_object_idx = 0;
@@ -1513,7 +1520,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 #endif
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
-                if (has_custom_layering) {
+                if (has_custom_layering || has_precise_z_height) {
                     auto &lh         = layer_height_profile(i);
                     auto &lh_tallest = layer_height_profile(tallest_object_idx);
                     if (*(lh.end()-2) > *(lh_tallest.end()-2))
@@ -1522,7 +1529,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             }
 
             // BBS: remove obsolete logics and _L()
-            if (has_custom_layering) {
+            if (has_custom_layering || has_precise_z_height) {
                 std::vector<std::vector<coordf_t>> layer_z_series;
                 layer_z_series.assign(m_objects.size(), std::vector<coordf_t>());
 
@@ -1543,8 +1550,25 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         // BBS: remove the break condition, because a variable layer height object and a new object will not be checked when slicing
                         //if (i % 2 == 0 && layer_height_profiles[tallest_object_idx][i] > layer_height_profiles[idx_object][layer_height_profiles[idx_object].size() - 2])
                         //    break;
-                        if (std::abs(layer_z_series[idx_object][i] - layer_z_series[tallest_object_idx][i]) > eps)
+                        if (std::abs(layer_z_series[idx_object][i] - layer_z_series[tallest_object_idx][i]) > eps) {
+                            // 走到这里说明两个对象的 Z 序列对不上。若没有任何对象带手工层高数据，
+                            // 那唯一可能的原因就是 precise_z_height：此时按警告级别上报并让切片继续，
+                            // 与开启该选项时弹出的提示保持同一等级——这个组合是不推荐，而不是禁止。
+                            // 提示也直接指向 precise_z_height，免得用户去找一份自己从没画过的层高数据。
+                            if (has_precise_z_height && ! has_custom_layering) {
+                                if (warning != nullptr) {
+                                    StringObjectException warningtemp;
+                                    warningtemp.string     = L("Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower.");
+                                    warningtemp.object     = m_objects[idx_object];
+                                    warningtemp.opt_key    = "precise_z_height";
+                                    warningtemp.is_warning = true;
+                                    warningtemp.hypetext   = L("Jump to: Precise Z height");
+                                    *warning               = warningtemp;
+                                }
+                                break;
+                            }
                             return {L("The prime tower is only supported if all objects have the same variable layer height")};
+                        }
                         ++i;
                     }
                 }
@@ -1935,11 +1959,37 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
 void Print::process(std::unordered_map<std::string, long long>* slice_time, bool use_cache)
 {
     long long start_time = 0, end_time = 0;
+    m_slice_time = slice_time;
+    ScopeGuard reset_slice_time([this]() { m_slice_time = nullptr; });
+    auto add_slice_time = [slice_time](const char *key, long long begin) {
+        if (slice_time)
+            (*slice_time)[key] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - begin;
+    };
     if (slice_time) {
         (*slice_time)[TIME_USING_CACHE] = 0;
         (*slice_time)[TIME_MAKE_PERIMETERS] = 0;
         (*slice_time)[TIME_INFILL] = 0;
         (*slice_time)[TIME_GENERATE_SUPPORT] = 0;
+        (*slice_time)[TIME_SLICE_LAYERS] = 0;
+        (*slice_time)[TIME_REGION_SPLIT] = 0;
+        (*slice_time)[TIME_MM_SEGMENT_2D] = 0;
+        (*slice_time)[TIME_WALL] = 0;
+        (*slice_time)[TIME_PREPARE_INFILL] = 0;
+        (*slice_time)[TIME_INFILL_GENERATE] = 0;
+        (*slice_time)[TIME_TOOLPATH] = 0;
+        (*slice_time)[TIME_EXPORT_GCODE] = 0;
+        (*slice_time)[TIME_IRONING] = 0;
+        (*slice_time)[TIME_DETECT_OVERHANGS] = 0;
+        (*slice_time)[TIME_SKIRT_BRIM] = 0;
+        (*slice_time)[TIME_WIPE_TOWER] = 0;
+        (*slice_time)[TIME_FLUSH_PLAN] = 0;
+        (*slice_time)[TIME_CONFLICT_CHECK] = 0;
+        (*slice_time)[TIME_OTHER_SLICE] = 0;
+        (*slice_time)[TIME_SUPPORT_DETECT] = 0;
+        (*slice_time)[TIME_SUPPORT_TREE_GENERATE] = 0;
+        (*slice_time)[TIME_SUPPORT_NORMAL_GENERATE] = 0;
+        (*slice_time)[TIME_SUPPORT_INTERFACE] = 0;
+        (*slice_time)[TIME_SUPPORT_TOOLPATH] = 0;
     }
 
 
@@ -1949,6 +1999,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter, use_cache=%2%, object size=%3%")%this%use_cache%m_objects.size();
     if (m_objects.empty())
         return;
+
+    const long long other_begin = slice_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
 
     for (PrintObject *obj : m_objects)
         obj->clear_shared_object();
@@ -2061,10 +2113,11 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
 
     const AutoContourHolesCompensationParams &auto_contour_holes_compensation_params = AutoContourHolesCompensationParams(m_config);
+    add_slice_time(TIME_OTHER_SLICE, other_begin);
     if (!use_cache) {
 
         if (slice_time) {
-            start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         }
 
 
@@ -2082,9 +2135,9 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         }
 
         if (slice_time) {
-            end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            end_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
             (*slice_time)[TIME_MAKE_PERIMETERS] = (*slice_time)[TIME_MAKE_PERIMETERS] + end_time - start_time;
-            start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         }
 
         for (PrintObject *obj : m_objects) {
@@ -2100,9 +2153,18 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         }
 
         if (slice_time) {
-            end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            end_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
             (*slice_time)[TIME_INFILL] = (*slice_time)[TIME_INFILL] + end_time - start_time;
         }
+
+        const bool has_ironing = std::any_of(m_objects.begin(), m_objects.end(), [](const PrintObject *obj) {
+            const auto regions = obj->all_regions();
+            return std::any_of(regions.begin(), regions.end(), [](const auto &region) {
+                return region.get().config().ironing_type.value != IroningType::NoIroning;
+            });
+        });
+        if (slice_time && has_ironing)
+            start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
 
         for (PrintObject *obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
@@ -2114,9 +2176,15 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             }
         }
 
+        if (slice_time && has_ironing)
+            (*slice_time)[TIME_IRONING] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - start_time;
+
         if (slice_time) {
-            start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         }
+
+        for (PrintObject *obj : m_objects)
+            obj->support_stage_times().reset();
 
         tbb::parallel_for(tbb::blocked_range<int>(0, int(m_objects.size())),
             [this, need_slicing_objects](const tbb::blocked_range<int>& range) {
@@ -2134,9 +2202,27 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         );
 
         if (slice_time) {
-            end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
-            (*slice_time)[TIME_GENERATE_SUPPORT] = (*slice_time)[TIME_GENERATE_SUPPORT] + end_time - start_time;
+            end_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+            (*slice_time)[TIME_GENERATE_SUPPORT] += end_time - start_time;
+
+            SupportStageTimes raw_support_times;
+            for (const PrintObject *obj : m_objects) {
+                const SupportStageTimes &object_times = obj->support_stage_times();
+                raw_support_times.detect += object_times.detect;
+                raw_support_times.tree_generate += object_times.tree_generate;
+                raw_support_times.normal_generate += object_times.normal_generate;
+                raw_support_times.interface_generate += object_times.interface_generate;
+                raw_support_times.toolpath_generate += object_times.toolpath_generate;
+            }
+            (*slice_time)[TIME_SUPPORT_DETECT] = raw_support_times.detect;
+            (*slice_time)[TIME_SUPPORT_TREE_GENERATE] = raw_support_times.tree_generate;
+            (*slice_time)[TIME_SUPPORT_NORMAL_GENERATE] = raw_support_times.normal_generate;
+            (*slice_time)[TIME_SUPPORT_INTERFACE] = raw_support_times.interface_generate;
+            (*slice_time)[TIME_SUPPORT_TOOLPATH] = raw_support_times.toolpath_generate;
         }
+
+        if (slice_time)
+            start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
 
         for (PrintObject* obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
@@ -2147,10 +2233,16 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     obj->set_done(posDetectOverhangsForLift);
             }
         }
+
+        if (slice_time)
+            (*slice_time)[TIME_DETECT_OVERHANGS] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - start_time;
     }
     else {
+        for (PrintObject *obj : m_objects)
+            obj->support_stage_times().reset();
         for (PrintObject *obj : m_objects) {
             if (m_reslicing_objects.count(obj) == 0) {
+                const long long skip_begin = slice_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
                 if (obj->set_started(posSlice))
                     obj->set_done(posSlice);
                 if (obj->set_started(posPerimeters))
@@ -2165,29 +2257,76 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     obj->set_done(posSupportMaterial);
                 if (obj->set_started(posDetectOverhangsForLift))
                     obj->set_done(posDetectOverhangsForLift);
+                add_slice_time(TIME_OTHER_SLICE, skip_begin);
             }
             else {
                 obj->set_auto_circle_compenstaion_params(auto_contour_holes_compensation_params);
+                if (slice_time)
+                    start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                 obj->make_perimeters();
+                if (slice_time)
+                    (*slice_time)[TIME_MAKE_PERIMETERS] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - start_time;
+
+                if (slice_time)
+                    start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                 obj->infill();
+                if (slice_time)
+                    (*slice_time)[TIME_INFILL] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - start_time;
+
+                if (slice_time)
+                    start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                 obj->ironing();
+                if (slice_time)
+                    (*slice_time)[TIME_IRONING] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - start_time;
+
+                if (slice_time)
+                    start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                 obj->generate_support_material();
+                if (slice_time)
+                    (*slice_time)[TIME_GENERATE_SUPPORT] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - start_time;
+
+                if (slice_time)
+                    start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                 obj->detect_overhangs_for_lift();
+                if (slice_time)
+                    (*slice_time)[TIME_DETECT_OVERHANGS] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - start_time;
             }
+        }
+        if (slice_time) {
+            SupportStageTimes raw_support_times;
+            for (const PrintObject *obj : m_objects) {
+                const SupportStageTimes &object_times = obj->support_stage_times();
+                raw_support_times.detect += object_times.detect;
+                raw_support_times.tree_generate += object_times.tree_generate;
+                raw_support_times.normal_generate += object_times.normal_generate;
+                raw_support_times.interface_generate += object_times.interface_generate;
+                raw_support_times.toolpath_generate += object_times.toolpath_generate;
+            }
+            (*slice_time)[TIME_SUPPORT_DETECT] += raw_support_times.detect;
+            (*slice_time)[TIME_SUPPORT_TREE_GENERATE] += raw_support_times.tree_generate;
+            (*slice_time)[TIME_SUPPORT_NORMAL_GENERATE] += raw_support_times.normal_generate;
+            (*slice_time)[TIME_SUPPORT_INTERFACE] += raw_support_times.interface_generate;
+            (*slice_time)[TIME_SUPPORT_TOOLPATH] += raw_support_times.toolpath_generate;
         }
     }
 
-    for (PrintObject *obj : m_objects)
     {
-        if (need_slicing_objects.count(obj) == 0) {
-            obj->copy_layers_from_shared_object();
-            obj->copy_layers_overhang_from_shared_object();
+        const long long copy_layers_begin = slice_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
+        for (PrintObject *obj : m_objects)
+        {
+            if (need_slicing_objects.count(obj) == 0) {
+                obj->copy_layers_from_shared_object();
+                obj->copy_layers_overhang_from_shared_object();
+            }
         }
+        add_slice_time(TIME_OTHER_SLICE, copy_layers_begin);
     }
 
 
 
     if (this->set_started(psWipeTower)) {
+        const long long wipe_tower_begin_time =
+            slice_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
         {
             std::vector<std::set<int>> geometric_unprintables(m_config.nozzle_diameter.size());
             for (PrintObject* obj : m_objects) {
@@ -2229,10 +2368,14 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
                 throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
         }
+        if (slice_time)
+            (*slice_time)[TIME_WIPE_TOWER] +=
+                Slic3r::Utils::get_current_milliseconds_time_monotonic() - wipe_tower_begin_time;
         this->set_done(psWipeTower);
     }
 
     if (this->has_wipe_tower()) {
+        const long long other_wipe_begin = slice_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
         m_fake_wipe_tower.set_pos({ m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index) });
         // Validate the compacted wipe tower clearance on every process() run rather than only when the
         // wipe tower step is (re)generated. Moving the tower changes only wipe_tower_x/y, which invalidates
@@ -2241,13 +2384,14 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         // stored in the local frame and is position independent, so it stays valid across the cached step and
         // re-checking here with the current position is both correct and cheap.
         this->validate_compacted_wipe_tower_clearance();
+        add_slice_time(TIME_OTHER_SLICE, other_wipe_begin);
     }
 
     if (this->set_started(psSkirtBrim)) {
         this->set_status(70, L("Generating skirt & brim"));
 
         if (slice_time) {
-            start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         }
 
         m_skirt.clear();
@@ -2387,11 +2531,14 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         this->set_done(psSkirtBrim);
 
         if (slice_time) {
-            end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+            end_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
             (*slice_time)[TIME_USING_CACHE] = (*slice_time)[TIME_USING_CACHE] + end_time - start_time;
+            (*slice_time)[TIME_SKIRT_BRIM] += end_time - start_time;
         }
     }
     //BBS
+    if (slice_time)
+        start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     for (PrintObject *obj : m_objects) {
         if (((!use_cache)&&(need_slicing_objects.count(obj) != 0))
             || (use_cache &&(m_reslicing_objects.count(obj) != 0))){
@@ -2406,8 +2553,11 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                 obj->set_done(posSimplifySupportPath);
         }
     }
+    if (slice_time)
+        (*slice_time)[TIME_TOOLPATH] += Slic3r::Utils::get_current_milliseconds_time_monotonic() - start_time;
 
     // BBS
+    const long long other_adaptive_begin = slice_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
     bool has_adaptive_layer_height = false;
     for (PrintObject* obj : m_objects) {
         if (obj->model_object()->layer_height_profile.empty() == false) {
@@ -2415,6 +2565,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             break;
         }
     }
+    add_slice_time(TIME_OTHER_SLICE, other_adaptive_begin);
     if(!m_no_check /*&& !has_adaptive_layer_height*/)
     {
         using Clock                 = std::chrono::high_resolution_clock;
@@ -2426,6 +2577,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         }
         auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects, wipe_tower_opt);
         auto            endTime     = Clock::now();
+        if (slice_time)
+            (*slice_time)[TIME_CONFLICT_CHECK] += std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
         volatile double seconds     = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() / (double) 1000;
         BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs.";
 
@@ -3458,6 +3611,16 @@ Polygon compacted_wipe_tower_offender_outline(const Polygon &inst_hull, double b
     return grown.empty() ? inst_hull : grown.front();
 }
 
+bool should_show_height_limit_lines(const Print &print)
+{
+    const PrintConfig &config = print.config();
+    if (config.print_sequence == PrintSequence::ByObject)
+        return true;
+    // Same condition compacted_wipe_tower_clearance_valid() runs on, so the lines are shown for exactly
+    // the plates whose layout that check judges against the rod and the lid.
+    return config.print_sequence == PrintSequence::ByLayer && wipe_tower_sparse_layers_skipped(config) && print.has_wipe_tower();
+}
+
 // Shared user-facing message for every compacted-tower clearance failure. Height-limit and too-close
 // are the same class of layout violation under "No sparse layers", so they share one wording.
 static std::string compacted_wipe_tower_clearance_error()
@@ -3760,6 +3923,8 @@ void Print::_make_wipe_tower()
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each
     // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
+    const long long flush_plan_begin_time =
+        m_slice_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
     {
         // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
         bool               is_mutli_extruder = m_config.nozzle_diameter.values.size() > 1;
@@ -3840,6 +4005,9 @@ void Print::_make_wipe_tower()
                 break;
         }
     }
+    if (m_slice_time)
+        (*m_slice_time)[TIME_FLUSH_PLAN] +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - flush_plan_begin_time;
     wipe_tower.set_used_filament_ids(std::vector<int>(used_filament_ids.begin(), used_filament_ids.end()));
 
     std::vector<int> categories;

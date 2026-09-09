@@ -49,6 +49,27 @@ option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
+option(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN "Enable experimental OpenMeshCraft mesh boolean backend" 1)
+option(SLIC3R_ALLOW_MCUT_BOOLEAN "Allow compiling mesh boolean with MCUT only (no OpenMeshCraft)" 0)
+option(LINUX_CLI_COMPILE "Linux CLI build: skip prebuilt OpenMeshCraft lib (ABI mismatch vs server libstdc+), use MCUT/stub path" 0)
+if(LINUX_CLI_COMPILE)
+    # The prebuilt libOpenMeshCraft.a / libOpenMeshCraftBoolean.a in dep_linux_new were built
+    # against a newer libstdc++ ABI (std::__throw_bad_array_new_length, std::to_chars,
+    # std::basic_string::_M_replace_cold) than the build-server toolchain, causing link failure.
+    # Force OpenMeshCraft off and allow MCUT so the link succeeds. MeshBoolean.cpp already has
+    # #if SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN guards + stubs for the off path.
+    set(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN OFF CACHE BOOL "" FORCE)
+    set(SLIC3R_ALLOW_MCUT_BOOLEAN ON CACHE BOOL "" FORCE)
+    # Also clear the find_package() result cached on a previous configure (set in src/CMakeLists.txt
+    # without FORCE, so it would otherwise survive a re-configure and keep linking OMC).
+    set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "" FORCE)
+    message(STATUS "LINUX_CLI_COMPILE=ON: OpenMeshCraft disabled (prebuilt lib ABI mismatch), using MCUT/stub mesh-boolean path.")
+endif()
+if(NOT SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN AND NOT SLIC3R_ALLOW_MCUT_BOOLEAN)
+    message(FATAL_ERROR
+        "OpenMeshCraft boolean is required. "
+        "Keep SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN=ON, or pass -DSLIC3R_ALLOW_MCUT_BOOLEAN=ON.")
+endif()
 # If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
 CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
@@ -340,6 +361,19 @@ endif ()
 if (APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
+
+    # Release 默认没有调试信息，补上调试信息以便产出独立的 .dSYM 符号文件；
+    # 原先开启了-g（完整调试信息），libslic3r_gui又是模板重度的静态库，.o里的DWARF调试段被大量重复实例化的模板符号撑大；
+    # 在低版本（macOS 12.7+xcode14.2）打包机工具链上，Mach-O文件大小上限为4个G；高版本（macOS26.x+xcode26.x）可以突破4G限制
+    # 原先-g配置下，单架构的libslic3r_gui.a就超出了4个G，双架构直接到8个G以上，导致编译失败；
+    # 现调整为用-gline-tables-only而非完整-g：只保留“地址 -> 文件:行号”的行号表，足够对崩溃栈做符号化；
+    # 但体积比完整-g大幅减少，实际测试libslic3r_gui.a大小为之前的十分之一，最终的.dSYM符号文件约为之前的五分之一。
+    string(APPEND CMAKE_C_FLAGS_RELEASE   " -gline-tables-only")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -gline-tables-only")
+
+    # Xcode generator：只让 Release 配置生成独立 .dSYM，Debug 保持原速
+    set(CMAKE_XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+    set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Release] "dwarf-with-dsym")
 endif ()
 
 if(MSVC)

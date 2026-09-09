@@ -254,6 +254,18 @@ export class FilamentAddDialog extends BasePage {
   get confirmButton(): Locator {
     return this.byTestId('dialog-confirm')
   }
+  get confirmTooltipTrigger(): Locator {
+    return this.byTestId('dialog-confirm-tooltip-trigger')
+  }
+  get confirmTooltip(): Locator {
+    return this.byTestId('dialog-confirm-tooltip')
+  }
+  get currentNetWeightInput(): Locator {
+    return this.byTestId('current-net-weight-input')
+  }
+  get totalNetWeightInput(): Locator {
+    return this.byTestId('total-net-weight-input')
+  }
 
   async cancel(): Promise<void> {
     await this.cancelButton.click()

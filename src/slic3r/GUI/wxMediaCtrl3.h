@@ -8,6 +8,7 @@
 #ifndef wxMediaCtrl3_h
 #define wxMediaCtrl3_h
 
+#include "wx/bitmap.h"
 #include "wx/uri.h"
 #include "wx/mediactrl.h"
 #include "wx/timer.h"

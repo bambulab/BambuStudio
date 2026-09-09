@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-09-08 19:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -899,16 +899,11 @@ msgstr "Část"
 msgid "Object"
 msgstr "Objekt"
 
+msgid "Right-click a part to assign it to the other side"
+msgstr ""
+
 msgid "Drag to move the cut plane"
 msgstr "Přetažením posuňte řeznou rovinu"
-
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
-msgstr ""
-"Přetažením posuňte řeznou rovinu\n"
-"Klikněte pravým tlačítkem na díl a přiřaďte jej na druhou stranuPřetažením posuňte řeznou rovinu\n"
-"Pravým tlačítkem myši přiřaďte díl na opačnou stranu"
 
 msgid "Left click"
 msgstr "Levé kliknutí"
@@ -978,6 +973,15 @@ msgstr "Pohyb:"
 
 msgid "Groove Angle"
 msgstr "Úhel drážky"
+
+msgid "Pick face"
+msgstr ""
+
+msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
+msgstr ""
+
+msgid "Click a face of the model."
+msgstr ""
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -2479,9 +2483,6 @@ msgstr "Upravit"
 msgid "Delete this filament"
 msgstr "Smazat tento filament"
 
-msgid "Decompose Color"
-msgstr ""
-
 msgid "Merge with"
 msgstr "Sloučit s"
 
@@ -2624,6 +2625,9 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2638,6 +2642,9 @@ msgstr "Klikněte pravým tlačítkem na ikonu pro zrušení nastavení objektu"
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "Klikněte na ikonu pro obnovení všech nastavení objektu"
+
+msgid "Unprintable object"
+msgstr ""
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Klikněte pravým tlačítkem na ikonu pro zrušení tisknutelnosti objektu"
@@ -2709,9 +2716,6 @@ msgstr ""
 
 msgid "Delete all connectors"
 msgstr "Smazat všechny spojky"
-
-msgid "Deleting the last solid part is not allowed."
-msgstr "Smazání poslední pevné části není povoleno."
 
 msgid "The target object contains only one part and can not be split."
 msgstr "Cílový objekt obsahuje pouze jednu část a nelze jej rozdělit."
@@ -3869,6 +3873,9 @@ msgstr ""
 msgid "New Mixed Filaments"
 msgstr ""
 
+msgid "Decompose Color"
+msgstr ""
+
 msgid "+ Add Material"
 msgstr "+ Přidat materiál"
 
@@ -4069,23 +4076,11 @@ msgstr "Nastavení materiálů AMS"
 msgid "Colour"
 msgstr "Barva"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr "Teplota trysky"
-
-msgid "max"
-msgstr "max"
-
-msgid "min"
-msgstr "min"
-
-#, boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr "Vstupní hodnota musí být větší než %1% a menší než %2%"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Faktory kalibrace dynamiky průtoku"
+
+msgid "View Wiki for details"
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Typ trysky"
@@ -4099,14 +4094,31 @@ msgstr "Faktor K"
 msgid "Factor N"
 msgstr "Faktor N"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Nastavení informací o slotu AMS během tisku není podpěrováno"
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr "Teplota trysky"
 
-msgid "Setting Virtual slot information while printing is not supported"
-msgstr "Nastavení informací o virtuálním slotu během tisku není podpěrováno"
+msgid "Tip: Setting AMS slot information while printing is not supported"
+msgstr ""
+
+msgid "Tip: Setting Virtual slot information while printing is not supported"
+msgstr ""
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Opravdu chcete vymazat informace o struně?"
+
+msgid "Add to Filament Library?"
+msgstr ""
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr ""
+
+msgid "Add to Filament Library"
+msgstr ""
+
+msgid "Save Only"
+msgstr ""
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU vyžaduje odlišnou dráhu podávání a postup načítání. Jinak může dojít k ucpání nebo zaseknutí. Před použitím TPU si prosím přečtěte návod."
@@ -4117,52 +4129,15 @@ msgstr "Přejít ke kontrole"
 msgid "You need to select the material type and color first."
 msgstr "Nejprve musíte vybrat typ materiálu a barvu."
 
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f)"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f, N v %.1f~%.1f)"
+msgid "Please select a color"
+msgstr ""
 
 msgid "Remark"
 msgstr ""
 
-msgid "Other"
-msgstr "Ostatní"
-
-msgid "Filament Manager"
-msgstr "Filament Manager"
-
-msgid "In printer"
-msgstr ""
-
 #, c-format, boost-format
-msgid "In printer: %s"
-msgstr ""
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr ""
-
-msgid "Unsupported Filaments"
-msgstr ""
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr ""
-
-msgid "No unsupported filaments"
-msgstr ""
-
-msgid "No filaments"
-msgstr ""
-
-msgid "System presets"
-msgstr "Systémová přednastavení"
-
-msgid "Recently used"
-msgstr ""
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4176,31 +4151,25 @@ msgstr ""
 "'Zařízení -> Tiskové díly'Průtok trysky není nastaven. Před úpravou filamentu nastavte průtok trysky.\n"
 "„Zařízení -> Tisk části“"
 
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Other Color"
-msgstr "Jiná barva"
-
-msgid "Custom Color"
-msgstr "Vlastní barva"
-
-msgid "AMS detected a new official filament. Add it to Filament Manager?"
+msgid "Matched filament"
 msgstr ""
 
 msgid "Add as new filament"
 msgstr ""
 
-msgid "Link to existing filament"
+msgid "AMS detected a new filament. Add it to Filament Manager?"
 msgstr ""
 
-msgid "Not now"
+msgid "A similar filament was found in Filament Manager and matched automatically."
 msgstr ""
 
-msgid "Please select"
+msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
 msgstr ""
 
-msgid "No matching filament"
+msgid "New Filament"
+msgstr ""
+
+msgid "New filament information has been recorded."
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -4251,6 +4220,10 @@ msgstr "Probíhá kalibrace... %d%%"
 
 msgid "Calibration completed"
 msgstr "Kalibrace byla dokončena"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f, N v %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4408,6 +4381,9 @@ msgstr "SUCHÉ"
 msgid "WET"
 msgstr "VLHKÝ"
 
+msgid "AMS"
+msgstr "AMS"
+
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
 msgstr "Vyberte prosím filament nainstalovaný na %s."
@@ -4500,6 +4476,12 @@ msgstr "Opravdu chcete obnovit sekvenci ID připojeného AMS?"
 
 msgid "Reset AMS Sequence"
 msgstr "Obnovit sekvenci AMS"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "Soubor"
@@ -4697,9 +4679,12 @@ msgid ""
 "Reset to default"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
-msgstr "Aktuální teplota komory je vyšší než bezpečná teplota materiálu, což může způsobit změknutí a ucpání materiálu. Maximální bezpečná teplota tohoto materiálu je %d"
+msgid "Value is out of range."
+msgstr "Hodnota je mimo rozsah."
+
+#, boost-format
+msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -4882,14 +4867,11 @@ msgstr ""
 "Proto nastavte vrstvu lemu na 1, abyste tomu předešli.Při tisku podle objektu může dojít ke kolizi extruderu se sukní.\n"
 "Nastavte proto vrstvu sukně na 1, abyste tomu předešli."
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
-"Reset to 50%% of skin depth"
+"Reset to 50% of skin depth"
 msgstr ""
-"hloubka zámku by měla být menší než tloušťka slupky.\n"
-"Obnoveno na 50%% tloušťky slupkyHloubka zámku by měla být menší než hloubka povrchu.\n"
-"Nastaveno na 50%% hloubky povrchu"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr ""
@@ -4923,7 +4905,7 @@ msgid ""
 "No  - Keep current settings and alternate extra wall enabled"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5299,9 +5281,6 @@ msgstr "Síť není k dispozici"
 msgid "default"
 msgstr "výchozí"
 
-msgid "parameter name"
-msgstr "název parametru"
-
 msgid "N/A"
 msgstr "N/A"
 
@@ -5319,9 +5298,6 @@ msgstr "Validace parametru"
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
 msgstr "Hodnota %s je mimo rozsah. Platný rozsah je od %d do %d."
-
-msgid "Value is out of range."
-msgstr "Hodnota je mimo rozsah."
 
 #, c-format, boost-format
 msgid ""
@@ -5982,6 +5958,9 @@ msgstr "Věž pro oddělení trysky zlepšuje kvalitu vícebarevného tisku a je
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Věž pro oddělení trysky přesahuje okraj podložky."
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr ""
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Částečný objem proplachu je nastaven na 0. Vícebarevný tisk může způsobit míchání barev v modelech. Upravte prosím znovu nastavení proplachu."
 
@@ -6122,6 +6101,9 @@ msgstr "Více zařízení"
 
 msgid "Project"
 msgstr "Projekt"
+
+msgid "Filament Manager"
+msgstr "Filament Manager"
 
 msgid "Yes"
 msgstr "Ano"
@@ -6957,6 +6939,9 @@ msgstr "Nastavení 3Dconnexion"
 msgid "Swap Y/Z axes"
 msgstr "Prohodit osy Y/Z"
 
+msgid "Lock horizon"
+msgstr ""
+
 msgid "(LAN)"
 msgstr "(LAN)"
 
@@ -7105,6 +7090,9 @@ msgstr "%ds"
 
 msgid "Finished"
 msgstr "Dokončeno"
+
+msgid "Almost complete"
+msgstr ""
 
 msgid "Camera"
 msgstr "Kamera"
@@ -7593,6 +7581,12 @@ msgstr "Chyba:"
 msgid "Open link for more info"
 msgstr "Otevřít odkaz pro více informací"
 
+msgid "Jump to: Support on build plate only"
+msgstr ""
+
+msgid "Jump to: Support"
+msgstr ""
+
 msgid "Warning:"
 msgstr "Varování:"
 
@@ -7851,6 +7845,480 @@ msgstr "Ochrana při zahřívání v nečinnosti"
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Ohřev bude po 5 minutách nečinnosti z bezpečnostních důvodů automaticky zastaven."
+
+msgid "Note: "
+msgstr ""
+
+msgid "Controls the printed height of each layer."
+msgstr ""
+
+msgid ""
+"A larger layer height prints faster but shows more obvious layer lines.\n"
+"A smaller layer height gives finer curved surfaces but takes longer to print.\n"
+"If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
+msgstr ""
+
+msgid "Recommended layer height is 20%-70% of the nozzle diameter."
+msgstr ""
+
+msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
+msgstr ""
+
+msgid ""
+"Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
+"Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
+msgstr ""
+
+msgid "Usually set to half the nozzle diameter."
+msgstr ""
+
+msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
+msgstr ""
+
+msgid ""
+"When off, colors change per full layer, so the blend is coarser and less even.\n"
+"When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
+msgstr ""
+
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+msgstr ""
+
+msgid "Controls where each layer's outer wall starts and ends."
+msgstr ""
+
+msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
+msgstr ""
+
+msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
+msgstr ""
+
+msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
+msgstr ""
+
+msgid "Recommended only for flat top surfaces."
+msgstr ""
+
+msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
+msgstr ""
+
+msgid ""
+"When off, the first layer uses multiple wall loops.\n"
+"When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
+msgstr ""
+
+msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
+msgstr ""
+
+msgid ""
+"More walls give higher strength but use more material and time;\n"
+"fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
+msgstr ""
+
+msgid "2-3 loops is recommended for typical models; increase it for functional parts."
+msgstr ""
+
+msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
+msgstr ""
+
+msgid ""
+"It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
+"Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
+msgstr ""
+
+msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
+msgstr ""
+
+msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
+msgstr ""
+
+msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
+msgstr ""
+
+msgid "Requires sparse infill; not applicable in vase mode."
+msgstr ""
+
+msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
+msgstr ""
+
+msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
+msgstr ""
+
+msgid "Bridging areas are not affected by this parameter."
+msgstr ""
+
+msgid "Controls the number of solid top shell layers, including the top surface."
+msgstr ""
+
+msgid ""
+"More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
+"If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
+msgstr ""
+
+msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
+msgstr ""
+
+msgid ""
+"Set to 0 to disable this and let the layer count alone decide.\n"
+"If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
+msgstr ""
+
+msgid "Controls the number of solid bottom shell layers, including the bottom surface."
+msgstr ""
+
+msgid ""
+"More layers make the bottom more solid but take longer.\n"
+"If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
+msgstr ""
+
+msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
+msgstr ""
+
+msgid ""
+"Set to 0 to disable this and let the layer count alone decide.\n"
+"If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
+msgstr ""
+
+msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
+msgstr ""
+
+msgid ""
+"Fewer layers make color bleed-through more likely.\n"
+"More layers reduce bleed-through but increase the number of filament changes.\n"
+"To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
+msgstr ""
+
+msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
+msgstr ""
+
+msgid ""
+"Fewer layers make color bleed-through more likely.\n"
+"More layers reduce bleed-through but increase the number of filament changes.\n"
+"To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
+msgstr ""
+
+msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
+msgstr ""
+
+msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
+msgstr ""
+
+msgid "Controls how dense the model's internal sparse infill is."
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"10-15% is recommended for typical models; raise it for functional parts.\n"
+"100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
+msgstr ""
+
+msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
+msgstr ""
+
+msgid ""
+"Higher values make the infill beams thicker and stronger but use more material and time;\n"
+"1 is ordinary single-line infill."
+msgstr ""
+
+msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
+msgstr ""
+
+msgid "Controls the toolpath structure of the internal sparse infill."
+msgstr ""
+
+msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
+msgstr ""
+
+msgid ""
+"When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
+"Recommended when the model has obvious overhangs."
+msgstr ""
+
+msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
+msgstr ""
+
+msgid ""
+"Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
+"Choose a manual mode when you need precise control."
+msgstr ""
+
+msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
+msgstr ""
+
+msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
+msgstr ""
+
+msgid ""
+"A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
+"A larger threshold also supports more slopes, giving more support."
+msgstr ""
+
+msgid "A common default of 30 degrees balances print stability against the amount of support used."
+msgstr ""
+
+msgid "Generates support only from the build plate, not on the model's surfaces."
+msgstr ""
+
+msgid ""
+"When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
+"When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
+msgstr ""
+
+msgid "Recommended when appearance matters."
+msgstr ""
+
+msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
+msgstr ""
+
+msgid ""
+"By default the interface uses the same filament as the model, which can make removal harder.\n"
+"Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
+msgstr ""
+
+msgid "The filament used to print the support body and the raft."
+msgstr ""
+
+msgid ""
+"By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
+"Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
+msgstr ""
+
+msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
+msgstr ""
+
+msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
+msgstr ""
+
+msgid "Controls how many layers the skirt is printed."
+msgstr ""
+
+msgid ""
+"During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
+"The default is 1 layer."
+msgstr ""
+
+msgid "Requires the skirt loop count to be greater than 0."
+msgstr ""
+
+msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
+msgstr ""
+
+msgid ""
+"This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
+"The default is Auto."
+msgstr ""
+
+msgid "The distance from the model to the outermost brim line."
+msgstr ""
+
+msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
+msgstr ""
+
+msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
+msgstr ""
+
+msgid ""
+"Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
+"On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
+msgstr ""
+
+msgid "Mutually exclusive with by-object printing and independent support layer height."
+msgstr ""
+
+msgid "Controls the horizontal size of the prime tower."
+msgstr ""
+
+msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
+msgstr ""
+
+msgid "The width cannot be customized when the rib outer wall is enabled."
+msgstr ""
+
+msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
+msgstr ""
+
+msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
+msgstr ""
+
+msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
+msgstr ""
+
+msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
+msgstr ""
+
+msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
+msgstr ""
+
+msgid "Enabling it saves material, but the supports may show mixed colors."
+msgstr ""
+
+msgid "Takes effect when printing multiple filaments through the same nozzle."
+msgstr ""
+
+msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
+msgstr ""
+
+msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
+msgstr ""
+
+msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
+msgstr ""
+
+msgid ""
+"When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
+"It is best for single, thin-walled, open-top models."
+msgstr ""
+
+msgid "Requires top shell layers to be 0 and is not compatible with support."
+msgstr ""
+
+msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
+msgstr ""
+
+msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
+msgstr ""
+
+msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
+msgstr ""
+
+msgid ""
+"It affects only walls; the top and bottom surfaces are unchanged.\n"
+"Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
+msgstr ""
+
+msgid "Selects how the fuzzy texture is generated."
+msgstr ""
+
+msgid "There are three generator modes; pick the one that suits your needs."
+msgstr ""
+
+msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
+msgstr ""
+
+msgid "Several noise types are available; pick the one that suits your needs."
+msgstr ""
+
+msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
+msgstr ""
+
+msgid ""
+"A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
+"A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
+msgstr ""
+
+msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
+msgstr ""
+
+msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
+msgstr ""
+
+msgid ""
+"A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
+"The default is about 0.3 mm; keep it below the outer wall's line width."
+msgstr ""
+
+msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
+msgstr ""
+
+msgid "Determines whether the fuzzy effect is also applied to the first layer."
+msgstr ""
+
+msgid ""
+"When on, the first-layer side walls also get the fuzzy texture.\n"
+"Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
+msgstr ""
+
+msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
+msgstr ""
+
+msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
+msgstr ""
+
+msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
+msgstr ""
+
+msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
+msgstr ""
+
+msgid "All top surfaces print with the normal number of wall loops."
+msgstr ""
+
+msgid "Applies to every flat upward-facing top surface, for the widest coverage."
+msgstr ""
+
+msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
+msgstr ""
+
+msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
+msgstr ""
+
+msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
+msgstr ""
+
+msgid "Generates a brim in inner holes only."
+msgstr ""
+
+msgid "Generates a brim on both the outer contour and inner holes."
+msgstr ""
+
+msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
+msgstr ""
+
+msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
+msgstr ""
+
+msgid "All objects rise together, layer by layer."
+msgstr ""
+
+msgid "Finishes one object before starting the next; has placement clearance requirements."
+msgstr ""
+
+msgid "A snapshot is taken directly after each layer."
+msgstr ""
+
+msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
+msgstr ""
+
+msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
+msgstr ""
+
+msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
+msgstr ""
+
+msgid "Adds fuzzy skin to both the outer contour and inner holes."
+msgstr ""
+
+msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
+msgstr ""
+
+msgid "Turns fuzzy skin fully off; even painting has no effect."
+msgstr ""
+
+msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
+msgstr ""
+
+msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
+msgstr ""
+
+msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
+msgstr ""
+
+msgid "Uniform random noise with a fine, grainy texture and no clear direction."
+msgstr ""
+
+msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
+msgstr ""
+
+msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
+msgstr ""
+
+msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
+msgstr ""
+
+msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
+msgstr ""
+
+msgid "View details on Wiki"
+msgstr ""
 
 msgid "Global"
 msgstr "Globální"
@@ -8138,14 +8606,11 @@ msgstr ""
 msgid "Restore"
 msgstr "Obnovit"
 
-msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
-msgstr "Teplota vyhřívané podložky je aktuálně poměrně vysoká. Při tisku tohoto filamentu v uzavřeném prostoru může dojít k ucpání trysky. Otevřete prosím přední dvířka a/nebo sejměte horní sklo."
-
 msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
 msgstr "Filament vyžaduje vyšší tvrdost trysky, než je výchozí tvrdost trysky tiskárny. Vyměňte trysku za tvrzenou nebo použijte jiný filament, jinak může dojít k opotřebení nebo poškození trysky."
 
-msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr "Povolení tradičního časosběru může způsobit povrchové nedokonalosti. Doporučuje se přepnout do režimu plynulého pohybu."
+msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+msgstr ""
 
 msgid "\n"
 msgstr "\n"
@@ -8169,14 +8634,14 @@ msgstr "Načítání souboru: %s"
 msgid "The 3mf file has invalid config, load geometry data only"
 msgstr ""
 
-msgid "Load 3mf"
-msgstr "Načíst 3mf"
-
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr "Soubor 3mf nepochází od Bambu Lab, načtou se pouze geometrická data."
 
 msgid "The Config can not be loaded."
 msgstr "Konfiguraci nelze načíst."
+
+msgid "Load 3mf"
+msgstr "Načíst 3mf"
 
 msgid "Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"
 msgstr "Tento soubor 3mf nelze plně načíst kvůli nižší verzi Bambu Studio. Aktualizujte Bambu Studio na nejnovější verzi"
@@ -8236,13 +8701,8 @@ msgstr "Objekty s nulovým objemem byly odstraněny"
 msgid "The volume of the object is zero"
 msgstr "Objem objektu je nula"
 
-#, c-format, boost-format
-msgid ""
-"The object from file %s is too small, and maybe in meters or inches.\n"
-" Do you want to scale to millimeters?"
+msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
 msgstr ""
-"Objekt ze souboru %s je příliš malý a možná je v metrech nebo palcích.\n"
-" Chcete jej přepočítat na milimetry?"
 
 msgid "Object too small"
 msgstr "Objekt je příliš malý"
@@ -9137,14 +9597,26 @@ msgstr "Jednotky"
 msgid "Enable dark mode"
 msgstr "Povolit tmavý režim"
 
-msgid "All"
-msgstr "Vše"
+msgid "All related changes"
+msgstr ""
 
-msgid "Disabled"
-msgstr "Zakázáno"
+msgid "When color changes"
+msgstr ""
 
-msgid "Auto Flush"
-msgstr "Automatické proplachování"
+msgid "Turn off auto calculate"
+msgstr ""
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr ""
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr ""
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr ""
+
+msgid "Auto Calculate Flush Volume"
+msgstr ""
 
 msgid "Auto calculate flush volumes"
 msgstr "Automatický výpočet objemů pro proplach"
@@ -9222,6 +9694,12 @@ msgstr "Odstranit omezení smíšeného tisku filamentů s vysokou a nízkou tep
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "Pokud je tato volba povolena, můžete současně tisknout materiály s velkým rozdílem teplot."
 
+msgid "Automatically optimize wipe tower placement"
+msgstr ""
+
+msgid "With this option enabled, the wipe tower will be placed at its optimal position."
+msgstr ""
+
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Automatická synchronizace uživatelských přednastavení (tiskárna/filament/proces)"
 
@@ -9240,11 +9718,29 @@ msgstr "Automatické vyplnění dříve přihlášených účtů."
 msgid "3D Settings"
 msgstr "3D nastavení"
 
+msgid "Mouse Settings"
+msgstr ""
+
+msgid "Import Settings"
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Přiblížit na pozici myši"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Přibližovat k pozici kurzoru myši ve 3D zobrazení namísto středu 2D okna."
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr ""
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr ""
+
+msgid "Drag with left mouse button to move"
+msgstr ""
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
+msgstr ""
 
 msgid "Display overview"
 msgstr "Přehled zobrazení"
@@ -9497,6 +9993,9 @@ msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr ""
+
+msgid "System presets"
+msgstr "Systémová přednastavení"
 
 msgid "User presets"
 msgstr "Uživatelská přednastavení"
@@ -9858,8 +10357,8 @@ msgstr "Vybraná tiskárna (%s) není kompatibilní s konfigurací tiskového so
 msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "Při zapnutí režimu spirálové vázy nebudou tiskárny s konstrukcí I3 generovat časosběrná videa."
 
-msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
-msgstr "Aktuální tiskárna nepodpěruje časosběr v tradičním režimu při tisku po objektech."
+msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
+msgstr ""
 
 msgid "Errors"
 msgstr "Chyby"
@@ -9897,7 +10396,7 @@ msgstr "Probíhá kontrola rovinnosti vyhřívané podložky. Nivelace zajišťu
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Tento proces určuje dynamické hodnoty toku pro zlepšení celkové kvality tisku."
 
-msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr ""
 
 #, c-format, boost-format
@@ -10388,7 +10887,7 @@ msgstr ""
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Věž pro oddělení trysky je vyžadována pro plynulé časosběrné snímání. Bez věže pro oddělení trysky mohou být na modelu vady. Chcete povolit čisticí věž?"
 
-msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
 msgstr ""
 
 msgid "Still print by object?"
@@ -10854,6 +11353,9 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Opravdu chcete %1% vybrané přednastavení?"
 
+msgid "All"
+msgstr "Vše"
+
 msgid "Set"
 msgstr "Nastavit"
 
@@ -11012,11 +11514,35 @@ msgstr "Levá: "
 msgid "Right: "
 msgstr "Pravá: "
 
-msgid "Select presets to compare"
-msgstr "Vyberte přednastavení k porovnání"
+msgid "Preset A"
+msgstr ""
+
+msgid "Preset B"
+msgstr ""
 
 msgid "Show all presets (including incompatible)"
 msgstr "Zobrazit všechna přednastavení (včetně nekompatibilních)"
+
+msgid "Parameters"
+msgstr ""
+
+msgid "Process Preset"
+msgstr ""
+
+msgid "Filament Preset"
+msgstr "Přednastavení filamentu"
+
+msgid "Material Preset"
+msgstr ""
+
+msgid "Machine Preset"
+msgstr ""
+
+msgid "These two presets have no visible differences"
+msgstr ""
+
+msgid "Please select two different presets A and B to compare"
+msgstr ""
 
 msgid "Add File"
 msgstr "Přidat soubor"
@@ -11346,6 +11872,17 @@ msgstr "Klikněte zde pro stažení."
 
 msgid "Login"
 msgstr "Přihlášení"
+
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"Všechna přednastavení tohoto filamentu budou smazána. \n"
+"Pokud tento filament používáte na své tiskárně, resetujte prosím informace o filamentu pro daný slot.Všechna přednastavení filamentu patřící k tomuto filamentu budou smazána. \n"
+"Pokud tento filament používáte ve své tiskárně, nastavte prosím znovu informace o filamentu pro tento slot."
+
+msgid "Delete filament"
+msgstr "Smazat filament"
 
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "Konfigurační balíček byl změněn na předchozího průvodce konfigurací"
@@ -12720,6 +13257,12 @@ msgstr "Čisticí věž vyžaduje, aby všechny objekty byly tištěny přes ste
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Čisticí věž vyžaduje, aby všechny objekty byly nařezány se stejnou výškou vrstvy."
 
+msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
+msgstr ""
+
+msgid "Jump to: Precise Z height"
+msgstr ""
+
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "Čisticí věž je podporována pouze tehdy, pokud mají všechny objekty stejnou proměnlivou výšku vrstvy"
 
@@ -12973,14 +13516,14 @@ msgstr "s"
 msgid "Cooling overhang threshold"
 msgstr "Prahová hodnota chlazení převisů"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Vynutí nastavenou rychlost ventilátoru chlazení, pokud míra převisu tištěné části překročí tuto hodnotu.Hodnota je vyjádřena v procentech a určuje, jak velká část šířky extruze není podepřena spodní vrstvou. 0%%  znamená vynucené chlazení všech vnějších stěn bez ohledu na velikost převisu"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Práh převisu pro aktivaci chlazení"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Určuje, které části převisů budou zpomalovány kvůli chlazení.Hodnota je vyjádřena v procentech a určuje, jak velká část šířky extruze není podepřena spodní vrstvou. 100%%   znamená vynucené chlazení všech vnějších stěn bez ohledu na velikost převisu"
 
@@ -13060,9 +13603,9 @@ msgstr "Povolte tuto možnost pro zpomalení tisku při různých stupních pře
 msgid "mm/s"
 msgstr "mm/s"
 
-#, c-format, boost-format
-msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
-msgstr "Rychlost stěny převisu při 100%%, která se nepřekrývá se spodní vrstvou."
+#, no-c-format, no-boost-format
+msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgstr ""
 
 msgid "Slow down by height"
 msgstr "Zpomalit podle výšky"
@@ -13327,6 +13870,9 @@ msgstr "Zajistit tloušťku svislého pláště"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "Přidat pevnou výplň v blízkosti šikmých ploch pro zajištění svislé tloušťky stěny (horní a spodní pevné vrstvy)"
 
+msgid "Disabled"
+msgstr "Zakázáno"
+
 msgid "Partial"
 msgstr "Částečný"
 
@@ -13405,7 +13951,7 @@ msgstr "Vzor linií výplně spodní plochy, nikoli přemosťovací výplně"
 msgid "Bottom surface density"
 msgstr "Hustota spodního povrchu"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr "Hustota výplně spodního povrchu. 100%%  znamená zcela plnou vrstvu.Nižší hodnoty vytvářejí texturovaný spodní povrch. Toto nastavení je určeno pro estetické nebo funkční účely, nikoli pro řešení problémů, jako je nadměrná extruze.VAROVÁNÍ: Snížení této hodnoty může negativně ovlivnit přilnavost k podložce."
 
@@ -13414,6 +13960,12 @@ msgstr "Vzor vnitřní plné výplně"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "Vzor čar vnitřní plné výplně. Je-li detekce úzké vnitřní plné výplně povolena, pro malou oblast bude použit koncentrický vzor."
+
+msgid "Sub-top surface pattern"
+msgstr ""
+
+msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
+msgstr ""
 
 msgid "Line width of outer wall"
 msgstr "Šířka čáry vnější stěny"
@@ -13961,7 +14513,7 @@ msgstr "Úhel pro vzor řídké výplně, který určuje počáteční nebo hlav
 msgid "Sparse infill density"
 msgstr "Hustota řídké výplně"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Hustota vnitřní řídké výplně. 100%%  znamená plnou výplň"
 
@@ -14091,6 +14643,12 @@ msgstr "Rychlost změny pohybu přejezdu"
 msgid "Line width of initial layer"
 msgstr "Šířka čáry počáteční vrstvy"
 
+msgid "Initial layer infill"
+msgstr "Výplň počáteční vrstvy"
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr ""
+
 msgid "Initial layer height"
 msgstr "Výška počáteční vrstvy"
 
@@ -14099,9 +14657,6 @@ msgstr "Výška počáteční vrstvy. Mírné zvětšení výšky počáteční 
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Rychlost počáteční vrstvy kromě oblasti plné výplně"
-
-msgid "Initial layer infill"
-msgstr "Výplň počáteční vrstvy"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "Rychlost plné výplně počáteční vrstvy"
@@ -15117,16 +15672,16 @@ msgstr "Maximální vyhlazení v ose XY"
 msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf expressed as a %, it will be computed over nozzle diameter"
 msgstr "Maximální vzdálenost posunutí bodů v ose XY pro dosažení plynulé spirály. Pokud je zadána v procentech, bude vypočtena na základě průměru trysky"
 
-msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "Pokud je zvolen režim hladký nebo tradiční, bude pro každý tisk vygenerováno časosběrné video. Po vytištění každé vrstvy je pořízen snímek komorovou kamerou. Všechny tyto snímky jsou po dokončení tisku spojeny do časosběrného videa. Pokud je zvolen režim hladký, tisková hlava po vytištění každé vrstvy přejede ke žlabu na přebytečný materiál a poté pořídí snímek. Protože během snímání může z trysky vytékat roztavený filament, je v hladkém režimu pro očištění trysky vyžadována čisticí věž."
+msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+msgstr ""
 
-msgid "Traditional"
-msgstr "Tradiční"
+msgid "Instant"
+msgstr ""
 
 msgid "Farthest point timelapse"
 msgstr ""
 
-msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
 msgstr ""
 
 msgid "Temperature variation"
@@ -15155,6 +15710,9 @@ msgstr "Praskliny menší než dvojnásobek poloměru uzavírání mezer se běh
 
 msgid "Slicing Mode"
 msgstr "Režim řezání"
+
+msgid "Other"
+msgstr "Ostatní"
 
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "Použijte „sudý-lichý“ pro modely letadel 3DLabPrint. Použijte „Zavřít díry“ pro uzavření všech otvorů v modelu."
@@ -15761,9 +16319,9 @@ msgstr "--use-firmware-retraction je podpěrováno pouze firmwarem Marlin, Klipp
 msgid "--use-firmware-retraction is not compatible with --wipe"
 msgstr "--use-firmware-retraction není kompatibilní s --wipe"
 
-#, c-format, boost-format
-msgid " doesn't work at 100%% density "
-msgstr " nefunguje při 100%% hustotě "
+#, no-c-format, no-boost-format
+msgid " doesn't work at 100% density "
+msgstr ""
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Neplatná hodnota při aktivovaném režimu spirálové vázy: "
@@ -15816,6 +16374,18 @@ msgstr "Generování podpěr"
 
 msgid "Optimizing toolpath"
 msgstr "Optimalizace dráhy nástroje"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
+msgstr ""
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Prázdné vrstvy na spodní straně jsou nahrazeny nejbližšími běžnými vrstvami."
@@ -16798,9 +17368,6 @@ msgstr "Sériové číslo"
 msgid "e.g. Basic, Matte, Silk, Marble"
 msgstr "např. Základní, Mat, Hedvábí, Mramor"
 
-msgid "Filament Preset"
-msgstr "Přednastavení filamentu"
-
 msgid "Create"
 msgstr "Vytvořit"
 
@@ -16834,10 +17401,8 @@ msgstr "Zatím jste nevybrali tiskárnu ani přednastavení. Vyberte prosím ale
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"Název filamentu %s, který jste vytvořili, již existuje. \n"
-"Pokud budete pokračovat, vytvořené přednastavení se zobrazí pod svým plným názvem. Chcete pokračovat?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Některá existující přednastavení se nepodařilo vytvořit, viz níže:\n"
@@ -17174,17 +17739,6 @@ msgid "+ Add Preset"
 msgstr "+ Přidat přednastavení"
 
 msgid "Delete Filament"
-msgstr "Smazat filament"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"Všechna přednastavení tohoto filamentu budou smazána. \n"
-"Pokud tento filament používáte na své tiskárně, resetujte prosím informace o filamentu pro daný slot.Všechna přednastavení filamentu patřící k tomuto filamentu budou smazána. \n"
-"Pokud tento filament používáte ve své tiskárně, nastavte prosím znovu informace o filamentu pro tento slot."
-
-msgid "Delete filament"
 msgstr "Smazat filament"
 
 msgid "Add Preset"
@@ -17999,6 +18553,9 @@ msgstr "Tuto akci nelze vrátit zpět. Pokračovat?"
 msgid "Skipping objects."
 msgstr "Přeskakují se objekty."
 
+msgid "Custom Color"
+msgstr "Vlastní barva"
+
 msgid "Null Color"
 msgstr "Žádná barva"
 
@@ -18010,6 +18567,21 @@ msgstr "Oficiální filament"
 
 msgid "More Colors"
 msgstr "Více barev"
+
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr ""
 
 msgid "Please set nozzle count"
 msgstr "Nastavte prosím počet trysek"
@@ -18354,6 +18926,12 @@ msgstr "Doporučení pro míchání"
 msgid "-- Select --"
 msgstr "-- Vyberte --"
 
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr "Efekt přechodu vyžaduje, aby byla povolena možnost 'Smíšená barevná podvrstva'. Povolíte ji nyní?"
+
+msgid "Mixed Color Sublayer"
+msgstr "Smíšená barevná podvrstva"
+
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr "Slot %s (%s)"
@@ -18376,32 +18954,51 @@ msgstr "Byl dosažen maximální počet komponent"
 msgid "Remove the third material"
 msgstr "Odebrat třetí materiál"
 
-msgid "Project Filament List"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
 msgstr ""
 
-msgid "Standard Mode Recommendations"
+msgid "Decomposition result for this combination"
 msgstr ""
 
-msgid "Target Color"
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
 msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr ""
 
-msgid "Arbitrary Mode"
+msgid "Project Filament"
 msgstr ""
 
 msgid "Material List"
 msgstr ""
 
-msgid "Standard Mode"
-msgstr "Standardní režim"
+msgid "Standard Palette"
+msgstr ""
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr ""
 
+msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
+
+msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
+
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
 msgstr ""
 
 msgid "Cyan"
@@ -18432,6 +19029,13 @@ msgid "Auxiliaries"
 msgstr ""
 
 msgid "An unexpected error occurred"
+msgstr ""
+
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -18755,6 +19359,100 @@ msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "Název filamentu %s, který jste vytvořili, již existuje. \n"
+#~ "Pokud budete pokračovat, vytvořené přednastavení se zobrazí pod svým plným názvem. Chcete pokračovat?"
+
+#, c-format, boost-format
+#~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
+#~ msgstr "Aktuální teplota komory je vyšší než bezpečná teplota materiálu, což může způsobit změknutí a ucpání materiálu. Maximální bezpečná teplota tohoto materiálu je %d"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "lock depth should smaller than skin depth.\n"
+#~ "Reset to 50%% of skin depth"
+#~ msgstr ""
+#~ "hloubka zámku by měla být menší než tloušťka slupky.\n"
+#~ "Obnoveno na 50%% tloušťky slupkyHloubka zámku by měla být menší než hloubka povrchu.\n"
+#~ "Nastaveno na 50%% hloubky povrchu"
+
+#~ msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
+#~ msgstr "Teplota vyhřívané podložky je aktuálně poměrně vysoká. Při tisku tohoto filamentu v uzavřeném prostoru může dojít k ucpání trysky. Otevřete prosím přední dvířka a/nebo sejměte horní sklo."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The object from file %s is too small, and maybe in meters or inches.\n"
+#~ " Do you want to scale to millimeters?"
+#~ msgstr ""
+#~ "Objekt ze souboru %s je příliš malý a možná je v metrech nebo palcích.\n"
+#~ " Chcete jej přepočítat na milimetry?"
+
+#, c-format, boost-format
+#~ msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
+#~ msgstr "Rychlost stěny převisu při 100%%, která se nepřekrývá se spodní vrstvou."
+
+#, c-format, boost-format
+#~ msgid " doesn't work at 100%% density "
+#~ msgstr " nefunguje při 100%% hustotě "
+
+#~ msgid ""
+#~ "Drag to move the cut plane\n"
+#~ "Right-click a part to assign it to the other side"
+#~ msgstr ""
+#~ "Přetažením posuňte řeznou rovinu\n"
+#~ "Klikněte pravým tlačítkem na díl a přiřaďte jej na druhou stranuPřetažením posuňte řeznou rovinu\n"
+#~ "Pravým tlačítkem myši přiřaďte díl na opačnou stranu"
+
+#~ msgid "Deleting the last solid part is not allowed."
+#~ msgstr "Smazání poslední pevné části není povoleno."
+
+#~ msgid "max"
+#~ msgstr "max"
+
+#~ msgid "min"
+#~ msgstr "min"
+
+#, boost-format
+#~ msgid "The input value should be greater than %1% and less than %2%"
+#~ msgstr "Vstupní hodnota musí být větší než %1% a menší než %2%"
+
+#~ msgid "Setting AMS slot information while printing is not supported"
+#~ msgstr "Nastavení informací o slotu AMS během tisku není podpěrováno"
+
+#~ msgid "Setting Virtual slot information while printing is not supported"
+#~ msgstr "Nastavení informací o virtuálním slotu během tisku není podpěrováno"
+
+#~ msgid "Other Color"
+#~ msgstr "Jiná barva"
+
+#~ msgid "parameter name"
+#~ msgstr "název parametru"
+
+#~ msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+#~ msgstr "Povolení tradičního časosběru může způsobit povrchové nedokonalosti. Doporučuje se přepnout do režimu plynulého pohybu."
+
+#~ msgid "Auto Flush"
+#~ msgstr "Automatické proplachování"
+
+#~ msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
+#~ msgstr "Aktuální tiskárna nepodpěruje časosběr v tradičním režimu při tisku po objektech."
+
+#~ msgid "Select presets to compare"
+#~ msgstr "Vyberte přednastavení k porovnání"
+
+#~ msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+#~ msgstr "Pokud je zvolen režim hladký nebo tradiční, bude pro každý tisk vygenerováno časosběrné video. Po vytištění každé vrstvy je pořízen snímek komorovou kamerou. Všechny tyto snímky jsou po dokončení tisku spojeny do časosběrného videa. Pokud je zvolen režim hladký, tisková hlava po vytištění každé vrstvy přejede ke žlabu na přebytečný materiál a poté pořídí snímek. Protože během snímání může z trysky vytékat roztavený filament, je v hladkém režimu pro očištění trysky vyžadována čisticí věž."
+
+#~ msgid "Traditional"
+#~ msgstr "Tradiční"
+
+#~ msgid "Standard Mode"
+#~ msgstr "Standardní režim"
+
 #, boost-format
 #~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
 #~ msgstr "Ohraničující rámeček sestavy je příliš velký (maximální rozměr >= %1% in), což může způsobit problémy s vykreslováním.\n"
@@ -18819,12 +19517,6 @@ msgstr ""
 
 #~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 #~ msgstr "Výška vrstvy překračuje limit v nastavení tiskárny -> Extruder -> Limity výšky vrstvy, což může způsobit problémy s kvalitou tisku."
-
-#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-#~ msgstr "Efekt přechodu vyžaduje, aby byla povolena možnost 'Smíšená barevná podvrstva'. Povolíte ji nyní?"
-
-#~ msgid "Mixed Color Sublayer"
-#~ msgstr "Smíšená barevná podvrstva"
 
 #~ msgid "Second"
 #~ msgstr "Sekunda"

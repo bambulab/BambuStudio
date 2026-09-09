@@ -57,7 +57,8 @@ public:
     // `local_patch` carries the fields the user actually edited this time
     // (local schema names); Cloud only receives whitelisted/changed fields.
     void enqueue_push_update(const std::string& spool_id,
-                             const nlohmann::json& local_patch);
+                             const nlohmann::json& local_patch,
+                             std::function<void()> on_cloud_ok = nullptr);
     // Push a batch delete for multiple spool ids.
     void enqueue_push_delete(const std::vector<std::string>& spool_ids);
     // Sync AMS tray weights to cloud via POST /my/filament/v2/ams/sync.
@@ -84,7 +85,8 @@ private:
     void run_pull_op();
     void run_push_create_op(const FilamentSpool& spool);
     void run_push_update_op(const std::string& spool_id,
-                            const nlohmann::json& local_patch);
+                            const nlohmann::json& local_patch,
+                            std::function<void()> on_cloud_ok);
     void run_push_delete_op(const std::vector<std::string>& spool_ids);
     void run_sync_ams_op(BBL::AmsSyncParams params,
                          std::function<void()> on_cloud_ok);

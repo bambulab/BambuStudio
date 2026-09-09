@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-09-08 19:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -898,15 +898,11 @@ msgstr "Tárgy"
 msgid "Object"
 msgstr "Objektum"
 
+msgid "Right-click a part to assign it to the other side"
+msgstr "Kattints jobb gombbal egy alkatrészre a másik oldalhoz való hozzárendeléséhez"
+
 msgid "Drag to move the cut plane"
 msgstr "Húzd az egeret a vágási sík mozgatásához"
-
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
-msgstr ""
-"Húzd az egeret a vágási sík mozgatásához\n"
-"Kattints jobb gombbal egy tárgyra, hogy a másik oldalhoz rendeld hozzá"
 
 msgid "Left click"
 msgstr "Bal kattintás"
@@ -976,6 +972,15 @@ msgstr "Mozgatás:"
 
 msgid "Groove Angle"
 msgstr "Horonyszög"
+
+msgid "Pick face"
+msgstr "Felület kiválasztása"
+
+msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
+msgstr "Kattints a modell egyik felületére a vágási sík beállításához. A sík pontosan illeszkedik a felülethez; az eltolásához használd a Mozgatás lehetőséget."
+
+msgid "Click a face of the model."
+msgstr "Kattints a modell egyik felületére."
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -2471,9 +2476,6 @@ msgstr "Szerkesztés"
 msgid "Delete this filament"
 msgstr "Törölje ezt a filamentet"
 
-msgid "Decompose Color"
-msgstr "Szín lebontása"
-
 msgid "Merge with"
 msgstr "Összevonás ezzel"
 
@@ -2616,6 +2618,9 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr "Hiba: fordított felületek észlelve, ami befolyásolhatja a megjelenítést"
+
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2630,6 +2635,9 @@ msgstr "Kattints jobb gombbal az ikonra az objektum beállításainak elvetésé
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "Kattints az ikonra az objektum összes beállításának visszaállításához"
+
+msgid "Unprintable object"
+msgstr "Nyomtathatatlan objektum"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Kattints jobb gombbal az ikonra az objektum nyomtatható tulajdonságának elvetéséhez"
@@ -2698,9 +2706,6 @@ msgstr ""
 
 msgid "Delete all connectors"
 msgstr "Minden összekötő törlése"
-
-msgid "Deleting the last solid part is not allowed."
-msgstr "Az utolsó szilárd rész törlése nem megengedett."
 
 msgid "The target object contains only one part and can not be split."
 msgstr "A kijelölt objektum csak egy tárgyat tartalmaz, ezért nem lehet tovább bontani."
@@ -3854,6 +3859,9 @@ msgstr "Projekt – vegyes filamentek"
 msgid "New Mixed Filaments"
 msgstr "Új vegyes filamentek"
 
+msgid "Decompose Color"
+msgstr "Szín lebontása"
+
 msgid "+ Add Material"
 msgstr "+ Anyag hozzáadása"
 
@@ -4054,25 +4062,11 @@ msgstr "AMS anyagok beállítása"
 msgid "Colour"
 msgstr "Szín"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr ""
-"Fúvóka\n"
-"Hőmérséklet"
-
-msgid "max"
-msgstr "max"
-
-msgid "min"
-msgstr "min"
-
-#, boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr "A megadott értéknek nagyobbnak kell lennie, mint %1% és kisebbnek, mint %2%"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Anyagáramlás kalibrálásának faktorai"
+
+msgid "View Wiki for details"
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Fúvóka típusa"
@@ -4086,14 +4080,33 @@ msgstr "K-tényező"
 msgid "Factor N"
 msgstr "N-tényező"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Nyomtatás közben nem változtathatóak meg a AMS férőhelyek adatai"
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr ""
+"Fúvóka\n"
+"Hőmérséklet"
 
-msgid "Setting Virtual slot information while printing is not supported"
-msgstr "Nem módosíthatod a virtuális férőhelyek beállításait nyomtatás közben."
+msgid "Tip: Setting AMS slot information while printing is not supported"
+msgstr ""
+
+msgid "Tip: Setting Virtual slot information while printing is not supported"
+msgstr ""
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Biztos, hogy törölni akarod a filament adatait?"
+
+msgid "Add to Filament Library?"
+msgstr "Hozzáadod a filamentkönyvtárhoz?"
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr "A filamenttípus vagy -szín módosítása megszünteti a Filamentkönyvtárhoz való hozzárendelést. Hozzáadod a filamentet új tekercsként?"
+
+msgid "Add to Filament Library"
+msgstr "Hozzáadva a Filamentkönyvtárhoz"
+
+msgid "Save Only"
+msgstr "Csak mentés"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "A TPU-nak eltérő adagolási útra van szüksége. Ellenkező esetben eltömődést okozhat. Kérjük, olvasd el a vonatkozó útmutatót a TPU használata előtt."
@@ -4104,52 +4117,15 @@ msgstr "Ugrás az ellenőrzéshez"
 msgid "You need to select the material type and color first."
 msgstr "Először ki kell választanod az anyag típusát és színét."
 
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "Kérjük, adj meg egy érvényes értéket (K %.1f ~%.1f)"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "Kérjük, adj meg egy érvényes értéket (K %.1f ~%.1f, N %.1f ~%.1f)"
+msgid "Please select a color"
+msgstr "Válassz egy színt"
 
 msgid "Remark"
 msgstr "Megjegyzés"
 
-msgid "Other"
-msgstr "Egyéb"
-
-msgid "Filament Manager"
-msgstr "Filamentkezelő"
-
-msgid "In printer"
-msgstr "Nyomtatóban"
-
 #, c-format, boost-format
-msgid "In printer: %s"
-msgstr "Nyomtatóban: %s"
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr "Megjegyzés"
-
-msgid "Unsupported Filaments"
-msgstr "Nem támogatott filamentek"
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr "Megjegyzés"
-
-msgid "No unsupported filaments"
-msgstr "Nincsenek nem támogatott filamentek"
-
-msgid "No filaments"
-msgstr "Nincsenek filamentek"
-
-msgid "System presets"
-msgstr "Rendszer beállítások"
-
-msgid "Recently used"
-msgstr "Legutóbb használt"
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Kérjük, adj meg egy érvényes értéket (K %.1f ~%.1f)"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4162,32 +4138,26 @@ msgstr ""
 "A fúvóka áramlása nincs beállítva. Kérjük, állítsd be a fúvóka áramlási sebességét a filament szerkesztése előtt.\n"
 "\"Eszköz > Alkatrészek nyomtatása\""
 
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Other Color"
-msgstr "Más szín"
-
-msgid "Custom Color"
-msgstr "Egyéni szín"
-
-msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr "Az AMS új hivatalos filamentet észlelt. Hozzáadja a Filamentkezelőhöz?"
+msgid "Matched filament"
+msgstr ""
 
 msgid "Add as new filament"
 msgstr "Hozzáadás új filamentként"
 
-msgid "Link to existing filament"
-msgstr "Összekapcsolás meglévő filamenttel"
+msgid "AMS detected a new filament. Add it to Filament Manager?"
+msgstr ""
 
-msgid "Not now"
-msgstr "Most nem"
+msgid "A similar filament was found in Filament Manager and matched automatically."
+msgstr ""
 
-msgid "Please select"
-msgstr "Kérjük, válasszon"
+msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
+msgstr ""
 
-msgid "No matching filament"
-msgstr "Nincs megfelelő filament"
+msgid "New Filament"
+msgstr "Új filament"
+
+msgid "New filament information has been recorded."
+msgstr "Új filamentinformáció rögzítve."
 
 msgid "Dynamic flow calibration"
 msgstr "Dinamikus anyagáramlás kalibráció"
@@ -4237,6 +4207,10 @@ msgstr "Kalibrálás... %d%%"
 
 msgid "Calibration completed"
 msgstr "A kalibrálás befejeződött"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Kérjük, adj meg egy érvényes értéket (K %.1f ~%.1f, N %.1f ~%.1f)"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4389,6 +4363,9 @@ msgstr "SZÁRAZ"
 msgid "WET"
 msgstr "NEDVES"
 
+msgid "AMS"
+msgstr "AMS"
+
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
 msgstr "Válaszd ki a következőhöz betöltött filamentet: %s."
@@ -4483,6 +4460,12 @@ msgstr "Biztosan visszaállítod az AMS-sorrendet?"
 
 msgid "Reset AMS Sequence"
 msgstr "AMS-sorrend visszaállítása"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "Fájl"
@@ -4676,9 +4659,12 @@ msgstr ""
 "Nem lehet 100%-nál nagyobb.\n"
 "Visszaállítás az alapértelmezettre"
 
-#, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
-msgstr "A kamra aktuális hőmérséklete magasabb, mint az anyag biztonságos hőmérséklete, ami az anyag lágyulását és eltömődését okozhatja. Az anyag maximális biztonságos hőmérséklete %d"
+msgid "Value is out of range."
+msgstr "Az érték tartományon kívül esik."
+
+#, boost-format
+msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
+msgstr "A(z) %1% nem lehet nagyobb a héjrétegek számánál (%2%), különben a festett szín elérné a ritka kitöltést."
 
 msgid ""
 "Too small layer height.\n"
@@ -4834,13 +4820,11 @@ msgstr ""
 "A tárgyanként történő nyomtatás közben a fej beleütközhet a szoknyába.\n"
 "Az ütközés elkerülése érdekében állítsd vissza a szoknyaréteget 1-re."
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
-"Reset to 50%% of skin depth"
+"Reset to 50% of skin depth"
 msgstr ""
-"a zárási mélységnek kisebb kell lennie, mint a bőr mélysége.\n"
-"Visszaállítás 50%% mélységre"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "Az alternatív extra fal nem kompatibilis a spirál (váza) móddal. Az alternatív extra fal engedélyezéséhez a következő beállítások ajánlottak:"
@@ -4880,8 +4864,8 @@ msgstr ""
 "Igen – Alkalmazza és hagyja engedélyezve az alternatív extra falat\n"
 "Nem – Tartsa meg az aktuális beállításokat és hagyja engedélyezve az alternatív extra falat"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-msgstr "A spirál mód csak akkor működik, ha a falhurkok értéke 1, a megtámasztás le van tiltva, a szondázással történő csomósodásérzékelés le van tiltva, a felső héjrétegek értéke 0, a ritka kitöltési sűrűség 0, a timelapse típusa hagyományos, a falsebesség z irányú simítása hamis, és az alternatív extra fal le van tiltva."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Az I3-szerkezetű gépek azonban nem fognak timelapse videókat készíteni."
@@ -5254,9 +5238,6 @@ msgstr "A hálózat nem érhető el"
 msgid "default"
 msgstr "alapértelmezett"
 
-msgid "parameter name"
-msgstr "paraméter neve"
-
 msgid "N/A"
 msgstr "N/A"
 
@@ -5274,9 +5255,6 @@ msgstr "Paraméter validáció"
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
 msgstr "A(z) %s érték a tartományon kívül van. Az érvényes tartomány %d és %d között van."
-
-msgid "Value is out of range."
-msgstr "Az érték tartományon kívül esik."
 
 #, c-format, boost-format
 msgid ""
@@ -5935,6 +5913,9 @@ msgstr "A törlőtorony javítja a többszínű nyomtatási minőséget, és aj�
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "A törlőtorony túlnyúlik a tálca területén."
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr "Az aktuális tálcán lévő összes objektum nyomtathatatlan. A szeletelés üres eredményt fog létrehozni. Kérjük, ellenőrizze."
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "A részleges öblítés térfogata 0-ra van állítva. Többszínű nyomtatás esetén a modelleken színkeveredés léphet fel. Kérjük, módosítsd a tisztítási beállításokat."
 
@@ -6078,6 +6059,9 @@ msgstr "Multi-eszköz"
 
 msgid "Project"
 msgstr "Projekt"
+
+msgid "Filament Manager"
+msgstr "Filamentkezelő"
 
 msgid "Yes"
 msgstr "Igen"
@@ -6903,6 +6887,9 @@ msgstr "3Dconnexion beállítások"
 msgid "Swap Y/Z axes"
 msgstr "Y/Z tengelyek felcserélése"
 
+msgid "Lock horizon"
+msgstr "Horizont zárolása"
+
 msgid "(LAN)"
 msgstr "(LAN)"
 
@@ -7051,6 +7038,9 @@ msgstr "%dmp"
 
 msgid "Finished"
 msgstr "Kész"
+
+msgid "Almost complete"
+msgstr ""
 
 msgid "Camera"
 msgstr "Kamera"
@@ -7537,6 +7527,12 @@ msgstr "Hiba:"
 msgid "Open link for more info"
 msgstr "További információkért nyisd meg a linket"
 
+msgid "Jump to: Support on build plate only"
+msgstr "Ugrás ide: csak a nyomtatótálcán lévő támasz"
+
+msgid "Jump to: Support"
+msgstr "Ugrás ide: Támasz"
+
 msgid "Warning:"
 msgstr "Figyelem:"
 
@@ -7795,6 +7791,480 @@ msgstr "Tétlenségi fűtésvezérlés"
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Inaktivitás után 5 perc elteltével automatikusan leáll a fűtés a biztonság érdekében."
+
+msgid "Note: "
+msgstr ""
+
+msgid "Controls the printed height of each layer."
+msgstr ""
+
+msgid ""
+"A larger layer height prints faster but shows more obvious layer lines.\n"
+"A smaller layer height gives finer curved surfaces but takes longer to print.\n"
+"If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
+msgstr ""
+
+msgid "Recommended layer height is 20%-70% of the nozzle diameter."
+msgstr ""
+
+msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
+msgstr ""
+
+msgid ""
+"Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
+"Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
+msgstr ""
+
+msgid "Usually set to half the nozzle diameter."
+msgstr ""
+
+msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
+msgstr ""
+
+msgid ""
+"When off, colors change per full layer, so the blend is coarser and less even.\n"
+"When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
+msgstr ""
+
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+msgstr ""
+
+msgid "Controls where each layer's outer wall starts and ends."
+msgstr ""
+
+msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
+msgstr ""
+
+msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
+msgstr ""
+
+msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
+msgstr ""
+
+msgid "Recommended only for flat top surfaces."
+msgstr ""
+
+msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
+msgstr ""
+
+msgid ""
+"When off, the first layer uses multiple wall loops.\n"
+"When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
+msgstr ""
+
+msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
+msgstr ""
+
+msgid ""
+"More walls give higher strength but use more material and time;\n"
+"fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
+msgstr ""
+
+msgid "2-3 loops is recommended for typical models; increase it for functional parts."
+msgstr ""
+
+msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
+msgstr ""
+
+msgid ""
+"It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
+"Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
+msgstr ""
+
+msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
+msgstr ""
+
+msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
+msgstr ""
+
+msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
+msgstr ""
+
+msgid "Requires sparse infill; not applicable in vase mode."
+msgstr ""
+
+msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
+msgstr ""
+
+msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
+msgstr ""
+
+msgid "Bridging areas are not affected by this parameter."
+msgstr ""
+
+msgid "Controls the number of solid top shell layers, including the top surface."
+msgstr ""
+
+msgid ""
+"More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
+"If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
+msgstr ""
+
+msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
+msgstr ""
+
+msgid ""
+"Set to 0 to disable this and let the layer count alone decide.\n"
+"If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
+msgstr ""
+
+msgid "Controls the number of solid bottom shell layers, including the bottom surface."
+msgstr ""
+
+msgid ""
+"More layers make the bottom more solid but take longer.\n"
+"If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
+msgstr ""
+
+msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
+msgstr ""
+
+msgid ""
+"Set to 0 to disable this and let the layer count alone decide.\n"
+"If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
+msgstr ""
+
+msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
+msgstr ""
+
+msgid ""
+"Fewer layers make color bleed-through more likely.\n"
+"More layers reduce bleed-through but increase the number of filament changes.\n"
+"To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
+msgstr ""
+
+msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
+msgstr ""
+
+msgid ""
+"Fewer layers make color bleed-through more likely.\n"
+"More layers reduce bleed-through but increase the number of filament changes.\n"
+"To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
+msgstr ""
+
+msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
+msgstr ""
+
+msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
+msgstr ""
+
+msgid "Controls how dense the model's internal sparse infill is."
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"10-15% is recommended for typical models; raise it for functional parts.\n"
+"100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
+msgstr ""
+
+msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
+msgstr ""
+
+msgid ""
+"Higher values make the infill beams thicker and stronger but use more material and time;\n"
+"1 is ordinary single-line infill."
+msgstr ""
+
+msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
+msgstr ""
+
+msgid "Controls the toolpath structure of the internal sparse infill."
+msgstr ""
+
+msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
+msgstr ""
+
+msgid ""
+"When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
+"Recommended when the model has obvious overhangs."
+msgstr ""
+
+msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
+msgstr ""
+
+msgid ""
+"Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
+"Choose a manual mode when you need precise control."
+msgstr ""
+
+msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
+msgstr ""
+
+msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
+msgstr ""
+
+msgid ""
+"A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
+"A larger threshold also supports more slopes, giving more support."
+msgstr ""
+
+msgid "A common default of 30 degrees balances print stability against the amount of support used."
+msgstr ""
+
+msgid "Generates support only from the build plate, not on the model's surfaces."
+msgstr ""
+
+msgid ""
+"When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
+"When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
+msgstr ""
+
+msgid "Recommended when appearance matters."
+msgstr ""
+
+msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
+msgstr ""
+
+msgid ""
+"By default the interface uses the same filament as the model, which can make removal harder.\n"
+"Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
+msgstr ""
+
+msgid "The filament used to print the support body and the raft."
+msgstr ""
+
+msgid ""
+"By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
+"Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
+msgstr ""
+
+msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
+msgstr ""
+
+msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
+msgstr ""
+
+msgid "Controls how many layers the skirt is printed."
+msgstr ""
+
+msgid ""
+"During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
+"The default is 1 layer."
+msgstr ""
+
+msgid "Requires the skirt loop count to be greater than 0."
+msgstr ""
+
+msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
+msgstr ""
+
+msgid ""
+"This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
+"The default is Auto."
+msgstr ""
+
+msgid "The distance from the model to the outermost brim line."
+msgstr ""
+
+msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
+msgstr ""
+
+msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
+msgstr ""
+
+msgid ""
+"Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
+"On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
+msgstr ""
+
+msgid "Mutually exclusive with by-object printing and independent support layer height."
+msgstr ""
+
+msgid "Controls the horizontal size of the prime tower."
+msgstr ""
+
+msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
+msgstr ""
+
+msgid "The width cannot be customized when the rib outer wall is enabled."
+msgstr ""
+
+msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
+msgstr ""
+
+msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
+msgstr ""
+
+msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
+msgstr ""
+
+msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
+msgstr ""
+
+msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
+msgstr ""
+
+msgid "Enabling it saves material, but the supports may show mixed colors."
+msgstr ""
+
+msgid "Takes effect when printing multiple filaments through the same nozzle."
+msgstr ""
+
+msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
+msgstr ""
+
+msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
+msgstr ""
+
+msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
+msgstr ""
+
+msgid ""
+"When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
+"It is best for single, thin-walled, open-top models."
+msgstr ""
+
+msgid "Requires top shell layers to be 0 and is not compatible with support."
+msgstr ""
+
+msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
+msgstr ""
+
+msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
+msgstr ""
+
+msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
+msgstr ""
+
+msgid ""
+"It affects only walls; the top and bottom surfaces are unchanged.\n"
+"Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
+msgstr ""
+
+msgid "Selects how the fuzzy texture is generated."
+msgstr ""
+
+msgid "There are three generator modes; pick the one that suits your needs."
+msgstr ""
+
+msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
+msgstr ""
+
+msgid "Several noise types are available; pick the one that suits your needs."
+msgstr ""
+
+msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
+msgstr ""
+
+msgid ""
+"A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
+"A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
+msgstr ""
+
+msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
+msgstr ""
+
+msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
+msgstr ""
+
+msgid ""
+"A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
+"The default is about 0.3 mm; keep it below the outer wall's line width."
+msgstr ""
+
+msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
+msgstr ""
+
+msgid "Determines whether the fuzzy effect is also applied to the first layer."
+msgstr ""
+
+msgid ""
+"When on, the first-layer side walls also get the fuzzy texture.\n"
+"Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
+msgstr ""
+
+msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
+msgstr ""
+
+msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
+msgstr ""
+
+msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
+msgstr ""
+
+msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
+msgstr ""
+
+msgid "All top surfaces print with the normal number of wall loops."
+msgstr ""
+
+msgid "Applies to every flat upward-facing top surface, for the widest coverage."
+msgstr ""
+
+msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
+msgstr ""
+
+msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
+msgstr ""
+
+msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
+msgstr ""
+
+msgid "Generates a brim in inner holes only."
+msgstr ""
+
+msgid "Generates a brim on both the outer contour and inner holes."
+msgstr ""
+
+msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
+msgstr ""
+
+msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
+msgstr ""
+
+msgid "All objects rise together, layer by layer."
+msgstr ""
+
+msgid "Finishes one object before starting the next; has placement clearance requirements."
+msgstr ""
+
+msgid "A snapshot is taken directly after each layer."
+msgstr ""
+
+msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
+msgstr ""
+
+msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
+msgstr ""
+
+msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
+msgstr ""
+
+msgid "Adds fuzzy skin to both the outer contour and inner holes."
+msgstr ""
+
+msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
+msgstr ""
+
+msgid "Turns fuzzy skin fully off; even painting has no effect."
+msgstr ""
+
+msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
+msgstr ""
+
+msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
+msgstr ""
+
+msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
+msgstr ""
+
+msgid "Uniform random noise with a fine, grainy texture and no clear direction."
+msgstr ""
+
+msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
+msgstr ""
+
+msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
+msgstr ""
+
+msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
+msgstr ""
+
+msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
+msgstr ""
+
+msgid "View details on Wiki"
+msgstr ""
 
 msgid "Global"
 msgstr "Globális"
@@ -8077,14 +8547,11 @@ msgstr ""
 msgid "Restore"
 msgstr "Visszaállítás"
 
-msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
-msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
-
 msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
 msgstr "Ez a filament nagyobb keménységű fúvókát igényel. Kérjük, cseréld ki a fúvókát vagy válassz másik filamentet, különben előfordulhat, hogy a fúvóka idő előtt elhasználódik vagy megsérül."
 
-msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr "A hagyományos timelapse engedélyezése felületi hibákat okozhat. Javasoljuk, hogy válts a sima módra."
+msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+msgstr ""
 
 msgid "\n"
 msgstr ""
@@ -8108,14 +8575,14 @@ msgstr "Fájl betöltése: %s"
 msgid "The 3mf file has invalid config, load geometry data only"
 msgstr "A 3mf fájl érvénytelen konfigurációt tartalmaz, csak geometriai adatok betöltése"
 
-msgid "Load 3mf"
-msgstr "3mf betöltése"
-
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr "Ez a 3mf nem a Bambu Labtól származik, csak a geometriai adatok kerülnek betöltésre."
 
 msgid "The Config can not be loaded."
 msgstr "A konfiguráció nem tölthető be."
+
+msgid "Load 3mf"
+msgstr "3mf betöltése"
 
 msgid "Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"
 msgstr "A Bambu Studio alacsonyabb verziója miatt ez a 3mf fájl nem tölthető be teljesen. Kérjük, frissítsd a Bambu Studiót a legújabb verzióra"
@@ -8175,11 +8642,8 @@ msgstr "Nulla térfogatú objektumok eltávolítva"
 msgid "The volume of the object is zero"
 msgstr "Az objektum térfogata nulla"
 
-#, c-format, boost-format
-msgid ""
-"The object from file %s is too small, and maybe in meters or inches.\n"
-" Do you want to scale to millimeters?"
-msgstr "A(z) %s fájlból származó objektum túl kicsi, lehet, hogy méterben vagy hüvelykben lett létrehozva. Szeretnéd milliméterre méretezni?"
+msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
+msgstr ""
 
 msgid "Object too small"
 msgstr "Objektum túl kicsi"
@@ -9061,14 +9525,26 @@ msgstr "Mértékegység"
 msgid "Enable dark mode"
 msgstr "Sötét mód engedélyezése"
 
-msgid "All"
-msgstr "Összes"
+msgid "All related changes"
+msgstr "Összes kapcsolódó változás"
 
-msgid "Disabled"
-msgstr "Kikapcsolva"
+msgid "When color changes"
+msgstr "Színváltás esetén"
 
-msgid "Auto Flush"
-msgstr "Automatikus öblítés"
+msgid "Turn off auto calculate"
+msgstr "Automatikus számítás kikapcsolása"
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr "Automatikus számítás szín-, típus- vagy konfigurációváltozás esetén"
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr "Automatikus számítás a filamentszínek szinkronizálása vagy módosítása esetén"
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr "Aktuális öblítési térfogatok megtartása, szükség esetén manuális indítás"
+
+msgid "Auto Calculate Flush Volume"
+msgstr "Öblítési térfogat automatikus kiszámítása"
 
 msgid "Auto calculate flush volumes"
 msgstr "Öblítési mennyiségek automatikus kiszámítása"
@@ -9146,6 +9622,12 @@ msgstr "Megszünteti a magas és alacsony hőmérsékletű filamentek vegyes nyo
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "Ha ez az opció be van kapcsolva, akkor nagy hőmérsékletkülönbségű anyagokat is nyomtathatsz egyszerre."
 
+msgid "Automatically optimize wipe tower placement"
+msgstr ""
+
+msgid "With this option enabled, the wipe tower will be placed at its optimal position."
+msgstr ""
+
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Felhasználói beállítások automatikus szinkronizálása (Nyomtató/Filament/Folyamat)"
 
@@ -9164,11 +9646,29 @@ msgstr "Korábban már bejelentkezett fiókok adatainak automatikus kitöltése.
 msgid "3D Settings"
 msgstr "3D-beállítások"
 
+msgid "Mouse Settings"
+msgstr "Egérbeállítások"
+
+msgid "Import Settings"
+msgstr "Importálási beállítások"
+
 msgid "Zoom to mouse position"
 msgstr "Nagyítás az egér pozíciójára"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Az egérmutatóra nagyít a 3D-nézetben, a 2D-ablak középpontja helyett."
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr "Az egérgörgővel történő nagyítás irányának megfordítása"
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr "Engedélyezés esetén megfordítja az egérgörgővel történő nagyítás irányát."
+
+msgid "Drag with left mouse button to move"
+msgstr "Húzás bal egérgombbal a mozgatáshoz"
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
+msgstr "Engedélyezés esetén a bal egérgombbal húzással mozgathatók a modellek; letiltás esetén a bal gombbal csak kijelölni vagy kattintani lehet."
 
 msgid "Display overview"
 msgstr "Megjelenítés áttekintése"
@@ -9204,10 +9704,10 @@ msgid "Always show shells or not in preview view tab. If you change this value, 
 msgstr "Az előnézeti nézet lapon mindig jelenítse meg a héjakat, vagy ne jelenítse meg őket. Ha ezt az értéket módosítja, újra kell szeletelnie."
 
 msgid "Show Thermal Preconditioning Area"
-msgstr "Hő-előkezelési terület megjelenítése"
+msgstr "Hő-előkondicionálási terület megjelenítése"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr "Figyelmeztessen, ha egy modell túlnyúlik a hő-előkezelési területen. Csak az ezt a funkciót támogató nyomtatókon érhető el."
+msgstr "Figyelmeztetés, ha egy modell túlnyúlik a hő-előkondicionálási területen. Csak az ezt a funkciót támogató nyomtatókon érhető el."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "STEP-háló paraméterbeállítási párbeszédpaneljének megjelenítése."
@@ -9318,7 +9818,7 @@ msgid "Skip AMS blacklist check"
 msgstr "Az AMS feketelista-ellenőrzések kihagyása"
 
 msgid "Enable DevTools For Webview"
-msgstr ""
+msgstr "Fejlesztői eszközök engedélyezése Webviewhoz"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Fájlok társítása a Bambu Studióhoz"
@@ -9428,6 +9928,9 @@ msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Biztosan visszaállítja az összes beállítást? A változtatások az újraindítás után lépnek életbe."
+
+msgid "System presets"
+msgstr "Rendszer beállítások"
 
 msgid "User presets"
 msgstr "Felhasználói beállítások"
@@ -9783,8 +10286,8 @@ msgstr "A kiválasztott nyomtató (%s) nem kompatibilis a nyomtatási fájl konf
 msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "Spirál (váza) mód engedélyezésekor az I3 szerkezetű gépek nem készítenek timelapse videókat."
 
-msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
-msgstr "A jelenlegi nyomtató nem támogatja a hagyományos timelapse módot, amikor tárgyankénti nyomtatási módban nyomtat."
+msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
+msgstr ""
 
 msgid "Errors"
 msgstr "Hibák"
@@ -9824,8 +10327,8 @@ msgstr "Ellenőrzi az asztal szintjét. A szintezés egyenletessé teszi az extr
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Megkeresi a legjobb értéket a dinamikus anyagáramláshoz, hogy javítsa a nyomtatás minőségét."
 
-msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr "A Timelapse engedélyezése után, függetlenül attól, hogy a Hagyományos vagy a Sima módot választotta, a nyomtató minden felvétel előtt mozgatja a nyomtatótálcát és a szerszámfejet, ami növelheti a teljes nyomtatási időt."
+msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10321,8 +10824,8 @@ msgstr "A folyamatos timelapse minden rétegen törlőtornyot igényel, ami nem 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "A sima timelapse miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Engedélyezed a törlőtornyot?"
 
-msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "A „Nincs ritka réteg” beállítás nem kompatibilis a folyamatos timelapse móddal, amely minden rétegen törlőtornyot igényel. A timelapse hagyományos módra lett állítva."
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
+msgstr ""
 
 msgid "Still print by object?"
 msgstr "Továbbra is tárgyanként szeretnél nyomtatni?"
@@ -10777,6 +11280,9 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Biztos, hogy %1% a kiválasztott beállítást?"
 
+msgid "All"
+msgstr "Összes"
+
 msgid "Set"
 msgstr "Beállít"
 
@@ -10931,11 +11437,35 @@ msgstr "Bal: "
 msgid "Right: "
 msgstr "Jobb: "
 
-msgid "Select presets to compare"
-msgstr "Válaszd ki az összehasonlítandó beállításokat"
+msgid "Preset A"
+msgstr "„A” előbeállítás"
+
+msgid "Preset B"
+msgstr "„B” előbeállítás"
 
 msgid "Show all presets (including incompatible)"
 msgstr "Minden beállítás megjelenítése (beleértve az inkompatibiliseket is)"
+
+msgid "Parameters"
+msgstr ""
+
+msgid "Process Preset"
+msgstr ""
+
+msgid "Filament Preset"
+msgstr "Filamentbeállítás"
+
+msgid "Material Preset"
+msgstr ""
+
+msgid "Machine Preset"
+msgstr ""
+
+msgid "These two presets have no visible differences"
+msgstr ""
+
+msgid "Please select two different presets A and B to compare"
+msgstr "Kérjük, válassz két különböző „A” és „B” előbeállítást az összehasonlításhoz"
 
 msgid "Add File"
 msgstr "Fájl hozzáadása"
@@ -11262,6 +11792,16 @@ msgstr "Kattints ide a letöltéshez."
 
 msgid "Login"
 msgstr "Bejelentkezés"
+
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"A filamenthez tartozó összes beállítás törölve lesz. \n"
+"Ha ez a filament jelenleg használatban van a nyomtatón, kérjük, töröld az adott férőhelyen a filamentadatokat."
+
+msgid "Delete filament"
+msgstr "Filament törlése"
 
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "A konfigurációs csomag az előző konfigurációs útmutatóban módosult"
@@ -12639,6 +13179,12 @@ msgstr "A törlőtorony használatához minden objektumnak azonos számú tutajr
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "A törlőtorony használatához minden objektumnak azonos rétegmagassággal kell rendelkeznie."
 
+msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
+msgstr ""
+
+msgid "Jump to: Precise Z height"
+msgstr ""
+
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "A törlőtorony használatához minden objektumnak azonos változó rétegmagassággal kell rendelkeznie."
 
@@ -12671,7 +13217,7 @@ msgid "Generating G-code"
 msgstr "G-kód generálása"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "A modell és a törlőtorony relatív pozíciója nem felel meg a „Nincsenek ritka rétegek” funkció követelményeinek. Kérjük, igazítsd ki a relatív pozíciójukat, csökkentsd a modell magasságát, vagy kapcsold ki a „Nincsenek ritka rétegek” funkciót."
+msgstr "A modell és a törlőtorony egymáshoz viszonyított helyzete nem felel meg a „Nincs ritka réteg” funkció követelményeinek. Módosítsd a relatív helyzetüket, csökkentsd a modell magasságát, vagy kapcsold ki a „Nincs ritka réteg” funkciót."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Nem sikerült feldolgozni a fájlnév_formátum sablont."
@@ -12892,14 +13438,14 @@ msgstr "mp"
 msgid "Cooling overhang threshold"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
-msgstr "Kényszeríti a hűtőventilátort, hogy egy adott fordulatszámot használjon, ha a túlnyúlás mértéke meghaladja ezt az értéket. Százalékban van kifejezve, ami azt jelzi, hogy a nyomtatott vonal hány százaléka maradhat az alsóbb rétegek alátámasztása nélkül. A 0%%-os érték bekapcsolja a hűtést a külső fal teljes szélességén, függetlenül a túlnyúlás mértékétől."
+msgstr "Kényszeríti a hűtőventilátort, hogy egy adott fordulatszámot használjon, ha a túlnyúlás mértéke meghaladja ezt az értéket. Százalékban van kifejezve, ami azt jelzi, hogy a nyomtatott vonal hány százaléka maradhat az alsóbb rétegek alátámasztása nélkül. A 0%-os érték bekapcsolja a hűtést a külső fal teljes szélességén, függetlenül a túlnyúlás mértékétől."
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Eldönti, hogy melyik túlnyúló rész vesz részt a hűtésben a sebesség csökkentése érdekében. Értéke az alátámasztás nélküli vonal szélessége százalékban kifejezve. A 100%% azt jelenti, hogy a hűtést az összes külső falra kényszeríti, függetlenül attól, hogy mennyi a túlnyúlás mértéke."
 
@@ -12983,9 +13529,9 @@ msgstr "Engedélyezd ezt az opciót a nyomtatási sebesség lassításához kül
 msgid "mm/s"
 msgstr "mm/s"
 
-#, c-format, boost-format
-msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
-msgstr "A 100%% túlnyúló fal sebessége, amelynek 0 átfedése van az alsó réteggel."
+#, no-c-format, no-boost-format
+msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgstr ""
 
 msgid "Slow down by height"
 msgstr "Lassítás magasság szerint"
@@ -13239,6 +13785,9 @@ msgstr "Függőleges héjvastagság biztosítása"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "A függőleges héjvastagság biztosítása érdekében szilárd kitöltést alkalmaz a döntött felületek közelében (felső + alsó tömör rétegek)"
 
+msgid "Disabled"
+msgstr "Kikapcsolva"
+
 msgid "Partial"
 msgstr "Részleges"
 
@@ -13317,15 +13866,21 @@ msgstr "Az alsó felület kitöltésének mintája, kivéve az áthidalásokat"
 msgid "Bottom surface density"
 msgstr "Alsó felület sűrűsége"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
-msgstr "Az alsó felület kitöltési sűrűsége. A 100%% teljesen szilárd, kitöltött alsó réteget jelent. Alacsonyabb értékek texturált alsó felületet hoznak létre. Esztétikai vagy funkcionális célokra szolgál, nem problémák, például túlzott extrudálás javítására. FIGYELEM: az érték csökkentése negatívan befolyásolhatja az asztalra tapadást."
+msgstr "Az alsó felület kitöltési sűrűsége. A 100% teljesen szilárd, kitöltött alsó réteget jelent. Alacsonyabb értékek texturált alsó felületet hoznak létre. Esztétikai vagy funkcionális célokra szolgál, nem problémák, például túlzott extrudálás javítására. FIGYELEM: az érték csökkentése negatívan befolyásolhatja az asztalra tapadást."
 
 msgid "Internal solid infill pattern"
 msgstr "Belső tömör kitöltés mintája"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "A belső szilárd kitöltés vonalmintázata. Ha engedélyezve van a keskeny belső szilárd kitöltés észlelése, a kis területre a koncentrikus mintázatot fogja használni."
+
+msgid "Sub-top surface pattern"
+msgstr "Felső alatti felületi mintázat"
+
+msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
+msgstr ""
 
 msgid "Line width of outer wall"
 msgstr "A külső fal vonalszélessége"
@@ -13872,9 +14427,9 @@ msgstr "A ritkás kitöltési minta szöge, amely a vonal kezdő vagy fő irány
 msgid "Sparse infill density"
 msgstr "Kitöltés sűrűsége"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "A belső ritkás kitöltés sűrűsége. A 100%%-os érték azt jelenti, hogy az objektum tömör lesz"
+msgstr "A belső ritkás kitöltés sűrűsége. A 100%-os érték azt jelenti, hogy az objektum tömör lesz"
 
 msgid "Fill multiline"
 msgstr "Többsoros kitöltés"
@@ -14002,6 +14557,12 @@ msgstr "Jerk mozgáskor"
 msgid "Line width of initial layer"
 msgstr "Az első réteg vonalszélessége"
 
+msgid "Initial layer infill"
+msgstr "Kezdőréteg kitöltése"
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr "A kezdeti réteg kitöltésének vonalszélessége, beleértve a ritka kitöltést, a tömör kitöltést és a felső felületet is. A kezdeti réteg falaira, támaszaira és minden egyéb elemére nincs hatással, azok továbbra is a kezdeti réteg vonalszélességét használják. A nulla érték a kezdeti réteg vonalszélességének használatát jelenti."
+
 msgid "Initial layer height"
 msgstr "Kezdőréteg-magasság"
 
@@ -14010,9 +14571,6 @@ msgstr "Kezdőréteg magassága. A vastagabb kezdőréteg javíthatja a tárgy a
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "A kezdőréteg nyomtatási sebessége a szilárd kitöltési rész kivételével"
-
-msgid "Initial layer infill"
-msgstr "Kezdőréteg kitöltése"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "A kezdőréteg szilárd kitöltési részének sebessége"
@@ -15026,17 +15584,17 @@ msgstr "Max XY simítás"
 msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf expressed as a %, it will be computed over nozzle diameter"
 msgstr "A pontok mozgatásának maximális távolsága XY irányban a sima spirál elérése érdekében. %-ban kifejezve a fúvóka átmérője alapján kell megadni."
 
-msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "Ha a sima vagy a hagyományos mód van kiválasztva, minden nyomtatásnál készül egy timelapse-videó. Az egyes rétegek kinyomtatása után a beépített kamera egy képet készít. A nyomtatás befejeződése után aztán ezeket a képeket a szoftver egy videóvá fűzi össze. Ha a sima mód van kiválasztva, a réteg nyomtatása után a nyomtatófej a kidobónyíláshoz mozog, majd a kamera egy képet készít. Mivel a kép készítése során szivároghat valamennyi olvadt filament a fúvókából, egy törlőtoronyra van szükség a fúvóka megtisztításához."
+msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+msgstr ""
 
-msgid "Traditional"
-msgstr "Hagyományos"
+msgid "Instant"
+msgstr ""
 
 msgid "Farthest point timelapse"
 msgstr "Legtávolabbi pont timelapse"
 
-msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
-msgstr "Ha engedélyezve van, a timelapse pillanatfelvétel a kamerától legtávolabbi ponton készül, ahelyett, hogy a törlőtoronyba vagy a külső csúszdára vándorolna. Csak hagyományos timelapse módban hatásos nem I3-as nyomtatókon."
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
+msgstr ""
 
 msgid "Temperature variation"
 msgstr "Hőmérséklet változás"
@@ -15064,6 +15622,9 @@ msgstr "A háromszögháló szeletelés során a szeletelési hézag lezárási 
 
 msgid "Slicing Mode"
 msgstr "Szeletelési mód"
+
+msgid "Other"
+msgstr "Egyéb"
 
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "Használd a „Páros-páratlan“ opciót a 3DLabPrint repülőgépmodellekhez. Használd a „Hézagok lezárása“ lehetőséget a modell összes házagának lezárásához."
@@ -15669,9 +16230,9 @@ msgstr "-- A firmware-visszahúzás csak a Marlin, Klipper, Smoothie, RepRapFirm
 msgid "--use-firmware-retraction is not compatible with --wipe"
 msgstr "A --use-firmware-retraction nem kompatibilis a --wipe paranccsal"
 
-#, c-format, boost-format
-msgid " doesn't work at 100%% density "
-msgstr " nem működik 100%%-os sűrűséggel "
+#, no-c-format, no-boost-format
+msgid " doesn't work at 100% density "
+msgstr ""
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Érvénytelen érték, ha a spirálváza mód engedélyezve van: "
@@ -15724,6 +16285,18 @@ msgstr "Támaszok generálása"
 
 msgid "Optimizing toolpath"
 msgstr "Szerszámút optimalizálása"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr "Nem támogatott túlnyúlások észlelhetők. A(z) „%1%” modell %2% túlnyúlási területet tartalmaz. Mivel a „Csak a nyomtatótálcán lévő támasz” beállítás engedélyezve van, a támaszok nem tudnak lenyúlni a nyomtatótálcáig. Próbáld kikapcsolni ezt a beállítást."
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
+msgstr "Nem támogatott túlnyúlások észlelhetők. A(z) „%1%” modellben %2% olyan túlnyúlási terület található, amelynél nincs támasz. Próbáld meg módosítani a támaszbeállításokat vagy másképp tájolni az objektumot."
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Az alsó üres rétegeket a legközelebbi normál rétegek váltják fel."
@@ -16675,9 +17248,6 @@ msgstr "Sorozatszám"
 msgid "e.g. Basic, Matte, Silk, Marble"
 msgstr "pl.: Basic, Matt, Silk, Marble"
 
-msgid "Filament Preset"
-msgstr "Filamentbeállítás"
-
 msgid "Create"
 msgstr "Létrehoz"
 
@@ -16711,10 +17281,8 @@ msgstr "Még nem választottál nyomtatót vagy beállítást. Kérjük, válass
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"A(z) %s filamentnév már létezik.\n"
-"Ha folytatod, az új beállítás a teljes nevével fog megjelenni. Folytatod?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Nem sikerült létrehozni a következő beállításokat:\n"
@@ -17034,16 +17602,6 @@ msgid "+ Add Preset"
 msgstr "+ Beállítás hozzáadása"
 
 msgid "Delete Filament"
-msgstr "Filament törlése"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"A filamenthez tartozó összes beállítás törölve lesz. \n"
-"Ha ez a filament jelenleg használatban van a nyomtatón, kérjük, töröld az adott férőhelyen a filamentadatokat."
-
-msgid "Delete filament"
 msgstr "Filament törlése"
 
 msgid "Add Preset"
@@ -17850,6 +18408,9 @@ msgstr "Ez a művelet nem visszavonható. Folytatod?"
 msgid "Skipping objects."
 msgstr "Objektumok kihagyása."
 
+msgid "Custom Color"
+msgstr "Egyéni szín"
+
 msgid "Null Color"
 msgstr "Null szín"
 
@@ -17861,6 +18422,21 @@ msgstr "Hivatalos filamentek"
 
 msgid "More Colors"
 msgstr "Több szín"
+
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr "Nem támogatott filamentek"
+
+msgid "No filaments"
+msgstr "Nincsenek filamentek"
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr "Legutóbb használt"
 
 msgid "Please set nozzle count"
 msgstr "Kérjük, állítsd be a fúvókaszámot"
@@ -18205,6 +18781,12 @@ msgstr "Keverési javaslatok"
 msgid "-- Select --"
 msgstr "-- Kiválaszt --"
 
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr "A színátmenethez engedélyezni kell a „Vegyes színű alréteg” beállítást. Engedélyezed?"
+
+msgid "Mixed Color Sublayer"
+msgstr "Vegyes színű alréteg"
+
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr "Férőhely: %s (%s)"
@@ -18227,33 +18809,52 @@ msgstr "Elérted a komponensek maximális számát"
 msgid "Remove the third material"
 msgstr "Harmadik anyag eltávolítása"
 
-msgid "Project Filament List"
-msgstr "Projektfilament-lista"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
 
-msgid "Standard Mode Recommendations"
-msgstr "Normál mód ajánlások"
+msgid "Decomposition result for this combination"
+msgstr ""
 
-msgid "Target Color"
-msgstr "Célszín"
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr "Színbontás kiválasztása"
 
-msgid "Arbitrary Mode"
-msgstr "Tetszőleges mód"
+msgid "Project Filament"
+msgstr ""
 
 msgid "Material List"
 msgstr "Anyaglista"
 
-msgid "Standard Mode"
-msgstr "Normál mód"
+msgid "Standard Palette"
+msgstr ""
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "A lebontáshoz legalább két azonos anyagtípusú filament szükséges"
 
+msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
+
+msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
+
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "Az anyaglista legfeljebb %1% színt támogat. %2% lebontást követően az anyagmennyiség meghaladná a következőt:%1%. A lebontás előtt törölje a fel nem használt filamenteket a főképernyőn."
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr ""
 
 msgid "Cyan"
 msgstr "Ciánkék"
@@ -18284,6 +18885,13 @@ msgstr "Segédanyagok"
 
 msgid "An unexpected error occurred"
 msgstr "Váratlan hiba történt"
+
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -18582,6 +19190,156 @@ msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
 
+#~ msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
+#~ msgstr "A látható felső felület közvetlenül alatta lévő belső tömör rétegének vonalmintázata. A monoton kitöltés csökkenti a felső héjon átütő extrudálási csíkokat."
+
+#~ msgid "Target Color"
+#~ msgstr "Célszín"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "A(z) %s filamentnév már létezik.\n"
+#~ "Ha folytatod, az új beállítás a teljes nevével fog megjelenni. Folytatod?"
+
+#~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
+#~ msgstr "Az AMS új hivatalos filamentet észlelt. Hozzáadja a Filamentkezelőhöz?"
+
+#~ msgid "Link to existing filament"
+#~ msgstr "Összekapcsolás meglévő filamenttel"
+
+#~ msgid "Please select"
+#~ msgstr "Kérjük, válasszon"
+
+#~ msgid "No matching filament"
+#~ msgstr "Nincs megfelelő filament"
+
+#, c-format, boost-format
+#~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
+#~ msgstr "A kamra aktuális hőmérséklete magasabb, mint az anyag biztonságos hőmérséklete, ami az anyag lágyulását és eltömődését okozhatja. Az anyag maximális biztonságos hőmérséklete %d"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "lock depth should smaller than skin depth.\n"
+#~ "Reset to 50%% of skin depth"
+#~ msgstr ""
+#~ "a zárási mélységnek kisebb kell lennie, mint a bőr mélysége.\n"
+#~ "Visszaállítás 50%% mélységre"
+
+#~ msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
+#~ msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The object from file %s is too small, and maybe in meters or inches.\n"
+#~ " Do you want to scale to millimeters?"
+#~ msgstr "A(z) %s fájlból származó objektum túl kicsi, lehet, hogy méterben vagy hüvelykben lett létrehozva. Szeretnéd milliméterre méretezni?"
+
+#, c-format, boost-format
+#~ msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
+#~ msgstr "A 100%% túlnyúló fal sebessége, amelynek 0 átfedése van az alsó réteggel."
+
+#, c-format, boost-format
+#~ msgid " doesn't work at 100%% density "
+#~ msgstr " nem működik 100%%-os sűrűséggel "
+
+#~ msgid ""
+#~ "Drag to move the cut plane\n"
+#~ "Right-click a part to assign it to the other side"
+#~ msgstr ""
+#~ "Húzd az egeret a vágási sík mozgatásához\n"
+#~ "Kattints jobb gombbal egy tárgyra, hogy a másik oldalhoz rendeld hozzá"
+
+#~ msgid "Deleting the last solid part is not allowed."
+#~ msgstr "Az utolsó szilárd rész törlése nem megengedett."
+
+#~ msgid "max"
+#~ msgstr "max"
+
+#~ msgid "min"
+#~ msgstr "min"
+
+#, boost-format
+#~ msgid "The input value should be greater than %1% and less than %2%"
+#~ msgstr "A megadott értéknek nagyobbnak kell lennie, mint %1% és kisebbnek, mint %2%"
+
+#~ msgid "Setting AMS slot information while printing is not supported"
+#~ msgstr "Nyomtatás közben nem változtathatóak meg a AMS férőhelyek adatai"
+
+#~ msgid "Setting Virtual slot information while printing is not supported"
+#~ msgstr "Nem módosíthatod a virtuális férőhelyek beállításait nyomtatás közben."
+
+#~ msgid "In printer"
+#~ msgstr "Nyomtatóban"
+
+#, c-format, boost-format
+#~ msgid "In printer: %s"
+#~ msgstr "Nyomtatóban: %s"
+
+#~ msgctxt "Filament Manager"
+#~ msgid "Note"
+#~ msgstr "Megjegyzés"
+
+#~ msgctxt "Unsupported Filaments"
+#~ msgid "Note"
+#~ msgstr "Megjegyzés"
+
+#~ msgid "No unsupported filaments"
+#~ msgstr "Nincsenek nem támogatott filamentek"
+
+#~ msgid "Other Color"
+#~ msgstr "Más szín"
+
+#~ msgid "Not now"
+#~ msgstr "Most nem"
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+#~ msgstr "A spirál mód csak akkor működik, ha a falhurkok értéke 1, a megtámasztás le van tiltva, a szondázással történő csomósodásérzékelés le van tiltva, a felső héjrétegek értéke 0, a ritka kitöltési sűrűség 0, a timelapse típusa hagyományos, a falsebesség z irányú simítása hamis, és az alternatív extra fal le van tiltva."
+
+#~ msgid "parameter name"
+#~ msgstr "paraméter neve"
+
+#~ msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+#~ msgstr "A hagyományos timelapse engedélyezése felületi hibákat okozhat. Javasoljuk, hogy válts a sima módra."
+
+#~ msgid "Auto Flush"
+#~ msgstr "Automatikus öblítés"
+
+#~ msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
+#~ msgstr "A jelenlegi nyomtató nem támogatja a hagyományos timelapse módot, amikor tárgyankénti nyomtatási módban nyomtat."
+
+#~ msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+#~ msgstr "A Timelapse engedélyezése után, függetlenül attól, hogy a Hagyományos vagy a Sima módot választotta, a nyomtató minden felvétel előtt mozgatja a nyomtatótálcát és a szerszámfejet, ami növelheti a teljes nyomtatási időt."
+
+#~ msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+#~ msgstr "A „Nincs ritka réteg” beállítás nem kompatibilis a folyamatos timelapse móddal, amely minden rétegen törlőtornyot igényel. A timelapse hagyományos módra lett állítva."
+
+#~ msgid "Select presets to compare"
+#~ msgstr "Válaszd ki az összehasonlítandó beállításokat"
+
+#~ msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+#~ msgstr "Ha a sima vagy a hagyományos mód van kiválasztva, minden nyomtatásnál készül egy timelapse-videó. Az egyes rétegek kinyomtatása után a beépített kamera egy képet készít. A nyomtatás befejeződése után aztán ezeket a képeket a szoftver egy videóvá fűzi össze. Ha a sima mód van kiválasztva, a réteg nyomtatása után a nyomtatófej a kidobónyíláshoz mozog, majd a kamera egy képet készít. Mivel a kép készítése során szivároghat valamennyi olvadt filament a fúvókából, egy törlőtoronyra van szükség a fúvóka megtisztításához."
+
+#~ msgid "Traditional"
+#~ msgstr "Hagyományos"
+
+#~ msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+#~ msgstr "Ha engedélyezve van, a timelapse pillanatfelvétel a kamerától legtávolabbi ponton készül, ahelyett, hogy a törlőtoronyba vagy a külső csúszdára vándorolna. Csak hagyományos timelapse módban hatásos nem I3-as nyomtatókon."
+
+#~ msgid "Project Filament List"
+#~ msgstr "Projektfilament-lista"
+
+#~ msgid "Standard Mode Recommendations"
+#~ msgstr "Normál mód ajánlások"
+
+#~ msgid "Arbitrary Mode"
+#~ msgstr "Tetszőleges mód"
+
+#~ msgid "Standard Mode"
+#~ msgstr "Normál mód"
+
 #~ msgid "Air Purifier"
 #~ msgstr "Légtisztító"
 
@@ -18725,12 +19483,6 @@ msgstr ""
 
 #~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 #~ msgstr "A rétegmagasság meghaladja a Nyomtatóbeállítások -> Extruder -> Rétegmagasság limitek menüpontban megadott értéket, ez minőségbeli problémákat okozhat a nyomtatás során."
-
-#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-#~ msgstr "A színátmenethez engedélyezni kell a „Vegyes színű alréteg” beállítást. Engedélyezed?"
-
-#~ msgid "Mixed Color Sublayer"
-#~ msgstr "Vegyes színű alréteg"
 
 #~ msgid "Show Current Step Objects Only"
 #~ msgstr "Csak az aktuális lépés objektumainak megjelenítése"

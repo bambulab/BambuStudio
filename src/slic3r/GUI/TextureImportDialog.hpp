@@ -198,7 +198,8 @@ public:
                         const Slic3r::TexturedMesh&      textured_mesh,
                         const std::vector<TextureFilamentEntry>& filament_entries,
                         std::function<bool()>            initial_cancel_callback = {},
-                        std::function<bool(int)>         initial_progress_callback = {});
+                        std::function<bool(int)>         initial_progress_callback = {},
+                        std::function<void(bool)>        initial_progress_visibility_callback = {});
     ~TextureImportDialog();
 
     int ShowModal() override;
@@ -342,6 +343,7 @@ private:
     Slic3r::PaintedMesh               m_pending_result;
     std::function<bool()>              m_initial_cancel_callback;
     std::function<bool(int)>           m_initial_progress_callback;
+    std::function<void(bool)>          m_initial_progress_visibility_callback;
     bool                               m_current_computation_initial = false;
     bool                               m_initial_computation_pending = false;
     bool                               m_initial_computation_cancelled = false;

@@ -472,12 +472,6 @@ bool MonitorPanel::Show(bool show)
             }
         }
 
-        if (m_first_enter) {
-            m_first_enter = false;
-            if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
-                disp->enqueue_pull();
-            }
-        }
     } else {
         stop_update();
         m_refresh_timer->Stop();

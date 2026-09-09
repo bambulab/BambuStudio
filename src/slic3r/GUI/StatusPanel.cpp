@@ -11,6 +11,8 @@
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
+#include "fila_manager/wgtFilaManagerCloudClient.h"
+#include "fila_manager/wgtFilaManagerStore.h"
 #include <wx/weakref.h>
 #ifdef __APPLE__
 #include "CameraFullscreenMac.hpp"
@@ -21,6 +23,7 @@
 #include "libslic3r/Thread.hpp"
 #include "DeviceErrorDialog.hpp"
 
+#include "EncodedFilament.hpp"
 #include "RecenterDialog.hpp"
 #include "CalibUtils.hpp"
 #include "BBLUtil.hpp"
@@ -1580,6 +1583,7 @@ void PrintingTaskPanel::reset_printing_value()
     this->set_plate_index(-1);
     update_pausing_state(false);
     update_stopping_state(false);
+    update_finish_time_display(NA_STR);
 }
 
 void PrintingTaskPanel::enable_partskip_button(MachineObject *obj, bool enable)
@@ -1714,59 +1718,72 @@ void PrintingTaskPanel::update_progress_percent(wxString percent, wxString icon)
 
 void PrintingTaskPanel::update_left_time(wxString time) { m_staticText_progress_left->SetLabelText(time); }
 
-void PrintingTaskPanel::update_finish_time(wxString finish_time)
+void PrintingTaskPanel::update_finish_time_display(const wxString &text, const wxString &day_text)
 {
-    if (finish_time == "Finished") {
-        m_staticText_finish_time->SetLabelText(_L("Finished"));
-        if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
-    } else {
-        if (!finish_time.Contains('+')) {
-            if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
-        } else {
-            int      index = finish_time.find_last_of('+');
-            wxString day   = finish_time.Mid(index);
-            finish_time    = finish_time.Mid(0, index);
-            m_staticText_finish_day->setText(day);
-            if (!day.empty()) { m_staticText_finish_day->Show(); }
-        }
+    const bool show_day_text = !day_text.empty();
+    const bool text_changed = m_staticText_finish_time->GetLabelText() != text;
+    const bool day_text_changed = m_staticText_finish_day->getText() != day_text;
+    const bool day_visibility_changed = m_staticText_finish_day->IsShown() != show_day_text;
+    if (!text_changed && !day_text_changed && !day_visibility_changed) return;
 
-        wxString finish_time_str = _L("Estimated finish time: ") + finish_time;
-
-#ifdef _WIN32
-        finish_time_str += '\0'; /*github#5028 the problem occurs stable on BODY_13. Maybe this is a BUG of some fonts or windows OS. Add '0' will walk around it. FIXME*/
-#endif
-
-        if (m_staticText_finish_time->GetLabelText() != finish_time_str) {
-            m_staticText_finish_time->SetLabelText(finish_time_str);
-            m_staticText_finish_time->Wrap(-1);
-            BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_finish_time: " << finish_time_str << " Result: " << m_staticText_finish_time->GetLabelText();
-            Layout();
-        }
+    if (text_changed) {
+        m_staticText_finish_time->SetLabelText(text);
+        m_staticText_finish_time->Wrap(-1);
     }
+    if (day_text_changed) m_staticText_finish_day->setText(day_text);
+    if (day_visibility_changed) m_staticText_finish_day->Show(show_day_text);
+    Layout();
 }
 
-void PrintingTaskPanel::update_left_time(int mc_left_time)
+void PrintingTaskPanel::update_finish_state(int mc_left_time, bool is_printing_finished,
+                                            const BBLFinishTime &estimated_finish_time)
+{
+    if (is_printing_finished) {
+        update_finish_time_display(_L("Finished"));
+        return;
+    }
+
+    if (mc_left_time <= 0) {
+        update_finish_time_display(_L("Almost complete"));
+        return;
+    }
+
+    wxString text = _L("Estimated finish time: ") + from_u8(estimated_finish_time.time);
+    wxString day_text;
+    if (estimated_finish_time.day_offset != 0)
+        day_text = wxString::Format("+%d", estimated_finish_time.day_offset);
+
+#ifdef _WIN32
+    text += '\0'; /*github#5028 the problem occurs stable on BODY_13. Maybe this is a BUG of some fonts or windows OS. Add '0' will walk around it. FIXME*/
+#endif
+
+    update_finish_time_display(text, day_text);
+}
+
+void PrintingTaskPanel::update_left_time(int mc_left_time, bool is_printing_finished)
 {
     // update gcode progress
-    wxString left_time;
-    std::string right_time;
+    wxString    left_time;
+    BBLFinishTime finish_time;
     wxString    left_time_text = NA_STR;
 
     try {
         bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
-        left_time  = get_bbl_monitor_time_dhm(mc_left_time);
-        right_time = get_bbl_finish_time_dhm(mc_left_time, use_12h_format);
+        left_time           = get_bbl_monitor_time_dhm(mc_left_time);
+        if (mc_left_time > 0) finish_time = get_bbl_finish_time(mc_left_time, use_12h_format);
     } catch (...) {
         ;
     }
 
     if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
     update_left_time(left_time_text);
-    update_finish_time(right_time);
+
+    update_finish_state(mc_left_time, is_printing_finished, finish_time);
 
     static int s_mc_left_time = 0;
     if (s_mc_left_time != mc_left_time) {
-        BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_left_time: " << mc_left_time << ", " << left_time_text << ": " << right_time;
+        BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_left_time: " << mc_left_time << ", " << left_time_text
+                                << ": " << finish_time.time << ", day offset: " << finish_time.day_offset;
         s_mc_left_time = mc_left_time;
     }
 }
@@ -3906,6 +3923,8 @@ void StatusPanel::update_extruder_status(MachineObject *obj)
     if (!obj) return;
 }
 
+static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray, const std::string& ams_id, MachineObject* obj);
+
 void StatusPanel::update_ams(MachineObject *obj)
 {
     // update obj in sub dlg
@@ -3914,6 +3933,12 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_filament_setting_dlg->obj = obj;
         if (m_filament_setting_dlg->IsShown()) {
             m_filament_setting_dlg->TryRefreshPAProfiles();
+        }
+    }
+    if (m_rfid_view_dlg) {
+        m_rfid_view_dlg->obj = obj;
+        if (m_rfid_view_dlg->IsShown()) {
+            m_rfid_view_dlg->TryRefreshPAProfiles();
         }
     }
 
@@ -3946,7 +3971,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         last_tray_is_bbl_bits = -1;
         last_read_done_bits   = -1;
         last_reading_bits     = -1;
-        last_ams_version      = -1;
+        m_task_lock_setup_handled_dev_id.clear();
+        m_task_lock_verify_handled_dev_id.clear();
         BOOST_LOG_TRIVIAL(trace) << "machine object" << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name()) << " was disconnected, set show_ams_group is false";
 
         m_ams_control->SetAmsModel(DevAmsType::EXT_SPOOL, ams_mode);
@@ -3990,6 +4016,9 @@ void StatusPanel::update_ams(MachineObject *obj)
     // must select a current can
     m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), obj, false);
     m_ams_control->UpdateAmsDryControl(obj);
+
+    if (auto* sync = wxGetApp().fila_manager_sync())
+        sync->drain_filament_hints(obj->get_dev_id());
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -4060,11 +4089,12 @@ void StatusPanel::update_ams(MachineObject *obj)
     update_ams_control_state(curr_ams_id, curr_can_id);
 }
 
-void sGetSwitchInfo(MachineObject* obj,
-                    const std::string& ams_id,
-                    const std::string& slot_id,
-                    wxString& load_error_info,
-                    wxString& unload_error_info)
+void StatusPanel::show_ams_filament_hint(const std::string& ams_id, const std::string& slot_id)
+{
+    if (m_ams_control) m_ams_control->show_filament_hint(ams_id, slot_id);
+}
+
+void sGetSwitchInfo(MachineObject *obj, const std::string &ams_id, const std::string &slot_id, wxString &load_error_info, wxString &unload_error_info)
 {
 
     load_error_info.clear();
@@ -4395,7 +4425,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
             m_project_task_panel->enable_partskip_button(obj, true);
             // update printing stage
-            m_project_task_panel->update_left_time(obj->mc_left_time);
+            m_project_task_panel->update_left_time(obj->mc_left_time, obj->is_printing_finished());
             if (obj->subtask_) {
                 m_project_task_panel->update_stage_value_with_machine(obj->get_curr_stage(), obj->subtask_->task_progress, obj);
                 m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
@@ -4572,7 +4602,6 @@ void StatusPanel::reset_printing_values()
     m_project_task_panel->get_request_failed_panel()->Hide();
     update_basic_print_data(false);
     m_project_task_panel->update_left_time(NA_STR);
-    m_project_task_panel->update_finish_time(NA_STR);
     m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
     m_project_task_panel->updatePauseNum(false);
     m_project_task_panel->updatePauseMarkers(nullptr);
@@ -5117,60 +5146,110 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
     }
 }
 
+void StatusPanel::open_rfid_view(int ams_id, int slot_id,
+                                 const std::string& setting_id, int ctype,
+                                 const wxString& filament, const wxColour& color,
+                                 const std::vector<wxColour>& cols,
+                                 const std::string& temp_min, const std::string& temp_max,
+                                 const std::string& sn_number, const wxString& k_val,
+                                 wxPoint pos)
+{
+    if (!m_rfid_view_dlg)
+        m_rfid_view_dlg = new AMSRFIDMaterialView((wxWindow*)this, wxID_ANY);
+    wxString color_name;
+    if (!setting_id.empty()) {
+        if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
+            FilamentColor fila_color;
+            if (!cols.empty()) {
+                for (const auto& c : cols) fila_color.AddColor(c);
+            } else {
+                fila_color.AddColor(color);
+            }
+            fila_color.EndSet(ctype);
+            color_name = clr_query->GetFilaColorName(wxString::FromUTF8(setting_id), fila_color);
+        }
+    }
+    m_rfid_view_dlg->Move(pos);
+    m_rfid_view_dlg->Popup(obj, ams_id, slot_id,
+                            filament, color_name, color, cols, ctype,
+                            temp_min, temp_max, sn_number, k_val);
+}
+
 void StatusPanel::on_filament_edit(wxCommandEvent &event)
 {
-    // update params
-    if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
-
     int  current_position_x = m_ams_control->GetScreenPosition().x;
     int  current_position_y = m_ams_control->GetScreenPosition().y - FromDIP(40);
     auto drect              = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
-    current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
+    current_position_y = current_position_y + FromDIP(503) > drect ? drect - FromDIP(503) : current_position_y;
 
     if (obj) {
-        m_filament_setting_dlg->obj = obj;
-        // 2D mode (laser/cut) only allows viewing filament info, not editing.
-        m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
-
         int ams_id  = event.GetInt();
-        int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
+        long slot_id_long = 0;
+        event.GetString().ToLong(&slot_id_long);
+        int slot_id = static_cast<int>(slot_id_long);
 
         try {
-            m_filament_setting_dlg->ams_id  = ams_id;
-            m_filament_setting_dlg->slot_id = slot_id;
-
             std::string sn_number;
             std::string filament;
             std::string temp_max;
             std::string temp_min;
             wxString    k_val;
             wxString    n_val;
+            wxString    total_weight;
+            wxString    remain_weight;
 
             auto tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
             if (tray) {
                 k_val         = wxString::Format("%.3f", tray->k);
                 n_val         = wxString::Format("%.3f", tray->n);
                 wxColor color = DevAmsTray::decode_color(tray->color);
-                // m_filament_setting_dlg->set_color(color);
 
                 std::vector<wxColour> cols;
                 for (auto col : tray->cols) { cols.push_back(DevAmsTray::decode_color(col)); }
+
+                const bool is_third = DevFilaSystem::IsBBL_Filament(tray->tag_uid) ? false : true;
+                if (tray->tag_uid.size() == 16 && tray->tag_uid.substr(12, 2) == "01") {
+                    sn_number = tray->tag_uid;
+                }
+                if (!is_third) {
+                    filament  = tray->sub_brands;
+                    temp_max  = tray->nozzle_temp_max;
+                    temp_min  = tray->nozzle_temp_min;
+                }
+
+                if (!tray->setting_id.empty()) {
+                    if (tray->weight != "-1") {
+                        total_weight = wxString::FromUTF8(tray->weight.c_str());
+                    }
+
+                    if (auto weight = tray->get_filament_remain_weight(); weight.has_value() && weight.value() >= 0) {
+                        remain_weight = wxString::Format("%d", *weight);
+                    }
+                }
+
+                // RFID filament: open the view-only dialog instead of the editable one.
+                if (!is_third) {
+                    open_rfid_view(ams_id, slot_id, tray->setting_id,
+                                   static_cast<int>(tray->ctype),
+                                   filament, color, cols,
+                                   temp_min, temp_max, sn_number, k_val,
+                                   wxPoint(current_position_x, current_position_y));
+                    return;
+                }
+
+                if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
+                m_filament_setting_dlg->obj       = obj;
+                m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
+                m_filament_setting_dlg->ams_id    = ams_id;
+                m_filament_setting_dlg->slot_id   = slot_id;
+                m_filament_setting_dlg->m_is_third = is_third;
                 m_filament_setting_dlg->set_ctype(tray->ctype);
                 m_filament_setting_dlg->ams_filament_id = tray->setting_id;
-
                 if (m_filament_setting_dlg->ams_filament_id.empty()) {
                     m_filament_setting_dlg->set_empty_color(color);
                 } else {
                     m_filament_setting_dlg->set_color(color);
                     m_filament_setting_dlg->set_colors(cols);
-                }
-
-                m_filament_setting_dlg->m_is_third = !DevFilaSystem::IsBBL_Filament(tray->tag_uid);
-                if (!m_filament_setting_dlg->m_is_third) {
-                    sn_number = tray->uuid;
-                    filament  = tray->sub_brands;
-                    temp_max  = tray->nozzle_temp_max;
-                    temp_min  = tray->nozzle_temp_min;
                 }
             }
 
@@ -5230,6 +5309,71 @@ static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray,
     return body;
 }
 
+void StatusPanel::dismiss_filament_hint_ui(const std::string& dev_id, const std::string& ams_id, const std::string& slot_id)
+{
+    if (auto* sync = wxGetApp().fila_manager_sync())
+        sync->dismiss_pending_badge(dev_id, ams_id, slot_id);
+    if (m_ams_control && obj && obj->get_dev_id() == dev_id)
+        m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+}
+
+void StatusPanel::show_new_official_filament_dlg(
+    const std::string& dev_id, const std::string& ams_id, const std::string& slot_id)
+{
+    int rc = m_new_official_filament_dlg->ShowModal();
+    if (rc == wxID_OK) {
+        dismiss_filament_hint_ui(dev_id, ams_id, slot_id);
+        auto choice = m_new_official_filament_dlg->GetChoice();
+        if (choice == AMSNewOfficialFilamentDlg::Choice::LinkExisting) {
+            const int hit_id  = m_new_official_filament_dlg->GetHitSpoolId();
+            const int cand_id = m_new_official_filament_dlg->GetSelectedCandidateId();
+            if (hit_id > 0) {
+                wgtFilaManagerCloudClient client;
+                BBL::SoftMatchPendingActionParams p;
+                p.spoolId = hit_id;
+                if (cand_id > 0 && cand_id != hit_id) {
+                    // 用户改选了 candidate → link_other
+                    p.action        = "link_other";
+                    p.targetSpoolId = cand_id;
+                } else {
+                    // 用户保留 hit（无 candidate 或未改选）→ accept
+                    p.action = "accept";
+                }
+                const std::string action = p.action;
+                client.post_soft_match_pending(p,
+                    [action](const nlohmann::json&) {
+                        BOOST_LOG_TRIVIAL(info)
+                            << "[soft_match_pending] " << action << " success";
+                    },
+                    [action](int code, const std::string& err) {
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "[soft_match_pending] " << action << " failed code=" << code
+                            << " err=" << err;
+                    });
+            }
+        }
+        if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew) {
+            const int hit_id = m_new_official_filament_dlg->GetHitSpoolId();
+            if (hit_id > 0) {
+                wgtFilaManagerCloudClient client;
+                BBL::SoftMatchPendingActionParams p;
+                p.action  = "create_new";
+                p.spoolId = hit_id;
+                // targetSpoolId 保持默认 0，不传
+                client.post_soft_match_pending(p,
+                    [](const nlohmann::json&) {
+                        BOOST_LOG_TRIVIAL(info) << "[soft_match_pending] create_new success";
+                    },
+                    [](int code, const std::string& err) {
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "[soft_match_pending] create_new failed code=" << code
+                            << " err=" << err;
+                    });
+            }
+        }
+    }
+}
+
 void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
 {
     std::string ams_id  = std::to_string(event.GetInt());
@@ -5239,76 +5383,103 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
         m_new_official_filament_dlg = new AMSNewOfficialFilamentDlg(this);
     m_new_official_filament_dlg->SetTrayContext(obj, ams_id, slot_id);
 
-    int rc = m_new_official_filament_dlg->ShowModal();
-    if (rc == wxID_OK) {
-        m_ams_control->dismiss_filament_hint(ams_id, slot_id);
-        auto choice = m_new_official_filament_dlg->GetChoice();
-        if (choice == AMSNewOfficialFilamentDlg::Choice::Skip) {
-            DevAmsTray* tray = obj ? obj->get_ams_tray(ams_id, slot_id) : nullptr;
-            if (tray && !tray->uuid.empty()) {
-                if (auto* sync = wxGetApp().fila_manager_sync())
-                    sync->skip_new_filament_hint(tray->uuid);
-            }
-        }
-        if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew ||
-            choice == AMSNewOfficialFilamentDlg::Choice::LinkExisting) {
+    if (!obj) {
+        show_new_official_filament_dlg(std::string(), ams_id, slot_id);
+        return;
+    }
 
-            auto* mf = wxGetApp().mainframe;
-            if (mf && mf->web_device() && obj) {
-                DevAmsTray* tray = obj->get_ams_tray(ams_id, slot_id);
-                if (tray) {
-                    if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew) {
-                        mf->web_device()->DispatchCommand(
-                            build_ams_tray_batch_create(tray, ams_id, obj));
-                    } else {
-                        const std::string old_id =
-                            m_new_official_filament_dlg->GetSelectedLinkSpoolId();
-                        if (!old_id.empty()) {
-                            // Delete the old no-RFID spool
-                            nlohmann::json del_body;
-                            del_body["module"]  = "filament";
-                            del_body["submod"]  = "spool";
-                            del_body["action"]  = "remove";
-                            del_body["payload"] = {{"spool_id", old_id}};
-                            mf->web_device()->DispatchCommand(del_body);
-                            // Re-add with RFID from AMS tray
-                            mf->web_device()->DispatchCommand(
-                                build_ams_tray_batch_create(tray, ams_id, obj));
-                        }
+    // 在异步请求发出之前捕获 dev_id：回调触发时用户可能已切换到另一台机器，
+    // 届时 obj 已指向新设备，不能再用它来定位这次角标处理的归属设备。
+    const std::string dev_id = obj->get_dev_id();
+
+    std::string ams_sn;
+    int ams_id_int = -1;
+    try { ams_id_int = std::stoi(ams_id); } catch (...) {}
+    if (ams_id_int >= 0) {
+        const auto ams_ver_map = obj->get_ams_version();
+        auto ver_it = ams_ver_map.find(ams_id_int);
+        if (ver_it != ams_ver_map.end())
+            ams_sn = ver_it->second.sn;
+    }
+
+    wgtFilaManagerCloudClient client;
+    BBL::SoftMatchPendingParams p;
+    p.devId = obj->get_dev_id();
+    p.amsSn = ams_sn;
+    client.get_soft_match_pending(p,
+        [this, dev_id, ams_id, slot_id](const nlohmann::json& data) {
+            m_soft_match_pending = SoftMatchPendingResponse::from_json(data);
+            BOOST_LOG_TRIVIAL(info)
+                << "[soft_match_pending] parsed: hits=" << m_soft_match_pending.hits.size()
+                << " candidates=" << m_soft_match_pending.candidates.size();
+
+            DevAmsTray* tray = obj ? obj->get_ams_tray(ams_id, slot_id) : nullptr;
+            std::string tray_rfid = (tray && !tray->uuid.empty()) ? tray->uuid : "";
+
+            bool hit_matches_slot = false;
+            if (!tray_rfid.empty()) {
+                for (const auto& hit : m_soft_match_pending.hits) {
+                    if (hit.rfid == tray_rfid) {
+                        hit_matches_slot = true;
+                        break;
                     }
                 }
             }
-        }
-    }
-}
 
-void StatusPanel::set_ams_new_filament_hint(const std::string& ams_id, const std::string& slot_id, bool show)
-{
-    if (m_ams_control)
-        m_ams_control->set_new_filament_hint(ams_id, slot_id, show);
+            if (m_soft_match_pending.hits.empty() || !hit_matches_slot) {
+                // 情况一：云端已自动创建，或当前槽位耗材不在待匹配队列
+                FilamentSpool display_sp;
+                if (tray) {
+                    display_sp.series        = tray->sub_brands;
+                    display_sp.material_type = tray->get_display_filament_type();
+                    display_sp.color_name    = {};
+                    display_sp.color_code = (!tray->color.empty() && tray->color[0] == '#')
+                                            ? tray->color.substr(1) : tray->color;
+                    display_sp.colors     = tray->cols;
+                    display_sp.color_type = static_cast<int>(tray->ctype);
+                    if (tray->remain_g >= 0) {
+                        display_sp.net_weight     = tray->remain_g;
+                        display_sp.remain_percent = 100;
+                    } else {
+                        double total_w = 0.0;
+                        try { total_w = std::stod(tray->weight); } catch (...) {}
+                        if (total_w > 0.0)
+                            display_sp.net_weight = total_w * tray->remain / 100.0;
+                        display_sp.remain_percent = tray->remain;
+                    }
+                }
+                AMSNewFilamentRecordedDlg dlg(this, display_sp);
+                dlg.ShowModal();
+                dismiss_filament_hint_ui(dev_id, ams_id, slot_id);
+            } else {
+                // 情况二/三：有待匹配条目，让用户选择处理方式
+                m_new_official_filament_dlg->SetSoftMatchData(m_soft_match_pending);
+                show_new_official_filament_dlg(dev_id, ams_id, slot_id);
+            }
+        },
+        [this, dev_id, ams_id, slot_id](int code, const std::string& err) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "[soft_match_pending] GET failed code=" << code << " err=" << err;
+            show_new_official_filament_dlg(dev_id, ams_id, slot_id);
+        });
 }
 
 void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 {
-    // update params
-    if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
-
     int  current_position_x = m_ams_control->GetScreenPosition().x;
     int  current_position_y = m_ams_control->GetScreenPosition().y - FromDIP(40);
     auto drect              = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
-    current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
+    current_position_y = current_position_y + FromDIP(503) > drect ? drect - FromDIP(503) : current_position_y;
 
     if (obj) {
-        m_filament_setting_dlg->obj = obj;
-        // 2D mode (laser/cut) only allows viewing filament info, not editing.
-        m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
-
         int ams_id  = event.GetInt();
-        int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
+        long slot_id_long = 0;
+        event.GetString().ToLong(&slot_id_long);
+        int slot_id = static_cast<int>(slot_id_long);
 
-        m_filament_setting_dlg->ams_id  = ams_id;
-        m_filament_setting_dlg->slot_id = slot_id;
-        int nozzle_index                = ams_id == VIRTUAL_TRAY_MAIN_ID ? 0 : 1;
+        if (obj->vt_slot.empty()) return;
+        int vt_idx = (ams_id == VIRTUAL_TRAY_DEPUTY_ID && obj->vt_slot.size() > 1) ? 1 : 0;
+        const DevAmsTray* vt_tray = &obj->vt_slot[vt_idx];
 
         try {
             std::string sn_number;
@@ -5317,28 +5488,52 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             std::string temp_min;
             wxString    k_val;
             wxString    n_val;
-            k_val                                   = wxString::Format("%.3f", obj->vt_slot[nozzle_index].k);
-            n_val                                   = wxString::Format("%.3f", obj->vt_slot[nozzle_index].n);
-            wxColor color                           = DevAmsTray::decode_color(obj->vt_slot[nozzle_index].color);
-            m_filament_setting_dlg->ams_filament_id = obj->vt_slot[nozzle_index].setting_id;
+            wxString    total_weight;
+            wxString    remain_weight;
+            k_val         = wxString::Format("%.3f", vt_tray->k);
+            n_val         = wxString::Format("%.3f", vt_tray->n);
+            wxColor color = DevAmsTray::decode_color(vt_tray->color);
 
             std::vector<wxColour> cols;
-            for (auto col : obj->vt_slot[nozzle_index].cols) { cols.push_back(DevAmsTray::decode_color(col)); }
-            m_filament_setting_dlg->set_ctype(obj->vt_slot[nozzle_index].ctype);
+            for (const auto &col : vt_tray->cols) { cols.push_back(DevAmsTray::decode_color(col)); }
 
+            const bool is_third = DevFilaSystem::IsBBL_Filament(vt_tray->tag_uid) ? false : true;
+            if (vt_tray->tag_uid.size() == 16 && vt_tray->tag_uid.substr(12, 2) == "01") {
+                sn_number = vt_tray->uuid;
+            }
+            if (!is_third) {
+                filament  = vt_tray->sub_brands;
+                temp_max  = vt_tray->nozzle_temp_max;
+                temp_min  = vt_tray->nozzle_temp_min;
+            }
+            total_weight = wxString::FromUTF8(vt_tray->weight.c_str());
+            if (auto weight = vt_tray->get_filament_remain_weight()) {
+                remain_weight = wxString::Format("%d", *weight);
+            }
+
+            // RFID filament: open the view-only dialog instead of the editable one.
+            if (!is_third) {
+                open_rfid_view(ams_id, slot_id, vt_tray->setting_id,
+                               static_cast<int>(vt_tray->ctype),
+                               filament, color, cols,
+                               temp_min, temp_max, sn_number, k_val,
+                               wxPoint(current_position_x, current_position_y));
+                return;
+            }
+
+            if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
+            m_filament_setting_dlg->obj        = obj;
+            m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
+            m_filament_setting_dlg->ams_id     = ams_id;
+            m_filament_setting_dlg->slot_id    = slot_id;
+            m_filament_setting_dlg->m_is_third = is_third;
+            m_filament_setting_dlg->ams_filament_id = vt_tray->setting_id;
+            m_filament_setting_dlg->set_ctype(vt_tray->ctype);
             if (m_filament_setting_dlg->ams_filament_id.empty()) {
                 m_filament_setting_dlg->set_empty_color(color);
             } else {
                 m_filament_setting_dlg->set_color(color);
                 m_filament_setting_dlg->set_colors(cols);
-            }
-
-            m_filament_setting_dlg->m_is_third = !DevFilaSystem::IsBBL_Filament(obj->vt_slot[nozzle_index].tag_uid);
-            if (!m_filament_setting_dlg->m_is_third) {
-                sn_number = obj->vt_slot[nozzle_index].uuid;
-                filament  = obj->vt_slot[nozzle_index].sub_brands;
-                temp_max  = obj->vt_slot[nozzle_index].nozzle_temp_max;
-                temp_min  = obj->vt_slot[nozzle_index].nozzle_temp_min;
             }
 
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));

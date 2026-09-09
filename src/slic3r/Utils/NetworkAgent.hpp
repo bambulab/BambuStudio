@@ -120,6 +120,8 @@ typedef int (*func_get_mw_user_4ulist)(void *agent, int seed, int limit, std::fu
 typedef int (*func_get_hms_snapshot)(void* agent, std::string& dev_id, std::string& file_name, std::function<void(std::string, int)> callback);
 typedef int (*func_sync_ams_filaments)(void *agent, AmsSyncParams params, std::string* http_body);
 typedef int (*func_sync_slot_mappings)(void *agent, SlotMappingsSyncParams params, std::string* http_body);
+typedef int (*func_get_soft_match_pending)(void *agent, SoftMatchPendingParams params, std::string* http_body);
+typedef int (*func_post_soft_match_pending)(void *agent, SoftMatchPendingActionParams params, std::string* http_body);
 
 //the NetworkAgent class
 class NetworkAgent
@@ -247,6 +249,8 @@ public:
     int get_hms_snapshot(std::string dev_id, std::string file_name, std::function<void(std::string, int)> callback);
     int sync_ams_filaments(AmsSyncParams params, std::string* http_body);
     int sync_slot_mappings(SlotMappingsSyncParams params, std::string* http_body);
+    int get_soft_match_pending(SoftMatchPendingParams params, std::string* http_body);
+    int post_soft_match_pending(SoftMatchPendingActionParams params, std::string* http_body);
     void *get_network_agent() { return network_agent; }
 
 private:
@@ -364,6 +368,8 @@ private:
     static func_get_hms_snapshot       get_hms_snapshot_ptr;
     static func_sync_ams_filaments     sync_ams_filaments_ptr;
     static func_sync_slot_mappings     sync_slot_mappings_ptr;
+    static func_get_soft_match_pending  get_soft_match_pending_ptr;
+    static func_post_soft_match_pending post_soft_match_pending_ptr;
 };
 
 }

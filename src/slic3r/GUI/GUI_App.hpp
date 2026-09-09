@@ -14,7 +14,6 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
-#include "slic3r/GUI/BindDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerStore.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerSync.h"
@@ -72,6 +71,7 @@ namespace Slic3r {
 
 class AppConfig;
 class FilamentColorCodeQuery;
+class GLShaderProgram;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
@@ -411,6 +411,7 @@ public:
     wgtFilaManagerCloudSync*        fila_manager_cloud_sync()   { return m_fila_manager_cloud_sync; }
     wgtFilaManagerCloudDispatcher*  fila_manager_cloud_disp()   { return m_fila_manager_cloud_disp; }
     bool                            is_fila_manager_disabled() const { return m_disable_fila_manager; }
+    void notify_new_rfid_filament(const std::string& ams_id, const std::string& slot_id);
 #if !BBL_RELEASE_TO_PUBLIC
     void set_fila_debug_sink(std::function<void(const nlohmann::json&)> sink)
     {
@@ -470,7 +471,13 @@ public:
     void            UpdateDlgDarkUI(wxDialog* dlg);
     void            UpdateFrameDarkUI(wxFrame* dlg);
     // update color mode for DataViewControl
-    void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false);
+    /**
+     * \brief Apply the dark-mode theme to a wxDataViewCtrl and its header.
+     * \param dvc         Control to theme.
+     * \param highlited   Use the highlighted dark background.
+     * \param header_font Optional header font; nullptr keeps the app's normal font.
+     */
+    void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false, const wxFont* header_font = nullptr);
     // update color mode for panel including all static texts controls
     void            UpdateAllStaticTextDarkUI(wxWindow* parent);
     void            init_fonts();
@@ -913,7 +920,12 @@ static std::vector<wxLanguage> s_supported_languages = {
     wxLANGUAGE_UKRAINIAN,
     wxLANGUAGE_PORTUGUESE_BRAZILIAN,
     wxLANGUAGE_TURKISH,
-    wxLANGUAGE_POLISH
+    wxLANGUAGE_POLISH,
+    wxLANGUAGE_THAI,
+    wxLANGUAGE_ROMANIAN,
+    wxLANGUAGE_GREEK,
+    wxLANGUAGE_INDONESIAN,
+    wxLANGUAGE_VIETNAMESE
 };
 } // namespace GUI
 } // Slic3r

@@ -393,7 +393,7 @@ bool FilamentComboBox::Enable(bool enable) {
         SetValue(false);
 
     if (m_radioBox)
-        m_radioBox->Enable(enable);
+        enable ? m_radioBox->Enable() : m_radioBox->Disable();
     if (m_checkBox)
         m_checkBox->Enable(enable);
     if (m_comboBox)

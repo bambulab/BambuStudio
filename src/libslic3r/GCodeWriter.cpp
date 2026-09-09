@@ -703,9 +703,11 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     Vec3d point_on_plate = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
     std::string out_string;
     GCodeG1Formatter w;
-    if (!this->is_current_position_clear())
+    if (!this->is_current_position_clear() ||
+        (m_avoid_z_descent_travel && point_on_plate.z() < m_pos.z() - EPSILON))
     {
-        //force to move xy first then z after filament change
+        // Split XY + Z: required after filament change (position unknown),
+        // or when mixed sub-layer Z must descend to avoid diagonal collision.
         w.emit_xy(Vec2d(point_on_plate.x(), point_on_plate.y()));
         w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);

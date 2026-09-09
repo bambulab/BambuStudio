@@ -45,6 +45,7 @@
 			"support_ams_ext_mix_print": true
 		},
 		"model_id": "C11",
+		"sn_prefix": "01S",
 		"support_wrapping_detection": false,
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto",
 		"compatible_machine": [ "BL-P001", "BL-P002", "C12", "C13" ],

@@ -1,6 +1,8 @@
 #include "BaseRenderer.hpp"
 #include "slic3r/GUI/IMSlider.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/FilamentGroupPopup.hpp"
@@ -201,6 +203,8 @@ namespace Slic3r
             {
                 m_moves_slider = new IMSlider(0, 0, 0, 100, wxSL_HORIZONTAL);
                 m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
+                m_moves_slider->set_request_canvas_focus([]() { wxGetApp().plater()->get_current_canvas3D()->force_set_focus(); });
+                m_layers_slider->set_request_canvas_focus([]() { wxGetApp().plater()->get_current_canvas3D()->force_set_focus(); });
                 m_p_extrusions = std::make_shared<Extrusions>();
                 m_p_extrusions->reset_role_visibility_flags();
                 if (GUI::wxGetApp().app_config->get_bool("enable_record_gcodeviewer_option_item")) {

@@ -29,7 +29,6 @@
 #include <wx/utils.h>
 
 #include <numeric>
-#include <codecvt>
 #include <boost/log/trivial.hpp>
 
 #include <GL/glew.h>
@@ -40,7 +39,6 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include "libslic3r/SVG.hpp"
-#include <codecvt>
 
 #include "../ParamsPanel.hpp"
 using namespace Slic3r;
@@ -1418,6 +1416,13 @@ bool GLGizmoText::get_selection_is_text()
     return false;
 }
 
+// Pick-ray / camera side is the surface the user hit. M*n can already be outward
+// on a left-handed volume; flipping on is_left_handed() alone inverts a good normal.
+static Vec3d flip_normal_toward(const Vec3d &n, const Vec3d &from_hit)
+{
+    return n.dot(from_hit) < 0.0 ? -n : n;
+}
+
 void GLGizmoText::generate_text_tran_in_world(const Vec3d &text_normal_in_world, const Vec3d &text_position_in_world,float rotate_degree, Geometry::Transformation &cur_tran)
 {
     Vec3d  temp_normal        = text_normal_in_world.normalized();
@@ -1471,11 +1476,12 @@ bool GLGizmoText::on_shortcut_key() {
                 update_trafo_matrices();
                 m_c->update(get_requirements());
                 if (m_trafo_matrices.size() > 0 && update_raycast_cache(coor, camera, m_trafo_matrices,false) && m_rr.mesh_id >= 0) {
+                    mv = mo->volumes[m_rr.mesh_id];
                     auto hit_pos = m_trafo_matrices[m_rr.mesh_id] * m_rr.hit.cast<double>();
                     Geometry::Transformation tran(m_trafo_matrices[m_rr.mesh_id]);
-                    auto        hit_normal    = (tran.get_matrix_no_offset() * m_rr.normal.cast<double>()).normalized();
+                    auto hit_normal = (tran.get_matrix_no_offset() * m_rr.normal.cast<double>()).normalized();
+                    hit_normal = flip_normal_toward(hit_normal, wxGetApp().plater()->get_camera().get_position() - hit_pos);
                     Transform3d surface_trmat = create_transformation_onto_surface(hit_pos, hit_normal, UP_LIMIT);
-                    mv                        = mo->volumes[m_rr.mesh_id];
                     if (mv) {
                         auto        instance  = mo->instances[m_parent.get_selection().get_instance_idx()];
                         Transform3d transform = instance->get_matrix().inverse() * surface_trmat;
@@ -1624,7 +1630,12 @@ void GLGizmoText::load_init_text(bool first_open_text)
 
                     auto &                  tc             = text_info.text_configuration;
                     const EmbossStyle &     style          = tc.style;
-                    std::optional<wxString> installed_name = get_installed_face_name(style.prop.face_name, *m_face_names);
+                    // 3mf text_info stores the real face/size in m_font_name / m_font_size;
+                    // style.path is often empty after import, so prefer those fields.
+                    if (!m_font_name.empty())
+                        tc.style.prop.face_name = m_font_name;
+                    std::optional<wxString> installed_name = get_installed_face_name(
+                        tc.style.prop.face_name.has_value() ? tc.style.prop.face_name : style.prop.face_name, *m_face_names);
 
                     wxFont wx_font;
                     // load wxFont from same OS when font name is installed
@@ -1648,12 +1659,16 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     style_.projection.embeded_depth = m_embeded_depth;
                     style_.prop.char_gap            = m_text_gap;
                     style_.prop.size_in_mm          = m_font_size;
+                    if (!m_font_name.empty())
+                        style_.prop.face_name = m_font_name;
                     if (temp_angle.has_value()) { style_.angle = temp_angle; }
                     if (auto it = std::find_if(styles.begin(), styles.end(), has_same_name); it == styles.end()) {
-                        // style was not found
-                        m_style_manager.load_style(style_, wx_font);
-                        if (m_style_manager.get_styles().size() >= 2) {
-                            auto default_style_index = 1; //
+                        // Preset name missing (often locale mismatch: 3mf "Recommend" vs UI _u8L("Recommend")).
+                        // Keep the volume's own style_; do NOT fall back to a default preset index —
+                        // that used to wipe font_name/font_size back to 新宋体/10.
+                        auto result = m_style_manager.load_style(style_, wx_font);
+                        if (!result && m_style_manager.get_styles().size() >= 2) {
+                            auto default_style_index = 1;
                             m_style_manager.load_style(default_style_index);
                         }
                     } else {
@@ -1669,6 +1684,10 @@ void GLGizmoText::load_init_text(bool first_open_text)
                             m_style_manager.set_wx_font(wx_font);
                         }
                     }
+                    // Re-apply authoritative 3mf fields after any preset load (load_style may reset face/size).
+                    m_style_manager.get_font_prop().size_in_mm = m_font_size;
+                    if (!m_font_name.empty())
+                        select_facename(wxString::FromUTF8(m_font_name.c_str()), false);
                 }
                 if (m_is_serializing) { // undo redo
                     m_style_manager.get_style().angle = calc_angle(selection);
@@ -2222,6 +2241,23 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         m_imgui->text(tran_z_dir_str);
         auto tran_pos_str = "text pos in_object:" + formatFloat(tran_pos[0]) + " y:" + formatFloat(tran_pos[1]) + " z:" + formatFloat(tran_pos[2]);
         m_imgui->text(tran_pos_str);
+
+        // World matrix of the mesh the text is attached to (instance * volume),
+        // printed row by row for debugging.
+        if (m_rr.mesh_id >= 0 && m_rr.mesh_id < (int) m_trafo_matrices.size()) {
+            const Transform3d &attach_world = m_trafo_matrices[m_rr.mesh_id];
+            m_imgui->text("attach mesh world matrix (mesh_id:" + std::to_string(m_rr.mesh_id) + "):");
+            for (int r = 0; r < 4; ++r) {
+                auto row_str = "  [" + formatFloat(attach_world(r, 0)) + ", " + formatFloat(attach_world(r, 1)) + ", " +
+                               formatFloat(attach_world(r, 2)) + ", " + formatFloat(attach_world(r, 3)) + "]";
+                m_imgui->text(row_str);
+            }
+            // Whether the attached mesh world matrix contains a mirror/reflection
+            // (negative determinant of the linear part).
+            m_imgui->text(std::string("attach mesh mirrored: ") + (has_reflection(attach_world) ? "yes" : "no"));
+        } else {
+            m_imgui->text("attach mesh world matrix: <no valid mesh_id>");
+        }
     }
 #endif
     float space_size    = m_imgui->get_style_scaling() * 8;
@@ -3073,7 +3109,9 @@ void GLGizmoText::update_text_pos_normal() {
 #endif
     Geometry::Transformation cur_tran(m_trafo_matrices[m_rr.mesh_id]);
     m_text_position_in_world = cur_tran.get_matrix() * m_rr.hit.cast<double>();
-    m_text_normal_in_world   = (cur_tran.get_matrix_no_offset().cast<float>() * m_rr.normal).normalized();
+    Vec3d n = (cur_tran.get_matrix_no_offset() * m_rr.normal.cast<double>()).normalized();
+    n = flip_normal_toward(n, wxGetApp().plater()->get_camera().get_position() - m_text_position_in_world);
+    m_text_normal_in_world = n.cast<float>();
 }
 
 bool GLGizmoText::filter_model_volume(ModelVolume *mv) {
@@ -3085,11 +3123,10 @@ bool GLGizmoText::filter_model_volume(ModelVolume *mv) {
 
 float GLGizmoText::get_text_height(const std::string &text)//todo
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> str_cnv;
-    std::wstring                                     ws = boost::nowide::widen(text);
-    std::vector<std::string>                         alphas;
+    std::wstring             ws = boost::nowide::widen(text);
+    std::vector<std::string> alphas;
     for (auto w : ws) {
-        alphas.push_back(str_cnv.to_bytes(w));
+        alphas.push_back(boost::nowide::narrow(std::wstring(1, w)));
     }
     auto  texts  = alphas ;
     float max_height = 0.f;

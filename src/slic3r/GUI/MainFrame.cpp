@@ -60,6 +60,7 @@
 #include "GUI_ObjectList.hpp"
 #include "NotificationManager.hpp"
 #include "MarkdownTip.hpp"
+#include "ParamTooltip.hpp"
 #include "NetworkTestDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "Widgets/WebView.hpp"
@@ -507,7 +508,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         // BBS: close save project
         int result;
-        if (event.CanVeto() && ((result = m_plater->close_with_confirm(check)) == wxID_CANCEL)) {
+        if (((result = m_plater->close_with_confirm(check, event.CanVeto())) == wxID_CANCEL) && event.CanVeto()) {
             event.Veto();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by close_with_confirm selection";
             return;
@@ -1108,6 +1109,14 @@ void MainFrame::update_layout()
 void MainFrame::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown enter";
+
+    // The rich parameter tooltip is a wxPopupTransientWindow parented to this frame. Both teardown
+    // paths funnel through here (app close, and the language-switch GUI rebuild via recreate_GUI),
+    // so destroy it and null its singleton before the frame goes away — otherwise the dangling
+    // s_self is a use-after-free on the next hover. Reset also rebuilds the store in the new
+    // language after a switch.
+    ParamTooltip::Shutdown();
+
     // BBS: backup
     Slic3r::set_backup_callback(nullptr);
 #ifdef _WIN32
@@ -2511,6 +2520,8 @@ bool MainFrame::get_enable_print_status()
 	}
 	else if (m_print_select == eSendToPrinter)
 	{
+        if (m_plater->only_gcode_mode() || m_plater->using_exported_file())
+            return true;
 		if (!current_plate->is_slice_result_ready_for_print())
 		{
 			enable = false;
@@ -2519,6 +2530,8 @@ bool MainFrame::get_enable_print_status()
 	}
     else if (m_print_select == eSendToPrinterAll)
     {
+        if (m_plater->only_gcode_mode() || m_plater->using_exported_file())
+            return true;
         if (!part_plate_list.is_all_slice_results_ready_for_print())
         {
             enable = false;

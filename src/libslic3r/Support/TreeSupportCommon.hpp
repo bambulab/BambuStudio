@@ -229,8 +229,11 @@ struct TreeSupportMeshGroupSettings {
     // How tall a branch has to be if it is placed on the model. Prevents small blobs of support. This setting is ignored when a branch is supporting a support roof.
     // minimum: 0, maximum warning: 5
     coord_t                         support_tree_min_height_to_model        { scaled<coord_t>(1.0) };
-    // Tree Support Inital Layer Diameter
-    // Diameter every branch tries to achieve when reaching the buildplate. Improves bed adhesion.
+    // Tree Support Initial Layer Diameter
+    // Plate-foot cap diameter; the cap radius is this value / 2. NOTE: not wired to the
+    // process config in this build - the ctor never assigns it, so it stays at the
+    // hard-coded 7.5mm diameter (cap radius 3.75mm), not a user setting. Branches already
+    // wider than that are not expanded.
     // minimum: 0, maximum warning: 20
     coord_t                         support_tree_bp_diameter                { scaled<coord_t>(7.5) };
     // Tree Support Branch Density
@@ -274,6 +277,8 @@ struct TreeSupportSettings
           support_rests_on_model(! mesh_group_settings.support_material_buildplate_only),
           xy_distance(mesh_group_settings.support_xy_distance),
           xy_min_distance(std::min(mesh_group_settings.support_xy_distance, mesh_group_settings.support_xy_distance_overhang)),
+          // Plate-foot cap radius = support_tree_bp_diameter / 2. That field is not read from
+          // config here, so this is a fixed 3.75mm (7.5mm diameter), not a user setting.
           bp_radius(mesh_group_settings.support_tree_bp_diameter / 2),
           bp_radius_increase_per_layer(std::min(tan(0.7) * layer_height, 0.5 * support_line_width)),
           z_distance_bottom_layers(size_t(round(double(mesh_group_settings.support_bottom_distance) / double(layer_height)))),
@@ -613,6 +618,49 @@ inline LayerIndex layer_idx_floor(const SlicingParameters &slicing_params, const
     return
         LayerIndex(config.raft_layers.size()) +
         std::max<LayerIndex>(0, floor((z - slicing_params.object_print_z_min - slicing_params.first_object_layer_height) / slicing_params.layer_height));
+}
+
+// Mid-plane Z used when slicing organic tubes: 0.5 * (bottom_z + print_z).
+inline double layer_mid_z(const SlicingParameters &slicing_params, const TreeSupportSettings &config, const LayerIndex layer_idx)
+{
+    const double print_z  = layer_z(slicing_params, config, size_t(layer_idx));
+    const double bottom_z = layer_idx > 0 ? layer_z(slicing_params, config, size_t(layer_idx - 1)) : 0.;
+    return 0.5 * (bottom_z + print_z);
+}
+
+// Lowest layer whose mid-plane is >= z. Prefer this over layer_idx_ceil when the caller
+// slices at mid-planes (organic_draw_branches); print-z ceil/floor can miss the last/first layer.
+inline LayerIndex layer_idx_mid_ceil(
+    const SlicingParameters   &slicing_params,
+    const TreeSupportSettings &config,
+    const double               z,
+    const LayerIndex           layer_count)
+{
+    if (layer_count <= 0)
+        return 0;
+    LayerIndex L = std::min(std::max(layer_idx_ceil(slicing_params, config, z), LayerIndex(0)), layer_count);
+    while (L > 0 && layer_mid_z(slicing_params, config, L - 1) >= z - EPSILON)
+        -- L;
+    while (L < layer_count && layer_mid_z(slicing_params, config, L) < z - EPSILON)
+        ++ L;
+    return L;
+}
+
+// Highest layer whose mid-plane is <= z, or -1 if none.
+inline LayerIndex layer_idx_mid_floor(
+    const SlicingParameters   &slicing_params,
+    const TreeSupportSettings &config,
+    const double               z,
+    const LayerIndex           layer_count)
+{
+    if (layer_count <= 0)
+        return -1;
+    LayerIndex L = std::min(std::max(layer_idx_floor(slicing_params, config, z), LayerIndex(0)), layer_count - 1);
+    while (L + 1 < layer_count && layer_mid_z(slicing_params, config, L + 1) <= z + EPSILON)
+        ++ L;
+    while (L >= 0 && layer_mid_z(slicing_params, config, L) > z + EPSILON)
+        -- L;
+    return L;
 }
 
 inline SupportGeneratorLayer& layer_initialize(

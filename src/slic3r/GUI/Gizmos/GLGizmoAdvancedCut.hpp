@@ -45,6 +45,8 @@ public:
     void         toggle_selection(const Vec2d &mouse_pos);
     void         toggle_selection(int id);
     void         turn_over_selection();
+    // True when the mouse ray hits a switchable cut part (tooltip hover only).
+    bool         is_mouse_over_part(const Vec2d &mouse_pos) const;
     ModelObject* model_object() { return m_model.objects.front(); }
     bool         valid() const { return m_valid; }
     bool         is_one_object() const;
@@ -67,6 +69,8 @@ private:
     std::vector<Vec3d>              m_contour_points; // Debugging
     std::vector<std::vector<Vec3d>> m_debug_pts;      // Debugging
     void                            add_object(const ModelObject *object);
+    // MeshRaycaster hit test for cut-part preview meshes; -1 if no hit.
+    int                             pick_part_id(const Vec2d &mouse_pos) const;
 };
 
 class GLGizmoAdvancedCut : public GLGizmoRotate3D

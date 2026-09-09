@@ -13,6 +13,7 @@
 #include "ShortestPath.hpp"
 #include "SupportCommon.hpp"
 #include "SVG.hpp"
+#include "Time.hpp"
 #include "TreeSupportCommon.hpp"
 #include "TreeSupport.hpp"
 #include "TreeSupport3D.hpp"
@@ -1993,8 +1994,11 @@ void TreeSupport::generate()
 
     // Generate overhang areas
     profiler.stage_start(STAGE_DETECT_OVERHANGS);
+    const long long support_detect_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     m_object->print()->set_status(55, _u8L("Generating support"));
     detect_overhangs();
+    m_object->support_stage_times().detect +=
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_detect_begin_time;
     profiler.stage_finish(STAGE_DETECT_OVERHANGS);
 
     create_tree_support_layers();
@@ -2072,14 +2076,27 @@ void TreeSupport::generate()
     //Generate support areas.
     profiler.stage_start(STAGE_DRAW_CIRCLES);
     m_object->print()->set_status(65, _u8L("Generating support"));
+    const bool has_support_interface =
+        m_support_params.has_interfaces() || m_support_params.has_base_interfaces() ||
+        m_slicing_params.interface_raft_layers > 0;
+    const long long support_area_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     draw_circles();
+    if (has_support_interface) {
+        // The classic tree path creates base and interface areas in one pass, so this is the
+        // narrowest wall-clock stage that contains its interface-layer generation.
+        m_object->support_stage_times().interface_generate +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_area_begin_time;
+    }
     profiler.stage_finish(STAGE_DRAW_CIRCLES);
 
 
 
     profiler.stage_start(STAGE_GENERATE_TOOLPATHS);
+    const long long support_toolpath_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     m_object->print()->set_status(70, _u8L("Generating support"));
     generate_toolpaths();
+    m_object->support_stage_times().toolpath_generate +=
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_toolpath_begin_time;
     profiler.stage_finish(STAGE_GENERATE_TOOLPATHS);
 
     profiler.stage_finish(STAGE_total);

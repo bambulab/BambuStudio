@@ -6262,15 +6262,6 @@ float GCodeProcessor::get_hotend_change_time()
     return m_time_processor.hotend_change_times;
 }
 
-//BBS
-int GCodeProcessor::get_filament_vitrification_temperature(size_t extrude_id)
-{
-    if (extrude_id < m_result.filament_vitrification_temperature.size())
-        return m_result.filament_vitrification_temperature[extrude_id];
-    else
-        return 0;
-}
-
 void GCodeProcessor::process_custom_gcode_time(CustomGCode::Type code)
 {
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {

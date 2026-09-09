@@ -1,5 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "GLCanvas3D.hpp"
+#include "WipeTowerPlacement.hpp"
 #include "Overview/AssemblyStepsUtils.hpp"
 #include "Overview/OverviewUtils.hpp"
 
@@ -33,6 +34,7 @@
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
 #include "slic3r/GUI/GuiColor.hpp"
+#include "slic3r/GUI/UIHelpers/ImGuiFilamentWidgets.hpp"
 
 #include "WipeTowerDialog.hpp"
 #include "GLToolbar.hpp"
@@ -2117,6 +2119,7 @@ void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx
             }
         }
     }
+    update_all_objects_unprintable_warning();
 }
 
 void GLCanvas3D::update_instance_printable_state_for_objects(const std::vector<size_t>& object_idxs)
@@ -3047,6 +3050,16 @@ void GLCanvas3D::render(bool only_init)
 	    if (tooltip.empty())
             tooltip = wxGetApp().plater()->get_collapse_toolbar().get_tooltip();
 
+        // Show tip when hovering an unprintable object volume.
+        if (tooltip.empty() && !m_hover_volume_idxs.empty()) {
+            const int volume_idx = get_first_hover_volume_idx();
+            if (volume_idx >= 0 && volume_idx < (int)m_volumes.volumes.size()) {
+                const GLVolume *volume = m_volumes.volumes[volume_idx];
+                if (volume != nullptr && !volume->is_wipe_tower && !volume->printable)
+                    tooltip = _u8L("Unprintable object");
+            }
+        }
+
         // BBS
 #if 0
 	    if (tooltip.empty())
@@ -3077,7 +3090,8 @@ void GLCanvas3D::render(bool only_init)
     if (!suppress_notifications)
         wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
-        wxGetApp().plater()->get_dailytips()->render();
+        const Size& cnv_size = get_canvas_size();
+        wxGetApp().plater()->get_dailytips()->render(cnv_size.get_width(), cnv_size.get_height());
     }
 
     wxGetApp().imgui()->render();
@@ -3513,6 +3527,15 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     int n_plates = ppl.get_plate_count();
     std::vector<int> volume_idxs_wipe_tower_old(n_plates, -1);
 
+    // Snapshot each plate's "tower already placed" flag before reload, to detect
+    // first-time tower materialization vs. an existing tower whose position stays untouched.
+    std::vector<bool> plate_had_wipe_tower(n_plates, false);
+    for (int plate_id = 0; plate_id < n_plates; ++plate_id) {
+        const PartPlate* plate = ppl.get_plate(plate_id);
+        if (plate)
+            plate_had_wipe_tower[plate_id] = plate->is_wipe_tower_placed();
+    }
+
     // Release invalidated volumes to conserve GPU memory in case of delayed refresh (see m_reload_delayed).
     // First initialize model_volumes_new_sorted & model_instances_new_sorted.
     for (int object_idx = 0; object_idx < (int)m_model->objects.size(); ++object_idx) {
@@ -3906,6 +3929,59 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 if (!need_wipe_tower && part_plate->get_extruders(true).size() < 2) continue;
                 if (part_plate->get_objects_on_this_plate().empty()) continue;
 
+                // First-time tower materialization on this plate: its position is still a raw
+                // machine default, so run avoidance and persist it. Skipped while loading a
+                // project since the 3mf's tower config isn't fully restored here yet.
+                const bool is_loading_project = wxGetApp().plater()->is_loading_project();
+                if (!plate_had_wipe_tower[plate_id] && !is_loading_project) {
+                    Vec3d avoided_pos, avoided_size;
+                    const DynamicPrintConfig full_cfg_for_avoid = wxGetApp().preset_bundle->full_config();
+                    const int nozzle_nums_for_avoid = wxGetApp().preset_bundle->get_printer_extruder_count();
+                    part_plate->estimate_wipe_tower_polygon(full_cfg_for_avoid, plate_id, avoided_pos, avoided_size,
+                                                             nozzle_nums_for_avoid, 0, false);
+                    if (avoided_size(0) > EPSILON && avoided_size(1) > EPSILON) {
+                        // Prefer seating the tower next to the parts (optimal position) when enabled;
+                        // otherwise fall back to the machine default, avoided via the shared helper.
+                        Vec2d optimal_pos;
+                        if (wipe_tower_optimal_pos_enabled()) {
+                            if (part_plate->compute_optimal_wipe_tower_pos(full_cfg_for_avoid, avoided_size, optimal_pos)) {
+                                avoided_pos(0) = optimal_pos.x();
+                                avoided_pos(1) = optimal_pos.y();
+                            }
+                            // Hug failed: keep estimate_wipe_tower_polygon's avoided_pos; do not use machine default.
+                        } else {
+                            const Vec3d plate_org = part_plate->get_origin();
+                            const Vec2d def_local = ppl.get_machine_default_wipe_tower_pos();
+                            float px = (float) (def_local.x() + plate_org.x());
+                            float py = (float) (def_local.y() + plate_org.y());
+
+                            std::vector<ForbiddenRect2d> forbidden;
+                            for (const BoundingBoxf3 &b : part_plate->get_exclude_areas())
+                                forbidden.push_back({b.min.x(), b.min.y(), b.max.x(), b.max.y()});
+                            if (dynamic_cast<const ConfigOptionBool*>(dconfig.option("enable_wrapping_detection"))->value) {
+                                const Pointfs wrap_pts = ppl.get_wrapping_exclude_area();
+                                if (!wrap_pts.empty()) {
+                                    BoundingBoxf wrap_bb(wrap_pts);
+                                    forbidden.push_back({wrap_bb.min.x() + plate_org.x(), wrap_bb.min.y() + plate_org.y(),
+                                                          wrap_bb.max.x() + plate_org.x(), wrap_bb.max.y() + plate_org.y()});
+                                }
+                            }
+                            const double fallback_brim = wipe_tower_brim_width(full_cfg_for_avoid, avoided_size(2));
+                            wipe_tower_pullback_then_avoid(px, py, Vec2d(avoided_size(0), avoided_size(1)),
+                                                            part_plate->get_build_volume(true), fallback_brim,
+                                                            wipe_tower_line_width(full_cfg_for_avoid), forbidden);
+                            avoided_pos(0) = px - plate_org.x();
+                            avoided_pos(1) = py - plate_org.y();
+                        }
+                        x = (float) avoided_pos(0);
+                        y = (float) avoided_pos(1);
+                        ConfigOptionFloat wt_x_opt(x), wt_y_opt(y);
+                        dynamic_cast<ConfigOptionFloats*>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
+                        dynamic_cast<ConfigOptionFloats*>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
+                        part_plate->set_wipe_tower_placed(true);
+                    }
+                }
+
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 double wipe_vol = get_max_element(v);
@@ -4049,6 +4125,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
             bool single_extruder_mixed_risk = cur_plate->check_single_extruder_mixed_filament_risk(full_config_temp, get_single_extruder_mixed_filament_warning_text());
             _set_warning_notification(EWarning::SingleExtruderMixedFilament, single_extruder_mixed_risk);
+
+            update_all_objects_unprintable_warning();
         }
         else {
             _set_warning_notification(EWarning::ObjectOutside, false);
@@ -4071,6 +4149,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::TpuNozzleMultipleFilaments, false);
            _set_warning_notification(EWarning::HighTempNeedWrappingDetection, false);
            _set_warning_notification(EWarning::SingleExtruderMixedFilament, false);
+           _set_warning_notification(EWarning::AllObjectsUnprintable, false);
 
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
@@ -4244,15 +4323,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
-        // Pan gestures are only registered on Windows, where the touchpad two-finger swipe
-        // has to reach on_gesture(). On macOS the pan recognizer wx installs here also claims
-        // plain left-button drags, so moving an object turns into a camera pan; initGestures()
-        // below already covers the touchpad path there.
-#ifdef __WXMSW__
-        m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE | wxTOUCH_PAN_GESTURES);
-#else
         m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE);
-#endif
 #if __WXOSX__
         initGestures(m_canvas->GetHandle(), m_canvas); // for UIPanGestureRecognizer allowedScrollTypesMask
 #endif
@@ -5165,86 +5236,29 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     if (m_gizmos.on_mouse_wheel(evt))
         return;
 
-    if (m_canvas_type == CanvasAssembleView && (evt.AltDown() || evt.CmdDown())) {
-        float rotation = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
-        if (evt.AltDown()) {
-            auto clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
-            clp_dist = rotation < 0.f
-                ? std::max(0., clp_dist - 0.01)
-                : std::min(1., clp_dist + 0.01);
-            m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
-        }
-        else if (evt.CmdDown()) {
-            m_explosion_ratio = rotation < 0.f
-                ? std::max(1., m_explosion_ratio - 0.01)
-                : std::min(3., m_explosion_ratio + 0.01);
-            if (m_explosion_ratio != GLVolume::explosion_ratio) {
-                for (GLVolume* volume : m_volumes.volumes) {
-                    volume->set_bounding_boxes_as_dirty();
-                }
-                GLVolume::explosion_ratio = m_explosion_ratio;
-            }
-        }
-        return;
-    }
-    // On Windows, touchpad two-finger scroll is delivered as WM_MOUSEWHEEL/WM_MOUSEHWHEEL
-    // instead of wxEVT_GESTURE_PAN. Distinguish touchpad from mouse wheel by rotation granularity:
-    // mouse wheel always reports multiples of WHEEL_DELTA (120), touchpad reports smaller values.
+    // Shift + scroll wheel/touchpad: pan the camera instead of zooming.
+    // This allows touchpad users to pan vertically/horizontally by holding Shift.
+    // Note: Ctrl is not used because Windows touchpad drivers send Ctrl+Wheel for pinch-to-zoom.
 #ifdef __WXMSW__
-    {
+    if (evt.ShiftDown()) {
         const bool is_horizontal = (evt.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL);
-        const bool likely_touchpad = (std::abs(evt.GetWheelRotation()) < evt.GetWheelDelta())
-                                    || (evt.GetWheelRotation() % evt.GetWheelDelta() != 0);
-
-        // Once a touchpad event is detected, keep treating subsequent events as touchpad
-        // for a short window to avoid occasional large-rotation events leaking to zoom.
-        const int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
-        if (likely_touchpad || is_horizontal) {
-            m_last_touchpad_scroll_ms = now_ms;
-        }
-        const bool in_touchpad_window = (now_ms - m_last_touchpad_scroll_ms) < 500;
-
-        if (is_horizontal || likely_touchpad || in_touchpad_window) {
-            Camera& camera = get_active_camera();
-            const Size cnv_size = get_canvas_size();
-            constexpr double kTouchpadPanSensitivity = 20.0;
-            const double pixels = (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta() * kTouchpadPanSensitivity;
-            double dx = is_horizontal ? pixels : 0.0;
-            double dy = is_horizontal ? 0.0 : -pixels;
-            float z = 0.0f;
-            const Vec3d p1 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5,        cnv_size.get_height() * 0.5}, &z);
-            const Vec3d p2 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5 - dx,   cnv_size.get_height() * 0.5 - dy}, &z);
-            camera.set_target(camera.get_target() + p1 - p2);
-            m_dirty = true;
-            return;
-        }
+        Camera& camera = get_active_camera();
+        const Size cnv_size = get_canvas_size();
+        const double pixels = (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta() * 20.0;
+        double dx = is_horizontal ? pixels : 0.0;
+        double dy = is_horizontal ? 0.0 : -pixels;
+        float z = 0.0f;
+        const Vec3d p1 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5,        cnv_size.get_height() * 0.5}, &z);
+        const Vec3d p2 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5 - dx,   cnv_size.get_height() * 0.5 - dy}, &z);
+        camera.set_target(camera.get_target() + p1 - p2);
+        m_dirty = true;
+        return;
     }
 #endif // __WXMSW__
 
-    // Calculate the zoom delta and apply it to the current zoom factor
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
-    double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
-#else
-    double direction_factor = 1.0;
-#endif
+    double direction_factor = wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom") ? -1.0 : 1.0;
     auto delta = direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta();
-    bool zoom_to_mouse = wxGetApp().app_config->get("zoom_to_mouse") == "true";
-    if (!zoom_to_mouse) {// zoom to center
-        _update_camera_zoom(delta);
-    }
-    else {
-        auto cnv_size = get_canvas_size();
-        Camera& camera = get_active_camera();
-        auto screen_center_3d_pos = _mouse_to_3d(camera, { cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
-        auto mouse_3d_pos = _mouse_to_3d(camera, {evt.GetX(), evt.GetY()});
-        Vec3d displacement = mouse_3d_pos - screen_center_3d_pos;
-        camera.translate(displacement);
-        auto origin_zoom = camera.get_zoom();
-        _update_camera_zoom(delta);
-        auto new_zoom = camera.get_zoom();
-        camera.translate((-displacement) / (new_zoom / origin_zoom));
-    }
+    _update_camera_zoom(get_active_camera().calc_zoom_from_delta(delta), { evt.GetX(), evt.GetY() });
 #if defined(__WXOSX__)
     // macOS: keep zoom responsive even if wxEVT_IDLE is starved by a busy
     // WKWebView tab (no-op elsewhere).
@@ -5435,17 +5449,25 @@ void GLCanvas3D::on_gesture(wxGestureEvent &evt)
         static float zoom_start = 1;
         if (evt.IsGestureStart())
             zoom_start = camera.get_zoom();
-        camera.set_zoom(zoom_start * static_cast<wxZoomGestureEvent&>(evt).GetZoomFactor());
+        float factor = static_cast<wxZoomGestureEvent&>(evt).GetZoomFactor();
+        // Match the mouse-wheel preferences on Mac trackpad pinch.
+        if (wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom"))
+            factor = 1.f / std::max(factor, 1e-3f);
+        const double mx = m_mouse.position.x();
+        const double my = m_mouse.position.y();
+        const Size cnv_size = get_canvas_size();
+        if (mx < 0.f || my < 0.f || mx >= cnv_size.get_width() || my >= cnv_size.get_height())
+            return;
+        _update_camera_zoom(zoom_start * factor, { (int)mx, (int)my });
     } else if (evt.GetEventType() == wxEVT_GESTURE_ROTATE) {
-        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
         bool rotate_limit = current_printer_technology() != ptSLA;
         static double last_rotate = 0;
         if (evt.IsGestureStart())
             last_rotate = 0;
         auto rotate = static_cast<wxRotateGestureEvent&>(evt).GetRotationAngle() - last_rotate;
         last_rotate += rotate;
-        if (plate)
-            camera.rotate_on_sphere_with_target(-rotate, 0, rotate_limit, plate->get_bounding_box().center());
+        if (const std::optional<Vec3d> orbit_target = _get_camera_orbit_target())
+            camera.rotate_on_sphere_with_target(-rotate, 0, rotate_limit, *orbit_target);
         else
             camera.rotate_on_sphere(-rotate, 0, rotate_limit);
     }
@@ -5803,7 +5825,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
 
                 if (!m_hover_volume_idxs.empty()) {
-                    if (evt.LeftDown() && m_moving_enabled && m_mouse.drag.move_volume_idx == -1) {
+                    if (evt.LeftDown() && m_moving_enabled && m_mouse.drag.move_volume_idx == -1 && _allow_canvas_drag_move()) {
                         // Only accept the initial position, if it is inside the volume bounding box.
                         if (!any_gizmo_active || !evt.CmdDown()) {
                             int volume_idx = get_first_hover_volume_idx();
@@ -5905,16 +5927,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
                     //BBS rotate around target
                     Camera& camera = get_active_camera();
-                    Vec3d rotate_target = Vec3d::Zero();
                     // Inside a step card the orbit center follows that step's own
                     // objects, so rotating does not swing around unrelated geometry.
-                    const BoundingBoxf3 step_box = assembly_current_step_bounding_box();
-                    if (!m_selection.is_empty())
-                        rotate_target = m_selection.get_bounding_box().center();
-                    else if (step_box.defined)
-                        rotate_target = step_box.center();
-                    else
-                        rotate_target = volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
+                    const Vec3d rotate_target = _get_camera_orbit_target().value_or(Vec3d::Zero());
                     //BBS do not limit rotate in assemble view
                     camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
                     //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
@@ -5933,7 +5948,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         Camera& camera = get_active_camera();
 
                         bool rotate_limit = current_printer_technology() != ptSLA;
-                        Vec3d rotate_target = m_selection.get_bounding_box().center();
 
                         camera.recover_from_free_camera();
                         //BBS modify rotation
@@ -5942,18 +5956,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                                 auto canvas_w = float(get_canvas_size().get_width());
                                 auto canvas_h = float(get_canvas_size().get_height());
                                 Point screen_center(canvas_w/2, canvas_h/2);
-                                //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
                                 m_rotation_center = _mouse_to_3d(camera, screen_center);
                                 m_rotation_center(2) = 0.f;
                             }
                             camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
+                        } else if (const std::optional<Vec3d> orbit_target = _get_camera_orbit_target()) {
+                            camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, *orbit_target);
                         } else {
-                            //BBS rotate with current plate center
-                            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-                            if (plate)
-                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, plate->get_bounding_box().center());
-                            else
-                                camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
+                            camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
                         }
 #ifdef SUPPORT_FEEE_CAMERA
                     }
@@ -6398,7 +6408,10 @@ void GLCanvas3D::do_move(const std::string &snapshot_type,bool force_volume_move
         ModelObject* m = m_model->objects[i.first];
         const double shift_z = m->get_instance_min_z(i.second);
         //BBS: don't call translate if the z is zero
-        if ((current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+        // Sub-micron residuals come from the limited precision of the transforms stored in the 3mf.
+        // Re-dropping for those would rewrite Z with an equivalent but different float value, which
+        // is enough to flip float32 slicing decisions on faces that sit on a slicing plane.
+        if ((current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && std::abs(shift_z) > EPSILON) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
@@ -6802,12 +6815,11 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
 
             const BoundingBoxf3& bb = vol->bounding_box();
             if (wt_brim_width < 0) wt_brim_width = WipeTower::get_auto_brim_by_height((float)bb.max.z());
-            wti.m_bb = BoundingBoxf{to_2d(bb.min), to_2d(bb.max)};
-            wti.m_bb.offset(wt_brim_width);
-
-            float brim_width = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("prime_tower_brim_width");
-            if (brim_width < 0) brim_width = WipeTower::get_auto_brim_by_height((float) bb.max.z());
-            wti.m_bb.offset((brim_width));
+            // Use the same footprint helper as the no-GLVolume estimate path, so both
+            // agree on the tower's occupied geometry for a given wall size + brim.
+            const Vec2d wall_size = to_2d(bb.max) - to_2d(bb.min);
+            wti.m_bb = wipe_tower_nest_footprint(wall_size.x(), wall_size.y(), (double) wt_brim_width);
+            wti.m_bb.translate(to_2d(bb.min));
 
             // BBS: the wipe tower pos might be outside bed
             PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
@@ -7632,7 +7644,10 @@ void GLCanvas3D::_render_3d_navigator()
         }
         // Rotate back
         m = m * (coord_mapping_transform.inverse());
-        camera.set_rotation(m);
+        if (const std::optional<Vec3d> pivot = _get_camera_orbit_target())
+            camera.set_rotation(m, *pivot);
+        else
+            camera.set_rotation(m);
 
         request_extra_frame();
     }
@@ -8396,7 +8411,12 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
             bb.merge(t_gcode_viewer.get_shell_bounding_box());
     }
 
-    if ((m_canvas_type == CanvasView3D) && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
+    // The limit box stands 141.5 mm off the plate on a P2S and is therefore the geometry closest to a
+    // downward looking camera. calc_tight_frustrum_zs_around() puts the near plane 10 mm in front of
+    // this box, so leaving the lid height out of it clips the top ring away. That has to happen
+    // wherever the lines are drawn, not only in sequential printing.
+    const Print *print = fff_print();
+    if ((m_canvas_type == CanvasView3D) && print != nullptr && should_show_height_limit_lines(*print)) {
         float height_to_lid, height_to_rod;
         wxGetApp().plater()->get_partplate_list().get_height_limits(height_to_lid, height_to_rod);
         bb.max.z() = std::max(bb.max.z(), (double)height_to_lid);
@@ -8411,10 +8431,54 @@ void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box, double margin_factor)
     m_dirty = true;
 }
 
-void GLCanvas3D::_update_camera_zoom(double zoom)
+void GLCanvas3D::_update_camera_zoom(double target_zoom, const Point& anchor)
 {
-    get_active_camera().update_zoom(zoom);
+    Camera& camera = get_active_camera();
+    if (!wxGetApp().app_config->get_bool("zoom_to_mouse")) {
+        camera.set_zoom(target_zoom);
+    } else {
+        auto cnv_size = get_canvas_size();
+        auto screen_center_3d_pos = _mouse_to_3d(camera, { cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
+        auto anchor_3d_pos = _mouse_to_3d(camera, anchor);
+        Vec3d displacement = anchor_3d_pos - screen_center_3d_pos;
+        camera.translate(displacement);
+        auto origin_zoom = camera.get_zoom();
+        camera.set_zoom(target_zoom);
+        auto new_zoom = camera.get_zoom();
+        camera.translate((-displacement) / (new_zoom / origin_zoom));
+    }
     m_dirty = true;
+}
+
+std::optional<Vec3d> GLCanvas3D::_get_camera_orbit_target() const
+{
+    if (!m_selection.is_empty())
+        return m_selection.get_bounding_box().center();
+
+    // Assembly view (and paint gizmo) orbit around the current step's parts, or
+    // the whole model when no step is active, instead of the build plate.
+    if (m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
+        const BoundingBoxf3 step_box = assembly_current_step_bounding_box();
+        if (step_box.defined)
+            return step_box.center();
+        return volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
+    }
+
+    if (wxGetApp().plater() == nullptr)
+        return std::nullopt;
+
+    PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    if (plate)
+        return plate->get_bounding_box().center();
+
+    return std::nullopt;
+}
+
+bool GLCanvas3D::_allow_canvas_drag_move() const
+{
+    if (wxGetApp().app_config->get_bool("canvas_drag_to_move"))
+        return true;
+    return m_gizmos.get_current_type() == GLGizmosManager::EType::Move;
 }
 
 Camera &GLCanvas3D::get_active_camera()
@@ -8494,6 +8558,7 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass()
 {
+    m_hover_volume_idx_before_gizmo = -1;
     if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
 
         // Render the object for picking.
@@ -8529,6 +8594,17 @@ void GLCanvas3D::_picking_pass()
 
         m_camera_clipping_plane = m_gizmos.get_clipping_plane();
         _render_volumes_for_picking();
+
+        // Preserve the volume hit before gizmo rendering overwrites the picking pixel.
+        if (m_gizmos.get_current_type() == GLGizmosManager::Cut && !m_tooltip.is_in_imgui()) {
+            GLubyte color[4] = { 0, 0, 0, 0 };
+            p_ogl_manager->read_pixel(OpenGLManager::s_picking_frame, 0, 0, 1, 1, EPixelFormat::RGBA, EPixelDataType::UByte, (void *) color);
+            if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
+                const int volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
+                if (0 <= volume_id && volume_id < int(m_volumes.volumes.size()))
+                    m_hover_volume_idx_before_gizmo = volume_id;
+            }
+        }
 
         //BBS: remove the bed picking logic
         //_render_bed_for_picking(!get_active_camera().is_looking_downward());
@@ -10492,7 +10568,6 @@ void GLCanvas3D::_render_paint_toolbar() const
     const float paint_btn_side = 20.0f * f_scale * em_unit;
     const ImVec2 button_size(paint_btn_side, paint_btn_side);
     const float spacing = paint_btn_side * 0.22f;
-    const float paint_btn_rounding = paint_btn_side * 0.18f;
     const float return_button_margin = 130.0f * em_unit * f_scale;
     const float paint_to_toolbar_offset = 50.0f * em_unit * f_scale; // gap to main toolbar; reserve uses offset/2
 
@@ -10502,18 +10577,6 @@ void GLCanvas3D::_render_paint_toolbar() const
 
     constexpr float kPaintSwatchBorderDeltaE = 12.f;
     constexpr float kPaintSwatchBorderWidth  = 1.f;
-    const auto check_swatch_close_to_bg = [&](const unsigned char rgb[3],
-                                              const RGBA *color_from, const RGBA *color_to)
-    {
-        const RGBA paintbar_bg = { window_bg.x, window_bg.y, window_bg.z, window_bg.w };
-        if (color_from && color_to) {
-            const float d0 = Slic3r::GUI::calc_color_distance(*color_from, paintbar_bg);
-            const float d1 = Slic3r::GUI::calc_color_distance(*color_to, paintbar_bg);
-            return std::min(d0, d1) < kPaintSwatchBorderDeltaE;
-        }
-        const RGBA swatch_rgb = { rgb[0] / 255.f, rgb[1] / 255.f, rgb[2] / 255.f, 1.f };
-        return Slic3r::GUI::calc_color_distance(swatch_rgb, paintbar_bg) < kPaintSwatchBorderDeltaE;
-    };
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(spacing, spacing));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
@@ -10548,60 +10611,25 @@ void GLCanvas3D::_render_paint_toolbar() const
     imgui.begin(_L("Paint Toolbar"), window_flags);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    bool disabled = !wxGetApp().plater()->can_fillcolor();
-    unsigned char rgb[3];
+    const bool disabled = !wxGetApp().plater()->can_fillcolor();
 
-    auto gradient_info = wxGetApp().plater()->get_filament_gradient_info();
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, paint_btn_rounding);
     for (int i = 0; i < extruder_num; i++) {
         if ((i % max_per_row) > 0)
             ImGui::SameLine();
-        Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
-        const std::string num_str = std::to_string(i + 1);
-        ImGui::PushStyleColor(ImGuiCol_Button, ImColor(rgb[0], rgb[1], rgb[2]).Value);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(rgb[0], rgb[1], rgb[2]).Value);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(rgb[0], rgb[1], rgb[2]).Value);
-        if (disabled)
-            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-        if (ImGui::Button(("##filament_button" + num_str).c_str(), button_size))
+
+        ImGuiFilament::FilamentIconButtonOpts opts;
+        opts.size               = button_size;
+        opts.disabled           = disabled;
+        opts.hover_ring         = false;
+        opts.fallback_hex_color = colors[i].c_str();
+        if (ImGuiFilament::filament_icon_button(i, opts))
             wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
 
-        ImVec2 r_min = ImGui::GetItemRectMin();
-        ImVec2 r_max = ImGui::GetItemRectMax();
-        const bool is_gradient = i < (int) gradient_info.size() && gradient_info[i].is_gradient;
-        if (is_gradient) {
-            auto& gf = gradient_info[i].color_from;
-            auto& gt = gradient_info[i].color_to;
-            ImU32 col_from = IM_COL32(uint8_t(gf[0]*255.f), uint8_t(gf[1]*255.f), uint8_t(gf[2]*255.f), 255);
-            ImU32 col_to   = IM_COL32(uint8_t(gt[0]*255.f), uint8_t(gt[1]*255.f), uint8_t(gt[2]*255.f), 255);
-            const int vert_start_idx = draw_list->VtxBuffer.Size;
-            draw_list->PathRect(r_min, r_max, paint_btn_rounding);
-            draw_list->PathFillConvex(col_from);
-            const int vert_end_idx = draw_list->VtxBuffer.Size;
-            ImGui::ShadeVertsLinearColorGradientKeepAlpha(draw_list, vert_start_idx, vert_end_idx, r_min, ImVec2(r_max.x, r_min.y), col_from, col_to);
-        }
-
-        const bool is_close_to_bg = check_swatch_close_to_bg(rgb,
-                                    is_gradient ? &gradient_info[i].color_from : nullptr,
-                                    is_gradient ? &gradient_info[i].color_to   : nullptr);
-
-        {
-            float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
-            ImU32 text_color = gray < 80 ? IM_COL32(255, 255, 255, 255) : IM_COL32(0, 0, 0, 255);
-            const float number_font_size = button_size.y * 0.8f;
-            ImFont* font = ImGui::GetFont();
-            ImVec2 num_size = font->CalcTextSizeA(number_font_size, FLT_MAX, 0.0f, num_str.c_str());
-            ImVec2 num_pos(
-                r_min.x + (r_max.x - r_min.x - num_size.x) * 0.5f,
-                r_min.y + (r_max.y - r_min.y - num_size.y) * 0.5f);
-            draw_list->AddText(font, number_font_size, num_pos, text_color, num_str.c_str());
-        }
-
+        const bool is_close_to_bg = ImGuiFilament::is_close_to_background(i, window_bg, kPaintSwatchBorderDeltaE);
         if (is_close_to_bg)
-            draw_list->AddRect(r_min, r_max, border_col, paint_btn_rounding, 0, kPaintSwatchBorderWidth);
+            draw_list->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), border_col, 0.f, 0, kPaintSwatchBorderWidth);
 
-        if (ImGui::IsItemHovered()) {
+        if (!disabled && ImGui::IsItemHovered()) {
             wxString tooltip_text;
             if (!filament_display_names[i].empty())
                 tooltip_text = wxString(filament_display_names[i].c_str(), wxConvUTF8);
@@ -10617,11 +10645,7 @@ void GLCanvas3D::_render_paint_toolbar() const
             imgui.tooltip(tooltip_text, ImGui::GetFontSize() * 20.0f);
             ImGui::PopStyleVar(2);
         }
-        ImGui::PopStyleColor(3);
-        if (disabled)
-            ImGui::PopItemFlag();
     }
-    ImGui::PopStyleVar();
 
     m_paint_toolbar_width = ImGui::GetWindowWidth() + paint_to_toolbar_offset;
     imgui.end();
@@ -13674,6 +13698,18 @@ void GLCanvas3D::_update_brittle_filament_warning(PartPlate *plate, const Dynami
     _set_warning_notification(EWarning::BrittleFilament, brittle_present);
 }
 
+void GLCanvas3D::update_all_objects_unprintable_warning()
+{
+    if (m_canvas_type == ECanvasType::CanvasAssembleView)
+        return;
+    if (!wxGetApp().plater())
+        return;
+
+    PartPlate *cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    const bool show = cur_plate != nullptr && !cur_plate->empty() && cur_plate->is_all_instances_unprintable();
+    _set_warning_notification(EWarning::AllObjectsUnprintable, show);
+}
+
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
     using NotificationLevel = NotificationManager::NotificationLevel;
@@ -13900,6 +13936,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         text = _u8L(get_single_extruder_mixed_filament_warning_text());
         break;
     }
+    case EWarning::AllObjectsUnprintable:
+        text = _u8L("All objects on the current plate are unprintable. Slicing will produce an empty result. Please check.");
+        break;
     case EWarning::FlushingVolumeZero:
         text = _u8L("Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings.");
         error = ErrorType::SLICING_ERROR;
@@ -14052,7 +14091,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 notification_manager.bbl_close_bed_filament_incompatible_notification();
             }
         }
-        if (warning == EWarning::FilamentPrintableError) {
+        else if (warning == EWarning::FilamentPrintableError) {
             if (state){
                 auto callback = [](wxEvtHandler*) {
                     auto plater = wxGetApp().plater();
