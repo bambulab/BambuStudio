@@ -6,6 +6,7 @@
 #include "FilamentMixer.hpp"
 #include "Utils.hpp"
 
+#include <array>
 #include <set>
 #include <cmath>
 #include <cstdlib>
@@ -137,6 +138,43 @@ bool multi_nozzle_diameter_mode_enabled(const ConfigOptionResolver &config)
     return opt != nullptr && opt->value;
 }
 
+namespace {
+template<typename T>
+T multi_nozzle_value(double nozzle_diameter, T preset_value, const std::array<T, 4> &values)
+{
+    constexpr std::array<double, 4> diameters { 0.2, 0.4, 0.6, 0.8 };
+    for (size_t i = 0; i < diameters.size(); ++i)
+        if (std::abs(nozzle_diameter - diameters[i]) < 1e-3)
+            return values[i];
+    return preset_value;
+}
+}
+
+double multi_nozzle_retraction_length(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.4, 0.8, 1.4, 3.0 });
+}
+
+double multi_nozzle_ironing_inset(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.11, 0.21, 0.31, 0.41 });
+}
+
+int multi_nozzle_wall_loops(double nozzle_diameter, int preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 4, 2, 2, 2 });
+}
+
+double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.1, 0.2, 0.2, 0.2 });
+}
+
+double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 32.0, 125.9, 125.9, 125.9 });
+}
+
 bool has_multiple_configured_nozzle_diameters(const ConfigBase &config)
 {
     if (! multi_nozzle_diameter_mode_enabled(config))
@@ -173,7 +211,7 @@ bool has_multiple_configured_nozzle_diameters(const ConfigBase &config)
 bool complete_filament_nozzle_diameter_selections(
     DynamicPrintConfig &config, const std::vector<std::string> &supported_diameters)
 {
-    auto *selected = config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters", true);
+    auto *selected = config.option<ConfigOptionStrings>("filament_diameter_map", true);
     if (selected == nullptr)
         return false;
 
@@ -261,7 +299,7 @@ float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filam
 {
     if (filament_id != 0) {
         const size_t fil_idx = filament_id - 1;
-        const auto  &selected = config.filament_selected_nozzle_diameters.values;
+        const auto  &selected = config.filament_diameter_map.values;
         if (fil_idx < selected.size() && !selected[fil_idx].empty() &&
             selected[fil_idx].find(';') == std::string::npos) {
             const double diameter = std::atof(selected[fil_idx].c_str());
@@ -5559,7 +5597,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
-    def = this->add("filament_selected_nozzle_diameters", coStrings);
+    def = this->add("filament_diameter_map", coStrings);
     def->label = "Filament selected nozzle diameters";
     def->tooltip = "Per-filament explicitly selected nozzle diameter. Empty means not selected.";
     def->set_default_value(new ConfigOptionStrings {});
@@ -8506,7 +8544,7 @@ void DynamicPrintConfig::normalize_fdm_1()
     // multi-diameter printing existed. Per-filament selections are the only input that could still make it
     // look otherwise - a project saved on another machine, a hand-edited config - so they are dropped here,
     // at the one entrance every slicing path shares, instead of being second-guessed by every consumer.
-    if (auto *selected = this->option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    if (auto *selected = this->option<ConfigOptionStrings>("filament_diameter_map");
         selected != nullptr && ! selected->values.empty() && ! has_multiple_configured_nozzle_diameters(*this))
         std::fill(selected->values.begin(), selected->values.end(), std::string());
 
@@ -11200,7 +11238,7 @@ static float skirt_nozzle_diameter_for_filament(const ConfigBase &cfg, unsigned 
         return fallback_dia;
 
     const size_t filament_idx = size_t(filament_id - 1);
-    const auto  *selected     = cfg.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    const auto  *selected     = cfg.option<ConfigOptionStrings>("filament_diameter_map");
     if (selected != nullptr && filament_idx < selected->values.size() &&
         selected->values[filament_idx].find(';') == std::string::npos) {
         const double selected_diameter = std::atof(selected->values[filament_idx].c_str());

@@ -955,9 +955,9 @@ public:
     std::vector<unsigned int> object_extruders() const;
     std::vector<unsigned int> support_material_extruders() const;
     std::vector<unsigned int> extruders(bool conside_custom_gcode = false) const;
-    // BBS multi-diameter: whether the filaments this print actually uses carry more than one nozzle
-    // diameter. Single fact behind every multi-diameter merge, so the model, the support and the wipe
-    // tower cannot end up on different Z ladders. The per-object / global switches stay where they are.
+    // BBS multi-diameter: whether this print needs the adaptive diameter ladder. This includes either
+    // multiple used diameters or one used coarse diameter above the process grid's primary nozzle.
+    // Single fact behind model, support and wipe-tower merging keeps their Z ladders aligned.
     bool                uses_multiple_nozzle_diameters() const;
     double              max_allowed_layer_height() const;
     bool                has_support_material() const;

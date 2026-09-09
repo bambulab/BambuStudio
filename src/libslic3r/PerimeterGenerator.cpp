@@ -843,6 +843,15 @@ static Polygons to_polygons_with_flag(const ExPolygon& src, const bool contour_f
     return polygons;
 }
 
+int PerimeterGenerator::effective_wall_loops() const
+{
+    const int preset_value = this->config->wall_loops.value;
+    if (!this->multi_nozzle_diameter_mode)
+        return preset_value;
+    const double nozzle_diameter = nozzle_diameter_for_filament(
+        *this->print_config, (unsigned int) this->config->wall_filament.value);
+    return multi_nozzle_wall_loops(nozzle_diameter, preset_value);
+}
 
 void PerimeterGenerator::process_classic()
 {
@@ -918,11 +927,12 @@ void PerimeterGenerator::process_classic()
     for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
         const Surface &surface = all_surfaces[surface_order[order_idx]];
         // detect how many perimeters must be generated for this island
-        int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
+        const int  wall_loops = this->effective_wall_loops();
+        int        loop_number = wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
         if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase)
             loop_number++;
         //BBS: set the topmost and bottom most layer to be one wall
-        if (loop_number > 0 && ((this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr) || (this->object_config->only_one_wall_first_layer && layer_id == 0)))
+        if (loop_number > 0 && ((this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr) || (this->object_config->only_one_wall_first_layer && starts_at_object_base)))
             loop_number = 0;
 
         bool counter_circle_compensation = surface.counter_circle_compensation;
@@ -1118,10 +1128,10 @@ void PerimeterGenerator::process_classic()
                 if (i == 0 && i != loop_number && this->object_config->top_one_wall_type == TopOneWallType::Alltop && this->upper_slices != NULL) {
                     //split the polygons with top/not_top
                     //get the offset from solid surface anchor
-                    coord_t offset_top_surface = scale_(1.5 * (config->wall_loops.value == 0 ? 0. : unscaled(double(ext_perimeter_width + perimeter_spacing * int(int(config->wall_loops.value) - int(1))))));
+                    coord_t offset_top_surface = scale_(1.5 * (wall_loops == 0 ? 0. : unscaled(double(ext_perimeter_width + perimeter_spacing * (wall_loops - 1)))));
                     // if possible, try to not push the extra perimeters inside the sparse infill
-                    if (offset_top_surface > 0.9 * (config->wall_loops.value <= 1 ? 0. : (perimeter_spacing * (config->wall_loops.value - 1))))
-                        offset_top_surface -= coord_t(0.9 * (config->wall_loops.value <= 1 ? 0. : (perimeter_spacing * (config->wall_loops.value - 1))));
+                    if (offset_top_surface > 0.9 * (wall_loops <= 1 ? 0. : (perimeter_spacing * (wall_loops - 1))))
+                        offset_top_surface -= coord_t(0.9 * (wall_loops <= 1 ? 0. : (perimeter_spacing * (wall_loops - 1))));
                     else
                         offset_top_surface = 0;
                     //don't takes into account too thin areas
@@ -1258,7 +1268,7 @@ void PerimeterGenerator::process_classic()
                 this->config->wall_sequence == WallSequence::OuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
-                (this->layer_id == 0 &&
+                (this->starts_at_object_base &&
                  this->object_config->brim_type == BrimType::btOuterOnly &&
                  this->object_config->brim_width.value > 0))
                 entities.reverse();
@@ -1512,7 +1522,7 @@ void PerimeterGenerator::process_arachne()
 	bool apply_precise_outer_wall = config->precise_outer_wall && config->wall_sequence == WallSequence::InnerOuter;
     for (const Surface& surface : all_surfaces) {
         // detect how many perimeters must be generated for this island
-        int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
+        int loop_number = this->effective_wall_loops() + surface.extra_perimeters - 1; // 0-indexed loops
         if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase)
             loop_number++;
 
@@ -1549,7 +1559,7 @@ void PerimeterGenerator::process_arachne()
         ExPolygons infill_contour;
 
         if (loop_number >= 0) {
-            bool generate_one_wall_by_first_layer = this->object_config->only_one_wall_first_layer && layer_id == 0;
+            bool generate_one_wall_by_first_layer = this->object_config->only_one_wall_first_layer && starts_at_object_base;
             bool generate_one_wall_by_top_most = this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr;
             bool generate_one_wall_by_top = this->object_config->top_one_wall_type == TopOneWallType::Alltop && this->upper_slices != nullptr;
 
@@ -1681,7 +1691,7 @@ void PerimeterGenerator::process_arachne()
 
         bool is_outer_wall_first =
             this->config->wall_sequence == WallSequence::OuterInner || this->config->wall_sequence == WallSequence::InnerOuterInner;
-        if (layer_id == 0) {
+        if (starts_at_object_base) {
             is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
         }
         if (is_outer_wall_first) {

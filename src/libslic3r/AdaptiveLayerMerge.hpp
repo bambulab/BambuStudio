@@ -49,8 +49,8 @@ private:
 // extrusion of merged_height, placed on the top layer; the layers below it are dropped.
 struct AdaptiveLayerBand
 {
-    // The band is shaped by the contour of top_idx: the extrusion sits on that layer, and taking the
-    // contour of anything below would let the band bulge past what the slice says is there.
+    // Ordinary bands are shaped by top_idx. The first band is special: callers use the true first-layer
+    // contour and color, and top_idx only selects the physical Z where that snapshot is extruded.
     size_t bottom_idx { 0 };
     size_t top_idx { 0 };
     double merged_height { 0. };
@@ -58,10 +58,9 @@ struct AdaptiveLayerBand
 
 AdaptiveLayerHeightRange adaptive_layer_height_range(double nozzle_diameter);
 
-// True when the filaments handed in do not all share one nozzle diameter, which is the gate of every
-// multi-diameter layer merge. All merging is pointless on a single diameter: the base layer height is
-// printable everywhere. filament_ids are 0 based; pass the filaments the print actually uses, because a
-// slot merely mapped onto a second diameter must not turn a single-diameter print into a merged one.
+// True when the filaments handed in do not all share one nozzle diameter. Print::uses_multiple_nozzle_diameters()
+// additionally enables adaptive merging for a single used coarse diameter when it is larger than the
+// process grid's primary nozzle. filament_ids are 0 based; pass the filaments the print actually uses.
 // Diameters are resolved through nozzle_diameter_for_filament(), the same source the flows, the support
 // merge plan and the wipe tower use, so the gate cannot disagree with the geometry behind it.
 bool has_multiple_used_nozzle_diameters(const PrintConfig &print_config, const std::vector<unsigned int> &filament_ids);
@@ -73,9 +72,10 @@ bool has_multiple_used_nozzle_diameters(const PrintConfig &print_config, const s
 // has to print every layer on its own.
 size_t adaptive_layer_band_size(double nozzle_diameter, double min_nozzle_diameter, double base_layer_height);
 
-// Split the layer stack into bands of band_size layers. The first layer is never merged, so the grid is
-// anchored right above it; every nozzle shares that anchor, so bands of commensurate sizes nest into each
-// other and their boundaries never straddle.
+// Split the complete layer stack into bands of band_size layers. The first band starts at the object base
+// and is extruded on its top layer with the complete merged height, so it rests on the bed or on the
+// object's raft/support substrate. Every nozzle shares that anchor, so bands of commensurate sizes nest
+// into each other and their boundaries never straddle.
 //
 // band_tops marks layers that must end a band, which is where a colour starts or stops: a band carries one
 // contour through its whole Z range, so straddling that layer hands the slab to whoever owns the band top.
@@ -94,6 +94,19 @@ std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
     size_t                          band_size,
     const AdaptiveLayerHeightRange &height_range,
     const std::vector<uint8_t>     &band_tops = {});
+
+// Tail recovery may pin a band top on a layer this nozzle never owns (the geometric stack top after
+// a colour disappears). Pull top_idx down to the last layer in the band that still has material,
+// and recompute merged_height. Returns false when no such layer exists, the leftover is a single
+// step, or the shortened height is outside the printable window: the caller then abandons the band
+// instead of falling back to the base layer height on every step.
+//
+// has_material is indexed by layer; it must cover [bottom_idx, top_idx].
+bool pull_adaptive_band_top_to_material(
+    AdaptiveLayerBand                &band,
+    const std::vector<double>        &layer_heights,
+    const AdaptiveLayerHeightRange   &height_range,
+    const std::vector<unsigned char> &has_material);
 
 // Cut a continuous Z span into the fewest printable groups. Used by the wipe tower, which merges whole
 // slabs and has no per-region geometry to decimate.

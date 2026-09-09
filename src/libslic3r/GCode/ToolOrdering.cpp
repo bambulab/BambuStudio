@@ -471,10 +471,20 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     // BBS
     // Reorder the extruders to minimize tool switches.
     const ConfigOptionInts *first_layer_print_sequence_op = object.print()->full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
-    if (first_extruder == (unsigned int) -1 || (first_layer_print_sequence_op && first_layer_print_sequence_op->size()>1))
-        this->handle_dontcare_extruder(generate_first_layer_tool_order(object));
-    else
+    if (first_extruder == (unsigned int) -1 || (first_layer_print_sequence_op && first_layer_print_sequence_op->size()>1)) {
+        const std::vector<unsigned int> first_layer_tool_order = generate_first_layer_tool_order(object);
+        if (object.print()->has_skirt() && ! first_layer_tool_order.empty()) {
+            m_layer_tools.front().extruders.emplace_back(first_layer_tool_order.front());
+            sort_remove_duplicates(m_layer_tools.front().extruders);
+        }
+        this->handle_dontcare_extruder(first_layer_tool_order);
+    } else {
+        if (object.print()->has_skirt()) {
+            m_layer_tools.front().extruders.emplace_back(first_extruder);
+            sort_remove_duplicates(m_layer_tools.front().extruders);
+        }
         this->handle_dontcare_extruder(first_extruder);
+    }
 
     this->collect_extruder_statistics(prime_multi_material);
 
@@ -529,6 +539,21 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     std::vector<unsigned int> first_layer_tool_order;
     if (first_extruder == (unsigned int)-1) {
         first_layer_tool_order = generate_first_layer_tool_order(print);
+    }
+
+    if (print.has_skirt()) {
+        std::vector<unsigned int> skirt_extruders;
+        if (! first_layer_tool_order.empty()) {
+            if (Print::min_skirt_length > EPSILON)
+                skirt_extruders = first_layer_tool_order;
+            else
+                skirt_extruders.emplace_back(first_layer_tool_order.front());
+        } else if (first_extruder != (unsigned int)-1) {
+            skirt_extruders.emplace_back(first_extruder);
+        }
+        m_layer_tools.front().extruders.insert(
+            m_layer_tools.front().extruders.end(), skirt_extruders.begin(), skirt_extruders.end());
+        sort_remove_duplicates(m_layer_tools.front().extruders);
     }
 
     if(!first_layer_tool_order.empty())
@@ -773,6 +798,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     int layerCount = 0;
     std::vector<int> firstLayerExtruders;
     firstLayerExtruders.clear();
+    std::vector<unsigned int> bed_contact_extruders;
 
     // Collect the object extruders.
     for (auto layer : object.layers()) {
@@ -794,6 +820,11 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         // What extruders are required to print this object layer?
         for (const LayerRegion *layerm : layer->regions()) {
             const PrintRegion &region = layerm->region();
+            const bool starts_at_object_base = std::any_of(
+                layerm->adaptive_merge_patches.begin(), layerm->adaptive_merge_patches.end(),
+                [](const AdaptiveMergePatch &patch) {
+                    return patch.group_top && patch.bottom_idx == 0;
+                });
 
             if (! layerm->perimeters.entities.empty()) {
                 bool something_nonoverriddable = true;
@@ -811,10 +842,16 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 }
 
                 if (something_nonoverriddable){
-               		layer_tools.extruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
-                    if (layerCount == 0) {
-                        firstLayerExtruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
+                    const unsigned int wall_filament =
+                        (extruder_override == 0) ? region.config().wall_filament.value : extruder_override;
+                    layer_tools.extruders.emplace_back(wall_filament);
+                    if (layerCount == 0 || starts_at_object_base) {
+                        firstLayerExtruders.emplace_back(wall_filament);
                     }
+                    if ((layerCount == 0 || starts_at_object_base) &&
+                        ! object.layers().empty() &&
+                        std::abs(object.layers().front()->bottom_z()) <= EPSILON)
+                        bed_contact_extruders.emplace_back(wall_filament);
                 }
 
                 layer_tools.has_object = true;
@@ -900,6 +937,14 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     }
 
     sort_remove_duplicates(firstLayerExtruders);
+    sort_remove_duplicates(bed_contact_extruders);
+    if (! bed_contact_extruders.empty() && object.has_brim()) {
+        const std::vector<unsigned int> adhesion_extruders{ bed_contact_extruders.front() };
+        LayerTools &adhesion_layer = m_layer_tools.front();
+        adhesion_layer.extruders.insert(
+            adhesion_layer.extruders.end(), adhesion_extruders.begin(), adhesion_extruders.end());
+        sort_remove_duplicates(adhesion_layer.extruders);
+    }
     const_cast<PrintObject&>(object).object_first_layer_wall_extruders = firstLayerExtruders;
 
     // Collect the support extruders.
@@ -1385,7 +1430,7 @@ std::vector<int> build_manual_nozzle_map(const PrintConfig &print_config,
     std::vector<int> fnmap(filament_nums, ams_nozzle_idx >= 0 ? ams_nozzle_idx : 0);
     const auto& ufnm          = print_config.filament_nozzle_map.values;
     const auto& fvmap         = print_config.filament_volume_map.values;
-    const auto& selected_diameters = print_config.filament_selected_nozzle_diameters.values;
+    const auto& selected_diameters = print_config.filament_diameter_map.values;
 
     auto compatible = [](int nozzle_vt, int filament_vt) {
         return nozzle_vt == nvtHybrid || filament_vt == nvtHybrid || nozzle_vt == filament_vt;
@@ -1569,7 +1614,7 @@ FilamentGroupContext build_filament_group_context(
     context.model_info.unprintable_filaments = ext_unprintable_filaments;
     context.model_info.layer_filaments = layer_filaments;
     context.model_info.filament_ids = filament_ids;
-    context.model_info.selected_nozzle_diameters = print_config.filament_selected_nozzle_diameters.values;
+    context.model_info.selected_nozzle_diameters = print_config.filament_diameter_map.values;
     context.model_info.selected_nozzle_diameters.resize(filament_nums);
     context.model_info.unprintable_volumes = unprintable_volumes;
 
@@ -1837,7 +1882,7 @@ FilamentGroupContext build_filament_group_context(
         for (double d : extruder_diameters)
             distinct_diameters.insert(format_diameter_to_str(d));
 
-        const auto &selected = print_config.filament_selected_nozzle_diameters.values;
+        const auto &selected = print_config.filament_diameter_map.values;
         auto &unprintable_filaments = context.model_info.unprintable_filaments;
         const bool has_selected = std::any_of(selected.begin(), selected.end(),
                                               [](const std::string &value) { return !value.empty(); });
@@ -2180,7 +2225,7 @@ static void validate_manual_diameter_or_throw(const PrintConfig                &
     for (double d : extruder_diameters)
         distinct_diameters.insert(format_diameter_to_str(d));
 
-    const auto &selected = print_config.filament_selected_nozzle_diameters.values;
+    const auto &selected = print_config.filament_diameter_map.values;
     const bool has_selected = std::any_of(selected.begin(), selected.end(),
                                           [](const std::string &value) { return !value.empty(); });
     if (distinct_diameters.size() <= 1 && !has_selected)

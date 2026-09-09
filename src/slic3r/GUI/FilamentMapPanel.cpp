@@ -161,7 +161,7 @@ static std::vector<std::set<std::string>> get_filament_allowed_diameters(size_t 
     for (size_t i = 0; i < filament_count && i < joined.size(); ++i)
         result[i] = split_diameter_set(joined[i]);
     if (const auto *selected = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>(
-            "filament_selected_nozzle_diameters")) {
+            "filament_diameter_map")) {
         for (size_t i = 0; i < filament_count && i < selected->values.size(); ++i) {
             if (!selected->values[i].empty())
                 result[i] = {format_diameter_to_str(string_to_double_decimal_point(selected->values[i]))};
@@ -244,7 +244,7 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
     std::vector<int> filament_map = GetFilamentMaps();
     std::vector<int> filament_volume_map = GetFilamentVolumeMaps();
     std::vector<std::string> selected_diameters;
-    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters"))
+    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map"))
         selected_diameters = selected->values;
     const std::string printer_model = preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
     const std::string printer_preset = preset_bundle->printers.get_edited_preset().name;
@@ -550,7 +550,7 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     m_allowed_diameters  = get_filament_allowed_diameters(m_filament_map.size());
     m_extruder_diameters = get_backend_extruder_diameters();
     if (const auto *selected = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>(
-            "filament_selected_nozzle_diameters"))
+            "filament_diameter_map"))
         m_cached_selected_diameters = selected->values;
     m_cached_filament_presets = wxGetApp().preset_bundle->filament_presets;
     m_cached_printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
@@ -776,7 +776,7 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
 
     auto preset_bundle = wxGetApp().preset_bundle;
     m_allowed_diameters = get_filament_allowed_diameters(m_filament_map.size());
-    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters"))
+    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map"))
         m_cached_selected_diameters = selected->values;
     m_cached_filament_presets = preset_bundle->filament_presets;
     m_cached_printer_model = preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
@@ -1013,7 +1013,7 @@ void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::vector<std::string> selected_diameters;
-    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters"))
+    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map"))
         selected_diameters = selected->values;
     const std::string printer_model = preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
     const std::string printer_preset = preset_bundle->printers.get_edited_preset().name;

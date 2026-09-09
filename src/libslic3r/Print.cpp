@@ -261,7 +261,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
-            || opt_key == "filament_selected_nozzle_diameters"
+            || opt_key == "filament_diameter_map"
             || opt_key == "multi_nozzle_diameter_mode"
             || opt_key == "resolution"
             || opt_key == "precise_z_height"
@@ -590,7 +590,19 @@ bool Print::uses_multiple_nozzle_diameters() const
                 filaments.emplace_back((unsigned int) object->config().support_interface_filament - 1);
         }
     sort_remove_duplicates(filaments);
-    return has_multiple_used_nozzle_diameters(m_config, filaments);
+    if (has_multiple_used_nozzle_diameters(m_config, filaments))
+        return true;
+
+    // A plate using only one coarse filament still needs adaptive bands when the process layer grid is
+    // based on a smaller primary nozzle. "Multiple diameter mode" describes the machine/grid capability,
+    // not a requirement that two differently sized tools must both appear on this plate.
+    const double reference_nozzle = primary_nozzle_diameter(m_full_print_config);
+    if (reference_nozzle <= EPSILON)
+        return false;
+    return std::any_of(filaments.begin(), filaments.end(), [&](unsigned int filament_id) {
+        return nozzle_diameter_for_filament(m_config, filament_id + 1) >
+               reference_nozzle + EPSILON;
+    });
 }
 
 unsigned int Print::num_object_instances() const

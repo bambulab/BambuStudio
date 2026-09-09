@@ -110,6 +110,14 @@ public:
         const ConfigOptionFloat &width, float preset_nozzle_diameter, float nozzle_diameter,
         bool multi_nozzle_diameter_mode);
 
+    // Resolve a role-specific width through line_width, then convert it for the target nozzle.
+    static double resolve_extrusion_width_for_nozzle(
+        const std::string &opt_key,
+        const ConfigOptionResolver &config,
+        float preset_nozzle_diameter,
+        float nozzle_diameter,
+        bool multi_nozzle_diameter_mode);
+
     static Flow new_from_config_width(
         FlowRole role,
         const ConfigOptionFloat &width,

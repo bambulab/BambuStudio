@@ -909,8 +909,8 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
     };
 
     const size_t layer_count = segmentation.size();
-    // Same gate as compute_adaptive_merge_groups(): with one nozzle diameter every layer is printed as it
-    // was sliced, so the paint already describes exactly what is extruded.
+    // Enter only when the print uses the adaptive diameter ladder. A single coarse filament may pass this
+    // gate, but without a second painted diameter there is no cross-diameter segmentation to normalize.
     if (layer_count < 2 || ! print_object.print()->uses_multiple_nozzle_diameters()) {
         BOOST_LOG_TRIVIAL(debug) << "[mm_band] skip: layers=" << layer_count
                                  << " multi_diameter=" << print_object.print()->uses_multiple_nozzle_diameters();
@@ -1072,6 +1072,14 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
     // vacated area is absent from segmentation altogether and falls through to the model's base filament.
     // Doing this as a pre-pass also lets a restored coarse owner pass through its own normalization below.
     const std::vector<std::vector<ExPolygons>> original_segmentation = segmentation;
+    auto pull_painted_band = [&](const AdaptiveLayerBand &src, size_t extruder_id,
+                                 const AdaptiveLayerHeightRange &range, AdaptiveLayerBand &out) {
+        out = src;
+        std::vector<unsigned char> has_material(src.top_idx + 1, 0);
+        for (size_t layer_idx = src.bottom_idx; layer_idx <= src.top_idx && layer_idx < original_segmentation.size(); ++ layer_idx)
+            has_material[layer_idx] = ! original_segmentation[layer_idx][extruder_id].empty();
+        return pull_adaptive_band_top_to_material(out, layer_heights, range, has_material);
+    };
     for (size_t extruder_id = 0; extruder_id < extruder_count; ++ extruder_id) {
         const double nozzle = extruder_nozzles[extruder_id];
         if (nozzle <= EPSILON)
@@ -1079,18 +1087,25 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
         const size_t band_size = adaptive_layer_band_size(nozzle, reference_nozzle, print_object.config().layer_height.value);
         if (band_size < 2)
             continue;
+        const AdaptiveLayerHeightRange range = adaptive_layer_height_range(nozzle);
         const std::vector<AdaptiveLayerBand> bands = build_adaptive_layer_bands(
-            layer_heights, band_size, adaptive_layer_height_range(nozzle), band_tops);
-        for (const AdaptiveLayerBand &band : bands)
-            for (size_t layer_idx = band.bottom_idx; layer_idx < band.top_idx; ++ layer_idx) {
+            layer_heights, band_size, range, band_tops);
+        for (const AdaptiveLayerBand &band : bands) {
+            AdaptiveLayerBand live;
+            if (! pull_painted_band(band, extruder_id, range, live))
+                continue;
+            const size_t anchor_idx = band.bottom_idx == 0 ? 0 : live.top_idx;
+            for (size_t layer_idx = live.bottom_idx; layer_idx <= live.top_idx; ++ layer_idx) {
+                if (layer_idx == anchor_idx)
+                    continue;
                 const ExPolygons vacated = diff_ex(original_segmentation[layer_idx][extruder_id],
-                                                   original_segmentation[band.top_idx][extruder_id]);
+                                                   original_segmentation[anchor_idx][extruder_id]);
                 if (vacated.empty())
                     continue;
                 for (size_t other_id = 0; other_id < extruder_count; ++ other_id) {
-                    if (other_id == extruder_id || original_segmentation[band.top_idx][other_id].empty())
+                    if (other_id == extruder_id || original_segmentation[anchor_idx][other_id].empty())
                         continue;
-                    ExPolygons restored = intersection_ex(vacated, original_segmentation[band.top_idx][other_id]);
+                    ExPolygons restored = intersection_ex(vacated, original_segmentation[anchor_idx][other_id]);
                     if (restored.empty())
                         continue;
                     const double before = area_mm2(segmentation[layer_idx][other_id]);
@@ -1098,11 +1113,12 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                     polygons_append(combined, to_polygons(restored));
                     segmentation[layer_idx][other_id] = union_ex(combined);
                     BOOST_LOG_TRIVIAL(debug) << "[mm_band]   restore E" << extruder_id
-                                             << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
+                                             << " band=[" << live.bottom_idx << "," << live.top_idx << "]"
                                              << " layer=" << layer_idx << " -> E" << other_id
                                              << " " << before << " -> " << area_mm2(segmentation[layer_idx][other_id]);
                 }
             }
+        }
     }
 
     // Ascending extruder id, the order painted_regions are applied in, so a contested area goes to the
@@ -1118,13 +1134,22 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                                      << " band_size=" << band_size << " -> prints every layer, untouched";
             continue;
         }
+        const AdaptiveLayerHeightRange range = adaptive_layer_height_range(nozzle);
         const std::vector<AdaptiveLayerBand> bands = build_adaptive_layer_bands(
-            layer_heights, band_size, adaptive_layer_height_range(nozzle), band_tops);
+            layer_heights, band_size, range, band_tops);
         BOOST_LOG_TRIVIAL(debug) << "[mm_band] pass1 E" << extruder_id << " d=" << nozzle
                                  << " band_size=" << band_size << " bands=" << bands.size();
         for (const AdaptiveLayerBand &band : bands) {
-            const ExPolygons retained = segmentation[band.top_idx][extruder_id];
-            for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx) {
+            AdaptiveLayerBand live;
+            if (! pull_painted_band(band, extruder_id, range, live))
+                continue;
+            // The band shows one face over its whole Z range and takes its ownership from that face: the
+            // top layer normally, the object base for the band that starts at layer 0. That band is the
+            // bottom of the print, so paint reaching it only down a vertical wall must not claim it.
+            const bool       anchored_on_base = band.bottom_idx == 0;
+            const size_t     anchor_idx       = anchored_on_base ? 0 : live.top_idx;
+            const ExPolygons retained         = segmentation[anchor_idx][extruder_id];
+            for (size_t layer_idx = live.bottom_idx; layer_idx <= live.top_idx; ++ layer_idx) {
                 const double before = area_mm2(segmentation[layer_idx][extruder_id]);
                 // The band lays the top contour down and nothing else, so a footprint this extruder painted
                 // further down is not extruded at all. It still belongs to this nozzle: releasing it lets the
@@ -1133,17 +1158,19 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                 // instead of the step the decimation implies. Only what another colour holds on the band top
                 // is given up, and the restore pass above has moved exactly that to its owner already.
                 ExPolygons own = retained;
-                if (! retained.empty() && layer_idx != band.top_idx) {
+                // Never on a base-anchored band: what it would recover there is exactly the side paint the
+                // first band must not carry, and layer 0 has already said who owns the bottom face.
+                if (! retained.empty() && ! anchored_on_base && layer_idx != anchor_idx) {
                     ExPolygons orphaned = diff_ex(original_segmentation[layer_idx][extruder_id],
-                                                  original_segmentation[band.top_idx][extruder_id]);
+                                                  original_segmentation[anchor_idx][extruder_id]);
                     for (size_t other_id = 0; other_id < extruder_count && ! orphaned.empty(); ++ other_id)
-                        if (other_id != extruder_id && ! original_segmentation[band.top_idx][other_id].empty())
-                            orphaned = diff_ex(orphaned, original_segmentation[band.top_idx][other_id]);
+                        if (other_id != extruder_id && ! original_segmentation[anchor_idx][other_id].empty())
+                            orphaned = diff_ex(orphaned, original_segmentation[anchor_idx][other_id]);
                     if (! orphaned.empty()) {
                         const double orphaned_area = area_mm2(orphaned);
                         const double retained_area = area_mm2(retained);
                         BOOST_LOG_TRIVIAL(debug) << "[mm_band]   pass1 E" << extruder_id
-                                                 << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
+                                                 << " band=[" << live.bottom_idx << "," << live.top_idx << "]"
                                                  << " layer=" << layer_idx << " keeps vacated "
                                                  << orphaned_area << " unclaimed by any other colour";
                         // What is kept here is extruded on the band top and nowhere else, so a top holding
@@ -1151,7 +1178,7 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                         // the kept area has no merged extrusion to land on and no other colour prints it.
                         if (orphaned_area > retained_area)
                             BOOST_LOG_TRIVIAL(warning) << "[mm_band]   pass1 E" << extruder_id
-                                                       << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
+                                                       << " band=[" << live.bottom_idx << "," << live.top_idx << "]"
                                                        << " layer=" << layer_idx << " keeps " << orphaned_area
                                                        << " the band top cannot carry (top holds "
                                                        << retained_area << ")";
@@ -1184,9 +1211,9 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                 const double after = area_mm2(area);
                 if (std::abs(after - before) > 1e-4 || stolen > 1e-4)
                     BOOST_LOG_TRIVIAL(debug) << "[mm_band]   pass1 E" << extruder_id
-                                             << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
+                                             << " band=[" << live.bottom_idx << "," << live.top_idx << "]"
                                              << " layer=" << layer_idx
-                                             << (layer_idx == band.top_idx ? " (top)" : "")
+                                             << (layer_idx == anchor_idx ? " (anchor)" : "")
                                              << " own " << before << " -> " << after
                                              << " took_from_others=" << stolen;
                 segmentation[layer_idx][extruder_id] = std::move(area);
@@ -1231,6 +1258,7 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                                  << " printable=" << area_mm2(kept) << " (" << kept.size() << " pieces)";
         return kept;
     };
+    std::vector<ExPolygons> base_claimed(layer_count);
     for (double diameter : base_nozzles) {
         const size_t band_size = adaptive_layer_band_size(diameter, reference_nozzle, print_object.config().layer_height.value);
         if (band_size < 2) {
@@ -1238,15 +1266,57 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                                      << " -> prints every layer, untouched";
             continue;
         }
-        const std::vector<AdaptiveLayerBand> bands = build_adaptive_layer_bands(
-            layer_heights, band_size, adaptive_layer_height_range(diameter), band_tops);
+        const AdaptiveLayerHeightRange range = adaptive_layer_height_range(diameter);
+        std::vector<AdaptiveLayerBand> bands;
+        if (unpainted_at(0, diameter).empty() && 1 + band_size <= layer_count) {
+            AdaptiveLayerBand first { 1, band_size, 0. };
+            for (size_t layer_idx = first.bottom_idx; layer_idx <= first.top_idx; ++ layer_idx)
+                first.merged_height += layer_heights[layer_idx];
+            if (range.contains(first.merged_height)) {
+                bands.emplace_back(first);
+                const size_t suffix_bottom = first.top_idx + 1;
+                if (suffix_bottom < layer_count) {
+                    std::vector<double> suffix_heights(
+                        layer_heights.begin() + suffix_bottom, layer_heights.end());
+                    std::vector<uint8_t> suffix_tops(
+                        band_tops.begin() + suffix_bottom, band_tops.end());
+                    std::vector<AdaptiveLayerBand> suffix =
+                        build_adaptive_layer_bands(suffix_heights, band_size, range, suffix_tops);
+                    for (AdaptiveLayerBand &band : suffix) {
+                        band.bottom_idx += suffix_bottom;
+                        band.top_idx += suffix_bottom;
+                        bands.emplace_back(band);
+                    }
+                }
+            }
+        }
+        if (bands.empty())
+            bands = build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
         BOOST_LOG_TRIVIAL(debug) << "[mm_band] pass2 base d=" << diameter << " band_size=" << band_size
                                  << " bands=" << bands.size();
         for (const AdaptiveLayerBand &band : bands) {
-            const ExPolygons retained = unpainted_at(band.top_idx, diameter);
+            AdaptiveLayerBand live = band;
+            // A band carries one contour over its whole Z range, and that contour is taken from the face
+            // the band shows: the top layer for an ordinary band, the object base for the first one. The
+            // first band is the bottom face of the print, so a colour painted on a vertical wall must not
+            // decide its ownership - it starts above the band, exactly as a side colour ends below the
+            // band carrying the top face.
+            const bool anchored_on_base = band.bottom_idx == 0;
+            if (! anchored_on_base && unpainted_at(band.top_idx, diameter).empty()) {
+                std::vector<unsigned char> has_material(band.top_idx + 1, 0);
+                for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx)
+                    has_material[layer_idx] = ! unpainted_at(layer_idx, diameter).empty();
+                if (! pull_adaptive_band_top_to_material(live, layer_heights, range, has_material))
+                    continue;
+            }
+            const size_t     anchor_idx = anchored_on_base ? 0 : live.top_idx;
+            const ExPolygons retained   = unpainted_at(anchor_idx, diameter);
             if (retained.empty())
                 continue;
-            for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx)
+            for (size_t layer_idx = live.bottom_idx; layer_idx <= live.top_idx; ++ layer_idx) {
+                Polygons claimed = to_polygons(base_claimed[layer_idx]);
+                polygons_append(claimed, to_polygons(retained));
+                base_claimed[layer_idx] = union_ex(claimed);
                 for (size_t other_id = 0; other_id < extruder_count; ++ other_id)
                     if (! segmentation[layer_idx][other_id].empty()) {
                         const double before = area_mm2(segmentation[layer_idx][other_id]);
@@ -1255,13 +1325,14 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                         const double after = area_mm2(segmentation[layer_idx][other_id]);
                         if (before - after > 1e-4)
                             BOOST_LOG_TRIVIAL(debug) << "[mm_band]   pass2 d=" << diameter
-                                                     << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
+                                                     << " band=[" << live.bottom_idx << "," << live.top_idx << "]"
                                                      << " layer=" << layer_idx
-                                                     << (layer_idx == band.top_idx ? " (top)" : "")
+                                                     << (layer_idx == anchor_idx ? " (anchor)" : "")
                                                      << " E" << other_id << " " << before << " -> " << after
                                                      << " lost=" << (before - after)
                                                      << " pieces=" << segmentation[layer_idx][other_id].size();
                     }
+            }
         }
     }
 
@@ -1287,7 +1358,10 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
         }
         if (before.empty())
             continue;
-        for (const ExPolygon &piece : after.empty() ? union_ex(before) : diff_ex(union_ex(before), union_ex(after))) {
+        ExPolygons lost = after.empty() ? union_ex(before) : diff_ex(union_ex(before), union_ex(after));
+        if (! base_claimed[layer_idx].empty())
+            lost = diff_ex(lost, base_claimed[layer_idx]);
+        for (const ExPolygon &piece : lost) {
             const ExPolygons one { piece };
             const double     lost = area_mm2(one);
             if (lost < reclaim_min_area)

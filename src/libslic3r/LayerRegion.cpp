@@ -127,7 +127,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes, double perimeter_layer_height, bool clear_outputs, const ExPolygons *lower_slices_override, bool fill_only)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes, double perimeter_layer_height, bool clear_outputs, const ExPolygons *lower_slices_override, bool fill_only, bool starts_at_object_base)
 {
     if (clear_outputs && ! fill_only) {
         this->perimeters.clear();
@@ -144,6 +144,10 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
     // BBS multi-diameter: the merged core is printed with a larger effective height; walls and their flow
     // must use that height so the extrusion volume matches. 0 means "use the physical layer height".
     const double             wall_layer_height = perimeter_layer_height > 0. ? perimeter_layer_height : this->layer()->height;
+    const bool               first_object_layer = this->layer()->id() == 0 || starts_at_object_base;
+    auto wall_flow = [&](FlowRole role) {
+        return this->region().flow(*this->layer()->object(), role, wall_layer_height, first_object_layer);
+    };
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
     bool spiral_mode = print_config.spiral_mode &&
         //FIXME account for raft layers.
@@ -154,7 +158,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
         // input:
         &slices,
         wall_layer_height,
-        this->flow(frPerimeter, wall_layer_height),
+        wall_flow(frPerimeter),
         &region_config,
         &this->layer()->object()->config(),
         &print_config,
@@ -179,14 +183,15 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
         g.upper_slices = &this->layer()->upper_layer->lslices;
 
     g.layer_id              = (int)this->layer()->id();
+    g.starts_at_object_base = first_object_layer;
     g.slice_z               = this->layer()->slice_z;
-    g.ext_perimeter_flow    = this->flow(frExternalPerimeter, wall_layer_height);
+    g.ext_perimeter_flow    = wall_flow(frExternalPerimeter);
     // A merged overhang wall is the only extrusion filling its Z span, so it needs the merged height just
     // like the regular walls. Keep the original bridge flow for unmerged perimeters.
     g.overhang_flow         = wall_layer_height > this->layer()->height + EPSILON ?
-        this->flow(frPerimeter, wall_layer_height).with_flow_ratio(region_config.bridge_flow) :
+        wall_flow(frPerimeter).with_flow_ratio(region_config.bridge_flow) :
         this->bridging_flow(frPerimeter, object_config.thick_bridges);
-    g.solid_infill_flow     = this->flow(frSolidInfill, wall_layer_height);
+    g.solid_infill_flow     = wall_flow(frSolidInfill);
     g.perimeter_regions     = &perimeter_regions;
 
     if (this->layer()->object()->config().wall_generator.value == PerimeterGeneratorType::Arachne && !spiral_mode)
@@ -542,7 +547,15 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     // Width of the perimeters.
     float shell_width = 0;
     float expansion_min = 0;
-    if (int num_perimeters = this->region().config().wall_loops; num_perimeters > 0) {
+    const PrintRegionConfig &region_config = this->region().config();
+    int num_perimeters = region_config.wall_loops.value;
+    const PrintObject *print_object = this->layer()->object();
+    if (multi_nozzle_diameter_mode_enabled(print_object->print()->full_print_config())) {
+        const double nozzle_diameter = nozzle_diameter_for_filament(
+            print_object->print()->config(), (unsigned int) region_config.wall_filament.value);
+        num_perimeters = multi_nozzle_wall_loops(nozzle_diameter, num_perimeters);
+    }
+    if (num_perimeters > 0) {
         Flow external_perimeter_flow = this->flow(frExternalPerimeter);
         Flow perimeter_flow          = this->flow(frPerimeter);
         shell_width  = 0.5f * external_perimeter_flow.scaled_width() + external_perimeter_flow.scaled_spacing();

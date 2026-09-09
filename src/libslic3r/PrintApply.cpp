@@ -1570,6 +1570,22 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
     }
 
+    auto apply_multi_diameter_object_tuning = [this, &new_full_config](PrintObjectConfig &config) {
+        if (!multi_nozzle_diameter_mode_enabled(new_full_config))
+            return;
+        const unsigned int support_filament = config.support_interface_filament.value > 0 ?
+            (unsigned int) config.support_interface_filament.value :
+            (unsigned int) config.support_filament.value;
+        const double nozzle_diameter = nozzle_diameter_for_filament(m_config, support_filament);
+        config.support_top_z_distance.value = multi_nozzle_support_z_distance(
+            nozzle_diameter, config.support_top_z_distance.value);
+        config.support_bottom_z_distance.value = multi_nozzle_support_z_distance(
+            nozzle_diameter, config.support_bottom_z_distance.value);
+    };
+    const bool multi_diameter_tuning_changed =
+        std::find(print_diff.begin(), print_diff.end(), "multi_nozzle_diameter_mode") != print_diff.end() ||
+        std::find(print_diff.begin(), print_diff.end(), "filament_diameter_map") != print_diff.end();
+
     ModelObjectStatusDB model_object_status_db;
 
     // 1) Synchronize model objects.
@@ -1758,8 +1774,9 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             bool object_config_changed = ! model_object.config.timestamp_matches(model_object_new.config);
 			if (object_config_changed)
 				model_object.config.assign_config(model_object_new.config);
-            if (! object_diff.empty() || object_config_changed || num_extruders_changed ) {
+            if (! object_diff.empty() || object_config_changed || num_extruders_changed || multi_diameter_tuning_changed) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders, print_variant_index);
+                apply_multi_diameter_object_tuning(new_config);
                 for (const PrintObjectStatus &print_object_status : print_object_status_db.get_range(model_object)) {
                     t_config_option_keys diff = print_object_status.print_object->config().diff(new_config);
                     if (! diff.empty()) {
@@ -1824,10 +1841,16 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             // Generate a list of trafos and XY offsets for instances of a ModelObject
             // Producing the config for PrintObject on demand, caching it at print_object_last.
             const PrintObject *print_object_last = nullptr;
-            auto print_object_apply_config = [this, &print_object_last, model_object, num_extruders, &print_variant_index](PrintObject *print_object) {
-                print_object->config_apply(print_object_last ?
-                    print_object_last->config() :
-                    PrintObject::object_config_from_model_object(m_default_object_config, *model_object, num_extruders, print_variant_index));
+            auto print_object_apply_config = [this, &print_object_last, model_object, num_extruders, &print_variant_index,
+                                              &apply_multi_diameter_object_tuning](PrintObject *print_object) {
+                if (print_object_last) {
+                    print_object->config_apply(print_object_last->config());
+                } else {
+                    PrintObjectConfig config = PrintObject::object_config_from_model_object(
+                        m_default_object_config, *model_object, num_extruders, print_variant_index);
+                    apply_multi_diameter_object_tuning(config);
+                    print_object->config_apply(config);
+                }
                 print_object_last = print_object;
             };
             if (old.empty()) {

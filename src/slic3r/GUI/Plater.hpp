@@ -170,6 +170,7 @@ public:
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void refresh_filament_diameter_buttons(bool validate_selections = false);
+    void sync_multi_nozzle_mode_from_project();
     void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);

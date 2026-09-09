@@ -158,7 +158,7 @@ void InterlockingGenerator::handleThinAreas(const std::unordered_set<GridPoint3>
     }
     for (auto& near_interlock : near_interlock_per_layer) {
         near_interlock = offset(union_(closing(near_interlock, rounding_errors)), detect);
-        polygons_rotate(near_interlock, rotation);
+        polygons_rotate(near_interlock, -rotation);
     }
 
     // Only alter layers when they are present in both meshes, zip should take care if that.
@@ -239,6 +239,9 @@ void InterlockingGenerator::generateInterlockingStructure() const
         for (const GridPoint3& p : air_cells) {
             has_all_meshes.erase(p);
         }
+
+        if (has_all_meshes.empty())
+            return;
 
         handleThinAreas(has_all_meshes);
     }

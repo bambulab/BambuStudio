@@ -108,7 +108,9 @@ public:
                             // not from the physical layer immediately below its group top.
                             const ExPolygons      *lower_slices_override = nullptr,
                             // Preserve the patch's fill boundary and surface roles without emitting walls.
-                            bool                   fill_only = false);
+                            bool                   fill_only = false,
+                            // The merged span starts at object layer 0 even when it is emitted on a later layer.
+                            bool                   starts_at_object_base = false);
     void    process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered);
     double  infill_area_threshold() const;
     // Trim surfaces by trimming polygons. Used by the elephant foot compensation at the 1st layer.

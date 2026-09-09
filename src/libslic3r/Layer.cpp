@@ -221,8 +221,13 @@ void Layer::make_perimeters()
         return ! a.group_top;
     };
 
-    for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm)
-    	if ((*layerm)->slices.empty()) {
+    for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm) {
+        const bool has_first_band_source = std::any_of(
+            (*layerm)->adaptive_merge_patches.begin(), (*layerm)->adaptive_merge_patches.end(),
+            [](const AdaptiveMergePatch &patch) {
+                return patch.group_top && patch.bottom_idx == 0 && ! patch.area().empty();
+            });
+        if ((*layerm)->slices.empty() && ! has_first_band_source) {
  			(*layerm)->perimeters.clear();
  			(*layerm)->fills.clear();
  			(*layerm)->thin_fills.clear();
@@ -288,7 +293,9 @@ void Layer::make_perimeters()
                 // Only the retained contour is extruded. What the band had to give up to a finer nozzle
                 // printing below it is out of reach of this nozzle and is dropped.
                 SurfaceCollection core_slices;
-                for (const Surface &s : src.surfaces)
+                const SurfaceCollection &patch_source = patch.bottom_idx == 0 ?
+                    this->object()->get_layer(0)->get_region(region_id)->slices : src;
+                for (const Surface &s : patch_source.surfaces)
                     for (ExPolygon &e : intersection_ex(ExPolygons{ s.expolygon }, patch.area()))
                         core_slices.surfaces.emplace_back(s, std::move(e));
                 if (core_slices.surfaces.empty()) {
@@ -302,7 +309,8 @@ void Layer::make_perimeters()
                 const ExPolygons *lower_slices = patch.bottom_idx > 0 ?
                     &this->object()->get_layer(int(patch.bottom_idx - 1))->lslices : nullptr;
                 lm->make_perimeters(core_slices, perimeter_regions, out_fill, out_no_overlap,
-                                    this->loop_nodes, patch.merged_height, true, lower_slices);
+                                    this->loop_nodes, patch.merged_height, true, lower_slices, false,
+                                    patch.bottom_idx == 0);
             };
 
 	        if (layerms.size() == 1) {  // optimization
@@ -349,6 +357,7 @@ void Layer::make_perimeters()
 	            }
 	        }
 	    }
+    }
 
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
 }

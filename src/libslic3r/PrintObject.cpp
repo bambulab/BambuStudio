@@ -2267,7 +2267,14 @@ void PrintObject::discover_vertical_shells()
                         unsigned int perimeters = 0;
                         for (const Surface& s : layerm.slices.surfaces)
                             perimeters = std::max<unsigned int>(perimeters, s.extra_perimeters);
-                        perimeters += layerm.region().config().wall_loops.value;
+                        const PrintRegionConfig &region_config = layerm.region().config();
+                        int wall_loops = region_config.wall_loops.value;
+                        if (multi_nozzle_diameter_mode_enabled(this->print()->full_print_config())) {
+                            const double nozzle_diameter = nozzle_diameter_for_filament(
+                                this->print()->config(), (unsigned int) region_config.wall_filament.value);
+                            wall_loops = multi_nozzle_wall_loops(nozzle_diameter, wall_loops);
+                        }
+                        perimeters += wall_loops;
                         // Then calculate the infill offset.
                         if (perimeters > 0) {
                             Flow extflow = layerm.flow(frExternalPerimeter);
@@ -4202,6 +4209,39 @@ void PrintObject::compute_adaptive_merge_groups()
     if (band_tops.size() != layer_count)
         band_tops.assign(layer_count, 0);
 
+    auto build_region_bands = [&](size_t region_id, size_t band_size,
+                                  const AdaptiveLayerHeightRange &range) {
+        if (band_size < 2 || ! m_layers.front()->get_region(region_id)->raw_slices.empty())
+            return build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
+
+        // A color absent from the true first layer starts its own ladder immediately above layer 0.
+        // Protect that first full-size group from a later color boundary; otherwise DP tail balancing
+        // shifts [1,3] to [2,4], delaying a 0.6/0.2 combination from Z=0.4 to Z=0.5.
+        const size_t first_bottom = 1;
+        if (first_bottom + band_size > layer_count)
+            return build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
+        AdaptiveLayerBand first { first_bottom, first_bottom + band_size - 1, 0. };
+        for (size_t layer_idx = first.bottom_idx; layer_idx <= first.top_idx; ++ layer_idx)
+            first.merged_height += layer_heights[layer_idx];
+        if (! range.contains(first.merged_height))
+            return build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
+
+        std::vector<AdaptiveLayerBand> out { first };
+        const size_t suffix_bottom = first.top_idx + 1;
+        if (suffix_bottom < layer_count) {
+            std::vector<double> suffix_heights(layer_heights.begin() + suffix_bottom, layer_heights.end());
+            std::vector<uint8_t> suffix_tops(band_tops.begin() + suffix_bottom, band_tops.end());
+            std::vector<AdaptiveLayerBand> suffix =
+                build_adaptive_layer_bands(suffix_heights, band_size, range, suffix_tops);
+            for (AdaptiveLayerBand &band : suffix) {
+                band.bottom_idx += suffix_bottom;
+                band.top_idx += suffix_bottom;
+                out.emplace_back(band);
+            }
+        }
+        return out;
+    };
+
     {
         std::string marks;
         marks.reserve(band_tops.size());
@@ -4217,7 +4257,11 @@ void PrintObject::compute_adaptive_merge_groups()
     // coarser band that has to give the covered footprint up.
     std::vector<size_t> region_order(region_count);
     std::iota(region_order.begin(), region_order.end(), size_t(0));
-    std::stable_sort(region_order.begin(), region_order.end(), [&region_nozzles](size_t lhs, size_t rhs) {
+    std::stable_sort(region_order.begin(), region_order.end(), [this, &region_nozzles](size_t lhs, size_t rhs) {
+        const bool lhs_on_bottom = ! m_layers.front()->get_region(lhs)->raw_slices.empty();
+        const bool rhs_on_bottom = ! m_layers.front()->get_region(rhs)->raw_slices.empty();
+        if (lhs_on_bottom != rhs_on_bottom)
+            return lhs_on_bottom;
         return region_nozzles[lhs] < region_nozzles[rhs];
     });
 
@@ -4230,6 +4274,12 @@ void PrintObject::compute_adaptive_merge_groups()
         polygons_append(combined, to_polygons(area));
         occupied[layer_idx] = union_ex(combined);
     };
+    struct FirstBandClaim {
+        size_t     region_id;
+        size_t     top_idx;
+        ExPolygons area;
+    };
+    std::vector<FirstBandClaim> first_band_claims;
 
     for (size_t region_id : region_order) {
         m_print->throw_if_canceled();
@@ -4239,7 +4289,7 @@ void PrintObject::compute_adaptive_merge_groups()
 
         const AdaptiveLayerHeightRange       range = adaptive_layer_height_range(nozzle);
         const size_t                         band_size = adaptive_layer_band_size(nozzle, min_nozzle, m_config.layer_height.value);
-        const std::vector<AdaptiveLayerBand> bands = build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
+        const std::vector<AdaptiveLayerBand> bands = build_region_bands(region_id, band_size, range);
 
         {
             std::string span;
@@ -4261,43 +4311,109 @@ void PrintObject::compute_adaptive_merge_groups()
                 occupy(layer_idx, m_layers[layer_idx]->get_region(region_id)->raw_slices);
 
         for (const AdaptiveLayerBand &band : bands) {
-            // Only the contour of the top layer survives: the extrusion is as thick as the whole band, so
-            // its outline is the outline of that layer. The contours below it are dropped, not merged in.
-            ExPolygons area = m_layers[band.top_idx]->get_region(region_id)->raw_slices;
-            const double top_area = ::Slic3r::area(area) * SCALING_FACTOR * SCALING_FACTOR;
-            // A finer nozzle printing inside the band raises the floor under part of that outline, and
-            // this nozzle cannot reach under the extrusion it is laying down, so that part is dropped too.
-            for (size_t layer_idx = band.bottom_idx; layer_idx < band.top_idx && ! area.empty(); ++ layer_idx)
-                if (! occupied[layer_idx].empty())
-                    area = diff_ex(area, occupied[layer_idx]);
-            BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] region=" << region_id
-                                     << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
-                                     << " h=" << band.merged_height
-                                     << " top_raw_area=" << top_area
-                                     << " after_occupied=" << ::Slic3r::area(area) * SCALING_FACTOR * SCALING_FACTOR
-                                     << (area.empty() ? " DROPPED" : " KEPT");
-            if (area.empty()) {
-                // Nothing is left to extrude at the band height. The region keeps the base layer height
-                // here instead of losing the band altogether.
+            const bool first_band = band.bottom_idx == 0;
+            // Tail recovery may have pinned the top on a layer this region never owns. Pull it down to
+            // the last step that still has a contour, and print only that top: falling back to the base
+            // layer height on every step would be both slower and below this nozzle's window.
+            AdaptiveLayerBand live = band;
+            if (first_band && m_layers.front()->get_region(region_id)->raw_slices.empty()) {
+                AdaptiveMergePatch patch;
+                patch.bottom_idx    = live.bottom_idx;
+                patch.top_idx       = live.top_idx;
+                patch.merged_height = live.merged_height;
+                patch.set_area({});
+                for (size_t layer_idx = live.bottom_idx; layer_idx <= live.top_idx; ++ layer_idx) {
+                    AdaptiveMergePatch stored = patch;
+                    stored.group_top = layer_idx == live.top_idx;
+                    m_layers[layer_idx]->get_region(region_id)->adaptive_merge_patches.emplace_back(std::move(stored));
+                }
+                continue;
+            }
+            std::vector<unsigned char> has_material(band.top_idx + 1, 0);
+            for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx)
+                has_material[layer_idx] = ! m_layers[layer_idx]->get_region(region_id)->raw_slices.empty();
+            if (! first_band && ! pull_adaptive_band_top_to_material(live, layer_heights, range, has_material)) {
+                BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] region=" << region_id
+                                         << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
+                                         << " h=" << band.merged_height
+                                         << " top_raw_area=0 DROPPED";
                 for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx)
                     occupy(layer_idx, m_layers[layer_idx]->get_region(region_id)->raw_slices);
                 continue;
             }
 
-            AdaptiveMergePatch patch;
-            patch.bottom_idx    = band.bottom_idx;
-            patch.top_idx       = band.top_idx;
-            patch.merged_height = band.merged_height;
-            patch.set_area(std::move(area));
-            occupy(band.top_idx, patch.area());
+            // The first band is a snapshot of the true first layer: its contour and region (therefore its
+            // color) come from layer 0, while top_idx only supplies the physical output Z. Later bands keep
+            // using their top contour.
+            ExPolygons area = m_layers[first_band ? 0 : live.top_idx]->get_region(region_id)->raw_slices;
+            const double top_area = ::Slic3r::area(area) * SCALING_FACTOR * SCALING_FACTOR;
+            // A finer nozzle printing inside the band raises the floor under part of that outline, and
+            // this nozzle cannot reach under the extrusion it is laying down, so that part is dropped too.
+            for (size_t layer_idx = live.bottom_idx; layer_idx < live.top_idx && ! area.empty(); ++ layer_idx)
+                if (! occupied[layer_idx].empty())
+                    area = diff_ex(area, occupied[layer_idx]);
+            BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] region=" << region_id
+                                     << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
+                                     << (live.top_idx != band.top_idx
+                                             ? " shrunk=[" + std::to_string(live.bottom_idx) + "," +
+                                                   std::to_string(live.top_idx) + "]"
+                                             : "")
+                                     << " h=" << live.merged_height
+                                     << " top_raw_area=" << top_area
+                                     << " after_occupied=" << ::Slic3r::area(area) * SCALING_FACTOR * SCALING_FACTOR
+                                     << (area.empty() ? " DROPPED" : " KEPT");
+            if (area.empty()) {
+                // A previously planned region owns this footprint through the band. Store an empty patch
+                // so the covered color is suppressed instead of falling back to colliding thin layers.
+                AdaptiveMergePatch patch;
+                patch.bottom_idx    = live.bottom_idx;
+                patch.top_idx       = live.top_idx;
+                patch.merged_height = live.merged_height;
+                patch.set_area({});
+                for (size_t layer_idx = live.bottom_idx; layer_idx <= live.top_idx; ++ layer_idx) {
+                    AdaptiveMergePatch stored = patch;
+                    stored.group_top = layer_idx == live.top_idx;
+                    m_layers[layer_idx]->get_region(region_id)->adaptive_merge_patches.emplace_back(std::move(stored));
+                }
+                continue;
+            }
 
-            for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx) {
+            AdaptiveMergePatch patch;
+            patch.bottom_idx    = live.bottom_idx;
+            patch.top_idx       = live.top_idx;
+            patch.merged_height = live.merged_height;
+            patch.set_area(std::move(area));
+            if (first_band) {
+                first_band_claims.push_back({ region_id, live.top_idx, patch.area() });
+                for (size_t layer_idx = live.bottom_idx; layer_idx <= live.top_idx; ++ layer_idx)
+                    occupy(layer_idx, patch.area());
+            } else {
+                occupy(live.top_idx, patch.area());
+            }
+
+            for (size_t layer_idx = live.bottom_idx; layer_idx <= live.top_idx; ++ layer_idx) {
                 AdaptiveMergePatch stored = patch;
-                stored.group_top = layer_idx == band.top_idx;
+                stored.group_top = layer_idx == live.top_idx;
                 m_layers[layer_idx]->get_region(region_id)->adaptive_merge_patches.emplace_back(std::move(stored));
             }
         }
     }
+
+    // The layer-0 snapshot owns its XY footprint through its group top, including against regions whose
+    // nozzle does not merge and therefore has no patch of its own. Trim those later colors from the wall
+    // input; raw_slices stay untouched as the source of the merge plan and future recomputation.
+    for (const FirstBandClaim &claim : first_band_claims)
+        for (size_t layer_idx = 0; layer_idx <= claim.top_idx; ++ layer_idx)
+            for (size_t region_id = 0; region_id < region_count; ++ region_id) {
+                if (region_id == claim.region_id)
+                    continue;
+                LayerRegion *region = m_layers[layer_idx]->get_region(region_id);
+                Surfaces kept;
+                for (const Surface &surface : region->slices.surfaces)
+                    for (ExPolygon &expolygon : diff_ex(ExPolygons{ surface.expolygon }, claim.area))
+                        kept.emplace_back(surface, std::move(expolygon));
+                region->slices.set(std::move(kept));
+            }
 }
 
 // Real overhangs of a merged span are already typed on the physical layers by detect_surfaces_type()
@@ -4402,6 +4518,13 @@ void PrintObject::combine_adaptive_infill()
         Surfaces bottom_bridges;
         if (includes_solid)
             bottom_bridges = collect_span_bridges(m_layers, region_id, bottom_idx, top_idx, merge_area);
+        Polygons object_bottom;
+        if (includes_solid && bottom_idx == 0)
+            for (const Surface &surface : m_layers.front()->get_region(region_id)->fill_surfaces.surfaces)
+                if (surface.is_bottom() && ! surface.is_bridge())
+                    polygons_append(object_bottom, to_polygons(surface.expolygon));
+        const ExPolygons object_bottom_area = object_bottom.empty() ?
+            ExPolygons{} : intersection_ex(merge_area, union_ex(object_bottom));
 
         for (size_t layer_idx = bottom_idx; layer_idx < top_idx; ++layer_idx)
             void_fill(m_layers[layer_idx]->get_region(region_id), merge_area);
@@ -4421,9 +4544,13 @@ void PrintObject::combine_adaptive_infill()
                 kept.emplace_back(surface, std::move(expolygon));
             expolygons_append(covered, intersection_ex(ExPolygons{ surface.expolygon }, merge_area));
         }
-        if (covered.empty())
-            return;
-        covered = union_ex(to_polygons(covered));
+        if (covered.empty()) {
+            if (bottom_idx != 0)
+                return;
+            covered = merge_area;
+        } else {
+            covered = union_ex(to_polygons(covered));
+        }
 
         // A merged extrusion is supported below the group bottom. Preserve bridge surfaces from that
         // layer on the group top; otherwise the retained contours inside the span hide the void below.
@@ -4448,10 +4575,15 @@ void PrintObject::combine_adaptive_infill()
         }
         ExPolygons remaining = diff_ex(covered, union_ex(bridge_claimed));
 
-        // The top surface keeps its own type so it is still ironed and printed with the top pattern.
+        // A first band has one extrusion representing the complete slab. Where its top and bottom faces
+        // overlap, keep the visible top role; bed contact is carried independently by the merged height.
         ExPolygons top_fill = intersection_ex(remaining, top_area);
-        ExPolygons solid_fill = diff_ex(intersection_ex(remaining, solid_area), top_fill);
+        ExPolygons bottom_fill = diff_ex(intersection_ex(remaining, object_bottom_area), top_fill);
+        Polygons visible_fill = to_polygons(bottom_fill);
+        polygons_append(visible_fill, to_polygons(top_fill));
+        ExPolygons solid_fill = diff_ex(intersection_ex(remaining, solid_area), union_ex(visible_fill));
         Polygons claimed = bridge_claimed;
+        polygons_append(claimed, to_polygons(bottom_fill));
         polygons_append(claimed, to_polygons(top_fill));
         polygons_append(claimed, to_polygons(solid_fill));
         ExPolygons sparse_fill = includes_sparse ? diff_ex(covered, union_ex(claimed)) : ExPolygons{};
@@ -4462,6 +4594,10 @@ void PrintObject::combine_adaptive_infill()
 
         layerm->fill_surfaces.set(std::move(kept));
         layerm->fill_surfaces.append(std::move(promoted_bridges));
+        if (! bottom_fill.empty()) {
+            templ.surface_type = stBottom;
+            layerm->fill_surfaces.append(std::move(bottom_fill), templ);
+        }
         if (! top_fill.empty()) {
             templ.surface_type = stTop;
             layerm->fill_surfaces.append(std::move(top_fill), templ);
@@ -4486,7 +4622,11 @@ void PrintObject::combine_adaptive_infill()
         const double wall_nozzle   = nozzle_diameter_for_filament(print_config, wall_filament);
         const double sparse_nozzle = nozzle_diameter_for_filament(print_config, sparse_filament);
         const double solid_nozzle  = nozzle_diameter_for_filament(print_config, solid_filament);
-        const bool sparse_uses_wall_nozzle = std::abs(sparse_nozzle - wall_nozzle) <= EPSILON;
+        // Explicit infill combination owns the sparse-infill Z planning. Leave sparse surfaces on the
+        // base-layer grid here so combine_infill() can merge them up to their own nozzle diameter.
+        const bool sparse_follows_adaptive_bands = ! config.infill_combination.value;
+        const bool sparse_uses_wall_nozzle = sparse_follows_adaptive_bands &&
+                                             std::abs(sparse_nozzle - wall_nozzle) <= EPSILON;
         const bool solid_uses_wall_nozzle  = std::abs(solid_nozzle - wall_nozzle) <= EPSILON;
 
         // Reuse each wall group-top patch as the XY/Z range for fill roles that share the wall nozzle.
@@ -4494,29 +4634,39 @@ void PrintObject::combine_adaptive_infill()
         // wall column (they may already be void after the wall merge) and leftover fill inside the column
         // is voided so it cannot overlap the thick wall. Otherwise only the matching roles are collected.
         auto merge_fill_along_wall_patches = [&](bool includes_sparse, bool includes_solid, bool inherit_wall_column) {
-            const AdaptiveLayerHeightRange wall_window = adaptive_layer_height_range(wall_nozzle);
             for (size_t layer_idx = 0; layer_idx < layer_count; ++layer_idx) {
                 for (const AdaptiveMergePatch &wall_patch :
                      m_layers[layer_idx]->get_region(region_id)->adaptive_merge_patches) {
                     if (! wall_patch.group_top)
                         continue;
 
+                    if (wall_patch.area().empty()) {
+                        for (size_t idx = wall_patch.bottom_idx; idx <= wall_patch.top_idx; ++ idx) {
+                            LayerRegion *suppressed = m_layers[idx]->get_region(region_id);
+                            void_fill(suppressed, to_expolygons(suppressed->fill_surfaces.surfaces));
+                        }
+                        continue;
+                    }
+
                     // The fill follows the wall band, it is not planned again: the wall is extruded on the
                     // group top and nowhere else, so its fill has to land on exactly that layer. Like the
-                    // wall, the fill keeps what the top layer holds; the layers below it are dropped.
-                    const LayerRegion *layerm = m_layers[wall_patch.top_idx]->get_region(region_id);
+                    // wall, the first band keeps the true first layer; later bands keep their top layer.
+                    const LayerRegion *layerm =
+                        m_layers[wall_patch.bottom_idx == 0 ? 0 : wall_patch.top_idx]->get_region(region_id);
                     ExPolygons         fill_area;
                     if (inherit_wall_column) {
                         // Both fill roles use the wall nozzle, so the fill inherits the whole wall column.
                         Polygons blocked;
                         for (const Surface &surface : layerm->fill_surfaces.surfaces)
-                            if (surface.is_bottom() || surface.surface_type == stInternalVoid)
+                            if ((surface.is_bottom() && wall_patch.bottom_idx != 0) ||
+                                surface.surface_type == stInternalVoid)
                                 polygons_append(blocked, to_polygons(surface.expolygon));
                         fill_area = diff_ex(wall_patch.area(), union_ex(blocked));
                     } else {
                         Polygons eligible;
                         for (const Surface &surface : layerm->fill_surfaces.surfaces) {
-                            if (surface.is_bottom() || surface.surface_type == stInternalVoid)
+                            if ((surface.is_bottom() && wall_patch.bottom_idx != 0) ||
+                                surface.surface_type == stInternalVoid)
                                 continue;
                             const bool sparse_surface = surface.surface_type == stInternal;
                             if ((includes_sparse && sparse_surface) || (includes_solid && surface.is_solid()))
@@ -4524,37 +4674,42 @@ void PrintObject::combine_adaptive_infill()
                         }
                         fill_area = intersection_ex(union_ex(eligible), wall_patch.area());
                     }
-                    if (fill_area.empty())
-                        continue;
-
-                    apply_merged_fill(region_id, wall_patch.bottom_idx, wall_patch.top_idx,
-                                      wall_patch.merged_height, fill_area, includes_sparse, includes_solid);
-                    if (inherit_wall_column)
-                        for (size_t idx = wall_patch.bottom_idx; idx < wall_patch.top_idx; ++idx) {
-                            LayerRegion *swallowed = m_layers[idx]->get_region(region_id);
+                    if (! fill_area.empty())
+                        apply_merged_fill(region_id, wall_patch.bottom_idx, wall_patch.top_idx,
+                                          wall_patch.merged_height, fill_area, includes_sparse, includes_solid);
+                    for (size_t idx = wall_patch.bottom_idx; idx < wall_patch.top_idx; ++idx) {
+                        LayerRegion *swallowed = m_layers[idx]->get_region(region_id);
+                        if (inherit_wall_column)
                             void_fill(swallowed, wall_patch.area());
-                            // A shape that closes inside the band - the top face of a step, say - has no
-                            // counterpart on the group top, so the patch area never reaches it and it is
-                            // left behind alone on its own layer, extruded at the base layer height. This
-                            // nozzle cannot lay that height down at all, and a swallowed layer has no walls
-                            // to go with it either: Layer::make_perimeters() drops those for the whole
-                            // region, not just inside the patch. So the fill goes with them, region wide -
-                            // keeping it would extrude it bare, at a height outside this nozzle's window,
-                            // and the band below already carries the material under it. Slicing the object
-                            // with this nozzle alone would have ended the shape one band lower just the
-                            // same.
-                            if (wall_window.contains(m_layers[idx]->height))
-                                continue;
+                        // A shape that closes inside the band - the top face of a step, say - has no
+                        // counterpart on the group top, so the patch area never reaches it and it is
+                        // left behind alone on its own layer, extruded at the base layer height. This
+                        // swallowed layer has no walls to go with it: Layer::make_perimeters() drops
+                        // those for the whole region, not just inside the patch. Drop every fill role
+                        // sharing that nozzle across the region while preserving roles assigned to
+                        // another nozzle.
+                        if (inherit_wall_column) {
                             void_fill(swallowed, to_expolygons(swallowed->slices.surfaces));
+                        } else {
+                            Polygons same_nozzle_fill;
+                            for (const Surface &surface : swallowed->fill_surfaces.surfaces) {
+                                const bool sparse_surface = surface.surface_type == stInternal;
+                                if ((includes_sparse && sparse_surface) || (includes_solid && surface.is_solid()))
+                                    polygons_append(same_nozzle_fill, to_polygons(surface.expolygon));
+                            }
+                            if (! same_nozzle_fill.empty())
+                                void_fill(swallowed, union_ex(same_nozzle_fill));
                         }
+                    }
                 }
             }
         };
 
-        // Three mutually exclusive cases:
+        // Three mutually exclusive cases when sparse fill follows adaptive bands:
         //   both roles share the wall nozzle  -> one pass along wall patches, inherit the whole column
         //   exactly one role shares it        -> that role follows wall patches; the other is planned below
         //   neither shares it                 -> both roles are planned independently
+        // With explicit infill combination, sparse fill is excluded from all three and handled later.
         if (sparse_uses_wall_nozzle && solid_uses_wall_nozzle) {
             merge_fill_along_wall_patches(true, true, true);
         } else {
@@ -4567,7 +4722,7 @@ void PrintObject::combine_adaptive_infill()
                 bool         solid;
             };
             std::vector<FillGroup> fill_groups;
-            if (! sparse_uses_wall_nozzle)
+            if (sparse_follows_adaptive_bands && ! sparse_uses_wall_nozzle)
                 fill_groups.push_back({ sparse_filament, true, false });
             if (! solid_uses_wall_nozzle) {
                 auto group = std::find_if(fill_groups.begin(), fill_groups.end(),
@@ -4585,15 +4740,13 @@ void PrintObject::combine_adaptive_infill()
                 const double nozzle = nozzle_diameter_for_filament(print_config, group.filament);
                 const AdaptiveLayerHeightRange       range     = adaptive_layer_height_range(nozzle);
                 const size_t                         band_size = adaptive_layer_band_size(nozzle, min_nozzle, m_config.layer_height.value);
-                const std::vector<AdaptiveLayerBand> bands     = build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
-                if (bands.empty())
-                    continue;
 
                 std::vector<ExPolygons> mergeable(layer_count);
                 for (size_t layer_idx = 0; layer_idx < layer_count; ++layer_idx) {
                     Polygons eligible;
                     for (const Surface &surface : m_layers[layer_idx]->get_region(region_id)->fill_surfaces.surfaces) {
-                        if (surface.is_bottom() || surface.surface_type == stInternalVoid)
+                        if ((surface.is_bottom() && layer_idx != 0) ||
+                            surface.surface_type == stInternalVoid)
                             continue;
                         const bool sparse_surface = surface.surface_type == stInternal;
                         if ((group.sparse && sparse_surface) || (group.solid && surface.is_solid()))
@@ -4602,24 +4755,73 @@ void PrintObject::combine_adaptive_infill()
                     mergeable[layer_idx] = union_ex(eligible);
                 }
 
+                std::vector<AdaptiveLayerBand> bands;
+                if (mergeable.front().empty() && band_size >= 2 && 1 + band_size <= layer_count) {
+                    AdaptiveLayerBand first { 1, band_size, 0. };
+                    for (size_t layer_idx = first.bottom_idx; layer_idx <= first.top_idx; ++ layer_idx)
+                        first.merged_height += layer_heights[layer_idx];
+                    if (range.contains(first.merged_height)) {
+                        bands.emplace_back(first);
+                        const size_t suffix_bottom = first.top_idx + 1;
+                        if (suffix_bottom < layer_count) {
+                            std::vector<double> suffix_heights(
+                                layer_heights.begin() + suffix_bottom, layer_heights.end());
+                            std::vector<uint8_t> suffix_tops(
+                                band_tops.begin() + suffix_bottom, band_tops.end());
+                            std::vector<AdaptiveLayerBand> suffix =
+                                build_adaptive_layer_bands(suffix_heights, band_size, range, suffix_tops);
+                            for (AdaptiveLayerBand &band : suffix) {
+                                band.bottom_idx += suffix_bottom;
+                                band.top_idx += suffix_bottom;
+                                bands.emplace_back(band);
+                            }
+                        }
+                    }
+                }
+                if (bands.empty())
+                    bands = build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
+                if (bands.empty())
+                    continue;
+
                 for (const AdaptiveLayerBand &band : bands) {
-                    ExPolygons area = mergeable[band.top_idx];
+                    const bool first_band = band.bottom_idx == 0;
+                    if (first_band && mergeable.front().empty()) {
+                        for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx) {
+                            LayerRegion *suppressed = m_layers[layer_idx]->get_region(region_id);
+                            Polygons same_nozzle_fill;
+                            for (const Surface &surface : suppressed->fill_surfaces.surfaces) {
+                                const bool sparse_surface = surface.surface_type == stInternal;
+                                if ((group.sparse && sparse_surface) || (group.solid && surface.is_solid()))
+                                    polygons_append(same_nozzle_fill, to_polygons(surface.expolygon));
+                            }
+                            if (! same_nozzle_fill.empty())
+                                void_fill(suppressed, union_ex(same_nozzle_fill));
+                        }
+                        continue;
+                    }
+                    AdaptiveLayerBand live = band;
+                    std::vector<unsigned char> has_material(band.top_idx + 1, 0);
+                    for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx)
+                        has_material[layer_idx] = ! mergeable[layer_idx].empty();
+                    if (! first_band && ! pull_adaptive_band_top_to_material(live, layer_heights, range, has_material))
+                        continue;
+                    ExPolygons area = mergeable[first_band ? 0 : live.top_idx];
                     if (area.empty())
                         continue;
                     // The wall of this region is still extruded on every layer of the band, so a bottom
                     // shell inside it is a real floor and must survive. Voiding it would drop the surface
                     // the merged fill is laid onto.
                     Polygons blocked;
-                    for (size_t layer_idx = band.bottom_idx; layer_idx < band.top_idx; ++ layer_idx)
+                    for (size_t layer_idx = live.bottom_idx; layer_idx < live.top_idx; ++ layer_idx)
                         for (const Surface &surface : m_layers[layer_idx]->get_region(region_id)->fill_surfaces.surfaces)
-                            if (surface.is_bottom())
+                            if (surface.is_bottom() && live.bottom_idx != 0)
                                 polygons_append(blocked, to_polygons(surface.expolygon));
                     if (! blocked.empty())
                         area = diff_ex(area, union_ex(blocked));
                     if (area.empty())
                         continue;
 
-                    apply_merged_fill(region_id, band.bottom_idx, band.top_idx, band.merged_height,
+                    apply_merged_fill(region_id, live.bottom_idx, live.top_idx, live.merged_height,
                                       area, group.sparse, group.solid);
                 }
             }
@@ -4639,11 +4841,11 @@ void PrintObject::combine_infill()
         const bool enable_combine_infill = region.config().infill_combination.value;
         if (enable_combine_infill == false || region.config().sparse_infill_density == 0.)
             continue;
-        // Limit the number of combined layers to the maximum height allowed by this regions' nozzle.
+        // Limit the number of combined layers to the sparse-infill nozzle diameter. Solid fill is not
+        // combined here and must not constrain the sparse-infill band size.
         //FIXME limit the layer height to max_layer_height
-        double nozzle_diameter = std::min(
-            nozzle_diameter_for_filament(this->print()->config(), region.config().sparse_infill_filament.value),
-            nozzle_diameter_for_filament(this->print()->config(), region.config().solid_infill_filament.value));
+        const double nozzle_diameter =
+            nozzle_diameter_for_filament(this->print()->config(), region.config().sparse_infill_filament.value);
         // define the combinations
         std::vector<size_t> combine(m_layers.size(), 0);
         {
@@ -4658,7 +4860,7 @@ void PrintObject::combine_infill()
                 // Check whether the combination of this layer with the lower layers' buffer
                 // would exceed max layer height or max combined layer count.
                 // BBS: automatically calculate how many layers should be combined
-                if (current_height + layer->height >= nozzle_diameter + EPSILON) {
+                if (current_height + layer->height > nozzle_diameter + EPSILON) {
                     // Append combination to lower layer.
                     combine[layer_idx - 1] = num_layers;
                     current_height = 0.;

@@ -46,7 +46,8 @@ static inline FlowRole opt_key_to_flow_role(const std::string &opt_key)
         return frPerimeter;
     else if (opt_key == "outer_wall_line_width")
         return frExternalPerimeter;
-    else if (opt_key == "sparse_infill_line_width" || opt_key == "skeleton_infill_line_width")
+    else if (opt_key == "sparse_infill_line_width" || opt_key == "skeleton_infill_line_width" ||
+             opt_key == "initial_layer_infill_line_width")
         return frInfill;
     else if (opt_key == "internal_solid_infill_line_width" || opt_key == "skin_infill_line_width")
         return frSolidInfill;
@@ -104,6 +105,30 @@ double Flow::extrusion_width_for_nozzle(
     // intermediate percentage and reuse the existing percent-to-absolute conversion for the actual nozzle.
     const ConfigOptionFloatOrPercent relative_width(100. * width.value / preset_nozzle_diameter, true);
     return relative_width.get_abs_value(nozzle_diameter);
+}
+
+double Flow::resolve_extrusion_width_for_nozzle(
+    const std::string &opt_key,
+    const ConfigOptionResolver &config,
+    float preset_nozzle_diameter,
+    float nozzle_diameter,
+    bool multi_nozzle_diameter_mode)
+{
+    const ConfigOptionFloat *width = config.option<ConfigOptionFloat>(opt_key);
+    if (width == nullptr)
+        throw_on_missing_variable(opt_key, opt_key.c_str());
+
+    if (width->value == 0.) {
+        width = config.option<ConfigOptionFloat>("line_width");
+        if (width == nullptr)
+            throw_on_missing_variable(opt_key, "line_width");
+    }
+
+    if (width->value == 0.)
+        return auto_extrusion_width(opt_key_to_flow_role(opt_key), nozzle_diameter);
+
+    return extrusion_width_for_nozzle(
+        *width, preset_nozzle_diameter, nozzle_diameter, multi_nozzle_diameter_mode);
 }
 
 // This constructor builds a Flow object from an extrusion width config setting

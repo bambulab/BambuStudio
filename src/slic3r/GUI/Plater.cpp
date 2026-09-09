@@ -377,6 +377,28 @@ static bool check_project_config(const DynamicPrintConfig &config_loaded)
     return true;
 }
 
+static bool infer_multi_nozzle_diameter_mode(const DynamicPrintConfig &config)
+{
+    std::set<std::string> diameters;
+    auto add = [&diameters](double diameter) {
+        if (diameter > 0.)
+            diameters.insert(format_diameter_to_str(diameter));
+    };
+
+    if (const auto *per_slot = config.option<ConfigOptionFloats>("extruder_nozzle_diameter"))
+        for (double diameter : per_slot->values)
+            add(diameter);
+    if (const auto *selected = config.option<ConfigOptionStrings>("filament_diameter_map")) {
+        for (const std::string &value : selected->values) {
+            std::stringstream stream(value);
+            std::string token;
+            while (std::getline(stream, token, ';'))
+                add(string_to_double_decimal_point(token));
+        }
+    }
+    return diameters.size() >= 2;
+}
+
 // When saving layer-slider ticks to the model, re-append entries whose print_z is above the current
 // sliced stack (the vertical slider cannot represent them). They are still ignored for G-code until the model is tall enough.
 static void merge_custom_gcodes_orphaned_above_stack(const CustomGCode::Info& prev, CustomGCode::Info& cur, double max_layer_z)
@@ -1845,7 +1867,7 @@ static void notify_filament_nozzle_diameter_fallback(const std::vector<std::stri
         return;
 
     const auto *current =
-        preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
     if (current == nullptr)
         return;
 
@@ -1880,7 +1902,7 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
 
     auto diameter = preselect_diameter.IsEmpty() ? diameter_btns->GetSelectedDiameter() : preselect_diameter;
     const auto *selected_nozzle_diameters =
-        wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
     const std::vector<std::string> previous_filament_diameters =
         selected_nozzle_diameters ? selected_nozzle_diameters->values : std::vector<std::string>{};
 
@@ -1927,14 +1949,20 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             update_extruder_full_stats(0, selected_diameter, s_ext_cfg);
         }
 
-        if (!selected_diameter.IsEmpty() && selected_diameter != diameter) {
-            diameter_btns->SetSelectedDiameter(selected_diameter);
+        // Multi-diameter slicing always uses the 0.2 machine/process preset as its base grid. This is
+        // independent of the physically configured nozzles; those remain in extruder_full_stat and are
+        // used per filament by the backend.
+        const wxString slicing_preset_diameter = dlg.GetMultiDiameterMode() ? wxString("0.2") : selected_diameter;
+        const bool force_multi_diameter_preset = multi_diameter_mode_changed && dlg.GetMultiDiameterMode();
+        if (!slicing_preset_diameter.IsEmpty() &&
+            (slicing_preset_diameter != diameter || force_multi_diameter_preset)) {
+            diameter_btns->SetSelectedDiameter(slicing_preset_diameter);
             is_switching_diameter = true;
             auto result = switch_diameter(!is_dual);
             is_switching_diameter = false;
 
             if (!result) {
-                diameter_btns->SetSelectedDiameter(selected_diameter);
+                diameter_btns->SetSelectedDiameter(slicing_preset_diameter);
             }
         } else {
             diameter_btns->UpdateButtonStates();
@@ -2533,7 +2561,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     wxString machine_display_name = obj->get_printer_type_display_str();
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const auto *selected_nozzle_diameters =
-        preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
     const std::vector<std::string> previous_filament_diameters =
         selected_nozzle_diameters ? selected_nozzle_diameters->values : std::vector<std::string>{};
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
@@ -3290,6 +3318,15 @@ Sidebar::Sidebar(Plater *parent)
             }
 
             option->value = enabled;
+            if (enabled) {
+                const auto *extruder_variants =
+                    preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
+                const bool is_dual = extruder_variants != nullptr && extruder_variants->size() == 2;
+                p->diameter_btns->SetSelectedDiameter("0.2");
+                p->is_switching_diameter = true;
+                p->switch_diameter(!is_dual);
+                p->is_switching_diameter = false;
+            }
             preset_bundle->validate_filament_nozzle_diameter_selections();
             preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
             refresh_multi_nozzle_preset_choices();
@@ -3985,7 +4022,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
         if (filament_idx < 0 || filament_idx >= static_cast<int>(preset_bundle->filament_presets.size()))
             return;
 
-        auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
         if (selected == nullptr)
             return;
         selected->values.resize(preset_bundle->filament_presets.size());
@@ -4029,18 +4066,54 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     }
 }
 
+void Sidebar::sync_multi_nozzle_mode_from_project()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const bool enabled = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    const std::string current_diameter =
+        preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+
+    p->diameter_btns->SetMultiNozzleMode(enabled);
+    if (!enabled || current_diameter == "0.2") {
+        BOOST_LOG_TRIVIAL(info)
+            << "multi-diameter project load: sidebar mode=" << enabled
+            << ", printer_variant=" << current_diameter
+            << ", preset_switch=not_needed";
+        refresh_filament_diameter_buttons();
+        return;
+    }
+
+    const auto *extruder_variants =
+        preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
+    const bool is_dual = extruder_variants != nullptr && extruder_variants->size() == 2;
+    p->diameter_btns->SetSelectedDiameter("0.2");
+    p->is_switching_diameter = true;
+    const bool switched = p->switch_diameter(!is_dual);
+    p->is_switching_diameter = false;
+    if (!switched)
+        p->diameter_btns->SetSelectedDiameter(from_u8(current_diameter));
+
+    BOOST_LOG_TRIVIAL(info)
+        << "multi-diameter project load: sidebar mode=" << enabled
+        << ", printer_variant_before=" << current_diameter
+        << ", switch_to_0.2=" << switched
+        << ", printer_variant_after="
+        << preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+    refresh_filament_diameter_buttons();
+}
+
 void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     p->diameter_btns->SetMultiNozzleMode(multi_nozzle_diameter_mode_enabled(preset_bundle->project_config));
     if (validate_selections) {
-        const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
         const std::vector<std::string> old_diameters = selected ? selected->values : std::vector<std::string>{};
         const std::vector<std::string> old_presets = preset_bundle->filament_presets;
         preset_bundle->validate_filament_nozzle_diameter_selections();
         for (PlaterPresetComboBox *combo : p->combos_filament)
             combo->update();
-        selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
         if ((selected && selected->values != old_diameters) || preset_bundle->filament_presets != old_presets)
             wxGetApp().plater()->on_config_change(preset_bundle->full_config());
     }
@@ -4054,7 +4127,7 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
         }
     }
     const bool show = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) && configured_diameters.size() >= 2;
-    const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
     for (size_t i = 0; i < p->filament_diameter_btns.size(); ++i) {
         DiameterButtonPanel *panel = p->filament_diameter_btns[i];
         const int filament_idx = i < p->combos_filament.size() ? p->combos_filament[i]->get_filament_idx() : -1;
@@ -5191,7 +5264,7 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
         rotate_strings("filament_colour");
         rotate_strings("filament_multi_colour");
         rotate_strings("filament_colour_type");
-        rotate_strings("filament_selected_nozzle_diameters");
+        rotate_strings("filament_diameter_map");
         rotate_ints("filament_map");
         rotate_ints("filament_nozzle_map");
         rotate_ints("filament_volume_map");
@@ -6095,7 +6168,7 @@ void Sidebar::update_mixed_filament_list()
             broken_set.insert(s);
         broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
 
-        if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters")) {
+        if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
             auto diameter_mismatch_slots = check_mixed_filament_diameter_consistency(
                 is_mixed_opt->values, components_opt->values, selected->values);
             for (size_t s : diameter_mismatch_slots)
@@ -6622,7 +6695,7 @@ bool Sidebar::has_broken_mixed_filament(const PartPlate* plate) const
             is_mixed_opt->values, comp_strs_opt->values, physical_types);
         broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
 
-        if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters")) {
+        if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
             auto diameter_mismatch_slots = check_mixed_filament_diameter_consistency(
                 is_mixed_opt->values, comp_strs_opt->values, selected->values);
             broken_slots.insert(broken_slots.end(), diameter_mismatch_slots.begin(), diameter_mismatch_slots.end());
@@ -6728,7 +6801,7 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
     }
 
     if (diameters) {
-        const auto *selected = project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
         for (size_t i = 0; i < num_physical; ++i) {
             const size_t cfg_idx = physical_indices[i];
             diameters->push_back(selected != nullptr && cfg_idx < selected->values.size() ?
@@ -6803,7 +6876,7 @@ static bool multi_diameter_filament_selection_active()
 static bool check_mixed_filament_nozzle_diameters(Sidebar* sidebar, const MixedFilamentResult& result)
 {
     auto& project_config = wxGetApp().preset_bundle->project_config;
-    if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters")) {
+    if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
         const std::vector<size_t> physical_indices = wxGetApp().preset_bundle->physical_filament_config_indices();
         std::set<std::string> component_diameters;
         bool missing_diameter = false;
@@ -9457,6 +9530,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 DynamicPrintConfig config;
                 Semver             file_version;
                 En3mfType          en_3mf_file_type = En3mfType::From_BBS;
+                std::optional<bool> loaded_multi_nozzle_diameter_mode;
                 {
                     DynamicPrintConfig config_loaded;
 
@@ -9483,6 +9557,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  if (cancel)
                                                                      is_user_cancel = cancel;
                                                              }, nullptr, &color_group_map, &volume_color_data);
+                    if (const auto *mode = config_loaded.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
+                        loaded_multi_nozzle_diameter_mode = mode->value;
+                    const ConfigOption *selected_diameters =
+                        config_loaded.option("filament_diameter_map");
+                    const ConfigOption *per_slot_diameters =
+                        config_loaded.option("extruder_nozzle_diameter");
+                    BOOST_LOG_TRIVIAL(info)
+                        << "multi-diameter project load: raw mode_present="
+                        << loaded_multi_nozzle_diameter_mode.has_value()
+                        << ", mode=" << loaded_multi_nozzle_diameter_mode.value_or(false)
+                        << ", selected="
+                        << (selected_diameters ? selected_diameters->serialize() : "<missing>")
+                        << ", per_slot="
+                        << (per_slot_diameters ? per_slot_diameters->serialize() : "<missing>");
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
@@ -9877,8 +9965,17 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 file_wipe_tower_x = *wipe_tower_x_opt;
                             if (wipe_tower_y_opt)
                                 file_wipe_tower_y = *wipe_tower_y_opt;
-                            if (auto *selected_opt = config.opt<ConfigOptionStrings>("filament_selected_nozzle_diameters"))
+                            if (auto *selected_opt = config.opt<ConfigOptionStrings>("filament_diameter_map"))
                                 file_selected_nozzle_diameters = *selected_opt;
+                            const bool inferred_multi_nozzle_diameter_mode =
+                                !loaded_multi_nozzle_diameter_mode.has_value() &&
+                                infer_multi_nozzle_diameter_mode(config);
+                            const bool file_multi_nozzle_diameter_mode =
+                                loaded_multi_nozzle_diameter_mode.value_or(inferred_multi_nozzle_diameter_mode);
+                            BOOST_LOG_TRIVIAL(info)
+                                << "multi-diameter project load: resolved mode="
+                                << file_multi_nozzle_diameter_mode
+                                << ", inferred=" << inferred_multi_nozzle_diameter_mode;
 
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
                             // BBS: do not change extruder nozzle stat when loading 3mf
@@ -9961,6 +10058,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             is_project_file = true;
 
                             DynamicConfig& proj_cfg = preset_bundle->project_config;
+                            proj_cfg.opt<ConfigOptionBool>("multi_nozzle_diameter_mode", true)->value =
+                                file_multi_nozzle_diameter_mode;
+                            BOOST_LOG_TRIVIAL(info)
+                                << "multi-diameter project load: restored project mode="
+                                << multi_nozzle_diameter_mode_enabled(proj_cfg);
                             auto new_printer_model = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("printer_model")->value;
                             // do some post process after loading config
                             {
@@ -10005,7 +10107,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                     proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats_new", true)->values = resolved_nozzle_stats;
                                 }
                                 if (file_selected_nozzle_diameters)
-                                    *proj_cfg.opt<ConfigOptionStrings>("filament_selected_nozzle_diameters", true) =
+                                    *proj_cfg.opt<ConfigOptionStrings>("filament_diameter_map", true) =
                                         *file_selected_nozzle_diameters;
                                 preset_bundle->validate_filament_nozzle_diameter_selections();
                                 //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
@@ -10080,6 +10182,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             // filament presets stay visible for mixed-diameter projects.
                             preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
                             // Update filament combobox after loading config
+                            wxGetApp().plater()->sidebar().update_presets(Preset::TYPE_PRINTER);
+                            wxGetApp().plater()->sidebar().sync_multi_nozzle_mode_from_project();
                             wxGetApp().plater()->sidebar().update_presets(Preset::TYPE_FILAMENT);
                             {
                                 // update nozzle count display after loading
@@ -24801,6 +24905,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     publish(p->model, strategy);
 
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
+    if (const auto *selected = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>(
+            "filament_diameter_map"))
+        cfg.option<ConfigOptionStrings>("filament_diameter_map", true)->values =
+            selected->values;
     const std::string path_u8 = into_u8(path);
     wxBusyCursor wait;
 

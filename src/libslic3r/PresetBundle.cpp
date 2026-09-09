@@ -66,7 +66,7 @@ static std::vector<std::string> s_project_options {
     "filament_map",
     "filament_volume_map",
     "filament_nozzle_map",
-    "filament_selected_nozzle_diameters",
+    "filament_diameter_map",
     "multi_nozzle_diameter_mode",
     "extruder_nozzle_stats",
     "extruder_nozzle_stats_new",
@@ -1303,11 +1303,11 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
             continue;
         }
         PresetCollection *preset_collection = nullptr;
-        if (type_iter->second == PRESET_IOT_PRINT_TYPE) {
-            preset_collection = &(this->prints);
+        if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
+            preset_collection = &(this->printers);
         }
-        else if (type_iter->second == PRESET_IOT_FILAMENT_TYPE) {
-            preset_collection = &(this->filaments);
+        else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
+            preset_collection = &(this->printers);
         }
         else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
             preset_collection = &(this->printers);
@@ -2618,7 +2618,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     ConfigOptionInts* filament_nozzle_map = project_config.option<ConfigOptionInts>("filament_nozzle_map");
     ConfigOptionInts* filament_volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
     ConfigOptionStrings* selected_nozzle_diameters =
-        project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        project_config.option<ConfigOptionStrings>("filament_diameter_map");
     filament_color->resize(n);
     filament_multi_color->resize(n);
     filament_color_type->resize(n);
@@ -2683,7 +2683,7 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     ConfigOptionStrings *filament_color_type  = project_config.option<ConfigOptionStrings>("filament_colour_type");
     ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
     ConfigOptionStrings* selected_nozzle_diameters =
-        project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        project_config.option<ConfigOptionStrings>("filament_diameter_map");
     if (filament_color->values.size() > to_del_flament_id) {
         filament_color->values.erase(filament_color->values.begin() + to_del_flament_id);
         if (filament_map->values.size() > to_del_flament_id) {
@@ -3504,8 +3504,11 @@ std::vector<std::string> PresetBundle::get_extra_compatible_printers_by_full_sta
                 selected_diameters.insert(d);
         }
     }
-    // Nothing to broaden for a single-diameter selection (compared numerically to avoid "0.4" vs "0.40").
-    if (selected_diameters.size() <= 1)
+    // Multi-diameter mode deliberately pins the active printer/process preset to 0.2. Even when the
+    // physical machine currently has only one configured diameter (for example only 0.4), that sibling
+    // printer preset still has to broaden filament compatibility; otherwise every 0.4 filament appears
+    // under "Unavailable" merely because the active slicing baseline is 0.2.
+    if (selected_diameters.empty())
         return result;
 
     const std::string printer_model = this->printers.get_edited_preset().config.opt_string("printer_model");
@@ -3728,7 +3731,7 @@ static bool set_filament_nozzle_diameter(
     if (filament_index >= bundle.filament_presets.size())
         return false;
 
-    auto *selected = bundle.project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    auto *selected = bundle.project_config.option<ConfigOptionStrings>("filament_diameter_map");
     selected->values.resize(bundle.filament_presets.size());
     if (diameter.empty()) {
         selected->values[filament_index].clear();
@@ -3825,13 +3828,16 @@ static const Preset *find_default_filament_for_nozzle_diameter(
 
 void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<int, AMSMapInfo> *device_maps)
 {
-    auto *selected = project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
     selected->values.resize(filament_presets.size());
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
+    const std::vector<std::string> retained_selections =
+        multi_diameter_mode ? std::vector<std::string>{} : selected->values;
     const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
     const auto configured = collect_configured_nozzle_diameters(*this);
 
-    // A legacy/single-diameter project does not retain an explicit per-slot diameter selection.
-    // Normalize any sibling preset selected by the previous multi-diameter state before clearing it.
+    // Normalize any sibling preset selected by the previous multi-diameter state. Turning the mode off
+    // only makes the selections inactive; retain them so turning it back on restores the project state.
     if (configured.size() < 2) {
         if (configured.size() == 1) {
             const std::string target = *configured.begin();
@@ -3858,7 +3864,10 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                 }
             }
         }
-        std::fill(selected->values.begin(), selected->values.end(), std::string());
+        if (multi_diameter_mode)
+            std::fill(selected->values.begin(), selected->values.end(), std::string());
+        else
+            selected->values = retained_selections;
         return;
     }
 
@@ -4367,10 +4376,47 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
 
     std::vector<std::string> selected_nozzle_diameters;
     if (multi_diameter_mode)
-        selected_nozzle_diameters = this->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters")->values;
+        selected_nozzle_diameters = this->project_config.option<ConfigOptionStrings>("filament_diameter_map")->values;
     selected_nozzle_diameters.resize(filament_ids.size());
-    out.option<ConfigOptionStrings>("filament_selected_nozzle_diameters", true)->values =
+    out.option<ConfigOptionStrings>("filament_diameter_map", true)->values =
         std::move(selected_nozzle_diameters);
+
+    // Stabilize the effective machine defaults before the config reaches Print::apply(). Filament
+    // retraction overrides remain in filament_retraction_length and are folded on top later, so their
+    // existing higher priority is preserved without causing a first-slice config transition.
+    if (multi_diameter_mode) {
+        const auto *selected = out.option<ConfigOptionStrings>("filament_diameter_map");
+        auto *retraction = out.option<ConfigOptionFloatsNullable>("retraction_length");
+        auto *nozzle_volume = out.option<ConfigOptionFloatsNullable>("nozzle_volume");
+        const bool has_retraction = retraction != nullptr && !retraction->values.empty();
+        const bool has_nozzle_volume = nozzle_volume != nullptr && !nozzle_volume->values.empty();
+        if (selected != nullptr && (has_retraction || has_nozzle_volume)) {
+            GCodeConfig index_config;
+            index_config.apply(out, true);
+            for (size_t filament_id = 0; filament_id < selected->values.size(); ++filament_id) {
+                const std::string &diameter_str = selected->values[filament_id];
+                if (diameter_str.empty() || diameter_str.find(';') != std::string::npos)
+                    continue;
+                const double diameter = std::atof(diameter_str.c_str());
+                if (diameter <= 0.)
+                    continue;
+                const size_t config_idx = Slic3r::get_filament_config_idx(
+                    index_config, (unsigned int) filament_id);
+                if (has_retraction) {
+                    if (config_idx >= retraction->values.size())
+                        retraction->values.resize(config_idx + 1, retraction->values.front());
+                    retraction->values[config_idx] =
+                        multi_nozzle_retraction_length(diameter, retraction->values[config_idx]);
+                }
+                if (has_nozzle_volume) {
+                    if (config_idx >= nozzle_volume->values.size())
+                        nozzle_volume->values.resize(config_idx + 1, nozzle_volume->values.front());
+                    nozzle_volume->values[config_idx] =
+                        multi_nozzle_nozzle_volume(diameter, nozzle_volume->values[config_idx]);
+                }
+            }
+        }
+    }
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -4843,7 +4889,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
-        this->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters")
+        this->project_config.option<ConfigOptionStrings>("filament_diameter_map")
             ->values.resize(this->filament_presets.size());
 
         break;
@@ -6845,7 +6891,7 @@ void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
     const Preset *old_preset = filaments.find_preset(old_name, false);
     filament_presets[idx] = Preset::remove_suffix_modified(name);
 
-    auto *selected = project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
     if (selected == nullptr)
         return;
     selected->values.resize(filament_presets.size());

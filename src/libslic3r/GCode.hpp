@@ -706,6 +706,16 @@ private:
     // On the first printing layer. This flag triggers first layer speeds.
     //BBS
     bool                                on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0 && abs(m_layer->bottom_z()) < EPSILON; }
+    bool                                filament_in_first_layer_phase(unsigned int filament_id) const;
+    // A merged first band is emitted above layer 0, but its extrusion height reaches back to the bed.
+    bool                                path_touches_bed(const ExtrusionPath &path) const {
+        return m_layer != nullptr && m_layer->print_z - path.height <= EPSILON;
+    }
+    bool                                path_starts_at_object_base(const ExtrusionPath &path) const {
+        return m_layer != nullptr && !m_layer->object()->layers().empty() &&
+               m_layer->print_z - path.height <=
+                   m_layer->object()->layers().front()->bottom_z() + EPSILON;
+    }
     // To control print speed of 1st object layer over raft interface.
     bool                                object_layer_over_raft() const { return m_object_layer_over_raft; }
 

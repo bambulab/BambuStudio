@@ -1383,7 +1383,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_extruder_variant))
     ((ConfigOptionInts,                filament_self_index))
     // Per-filament explicitly selected nozzle diameter. Empty means not selected.
-    ((ConfigOptionStrings,             filament_selected_nozzle_diameters))
+    ((ConfigOptionStrings,             filament_diameter_map))
     ((ConfigOptionInts,                print_extruder_id))
     ((ConfigOptionStrings,             print_extruder_variant))
     ((ConfigOptionFloat,               machine_load_filament_time))
@@ -2176,6 +2176,15 @@ bool has_authoritative_per_slot_nozzle_diameters(
 // that could make a path behave as multi-diameter goes through it, so a project with the mode off slices
 // and presents exactly as it did before multi-diameter printing existed. Missing option means off.
 bool multi_nozzle_diameter_mode_enabled(const ConfigOptionResolver &config);
+
+// MVP multi-diameter tuning. These values intentionally live in code instead of presets: all nozzle
+// diameters share one machine/process preset while slicing resolves the effective value per filament.
+// Unknown diameters keep the preset value so non-standard/custom nozzles are not silently mistuned.
+double multi_nozzle_retraction_length(double nozzle_diameter, double preset_value);
+double multi_nozzle_ironing_inset(double nozzle_diameter, double preset_value);
+int    multi_nozzle_wall_loops(double nozzle_diameter, int preset_value);
+double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value);
+double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value);
 
 // Whether the printer offers more than one nozzle diameter to pick from. This is the machine capability,
 // not what a print uses: with a single diameter available nothing downstream may behave as multi-diameter.

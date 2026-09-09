@@ -9,6 +9,7 @@
 #include "PrintConfig.hpp"
 #include "Model.hpp"
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <unordered_set>
 #include <tbb/parallel_for.h>
@@ -67,8 +68,20 @@ static float max_brim_width(const ConstPrintObjectPtrsAdaptor &objects)
 static ExPolygons get_print_object_bottom_layer_expolygons(const PrintObject &print_object)
 {
     ExPolygons ex_polygons;
-    for (LayerRegion *region : print_object.layers().front()->regions())
-        Slic3r::append(ex_polygons, closing_ex(region->slices.surfaces, float(SCALED_EPSILON)));
+    const Layer *bottom_layer = print_object.layers().front();
+    for (LayerRegion *region : bottom_layer->regions()) {
+        const AdaptiveMergePatch *first_band = nullptr;
+        if (std::abs(bottom_layer->bottom_z()) <= EPSILON) {
+            auto it = std::find_if(region->adaptive_merge_patches.begin(), region->adaptive_merge_patches.end(),
+                                   [](const AdaptiveMergePatch &patch) { return patch.bottom_idx == 0; });
+            if (it != region->adaptive_merge_patches.end())
+                first_band = &*it;
+        }
+        if (first_band != nullptr)
+            Slic3r::append(ex_polygons, closing_ex(first_band->area(), float(SCALED_EPSILON)));
+        else
+            Slic3r::append(ex_polygons, closing_ex(region->slices.surfaces, float(SCALED_EPSILON)));
+    }
     return ex_polygons;
 }
 

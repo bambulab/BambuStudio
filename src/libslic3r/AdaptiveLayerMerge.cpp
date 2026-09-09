@@ -116,12 +116,11 @@ std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
     const std::vector<uint8_t>     &band_tops)
 {
     std::vector<AdaptiveLayerBand> bands;
-    // The first layer is never merged. A band extrudes on its top layer only, so swallowing layer 0 would
-    // leave the print with no extrusion at the initial layer height at all: no bed contact to hold the
-    // object, no wall for the brim to run along, and none of the first layer settings applied. See the
-    // empty-initial-layer check in GCode::collect_layers_to_print().
-    const size_t first_layer_idx = 1;
-    if (band_size < 2 || first_layer_idx + 1 >= layer_heights.size())
+    // The first band starts at the object base. It is still extruded on its top layer, with a height equal
+    // to the complete span, so its lower face stays on the bed or on the object's raft/support substrate.
+    // Callers propagate that object-base contact separately from the physical group-top layer id.
+    const size_t first_layer_idx = 0;
+    if (band_size < 2 || layer_heights.size() < 2)
         return bands;
 
     const size_t last_idx = layer_heights.size() - 1;
@@ -165,6 +164,39 @@ std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
                                [](const AdaptiveLayerBand &band) { return band.top_idx <= band.bottom_idx; }),
                 bands.end());
     return bands;
+}
+
+bool pull_adaptive_band_top_to_material(
+    AdaptiveLayerBand                &band,
+    const std::vector<double>        &layer_heights,
+    const AdaptiveLayerHeightRange   &height_range,
+    const std::vector<unsigned char> &has_material)
+{
+    if (band.bottom_idx > band.top_idx || band.top_idx >= layer_heights.size() ||
+        band.top_idx >= has_material.size())
+        return false;
+
+    // The grid already placed a printable band here. Only the empty-top case needs a shorter top.
+    if (has_material[band.top_idx])
+        return true;
+
+    size_t top = band.top_idx;
+    while (top > band.bottom_idx && ! has_material[top])
+        -- top;
+    if (! has_material[top])
+        return false;
+
+    double height = 0.;
+    for (size_t layer_idx = band.bottom_idx; layer_idx <= top; ++ layer_idx)
+        height += layer_heights[layer_idx];
+    // A single leftover step is not a band: it is what not merging looks like, and it is often
+    // thinner than this nozzle can extrude. The caller then prints that layer unmerged, if at all.
+    if (top <= band.bottom_idx || ! height_range.contains(height))
+        return false;
+
+    band.top_idx       = top;
+    band.merged_height = height;
+    return true;
 }
 
 // Cut a span of layers into as few consecutive groups as possible, every one of them inside the printable
