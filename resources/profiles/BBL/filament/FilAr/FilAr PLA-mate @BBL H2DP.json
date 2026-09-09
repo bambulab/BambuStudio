@@ -1,0 +1,53 @@
+{
+    "type": "filament",
+    "name": "FilAr PLA-mate @BBL H2DP",
+    "inherits": "FilAr PLA-mate @base",
+    "from": "system",
+    "setting_id": "FILARPLAM_09",
+    "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_flow_ratio": [
+        "0.98",
+        "0.98"
+    ],
+    "filament_max_volumetric_speed": [
+        "16",
+        "16"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "nozzle_temperature": [
+        "200",
+        "200"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "205",
+        "205"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2D Pro 0.4 nozzle",
+        "Bambu Lab H2D Pro 0.6 nozzle",
+        "Bambu Lab H2D Pro 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ],
+    "filament_vendor": [
+        "FilAr"
+    ]
+}
