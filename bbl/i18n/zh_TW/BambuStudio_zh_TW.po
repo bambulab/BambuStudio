@@ -2631,7 +2631,7 @@ msgid "Click the icon to reset all settings of the object"
 msgstr "點選此圖示可重置物件的所有設定"
 
 msgid "Unprintable object"
-msgstr ""
+msgstr "無法列印的物件"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "右鍵點選此圖示以捨棄物件的可列印屬性"
@@ -4055,7 +4055,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr "動態流量校準係數"
 
 msgid "View Wiki for details"
-msgstr ""
+msgstr "查看 Wiki 以瞭解詳情"
 
 msgid "Nozzle Type"
 msgstr "噴嘴型別"
@@ -4075,10 +4075,10 @@ msgid ""
 msgstr "擠出頭溫度"
 
 msgid "Tip: Setting AMS slot information while printing is not supported"
-msgstr ""
+msgstr "提示：列印時不支援設定 AMS 槽位資訊"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "提示：列印時不支援設定虛擬槽位資訊"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "您確定要清除耗材絲資訊嗎？"
@@ -4126,19 +4126,19 @@ msgstr ""
 "'裝置頁面->印表機零件'"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "配對耗材"
 
 msgid "Add as new filament"
 msgstr "作為新耗材錄入"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS 偵測到新耗材。是否新增至耗材管理器？"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "已在耗材管理器中找到相似耗材，並自動完成配對。"
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "已在耗材管理器中找到多個相似耗材。請確認配對結果。"
 
 msgid "New Filament"
 msgstr "新線材"
@@ -4449,10 +4449,10 @@ msgid "Reset AMS Sequence"
 msgstr "重置AMS序列"
 
 msgid "View wiki for details"
-msgstr ""
+msgstr "查看 Wiki 以瞭解詳情"
 
 msgid "Nozzle Temperature"
-msgstr ""
+msgstr "噴嘴溫度"
 
 msgid "File"
 msgstr "檔案"
@@ -4800,7 +4800,7 @@ msgstr "逐件列印時，擠出機可能與裙邊碰撞。因此將裙邊的層
 msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
-msgstr ""
+msgstr "互鎖深度應小於表皮深度。\n重設為表皮深度的 50%"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "交替額外牆層與旋轉花瓶模式不相容。若要啟用交替額外牆層，建議進行以下調整："
@@ -7007,7 +7007,7 @@ msgid "Finished"
 msgstr "完成"
 
 msgid "Almost complete"
-msgstr ""
+msgstr "即將完成"
 
 msgid "Camera"
 msgstr "攝像機"
@@ -7752,478 +7752,478 @@ msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "閒置5分鐘後自動停止加熱以保障安全。"
 
 msgid "Note: "
-msgstr ""
+msgstr "注意： "
 
 msgid "Controls the printed height of each layer."
-msgstr ""
+msgstr "控制每一層的列印高度。"
 
 msgid ""
 "A larger layer height prints faster but shows more obvious layer lines.\n"
 "A smaller layer height gives finer curved surfaces but takes longer to print.\n"
 "If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
-msgstr ""
+msgstr "層高較大時列印較快，但層紋更明顯。\n層高較小時曲面更細緻，但列印時間較長。\n若層高過小且速度過快，擠出量會跟不上，導致表面缺料且粗糙。"
 
 msgid "Recommended layer height is 20%-70% of the nozzle diameter."
-msgstr ""
+msgstr "建議層高為噴嘴直徑的 20%-70%。"
 
 msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
-msgstr ""
+msgstr "控制模型在熱床上擠出的首層厚度，影響首層與列印板的附著程度。"
 
 msgid ""
 "Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
 "Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
-msgstr ""
+msgstr "過小時，首層容易受熱床平整度影響而產生列印瑕疵。\n過大時，首層的寬高比會過小，降低材料的附著力。"
 
 msgid "Usually set to half the nozzle diameter."
-msgstr ""
+msgstr "通常設為噴嘴直徑的一半。"
 
 msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
-msgstr ""
+msgstr "用於混色耗材功能。啟用後，使用混色耗材的列印層會依比例分割成較薄的子層，讓混色更均勻。"
 
 msgid ""
 "When off, colors change per full layer, so the blend is coarser and less even.\n"
 "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
-msgstr ""
+msgstr "關閉時，每個完整列印層才切換顏色，混色較粗略且較不均勻。\n啟用時，子層交錯更密集，混色更均勻，但列印時間較長。"
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr ""
+msgstr "建議僅在使用混色耗材時啟用，以獲得更好的分層混色效果。"
 
 msgid "Controls where each layer's outer wall starts and ends."
-msgstr ""
+msgstr "控制每一層外牆的起點與終點位置。"
 
 msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr ""
+msgstr "該位置可能留下小凸點或接縫線，選擇適當位置可減少接縫對模型外觀的影響。"
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr ""
+msgstr "頂面僅列印一圈牆壁，讓頂面盡可能由填充圖案覆蓋，使外觀更一致。"
 
 msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
-msgstr ""
+msgstr "此選項會加重斜面或圓頂表面的階梯效應，因此不建議用於這類表面。"
 
 msgid "Recommended only for flat top surfaces."
-msgstr ""
+msgstr "建議僅用於平坦的頂面。"
 
 msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr ""
+msgstr "模型首層（接觸熱床的一層）僅使用一圈牆壁，讓首層填充圖案覆蓋盡可能大的面積，使外觀更一致。"
 
 msgid ""
 "When off, the first layer uses multiple wall loops.\n"
 "When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
-msgstr ""
+msgstr "關閉時，首層使用多圈牆壁。\n啟用時，填充更連續、底面更平整，但首層邊緣輪廓的強度略低。"
 
 msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
-msgstr ""
+msgstr "控制每層外殼的牆壁圈數，是影響模型強度的關鍵因素。"
 
 msgid ""
 "More walls give higher strength but use more material and time;\n"
 "fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
-msgstr ""
+msgstr "牆壁越多，強度越高，但耗材與時間用量也越多；\n牆壁越少，列印越快且越省料，但強度降低，填充圖案也可能透出表面。"
 
 msgid "2-3 loops is recommended for typical models; increase it for functional parts."
-msgstr ""
+msgstr "一般模型建議使用 2-3 圈；功能性零件可增加圈數。"
 
 msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
-msgstr ""
+msgstr "在有牆壁與無牆壁區域的交界處，每隔一層將牆壁嵌入沒有外牆的填充區域，讓牆壁與填充連接得更牢固。"
 
 msgid ""
 "It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
 "Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
-msgstr ""
+msgstr "僅處理一側有牆壁、另一側牆壁圈數為零的交界；零件內一般的牆壁與填充交界不受影響。\n每隔一層嵌入可形成交錯互鎖，比平接更牢固。"
 
 msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
-msgstr ""
+msgstr "當修改器將某區域設為無牆壁填充，且該區域仍需牢固連接周圍外殼時使用。兩側皆列印一般牆壁時不需要啟用。"
 
 msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
-msgstr ""
+msgstr "在奇數層增加一圈牆壁，偶數層則維持不變。"
 
 msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
-msgstr ""
+msgstr "每隔一層增加一圈牆壁，可強化層間連接，不必在所有層都增加牆壁；在改善層間結合與零件強度的同時，避免全層增加牆壁所需的耗材與時間。"
 
 msgid "Requires sparse infill; not applicable in vase mode."
-msgstr ""
+msgstr "需要稀疏填充；不適用於花瓶模式。"
 
 msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
-msgstr ""
+msgstr "最上層實心填充的工具路徑圖案，主要影響頂面的平整度與外觀。"
 
 msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
-msgstr ""
+msgstr "控制模型底面的填充路徑，影響底面紋理與平整度。"
 
 msgid "Bridging areas are not affected by this parameter."
-msgstr ""
+msgstr "橋接區域不受此參數影響。"
 
 msgid "Controls the number of solid top shell layers, including the top surface."
-msgstr ""
+msgstr "控制頂部實心外殼的層數，包含頂面。"
 
 msgid ""
 "More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
 "If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
-msgstr ""
+msgstr "層數越多，頂部外殼越厚，越不容易透出下方填充。\n若層數 × 層高小於頂部外殼厚度，切片軟體會自動增加層數。"
 
 msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "設定頂部實心外殼的最小厚度，避免在層高較小時外殼過薄。"
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
-msgstr ""
+msgstr "設為 0 可停用此限制，僅由層數決定厚度。\n若層數 × 層高得到的厚度不足，切片軟體會自動增加頂部外殼層數。"
 
 msgid "Controls the number of solid bottom shell layers, including the bottom surface."
-msgstr ""
+msgstr "控制底部實心外殼的層數，包含底面。"
 
 msgid ""
 "More layers make the bottom more solid but take longer.\n"
 "If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
-msgstr ""
+msgstr "層數越多，底部越堅實，但列印時間越長。\n若層高 × 層數小於底部外殼厚度，切片軟體會自動增加層數。"
 
 msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "設定底部實心外殼的最小厚度，避免在層高較小時外殼過薄。"
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
-msgstr ""
+msgstr "設為 0 可停用此限制，僅由層數決定厚度。\n若依層數計算的厚度不足，切片軟體會自動增加底部外殼層數。"
 
 msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "控制頂面顏色向下延伸的層數，避免內部其他耗材顏色透出。"
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
-msgstr ""
+msgstr "層數較少時，較容易透出其他顏色。\n層數較多可減少透色，但會增加耗材切換次數。\n為避免向下延伸影響模型側面的顏色，延伸區域會逐層縮小。"
 
 msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "控制底面顏色向上延伸的層數，避免內部其他耗材顏色透出。"
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
-msgstr ""
+msgstr "層數較少時，較容易透出其他顏色。\n層數較多可減少透色，但會增加耗材切換次數。\n為避免向上延伸影響模型側面的顏色，延伸區域會逐層縮小。"
 
 msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
-msgstr ""
+msgstr "控制內部實心填充的工具路徑圖案，適用於頂部與底部外殼之間的實心層，以及內部實心區域。"
 
 msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
-msgstr ""
+msgstr "若啟用狹窄內部實心填充偵測，小區域會自動使用同心圖案。"
 
 msgid "Controls how dense the model's internal sparse infill is."
-msgstr ""
+msgstr "控制模型內部稀疏填充的密度。"
 
 #, no-c-format, no-boost-format
 msgid ""
 "10-15% is recommended for typical models; raise it for functional parts.\n"
 "100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
-msgstr ""
+msgstr "一般模型建議使用 10-15%；功能性零件可提高密度。\n100% 表示完全實心，此時僅可使用同心、直線、單調、單調線、直線排列、希爾伯特曲線、阿基米德螺旋及八角螺旋圖案。"
 
 msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
-msgstr ""
+msgstr "啟用多線填充，將每條填充路徑列印為數條並排的平行線。"
 
 msgid ""
 "Higher values make the infill beams thicker and stronger but use more material and time;\n"
 "1 is ordinary single-line infill."
-msgstr ""
+msgstr "數值越大，填充樑越厚、強度越高，但耗材與時間用量也越多；\n1 表示一般的單線填充。"
 
 msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
-msgstr ""
+msgstr "適用於線條、網格、螺旋體、蜂窩、立方體及閃電等圖案。"
 
 msgid "Controls the toolpath structure of the internal sparse infill."
-msgstr ""
+msgstr "控制內部稀疏填充的工具路徑結構。"
 
 msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
-msgstr ""
+msgstr "支撐是列印在懸空處與大角度傾斜處下方的可移除結構，用來承托後續列印層並避免下垂。"
 
 msgid ""
 "When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
 "Recommended when the model has obvious overhangs."
-msgstr ""
+msgstr "啟用後，會在懸空處與大角度傾斜處產生支撐，讓列印更穩定，但列印後必須移除，且可能留下痕跡。\n模型有明顯懸空處時建議啟用。"
 
 msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
-msgstr ""
+msgstr "選擇支撐形狀與產生方式；一般（自動）及樹狀（自動）會依懸空區域自動產生支撐。"
 
 msgid ""
 "Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
 "Choose a manual mode when you need precise control."
-msgstr ""
+msgstr "一般支撐較規則且穩定；樹狀支撐與模型接觸較少，較容易移除。\n需要精確控制時，請選擇手動模式。"
 
 msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
-msgstr ""
+msgstr "手動模式需搭配操作工具列中的支撐繪製工具使用。"
 
 msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
-msgstr ""
+msgstr "為懸空角度低於臨界值的表面產生支撐；此值可在自動模式中自訂。"
 
 msgid ""
 "A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
 "A larger threshold also supports more slopes, giving more support."
-msgstr ""
+msgstr "臨界值較小時，僅支撐接近水平的大面積懸空處，支撐較少，但緩斜面可能沒有支撐。\n臨界值較大時，會支撐更多斜面，因此支撐較多。"
 
 msgid "A common default of 30 degrees balances print stability against the amount of support used."
-msgstr ""
+msgstr "常用預設值為 30 度，可兼顧列印穩定性與支撐用量。"
 
 msgid "Generates support only from the build plate, not on the model's surfaces."
-msgstr ""
+msgstr "僅從列印板產生支撐，不在模型表面上產生支撐。"
 
 msgid ""
 "When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
 "When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
-msgstr ""
+msgstr "關閉時，支撐可從模型表面長出，覆蓋較完整，但較容易留下痕跡。\n啟用時，所有支撐皆從列印板開始，模型表面較乾淨，但部分懸空處可能沒有支撐。"
 
 msgid "Recommended when appearance matters."
-msgstr ""
+msgstr "重視外觀時建議啟用。"
 
 msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
-msgstr ""
+msgstr "支撐介面是支撐與模型接觸處較密集的接觸層，可穩定承托模型、方便移除並減少表面痕跡。此設定指定該接觸面使用的耗材。"
 
 msgid ""
 "By default the interface uses the same filament as the model, which can make removal harder.\n"
 "Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
-msgstr ""
+msgstr "預設介面使用與模型相同的耗材，可能較難移除。\n指定容易分離的耗材，可讓接觸面更容易移除且更乾淨，但會增加耗材切換次數。"
 
 msgid "The filament used to print the support body and the raft."
-msgstr ""
+msgstr "用於列印支撐主體與筏層的耗材。"
 
 msgid ""
 "By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
 "Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
-msgstr ""
+msgstr "預設支撐使用與模型相同的耗材；多耗材列印時，會配合各層模型使用的耗材。\n指定不同耗材可讓支撐更容易移除或降低成本，但會增加耗材切換時間。"
 
 msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
-msgstr ""
+msgstr "在模型周圍列印不與模型相連的輪廓圈（Skirt），以便在開始列印前清除噴嘴殘料並穩定擠出。"
 
 msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
-msgstr ""
+msgstr "圈數越多，清除殘料越徹底，但耗材用量也越多；設為 0 可停用 Skirt。"
 
 msgid "Controls how many layers the skirt is printed."
-msgstr ""
+msgstr "控制 Skirt 的列印層數。"
 
 msgid ""
 "During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
 "The default is 1 layer."
-msgstr ""
+msgstr "列印前幾層時，較高的 Skirt 可部分阻擋模型周圍的冷空氣，讓模型底部維持局部溫暖環境，降低初期因收縮造成的翹曲風險。\n預設為 1 層。"
 
 msgid "Requires the skirt loop count to be greater than 0."
-msgstr ""
+msgstr "Skirt 圈數必須大於 0。"
 
 msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
-msgstr ""
+msgstr "Brim 是加在模型底部周圍並與首層相連的單層材料帶，可作為加強邊緣，抑制翹曲並維持附著力。"
 
 msgid ""
 "This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
 "The default is Auto."
-msgstr ""
+msgstr "控制 Brim（與模型首層相連的材料帶）的類型，以改善熱床附著力並減少翹曲。\n預設為自動。"
 
 msgid "The distance from the model to the outermost brim line."
-msgstr ""
+msgstr "模型到最外側 Brim 線條的距離。"
 
 msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
-msgstr ""
+msgstr "寬度越大，熱床附著力越好，也越能抵抗翹曲，但耗材用量較多，且較難清理。"
 
 msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr ""
+msgstr "切換顏色或耗材後，印表機會先在獨立的擦料塔上清除殘留耗材並穩定噴嘴壓力，再繼續列印模型，以減少混色、缺料與表面瑕疵。"
 
 msgid ""
 "Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
 "On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
-msgstr ""
+msgstr "關閉：節省耗材且占用較少熱床空間，但換色時的殘留耗材可能落到模型上，造成混色、牽絲或局部缺料。\n啟用：換色更乾淨，多色列印更一致，但會增加耗材與時間用量，並占用熱床空間。"
 
 msgid "Mutually exclusive with by-object printing and independent support layer height."
-msgstr ""
+msgstr "無法與逐件列印或獨立支撐層高同時使用。"
 
 msgid "Controls the horizontal size of the prime tower."
-msgstr ""
+msgstr "控制擦料塔的水平尺寸。"
 
 msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
-msgstr ""
+msgstr "寬度越大，清除殘料的餘裕越大，擦料塔也越穩定，但耗材用量與熱床占用空間也越多。"
 
 msgid "The width cannot be customized when the rib outer wall is enabled."
-msgstr ""
+msgstr "啟用斜肋外牆時，無法自訂寬度。"
 
 msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
-msgstr ""
+msgstr "在擦料塔外牆增加四個角肋，以提升穩定性。"
 
 msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
-msgstr ""
+msgstr "擦料塔較高、使用 PETG 等黏性較高的材料，或頻繁換色時建議啟用；熱床空間不足且塔身較矮時，可關閉以縮窄寬度。"
 
 msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
-msgstr ""
+msgstr "將換料後的部分過渡耗材用於列印物件內部填充，以減少浪費與列印時間。"
 
 msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
-msgstr ""
+msgstr "不透明零件可啟用以節省耗材；透明零件、薄壁零件，或重視內部顏色時請關閉。"
 
 msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
-msgstr ""
+msgstr "將換料後的過渡耗材用於列印模型支撐，以減少浪費與列印時間。"
 
 msgid "Enabling it saves material, but the supports may show mixed colors."
-msgstr ""
+msgstr "啟用可節省耗材，但支撐可能出現混色。"
 
 msgid "Takes effect when printing multiple filaments through the same nozzle."
-msgstr ""
+msgstr "使用同一噴嘴列印多種耗材時生效。"
 
 msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
-msgstr ""
+msgstr "選擇整盤逐層列印，或完成一個物件後再列印下一個。"
 
 msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
-msgstr ""
+msgstr "一般多零件或多色列印請使用「逐層」；小零件較多或想減少列印中途失敗的影響時，可考慮「逐件」，並檢查安全間距與擦料塔限制。"
 
 msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
-msgstr ""
+msgstr "沿外輪廓連續螺旋上升，以一條連續路徑列印整個模型，側面通常沒有接縫。"
 
 msgid ""
 "When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
 "It is best for single, thin-walled, open-top models."
-msgstr ""
+msgstr "啟用後，模型沒有頂部外殼與填充，且通常僅有一圈牆壁，因此強度較低，並與支撐、頂部外殼層數等多項設定衝突。\n最適合單一、薄壁且頂部開口的模型。"
 
 msgid "Requires top shell layers to be 0 and is not compatible with support."
-msgstr ""
+msgstr "頂部外殼層數必須設為 0，且無法與支撐同時使用。"
 
 msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
-msgstr ""
+msgstr "列印時每層拍攝一張照片，列印完成後合成延時攝影影片。"
 
 msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
-msgstr ""
+msgstr "在此選擇延時攝影模式；是否實際啟用此功能，則由傳送列印頁面的開關控制。"
 
 msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
-msgstr ""
+msgstr "隨機擾動牆壁的工具路徑，讓外表面呈現粗糙、霧面的絨毛紋理。"
 
 msgid ""
 "It affects only walls; the top and bottom surfaces are unchanged.\n"
 "Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
-msgstr ""
+msgstr "僅影響牆面，頂面與底面維持不變。\n適用於裝飾零件與公仔外殼；尺寸精度要求較高或需要光滑表面時請關閉。"
 
 msgid "Selects how the fuzzy texture is generated."
-msgstr ""
+msgstr "選擇絨毛紋理的產生方式。"
 
 msgid "There are three generator modes; pick the one that suits your needs."
-msgstr ""
+msgstr "共有三種產生器模式，請依需求選擇。"
 
 msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
-msgstr ""
+msgstr "決定絨毛紋理的隨機特性，影響表面紋理的風格。"
 
 msgid "Several noise types are available; pick the one that suits your needs."
-msgstr ""
+msgstr "提供多種雜訊類型，請依需求選擇。"
 
 msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
-msgstr ""
+msgstr "控制產生絨毛表面時，沿牆壁路徑插入的隨機點之間的平均距離。"
 
 msgid ""
 "A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
 "A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
-msgstr ""
+msgstr "數值越大，隨機點間距越遠，紋理較粗，但路徑點較少，因此切片與列印較快，G-code 檔案也較小。\n數值越小，隨機點越密集，紋理更細緻均勻，但路徑點較多，因此切片與列印較慢，G-code 檔案也較大。"
 
 msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
-msgstr ""
+msgstr "若數值過小，軟體會因點距過小而停用絨毛表面，以避免產生異常路徑。"
 
 msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
-msgstr ""
+msgstr "控制產生絨毛表面時牆壁路徑的擾動幅度，也就是紋理的深淺。"
 
 msgid ""
 "A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
 "The default is about 0.3 mm; keep it below the outer wall's line width."
-msgstr ""
+msgstr "數值越大，紋理越深且越明顯，顆粒感越強，但外輪廓會向外擴張、尺寸精度降低，牆壁也可能出現空隙而降低強度。\n預設約為 0.3 mm；請保持小於外牆線寬。"
 
 msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
-msgstr ""
+msgstr "超過線寬時，產生器的「擠出」與「組合」模式會失效，僅使用「位移」模式。"
 
 msgid "Determines whether the fuzzy effect is also applied to the first layer."
-msgstr ""
+msgstr "決定是否也在首層套用絨毛效果。"
 
 msgid ""
 "When on, the first-layer side walls also get the fuzzy texture.\n"
 "Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
-msgstr ""
+msgstr "啟用後，首層側壁也會具有絨毛紋理。\n通常保持關閉；僅在底部邊緣也需要一致紋理，且熱床附著力良好時啟用。"
 
 msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
-msgstr ""
+msgstr "優先將接縫放在凹角或凸角，並縮短空駛路徑；適合具有明顯稜角的模型。"
 
 msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
-msgstr ""
+msgstr "將各層接縫上下對齊成一條垂直線，讓痕跡集中且容易隱藏。"
 
 msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
-msgstr ""
+msgstr "將接縫放在模型背面，適合朝向固定的展示模型。"
 
 msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
-msgstr ""
+msgstr "將接縫分散在不同列印層的位置，避免形成垂直線，但表面可能出現零散的小凸點。"
 
 msgid "All top surfaces print with the normal number of wall loops."
-msgstr ""
+msgstr "所有頂面皆使用一般的牆壁圈數列印。"
 
 msgid "Applies to every flat upward-facing top surface, for the widest coverage."
-msgstr ""
+msgstr "套用至所有朝上的平坦頂面，覆蓋範圍最廣。"
 
 msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
-msgstr ""
+msgstr "僅套用至模型最上方的表面；中間層的頂面仍依一般方式處理。"
 
 msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
-msgstr ""
+msgstr "分析模型並計算所需的 Brim 寬度與位置；建議用於大多數模型。"
 
 msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
-msgstr ""
+msgstr "僅在外輪廓產生 Brim，以強化外圍附著力。"
 
 msgid "Generates a brim in inner holes only."
-msgstr ""
+msgstr "僅在內部孔洞產生 Brim。"
 
 msgid "Generates a brim on both the outer contour and inner holes."
-msgstr ""
+msgstr "在外輪廓與內部孔洞皆產生 Brim。"
 
 msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
-msgstr ""
+msgstr "透過繪製或局部加強方式產生 Brim，適合容易翹曲的尖角。"
 
 msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
-msgstr ""
+msgstr "不產生 Brim；底面較乾淨，但熱床附著力較弱。"
 
 msgid "All objects rise together, layer by layer."
-msgstr ""
+msgstr "所有物件一起逐層向上列印。"
 
 msgid "Finishes one object before starting the next; has placement clearance requirements."
-msgstr ""
+msgstr "完成一個物件後再列印下一個；擺放時需符合安全間距要求。"
 
 msgid "A snapshot is taken directly after each layer."
-msgstr ""
+msgstr "每層結束後直接拍攝快照。"
 
 msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
-msgstr ""
+msgstr "每層結束後，工具頭先移至吐料槽再拍攝快照，讓畫面更乾淨；拍攝時可能漏料，因此需要擦料塔擦拭噴嘴，即使是單色列印也會產生擦料塔。"
 
 msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
-msgstr ""
+msgstr "不自動加入絨毛表面，但仍可透過繪製工具在局部指定。"
 
 msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
-msgstr ""
+msgstr "僅在最外輪廓加入絨毛表面；內部孔洞維持光滑。"
 
 msgid "Adds fuzzy skin to both the outer contour and inner holes."
-msgstr ""
+msgstr "在外輪廓與內部孔洞皆加入絨毛表面。"
 
 msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
-msgstr ""
+msgstr "擾動每一條牆壁路徑，效果最強，但尺寸偏差也可能較大。"
 
 msgid "Turns fuzzy skin fully off; even painting has no effect."
-msgstr ""
+msgstr "完全關閉絨毛表面，透過繪製工具指定也不會生效。"
 
 msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
-msgstr ""
+msgstr "噴嘴橫向偏移以形成紋理，立體感較強，但牆圈之間可能出現空隙。"
 
 msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
-msgstr ""
+msgstr "路徑維持平直，僅改變擠出量，讓牆壁更密實。"
 
 msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
-msgstr ""
+msgstr "結合位移與擠出；外觀接近位移模式，同時填補牆圈之間的空隙。"
 
 msgid "Uniform random noise with a fine, grainy texture and no clear direction."
-msgstr ""
+msgstr "均勻隨機雜訊，呈現細碎的顆粒紋理，沒有明顯方向。"
 
 msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
-msgstr ""
+msgstr "列印層之間平滑過渡，形成更均勻、連續且起伏柔和規則的紋理。"
 
 msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
-msgstr ""
+msgstr "類似 Perlin 雜訊，但起伏更集中，形成雲朵般成群的凸起與平坦區域。"
 
 msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
-msgstr ""
+msgstr "尖銳的鋸齒狀稜線，搭配尖峰與細溝，形成類似大理石的紋理。"
 
 msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
-msgstr ""
+msgstr "將表面劃分為多個單元，並讓各單元整體偏移，形成拼貼式的階梯紋理。"
 
 msgid "View details on Wiki"
-msgstr ""
+msgstr "查看 Wiki 以瞭解詳情"
 
 msgid "Global"
 msgstr "全域性"
@@ -8510,7 +8510,7 @@ msgid "The nozzle hardness required by the filament is higher than the default n
 msgstr "耗材絲所要求的噴嘴硬度高於印表機預設的噴嘴硬度。請更換硬化的噴嘴或耗材絲，否則噴嘴可能被磨損或損壞。"
 
 msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr ""
+msgstr "啟用即時模式延時攝影可能造成表面瑕疵，建議改用平滑模式。"
 
 msgid "\n"
 msgstr "\n"
@@ -8602,7 +8602,7 @@ msgid "The volume of the object is zero"
 msgstr "物件的體積為零"
 
 msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
+msgstr "檔案中的物件尺寸非常小。是否以毫米作為預設單位匯入？"
 
 msgid "Object too small"
 msgstr "物件尺寸過小"
@@ -9580,10 +9580,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "啟用此選項後，您可以同時列印具有較大溫度差異的材料。"
 
 msgid "Automatically optimize wipe tower placement"
-msgstr ""
+msgstr "自動最佳化擦料塔位置"
 
 msgid "With this option enabled, the wipe tower will be placed at its optimal position."
-msgstr ""
+msgstr "啟用此選項後，擦料塔會放置於最佳位置。"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "同步使用者預設（印表機/耗材絲/工藝）"
@@ -10243,7 +10243,7 @@ msgid "When enabling spiral vase mode, machines with I3 structure will not gener
 msgstr "啟用螺旋花瓶模式時，具有I3結構的機器將不會生成延時影片。"
 
 msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
-msgstr ""
+msgstr "目前印表機在逐件列印時，不支援即時模式的延時攝影。"
 
 msgid "Errors"
 msgstr "錯誤"
@@ -11396,22 +11396,22 @@ msgid "Show all presets (including incompatible)"
 msgstr "顯示所有預設(包括不相容的)"
 
 msgid "Parameters"
-msgstr ""
+msgstr "參數"
 
 msgid "Process Preset"
-msgstr ""
+msgstr "工藝預設"
 
 msgid "Filament Preset"
 msgstr "材料預設"
 
 msgid "Material Preset"
-msgstr ""
+msgstr "材料預設"
 
 msgid "Machine Preset"
-msgstr ""
+msgstr "印表機預設"
 
 msgid "These two presets have no visible differences"
-msgstr ""
+msgstr "這兩個預設沒有可見差異"
 
 msgid "Please select two different presets A and B to compare"
 msgstr "請選擇兩個不同的預設 A 和 B 進行比較"
@@ -13124,10 +13124,10 @@ msgid "The prime tower requires that all objects are sliced with the same layer 
 msgstr "擦料塔要求各個物件擁有同樣的層高。"
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
-msgstr ""
+msgstr "精準Z高度會讓物件具有不同層高，可能大幅增加擦料塔尺寸。"
 
 msgid "Jump to: Precise Z height"
-msgstr ""
+msgstr "跳至：精準Z高度"
 
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "各個物件的層高存在差異，無法啟用擦料塔"
@@ -13476,7 +13476,7 @@ msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "100% 懸空牆的列印速度；此類牆壁與下層完全沒有重疊。"
 
 msgid "Slow down by height"
 msgstr "隨高度降速"
@@ -13825,7 +13825,7 @@ msgid "Sub-top surface pattern"
 msgstr "次頂層表面圖案"
 
 msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
-msgstr ""
+msgstr "承托可見頂面的實心層所使用的線條圖案。其線條可能透出並在頂面留下痕跡，因此單調圖案可獲得最平整的效果。頂面所延伸覆蓋的整塊實心區域都會使用此圖案，而不僅限於頂面正下方的部分。"
 
 msgid "Line width of outer wall"
 msgstr "外牆的線寬"
@@ -16180,7 +16180,7 @@ msgstr "--use-firmware-retraction 與 --wipe 不相容"
 
 #, no-c-format, no-boost-format
 msgid " doesn't work at 100% density "
-msgstr ""
+msgstr " 在 100% 密度下無法使用 "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "旋轉花瓶模式下非法的值"
@@ -17232,7 +17232,7 @@ msgstr "您還沒有選擇印表機或預設。請至少選擇一個。"
 msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
-msgstr ""
+msgstr "您建立的耗材名稱 %s 已存在。 \n若繼續，新預設會與既有自訂耗材一起儲存，並以完整名稱顯示以供區分。是否繼續？"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "以下一些現有預設未能成功建立：\n"
@@ -18359,7 +18359,7 @@ msgid "More Colors"
 msgstr "其他顏色"
 
 msgid "Search filament"
-msgstr ""
+msgstr "搜尋耗材"
 
 msgid "Unsupported Filaments"
 msgstr "不支援的耗材"
@@ -18368,7 +18368,7 @@ msgid "No filaments"
 msgstr "暫無耗材"
 
 msgid "slot"
-msgstr ""
+msgstr "槽位"
 
 msgid "Recently used"
 msgstr "最近使用"
@@ -18746,50 +18746,50 @@ msgstr "移除第三種材料"
 
 #, c-format, boost-format
 msgid "RGB(%d, %d, %d)"
-msgstr ""
+msgstr "RGB(%d, %d, %d)"
 
 msgid "Decomposition result for this combination"
-msgstr ""
+msgstr "此組合的拆色結果"
 
 msgid "Filament Color"
-msgstr ""
+msgstr "耗材顏色"
 
 msgid "Decomposed Colors"
-msgstr ""
+msgstr "拆解後的顏色"
 
 msgid "Select Color Decomposition"
 msgstr "選擇拆解顏色"
 
 msgid "Project Filament"
-msgstr ""
+msgstr "專案耗材"
 
 msgid "Material List"
 msgstr "材料清單"
 
 msgid "Standard Palette"
-msgstr ""
+msgstr "標準色板"
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "進行分解至少需要兩種材質類型相同的耗材"
 
 msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "依青色、洋紅色、黃色與白色四種基色，計算更接近目標的混色。目前僅支援 PLA Basic。若專案中沒有相符的耗材，會自動新增。"
 
 msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "依紅色、黃色、藍色與白色四種基色，計算更接近目標的混色。目前僅支援 PLA Basic。若專案中沒有相符的耗材，會自動新增。"
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "材料清單最多支援 %1% 種顏色。拆解 %2% 後，材料數量將超過 %1%。請先在主畫面刪除未使用的耗材，再進行拆解。"
 
 msgid "Decompose Color (gradient not supported)"
-msgstr ""
+msgstr "拆解顏色（不支援漸層色）"
 
 msgid "Decompose Color (transparent not supported)"
-msgstr ""
+msgstr "拆解顏色（不支援透明色）"
 
 msgid "Decompose Color (multi-color not supported)"
-msgstr ""
+msgstr "拆解顏色（不支援多色）"
 
 msgid "Cyan"
 msgstr "青色"
@@ -18822,11 +18822,11 @@ msgid "An unexpected error occurred"
 msgstr "發生意外錯誤"
 
 msgid "Create Custom Filament"
-msgstr ""
+msgstr "建立自訂耗材"
 
 #, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
-msgstr ""
+msgstr "預設「%s」已存在。是否覆寫？"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
