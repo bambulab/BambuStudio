@@ -3296,6 +3296,16 @@ void TabPrint::build()
         optgroup->append_single_option_line("print_flow_ratio");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio","parameter/quality-advance-settings");
         optgroup->append_single_option_line("initial_layer_flow_ratio","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("set_other_flow_ratios", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("first_layer_flow_ratio", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("outer_wall_flow_ratio", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("inner_wall_flow_ratio", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("overhang_flow_ratio", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("sparse_infill_flow_ratio", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("internal_solid_infill_flow_ratio", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("gap_fill_flow_ratio", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("support_flow_ratio", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("support_interface_flow_ratio", "parameter/quality-advance-settings");
         optgroup->append_single_option_line("top_one_wall_type","parameter/quality-advance-settings");
         optgroup->append_single_option_line("top_area_threshold","parameter/quality-advance-settings");
         optgroup->append_single_option_line("only_one_wall_first_layer","parameter/quality-advance-settings");

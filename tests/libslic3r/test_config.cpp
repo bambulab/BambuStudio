@@ -72,6 +72,33 @@ SCENARIO("Internal bridge density has compatible defaults and limits", "[Config]
     REQUIRE(config.validate().empty());
 }
 
+SCENARIO("Role-specific flow ratios have compatible defaults and limits", "[Config][FlowRatio]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+
+    const ConfigOptionBool *enabled = config.option<ConfigOptionBool>("set_other_flow_ratios");
+    REQUIRE(enabled != nullptr);
+    REQUIRE_FALSE(enabled->value);
+
+    for (const char *key : {"first_layer_flow_ratio", "outer_wall_flow_ratio", "inner_wall_flow_ratio",
+                            "overhang_flow_ratio", "sparse_infill_flow_ratio", "internal_solid_infill_flow_ratio",
+                            "gap_fill_flow_ratio", "support_flow_ratio", "support_interface_flow_ratio"}) {
+        const ConfigOptionDef *definition = print_config_def.get(key);
+        REQUIRE(definition != nullptr);
+        REQUIRE(definition->min == Approx(0.0));
+        REQUIRE(definition->max == Approx(2.0));
+
+        const ConfigOptionFloat *ratio = config.option<ConfigOptionFloat>(key);
+        REQUIRE(ratio != nullptr);
+        REQUIRE(ratio->value == Approx(1.0));
+    }
+
+    config.set_deserialize_strict("set_other_flow_ratios", "1");
+    config.set_deserialize_strict("outer_wall_flow_ratio", "0.85");
+    REQUIRE(config.option<ConfigOptionBool>("set_other_flow_ratios")->value);
+    REQUIRE(config.option<ConfigOptionFloat>("outer_wall_flow_ratio")->value == Approx(0.85));
+    REQUIRE(config.validate().empty());
+}
+
 SCENARIO("Config accessor functions perform as expected.", "[Config]") {
     GIVEN("A config generated from default options") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();

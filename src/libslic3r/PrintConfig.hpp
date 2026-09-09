@@ -1011,6 +1011,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_expansion))
     ((ConfigOptionFloatsNullable,      support_speed))
     ((ConfigOptionEnum<SupportMaterialStyle>, support_style))
+    // Orca: optional role-specific flow ratios shared by the whole object.
+    ((ConfigOptionBool,                set_other_flow_ratios))
+    ((ConfigOptionFloat,               support_flow_ratio))
+    ((ConfigOptionFloat,               support_interface_flow_ratio))
     // BBS
     //((ConfigOptionBool,                independent_support_layer_height))
     ((ConfigOptionBool,                thick_bridges))
@@ -1174,6 +1178,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     //OrcaSlicer
     ((ConfigOptionFloatsNullable, top_solid_infill_flow_ratio))
     ((ConfigOptionFloat, initial_layer_flow_ratio))
+    // Orca: role-specific flow ratios enabled by set_other_flow_ratios.
+    ((ConfigOptionFloat, first_layer_flow_ratio))
+    ((ConfigOptionFloat, outer_wall_flow_ratio))
+    ((ConfigOptionFloat, inner_wall_flow_ratio))
+    ((ConfigOptionFloat, overhang_flow_ratio))
+    ((ConfigOptionFloat, sparse_infill_flow_ratio))
+    ((ConfigOptionFloat, internal_solid_infill_flow_ratio))
+    ((ConfigOptionFloat, gap_fill_flow_ratio))
     ((ConfigOptionFloat, filter_out_gap_fill))
     ((ConfigOptionBool, precise_outer_wall))
     //calib

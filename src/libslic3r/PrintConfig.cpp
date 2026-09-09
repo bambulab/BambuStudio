@@ -1589,6 +1589,103 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("set_other_flow_ratios", coBool);
+    def->label = L("Set other flow ratios");
+    def->category = L("Advanced");
+    def->tooltip = L("Change flow ratios for other extrusion path types.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("first_layer_flow_ratio", coFloat);
+    def->label = L("First layer flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material on the first layer for the extrusion path roles listed in this section.\n\n"
+                     "For the first layer, each applicable path's flow ratio is multiplied by this value. Brims and skirts are not affected.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("outer_wall_flow_ratio", coFloat);
+    def->label = L("Outer wall flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for outer walls.\n\n"
+                     "The actual outer wall flow is multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("inner_wall_flow_ratio", coFloat);
+    def->label = L("Inner wall flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for inner walls.\n\n"
+                     "The actual inner wall flow is multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("overhang_flow_ratio", coFloat);
+    def->label = L("Overhang flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for overhang walls.\n\n"
+                     "The actual overhang wall flow is multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("sparse_infill_flow_ratio", coFloat);
+    def->label = L("Sparse infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for sparse infill.\n\n"
+                     "The actual sparse infill flow is multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("internal_solid_infill_flow_ratio", coFloat);
+    def->label = L("Internal solid infill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for internal solid infill.\n\n"
+                     "The actual internal solid infill flow is multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("gap_fill_flow_ratio", coFloat);
+    def->label = L("Gap fill flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material used to fill gaps.\n\n"
+                     "The actual gap fill flow is multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("support_flow_ratio", coFloat);
+    def->label = L("Support flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for support.\n\n"
+                     "The actual support flow is multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("support_interface_flow_ratio", coFloat);
+    def->label = L("Support interface flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for support interfaces.\n\n"
+                     "The actual support interface flow is multiplied by this value.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     def = this->add("top_one_wall_type", coEnum);
     def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");

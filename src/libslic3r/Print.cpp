@@ -3908,7 +3908,11 @@ void Print::_make_wipe_tower()
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
     WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_wipe_tower_data.tool_ordering.first_extruder(),
                          m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z, m_wipe_tower_data.tool_ordering.all_extruders());
-    wipe_tower.set_first_layer_flow_ratio(m_default_region_config.initial_layer_flow_ratio);
+    const float first_layer_flow_ratio = float(m_default_region_config.initial_layer_flow_ratio) *
+                                         (m_default_object_config.set_other_flow_ratios
+                                              ? float(m_default_region_config.first_layer_flow_ratio)
+                                              : 1.f);
+    wipe_tower.set_first_layer_flow_ratio(first_layer_flow_ratio);
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_nozzle_group_result(*group_result);
     wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());

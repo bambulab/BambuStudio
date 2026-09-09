@@ -82,7 +82,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     {"seam_position", "",3}, {"seam_gap", "",4}, {"wipe_speed", "",5},
                     {"slice_closing_radius", "",6}, {"resolution", "",7},
                     {"xy_hole_compensation", "",8}, {"xy_contour_compensation", "",9}, {"elefant_foot_compensation", "",10},
-                    {"precise_z_height", "",10}, {"internal_bridge_density", "",11}
+                    {"precise_z_height", "",10}, {"internal_bridge_density", "",11},
+                    {"set_other_flow_ratios", "",12}
 
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
@@ -92,7 +93,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     {"support_top_z_distance", "",13},{"support_bottom_z_distance", "",12},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
                     {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},
                     {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21},{"max_bridge_length", "",22},{"support_critical_regions_only", "",23},{"support_remove_small_overhang","",27},
-                    {"support_object_first_layer_gap","",28}
+                    {"support_object_first_layer_gap","",28},
+                    {"support_flow_ratio", "",29}, {"support_interface_flow_ratio", "",30}
                             }},
     { L("Speed"), {{"support_speed", "",12}, {"support_interface_speed", "",13}
                     }}
@@ -100,7 +102,9 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 
 // todo multi_extruders: Does the following need to be modified?
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
-    {{L("Quality"), {{"ironing_type", "", 8}, {"ironing_flow", "", 9}, {"ironing_spacing", "", 10}, {"ironing_inset", "", 11}, {"ironing_speed", "", 12}, {"ironing_direction", "",13}, {"bridge_density", "", 14}
+    {{L("Quality"), {{"ironing_type", "", 8}, {"ironing_flow", "", 9}, {"ironing_spacing", "", 10}, {"ironing_inset", "", 11}, {"ironing_speed", "", 12}, {"ironing_direction", "",13}, {"bridge_density", "", 14},
+                    {"first_layer_flow_ratio", "", 15}, {"outer_wall_flow_ratio", "", 16}, {"inner_wall_flow_ratio", "", 17},
+                    {"overhang_flow_ratio", "", 18}, {"sparse_infill_flow_ratio", "", 19}, {"internal_solid_infill_flow_ratio", "", 20}, {"gap_fill_flow_ratio", "", 21}
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", "",1},{"top_shell_thickness", "",1},
                     {"bottom_shell_layers", "",1}, {"bottom_shell_thickness", "",1}, {"sparse_infill_density", "",1},

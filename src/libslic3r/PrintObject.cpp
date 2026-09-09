@@ -1642,12 +1642,22 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "slowdown_start_acc"
             || opt_key == "slowdown_end_height"
             || opt_key == "slowdown_end_speed"
-            || opt_key == "slowdown_end_acc" ) {
+            || opt_key == "slowdown_end_acc"
+            || opt_key == "outer_wall_flow_ratio"
+            || opt_key == "inner_wall_flow_ratio"
+            || opt_key == "overhang_flow_ratio"
+            || opt_key == "sparse_infill_flow_ratio"
+            || opt_key == "internal_solid_infill_flow_ratio"
+            || opt_key == "gap_fill_flow_ratio"
+            || opt_key == "support_flow_ratio"
+            || opt_key == "support_interface_flow_ratio" ) {
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else if (
                opt_key == "flush_into_infill"
             || opt_key == "flush_into_objects"
-            || opt_key == "flush_into_support") {
+            || opt_key == "flush_into_support"
+            || opt_key == "set_other_flow_ratios"
+            || opt_key == "first_layer_flow_ratio") {
             invalidated |= m_print->invalidate_step(psWipeTower);
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else {
