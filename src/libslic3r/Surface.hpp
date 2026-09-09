@@ -107,6 +107,7 @@ public:
 	bool   is_top()      const { return this->surface_type == stTop; }
 	bool   is_bottom()   const { return this->surface_type == stBottom || this->surface_type == stBottomBridge; }
 	bool   is_bridge()   const { return this->surface_type == stBottomBridge || this->surface_type == stInternalBridge; }
+	bool   is_internal_bridge() const { return this->surface_type == stInternalBridge; }
 	bool   is_external() const { return this->is_top() || this->is_bottom(); }
 	bool   is_internal() const { return ! this->is_external(); }
     bool   is_floating_vertical_shell() const { return this->surface_type == stFloatingVerticalShell; }

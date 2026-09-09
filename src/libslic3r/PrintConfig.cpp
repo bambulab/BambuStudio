@@ -1537,6 +1537,19 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(100));
 
+    def = this->add("internal_bridge_density", coPercent);
+    def->label = L("Internal bridge density");
+    def->category = L("Quality");
+    def->tooltip = L("Controls the spacing of internal bridge lines. Internal bridges provide intermediate support "
+                     "between sparse infill and top solid infill, so their density can strongly affect top surface quality. "
+                     "Higher values place the lines closer together, while lower values increase the spacing. "
+                     "The existing internal bridge spacing is preserved at 100%.");
+    def->sidetext = "%";
+    def->min = 10;
+    def->max = 125;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
+
     def = this->add("counterbore_hole_bridging", coEnum);
     def->label = L("Bridge counterbore holes");
     def->category = L("Quality");

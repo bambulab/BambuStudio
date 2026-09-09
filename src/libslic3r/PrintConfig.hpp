@@ -1014,6 +1014,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // BBS
     //((ConfigOptionBool,                independent_support_layer_height))
     ((ConfigOptionBool,                thick_bridges))
+    ((ConfigOptionPercent,             internal_bridge_density))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloat,               support_object_xy_distance))

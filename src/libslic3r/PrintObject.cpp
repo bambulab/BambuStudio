@@ -1525,6 +1525,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             || opt_key == "bridge_density"
+            || opt_key == "internal_bridge_density"
             //BBS
         ) {
             steps.emplace_back(posPrepareInfill);

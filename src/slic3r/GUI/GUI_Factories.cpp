@@ -82,7 +82,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     {"seam_position", "",3}, {"seam_gap", "",4}, {"wipe_speed", "",5},
                     {"slice_closing_radius", "",6}, {"resolution", "",7},
                     {"xy_hole_compensation", "",8}, {"xy_contour_compensation", "",9}, {"elefant_foot_compensation", "",10},
-                    {"precise_z_height", "",10}
+                    {"precise_z_height", "",10}, {"internal_bridge_density", "",11}
 
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},

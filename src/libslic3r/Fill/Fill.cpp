@@ -758,6 +758,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 			params.density = layerm->region().config().bridge_density.get_abs_value(1.0);
 			params.dont_adjust = true;
 		}
+		if (surface_fill.surface.is_internal_bridge()) {
+			params.density = this->object()->config().internal_bridge_density.get_abs_value(1.0);
+			params.dont_adjust = true;
+		}
 		for (ExPolygon& expoly : surface_fill.expolygons) {
 
       f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
