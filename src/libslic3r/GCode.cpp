@@ -7229,24 +7229,24 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (m_config.set_other_flow_ratios.value) {
         if (path.role() == erExternalPerimeter)
-            _mm3_per_mm *= m_config.outer_wall_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(outer_wall_flow_ratio);
         else if (path.role() == erPerimeter)
-            _mm3_per_mm *= m_config.inner_wall_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(inner_wall_flow_ratio);
         else if (path.role() == erOverhangPerimeter)
-            _mm3_per_mm *= m_config.overhang_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(overhang_flow_ratio);
         else if (path.role() == erInternalInfill)
-            _mm3_per_mm *= m_config.sparse_infill_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(sparse_infill_flow_ratio);
         else if (path.role() == erSolidInfill)
-            _mm3_per_mm *= m_config.internal_solid_infill_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(internal_solid_infill_flow_ratio);
         else if (path.role() == erGapFill)
-            _mm3_per_mm *= m_config.gap_fill_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(gap_fill_flow_ratio);
         else if (path.role() == erSupportMaterial)
-            _mm3_per_mm *= m_config.support_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(support_flow_ratio);
         else if (path.role() == erSupportMaterialInterface)
-            _mm3_per_mm *= m_config.support_interface_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(support_interface_flow_ratio);
 
         if (this->on_first_layer() && path.role() != erBrim && path.role() != erSkirt)
-            _mm3_per_mm *= m_config.first_layer_flow_ratio.value;
+            _mm3_per_mm *= NOZZLE_CONFIG(first_layer_flow_ratio);
     }
 
     float effective_height = path.height;

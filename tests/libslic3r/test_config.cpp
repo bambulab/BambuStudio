@@ -86,16 +86,29 @@ SCENARIO("Role-specific flow ratios have compatible defaults and limits", "[Conf
         REQUIRE(definition != nullptr);
         REQUIRE(definition->min == Approx(0.0));
         REQUIRE(definition->max == Approx(2.0));
+        REQUIRE(definition->gui_type == ConfigOptionDef::GUIType::multi_variant);
+        REQUIRE(definition->nullable);
+        REQUIRE(print_options_with_variant.count(key) == 1);
+        REQUIRE(multi_variant_text_ctrl_options.count(key) == 1);
 
-        const ConfigOptionFloat *ratio = config.option<ConfigOptionFloat>(key);
+        const ConfigOptionFloatsNullable *ratio = config.option<ConfigOptionFloatsNullable>(key);
         REQUIRE(ratio != nullptr);
-        REQUIRE(ratio->value == Approx(1.0));
+        REQUIRE(ratio->size() == 1);
+        REQUIRE(ratio->get_at(0) == Approx(1.0));
     }
 
     config.set_deserialize_strict("set_other_flow_ratios", "1");
     config.set_deserialize_strict("outer_wall_flow_ratio", "0.85");
     REQUIRE(config.option<ConfigOptionBool>("set_other_flow_ratios")->value);
-    REQUIRE(config.option<ConfigOptionFloat>("outer_wall_flow_ratio")->value == Approx(0.85));
+    const ConfigOptionFloatsNullable *legacy_ratio = config.option<ConfigOptionFloatsNullable>("outer_wall_flow_ratio");
+    REQUIRE(legacy_ratio->size() == 1);
+    REQUIRE(legacy_ratio->get_at(0) == Approx(0.85));
+
+    config.set_deserialize_strict("outer_wall_flow_ratio", "0.85,1.15");
+    const ConfigOptionFloatsNullable *dual_nozzle_ratio = config.option<ConfigOptionFloatsNullable>("outer_wall_flow_ratio");
+    REQUIRE(dual_nozzle_ratio->size() == 2);
+    REQUIRE(dual_nozzle_ratio->get_at(0) == Approx(0.85));
+    REQUIRE(dual_nozzle_ratio->get_at(1) == Approx(1.15));
     REQUIRE(config.validate().empty());
 }
 

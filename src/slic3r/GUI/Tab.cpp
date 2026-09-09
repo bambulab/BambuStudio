@@ -5127,25 +5127,16 @@ void Tab::update_pages_with_multi_variant()
         return;
     }
     for (auto optgroup : m_active_page->m_optgroups) {
-        Field *multi_variant_field = nullptr;
-        std::string opt_key;
-
         for (const auto& opt : multi_variant_text_ctrl_options) {
             Field* field = optgroup->get_fieldc(opt, 0);
             if (field) {
                 auto *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(field);
-                if (multi_variant) {;
-                    multi_variant_field = field;
-                    opt_key = opt;
+                if (multi_variant) {
+                    multi_variant->refresh_text_ctrls_layout(optgroup->ctrl_parent());
+                    if (optgroup->custom_ctrl) {
+                        optgroup->custom_ctrl->update_line_height_for_field(opt);
+                    }
                 }
-                break;
-            }
-        }
-        if (multi_variant_field) {
-            auto * multi_variant_ctrl = dynamic_cast<MultiVariantTextCtrl*>(multi_variant_field);
-            multi_variant_ctrl->refresh_text_ctrls_layout(optgroup->ctrl_parent());
-            if (optgroup->custom_ctrl) {
-                optgroup->custom_ctrl->update_line_height_for_field(opt_key);
             }
         }
         m_page_view->GetParent()->Layout();

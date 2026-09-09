@@ -1592,99 +1592,117 @@ void PrintConfigDef::init_fff_params()
     def = this->add("set_other_flow_ratios", coBool);
     def->label = L("Set other flow ratios");
     def->category = L("Advanced");
-    def->tooltip = L("Change flow ratios for other extrusion path types.");
+    def->tooltip = L("Change flow ratios for other extrusion path types separately for each nozzle.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("first_layer_flow_ratio", coFloat);
+    def = this->add("first_layer_flow_ratio", coFloats);
     def->label = L("First layer flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material on the first layer for the extrusion path roles listed in this section.\n\n"
                      "For the first layer, each applicable path's flow ratio is multiplied by this value. Brims and skirts are not affected.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
-    def = this->add("outer_wall_flow_ratio", coFloat);
+    def = this->add("outer_wall_flow_ratio", coFloats);
     def->label = L("Outer wall flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for outer walls.\n\n"
                      "The actual outer wall flow is multiplied by this value.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
-    def = this->add("inner_wall_flow_ratio", coFloat);
+    def = this->add("inner_wall_flow_ratio", coFloats);
     def->label = L("Inner wall flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for inner walls.\n\n"
                      "The actual inner wall flow is multiplied by this value.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
-    def = this->add("overhang_flow_ratio", coFloat);
+    def = this->add("overhang_flow_ratio", coFloats);
     def->label = L("Overhang flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for overhang walls.\n\n"
                      "The actual overhang wall flow is multiplied by this value.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
-    def = this->add("sparse_infill_flow_ratio", coFloat);
+    def = this->add("sparse_infill_flow_ratio", coFloats);
     def->label = L("Sparse infill flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for sparse infill.\n\n"
                      "The actual sparse infill flow is multiplied by this value.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
-    def = this->add("internal_solid_infill_flow_ratio", coFloat);
+    def = this->add("internal_solid_infill_flow_ratio", coFloats);
     def->label = L("Internal solid infill flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for internal solid infill.\n\n"
                      "The actual internal solid infill flow is multiplied by this value.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
-    def = this->add("gap_fill_flow_ratio", coFloat);
+    def = this->add("gap_fill_flow_ratio", coFloats);
     def->label = L("Gap fill flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material used to fill gaps.\n\n"
                      "The actual gap fill flow is multiplied by this value.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
-    def = this->add("support_flow_ratio", coFloat);
+    def = this->add("support_flow_ratio", coFloats);
     def->label = L("Support flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for support.\n\n"
                      "The actual support flow is multiplied by this value.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
-    def = this->add("support_interface_flow_ratio", coFloat);
+    def = this->add("support_interface_flow_ratio", coFloats);
     def->label = L("Support interface flow ratio");
     def->category = L("Advanced");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for support interfaces.\n\n"
                      "The actual support interface flow is multiplied by this value.");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
     def = this->add("top_one_wall_type", coEnum);
     def->label = L("Only one wall on top surfaces");
@@ -7651,7 +7669,16 @@ std::set<std::string> print_options_with_variant = {
     "top_surface_acceleration",
     "print_extruder_id", //coInts
     "print_extruder_variant", //coStrings
-    "top_solid_infill_flow_ratio"
+    "top_solid_infill_flow_ratio",
+    "first_layer_flow_ratio",
+    "outer_wall_flow_ratio",
+    "inner_wall_flow_ratio",
+    "overhang_flow_ratio",
+    "sparse_infill_flow_ratio",
+    "internal_solid_infill_flow_ratio",
+    "gap_fill_flow_ratio",
+    "support_flow_ratio",
+    "support_interface_flow_ratio"
 };
 
 std::set<std::string> filament_options_with_variant = {
@@ -7761,7 +7788,16 @@ std::set<std::string> printer_options_with_variant_2 = {
 };
 
 std::set<std::string> multi_variant_text_ctrl_options = {
-    "top_solid_infill_flow_ratio"
+    "top_solid_infill_flow_ratio",
+    "first_layer_flow_ratio",
+    "outer_wall_flow_ratio",
+    "inner_wall_flow_ratio",
+    "overhang_flow_ratio",
+    "sparse_infill_flow_ratio",
+    "internal_solid_infill_flow_ratio",
+    "gap_fill_flow_ratio",
+    "support_flow_ratio",
+    "support_interface_flow_ratio"
 };
 
 std::set<std::string> empty_options;

@@ -2239,7 +2239,7 @@ int MultiVariantTextCtrl::get_index_for_extruder(int extruder_id, NozzleVolumeTy
 void MultiVariantTextCtrl::BUILD()
 {
     m_preset_bundle = wxGetApp().preset_bundle;
-    m_variant_sizer = new wxBoxSizer(wxVERTICAL);
+    m_variant_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     refresh_text_ctrls_layout();
 }
@@ -2270,13 +2270,14 @@ void MultiVariantTextCtrl::refresh_text_ctrls_layout(wxWindow *parent)
         if (new_layout.size() != 1 && label_text) {
             auto text_input = dynamic_cast<::TextInput*>(text_ctrl->getWindow());
             if (text_input) {
-                text_input->SetSize(wxSize(def_width_wider() * m_em_unit + 20, wxDefaultCoord));
+                const int compact_width = (def_width_wider() / 2) * m_em_unit + 20;
+                text_input->SetSize(wxSize(compact_width, wxDefaultCoord));
                 text_input->SetPrefix(label_text);
             }
         }
         wxWindow* text_window = text_ctrl->getWindow();
         h_sizer->Add(text_window, 0, wxALIGN_CENTER_VERTICAL);
-        m_variant_sizer->Add(h_sizer, 0, wxEXPAND | wxBOTTOM, 5);
+        m_variant_sizer->Add(h_sizer, 0, wxEXPAND | wxRIGHT, 5);
         m_text_ctrls.push_back(VariantTextCtrl(
             std::move(text_ctrl), index, label_text));
     }
