@@ -389,6 +389,12 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                 wxGetApp().CallAfter([this, strJS] {
                     RunScript(strJS.ToStdString());
                 });
+            } else {
+                // m_last_payload was cleared (e.g. after a save) and the background
+                // reload may not have finished yet — or its dispatch was dropped during
+                // webview navigation.  Trigger a fresh reload so the new page receives
+                // up-to-date model data once the reload completes.
+                update_model_data();
             }
         }
         else if (strCmd == "request_confirm_save_project") {
