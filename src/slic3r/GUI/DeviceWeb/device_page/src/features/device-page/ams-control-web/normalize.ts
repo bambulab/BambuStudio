@@ -24,6 +24,7 @@ import type {
   PreviewCube,
   PreviewItem,
   SlotLink,
+  SlotRemainLine,
   SlotState,
   SlotView,
   SwitcherArea,
@@ -189,6 +190,13 @@ function normalizeMenuActions(raw: Partial<MenuActions> | undefined): MenuAction
   };
 }
 
+function normalizeSlotLine(raw: Partial<SlotRemainLine> | undefined): SlotRemainLine {
+  return {
+    show_line: !!raw?.show_line,
+    remain_percent: asNumber(raw?.remain_percent, 100),
+  };
+}
+
 function normalizeSlotView(raw: unknown): SlotView {
   const item = (raw ?? {}) as Partial<SlotView>;
   const color = asString(item.color, DEFAULT_COLOR) || DEFAULT_COLOR;
@@ -202,6 +210,7 @@ function normalizeSlotView(raw: unknown): SlotView {
     color_type: asColorType(item.color_type),
     remain: asNumber(item.remain, 100),
     show_remain: !!item.show_remain,
+    show_remain_height: !!item.show_remain_height,
     fila_type: asString(item.fila_type),
     selected: !!item.selected,
     loaded: !!item.loaded,
@@ -212,6 +221,7 @@ function normalizeSlotView(raw: unknown): SlotView {
     k_loading: !!item.k_loading,
     k_loading_text: asString(item.k_loading_text),
     menu_actions: normalizeMenuActions(item.menu_actions),
+    slot_remain_line: normalizeSlotLine(item.slot_remain_line),
   };
 }
 

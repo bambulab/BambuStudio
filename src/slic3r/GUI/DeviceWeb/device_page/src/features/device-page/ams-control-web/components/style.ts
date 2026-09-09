@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { roadFilamentColor } from '../geometry';
 import type { AmsColorType } from '../types';
 
 export function cn(...parts: Array<string | false | null | undefined>) {
@@ -66,6 +67,13 @@ export function slotFillRatio(remain: number, showRemain: boolean) {
   return clamped < 10 ? 0.1 : clamped / 100;
 }
 
+// C++ _DrawRemainArea reads an out-of-range percentage as a full bar. Unlike the
+// height fill there is no 10% floor: an empty spool must show an empty capsule.
+export function remainLineRatio(remainPercent: number) {
+  const clamped = remainPercent < 0 || remainPercent > 100 ? 100 : remainPercent;
+  return clamped / 100;
+}
+
 function spoolColors(spool: { color: string; colors: string[] }) {
   return spool.colors.length > 0 ? spool.colors : [spool.color];
 }
@@ -90,6 +98,35 @@ export function slotFill(spool: { color: string; colors: string[]; color_type: A
     return `linear-gradient(90deg, ${stops.join(', ')})`;
   }
   return colors[0] || spool.color;
+}
+
+function isLightTheme() {
+  return typeof document === 'undefined'
+    || document.documentElement.getAttribute('data-theme') !== 'dark';
+}
+
+// Light-theme remain bar: pale / white fills must sit darker than the #E4E4E4
+// track. The road-line -20 bump (255 → 235) is still lighter than that track.
+const REMAIN_BAR_PALE_FILL = '#C8C8C8';
+
+function remainBarColor(hex: string) {
+  const adjusted = roadFilamentColor(hex);
+  if (!isLightTheme()) return adjusted;
+
+  const rgba = parseColor(hex);
+  if (!rgba || rgba.r < 220 || rgba.g < 220 || rgba.b < 220) return adjusted;
+
+  if (filamentAlphaKind(hex) === 'opaque') return REMAIN_BAR_PALE_FILL;
+  return 'rgba(200, 200, 200, 0.588)';
+}
+
+export function remainBarFill(spool: { color: string; colors: string[]; color_type: AmsColorType }) {
+  const colors = spoolColors(spool).map((color) => remainBarColor(color));
+  if (spool.color_type === 0 && colors.length >= 2) {
+    const stops = colors.map((color, index) => `${color} ${(index / (colors.length - 1)) * 100}%`);
+    return `linear-gradient(90deg, ${stops.join(', ')})`;
+  }
+  return colors[0] || remainBarColor(spool.color);
 }
 
 export function previewCubeFill(cube: { color: string; colors: string[]; color_type: AmsColorType }) {

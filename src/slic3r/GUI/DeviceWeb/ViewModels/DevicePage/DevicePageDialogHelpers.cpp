@@ -1,6 +1,7 @@
 #include "DevicePageDialogHelpers.h"
 
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
+#include "slic3r/GUI/AmsMappingPopup.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -88,6 +89,18 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
         info.ctype  = dlg.m_clr_picker->ctype;
     }
     return info;
+}
+
+void OpenAmsAutoRefillDialog()
+{
+    auto*          dev_mgr     = wxGetApp().getDeviceManager();
+    MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    wxWindow*      parent      = wxGetApp().mainframe;
+    if (!machine_obj || !parent) return;
+
+    AmsReplaceMaterialDialog dlg(parent);
+    dlg.update_machine_obj(machine_obj);
+    dlg.ShowModal();
 }
 
 }} // namespace Slic3r::GUI

@@ -187,5 +187,12 @@
   "day_Fri": "Fri",
   "day_Sat": "Sat",
   "No predefined colors for this filament": "No predefined colors for this filament",
-  "Bambu Color Code": "Bambu Color Code"
+  "Bambu Color Code": "Bambu Color Code",
+  "AMS Settings": "AMS Settings",
+  "Auto-refill": "Auto-refill",
+  "Humidity": "Humidity",
+  "Load": "Load",
+  "Unload": "Unload",
+  "External Spool": "External Spool",
+  "Quantity": "Quantity"
 }

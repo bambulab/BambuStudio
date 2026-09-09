@@ -342,11 +342,7 @@ void DevicePageAmsControlWebVM::FillActions(MachineObject* machine_obj, SchemaFo
 {
     auto fila_system = machine_obj->GetFilaSystem();
     const bool has_connected_ams = !fila_system->GetAmsList().empty() && machine_obj->ams_exist_bits != 0;
-    // The auto-refill entry lives in the AMS settings dialog on this branch, so the
-    // footer keeps the button hidden.
-    (void) has_connected_ams;
-    state.actions.show_auto_refill = false;
-    // Settings stay on the option row in ext-only mode; only auto-refill is AMS-gated.
+    state.actions.show_auto_refill = has_connected_ams;
     state.actions.show_settings    = true;
 
     get_switch_info(machine_obj, state, state.actions.load_tips, state.actions.unload_tips);

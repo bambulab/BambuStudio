@@ -52,6 +52,7 @@ namespace slot_view {
     inline constexpr const char* color_type   = "color_type";
     inline constexpr const char* remain       = "remain";
     inline constexpr const char* show_remain  = "show_remain";
+    inline constexpr const char* show_remain_height = "show_remain_height";
     inline constexpr const char* fila_type    = "fila_type";
     inline constexpr const char* selected     = "selected";
     inline constexpr const char* loaded       = "loaded";
@@ -64,7 +65,16 @@ namespace slot_view {
     inline constexpr const char* k_text          = "k_text";
     inline constexpr const char* k_loading       = "k_loading";
     inline constexpr const char* k_loading_text  = "k_loading_text";
+    // Capsule remain bar drawn above the card. Independent of height fill.
+    inline constexpr const char* slot_remain_line = "slot_remain_line";
 } // namespace slot_view
+
+// AmsMappingPopup::_DrawRemainArea equivalent: a horizontal remain bar that
+// reads the same percentage as `remain`. Height fill is a separate flag.
+namespace slot_remain_line {
+    inline constexpr const char* show_line      = "show_line";
+    inline constexpr const char* remain_percent = "remain_percent";
+} // namespace slot_remain_line
 
 namespace menu_actions {
     // Pencil icon: an editable spool (third party / ext) outside view-only mode.
@@ -239,6 +249,12 @@ struct MenuActions
     bool show_filament_mgr_hint = false;
 };
 
+struct SlotRemainLine
+{
+    bool show_line      = false;
+    int  remain_percent = 100;
+};
+
 struct SlotView
 {
     std::string              ams_id;
@@ -250,6 +266,7 @@ struct SlotView
     int                      color_type  = 2;
     int                      remain      = 100;
     bool                     show_remain = false;
+    bool                     show_remain_height = false;
     std::string              fila_type;
     bool                     selected    = false;
     bool                     loaded      = false;
@@ -260,6 +277,7 @@ struct SlotView
     std::string              k_text;
     bool                     k_loading      = false;
     std::string              k_loading_text;
+    SlotRemainLine           slot_remain_line;
 };
 
 struct HumidityView
@@ -397,6 +415,14 @@ inline void to_json(nlohmann::json& j, const MenuActions& v)
     };
 }
 
+inline void to_json(nlohmann::json& j, const SlotRemainLine& v)
+{
+    j = {
+        {slot_remain_line::show_line,      v.show_line},
+        {slot_remain_line::remain_percent, v.remain_percent},
+    };
+}
+
 inline void to_json(nlohmann::json& j, const SlotView& v)
 {
     j = {
@@ -409,6 +435,7 @@ inline void to_json(nlohmann::json& j, const SlotView& v)
         {slot_view::color_type,   v.color_type},
         {slot_view::remain,       v.remain},
         {slot_view::show_remain,  v.show_remain},
+        {slot_view::show_remain_height, v.show_remain_height},
         {slot_view::fila_type,    v.fila_type},
         {slot_view::selected,     v.selected},
         {slot_view::loaded,       v.loaded},
@@ -419,6 +446,7 @@ inline void to_json(nlohmann::json& j, const SlotView& v)
         {slot_view::k_text,          v.k_text},
         {slot_view::k_loading,       v.k_loading},
         {slot_view::k_loading_text,  v.k_loading_text},
+        {slot_view::slot_remain_line, v.slot_remain_line},
     };
 }
 

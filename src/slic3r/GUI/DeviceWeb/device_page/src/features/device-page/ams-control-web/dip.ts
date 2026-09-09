@@ -45,6 +45,11 @@ export const FOOTER_SIDE_WIDTH = 180;
 
 export const FOOTER_GAP = 20;
 
+// Deliberate deviation from AMSControl, where the option row is flush with the
+// body: on a single-Ext machine the body is only 264 wide, so a flush-left
+// group reads as stranded. The right group stays flush.
+export const FOOTER_LEFT_INSET = 16;
+
 export const PREVIEW_CHIP_FOUR = { width: 52, height: 32 } as const;
 export const PREVIEW_CHIP_SINGLE = { width: 28, height: 32 } as const;
 
@@ -57,7 +62,23 @@ export const SLOT_LIB = { width: 52, height: 80 } as const;
 
 export const SLOT_LIB_LITE = { width: 49, height: 72 } as const;
 
-export const SLOT_REFRESH = { size: 28, gap: 4 } as const;
+// C++ AmsMappingPopup::_DrawRemainArea. Radius there is 2 on a 6px track; the
+// capsule uses height / 2 instead. Like the C++ original it rides above the
+// card, floating in the widened SLOT_REFRESH gap.
+export const SLOT_REMAIN_LINE = {
+  height: 6,
+  marginX: 4,
+  gapToCard: 2,
+  border: 1,
+  // Capsule outline. Unfilled interior matches AmsMappingPopup's #E4E4E4 track
+  // so a white / pale fill still reads against the remainder.
+  borderColor: '#E4E4E4',
+  trackColor: '#E4E4E4',
+} as const;
+
+// C++ gap is 4. The remain capsule floats in this gap, so it is widened enough
+// to clear the 32px refresh glyph (which overflows its 28px hitbox by 2).
+export const SLOT_REFRESH = { size: 28, gap: 12 } as const;
 
 // C++ AMSRoadUpPart widget. Overlay paints the remainder of UNIT_BODY, see geometry.UNIT_ROAD_BAND.
 export const UNIT_ROAD_HEIGHT = 34;

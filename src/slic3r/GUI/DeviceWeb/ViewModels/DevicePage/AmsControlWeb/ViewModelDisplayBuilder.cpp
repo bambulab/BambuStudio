@@ -154,6 +154,12 @@ SchemaFormat::SlotView build_slot_view(const SchemaFormat::Tray& tray,
 
     view.show_remain = !is_ext && is_bbl && tray.info_ready && state.data.detect_remain_enabled;
     view.remain      = (view.show_remain && tray.remain >= 0 && tray.remain <= 100) ? tray.remain : 100;
+    view.show_remain_height = false;
+
+    // The capsule remains the default visualization; height fill is controlled
+    // independently and stays disabled unless a future caller opts in.
+    view.slot_remain_line.show_line      = view.show_remain && has_spool;
+    view.slot_remain_line.remain_percent = view.remain >= 5 ? view.remain : 5;// the visual min val is 5
 
     view.menu_actions = build_menu_actions(tray, view.slot_state, view_only);
     fill_slot_k(view, tray, machine_obj, show_kn);

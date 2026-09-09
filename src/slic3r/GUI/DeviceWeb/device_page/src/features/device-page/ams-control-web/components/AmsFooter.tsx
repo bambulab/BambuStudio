@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { CONTENT_WIDTH, EXTRUDER, FOOTER_BUTTON, FOOTER_GAP, FOOTER_SIDE_WIDTH, SETTINGS_ICON, px } from '../dip';
+import { CONTENT_WIDTH, EXTRUDER, FOOTER_BUTTON, FOOTER_GAP, FOOTER_LEFT_INSET, FOOTER_SIDE_WIDTH, SETTINGS_ICON, px } from '../dip';
 import { extruderIconName, extrudersLeftToRight } from '../displayAdapters';
 import { nozzleIconLefts } from '../geometry';
 import type { AmsControlActions, ExtruderArea } from '../types';
@@ -18,6 +18,9 @@ export function AmsFooter({
   onAutoRefill,
   onLoad,
   onUnload,
+  showDebug,
+  debugOpening,
+  onDebug,
 }: {
   actions: AmsControlActions;
   extruderArea: ExtruderArea;
@@ -25,6 +28,9 @@ export function AmsFooter({
   onAutoRefill: () => void;
   onLoad: () => void;
   onUnload: () => void;
+  showDebug: boolean;
+  debugOpening: boolean;
+  onDebug: () => void;
 }) {
   const { t } = useTranslation();
   const extruders = extrudersLeftToRight(extruderArea.extruders);
@@ -33,9 +39,11 @@ export function AmsFooter({
 
   return (
     <div className="relative" style={{ width: px(CONTENT_WIDTH), minHeight: px(EXTRUDER.height) }}>
+      {/* minWidth, not width: the internal-build Debug button may push this group past
+          FOOTER_SIDE_WIDTH, and the shipped controls must not be squeezed to fit. */}
       <div
-        className="absolute left-0 top-0 flex items-center"
-        style={{ width: px(FOOTER_SIDE_WIDTH), gap: px(FOOTER_GAP) }}
+        className="absolute top-0 flex items-center"
+        style={{ left: px(FOOTER_LEFT_INSET), minWidth: px(FOOTER_SIDE_WIDTH), gap: px(FOOTER_GAP) }}
       >
         {actions.show_auto_refill ? (
           <button
@@ -60,6 +68,17 @@ export function AmsFooter({
           <img src={amsSettingHoverUrl} alt="" className="ams-icon-hover absolute inset-0 m-auto size-full" />
           <img src={amsSettingPressUrl} alt="" className="ams-icon-active absolute inset-0 m-auto size-full" />
         </button>
+        {showDebug ? (
+          <button
+            type="button"
+            data-testid="ams-control-web-debug"
+            disabled={debugOpening}
+            className="h-6 shrink-0 rounded-full border border-[#C2C2C2] px-2.5 text-xs hover:bg-[#F5F5F5] disabled:opacity-60"
+            onClick={onDebug}
+          >
+            {debugOpening ? 'Opening...' : 'Debug'}
+          </button>
+        ) : null}
       </div>
 
       {extruderArea.visible

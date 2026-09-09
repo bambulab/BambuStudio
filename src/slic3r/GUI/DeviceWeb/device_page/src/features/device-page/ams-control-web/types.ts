@@ -67,6 +67,11 @@ export interface MenuActions {
   show_filament_mgr_hint: boolean;
 }
 
+export interface SlotRemainLine {
+  show_line: boolean;
+  remain_percent: number;
+}
+
 export interface SlotView {
   ams_id: string;
   slot_id: string;
@@ -77,6 +82,8 @@ export interface SlotView {
   color_type: AmsColorType;
   remain: number;
   show_remain: boolean;
+  // When true the card fill height encodes remain. Default off: full-bleed colour.
+  show_remain_height: boolean;
   fila_type: string;
   selected: boolean;
   loaded: boolean;
@@ -89,6 +96,8 @@ export interface SlotView {
   k_loading: boolean;
   k_loading_text: string;
   menu_actions: MenuActions;
+  // Capsule remain bar above the card.
+  slot_remain_line: SlotRemainLine;
 }
 
 export interface HumidityView {

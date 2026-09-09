@@ -2877,8 +2877,11 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
 
 void StatusBasePanel::show_ams_group(bool show)
 {
-    if (m_ams_control->IsShown() != show) {
-        m_ams_control->Show(show);
+    // AMSControl is always constructed and updated; the gate only hides it.
+    const bool show_cpp = show && BBL_SHOW_AMS_CONTROL_CPP;
+
+    if (m_ams_control->IsShown() != show_cpp) {
+        m_ams_control->Show(show_cpp);
         m_ams_control->Layout();
         m_ams_control->Fit();
         Layout();
@@ -2889,8 +2892,9 @@ void StatusBasePanel::show_ams_group(bool show)
     if (show && m_ams_rack_switch->IsShown() && (m_ams_rack_switch->switch_left != true)) { return; }
 
 #if BBL_ENABLE_AMS_CONTROL_WEB
-    if (m_ams_control_web_switch && m_ams_control_web_switch->IsShown() != show) {
-        m_ams_control_web_switch->Show(show);
+    const bool show_switch = show && BBL_SHOW_AMS_CONTROL_SWITCH;
+    if (m_ams_control_web_switch && m_ams_control_web_switch->IsShown() != show_switch) {
+        m_ams_control_web_switch->Show(show_switch);
     }
     if (!show) {
         if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
@@ -2918,8 +2922,8 @@ void StatusBasePanel::show_ams_group(bool show)
     }
 #endif
 
-    if (m_ams_control_box->IsShown() != show) {
-        m_ams_control_box->Show(show);
+    if (m_ams_control_box->IsShown() != show_cpp) {
+        m_ams_control_box->Show(show_cpp);
         m_ams_control->Layout();
         m_ams_control->Fit();
         Layout();
@@ -2974,7 +2978,7 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
     if (!m_ams_control_box->IsShown() && e.GetInt() == 1) {
 #if BBL_ENABLE_AMS_CONTROL_WEB
         if (m_ams_control_web_switch) {
-            m_ams_control_web_switch->Show(true);
+            m_ams_control_web_switch->Show(BBL_SHOW_AMS_CONTROL_SWITCH);
         }
         if (m_ams_control_web_active) {
             m_ams_control_box->Show(false);
@@ -2991,7 +2995,7 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
             m_ams_control_web_panel->HideAndSuspend();
         }
 #endif
-        m_ams_control_box->Show(e.GetInt() == 1);
+        m_ams_control_box->Show(e.GetInt() == 1 && BBL_SHOW_AMS_CONTROL_CPP);
         m_panel_nozzle_rack->Show(e.GetInt() == 0);
         Layout();
     } else if (!m_panel_nozzle_rack->IsShown() && e.GetInt() == 0) {
@@ -3003,7 +3007,7 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
             m_ams_control_web_panel->HideAndSuspend();
         }
 #endif
-        m_ams_control_box->Show(e.GetInt() == 1);
+        m_ams_control_box->Show(e.GetInt() == 1 && BBL_SHOW_AMS_CONTROL_CPP);
         m_panel_nozzle_rack->Show(e.GetInt() == 0);
         Layout();
     }
@@ -3014,7 +3018,7 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
 #if BBL_ENABLE_AMS_CONTROL_WEB
 void StatusBasePanel::on_ams_control_web_switch(wxCommandEvent &e)
 {
-    m_ams_control_web_active = (e.GetInt() == 0);
+    m_ams_control_web_active = (e.GetInt() == 0) || !BBL_SHOW_AMS_CONTROL_CPP;
     if (m_ams_control_web_active) {
         if (m_ams_control_box) {
             m_ams_control_box->Show(false);
@@ -3028,7 +3032,7 @@ void StatusBasePanel::on_ams_control_web_switch(wxCommandEvent &e)
             m_ams_control_web_panel->HideAndSuspend();
         }
         if (m_ams_control_box) {
-            m_ams_control_box->Show(true);
+            m_ams_control_box->Show(BBL_SHOW_AMS_CONTROL_CPP);
         }
     }
     Layout();

@@ -301,13 +301,18 @@ std::optional<nlohmann::json> AmsControlWebActionHandler::TryHandle(DevicePageAm
     const bool is_device_action = action == "settings" || action == "load" ||
                                   action == "unload" || action == "edit_slot" || action == "read_slot" ||
                                   action == "view_slot" || action == "open_filament_mgr_hint" ||
-                                  action == "open_humidity";
+                                  action == "open_humidity" || action == "auto_refill";
     if (!is_device_action) return std::nullopt;
 
     if (!machine_obj) return respond(3, _u8L("Please select a printer"));
 
     if (action == "settings") {
         wxGetApp().CallAfter([]() { open_ams_settings(); });
+        return respond(0, "");
+    }
+
+    if (action == "auto_refill") {
+        wxGetApp().CallAfter([]() { OpenAmsAutoRefillDialog(); });
         return respond(0, "");
     }
 

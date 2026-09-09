@@ -84,6 +84,7 @@ function slotView(
   const hasSpool = state !== 'empty';
   const unknown = hasSpool && !item.info_ready;
   const showRead = state === 'brand';
+  const showRemain = !isExt && item.is_bbl && item.info_ready && mockData.detect_remain_enabled;
   return {
     ams_id: item.ams_id,
     slot_id: item.slot_id,
@@ -93,7 +94,8 @@ function slotView(
     colors: unknown ? ['#FFFFFF'] : item.colors,
     color_type: unknown ? 0 : item.color_type,
     remain: item.remain,
-    show_remain: !isExt && item.is_bbl && item.info_ready && mockData.detect_remain_enabled,
+    show_remain: showRemain,
+    show_remain_height: false,
     fila_type: unknown ? '' : item.fila_type,
     selected: item.ams_id === selected.amsId && item.slot_id === selected.slotId,
     loaded: item.ams_id === loaded.amsId && item.slot_id === loaded.slotId,
@@ -107,6 +109,10 @@ function slotView(
       show_edit: hasSpool && !showRead,
       show_read: hasSpool && showRead,
       show_filament_mgr_hint: false,
+    },
+    slot_remain_line: {
+      show_line: showRemain && hasSpool,
+      remain_percent: item.remain,
     },
   };
 }

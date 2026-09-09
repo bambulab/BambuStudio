@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { COLORS, SLOT_LIB, SLOT_LIB_LITE, TRAY_ICON, px } from '../dip';
+import { COLORS, SLOT_LIB, SLOT_LIB_LITE, SLOT_REMAIN_LINE, TRAY_ICON, px } from '../dip';
 import { LITE_COLOR_INSET, LITE_EXT_COLOR_INSET } from '../geometry';
 import type { SlotView } from '../types';
 import {
@@ -19,7 +19,7 @@ import {
   trayRightSelectedSvg,
   trayRightSvg,
 } from '../assets';
-import { cn, clearCheckerStyle, colorBandRects, filamentAlphaKind, slotContrast, slotFill, slotFillRatio, translucentCheckerStyle, type FilamentAlphaKind } from './style';
+import { cn, clearCheckerStyle, colorBandRects, filamentAlphaKind, remainBarFill, remainLineRatio, slotContrast, slotFill, slotFillRatio, translucentCheckerStyle, type FilamentAlphaKind } from './style';
 
 export type SlotCardVariant = 'generic' | 'lite' | 'lite-ext' | 'ext';
 
@@ -191,6 +191,55 @@ function SlotSwatch({
   );
 }
 
+// Capsule above the card: light-grey outline, filament fill stays inside the
+// border and never overlaps it.
+function SlotRemainLineBar({
+  slot,
+  left,
+  top,
+  width,
+}: {
+  slot: SlotView;
+  left: number;
+  top: number;
+  width: number;
+}) {
+  const { height, border, borderColor, trackColor } = SLOT_REMAIN_LINE;
+  const innerWidth = width - 2 * border;
+  const innerHeight = height - 2 * border;
+  const fillWidth = Math.round(innerWidth * remainLineRatio(slot.slot_remain_line.remain_percent));
+
+  return (
+    <span
+      data-testid={`ams-slot-remain-line-${slot.ams_id}-${slot.slot_id}`}
+      className="pointer-events-none absolute z-[1] box-border block"
+      style={{
+        left: px(left),
+        top: px(top),
+        width: px(width),
+        height: px(height),
+        borderRadius: px(height / 2),
+        border: `${border}px solid ${borderColor}`,
+        background: trackColor,
+      }}
+    >
+      {fillWidth > 0 ? (
+        <span
+          className="absolute block"
+          style={{
+            left: 0,
+            top: 0,
+            width: px(fillWidth),
+            height: px(innerHeight),
+            borderRadius: px(innerHeight / 2),
+            background: remainBarFill(slot),
+          }}
+        />
+      ) : null}
+    </span>
+  );
+}
+
 export function SlotCard({
   slot,
   variant,
@@ -219,10 +268,18 @@ export function SlotCard({
   const contrast = slotContrast({
     color: slot.color,
     remain: slot.remain,
-    showRemain: slot.show_remain,
+    showRemain: slot.show_remain_height,
     pale,
   });
-  const fillRatio = slotFillRatio(slot.remain, slot.show_remain);
+  const fillRatio = slotFillRatio(slot.remain, slot.show_remain_height);
+  // Sits above the card, so it hangs off the wrapper on a negative offset
+  // instead of being clipped by the card's own overflow. Lite has no headroom
+  // there - its refresh arrows flank the card - so it skips the bar entirely.
+  const remainLineBox = {
+    left: SLOT_REMAIN_LINE.marginX,
+    top: -(SLOT_REMAIN_LINE.height + SLOT_REMAIN_LINE.gapToCard),
+    width: size.width - 2 * SLOT_REMAIN_LINE.marginX,
+  };
   const showEdit = slot.menu_actions.show_edit;
   const showRead = slot.menu_actions.show_read;
   const glyph = showEdit
@@ -252,6 +309,14 @@ export function SlotCard({
       onMouseLeave={() => setTipOrigin(null)}
     >
       {tip && tipOrigin ? <CursorTip text={tip} origin={tipOrigin} /> : null}
+      {slot.slot_remain_line.show_line && !lite ? (
+        <SlotRemainLineBar
+          slot={slot}
+          left={remainLineBox.left}
+          top={remainLineBox.top}
+          width={remainLineBox.width}
+        />
+      ) : null}
     <div
       role="button"
       tabIndex={0}

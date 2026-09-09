@@ -278,25 +278,6 @@ export function AmsControlWebPage() {
       className="ams-control-web-page relative flex w-full flex-col items-center py-[4px]"
     >
       <div className="relative flex flex-col" style={{ width: px(CONTENT_WIDTH) }}>
-        {showDebugButton ? (
-          <button
-            type="button"
-            data-testid="ams-control-web-debug"
-            disabled={debugOpening}
-            className="absolute right-0 top-0 z-10 h-6 shrink-0 rounded-full border border-[#C2C2C2] px-2.5 text-xs hover:bg-[#F5F5F5] disabled:opacity-60"
-            onClick={async () => {
-              setDebugOpening(true);
-              try {
-                await openBridgeDebugDialog(state);
-              } finally {
-                setDebugOpening(false);
-              }
-            }}
-          >
-            {debugOpening ? 'Opening...' : 'Debug'}
-          </button>
-        ) : null}
-
         {preview.visible && mixedPreview ? (
           <>
             <div
@@ -386,6 +367,16 @@ export function AmsControlWebPage() {
           onAutoRefill={() => { void openAutoRefill(); }}
           onLoad={() => { void loadFilament(state.selected_ams_id, state.selected_slot_id); }}
           onUnload={() => { void unloadFilament(state.selected_ams_id, state.selected_slot_id); }}
+          showDebug={showDebugButton}
+          debugOpening={debugOpening}
+          onDebug={async () => {
+            setDebugOpening(true);
+            try {
+              await openBridgeDebugDialog(state);
+            } finally {
+              setDebugOpening(false);
+            }
+          }}
         />
 
         <SwitcherSetupHint switcher={display.switcher_area} />
