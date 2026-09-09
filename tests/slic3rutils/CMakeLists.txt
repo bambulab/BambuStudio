@@ -4,6 +4,7 @@ add_executable(${_TEST_NAME}_tests
     helio_retry_policy_tests.cpp
     helio_support_data_tests.cpp
     helio_recent_runs_tests.cpp
+    discord_presence_tests.cpp
     )
 
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r_gui libslic3r)

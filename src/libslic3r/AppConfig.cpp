@@ -132,6 +132,11 @@ void AppConfig::set_defaults()
 
         if (get("single_instance").empty())
             set_bool("single_instance", false);
+        // Discord Rich Presence sends activity off the machine, so it is opt-in.
+        if (get("discord_rich_presence").empty())
+            set_bool("discord_rich_presence", false);
+        if (get("discord_rich_presence_hide_names").empty())
+            set_bool("discord_rich_presence_hide_names", false);
         if (get("import_3mf_as_project").empty())
             set_bool("import_3mf_as_project", true);
         if (get("show_bed_heat_soak_area").empty())
