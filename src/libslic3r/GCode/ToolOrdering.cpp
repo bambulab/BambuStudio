@@ -1526,12 +1526,14 @@ FilamentGroupContext build_filament_group_context(
     auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
     std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
 
-    // Single real extruder model: AMS nozzle capacity = real AMS slot count (1 when no AMS),
-    // captured here before group_size is collapsed to a single group.
+    // Single real extruder model: AMS-head capacity = external AMS slots + the native Ext slot
+    // (1 when no AMS). Captured here before group_size is collapsed to a single group.
     int ams_nozzle_capacity = 1;
     if (single_ext_multi_nozzle) {
-        if (ams_nozzle_idx_ctx >= 0)
-            ams_nozzle_capacity = group_size.empty() ? 1 : std::max(1, group_size[0]);
+        if (ams_nozzle_idx_ctx >= 0) {
+            const int ams_slots = group_size.empty() ? 0 : group_size[0];
+            ams_nozzle_capacity = std::max(1, ams_slots + 1);
+        }
         // One real extruder holding all filaments; the per-nozzle capacity limits each physical nozzle.
         group_size = { (int) filament_nums };
     }
