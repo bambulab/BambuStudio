@@ -549,12 +549,19 @@ void GLGizmoSimplify::apply_simplify() {
 
     auto plater = wxGetApp().plater();
     plater->take_snapshot(GUI::format("Simplify %1%", m_volume->name));
-    plater->clear_before_change_mesh(object_idx);
+    // NOTE: do NOT call clear_before_change_mesh() here - it resets the painted
+    // color/MMU, supports, seam and fuzzy-skin on every volume of the object.
+    // set_mesh_keep_paint() below reprojects that paint onto the simplified mesh
+    // (same geometric sampler repair uses), so pre-clearing it would defeat the
+    // preservation and wipe the paint.
 
     ModelVolume* mv = get_model_volume(selection, wxGetApp().model());
     assert(mv == m_volume);
 
-    mv->set_mesh(std::move(*m_state.result));
+    // Preserve painted color/MMU, supports, seam and fuzzy-skin through the
+    // decimation: reproject the paint onto the simplified mesh (same geometric
+    // sampler repair and Boolean use) instead of dropping it on a bare set_mesh.
+    mv->set_mesh_keep_paint(TriangleMesh(std::move(*m_state.result)));
     m_state.result.reset();
     mv->calculate_convex_hull();
     mv->invalidate_convex_hull_2d();
