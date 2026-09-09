@@ -7,6 +7,8 @@
 #include <wx/gdicmn.h>
 #include <vector>
 
+#include "libslic3r/PrintConfig.hpp"
+
 namespace Slic3r { namespace GUI {
 
 // Fills a rect with a west->east linear gradient by drawing solid 1px columns.
