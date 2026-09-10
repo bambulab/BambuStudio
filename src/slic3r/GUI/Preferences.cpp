@@ -20,7 +20,7 @@
 #include "OG_CustomCtrl.hpp"
 #include "fila_manager/wgtFilaManagerFeature.h"
 #include "slic3r/GUI/Widgets/Label.hpp"
-#include "slic3r/GUI/Widgets/TextTabbar.hpp"
+#include "slic3r/GUI/Widgets/SpinInput.hpp"
 #include "wx/graphics.h"
 
 #include <wx/listimpl.cpp>
@@ -693,6 +693,56 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     return sizer_input;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_spinctrl(wxString title, wxWindow *parent, wxString tooltip, std::string param, int min, int max,
+                                                    std::function<void(int)> onchange)
+{
+    wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    sizer_input->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
+
+    auto input_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
+    int  value       = min;
+    try {
+        value = std::clamp(std::stoi(app_config->get(param)), min, max);
+    } catch (...) {
+        value = min;
+    }
+
+    auto input = new SpinInput(parent, wxString::Format("%d", value), wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1),
+                               wxTE_PROCESS_ENTER, min, max, value);
+    input->SetToolTip(tooltip);
+    m_spin_input_list[m_spin_input_list.size()] = input;
+
+    sizer_input->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
+    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
+    sizer_input->Add(input, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
+
+    auto save_value = [this, param, input, onchange]() {
+        const int         value        = input->GetValue();
+        const std::string value_string = std::to_string(value);
+        if (app_config->get(param) == value_string)
+            return;
+        app_config->set(param, value_string);
+        app_config->save();
+        if (onchange)
+            onchange(value);
+    };
+
+    input->Bind(wxEVT_TEXT_ENTER, [save_value](wxCommandEvent &e) {
+        save_value();
+        e.Skip();
+    });
+    input->Bind(wxEVT_SPINCTRL, [save_value](wxCommandEvent &e) {
+        save_value();
+        e.Skip();
+    });
+    input->Bind(wxEVT_KILL_FOCUS, [save_value](wxFocusEvent &e) {
+        save_value();
+        e.Skip();
+    });
+
+    return sizer_input;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_range_input(
     wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital, std::function<void(wxString)> onchange)
 {
@@ -1319,6 +1369,9 @@ void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
     for (auto item : m_combobox_list) {
         item.second->Rescale();
     }
+    for (auto item : m_spin_input_list) {
+        item.second->Rescale();
+    }
     if (m_tabbar) m_tabbar->Rescale();
     this->Refresh();
     Layout();
@@ -1490,6 +1543,14 @@ wxWindow *PreferencesDialog::create_user_tab()
     auto item_auto_transfer = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), scrolled,
                                                    _L("After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
 
+    auto item_filament_dropdown_length = create_item_spinctrl(
+        _L("Profiles visible in filament dropdown"), scrolled,
+        _L("Maximum number of filament profile rows shown before the dropdown scrolls. Value range: 5-30."),
+        "filament_dropdown_visible_items", 5, 30, [](int) {
+            if (wxGetApp().plater())
+                wxGetApp().plater()->sidebar().update_presets(Preset::TYPE_FILAMENT);
+        });
+
     auto item_mix_print_high_low_temp = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), scrolled,
                                                              _L("With this option enabled, you can print materials with a large temperature difference together."), 50,
                                                              "enable_high_low_temp_mixed_printing");
@@ -1516,6 +1577,7 @@ wxWindow *PreferencesDialog::create_user_tab()
     sizer->Add(wrap_option_row(scrolled, item_bed_type_follow_preset), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_stop_liveview), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_transfer), flags);
+    sizer->Add(wrap_option_row(scrolled, item_filament_dropdown_length), flags);
     sizer->Add(wrap_option_row(scrolled, item_mix_print_high_low_temp), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_arrange_wipe_tower_on_switch_printer), flags);
     sizer->Add(wrap_option_row(scrolled, item_user_sync), flags);
@@ -2054,6 +2116,7 @@ void PreferencesDialog::on_reset_preferences()
         "use_12h_time_format",
         "auto_stop_liveview",
         "auto_transfer_when_switch_preset",
+        "filament_dropdown_visible_items",
         "enable_high_low_temp_mixed_printing",
         "sync_user_preset",
         "sync_system_preset",

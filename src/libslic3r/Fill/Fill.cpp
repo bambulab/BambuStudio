@@ -754,6 +754,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		if (surface_fill.params.pattern == ipGrid || surface_fill.params.pattern == ipFloatingConcentric)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
+		if (surface_fill.surface.is_bridge() && surface_fill.surface.is_external()) {
+			params.density = layerm->region().config().bridge_density.get_abs_value(1.0);
+			params.dont_adjust = true;
+		}
 		for (ExPolygon& expoly : surface_fill.expolygons) {
 
       f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
