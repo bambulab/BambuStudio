@@ -1107,6 +1107,20 @@ template<typename ThrowOnCancel> void apply_fuzzy_skin_segmentation(PrintObject 
     }); // end of parallel_for
 }
 
+// MMU cannot apply filament shrinkage compensation.
+static bool should_skip_filament_shrink(const PrintObject &object)
+{
+    const Print *print = object.print();
+    if (print == nullptr || print->config().filament_diameter.size() <= 1 || ! object.is_mm_painted())
+        return false;
+
+    const std::vector<double> &filament_shrink = print->config().filament_shrink.values;
+    const std::vector<unsigned int> object_filaments = object.object_extruders();
+    return std::any_of(object_filaments.begin(), object_filaments.end(), [&filament_shrink](unsigned int extruder) {
+        return extruder < filament_shrink.size() && filament_shrink[extruder] != 0. && filament_shrink[extruder] != 100.;
+    });
+}
+
 // 1) Decides Z positions of the layers,
 // 2) Initializes layers and their regions
 // 3) Slices the object meshes
@@ -1182,6 +1196,16 @@ void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_se
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
 
+    const bool skip_filament_shrink = should_skip_filament_shrink(*this);
+
+    if (skip_filament_shrink) {
+        this->active_step_add_warning(
+            PrintStateBase::WarningLevel::CRITICAL,
+            L("An object's shrinkage compensation will not be used because it is also color-painted.\n"
+              "Shrinkage compensation can not be combined with color-painting."));
+        BOOST_LOG_TRIVIAL(info) << "filament shrink compensation will not work for object " << this->model_object()->name << " for multi filament.";
+    }
+
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
@@ -1234,20 +1258,23 @@ void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_se
     //   into posSlice geometry. Current impl scales whole region by the wall_filament's shrink, which:
     //     (1) forces posSlice invalidation whenever wall_filament changes (see PrintObject::invalidate_state_by_config_options),
     //     (2) ignores per-role shrink (infill/solid_infill filament may differ from wall_filament).
-    // SuperSlicer: filament shrink
-    for (Layer *layer : m_layers) {
-        for (size_t i = 0; i < layer->region_count(); ++i) {
-            LayerRegion *region = layer->get_region(i);
-            ExPolygons ex_polys = to_expolygons(region->slices.surfaces);
-            int       filament_id = region->region().extruder(FlowRole::frPerimeter) - 1;
-            double       scale       = print->config().filament_shrink.values[filament_id] * 0.01;
-            if (scale != 1) {
-                scale = 1 / scale;
-                for (ExPolygon &poly : ex_polys)
-                    poly.scale(scale);
-            }
+    // SuperSlicer: filament shrink. Color-painted objects use the same multi-material gate as
+    // XY compensation and skip scaling when any filament used by this object enables shrinkage.
+    if (!skip_filament_shrink) {
+        for (Layer *layer : m_layers) {
+            for (size_t i = 0; i < layer->region_count(); ++i) {
+                LayerRegion *region = layer->get_region(i);
+                ExPolygons ex_polys = to_expolygons(region->slices.surfaces);
+                int       filament_id = region->region().extruder(FlowRole::frPerimeter) - 1;
+                double       scale       = print->config().filament_shrink.values[filament_id] * 0.01;
+                if (scale != 1) {
+                    scale = 1 / scale;
+                    for (ExPolygon &poly : ex_polys)
+                        poly.scale(scale);
+                }
 
-            region->slices.set(std::move(ex_polys), stInternal);
+                region->slices.set(std::move(ex_polys), stInternal);
+            }
         }
     }
 
@@ -1433,6 +1460,9 @@ double PrintObject::support_shrinkage_scale() const
 {
     const Print *print = this->print();
     if (print == nullptr || this->num_printing_regions() == 0)
+        return 1.;
+    // Keep supports aligned with object contours whenever object shrinkage is skipped.
+    if (should_skip_filament_shrink(*this))
         return 1.;
     const std::vector<double> &shrink = print->config().filament_shrink.values;
     if (shrink.empty())
