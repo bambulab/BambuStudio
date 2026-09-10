@@ -6562,7 +6562,15 @@ void PrintConfigDef::init_fff_params()
         case coFloats: def->set_default_value(new ConfigOptionFloatsNullable(static_cast<const ConfigOptionFloatsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coPercents: def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercentsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coBools: def->set_default_value(new ConfigOptionBoolsNullable(static_cast<const ConfigOptionBools*>(it_opt->second.default_value.get())->values)); break;
-        case coEnums: def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values)); break;
+        case coEnums: {
+            // Keep the enum key map so the option can serialize/deserialize by
+            // name (append_full_config serializes every key; a null keys_map
+            // here dereferences null).
+            auto *enums_opt = new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values);
+            enums_opt->keys_map = it_opt->second.enum_keys_map;
+            def->set_default_value(enums_opt);
+            break;
+        }
         default: assert(false);
         }
     }
@@ -6590,7 +6598,15 @@ void PrintConfigDef::init_fff_params()
         case coFloats: def->set_default_value(new ConfigOptionFloatsNullable(static_cast<const ConfigOptionFloatsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coPercents: def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercentsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coBools: def->set_default_value(new ConfigOptionBoolsNullable(static_cast<const ConfigOptionBools*>(it_opt->second.default_value.get())->values)); break;
-        case coEnums: def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values)); break;
+        case coEnums: {
+            // Keep the enum key map so the option can serialize/deserialize by
+            // name (append_full_config serializes every key; a null keys_map
+            // here dereferences null).
+            auto *enums_opt = new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values);
+            enums_opt->keys_map = it_opt->second.enum_keys_map;
+            def->set_default_value(enums_opt);
+            break;
+        }
         default: assert(false);
         }
     }
