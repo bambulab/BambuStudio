@@ -27,7 +27,6 @@
 //#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/Jobs/Worker.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
-#include <wx/regex.h>
 // #define EXECUTE_UPDATE_ON_MAIN_THREAD // debug execution on main thread
 using namespace Slic3r::Emboss;
 namespace Slic3r {
@@ -1286,22 +1285,20 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, st
 
     TextConfiguration text_configuration = input.get_text_configuration();
     bool              support_backup_fonts = std::any_of(shape.text_scales.begin(), shape.text_scales.end(), [](float x) { return x > 0; });
-    const char *text     = input.get_text_configuration().text.c_str();
-    wxString          input_text           = wxString::FromUTF8(input.get_text_configuration().text);
-    wxRegEx           re("^ +$");
-    bool              is_all_space = re.Matches(input_text);
+    // one entry per code point, decoded the same way the shapes were
+    const std::u32string input_text = Slic3r::Emboss::to_utf32(input.get_text_configuration().text);
+    bool is_all_space = std::all_of(input_text.begin(), input_text.end(), [](char32_t c) { return c == U' '; });
     if (is_all_space) { return; }
     if (input_text.size() != shape.shapes_with_ids.size()) {
         BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< "error: input_text.size() != shape.shapes_with_ids.size()";
     }
     for (int i = 0; i < shape.shapes_with_ids.size(); i++) {
         auto &temp_shape = shape.shapes_with_ids[i];
-        if (input_text[i] == ' ') {
+        // one mesh per glyph, empty or not, so the cursor arrays stay aligned with the meshes
+        if ((i < input_text.size() && input_text[i] == U' ') || temp_shape.expoly.empty()) {
             result.emplace_back(TriangleMesh());
             continue;
         }
-        if (temp_shape.expoly.empty())
-            continue;
         if (support_backup_fonts) {
             if (i < shape.text_scales.size() && shape.text_scales[i] > 0) {
                 auto temp_scale = shape.text_scales[i];
