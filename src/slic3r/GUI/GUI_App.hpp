@@ -255,6 +255,28 @@ struct TryLoadLastMachine
     boost::thread local_bind_thread;
 };
 
+// Result of GUI_App::reload_user_presets_from_disk(). Exposes counts of
+// added and removed user presets, per preset kind, so callers can decide
+// whether/how to surface a notification instead of hardcoding the UI
+// side-effect in the reload.
+struct PresetReloadResult {
+    int new_prints        = 0;
+    int new_filaments     = 0;
+    int new_printers      = 0;
+    int removed_prints    = 0;
+    int removed_filaments = 0;
+    int removed_printers  = 0;
+    bool any_change() const {
+        return new_prints || new_filaments || new_printers
+            || removed_prints || removed_filaments || removed_printers;
+    }
+};
+
+// Build the toast/log message describing a preset reload outcome. Kept
+// separate from reload_user_presets_from_disk() so each call site can
+// decide independently whether to push a notification.
+std::string build_reload_toast_message(const PresetReloadResult& r);
+
 class GUI_App : public wxApp
 {
 public:
@@ -365,6 +387,7 @@ private:
 
     boost::thread    m_sync_update_thread;
     std::shared_ptr<int> m_user_sync_token;
+
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
@@ -382,6 +405,11 @@ private:
 public:
     //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
+
+    // Reload user presets from disk (triggered via menu: File > Reload Presets,
+    // or Cmd+Shift+R / Ctrl+Shift+R). Returns counts of newly added presets;
+    // callers decide whether to notify the user (see build_reload_toast_message).
+    PresetReloadResult reload_user_presets_from_disk();
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;
