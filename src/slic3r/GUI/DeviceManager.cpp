@@ -4139,6 +4139,7 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
 {
     auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_tray.ams_type = DevAmsType::EXT_SPOOL;
+    vt_tray.is_exists = true;
 
     if (vtray.contains("id")) {
         std::string id = vtray["id"].get<std::string>();
