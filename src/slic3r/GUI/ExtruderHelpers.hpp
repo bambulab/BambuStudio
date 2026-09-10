@@ -1,10 +1,13 @@
 #ifndef slic3r_GUI_ExtruderHelpers_hpp_
 #define slic3r_GUI_ExtruderHelpers_hpp_
 
+#include <cstdint>
 #include <map>
 #include <optional>
 #include <string>
 #include <vector>
+
+#include <wx/string.h>
 
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/Widgets/MultiNozzleSync.hpp"
@@ -32,11 +35,38 @@ struct NozzleConfig
     bool is_empty() const { return diameter.IsEmpty(); }
 };
 
+/**
+ * \brief Human-readable nozzle spec for a config, e.g. "0.4mm Standard".
+ *
+ * Returns a localized status word ("Empty" / "Error" / "Unknown") when the nozzle is not usable.
+ *
+ * \param cfg  the nozzle configuration to describe
+ */
+wxString format_nozzle_spec(const NozzleConfig &cfg);
+
 // Plater-side helpers that read device (MachineObject) state and turn it into slicer
 // config, sync-status, and serialized strings. These do NOT drive the hardware; the
 // DeviceCore/Dev* files own the actual machine interaction.
 
 std::string get_diameter_string(float diameter);
+
+// "0.4 mm" -> "0.4": keep leading digits/dot, stop at the first other character.
+inline wxString parse_diameter_value(const wxString &label)
+{
+    wxString value;
+    for (const auto &ch : label) {
+        if (wxIsdigit(ch) || ch == '.')
+            value += ch;
+        else
+            break;
+    }
+    return value;
+}
+
+// A flow combo stores its NozzleVolumeType as client data, offset by +1 so a null pointer is
+// distinguishable from index 0. Shared by the row (list) and card nozzle dialogs.
+inline void *encode_volume(int volume_index) { return reinterpret_cast<void *>(static_cast<intptr_t>(volume_index) + 1); }
+inline int   decode_volume(void *data) { return static_cast<int>(reinterpret_cast<intptr_t>(data) - 1); }
 
 std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj);
 

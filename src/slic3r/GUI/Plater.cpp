@@ -176,7 +176,9 @@
 #include "Widgets/StaticGroup.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 #include "Widgets/SyncMachineInfoDialog.hpp"
-#include "Widgets/ExtruderSettingsDialog.hpp"
+#include "Widgets/NozzleSettingsListDialog.hpp"
+#include "Widgets/NozzleSettingsCardDialog.hpp"
+#include "Widgets/NozzleDetailPopup.hpp"
 #include "ExtruderHelpers.hpp"
 
 #include "GUI_ObjectTable.hpp"
@@ -208,6 +210,7 @@
 #include "FilamentMapPanel.hpp"
 #include "FilamentNozzlePopup.hpp"
 #include "ExtruderPanel.hpp"
+#include "ExtruderPanelGroup.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
@@ -976,6 +979,7 @@ struct Sidebar::priv
     ExtruderPanel            *s_extruder_panel = nullptr;
     ExtruderPanelGroup       *dual_panel       = nullptr;
     ExtruderPanelGroup       *single_panel     = nullptr;
+    NozzleDetailPopup        *nozzle_detail_popup = nullptr;
     wxPoint                   fila_switch_pos;
 
     int  FromDIP(int n) { return plater->FromDIP(n); }
@@ -1110,7 +1114,7 @@ struct Sidebar::priv
 void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
 {
     isDual = isDual && isBBL;  // It indicates a multi-extruder layout.
-    diameter_btns->SetMultiNozzleMode(multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
+    diameter_btns->SetMultiDiameterMode(multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
     // Printer - preset
     if (auto sizer = static_cast<wxBoxSizer *>(panel_printer_preset->GetSizer());
             sizer == nullptr || isBBL != (sizer->GetOrientation() == wxVERTICAL)) {
@@ -1175,6 +1179,8 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
     vsizer_printer->GetItem(2)->Show(isBBL && !isDual && !isMultiNozzle);
 
     diameter_btns->Show(isBBL && (isDual || isMultiNozzle));
+    // The single-/multi-diameter mode selector belongs to single-extruder multi-nozzle printers only.
+    diameter_btns->ShowModeSelector(isBBL && !isDual && isMultiNozzle);
     dual_panel->Show(isBBL && isDual);
     single_panel->Show(isBBL && !isDual && isMultiNozzle);
 }
@@ -1719,62 +1725,18 @@ void Sidebar::priv::update_extruder_panel()
     auto    extruder_variants         = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
     bool    is_dual_extruder          = extruder_variants->size() == 2;
 
-    auto update_panel = [this](ExtruderPanel *panel, const std::vector<NozzleConfig> &cfg) {
-        if (!panel || cfg.empty()) return;
-        auto selected_diameter = diameter_btns->GetSelectedDiameter();
-        bool has_matching_diameter = false;
-        for (const auto &c : cfg) {
-            if (c.diameter == selected_diameter) {
-                has_matching_diameter = true;
-                break;
-            }
-        }
-        if (cfg.size() == 1) { // single nozzle per extruder
-            wxString diameter_str = cfg[0].diameter;
-            panel->SetDiameter(diameter_str);
-            wxString volume_str = wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(cfg[0].volume));
-            panel->SetFlow(volume_str);
-            panel->ShowNozzleNumber(false);
-        } else { // multiple nozzles per extruder
-            int                                  matching_nozzle_count = 0;
-            std::unordered_set<NozzleVolumeType> volume_types;
-            std::vector<int>                     matching_indices;
-            for (int i = 0; i < cfg.size(); ++i) {
-                const auto &c = cfg[i];
-                if (c.diameter == selected_diameter) {
-                    matching_nozzle_count++;
-                    volume_types.insert(c.volume);
-                    matching_indices.push_back(i + 1);
-                }
-            }
-
-            panel->SetDiameter(selected_diameter);
-
-            if (volume_types.size() == 1) {
-                wxString volume_str = wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(*volume_types.begin()));
-                panel->SetFlow(volume_str);
-            } else if (volume_types.size() > 1) {
-                panel->SetFlow(wxString("Mix"));
-            } else {
-                panel->SetFlow(wxString("--"));
-            }
-            panel->SetNozzleNumber(matching_nozzle_count);
-            panel->SetNozzleIndex(matching_indices);
-        }
-
-        panel->ShowEnable(has_matching_diameter);
-    };
+    const wxString diameter = diameter_btns->GetSelectedDiameter();
 
     if (is_dual_extruder) {
         AMSCountPopupWindow::UpdateAMSCount(0, l_extruder_panel);
         AMSCountPopupWindow::UpdateAMSCount(1, r_extruder_panel);
-        update_panel(l_extruder_panel, l_ext_cfg);
-        update_panel(r_extruder_panel, r_ext_cfg);
+        dual_panel->UpdateNozzles(0, l_ext_cfg, diameter);
+        dual_panel->UpdateNozzles(1, r_ext_cfg, diameter);
         l_extruder_panel->UpdateScrollButtons();
         r_extruder_panel->UpdateScrollButtons();
     } else {
         AMSCountPopupWindow::UpdateAMSCount(0, s_extruder_panel);
-        update_panel(s_extruder_panel, s_ext_cfg);
+        single_panel->UpdateNozzles(0, s_ext_cfg, diameter);
     }
 }
 
@@ -1943,39 +1905,66 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
     }
 
     auto fila_state = is_dual ? dual_panel->GetSeparatorState() : CustomSeparator::State::Hidden;
-    ExtruderSettingsDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), is_dual, diameter, is_dual ? l_ext_cfg : s_ext_cfg, r_ext_cfg, fila_state);
-    if (dlg.ShowModal() == wxID_OK) {
-        wxString selected_diameter = dlg.GetSelectedDiameter();
 
+    // Single-extruder multi-nozzle printers use the card-grid dialog; every other printer uses the list dialog.
+    const bool use_card_dialog = is_single_ext_multi_nozzle(wxGetApp().preset_bundle->printers.get_edited_preset().config);
+
+    bool                      accepted = false;
+    wxString                  selected_diameter;
+    std::vector<NozzleConfig> new_left, new_right, new_single;
+    std::optional<bool>       new_multi_diameter_mode; // set only by the list dialog, which owns the mode toggle
+
+    if (use_card_dialog) {
+        NozzleSettingsCardDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), diameter, s_ext_cfg);
+        accepted = dlg.ShowModal() == wxID_OK;
+        if (accepted) {
+            selected_diameter = dlg.GetSelectedDiameter();
+            new_single        = dlg.GetExtruderConfigs(0);
+        }
+    } else {
+        NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), is_dual, diameter, is_dual ? l_ext_cfg : s_ext_cfg, r_ext_cfg, fila_state);
+        accepted = dlg.ShowModal() == wxID_OK;
+        if (accepted) {
+            selected_diameter       = dlg.GetSelectedDiameter();
+            new_multi_diameter_mode = dlg.GetMultiDiameterMode();
+            if (is_dual) {
+                new_left  = dlg.GetExtruderConfigs(0);
+                new_right = dlg.GetExtruderConfigs(1);
+            } else {
+                new_single = dlg.GetExtruderConfigs(0);
+            }
+        }
+    }
+
+    if (accepted) {
         // The multi-diameter gate decides how the per-slot nozzle setup below is read, so it is applied
         // first. Everything the two branches further down do - validating the per-filament diameters,
         // recomputing compatibility, refreshing the filament rows - then already sees the new mode.
-        auto *multi_diameter_mode = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
-        bool target_multi_diameter_mode = dlg.GetMultiDiameterMode();
-        if (multi_diameter_mode != nullptr && !multi_diameter_mode->value && target_multi_diameter_mode &&
-            !select_multi_nozzle_canonical_printer_preset())
-            target_multi_diameter_mode = false;
-        const bool multi_diameter_mode_changed =
-            multi_diameter_mode != nullptr && multi_diameter_mode->value != target_multi_diameter_mode;
-        if (multi_diameter_mode_changed)
-            multi_diameter_mode->value = target_multi_diameter_mode;
-        diameter_btns->SetMultiNozzleMode(target_multi_diameter_mode);
+        // The card dialog defers the mode to the sidebar selector, so the gate is only touched for the list dialog.
+        bool multi_diameter_mode_changed = false;
+        if (new_multi_diameter_mode.has_value()) {
+            auto *multi_diameter_mode   = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
+            multi_diameter_mode_changed = multi_diameter_mode != nullptr && multi_diameter_mode->value != *new_multi_diameter_mode;
+            if (multi_diameter_mode_changed)
+                multi_diameter_mode->value = *new_multi_diameter_mode;
+            diameter_btns->SetMultiDiameterMode(*new_multi_diameter_mode);
+        }
 
         if (is_dual) {
-            l_ext_cfg = dlg.GetExtruderConfigs(0);
-            r_ext_cfg = dlg.GetExtruderConfigs(1);
+            l_ext_cfg = new_left;
+            r_ext_cfg = new_right;
             update_extruder_full_stats(0, selected_diameter, l_ext_cfg);
             update_extruder_full_stats(1, selected_diameter, r_ext_cfg);
         } else {
-            s_ext_cfg = dlg.GetExtruderConfigs(0);
+            s_ext_cfg = new_single;
             update_extruder_full_stats(0, selected_diameter, s_ext_cfg);
         }
 
         // Multi-diameter slicing always uses the 0.2 machine/process preset as its base grid. This is
         // independent of the physically configured nozzles; those remain in extruder_full_stat and are
         // used per filament by the backend.
-        const wxString slicing_preset_diameter = dlg.GetMultiDiameterMode() ? wxString("0.2") : selected_diameter;
-        const bool force_multi_diameter_preset = multi_diameter_mode_changed && dlg.GetMultiDiameterMode();
+        const wxString slicing_preset_diameter = multi_diameter_mode_changed ? wxString("0.2") : selected_diameter;
+        const bool force_multi_diameter_preset = multi_diameter_mode_changed && new_multi_diameter_mode;
         if (!slicing_preset_diameter.IsEmpty() &&
             (slicing_preset_diameter != diameter || force_multi_diameter_preset)) {
             diameter_btns->SetSelectedDiameter(slicing_preset_diameter);
@@ -2405,82 +2394,6 @@ void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<DevAms *> con
         return true;
     };
     if (sync(ams_4, ams4) || sync(ams_1, ams1))
-        update_ams();
-}
-
-void ExtruderPanel::sync_ams(MachineObject const *obj, std::vector<DevAms *> const &ams_internal, std::vector<DevAms *> const &ams4, std::vector<DevAms *> const &ams1, std::vector<DevAmsTray> const &ext)
-{
-    if (m_ams_4.empty() && ams4.empty()
-            && m_ams_1.empty() && ams1.empty() && m_ext.empty() && ext.empty())
-        return;
-    auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<DevAms *> const &ams) -> bool {
-        std::vector<AMSinfo> infos2;
-        for (auto a : ams) {
-            AMSinfo ams_info;
-            ams_info.parse_ams_info(const_cast<MachineObject*>(obj), a, obj->GetFilaSystem()->IsDetectRemainEnabled(), obj->is_support_ams_humidity);
-            infos2.push_back(ams_info);
-        }
-        if (infos == infos2)
-            return false;
-
-        for (size_t ams_index = 0; ams_index < infos2.size(); ++ams_index) {
-            auto ams_info = infos2[ams_index];
-            BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - AMS Info: "
-                                    << "ams_id = \"" << ams_info.ams_id << "\""
-                                    << ", ams_type = " << static_cast<int>(ams_info.ams_type) << ", cans_count = " << ams_info.cans.size();
-
-            for (size_t can_index = 0; can_index < ams_info.cans.size(); ++can_index) {
-                const auto &can_info = ams_info.cans[can_index];
-
-                BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Can[" << can_index << "]: "
-                                        << "can_id = \"" << can_info.can_id << "\""
-                                        << ", material_name = \"" << can_info.material_name.ToStdString() << "\""
-                                        << ", material_colour = " << can_info.material_colour.GetAsString(2).ToStdString()
-                                        << ", material_state = " << static_cast<int>(can_info.material_state) << ", multi_colours_count = " << can_info.material_cols.size();
-
-                if (can_info.material_cols.size() > 1) {
-                    std::string multi_colors_str;
-                    for (size_t i = 0; i < can_info.material_cols.size(); ++i) {
-                        if (i > 0) multi_colors_str += ",";
-                        const auto &color = can_info.material_cols[i];
-                        multi_colors_str += color.GetAsString(2).ToStdString();
-                    }
-                    BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Can[" << can_index << "] MultiColors: " << multi_colors_str;
-                }
-            }
-        }
-
-        infos.swap(infos2);
-        return true;
-    };
-
-    auto sync_ext = [obj](std::vector<AMSinfo> &infos, std::vector<DevAmsTray> const &trays) -> bool {
-        std::vector<AMSinfo> infos2;
-        for (auto tray : trays) {
-            AMSinfo ext_info;
-            ext_info.parse_ext_info(const_cast<MachineObject *>(obj), tray);
-            infos2.push_back(ext_info);
-        }
-        if (infos == infos2)
-            return false;
-
-        BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - External material count: " << infos2.size();
-        for (size_t i = 0; i < infos2.size(); ++i) {
-            const auto &ext_info = infos2[i];
-            BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Ext[" << i << "]: "
-                                    << "tray_id = \"" << ext_info.ams_id << "\"";
-            if (!ext_info.cans.empty()) {
-                const auto &can = ext_info.cans[0];
-                BOOST_LOG_TRIVIAL(info) << "  material_name = \"" << can.material_name.ToStdString() << "\""
-                                        << ", colour = " << can.material_colour.GetAsString(2).ToStdString();
-            }
-        }
-
-        infos.swap(infos2);
-        return true;
-    };
-
-    if (sync(m_ams_4, ams4) || sync(m_ams_1, ams1) || sync(m_ams_internal, ams_internal) || sync_ext(m_ext, ext))
         update_ams();
 }
 
@@ -3326,15 +3239,15 @@ Sidebar::Sidebar(Plater *parent)
 
         p->diameter_btns = new DiameterButtonPanel(p->m_panel_printer_content, {}, true,
                                                    DiameterButtonPanel::PrinterContext, true);
-        p->diameter_btns->SetMultiNozzleMode(
+        p->diameter_btns->SetMultiDiameterMode(
             multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
-        p->diameter_btns->SetMultiNozzleModeCallback([this](bool enabled) {
+        p->diameter_btns->SetMultiDiameterModeCallback([this](bool enabled) {
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
             auto *option = preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
             if (option == nullptr || option->value == enabled)
                 return;
             if (enabled && !select_multi_nozzle_canonical_printer_preset()) {
-                p->diameter_btns->SetMultiNozzleMode(false);
+                p->diameter_btns->SetMultiDiameterMode(false);
                 return;
             }
 
@@ -3488,8 +3401,8 @@ Sidebar::Sidebar(Plater *parent)
             }
         });
 
-        p->dual_panel       = new ExtruderPanelGroup(p->m_panel_printer_content, ExtruderPanelGroup::Dual);
-        p->single_panel     = new ExtruderPanelGroup(p->m_panel_printer_content, ExtruderPanelGroup::Single);
+        p->dual_panel       = new DualExtruderPanelGroup(p->m_panel_printer_content);
+        p->single_panel     = new SingleExtruderPanelGroup(p->m_panel_printer_content);
         p->l_extruder_panel = p->dual_panel->GetPanel(0);
         p->r_extruder_panel = p->dual_panel->GetPanel(1);
         p->s_extruder_panel = p->single_panel->GetPanel(0);
@@ -3497,7 +3410,14 @@ Sidebar::Sidebar(Plater *parent)
         p->dual_panel->SetOnClick([this](bool is_dual) { p->open_extruder_settings_dialog(); });
 
         p->single_panel->SetOnClick([this](bool is_dual) { p->open_extruder_settings_dialog(); });
-
+        // Read-only hover card listing every nozzle's status, shown beside the single-extruder card.
+        p->nozzle_detail_popup = new NozzleDetailPopup(p->m_panel_printer_content);
+        p->single_panel->SetOnHover([this](bool shown) {
+            if (shown)
+                p->nozzle_detail_popup->ShowTip(p->s_ext_cfg, p->single_panel->GetScreenRect());
+            else
+                p->nozzle_detail_popup->HideTip();
+        });
         p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
 
         p->single_extruder->SetEditEnabled(false);
@@ -4362,7 +4282,7 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
     const std::string current_diameter =
         preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
 
-    p->diameter_btns->SetMultiNozzleMode(enabled);
+    p->diameter_btns->SetMultiDiameterMode(enabled);
     if (!enabled || current_diameter == "0.2") {
         BOOST_LOG_TRIVIAL(info)
             << "multi-diameter project load: sidebar mode=" << enabled
@@ -4394,7 +4314,7 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
 void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    p->diameter_btns->SetMultiNozzleMode(multi_nozzle_diameter_mode_enabled(preset_bundle->project_config));
+    p->diameter_btns->SetMultiDiameterMode(multi_nozzle_diameter_mode_enabled(preset_bundle->project_config));
     // Ensure per-plate + project maps stay in sync with the current filament_diameter_map
     // / filament_volume_map for single-ext multi-nozzle machines. Placed OUTSIDE the validate_selections
     // gate so every refresh (including non-validating ones that fire after project load / plate ops)

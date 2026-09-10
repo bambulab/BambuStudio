@@ -23,10 +23,10 @@ class NozzleColumn;
 // already edited the config, so the passed-in vectors are the source of truth for what
 // is *displayed*. Whether that is *synced* is a separate question, answered at open by
 // collect_machine_nozzle_baseline() (ExtruderHelpers), which asks the printer.
-class ExtruderSettingsDialog : public DPIDialog
+class NozzleSettingsListDialog : public DPIDialog
 {
 public:
-    ExtruderSettingsDialog(wxWindow                        *parent,
+    NozzleSettingsListDialog(wxWindow                        *parent,
                            bool                             is_dual,
                            const wxString                  &selected_diameter,
                            const std::vector<NozzleConfig> &left_configs,
@@ -51,15 +51,10 @@ private:
     void update_dialog_state();
     void align_separator_icon();
     void on_ams_count_changed(); // relayout/grow when a column's AMS preview count changes
-    void restore_ams_counts();   // revert the global AMS-count registry to the on-open snapshot
     void show_badge(bool show);  // machine-wide synced badge (all extruders synced)
     void layout_badge();
 
     bool m_is_dual{false};
-
-    // Snapshot of the per-extruder AMS counts at open, restored on Cancel (the count
-    // registry is a live global side-effect of the add/remove popups). Pairs are {n4, n1}.
-    std::pair<int, int> m_ams_snapshot[2]{{0, 0}, {0, 0}};
 
     // What the printer reported when this dialog opened. The synced badge shows only when the
     // printer is synced AND the edited configs still match it, slot-for-slot.

@@ -1,4 +1,4 @@
-#include "ExtruderSettingsDialog.hpp"
+#include "NozzleSettingsListDialog.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -19,8 +19,10 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
+#include "slic3r/GUI/ExtruderHelpers.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/FilamentBitmapUtils.hpp"
+#include "slic3r/GUI/Widgets/NozzleAmsRow.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
 #include "slic3r/GUI/Widgets/CheckBox.hpp"
 #include "slic3r/GUI/Widgets/ComboBox.hpp"
@@ -38,25 +40,6 @@
 
 namespace Slic3r::GUI {
 namespace {
-
-// "0.4 mm" -> "0.4"; stops at first non-digit / non-dot.
-wxString parse_diameter_value(const wxString &label)
-{
-    wxString value;
-    for (const auto &ch : label) {
-        if (wxIsdigit(ch) || ch == '.')
-            value += ch;
-        else
-            break;
-    }
-    return value;
-}
-
-// The flow combo stores its NozzleVolumeType as client data, offset by +1 so that
-// a null pointer is distinguishable from index 0. Centralized here so build / read
-// / rebind all agree.
-inline void *encode_volume(int volume_index) { return reinterpret_cast<void *>(static_cast<intptr_t>(volume_index) + 1); }
-inline int   decode_volume(void *data) { return static_cast<int>(reinterpret_cast<intptr_t>(data) - 1); }
 
 // FromDIP is a wxWindow member; NozzleRow is a plain class, so scale through a window.
 inline int    dip(const wxWindow *w, int v) { return w ? w->FromDIP(v) : v; }
@@ -89,7 +72,8 @@ MachineObject *selected_machine()
     return dev ? dev->get_selected_machine() : nullptr;
 }
 
-// One filament's display data, resolved live from the selected machine's AMS tray.
+// One filament's display data, resolved live from the selected machine's AMS tray. Only the row
+// view shows per-slot filament indicators, so this lives here rather than in a shared header.
 struct FilamentDisplay
 {
     enum class State { Empty, Unknown, Normal };
@@ -99,8 +83,8 @@ struct FilamentDisplay
     bool                  is_gradient{false};
 };
 
-// Resolve an <ams_id, slot_id> into display data from the currently selected machine:
-// no/absent tray ->Empty; loaded but no filament id -> Unknown; else Normal with sub-brand + color.
+// Resolve an <ams_id, slot_id> into display data from the currently selected machine.
+// No/absent tray -> Empty; loaded but no filament id -> Unknown; else Normal with sub-brand + colour.
 FilamentDisplay resolve_filament_display(const std::pair<int, int> &slot)
 {
     FilamentDisplay fd;
@@ -128,54 +112,6 @@ FilamentDisplay resolve_filament_display(const std::pair<int, int> &slot)
     if (fd.colors.empty()) fd.colors.push_back(tray.get_color());
     fd.is_gradient = tray.ctype == DevFilaColorType::CTYPE_GRADIANT && fd.colors.size() >= 2;
     return fd;
-}
-
-// The number of AMS attached to each extruder lives in a global registry
-// (preset_bundle.extruder_ams_counts), mirrored to app_config. slotKind is 4 or 1.
-// Reads call PresetBundle::get_ams_count directly; this setter wraps
-// PresetBundle::set_ams_count to also persist to app_config and refresh slice status
-// (the bundle setter only touches memory).
-void set_ams_count(int extruder_idx, int ams4, int ams1)
-{
-    PresetBundle &pb = *wxGetApp().preset_bundle;
-    pb.set_ams_count(extruder_idx, ams4, ams1);
-
-    std::vector<std::string> parts = save_extruder_ams_count_to_string(pb.extruder_ams_counts);
-    wxGetApp().app_config->set("presets", "extruder_ams_count", boost::algorithm::join(parts, ","));
-    if (auto *plater = wxGetApp().plater()) plater->update(); // refresh slice status
-}
-
-// Live AMS content for one extruder, bucketed 4-slot vs 1-slot, resolved from the
-// selected machine (empty when disconnected — previews then show placeholders).
-struct AmsBuckets
-{
-    std::vector<AMSinfo> ams4;
-    std::vector<AMSinfo> ams1;
-};
-
-AmsBuckets resolve_ams_infos(int extruder_idx)
-{
-    AmsBuckets     buckets;
-    MachineObject *obj = selected_machine();
-    if (!obj || !obj->GetFilaSystem()) return buckets;
-
-    const bool remain   = obj->GetFilaSystem()->IsDetectRemainEnabled();
-    const bool humidity = obj->is_support_ams_humidity;
-
-    const int extruder_count = obj->GetExtderSystem() ? obj->GetExtderSystem()->GetTotalExtderCount() : 1;
-    for (const auto &[id, ams] : obj->GetFilaSystem()->GetAmsList()) {
-        // GetUniqueBindedExtruderId is a PHYSICAL id; our extruder_idx is LOGICAL
-        auto bound = ams->GetUniqueBindedExtruderId();
-        if (bound && DevExtder::to_logical_extruder_id(extruder_count, bound.value()) != extruder_idx) continue;
-
-        AMSinfo info;
-        info.parse_ams_info(obj, ams, remain, humidity);
-        if (ams->GetAmsType() == DevAmsType::N3S)
-            buckets.ams1.push_back(info);
-        else if (ams->GetAmsType() != DevAmsType::ZMULTI_A && ams->GetAmsType() != DevAmsType::ZMULTI_B)
-            buckets.ams4.push_back(info);
-    }
-    return buckets;
 }
 
 bool extruder_configs_match(const std::vector<NozzleConfig> &edited, const std::vector<NozzleConfig> &seed)
@@ -633,24 +569,14 @@ public:
     void                      UpdateWarnings(const wxString &selected_diameter, bool show_diameter_warning);
     void                      Rescale();
     bool                      HasDiameter(const wxString &diameter) const;
+    void                      RestoreAms(); // revert this column's AMS-count edits (Cancel)
 
 private:
-    void build_ams_block(wxSizer *anchor_row_sizer, bool has_ams);
-    void update_ams_previews();
-    void show_add_ams_popup();
-    void show_delete_ams_popup(AMSPreview *preview);
-
     int                                     m_extruder_index{0};
     Label                                  *m_title_label{nullptr};
     std::vector<std::unique_ptr<NozzleRow>> m_rows;
     std::function<void()>                   m_on_ams_count_changed;
-
-    // AMS attach block
-    Label                    *m_ams_label{nullptr};
-    ScalableButton           *m_add_btn{nullptr};
-    wxBoxSizer               *m_ams_sizer{nullptr};
-    std::vector<AMSPreview *> m_ams_previews; // 4 AMS-type + 8 N3S-type, reused
-    PopupWindow              *m_ams_popup{nullptr};
+    NozzleAmsRow                           *m_ams_row{nullptr}; // external-AMS attach row, inline at the anchor
 };
 
 NozzleColumn::NozzleColumn(wxWindow                        *parent,
@@ -692,20 +618,20 @@ NozzleColumn::NozzleColumn(wxWindow                        *parent,
         m_rows.push_back(std::move(row));
     }
 
-    // Anchor the AMS block to the first nozzle row the machine bound AMS to (fallback row 0).
-    const bool has_ams    = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_int("ams_nozzle_idx", 0) >= 0;
-    int        anchor_row = 0;
+    // Attach the external-AMS row inline to the first nozzle row the machine bound AMS to (fallback row 0).
+    int anchor_row = 0;
     for (int i = 0; i < nozzle_count; ++i)
         if (seeds[i].has_bind_ams) {
             anchor_row = i;
             break;
         }
-    if (!m_rows.empty()) build_ams_block(m_rows[anchor_row]->GetSizer(), has_ams);
+    if (!m_rows.empty()) {
+        m_ams_row = new NozzleAmsRow(this, m_extruder_index, _L("AMS"), NozzleAmsRow::Placement::Inline, m_on_ams_count_changed);
+        m_rows[anchor_row]->GetSizer()->Add(m_ams_row, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+    }
 
     SetSizer(sizer);
     Layout();
-
-    if (has_ams) update_ams_previews();
 }
 
 std::vector<NozzleConfig> NozzleColumn::GetConfigs() const
@@ -724,95 +650,6 @@ bool NozzleColumn::HasDiameter(const wxString &diameter) const
     return false;
 }
 
-// AMS block: "AMS" label + preview container + add button, appended inline into the
-// anchor row's sizer. The preview pool is fixed (4 AMS-type + 8 N3S-type), reused.
-void NozzleColumn::build_ams_block(wxSizer *anchor_row_sizer, bool has_ams)
-{
-    auto *container = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    container->SetBackgroundColour(ThemeColor::Grey200);
-    container->SetMinSize(wxSize(-1, FromDIP(40)));
-    m_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
-    container->SetSizer(m_ams_sizer);
-
-    auto make_preview = [&](DevAmsType type) {
-        AMSinfo info;
-        info.ams_type = type;
-        auto *preview = new AMSPreview(container, wxID_ANY, info);
-        preview->Close();
-        preview->Bind(wxEVT_ENTER_WINDOW, [this, preview](wxMouseEvent &e) {
-            show_delete_ams_popup(preview);
-            e.Skip();
-        });
-        m_ams_previews.push_back(preview);
-        m_ams_sizer->Add(preview, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, FromDIP(2));
-    };
-    for (int i = 0; i < 4; ++i) make_preview(DevAmsType::AMS);
-    for (int i = 0; i < 8; ++i) make_preview(DevAmsType::N3S);
-
-    m_add_btn = new ScalableButton(this, wxID_ANY, "add_filament", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 12);
-    m_add_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
-        show_add_ams_popup();
-        e.Skip();
-    });
-
-    m_ams_label = new Label(this, _L("AMS"));
-    m_ams_label->SetFont(Label::Body_14);
-
-    if (!has_ams) {
-        m_ams_label->Hide();
-        container->Hide();
-        m_add_btn->Hide();
-    }
-
-    anchor_row_sizer->Add(m_ams_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
-    anchor_row_sizer->Add(container, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
-    anchor_row_sizer->Add(m_add_btn, 0, wxALIGN_CENTER_VERTICAL);
-}
-
-// Show first n4 4-slot + n1 1-slot previews driven by the count registry; content
-// resolved live from the machine (placeholder when absent). Ports base update_ams.
-void NozzleColumn::update_ams_previews()
-{
-    if (!m_ams_sizer) return;
-
-    const auto [n4, n1] = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
-    AmsBuckets content  = resolve_ams_infos(m_extruder_index);
-
-    static AMSinfo placeholder4 = [] {
-        AMSinfo a;
-        a.ams_type = DevAmsType::AMS;
-        a.cans.resize(4);
-        return a;
-    }();
-    static AMSinfo placeholder1 = [] {
-        AMSinfo a;
-        a.ams_type = DevAmsType::N3S;
-        a.cans.resize(1);
-        return a;
-    }();
-
-    m_ams_sizer->Clear(false);
-    m_ams_label->Hide();
-    for (auto *p : m_ams_previews) p->Close();
-
-    for (int i = 0; i < n4 && i < 4; ++i) {
-        m_ams_previews[i]->Update(i < (int) content.ams4.size() ? content.ams4[i] : placeholder4);
-        m_ams_previews[i]->Open();
-        m_ams_sizer->Add(m_ams_previews[i], 0, wxALL, FromDIP(2));
-        m_ams_label->Show();
-    }
-    for (int i = 0; i < n1 && i < 8; ++i) {
-        AMSPreview *p = m_ams_previews[4 + i];
-        p->Update(i < (int) content.ams1.size() ? content.ams1[i] : placeholder1);
-        p->Open();
-        m_ams_sizer->Add(p, 0, wxALL, FromDIP(2));
-        m_ams_label->Show();
-    }
-
-    Layout();
-    if (m_on_ams_count_changed) m_on_ams_count_changed();
-}
-
 void NozzleColumn::UpdateWarnings(const wxString &selected_diameter, bool show_diameter_warning)
 {
     bool title_matches = false;
@@ -828,106 +665,16 @@ void NozzleColumn::UpdateWarnings(const wxString &selected_diameter, bool show_d
 void NozzleColumn::Rescale()
 {
     for (auto &row : m_rows) row->Rescale();
+    if (m_ams_row) m_ams_row->Rescale();
     Layout();
 }
 
-// Hover popup with two increment buttons (4-slot / 1-slot), gated by the global caps
-// (4 four-slot + 8 one-slot across both extruders). Ports old ShowAMSCountPopup.
-void NozzleColumn::show_add_ams_popup()
+void NozzleColumn::RestoreAms()
 {
-    if (m_ams_popup) {
-        m_ams_popup->Dismiss();
-        m_ams_popup->Destroy();
-        m_ams_popup = nullptr;
-    }
-    auto *popup = new PopupWindow(this, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS);
-    popup->SetBackgroundColour(*wxWHITE);
-    auto *sizer = new wxBoxSizer(wxVERTICAL);
-
-    const int   other_idx     = 1 - m_extruder_index;
-    const auto &registry      = wxGetApp().preset_bundle->extruder_ams_counts;
-    const auto [self4, self1] = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
-    // The caps are machine-wide (across both extruders); the other extruder only
-    // contributes when the registry actually holds a second entry (dual machine).
-    const auto [oth4, oth1] = (other_idx >= 0 && other_idx < (int) registry.size()) ? wxGetApp().preset_bundle->get_ams_count(other_idx) : std::pair<int, int>{0, 0};
-
-    auto add_btn = [&](const wxString &label, bool enabled, std::function<void()> on_click) {
-        auto *b = new Button(popup, label);
-        b->SetMinSize(wxSize(FromDIP(100), FromDIP(28)));
-        b->SetFont(Label::Body_12);
-        b->Enable(enabled);
-        if (!enabled) b->SetTextColor(ThemeColor::Grey400);
-        b->Bind(wxEVT_BUTTON, [popup, on_click](wxCommandEvent &) {
-            on_click();
-            popup->Dismiss();
-        });
-        sizer->Add(b, 0, wxEXPAND | wxALL, FromDIP(8));
-    };
-
-    add_btn(_L("4-slot AMS"), self4 + oth4 < 4, [this] {
-        const auto [a4, a1] = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
-        set_ams_count(m_extruder_index, a4 + 1, a1);
-        update_ams_previews();
-    });
-    add_btn(_L("1-slot AMS"), self1 + oth1 < 8, [this] {
-        const auto [a4, a1] = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
-        set_ams_count(m_extruder_index, a4, a1 + 1);
-        update_ams_previews();
-    });
-
-    popup->SetSizer(sizer);
-    popup->Layout();
-    popup->Fit();
-    wxGetApp().UpdateDarkUIWin(popup);
-
-    m_ams_popup   = popup;
-    wxPoint pos   = m_add_btn->GetScreenPosition();
-    wxSize  bsize = m_add_btn->GetSize();
-    popup->Position(wxPoint(pos.x, pos.y + bsize.y), wxSize(0, 0));
-    popup->Popup();
+    if (m_ams_row) m_ams_row->restore();
 }
 
-// Per-preview trash popup that decrements the count (4-slot if preview index < 4).
-// Ports old ShowAMSDeletePopup.
-void NozzleColumn::show_delete_ams_popup(AMSPreview *preview)
-{
-    if (!preview->IsShown()) return;
-
-    auto *popup = new PopupWindow(preview, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS);
-    popup->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    const int sz = FromDIP(20);
-    popup->SetSize(wxSize(sz, sz));
-
-    auto *del = new ScalableButton(popup, wxID_ANY, wxGetApp().dark_mode() ? "trash_dark" : "trash", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,
-                                   false, 12);
-    del->SetToolTip(_L("Remove this AMS"));
-    del->Bind(wxEVT_BUTTON, [this, preview, popup](wxCommandEvent &) {
-        auto it = std::find(m_ams_previews.begin(), m_ams_previews.end(), preview);
-        if (it != m_ams_previews.end()) {
-            size_t index        = std::distance(m_ams_previews.begin(), it);
-            const auto [a4, a1] = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
-            if (index < 4)
-                set_ams_count(m_extruder_index, std::max(0, a4 - 1), a1);
-            else
-                set_ams_count(m_extruder_index, a4, std::max(0, a1 - 1));
-            update_ams_previews();
-        }
-        popup->Dismiss();
-    });
-
-    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(del, 0, wxALL, FromDIP(4));
-    popup->SetSizer(sizer);
-    popup->Layout();
-
-    wxPoint pos    = preview->GetScreenPosition();
-    wxSize  psize  = preview->GetSize();
-    int     offset = FromDIP(4);
-    popup->Position(wxPoint(pos.x + psize.x - sz + offset, pos.y - offset), wxSize(0, 0));
-    popup->Popup();
-}
-
-ExtruderSettingsDialog::ExtruderSettingsDialog(wxWindow                        *parent,
+NozzleSettingsListDialog::NozzleSettingsListDialog(wxWindow                        *parent,
                                                bool                             is_dual,
                                                const wxString                  &selected_diameter,
                                                const std::vector<NozzleConfig> &left_configs,
@@ -938,12 +685,6 @@ ExtruderSettingsDialog::ExtruderSettingsDialog(wxWindow                        *
     std::vector<NozzleConfig> left_seeds  = left_configs;
     std::vector<NozzleConfig> right_seeds = m_is_dual ? right_configs : std::vector<NozzleConfig>{};
     if (left_seeds.empty()) left_seeds.emplace_back();
-
-    // Snapshot AMS counts so Cancel can revert the live global registry. Only the
-    // extruders this dialog edits are snapshotted/restored (index 1 is dual-only, and
-    // the registry vector is not guaranteed to hold a second entry otherwise).
-    m_ams_snapshot[0] = wxGetApp().preset_bundle->get_ams_count(0);
-    if (m_is_dual) m_ams_snapshot[1] = wxGetApp().preset_bundle->get_ams_count(1);
 
     // What the printer reports right now — the synced badge compares the edits against this
     // Must precede create_layout(), which calls update_dialog_state().
@@ -956,7 +697,7 @@ ExtruderSettingsDialog::ExtruderSettingsDialog(wxWindow                        *
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void ExtruderSettingsDialog::create_layout(const wxString &selected_diameter, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds)
+void NozzleSettingsListDialog::create_layout(const wxString &selected_diameter, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -978,7 +719,7 @@ void ExtruderSettingsDialog::create_layout(const wxString &selected_diameter, co
     if (m_is_dual && m_separator) CallAfter([this]() { align_separator_icon(); });
 }
 
-void ExtruderSettingsDialog::build_diameter_selector(wxBoxSizer *main_sizer, const wxString &selected_diameter)
+void NozzleSettingsListDialog::build_diameter_selector(wxBoxSizer *main_sizer, const wxString &selected_diameter)
 {
     auto *label = new Label(this, _L("Select Nozzle Diameter"));
     label->SetFont(Label::Body_14.Bold());
@@ -991,7 +732,7 @@ void ExtruderSettingsDialog::build_diameter_selector(wxBoxSizer *main_sizer, con
     main_sizer->Add(m_diameter_panel, 0, wxEXPAND | wxLEFT, FromDIP(20));
 }
 
-void ExtruderSettingsDialog::build_columns(wxBoxSizer *main_sizer, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds)
+void NozzleSettingsListDialog::build_columns(wxBoxSizer *main_sizer, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds)
 {
     auto *label = new Label(this, _L("Configure Nozzle Settings"));
     label->SetFont(Label::Body_14.Bold());
@@ -1005,7 +746,7 @@ void ExtruderSettingsDialog::build_columns(wxBoxSizer *main_sizer, const std::ve
     auto on_error_click = [this]() {
         MessageDialog dlg(this, _L("Hotend status is abnormal. Please update the firmware."), _L("Update Firmware"), wxCANCEL | wxOK);
         if (dlg.ShowModal() == wxID_OK) {
-            EndModal(wxID_CANCEL);
+            Close(); // revert live AMS edits via the close handler, then leave for firmware update
             wxGetApp().mainframe->jump_to_monitor();
             wxGetApp().mainframe->m_monitor->jump_to_Upgrade();
         }
@@ -1033,7 +774,7 @@ void ExtruderSettingsDialog::build_columns(wxBoxSizer *main_sizer, const std::ve
 
 // The project-level multi-diameter gate. Seeded from the project config and read back by the caller on
 // Confirm, so it is saved with the project like the rest of project_config.
-void ExtruderSettingsDialog::build_multi_diameter_option(wxBoxSizer *main_sizer)
+void NozzleSettingsListDialog::build_multi_diameter_option(wxBoxSizer *main_sizer)
 {
     m_multi_diameter_check = new CheckBox(this);
     m_multi_diameter_check->SetValue(multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
@@ -1053,7 +794,7 @@ void ExtruderSettingsDialog::build_multi_diameter_option(wxBoxSizer *main_sizer)
 
 // The two notices below the columns; both start hidden and are toggled by
 // update_dialog_state based on mixed-diameter / empty-nozzle conditions.
-void ExtruderSettingsDialog::build_warning_panels(wxBoxSizer *main_sizer)
+void NozzleSettingsListDialog::build_warning_panels(wxBoxSizer *main_sizer)
 {
     m_warning_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_warning_panel->SetBackgroundColour(*wxWHITE);
@@ -1088,7 +829,7 @@ void ExtruderSettingsDialog::build_warning_panels(wxBoxSizer *main_sizer)
     m_warning_serious_panel->Hide();
 }
 
-void ExtruderSettingsDialog::build_button_bar(wxBoxSizer *main_sizer)
+void NozzleSettingsListDialog::build_button_bar(wxBoxSizer *main_sizer)
 {
     StateColor ok_bg(std::pair<wxColour, int>(ThemeColor::BrandGreenPressed, StateColor::Pressed), std::pair<wxColour, int>(ThemeColor::BrandGreenHovered, StateColor::Hovered),
                      std::pair<wxColour, int>(ThemeColor::BrandGreen, StateColor::Normal));
@@ -1115,10 +856,15 @@ void ExtruderSettingsDialog::build_button_bar(wxBoxSizer *main_sizer)
     m_cancel_btn->SetBorderColor(cancel_bd);
     m_cancel_btn->SetTextColor(cancel_text);
     m_cancel_btn->SetId(wxID_CANCEL);
-    m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-        restore_ams_counts();
+    m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { Close(); });
+
+    // AMS edits persist to the live registry the moment they are made, so every dismissal other than
+    // Confirm must revert them. Funnel the Cancel button through the same close path as the window's
+    // X button; the system close reaches EndModal without this handler otherwise, keeping the edits.
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &) {
+        if (m_left_column) m_left_column->RestoreAms();
+        if (m_right_column) m_right_column->RestoreAms();
         EndModal(wxID_CANCEL);
-        e.Skip();
     });
 
     auto *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1128,7 +874,7 @@ void ExtruderSettingsDialog::build_button_bar(wxBoxSizer *main_sizer)
     main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 }
 
-void ExtruderSettingsDialog::setup_callbacks()
+void NozzleSettingsListDialog::setup_callbacks()
 {
     m_diameter_panel->SetNozzleQueryCallback([this](const wxString &diameter) -> bool {
         if (m_left_column && m_left_column->HasDiameter(diameter)) return true;
@@ -1142,7 +888,7 @@ void ExtruderSettingsDialog::setup_callbacks()
     });
 }
 
-void ExtruderSettingsDialog::update_dialog_state()
+void NozzleSettingsListDialog::update_dialog_state()
 {
     const wxString selected    = m_diameter_panel->GetSelectedDiameter();
     bool           has_warning = false;
@@ -1178,7 +924,7 @@ void ExtruderSettingsDialog::update_dialog_state()
 }
 
 // Machine-wide synced badge, pinned to the top-right of the columns container.
-void ExtruderSettingsDialog::show_badge(bool show)
+void NozzleSettingsListDialog::show_badge(bool show)
 {
     if (show && !m_badge && m_columns_container) {
         m_badge = new wxStaticBitmap(m_columns_container, wxID_ANY, ScalableBitmap(m_columns_container, "badge", 18).bmp());
@@ -1188,7 +934,7 @@ void ExtruderSettingsDialog::show_badge(bool show)
     if (m_badge) m_badge->Show(show);
 }
 
-void ExtruderSettingsDialog::layout_badge()
+void NozzleSettingsListDialog::layout_badge()
 {
     if (!m_badge || !m_columns_container) return;
     wxSize csize = m_columns_container->GetSize();
@@ -1197,7 +943,7 @@ void ExtruderSettingsDialog::layout_badge()
     m_badge->Raise();
 }
 
-void ExtruderSettingsDialog::align_separator_icon()
+void NozzleSettingsListDialog::align_separator_icon()
 {
     wxPoint col_pos = m_right_column->GetScreenPosition();
     wxPoint sep_pos = m_separator->GetScreenPosition();
@@ -1206,7 +952,7 @@ void ExtruderSettingsDialog::align_separator_icon()
 }
 
 // A column's AMS preview count changed — grow the dialog to fit the new previews.
-void ExtruderSettingsDialog::on_ams_count_changed()
+void NozzleSettingsListDialog::on_ams_count_changed()
 {
     Layout();
     Fit();
@@ -1215,25 +961,18 @@ void ExtruderSettingsDialog::on_ams_count_changed()
     Refresh();
 }
 
-// Revert the global AMS-count registry to what it was when the dialog opened.
-void ExtruderSettingsDialog::restore_ams_counts()
-{
-    set_ams_count(0, m_ams_snapshot[0].first, m_ams_snapshot[0].second);
-    if (m_is_dual) set_ams_count(1, m_ams_snapshot[1].first, m_ams_snapshot[1].second);
-}
+wxString NozzleSettingsListDialog::GetSelectedDiameter() const { return m_diameter_panel->GetSelectedDiameter(); }
 
-wxString ExtruderSettingsDialog::GetSelectedDiameter() const { return m_diameter_panel->GetSelectedDiameter(); }
-
-std::vector<NozzleConfig> ExtruderSettingsDialog::GetExtruderConfigs(int index) const
+std::vector<NozzleConfig> NozzleSettingsListDialog::GetExtruderConfigs(int index) const
 {
     if (index == 0 && m_left_column) return m_left_column->GetConfigs();
     if (index == 1 && m_right_column) return m_right_column->GetConfigs();
     return {};
 }
 
-bool ExtruderSettingsDialog::GetMultiDiameterMode() const { return m_multi_diameter_check && m_multi_diameter_check->GetValue(); }
+bool NozzleSettingsListDialog::GetMultiDiameterMode() const { return m_multi_diameter_check && m_multi_diameter_check->GetValue(); }
 
-void ExtruderSettingsDialog::on_dpi_changed(const wxRect & /*suggested_rect*/)
+void NozzleSettingsListDialog::on_dpi_changed(const wxRect & /*suggested_rect*/)
 {
     if (m_diameter_panel) m_diameter_panel->Rescale();
     if (m_left_column) m_left_column->Rescale();

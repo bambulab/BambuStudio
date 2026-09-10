@@ -10,6 +10,7 @@
 
 #include "DeviceCore/DevNozzleSystem.h"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 #include "Plater.hpp"
 #include "ExtruderPanel.hpp" // NozzleStatus enumerators
 #include "libslic3r/LocalesUtils.hpp"
@@ -27,6 +28,20 @@ std::string get_diameter_string(float diameter)
     std::ostringstream stream;
     stream << std::fixed << std::setprecision(1) << diameter;
     return stream.str();
+}
+
+wxString format_nozzle_spec(const NozzleConfig &cfg)
+{
+    if (cfg.status == NozzleStatus::nsError) return _L("Error");
+    if (cfg.status == NozzleStatus::nsUnknown) return _L("Unknown");
+    if (cfg.diameter.IsEmpty()) return _L("Empty");
+
+    const auto    &names      = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+    const int      volume_idx = static_cast<int>(cfg.volume);
+    const wxString flow_label = (volume_idx >= 0 && volume_idx < static_cast<int>(names.size())) ? _L(names[volume_idx]) : wxString();
+
+    if (flow_label.IsEmpty()) return cfg.diameter + "mm";
+    return cfg.diameter + "mm " + flow_label;
 }
 
 // Count bound AMS units per (logical_extruder_id, slot_kind) for the given machine.
