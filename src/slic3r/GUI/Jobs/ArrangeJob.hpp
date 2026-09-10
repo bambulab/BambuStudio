@@ -24,6 +24,7 @@ class ArrangeJob : public PlaterJob
 
     arrangement::ArrangeParams params;
     int current_plate_index = 0;
+    int m_progress_value = 0;
     Polygon bed_poly;
 
     // clear m_selected and m_unselected, reserve space for next usage
@@ -61,7 +62,7 @@ public:
     int status_range() const override
     {
         // ensure finalize() is called after all operations in process() is finished.
-        return int(m_selected.size() + m_unprintable.size() + 1);
+        return 1000;
     }
 
     void finalize() override;

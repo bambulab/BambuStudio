@@ -44,3 +44,13 @@ endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
+
+# Keep arrange integration regressions independently runnable.
+add_executable(arrange_tests test_arrange_sparrow.cpp
+    ${PROJECT_SOURCE_DIR}/src/slic3r/Utils/Http.cpp
+    ${PROJECT_SOURCE_DIR}/src/slic3r/Utils/BBLUtil.cpp)
+# Model/Print bring in logging and SVG support whose implementations normally
+# live in the GUI target. Link their real dependencies for this headless suite.
+target_link_libraries(arrange_tests test_common libslic3r libcurl OpenSSL::SSL OpenSSL::Crypto)
+set_property(TARGET arrange_tests PROPERTY FOLDER "tests")
+add_test(NAME arrange_tests COMMAND arrange_tests)

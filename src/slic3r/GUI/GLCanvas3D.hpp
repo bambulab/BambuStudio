@@ -568,6 +568,10 @@ public:
         //BBS: add more arrangeSettings
         bool is_seq_print        = false;
         bool  align_to_y_axis    = false;
+        //BBS: use the experimental sparrow packer
+        bool  arrange_use_sparrow = false;
+        //BBS: sparrow search budget, seconds per plate
+        float arrange_sparrow_time = 8.f;
         bool        save_svg            = false; // for debug
         std::string postfix;
         void        reset()
@@ -579,6 +583,8 @@ public:
             avoid_extrusion_cali_region         = true;
             is_seq_print                        = false;
             align_to_y_axis                     = false;
+            arrange_use_sparrow                 = false;
+            arrange_sparrow_time                = 8.f;
         }
     };
 
