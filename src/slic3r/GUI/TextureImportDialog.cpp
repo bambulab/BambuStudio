@@ -2461,10 +2461,6 @@ TexturePreviewCanvas::~TexturePreviewCanvas()
 {
     if (m_context) {
         SetCurrent(*m_context);
-        if (m_tex_id)
-            glDeleteTextures(1, &m_tex_id);
-        for (unsigned int id : m_gl_tex_ids)
-            if (id) glDeleteTextures(1, &id);
         for (unsigned int id : {m_reset_icon_tex, m_reset_icon_hover_tex,
                                 m_reset_icon_dark_tex, m_reset_icon_dark_hover_tex,
                                 m_corner_tex})
@@ -2479,160 +2475,8 @@ void TexturePreviewCanvas::set_mesh_data(
 {
     m_vertices = vertices;
     m_indices  = indices;
-    m_tex_groups_dirty = true;
     update_bounding_box();
-    compute_smooth_normals();
     Refresh();
-}
-
-void TexturePreviewCanvas::compute_smooth_normals()
-{
-    m_vertex_normals.clear();
-    if (m_vertices.empty() || m_indices.empty()) return;
-
-    m_vertex_normals.resize(m_vertices.size(), {0.f, 0.f, 0.f});
-
-    for (const auto& face : m_indices) {
-        int i0 = face[0], i1 = face[1], i2 = face[2];
-        if (i0 < 0 || i0 >= (int)m_vertices.size() ||
-            i1 < 0 || i1 >= (int)m_vertices.size() ||
-            i2 < 0 || i2 >= (int)m_vertices.size())
-            continue;
-
-        const auto& v0 = m_vertices[i0];
-        const auto& v1 = m_vertices[i1];
-        const auto& v2 = m_vertices[i2];
-
-        float nx = (v1[1]-v0[1])*(v2[2]-v0[2]) - (v1[2]-v0[2])*(v2[1]-v0[1]);
-        float ny = (v1[2]-v0[2])*(v2[0]-v0[0]) - (v1[0]-v0[0])*(v2[2]-v0[2]);
-        float nz = (v1[0]-v0[0])*(v2[1]-v0[1]) - (v1[1]-v0[1])*(v2[0]-v0[0]);
-
-        m_vertex_normals[i0][0] += nx; m_vertex_normals[i0][1] += ny; m_vertex_normals[i0][2] += nz;
-        m_vertex_normals[i1][0] += nx; m_vertex_normals[i1][1] += ny; m_vertex_normals[i1][2] += nz;
-        m_vertex_normals[i2][0] += nx; m_vertex_normals[i2][1] += ny; m_vertex_normals[i2][2] += nz;
-    }
-
-    for (auto& n : m_vertex_normals) {
-        float len = std::sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
-        if (len > 1e-8f) { n[0] /= len; n[1] /= len; n[2] /= len; }
-    }
-}
-
-void TexturePreviewCanvas::set_texture_data(
-    const std::vector<std::array<float, 2>>& uvs,
-    const unsigned char* tex_data, int tex_w, int tex_h, int tex_channels)
-{
-    m_uvs = uvs;
-    m_tex_w = tex_w;
-    m_tex_h = tex_h;
-    m_tex_channels = tex_channels;
-    m_tex_dirty = true;
-
-    size_t sz = (size_t)tex_w * tex_h * tex_channels;
-    m_tex_data.assign(tex_data, tex_data + sz);
-    Refresh();
-}
-
-void TexturePreviewCanvas::set_texture_render_data(
-    const std::vector<std::vector<unsigned char>>& tex_pixels_rgb,
-    const std::vector<int>& tex_widths,
-    const std::vector<int>& tex_heights,
-    const std::vector<std::array<std::array<float,2>, 3>>& face_uvs,
-    const std::vector<int>& face_tex_ids)
-{
-    m_tex_pixels_rgb = tex_pixels_rgb;
-    m_tex_widths     = tex_widths;
-    m_tex_heights    = tex_heights;
-    m_face_uvs       = face_uvs;
-    m_face_tex_ids   = face_tex_ids;
-    m_multi_tex_dirty = true;
-    m_tex_groups_dirty = true;
-    Refresh();
-}
-
-static std::vector<unsigned char> downscale_rgb_nn(
-    const unsigned char* src, int src_w, int src_h, int dst_w, int dst_h)
-{
-    std::vector<unsigned char> dst(static_cast<size_t>(dst_w) * dst_h * 3);
-    for (int y = 0; y < dst_h; ++y) {
-        const int sy = y * src_h / dst_h;
-        const unsigned char* src_row = src + static_cast<size_t>(sy) * src_w * 3;
-        unsigned char* dst_row = dst.data() + static_cast<size_t>(y) * dst_w * 3;
-        for (int x = 0; x < dst_w; ++x) {
-            const unsigned char* s = src_row + (x * src_w / dst_w) * 3;
-            unsigned char* d = dst_row + x * 3;
-            d[0] = s[0];
-            d[1] = s[1];
-            d[2] = s[2];
-        }
-    }
-    return dst;
-}
-
-void TexturePreviewCanvas::upload_textures()
-{
-    if (!m_multi_tex_dirty) return;
-    m_multi_tex_dirty = false;
-
-    for (unsigned int id : m_gl_tex_ids)
-        if (id) glDeleteTextures(1, &id);
-    m_gl_tex_ids.clear();
-
-    const size_t n = m_tex_pixels_rgb.size();
-    if (m_tex_widths.size() != n || m_tex_heights.size() != n)
-        return;
-
-    GLint max_tex_size = 0;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size);
-    // Preview canvases are small; cap well below the driver limit so a large
-    // source texture cannot OOM the GPU after Win10 mesh repair.
-    const int max_dim = std::max(1, std::min(max_tex_size > 0 ? (int)max_tex_size : 4096, 4096));
-
-    GLint prev_unpack_alignment = 4;
-    glGetIntegerv(GL_UNPACK_ALIGNMENT, &prev_unpack_alignment);
-    // Packed RGB has row stride width*3. Default unpack alignment 4 reads past
-    // the buffer when width is not a multiple of 4 and can crash AMD drivers.
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    m_gl_tex_ids.resize(n, 0);
-    for (size_t i = 0; i < n; ++i) {
-        const int w = m_tex_widths[i];
-        const int h = m_tex_heights[i];
-        if (m_tex_pixels_rgb[i].empty() || w <= 0 || h <= 0)
-            continue;
-        const size_t expected = static_cast<size_t>(w) * static_cast<size_t>(h) * 3;
-        if (m_tex_pixels_rgb[i].size() < expected)
-            continue;
-
-        int dst_w = w;
-        int dst_h = h;
-        const unsigned char* pixels = m_tex_pixels_rgb[i].data();
-        std::vector<unsigned char> scaled;
-        if (w > max_dim || h > max_dim) {
-            if (w >= h) {
-                dst_w = max_dim;
-                dst_h = std::max(1, h * max_dim / w);
-            } else {
-                dst_h = max_dim;
-                dst_w = std::max(1, w * max_dim / h);
-            }
-            scaled = downscale_rgb_nn(pixels, w, h, dst_w, dst_h);
-            pixels = scaled.data();
-        }
-
-        GLuint tex_id = 0;
-        glGenTextures(1, &tex_id);
-        glBindTexture(GL_TEXTURE_2D, tex_id);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dst_w, dst_h,
-                     0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-        m_gl_tex_ids[i] = tex_id;
-    }
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, prev_unpack_alignment);
 }
 
 void TexturePreviewCanvas::set_painted_mesh_data(
@@ -3285,89 +3129,9 @@ void TexturePreviewCanvas::render_rounded_corners(const wxSize& logical_size, co
     glPopAttrib();
 }
 
-void TexturePreviewCanvas::render_textured_original()
-{
-    if (m_vertices.empty() || m_indices.empty()) return;
-    if (m_face_uvs.empty() || m_face_tex_ids.empty()) return;
-    if (m_face_uvs.size() != m_indices.size()) return;
-
-    upload_textures();
-
-    if (m_tex_groups_dirty) {
-        m_tex_groups.clear();
-        for (size_t fi = 0; fi < m_indices.size(); ++fi) {
-            int tid = (fi < m_face_tex_ids.size()) ? m_face_tex_ids[fi] : -1;
-            m_tex_groups[tid].push_back(fi);
-        }
-        m_tex_groups_dirty = false;
-    }
-
-    const bool has_smooth = (m_vertex_normals.size() == m_vertices.size());
-
-    glEnable(GL_LIGHTING);
-    glColor3f(1.0f, 1.0f, 1.0f);
-
-    for (const auto& [tid, face_list] : m_tex_groups) {
-        bool tex_bound = false;
-        if (tid >= 0 && tid < (int)m_gl_tex_ids.size() && m_gl_tex_ids[tid] != 0) {
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, m_gl_tex_ids[tid]);
-            tex_bound = true;
-        } else {
-            glDisable(GL_TEXTURE_2D);
-        }
-
-        glBegin(GL_TRIANGLES);
-        for (size_t fi : face_list) {
-            const auto& face = m_indices[fi];
-            const auto& uvs  = m_face_uvs[fi];
-
-            if (!tex_bound) {
-                if (fi < m_original_face_colors_rgb.size())
-                    glColor3fv(m_original_face_colors_rgb[fi].data());
-                else
-                    glColor3f(0.7f, 0.7f, 0.7f);
-            }
-
-            for (int vi = 0; vi < 3; ++vi) {
-                int idx = face[vi];
-                if (idx < 0 || idx >= (int)m_vertices.size()) continue;
-
-                if (has_smooth) {
-                    glNormal3fv(m_vertex_normals[idx].data());
-                } else if (vi == 0) {
-                    const auto& v0 = m_vertices[face[0]];
-                    const auto& v1 = m_vertices[face[1]];
-                    const auto& v2 = m_vertices[face[2]];
-                    float nx = (v1[1]-v0[1])*(v2[2]-v0[2]) - (v1[2]-v0[2])*(v2[1]-v0[1]);
-                    float ny = (v1[2]-v0[2])*(v2[0]-v0[0]) - (v1[0]-v0[0])*(v2[2]-v0[2]);
-                    float nz = (v1[0]-v0[0])*(v2[1]-v0[1]) - (v1[1]-v0[1])*(v2[0]-v0[0]);
-                    float len = std::sqrt(nx*nx + ny*ny + nz*nz);
-                    if (len > 1e-8f) { nx /= len; ny /= len; nz /= len; }
-                    glNormal3f(nx, ny, nz);
-                }
-
-                if (tex_bound)
-                    glTexCoord2fv(uvs[vi].data());
-                glVertex3fv(m_vertices[idx].data());
-            }
-        }
-        glEnd();
-    }
-
-    glDisable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
 void TexturePreviewCanvas::render_mesh()
 {
     if (m_vertices.empty() || m_indices.empty()) return;
-
-    // Original mode with texture data: use proper texture mapping
-    if (m_mode == RenderMode::Original && !m_face_uvs.empty()) {
-        render_textured_original();
-        return;
-    }
 
     // For Multi-Color / FilamentMap, use the painted (remeshed) geometry if available;
     // the face color arrays match the painted mesh, not the original mesh.
@@ -3389,10 +3153,6 @@ void TexturePreviewCanvas::render_mesh()
         colors_ptr = &m_face_colors_rgb;
     }
 
-    // Use smooth normals for the original mesh when available
-    const bool has_smooth = !use_painted
-                            && (m_vertex_normals.size() == m_vertices.size());
-
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_LIGHTING);
 
@@ -3404,26 +3164,24 @@ void TexturePreviewCanvas::render_mesh()
             glColor3f(0.7f, 0.7f, 0.7f);
 
         const auto& face = faces[fi];
-        for (int vi = 0; vi < 3; ++vi) {
-            int idx = face[vi];
-            if (idx < 0 || idx >= (int)verts.size()) continue;
+        if (face[0] < 0 || face[0] >= (int)verts.size() ||
+            face[1] < 0 || face[1] >= (int)verts.size() ||
+            face[2] < 0 || face[2] >= (int)verts.size())
+            continue;
 
-            if (has_smooth && idx < (int)m_vertex_normals.size()) {
-                glNormal3fv(m_vertex_normals[idx].data());
-            } else if (vi == 0) {
-                const auto& v0 = verts[face[0]];
-                const auto& v1 = verts[face[1]];
-                const auto& v2 = verts[face[2]];
-                float nx = (v1[1]-v0[1])*(v2[2]-v0[2]) - (v1[2]-v0[2])*(v2[1]-v0[1]);
-                float ny = (v1[2]-v0[2])*(v2[0]-v0[0]) - (v1[0]-v0[0])*(v2[2]-v0[2]);
-                float nz = (v1[0]-v0[0])*(v2[1]-v0[1]) - (v1[1]-v0[1])*(v2[0]-v0[0]);
-                float len = std::sqrt(nx*nx + ny*ny + nz*nz);
-                if (len > 1e-8f) { nx /= len; ny /= len; nz /= len; }
-                glNormal3f(nx, ny, nz);
-            }
+        const auto& v0 = verts[face[0]];
+        const auto& v1 = verts[face[1]];
+        const auto& v2 = verts[face[2]];
+        float nx = (v1[1]-v0[1])*(v2[2]-v0[2]) - (v1[2]-v0[2])*(v2[1]-v0[1]);
+        float ny = (v1[2]-v0[2])*(v2[0]-v0[0]) - (v1[0]-v0[0])*(v2[2]-v0[2]);
+        float nz = (v1[0]-v0[0])*(v2[1]-v0[1]) - (v1[1]-v0[1])*(v2[0]-v0[0]);
+        float len = std::sqrt(nx*nx + ny*ny + nz*nz);
+        if (len > 1e-8f) { nx /= len; ny /= len; nz /= len; }
+        glNormal3f(nx, ny, nz);
 
-            glVertex3fv(verts[idx].data());
-        }
+        glVertex3fv(v0.data());
+        glVertex3fv(v1.data());
+        glVertex3fv(v2.data());
     }
     glEnd();
 }
@@ -3521,88 +3279,13 @@ TextureImportDialog::TextureImportDialog(
     }
 
     // Pre-computed face colors (OBJ vertex colors / MTL face colors):
-    // use them directly as the Original preview, skip texture decode.
+    // use them as a fallback Original preview until the prepared cache is ready.
+    // Textured models wait for the oversampled unclustered mesh from the cache.
     if (!m_textured_mesh.precomputed_face_colors.empty()) {
         m_original_color_count = unique_face_color_count(m_textured_mesh.precomputed_face_colors);
         for_each_preview([&](TexturePreviewCanvas* canvas) {
             canvas->set_original_face_colors(m_textured_mesh.precomputed_face_colors);
         });
-    } else if (!m_textured_mesh.textures.empty()) {
-        std::vector<std::vector<unsigned char>> tex_pixels_rgb;
-        std::vector<int> tex_widths, tex_heights;
-        tex_pixels_rgb.reserve(m_textured_mesh.textures.size());
-        tex_widths.reserve(m_textured_mesh.textures.size());
-        tex_heights.reserve(m_textured_mesh.textures.size());
-
-        for (const auto& ti : m_textured_mesh.textures) {
-            std::vector<unsigned char> bgr_pixels;
-            int w = 0, h = 0;
-            if (Slic3r::decode_texture_to_pixels(ti, bgr_pixels, w, h) && !bgr_pixels.empty()) {
-                // Convert BGR to RGB for OpenGL
-                for (size_t p = 0; p < bgr_pixels.size(); p += 3)
-                    std::swap(bgr_pixels[p], bgr_pixels[p + 2]);
-                tex_pixels_rgb.push_back(std::move(bgr_pixels));
-            } else {
-                tex_pixels_rgb.push_back({});
-            }
-            tex_widths.push_back(w);
-            tex_heights.push_back(h);
-        }
-
-        const size_t nf = m_textured_mesh.indices.size();
-        const bool has_mapping = !m_textured_mesh.material_texture_map.empty();
-
-        // Build per-face UV array
-        std::vector<std::array<std::array<float,2>, 3>> face_uvs(nf);
-        for (size_t fi = 0; fi < nf; ++fi) {
-            if (m_textured_mesh.has_face_uvs()) {
-                const auto& ui = m_textured_mesh.uv_indices[fi];
-                for (int vi = 0; vi < 3; ++vi) {
-                    int idx = ui[vi];
-                    if (idx >= 0 && static_cast<size_t>(idx) < m_textured_mesh.uv_coords.size())
-                        face_uvs[fi][vi] = m_textured_mesh.uv_coords[idx];
-                    else
-                        face_uvs[fi][vi] = {0.f, 0.f};
-                }
-            } else if (!m_textured_mesh.uvs.empty()) {
-                const auto& face = m_textured_mesh.indices[fi];
-                for (int vi = 0; vi < 3; ++vi) {
-                    int idx = face[vi];
-                    if (idx >= 0 && static_cast<size_t>(idx) < m_textured_mesh.uvs.size())
-                        face_uvs[fi][vi] = m_textured_mesh.uvs[idx];
-                    else
-                        face_uvs[fi][vi] = {0.f, 0.f};
-                }
-            }
-        }
-
-        // Build per-face texture index
-        std::vector<int> face_tex_ids(nf, 0);
-        for (size_t fi = 0; fi < nf; ++fi) {
-            int mat_idx = (fi < m_textured_mesh.material_ids.size())
-                          ? m_textured_mesh.material_ids[fi] : -1;
-            if (has_mapping && mat_idx >= 0
-                && static_cast<size_t>(mat_idx) < m_textured_mesh.material_texture_map.size())
-                face_tex_ids[fi] = m_textured_mesh.material_texture_map[mat_idx];
-            else if (!tex_pixels_rgb.empty())
-                face_tex_ids[fi] = 0;
-            else
-                face_tex_ids[fi] = -1;
-        }
-
-        for_each_preview([&](TexturePreviewCanvas* canvas) {
-            canvas->set_texture_render_data(
-                tex_pixels_rgb, tex_widths, tex_heights, face_uvs, face_tex_ids);
-        });
-
-        // Still sample per-face colors as fallback
-        std::vector<std::array<std::size_t, 3>> orig_colors;
-        if (Slic3r::sample_original_face_colors(m_textured_mesh, orig_colors)) {
-            m_original_color_count = unique_face_color_count(orig_colors);
-            for_each_preview([&](TexturePreviewCanvas* canvas) {
-                canvas->set_original_face_colors(orig_colors);
-            });
-        }
     }
 
     update_color_count_controls();
@@ -4692,6 +4375,18 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent& evt)
         canvas->set_painted_mesh_data(m_painted.vertices, m_painted.indices);
         canvas->set_face_colors(m_painted.face_colors);
     });
+
+    if (!m_original_preview_ready &&
+        Slic3r::copy_prepared_mesh_from_cache(m_mesh_repair_cache, m_original_preview)) {
+        m_original_preview_ready = true;
+        m_original_color_count = (int)m_original_preview.cluster_colors.size();
+        for_each_preview([&](TexturePreviewCanvas* canvas) {
+            canvas->set_mesh_data(m_original_preview.vertices, m_original_preview.indices);
+        });
+        if (m_preview_canvas)
+            m_preview_canvas->set_original_face_colors(m_original_preview.face_colors);
+        update_color_count_controls();
+    }
 
     // A fresh texture computation replaces m_painted, so virtual filaments from
     // the previous computation must not consume capacity when deciding whether

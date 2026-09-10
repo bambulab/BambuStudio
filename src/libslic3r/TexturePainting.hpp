@@ -104,6 +104,10 @@ bool mesh_repair_cache_can_skip_input(const MeshRepairCachePtr& cache,
                                       const TexturePaintingSettings& settings);
 bool mesh_repair_cache_win10_failed(const MeshRepairCachePtr& cache);
 
+// Copy the oversampled, unclustered prepared mesh for the original-model preview.
+// Returns false when the cache has no prepared geometry.
+bool copy_prepared_mesh_from_cache(const MeshRepairCachePtr& cache, PaintedMesh& out);
+
 // Cluster/smooth a previously prepared cache mesh. Does not read TexturedMesh.
 bool cluster_from_repair_cache(
     PaintedMesh& painted,

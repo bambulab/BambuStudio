@@ -92,7 +92,7 @@ struct FilamentMappingRow {
 class FilamentSelectPopup;
 class AutoMixSelectPopup;
 // Lightweight 3D preview panel using wxGLCanvas.
-// Renders: original textured, multi-color, or filament-mapped.
+// Renders: original face-colored, multi-color, or filament-mapped.
 class TexturePreviewCanvas : public wxGLCanvas
 {
 public:
@@ -104,17 +104,6 @@ public:
     void set_mesh_data(
         const std::vector<std::array<float, 3>>& vertices,
         const std::vector<std::array<int, 3>>&   indices);
-
-    void set_texture_data(
-        const std::vector<std::array<float, 2>>& uvs,
-        const unsigned char* tex_data, int tex_w, int tex_h, int tex_channels);
-
-    void set_texture_render_data(
-        const std::vector<std::vector<unsigned char>>& tex_pixels_rgb,
-        const std::vector<int>& tex_widths,
-        const std::vector<int>& tex_heights,
-        const std::vector<std::array<std::array<float,2>, 3>>& face_uvs,
-        const std::vector<int>& face_tex_ids);
 
     void set_painted_mesh_data(
         const std::vector<std::array<float, 3>>& vertices,
@@ -160,7 +149,6 @@ private:
     void ensure_gl_ready();
     void render();
     void render_mesh();
-    void render_textured_original();
     void render_reset_overlay(const wxSize& logical_size, const wxSize& viewport_size);
     void render_rounded_corners(const wxSize& logical_size, const wxSize& viewport_size);
     void ensure_corner_texture(int texture_px);
@@ -168,8 +156,6 @@ private:
     unsigned int upload_reset_icon_texture(const std::string& icon_name);
     wxRect reset_overlay_rect() const;
     bool handle_reset_overlay_mouse(wxMouseEvent& evt);
-    void upload_textures();
-    void compute_smooth_normals();
     void update_bounding_box();
 
     wxGLContext*  m_context        = nullptr;
@@ -187,32 +173,12 @@ private:
 
     std::vector<std::array<float, 3>> m_vertices;
     std::vector<std::array<int, 3>>   m_indices;
-    std::vector<std::array<float, 2>> m_uvs;
     std::vector<std::array<float, 3>> m_painted_vertices;
     std::vector<std::array<int, 3>>   m_painted_indices;
     std::vector<std::array<float, 3>> m_face_colors_rgb;
     std::vector<std::array<float, 3>> m_original_face_colors_rgb;
     std::vector<std::array<float, 3>> m_filament_colors_rgb;
     std::map<std::array<std::size_t, 3>, std::array<float, 3>> m_color_map;
-
-    unsigned int m_tex_id       = 0;
-    int          m_tex_w        = 0;
-    int          m_tex_h        = 0;
-    int          m_tex_channels = 3;
-    bool         m_tex_dirty    = false;
-    std::vector<unsigned char> m_tex_data;
-
-    std::vector<unsigned int> m_gl_tex_ids;
-    std::vector<std::vector<unsigned char>> m_tex_pixels_rgb;
-    std::vector<int> m_tex_widths;
-    std::vector<int> m_tex_heights;
-    std::vector<std::array<std::array<float,2>, 3>> m_face_uvs;
-    std::vector<int> m_face_tex_ids;
-    bool m_multi_tex_dirty = false;
-    std::map<int, std::vector<size_t>> m_tex_groups;
-    bool m_tex_groups_dirty = true;
-
-    std::vector<std::array<float, 3>> m_vertex_normals;
 
     std::array<float, 3> m_center = {0, 0, 0};
     float                m_radius = 1.0f;
@@ -409,6 +375,8 @@ private:
     int                                m_auto_mix_font_point_size = 10;
 
     Slic3r::PaintedMesh               m_painted;
+    Slic3r::PaintedMesh               m_original_preview;
+    bool                              m_original_preview_ready = false;
     std::vector<Slic3r::FilamentMatch> m_current_matches;
 
     boost::thread                      m_worker;

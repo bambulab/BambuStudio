@@ -185,6 +185,18 @@ bool mesh_repair_cache_win10_failed(const MeshRepairCachePtr& cache)
     return cache && cache->win10_attempt == tex2color::MeshRepairAttempt::Failed;
 }
 
+bool copy_prepared_mesh_from_cache(const MeshRepairCachePtr& cache, PaintedMesh& out)
+{
+    if (!cache || !cache->has_prepared_mesh)
+        return false;
+    if (cache->mesh.indices.empty() || cache->face_colors.empty())
+        return false;
+    if (cache->face_colors.size() != cache->mesh.indices.size())
+        return false;
+    extract_painted_mesh(cache->mesh, cache->face_colors, out);
+    return true;
+}
+
 static void bind_paint_callbacks(
     PaintProgressCallback progress,
     PaintCancelCallback cancel,
