@@ -142,6 +142,7 @@ func_sync_ams_filaments             NetworkAgent::sync_ams_filaments_ptr     = n
 func_sync_slot_mappings             NetworkAgent::sync_slot_mappings_ptr     = nullptr;
 func_get_soft_match_pending         NetworkAgent::get_soft_match_pending_ptr  = nullptr;
 func_post_soft_match_pending        NetworkAgent::post_soft_match_pending_ptr = nullptr;
+func_post_device_region             NetworkAgent::post_device_region_ptr       = nullptr;
 
 NetworkAgent::NetworkAgent(std::string log_dir)
 {
@@ -398,6 +399,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     sync_slot_mappings_ptr         = reinterpret_cast<func_sync_slot_mappings>(get_network_function("bambu_network_sync_slot_mappings"));
     get_soft_match_pending_ptr     = reinterpret_cast<func_get_soft_match_pending>(get_network_function("bambu_network_get_soft_match_pending"));
     post_soft_match_pending_ptr    = reinterpret_cast<func_post_soft_match_pending>(get_network_function("bambu_network_post_soft_match_pending"));
+    post_device_region_ptr         = reinterpret_cast<func_post_device_region>(get_network_function("bambu_network_post_device_region"));
 
     return 0;
 }
@@ -530,6 +532,7 @@ int NetworkAgent::unload_network_module()
     sync_slot_mappings_ptr            = nullptr;
     get_soft_match_pending_ptr        = nullptr;
     post_soft_match_pending_ptr       = nullptr;
+    post_device_region_ptr            = nullptr;
 
     return 0;
 }
@@ -1597,6 +1600,18 @@ int NetworkAgent::post_soft_match_pending(SoftMatchPendingActionParams params, s
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = post_soft_match_pending_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
+    return ret;
+}
+
+int NetworkAgent::post_device_region(DeviceRegionParams params, std::string* http_body)
+{
+    if (!network_agent || !post_device_region_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)post_device_region_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    }
+    int ret = post_device_region_ptr(network_agent, params, http_body);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
     return ret;
 }

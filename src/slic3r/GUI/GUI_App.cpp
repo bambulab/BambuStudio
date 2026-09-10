@@ -2871,6 +2871,12 @@ int GUI_App::OnExit()
 
     stop_sync_user_preset();
 
+    // The check_cert worker also runs the startup device-region query; join it
+    // before m_agent is deleted below (the region call is bounded by the
+    // network library's 10s timeout).
+    if (m_check_cert_thread.joinable())
+        m_check_cert_thread.join();
+
     if (m_fila_manager_cloud_disp) {
         delete m_fila_manager_cloud_disp;
         m_fila_manager_cloud_disp = nullptr;
@@ -5918,8 +5924,28 @@ void GUI_App::check_cert()
         [this]{
             if (m_agent)
                 m_agent->check_cert();
+
+            // piggyback the startup device-region query on the same worker
+            // thread: both are one-shot synchronous cloud calls, and sharing
+            // the thread keeps the exit join in OnExit() simple.
+            post_device_region();
         });
     BOOST_LOG_TRIVIAL(info) << "check_cert";
+}
+
+// Startup device region query. The network call is synchronous inside the
+// network library (up to 10s timeout), so it must stay off the GUI thread.
+// Runs on m_check_cert_thread; OnExit() joins that thread before m_agent is deleted.
+void GUI_App::post_device_region()
+{
+    if (!m_agent)
+        return;
+
+    DeviceRegionParams params;
+    params.ClientType = "slicer";
+    std::string        http_body;
+    int ret = m_agent->post_device_region(params, &http_body);
+    BOOST_LOG_TRIVIAL(info) << "post_device_region: ret=" << ret << " body=" << http_body;
 }
 
 // return true if handled

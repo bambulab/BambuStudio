@@ -569,6 +569,7 @@ public:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_cert();
+    void            post_device_region();
     bool            process_network_msg(std::string dev_id, std::string msg);
     void            check_beta_version(bool show_tips_when_no_beta = false);
     void            request_new_version(int by_user);
