@@ -365,6 +365,13 @@ public:
             return;
         }
 
+        // Some injected endpoint-DLP agents hook the OS dialog focus-save that Windows runs when a
+        // modal dialog is hidden while an edit control still holds focus, turning it into a blocking
+        // cross-thread SendMessage(WM_GETDLGCODE) that can freeze the UI thread. Move focus onto the
+        // dialog frame first so the hide no longer queries the focused edit control.
+        if (wxWindow *focused = FindFocus(); focused && (focused == this || IsDescendant(focused)))
+            SetFocusIgnoringChildren();
+
         return wxDialog::EndModal(retCode);
     }
 };
