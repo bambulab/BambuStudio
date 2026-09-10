@@ -917,7 +917,8 @@ namespace Slic3r {
                 int next_filament_id;
                 int last_nozzle_id;
                 int next_nozzle_id;
-                int extruder_id; // 并不一定是真实的extruder_id，只是用来划分需要提前升降温的区块，可能是挤出机、热端
+                int extruder_id; // real logical extruder, used for heating/cooling rates
+                int idle_chain_key; // H3C: filament_id for M104 I; other machines: same as extruder_id
                 bool ignore_cooling_before_tower = false;
             };
 
@@ -1008,7 +1009,14 @@ namespace Slic3r {
             );
 
             void build_by_filament_blocks(const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks);
-            void build_by_extruder_blocks(const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks);
+            void build_by_extruder_blocks(
+                const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks,
+                const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks);
+            void attach_nc_bounds_if_gap_crosses_nozzle_change(
+                ExtruderFreeBlock& idle,
+                const ExtruderPreHeating::FilamentUsageBlock& prev,
+                const ExtruderPreHeating::FilamentUsageBlock& next,
+                const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& nc_blocks);
         };
 
 

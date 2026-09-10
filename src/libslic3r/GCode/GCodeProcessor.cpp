@@ -6563,7 +6563,7 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
     std::map<int, std::vector<ExtruderFreeBlock>> per_extruder_free_blocks;
 
     for (auto& block : m_extruder_free_blocks)
-        per_extruder_free_blocks[block.extruder_id].emplace_back(block);
+        per_extruder_free_blocks[block.idle_chain_key].emplace_back(block);
 
     for (auto& elem : per_extruder_free_blocks) {
         int extruder_id = elem.first;
@@ -6596,7 +6596,7 @@ void GCodeProcessor::PreCoolingInjector::build_extruder_free_blocks(const std::v
     if (extruder_usage_blocks.size() <= 1)
         build_by_filament_blocks(filament_usage_blocks);
     else
-        build_by_extruder_blocks(extruder_usage_blocks);
+        build_by_extruder_blocks(filament_usage_blocks, extruder_usage_blocks);
 }
 
 void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProcessor::InsertedLinesMap& inserted_operation_lines, const ExtruderFreeBlock& block, float curr_temp, float target_temp, bool pre_cooling, bool pre_heating)
@@ -6912,6 +6912,7 @@ void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vec
             if (block.last_nozzle_id == -1)
                 block.last_nozzle_id = block.next_nozzle_id;
             block.extruder_id = group_key;
+            block.idle_chain_key = group_key;
             block.partial_free_lower_id = block.free_lower_gcode_id;
             block.partial_free_upper_id = block.free_lower_gcode_id;
             m_extruder_free_blocks.emplace_back(block);
@@ -6924,9 +6925,66 @@ void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vec
         });
 }
 
-void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks_)
+void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(
+    const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks_,
+    const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& extruder_usage_blocks_)
 {
     m_extruder_free_blocks.clear();
+
+    // With hotends exposed as extruders several hotends sit on one extruder, so filaments may share a
+    // hotend. Slicing the idle windows between hotend occupancies would skip every same-hotend colour
+    // change, because such a change happens inside one occupancy. Build the chain per filament instead,
+    // then borrow the nozzle change bounds so an extruder change still gets its cool-down and lowered
+    // pre-heat.
+    if (handle_hotend_as_extruder) {
+        std::map<int, std::vector<ExtruderPreHeating::FilamentUsageBlock>> per_filament_usage_blocks;
+        for (const auto& filament_span : filament_usage_blocks_)
+            per_filament_usage_blocks[filament_span.filament_id].emplace_back(filament_span);
+
+        ExtruderPreHeating::FilamentUsageBlock start_filament_block(-1, -1, -1, 0, machine_start_gcode_end_id);
+        ExtruderPreHeating::FilamentUsageBlock end_filament_block(-1, -1, -1, machine_end_gcode_start_id, std::numeric_limits<unsigned int>::max());
+        for (auto& kv : per_filament_usage_blocks) {
+            auto& filament_spans = kv.second;
+            filament_spans.insert(filament_spans.begin(), start_filament_block);
+            filament_spans.emplace_back(end_filament_block);
+        }
+
+        auto real_extruder_id = [this](int nozzle_id) {
+            auto nozzle_opt = nozzle_group_result.get_nozzle_from_id(nozzle_id);
+            return nozzle_opt ? nozzle_opt->extruder_id : 0;
+        };
+
+        for (auto& [filament_id, filament_spans] : per_filament_usage_blocks) {
+            for (auto prev = filament_spans.begin(); prev != filament_spans.end(); ++prev) {
+                auto next = std::next(prev);
+                if (next == filament_spans.end())
+                    break;
+                ExtruderFreeBlock block;
+                block.free_lower_gcode_id = prev->upper_gcode_id;
+                block.last_filament_id = prev->filament_id;
+                block.last_nozzle_id = prev->nozzle_id;
+                block.free_upper_gcode_id = next->lower_gcode_id;
+                block.next_filament_id = next->filament_id;
+                block.next_nozzle_id = next->nozzle_id;
+                if (block.last_nozzle_id == -1)
+                    block.last_nozzle_id = block.next_nozzle_id;
+                block.idle_chain_key = filament_id;
+                block.extruder_id = real_extruder_id(block.last_nozzle_id);
+                block.partial_free_lower_id = block.free_lower_gcode_id;
+                block.partial_free_upper_id = block.free_lower_gcode_id;
+                // Default to the full print temperature; only a nozzle change may lower the pre-heat target.
+                block.ignore_cooling_before_tower = true;
+                attach_nc_bounds_if_gap_crosses_nozzle_change(block, *prev, *next, extruder_usage_blocks_);
+                m_extruder_free_blocks.emplace_back(block);
+            }
+        }
+
+        sort(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](const auto& a, const auto& b) {
+            return a.free_lower_gcode_id < b.free_lower_gcode_id || (a.free_lower_gcode_id == b.free_lower_gcode_id && a.free_upper_gcode_id < b.free_upper_gcode_id);
+            });
+        return;
+    }
+
     std::map<int, std::vector<ExtruderPreHeating::ExtruderUsageBlcok>> per_extruder_usage_blocks;
     for (auto& block : extruder_usage_blocks_)
         per_extruder_usage_blocks[block.extruder_id].emplace_back(block);
@@ -6966,6 +7024,7 @@ void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vec
             if (block.last_nozzle_id == -1)
                 block.last_nozzle_id = block.next_nozzle_id;
             block.extruder_id = extruder_id;
+            block.idle_chain_key = static_cast<int>(extruder_id);
             block.partial_free_lower_id = iter->post_extrusion_start_id;
             block.partial_free_upper_id = iter->post_extrusion_end_id;
             block.ignore_cooling_before_tower = niter->ignore_cooling_before_tower;
@@ -6976,6 +7035,48 @@ void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vec
     sort(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](const auto& a, const auto& b) {
         return a.free_lower_gcode_id < b.free_lower_gcode_id || (a.free_lower_gcode_id == b.free_lower_gcode_id && a.free_upper_gcode_id < b.free_upper_gcode_id);
         });
+}
+
+void GCodeProcessor::PreCoolingInjector::attach_nc_bounds_if_gap_crosses_nozzle_change(
+    ExtruderFreeBlock& idle,
+    const ExtruderPreHeating::FilamentUsageBlock& prev,
+    const ExtruderPreHeating::FilamentUsageBlock& next,
+    const std::vector<ExtruderPreHeating::ExtruderUsageBlcok>& nc_blocks)
+{
+    auto overlaps = [](const ExtruderPreHeating::ExtruderUsageBlcok& nc, const ExtruderPreHeating::FilamentUsageBlock& fil) {
+        return fil.filament_id >= 0 && nc.start_id < fil.upper_gcode_id && nc.end_id > fil.lower_gcode_id;
+    };
+
+    // This filament left a nozzle via NC: insert cooldown at NC, not at T.
+    for (const auto& nc : nc_blocks) {
+        if (nc.end_filament != prev.filament_id || nc.end_id >= machine_end_gcode_start_id || !overlaps(nc, prev))
+            continue;
+        if (nc.post_extrusion_start_id < nc.post_extrusion_end_id) {
+            idle.partial_free_lower_id = nc.post_extrusion_start_id;
+            idle.partial_free_upper_id = nc.post_extrusion_end_id;
+        }
+        if (nc.end_id < idle.free_upper_gcode_id)
+            idle.free_lower_gcode_id = nc.end_id;
+        if (nc.end_nozzle_id >= 0)
+            idle.last_nozzle_id = nc.end_nozzle_id;
+        break;
+    }
+
+    // Only a nozzle change hands a cold nozzle over to this filament, and that is the sole case where the
+    // pre-heat may stop short of the print temperature. The nozzle change has to open the occupancy the
+    // filament resumes in, and it has to happen inside this very idle gap: a same-nozzle color change runs
+    // inside an occupancy that is already printing, so its pre-heat must reach the full print temperature or
+    // it would drag the still-extruding nozzle down.
+    for (const auto& nc : nc_blocks) {
+        if (nc.start_filament != next.filament_id || nc.start_id <= machine_start_gcode_end_id)
+            continue;
+        if (nc.start_id < prev.upper_gcode_id || nc.start_id >= next.lower_gcode_id || nc.end_id < next.lower_gcode_id)
+            continue;
+        idle.ignore_cooling_before_tower = nc.ignore_cooling_before_tower;
+        if (nc.start_nozzle_id >= 0)
+            idle.next_nozzle_id = nc.start_nozzle_id;
+        break;
+    }
 }
 
 } /* namespace Slic3r */
