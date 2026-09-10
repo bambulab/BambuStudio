@@ -365,6 +365,7 @@ public:
         Vec3f                     m_text_normal_in_world;
         float                     m_text_gap;
         std::vector<double>       text_lengths;
+        std::vector<float>        m_text_line_y; // [mm] per glyph: base line offset of its text line (surface text only)
 
         Vec3d       m_cut_plane_dir_in_world;
         float       m_thickness     = 2.f;
@@ -392,7 +393,6 @@ public:
     static void get_text_mesh(TriangleMesh &result_mesh, std::vector<TriangleMesh> &chars_mesh, int i, const Vec2f &mesh_offset, Geometry::Transformation &local_tran);
     static void                     get_text_mesh(TriangleMesh &            result_mesh,
                                                   EmbossShape &             text_shape,
-                                                  BoundingBoxes &           line_bbs,
                                                   SurfaceVolumeData::ModelSources& input_ms_es,
                                                   DataBase &input_db,
                                                   int                       i,
@@ -404,7 +404,8 @@ public:
                                                      const std::vector<float> & text_cursors,
                                                      const std::vector<float> & text_absolute_cursors,
                                                      const std::vector<Vec2f> & text_align_offsets,
-                                                     int                        i);
+                                                     int                        i,
+                                                     float                      line_y = 0.f);
     static void generate_mesh_according_points(InputInfo& input_info);
     static std::vector<Vec3d>       debug_cut_points_in_world;
 

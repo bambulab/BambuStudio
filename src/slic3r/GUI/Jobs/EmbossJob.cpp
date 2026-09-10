@@ -1,5 +1,6 @@
 #include "EmbossJob.hpp"
 #include <stdexcept>
+#include <algorithm>
 #include <type_traits>
 #include <boost/log/trivial.hpp>
 //
@@ -1296,7 +1297,8 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, st
     }
     for (int i = 0; i < shape.shapes_with_ids.size(); i++) {
         auto &temp_shape = shape.shapes_with_ids[i];
-        if (input_text[i] == ' ') {
+        if (input_text[i] == ' ' || temp_shape.id == ENTER_UNICODE) {
+            // empty mesh keeps index aligned with text cursors
             result.emplace_back(TriangleMesh());
             continue;
         }
@@ -1389,6 +1391,21 @@ void calc_position_points(std::vector<Vec3d> &position_points, std::vector<doubl
     }
 }
 
+// Every text line is laid out separately and centered on the text origin along pos_dir.
+// Line Y offsets are baked in glyph shapes by text2vshapes, '\n' glyphs stay at origin (empty mesh).
+void calc_position_points_by_lines(std::vector<Vec3d> &position_points, const std::vector<double> &text_lengths, const LineRanges &lines, float text_gap, const Vec3d &pos_dir)
+{
+    position_points.assign(text_lengths.size(), Vec3d::Zero());
+    for (const auto &[first, last] : lines) {
+        if (first >= last || last > text_lengths.size())
+            continue;
+        std::vector<double> line_lengths(text_lengths.begin() + first, text_lengths.begin() + last);
+        std::vector<Vec3d>  line_points;
+        calc_position_points(line_points, line_lengths, text_gap, pos_dir);
+        std::copy(line_points.begin(), line_points.end(), position_points.begin() + first);
+    }
+}
+
 GenerateTextJob::GenerateTextJob(InputInfo &&input) : m_input(std::move(input)) {}
 std::vector<Vec3d> GenerateTextJob::debug_cut_points_in_world;
 void GenerateTextJob::process(Ctl &ctl)
@@ -1476,11 +1493,8 @@ bool GenerateTextJob::update_text_positions(InputInfo &input_info)
         auto  mouse_normal_local = inv_ * mouse_normal_world;
         mouse_normal_local.normalize();
 
-        calc_position_points(input_info.m_position_points, text_lengths, input_info.m_text_gap, pos_dir);
-
-        for (int i = 0; i < text_num; ++i) {
-            input_info.m_normal_points[i] = mouse_normal_local;
-        }
+        calc_position_points_by_lines(input_info.m_position_points, text_lengths, get_line_ranges(input_info.m_text_shape.shapes_with_ids), input_info.m_text_gap, pos_dir);
+        input_info.m_normal_points.assign(input_info.m_position_points.size(), mouse_normal_local);
         return true;
     }
     input_info.m_surface_type = GenerateTextJob::SurfaceType::Surface;
@@ -1500,7 +1514,6 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     auto &m_cut_points_in_world  = input_info.m_cut_points_in_world;
     std::vector<Vec3d> m_cut_points_in_local;
     auto &m_text_cs_to_world_tran   = input_info.m_text_tran_in_world.get_matrix();
-    auto &m_chars_mesh_result       = input_info.m_chars_mesh_result;
     auto &m_text_position_in_world  = input_info.m_text_position_in_world;
     auto &m_text_normal_in_world    = input_info.m_text_normal_in_world;
     auto &m_text_gap                = input_info.m_text_gap;
@@ -1533,162 +1546,43 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     slicing_params.trafo       = cut_tran.inverse();
     // for debug
     // its_write_obj(slice_meshs.its, "D:/debug_files/mesh.obj");
-    // generate polygons
-    const Polygons temp_polys = slice_mesh(slice_meshs.its, 0, slicing_params);
-    Vec3d          scale_click_pt(scale_(0), scale_(0), 0);
-    // for debug
-    // export_regions_to_svg(Point(scale_pt.x(), scale_pt.y()), temp_polys);
-    Polygons polys = union_(temp_polys);
-
+    auto world_tran = m_model_object_in_world_tran * text_tran_in_object;
     auto point_in_line_rectange = [](const Line &line, const Point &point, double &distance) {
         distance = line.distance_to(point);
         return distance < line.length() / 2;
     };
-
-    int     index        = 0;
-    double  min_distance = 1e12;
-    Polygon hit_ploy;
-    for (const Polygon poly : polys) {
-        if (poly.points.size() == 0)
-            continue;
-        Lines lines = poly.lines();
-        for (int i = 0; i < lines.size(); ++i) {
-            Line   line     = lines[i];
-            double distance = min_distance;
-            if (point_in_line_rectange(line, Point(scale_click_pt.x(), scale_click_pt.y()), distance)) {
-                if (distance < min_distance) {
-                    min_distance = distance;
-                    index        = i;
-                    hit_ploy     = poly;
-                }
-            }
-        }
-    }
-
-    if (hit_ploy.points.size() == 0) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("Text: the hit polygon is null,") << "x:" << m_text_position_in_world.x() << ",y:" << m_text_position_in_world.y()
-                                << ",z:" << m_text_position_in_world.z();
-        throw JobException("The hit polygon is null,please try to regenerate after adjusting text position.");
-        return false;
-    }
-    int text_num = m_chars_mesh_result.size();
-
-    auto world_tran = m_model_object_in_world_tran * text_tran_in_object;
-    m_cut_points_in_world.clear();
-    m_cut_points_in_world.reserve(hit_ploy.points.size());
-    m_cut_points_in_local.clear();
-    m_cut_points_in_local.reserve(hit_ploy.points.size());
-    for (int i = 0; i < hit_ploy.points.size(); ++i) {
-        m_cut_points_in_local.emplace_back(rotate_tran * Vec3d(unscale_(hit_ploy.points[i].x()), unscale_(hit_ploy.points[i].y()), 0)); // m_text_cs_to_world_tran *
-        m_cut_points_in_world.emplace_back(world_tran.get_matrix() * m_cut_points_in_local.back());
-    }
-
-    Slic3r::Polygon_3D new_polygon(m_cut_points_in_local);
-    m_position_points.resize(text_num);
-    if (text_num % 2 == 1) {
-        m_position_points[text_num / 2] = Vec3d::Zero();
-        std::vector<Line_3D> lines = new_polygon.get_lines();
-        Line_3D              line  = lines[index];
-        auto                 min_dist   = 1e6;
-        {// Find the nearest tangent point
-            for (int i = 0; i < lines.size(); i++) {
-                Line_3D temp_line = lines[i];
-                Vec3d   intersection_pt;
-                float   proj_length;
-                auto    pt = Vec3d::Zero();
-                Linef3::get_point_projection_to_line(pt, temp_line.a, temp_line.vector(), intersection_pt, proj_length);
-                auto dist = (intersection_pt - pt).norm();
-                if (min_dist > dist) {
-                    min_dist = dist;
-                    m_position_points[text_num / 2] = intersection_pt;
-                }
-            }
-        }
-        {
-            int    index1      = index;
-            double left_length = (Vec3d::Zero() - line.a).cast<double>().norm();
-            int    left_num    = text_num / 2;
-            while (left_num > 0) {
-                double gap_length = (text_lengths[left_num] + m_text_gap + text_lengths[left_num - 1]);
-                if (gap_length < 0)
-                    gap_length = 0;
-
-                while (gap_length > left_length) {
-                    gap_length -= left_length;
-                    if (index1 == 0)
-                        index1 = lines.size() - 1;
-                    else
-                        --index1;
-                    left_length = lines[index1].length();
-                }
-
-                Vec3d direction = lines[index1].vector();
-                direction.normalize();
-                double  distance_to_a = (left_length - gap_length);
-                Line_3D new_line      = lines[index1];
-
-                double norm_value = direction.cast<double>().norm();
-                double deta_x     = distance_to_a * direction.x() / norm_value;
-                double deta_y     = distance_to_a * direction.y() / norm_value;
-                double deta_z     = distance_to_a * direction.z() / norm_value;
-                Vec3d  new_pos    = new_line.a + Vec3d(deta_x, deta_y, deta_z);
-                left_num--;
-                m_position_points[left_num] = new_pos;
-                left_length                 = distance_to_a;
-            }
-        }
-
-        {
-            int    index2       = index;
-            double right_length = (line.b - Vec3d::Zero()).cast<double>().norm();
-            int    right_num    = text_num / 2;
-            while (right_num > 0) {
-                double gap_length = (text_lengths[text_num - right_num] + m_text_gap + text_lengths[text_num - right_num - 1]);
-                if (gap_length < 0)
-                    gap_length = 0;
-
-                while (gap_length > right_length) {
-                    gap_length -= right_length;
-                    if (index2 == lines.size() - 1)
-                        index2 = 0;
-                    else
-                        ++index2;
-                    right_length = lines[index2].length();
-                }
-
-                Line_3D line2 = lines[index2];
-                line2.reverse();
-                Vec3d direction = line2.vector();
-                direction.normalize();
-                double  distance_to_b = (right_length - gap_length);
-                Line_3D new_line      = lines[index2];
-
-                double norm_value                       = direction.cast<double>().norm();
-                double deta_x                           = distance_to_b * direction.x() / norm_value;
-                double deta_y                           = distance_to_b * direction.y() / norm_value;
-                double deta_z                           = distance_to_b * direction.z() / norm_value;
-                Vec3d  new_pos                          = new_line.b + Vec3d(deta_x, deta_y, deta_z);
-                m_position_points[text_num - right_num] = new_pos;
-                right_length                            = distance_to_b;
-                right_num--;
-            }
-        }
-    } else {
-        for (int i = 0; i < text_num / 2; ++i) {
+    // Place glyphs of one text line along the slice polygon: middle glyph on the tangent point
+    // nearest to the text origin, the others by their lengths and gap to both sides.
+    auto place_line_on_polygon = [&](Slic3r::Polygon_3D &new_polygon, int index, std::vector<double> &text_lengths, std::vector<Vec3d> &m_position_points) {
+        int text_num = static_cast<int>(text_lengths.size());
+        m_position_points.resize(text_num);
+        if (text_num % 2 == 1) {
+            m_position_points[text_num / 2] = Vec3d::Zero();
             std::vector<Line_3D> lines = new_polygon.get_lines();
             Line_3D              line  = lines[index];
+            auto                 min_dist   = 1e6;
+            {// Find the nearest tangent point
+                for (int i = 0; i < lines.size(); i++) {
+                    Line_3D temp_line = lines[i];
+                    Vec3d   intersection_pt;
+                    float   proj_length;
+                    auto    pt = Vec3d::Zero();
+                    Linef3::get_point_projection_to_line(pt, temp_line.a, temp_line.vector(), intersection_pt, proj_length);
+                    auto dist = (intersection_pt - pt).norm();
+                    if (min_dist > dist) {
+                        min_dist = dist;
+                        m_position_points[text_num / 2] = intersection_pt;
+                    }
+                }
+            }
             {
                 int    index1      = index;
                 double left_length = (Vec3d::Zero() - line.a).cast<double>().norm();
                 int    left_num    = text_num / 2;
-                for (int i = 0; i < text_num / 2; ++i) {
-                    double gap_length = 0;
-                    if (i == 0) {
-                        gap_length = m_text_gap / 2 + text_lengths[text_num / 2 - 1 - i];
-                    } else {
-                        gap_length = text_lengths[text_num / 2 - i] + m_text_gap + text_lengths[text_num / 2 - 1 - i];
-                    }
-                    if (gap_length < 0) gap_length = 0;
+                while (left_num > 0) {
+                    double gap_length = (text_lengths[left_num] + m_text_gap + text_lengths[left_num - 1]);
+                    if (gap_length < 0)
+                        gap_length = 0;
 
                     while (gap_length > left_length) {
                         gap_length -= left_length;
@@ -1709,9 +1603,9 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                     double deta_y     = distance_to_a * direction.y() / norm_value;
                     double deta_z     = distance_to_a * direction.z() / norm_value;
                     Vec3d  new_pos    = new_line.a + Vec3d(deta_x, deta_y, deta_z);
-
-                    m_position_points[text_num / 2 - 1 - i] = new_pos;
-                    left_length                             = distance_to_a;
+                    left_num--;
+                    m_position_points[left_num] = new_pos;
+                    left_length                 = distance_to_a;
                 }
             }
 
@@ -1719,15 +1613,10 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                 int    index2       = index;
                 double right_length = (line.b - Vec3d::Zero()).cast<double>().norm();
                 int    right_num    = text_num / 2;
-                double gap_length   = 0;
-                for (int i = 0; i < text_num / 2; ++i) {
-                    double gap_length = 0;
-                    if (i == 0) {
-                        gap_length = m_text_gap / 2 + text_lengths[text_num / 2 + i];
-                    } else {
-                        gap_length = text_lengths[text_num / 2 + i] + m_text_gap + text_lengths[text_num / 2 + i - 1];
-                    }
-                    if (gap_length < 0) gap_length = 0;
+                while (right_num > 0) {
+                    double gap_length = (text_lengths[text_num - right_num] + m_text_gap + text_lengths[text_num - right_num - 1]);
+                    if (gap_length < 0)
+                        gap_length = 0;
 
                     while (gap_length > right_length) {
                         gap_length -= right_length;
@@ -1745,16 +1634,226 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                     double  distance_to_b = (right_length - gap_length);
                     Line_3D new_line      = lines[index2];
 
-                    double norm_value                   = direction.cast<double>().norm();
-                    double deta_x                       = distance_to_b * direction.x() / norm_value;
-                    double deta_y                       = distance_to_b * direction.y() / norm_value;
-                    double deta_z                       = distance_to_b * direction.z() / norm_value;
-                    Vec3d  new_pos                      = new_line.b + Vec3d(deta_x, deta_y, deta_z);
-                    m_position_points[text_num / 2 + i] = new_pos;
-                    right_length                        = distance_to_b;
+                    double norm_value                       = direction.cast<double>().norm();
+                    double deta_x                           = distance_to_b * direction.x() / norm_value;
+                    double deta_y                           = distance_to_b * direction.y() / norm_value;
+                    double deta_z                           = distance_to_b * direction.z() / norm_value;
+                    Vec3d  new_pos                          = new_line.b + Vec3d(deta_x, deta_y, deta_z);
+                    m_position_points[text_num - right_num] = new_pos;
+                    right_length                            = distance_to_b;
+                    right_num--;
+                }
+            }
+        } else {
+            for (int i = 0; i < text_num / 2; ++i) {
+                std::vector<Line_3D> lines = new_polygon.get_lines();
+                Line_3D              line  = lines[index];
+                {
+                    int    index1      = index;
+                    double left_length = (Vec3d::Zero() - line.a).cast<double>().norm();
+                    int    left_num    = text_num / 2;
+                    for (int i = 0; i < text_num / 2; ++i) {
+                        double gap_length = 0;
+                        if (i == 0) {
+                            gap_length = m_text_gap / 2 + text_lengths[text_num / 2 - 1 - i];
+                        } else {
+                            gap_length = text_lengths[text_num / 2 - i] + m_text_gap + text_lengths[text_num / 2 - 1 - i];
+                        }
+                        if (gap_length < 0) gap_length = 0;
+
+                        while (gap_length > left_length) {
+                            gap_length -= left_length;
+                            if (index1 == 0)
+                                index1 = lines.size() - 1;
+                            else
+                                --index1;
+                            left_length = lines[index1].length();
+                        }
+
+                        Vec3d direction = lines[index1].vector();
+                        direction.normalize();
+                        double  distance_to_a = (left_length - gap_length);
+                        Line_3D new_line      = lines[index1];
+
+                        double norm_value = direction.cast<double>().norm();
+                        double deta_x     = distance_to_a * direction.x() / norm_value;
+                        double deta_y     = distance_to_a * direction.y() / norm_value;
+                        double deta_z     = distance_to_a * direction.z() / norm_value;
+                        Vec3d  new_pos    = new_line.a + Vec3d(deta_x, deta_y, deta_z);
+
+                        m_position_points[text_num / 2 - 1 - i] = new_pos;
+                        left_length                             = distance_to_a;
+                    }
+                }
+
+                {
+                    int    index2       = index;
+                    double right_length = (line.b - Vec3d::Zero()).cast<double>().norm();
+                    int    right_num    = text_num / 2;
+                    double gap_length   = 0;
+                    for (int i = 0; i < text_num / 2; ++i) {
+                        double gap_length = 0;
+                        if (i == 0) {
+                            gap_length = m_text_gap / 2 + text_lengths[text_num / 2 + i];
+                        } else {
+                            gap_length = text_lengths[text_num / 2 + i] + m_text_gap + text_lengths[text_num / 2 + i - 1];
+                        }
+                        if (gap_length < 0) gap_length = 0;
+
+                        while (gap_length > right_length) {
+                            gap_length -= right_length;
+                            if (index2 == lines.size() - 1)
+                                index2 = 0;
+                            else
+                                ++index2;
+                            right_length = lines[index2].length();
+                        }
+
+                        Line_3D line2 = lines[index2];
+                        line2.reverse();
+                        Vec3d direction = line2.vector();
+                        direction.normalize();
+                        double  distance_to_b = (right_length - gap_length);
+                        Line_3D new_line      = lines[index2];
+
+                        double norm_value                   = direction.cast<double>().norm();
+                        double deta_x                       = distance_to_b * direction.x() / norm_value;
+                        double deta_y                       = distance_to_b * direction.y() / norm_value;
+                        double deta_z                       = distance_to_b * direction.z() / norm_value;
+                        Vec3d  new_pos                      = new_line.b + Vec3d(deta_x, deta_y, deta_z);
+                        m_position_points[text_num / 2 + i] = new_pos;
+                        right_length                        = distance_to_b;
+                    }
                 }
             }
         }
+
+    };
+
+    // Every text line lies on its own curve: the object is sliced by the plane of the line base line.
+    // Base line offset is text CS Y, which rotate_tran maps to slicing Z. Line offsets baked in
+    // glyph shapes are removed later by calc_mesh_offset (see m_text_line_y).
+    const EmbossShape &shape       = input_info.m_text_shape;
+    const LineRanges   line_ranges = get_line_ranges(shape.shapes_with_ids);
+    m_position_points.assign(text_lengths.size(), Vec3d::Zero());
+    input_info.m_text_line_y.assign(text_lengths.size(), 0.f);
+    m_cut_points_in_world.clear();
+    m_cut_points_in_local.clear();
+
+    // A line gap can push a base line above or below the mesh, then the object is not sliced there.
+    // Cut every base line first, so such a line can borrow the nearest one that did cross the object
+    // instead of dropping the whole text. Only text that misses the object completely is an error.
+    struct LineCut
+    {
+        bool    used = false;
+        bool    hit  = false;
+        Polygon poly;
+        int     index  = 0;
+        float   line_y = 0.f;
+    };
+    std::vector<LineCut> line_cuts(line_ranges.size());
+    bool                 any_hit = false;
+    // Slice the object by the plane of one base line and keep the polygon nearest to the anchor.
+    auto cut_base_line = [&](LineCut &cut) {
+        const Polygons temp_polys = slice_mesh(slice_meshs.its, cut.line_y, slicing_params);
+        Vec3d          scale_click_pt(scale_(0), scale_(0), 0);
+        Polygons       polys = union_(temp_polys);
+
+        double min_distance = 1e12;
+        for (const Polygon poly : polys) {
+            if (poly.points.size() == 0)
+                continue;
+            Lines lines = poly.lines();
+            for (int i = 0; i < lines.size(); ++i) {
+                Line   line     = lines[i];
+                double distance = min_distance;
+                if (point_in_line_rectange(line, Point(scale_click_pt.x(), scale_click_pt.y()), distance)) {
+                    if (distance < min_distance) {
+                        min_distance = distance;
+                        cut.index    = i;
+                        cut.poly     = poly;
+                    }
+                }
+            }
+        }
+        cut.hit = cut.poly.points.size() > 0;
+    };
+    {
+        BoundingBoxf3 dbgbb;
+        for (const stl_vertex &v : slice_meshs.its.vertices)
+            dbgbb.merge(Vec3d(slicing_params.trafo * Vec3d(v.x(), v.y(), v.z())));
+    }
+    for (size_t line_i = 0; line_i < line_ranges.size(); ++line_i) {
+        const size_t first = line_ranges[line_i].first;
+        const size_t last  = line_ranges[line_i].second;
+        if (first >= last || last > text_lengths.size())
+            continue;
+        LineCut &cut = line_cuts[line_i];
+        cut.used     = true;
+        cut.line_y   = shape.first_line_offset_y - static_cast<float>(line_i) * shape.line_height;
+        cut_base_line(cut);
+        any_hit = any_hit || cut.hit;
+    }
+
+    LineCut anchor_cut;
+    bool    use_anchor = false;
+    if (!any_hit) {
+        // No base line crossed the object, the text as a whole sits past an edge. The anchor the
+        // user picked is on the surface, so cut there and keep every line on that curve.
+        anchor_cut.used   = true;
+        anchor_cut.line_y = 0.f;
+        cut_base_line(anchor_cut);
+        if (!anchor_cut.hit) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("Text: the hit polygon is null,") << "x:" << m_text_position_in_world.x() << ",y:" << m_text_position_in_world.y()
+                                    << ",z:" << m_text_position_in_world.z();
+            throw JobException("The hit polygon is null,please try to regenerate after adjusting text position.");
+            return false;
+        }
+        BOOST_LOG_TRIVIAL(info) << "Text: no base line crosses the object, every line placed on the text anchor.";
+        use_anchor = true;
+    }
+
+    for (size_t line_i = 0; line_i < line_ranges.size(); ++line_i) {
+        if (!line_cuts[line_i].used)
+            continue;
+        const size_t first = line_ranges[line_i].first;
+        const size_t last  = line_ranges[line_i].second;
+        // Offset baked into the glyph shapes of this line, calc_mesh_offset removes exactly this,
+        // so it stays the nominal value even when the line is placed on a borrowed base line.
+        const float nominal_line_y = line_cuts[line_i].line_y;
+
+        LineCut cut = use_anchor ? anchor_cut : line_cuts[line_i];
+        if (!cut.hit) { // borrow the nearest base line that crossed the object
+            size_t nearest      = line_cuts.size();
+            size_t nearest_dist = 0;
+            for (size_t j = 0; j < line_cuts.size(); ++j) {
+                if (!line_cuts[j].used || !line_cuts[j].hit)
+                    continue;
+                const size_t dist = (j > line_i) ? (j - line_i) : (line_i - j);
+                if (nearest == line_cuts.size() || dist < nearest_dist) {
+                    nearest      = j;
+                    nearest_dist = dist;
+                }
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("Text: base line of line %1% misses the object, placed on the base line of line %2%.") % line_i % nearest;
+            cut = line_cuts[nearest];
+        }
+        for (size_t i = first; i < last; ++i)
+            input_info.m_text_line_y[i] = nominal_line_y;
+
+        std::vector<Vec3d> cut_points_in_local;
+        cut_points_in_local.reserve(cut.poly.points.size());
+        for (int i = 0; i < cut.poly.points.size(); ++i) {
+            cut_points_in_local.emplace_back(rotate_tran * Vec3d(unscale_(cut.poly.points[i].x()), unscale_(cut.poly.points[i].y()), cut.line_y));
+            m_cut_points_in_local.emplace_back(cut_points_in_local.back());
+            m_cut_points_in_world.emplace_back(world_tran.get_matrix() * cut_points_in_local.back());
+        }
+
+        Slic3r::Polygon_3D  new_polygon(cut_points_in_local);
+        std::vector<double> line_lengths(text_lengths.begin() + first, text_lengths.begin() + last);
+        std::vector<Vec3d>  line_points;
+        place_line_on_polygon(new_polygon, cut.index, line_lengths, line_points);
+        std::copy(line_points.begin(), line_points.end(), m_position_points.begin() + first);
     }
 
     std::vector<double> mesh_values(m_position_points.size(), 1e9);
@@ -1856,7 +1955,6 @@ void GenerateTextJob::get_text_mesh(TriangleMesh &result_mesh, std::vector<Trian
 
 void GenerateTextJob::get_text_mesh(TriangleMesh &            result_mesh,
                                     EmbossShape &             text_shape,
-                                    BoundingBoxes &           line_bbs,
                                     SurfaceVolumeData::ModelSources &input_ms_es,
                                     DataBase &                       input_db,
                                     int                       i,
@@ -1867,7 +1965,6 @@ void GenerateTextJob::get_text_mesh(TriangleMesh &            result_mesh,
 {
     float              text_scale  = input_db.shape.scale;
     ExPolygons glyph_shape = text_shape.shapes_with_ids[i].expoly;
-    const BoundingBox &glyph_bb    = line_bbs[i];
     Point   offset(mesh_offset[0] / text_scale, mesh_offset[1] / text_scale);
     for (ExPolygon &s : glyph_shape) {
         s.translate(offset);
@@ -1894,14 +1991,18 @@ Vec2f GenerateTextJob::calc_mesh_offset(const std::pair<int, int> &align_type,
                                         const std::vector<float> & text_cursors,
                                         const std::vector<float> &text_absolute_cursors,
                                         const std::vector<Vec2f> &text_align_offsets,
-                                        int                       i)
+                                        int                       i,
+                                        float                     line_y)
 {
     Vec2f mesh_offset(Vec2f::Zero());
-    if (i < text_absolute_cursors.size()) {
+    if (i < text_absolute_cursors.size() && i < text_align_offsets.size()) {
         if (align_type.first == (int) Slic3r::FontProp::HorizontalAlign::center) {
-            mesh_offset[0] = -text_absolute_cursors[i] - text_align_offsets[0][0] + text_cursors[i] / 2.f;
+            // horizontal align offset differs per text line
+            mesh_offset[0] = -text_absolute_cursors[i] - text_align_offsets[i][0] + text_cursors[i] / 2.f;
         } // else todo
     }
+    // surface text: glyph is placed on the curve of its own line, remove line offset baked in shape
+    mesh_offset[1] = -line_y;
     return mesh_offset;
 }
 
@@ -1922,19 +2023,12 @@ void  GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
     auto inv_text_cs_in_object_no_offset = (m_model_object_in_world_tran.get_matrix_no_offset() * text_tran_in_object.get_matrix_no_offset()).inverse();
 
     ExPolygons ex_polygons;
-    std::vector<BoundingBoxes> bbs;
-    int                        line_idx = 0;
     SurfaceVolumeData::ModelSources ms_es;
     DataBase                        input_db("", std::make_shared<std::atomic<bool>>(false));
     if (input_info.use_surface) {
         EmbossShape &es = input_info.m_text_shape;
         if (es.shapes_with_ids.empty())
             throw JobException(_u8L("Font doesn't have any shape for given text.").c_str());
-        size_t                     count_lines = 1; // input1.text_lines.size();
-        bbs = create_line_bounds(es.shapes_with_ids, count_lines);
-        if (bbs.empty()) {
-            return;
-        }
         SurfaceVolumeData::ModelSource ms;
         ms.mesh = std::make_shared<const TriangleMesh> (input_info.slice_mesh);
         if (ms.mesh->empty()) {
@@ -1951,9 +2045,10 @@ void  GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
         auto         normal        = m_normal_points[i];
         TriangleMesh sub_mesh;
         auto         local_tran = get_sub_mesh_tran(position, normal, cut_plane_dir, m_embeded_depth);
-        Vec2f mesh_offset = calc_mesh_offset(input_info.m_align_type, input_info.m_text_cursors, input_info.m_text_absolute_cursors, input_info.m_text_align_offsets, i);
+        float line_y      = i < input_info.m_text_line_y.size() ? input_info.m_text_line_y[i] : 0.f;
+        Vec2f mesh_offset = calc_mesh_offset(input_info.m_align_type, input_info.m_text_cursors, input_info.m_text_absolute_cursors, input_info.m_text_align_offsets, i, line_y);
         if (input_info.use_surface) {
-            get_text_mesh(sub_mesh, input_info.m_text_shape, bbs[line_idx], ms_es, input_db, i, mesh_offset, text_tran_in_object, local_tran, input_info.slice_mesh);
+            get_text_mesh(sub_mesh, input_info.m_text_shape, ms_es, input_db, i, mesh_offset, text_tran_in_object, local_tran, input_info.slice_mesh);
         }
         else {
             get_text_mesh(sub_mesh, m_chars_mesh_result, i, mesh_offset, local_tran);
@@ -1980,7 +2075,7 @@ void CreateObjectTextJob::process(Ctl &ctl) {
     }
     std::vector<double> text_lengths;
     calc_text_lengths(text_lengths, m_input.m_text_cursors);
-    calc_position_points(m_input.m_position_points, text_lengths, m_input.text_info.m_text_gap, Vec3d(1, 0, 0));
+    calc_position_points_by_lines(m_input.m_position_points, text_lengths, get_line_ranges(m_input.m_text_shape.shapes_with_ids), m_input.text_info.m_text_gap, Vec3d(1, 0, 0));
 }
 
 void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {

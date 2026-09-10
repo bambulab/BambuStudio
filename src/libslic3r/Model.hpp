@@ -867,6 +867,7 @@ struct TextInfo
     float       m_embeded_depth = 0.f;
     float       m_rotate_angle    = 0;
     float       m_text_gap        = 0.f;
+    float       m_line_gap        = 0.f; // [mm] extra space between text lines
     bool        m_is_surface_text = false;//for old
     bool        m_keep_horizontal = false;//for old
     enum TextType {
@@ -880,7 +881,7 @@ struct TextInfo
 
     RaycastResult m_rr;
     template<typename Archive> void serialize(Archive &ar) {
-        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_surface_type, m_text,
+        ar(m_font_name, m_font_version, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_embeded_depth, m_rotate_angle, m_text_gap, m_line_gap, m_surface_type, m_text,
            m_rr,text_configuration);
     }
     TextConfiguration text_configuration;
