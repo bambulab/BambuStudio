@@ -55,13 +55,14 @@
             "priority": 2,
             "recommended_params": {
                 "enable_support": true,
-                "support_type": "tree(auto)",
+                "support_type": "normal(auto)",
                 "support_on_build_plate_only": false,
                 "support_top_z_distance": 0.0,
                 "support_bottom_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "support_object_xy_distance": 0.0
+                "support_object_xy_distance": 0.0,
+                "tree_support_wall_count": 1
             }
         },
         {

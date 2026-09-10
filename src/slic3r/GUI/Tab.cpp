@@ -1824,8 +1824,17 @@ static wxString pad_combo_value_for_config(const DynamicPrintConfig &config)
 }
 
 // The same suggestion text is used for the support base and the support interface, so that both dialogs read alike
-static wxString soluble_support_suggestion_text(bool with_bottom_z_distance)
+static wxString soluble_support_suggestion_text(bool with_bottom_z_distance, bool with_normal_auto_support)
 {
+    if (with_normal_auto_support) {
+        if (with_bottom_z_distance)
+            return _L("When using soluble material for the support, We recommend the following settings:\n"
+                      "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, \n"
+                      "interlaced rectilinear pattern, disable independent support layer height and use soluble materials for both support interface and support base");
+        return _L("When using soluble material for the support, We recommend the following settings:\n"
+                  "normal (auto) support type, 1 support wall loop, 0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+                  "pattern, disable independent support layer height and use soluble materials for both support interface and support base");
+    }
     if (with_bottom_z_distance)
         return _L("When using soluble material for the support, We recommend the following settings:\n"
                   "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
@@ -2307,6 +2316,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto           &filament_presets      = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
         auto           &filaments             = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
         bool            support_TPU           = false;
+        bool            support_PVA           = false;
         // PVA supporting PLA additionally requires 0 bottom z distance, no matter which printer is selected
         bool            support_PVA_for_PLA   = false;
         if (filament_id >= 0 && filament_id < filament_presets.size()) {
@@ -2314,7 +2324,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             if (filament) {
                 std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
                 support_TPU               = filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
-                support_PVA_for_PLA       = filament_type == "PVA" && has_filaments({"PLA"});
+                support_PVA               = filament_type == "PVA";
+                support_PVA_for_PLA       = support_PVA && has_filaments({"PLA"});
             }
         }
         if (is_support_filament(filament_id, false) && !is_soluble_filament(filament_id) && !has_filaments({"TPU", "TPU-AMS"})) {
@@ -2330,7 +2341,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             wxGetApp().plater()->update();
         }
         if ((is_soluble_filament(filament_id) || support_TPU) &&
-            !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
+            !((!support_PVA || m_config->opt_enum<SupportType>("support_type") == stNormalAuto) &&
+              (!support_PVA || m_config->opt_int("tree_support_wall_count") == 1) &&
+              m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
               m_config->opt_float("support_object_xy_distance") == 0 /*&& m_config->opt_bool("top_z_overrides_xy_distance")*/ &&
               (!support_PVA_for_PLA || m_config->opt_float("support_bottom_z_distance") == 0) &&
               m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
@@ -2341,13 +2354,17 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                               "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
                               "independent support layer height and use PLA for both support interface and support base");
             else
-                msg_text = soluble_support_suggestion_text(support_PVA_for_PLA);
+                msg_text = soluble_support_suggestion_text(support_PVA_for_PLA, support_PVA);
             msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
             MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
             DynamicPrintConfig new_conf = *m_config;
             if (dialog.ShowModal() == wxID_YES) {
+                if (support_PVA) {
+                    new_conf.set_key_value("support_type", new ConfigOptionEnum<SupportType>(stNormalAuto));
+                    new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(1));
+                }
                 new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
@@ -2462,6 +2479,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             bool support_TPU          = interface_filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
             bool soluble_interface    = is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id);
             bool is_support_material  = is_support_filament(interface_filament_id, false);
+            bool interface_PVA        = interface_filament_type == "PVA";
 
             if (support_TPU) {
                 support_material_display_name = "PLA";
@@ -2473,11 +2491,15 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 found_recommendation = true;
             } else if (soluble_interface) {
                 soluble_suggestion = true;
+                if (interface_PVA) {
+                    recommended_conf.set_key_value("support_type", new ConfigOptionEnum<SupportType>(stNormalAuto));
+                    recommended_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(1));
+                }
                 recommended_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
                 recommended_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 recommended_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
                 // PVA supporting PLA additionally requires 0 bottom z distance, no matter which printer is selected
-                soluble_bottom_z = interface_filament_type == "PVA" && has_filaments({"PLA"});
+                soluble_bottom_z = interface_PVA && has_filaments({"PLA"});
                 if (soluble_bottom_z)
                     recommended_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
                 recommended_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
@@ -2496,6 +2518,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         // The interface filament is recommended for the support base as well, matching what the suggestion text promises
         if (found_recommendation && (soluble_suggestion || interface_filament_type == "PVA"))
             recommended_conf.set_key_value("support_filament", new ConfigOptionInt(interface_filament_id + 1));
+        // JSON lookup runs first; overlay so X2D PVA entries also get 1 support wall loop
+        if (found_recommendation && interface_filament_type == "PVA")
+            recommended_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(1));
 
         // Zero-gap support interface + thick bridges: also recommend turning thick bridges off
         // so it appears in the same Suggestion dialog instead of a second popup.
@@ -2531,7 +2556,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             if (!filtered_conf.empty()) {
                 wxString msg_text;
                 if (soluble_suggestion) {
-                    msg_text = soluble_support_suggestion_text(soluble_bottom_z);
+                    msg_text = soluble_support_suggestion_text(soluble_bottom_z, interface_filament_type == "PVA");
                     msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                             "Yes - Change these settings automatically\n"
                                             "No  - Do not change these settings for me");
