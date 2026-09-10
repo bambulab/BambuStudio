@@ -3,6 +3,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
+#include "slic3r/GUI/Widgets/ProgressDialog.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/format.hpp"
@@ -14,6 +15,9 @@
 #include <GL/glew.h>
 
 #include <thread>
+#include <atomic>
+#include <chrono>
+#include <string>
 
 namespace Slic3r::GUI {
 
@@ -194,6 +198,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         notification_manager->remove_simplify_suggestion_with_id(act_volume->get_object()->id());
 
         m_volume = act_volume;
+        m_preserve_color = false; // default off for each newly selected model
         m_configuration.decimate_ratio = 50.; // default value
         m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
         init_model(m_volume->mesh().its);
@@ -351,6 +356,13 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     m_imgui->bbl_checkbox(_L("Show wireframe").c_str(), m_show_wireframe);
 
+    // Only offer paint preservation when the model actually has painted color. When it has
+    // none, keep the old fast behavior (no checkbox, paint dropped - there is nothing to keep).
+    if (m_volume != nullptr && m_volume->is_mm_painted())
+        m_imgui->bbl_checkbox(_L("Preserve painted colors").c_str(), m_preserve_color);
+    else
+        m_preserve_color = false;
+
      // draw progress bar
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,12);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0,0));
@@ -375,10 +387,17 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(10,0));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.15f, 0.18f, 0.19f, 1.00f));
 
-    m_imgui->disabled_begin(is_worker_running || ! is_result_ready);
+    m_imgui->disabled_begin(is_worker_running || ! is_result_ready || m_apply_pending);
     m_imgui->push_confirm_button_style();
     if (m_imgui->bbl_button(_L("Apply"))) {
-        apply_simplify();
+        // Defer the actual apply out of the GL/imgui render frame. apply_simplify() may pop a
+        // modal progress dialog, and running a nested modal event loop inside the render
+        // callback swallows the mouse-up event, leaving toolbar/other buttons unresponsive
+        // afterwards. CallAfter runs it once the current event finishes.
+        if (!m_apply_pending) {
+            m_apply_pending = true;
+            call_after_if_active([this]() { apply_simplify(); });
+        }
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running) {
         ImGui::SetTooltip("%s", _u8L("Can't apply when process preview.").c_str());
@@ -543,19 +562,108 @@ void GLGizmoSimplify::process()
 }
 
 void GLGizmoSimplify::apply_simplify() {
+    // Deferred entry point (see the Apply button): clear the guard up-front so a canceled
+    // apply re-enables the button for a retry, while a successful apply closes the gizmo.
+    m_apply_pending = false;
 
     const Selection& selection = m_parent.get_selection();
     int object_idx = selection.get_object_idx();
 
     auto plater = wxGetApp().plater();
-    plater->take_snapshot(GUI::format("Simplify %1%", m_volume->name));
-    plater->clear_before_change_mesh(object_idx);
 
     ModelVolume* mv = get_model_volume(selection, wxGetApp().model());
+    if (mv == nullptr || !m_state.result)
+        return;
     assert(mv == m_volume);
 
-    mv->set_mesh(std::move(*m_state.result));
+    // Preserve painting only when the user opted in AND the model actually has painted
+    // color (the checkbox is hidden otherwise). Everything else keeps the old fast path.
+    const bool keep_paint = m_preserve_color && mv->is_mm_painted();
+
+    if (keep_paint) {
+        // Re-projecting the painted color/MMU/supports/seam/fuzzy-skin onto the decimated
+        // mesh can be slow on dense/heavily-painted meshes. reproject_paint_keep() is
+        // read-only - it computes into 'prepared' without touching the model - so cancelling
+        // leaves everything untouched and no undo snapshot is taken. We copy the preview mesh
+        // (not move) so a cancel can retry Apply immediately without recomputing.
+        //
+        // Run the reprojection on a worker thread and keep the UI thread free to pump the
+        // (cancelable) progress dialog on a fixed cadence. Previously the reprojection ran
+        // synchronously on the UI thread and the dialog was only pumped from its progress
+        // callback (fired on each 1% step), so on dense meshes a single 1% batch could take
+        // hundreds of ms and the Cancel click was not even seen until it finished. Pumping
+        // every ~30 ms makes Cancel respond immediately regardless of reprojection cost.
+        TriangleMesh new_mesh(*m_state.result);
+
+        ProgressDialog progress_dlg(_L("Simplify"),
+                                    _L("Transferring painting to the simplified mesh..."), 100,
+                                    (wxWindow *) wxGetApp().mainframe,
+                                    wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+
+        std::atomic<bool> canceled{false};
+        std::atomic<bool> worker_done{false};
+        std::atomic<int>  percent{1};
+        std::mutex        stage_mutex;
+        std::string       stage_text;
+        PaintKeepPrepared prepared;
+        bool              ok = false;
+
+        std::thread worker([&]() {
+            auto progress_cb = [&](int p, const char *stage) {
+                percent.store(p < 1 ? 1 : (p > 99 ? 99 : p), std::memory_order_relaxed);
+                if (stage != nullptr && stage[0] != '\0') {
+                    std::lock_guard<std::mutex> lk(stage_mutex);
+                    stage_text = stage;
+                }
+            };
+            auto cancel_cb = [&]() { return canceled.load(std::memory_order_relaxed); };
+            try {
+                ok = mv->reproject_paint_keep(new_mesh, prepared, progress_cb, cancel_cb);
+            } catch (...) {
+                ok = false;
+            }
+            worker_done.store(true, std::memory_order_release);
+        });
+
+        // UI pump loop: refresh + process the Cancel button on a fixed cadence.
+        while (!worker_done.load(std::memory_order_acquire)) {
+            wxString msg;
+            {
+                std::lock_guard<std::mutex> lk(stage_mutex);
+                msg = stage_text.empty() ? wxString(_L("Transferring painting to the simplified mesh..."))
+                                         : wxString::FromUTF8(stage_text);
+            }
+            if (!progress_dlg.Update(percent.load(std::memory_order_relaxed), msg))
+                canceled.store(true, std::memory_order_relaxed);
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+        }
+        worker.join();
+
+        if (!ok) {
+            // Canceled by the user (or failed): model is unchanged and the preview is still
+            // valid, so just keep the gizmo open and let the user tweak / retry.
+            return;
+        }
+        // Slow part done - commit under a snapshot now.
+        plater->take_snapshot(GUI::format("Simplify %1%", m_volume->name));
+        prepared.mesh = std::move(new_mesh);
+        mv->commit_mesh_keep_paint(std::move(prepared));
+    } else {
+        // No painting to keep (or user opted out): plain, fast mesh replacement.
+        // set_mesh() swaps the geometry but leaves the annotation layers untouched, so the
+        // old per-triangle ids would otherwise stay on the decimated mesh (the removed
+        // clear_before_change_mesh() used to drop them). Reset only THIS volume's four
+        // paint layers - not every volume of the object - so this part's stale paint is
+        // cleared while the other parts keep theirs.
+        plater->take_snapshot(GUI::format("Simplify %1%", m_volume->name));
+        mv->supported_facets.reset();
+        mv->seam_facets.reset();
+        mv->mmu_segmentation_facets.reset();
+        mv->fuzzy_skin_facets.reset();
+        mv->set_mesh(std::move(*m_state.result));
+    }
     m_state.result.reset();
+
     mv->calculate_convex_hull();
     mv->invalidate_convex_hull_2d();
     mv->set_new_unique_id();
@@ -585,6 +693,7 @@ void GLGizmoSimplify::on_set_state()
         m_volume = nullptr; // invalidate selected model
         m_glmodel.reset();
     } else if (GLGizmoBase::m_state == GLGizmoBase::On) {
+        m_apply_pending = false; // fresh session: never start with a stale pending-apply guard
         // when open by hyperlink it needs to show up
         request_rerender();
     }

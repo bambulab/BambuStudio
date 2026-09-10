@@ -54,6 +54,7 @@ MeshBooleanUI::MeshBooleanUI()
     , m_target_mode(BooleanTargetMode::Part)
     , m_keep_original_models(false)
     , m_entity_only(true)
+    , m_preserve_color(true)
     , m_is_dark_mode(false)
 {
 }
@@ -344,6 +345,16 @@ void MeshBooleanUI::draw_control_buttons()
             }
         }
     }
+
+    // "Preserve painted colors" checkbox on its own line. When on (default) the painted
+    // color/MMU, supports, seam and fuzzy-skin are reprojected onto the boolean result and
+    // the real multi-color painting is shown while editing; when off, the operation falls
+    // back to the original single-color boolean behaviour.
+    bool previous_preserve_color = m_preserve_color;
+    ImGui::SetCursorPosX(checkbox_pos_x);
+    render_checkbox(_L("Preserve painted colors"), m_preserve_color, !b_async_working_or_cancelling);
+    if (previous_preserve_color != m_preserve_color && on_apply_color_overrides)
+        on_apply_color_overrides(m_operation_mode);
 }
 
 void MeshBooleanUI::draw_action_buttons()

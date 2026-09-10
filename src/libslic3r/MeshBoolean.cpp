@@ -988,6 +988,16 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
 
 } // namespace mcut
 
+// Backend-neutral dispatcher. OpenMeshCraft is the default backend; MCUT is retained only
+// as the compile-time fallback for builds that cannot package OpenMeshCraft.
+void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const std::function<bool()> &cancel_cb, const std::function<void(float)> &progress_cb, const std::function<void()> &failed_cb)
+{
+#if SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN
+    openmeshcraft::make_boolean(src_mesh, cut_mesh, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
+#else
+    mcut::make_boolean(src_mesh, cut_mesh, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
+#endif
+}
 
 } // namespace MeshBoolean
 } // namespace Slic3r

@@ -26388,7 +26388,13 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
         csg::mpartsPositive | csg::mpartsNegative);
     csg::BooleanFailReason fail_reason = csg::BooleanFailReason::OK;
     std::string fail_msg = check_boolean_possible(mo.const_volumes(), fail_reason);
-    if (fail_reason != csg::BooleanFailReason::MeshEmpty) {
+    // Keep the original export/merge behavior: a self-intersecting part is rejected by the
+    // CGAL pre-check and must fall through to the plain merge fallback below (as before),
+    // instead of being pushed through the boolean engine. Only OK / NotBoundAVolume attempt
+    // the boolean here. This keeps STL/SLA export and "merge parts" geometry unchanged for
+    // self-intersecting models (notably ones with negative/modifier volumes).
+    if (fail_msg.empty()
+        || fail_reason == csg::BooleanFailReason::NotBoundAVolume) {
         try {
             MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{std::begin(csgmesh), std::end(csgmesh)});
             mesh                                   = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);

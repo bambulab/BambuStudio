@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 #include <functional>
 #include <set>
+#include <map>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -195,6 +196,10 @@ private:
 struct BooleanOperationSettings {
     bool keep_original_models = false;
     bool entity_only = true;
+    // When true (default) the operands' painted color/MMU, supports, seam and fuzzy-skin
+    // are reprojected onto the boolean/merge result. When false the result is left as a
+    // plain single-color mesh (original boolean behaviour).
+    bool preserve_color = true;
     BooleanTargetMode target_mode { BooleanTargetMode::Unknown };
 
     // List of non-model volumes to attach
@@ -406,11 +411,18 @@ private:
     BooleanOperationEngine m_boolean_engine;
     mutable int m_last_plate_idx_for_visibility {-1};
 
+    // Object-mode visibility snapshot: remembers each object's visibility as it was when the
+    // gizmo opened, so exiting restores exactly that state (objects the user had manually
+    // hidden stay hidden) instead of blindly showing everything.
+    mutable std::map<ObjectID, bool> m_saved_object_visibility;
+    mutable bool                     m_object_visibility_saved {false};
+
     void reset_gizmo();
     void execute_mesh_boolean();
     void init_volume_manager();
     bool get_cur_entity_only() const;
-    bool is_on_same_plate(const Selection& selection) const;
+    void save_object_visibility() const;
+    void restore_object_visibility() const;
     BooleanTargetMode update_cur_mode(const Selection& selection) const;
 
     // ========================== ASYNC JOB METHODS ==========================
@@ -444,6 +456,7 @@ private:
     BooleanTargetMode   m_target_mode { BooleanTargetMode::Part };
     bool m_keep_original_models = false;
     bool m_entity_only = true;
+    bool m_preserve_color = true;
     size_t m_last_snapshot_time = 0;
 
     // ========================== ASYNC JOB TRACKING ==========================

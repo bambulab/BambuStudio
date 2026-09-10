@@ -82,6 +82,13 @@ private:
     const ModelVolume *m_volume; // keep pointer to actual working volume
 
     bool m_show_wireframe;
+    // Preserve painted color/MMU through the decimation. Only offered (checkbox shown) when
+    // the working volume actually carries painted color; defaults to off (drop paint) so
+    // simplifying an unpainted-intent model stays fast.
+    bool m_preserve_color = false;
+    // Set when Apply was clicked but the work is deferred to run outside the render frame
+    // (apply may pop a modal dialog). Prevents re-triggering Apply while it is pending.
+    bool m_apply_pending = false;
     GLModel m_glmodel;
     size_t m_triangle_count; // triangle count of the model currently shown
 
