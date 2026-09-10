@@ -1556,7 +1556,7 @@ void Selection::flattening_rotate(const Vec3d& normal)
         GLVolume& v = *(*m_volumes)[i];
         // Normal transformed from the object coordinate space to the world coordinate space.
         const Geometry::Transformation &old_inst_trafo = v.get_instance_transformation();
-        const Vec3d                     tnormal        = old_inst_trafo.get_matrix_no_offset() * normal;
+        const Vec3d                     tnormal        = Geometry::transform_normal(old_inst_trafo.get_matrix_no_offset(), normal);
         // Additional rotation to align tnormal with the down vector in the world coordinate space.
         const Transform3d rotation_matrix = Transform3d(Eigen::Quaterniond().setFromTwoVectors(tnormal, -Vec3d::UnitZ()));
         v.set_instance_transformation(old_inst_trafo.get_offset_matrix() * rotation_matrix * old_inst_trafo.get_matrix_no_offset());
