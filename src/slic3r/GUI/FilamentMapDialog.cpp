@@ -163,7 +163,17 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     bool sync_plate = true;
 
     std::vector<std::string> filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
-    std::vector<std::string> filament_types = full_config.option<ConfigOptionStrings>("filament_type")->values;
+    // Use get_filament_type() so support filaments (e.g. "Support for ABS") are
+    // shown with their display prefix ("Sup.ABS") rather than the raw base type
+    // ("ABS"), which would make them indistinguishable from regular ABS in the UI.
+    const int fila_count = (int)filament_colors.size();
+    std::vector<std::string> filament_types;
+    filament_types.reserve(fila_count);
+    for (int i = 0; i < fila_count; ++i) {
+        std::string displayed;
+        full_config.get_filament_type(displayed, i);
+        filament_types.push_back(displayed.empty() ? full_config.option<ConfigOptionStrings>("filament_type")->get_at(i) : displayed);
+    }
     FilamentMapMode applied_mode = get_applied_map_mode(full_config, plater_ref,partplate_ref, sync_plate);
     std::vector<int> applied_maps = get_applied_map(full_config, plater_ref, partplate_ref, sync_plate);
     std::vector<int> applied_volume_maps = get_applied_volume_map(full_config, plater_ref, partplate_ref, sync_plate);
