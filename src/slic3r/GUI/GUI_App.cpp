@@ -4866,8 +4866,9 @@ wxString GUI_App::transition_tridid_rack(int trid_id, MachineObject* obj) const
     case DevAmsType::ZMULTI_A:
     case DevAmsType::ZMULTI_B: return wxString::Format("%d", nozzle_pos);
     default:
-        // N3F/AMS -> "9-A1", N3S -> "9-HT-A" (suffix reuses the legacy decoder).
-        return wxString::Format("%d-%s", nozzle_pos, transition_tridid_legacy(trid_id));
+        // External AMS units carry their own unique letter code ("A1", "HT-A"),
+        // so only the rack's own feeds need the nozzle prefix.
+        return transition_tridid_legacy(trid_id);
     }
 }
 

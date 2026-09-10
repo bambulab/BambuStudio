@@ -175,6 +175,8 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusFilamentSuspectEngagementWarning,
     PrintStatusExtSpoolNotLoadedWarning,
     PrintStatusAmsSlotNotLoadedWarning,
+    PrintStatusRackAmsNeedManualUnloadWarning,
+    PrintStatusRackAmsMixExtAmsWarning,
     PrintStatusFilamentWarningEnd,
 
     PrintStatusWarningEnd,//->end error<-

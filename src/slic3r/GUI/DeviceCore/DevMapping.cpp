@@ -60,22 +60,52 @@ namespace Slic3r
         return all_valid;
     }
 
-    bool DevMappingUtil::IsSlotAutoLoadable(const DevNozzle& nz, DevAmsType ams_type, const DevAmsSlotId& slot)
+    // Filament already in a hotend must leave before any other slot can feed it,
+    // and only a sub AMS retracts its own. So the occupant decides for the rest.
+    DevSlotFeedBlock DevMappingUtil::QueryNozzleOccupantBlock(const DevNozzle& nz)
     {
-        if (ams_type != DevAmsType::ZMULTI_B && ams_type != DevAmsType::EXT_SPOOL)
-            return true; // the other ams types have their own feeder motor
-
         if (!nz.HasFilamentInNozzle())
-            return false;
+            return DevSlotFeedBlock::None;
 
-        const auto slot_now = nz.GetSlotNowId();
-        if (!slot_now.has_value()) {
-            return false;
+        // Resolves AMS slots and external spools alike, so ams_type classifies both.
+        const auto occupant = nz.GetSlotNow();
+        if (!occupant.has_value())
+            return DevSlotFeedBlock::None; // occupant unknown: stay permissive
+
+        if (devAmsTypeUtil::CanAutoRetract(occupant->ams_type))
+            return DevSlotFeedBlock::None;
+
+        return (occupant->ams_type == DevAmsType::EXT_SPOOL) ? DevSlotFeedBlock::BlockedByExtSpool
+                                                             : DevSlotFeedBlock::BlockedByRackAms;
+    }
+
+    DevSlotFeedBlock DevMappingUtil::QuerySlotFeedBlock(const DevNozzle& nz, DevAmsType ams_type, const DevAmsSlotId& slot)
+    {
+        // The slot already in the feed path needs nothing to happen first.
+        if (nz.HasFilamentInNozzle()) {
+            const auto slot_now = nz.GetSlotNowId();
+            // An external spool has a single slot, so its ams id alone identifies it.
+            const bool is_occupant = slot_now.has_value() && ((ams_type == DevAmsType::EXT_SPOOL) ? (slot_now->first == slot.first)
+                                                                                                  : (*slot_now == slot));
+            if (is_occupant)
+                return DevSlotFeedBlock::None;
         }
 
-        // An external spool has a single slot, so its ams id alone identifies it.
-        return (ams_type == DevAmsType::EXT_SPOOL) ? (slot_now->first == slot.first)
-                                                   : (*slot_now == slot);
+        // Must outrank the feeder check below, otherwise a feeder-less rack slot
+        // (ZMULTI_B) reports the milder NeedManualFeed behind an engaged spool.
+        const DevSlotFeedBlock occupant_block = QueryNozzleOccupantBlock(nz);
+        if (occupant_block != DevSlotFeedBlock::None)
+            return occupant_block;
+
+        if (!devAmsTypeUtil::CanAutoFeed(ams_type))
+            return DevSlotFeedBlock::NeedManualFeed;
+
+        return DevSlotFeedBlock::None;
+    }
+
+    bool DevMappingUtil::IsSlotAutoLoadable(const DevNozzle& nz, DevAmsType ams_type, const DevAmsSlotId& slot)
+    {
+        return QuerySlotFeedBlock(nz, ams_type, slot) == DevSlotFeedBlock::None;
     }
 
     // calc distance map
@@ -86,7 +116,7 @@ namespace Slic3r
         bool  is_type_match = true;
         bool  is_nozzle_match = true;
         bool  is_ext = false; // candidate tray is an external spool (hotend-rack)
-        bool  is_slot_loaded = true; // false: the user must feed this slot by hand first
+        bool  can_auto_feed = true; // false: the user must feed or unload the hotend by hand first
         bool  is_sub_ams = false; // candidate slot belongs to an attached sub AMS (hotend-rack)
     };
 
@@ -147,7 +177,7 @@ namespace Slic3r
                                                         std::map<int, FilamentInfo>&             tray_filaments,
                                                         std::map<int, std::optional<DevNozzle>>& tray_nozzles,
                                                         std::set<int>&                           ext_tray_keys,
-                                                        std::set<int>&                           not_loaded_keys,
+                                                        std::set<int>&                           no_auto_feed_keys,
                                                         std::set<int>&                           sub_ams_keys)
     {
         auto  fila_sys   = obj->GetFilaSystem();
@@ -175,7 +205,7 @@ namespace Slic3r
             if (is_ext)
                 ext_tray_keys.insert(key);
             if (!DevMappingUtil::IsSlotAutoLoadable(*nz, type, DevAmsSlotId{ams_id, slot_id}))
-                not_loaded_keys.insert(key);
+                no_auto_feed_keys.insert(key);
             if (type == DevAmsType::N3S || type == DevAmsType::N3F || type == DevAmsType::AMS)
                 sub_ams_keys.insert(key);
         };
@@ -190,6 +220,8 @@ namespace Slic3r
             if (!nz.has_value())
                 continue;
 
+            // Every slot reachable from this hotend goes into the pool, matching
+            // what the popup lists; try_add flags the unreachable ones instead.
             for (const auto& slot : nz->GetBindAmsSlots())
             {
                 const int ams_id  = slot.first;
@@ -283,7 +315,7 @@ namespace Slic3r
             int   best_j  = -1;
             for (int j = 0; j < (int) distance_map[i].size(); j++) {
                 const auto& dv = distance_map[i][j];
-                if (!dv.is_type_match || !dv.is_nozzle_match || !dv.is_slot_loaded)
+                if (!dv.is_type_match || !dv.is_nozzle_match || !dv.can_auto_feed)
                     continue;
                 if (min_val > dv.distance) {
                     min_val = dv.distance;
@@ -423,11 +455,8 @@ namespace Slic3r
         constexpr float kClassDistanceOffset = 10000.f;  // class match (filament_id) only
         constexpr float kTypeDistanceOffset  = 20000.f;  // same type only
         constexpr float kMismatchDistance    = 999999.f; // hard fail (type / alpha mismatch)
-        constexpr float kNotLoadedPenalty    = 100000.f; // not fed yet: still a candidate, but behind every loaded one
         static_assert(kColorDistanceMax < kClassDistanceOffset, "color distance must not override sub-class / class match priority");
         static_assert(kTypeDistanceOffset - kClassDistanceOffset > kColorDistanceMax, "class-vs-type gap must exceed the color distance range");
-        static_assert(kNotLoadedPenalty > kTypeDistanceOffset + kColorDistanceMax, "not-loaded slot must rank behind every loaded candidate");
-        static_assert(kNotLoadedPenalty + kTypeDistanceOffset + kColorDistanceMax < kMismatchDistance, "not-loaded penalty must stay below hard-fail");
 
         if (filaments.empty() || !obj)
             return -1;
@@ -437,7 +466,7 @@ namespace Slic3r
         std::map<int, FilamentInfo> tray_filaments; // tray_index : tray_color
         std::map<int, std::optional<DevNozzle>> tray_nozzles;
         std::set<int> ext_tray_keys; // candidate keys that are external spools (rack path)
-        std::set<int> not_loaded_keys; // candidate keys the user must feed by hand (rack path)
+        std::set<int> no_auto_feed_keys; // candidate keys the printer cannot feed on its own (rack path)
         std::set<int> sub_ams_keys; // candidate keys on an attached sub AMS (rack path)
         bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
 
@@ -446,10 +475,9 @@ namespace Slic3r
                                              rack_type == DevNozzleRack::RackType_B);
         if (is_mapping_hotend_item)
         {
-            // Hotend-rack machines: each rack nozzle contributes its currently-fed
-            // slot plus every slot of the sub AMS units bound to it. map_opt is not
-            // applicable to the rack's per-nozzle feed.
-            _collect_mapping_hotend_item_candidates(obj, check_nozzle_type, tray_filaments, tray_nozzles, ext_tray_keys, not_loaded_keys, sub_ams_keys);
+            // Hotend-rack machines: every slot reachable from a rack nozzle, with
+            // the unreachable ones flagged rather than missing. map_opt is n/a here.
+            _collect_mapping_hotend_item_candidates(obj, check_nozzle_type, tray_filaments, tray_nozzles, ext_tray_keys, no_auto_feed_keys, sub_ams_keys);
         }
         else
         {
@@ -594,13 +622,10 @@ namespace Slic3r
                     }
                 }
 
-                // Keep the slot in the pool but rank it behind every candidate that is
-                // fed already; the ones that failed hard keep their own score.
-                if (not_loaded_keys.count(tray->first)) {
-                    val.is_slot_loaded = false;
-                    if (val.is_type_match && val.is_nozzle_match)
-                        val.distance += kNotLoadedPenalty;
-                }
+                // Keep the real distance so the log still explains the choice, but
+                // bar it from auto mapping: reaching it needs a manual step.
+                if (no_auto_feed_keys.count(tray->first))
+                    val.can_auto_feed = false;
 
                 ::sprintf(buffer, "  %6.0f", val.distance);
                 line += std::string(buffer);

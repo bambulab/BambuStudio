@@ -61,7 +61,13 @@ namespace slot {
     inline constexpr const char* multi_colors  = "multi_colors";
     inline constexpr const char* nozzle        = "nozzle";
     inline constexpr const char* sub_ams       = "sub_ams";
-    inline constexpr const char* ext_filament_loaded = "ext_filament_loaded";
+    // Main slot only: the block this hotend imposes on its other feed sources
+    // because of what occupies it right now. Drives the sub-page banner when
+    // it is `ext_spool`.
+    inline constexpr const char* hotend_feed_block = "hotend_feed_block";
+    // Sub-slot only: why the printer cannot feed this slot on its own. For
+    // `ext_spool` it drives both the tooltip and the non-pickable state.
+    inline constexpr const char* feed_block        = "feed_block";
 }
 
 // slot.nozzle — per-slot nozzle info row.
@@ -109,6 +115,16 @@ namespace slot_state {
     inline constexpr const char* nozzle_unmatch   = "NozzleUnmatch";
     inline constexpr const char* nozzle_empty     = "NozzleEmpty";
     inline constexpr const char* unavailable      = "Unavailable";
+}
+
+// slot.feed_block / slot.hotend_feed_block — mirrors Slic3r::DevSlotFeedBlock.
+// Only `ext_spool` makes a slot non-pickable; the others surface as send-page
+// pre-print warnings.
+namespace feed_block {
+    inline constexpr const char* none             = "none";
+    inline constexpr const char* need_manual_feed = "need_manual_feed";
+    inline constexpr const char* rack_ams         = "rack_ams";
+    inline constexpr const char* ext_spool        = "ext_spool";
 }
 
 // slot.color_type

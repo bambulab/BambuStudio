@@ -1296,7 +1296,6 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
             wxColour ams_col = wxColour(0xCE, 0xCE, 0xCE);
             it->second->item->set_ams_info(ams_col, ams_id);
             it->second->item->set_nozzle_info(get_mapped_nozzle_str(it->first));
-            it->second->item->set_ams_filament_type(wxEmptyString);
             it->second->item->set_nozzle_dia_and_type(wxEmptyString);
         }
         return;
@@ -1345,17 +1344,6 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
                 m->set_ams_info(ams_col, ams_id,f->ctype, cols);
                 m->set_nozzle_info(get_mapped_nozzle_str(id));
 
-
-                // Set mapped tray's filament type name (e.g. "PLA", "ABS-CF").
-                // Read from the mapping snapshot (same source as the color above)
-                // so a user-edited type shows immediately, before the device
-                // echoes the new tray info. A mapped slot with no known type
-                // (third-party / unread) renders "?".
-                wxString ams_filament_type;
-                if (f->tray_id >= 0) {
-                    ams_filament_type = f->type.empty() ? "?" : wxString::FromUTF8(f->get_display_filament_type().c_str());
-                }
-                m->set_ams_filament_type(ams_filament_type);
 
                 // Set nozzle spec for hotend-rack machines (e.g. "0.4 HF")
                 wxString nozzle_dia_and_type;
@@ -2187,6 +2175,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintStatusFilamentSuspectEngagementWarning) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
+    } else if (status == PrintStatusRackAmsNeedManualUnloadWarning ||
+               status == PrintStatusRackAmsMixExtAmsWarning) {
+        // Advisory only: the print still runs, it just needs a manual swap.
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     }
@@ -3658,9 +3651,9 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 m_ams_mapping_result[i].ams_id = selection_data_arr[6].ToStdString();
                 m_ams_mapping_result[i].slot_id = selection_data_arr[7].ToStdString();
 
-                // Mirror the color update above: store the selected slot's type in
-                // the snapshot. Unreadable / third-party slots have no type, so
-                // clear it and let it render "?" until the user edits the slot.
+                // Mirror the color update above: store the selected slot's type
+                // in the snapshot. Unreadable / third-party slots have no type,
+                // so clear it instead of keeping the previous slot's value.
                 if (auto obj_ = get_current_machine()) {
                     auto tray_opt = obj_->get_tray(m_ams_mapping_result[i].ams_id, m_ams_mapping_result[i].slot_id);
                     m_ams_mapping_result[i].type = (tray_opt.has_value() && tray_opt->is_tray_info_ready())
@@ -3681,7 +3674,13 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
             MaterialItem *m = item->item;
             if (item->id == m_current_filament_id) {
                 auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
-                m->set_ams_info(ams_colour, selection_data_arr[4], ctype, material_cols);
+                // Rack machines post only the bare slot index ("2" for a rack
+                // feed, "1".."4" inside a sub AMS), so recompute the full label
+                // to match what auto mapping shows. Others keep the popup label.
+                wxString disp_ams_name = selection_data_arr[4];
+                if (is_hotend_rack())
+                    disp_ams_name = wxGetApp().transition_tridid(evt.GetInt(), std::nullopt, get_current_machine());
+                m->set_ams_info(ams_colour, disp_ams_name, ctype, material_cols);
                 m->set_nozzle_info(get_mapped_nozzle_str(item->id));
 
                 // Update hotend info
@@ -3689,19 +3688,6 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 if (obj_) {
                     std::string ams_id = selection_data_arr[6].ToStdString();
                     std::string slot_id = selection_data_arr[7].ToStdString();
-
-                    // Set mapped tray's filament type from the snapshot (kept in
-                    // sync above), same source as the color; renders "?" when the
-                    // mapped slot has no known type.
-                    wxString ams_filament_type;
-                    for (const auto& mr : m_ams_mapping_result) {
-                        if (mr.id == item->id) {
-                            if (mr.tray_id >= 0)
-                                ams_filament_type = mr.type.empty() ? "?" : wxString::FromUTF8(mr.get_display_filament_type().c_str());
-                            break;
-                        }
-                    }
-                    m->set_ams_filament_type(ams_filament_type);
 
                     wxString nozzle_dia_and_type = get_nozzle_dia_and_type(ams_id, slot_id);
                     m->set_nozzle_dia_and_type(nozzle_dia_and_type);
@@ -4079,6 +4065,7 @@ void SelectMachineDialog::update_by_obj(MachineObject* obj_)
     m_filament_right_title->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(obj_->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
 
     update_ams_backup(obj_);
+    rebuild_material_items_on_rack_change();
     update_material_item_pos(obj_);
 
     update_option_dynamic_state(obj_);
@@ -4951,6 +4938,8 @@ void SelectMachineDialog::clear_material_infos()
 
     m_materialList.clear();
     m_sizer_ams_mapping->Clear();
+    m_sizer_ams_mapping_left->Clear();
+    m_sizer_ams_mapping_right->Clear();
     m_filaments.clear();
     m_filaments_map.clear();
 }
@@ -5020,6 +5009,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 {
     // Reset
     clear_material_infos();
+    m_built_as_hotend_rack = is_hotend_rack();
 
     if (!wxGetApp().preset_bundle) {
         return;
@@ -5174,6 +5164,48 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     m_filament_right_panel->Show(left_sizer_count > 0 || right_sizer_count > 0);
 
     // reset_ams_material();//show "-"
+}
+
+void SelectMachineDialog::rebuild_material_items_on_rack_change()
+{
+    // is_hotend_rack() and create_material_item() both read the selected machine, so
+    // gate on that same object instead of the one update_by_obj() was called with.
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
+    if (!obj || obj->get_dev_id() != m_printer_last_select) {
+        return;
+    }
+
+    // The rack type comes from the device push (rack "info2"), so it stays at its
+    // default until the first full message arrives. Keep polling until then.
+    if (!obj->is_info_ready()) {
+        return;
+    }
+
+    if (is_hotend_rack() == m_built_as_hotend_rack) {
+        return;
+    }
+
+    // The cards are about to be destroyed and the popup holds a raw pointer to one.
+    if (m_mapping_popup.IsShown()) {
+        m_mapping_popup.Dismiss();
+    }
+    m_mapping_popup.set_parent_item(nullptr);
+
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        try {
+            reset_and_sync_ams_list();
+        } catch (std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << e.what();
+        }
+    } else if (m_print_plate_idx >= 0 && m_print_plate_idx < (int) m_required_data_plate_data_list.size()) {
+        set_default_from_sdcard();
+    } else {
+        return;/*no plate data to rebuild from, retry on the next tick*/
+    }
+
+    Layout();
+    Fit();
 }
 
 void SelectMachineDialog::clone_thumbnail_data() {
@@ -5610,6 +5642,7 @@ void SelectMachineDialog::set_default_from_sdcard()
     m_sizer_ams_mapping_right->Clear();
     m_materialList.clear();
     m_filaments.clear();
+    m_built_as_hotend_rack = is_hotend_rack();
 
     bool          selected_any      = false;
     MaterialItem *first_enabled     = nullptr;
@@ -7001,6 +7034,16 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     }
 
+    if (!CheckWarningRackAmsNeedManualUnload(obj_)) {
+        show_status(PrintDialogStatus::PrintStatusRackAmsNeedManualUnloadWarning);
+    }
+
+    wxString rack_ams_mix_warning_msg;
+    if (!CheckWarningRackAmsMixExtAms(obj_, rack_ams_mix_warning_msg)) {
+        show_status(PrintDialogStatus::PrintStatusRackAmsMixExtAmsWarning,
+                    {rack_ams_mix_warning_msg});
+    }
+
     return true;
 }
 
@@ -7336,6 +7379,37 @@ bool SelectMachineDialog::CheckWarningSmartNozzleBlobAuto(MachineObject* obj_)
     return true;
 }
 
+// Resolve which hotend feeds a mapped slot, as a stable nozzle addr id.
+//
+// DevAmsTray::get_nozzle_addr_id() only decodes the sources whose hotend is
+// fixed by position: rack AMS slot i and external spool 255-i both belong to
+// nozzle i. An external AMS is attached dynamically instead -- only the
+// nozzle's own bind_ams tells which hotend it feeds -- so it needs the reverse
+// lookup below. Both nozzle containers must be scanned: bind_ams travels with
+// the nozzle, and a hotend picked up onto the extruder leaves the rack map for
+// m_ext_nozzles. Scanning the rack alone (as DevAmsTray::get_nozzle_pos_id()
+// does) silently drops every slot of that AMS out of the checks.
+static std::optional<int> s_resolve_mapped_nozzle_addr_id(MachineObject* obj_, const DevAmsTray& tray)
+{
+    if (!obj_) return std::nullopt;
+
+    if (auto addr_opt = tray.get_nozzle_addr_id(obj_); addr_opt.has_value()) return addr_opt;
+
+    auto* nozzle_sys = obj_->GetNozzleSystem();
+    if (!nozzle_sys) return std::nullopt;
+
+    for (const auto* nozzles : {&nozzle_sys->GetExtNozzles(), &nozzle_sys->GetRackNozzles()}) {
+        for (const auto& [_, nozzle] : *nozzles) {
+            if (!nozzle.GetAddrId().has_value()) continue;
+            for (int bind_ams_id : nozzle.GetBindAms()) {
+                if (std::to_string(bind_ams_id) == tray.ams_id) return nozzle.GetAddrId();
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
 bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* obj_, wxString& warning_msg)
 {
     warning_msg.clear();
@@ -7363,7 +7437,7 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
         auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
         if (!tray_opt.has_value()) continue;
 
-        auto addr_opt = tray_opt->get_nozzle_addr_id(obj_);
+        auto addr_opt = s_resolve_mapped_nozzle_addr_id(obj_, *tray_opt);
         if (!addr_opt.has_value()) continue; // cannot resolve the nozzle -> avoid false positive
         mapped_addr_ids.insert(addr_opt.value());
     }
@@ -7406,6 +7480,36 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
     return false;
 }
 
+// Whether any mapped slot reports the given feed block. Uses the same predicate
+// as auto-mapping, so it also catches slots the manual panel allowed.
+static bool has_mapped_slot_blocked_by(MachineObject* obj_, const std::vector<FilamentInfo>& mapping_result, DevSlotFeedBlock block)
+{
+    if (!obj_) return false;
+
+    const auto rack_type = obj_->GetNozzleRack()->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B)
+        return false;
+
+    for (const auto& fila : mapping_result) {
+        if (fila.tray_id < 0 || fila.ams_id.empty()) continue; // never mapped
+
+        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
+        if (!tray_opt.has_value()) continue;
+
+        auto addr_opt = s_resolve_mapped_nozzle_addr_id(obj_, *tray_opt);
+        if (!addr_opt.has_value()) continue; // cannot resolve the nozzle -> avoid false positive
+        auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(addr_opt.value());
+        if (!nozzle_opt.has_value()) continue;
+
+        if (DevMappingUtil::QuerySlotFeedBlock(*nozzle_opt, tray_opt->ams_type,
+                                               DevAmsSlotId{fila.get_ams_id(), fila.get_slot_id()})
+            == block) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool SelectMachineDialog::CheckWarningSlotNotLoaded(MachineObject* obj_, wxString& ext_spool_msg, wxString& ams_slot_msg)
 {
     ext_spool_msg.clear();
@@ -7413,8 +7517,8 @@ bool SelectMachineDialog::CheckWarningSlotNotLoaded(MachineObject* obj_, wxStrin
 
     if (!obj_) return true;
 
-    if (!(obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A
-        || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) 
+    const auto rack_type = obj_->GetNozzleRack()->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B)
         return true;
 
     std::set<int> ext_spool_tool_ids;
@@ -7427,20 +7531,23 @@ bool SelectMachineDialog::CheckWarningSlotNotLoaded(MachineObject* obj_, wxStrin
         auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
         if (!tray_opt.has_value()) continue;
 
-        auto addr_opt = tray_opt->get_nozzle_addr_id(obj_);
+        auto addr_opt = s_resolve_mapped_nozzle_addr_id(obj_, *tray_opt);
         if (!addr_opt.has_value()) continue; // cannot resolve the nozzle -> avoid false positive
-        auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(addr_opt.value());
+        const int addr_id = addr_opt.value();
+        auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
         if (!nozzle_opt.has_value()) continue;
 
-        const DevAmsType ams_type = devPrinterUtil::IsVirtualSlot(fila.ams_id) ? DevAmsType::EXT_SPOOL
-                                                                               : tray_opt->ams_type;
-        if (DevMappingUtil::IsSlotAutoLoadable(*nozzle_opt, ams_type, DevAmsSlotId{fila.get_ams_id(), fila.get_slot_id()})) {
+        const DevAmsType ams_type = tray_opt->ams_type;
+        // Only NeedManualFeed: the other blocks have their own warnings.
+        if (DevMappingUtil::QuerySlotFeedBlock(*nozzle_opt, ams_type,
+                                               DevAmsSlotId{fila.get_ams_id(), fila.get_slot_id()})
+            != DevSlotFeedBlock::NeedManualFeed) {
             continue;
         }
 
         // The user has to push this filament in before printing; tell him where.
         if (ams_type == DevAmsType::EXT_SPOOL) {
-            ext_spool_tool_ids.insert(addr_opt.value() + kNozzleDisplayOffset);
+            ext_spool_tool_ids.insert(addr_id + kNozzleDisplayOffset);
         } else {
             ams_slot_ids.insert(fila.get_slot_id() + kSlotDisplayOffset);
         }
@@ -7461,6 +7568,94 @@ bool SelectMachineDialog::CheckWarningSlotNotLoaded(MachineObject* obj_, wxStrin
     }
 
     return false;
+}
+
+bool SelectMachineDialog::CheckWarningRackAmsNeedManualUnload(MachineObject* obj_)
+{
+    // Rack AMS filament cannot be retracted by the printer, so anything else
+    // mapped to that hotend needs the user to unload it by hand first.
+    return !has_mapped_slot_blocked_by(obj_, m_ams_mapping_result, DevSlotFeedBlock::BlockedByRackAms);
+}
+
+bool SelectMachineDialog::CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxString& warning_msg)
+{
+    warning_msg.clear();
+    if (!obj_) return true;
+
+    const auto rack_type = obj_->GetNozzleRack()->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B)
+        return true;
+
+    auto fila_sys = obj_->GetFilaSystem();
+    if (!fila_sys) return true;
+
+    // Judged on the mapping alone, not on what currently feeds the hotend:
+    // printing from both sources on one hotend always needs a swap, and the
+    // rack AMS cannot retract its own filament to make room.
+    struct HotendSources
+    {
+        const DevAms* rack_ams    = nullptr;
+        bool          has_ext_ams = false;
+    };
+    std::map<int, HotendSources> sources_by_hotend; // key: nozzle addr id
+
+    for (const auto& fila : m_ams_mapping_result) {
+        if (fila.tray_id < 0 || fila.ams_id.empty()) continue;    // never mapped
+        if (devPrinterUtil::IsVirtualSlot(fila.ams_id)) continue; // the external spool has its own warning
+
+        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
+        if (!tray_opt.has_value()) continue;
+
+        auto addr_opt = s_resolve_mapped_nozzle_addr_id(obj_, *tray_opt);
+        if (!addr_opt.has_value()) continue; // cannot resolve the hotend
+        const int addr_id = addr_opt.value();
+
+        switch (tray_opt->ams_type) {
+        case DevAmsType::ZMULTI_A:
+        case DevAmsType::ZMULTI_B:
+            sources_by_hotend[addr_id].rack_ams = fila_sys->GetAmsById(fila.ams_id);
+            break;
+        case DevAmsType::AMS:
+        case DevAmsType::N3F:
+        case DevAmsType::N3S:
+            sources_by_hotend[addr_id].has_ext_ams = true;
+            break;
+        default: break;
+        }
+    }
+
+    for (const auto& [addr_id, sources] : sources_by_hotend) {
+        if (!sources.rack_ams || !sources.has_ext_ams) continue;
+
+        // GetDisplayName() already carries the "AMS" prefix ("AMS-H3", "AMS-B").
+        const wxString ams_name = sources.rack_ams->GetDisplayName();
+        warning_msg = wxString::Format(
+            _L("External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot "
+               "unload automatically, you will need to change the filament manually."),
+            ams_name, addr_id + 1, ams_name);
+        return false;
+    }
+
+    return true;
+}
+
+bool SelectMachineDialog::CheckWarningPrintTimeEstimate(MachineObject* obj_, const std::vector<FilamentInfo>& ams_mapping_result)
+{
+    if (!obj_) return true;
+
+    for (const auto& fila : ams_mapping_result) {
+        if (fila.ams_id.empty() || devPrinterUtil::IsVirtualSlot(fila.ams_id))
+            continue;
+
+        if (DevAms* ams = obj_->GetFilaSystem()->GetAmsById(fila.ams_id)) {
+            DevAmsType ams_type = ams->GetAmsType();
+            if (ams_type != DevAmsType::AMS_LITE && ams_type != DevAmsType::AMS_LITE_MIXED) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const

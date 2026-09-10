@@ -27,6 +27,15 @@ export type AmsMappingHotendSlotState =
 
 export type AmsMappingHotendColorType = 'single' | 'multi' | 'gradient';
 
+// Why the printer cannot feed a slot on its own (mirrors DevSlotFeedBlock).
+// Only 'ext_spool' makes a slot non-selectable and is surfaced here; the others
+// are raised as send-page pre-print warnings instead.
+export type AmsMappingHotendFeedBlock =
+  | 'none'
+  | 'need_manual_feed'
+  | 'rack_ams'
+  | 'ext_spool';
+
 // Kind of tool mounted on the rack position. Only a printing nozzle can be
 // matched to a filament; cutter/pen carry their own icon and are forced into a
 // non-pickable NozzleUnmatch state by the backend. Optional for backward
@@ -65,6 +74,8 @@ export interface AmsMappingHotendSubSlotViewModel {
   can_edit: boolean;
   checked: boolean;
   multi_colors: string[];
+  // Why the printer cannot feed this slot by itself, if it cannot.
+  feed_block?: AmsMappingHotendFeedBlock;
 }
 
 export interface AmsMappingHotendSubAmsGroupViewModel {
@@ -94,9 +105,9 @@ export interface AmsMappingHotendSlotViewModel {
   multi_colors: string[];
   nozzle?: AmsMappingHotendNozzleInfo;
   sub_ams?: AmsMappingHotendSubAmsGroupViewModel[];
-  // True only while an external spool is the feed source actually engaged in
-  // this hotend. A bound-but-unloaded external spool reports false.
-  ext_filament_loaded?: boolean;
+  // What the filament engaged in this hotend forbids its other feed sources
+  // from doing. 'none' when the hotend is empty or holds sub-AMS filament.
+  hotend_feed_block?: AmsMappingHotendFeedBlock;
 }
 
 export interface AmsMappingHotendViewModel {

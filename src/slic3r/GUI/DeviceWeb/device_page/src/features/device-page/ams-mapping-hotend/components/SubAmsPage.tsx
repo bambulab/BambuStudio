@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type {
   AmsMappingHotendSlotViewModel,
   AmsMappingHotendSubSlotViewModel,
 } from '../types';
-import { resolvePreloadLockedTooltip, resolveSlotTooltip } from '../slotTooltip';
+import { resolveFeedBlockTooltip, resolveSlotTooltip } from '../slotTooltip';
 import { SpoolRing } from './SpoolRing';
 import { BottomWikiTip } from './BottomWikiTip';
 
@@ -17,26 +18,31 @@ interface SubAmsPageProps {
   onOpenWiki: () => void;
 }
 
+// The feed block wins when present: it is only surfaced for `ext_spool`, which
+// disables the card outright and therefore outranks any state tip.
+function resolveCardTooltip(
+  t: TFunction,
+  sub: AmsMappingHotendSubSlotViewModel,
+  materialIndex: string,
+): string {
+  const blockTip = resolveFeedBlockTooltip(t, sub.feed_block);
+  return blockTip || resolveSlotTooltip(t, sub.state, sub.is_pickable, sub.filament_type, materialIndex);
+}
+
 function SubCard({
   sub,
   materialIndex,
-  isPreload = false,
   onSelect,
   onEdit,
 }: {
   sub: AmsMappingHotendSubSlotViewModel;
   materialIndex: string;
-  isPreload?: boolean;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
   onEdit: (sub: AmsMappingHotendSubSlotViewModel) => void;
 }) {
   const { t } = useTranslation();
   const disabled = !sub.is_pickable;
-  // A locked preload card (pre-fed AMS behind an external spool feed) uses a
-  // dedicated hint telling the user to unload the external spool first.
-  const tooltip = isPreload && !sub.is_pickable
-    ? resolvePreloadLockedTooltip(t)
-    : resolveSlotTooltip(t, sub.state, sub.is_pickable, sub.filament_type, materialIndex);
+  const tooltip = resolveCardTooltip(t, sub, materialIndex);
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
   const isEmpty = !sub.has_filament;
   const isThird = sub.filament_name === '?';
@@ -112,20 +118,16 @@ function SubCard({
 function ParentCard({
   sub,
   materialIndex,
-  isPreload = false,
   onSelect,
   onEdit,
 }: {
   sub: AmsMappingHotendSubSlotViewModel;
   materialIndex: string;
-  isPreload?: boolean;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
   onEdit: (sub: AmsMappingHotendSubSlotViewModel) => void;
 }) {
   const { t } = useTranslation();
-  const tooltip = isPreload && !sub.is_pickable
-    ? resolvePreloadLockedTooltip(t)
-    : resolveSlotTooltip(t, sub.state, sub.is_pickable, sub.filament_type, materialIndex);
+  const tooltip = resolveCardTooltip(t, sub, materialIndex);
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
   const isEmpty = !sub.has_filament;
   const isThird = sub.filament_name === '?';
@@ -138,8 +140,8 @@ function ParentCard({
         data-state={sub.state}
         data-checked={sub.checked}
         data-clickable={sub.is_pickable}
-        // A locked preload rack slot keeps state Normal, so the dim has to be
-        // keyed off pickability just like the sub-cards do.
+        // A card locked behind an engaged external spool keeps state Normal, so
+        // the dim has to be keyed off pickability just like the sub-cards do.
         data-pickable={sub.is_pickable}
         title={tooltip || undefined}
         role={sub.is_pickable ? 'button' : undefined}
@@ -239,13 +241,6 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
     multi_colors:  slot.multi_colors,
   };
 
-  // An external spool engaged in this hotend cannot be retracted by the
-  // printer, so every other source stays unusable until the user pulls it out
-  // by hand. Warn on entering the page, whatever is currently selected. An
-  // external spool that is merely bound but never fed blocks nothing and stays
-  // silent.
-  const bannerVisible = !!slot.ext_filament_loaded;
-
   // The left card is always the hotend's own rack AMS slot. When the hotend is
   // currently fed by the external spool the main card is that spool, and the
   // rack slot arrives as the synthetic preload group instead; promote it out of
@@ -256,16 +251,10 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
     ? slot.sub_ams.filter((g) => !g.is_preload)
     : slot.sub_ams;
 
-  // Scenario 3: the hotend is already fed by the external spool, so the rack
-  // slot behind it is display-only. Mirror the card's hover tip as a persistent
-  // banner, matching ParentCard's own tooltip condition so both always agree.
-  const preloadLocked = slot.ext && !!rackSlot && !rackSlot.is_pickable;
-
-  const warningBanner = preloadLocked ? (
-    <WarningBanner text={resolvePreloadLockedTooltip(t)} />
-  ) : bannerVisible ? (
-    <WarningBanner text="打印过程中需要手动抽出外挂耗材进行换料操作" />
-  ) : null;
+  // Say it once at the top instead of relying on the user hovering each card.
+  // Empty string when nothing is in the way.
+  const bannerText = resolveFeedBlockTooltip(t, slot.hotend_feed_block);
+  const warningBanner = bannerText ? <WarningBanner text={bannerText} /> : null;
 
   const backButton = (
     <button
@@ -276,7 +265,7 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M12 15L7 10L12 5" stroke="#262E30" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
-      <span>返回</span>
+      <span>{t('Back')}</span>
     </button>
   );
 
@@ -295,7 +284,6 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
           <ParentCard
             sub={rackSlot}
             materialIndex={materialIndex}
-            isPreload={slot.ext}
             onSelect={onSelect}
             onEdit={onEdit}
           />
@@ -316,7 +304,6 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
                     key={`${sub.ams_id}-${sub.slot_id}`}
                     sub={sub}
                     materialIndex={materialIndex}
-                    isPreload={group.is_preload}
                     onSelect={onSelect}
                     onEdit={onEdit}
                   />

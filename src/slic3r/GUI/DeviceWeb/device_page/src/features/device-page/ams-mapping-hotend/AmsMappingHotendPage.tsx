@@ -37,6 +37,7 @@ const CONTENT_BOTTOM_GAP = 6;
 function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
   const send = useSendToCpp();
   const seqRef = useRef(1_000_000);
+  const scheduleRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const root = rootRef.current;
@@ -88,6 +89,7 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
       rafId = window.requestAnimationFrame(report);
     };
 
+    scheduleRef.current = scheduleReport;
     scheduleReport();
     window.addEventListener('resize', scheduleReport);
 
@@ -96,10 +98,17 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
 
     return () => {
       if (rafId) window.cancelAnimationFrame(rafId);
+      scheduleRef.current = () => {};
       observer?.disconnect();
       window.removeEventListener('resize', scheduleReport);
     };
   }, [rootRef, send]);
+
+  // `root` is height:100% of the popup, so the observer above never ticks on a
+  // pure content change. Re-measure per render; report() dedups by size.
+  useEffect(() => {
+    scheduleRef.current();
+  });
 }
 
 export function AmsMappingHotendPage() {

@@ -318,6 +318,8 @@ private:
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
     bool                                m_check_flag {false};
+    // Whether the current material cards were created as MaterialItemHotend.
+    bool                                m_built_as_hotend_rack{ false };
     bool                                m_ext_change_assist{ false };
     // timelapse internal storage selection
     std::string                         m_timelapse_storage{ "internal" };  // "internal" or "external"
@@ -527,6 +529,15 @@ public:
     // they are reported apart. Returns true if no warning; otherwise fills the messages.
     bool CheckWarningSlotNotLoaded(MachineObject* obj_, wxString& ext_spool_msg, wxString& ams_slot_msg);
 
+    // (RackType_A/B) rack AMS filament occupies a hotend that this print maps to
+    // another source. The printer cannot retract it. Returns true if no warning.
+    bool CheckWarningRackAmsNeedManualUnload(MachineObject* obj_);
+
+    // (RackType_A/B) one hotend is mapped to both its rack AMS and an external
+    // AMS, which forces a manual swap mid-print because the rack AMS cannot
+    // unload itself. Returns true if no warning; otherwise fills warning_msg.
+    bool CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxString& warning_msg);
+
     void update_best_pos_dialog(wxCommandEvent &evt);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
@@ -650,6 +661,9 @@ private:
 
     // material items
     void clear_material_infos();
+    // The card class (MaterialItem or MaterialItemHotend) is picked when the card is
+    // created, so switching between a rack and a non-rack printer needs a rebuild.
+    void rebuild_material_items_on_rack_change();
     void on_material_item_clicked(MaterialItem* item,
                                   const std::vector<pPresetFilaInfo>& preset_fila_infos,
                                   int used_filament_idx,

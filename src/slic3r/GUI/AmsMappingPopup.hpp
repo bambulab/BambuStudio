@@ -118,7 +118,6 @@ public:
     virtual void reset_valid_info();
 
     void set_nozzle_info(const wxString& mapped_nozzle_str);
-    virtual void set_ams_filament_type(const wxString &) {};
     virtual void set_nozzle_dia_and_type(const wxString & dia_type_info){};
 
     void disable();

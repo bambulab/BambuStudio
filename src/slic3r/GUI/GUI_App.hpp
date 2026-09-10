@@ -529,7 +529,8 @@ public:
 
     wxString        transition_tridid(int trid_id, std::optional<int> total_extruder_count = std::nullopt, MachineObject* obj = nullptr) const;
     wxString        transition_tridid_legacy(int trid_id, std::optional<int> total_extruder_count = std::nullopt) const;
-    // Hotend-rack machines: "<nozzle_pos>-<suffix>", e.g. "9-Ext" / "9-A1" / "9-HT-A".
+    // Hotend-rack machines: own feeds are nozzle-scoped ("9" / "9-Ext"), while
+    // external AMS units keep their global letter code ("A1" / "HT-A").
     wxString        transition_tridid_rack(int trid_id, MachineObject* obj) const;
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg(bool post_login = false);

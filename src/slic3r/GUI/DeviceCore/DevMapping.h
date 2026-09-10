@@ -20,6 +20,16 @@ enum MappingOption
     USE_RIGHT_EXT
 };
 
+// Why a hotend cannot be fed from a given slot without the user touching the
+// machine. The UI reacts differently per value, so they must stay distinct.
+enum class DevSlotFeedBlock
+{
+    None = 0,          // the printer can load this slot on its own
+    NeedManualFeed,    // the slot has no feeder of its own and its filament is not in the feed path
+    BlockedByRackAms,  // rack AMS filament occupies the hotend and cannot be retracted automatically
+    BlockedByExtSpool, // an external spool is engaged and has to be pulled out by hand
+};
+
 class DevMappingUtil
 {
 public:
@@ -27,6 +37,14 @@ public:
     ~DevMappingUtil() = delete;
 
 public:
+    // Why this slot cannot feed the hotend on its own. Reports the hotend
+    // occupant's block first, since it bars every slot behind it.
+    static DevSlotFeedBlock QuerySlotFeedBlock(const DevNozzle& nz, DevAmsType ams_type, const DevAmsSlotId& slot);
+
+    // The block whatever occupies this hotend imposes on every slot behind it.
+    // Lets the UI explain it once per hotend instead of per slot.
+    static DevSlotFeedBlock QueryNozzleOccupantBlock(const DevNozzle& nz);
+
     // Whether the ams can feed this slot without the user touching the machine.
     static bool IsSlotAutoLoadable(const DevNozzle& nz, DevAmsType ams_type, const DevAmsSlotId& slot);
 

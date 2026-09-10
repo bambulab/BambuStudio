@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import type { AmsMappingHotendSlotState } from './types';
+import type { AmsMappingHotendFeedBlock, AmsMappingHotendSlotState } from './types';
 
 // Resolve the hover tooltip text for a non-selectable (or mismatched) hotend
 // slot.
@@ -57,9 +57,19 @@ export function resolveSlotTooltip(
   }
 }
 
-// Tooltip for a locked preload (pre-fed) AMS card: the hotend currently feeds
-// from the external spool, so the pre-fed AMS slot is display-only until the
-// user manually unloads the external filament and feeds the AMS instead.
-export function resolvePreloadLockedTooltip(t: TFunction): string {
-  return t('Unload the external filament manually before feeding to enable selection.');
+// Tooltip explaining why the printer cannot feed a slot on its own. Only
+// `ext_spool` is surfaced here because it also disables the card; the other
+// blocks stay selectable and are raised as send-page pre-print warnings.
+export function resolveFeedBlockTooltip(
+  t: TFunction,
+  feedBlock: AmsMappingHotendFeedBlock | undefined,
+): string {
+  switch (feedBlock) {
+    case 'ext_spool':
+      // The printer cannot retract an engaged external spool, so every other
+      // source of this hotend stays display-only until the user pulls it out.
+      return t('Unload the external filament manually before feeding to enable selection.');
+    default:
+      return '';
+  }
 }

@@ -52,14 +52,6 @@ void MaterialItemHotend::msw_rescale()
     m_rack_nozzle_bitmap.msw_rescale();
 }
 
-void MaterialItemHotend::set_ams_filament_type(const wxString& ams_filament_type)
-{
-    if (m_ams_filament_type != ams_filament_type) {
-        m_ams_filament_type = ams_filament_type;
-        Refresh();
-    }
-}
-
 void MaterialItemHotend::set_nozzle_dia_and_type(const wxString& dia_type_info)
 {
     if (dia_type_info != m_nozzle_dia_and_type) {
@@ -98,9 +90,8 @@ void MaterialItemHotend::doRender(wxDC& dc)
     change_the_opacity(acolor);
 
     // Left-aligned layout for the hotend card: the spool icon sits 6px from the
-    // left edge, and both the top material name and the bottom filament-type
-    // text share the same left x (the column just right of the spool icon).
-    const int wheel_bmp_h  = m_ams_wheel_mitem.GetBmpSize().y;
+    // left edge, and the material name, the slot label and the nozzle spec all
+    // share the same left x (the column just right of the spool icon).
     const int wheel_bmp_w  = m_ams_wheel_mitem.GetBmpSize().x;
     const int wheel_left   = FromDIP(6);
     const int content_left = wheel_left + wheel_bmp_w + FromDIP(2);
@@ -209,39 +200,23 @@ void MaterialItemHotend::doRender(wxDC& dc)
             dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left, wheel_top);
         else
             dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left, wheel_top);
-
-        // Slot number on the topmost layer, centered inside the wheel; the
-        // filament color fill below stays visible as the background. Pick a
-        // contrasting text color so the number is readable on any color.
-        if (!m_mapped_nozzle_str.IsEmpty()) {
-            auto num_colour = (acolor.Alpha() != 0 && acolor.GetLuminance() < 0.6) ? *wxWHITE
-                                                                                   : wxColour(0x26, 0x2E, 0x30);
-            dc.SetFont(::Label::Head_12);
-            dc.SetTextForeground(num_colour);
-            auto num_sz = dc.GetTextExtent(m_mapped_nozzle_str);
-            dc.DrawText(m_mapped_nozzle_str,
-                        wheel_left + (wheel_bmp_w - num_sz.x) / 2,
-                        wheel_top  + (wheel_bmp_h - num_sz.y) / 2);
-        }
     }
 
-    // filament type text + arrow
+    // slot label + arrow
     dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
     int  text_pos_x = 0, text_pos_y = 0;
-    auto ams_filament_type_size = wxSize(0, 0);
-    // Render from a local copy: doRender runs on every paint, so mutating the
-    // member here would accumulate state on each repaint.
-    wxString display_filament_type = m_ams_filament_type;
-    // Always single line; use a smaller font for long types so they still fit.
-    dc.SetFont(display_filament_type.size() >= 4 ? ::Label::Body_10 : ::Label::Head_12);
-    ams_filament_type_size = dc.GetTextExtent(display_filament_type);
-    text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - ams_filament_type_size.y) / 2;
+    auto ams_name_size = wxSize(0, 0);
+    // Always single line, one weight for every label ("6", "A1", "HT-A",
+    // "5-Ext") so cards in the same row read consistently.
+    dc.SetFont(::Label::Head_12);
+    ams_name_size = dc.GetTextExtent(m_ams_name);
+    text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - ams_name_size.y) / 2;
     text_pos_x = 0;
     int arrow_left = size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4) - left_off;
     if (m_match) {
         int text_x = content_left + text_pos_x;
-        dc.DrawText(display_filament_type, wxPoint(text_x, text_pos_y));
-        int arrow_y = text_pos_y + (ams_filament_type_size.y - m_arraw_bitmap_white.GetBmpHeight()) / 2;
+        dc.DrawText(m_ams_name, wxPoint(text_x, text_pos_y));
+        int arrow_y = text_pos_y + (ams_name_size.y - m_arraw_bitmap_white.GetBmpHeight()) / 2;
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
             (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180))
             dc.DrawBitmap(m_arraw_bitmap_white.bmp(), arrow_left, arrow_y);
@@ -251,9 +226,8 @@ void MaterialItemHotend::doRender(wxDC& dc)
 
     up += m_ams_wheel_mitem.GetBmpSize().y;
 
-    // nozzle info row: the nozzle icon sits under the spool (vertically aligned
-    // with the slot number), and the nozzle dia/type text is left-aligned with
-    // the filament type column (content_left).
+    // nozzle info row: the nozzle icon sits under the spool, and the nozzle
+    // dia/type text is left-aligned with the slot label column (content_left).
     if (!m_mapped_nozzle_str.IsEmpty()) {
         wxPen dashed_pen(WXCOLOUR_GREY400, 1, wxPENSTYLE_SHORT_DASH);
         dc.SetPen(dashed_pen);
@@ -264,12 +238,11 @@ void MaterialItemHotend::doRender(wxDC& dc)
         int nozzle_bmp_w = m_rack_nozzle_bitmap.GetBmpWidth();
         int nozzle_bmp_h = m_rack_nozzle_bitmap.GetBmpHeight();
 
-        // nozzle icon centered under the spool wheel (same vertical line as the number)
+        // nozzle icon centered under the spool wheel
         int noz_x = wheel_left + (wheel_bmp_w - nozzle_bmp_w) / 2;
         dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), noz_x, up + (buttom_h - nozzle_bmp_h) / 2);
 
-        // nozzle dia/type text aligned with the filament type column; typography
-        // follows the design: 12px / weight 400 / #262E30 (gray-900).
+        // typography follows the design: 12px / weight 400 / #262E30 (gray-900).
         dc.SetFont(::Label::Body_12);
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
         auto dia_and_type_sz = dc.GetTextExtent(m_nozzle_dia_and_type);

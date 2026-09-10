@@ -82,6 +82,33 @@ enum DevAmsType : int
     ZMULTI_B = 7,
 };
 
+// What a filament source of a given type can do without the user touching the machine.
+class devAmsTypeUtil
+{
+public:
+    devAmsTypeUtil() = delete;
+    ~devAmsTypeUtil() = delete;
+
+public:
+    // A source without a feeder motor of its own only reaches the hotend by hand.
+    static bool CanAutoFeed(DevAmsType type)
+    {
+        return type != DevAmsType::EXT_SPOOL && type != DevAmsType::ZMULTI_B;
+    }
+
+    // Only a sub AMS pulls its own filament back out; ext spool and rack AMS cannot.
+    static bool CanAutoRetract(DevAmsType type)
+    {
+        return type != DevAmsType::EXT_SPOOL && !IsRackAms(type);
+    }
+
+    // The AMS built into a hotend rack (RackType_A / RackType_B).
+    static bool IsRackAms(DevAmsType type)
+    {
+        return type == DevAmsType::ZMULTI_A || type == DevAmsType::ZMULTI_B;
+    }
+};
+
 enum DevFilaColorType : int
 {
     CTYPE_GRADIANT = 0,

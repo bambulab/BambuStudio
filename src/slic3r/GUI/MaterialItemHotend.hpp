@@ -2,7 +2,7 @@
  * \file   MaterialItemHotend.hpp
  * \brief  SelectMachine in-row filament button for hotend-rack layout.
  *
- * Hosts the rounded "color bar + spool + filament type + nozzle info"
+ * Hosts the rounded "color bar + spool + slot label + nozzle info"
  * widget rendered per filament inside the send-print dialog.
  *
  * Split out of AmsMappingHotend.hpp so the hotend mapping popup can be
@@ -25,7 +25,6 @@ public:
     ~MaterialItemHotend() override;
 
     void msw_rescale() override;
-    void set_ams_filament_type(const wxString& ams_filament_type) override;
     void set_nozzle_dia_and_type(const wxString& dia_type_info) override;
 
 private:
@@ -35,7 +34,6 @@ private:
 
 private:
     wxString m_rack_nozzle_type;
-    wxString m_ams_filament_type;
     wxString m_nozzle_dia_and_type;
 };
 

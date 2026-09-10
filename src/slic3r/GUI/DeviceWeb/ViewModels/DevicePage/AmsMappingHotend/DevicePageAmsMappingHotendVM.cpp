@@ -19,6 +19,7 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevMapping.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 
@@ -73,6 +74,18 @@ std::string slot_state_to_string(HotendSlotState s)
     case HotendSlotState::Unavailable:     return SV::slot_state::unavailable;
     }
     return SV::slot_state::normal;
+}
+
+std::string feed_block_to_string(DevSlotFeedBlock b)
+{
+    namespace SV = AmsMappingHotendSchema::values;
+    switch (b) {
+    case DevSlotFeedBlock::None:              return SV::feed_block::none;
+    case DevSlotFeedBlock::NeedManualFeed:    return SV::feed_block::need_manual_feed;
+    case DevSlotFeedBlock::BlockedByRackAms:  return SV::feed_block::rack_ams;
+    case DevSlotFeedBlock::BlockedByExtSpool: return SV::feed_block::ext_spool;
+    }
+    return SV::feed_block::none;
 }
 
 // Final pickability rule for the *main* slot card. A slot is pickable only
@@ -649,13 +662,9 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     // expose the AMS slot as a synthetic sub-AMS group so the sub-page shows
     // both the current feed source (parent) and the preloaded AMS slot.
     //
-    // Selectability of the preload card follows four feed scenarios (see the
-    // sub-slot loop below where `is_pickable` is finalized):
-    //   1. Ext feed only              -> no preload card.
-    //   2. N1X AMS feed only          -> preload card, unchanged (pickable).
-    //   3. Ext feed + N1X AMS preload -> preload card is display-only; the user
-    //      must manually unload the external spool before it becomes selectable.
-    //   4. Bound sub-AMS present      -> unrestricted, preload stays pickable.
+    // Selectability of the preload card is decided together with every other
+    // sub-AMS slot in the sub-slot loop below, where `is_pickable` is finalized
+    // against the slot's DevSlotFeedBlock.
     if (obj && preload_slot.has_value() &&
         *preload_slot != std::make_pair(td.ams_id, td.slot_id)) {
         auto preload_tray = obj->get_tray(preload_slot->first, preload_slot->second);
@@ -715,19 +724,12 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     slot[SK::slot::can_edit]        = ComputeCanEdit(obj, td);
     slot[SK::slot::checked]         = false;
 
-    // External spool really engaged in this hotend, i.e. its filament sits in
-    // the feed path (`slot_now` + filament-in-nozzle), which is the same fact
-    // DevMappingUtil::IsSlotAutoLoadable relies on. `td.ams_type` alone is not
-    // enough: sTraverseBindAmsSlot falls back to the external slot whenever
-    // nothing is fed, so an idle / unloaded external spool still shows up as
-    // the bound source and must not raise the manual-unload warning.
-    bool ext_filament_loaded = false;
-    if (obj && parent_nz.has_value() && parent_nz->HasFilamentInNozzle()) {
-        const auto slot_now = parent_nz->GetSlotNowId();
-        ext_filament_loaded = slot_now.has_value() &&
-                              obj->GetFilaSystem()->GetVirtualTray(slot_now->first).has_value();
-    }
-    slot[SK::slot::ext_filament_loaded] = ext_filament_loaded;
+    // Derived from the feed path, not from `td.ams_type`: sTraverseBindAmsSlot
+    // falls back to the external slot when nothing is fed, and that must be silent.
+    const DevSlotFeedBlock hotend_feed_block =
+        parent_nz.has_value() ? DevMappingUtil::QueryNozzleOccupantBlock(*parent_nz)
+                              : DevSlotFeedBlock::None;
+    slot[SK::slot::hotend_feed_block] = feed_block_to_string(hotend_feed_block);
 
     // Mark the checked slot if it appears in the current mapping result.
     for (const auto& mapping_res : m_mapping_result) {
@@ -790,19 +792,18 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
             SlotJudgement sj = ResolveSlotJudgement(obj, sub_td, expected_nozzle, parent_nz);
             sj.is_pickable = (sj.state == HotendSlotState::Normal);
 
-            // Scenario 3: external feed (main card is Ext) with an N1X AMS
-            // preload and no bound sub-AMS. The preloaded AMS slot is display-
-            // only until the user manually unloads the external spool. Leaving
-            // it non-pickable also drops any stale checked mark on it.
-            // Scenarios 1/2 (no preload card / main card is AMS) and scenario 4
-            // (GetBindAms() non-empty) don't hit this branch, so preload stays
-            // pickable there as before.
-            bool preload_locked = false;
-            if (g.is_preload && td.ams_type == DevAmsType::EXT_SPOOL &&
-                parent_nz.has_value() && parent_nz->GetBindAms().empty()) {
-                sj.is_pickable  = false;
-                preload_locked  = true;
-            }
+            // Shared with the auto-mapping collector so the popup never offers
+            // what auto mapping refuses, and vice versa.
+            const DevSlotFeedBlock feed_block =
+                parent_nz.has_value()
+                    ? DevMappingUtil::QuerySlotFeedBlock(*parent_nz, sub_td.ams_type,
+                                                         DevAmsSlotId{sub_td.ams_id, sub_td.slot_id})
+                    : DevSlotFeedBlock::None;
+
+            // Only an engaged external spool locks the card, since it cannot be
+            // retracted at all. Locking also drops any stale checked mark.
+            const bool feed_locked = (feed_block == DevSlotFeedBlock::BlockedByExtSpool);
+            if (feed_locked) sj.is_pickable = false;
 
             wxColour sub_col = (sub_td.type == NORMAL) ? sub_td.colour : wxColour(0xCE, 0xCE, 0xCE);
             wxString sub_name;
@@ -831,8 +832,9 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
             sub_slot[SK::slot::has_filament]   = sj.has_filament;
             sub_slot[SK::slot::is_pickable]    = sj.is_pickable;
             sub_slot[SK::slot::can_edit]       = ComputeCanEdit(obj, sub_td);
+            sub_slot[SK::slot::feed_block]     = feed_block_to_string(feed_block);
             sub_slot[SK::slot::checked]        = false;
-            if (!preload_locked) {
+            if (!feed_locked) {
                 for (const auto& mapping_res : m_mapping_result) {
                     if (mapping_res.id == m_current_filament_id &&
                         mapping_res.ams_id == std::to_string(sub_td.ams_id) &&
