@@ -5114,6 +5114,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         text_info.m_embeded_depth = bbs_get_attribute_value_float(attributes, num_attributes, EMBEDED_DEPTH_ATTR);
         text_info.m_rotate_angle  = bbs_get_attribute_value_float(attributes, num_attributes, ROTATE_ANGLE_ATTR);
         text_info.m_text_gap      = bbs_get_attribute_value_float(attributes, num_attributes, TEXT_GAP_ATTR);
+        text_info.m_line_gap      = bbs_get_attribute_value_float(attributes, num_attributes, LINE_GAP_ATTR);
 
         text_info.m_bold      = bbs_get_attribute_value_int(attributes, num_attributes, BOLD_ATTR);
         text_info.m_italic    = bbs_get_attribute_value_int(attributes, num_attributes, ITALIC_ATTR);
@@ -8145,7 +8146,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     void _add_text_info_to_archive(std::stringstream& stream, const TextInfo& text_info) {
         stream << "      <" << TEXT_INFO_TAG << " ";
 
-        stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
+        stream << TEXT_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.m_text) << "\" ";
         stream << FONT_NAME_ATTR << "=\"" << xml_escape(text_info.m_font_name) << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
@@ -8159,6 +8160,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << EMBEDED_DEPTH_ATTR << "=\"" << text_info.m_embeded_depth << "\" ";
         stream << ROTATE_ANGLE_ATTR << "=\"" << text_info.m_rotate_angle << "\" ";
         stream << TEXT_GAP_ATTR << "=\"" << text_info.m_text_gap << "\" ";
+        stream << LINE_GAP_ATTR << "=\"" << text_info.m_line_gap << "\" ";
 
         stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
         stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";
