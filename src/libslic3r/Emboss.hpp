@@ -86,16 +86,41 @@ namespace Emboss
     void text2vshapes(
         EmbossShape &                emboss_shape,
         FontFileWithCache &          font_with_cache,
-        const std::wstring &         text,
+        const std::u32string &       text,
         const FontProp &             font_prop,
         double                       standard_scale,
         const std::function<bool()> &was_canceled = []() { return false; },
         BackFontCacheFn              bfc_fn       = nullptr);
     HealedExPolygons union_with_delta(ExPolygons expoly, float delta, unsigned max_heal_iteration);
 
+    /// <summary>
+    /// Decode UTF-8 into one element per Unicode code point.
+    /// std::wstring is not usable here: wchar_t is 16 bit on Windows, so anything above
+    /// U+FFFF (emoji, plane 1 symbols) would be split into an unusable surrogate pair.
+    /// </summary>
+    /// <param name="text">UTF-8 text</param>
+    /// <returns>One char32_t per code point</returns>
+    std::u32string to_utf32(const std::string &text);
+
+    /// <summary>
+    /// Encode code points back to UTF-8, inverse of to_utf32()
+    /// </summary>
+    /// <param name="text">One char32_t per code point</param>
+    /// <returns>UTF-8 text</returns>
+    std::string to_utf8(const std::u32string &text);
+
+    /// <summary>
+    /// Variation selectors and joiners (U+FE00..U+FE0F, U+200C, U+200D) have no glyph of their own.
+    /// Emoji pickers append them to many symbols and without a shaping engine they could only
+    /// show up as a missing glyph, so the text pipeline skips them.
+    /// </summary>
+    /// <param name="c">Unicode code point</param>
+    /// <returns>True for a code point that must not produce a glyph</returns>
+    inline bool is_zero_width_mark(char32_t c) { return (c >= 0xFE00 && c <= 0xFE0F) || c == 0x200C || c == 0x200D; }
+
     const unsigned ENTER_UNICODE = static_cast<unsigned>('\n');
     /// Sum of character '\n'
-    unsigned get_count_lines(const std::wstring &ws);
+    unsigned get_count_lines(const std::u32string &ws);
     unsigned get_count_lines(const std::string &text);
     unsigned get_count_lines(const ExPolygonsWithIds &shape);
 

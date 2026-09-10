@@ -4,7 +4,7 @@
 namespace Slic3r {
     using namespace Emboss;
     namespace GUI {
-    ExPolygons GuiTextShape::letter2shapes(wchar_t letter, Point &cursor, FontFileWithCache &font_with_cache, const FontProp &font_prop, fontinfo_opt &font_info_cache)
+    ExPolygons GuiTextShape::letter2shapes(char32_t letter, Point &cursor, FontFileWithCache &font_with_cache, const FontProp &font_prop, fontinfo_opt &font_info_cache)
     {
     assert(font_with_cache.has_value());
     if (!font_with_cache.has_value()) return {};
@@ -26,7 +26,7 @@ namespace Slic3r {
         cursor.x() += count_spaces * space->advance_width;
         return {};
     }
-    if (letter == '\r') return {};
+    if (letter == '\r' || is_zero_width_mark(letter)) return {};
 
     int  unicode = static_cast<int>(letter);
     auto it      = cache.find(unicode);

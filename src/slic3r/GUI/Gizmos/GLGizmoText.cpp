@@ -3123,10 +3123,10 @@ bool GLGizmoText::filter_model_volume(ModelVolume *mv) {
 
 float GLGizmoText::get_text_height(const std::string &text)//todo
 {
-    std::wstring             ws = boost::nowide::widen(text);
+    std::u32string           ws = to_utf32(text);
     std::vector<std::string> alphas;
     for (auto w : ws) {
-        alphas.push_back(boost::nowide::narrow(std::wstring(1, w)));
+        alphas.push_back(to_utf8(std::u32string(1, w)));
     }
     auto  texts  = alphas ;
     float max_height = 0.f;
@@ -3941,7 +3941,7 @@ EmbossShape &TextDataBase::create_shape()
         return shape;
     // create shape by configuration
     const char *    text         = m_text_configuration.text.c_str();
-    std::wstring    text_w       = boost::nowide::widen(text);
+    std::u32string  text_w       = to_utf32(text);
     const FontProp &fp           = m_text_configuration.style.prop;
     auto            was_canceled = [&c = cancel]() { return c->load(); };
     auto ft_fn        = [](){
@@ -3955,9 +3955,9 @@ EmbossShape &TextDataBase::create_shape()
     }
     if (shape.shapes_with_ids.size() == 1 && shape.shapes_with_ids[0].expoly.empty()) {//empty deal
         if (support_backup_fonts) {
-            text2vshapes(shape, m_font_file, L"?", fp, shape.scale, was_canceled, ft_fn);
+            text2vshapes(shape, m_font_file, U"?", fp, shape.scale, was_canceled, ft_fn);
         } else {
-            text2vshapes(shape, m_font_file, L"?", fp, shape.scale, was_canceled);
+            text2vshapes(shape, m_font_file, U"?", fp, shape.scale, was_canceled);
         }
     }
     return shape;

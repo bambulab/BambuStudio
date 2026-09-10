@@ -511,7 +511,12 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         // Char event
         const auto key = evt.GetUnicodeKey();
         if (key != 0) {
-            io.AddInputCharacter(key);
+            // Where wxChar is UTF-16 (Windows) a code point above U+FFFF arrives as two
+            // events carrying a surrogate pair; ImGui joins them back into one code point.
+            if constexpr (sizeof(wxChar) == 2)
+                io.AddInputCharacterUTF16(static_cast<ImWchar16>(key));
+            else
+                io.AddInputCharacter(static_cast<unsigned>(key));
         }
     } else {
         // Key up/down event
