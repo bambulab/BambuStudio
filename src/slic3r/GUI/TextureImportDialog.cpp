@@ -3620,8 +3620,8 @@ TextureImportDialog::~TextureImportDialog()
     dismiss_auto_mix_popup();
     dismiss_filament_popup();
     m_cancel_flag = true;
-    if (m_worker && m_worker->joinable())
-        m_worker->join();
+    if (m_worker.joinable())
+        m_worker.join();
 }
 
 int TextureImportDialog::ShowModal()
@@ -3641,9 +3641,9 @@ int TextureImportDialog::ShowModal()
             wxMilliSleep(10);
         }
 
-        if (m_worker && m_worker->joinable())
-            m_worker->join();
-        m_worker.reset();
+        if (m_worker.joinable())
+            m_worker.join();
+        m_worker = boost::thread();
 
         if (m_initial_computation_cancelled || m_initial_computation_failed)
             return wxID_CANCEL;
@@ -4506,7 +4506,7 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
         mesh_copy = m_textured_mesh;
     wxEvtHandler* handler = this;
 
-    m_worker = std::make_unique<std::thread>([this, settings, mesh_copy = std::move(mesh_copy), handler, gen, cache_hit]() {
+    m_worker = create_thread([this, settings, mesh_copy = std::move(mesh_copy), handler, gen, cache_hit]() {
         Slic3r::PaintedMesh result;
 
         auto progress_cb = [handler, gen](int percent, const char* message) {
@@ -4560,9 +4560,9 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
 void TextureImportDialog::cancel_computation()
 {
     m_cancel_flag = true;
-    if (m_worker && m_worker->joinable())
-        m_worker->join();
-    m_worker.reset();
+    if (m_worker.joinable())
+        m_worker.join();
+    m_worker = boost::thread();
 
     if (m_progress_dlg) {
         m_progress_dlg->Destroy();

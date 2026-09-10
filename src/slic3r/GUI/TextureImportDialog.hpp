@@ -3,6 +3,7 @@
 #include "GUI_Utils.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "libslic3r/TexturePainting.hpp"
+#include "libslic3r/Thread.hpp"
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -25,7 +26,6 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <thread>
 #include <vector>
 #include <string>
 
@@ -411,7 +411,7 @@ private:
     Slic3r::PaintedMesh               m_painted;
     std::vector<Slic3r::FilamentMatch> m_current_matches;
 
-    std::unique_ptr<std::thread>       m_worker;
+    boost::thread                      m_worker;
     std::atomic<bool>                  m_cancel_flag{false};
     std::atomic<int>                   m_compute_generation{0};
     std::mutex                         m_result_mutex;

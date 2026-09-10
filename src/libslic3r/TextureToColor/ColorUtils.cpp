@@ -239,26 +239,32 @@ static bool smooth_region_geom_boundary(CGALMesh& mesh, std::vector<std::size_t>
     std::vector<std::vector<CGAL::SM_Vertex_index>> polylines;
     std::unordered_set<CGAL::SM_Edge_index> visited_edges;
 
-    std::function<void(std::vector<CGAL::SM_Vertex_index>&)> trace_polyline = [&](std::vector<CGAL::SM_Vertex_index>& polyline) -> void {
-        if (polyline.empty()) {
-            return;
-        }
-        CGAL::SM_Vertex_index curr_vtx = polyline.back();
-        if (map_vtx_to_degree[curr_vtx] != 2) {
-            return;
-        }
-        for (const auto& halfedge : mesh.halfedges_around_target(mesh.halfedge(curr_vtx))) {
-            CGAL::SM_Edge_index edge = mesh.edge(halfedge);
-            if (visited_edges.count(edge) || !segment_boundary_edges.count(edge)) {
-                continue;
+    // Walk degree-2 chains iteratively. Recursing through std::function cannot
+    // tail-call and overflows the default macOS pthread stack on long color
+    // region boundaries.
+    auto trace_polyline = [&](std::vector<CGAL::SM_Vertex_index>& polyline) {
+        while (!polyline.empty()) {
+            CGAL::SM_Vertex_index curr_vtx = polyline.back();
+            if (map_vtx_to_degree[curr_vtx] != 2) {
+                return;
             }
-            visited_edges.insert(edge);
-            CGAL::SM_Vertex_index adj_vtx = mesh.source(halfedge);
-            if (!map_vtx_to_degree.count(adj_vtx)) {
-                continue;
+            bool extended = false;
+            for (const auto& halfedge : mesh.halfedges_around_target(mesh.halfedge(curr_vtx))) {
+                CGAL::SM_Edge_index edge = mesh.edge(halfedge);
+                if (visited_edges.count(edge) || !segment_boundary_edges.count(edge)) {
+                    continue;
+                }
+                visited_edges.insert(edge);
+                CGAL::SM_Vertex_index adj_vtx = mesh.source(halfedge);
+                if (!map_vtx_to_degree.count(adj_vtx)) {
+                    continue;
+                }
+                polyline.push_back(adj_vtx);
+                extended = true;
+                break;
             }
-            polyline.push_back(adj_vtx);
-            return trace_polyline(polyline);
+            if (!extended)
+                return;
         }
     };
 
