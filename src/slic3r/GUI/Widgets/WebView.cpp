@@ -856,10 +856,6 @@ void WebView::LoadUrl(wxWebView * webView, wxString const &url)
 
 bool WebView::RunScript(wxWebView *webView, wxString const &javascript, bool force_execute)
 {
-    if (Slic3r::GUI::wxGetApp().app_config->get("internal_developer_mode") == "true"
-            && javascript.find("studio_userlogin") == wxString::npos)
-        wxLogMessage("Running JavaScript:\n%s\n", javascript);
-
     if (webView == nullptr)
         return false;
 
@@ -893,6 +889,12 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript, bool for
     // 这边隐藏态直接拦截js消息引入了多个业务问题，先注释掉，等0908beta发版之后再考虑pr优化
     // if (!force_execute && !webView->IsShownOnScreen()) return true;
 #endif // __WXMAC__
+
+    // Logged after the early-outs above, so the message can never claim to be
+    // running JavaScript that was in fact skipped.
+    if (Slic3r::GUI::wxGetApp().app_config->get("internal_developer_mode") == "true"
+            && javascript.find("studio_userlogin") == wxString::npos)
+        wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
     try {
 #ifdef __WIN32__
