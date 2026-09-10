@@ -141,6 +141,12 @@ extern std::vector<double> layer_height_profile_adaptive(
     const SlicingParameters& slicing_params,
     const ModelObject& object, float quality_factor);
 
+// Reproduce the layer heights of another object up to its top, the layers above it keep the default layer height.
+extern std::vector<coordf_t> layer_height_profile_from_other_object(
+    const std::vector<coordf_t> &other_layer_height_profile,
+    coordf_t                     object_height,
+    coordf_t                     layer_height);
+
 struct HeightProfileSmoothingParams
 {
     unsigned int radius;
