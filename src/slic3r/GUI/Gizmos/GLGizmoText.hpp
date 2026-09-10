@@ -56,6 +56,7 @@ private:
     const float  m_embeded_depth_max = 1000.f;
     float m_rotate_angle = 0;
     float m_text_gap = 0.f;
+    float m_line_gap = 0.f; // [mm] extra space between text lines
     TextConfiguration  m_ui_text_configuration;
     TextInfo::TextType m_surface_type{TextInfo::TextType ::SURFACE};
     bool m_really_use_surface_calc = false;

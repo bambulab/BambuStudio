@@ -1,5 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoText.hpp"
+#include <algorithm>
+#include <cmath>
 #include "libslic3r/ClipperUtils.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
@@ -1327,6 +1329,75 @@ void GLGizmoText::draw_rotation(int caption_size, int slider_width, int drag_lef
     }*/
 }
 
+// Line gap is edited in mm, font property stores it in font points
+static int line_gap_mm_to_font_points(float line_gap_mm, const FontProp &fp, const FontFile &ff)
+{
+    if (fp.size_in_mm <= 0.f)
+        return 0;
+    const FontFile::Info &info = Slic3r::Emboss::get_font_info(ff, fp);
+    return static_cast<int>(std::lround(line_gap_mm * info.unit_per_em / fp.size_in_mm));
+}
+
+static float line_gap_font_points_to_mm(const FontProp &fp, const FontFile &ff)
+{
+    if (!fp.line_gap.has_value())
+        return 0.f;
+    const FontFile::Info &info = Slic3r::Emboss::get_font_info(ff, fp);
+    return static_cast<float>(*fp.line_gap) * fp.size_in_mm / static_cast<float>(info.unit_per_em);
+}
+
+// Distance between base lines of the active font and size, without the user line gap
+static float font_line_height_mm(const FontProp &fp, const FontFile &ff)
+{
+    const FontFile::Info &info = Slic3r::Emboss::get_font_info(ff, fp);
+    if (info.unit_per_em <= 0)
+        return 0.f;
+    return static_cast<float>(info.ascent - info.descent + info.linegap) * fp.size_in_mm / static_cast<float>(info.unit_per_em);
+}
+
+// Line gap range in mm for the active style. The lower bound keeps the resulting line height
+// positive, a bigger negative gap would stack the text lines in reverse order.
+// Returns false when there is no active font to measure.
+static bool get_style_line_gap_range(StyleManager &style_manager, float &min_gap, float &max_gap)
+{
+    if (!style_manager.is_active_font())
+        return false;
+    const FontFileWithCache &ff = style_manager.get_font_file_with_cache();
+    if (!ff.has_value())
+        return false;
+    const float line_height = font_line_height_mm(style_manager.get_font_prop(), *ff.font_file);
+    if (line_height <= 0.f)
+        return false;
+    min_gap = -0.9f * line_height;
+    max_gap = std::max(10.f, 2.f * line_height);
+    return true;
+}
+
+static void set_style_line_gap(StyleManager &style_manager, float line_gap_mm)
+{
+    if (!style_manager.is_active_font())
+        return;
+    const FontFileWithCache &ff = style_manager.get_font_file_with_cache();
+    if (!ff.has_value())
+        return;
+    FontProp &fp       = style_manager.get_font_prop();
+    int       line_gap = line_gap_mm_to_font_points(line_gap_mm, fp, *ff.font_file);
+    if (line_gap == 0)
+        fp.line_gap.reset();
+    else
+        fp.line_gap = line_gap;
+}
+
+static float get_style_line_gap_mm(StyleManager &style_manager)
+{
+    if (!style_manager.is_active_font())
+        return 0.f;
+    const FontFileWithCache &ff = style_manager.get_font_file_with_cache();
+    if (!ff.has_value())
+        return 0.f;
+    return line_gap_font_points_to_mm(style_manager.get_font_prop(), *ff.font_file);
+}
+
 std::unique_ptr<Emboss::DataBase> GLGizmoText::create_emboss_data_base(
     const std::string &text, Emboss::StyleManager &style_manager, const Selection &selection, ModelVolumeType type, std::shared_ptr<std::atomic<bool>> &cancel)
 {
@@ -1362,6 +1433,7 @@ std::unique_ptr<Emboss::DataBase> GLGizmoText::create_emboss_data_base(
     DataBase base(volume_name, cancel);
     style.projection.depth = m_thickness; // BBS add
     style.projection.embeded_depth = m_embeded_depth; // BBS add
+    set_style_line_gap(style_manager, m_line_gap); // BBS add: line gap is edited in mm
     base.is_outside   = is_outside;
    // base.text_lines   = text_lines.get_lines();
     base.from_surface = style.distance;
@@ -1686,6 +1758,7 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     }
                     // Re-apply authoritative 3mf fields after any preset load (load_style may reset face/size).
                     m_style_manager.get_font_prop().size_in_mm = m_font_size;
+                    set_style_line_gap(m_style_manager, m_line_gap);
                     if (!m_font_name.empty())
                         select_facename(wxString::FromUTF8(m_font_name.c_str()), false);
                 }
@@ -2418,6 +2491,32 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         }
     }
 
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(_L("Line Gap"));
+    ImGui::SameLine(caption_size);
+    ImGui::PushItemWidth(slider_width);
+    // Slider and input share one range, it follows the font so the gap can not cancel the line height.
+    float      line_gap_min = -10.f, line_gap_max = 10.f;
+    const bool has_line_gap_range = get_style_line_gap_range(m_style_manager, line_gap_min, line_gap_max);
+    bool       line_gap_changed   = false;
+    // The stored value is never rewritten from the range: the size field applies every keystroke,
+    // so a transient size would clamp the gap away for good. The range only bounds what the slider
+    // and the input let the user pick, a value from an older file is left alone.
+    if (m_imgui->bbl_slider_float_style("##line_gap", &m_line_gap, line_gap_min, line_gap_max, "%.2f", 1.0f, true))
+        line_gap_changed = true;
+
+    ImGui::SameLine(drag_left_width);
+    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    if (ImGui::BBLDragFloat("##line_gap_input", &m_line_gap, 0.05f, line_gap_min, line_gap_max, "%.2f"))
+        line_gap_changed = true;
+    if (line_gap_changed) {
+        if (has_line_gap_range)
+            m_line_gap = std::clamp(m_line_gap, line_gap_min, line_gap_max);
+        set_style_line_gap(m_style_manager, m_line_gap);
+        m_style_manager.clear_imgui_font(); // preview in text input uses the line gap too
+        m_need_update_text = true;
+    }
+
     draw_rotation(caption_size, slider_width, drag_left_width, slider_icon_width);
 #if BBL_RELEASE_TO_PUBLIC
     if (GUI::wxGetApp().app_config->get("enable_text_styles") == "true") {
@@ -2635,7 +2734,8 @@ void GLGizmoText::draw_text_input(int caption_width)
     // ranges can't be extend during font is activ(pushed)
     std::string               range_text;
     ImVec2                    input_size(2 * m_gui_cfg->input_width, m_gui_cfg->text_size.y); // 2 * m_gui_cfg->input_width - caption_width
-    const ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;// | ImGuiInputTextFlags_AutoSelectAll
+    // Multiline must be passed explicitly (see ImGui::InputTextMultiline). Enter inserts a line break, Ctrl+Enter (Cmd+Enter on macOS) leaves the field.
+    const ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_Multiline;// | ImGuiInputTextFlags_AutoSelectAll
     if (ImGui::InputTextMultiline("##Text", &m_text, input_size, flags)) {
         if (m_style_manager.get_font_prop().per_glyph) {
             unsigned count_lines = get_count_lines(m_text);
@@ -3094,6 +3194,7 @@ void GLGizmoText::reset_text_info()
     m_embeded_depth = m_style_manager.get_style().projection.embeded_depth;
     m_rotate_angle    = get_angle_from_current_style();
     m_text_gap        = m_style_manager.get_style().prop.char_gap.value_or(0);
+    m_line_gap        = get_style_line_gap_mm(m_style_manager);
     m_surface_type    = TextInfo::TextType::SURFACE;
     m_rr              = RaycastResult();
     m_last_text_mv = nullptr;
@@ -3444,6 +3545,7 @@ TextInfo GLGizmoText::get_text_info()
     text_info.m_rr.mesh_id    = m_rr.mesh_id;
     text_info.m_rotate_angle  = m_rotate_angle;
     text_info.m_text_gap      = m_text_gap;
+    text_info.m_line_gap      = m_line_gap;
     text_info.m_surface_type  = m_surface_type;
     text_info.text_configuration = m_ui_text_configuration;
     text_info.m_font_version     = CUR_FONT_VERSION;
@@ -3469,6 +3571,7 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     m_rotate_angle = (float) Geometry::rad2deg(limit_angle);
 
     m_text_gap      = text_info.m_text_gap;
+    m_line_gap      = text_info.m_line_gap;
     m_surface_type  = (TextInfo::TextType) text_info.m_surface_type;
 
     if (is_old_text_info(text_info)) { // compatible with older versions
