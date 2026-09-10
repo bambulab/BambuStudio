@@ -1375,6 +1375,9 @@ void GCodeProcessor::UsedFilaments::reset()
 
     total_volume_cache = 0.0f;
     total_volumes_per_filament.clear();
+
+    layer_volumes_per_filament.clear();
+    layers_recorded = 0;
 }
 
 void GCodeProcessor::UsedFilaments::increase_support_caches(double extruded_volume)
@@ -1420,6 +1423,21 @@ void GCodeProcessor::UsedFilaments::process_total_volume_cache(GCodeProcessor* p
         }
         total_volume_cache = 0.0f;
     }
+}
+
+void GCodeProcessor::UsedFilaments::record_layer(GCodeProcessor* processor)
+{
+    // Commit what the active filament has extruded so far, then snapshot every filament's total.
+    // Called at each layer change and once at the end, so entry 0 is what was extruded before the
+    // first layer (purge line, priming) and the last entry is the plate total.
+    process_total_volume_cache(processor);
+    for (const auto& [filament_id, volume] : total_volumes_per_filament) {
+        std::vector<double>& layers = layer_volumes_per_filament[filament_id];
+        // A filament first used after some layers were already recorded extruded nothing until now.
+        layers.resize(layers_recorded, 0.0);
+        layers.push_back(volume);
+    }
+    ++layers_recorded;
 }
 
 void GCodeProcessor::UsedFilaments::process_model_cache(GCodeProcessor* processor)
@@ -2738,6 +2756,8 @@ void GCodeProcessor::finalize(bool post_process)
     }
 
     m_used_filaments.process_caches(this);
+    // the last layer has no layer-change tag after it
+    m_used_filaments.record_layer(this);
 
     update_estimated_times_stats();
     auto time_mode = m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
@@ -3520,6 +3540,7 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
 
     // layer change tag
     if (comment == reserved_tag(ETags::Layer_Change)) {
+        m_used_filaments.record_layer(this);
         ++m_layer_id;
         if (m_detect_layer_based_on_tag) {
             if (m_result.moves.empty() || m_result.spiral_vase_layers.empty())
@@ -6336,6 +6357,7 @@ void GCodeProcessor::update_estimated_times_stats()
     m_result.print_statistics.flush_per_filament      = m_used_filaments.flush_per_filament;
     m_result.print_statistics.used_filaments_per_role   = m_used_filaments.filaments_per_role;
     m_result.print_statistics.total_volumes_per_extruder = m_used_filaments.total_volumes_per_filament;
+    m_result.print_statistics.layer_volumes_per_extruder = m_used_filaments.layer_volumes_per_filament;
 }
 
 //BBS: ugly code...
