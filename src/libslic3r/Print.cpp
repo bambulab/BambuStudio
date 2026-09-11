@@ -207,6 +207,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "activate_air_filtration",
         "during_print_exhaust_fan_speed",
         "complete_print_exhaust_fan_speed",
+        "purify_air_at_print_end",
         "use_firmware_retraction",
         "enable_long_retraction_when_cut",
         "long_retractions_when_cut",
