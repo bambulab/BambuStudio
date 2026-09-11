@@ -9181,6 +9181,30 @@ public:
         m_post_callback = c;
     }
 
+    // Quiesce the backup worker before the owning MainFrame is torn down (app close, or the
+    // language-switch GUI rebuild). Stops the periodic timer, drops the UI callback and any
+    // queued Backup UI posts, so the worker thread cannot post to / export through a frame that
+    // is about to be destroyed. The worker thread itself keeps running; a freshly created
+    // MainFrame re-arms it via set_backup_interval()/set_backup_callback(). On-disk file tasks
+    // (AddObject/RemoveObject/RemoveBackup) are left intact so the backup stays consistent.
+    void stop() {
+        boost::unique_lock lock(m_mutex);
+        if (m_interval > 0) {
+            m_next_backup -= boost::posix_time::seconds(m_interval);
+            m_interval = 0;
+        }
+        m_post_callback = nullptr;
+        for (auto it = m_ui_tasks.begin(); it != m_ui_tasks.end();) {
+            if (it->type == Backup) it = m_ui_tasks.erase(it);
+            else ++it;
+        }
+        for (auto it = m_tasks.begin(); it != m_tasks.end();) {
+            if (it->type == Backup) it = m_tasks.erase(it);
+            else ++it;
+        }
+        m_cond.notify_all();
+    }
+
     void run_ui_tasks() {
         std::deque<Task> tasks;
         {
@@ -9472,14 +9496,20 @@ public:
                     continue;
             }
             m_tasks.pop_front();
-            auto callback = m_post_callback;
             lock.unlock();
             process_task(t);
             lock.lock();
             if (t.type > None) {
                 m_ui_tasks.push_back(t);
-                if (m_ui_tasks.size() == 1 && callback)
-                    callback(0);
+                // Read and invoke the UI post-callback under the re-acquired lock, not a
+                // copy captured before process_task(). This serializes with set_post_callback()
+                // and stop(): once the callback is cleared under m_mutex no new invocation can
+                // begin, and this call returning proves none is in flight -- so the MainFrame it
+                // targets cannot be used after free during shutdown. action==0 only does
+                // wxPostEvent (it never re-enters this manager), so holding the lock across the
+                // call cannot deadlock.
+                if (m_ui_tasks.size() == 1 && m_post_callback)
+                    m_post_callback(0);
             }
         }
     }
@@ -9639,6 +9669,11 @@ void set_backup_interval(long interval)
 void set_backup_callback(std::function<void(int)> callback)
 {
     _BBS_Backup_Manager::get().set_post_callback(callback);
+}
+
+void stop_backup()
+{
+    _BBS_Backup_Manager::get().stop();
 }
 
 void run_backup_ui_tasks()

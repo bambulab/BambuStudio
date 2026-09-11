@@ -1117,8 +1117,10 @@ void MainFrame::shutdown()
     // language after a switch.
     ParamTooltip::Shutdown();
 
-    // BBS: backup
-    Slic3r::set_backup_callback(nullptr);
+    // BBS: backup -- quiesce the worker before this frame is destroyed. Stops the periodic
+    // timer, drops the UI callback and any queued Backup UI posts so the backup thread cannot
+    // invoke a callback (wxPostEvent / export_3mf) against this MainFrame after it goes away.
+    Slic3r::stop_backup();
 #ifdef _WIN32
 	if (m_hDeviceNotify) {
 		::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
