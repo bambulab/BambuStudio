@@ -687,6 +687,82 @@ static std::string bbs_join_path_within_dir(const std::string& base_dir, const s
     return inside ? joined : std::string();
 }
 
+// encode_path() calls WideCharToMultiByte without WC_NO_BEST_FIT_CHARS, so on
+// systems with a best-fit code page (e.g. CP1252) U+FF0E/U+FF0F map to '.'/'/'.
+// A member such as "Auxiliaries/．．／evil" therefore passes the UTF-8 ".."
+// checks and only becomes a real "../" at encoding time — which is what fopen()
+// sees. Reject that. Do not reject a filename that merely contains ".." as
+// bytes inside one component (e.g. "foo..bar.png", or fullwidth dots that
+// best-fit to dots but do not form a ".." path segment or a new separator).
+static bool bbs_encoded_has_dotdot_component(const std::string& encoded)
+{
+    if (encoded.empty())
+        return true;
+    if (encoded[0] == '/' || encoded[0] == '\\')
+        return true;
+    for (size_t i = 0; i <= encoded.size();) {
+        const size_t j = std::min(encoded.find_first_of("/\\", i), encoded.size());
+        if (j - i == 2 && encoded[i] == '.' && encoded[i + 1] == '.')
+            return true;
+        if (j == encoded.size())
+            break;
+        i = j + 1;
+    }
+    return false;
+}
+
+static bool bbs_auxiliary_subpath_safe_for_encoding(const std::string& subpath)
+{
+    if (subpath.empty())
+        return false;
+    return !bbs_encoded_has_dotdot_component(Slic3r::encode_path(subpath.c_str()));
+}
+
+// Drop encoded "." / ".." components (e.g. fullwidth U+FF0E/U+FF0F best-fit to "../")
+// and keep the remaining relative path so the file still lands under the auxiliary
+// dir instead of being discarded. Result is UTF-8 (decode_path of the encoded rest)
+// so the later encode_path(final_path) is not a double encode.
+static std::string bbs_auxiliary_sanitize_after_encoding(const std::string& subpath)
+{
+    if (subpath.empty())
+        return std::string();
+    const std::string encoded = Slic3r::encode_path(subpath.c_str());
+    if (encoded.empty() || encoded[0] == '/' || encoded[0] == '\\')
+        return std::string();
+
+    std::vector<std::string> parts;
+    boost::split(parts, encoded, boost::is_any_of("/\\"), boost::token_compress_on);
+
+    std::string out;
+    for (const std::string& part : parts) {
+        if (part.empty() || part == "." || part == "..")
+            continue;
+        if (!out.empty())
+            out += '/';
+        out += part;
+    }
+    if (out.empty() || bbs_encoded_has_dotdot_component(out))
+        return std::string();
+    return Slic3r::decode_path(out.c_str());
+}
+
+// Backstop for the check above: the encoded destination must remain inside the equally
+// encoded extraction root directory, so no matter what the local code page best-fit
+// mapping turns the member name into, the extracted file can never be written outside
+// of the auxiliary files temp directory.
+static bool bbs_encoded_path_within_dir(const std::string& encoded_dir, const std::string& encoded_path)
+{
+    if (encoded_path.size() <= encoded_dir.size())
+        return false;
+    if (encoded_path.compare(0, encoded_dir.size(), encoded_dir) != 0)
+        return false;
+    const char sep = encoded_path[encoded_dir.size()];
+    if (sep != '/' && sep != '\\')
+        return false;
+    const std::string rest = encoded_path.substr(encoded_dir.size() + 1);
+    return !rest.empty() && !bbs_encoded_has_dotdot_component(rest);
+}
+
 namespace Slic3r {
 
 void PlateData::parse_filament_info(GCodeProcessorResult *result)
@@ -2944,6 +3020,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return;
             }
 
+            if (!bbs_auxiliary_subpath_safe_for_encoding(dest_file)) {
+                std::string safe_dest = bbs_auxiliary_sanitize_after_encoding(dest_file);
+                if (safe_dest.empty() || !bbs_auxiliary_subpath_safe_for_encoding(safe_dest)) {
+                    BOOST_LOG_TRIVIAL(error) << "Invalid sub path: unsafe after local path encoding";
+                    return;
+                }
+                BOOST_LOG_TRIVIAL(warning) << "Auxiliary sub path rewritten for local encoding safety: "
+                    << PathSanitizer::sanitize(dest_file) << " -> " << PathSanitizer::sanitize(safe_dest);
+                dest_file = std::move(safe_dest);
+            }
+
             if (dest_file.find('/') != std::string::npos || dest_file.find('\\') != std::string::npos) {
                 boost::filesystem::path src_path = boost::filesystem::path(dest_file);
                 boost::filesystem::path parent_path = src_path.parent_path();
@@ -2956,6 +3043,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             boost::filesystem::path final_path = dir / dest_file;
             std::string dest_zip_file = encode_path(final_path.string().c_str());
+
+            if (!bbs_encoded_path_within_dir(encode_path(temp_path.c_str()), dest_zip_file)) {
+                BOOST_LOG_TRIVIAL(error) << "Invalid sub path: escapes extraction dir after local path encoding";
+                return;
+            }
 
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_file) % stat.m_filename % res;
