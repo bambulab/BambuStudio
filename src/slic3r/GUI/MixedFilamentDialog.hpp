@@ -47,6 +47,7 @@ public:
                         const std::vector<std::string>& physical_names,
                         const std::vector<std::string>& physical_types = {},
                         const std::vector<std::string>& physical_diameters = {},
+                        const std::vector<std::string>& physical_volume_shorts = {},
                         bool enforce_nozzle_diameter = false);
 
     MixedFilamentDialog(wxWindow* parent,
@@ -55,6 +56,7 @@ public:
                         const std::vector<std::string>& physical_names,
                         const std::vector<std::string>& physical_types = {},
                         const std::vector<std::string>& physical_diameters = {},
+                        const std::vector<std::string>& physical_volume_shorts = {},
                         bool enforce_nozzle_diameter = false);
 
     MixedFilamentResult get_result() const { return m_result; }
@@ -95,8 +97,15 @@ private:
     void update_gradient_direction_items();
     void update_component_count_ui();
     // Picks dialog (width, height) based on current state so the gradient curve
-    // editor and the recommendation list stay visible at the same time.
+    // editor, recommendation list, and filament combo labels stay visible.
     wxSize compute_dialog_size() const;
+    wxString combo_item_name(size_t physical_idx) const;
+    wxString combo_item_suffix(size_t physical_idx) const;
+    int measure_filament_label_width() const;
+    int measure_suffix_column_width() const;
+    int measure_needed_combo_width() const;
+    void refresh_combo_suffixes();
+    void apply_dialog_size();
     void rebuild_all_combos();
     void rebuild_recommendation_items();
     void refresh_curve_editor_colors();
@@ -122,7 +131,9 @@ private:
     std::vector<std::string>    m_physical_names;
     std::vector<std::string>    m_physical_types;
     std::vector<std::string>    m_physical_diameters;
+    std::vector<std::string>    m_physical_volume_shorts;
     bool                        m_enforce_nozzle_diameter{false};
+    bool                        m_can_confirm{false};
     wxString                    m_type_mismatch_msg;
 
     // Combo item index -> 1-based physical filament index (per combo)

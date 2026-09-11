@@ -28,11 +28,12 @@ const wxColour COLOR_TEXT_DARK("#262E30");
 const wxColour COLOR_TEXT_MUTED("#909090");
 const wxColour COLOR_DOT_BORDER("#DBDBDB");
 
-// PLA Basic CMYW bases, matching ColorDecomposeDialog.
-const wxColour CMYW_CYAN(0, 255, 255);
-const wxColour CMYW_MAGENTA(255, 0, 255);
-const wxColour CMYW_YELLOW(255, 255, 0);
-const wxColour CMYW_WHITE(255, 255, 255);
+// PLA Palette / GFA20 bases, matching ColorDecomposeDialog.
+const wxColour CMYKW_CYAN(0, 144, 218);
+const wxColour CMYKW_MAGENTA(226, 69, 133);
+const wxColour CMYKW_YELLOW(252, 227, 0);
+const wxColour CMYKW_BLACK(0, 0, 0);
+const wxColour CMYKW_WHITE(255, 255, 255);
 
 wxColour dlg_bg() { return StateColor::darkModeColorFor(*wxWHITE); }
 wxColour card_bg() { return StateColor::darkModeColorFor(COLOR_BG_CARD); }
@@ -192,7 +193,7 @@ void MixingKitsHelpDialog::build_ui()
 
     main->AddSpacer(FromDIP(24));
 
-    auto* section = new Label(this, Label::Head_16, _L("What is the CMYW mixing kit?"));
+    auto* section = new Label(this, Label::Head_16, _L("What is the CMYKW mixing kit?"));
     section->SetForegroundColour(COLOR_BRAND);
     section->SetBackgroundColour(dlg_bg());
     main->Add(section, 0, wxLEFT | wxRIGHT, side);
@@ -200,7 +201,7 @@ void MixingKitsHelpDialog::build_ui()
     main->AddSpacer(FromDIP(10));
 
     m_intro = new Label(this, Label::Body_14,
-        _L("After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."));
+        _L("After official print testing, you only need a standard CMYKW mixing kit to mix hundreds of color effects."));
     m_intro->SetForegroundColour(text_dark());
     m_intro->SetBackgroundColour(dlg_bg());
     main->Add(m_intro, 0, wxLEFT | wxRIGHT, side);
@@ -210,9 +211,9 @@ void MixingKitsHelpDialog::build_ui()
     auto* cards = new wxBoxSizer(wxHORIZONTAL);
     cards->AddStretchSpacer();
     cards->Add(create_kit_card(this,
-                               {CMYW_WHITE, CMYW_CYAN, CMYW_MAGENTA, CMYW_YELLOW},
-                               _L("4-color CMYW"),
-                               _L("Cyan · Magenta · Yellow · White")),
+                               {CMYKW_WHITE, CMYKW_CYAN, CMYKW_MAGENTA, CMYKW_YELLOW, CMYKW_BLACK},
+                               _L("5-color CMYKW"),
+                               _L("Cyan · Magenta · Yellow · Black · White")),
                0);
     cards->AddStretchSpacer();
     main->Add(cards, 0, wxEXPAND | wxLEFT | wxRIGHT, side);

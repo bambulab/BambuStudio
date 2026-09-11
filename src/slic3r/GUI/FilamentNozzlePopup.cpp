@@ -293,6 +293,9 @@ void FilamentNozzlePopup::on_item_clicked(size_t option_idx)
     }
 
     Dismiss();
+    // on_config_change only rebuilds mixed rows on colour/type/support diffs.
+    // Diameter/volume edits must refresh chips and broken-diameter marks here.
+    plater->sidebar().update_mixed_filament_list(false);
 }
 
 void apply_nozzle_manual_maps_to_plates()

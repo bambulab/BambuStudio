@@ -1089,6 +1089,14 @@ struct Sidebar::priv
     wxPanel*          m_panel_mixed_warning{nullptr};       // red warning bar for broken mixed filaments
     wxStaticText*     m_text_mixed_warning{nullptr};
     wxBoxSizer*       m_sizer_mixed_filaments{nullptr};     // 2-column sizer inside content
+    std::vector<wxBoxSizer*> mixed_filament_items;
+    bool              m_mixed_single_column = true;
+    bool              m_mixed_list_rebuilding{false};
+    bool              m_mixed_relayouting{false};
+    bool              m_filament_area_syncing{false};
+    bool              m_updating_mixed{false};
+    bool              m_mixed_reload_scheduled{false};
+    void              relayout_mixed_filament_grid(bool force);
     bool              m_mixed_filament_broken{false};       // true if any used mixed filament has broken components
 
     priv(Plater *plater) : plater(plater) {}
@@ -3774,10 +3782,19 @@ Sidebar::Sidebar(Plater *parent)
     p->m_physical_scroll_area->EnableScrolling(false, true);
     p->m_physical_scroll_area->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_DEFAULT);
     p->m_physical_scroll_area->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
-        int w = p->m_physical_scroll_area->GetClientSize().GetWidth();
-        if (w > 0)
-            p->m_physical_scroll_area->SetVirtualSize(w, p->m_physical_scroll_area->GetVirtualSize().GetHeight());
+        if (p->m_physical_scroll_area->GetSizer() != nullptr) {
+            const int w = p->m_physical_scroll_area->GetClientSize().GetWidth();
+            if (w > 0)
+                p->m_physical_scroll_area->SetVirtualSize(w, p->m_physical_scroll_area->GetSizer()->GetMinSize().GetHeight());
+        }
+        if (p->m_filament_area_syncing) {
+            e.Skip();
+            return;
+        }
+        const bool was_single = p->m_filament_single_column;
         p->relayout_filament_grid(false);
+        if (was_single != p->m_filament_single_column)
+            sync_filament_area_height();
         e.Skip();
     });
     wrapper_sizer->Add(p->m_physical_scroll_area, 0, wxEXPAND, 0);
@@ -3888,9 +3905,19 @@ Sidebar::Sidebar(Plater *parent)
     p->m_mixed_scroll_area->EnableScrolling(false, true);
     p->m_mixed_scroll_area->ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_DEFAULT);
     p->m_mixed_scroll_area->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
-        int w = p->m_mixed_scroll_area->GetClientSize().GetWidth();
-        if (w > 0)
-            p->m_mixed_scroll_area->SetVirtualSize(w, p->m_mixed_scroll_area->GetVirtualSize().GetHeight());
+        if (p->m_mixed_scroll_area->GetSizer() != nullptr) {
+            const int w = p->m_mixed_scroll_area->GetClientSize().GetWidth();
+            if (w > 0)
+                p->m_mixed_scroll_area->SetVirtualSize(w, p->m_mixed_scroll_area->GetSizer()->GetMinSize().GetHeight());
+        }
+        if (p->m_filament_area_syncing) {
+            e.Skip();
+            return;
+        }
+        const bool was_single = p->m_mixed_single_column;
+        p->relayout_mixed_filament_grid(false);
+        if (was_single != p->m_mixed_single_column)
+            sync_filament_area_height();
         e.Skip();
     });
     wrapper_sizer->Add(p->m_mixed_scroll_area, 0, wxEXPAND, 0);
@@ -3901,7 +3928,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_mixed_warning->SetBackgroundColour(wxColour("#FDE8E8"));
         auto* warn_sizer = new wxBoxSizer(wxHORIZONTAL);
         p->m_text_mixed_warning = new wxStaticText(p->m_panel_mixed_warning, wxID_ANY,
-            _L("Mixed filament has invalid or mismatched components. Please re-edit affected entries."));
+            _L("Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."));
         p->m_text_mixed_warning->SetForegroundColour(wxColour("#D32F2F"));
         p->m_text_mixed_warning->SetFont(::Label::Body_12);
         p->m_text_mixed_warning->Wrap(FromDIP(360));
@@ -4074,11 +4101,24 @@ void Sidebar::priv::reset_filament_combo_min_heights()
     }
 }
 
+static bool filament_nozzle_chip_supported()
+{
+    if (wxGetApp().preset_bundle == nullptr)
+        return false;
+    return is_single_ext_multi_nozzle(wxGetApp().preset_bundle->full_config())
+        && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+}
+
 void Sidebar::priv::relayout_filament_grid(bool force)
 {
     if (m_panel_filament_content == nullptr || sizer_filaments == nullptr)
         return;
-    const bool single_column = m_panel_filament_content->GetClientSize().GetWidth() < FromDIP(492);
+    // Use the scroll area width: SIZE arrives there first. The content panel
+    // still has last frame's client size, so measuring it lags one drag.
+    const int width = m_physical_scroll_area != nullptr
+        ? m_physical_scroll_area->GetClientSize().GetWidth()
+        : m_panel_filament_content->GetClientSize().GetWidth();
+    const bool single_column = width < FromDIP(492);
     if (!force && single_column == m_filament_single_column)
         return;
     m_filament_single_column = single_column;
@@ -4103,6 +4143,46 @@ void Sidebar::priv::relayout_filament_grid(bool force)
 
     sizer_filaments->Show((size_t) 1, !single_column);
     m_panel_filament_content->Layout();
+}
+
+void Sidebar::priv::relayout_mixed_filament_grid(bool force)
+{
+    if (m_mixed_list_rebuilding || m_mixed_relayouting)
+        return;
+    if (m_panel_mixed_content == nullptr || m_sizer_mixed_filaments == nullptr)
+        return;
+    const int width = m_mixed_scroll_area != nullptr
+        ? m_mixed_scroll_area->GetClientSize().GetWidth()
+        : m_panel_mixed_content->GetClientSize().GetWidth();
+    const bool single_column = width < FromDIP(492);
+    if (!force && single_column == m_mixed_single_column)
+        return;
+    m_mixed_single_column = single_column;
+
+    auto *col0 = m_sizer_mixed_filaments->GetItem((size_t) 0)->GetSizer();
+    auto *col1 = m_sizer_mixed_filaments->GetItem((size_t) 1)->GetSizer();
+    // Clear(false) still deletes nested sizers. Detach keeps mixed_filament_items alive
+    // so a SIZE-driven second relayout can re-home the same row sizers.
+    auto detach_all = [](wxSizer *col) {
+        if (col == nullptr)
+            return;
+        while (col->GetItemCount() > 0)
+            col->Detach(0);
+    };
+    detach_all(col0);
+    detach_all(col1);
+
+    for (size_t i = 0; i < mixed_filament_items.size(); ++i) {
+        auto *col = (single_column || (i % 2) == 0) ? col0 : col1;
+        col->Add(mixed_filament_items[i], 0, wxEXPAND);
+    }
+    if (!single_column && (mixed_filament_items.size() % 2) != 0)
+        col1->AddStretchSpacer(1);
+
+    m_sizer_mixed_filaments->Show((size_t) 1, !single_column);
+    m_mixed_relayouting = true;
+    m_panel_mixed_content->Layout();
+    m_mixed_relayouting = false;
 }
 
 void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx)
@@ -4256,6 +4336,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
         wxGetApp().plater()->update_project_dirty_from_presets();
         preset_bundle->export_selections(*wxGetApp().app_config);
         wxGetApp().plater()->on_config_change(preset_bundle->full_config());
+        update_mixed_filament_list();
     });
 
     item_sizer->Add(diameter_btns, 0, wxLEFT | wxBOTTOM, FromDIP(10));
@@ -4283,8 +4364,7 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
     // with it off, filament_diameter_map/filament_volume_map per-slot selections
     // are not authoritative (see multi_nozzle_diameter_mode_enabled/complete_filament_nozzle_diameter_selections),
     // so the selector must stay hidden even on such hardware until the user opts in.
-    const bool nozzle_selector_supported = is_single_ext_multi_nozzle(preset_bundle->full_config())
-        && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    const bool nozzle_selector_supported = filament_nozzle_chip_supported();
     label->Show(nozzle_selector_supported);
     if (divider != nullptr)
         divider->Show(nozzle_selector_supported);
@@ -4446,8 +4526,9 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
         // reset it again now so this doesn't undo relayout_filament_grid()'s earlier work.
         p->reset_filament_combo_min_heights();
         selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-        if ((selected && selected->values != old_diameters) || preset_bundle->filament_presets != old_presets)
+        if ((selected && selected->values != old_diameters) || preset_bundle->filament_presets != old_presets) {
             wxGetApp().plater()->on_config_change(preset_bundle->full_config());
+        }
     }
 
     std::set<std::string> configured_diameters;
@@ -5243,8 +5324,8 @@ void Sidebar::on_filament_count_change(size_t num_filaments)
         for (size_t idx = 0; idx < choices.size() && idx < physical_indices.size(); ++idx)
             choices[idx]->set_filament_idx(physical_indices[idx]);
         recalc_filament_scroll_sizes();
-        update_mixed_filament_list();
         refresh_filament_diameter_buttons(true);
+        update_mixed_filament_list();
         return;
     }
 
@@ -5303,10 +5384,10 @@ void Sidebar::on_filaments_delete(size_t filament_id)
 
         // delete UI item
         if (filament_id < p->combos_filament.size()) {
-            const int last            = p->combos_filament.size() - 1;
-            auto      sizer_filaments = this->p->sizer_filaments->GetItem(last % 2)->GetSizer();
-            sizer_filaments->Remove(last / 2);
-
+            // Always drop the last physical row (remaining combos are reindexed below).
+            // Do not Remove(last % 2): relayout_filament_grid may have put every row in col0
+            // when the sidebar is narrower than FromDIP(492). Match remove_unused_filament_combos.
+            const int last = p->combos_filament.size() - 1;
             p->filament_items[last]->Destroy();
             p->combos_filament.pop_back();
             p->filament_diameter_btns.pop_back();
@@ -5321,20 +5402,6 @@ void Sidebar::on_filaments_delete(size_t filament_id)
                 p->filament_nozzle_labels.pop_back();
             if (!p->filament_nozzle_dividers.empty())
                 p->filament_nozzle_dividers.pop_back();
-
-            // BBS:  filament double columns
-            auto sizer_filaments0 = this->p->sizer_filaments->GetItem((size_t) 0)->GetSizer();
-            auto sizer_filaments1 = this->p->sizer_filaments->GetItem(1)->GetSizer();
-            if (p->combos_filament.size() < 2) {
-                sizer_filaments1->Clear();
-            } else {
-                size_t c0 = sizer_filaments0->GetChildren().GetCount();
-                size_t c1 = sizer_filaments1->GetChildren().GetCount();
-                if (c0 < c1)
-                    sizer_filaments1->Remove(c1 - 1);
-                else if (c0 > c1)
-                    sizer_filaments1->AddStretchSpacer(1);
-            }
         }
 
         auto sizer = p->m_panel_filament_title->GetSizer();
@@ -5366,7 +5433,8 @@ void Sidebar::on_filaments_delete(size_t filament_id)
     update_ui_from_settings();
     dynamic_filament_list.update();
 
-    update_mixed_filament_list();
+    // 3D is refreshed by Plater::update() after this returns; only rebuild the sidebar list.
+    update_mixed_filament_list(false);
 }
 
 void Sidebar::add_filament() {
@@ -6473,6 +6541,29 @@ void Sidebar::recalc_filament_scroll_sizes()
     recalc(p->m_mixed_scroll_area);
 }
 
+void Sidebar::sync_filament_area_height()
+{
+    if (p->m_filament_area_syncing)
+        return;
+    p->m_filament_area_syncing = true;
+    // SIZE on the other scroll is ignored while this flag is set; relayout both
+    // grids here so a physical column switch still updates the mixed grid, and vice versa.
+    p->relayout_filament_grid(false);
+    p->relayout_mixed_filament_grid(false);
+    recalc_filament_scroll_sizes();
+    if (p->m_physical_scroll_area != nullptr)
+        p->m_physical_scroll_area->FitInside();
+    if (p->m_mixed_scroll_area != nullptr)
+        p->m_mixed_scroll_area->FitInside();
+    if (p->m_filament_area_wrapper != nullptr && p->m_filament_area_wrapper->GetSizer() != nullptr)
+        p->m_filament_area_wrapper->Layout();
+    if (m_scrolled_sizer != nullptr)
+        m_scrolled_sizer->Layout();
+    if (p->scrolled != nullptr)
+        p->scrolled->Layout();
+    p->m_filament_area_syncing = false;
+}
+
 static std::string blend_mixed_color(const std::vector<unsigned int> &comp_ids,
                                      const std::vector<int>          &ratios,
                                      const std::vector<std::string>  &color_strs)
@@ -6484,10 +6575,45 @@ static std::string blend_mixed_color(const std::vector<unsigned int> &comp_ids,
     return Slic3r::blend_color_multi(hex_colors, ratios);
 }
 
-void Sidebar::update_mixed_filament_list()
+static bool multi_diameter_filament_selection_active()
+{
+    return filament_nozzle_chip_supported();
+}
+
+// Read-only mixed-row chip: pick the first component that has a diameter.
+// Flow (Std/HF) is display-only and not part of the mix constraint.
+static std::string mixed_component_nozzle_label(
+    unsigned int physical_1based,
+    const std::vector<size_t> &physical_indices,
+    const std::vector<std::string> &selected_diameters,
+    const std::vector<int> &volume_maps)
+{
+    if (physical_1based < 1 || physical_1based > physical_indices.size())
+        return {};
+    const size_t cfg = physical_indices[physical_1based - 1];
+    std::string diameter = (cfg < selected_diameters.size()) ? selected_diameters[cfg] : std::string();
+    if (diameter.empty() && wxGetApp().preset_bundle != nullptr) {
+        const std::vector<std::string> options =
+            wxGetApp().preset_bundle->get_filament_nozzle_diameter_options(cfg);
+        if (!options.empty())
+            diameter = options.front();
+    }
+    if (diameter.empty())
+        return {};
+    NozzleVolumeType type = NozzleVolumeType::nvtStandard;
+    if (cfg < volume_maps.size())
+        type = static_cast<NozzleVolumeType>(volume_maps[cfg]);
+    const std::string volume = DevNozzle::ToNozzleVolumeShortString(type);
+    if (volume.empty())
+        return diameter;
+    return diameter + " " + volume;
+}
+
+void Sidebar::update_mixed_filament_list(bool reload_3d)
 {
     auto* plater = dynamic_cast<Plater*>(GetParent());
-    if (!plater) return;
+    if (!plater)
+        return;
 
     wxWindowUpdateLocker noUpdates(this);
 
@@ -6562,7 +6688,7 @@ void Sidebar::update_mixed_filament_list()
         if (notify)
             notify->push_notification(NotificationType::BBLMixedFilamentBroken,
                 NotificationManager::NotificationLevel::ErrorNotificationLevel,
-                _u8L("Mixed filament has invalid or mismatched components. Please re-edit affected entries."));
+                _u8L("Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."));
     } else {
         auto* notify = wxGetApp().plater()->get_notification_manager();
         if (notify)
@@ -6572,6 +6698,10 @@ void Sidebar::update_mixed_filament_list()
     if (has_mixed) {
         auto* left_col  = p->m_sizer_mixed_filaments->GetItem(size_t(0))->GetSizer();
         auto* right_col = p->m_sizer_mixed_filaments->GetItem(size_t(1))->GetSizer();
+        // Drop stale sizer pointers before Destroy: wxEVT_SIZE can re-enter
+        // relayout_mixed_filament_grid while Clear(true) is tearing rows down.
+        p->m_mixed_list_rebuilding = true;
+        p->mixed_filament_items.clear();
         left_col->Clear(true);
         right_col->Clear(true);
 
@@ -6579,6 +6709,19 @@ void Sidebar::update_mixed_filament_list()
         if (colours_opt) {
             for (size_t i = 0; i < num_physical && i < colours_opt->values.size(); ++i)
                 physical_colors.push_back(colours_opt->values[i]);
+        }
+
+        const bool show_mixed_nozzle = multi_diameter_filament_selection_active();
+        const std::vector<size_t> physical_indices = wxGetApp().preset_bundle->physical_filament_config_indices();
+        std::vector<std::string> selected_diameters;
+        if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map"))
+            selected_diameters = selected->values;
+        std::vector<int> volume_maps;
+        // Sidebar can refresh while Plater is still constructing; get_partplate_list()
+        // is only safe after wxGetApp().plater() points at this instance.
+        if (wxGetApp().plater() == plater) {
+            if (PartPlate *plate = plater->get_partplate_list().get_curr_plate())
+                volume_maps = plate->get_real_filament_volume_maps(project_config);
         }
 
         auto make_swatch_panel = [this, mc_text](wxWindow* parent, const wxColour& col, unsigned int num) -> wxPanel* {
@@ -6716,7 +6859,6 @@ void Sidebar::update_mixed_filament_list()
 
             auto* content_panel = new wxPanel(p->m_panel_mixed_content, wxID_ANY);
             content_panel->SetBackgroundColour(mc_bg);
-            content_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
             // Pre-compute all values the paint lambda needs (avoid capturing `this` for FromDIP)
             int cp_pad        = FromDIP(4);
@@ -6726,6 +6868,64 @@ void Sidebar::update_mixed_filament_list()
             int cp_gap        = FromDIP(2);
             int cp_pct_gap    = FromDIP(4);
             bool cp_is_dark   = wxGetApp().dark_mode();
+
+            std::string nozzle_text;
+            if (show_mixed_nozzle) {
+                for (unsigned int cid : comp_ids) {
+                    nozzle_text = mixed_component_nozzle_label(cid, physical_indices, selected_diameters, volume_maps);
+                    if (!nozzle_text.empty())
+                        break;
+                }
+            }
+            const wxString cp_nozzle_label = wxString::FromUTF8(nozzle_text);
+            Button *nozzle_lbl = nullptr;
+            wxStaticLine *nozzle_divider = nullptr;
+            int cp_nozzle_reserve = 0;
+            const int cp_chip_right  = FromDIP(8);
+            const int cp_chip_gap    = FromDIP(8);
+            const int cp_chip_inset  = FromDIP(3);
+            if (!cp_nozzle_label.empty()) {
+                nozzle_divider = new wxStaticLine(content_panel, wxID_ANY, wxDefaultPosition,
+                                                  wxSize(FromDIP(1), FromDIP(14)), wxLI_VERTICAL);
+                nozzle_lbl = new Button(content_panel, wxEmptyString, "", wxBORDER_NONE);
+                nozzle_lbl->SetFont(Label::Body_13);
+                nozzle_lbl->SetTextColorNormal(ThemeColor::TextMuted);
+                nozzle_lbl->SetBackgroundColour(mc_bg);
+                StateColor nozzle_label_bg(std::make_pair(mc_bg, (int) StateColor::Hovered),
+                                           std::make_pair(mc_bg, (int) StateColor::Normal));
+                nozzle_label_bg.setTakeFocusedAsHovered(false);
+                nozzle_lbl->SetBackgroundColor(nozzle_label_bg);
+                nozzle_lbl->SetPaddingSize(wxSize(FromDIP(6), FromDIP(2)));
+                nozzle_lbl->SetCornerRadius(FromDIP(4));
+                nozzle_lbl->SetLabel(cp_nozzle_label);
+                nozzle_lbl->SetToolTip(_L("Please modify the original project filament diameter."));
+                nozzle_lbl->SetCursor(wxCursor(wxCURSOR_ARROW));
+                nozzle_lbl->SetCanFocus(false);
+                nozzle_lbl->Bind(wxEVT_BUTTON, [](wxCommandEvent &) {});
+                nozzle_lbl->Bind(wxEVT_LEFT_UP, [](wxMouseEvent &e) { e.Skip(false); });
+                nozzle_divider->Bind(wxEVT_LEFT_UP, [](wxMouseEvent &e) { e.Skip(false); });
+                cp_nozzle_reserve = nozzle_lbl->GetMinSize().GetWidth() + cp_chip_right +
+                                    cp_chip_gap + nozzle_divider->GetSize().GetWidth();
+            }
+            auto place_nozzle_lbl = [content_panel, nozzle_lbl, nozzle_divider,
+                                     cp_chip_right, cp_chip_gap, cp_chip_inset]() {
+                if (nozzle_lbl == nullptr || nozzle_divider == nullptr)
+                    return;
+                const int comboWidth  = content_panel->GetSize().GetWidth();
+                const int comboHeight = content_panel->GetSize().GetHeight();
+                if (comboWidth <= 0 || comboHeight <= 0)
+                    return;
+                const int label_h    = std::max(0, comboHeight - cp_chip_inset * 2);
+                const int labelWidth = nozzle_lbl->GetMinSize().GetWidth();
+                const int label_x    = std::max(0, comboWidth - cp_chip_right - labelWidth);
+                nozzle_lbl->SetSize(label_x, cp_chip_inset, labelWidth, label_h);
+                const int divider_width  = nozzle_divider->GetSize().GetWidth();
+                const int divider_height = nozzle_divider->GetSize().GetHeight();
+                const int divider_x      = std::max(0, label_x - cp_chip_gap - divider_width);
+                const int divider_y      = (comboHeight - divider_height) / 2;
+                nozzle_divider->SetSize(divider_x, divider_y, divider_width, divider_height);
+            };
+            place_nozzle_lbl();
 
             // Build per-component colour list for the lambda
             std::vector<wxColour> cp_colours;
@@ -6762,7 +6962,7 @@ void Sidebar::update_mixed_filament_list()
 
             content_panel->Bind(wxEVT_PAINT, [content_panel, mc_bg, mc_border, mc_text, mc_dim,
                                                cp_pad, cp_swatch_sz, cp_sep_margin, cp_pct_left,
-                                               cp_gap, cp_pct_gap, cp_is_dark,
+                                               cp_gap, cp_pct_gap, cp_is_dark, cp_nozzle_reserve,
                                                cp_is_gradient,
                                                draw_ids, draw_ratios, draw_colours, draw_valid](wxPaintEvent&) {
                 wxBufferedPaintDC dc(content_panel);
@@ -6777,7 +6977,7 @@ void Sidebar::update_mixed_filament_list()
                 int y_swatch = (sz.GetHeight() - cp_swatch_sz) / 2;
                 int text_h = dc.GetTextExtent(wxT("A")).GetHeight();
                 int y_text = y_swatch + (cp_swatch_sz - text_h) / 2;
-                int avail = sz.GetWidth() - cp_pad;
+                int avail = sz.GetWidth() - cp_pad - cp_nozzle_reserve;
                 wxString ellipsis = wxT("...");
                 int ellipsis_w = dc.GetTextExtent(ellipsis).GetWidth();
 
@@ -6870,8 +7070,8 @@ void Sidebar::update_mixed_filament_list()
                 content_panel->SetToolTip(tip);
             }
 
-            // Repaint on resize so truncation updates
-            content_panel->Bind(wxEVT_SIZE, [content_panel](wxSizeEvent& e) {
+            content_panel->Bind(wxEVT_SIZE, [content_panel, place_nozzle_lbl](wxSizeEvent& e) {
+                place_nozzle_lbl();
                 content_panel->Refresh();
                 e.Skip();
             });
@@ -6936,14 +7136,18 @@ void Sidebar::update_mixed_filament_list()
 
             combo_and_btn_sizer->Add(FromDIP(16), 0, 0, 0, 0);
 
-            int side = i % 2;
-            auto* col = (side == 0) ? left_col : right_col;
-            if (side == 1 && i > 1) col->Remove(i / 2);
-            col->Add(combo_and_btn_sizer, 1, wxEXPAND);
-            if (side == 0 && i > 0) {
-                right_col->AddStretchSpacer(1);
-            }
+            p->mixed_filament_items.push_back(combo_and_btn_sizer);
         }
+        p->m_mixed_list_rebuilding = false;
+        p->relayout_mixed_filament_grid(true);
+    } else {
+        p->m_mixed_list_rebuilding = true;
+        p->mixed_filament_items.clear();
+        if (p->m_sizer_mixed_filaments != nullptr) {
+            p->m_sizer_mixed_filaments->GetItem(size_t(0))->GetSizer()->Clear(true);
+            p->m_sizer_mixed_filaments->GetItem(size_t(1))->GetSizer()->Clear(true);
+        }
+        p->m_mixed_list_rebuilding = false;
     }
 
     recalc_filament_scroll_sizes();
@@ -7008,7 +7212,7 @@ void Sidebar::update_mixed_filament_list()
         }
     }
 
-    if (plater->canvas3D()) {
+    if (reload_3d && plater->canvas3D()) {
         plater->canvas3D()->set_as_dirty();
         plater->get_view3D_canvas3D()->reload_scene(false);
     }
@@ -7116,7 +7320,8 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
                                               std::vector<std::string>& names,
                                               std::vector<std::string>& types,
                                               std::vector<size_t>* config_indices,
-                                              std::vector<std::string>* diameters)
+                                              std::vector<std::string>* diameters,
+                                              std::vector<std::string>* volume_shorts)
 {
     color_strs.clear();
     names.clear();
@@ -7125,6 +7330,8 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
         config_indices->clear();
     if (diameters)
         diameters->clear();
+    if (volume_shorts)
+        volume_shorts->clear();
 
     size_t num_physical = p->combos_filament.size();
     auto& project_config = wxGetApp().preset_bundle->project_config;
@@ -7174,8 +7381,33 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
         const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
         for (size_t i = 0; i < num_physical; ++i) {
             const size_t cfg_idx = physical_indices[i];
-            diameters->push_back(selected != nullptr && cfg_idx < selected->values.size() ?
-                                     selected->values[cfg_idx] : std::string());
+            std::string diameter = (selected != nullptr && cfg_idx < selected->values.size()) ?
+                                     selected->values[cfg_idx] : std::string();
+            // Single-diameter + multi-nozzle mode can wipe filament_diameter_map;
+            // fall back to the printer's available option so the mix dialog
+            // does not treat every slot as an unknown nozzle.
+            if (diameter.empty()) {
+                const std::vector<std::string> options =
+                    preset_bundle.get_filament_nozzle_diameter_options(cfg_idx);
+                if (!options.empty())
+                    diameter = options.front();
+            }
+            diameters->push_back(std::move(diameter));
+        }
+    }
+
+    if (volume_shorts) {
+        std::vector<int> volume_maps;
+        if (auto *plater = wxGetApp().plater()) {
+            if (PartPlate *plate = plater->get_partplate_list().get_curr_plate())
+                volume_maps = plate->get_real_filament_volume_maps(project_config);
+        }
+        for (size_t i = 0; i < num_physical; ++i) {
+            const size_t cfg_idx = physical_indices[i];
+            NozzleVolumeType type = NozzleVolumeType::nvtStandard;
+            if (cfg_idx < volume_maps.size())
+                type = static_cast<NozzleVolumeType>(volume_maps[cfg_idx]);
+            volume_shorts->push_back(DevNozzle::ToNozzleVolumeShortString(type));
         }
     }
 }
@@ -7224,22 +7456,6 @@ static void ensure_mixed_gradient_options(DynamicPrintConfig& project_config)
         project_config.set_key_value("filament_mixed_gradient_curve", new ConfigOptionStrings({""}));
     if (!project_config.option("filament_mixed_gradient_per_part"))
         project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
-}
-
-static bool multi_diameter_filament_selection_active()
-{
-    if (! multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config))
-        return false;
-
-    std::set<std::string> diameters;
-    const auto &full_stat = wxGetApp().preset_bundle->extruder_full_stat;
-    for (int extruder = 0; extruder < full_stat.get_extruder_count(); ++extruder)
-        for (const auto &slot : full_stat.get_extruder_stats(extruder)) {
-            const double diameter = std::atof(slot.first.c_str());
-            if (diameter > 0.)
-                diameters.insert(format_diameter_to_str(diameter));
-        }
-    return diameters.size() >= 2;
 }
 
 // Mixing is only allowed between filaments printed by the same nozzle diameter.
@@ -7431,15 +7647,20 @@ void Sidebar::add_mixed_filament()
     if (num_physical < 2) return;
     if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
 
-    std::vector<std::string> color_strs, names, types, diameters;
-    collect_physical_filament_info(color_strs, names, types, nullptr, &diameters);
+    std::vector<std::string> color_strs, names, types, diameters, volume_shorts;
+    collect_physical_filament_info(color_strs, names, types, nullptr, &diameters, &volume_shorts);
 
-    MixedFilamentDialog dlg(this, color_strs, names, types, diameters,
-                            multi_diameter_filament_selection_active());
-    if (dlg.ShowModal() == wxID_OK) {
-        auto result = dlg.get_result();
-        create_mixed_filament_from_result(this, result, color_strs);
+    MixedFilamentResult result;
+    int modal = wxID_CANCEL;
+    {
+        MixedFilamentDialog dlg(this, color_strs, names, types, diameters, volume_shorts,
+                                multi_diameter_filament_selection_active());
+        modal = dlg.ShowModal();
+        if (modal == wxID_OK)
+            result = dlg.get_result();
     }
+    if (modal == wxID_OK)
+        create_mixed_filament_from_result(this, result, color_strs);
 }
 
 void Sidebar::edit_mixed_filament(size_t panel_idx)
@@ -7448,11 +7669,12 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
     if (!plater) return;
 
     auto mixed_indices = plater->mixed_filament_config_indices();
-    if (panel_idx >= mixed_indices.size()) return;
+    if (panel_idx >= mixed_indices.size())
+        return;
     size_t cfg_idx = mixed_indices[panel_idx];
 
-    std::vector<std::string> color_strs, names, types, diameters;
-    collect_physical_filament_info(color_strs, names, types, nullptr, &diameters);
+    std::vector<std::string> color_strs, names, types, diameters, volume_shorts;
+    collect_physical_filament_info(color_strs, names, types, nullptr, &diameters, &volume_shorts);
 
     auto& project_config = wxGetApp().preset_bundle->project_config;
     MixedFilamentResult existing;
@@ -7515,10 +7737,16 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
     if (existing.gradient_enabled && per_part_opt && cfg_idx < per_part_opt->values.size())
         existing.per_part_gradient = per_part_opt->values[cfg_idx];
 
-    MixedFilamentDialog dlg(this, existing, color_strs, names, types, diameters,
-                            multi_diameter_filament_selection_active());
-    if (dlg.ShowModal() == wxID_OK) {
-        auto result = dlg.get_result();
+    MixedFilamentResult result;
+    int edit_modal = wxID_CANCEL;
+    {
+        MixedFilamentDialog dlg(this, existing, color_strs, names, types, diameters, volume_shorts,
+                                multi_diameter_filament_selection_active());
+        edit_modal = dlg.ShowModal();
+        if (edit_modal == wxID_OK)
+            result = dlg.get_result();
+    }
+    if (edit_modal == wxID_OK) {
         if (result.components.size() < 2 || result.ratios.size() < 2) return;
 
         // Serialize components
@@ -7604,7 +7832,8 @@ void Sidebar::delete_mixed_filament_at(size_t panel_idx)
     if (!plater) return;
 
     auto mixed_indices = plater->mixed_filament_config_indices();
-    if (panel_idx >= mixed_indices.size()) return;
+    if (panel_idx >= mixed_indices.size())
+        return;
     size_t cfg_idx = mixed_indices[panel_idx];
 
     delete_filament(cfg_idx, -1);

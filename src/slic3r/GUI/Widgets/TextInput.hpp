@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_TextInput_hpp_
 #define slic3r_GUI_TextInput_hpp_
 
+#include <wx/dc.h>
 #include <wx/textctrl.h>
 #include "StaticBox.hpp"
 
@@ -98,10 +99,10 @@ protected:
 
     void DoSetToolTipText(wxString const &tip) override;
 
+    virtual void render(wxDC& dc);
+
 private:
     void paintEvent(wxPaintEvent& evt);
-
-    void render(wxDC& dc);
 
     void messureSize();
 

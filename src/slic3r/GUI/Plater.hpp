@@ -282,7 +282,7 @@ public:
     void delete_mixed_filament_at(size_t idx);
     void decompose_filament_color(int filament_idx);
     void recalc_filament_scroll_sizes();
-    void update_mixed_filament_list();
+    void update_mixed_filament_list(bool reload_3d = true);
     bool has_broken_mixed_filament() const;
     bool has_broken_mixed_filament(const PartPlate* plate) const;
     Search::OptionsSearcher&        get_searcher();
@@ -302,7 +302,9 @@ private:
                                          std::vector<std::string>& names,
                                          std::vector<std::string>& types,
                                          std::vector<size_t>* config_indices = nullptr,
-                                         std::vector<std::string>* diameters = nullptr);
+                                         std::vector<std::string>* diameters = nullptr,
+                                         std::vector<std::string>* volume_shorts = nullptr);
+    void  sync_filament_area_height();
     void  auto_calc_flushing_volumes_internal(const int filament_id, const int extruder_id);
     void  finalize_auto_calc_flushing_volumes();
     void  update_bed_thumbnail(std::string path);

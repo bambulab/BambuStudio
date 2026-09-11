@@ -31,6 +31,7 @@ public:
         wxString group{};
         wxString alias{};
         wxString tip{};
+        wxString suffix{};
         int      flag{0};
         int      style{ 0 };// the style of item
     };

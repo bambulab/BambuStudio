@@ -14,6 +14,8 @@
 #include <wx/textctrl.h>
 #include <wx/wrapsizer.h>
 #include <wx/tokenzr.h>
+#include <wx/control.h>
+#include <wx/display.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/FilamentMixer.hpp"
@@ -136,6 +138,7 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
                                          const std::vector<std::string>& physical_names,
                                          const std::vector<std::string>& physical_types,
                                          const std::vector<std::string>& physical_diameters,
+                                         const std::vector<std::string>& physical_volume_shorts,
                                          bool enforce_nozzle_diameter)
     : DPIDialog(parent, wxID_ANY, _L("Add Mixed Filament"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -144,12 +147,14 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
     , m_physical_names(physical_names)
     , m_physical_types(physical_types)
     , m_physical_diameters(physical_diameters)
+    , m_physical_volume_shorts(physical_volume_shorts)
     , m_enforce_nozzle_diameter(enforce_nozzle_diameter)
 {
     m_result.components = {1, (physical_colors.size() >= 2) ? 2u : 1u};
     m_result.ratios     = {50, 50};
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
+    refresh_combo_suffixes();
 
     wxImage img;
     if (img.LoadFile(from_u8(Slic3r::var("mixed_filament_preview_twocolor.png")), wxBITMAP_TYPE_PNG))
@@ -164,6 +169,7 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
                                          const std::vector<std::string>& physical_names,
                                          const std::vector<std::string>& physical_types,
                                          const std::vector<std::string>& physical_diameters,
+                                         const std::vector<std::string>& physical_volume_shorts,
                                          bool enforce_nozzle_diameter)
     : DPIDialog(parent, wxID_ANY, _L("Edit Mixed Filament"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -173,6 +179,7 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
     , m_physical_names(physical_names)
     , m_physical_types(physical_types)
     , m_physical_diameters(physical_diameters)
+    , m_physical_volume_shorts(physical_volume_shorts)
     , m_enforce_nozzle_diameter(enforce_nozzle_diameter)
 {
     if (m_result.components.size() < 2) {
@@ -190,6 +197,7 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
     }
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
+    refresh_combo_suffixes();
 
     wxImage img;
     if (img.LoadFile(from_u8(Slic3r::var("mixed_filament_preview_twocolor.png")), wxBITMAP_TYPE_PNG))
@@ -200,8 +208,7 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
 
 void MixedFilamentDialog::on_dpi_changed(const wxRect&)
 {
-    int h = (num_components() >= 3) ? FromDIP(680) : FromDIP(580);
-    SetSize(FromDIP(439), h);
+    apply_dialog_size();
     Refresh();
 }
 
@@ -298,6 +305,7 @@ void MixedFilamentDialog::append_material_row()
     auto* combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
                                wxSize(FromDIP(166), FromDIP(24)), 0, nullptr, wxCB_READONLY);
     combo->SetKeepDropArrow(true);
+    combo->GetDropDown().SetUseContentWidth(true);
     combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_filament_changed(); });
     row->Add(combo, 1, wxALIGN_CENTER_VERTICAL);
 
@@ -1406,7 +1414,11 @@ wxBoxSizer* MixedFilamentDialog::create_button_panel()
     m_btn_ok->SetBorderColor(wxColour("#00AE42"));
     m_btn_ok->SetTextColor(*wxWHITE);
     m_btn_ok->SetMinSize(wxSize(FromDIP(55), FromDIP(24)));
-    m_btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); });
+    m_btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        if (!m_can_confirm)
+            return;
+        EndModal(wxID_OK);
+    });
 
     sizer->Add(m_btn_cancel, 0, wxRIGHT, FromDIP(12));
     sizer->Add(m_btn_ok, 0);
@@ -1463,7 +1475,8 @@ void MixedFilamentDialog::rebuild_all_combos()
                     style = DD_ITEM_STYLE_DIMMED;
             }
 
-            int idx = combo->Append(wxString::FromUTF8(m_physical_names[j]), make_swatch_bitmap(j), style);
+            int idx = combo->Append(combo_item_name(j), make_swatch_bitmap(j), style);
+            combo->SetItemSuffix(idx, combo_item_suffix(j));
             m_combo_to_physical[i].push_back(phys_1based);
 
             if (phys_1based == cur_phys)
@@ -1475,6 +1488,7 @@ void MixedFilamentDialog::rebuild_all_combos()
         else if (combo->GetCount() > 0)
             combo->SetSelection(0);
     }
+    refresh_combo_suffixes();
 }
 
 void MixedFilamentDialog::refresh_curve_editor_colors()
@@ -1552,15 +1566,7 @@ void MixedFilamentDialog::on_gradient_toggled()
     // Toggling the curve editor changes the right column height (and width when
     // turning gradient on), so the dialog must follow or the recommendation list
     // gets squeezed off-screen. Same trick as 2-color -> 3-color switching.
-    const wxSize new_size = compute_dialog_size();
-    if (GetSize() != new_size) {
-        const wxRect old_rect = GetRect();
-        const wxPoint center(old_rect.x + old_rect.width / 2,
-                             old_rect.y + old_rect.height / 2);
-        SetSize(new_size);
-        SetPosition(wxPoint(center.x - new_size.x / 2,
-                            center.y - new_size.y / 2));
-    }
+    apply_dialog_size();
 
     Layout();
     Refresh();
@@ -1852,17 +1858,17 @@ void MixedFilamentDialog::update_ok_button_state()
 
     if (!m_physical_diameters.empty() && m_result.components.size() >= 2) {
         std::map<std::string, std::vector<unsigned int>> diameter_groups;
-        bool missing_diameter = false;
         for (unsigned int phys : m_result.components) {
-            if (phys < 1 || phys > m_physical_diameters.size()) {
-                missing_diameter = m_enforce_nozzle_diameter;
+            if (phys < 1 || phys > m_physical_diameters.size())
                 continue;
-            }
-            if (m_physical_diameters[phys - 1].empty())
-                missing_diameter = m_enforce_nozzle_diameter;
-            diameter_groups[m_physical_diameters[phys - 1]].push_back(phys);
+            const std::string &diameter = m_physical_diameters[phys - 1];
+            // Empty map entries are not a known conflict; skip until a real
+            // diameter is available. Do not label them as "unknown nozzle".
+            if (diameter.empty())
+                continue;
+            diameter_groups[diameter].push_back(phys);
         }
-        has_diameter_mismatch = diameter_groups.size() > 1 || missing_diameter;
+        has_diameter_mismatch = diameter_groups.size() > 1;
         if (has_diameter_mismatch) {
             wxString parts;
             for (const auto &group : diameter_groups) {
@@ -1874,8 +1880,7 @@ void MixedFilamentDialog::update_ok_button_state()
                         slots += ", ";
                     slots += std::to_string(slot);
                 }
-                const wxString diameter = group.first.empty() ? _L("unknown nozzle") :
-                    wxString::FromUTF8(group.first) + " mm";
+                const wxString diameter = wxString::FromUTF8(group.first) + " mm";
                 parts += wxString::Format(_L("Slot %s (%s)"), slots, diameter);
             }
             m_type_mismatch_msg = parts + " " + _L("cannot be mixed. Please select filaments using the same nozzle diameter.");
@@ -1888,6 +1893,7 @@ void MixedFilamentDialog::update_ok_button_state()
     }
 
     bool can_confirm = !has_type_mismatch && !has_diameter_mismatch && !has_unselected;
+    m_can_confirm = can_confirm;
     m_btn_ok->Enable(can_confirm);
     if (has_unselected) {
         m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
@@ -1975,6 +1981,91 @@ void MixedFilamentDialog::update_gradient_direction_items()
         m_combo_gradient_dir->SetSelection(0);
 }
 
+wxString MixedFilamentDialog::combo_item_name(size_t physical_idx) const
+{
+    if (physical_idx >= m_physical_names.size())
+        return {};
+    return wxString::FromUTF8(m_physical_names[physical_idx]);
+}
+
+wxString MixedFilamentDialog::combo_item_suffix(size_t physical_idx) const
+{
+    if (!m_enforce_nozzle_diameter)
+        return {};
+    if (physical_idx >= m_physical_diameters.size() || m_physical_diameters[physical_idx].empty())
+        return {};
+    wxString suffix = "| " + wxString::FromUTF8(m_physical_diameters[physical_idx]);
+    if (physical_idx < m_physical_volume_shorts.size()
+        && !m_physical_volume_shorts[physical_idx].empty())
+        suffix += " " + wxString::FromUTF8(m_physical_volume_shorts[physical_idx]);
+    return suffix;
+}
+
+int MixedFilamentDialog::measure_filament_label_width() const
+{
+    wxClientDC dc(const_cast<MixedFilamentDialog*>(this));
+    dc.SetFont(Label::Body_12);
+    int w = 0;
+    for (int i = 1; i <= MAX_COMPONENTS; ++i)
+        w = std::max(w, dc.GetTextExtent(wxString::Format(_L("Filament %d"), i)).GetWidth());
+    // Native static text is wider than a plain DC extent on some platforms.
+    return w + FromDIP(12);
+}
+
+int MixedFilamentDialog::measure_suffix_column_width() const
+{
+    if (!m_enforce_nozzle_diameter)
+        return 0;
+    wxClientDC dc(const_cast<MixedFilamentDialog*>(this));
+    dc.SetFont(::Label::Body_13);
+    int w = 0;
+    for (size_t j = 0; j < m_physical_names.size(); ++j) {
+        const wxString suffix = combo_item_suffix(j);
+        if (!suffix.IsEmpty())
+            w = std::max(w, dc.GetTextExtent(suffix).GetWidth());
+    }
+    return w;
+}
+
+void MixedFilamentDialog::refresh_combo_suffixes()
+{
+    for (size_t i = 0; i < m_combo_filaments.size(); ++i) {
+        ComboBox* combo = m_combo_filaments[i];
+        if (!combo)
+            continue;
+
+        wxString name = _L("-- Select --");
+        wxString suffix;
+        const int sel = combo->GetSelection();
+        unsigned int phys = 0;
+        if (sel >= 0 && i < m_combo_to_physical.size() && sel < (int)m_combo_to_physical[i].size())
+            phys = m_combo_to_physical[i][sel];
+        if (phys >= 1 && phys <= m_physical_names.size()) {
+            name   = combo_item_name(phys - 1);
+            suffix = combo_item_suffix(phys - 1);
+        }
+
+        combo->SetTextLabel(name);
+        combo->SetRightSuffix(suffix);
+    }
+}
+
+int MixedFilamentDialog::measure_needed_combo_width() const
+{
+    wxClientDC dc(const_cast<MixedFilamentDialog*>(this));
+    dc.SetFont(Label::Body_14);
+    int name_w = dc.GetTextExtent(_L("-- Select --")).GetWidth();
+    for (size_t j = 0; j < m_physical_names.size(); ++j)
+        name_w = std::max(name_w, dc.GetTextExtent(combo_item_name(j)).GetWidth());
+
+    const int suffix_w = measure_suffix_column_width();
+    const int suffix_gap = suffix_w > 0 ? FromDIP(8) : 0;
+    // Closed ComboBox chrome: left pad, drop icon, swatch (icon_1), ellipsize pad.
+    const int chrome = FromDIP(5) + FromDIP(20) + FromDIP(4)
+                     + FromDIP(28) + FromDIP(7) + FromDIP(8);
+    return std::max(FromDIP(166), name_w + suffix_w + suffix_gap + chrome);
+}
+
 wxSize MixedFilamentDialog::compute_dialog_size() const
 {
     const bool is_three      = (num_components() >= 3);
@@ -1991,7 +2082,50 @@ wxSize MixedFilamentDialog::compute_dialog_size() const
         w = FromDIP(470);
         h = FromDIP(720);
     }
+
+    const int combo_needed = measure_needed_combo_width();
+    const int label_w      = measure_filament_label_width();
+    const int layout_w     = FromDIP(20) + FromDIP(129) + FromDIP(20)
+                           + label_w + FromDIP(8) + combo_needed
+                           + FromDIP(20);
+    w = std::max(w, layout_w);
+
+    int cap = FromDIP(720);
+    const int display_idx = wxDisplay::GetFromWindow(const_cast<MixedFilamentDialog*>(this));
+    if (display_idx != wxNOT_FOUND) {
+        const int work_w = wxDisplay(display_idx).GetClientArea().GetWidth();
+        cap = std::min(cap, work_w * 4 / 5);
+    }
+    if (w > cap)
+        w = cap;
+
     return wxSize(w, h);
+}
+
+void MixedFilamentDialog::apply_dialog_size()
+{
+    const wxSize new_size      = compute_dialog_size();
+    const int    combo_needed  = measure_needed_combo_width();
+    const int    label_w       = measure_filament_label_width();
+    const int    combo_fit     = new_size.GetWidth()
+                               - FromDIP(20) - FromDIP(129) - FromDIP(20)
+                               - label_w - FromDIP(8) - FromDIP(20);
+    const int    combo_min     = std::max(FromDIP(166),
+                                          std::min(combo_needed, std::max(combo_fit, FromDIP(166))));
+    for (auto* combo : m_combo_filaments) {
+        if (!combo) continue;
+        combo->SetMinSize(wxSize(combo_min, FromDIP(24)));
+    }
+
+    const wxRect  old_rect = GetRect();
+    const wxPoint center(old_rect.x + old_rect.width / 2,
+                         old_rect.y + old_rect.height / 2);
+    SetSize(new_size);
+    if (old_rect.width > 0 && old_rect.height > 0)
+        SetPosition(wxPoint(center.x - new_size.x / 2,
+                            center.y - new_size.y / 2));
+    Layout();
+    refresh_combo_suffixes();
 }
 
 void MixedFilamentDialog::update_component_count_ui()
@@ -2043,14 +2177,7 @@ void MixedFilamentDialog::update_component_count_ui()
         m_btn_remove_material->SetToolTip(is_three ? _L("Remove the third material") : wxString());
     }
 
-    const wxSize new_size = compute_dialog_size();
-    const wxRect old_rect = GetRect();
-    const wxPoint center(old_rect.x + old_rect.width / 2,
-                         old_rect.y + old_rect.height / 2);
-    SetSize(new_size);
-    SetPosition(wxPoint(center.x - new_size.x / 2,
-                        center.y - new_size.y / 2));
-    Layout();
+    apply_dialog_size();
 }
 
 } // namespace GUI
