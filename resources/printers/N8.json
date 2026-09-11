@@ -1,0 +1,32 @@
+{
+	"00.00.00.00": {
+		"display_name": "Bambu Lab N8",
+		"print": {
+			"ipcam": {
+				"resolution_supported": [ "1080p" ],
+				"virtual_camera": "enabled",
+				"liveview": {
+					"remote": ""
+				},
+				"file": {
+					"local": "local",
+					"remote": "tutk",
+					"model_download": "enabled"
+				}
+			}
+		},
+		"model_id": "N8",
+		"sn_prefix": "35F",
+		"subseries": [ "N8-V2" ],
+		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_multi_extruders",
+		"support_wrapping_detection": true,
+		"printer_modes": [ "laser" ],
+		"printer_type": "N8",
+		"printer_thumbnail_image": "printer_thumbnail_h2d",
+		"printer_connect_help_image": "input_access_code_h2d",
+		"printer_use_ams_image": "ams_icon",
+		"printer_ext_image": ["ext_image_o_right", "ext_image_o_left"],
+		"use_ams_type": "generic",
+		"filament_load_image": ["filament_load_n8_series_ext0"]
+	}
+}
