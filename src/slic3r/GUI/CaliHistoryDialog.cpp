@@ -232,9 +232,7 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
 
     if (m_calib_results_history.empty()) {
         m_tips->SetLabel(_L("No History Result"));
-        return;
-    }
-    else {
+    } else {
         m_tips->SetLabel(_L("Success to get history result"));
     }
     m_tips->Refresh();
@@ -325,6 +323,9 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             cali_info.use_nozzle_volume_type = false;
             cali_info.use_extruder_id        = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
+            m_pending_sync = true;
+            m_calib_results_history.clear();
+            sync_history_data();
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " request history dia=" << nozzle_value << " extruder_id=" << extruder_id;
         }
@@ -432,7 +433,7 @@ void HistoryWindow::sync_history_data() {
         delete_button->SetBackgroundColour(*wxWHITE);
         delete_button->SetMinSize(wxSize(-1, FromDIP(24)));
         delete_button->SetCornerRadius(FromDIP(12));
-        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, &result, column_count](auto& e) {
+        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, result, column_count](auto& e) {
             if (m_ui_op_lock) {
                 return;
             } else {
@@ -455,6 +456,7 @@ void HistoryWindow::sync_history_data() {
             cali_info.nozzle_pos_id   = result.nozzle_pos_id;
             cali_info.nozzle_sn       = result.nozzle_sn;
             CalibUtils::delete_PA_calib_result(cali_info);
+            CallAfter([this] { reqeust_history_result(curr_obj); });
             });
 
         auto edit_button = new Button(m_history_data_panel, _L("Edit"));
@@ -467,7 +469,7 @@ void HistoryWindow::sync_history_data() {
         edit_button->SetTextColor(wxColour("#FFFFFE"));
         edit_button->SetMinSize(wxSize(-1, FromDIP(24)));
         edit_button->SetCornerRadius(FromDIP(12));
-        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value, edit_button](auto& e) {
+        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value](auto& e) {
             if (m_ui_op_lock) return;
 
             PACalibResult result_buffer = result;
@@ -485,6 +487,7 @@ void HistoryWindow::sync_history_data() {
                 CalibUtils::set_PA_calib_result({ new_result }, true);
 
                 enbale_action_buttons(false);
+                CallAfter([this] { reqeust_history_result(curr_obj); });
             }
             });
 
@@ -562,7 +565,7 @@ void HistoryWindow::on_click_new_button(wxCommandEvent& event)
     }
 
     NewCalibrationHistoryDialog dlg(this, m_calib_results_history);
-    if (dlg.ShowModal() == wxID_OK && m_calib_results_history.empty()) {
+    if (dlg.ShowModal() == wxID_OK) {
         reqeust_history_result(curr_obj);
     }
 }
