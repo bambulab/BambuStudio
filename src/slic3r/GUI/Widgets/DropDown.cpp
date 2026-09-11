@@ -62,6 +62,7 @@ void DropDown::Create(wxWindow *parent, long style)
     if ((style & DD_NO_CHECK_ICON) == 0)
         check_bitmap = ScalableBitmap(this, "checked", 16);
     arrow_bitmap = ScalableBitmap(this, "hms_arrow", 16);
+    synced_bitmap = ScalableBitmap(this, "badge", 14);
     text_off = style & DD_NO_TEXT;
 
     // BBS set default font
@@ -400,12 +401,15 @@ void DropDown::render(wxDC &dc)
                         ? (item.group.IsEmpty() ? item.text : item.group)
                         : strip_brand_prefix(item.text, group);
         if (!text_off && !text.IsEmpty() && !icon_fills_row) {
+            int textRight = rcContent.GetRight();
+            if ((item.style & DD_ITEM_STYLE_SYNCED) != 0 && synced_bitmap.bmp().IsOk())
+                textRight -= synced_bitmap.GetBmpSize().x + 5;
             wxSize tSize = dc.GetMultiLineTextExtent(text);
-            if (pt.x + tSize.x > rcContent.GetRight()) {
+            if (pt.x + tSize.x > textRight) {
                 if (is_hover && item.tip.IsEmpty())
                     SetToolTip(text);
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
-                                            rcContent.GetRight() - pt.x);
+                                            textRight - pt.x);
             }
             pt.y += (rcContent.height - textSize.y) / 2;
             dc.SetFont(GetFont());
@@ -417,6 +421,11 @@ void DropDown::render(wxDC &dc)
                 pt.y = rcContent.y + (rcContent.height - szBmp.y) / 2;
                 dc.DrawBitmap(arrow_bitmap.bmp(), pt);
             }
+        }
+        if ((item.style & DD_ITEM_STYLE_SYNCED) != 0 && synced_bitmap.bmp().IsOk()) {
+            auto szBmp = synced_bitmap.GetBmpSize();
+            wxPoint ptBadge(rcContent.GetRight() - szBmp.x, rcContent.y + (rcContent.height - szBmp.y) / 2);
+            dc.DrawBitmap(synced_bitmap.bmp(), ptBadge);
         }
         rcContent.y += rowSize.y;
     }

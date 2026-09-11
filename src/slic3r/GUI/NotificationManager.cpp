@@ -3141,6 +3141,18 @@ void NotificationManager::bbl_close_bed_filament_incompatible_notification()
 
 void NotificationManager::bbl_show_filament_map_invalid_notification_before_slice(const NotificationType type,const std::string& text)
 {
+    // Single-extruder multi-nozzle machines fully disable custom/manual mode -- but only while
+    // "多口径模式" (multi_nozzle_diameter_mode) is on, matching try_pop_up_before_slice's gate --
+    // so the "设置耗材摆放" dialog behind this hyperlink never opens for them in that case. Show a
+    // plain, non-clickable notification instead of a dead "Click here to regroup" link, pointing at
+    // the filament panel entry.
+    auto full_config = wxGetApp().preset_bundle->full_config();
+    if (is_single_ext_multi_nozzle(full_config) && multi_nozzle_diameter_mode_enabled(full_config)) {
+        push_notification_data({ type,NotificationLevel::ErrorNotificationLevel,0,
+            _u8L("Error:") + "\n" + text + "\n" + _u8L("Please adjust the nozzle diameter/flow of the affected filament in the filament panel.") }, 0);
+        return;
+    }
+
     auto callback = [](wxEvtHandler*) {
         auto plater = wxGetApp().plater();
         auto partplate = plater->get_partplate_list().get_curr_plate();

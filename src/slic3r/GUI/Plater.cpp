@@ -206,6 +206,7 @@
 #include "PurgeModeDialog.hpp"
 #include "FilamentMapDialog.hpp"
 #include "FilamentMapPanel.hpp"
+#include "FilamentNozzlePopup.hpp"
 #include "ExtruderPanel.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
@@ -419,7 +420,8 @@ static void merge_custom_gcodes_orphaned_above_stack(const CustomGCode::Info& pr
 }
 
 // for filament tab
-static DynamicPrintConfig build_tray_config(DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id, double nozzle_dia = 0)
+static DynamicPrintConfig build_tray_config(DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id, double nozzle_dia = 0,
+                                             NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard)
 {
     BOOST_LOG_TRIVIAL(info) << "making tray, name: " << name << ", setting_id: " << tray.setting_id << ", type: " << tray.m_fila_type << ", color: " << tray.color;
 
@@ -435,6 +437,7 @@ static DynamicPrintConfig build_tray_config(DevAmsTray const &tray, std::string 
     tray_config.set_key_value("filament_colour_type", new ConfigOptionStrings{std::to_string(tray.ctype)});
     tray_config.set_key_value("filament_exist", new ConfigOptionBools{tray.is_exists});
     tray_config.set_key_value("tray_nozzle_diameter", new ConfigOptionFloats{nozzle_dia});
+    tray_config.set_key_value("tray_nozzle_volume_type", new ConfigOptionInts{(int) nozzle_volume_type});
 
     {
         std::optional<FilamentBaseInfo> info = wxGetApp().preset_bundle->get_filament_by_filament_id(tray.setting_id);
@@ -492,7 +495,8 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
 
     const auto &ams_list = fila_system->GetAmsList();
     for (const auto &[idx, nozzle] : nozzles_by_id) {
-        double nozzle_dia = nozzle->GetNozzleDiameter();
+        double           nozzle_dia         = nozzle->GetNozzleDiameter();
+        NozzleVolumeType nozzle_volume_type = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
 
         // Internal AMS trays via ZMULTI rack binding.
         for (const auto &[ams_id, slot_id] : nozzle->GetBindAmsSlots()) {
@@ -504,14 +508,14 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
                 if (!v_ams_it) continue;
 
                 auto name = fmt::format("{}-Ext", idx + 1);
-                trays.Add(ams_id, 0, build_tray_config(*v_ams_it, name, std::to_string(ams_id), "0", nozzle_dia));
+                trays.Add(ams_id, 0, build_tray_config(*v_ams_it, name, std::to_string(ams_id), "0", nozzle_dia, nozzle_volume_type));
                 continue;
             }
 
             DevAmsTray *tray = ams_it->second->GetTray(std::to_string(slot_id));
             if (!tray) continue;
             std::string display = std::to_string(idx + 1);
-            trays.Add(ams_id, slot_id, build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+            trays.Add(ams_id, slot_id, build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
         }
 
         // Preload AMS trays — the second filament available on this nozzle.
@@ -531,7 +535,7 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
             DevAmsTray *tray = ams_it->second->GetTray(std::to_string(slot_id));
             if (!tray) continue;
             std::string display = std::to_string(idx + 1);
-            trays.Add(ams_id, slot_id, build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+            trays.Add(ams_id, slot_id, build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
         }
 
         // ams name is A, B, C, D in order
@@ -560,7 +564,7 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
                 } else {
                     name = fmt::format("{}-{}{}", idx + 1, bind_ams_name[*ams_idx], slot_id + 1);
                 }
-                trays.Add(ams_id, slot_id, build_tray_config(*tray, name, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+                trays.Add(ams_id, slot_id, build_tray_config(*tray, name, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
             }
             ++(*ams_idx);
         }
@@ -993,6 +997,24 @@ struct Sidebar::priv
     int editing_filament = -1;
     wxBoxSizer *sizer_filaments = nullptr;
     bool fila_switch_warning_shown = false;
+    bool m_filament_single_column = true;
+    void relayout_filament_grid(bool force);
+    void reset_filament_combo_min_heights();
+
+    std::vector<Button*> filament_nozzle_labels;
+    std::vector<wxStaticLine*> filament_nozzle_dividers;
+    FilamentNozzlePopup* m_filament_nozzle_popup = nullptr;
+    void refresh_filament_nozzle_label(size_t idx, int filament_idx);
+
+    // Session snapshot of per-slot diameter/flow selections captured when multi_nozzle_diameter_mode
+    // is turned OFF -- validate_filament_nozzle_diameter_selections() unconditionally clears them
+    // in that state (PresetBundle.cpp: configured.size() < 2 branch), so we save them here and
+    // restore on the next toggle-ON so users don't lose their popup choices across mode flips.
+    // Session-local: not persisted -- projects saved with mode OFF still load OFF with cleared values.
+    bool                     m_saved_per_slot_valid = false;
+    std::vector<std::string> m_saved_selected_nozzle_diameters;
+    std::vector<int>         m_saved_filament_volume_map;
+    void reposition_filament_nozzle_indicator(size_t idx);
 
     //BBS Sidebar widgets
     wxPanel* m_panel_print_title;
@@ -2725,7 +2747,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         btn_sync_printer->SetBorderColor(not_synced_colour);
         btn_sync_printer->SetIcon("printer_sync");
     };
-
     if (!obj || !obj->is_info_ready()) {
         clear_all_sync_status();
         return;
@@ -3317,6 +3338,18 @@ Sidebar::Sidebar(Plater *parent)
                 return;
             }
 
+            // Before validate_filament_nozzle_diameter_selections() clears per-slot state on the
+            // toggle-OFF path, snapshot the current values so they can be restored on a later toggle-
+            // ON within the same session. Without this, switching multi-diameter off and back on
+            // loses everything the user set in the nozzle popup.
+            if (!enabled) {
+                const auto *sel = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+                const auto *vol = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+                p->m_saved_selected_nozzle_diameters = sel ? sel->values : std::vector<std::string>{};
+                p->m_saved_filament_volume_map       = vol ? vol->values : std::vector<int>{};
+                p->m_saved_per_slot_valid            = true;
+            }
+
             option->value = enabled;
             if (enabled) {
                 const auto *extruder_variants =
@@ -3330,6 +3363,49 @@ Sidebar::Sidebar(Plater *parent)
             preset_bundle->validate_filament_nozzle_diameter_selections();
             preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
             refresh_multi_nozzle_preset_choices();
+
+            // Turning on multi_nozzle_diameter_mode on a single-extruder multi-nozzle printer makes
+            // the per-slot diameter/flow selector authoritative -- the resulting assignment is
+            // conceptually a manual one, so pin filament_map_mode to fmmNozzleManual (global + all
+            // per-plate overrides) so it persists into the 3mf. Turning the toggle off deliberately
+            // does NOT touch filament_map_mode: with the selector hidden the user is expected to
+            // pick a mode via the (now-available) FilamentMapDialog, and silently coercing to auto
+            // here would clobber a manual choice they made in that dialog either before or after.
+            if (enabled && is_single_ext_multi_nozzle(preset_bundle->full_config())) {
+                auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
+                if (mode_opt && mode_opt->value != fmmNozzleManual) mode_opt->value = fmmNozzleManual;
+                for (PartPlate *plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
+                    if (plate == nullptr) continue;
+                    if (plate->get_filament_map_mode() != fmmNozzleManual) plate->set_filament_map_mode(fmmNozzleManual);
+                }
+            }
+
+            // On toggle-ON, restore the per-slot snapshot captured at the previous toggle-OFF (if any).
+            // Truncate/pad to current filament_presets size in case the user added/removed slots while
+            // the mode was off. Runs after validate/update_compatible above so the restored values
+            // aren't wiped by them.
+            if (enabled && p->m_saved_per_slot_valid) {
+                const size_t n_slots = preset_bundle->filament_presets.size();
+                auto *sel = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+                if (sel) {
+                    sel->values.resize(n_slots);
+                    for (size_t i = 0; i < n_slots && i < p->m_saved_selected_nozzle_diameters.size(); ++i)
+                        sel->values[i] = p->m_saved_selected_nozzle_diameters[i];
+                }
+                auto *vol = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+                if (vol) {
+                    vol->values.resize(n_slots, (int) NozzleVolumeType::nvtStandard);
+                    for (size_t i = 0; i < n_slots && i < p->m_saved_filament_volume_map.size(); ++i)
+                        vol->values[i] = p->m_saved_filament_volume_map[i];
+                }
+                p->m_saved_per_slot_valid = false;
+                p->m_saved_selected_nozzle_diameters.clear();
+                p->m_saved_filament_volume_map.clear();
+                // Re-derive per-plate maps from the restored state (mirrors what the popup does on
+                // any user-driven change), so filament_maps / filament_volume_maps / filament_nozzle_maps
+                // reflect the restored diameters, not the transient cleared state.
+                apply_nozzle_manual_maps_to_plates();
+            }
             update_presets(Preset::TYPE_FILAMENT);
             wxGetApp().plater()->update_project_dirty_from_presets();
             wxGetApp().plater()->on_config_change(preset_bundle->full_config());
@@ -3678,6 +3754,7 @@ Sidebar::Sidebar(Plater *parent)
         int w = p->m_physical_scroll_area->GetClientSize().GetWidth();
         if (w > 0)
             p->m_physical_scroll_area->SetVirtualSize(w, p->m_physical_scroll_area->GetVirtualSize().GetHeight());
+        p->relayout_filament_grid(false);
         e.Skip();
     });
     wrapper_sizer->Add(p->m_physical_scroll_area, 0, wxEXPAND, 0);
@@ -3955,6 +4032,56 @@ void Sidebar::create_printer_preset()
     }
 }
 
+// TextInput::SetMinSize() (the base class of PlaterPresetComboBox) special-cases a
+// negative height as "keep whatever the control's current on-screen height already
+// is" rather than "unset". Since messureSize() is re-run on every SetLabel() (preset
+// switches, renames, AMS sync, ...) and feeds that same current height back in as the
+// new floor -- and PlaterPresetComboBox::update() itself pins a fresh MinSize using
+// whatever GetSize() happens to be the first time it runs -- a row whose first
+// update() call landed while the panel wasn't fully laid out yet (or was ever
+// stretched taller while paired against a taller sibling in the other double-column
+// stack) can have that inflated height latched permanently. Reset the floor back to
+// the natural baseline here so every row ends up at the same height regardless of
+// when/why it was last measured.
+void Sidebar::priv::reset_filament_combo_min_heights()
+{
+    for (auto *combo : combos_filament) {
+        if (combo != nullptr)
+            combo->SetMinSize(wxSize(combo->GetMinSize().GetWidth(), FromDIP(30)));
+    }
+}
+
+void Sidebar::priv::relayout_filament_grid(bool force)
+{
+    if (m_panel_filament_content == nullptr || sizer_filaments == nullptr)
+        return;
+    const bool single_column = m_panel_filament_content->GetClientSize().GetWidth() < FromDIP(492);
+    if (!force && single_column == m_filament_single_column)
+        return;
+    m_filament_single_column = single_column;
+
+    auto *col0 = sizer_filaments->GetItem((size_t) 0)->GetSizer();
+    auto *col1 = sizer_filaments->GetItem((size_t) 1)->GetSizer();
+    col0->Clear(false);
+    col1->Clear(false);
+
+    reset_filament_combo_min_heights();
+
+    for (size_t i = 0; i < filament_items.size(); ++i) {
+        auto *col = (single_column || (i % 2) == 0) ? col0 : col1;
+        // Proportion 0: each row keeps its own natural content height. A nonzero
+        // proportion here would let wxBoxSizer redistribute any leftover vertical
+        // space among rows -- and since it hands remainder pixels to the earliest
+        // items first, that reads as "the first row is a bit taller than the rest".
+        col->Add(filament_items[i], 0, wxEXPAND);
+    }
+    if (!single_column && (filament_items.size() % 2) != 0)
+        col1->AddStretchSpacer(1);
+
+    sizer_filaments->Show((size_t) 1, !single_column);
+    m_panel_filament_content->Layout();
+}
+
 void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx)
 {
     auto filament_item = new wxPanel(p->m_panel_filament_content);
@@ -3989,10 +4116,66 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     combo_and_btn_sizer->Add(32 * em / 10, 0, 0, 0, 0);
     combo_and_btn_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, 5 * em / 10);
     */
+    PlaterPresetComboBox* combobox = (*combo);
+
+    // Per Figma node 7808:13253, the diameter+flow indicator lives INSIDE the same
+    // bordered box as the name preset combo (right after the name text), not as a
+    // sibling drawn outside it. TextInput::render() draws the drop-down chevron on
+    // the left and left-aligns the name label right after it, so the remaining
+    // right-hand portion of the box is blank space with no icon to collide with:
+    // parent these as real child windows of *combo itself, positioned there.
+    const size_t row_idx = p->filament_nozzle_labels.size();
+
+    auto *nozzle_divider = new wxStaticLine(*combo, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(1), FromDIP(14)), wxLI_VERTICAL);
+
+    // Button (rather than a bare wxStaticText) so hovering gets a native grey background
+    // and the label is centered using Button's own render()/isCenter logic, matching the
+    // chips DiameterButtonPanel already builds from this same widget class.
+    auto *nozzle_label = new Button(*combo, wxEmptyString, "", wxBORDER_NONE);
+    nozzle_label->SetFont(Label::Body_13);
+    nozzle_label->SetTextColorNormal(ThemeColor::TextMuted);
+    // Rounded-corner rendering (SetCornerRadius below) clears its offscreen bitmap
+    // using the widget's native background colour, separate from the StateColor fill
+    // -- override it too so no trace of the inherited grey-ish parent background
+    // shows through at the corners.
+    nozzle_label->SetBackgroundColour(*wxWHITE);
+    // StateColor falls back to a defined-but-mismatched-state color rather than "no
+    // fill" when a queried state (e.g. Normal) has no explicit entry -- every other
+    // hover-chip StateColor in this codebase (see StateColor::createButtonStyleGray())
+    // pairs Hovered with an explicit Normal entry for exactly this reason. This
+    // Button's immediate parent is *combo (the preset combo box), whose own resolved
+    // background is not pure white, so GetBackgroundColour() here would (and did)
+    // still resolve close to Grey300. The filament row itself (filament_item, a few
+    // frames up) is explicitly white, so match that instead.
+    StateColor nozzle_label_bg(std::make_pair(ThemeColor::Grey300, (int) StateColor::Hovered),
+                               std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    // StateColor treats a Focused state as if it were Hovered when no explicit
+    // entry matches (see StateColor::colorForStates), so once this button keeps
+    // keyboard focus after being clicked to open the popup, it would otherwise
+    // keep showing the Hovered grey until focus moves elsewhere. SideButton
+    // disables this same substitution for exactly this reason.
+    nozzle_label_bg.setTakeFocusedAsHovered(false);
+    nozzle_label->SetBackgroundColor(nozzle_label_bg);
+    nozzle_label->SetPaddingSize(wxSize(FromDIP(6), FromDIP(2)));
+    nozzle_label->SetCornerRadius(FromDIP(4));
+    nozzle_label->SetToolTip(_L("Change nozzle diameter"));
+    nozzle_label->SetCursor(wxCursor(wxCURSOR_HAND));
+    nozzle_label->Bind(wxEVT_BUTTON, [this, nozzle_label, filament_idx](wxCommandEvent &) {
+        if (p->m_filament_nozzle_popup == nullptr)
+            p->m_filament_nozzle_popup = new FilamentNozzlePopup(p->plater);
+        const wxPoint pos = nozzle_label->ClientToScreen(wxPoint(0, nozzle_label->GetSize().GetHeight()));
+        p->m_filament_nozzle_popup->SetPosition(pos);
+        p->m_filament_nozzle_popup->tryPopup(filament_idx);
+    });
+    (*combo)->Bind(wxEVT_SIZE, [this, row_idx](wxSizeEvent &e) {
+        e.Skip();
+        p->reposition_filament_nozzle_indicator(row_idx);
+    });
+    p->filament_nozzle_labels.push_back(nozzle_label);
+    p->filament_nozzle_dividers.push_back(nozzle_divider);
+
     ScalableButton* edit_btn = new ScalableButton(filament_item, wxID_ANY, "menu_filament");
     edit_btn->SetToolTip(_L("Click to edit preset"));
-
-    PlaterPresetComboBox* combobox = (*combo);
     edit_btn->Bind(wxEVT_BUTTON, [this, edit_btn, filament_idx](wxCommandEvent) {
         auto menu = p->plater->filament_action_menu(filament_idx);
         wxPoint pt { 0, edit_btn->GetSize().GetHeight() + 10 };
@@ -4054,16 +4237,122 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     item_sizer->Add(diameter_btns, 0, wxLEFT | wxBOTTOM, FromDIP(10));
     p->filament_diameter_btns.push_back(diameter_btns);
     p->filament_items.push_back(filament_item);
+    p->refresh_filament_nozzle_label(p->filament_nozzle_labels.size() - 1, filament_idx);
 
-    // BBS:  filament double columns
-    auto side = filament_idx % 2;
-    auto /***/sizer_filaments = this->p->sizer_filaments->GetItem(side)->GetSizer();
-    if (side == 1 && filament_idx > 1) sizer_filaments->Remove(filament_idx / 2);
-    sizer_filaments->Add(filament_item, 1, wxEXPAND);
-    if (side == 0 && filament_idx > 0) {
-        sizer_filaments = this->p->sizer_filaments->GetItem(1)->GetSizer();
-        sizer_filaments->AddStretchSpacer(1);
+    p->relayout_filament_grid(true);
+}
+
+void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
+{
+    if (idx >= filament_nozzle_labels.size())
+        return;
+    Button *label = filament_nozzle_labels[idx];
+    wxStaticLine *divider = idx < filament_nozzle_dividers.size() ? filament_nozzle_dividers[idx] : nullptr;
+    if (label == nullptr || filament_idx < 0)
+        return;
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    // This per-slot nozzle diameter/flow-type selector only applies to single-extruder multi-nozzle
+    // machines: other machines have one fixed nozzle per extruder, so there is nothing here to
+    // switch between -- hide the label and its divider entirely.
+    // It also only makes sense once "多口径模式" (multi_nozzle_diameter_mode) is turned on --
+    // with it off, filament_diameter_map/filament_volume_map per-slot selections
+    // are not authoritative (see multi_nozzle_diameter_mode_enabled/complete_filament_nozzle_diameter_selections),
+    // so the selector must stay hidden even on such hardware until the user opts in.
+    const bool nozzle_selector_supported = is_single_ext_multi_nozzle(preset_bundle->full_config())
+        && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    label->Show(nozzle_selector_supported);
+    if (divider != nullptr)
+        divider->Show(nozzle_selector_supported);
+    if (!nozzle_selector_supported) {
+        // Nothing to reserve space for once the overlay is hidden -- otherwise switching to a
+        // printer preset that doesn't need this selector would leave the combo's preset-name
+        // text truncated for a divider/label that is no longer drawn.
+        if (idx < combos_filament.size() && combos_filament[idx] != nullptr)
+            combos_filament[idx]->SetReservedRightWidth(0);
+        return;
     }
+
+    const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    std::string diameter = selected != nullptr && filament_idx < static_cast<int>(selected->values.size())
+        ? selected->values[filament_idx] : std::string();
+    if (diameter.empty()) {
+        // A legacy/single-diameter project intentionally clears filament_diameter_map
+        // (see PresetBundle::validate_filament_nozzle_diameter_selections) since it does not retain
+        // an explicit per-slot diameter selection. Fall back to the only diameter the machine
+        // actually offers so the label is not left blank in the common single-diameter case.
+        const std::vector<std::string> options = preset_bundle->get_filament_nozzle_diameter_options(filament_idx);
+        if (!options.empty())
+            diameter = options.front();
+    }
+
+    NozzleVolumeType type = NozzleVolumeType::nvtStandard;
+    // Guard against being called while this Sidebar's owning Plater is still under
+    // construction (e.g. the very first init_filament_combo()/refresh_filament_diameter_buttons()
+    // call from inside Sidebar's own constructor): at that point Plater::p (Plater::priv) has not
+    // been assigned yet, so plater->get_partplate_list() would dereference an uninitialized pointer.
+    // wxGetApp().plater() is only set to this instance after Plater's constructor fully returns.
+    if (wxGetApp().plater() == plater) {
+        if (PartPlate *plate = plater->get_partplate_list().get_curr_plate()) {
+            const std::vector<int> volume_maps = plate->get_real_filament_volume_maps(preset_bundle->project_config);
+            if (filament_idx < static_cast<int>(volume_maps.size()))
+                type = (NozzleVolumeType) volume_maps[filament_idx];
+        }
+    }
+
+    const wxString text = diameter.empty() ? wxString() :
+        wxString::FromUTF8(diameter + " " + DevNozzle::ToNozzleVolumeShortString(type));
+    label->SetLabel(text);
+    reposition_filament_nozzle_indicator(idx);
+}
+
+void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
+{
+    if (idx >= combos_filament.size() || idx >= filament_nozzle_labels.size() || idx >= filament_nozzle_dividers.size())
+        return;
+    PlaterPresetComboBox *combo   = combos_filament[idx];
+    Button                *label   = filament_nozzle_labels[idx];
+    wxStaticLine          *divider = filament_nozzle_dividers[idx];
+    if (combo == nullptr || label == nullptr || divider == nullptr)
+        return;
+
+    const int comboWidth  = combo->GetSize().GetWidth();
+    const int comboHeight = combo->GetSize().GetHeight();
+    if (comboWidth <= 0 || comboHeight <= 0)
+        return;
+
+    // The combo's own "synced" badge is drawn by StaticBox::doRender flush at the combo's true
+    // top-right corner (it must stay pinned there, not be pushed aside) and sits on top of this
+    // label whenever their rects overlap, since child windows always paint over their parent's
+    // own drawing. Reserve enough width on the label's side to keep clear of that corner instead.
+    const int right_margin = combo->HasBadge() ? combo->GetBadgeWidth() + FromDIP(4) : FromDIP(8);
+    const int gap          = FromDIP(8);
+    // Stretch the label to (almost) the full row height instead of just its snug
+    // text height -- otherwise the hover/pressed fill renders as a thin chip with
+    // visible blank space above and below it rather than filling the area to the
+    // right of the divider the way the rest of the row's controls do.
+    const int vert_inset = FromDIP(3);
+    const int label_h = std::max(0, comboHeight - vert_inset * 2);
+
+    // Button's messureSize() computes its content-fit size via SetMinSize() rather than
+    // an overridden GetBestSize(), so read the width back from GetMinSize() here. Height
+    // is overridden above instead of using the measured height (isCenter still centers
+    // the text vertically inside whatever rect SetSize() below gives it).
+    const int labelWidth = label->GetMinSize().GetWidth();
+    const int label_x = std::max(0, comboWidth - right_margin - labelWidth);
+    label->SetSize(label_x, vert_inset, labelWidth, label_h);
+
+    const int divider_width  = divider->GetSize().GetWidth();
+    const int divider_height = divider->GetSize().GetHeight();
+    const int divider_x = std::max(0, label_x - gap - divider_width);
+    const int divider_y = (comboHeight - divider_height) / 2;
+    divider->SetSize(divider_x, divider_y, divider_width, divider_height);
+
+    // Reserve the space occupied by the divider+label overlay so the combo's own
+    // preset-name text always ellipsizes before reaching it, instead of being drawn
+    // underneath it (the combo has no other awareness of this overlay, which is
+    // positioned independently of its internal text layout).
+    combo->SetReservedRightWidth(comboWidth - divider_x);
 }
 
 void Sidebar::sync_multi_nozzle_mode_from_project()
@@ -4106,6 +4395,12 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     p->diameter_btns->SetMultiNozzleMode(multi_nozzle_diameter_mode_enabled(preset_bundle->project_config));
+    // Ensure per-plate + project maps stay in sync with the current filament_diameter_map
+    // / filament_volume_map for single-ext multi-nozzle machines. Placed OUTSIDE the validate_selections
+    // gate so every refresh (including non-validating ones that fire after project load / plate ops)
+    // gets a chance to normalize any short/stale project vs per-plate map arrays before a save.
+    // No-op if not (is_single_ext_multi_nozzle && multi_nozzle_diameter_mode_enabled).
+    apply_nozzle_manual_maps_to_plates();
     if (validate_selections) {
         const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
         const std::vector<std::string> old_diameters = selected ? selected->values : std::vector<std::string>{};
@@ -4113,6 +4408,10 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
         preset_bundle->validate_filament_nozzle_diameter_selections();
         for (PlaterPresetComboBox *combo : p->combos_filament)
             combo->update();
+        // combo->update() can re-latch a stale MinSize floor on any row whose first
+        // real update() call happens to land here (see reset_filament_combo_min_heights()) --
+        // reset it again now so this doesn't undo relayout_filament_grid()'s earlier work.
+        p->reset_filament_combo_min_heights();
         selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
         if ((selected && selected->values != old_diameters) || preset_bundle->filament_presets != old_presets)
             wxGetApp().plater()->on_config_change(preset_bundle->full_config());
@@ -4126,7 +4425,10 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
                 configured_diameters.insert(format_diameter_to_str(diameter));
         }
     }
-    const bool show = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) && configured_diameters.size() >= 2;
+    // The old per-row DiameterButtonPanel (0.2 / 0.4 / 0.6 / 0.8 chips) has been fully superseded by
+    // the new FilamentNozzlePopup that opens off the nozzle label at the end of each filament row.
+    // Keep the panels alive in memory (their state is still tracked by refresh logic elsewhere) but
+    // force them permanently hidden so they no longer take vertical space in each row.
     const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
     for (size_t i = 0; i < p->filament_diameter_btns.size(); ++i) {
         DiameterButtonPanel *panel = p->filament_diameter_btns[i];
@@ -4135,7 +4437,8 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
             filament_idx < static_cast<int>(selected->values.size()) ? selected->values[filament_idx] : std::string();
         panel->SetSelectedDiameter(from_u8(diameter));
         panel->UpdateButtonStates();
-        panel->Show(show);
+        panel->Show(false);
+        p->refresh_filament_nozzle_label(i, filament_idx);
     }
     if (p->m_panel_filament_content != nullptr)
         p->m_panel_filament_content->Layout();
@@ -4161,26 +4464,14 @@ void Sidebar::remove_unused_filament_combos(const size_t current_extruder_count)
         return;
     while (p->combos_filament.size() > current_extruder_count) {
         const int last = p->combos_filament.size() - 1;
-        auto sizer_filaments = this->p->sizer_filaments->GetItem(last % 2)->GetSizer();
-        sizer_filaments->Remove(last / 2);
         p->filament_items[last]->Destroy();
         p->combos_filament.pop_back();
         p->filament_diameter_btns.pop_back();
         p->filament_items.pop_back();
+        p->filament_nozzle_labels.pop_back();
+        p->filament_nozzle_dividers.pop_back();
     }
-    // BBS:  filament double columns
-    auto sizer_filaments0 = this->p->sizer_filaments->GetItem((size_t)0)->GetSizer();
-    auto sizer_filaments1 = this->p->sizer_filaments->GetItem(1)->GetSizer();
-    if (current_extruder_count < 2) {
-        sizer_filaments1->Clear();
-    } else {
-        size_t c0 = sizer_filaments0->GetChildren().GetCount();
-        size_t c1 = sizer_filaments1->GetChildren().GetCount();
-        if (c0 < c1)
-            sizer_filaments1->Remove(c1 - 1);
-        else if (c0 > c1)
-            sizer_filaments1->AddStretchSpacer(1);
-    }
+    p->relayout_filament_grid(true);
 }
 
 void Sidebar::set_bed_by_curr_bed_type(AppConfig *config) {
@@ -4548,6 +4839,10 @@ void Sidebar::update_presets_from_to(Slic3r::Preset::Type preset_type, std::stri
         }
         for (size_t i = 0; i < filament_cnt; i++)
             p->combos_filament[i]->update();
+        // combo->update() can change which item (and thus which FROM_AMS badge state) ends up
+        // selected; re-sync the nozzle label/badge and its reserved layout space for every row
+        // instead of leaving them latched to whatever they were before this rename.
+        refresh_filament_diameter_buttons();
         break;
     }
 
@@ -5536,11 +5831,26 @@ void Sidebar::load_ams_list(MachineObject* obj)
     }
     wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
 
-    for (auto c : p->combos_filament){
-        c->update();
+    for (size_t i = 0; i < p->combos_filament.size(); ++i) {
+        auto *c = p->combos_filament[i];
+        // Clear any stale badge from the previous printer BEFORE update(): if we cleared afterwards,
+        // we would clobber the freshly (and correctly) recomputed badge that update() ->
+        // update_badge_according_flag sets based on the new printer's AMS state.
         if (device_change) {
-            c->ShowBadge(false);//change printer,then clear badge
+            c->ShowBadge(false);
         }
+        c->update();
+        // c->update() only re-latches the outer badge when is_same_printer_for_connected_and_selected
+        // returns true AT THAT INSTANT (see PresetComboBoxes.cpp). On restart with some machine
+        // configurations that gate has been observed to be false at this exact moment even though the
+        // dropdown-list per-row badges (which are recomputed lazily each time the popup opens) later
+        // show correctly -- leaving the outer badge stuck at the ShowBadge(false) we just did above.
+        // The FROM_AMS flag on the newly-selected item IS correct at this point, so re-latch the
+        // outer badge directly from it, independent of the gate.
+        c->update_badge_according_flag();
+        // c->update() can change the badge state without going through refresh_filament_nozzle_label;
+        // keep the label/divider layout in sync.
+        p->reposition_filament_nozzle_indicator(i);
     }
 
     p->combo_printer->update();
@@ -5710,16 +6020,23 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
             auto_calc_flushing_volumes(i);
         }
     }
-    auto badge_combox_filament = [](PlaterPresetComboBox *c) {
+    auto badge_combox_filament = [this](size_t idx, PlaterPresetComboBox *c) {
         auto tip     = _L("Filament type and color information have been synchronized, but slot information is not included.");
         c->SetToolTip(tip);
         c->ShowBadge(true);
+        // Keep the nozzle label/divider layout in sync with this badge change.
+        p->reposition_filament_nozzle_indicator(idx);
     };
     { // badge ams filament
         clear_combos_filament_badge();
+        // A sync explicitly re-establishes AMS as authoritative for every slot -- drop any
+        // "user-diverged via FilamentNozzlePopup" flags that would otherwise keep the outer
+        // badge suppressed (see PlaterPresetComboBox::set_nozzle_selection_diverged).
+        for (PlaterPresetComboBox *c : p->combos_filament)
+            if (c != nullptr) c->set_nozzle_selection_diverged(false);
         if (sync_result.direct_sync) {
-            for (auto &c : p->combos_filament) {
-                badge_combox_filament(c);
+            for (size_t i = 0; i < p->combos_filament.size(); ++i) {
+                badge_combox_filament(i, p->combos_filament[i]);
             }
         }
     }
@@ -5758,7 +6075,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
             if (sync_ams_badges[i] == true) {
                 if (i < p->combos_filament.size()) {
                     auto &c = p->combos_filament[i];
-                    badge_combox_filament(c);
+                    badge_combox_filament(i, c);
                 } else {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "check error: p->combos_filament array out of bound";
                 }
@@ -5772,7 +6089,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
             auto temp_index = iter.first;
             if (temp_index < p->combos_filament.size() && temp_index >= 0) {
                 auto &c        = p->combos_filament[temp_index];
-                badge_combox_filament(c);
+                badge_combox_filament(temp_index, c);
             }
         }
     }
@@ -6040,20 +6357,28 @@ std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
 void Sidebar::clear_combos_filament_badge()
 {
     auto &combos_filament = p->combos_filament;
-    for (auto &c : combos_filament) { // clear flag
-        c->ShowBadge(false);
+    for (size_t i = 0; i < combos_filament.size(); ++i) { // clear flag
+        combos_filament[i]->ShowBadge(false);
+        // Badge state changes the width the nozzle label/divider must reserve to stay clear
+        // of it -- re-run the same layout step ShowBadge's other callers already trigger.
+        p->reposition_filament_nozzle_indicator(i);
     }
 }
 
 void Sidebar::udpate_combos_filament_badge() {
     auto &combos_filament = p->combos_filament;
-    for (auto &c : combos_filament) {
-        auto selection   = c->GetSelection();
-        auto select_flag = c->GetFlag(selection);
-        auto ok          = select_flag == (int) PresetComboBox::FilamentAMSType::FROM_AMS;
-        c->ShowBadge(ok);
+    for (size_t i = 0; i < combos_filament.size(); ++i) {
+        PlaterPresetComboBox *c = combos_filament[i];
+        // Route through the combo's own update_badge_according_flag() so this batch call uses the
+        // same authority as every other outer-badge decision: fast-path off FROM_AMS on the selected
+        // item, with a direct filament_ams_list check as fallback for the case where the current
+        // preset variant is !is_compatible and thus never got FROM_AMS propagated. A bare
+        // `select_flag == FROM_AMS` check here would silently clobber the correct badge state
+        // whenever this runs after update_badge_according_flag (e.g. update_sync_status firing on
+        // the next MQTT message after load_ams_list has already set the badges).
+        c->update_badge_according_flag();
+        p->reposition_filament_nozzle_indicator(i);
     }
-
 }
 
 // ---- Mixed Filament sidebar methods ----
@@ -6076,13 +6401,11 @@ void Sidebar::recalc_filament_scroll_sizes()
                 configured_diameters.insert(format_diameter_to_str(diameter));
         }
     }
-    // Same visibility rule as refresh_filament_diameter_buttons(): extra row
-    // height is only needed while multi-diameter mode is on and at least two
-    // nozzle diameters are configured.
-    const bool show_diameter_rows =
-        multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config) &&
-        configured_diameters.size() >= 2;
-    const int row_height = show_diameter_rows ? 64 : 34;
+    // The per-row DiameterButtonPanel that used to add extra height is now permanently hidden
+    // (see refresh_filament_diameter_buttons) -- superseded by the FilamentNozzlePopup that opens
+    // off the nozzle label. Row height is always the base value.
+    (void) configured_diameters;
+    const int row_height = 34;
     int max_h = (total > kScrollCapThreshold)
         ? FromDIP(kMaxFilamentScrollRows * row_height)
         : -1;
@@ -13895,11 +14218,88 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     std::string preset_name = wxGetApp().preset_bundle->get_preset_name_by_alias(preset_type,
         Preset::remove_suffix_modified(wx_name.ToUTF8().data()));
 
+    // If the selection is an AMS tray row, don't rely on parsing the display text (which in
+    // multi-diameter mode carries a " | 0.4 Std" suffix that breaks alias resolution). Look up
+    // the tray by its client-data key, use its filament_id to find the actual preset, and (in
+    // multi-diameter mode) also pull the tray's nozzle diameter + flow so those get carried over
+    // to the slot, not just the color.
+    int selected_tray_key = -1;
+    const DynamicPrintConfig *selected_tray = nullptr;
+    if (preset_type == Preset::TYPE_FILAMENT) {
+        selected_tray_key = combo->selected_ams_filament();
+        if (selected_tray_key >= 0) {
+            auto &ams_list = wxGetApp().preset_bundle->filament_ams_list;
+            auto  it       = ams_list.find(selected_tray_key);
+            if (it != ams_list.end()) {
+                selected_tray = &it->second;
+                const std::string tray_filament_id = selected_tray->opt_string("filament_id", 0u);
+                if (!tray_filament_id.empty()) {
+                    auto &filaments = wxGetApp().preset_bundle->filaments;
+                    auto iter = std::find_if(filaments.get_presets().begin(), filaments.get_presets().end(),
+                        [&tray_filament_id, &filaments](const Preset &f) {
+                            return f.is_compatible && filaments.get_preset_base(f) == &f && f.filament_id == tray_filament_id;
+                        });
+                    if (iter == filaments.get_presets().end()) {
+                        auto ftype = selected_tray->opt_string("filament_type", 0u);
+                        if (!ftype.empty()) {
+                            const std::string generic = "Generic " + ftype;
+                            iter = std::find_if(filaments.get_presets().begin(), filaments.get_presets().end(),
+                                [&generic](const Preset &f) {
+                                    return f.is_compatible && f.is_system && boost::algorithm::starts_with(f.name, generic);
+                                });
+                        }
+                    }
+                    if (iter != filaments.get_presets().end())
+                        preset_name = iter->name;
+                }
+            }
+        }
+    }
+
     if (preset_type == Preset::TYPE_FILAMENT) {
         std::string old_name = wxGetApp().preset_bundle->filaments.get_edited_preset().name;
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
         if (!q->on_filament_change(idx))
             wxGetApp().preset_bundle->set_filament_preset(idx, old_name);
+
+        // Multi-diameter mode: also carry over the tray's nozzle diameter + flow type to this slot,
+        // so the "synced" state actually matches on all four fields (filament_id, color, diameter,
+        // flow) that row_matches_current/tray_is_synced_source require.
+        if (selected_tray != nullptr && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config)) {
+            const auto *tray_nd = selected_tray->option<ConfigOptionFloats>("tray_nozzle_diameter");
+            if (tray_nd && !tray_nd->values.empty()) {
+                const std::string tray_diameter_str = format_diameter_to_str(tray_nd->values.front());
+                wxGetApp().preset_bundle->set_filament_nozzle_diameter((size_t) idx, tray_diameter_str);
+            }
+            const auto *tray_vt = selected_tray->option<ConfigOptionInts>("tray_nozzle_volume_type");
+            if (tray_vt && !tray_vt->values.empty()) {
+                const int tray_volume = tray_vt->values.front();
+                auto *global_volume_map = wxGetApp().preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+                if (global_volume_map != nullptr) {
+                    if ((size_t) idx >= global_volume_map->values.size())
+                        global_volume_map->values.resize((size_t) idx + 1, (int) NozzleVolumeType::nvtStandard);
+                    global_volume_map->values[idx] = tray_volume;
+                    for (PartPlate *plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
+                        if (plate == nullptr) continue;
+                        std::vector<int> plate_volume_map = plate->get_filament_volume_maps();
+                        if (plate_volume_map.empty()) continue;
+                        if ((size_t) idx >= plate_volume_map.size())
+                            plate_volume_map.resize((size_t) idx + 1, (int) NozzleVolumeType::nvtStandard);
+                        plate_volume_map[idx] = tray_volume;
+                        plate->set_filament_volume_maps(plate_volume_map);
+                    }
+                }
+            }
+            // Mirror what FilamentNozzlePopup does on any user-driven per-slot change: re-derive and
+            // pin the per-plate filament_map / filament_volume_map / filament_nozzle_map / mode so
+            // the new preset+diameter+flow assignment is persisted into the 3mf and reapplied on
+            // reopen. No-op for non-single-ext-multi-nozzle machines (helper checks internally).
+            apply_nozzle_manual_maps_to_plates();
+        }
+        // Picking a preset re-establishes AMS as authoritative for this slot (either the picked
+        // preset IS an AMS entry, or user explicitly moved away from it) -- either way the
+        // "user-diverged via FilamentNozzlePopup" state from a prior interaction no longer applies.
+        combo->set_nozzle_selection_diverged(false);
         sidebar->refresh_filament_diameter_buttons(true);
         wxGetApp().plater()->update_project_dirty_from_presets();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -13908,8 +14308,11 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         if (flag != flag_is_change && wxGetApp().app_config->get("auto_calculate_flush") == "all") {
             sidebar->auto_calc_flushing_volumes(idx);
         }
-        auto select_flag = combo->GetFlag(selection);
-        combo->ShowBadge(select_flag == (int)PresetComboBox::FilamentAMSType::FROM_AMS);
+        // Route through update_badge_according_flag so this stays in lockstep with the fallback
+        // direct-AMS-list check there -- picking a preset that happens to be !is_compatible with the
+        // current printer nozzle would otherwise leave the badge stuck at whatever combo->update()'s
+        // FROM_AMS pass produced (usually off), even when a matching AMS tray exists.
+        combo->update_badge_according_flag();
     }
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
     // TODO: ?

@@ -201,6 +201,14 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     if (!support_popup)
         return true;
 
+    // Single-extruder multi-nozzle machines fully disable custom/manual mode -- but only once
+    // "多口径模式" (multi_nozzle_diameter_mode) is turned on, since that is what makes the per-slot
+    // nozzle diameter/flow selector on the filament panel authoritative in the first place.
+    // With the toggle off, these machines fall through and behave like the default case below.
+    // Never show this dialog for them, even through a force_pop_up fallback entry point.
+    if (is_single_ext_multi_nozzle(full_config) && multi_nozzle_diameter_mode_enabled(full_config))
+        return true;
+
     bool sync_plate = true;
 
     std::vector<std::string> filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;

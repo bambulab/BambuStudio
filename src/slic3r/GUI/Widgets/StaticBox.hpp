@@ -43,6 +43,11 @@ public:
 
     void ShowBadge(bool show);
 
+    // Lets an owning widget avoid positioning other content over the badge, which is always
+    // drawn flush at this control's own top-right corner and must not be moved from there.
+    bool HasBadge() const { return badge.bmp().IsOk(); }
+    int GetBadgeWidth() const { return badge.bmp().IsOk() ? badge.bmp().GetScaledSize().x : 0; }
+
 protected:
     void eraseEvent(wxEraseEvent& evt);
 

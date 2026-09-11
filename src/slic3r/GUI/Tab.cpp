@@ -5739,7 +5739,27 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
         // During load, single-extruder plates carry their own filament_volume_map from the 3mf; 
         // clearing it forces a nozzle_volume_type default that differs from the loaded value, which puts filament_volume_map into
         // full_config_diff and invalidates psGCodeExport, discarding the imported G-code.
-        if (reset_volume_type) wxGetApp().plater()->get_partplate_list().on_extruder_count_changed((int)m_extruders_count);
+        if (reset_volume_type) {
+            wxGetApp().plater()->get_partplate_list().on_extruder_count_changed((int)m_extruders_count);
+
+            // Single-extruder multi-nozzle machines hide the "custom/manual" mode selector in the
+            // UI, but their per-slot diameter/flow selections on the filament panel ARE conceptually
+            // manual assignments -- so filament_map_mode should be fmmNozzleManual in this state,
+            // not an auto mode. That way the assignments get persisted into the 3mf and reapplied
+            // on reopen instead of being silently overwritten by the auto grouping algorithm.
+            // Applies only when multi_nozzle_diameter_mode is on (that toggle is what makes the
+            // per-slot selector authoritative in the first place).
+            if (is_single_ext_multi_nozzle(m_preset_bundle->printers.get_edited_preset().config)
+                && multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config)) {
+                auto* mode_opt = m_preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
+                if (mode_opt && mode_opt->value != fmmNozzleManual)
+                    mode_opt->value = fmmNozzleManual;
+                for (PartPlate* plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
+                    if (plate->get_filament_map_mode() != fmmNozzleManual)
+                        plate->set_filament_map_mode(fmmNozzleManual);
+                }
+            }
+        }
     }
     // BBS
 #if 1

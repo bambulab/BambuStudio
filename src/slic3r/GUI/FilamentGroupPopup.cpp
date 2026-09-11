@@ -468,12 +468,24 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         this->m_sync_plate = true;
         this->m_slice_all = slice_all;
 
-        std::vector<FilamentMapMode> new_available_modes;
-        if (is_single_ext_multi_nozzle(wxGetApp().preset_bundle->full_config())
-            && get_effective_ams_nozzle_idx_for_active_diameter(wxGetApp().preset_bundle->full_config()) < 0) {
+        // Custom/manual mode is only fully disabled for single-extruder multi-nozzle machines once
+        // "多口径模式" (multi_nozzle_diameter_mode) is turned on -- with it off, the per-slot nozzle
+        // diameter/flow selector on the filament panel is hidden/non-authoritative, so this class of
+        // machine must behave like the default (custom/manual mode available) case.
+        const bool per_slot_nozzle_mode_active = is_single_ext_multi_nozzle(wxGetApp().preset_bundle->full_config())
+            && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
 
-            new_available_modes = connect_status ? std::vector<FilamentMapMode>{ fmmAutoForMatch, fmmManual } :
-                                                   std::vector<FilamentMapMode>{ fmmAutoForFlush, fmmManual };
+        std::vector<FilamentMapMode> new_available_modes;
+        if (per_slot_nozzle_mode_active
+            && get_effective_ams_nozzle_idx_for_active_diameter(wxGetApp().preset_bundle->full_config()) < 0) {
+            // Custom/manual mode fully disabled here -- nozzle diameter/flow are set directly on the
+            // filament panel instead.
+            new_available_modes = connect_status ? std::vector<FilamentMapMode>{ fmmAutoForMatch } :
+                                                   std::vector<FilamentMapMode>{ fmmAutoForFlush };
+        } else if (per_slot_nozzle_mode_active) {
+            std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
+            Print* print_obj = partplate ? partplate->fff_print() : nullptr;
+            new_available_modes = resolve_available_auto_modes(print_obj, requested_modes, connect_status);
         } else {
             std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
             Print* print_obj = partplate ? partplate->fff_print() : nullptr;

@@ -14,6 +14,7 @@
 #define DD_ITEM_STYLE_SPLIT_ITEM  0x0001 // ----text----, text with horizontal line arounds
 #define DD_ITEM_STYLE_DISABLED    0x0002 // ----text----, text with horizontal line arounds
 #define DD_ITEM_STYLE_DIMMED      0x0004 // gray text, but still selectable
+#define DD_ITEM_STYLE_SYNCED      0x0008 // draw a small synced badge at the row's right edge
 
 wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 
@@ -63,6 +64,7 @@ private:
     StateColor   selector_background_color;
     ScalableBitmap check_bitmap;
     ScalableBitmap arrow_bitmap;
+    ScalableBitmap synced_bitmap;
 
     bool pressedDown = false;
     boost::posix_time::ptime dismissTime;

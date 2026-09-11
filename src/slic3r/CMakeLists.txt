@@ -526,6 +526,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Search.hpp
     GUI/FilamentGroupPopup.hpp
     GUI/FilamentGroupPopup.cpp
+    GUI/FilamentNozzlePopup.hpp
+    GUI/FilamentNozzlePopup.cpp
     GUI/NotificationManager.cpp
     GUI/NotificationManager.hpp
     GUI/UnsavedChangesDialog.cpp

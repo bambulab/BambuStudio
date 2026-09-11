@@ -182,6 +182,10 @@ private:
     void fill_width_height();
 };
 
+// Whether a filament combo's "synced with AMS" badge should still be shown: the selection must have
+// come from AMS AND the filament's current nozzle diameter/flow must still match the connected
+// printer's physical nozzle. Shared by every call site that previously only checked FROM_AMS.
+bool should_show_filament_synced_badge(PresetComboBox *combo, int selection, int filament_idx);
 
 // ---------------------------------
 // ***  PlaterPresetComboBox  ***
@@ -212,6 +216,15 @@ public:
     void OnSelect(wxCommandEvent& evt) override;
     void update_badge_according_flag();
 
+    // Set when the user changes this slot's nozzle diameter/flow via FilamentNozzlePopup, so the
+    // synced badge does NOT re-latch on every subsequent combo->update()/udpate_combos_filament_badge()
+    // (both check FROM_AMS on the selected item; without this flag add_ams_filaments_grouped_by_nozzle
+    // would keep inheriting FROM_AMS onto the local-preset item that matches the current preset name
+    // and color). Cleared when the user picks a different preset in the combo, or the big Sync button
+    // is used -- either of those means the AMS binding is authoritative again.
+    bool is_nozzle_selection_diverged() const { return m_nozzle_selection_diverged; }
+    void set_nozzle_selection_diverged(bool v) { m_nozzle_selection_diverged = v; }
+
     FilamentColor get_cur_color_info();
     void show_default_color_picker();
     void sync_colour_config(const std::vector<std::string> &clrs, bool is_gradient);
@@ -220,6 +233,15 @@ public:
 private:
     // BBS
     wxColor m_color;
+    bool    m_nozzle_selection_diverged = false;
+
+public:
+    // Cached authoritative "this slot has a matching AMS tray" result from the most recent
+    // add_ams_filaments call inside update(). Set inside PlaterPresetComboBox::update() and read
+    // by update_badge_according_flag() so the outer badge decision doesn't depend on runtime state
+    // (FROM_AMS flag on selected item, current filament_ams_list contents, gate result) that can
+    // transiently disagree with what add_ams_filaments actually computed a moment ago.
+    bool m_last_selected_in_ams = false;
 };
 
 
