@@ -4819,6 +4819,10 @@ void TabFilament::build()
         line = {L("Complete print"), ""};
         line.append_option(optgroup->get_option("complete_print_exhaust_fan_speed"));
         optgroup->append_line(line);
+
+        optgroup = page->new_optgroup(L("Air purification"), L"param_cooling_fan");
+
+        optgroup->append_single_option_line("purify_air_at_print_end");
         //BBS
         add_filament_overrides_page();
 #if 0
@@ -4963,6 +4967,11 @@ void TabFilament::toggle_options()
 
         for (auto elem : { "during_print_exhaust_fan_speed","complete_print_exhaust_fan_speed" })
             toggle_line(elem, m_config->opt_bool("activate_air_filtration",0)&&support_air_filtration);
+
+        // Purifying the chamber air at the end of a print is a separate printer capability from the
+        // exhaust fan above: the X2D has it while support_air_filtration stays off for that machine.
+        bool support_purify_air = m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_purify_air_at_print_end");
+        toggle_line("purify_air_at_print_end", is_BBL_printer && support_purify_air);
 
     }
     if (m_active_page->title() == "Filament")

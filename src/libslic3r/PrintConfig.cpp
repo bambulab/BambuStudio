@@ -544,6 +544,14 @@ static const t_config_enum_values s_keys_map_FilamentMetalStickiness = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMetalStickiness)
 
+static const t_config_enum_values s_keys_map_PurifyAirAtPrintEnd = {
+    { "follow_printer", paeFollowPrinter },
+    { "off",            paeOff },
+    { "internal",       paeInternal },
+    { "external",       paeExternal }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PurifyAirAtPrintEnd)
+
 static const t_config_enum_values s_keys_map_CounterboreHoleBridgingOption{
     { "none", chbNone },
     { "partiallybridge", chbBridges },
@@ -1972,6 +1980,28 @@ void PrintConfigDef::init_fff_params()
     def->max=100;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{80});
+
+    def = this->add("purify_air_at_print_end", coEnums);
+    def->label = L("Purify air at print end");
+    def->tooltip = L("Ask the printer to purify the chamber air once a print using this filament finishes. "
+                     "\"Follow printer setting\" leaves the printer's own setting alone. "
+                     "Set this to \"Off\" for filaments that do not need it, such as PLA or PETG, and to "
+                     "\"Internal Circulation\" or \"Exhaust\" for filaments that do, such as ABS or ASA. "
+                     "Only printers that support purifying the chamber air are affected.");
+    def->enum_keys_map = &ConfigOptionEnum<PurifyAirAtPrintEnd>::get_enum_values();
+    def->enum_values.push_back("follow_printer");
+    def->enum_values.push_back("off");
+    def->enum_values.push_back("internal");
+    def->enum_values.push_back("external");
+    // Same wording the device's own print options dialog uses for these two modes
+    def->enum_labels.push_back(L("Follow printer setting"));
+    def->enum_labels.push_back(L("Off"));
+    def->enum_labels.push_back(L("Internal Circulation"));
+    def->enum_labels.push_back(L("Exhaust"));
+    def->mode = comSimple;
+    // A choice field is def_width_wider() by default, too narrow for these labels
+    def->width = 18;
+    def->set_default_value(new ConfigOptionEnumsGeneric{paeFollowPrinter});
 
     def = this->add("close_additional_fan_first_x_layers", coInts);
     def->label = L("For the first");
@@ -3772,6 +3802,12 @@ void PrintConfigDef::init_fff_params()
     def->label=L("Air filtration enhancement");
     def->tooltip=L("Enable this if printer support air filtration enhancement.");
     def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("support_purify_air_at_print_end", coBool);
+    def->label = L("Support purifying air at print end");
+    def->tooltip = L("This option is enabled if the machine can purify the chamber air after a print finishes.");
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("support_cooling_filter", coBool);

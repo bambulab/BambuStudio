@@ -30,6 +30,7 @@
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevFilaBlackList.h"
+#include "DeviceCore/DevFan.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevInfo.h"
@@ -3409,8 +3410,59 @@ void SelectMachineDialog::on_send_print()
         agent->track_update_property(dev_ota_str, obj_->get_ota_version());
     }
 
+    apply_purify_air_at_print_end(obj_);
+
     m_print_job->start();
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
+}
+
+// Push the printer's "purify air at print end" setting from the filaments on the plate, so that a
+// PLA job does not sit through a purification cycle that only ABS-like filaments need. Filaments
+// left on the default "Follow printer setting" say nothing, and when every filament says nothing
+// the printer keeps whatever the user configured under Device -> Print options.
+void SelectMachineDialog::apply_purify_air_at_print_end(MachineObject *obj_)
+{
+    if (!obj_ || m_print_type != PrintFromType::FROM_NORMAL) return;
+
+    DevPrintOptions *print_options = obj_->GetPrintOptions();
+    if (!print_options) return;
+
+    const PrintOptionData *option = print_options->GetDetectionOption(PrintOptionEnum::Purify_Air_At_Print_End);
+    if (!option || !option->is_support_detect) return;
+
+    const DynamicPrintConfig &full_config = wxGetApp().preset_bundle->full_config();
+    const ConfigOptionEnumsGeneric *purify_opt = full_config.option<ConfigOptionEnumsGeneric>("purify_air_at_print_end");
+    if (!purify_opt) return;
+
+    // The most demanding request among the filaments on the plate wins: Exhaust over Internal
+    // Circulation over Off. A filament that wants purification is never overruled by one that
+    // does not.
+    int resolved = paeFollowPrinter;
+    for (const FilamentInfo &filament : m_ams_mapping_result) {
+        if (filament.id < 0 || filament.id >= (int) purify_opt->values.size()) continue;
+
+        const int requested = purify_opt->values[filament.id];
+        if (requested == paeFollowPrinter) continue;
+        if (resolved == paeFollowPrinter || requested > resolved) resolved = requested;
+    }
+
+    if (resolved == paeFollowPrinter) return;
+
+    DevPrintOptions::PurifyAirAtPrintEndState state = DevPrintOptions::PurifyAirAtPrintEndState::PurifyAirDisable;
+    if (resolved == paeExternal) {
+        // Exhausting needs the chamber exhaust duct; fall back to internal circulation rather
+        // than silently leaving the air unpurified.
+        state = obj_->GetFan() && obj_->GetFan()->GetAirDuctData().IsExaustFanExit() ?
+                    DevPrintOptions::PurifyAirAtPrintEndState::PurifyAirByOutside :
+                    DevPrintOptions::PurifyAirAtPrintEndState::PurifyAirByInside;
+    } else if (resolved == paeInternal) {
+        state = DevPrintOptions::PurifyAirAtPrintEndState::PurifyAirByInside;
+    }
+
+    if (option->current_detect_value == (int) state) return;
+
+    BOOST_LOG_TRIVIAL(info) << "print_job: purify air at print end set to " << (int) state << " from filament settings";
+    print_options->command_xcam_control_purify_air_at_print_end((int) state);
 }
 
 void SelectMachineDialog::clear_ip_address_config(wxCommandEvent& e)

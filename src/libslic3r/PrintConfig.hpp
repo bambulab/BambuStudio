@@ -394,6 +394,16 @@ enum FilamentMetalStickiness {
     fmsHigh         // High metal stickiness (e.g. PETG) - retraction should not be skipped
 };
 
+// BBS: per-filament request for the printer to purify the chamber air once the print finishes.
+// "Follow printer setting" leaves whatever the user configured on the device untouched, so the
+// default value changes nothing for filaments that never opt in.
+enum PurifyAirAtPrintEnd {
+    paeFollowPrinter = 0,   // Do not touch the printer's own setting
+    paeOff,                 // Ask the printer not to purify after this print
+    paeInternal,            // Purify through internal circulation
+    paeExternal             // Purify by exhausting outside
+};
+
 inline bool is_auto_filament_map_mode(FilamentMapMode mode) {
     return mode == fmmAutoForFlush || mode == fmmAutoForMatch || mode == fmmAutoForQuality;
 }
@@ -556,6 +566,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ReduceInfillRetractionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FilamentMetalStickiness)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PurifyAirAtPrintEnd)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
@@ -1370,6 +1381,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<FanDirection>,fan_direction))
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                support_air_filtration))
+    ((ConfigOptionBool,                support_purify_air_at_print_end))
     ((ConfigOptionBool,                support_cooling_filter))
     ((ConfigOptionBool,                cooling_filter_enabled))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
@@ -1460,6 +1472,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatsNullable,     inner_wall_acceleration))
     ((ConfigOptionFloatsOrPercentsNullable,   sparse_infill_acceleration))
     ((ConfigOptionBools,              activate_air_filtration))
+    ((ConfigOptionEnumsGeneric,       purify_air_at_print_end))
     ((ConfigOptionInts,               during_print_exhaust_fan_speed))
     ((ConfigOptionInts,               complete_print_exhaust_fan_speed))
     ((ConfigOptionInts,               close_additional_fan_first_x_layers))
