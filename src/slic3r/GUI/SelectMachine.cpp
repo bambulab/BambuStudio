@@ -6376,10 +6376,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     }
 
-    if (!CheckWarningFilamentRemain(obj_)) {
-        wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
-        show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
-    }
+    CheckWarningFilamentRemain(obj_);
 
     std::set<int> cross_extruder_filament_ids;
     if (!CheckWarningFilamentCrossExtruder(obj_, cross_extruder_filament_ids)) {
@@ -6418,6 +6415,11 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
 {
     std::vector<int> filaments_not_enough;
 
+    // Slots of every insufficient auto refill group. A slot that belongs to no refill group is kept
+    // as a single-element group, so that only groups holding more than one slot are named later.
+    std::vector<std::vector<DevAmsSlotId>> insufficient_groups;
+
+    // Step 1: skip when remain detection is off, not a normal send-print, or AMS cannot report accurate remain.
     if (!obj_) return true;
 
     if (!obj_->GetFilaSystem()->IsDetectRemainEnabled() || m_print_type != PrintFromType::FROM_NORMAL) return true;
@@ -6431,6 +6433,8 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     std::map<std::pair<std::string, std::string>, double> fila_remain_map; //collect fila remain info
     std::map<std::pair<std::string, std::string>, FilamentInfo> fila_used_map;
     std::map<std::pair<std::string, std::string>, std::vector<int>> fila_ids_in_slot; // all filament ids mapped to the same slot
+
+    // Step 2: collect remaining weight for every AMS slot that reports remain data.
     {
         for (auto ams_item : obj_->GetFilaSystem()->GetAmsList()) {
             std::string ams_id = ams_item.first;
@@ -6448,7 +6452,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
         }
     }
 
-    // collect used filament weight
+    // Step 3: collect used weight per mapped slot from gcode volumes and filament density.
     for (const auto& fila : m_ams_mapping_result) {
         if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
             if (filament_densities) {
@@ -6491,6 +6495,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
 
     double tolerance = DevAmsTray::get_fila_remain_tolerance();
 
+    // Step 4: compare remain vs used for each mapped slot; deduct remain when the slot itself is enough.
     for (auto& item : fila_used_map)
     {
         auto ams_slot_key = item.first;
@@ -6504,21 +6509,34 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
             double remain_to_deduct = fila_used * (1 + tolerance);
             fila_remain_map[ams_slot_key] = std::max(fila_remain_map[ams_slot_key] - remain_to_deduct, 0.0);
         } else {
-            if (obj_->GetFilaSystem()->IsAutoRefillEnabled() && obj_->GetExtderSystem()->HasFilamentBackup()) {
-                std::string ams_id = ams_slot_key.first;
-                std::string slot_id = ams_slot_key.second;
-                try {
-                    DevAmsSlotId ams_slot_id{stoi(ams_id), stoi(slot_id)};
-                    auto ams_slot_list = obj_->GetExtderSystem()->GetBackupAmsSlotInGroup(ams_slot_id);
+            // Step 5: the slot itself is short. Resolve its slot id first, Step 6 needs it as well.
+            DevAmsSlotId ams_slot_id;
+            try {
+                ams_slot_id = DevAmsSlotId{stoi(ams_slot_key.first), stoi(ams_slot_key.second)};
+            } catch(...) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_slot_key.first
+                                           << " or slot id: " << ams_slot_key.second;
+                return true;
+            }
 
+            // When auto refill is on, sum up the remain of the whole refill group before warning.
+            bool checked_refill_group = false;
+            if (obj_->GetFilaSystem()->IsAutoRefillEnabled() && obj_->GetExtderSystem()->HasFilamentBackup()) {
+                auto ams_slot_list = obj_->GetExtderSystem()->GetBackupAmsSlotInGroup(ams_slot_id);
+
+                if (!ams_slot_list.empty()) {
+                    checked_refill_group = true;
                     double total_remain = fila_remain;
 
                     for (const DevAmsSlotId& item : ams_slot_list) {
                         std::pair<std::string, std::string> backup_key = {std::to_string(item.first), std::to_string(item.second)};
-                        total_remain += fila_remain_map[backup_key];
+                        const auto remain_it = fila_remain_map.find(backup_key);
+                        if (remain_it != fila_remain_map.end())
+                            total_remain += remain_it->second;
                     }
 
                     if (total_remain >= fila_used * (1 - tolerance)) {
+                        // Group remain is enough: consume this slot first, then backup slots.
                         double remain_to_deduct = fila_used * (1 + tolerance);
                         if (fila_remain > 0) {
                             double deduct = std::min(fila_remain_map[ams_slot_key], remain_to_deduct);
@@ -6537,19 +6555,27 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                             }
                         }
                     } else {
+                        // Group remain is still short: mark mapped filaments and keep the whole group.
                         const auto& slot_ids = fila_ids_in_slot[ams_slot_key];
                         filaments_not_enough.insert(filaments_not_enough.end(), slot_ids.begin(), slot_ids.end());
+
+                        std::vector<DevAmsSlotId> group_slots{ams_slot_id};
+                        group_slots.insert(group_slots.end(), ams_slot_list.begin(), ams_slot_list.end());
+                        insufficient_groups.emplace_back(std::move(group_slots));
+
                         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams: "
                                                    << ams_slot_key.first << " slot: " << ams_slot_key.second
                                                    << ", used: " << fila_used << ", available: " << total_remain;
                     }
-                } catch(...) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
-                    return true;
                 }
-            } else {
+            }
+
+            // Step 6: the slot belongs to no refill group, keep it as a single-slot group so that
+            // Step 8 falls back to the generic warning message.
+            if (!checked_refill_group) {
                 const auto& slot_ids = fila_ids_in_slot[ams_slot_key];
                 filaments_not_enough.insert(filaments_not_enough.end(), slot_ids.begin(), slot_ids.end());
+                insufficient_groups.push_back({ams_slot_id});
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams slot: "
                                            << ams_slot_key.first << " slot: " << ams_slot_key.second
                                            << ", used: " << fila_used << ", available: " << fila_remain;
@@ -6557,6 +6583,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
         }
     }
 
+    // Step 7: paint orange warning border on insufficient mapping cards.
     for (auto iter : m_materialList) {
         Material * item    = iter.second;
         int fila_id        = item->id;
@@ -6568,6 +6595,70 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
         } else {
             m->on_normal();
         }
+    }
+
+    // Step 8: turn the insufficient groups into display names. A group holding more than one slot is
+    // reported as "A1+A3", a standalone slot is reported by its own name.
+    if (!filaments_not_enough.empty()) {
+        auto join_names = [](const std::vector<wxString>& names, const wxString& separator) {
+            wxString joined;
+            for (const wxString& name : names) {
+                if (!joined.empty())
+                    joined += separator;
+                joined += name;
+            }
+            return joined;
+        };
+
+        std::vector<wxString> slot_names;
+        std::vector<wxString> group_names;
+
+        for (const auto& group_slots : insufficient_groups) {
+            std::vector<int> tray_ids;
+            tray_ids.reserve(group_slots.size());
+            for (const DevAmsSlotId& slot : group_slots) {
+                const int tray_id = obj_->GetFilaSystem()->GetTrayIdByAmsSlotId(slot.first, slot.second);
+                if (tray_id >= 0)
+                    tray_ids.emplace_back(tray_id);
+            }
+
+            if (tray_ids.empty())
+                continue;
+
+            std::sort(tray_ids.begin(), tray_ids.end());
+
+            std::vector<wxString> tray_names;
+            tray_names.reserve(tray_ids.size());
+            for (int tray_id : tray_ids)
+                tray_names.emplace_back(wxGetApp().transition_tridid(tray_id));
+
+            std::vector<wxString>& target_names = tray_names.size() == 1 ? slot_names : group_names;
+            wxString display_name = join_names(tray_names, "+");
+            if (std::find(target_names.begin(), target_names.end(), display_name) == target_names.end())
+                target_names.emplace_back(display_name);
+        }
+
+        wxString warning_msg;
+        if (!slot_names.empty()) {
+            warning_msg = wxString::Format(
+                _L("The filament in %s may be insufficient for this print. Please refill or replace it."), join_names(slot_names, ", "));
+        }
+
+        if (!group_names.empty()) {
+            if (!warning_msg.empty())
+                warning_msg += "\n";
+
+            const wxString joined_groups = join_names(group_names, ", ");
+            if (group_names.size() == 1) {
+                warning_msg += wxString::Format(
+                    _L("The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."), joined_groups);
+            } else {
+                warning_msg += wxString::Format(
+                    _L("The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."), joined_groups);
+            }
+        }
+
+        show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
     }
 
     return filaments_not_enough.empty();

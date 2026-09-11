@@ -10488,6 +10488,18 @@ msgstr "若动态流量校准设置为自动/打开，系统将使用您的手�
 msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
 msgstr "AMS 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
 
+#, possible-c-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr "%s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+
+#, possible-c-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr "自动续料组合 %s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+
+#, possible-c-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr "自动续料组合 %s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "某些耗材在打印过程中可能会在挤出机之间切换。手动 K 值校准无法在整个打印过程中应用，这可能会影响打印质量。建议启用动态校准。"
 
