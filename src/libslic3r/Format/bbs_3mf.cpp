@@ -5161,7 +5161,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     m_pending_volume_assemble.push_back({object_id, volume_id, transform});
             } else {
                 ModelObject *mo = m_model->objects[object_id];
-                if (instance_id < (int) mo->instances.size()) {
+                if (instance_id < 0 || instance_id >= (int) mo->instances.size()) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid instance id %1%\n") % instance_id;
+                } else {
                     mo->instances[instance_id]->set_assemble_from_transform(transform);
                     mo->instances[instance_id]->set_offset_to_assembly(ofs2ass);
                 }
