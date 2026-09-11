@@ -30,7 +30,7 @@
 #define AMS_MATERIALS_SETTING_COMBOX_WIDTH wxSize(FromDIP(250), FromDIP(30))
 #define AMS_MATERIALS_SETTING_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
 #define AMS_MATERIALS_SETTING_INPUT_SIZE wxSize(FromDIP(90), FromDIP(24))
-#define AMS_MATERIALS_SETTING_DIALOG_SIZE wxSize(FromDIP(526), FromDIP(503))
+#define AMS_MATERIALS_SETTING_DIALOG_SIZE wxSize(FromDIP(370), FromDIP(503))
 // Interior width available for the read-only tip: dialog width minus the 20px left + 20px right margins.
 #define AMS_MATERIALS_SETTING_TIP_WIDTH (AMS_MATERIALS_SETTING_DIALOG_SIZE.GetWidth() - FromDIP(40))
 

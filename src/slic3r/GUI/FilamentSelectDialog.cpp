@@ -214,7 +214,7 @@ inline wxColour dlg_separator()    { return wxGetApp().dark_mode() ? wxColour(0x
 inline wxColour dlg_divider()      { return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(220,220,220); }
 inline wxColour dlg_chip_sel_bg()  { return wxGetApp().dark_mode() ? wxColour(0x1F,0x35,0x29) : wxColour(0xDB,0xFD,0xE7); }
 inline wxColour dlg_chip_border()  { return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(220,220,220); }
-inline wxColour dlg_row_hl()       { return wxGetApp().dark_mode() ? wxColour(0x1A,0x3A,0x28) : wxColour(238,248,242); }
+inline wxColour dlg_row_hl()       { return wxGetApp().dark_mode() ? wxColour(0x24,0x5C,0x3A) : wxColour(238,248,242); }
 inline wxColour dlg_brand_sel_bg() { return wxGetApp().dark_mode() ? wxColour(0x4A,0x4C,0x4E) : wxColour(240,240,240); }
 inline wxColour dlg_badge_bg()     { return wxGetApp().dark_mode() ? wxColour(0x1A,0x2E,0x22) : wxColour(219,244,228); }
 inline wxColour dlg_search_border(){ return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(238,238,238); }
@@ -895,6 +895,8 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
         badge->SetTextColor(StateColor(std::make_pair(green, (int)StateColor::Normal)));
         badge->SetBorderColor(StateColor(std::make_pair(green, (int)StateColor::Normal)));
         badge->SetCanFocus(false);
+        badge->SetAllowShrink(true);
+        badge->SetMinSize(wxSize(badge_col_w, -1));
         h->Add(badge, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, badge_margin);
     } else {
         auto* placeholder = new wxPanel(row, wxID_ANY, wxDefaultPosition, wxSize(badge_col_w, -1));

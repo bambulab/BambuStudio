@@ -1,6 +1,8 @@
 #include "DevicePageDialogHelpers.h"
 
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
+#include "slic3r/GUI/AMSRFIDMaterialView.hpp"
+#include "slic3r/GUI/EncodedFilament.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
@@ -30,6 +32,38 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
     }
 
     wxWindow* parent = wxGetApp().mainframe;
+
+    if (DevFilaSystem::IsBBL_Filament(tray.tag_uid)) {
+        wxColor color = DevAmsTray::decode_color(tray.color);
+        std::vector<wxColour> cols;
+        for (const auto& col : tray.cols) cols.push_back(DevAmsTray::decode_color(col));
+
+        wxString k_val = wxString::Format("%.3f", tray.k);
+
+        std::string sn_number;
+        if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01")
+            sn_number = tray.uuid;
+
+        wxString color_name;
+        if (!tray.setting_id.empty()) {
+            if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
+                FilamentColor fila_color;
+                if (!cols.empty()) { for (const auto& c : cols) fila_color.AddColor(c); }
+                else                 fila_color.AddColor(color);
+                fila_color.EndSet(static_cast<int>(tray.ctype));
+                color_name = clr_query->GetFilaColorName(wxString::FromUTF8(tray.setting_id), fila_color);
+            }
+        }
+
+        AMSRFIDMaterialView dlg(parent, wxID_ANY);
+        dlg.Popup(machine_obj, ams_id_int, slot_id_int,
+                  tray.sub_brands, color_name, color, cols,
+                  static_cast<int>(tray.ctype),
+                  tray.nozzle_temp_min, tray.nozzle_temp_max,
+                  sn_number, k_val);
+        return std::nullopt;
+    }
+
     AMSMaterialsSetting dlg(parent, wxID_ANY);
     dlg.obj = machine_obj;
     dlg.ams_id = ams_id_int;

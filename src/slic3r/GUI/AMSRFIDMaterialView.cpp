@@ -67,7 +67,6 @@ void AMSRFIDMaterialView::create()
     m_panel_info->SetCornerRadius(FromDIP(10));
     m_panel_info->SetBackgroundColor(StateColor(std::make_pair(wxColour(248, 248, 248), (int)StateColor::Normal)));
     m_panel_info->SetBorderColor(StateColor(std::make_pair(wxColour(248, 248, 248), (int)StateColor::Normal)));
-    m_panel_info->SetMinSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
     auto* sizer_info = new wxBoxSizer(wxVERTICAL);
 
     m_lbl_temp = new wxStaticText(m_panel_info, wxID_ANY, wxEmptyString);
@@ -104,11 +103,11 @@ void AMSRFIDMaterialView::create()
     if (language.find("zh") == 0) region = "zh";
     wxString link_url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
 
-    // Left column: title + wiki link
+    // Heading: title + wiki link (stacked above the controls below)
     auto* lbl_kn_title = new wxStaticText(m_panel_kn, wxID_ANY, _L("Factors of Flow Dynamics Calibration"));
     lbl_kn_title->SetFont(Label::Head_14);
     lbl_kn_title->SetForegroundColour(wxColour(50, 58, 61));
-    lbl_kn_title->Wrap(FromDIP(160));
+    lbl_kn_title->Wrap(-1);
 
     bool is_zh = (region == "zh");
     wxString wiki_label = is_zh ? wxString::FromUTF8("\xe8\xaf\xa6\xe6\x83\x85\xe6\x9f\xa5\xe7\x9c\x8bwiki") : _L("View wiki for details");
@@ -120,9 +119,9 @@ void AMSRFIDMaterialView::create()
     wiki_ctrl->Bind(wxEVT_LEAVE_WINDOW, [wiki_ctrl](wxMouseEvent &e) { e.Skip(); wiki_ctrl->SetCursor(wxCURSOR_ARROW); });
     wiki_ctrl->Bind(wxEVT_LEFT_UP, [link_url](wxMouseEvent &) { wxLaunchDefaultBrowser(link_url); });
 
-    auto* sizer_left = new wxBoxSizer(wxVERTICAL);
-    sizer_left->Add(lbl_kn_title, 0, wxBOTTOM, FromDIP(4));
-    sizer_left->Add(wiki_ctrl,    0, 0, 0);
+    auto* sizer_kn_heading = new wxBoxSizer(wxHORIZONTAL);
+    sizer_kn_heading->Add(lbl_kn_title, 0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_kn_heading->Add(wiki_ctrl,    0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
 
     // Right column: Nozzle Type row + PA Profile row + Factor K row
 
@@ -170,27 +169,22 @@ void AMSRFIDMaterialView::create()
 
     // Assign to base-class pointer
     m_input_k_val = new TextInput(m_panel_kn, wxEmptyString, wxEmptyString, wxEmptyString,
-        wxDefaultPosition, wxDefaultSize, wxTE_CENTRE | wxTE_PROCESS_ENTER);
-    m_input_k_val->SetMinSize(wxSize(FromDIP(245), -1));
-    m_input_k_val->SetMaxSize(wxSize(FromDIP(245), -1));
+        wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_input_k_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
     auto* sizer_k = new wxBoxSizer(wxHORIZONTAL);
     sizer_k->Add(lbl_k_title,   0, wxALIGN_CENTER_VERTICAL, 0);
     sizer_k->Add(m_input_k_val, 1, wxALIGN_CENTER_VERTICAL, 0);
 
-    auto* sizer_right = new wxBoxSizer(wxVERTICAL);
-    sizer_right->Add(sizer_nozzle, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
-    sizer_right->Add(sizer_pa,     0, wxEXPAND | wxBOTTOM, FromDIP(10));
-    sizer_right->Add(sizer_k,      0, wxEXPAND, 0);
-
-    auto* sizer_kn = new wxBoxSizer(wxHORIZONTAL);
-    sizer_kn->Add(sizer_left,  0, wxALIGN_TOP | wxRIGHT, FromDIP(20));
-    sizer_kn->Add(sizer_right, 1, wxALIGN_TOP, 0);
+    auto* sizer_kn = new wxBoxSizer(wxVERTICAL);
+    sizer_kn->Add(sizer_kn_heading, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
+    sizer_kn->Add(sizer_nozzle,     0, wxEXPAND | wxBOTTOM, FromDIP(10));
+    sizer_kn->Add(sizer_pa,         0, wxEXPAND | wxBOTTOM, FromDIP(10));
+    sizer_kn->Add(sizer_k,          0, wxEXPAND, 0);
 
     auto* sizer_kn_outer = new wxBoxSizer(wxVERTICAL);
-    sizer_kn_outer->Add(0, 0, 0, wxTOP, FromDIP(14));
-    sizer_kn_outer->Add(sizer_kn, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(24));
+    sizer_kn_outer->Add(0, 0, 0, wxTOP, FromDIP(8));
+    sizer_kn_outer->Add(sizer_kn, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer_kn_outer->Add(0, 0, 0, wxTOP, FromDIP(14));
     m_panel_kn->SetSizer(sizer_kn_outer);
 
@@ -226,12 +220,12 @@ void AMSRFIDMaterialView::create()
 
     // Assemble main sizer
     sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
-    sizer_main->Add(panel_top,    0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(24));
+    sizer_main->Add(panel_top,    0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
-    sizer_main->Add(m_panel_info, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(24));
+    sizer_main->Add(m_panel_info, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer_main->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer_main->Add(m_panel_kn,   0, wxEXPAND, 0);
-    sizer_main->Add(sizer_btn,    0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(24));
+    sizer_main->Add(sizer_btn,    0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     sizer_main->Add(0, 0, 0, wxTOP, FromDIP(16));
 
     SetSizer(sizer_main);
@@ -241,8 +235,8 @@ void AMSRFIDMaterialView::create()
 
 void AMSRFIDMaterialView::apply_fixed_size()
 {
-    SetMinSize(wxSize(FromDIP(526), -1));
-    SetMaxSize(wxSize(FromDIP(526), -1));
+    SetMinSize(wxSize(FromDIP(370), -1));
+    SetMaxSize(wxSize(FromDIP(370), -1));
     Fit();
 }
 

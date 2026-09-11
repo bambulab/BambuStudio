@@ -202,14 +202,14 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxBoxSizer* m_sizer_filament = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* m_sizer_filament = new wxBoxSizer(wxVERTICAL);
 
-    m_title_filament = new wxStaticText(parent, wxID_ANY, _L("Filament"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
-    m_title_filament->SetFont(::Label::Body_13);
+    m_title_filament = new wxStaticText(parent, wxID_ANY, _L("Filament"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_filament->SetFont(::Label::Head_14);
     m_title_filament->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_filament->Wrap(-1);
-    m_sizer_filament->Add(m_title_filament, 0, wxALIGN_CENTER_VERTICAL, 0);
-    m_sizer_filament->AddSpacer(std::max(0, AMS_MATERIALS_SETTING_CALI_COL_INDENT - AMS_MATERIALS_SETTING_LABEL_WIDTH));
+    m_sizer_filament->Add(m_title_filament, 0, wxALIGN_LEFT, 0);
+    m_sizer_filament->AddSpacer(FromDIP(6));
 
     m_filament_box = new StaticBox(parent);
     m_filament_box->SetMinSize(AMS_MATERIALS_SETTING_COMBOX_WIDTH);
@@ -236,23 +236,22 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_filament_text->Bind(wxEVT_LEFT_DOWN, open_filament_dialog);
     m_filament_arrow->Bind(wxEVT_LEFT_DOWN, open_filament_dialog);
 
-    m_sizer_filament->Add(m_filament_box, 1, wxALIGN_CENTER_VERTICAL, 0);
+    m_sizer_filament->Add(m_filament_box, 0, wxEXPAND, 0);
 
 
     wxBoxSizer* m_sizer_colour = new wxBoxSizer(wxHORIZONTAL);
 
-    m_title_colour = new wxStaticText(parent, wxID_ANY, _L("Colour"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
-    m_title_colour->SetFont(::Label::Body_13);
+    m_title_colour = new wxStaticText(parent, wxID_ANY, _L("Colour"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_colour->SetFont(::Label::Head_14);
     m_title_colour->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_colour->Wrap(-1);
     m_sizer_colour->Add(m_title_colour, 0, wxALIGN_CENTER_VERTICAL, 0);
-    m_sizer_colour->AddSpacer(std::max(0, AMS_MATERIALS_SETTING_CALI_COL_INDENT - AMS_MATERIALS_SETTING_LABEL_WIDTH));
 
     m_clr_picker = new ColorPicker(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_clr_picker->set_show_full(true);
     m_clr_picker->SetBackgroundColour(*wxWHITE);
 
-    m_sizer_colour->Add(m_clr_picker, 0, wxRESERVE_SPACE_EVEN_IF_HIDDEN, 0);
+    m_sizer_colour->Add(m_clr_picker, 0, wxRESERVE_SPACE_EVEN_IF_HIDDEN | wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
     m_clr_name = new Label(parent, wxEmptyString);
     m_clr_name->SetForegroundColour(*wxBLACK);
     m_clr_name->SetBackgroundColour(*wxWHITE);
@@ -278,9 +277,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_temperature->SetSizer(temp_box_sizer);
     m_panel_temperature->Layout();
 
-    // No leading label on this row, so use the full target column indent.
-    m_sizer_temperature->AddSpacer(AMS_MATERIALS_SETTING_CALI_COL_INDENT);
-    m_sizer_temperature->Add(m_panel_temperature, 1, wxEXPAND, 0);
+    m_sizer_temperature->Add(m_panel_temperature, 0, 0, 0);
 
     m_panel_SN = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     wxBoxSizer* m_sizer_SN = new wxBoxSizer(wxVERTICAL);
@@ -305,15 +302,13 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_SN->Hide();
 
     sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
-    sizer->Add(m_sizer_filament, 0, wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(m_sizer_filament, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
     sizer->Add(m_sizer_temperature, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
-    sizer->Add(m_sizer_colour, 0, wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(m_sizer_colour, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
     wxBoxSizer* m_sizer_color_popup_row = new wxBoxSizer(wxHORIZONTAL);
-    // No leading label on this row, so use the full target column indent.
-    m_sizer_color_popup_row->AddSpacer(AMS_MATERIALS_SETTING_CALI_COL_INDENT);
     m_sizer_color_popup_row->Add(m_color_picker_popup, 1, wxEXPAND, 0);
     sizer->Add(m_sizer_color_popup_row, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
@@ -326,13 +321,10 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
-    // title — cap the width and wrap so a long (e.g. English) title cannot
-    // blow out the left column and crush the right column's combos.
     m_ratio_text   = new wxStaticText(parent, wxID_ANY, _L("Factors of Flow Dynamics Calibration"));
     m_ratio_text->SetForegroundColour(wxColour(50, 58, 61));
     m_ratio_text->SetFont(Label::Head_14);
-    m_ratio_text->SetMaxSize(wxSize(AMS_MATERIALS_SETTING_CALI_COL_INDENT, -1));
-    m_ratio_text->Wrap(AMS_MATERIALS_SETTING_CALI_COL_INDENT);
+    m_ratio_text->Wrap(-1);
 
     std::string language = wxGetApp().app_config->get("language");
     wxString    region   = "en";
@@ -402,9 +394,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_k_param->Wrap(-1);
     kn_val_sizer->Add(m_k_param, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
 
-    m_input_k_val = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_CENTRE | wxTE_PROCESS_ENTER);
-    m_input_k_val->SetMinSize(wxSize(FromDIP(245), -1));
-    m_input_k_val->SetMaxSize(wxSize(FromDIP(245), -1));
+    m_input_k_val = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_input_k_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     kn_val_sizer->Add(m_input_k_val, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(0));
 
@@ -421,26 +411,22 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_n_param->Hide();
     m_input_n_val->Hide();
 
-    wxBoxSizer* cali_cols_sizer = new wxBoxSizer(wxHORIZONTAL);
+    // Heading row: section title on the left, wiki link right after it.
+    wxBoxSizer* cali_heading_sizer = new wxBoxSizer(wxHORIZONTAL);
+    cali_heading_sizer->Add(m_ratio_text, 0, wxALIGN_CENTER_VERTICAL, 0);
+    cali_heading_sizer->Add(m_wiki_ctrl, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(10));
 
-    wxBoxSizer* cali_left_sizer = new wxBoxSizer(wxVERTICAL);
-    cali_left_sizer->Add(m_ratio_text, 0, 0, 0);
-    cali_left_sizer->Add(0, 0, 0, wxTOP, FromDIP(6));
-    cali_left_sizer->Add(m_wiki_ctrl, 0, 0, 0);
-    cali_left_sizer->Add(AMS_MATERIALS_SETTING_CALI_COL_INDENT, 0);
-
-    wxBoxSizer* cali_right_sizer = new wxBoxSizer(wxVERTICAL);
-    cali_right_sizer->Add(m_sizer_nozzle_type, 0, wxEXPAND, 0);
-    m_nozzle_type_spacer_item = cali_right_sizer->Add(0, FromDIP(10), 0, 0);
-    cali_right_sizer->Add(m_sizer_cali_resutl, 0, wxEXPAND, 0);
-    cali_right_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    cali_right_sizer->Add(kn_val_sizer, 0, wxEXPAND, 0);
-
-    cali_cols_sizer->Add(cali_left_sizer, 0, wxALIGN_TOP);
-    cali_cols_sizer->Add(cali_right_sizer, 1, wxALIGN_TOP);
+    wxBoxSizer* cali_col_sizer = new wxBoxSizer(wxVERTICAL);
+    cali_col_sizer->Add(cali_heading_sizer, 0, wxEXPAND, 0);
+    cali_col_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    cali_col_sizer->Add(m_sizer_nozzle_type, 0, wxEXPAND, 0);
+    m_nozzle_type_spacer_item = cali_col_sizer->Add(0, FromDIP(10), 0, 0);
+    cali_col_sizer->Add(m_sizer_cali_resutl, 0, wxEXPAND, 0);
+    cali_col_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    cali_col_sizer->Add(kn_val_sizer, 0, wxEXPAND, 0);
 
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    sizer->Add(cali_cols_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
+    sizer->Add(cali_col_sizer, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     parent->SetSizer(sizer);
 }
@@ -461,6 +447,7 @@ void AMSMaterialsSetting::update_nozzle_temp_display()
     wxString text = title + ": " + tmin + "-" + tmax + " " + wxString::FromUTF8("\xe2\x84\x83");
     m_nozzle_temp_label->SetLabel(text);
     if (m_panel_temperature) m_panel_temperature->Layout();
+    if (m_panel_normal)      m_panel_normal->Layout();   // 让自适应宽度的圆角框按新文字重新取宽
 }
 
 void AMSMaterialsSetting::update()
