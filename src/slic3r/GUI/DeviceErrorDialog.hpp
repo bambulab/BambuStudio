@@ -103,7 +103,9 @@ protected:
 private:
     MachineObject* m_obj;
 
+    bool m_uiop_sent = false;
     int m_error_code = 0;
+
     HMSSubscription m_hms_sub;
     std::unordered_set<Button*> m_used_button;
 

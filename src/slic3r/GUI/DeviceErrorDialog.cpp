@@ -85,7 +85,10 @@ DeviceErrorDialog::DeviceErrorDialog(MachineObject* obj, wxWindow* parent, wxWin
 
     Bind(wxEVT_WEBREQUEST_STATE, &DeviceErrorDialog::on_webrequest_state, this);
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &e){
-        if (m_obj) { m_obj->command_clean_print_error_uiop(m_obj->print_error); }
+        if (m_obj && !m_uiop_sent) {
+            m_uiop_sent = true;
+            m_obj->command_clean_print_error_uiop(m_error_code);
+        }
         e.Skip();
     });
 
@@ -325,6 +328,7 @@ wxString DeviceErrorDialog::show_error_code(int error_code)
 {
     if (m_error_code == error_code) { return wxEmptyString; }
     m_error_code = error_code;
+    m_uiop_sent = false;
 
     HMSResult r = wxGetApp().get_hms_query_mgr()->query_error(
         m_obj->get_dev_id(), error_code, [this](const HMSResult& r) { handle_hms_result(r); }, m_hms_sub);
@@ -737,14 +741,13 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     case DeviceErrorDialog::DBL_CHECK_OK: {
         // post EVT_SECONDARY_CHECK_CONFIRM
         m_obj->command_clean_print_error(m_obj->subtask_id_, m_error_code);
-        m_obj->command_clean_print_error_uiop(m_error_code);
         break;
     }
 
     default: break;
     }
 
-    Hide();
+    Close();
 }
 
 }
