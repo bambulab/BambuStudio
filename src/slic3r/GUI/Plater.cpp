@@ -1805,33 +1805,51 @@ NozzleVolumeType Sidebar::priv::derive_volume_type_from_full_stat(int extruder_i
     return NozzleVolumeType::nvtStandard;
 }
 
-static bool select_multi_nozzle_canonical_printer_preset()
+static bool select_system_multi_nozzle_printer_preset(const std::string &printer_variant)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const Preset &current = preset_bundle->printers.get_edited_preset();
     const Preset *base = preset_bundle->printers.get_preset_base(current);
     if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
         return false;
-    if (base->config.opt_string("printer_variant") == "0.2")
-        return true;
 
-    Preset *canonical = nullptr;
+    Preset *target = nullptr;
     const std::string printer_model = base->config.opt_string("printer_model");
     for (const Preset &preset : preset_bundle->printers.get_presets()) {
         if (preset.is_system &&
             preset.config.opt_string("printer_model") == printer_model &&
-            preset.config.opt_string("printer_variant") == "0.2" &&
+            preset.config.opt_string("printer_variant") == printer_variant &&
             is_single_ext_multi_nozzle(preset.config)) {
-            canonical = preset_bundle->printers.find_preset(preset.name, false);
+            target = preset_bundle->printers.find_preset(preset.name, false);
             break;
         }
     }
     Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
-    if (canonical == nullptr || printer_tab == nullptr)
+    if (target == nullptr || printer_tab == nullptr)
         return false;
 
-    canonical->is_visible = true;
-    return printer_tab->select_preset(canonical->name);
+    target->is_visible = true;
+    return printer_tab->select_preset(target->name);
+}
+
+static bool select_printer_preset_for_multi_nozzle_mode(bool enabled)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const Preset &current = preset_bundle->printers.get_edited_preset();
+    const Preset *base = preset_bundle->printers.get_preset_base(current);
+    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
+        return false;
+
+    const std::string target_variant = enabled ? "0.2" : "0.4";
+    if (enabled) {
+        // Keep a current user/project preset that already inherits from canonical 0.2.
+        if (base->config.opt_string("printer_variant") == target_variant)
+            return true;
+    } else if (current.is_system && current.config.opt_string("printer_variant") == target_variant) {
+        return true;
+    }
+
+    return select_system_multi_nozzle_printer_preset(target_variant);
 }
 
 static void refresh_multi_nozzle_preset_choices()
@@ -1842,6 +1860,43 @@ static void refresh_multi_nozzle_preset_choices()
         if (Tab *tab = wxGetApp().get_tab(type))
             tab->update_preset_choice();
     }
+}
+
+// Writes the multi-nozzle-diameter gate together with the printer preset that mode requires.
+// The preset combos hide every non-canonical printer while the gate is on, so "gate on + 0.4
+// printer" is a state they cannot render. Ordering the two writes by direction keeps every
+// intermediate state legal: turning the gate on writes it only once the 0.2 printer is active,
+// turning it off writes it before the 0.4 printer is selected. Returns whether the project ended
+// up in the requested mode.
+static bool apply_multi_nozzle_diameter_mode(bool enabled)
+{
+    auto *option = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
+    if (option == nullptr)
+        return false;
+    if (option->value == enabled)
+        return true;
+
+    if (enabled) {
+        if (!select_printer_preset_for_multi_nozzle_mode(true))
+            return false;
+        option->value = true;
+    } else {
+        option->value = false;
+        if (!select_printer_preset_for_multi_nozzle_mode(false)) {
+            // select_preset() rebuilt the combos under the abandoned mode before reporting failure,
+            // so they need another pass once the gate is back to its previous value.
+            option->value = true;
+            refresh_multi_nozzle_preset_choices();
+            return false;
+        }
+    }
+
+    refresh_multi_nozzle_preset_choices();
+    // On the turn-on path the gate is written after select_preset(), so the printer pages were laid
+    // out while it was still off. Re-evaluate the lines gated on it.
+    if (Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER))
+        printer_tab->toggle_options();
+    return true;
 }
 
 static void notify_filament_nozzle_diameter_fallback(const std::vector<std::string> &previous_selections)
@@ -1941,14 +1996,15 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         // first. Everything the two branches further down do - validating the per-filament diameters,
         // recomputing compatibility, refreshing the filament rows - then already sees the new mode.
         // The card dialog defers the mode to the sidebar selector, so the gate is only touched for the list dialog.
-        bool multi_diameter_mode_changed = false;
+        const DynamicPrintConfig &project_config = wxGetApp().preset_bundle->project_config;
+        const bool previous_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
+        bool target_multi_diameter_mode = previous_multi_diameter_mode;
         if (new_multi_diameter_mode.has_value()) {
-            auto *multi_diameter_mode   = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
-            multi_diameter_mode_changed = multi_diameter_mode != nullptr && multi_diameter_mode->value != *new_multi_diameter_mode;
-            if (multi_diameter_mode_changed)
-                multi_diameter_mode->value = *new_multi_diameter_mode;
-            diameter_btns->SetMultiDiameterMode(*new_multi_diameter_mode);
+            apply_multi_nozzle_diameter_mode(*new_multi_diameter_mode);
+            target_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
+            diameter_btns->SetMultiDiameterMode(target_multi_diameter_mode);
         }
+        const bool multi_diameter_mode_changed = previous_multi_diameter_mode != target_multi_diameter_mode;
 
         if (is_dual) {
             l_ext_cfg = new_left;
@@ -1960,27 +2016,20 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             update_extruder_full_stats(0, selected_diameter, s_ext_cfg);
         }
 
-        // Multi-diameter slicing always uses the 0.2 machine/process preset as its base grid. This is
-        // independent of the physically configured nozzles; those remain in extruder_full_stat and are
-        // used per filament by the backend.
-        const wxString slicing_preset_diameter = multi_diameter_mode_changed ? wxString("0.2") : selected_diameter;
-        const bool force_multi_diameter_preset = multi_diameter_mode_changed && new_multi_diameter_mode;
-        if (!slicing_preset_diameter.IsEmpty() &&
-            (slicing_preset_diameter != diameter || force_multi_diameter_preset)) {
-            diameter_btns->SetSelectedDiameter(slicing_preset_diameter);
+        // Mode on/off already selected the 0.2 or 0.4 printer above. switch_diameter()
+        // is only for changing the slicing diameter while staying in single-diameter mode.
+        if (!multi_diameter_mode_changed && !target_multi_diameter_mode &&
+            !selected_diameter.IsEmpty() && selected_diameter != diameter) {
+            diameter_btns->SetSelectedDiameter(selected_diameter);
             is_switching_diameter = true;
             auto result = switch_diameter(!is_dual);
             is_switching_diameter = false;
-
-            if (!result) {
-                diameter_btns->SetSelectedDiameter(slicing_preset_diameter);
-            }
+            if (!result)
+                diameter_btns->SetSelectedDiameter(selected_diameter);
         } else {
             diameter_btns->UpdateButtonStates();
-            // BBS multi-diameter: the primary diameter (active printer preset) is unchanged, so
-            // switch_diameter() is skipped and no preset refresh is triggered. The extruder_full_stat
-            // may still have gained/lost a diameter, so recompute filament compatibility and refresh
-            // the filament selectors here to keep sibling-diameter presets visible.
+            // The extruder_full_stat may still have gained/lost a diameter, so recompute
+            // filament compatibility and refresh the filament selectors.
             wxGetApp().preset_bundle->validate_filament_nozzle_diameter_selections();
             wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
             wxGetApp().plater()->sidebar().update_presets(Preset::TYPE_FILAMENT);
@@ -1990,8 +2039,8 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
 
         if (multi_diameter_mode_changed) {
             // Turning the gate on or off changes the nozzle diameter slicing sees, so the plate has to be
-            // resliced even when the primary diameter and the nozzle setup are untouched.
-            refresh_multi_nozzle_preset_choices();
+            // resliced even when the primary diameter and the nozzle setup are untouched. The preset
+            // combos were already rebuilt by apply_multi_nozzle_diameter_mode().
             wxGetApp().plater()->sidebar().refresh_filament_diameter_buttons(true);
             wxGetApp().plater()->update_project_dirty_from_presets();
             wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
@@ -3243,11 +3292,11 @@ Sidebar::Sidebar(Plater *parent)
             multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
         p->diameter_btns->SetMultiDiameterModeCallback([this](bool enabled) {
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-            auto *option = preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
-            if (option == nullptr || option->value == enabled)
+            const bool previous_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+            if (previous_mode == enabled)
                 return;
-            if (enabled && !select_multi_nozzle_canonical_printer_preset()) {
-                p->diameter_btns->SetMultiDiameterMode(false);
+            if (!apply_multi_nozzle_diameter_mode(enabled)) {
+                p->diameter_btns->SetMultiDiameterMode(previous_mode);
                 return;
             }
 
@@ -3263,19 +3312,10 @@ Sidebar::Sidebar(Plater *parent)
                 p->m_saved_per_slot_valid            = true;
             }
 
-            option->value = enabled;
-            if (enabled) {
-                const auto *extruder_variants =
-                    preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
-                const bool is_dual = extruder_variants != nullptr && extruder_variants->size() == 2;
-                p->diameter_btns->SetSelectedDiameter("0.2");
-                p->is_switching_diameter = true;
-                p->switch_diameter(!is_dual);
-                p->is_switching_diameter = false;
-            }
+            // The printer preset is already the one this mode needs, so the diameter buttons are
+            // left to update_presets(TYPE_PRINTER) below, which derives them from printer_variant.
             preset_bundle->validate_filament_nozzle_diameter_selections();
             preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
-            refresh_multi_nozzle_preset_choices();
 
             // Turning on multi_nozzle_diameter_mode on a single-extruder multi-nozzle printer makes
             // the per-slot diameter/flow selector authoritative -- the resulting assignment is

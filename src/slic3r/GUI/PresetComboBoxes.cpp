@@ -1417,7 +1417,11 @@ void PlaterPresetComboBox::update()
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
         const Preset& preset = presets[i];
+        // The preset in use stays listed whatever the gate says, mirroring the incompatible-preset
+        // exemption below: a transient "gate on + non-canonical printer" state must not drop the
+        // active printer out of the list.
         if (multi_nozzle_mode && m_type == Preset::TYPE_PRINTER &&
+            i != m_collection->get_selected_idx() &&
             (preset.is_system || preset.is_user() || preset.is_project_embedded) &&
             supports_multi_nozzle_diameter_mode(*m_collection, preset) &&
             !is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset))
@@ -1956,7 +1960,9 @@ void TabPresetComboBox::update()
         const Preset& preset = presets[i];
         if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
             continue;
-        if (multi_nozzle_mode && m_type == Preset::TYPE_PRINTER &&
+        // Same idx_selected exemption as above: keep the printer currently in use listed even while
+        // the gate would otherwise hide it.
+        if (multi_nozzle_mode && m_type == Preset::TYPE_PRINTER && i != idx_selected &&
             (preset.is_system || preset.is_user() || preset.is_project_embedded) &&
             supports_multi_nozzle_diameter_mode(*m_collection, preset) &&
             !is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset))

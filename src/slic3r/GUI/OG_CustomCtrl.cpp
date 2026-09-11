@@ -41,21 +41,6 @@ static wxSize get_bitmap_size(const wxBitmap& bmp)
 #endif
 }
 
-static FlowRole nozzle_mirror_flow_role(const std::string& opt_key)
-{
-    if (opt_key == "outer_wall_line_width")
-        return frExternalPerimeter;
-    if (opt_key == "sparse_infill_line_width" || opt_key == "initial_layer_infill_line_width")
-        return frInfill;
-    if (opt_key == "internal_solid_infill_line_width")
-        return frSolidInfill;
-    if (opt_key == "top_surface_line_width")
-        return frTopSolidInfill;
-    if (opt_key == "support_line_width")
-        return frSupportMaterial;
-    return frPerimeter;
-}
-
 OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
                                 OptionsGroup*        og,
                                 const wxPoint&       pos /* = wxDefaultPosition*/,
@@ -1151,7 +1136,8 @@ void OG_CustomCtrl::CtrlLine::render_nozzle_mirrors(wxDC& dc, wxCoord h_pos, wxC
 
     const std::string& opt_key = og_line.get_options().front().opt.opt_key;
     auto* config_group = dynamic_cast<ConfigOptionsGroup*>(ctrl->opt_group);
-    if (config_group == nullptr) {
+    const DynamicPrintConfig* config = config_group == nullptr ? nullptr : config_group->get_config();
+    if (config == nullptr) {
         dc.SetBrush(old_brush);
         dc.SetPen(old_pen);
         return;
@@ -1213,8 +1199,10 @@ void OG_CustomCtrl::CtrlLine::render_nozzle_mirrors(wxDC& dc, wxCoord h_pos, wxC
         dc.SetPen(wxPen(border_color));
         dc.DrawRoundedRectangle(box_x, box_y, box_size.x, box_size.y, 3);
 
-        const double value = is_line_width && std::abs(authored) <= EPSILON ?
-            Flow::auto_extrusion_width(nozzle_mirror_flow_role(opt_key), float(diameter)) :
+        const double value = is_line_width ?
+            Flow::resolve_extrusion_width_for_nozzle(
+                opt_key, *config, float(ctrl->m_primary_nozzle_diameter), float(diameter),
+                ctrl->m_multi_nozzle_mode_enabled) :
             authored * diameter / ctrl->m_primary_nozzle_diameter;
         const wxString value_text = double_to_string(value);
         const wxSize value_size = dc.GetTextExtent(value_text);

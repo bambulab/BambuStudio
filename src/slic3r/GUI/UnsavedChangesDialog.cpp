@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <functional>
 #include <iterator>
+#include <set>
 #include <string>
 #include <vector>
 #include <boost/algorithm/string.hpp>
@@ -2735,6 +2736,26 @@ void DiffPresetDialog::do_update_tree(const Preset *left_preset, const Preset *r
     Refresh();
 }
 
+static bool is_multi_nozzle_auto_option(const std::string &opt_key)
+{
+    static const std::set<std::string> auto_options {
+        "retraction_length",
+        "min_layer_height",
+        "max_layer_height",
+        "nozzle_volume",
+        "ironing_inset",
+        "wall_loops",
+        "top_shell_layers",
+        "bottom_shell_layers",
+        "top_shell_thickness",
+        "top_color_penetration_layers",
+        "bottom_color_penetration_layers",
+        "support_top_z_distance",
+        "support_bottom_z_distance"
+    };
+    return auto_options.count(get_pure_opt_key(opt_key)) > 0;
+}
+
 void DiffPresetDialog::update_tree()
 {
     Preset::Type            type    = m_selector->type();
@@ -2759,7 +2780,21 @@ void DiffPresetDialog::update_tree()
                                                   presets->dirty_options(right_preset, left_preset, deep_compare) :
                                                   presets->dirty_options(left_preset, right_preset, deep_compare);
 
-    if (dirty_options.empty()) { return on_empty(_L("Please select two different presets A and B to compare"), "equal"); }
+    const bool had_dirty_options = !dirty_options.empty();
+    if (multi_nozzle_diameter_mode_enabled(m_preset_bundle_left->project_config) &&
+        (type == Preset::TYPE_PRINTER || type == Preset::TYPE_PRINT)) {
+        dirty_options.erase(
+            std::remove_if(dirty_options.begin(), dirty_options.end(), is_multi_nozzle_auto_option),
+            dirty_options.end());
+    }
+
+    if (dirty_options.empty()) {
+        // Identical presets stay on the "pick two different" hint. Presets that only differ in
+        // multi-nozzle Auto fields are treated as having no visible differences.
+        return on_empty(had_dirty_options ? _L("These two presets have no visible differences") :
+                                            _L("Please select two different presets A and B to compare"),
+                        "equal");
+    }
 
     do_update_tree(left_preset, right_preset, dirty_options);
 }
