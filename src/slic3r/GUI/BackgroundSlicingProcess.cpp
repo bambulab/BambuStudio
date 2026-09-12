@@ -240,7 +240,11 @@ void BackgroundSlicingProcess::process_fff()
 			m_current_plate->set_filament_maps(m_fff_print->get_filament_maps());
 			m_current_plate->set_filament_volume_maps(m_fff_print->get_filament_volume_maps());
 		}
-		else if (single_ext_multi_nozzle) {
+		// ...except under fmmNozzleManual with multi-diameter mode on, where filament_volume_map is the
+		// flow the user picked per filament rather than something the slicer derived. Caching the slice's
+		// view of it on the plate would make that stale copy outrank the user's choice on the next apply.
+		else if (single_ext_multi_nozzle && !(real_map_mode == FilamentMapMode::fmmNozzleManual &&
+		                                      multi_nozzle_diameter_mode_enabled(preset_bundle.project_config))) {
 			m_current_plate->set_filament_volume_maps(m_fff_print->get_filament_volume_maps());
 		}
 		if (real_map_mode != FilamentMapMode::fmmNozzleManual) {

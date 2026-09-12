@@ -11,6 +11,7 @@
 #include <utility>
 #include <variant>
 #include <map>
+#include <set>
 #include <boost/filesystem/path.hpp>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
@@ -337,6 +338,11 @@ public:
     // Returns the configured nozzle diameters supported by the logical filament in this slot.
     std::vector<std::string>    get_filament_nozzle_diameter_options(size_t filament_index) const;
     bool                        is_filament_nozzle_diameter_valid(size_t filament_index, const std::string &diameter) const;
+    // (diameter, flow) of every slot that actually carries a nozzle. Built from the same per-slot
+    // snapshot the diameter option list above comes from, so the filament panel's diameter list and
+    // its per-diameter flow list cannot disagree. The printer preset's extruder_variant_list only
+    // says what the model could take and must not be used to offer flow types on its own.
+    std::set<std::pair<std::string, NozzleVolumeType>> get_installed_nozzle_variants() const;
     // Updates the selected diameter and switches to a matching system preset when the current preset cannot serve it.
     bool                        set_filament_nozzle_diameter(size_t filament_index, const std::string &diameter,
                                                            std::string *selected_preset_name = nullptr);

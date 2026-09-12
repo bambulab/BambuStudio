@@ -2038,7 +2038,7 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         // first. Everything the two branches further down do - validating the per-filament diameters,
         // recomputing compatibility, refreshing the filament rows - then already sees the new mode.
         // The card dialog defers the mode to the sidebar selector, so the gate is only touched for the list dialog.
-        const DynamicPrintConfig &project_config = wxGetApp().preset_bundle->project_config;
+        DynamicPrintConfig &project_config = wxGetApp().preset_bundle->project_config;
         const bool previous_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
         bool target_multi_diameter_mode = previous_multi_diameter_mode;
         if (new_multi_diameter_mode.has_value()) {
@@ -2057,6 +2057,11 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             s_ext_cfg = new_single;
             update_extruder_full_stats(0, selected_diameter, s_ext_cfg);
         }
+        // The dialog edits extruder_full_stat, while the rack summary, project persistence and parts
+        // of the slicing setup consume the flattened per-slot options. Keep both representations in
+        // lockstep immediately; otherwise a changed slot can remain Standard there even though the
+        // authoritative dialog snapshot says TPU285.
+        sync_per_slot_nozzle_options_from_full_stat(project_config, wxGetApp().preset_bundle->extruder_full_stat);
 
         // Mode on/off already selected the 0.2 or 0.4 printer above. switch_diameter()
         // is only for changing the slicing diameter while staying in single-diameter mode.
@@ -4173,12 +4178,12 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     nozzle_label->SetCornerRadius(FromDIP(4));
     nozzle_label->SetToolTip(_L("Change nozzle diameter"));
     nozzle_label->SetCursor(wxCursor(wxCURSOR_HAND));
-    nozzle_label->Bind(wxEVT_BUTTON, [this, nozzle_label, filament_idx](wxCommandEvent &) {
+    nozzle_label->Bind(wxEVT_BUTTON, [this, nozzle_label, combobox](wxCommandEvent &) {
         if (p->m_filament_nozzle_popup == nullptr)
             p->m_filament_nozzle_popup = new FilamentNozzlePopup(p->plater);
         const wxPoint pos = nozzle_label->ClientToScreen(wxPoint(0, nozzle_label->GetSize().GetHeight()));
         p->m_filament_nozzle_popup->SetPosition(pos);
-        p->m_filament_nozzle_popup->tryPopup(filament_idx);
+        p->m_filament_nozzle_popup->tryPopup(combobox->get_filament_idx());
     });
     (*combo)->Bind(wxEVT_SIZE, [this, row_idx](wxSizeEvent &e) {
         e.Skip();
@@ -4189,7 +4194,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     ScalableButton* edit_btn = new ScalableButton(filament_item, wxID_ANY, "menu_filament");
     edit_btn->SetToolTip(_L("Click to edit preset"));
-    edit_btn->Bind(wxEVT_BUTTON, [this, edit_btn, filament_idx](wxCommandEvent) {
+    edit_btn->Bind(wxEVT_BUTTON, [this, edit_btn, combobox](wxCommandEvent) {
+        const int filament_idx = combobox->get_filament_idx();
         auto menu = p->plater->filament_action_menu(filament_idx);
         wxPoint pt { 0, edit_btn->GetSize().GetHeight() + 10 };
         pt = edit_btn->ClientToScreen(pt);
@@ -4424,6 +4430,10 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
         const std::vector<std::string> old_diameters = selected ? selected->values : std::vector<std::string>{};
         const std::vector<std::string> old_presets = preset_bundle->filament_presets;
         preset_bundle->validate_filament_nozzle_diameter_selections();
+        // Validation can repair filament_diameter_map / filament_volume_map, and the apply above ran
+        // before it -- re-push so the per-plate copies carry the corrected pair into the 3mf and into
+        // the on_config_change below, instead of the pre-validation values.
+        apply_nozzle_manual_maps_to_plates();
         for (PlaterPresetComboBox *combo : p->combos_filament)
             combo->update();
         // combo->update() can re-latch a stale MinSize floor on any row whose first
@@ -5296,6 +5306,16 @@ void Sidebar::on_filaments_delete(size_t filament_id)
             p->combos_filament.pop_back();
             p->filament_diameter_btns.pop_back();
             p->filament_items.pop_back();
+            // The nozzle label and divider are children of the combo just destroyed above, so they have
+            // to be dropped here too -- exactly as remove_unused_filament_combos() does. Leaving them
+            // behind kept a dangling Button* in a list that is one entry longer than
+            // filament_diameter_btns, and refresh_filament_diameter_buttons() walks the latter while
+            // indexing into the former: the stale entry was reached on the next filament add and
+            // Show() dereferenced freed memory.
+            if (!p->filament_nozzle_labels.empty())
+                p->filament_nozzle_labels.pop_back();
+            if (!p->filament_nozzle_dividers.empty())
+                p->filament_nozzle_dividers.pop_back();
 
             // BBS:  filament double columns
             auto sizer_filaments0 = this->p->sizer_filaments->GetItem((size_t) 0)->GetSizer();
@@ -5327,6 +5347,10 @@ void Sidebar::on_filaments_delete(size_t filament_id)
             p->combos_filament[idx]->set_filament_idx(idx);
             p->combos_filament[idx]->update();
         }
+        // The old delete path only patched the two column sizers in place. The current filament list
+        // switches between one and two columns from the available width, so rebuild both columns after
+        // a row disappears; otherwise a narrow sidebar may retain half-width rows and hide preset names.
+        p->relayout_filament_grid(true);
         refresh_filament_diameter_buttons(true);
     }
 
@@ -12641,6 +12665,27 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
 }
 
 
+// filament_volume_map carries two different meanings. In the auto modes it is the grouping *result*:
+// it gets cached on the plate after a slice and fed back on the next apply so a finished slice is not
+// invalidated. Under fmmNozzleManual with multi-diameter mode on it is instead the per-filament flow
+// the user picked in the filament list, and project_config owns it. Letting the per-plate cache win
+// there pins every slice to whatever flow the previous slice happened to derive, so the user's choice
+// never reaches the grouping solver -- and the filament parameters resolve against the wrong extruder
+// variant as well, since full_fff_config() picks the variant from this same map.
+static std::vector<int> resolve_filament_volume_maps_for_apply(PresetBundle *preset_bundle, PartPlate *plate, std::vector<int> &f_maps)
+{
+    if (plate->get_real_filament_map_mode(preset_bundle->project_config) == FilamentMapMode::fmmNozzleManual &&
+        multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+        const auto *global = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+        if (global != nullptr && !global->values.empty())
+            return global->values;
+    }
+    std::vector<int> f_volume_maps = plate->get_filament_volume_maps();
+    if (f_volume_maps.empty())
+        f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
+    return f_volume_maps;
+}
+
 // Build the print-apply config for a given plate, honoring both multi-extruder machines and
 // single-extruder multi-nozzle machines (handle_hotend_as_extruder). For the latter the
 // plate-specific filament_map_mode and filament_nozzle_map must be injected into the config;
@@ -12657,9 +12702,7 @@ static DynamicPrintConfig build_plate_apply_config(PresetBundle* preset_bundle, 
         return preset_bundle->full_config(false);
 
     std::vector<int> f_maps = plate->get_real_filament_maps(preset_bundle->project_config);
-    std::vector<int> f_volume_maps = plate->get_filament_volume_maps();
-    if (f_volume_maps.empty())
-        f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
+    std::vector<int> f_volume_maps = resolve_filament_volume_maps_for_apply(preset_bundle, plate, f_maps);
     auto apply_config = preset_bundle->full_config(false, f_maps, f_volume_maps);
 
     // Only single-extruder multi-nozzle (N1X) needs the plate-specific filament_map_mode and
@@ -12713,10 +12756,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     if (preset_bundle->get_printer_extruder_count() > 1 || has_multi_nozzle) {
         PartPlate* cur_plate = background_process.get_current_plate();
         std::vector<int> f_maps = cur_plate->get_real_filament_maps(preset_bundle->project_config);
-        std::vector<int> f_volume_maps = cur_plate->get_filament_volume_maps();
-        if (f_volume_maps.empty()) {
-            f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
-        }
+        std::vector<int> f_volume_maps = resolve_filament_volume_maps_for_apply(preset_bundle, cur_plate, f_maps);
 
         auto apply_config = preset_bundle->full_config(false, f_maps, f_volume_maps);
         // Apply plate-specific filament_map_mode and filament_nozzle_map
@@ -29037,6 +29077,23 @@ void Plater::update_machine_sync_status()
 
 void Plater::update_filament_volume_map(int extruder_id, int volume_type)
 {
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle != nullptr &&
+        multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
+        is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config)) {
+        // In this mode filament_volume_map is the flow selected per filament in the sidebar. Every
+        // filament_map entry is 1 because the machine has one logical extruder, so applying the
+        // extruder's representative flow below would overwrite every independent selection whenever
+        // the machine setup refreshes (notably after adding/removing an external AMS).
+        const auto *selected = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+        if (selected != nullptr) {
+            for (PartPlate *plate : get_partplate_list().get_plate_list())
+                if (plate != nullptr)
+                    plate->set_filament_volume_maps(selected->values);
+        }
+        return;
+    }
+
     int   selected_volume_type = volume_type == static_cast<int>(NozzleVolumeType::nvtHybrid) ? 0 : volume_type;
     auto& partplate_list       = get_partplate_list();
     for (int idx = 0; idx < partplate_list.get_plate_count(); ++idx) {

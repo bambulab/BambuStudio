@@ -1,6 +1,7 @@
 #include "FilamentNozzlePopup.hpp"
 
 #include <set>
+#include <utility>
 #include <vector>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -27,19 +28,23 @@ namespace Slic3r { namespace GUI {
 
 namespace {
 
-// Union, across every extruder of the printer preset matching `diameter`, of the
-// NozzleVolumeType values that extruder's installed nozzle supports. Mirrors the
-// per-extruder filter rules used to populate ExtruderGroup::combo_flow
+// Flow types offerable for `diameter` on this slot. Three independent conditions must all hold:
+// the rack must physically carry a (diameter, flow) nozzle (`installed`, from the per-slot
+// snapshot), the printer preset must declare that extruder variant so print profiles exist, and
+// the filament itself must declare support for that flow (filament_extruder_variant, the same
+// is_nozzle_printable_for_filament check PartPlate.cpp validates a slice with).
+//
+// The `installed` term is what keeps the list honest: extruder_variant_list only describes what
+// the printer *model* can take, so on its own it offers High Flow on a Standard-only machine, or
+// 0.4 TPU285 when the only TPU285 nozzle in the rack is a 0.6.
+//
+// Also mirrors the per-extruder filter rules used to populate ExtruderGroup::combo_flow
 // (Plater.cpp, update_extruder_variant): Hybrid is never offered here, E3DHighFlow
 // only applies to 0.4/0.6 nozzles, and 0.2 nozzles have no HighFlow variant.
-// Additionally restricted to the volume types the filament itself declares support
-// for (filament_extruder_variant), the same check PartPlate.cpp uses to validate
-// printability (is_nozzle_printable_for_filament) -- without this, e.g. a non-TPU
-// filament would still offer the TPU-only flow variants just because the printer's
-// nozzle can physically report supporting them.
 std::vector<NozzleVolumeType> get_valid_volume_types_for_diameter(const std::string &diameter,
                                                                    const std::vector<std::string> &filament_variants,
-                                                                   bool filament_variants_complete)
+                                                                   bool filament_variants_complete,
+                                                                   const std::set<std::pair<std::string, NozzleVolumeType>> &installed)
 {
     std::set<NozzleVolumeType> result;
 
@@ -68,6 +73,8 @@ std::vector<NozzleVolumeType> get_valid_volume_types_for_diameter(const std::str
 
             const auto cur_volume_type = (NozzleVolumeType) nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]);
             if (cur_volume_type == NozzleVolumeType::nvtHybrid)
+                continue;
+            if (installed.count({diameter, cur_volume_type}) == 0)
                 continue;
             if (cur_volume_type == NozzleVolumeType::nvtE3DHighFlow && diameter != "0.4" && diameter != "0.6")
                 continue;
@@ -143,8 +150,9 @@ void FilamentNozzlePopup::rebuild_options()
             }
         }
 
+        const std::set<std::pair<std::string, NozzleVolumeType>> installed = preset_bundle->get_installed_nozzle_variants();
         for (const std::string &diameter : diameters) {
-            for (const NozzleVolumeType type : get_valid_volume_types_for_diameter(diameter, filament_variants, filament_variants_complete)) {
+            for (const NozzleVolumeType type : get_valid_volume_types_for_diameter(diameter, filament_variants, filament_variants_complete, installed)) {
                 if (diameter == current_diameter && type == current_type)
                     m_selected = (int) m_options.size();
                 m_options.push_back({diameter, type});

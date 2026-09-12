@@ -1472,6 +1472,14 @@ void PlaterPresetComboBox::update()
 
         preset_descriptions.emplace(name, _L(preset.description));
 
+        // Diameter-specific system presets share one display alias. If the exact preset used by this
+        // slot is currently marked incompatible and a compatible sibling with the same alias was
+        // visited first, the duplicate filter below skips the exact preset before recording it as the
+        // selection. update_selection() then falls back to item 1, which is commonly an AMS PLA Basic
+        // row. Preserve the alias up front so rebuilding the combo keeps showing the current material.
+        if (m_type == Preset::TYPE_FILAMENT && preset.is_system && is_selected)
+            selected_system_preset = name;
+
         if (!preset.is_compatible) {
             if (boost::ends_with(name, " template"))
                 continue;

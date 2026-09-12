@@ -2619,14 +2619,31 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     ConfigOptionInts* filament_volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
     ConfigOptionStrings* selected_nozzle_diameters =
         project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    // A new slot copies its filament preset from the previous one (filament_presets.resize above), so
+    // inherit that slot's nozzle diameter / flow too instead of snapping to the first installed
+    // Standard nozzle. Read before the resizes below, which is where the padding value is consumed.
+    // validate_filament_nozzle_diameter_selections() at the end repairs the inherited pair when the
+    // new slot's filament cannot print that flow (e.g. a 2.85mm TPU needs a TPU285 nozzle).
+    // Restricted to the machines whose filament panel exposes the per-slot nozzle selector: elsewhere
+    // filament_volume_map is a grouping input/result rather than a user choice worth propagating.
+    const bool inherit_nozzle_selection = old_filament_count > 0 &&
+        multi_nozzle_diameter_mode_enabled(project_config) &&
+        is_single_ext_multi_nozzle(printers.get_edited_preset().config);
+    const int inherited_volume = (inherit_nozzle_selection && old_filament_count <= filament_volume_map->values.size())
+        ? filament_volume_map->values[old_filament_count - 1]
+        : static_cast<int>(NozzleVolumeType::nvtStandard);
+    const std::string inherited_diameter = (inherit_nozzle_selection && old_filament_count <= selected_nozzle_diameters->values.size())
+        ? selected_nozzle_diameters->values[old_filament_count - 1]
+        : std::string();
+
     filament_color->resize(n);
     filament_multi_color->resize(n);
     filament_color_type->resize(n);
     filament_map->values.resize(n, 1);
     ams_multi_color_filment.resize(n);
     filament_nozzle_map->values.resize(n, 0);
-    filament_volume_map->values.resize(n, static_cast<int>(NozzleVolumeType::nvtStandard));
-    selected_nozzle_diameters->values.resize(n);
+    filament_volume_map->values.resize(n, inherited_volume);
+    selected_nozzle_diameters->values.resize(n, inherited_diameter);
 
     if (auto* opt = project_config.option<ConfigOptionBools>("filament_is_mixed"))
         opt->values.resize(n, false);
@@ -3668,6 +3685,83 @@ static std::set<std::string> collect_configured_nozzle_diameters(const PresetBun
     return result;
 }
 
+// Companion of collect_configured_nozzle_diameters() on the flow axis: which (diameter, flow)
+// nozzles the rack actually carries. Kept on the same source so the two axes of the per-slot
+// selector always agree.
+static std::set<std::pair<std::string, NozzleVolumeType>> collect_installed_nozzle_variants(const PresetBundle &bundle)
+{
+    std::set<std::pair<std::string, NozzleVolumeType>> result;
+    const Preset &printer = bundle.printers.get_edited_preset();
+
+    // Same gate as collect_configured_nozzle_diameters(): with the project-level gate off the machine
+    // offers exactly its printer preset's diameter, paired with the per-extruder project flow setting.
+    if (!multi_nozzle_diameter_mode_enabled(bundle.project_config) ||
+        !uses_per_slot_nozzle_diameters(printer.config)) {
+        const double primary_diameter = atof(printer.config.opt_string("printer_variant").c_str());
+        if (primary_diameter <= 0.0)
+            return result;
+        const std::string diameter = format_diameter_to_str(primary_diameter);
+        const auto *volume_types = bundle.project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        if (volume_types == nullptr || volume_types->values.empty())
+            result.emplace(diameter, nvtStandard);
+        else
+            for (int value : volume_types->values)
+                result.emplace(diameter, static_cast<NozzleVolumeType>(value));
+        return result;
+    }
+
+    for (int extruder_id = 0; extruder_id < bundle.extruder_full_stat.get_extruder_count(); ++extruder_id)
+        for (const auto &slot : bundle.extruder_full_stat.get_extruder_stats(extruder_id)) {
+            // An empty flow string marks a reserved slot that carries no nozzle; skipping those is what
+            // keeps the selector from offering a variant the machine does not physically have.
+            if (slot.second.empty() || slot.first.empty())
+                continue;
+            const double diameter = atof(slot.first.c_str());
+            if (diameter <= 0.0)
+                continue;
+            const NozzleVolumeType volume_type = nozzle_volume_type_from_string(slot.second);
+            // nozzle_volume_type_from_string() silently falls back to Standard, which would invent an
+            // installed Standard nozzle out of a corrupted snapshot. Round-trip to tell the two apart.
+            if (GetNozzleVolumeTypeStr(volume_type) != slot.second) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": unknown nozzle flow \"" << slot.second
+                                           << "\" on extruder " << extruder_id << ", slot ignored";
+                continue;
+            }
+            result.emplace(format_diameter_to_str(diameter), volume_type);
+        }
+    return result;
+}
+
+static std::vector<NozzleVolumeType> get_filament_nozzle_flow_options(
+    const PresetBundle                                       &bundle,
+    size_t                                                    filament_index,
+    const std::string                                        &diameter,
+    const std::set<std::pair<std::string, NozzleVolumeType>> &installed)
+{
+    std::vector<NozzleVolumeType> result;
+    if (filament_index >= bundle.filament_presets.size() || diameter.empty())
+        return result;
+
+    // Same printability rule PartPlate uses to validate a slice: a 2.85mm TPU only declares the
+    // TPU285 variant, so it must not inherit a Standard/High Flow selection from another slot.
+    std::vector<std::string> filament_variants;
+    bool                     variants_complete = false;
+    if (const Preset *preset = bundle.filaments.find_preset(bundle.filament_presets[filament_index], false)) {
+        if (const auto *opt = preset->config.option<ConfigOptionStrings>("filament_extruder_variant"))
+            filament_variants = opt->values;
+        variants_complete = bundle.filaments.is_bbl_brand_filament(*preset);
+    }
+
+    for (const auto &variant : installed) {
+        if (variant.first != diameter || variant.second == nvtHybrid)
+            continue;
+        if (!is_nozzle_printable_for_filament(variant.second, filament_variants, variants_complete))
+            continue;
+        result.emplace_back(variant.second);
+    }
+    return result;
+}
+
 static std::vector<std::string> get_filament_nozzle_diameter_options(
     const PresetBundle                       &bundle,
     size_t                                    filament_index,
@@ -3704,11 +3798,52 @@ static std::vector<std::string> get_filament_nozzle_diameter_options(
     return result;
 }
 
+// Repairs filament_volume_map so every slot's flow is one the rack carries at that slot's nozzle
+// diameter and that the slot's filament can print. Only invoked where the filament panel's per-slot
+// selector owns the flow; everywhere else the map is still a grouping result.
+static void repair_filament_nozzle_flows(
+    const PresetBundle                                       &bundle,
+    ConfigOptionInts                                         *volume_map,
+    const std::set<std::pair<std::string, NozzleVolumeType>> &installed,
+    const std::map<std::string, std::string>                 &printer_name_to_diameter,
+    const std::set<std::string>                              &configured)
+{
+    if (volume_map == nullptr)
+        return;
+    volume_map->values.resize(bundle.filament_presets.size(), static_cast<int>(nvtStandard));
+
+    const auto *selected = bundle.project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    for (size_t i = 0; i < bundle.filament_presets.size(); ++i) {
+        if (bundle.is_mixed_filament(i))
+            continue;
+        std::string diameter = (selected != nullptr && i < selected->values.size()) ? selected->values[i] : std::string();
+        if (diameter.empty()) {
+            // A machine carrying a single diameter leaves filament_diameter_map empty on purpose, yet
+            // the flow is still selectable there (e.g. a 0.4 Standard next to a 0.4 High Flow). Key off
+            // the one diameter this slot can use, the same fallback the sidebar's nozzle label renders.
+            const auto options = get_filament_nozzle_diameter_options(bundle, i, printer_name_to_diameter, configured);
+            if (options.empty())
+                continue;
+            diameter = options.front();
+        }
+        const auto flows = get_filament_nozzle_flow_options(bundle, i, diameter, installed);
+        if (flows.empty())
+            continue; // nothing installed can print this slot: leave it for the pre-slice checks to report
+        if (std::find(flows.begin(), flows.end(), static_cast<NozzleVolumeType>(volume_map->values[i])) == flows.end())
+            volume_map->values[i] = static_cast<int>(flows.front());
+    }
+}
+
 std::vector<std::string> PresetBundle::get_filament_nozzle_diameter_options(size_t filament_index) const
 {
     const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
     const auto configured = collect_configured_nozzle_diameters(*this);
     return ::Slic3r::get_filament_nozzle_diameter_options(*this, filament_index, printer_name_to_diameter, configured);
+}
+
+std::set<std::pair<std::string, NozzleVolumeType>> PresetBundle::get_installed_nozzle_variants() const
+{
+    return ::Slic3r::collect_installed_nozzle_variants(*this);
 }
 
 bool PresetBundle::is_filament_nozzle_diameter_valid(size_t filament_index, const std::string &diameter) const
@@ -3835,6 +3970,18 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         multi_diameter_mode ? std::vector<std::string>{} : selected->values;
     const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
     const auto configured = collect_configured_nozzle_diameters(*this);
+    const auto installed = collect_installed_nozzle_variants(*this);
+
+    // Per-filament flow is only user-owned where the filament panel's nozzle selector is shown
+    // (single-extruder multi-nozzle + multi-diameter mode). On every other machine
+    // filament_volume_map is still a grouping result, so repairing it here would clobber the
+    // slicer's own assignment. Null pointer means "leave the flow alone".
+    ConfigOptionInts *volume_map = nullptr;
+    if (multi_diameter_mode && is_single_ext_multi_nozzle(printers.get_edited_preset().config)) {
+        volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
+        if (volume_map != nullptr)
+            volume_map->values.resize(filament_presets.size(), static_cast<int>(nvtStandard));
+    }
 
     // Normalize any sibling preset selected by the previous multi-diameter state. Turning the mode off
     // only makes the selections inactive; retain them so turning it back on restores the project state.
@@ -3868,6 +4015,9 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
             std::fill(selected->values.begin(), selected->values.end(), std::string());
         else
             selected->values = retained_selections;
+        // A single configured diameter still leaves the flow selectable on a multi-nozzle rack, so the
+        // flow repair has to run on this path too instead of only on the multi-diameter one below.
+        repair_filament_nozzle_flows(*this, volume_map, installed, printer_name_to_diameter, configured);
         return;
     }
 
@@ -3942,10 +4092,26 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         const std::string normalized = format_diameter_to_str(atof(target.c_str()));
         if (target.empty() || std::find(options.begin(), options.end(), normalized) == options.end())
             target = options.front();
+        // `options` only says a filament preset exists for that diameter. The rack still has to carry a
+        // nozzle of that diameter whose flow this slot's filament can print, otherwise an inherited or
+        // preset-switched "0.4 Standard" survives on a slot whose 2.85mm TPU only fits a TPU285 nozzle.
+        if (volume_map != nullptr &&
+            ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed).empty()) {
+            for (const std::string &candidate : options)
+                if (!::Slic3r::get_filament_nozzle_flow_options(*this, i, candidate, installed).empty()) {
+                    target = candidate;
+                    break;
+                }
+        }
         if (!::Slic3r::set_filament_nozzle_diameter(
                 *this, i, target, nullptr, printer_name_to_diameter, options))
             selected->values[i].clear();
-}
+    }
+
+    // Runs after the loop, not inside it: set_filament_nozzle_diameter() can switch a slot to a
+    // sibling preset serving another diameter, which changes filament_extruder_variant, so the flow
+    // has to be resolved against the diameter that actually stuck.
+    repair_filament_nozzle_flows(*this, volume_map, installed, printer_name_to_diameter, configured);
 }
 
 //BBS: check whether this is the only edited filament

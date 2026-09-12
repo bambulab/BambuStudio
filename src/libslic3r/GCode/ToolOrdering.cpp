@@ -1656,8 +1656,21 @@ FilamentGroupContext build_filament_group_context(
     context.group_info.has_filament_switcher = print_config.has_filament_switcher.value;
     auto used_filaments = collect_sorted_used_filaments(layer_filaments);
 
-    if(mode == FilamentMapMode::fmmManual)
+    // fmmManual and fmmNozzleManual both carry a per-filament flow the user actually picked (the latter
+    // from the filament list's nozzle selector on single-extruder multi-nozzle machines), so it is a hard
+    // constraint. Auto modes must stay on Hybrid: there filament_volume_map is the grouping *result*
+    // written back after a slice, and feeding it back in would pin every later run to the old assignment.
+    // fmmNozzleManual is additionally gated on the multi-diameter project setting, because that is the
+    // only state whose UI offers the per-filament selector. A project that had the mode on and then
+    // turned it off keeps a stale flow selection that must not become a hard constraint.
+    const bool user_selected_nozzle_flow = mode == FilamentMapMode::fmmManual ||
+        (mode == FilamentMapMode::fmmNozzleManual && multi_nozzle_diameter_mode_enabled(print->full_print_config()));
+    if (user_selected_nozzle_flow) {
         context.group_info.filament_volume_map = print_config.filament_volume_map.values;
+        // Consumers index this by filament id without bounds checks. Hybrid is the right padding: it
+        // means "no request", which is what a slot the user never selected should contribute.
+        context.group_info.filament_volume_map.resize(filament_nums, (int)(NozzleVolumeType::nvtHybrid));
+    }
     else    // Hybrid means no requested nozzle volume type in auto modes.
         context.group_info.filament_volume_map = std::vector<int>(filament_nums,(int)(NozzleVolumeType::nvtHybrid));
 
@@ -1745,7 +1758,13 @@ FilamentGroupContext build_filament_group_context(
 
         // N1X 非 match 自动模式需要在 ctx 阶段补足基础容量；match 模式的虚拟喷嘴由
         // calc_filament_group_for_nozzle_match() 按真实已装料匹配结果追加。
-        if (single_ext_multi_nozzle && is_auto_filament_map_mode(mode) && mode != FilamentMapMode::fmmAutoForMatch) {
+        // fmmNozzleManual joins the auto modes here: its per-filament (diameter, flow) selection still
+        // needs one capacity unit per filament, otherwise same-spec filaments get over-packed onto a
+        // single physical nozzle and are charged real flush against each other.
+        const bool needs_virtual_nozzle_padding = single_ext_multi_nozzle &&
+            ((is_auto_filament_map_mode(mode) && mode != FilamentMapMode::fmmAutoForMatch) ||
+             mode == FilamentMapMode::fmmNozzleManual);
+        if (needs_virtual_nozzle_padding) {
             const std::string virtual_diameter = extruder_diameters.empty()
                 ? std::string() : format_diameter_to_str(extruder_diameters.front());
 
@@ -1766,6 +1785,57 @@ FilamentGroupContext build_filament_group_context(
                     count += nozzle_capacity(nozzle);
                 return count;
             };
+
+            // Clone a real nozzle so the virtual slot inherits its diameter / flow / extruder_id and only
+            // takes a new group_id -- same shape as FilamentGroup.cpp's append_virtual_nozzle(). Takes the
+            // source by value: emplace_back below can reallocate nozzle_list out from under a reference
+            // into it.
+            auto append_virtual_nozzle = [&nozzle_list](MultiNozzleUtils::NozzleInfo virtual_nozzle) {
+                virtual_nozzle.group_id  = static_cast<int>(nozzle_list.size());
+                virtual_nozzle.installed = true;
+                nozzle_list.emplace_back(std::move(virtual_nozzle));
+            };
+
+            // Per-spec padding. A filament that requested a concrete (diameter, flow) needs a capacity
+            // unit of exactly that spec, so pad each spec's shortfall from one of its real nozzles.
+            // These are virtual filaments that get mapped onto physical trays when the print starts, so
+            // one filament per capacity-1 slot is what makes their mutual flush correctly zero.
+            // Auto modes leave every flow on Hybrid, so nothing lands here and the total-count fallback
+            // below keeps its existing behavior.
+            {
+                using NozzleSpec = std::pair<std::string, int>;
+                std::map<NozzleSpec, int> spec_demand;
+                for (unsigned int fil : used_filaments) {
+                    if (fil >= filament_nums)
+                        continue;
+                    const std::string &diameter = context.model_info.selected_nozzle_diameters[fil];
+                    const int          volume   = context.group_info.filament_volume_map[fil];
+                    if (diameter.empty() || volume == (int)(NozzleVolumeType::nvtHybrid))
+                        continue;
+                    ++spec_demand[{diameter, volume}];
+                }
+
+                std::map<NozzleSpec, int>                          spec_supply;
+                std::map<NozzleSpec, MultiNozzleUtils::NozzleInfo> spec_source;
+                for (const auto &nozzle : nozzle_list) {
+                    const int capacity = nozzle_capacity(nozzle);
+                    if (capacity <= 0)
+                        continue;
+                    const NozzleSpec spec{nozzle.diameter, (int)(nozzle.volume_type)};
+                    spec_supply[spec] += capacity;
+                    spec_source.emplace(spec, nozzle);
+                }
+
+                for (const auto &[spec, demand] : spec_demand) {
+                    // No installed nozzle of that spec: there is nothing to inherit from, and inventing
+                    // one would hide the real problem. Leave it to the nozzle assignment to report.
+                    const auto source = spec_source.find(spec);
+                    if (source == spec_source.end())
+                        continue;
+                    for (int supplied = spec_supply[spec]; supplied < demand; ++supplied)
+                        append_virtual_nozzle(source->second);
+                }
+            }
 
             // 简化兜底：非 match 自动模式沿用 Standard 虚拟喷嘴补齐。
             while (usable_slot_count() < static_cast<int>(used_filaments.size())) {
@@ -2306,21 +2376,47 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
 
         std::vector<int> ret;
         if (single_ext_multi_nozzle) {
-            const auto& user_nozzle_map = print_config.filament_nozzle_map.values;
-            const int   nozzle_cnt      = static_cast<int>(context.nozzle_info.nozzle_list.size());
+            // Assign from the user's per-filament (diameter, flow) rather than copying
+            // filament_nozzle_map: that map is built in the filament panel against physical slots only,
+            // so several same-spec filaments all point at one nozzle and end up charged flush against
+            // each other. build_filament_group_context() has already padded a capacity-1 virtual slot
+            // for each such filament, and same-spec slots are interchangeable because a virtual slot
+            // inherits its source's diameter and flow -- so a plain queue assignment is optimal here and
+            // leaves one filament per slot, i.e. zero intra-nozzle flush.
+            const auto      &nozzles   = context.nozzle_info.nozzle_list;
+            std::vector<int> remaining = context.nozzle_info.per_nozzle_capacity;
+            remaining.resize(nozzles.size(), 0);
+            const int ams_idx = get_effective_ams_nozzle_idx(print_config);
+
             ret.assign(filament_nums, 0);
             for (auto fil : used_filaments) {
-                if (fil >= user_nozzle_map.size() || user_nozzle_map[fil] < 0 || user_nozzle_map[fil] >= nozzle_cnt)
-                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."));
-                const auto &nozzle = context.nozzle_info.nozzle_list[user_nozzle_map[fil]];
-                if (!nozzle.installed)
-                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."));
-                if (multi_diameter_mode &&
-                    fil < context.model_info.selected_nozzle_diameters.size() &&
-                    !context.model_info.selected_nozzle_diameters[fil].empty() &&
-                    context.model_info.selected_nozzle_diameters[fil] != nozzle.diameter)
-                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: per-filament nozzle map points to a nozzle with a different diameter."));
-                ret[fil] = user_nozzle_map[fil];
+                const std::string diameter = fil < context.model_info.selected_nozzle_diameters.size()
+                    ? context.model_info.selected_nozzle_diameters[fil] : std::string();
+                const int         volume   = fil < context.group_info.filament_volume_map.size()
+                    ? context.group_info.filament_volume_map[fil] : (int)(NozzleVolumeType::nvtHybrid);
+
+                auto fits = [&](int noz) {
+                    const auto &nozzle = nozzles[noz];
+                    if (!nozzle.installed || remaining[noz] <= 0)
+                        return false;
+                    if (multi_diameter_mode && !diameter.empty() && nozzle.diameter != diameter)
+                        return false;
+                    return volume == (int)(NozzleVolumeType::nvtHybrid) || (int)(nozzle.volume_type) == volume;
+                };
+
+                // Two passes so the AMS nozzle is only taken once the single-filament slots of that spec
+                // are used up: filaments sharing the AMS nozzle really do flush against each other.
+                int chosen = -1;
+                for (int noz = 0; noz < static_cast<int>(nozzles.size()) && chosen < 0; ++noz)
+                    if (noz != ams_idx && fits(noz))
+                        chosen = noz;
+                if (chosen < 0 && ams_idx >= 0 && ams_idx < static_cast<int>(nozzles.size()) && fits(ams_idx))
+                    chosen = ams_idx;
+                if (chosen < 0)
+                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: no nozzle matches the diameter and flow selected for one of the filaments. Please check the nozzle setup."));
+
+                ret[fil] = chosen;
+                remaining[chosen] -= 1;
             }
         } else {
             const auto& user_nozzle_map = print_config.filament_nozzle_map.values;

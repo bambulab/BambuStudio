@@ -71,8 +71,14 @@ int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config)
 
     const std::string& ams_diam = full_stats[ams_idx].first;
     const std::string& ams_vol  = full_stats[ams_idx].second;
+    // In multi-diameter mode nozzle_diameter is only the conservative slicing baseline (normally
+    // 0.2), not a filter on which physical nozzles may participate. An AMS attached to a 0.6 nozzle
+    // must therefore remain the AMS group even while that baseline is 0.2; otherwise the manual
+    // grouping UI collapses the AMS nozzle and all fixed nozzles into one group.
+    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(config);
     const bool usable = !ams_vol.empty() &&
-        (active_diameter.empty() || ams_diam.empty() || format_diameter_to_str(std::atof(ams_diam.c_str())) == active_diameter);
+        (multi_diameter || active_diameter.empty() || ams_diam.empty() ||
+         format_diameter_to_str(std::atof(ams_diam.c_str())) == active_diameter);
     return usable ? ams_idx : -1;
 }
 
