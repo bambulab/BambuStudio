@@ -304,7 +304,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend[SK::hotend::nozzle_label] = is_nozzle_tool ? wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr()) : tool_label_for_web(tool_defs);
         hotend[SK::hotend::nozzle_subtext] = is_nozzle_tool ? nozzle_flow_short_name(rack_nozzle_opt->GetNozzleFlowType()) : "";
         hotend_detail_dialog[SK::hotend_detail_dialog::filament_name] = ResolveFilamentCardText(rack_nozzle_opt->GetFilamentId(), std::string());
-        hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = rack_nozzle_opt->GetFilamentColor();
+        hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = normalize_hex_for_web(rack_nozzle_opt->GetFilamentColor());
         hotend_detail_dialog[SK::hotend_detail_dialog::show_filament] = is_nozzle_tool;
         hotend_detail_dialog[SK::hotend_detail_dialog::tool_image_name] = detail_tool_image_name(tool_defs);
         hotend_detail_dialog[SK::hotend_detail_dialog::tool_type] = is_nozzle_tool

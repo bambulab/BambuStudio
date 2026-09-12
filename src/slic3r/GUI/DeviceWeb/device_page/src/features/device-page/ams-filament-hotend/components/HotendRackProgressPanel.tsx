@@ -24,18 +24,18 @@ function progressTitle(status: HotendRackStatus, t: TFunction) {
 
 function stepLabel(step: { id: number; label: string }, t: TFunction) {
   switch (step.id) {
-    case 1: return t('Homing Induction Hotend Rack');
+    case 1: return t('Homing PrintTool Rack');
     case 2: return t('Homing Toolhead');
     case 3: return t('Calibrating Hotend Rack');
     case 4: return t('Waiting for hotend to heat');
     case 5: return t('Cutting Filament');
     case 6: return t('Unlocking Hotend');
     case 7: return t('Lifting Hotend Rack');
-    case 8: return t('Placing Hotend');
-    case 9: return t('Taking Hotend');
-    case 10: return t('Locking Hotend');
-    case 11: return t('Moving Hotend Rack');
-    case 12: return t('Refreshing Hotend Info');
+    case 8: return t('Nesting Tool');
+    case 9: return t('Fetching Tool');
+    case 10: return t('Locking Tool');
+    case 11: return t('Moving PrintTool Rack');
+    case 12: return t('Refresh Tool Info');
     default: return step.label ? t(step.label) : t('Step {{n}}', { n: step.id });
   }
 }

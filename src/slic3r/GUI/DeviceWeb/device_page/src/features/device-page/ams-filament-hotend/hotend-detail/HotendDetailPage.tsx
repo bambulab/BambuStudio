@@ -5,14 +5,22 @@ import { useDeviceBridge } from '../../../../hooks/Bridge';
 import { useDeviceWebTheme } from '../../../../hooks/useDeviceWebTheme';
 import useStore from '../../../../store/AppStore';
 import { mockAmsFilamentHotendState } from '../mockData';
-import type { AmsFilamentHotendViewModel, BridgeResponseBody, HotendDetailDialogInfo, HotendSlotInfo } from '../types';
+import type {
+  AmsFilamentHotendViewModel,
+  BridgeResponseBody,
+  HotendDetailDialogInfo,
+  HotendOpState,
+  HotendSlotInfo,
+  HotendToolKind,
+} from '../types';
 import './hotend-detail.css';
 
 const MODULE = 'device_page_ams_filament_hotend';
 const HOTEND_DETAIL_NOZZLE_URL = './assets/hotend_detail_nozzle.png';
-const TOOL_IMAGE_MAP: Record<string, string> = {
-  hotend_detail_nozzle: HOTEND_DETAIL_NOZZLE_URL,
-};
+const HOTEND_DETAIL_NOZZLE_ERR_URL = './assets/hotend_detail_nozzle_err.png';
+const HOTEND_DETAIL_NOZZLE_UNKNOWN_URL = './assets/hotend_detail_nozzle_unkown.png';
+const HOTEND_DETAIL_NOZZLE_2D_URL = './assets/hotend_detail_nozzle_unkownedited.png';
+const UNOWNEDITED_TOOL_KINDS: HotendToolKind[] = ['laser', 'cutter', 'pen', 'empty', 'unknown'];
 
 function makeBody(submod: string, action: string, payload?: Record<string, unknown>) {
   return { module: MODULE, submod, action, payload: payload ?? {} };
@@ -43,9 +51,17 @@ function formatSwitchCount(switchCount?: number | null) {
   return switchCount == null ? '--' : String(switchCount);
 }
 
-function toolImageSrc(imageName?: string | null) {
-  if (!imageName || imageName === 'empty') return null;
-  return TOOL_IMAGE_MAP[imageName] ?? null;
+function filamentSwatchColor(color?: string | null) {
+  const raw = color?.trim();
+  if (!raw) return '#D9D9D9';
+  return raw.startsWith('#') ? raw : `#${raw}`;
+}
+
+function toolImageSrc(toolKind?: HotendToolKind, opState?: HotendOpState) {
+  if (opState === 'Error') return HOTEND_DETAIL_NOZZLE_ERR_URL;
+  if (opState === 'Unknown') return HOTEND_DETAIL_NOZZLE_UNKNOWN_URL;
+  if (!toolKind || UNOWNEDITED_TOOL_KINDS.includes(toolKind)) return HOTEND_DETAIL_NOZZLE_2D_URL;
+  return HOTEND_DETAIL_NOZZLE_URL;
 }
 
 export function HotendDetailPage() {
@@ -96,7 +112,7 @@ export function HotendDetailPage() {
   const selectedSlot = slots.find((slot) => slot.display_index === selectedDisplayIndex) ?? slots[0];
   const hotend: HotendSlotInfo = selectedSlot?.hotend ?? {};
   const detail: HotendDetailDialogInfo = selectedSlot?.hotend_detail_dialog ?? {};
-  const toolImage = toolImageSrc(detail.tool_image_name);
+  const toolImage = toolImageSrc(hotend.tool_kind, hotend.op_state);
   const showFilament = detail.show_filament ?? (hotend.tool_kind === 'nozzle');
   const toolTypeText = detail.tool_type ?? detail.nozzle_type;
 
@@ -129,7 +145,7 @@ export function HotendDetailPage() {
           {showFilament && (
             <InfoBlock label={t('Nozzle Filament')}>
               <div className="hotend-detail-filament">
-                <span className="hotend-detail-color" style={{ backgroundColor: detail.filament_color || '#D9D9D9' }} />
+                <span className="hotend-detail-color" style={{ backgroundColor: filamentSwatchColor(detail.filament_color) }} />
                 <span>{textOrDash(detail.filament_name)}</span>
               </div>
             </InfoBlock>

@@ -8,15 +8,13 @@ import type {
   HotendToolKind,
 } from '../types';
 
-import hotendNozzleUrl        from '../assets/hotend_nozzle.svg';
-import hotendNozzleOutlineUrl from '../assets/hotend_nozzle_outline.svg';
-import hotendCutterUrl        from '../assets/hotend_cutter.svg';
-import hotendPenUrl           from '../assets/hotend_pen.svg';
-import hotendPlacingArrowUrl  from '../assets/hotend_placing_arrow.svg';
-import hotendErrorBadgeUrl    from '../assets/hotend_error_badge.svg';
-import hotendLostBadgeUrl     from '../assets/hotend_lost_badge.svg';
-import hotendUnknownBadgeUrl  from '../assets/hotend_unknown_badge.svg';
+import hotendNozzleUrl        from '../assets/hotend_nozzle.png';
+import hotendNozzleErrUrl     from '../assets/hotend_nozzle_err.png';
+import hotendNozzleLostUrl    from '../assets/hotend_nozzle_lost.png';
+import hotendNozzleUnknownUrl from '../assets/hotend_nozzle_unknow.png';
+import hotendNozzleDisableUrl from '../assets/hotend_nozzle_disable.png';
 import hotendForbiddenUrl     from '../assets/hotend_forbidden.svg';
+import hotendPlacingArrowUrl  from '../assets/hotend_placing_arrow.svg';
 import hotendTakenUrl         from '../assets/hotend_taken.svg';
 import hotendReadingArcUrl    from '../assets/hotend_reading_arc.png';
 
@@ -143,10 +141,10 @@ export function HotendCard({
           </button>
           {menuOpen && (
             <div className="hotend-menu-popover" role="menu">
-              <button type="button" role="menuitem" disabled={!canRead} onClick={() => runMenuAction('read_hotend')}>{t('Read')}</button>
-              <button type="button" role="menuitem" disabled={!canDetail} onClick={() => runMenuAction('hotend_detail')}>{t('Details')}</button>
               <button type="button" role="menuitem" disabled={!canSetTemperature} onClick={() => runMenuAction('adjust_temperature')}>{t('Set Temperature')}</button>
               <button type="button" role="menuitem" disabled={!canTakePlace} onClick={() => runMenuAction(hotendMoveAction)}>{hotendMoveLabel}</button>
+              <button type="button" role="menuitem" disabled={!canRead} onClick={() => runMenuAction('read_hotend')}>{t('Refresh')}</button>
+              <button type="button" role="menuitem" disabled={!canDetail} onClick={() => runMenuAction('hotend_detail')}>{t('Details')}</button>
             </div>
           )}
         </span>
@@ -376,12 +374,23 @@ function ToolIcon({
     );
   }
   if (op === 'Unknown') {
-    // Unknown nozzle type: show the nozzle body with a grey "?" badge,
-    // regardless of the (unresolved) tool_kind (Figma 1882:112143).
     return (
       <div className="hotend-tool-icon-wrap hotend-icon-nozzle-wrap">
-        <img className="hotend-icon-nozzle" src={hotendNozzleUrl} width={20} height={36} alt="nozzle" />
-        <img className="hotend-icon-unknown-badge" src={hotendUnknownBadgeUrl} width={16} height={16} alt="unknown" />
+        <img className="hotend-icon-nozzle" src={hotendNozzleUnknownUrl} width={36} height={42} alt="unknown" />
+      </div>
+    );
+  }
+  if (withError) {
+    return (
+      <div className="hotend-tool-icon-wrap hotend-icon-nozzle-wrap">
+        <img className="hotend-icon-nozzle" src={hotendNozzleErrUrl} width={36} height={42} alt="error" />
+      </div>
+    );
+  }
+  if (op === 'Lost') {
+    return (
+      <div className="hotend-tool-icon-wrap hotend-icon-nozzle-wrap">
+        <img className="hotend-icon-nozzle" src={hotendNozzleLostUrl} width={36} height={42} alt="lost" />
       </div>
     );
   }
@@ -392,17 +401,10 @@ function ToolIcon({
       </div>
     );
   }
-  if (kind === 'cutter') {
+  if (kind === 'cutter' || kind === 'pen') {
     return (
       <div className="hotend-tool-icon-wrap">
-        <img className="hotend-icon-cutter" src={hotendCutterUrl} width={24} height={42} alt="cutter" />
-      </div>
-    );
-  }
-  if (kind === 'pen') {
-    return (
-      <div className="hotend-tool-icon-wrap">
-        <img className="hotend-icon-pen" src={hotendPenUrl} width={24} height={42} alt="pen" />
+        <img className="hotend-icon-nozzle" src={hotendNozzleDisableUrl} width={36} height={42} alt={kind} />
       </div>
     );
   }
@@ -415,16 +417,9 @@ function ToolIcon({
       </div>
     );
   }
-  const nozzleSrc = withError ? hotendNozzleOutlineUrl : hotendNozzleUrl;
   return (
     <div className="hotend-tool-icon-wrap hotend-icon-nozzle-wrap">
-      <img className="hotend-icon-nozzle" src={nozzleSrc} width={20} height={36} alt="nozzle" />
-      {withError && (
-        <img className="hotend-icon-error-badge" src={hotendErrorBadgeUrl} width={16} height={16} alt="error" />
-      )}
-      {op === 'Lost' && (
-        <img className="hotend-icon-lost-badge" src={hotendLostBadgeUrl} width={16} height={16} alt="lost" />
-      )}
+      <img className="hotend-icon-nozzle" src={hotendNozzleUrl} width={36} height={42} alt="nozzle" />
       {(op === 'Placing' || op === 'Taking') && (
         <img className="hotend-placing-arrow" src={hotendPlacingArrowUrl} width={9} height={32} alt="placing" />
       )}

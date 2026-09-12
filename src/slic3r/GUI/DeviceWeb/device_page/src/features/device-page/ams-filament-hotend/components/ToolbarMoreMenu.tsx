@@ -78,7 +78,7 @@ export function ToolbarMoreMenu({
             disabled={!canLoadExternal}
             onClick={() => run('load_external')}
           >
-            {t('Load External Spool')}
+            {t('Manual Loading')}
           </button>
           <button
             type="button"

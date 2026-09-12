@@ -465,14 +465,14 @@ test.describe('AMS filament hotend page', () => {
   test('shows slot progress and disables other hotend operations while one hotend is reading', async ({ page }) => {
     await page.getByTestId('ams-hotend-tab-hotend').click();
     await page.getByLabel('hotend menu 9').click();
-    await page.getByRole('menuitem', { name: '读取' }).click();
+    await page.getByRole('menuitem', { name: '刷新' }).click();
 
     await expect(page.getByTestId('ams-hotend-hotend-card-9')).toHaveAttribute('data-op-state', 'Reading');
     await expect(page.getByTestId('ams-hotend-reading-status')).toContainText('9号热端读取中');
     await expect(page.getByTestId('ams-hotend-action-read-all')).toBeDisabled();
 
     await page.getByLabel('hotend menu 1').click();
-    await expect(page.getByRole('menuitem', { name: '读取' })).toBeDisabled();
+    await expect(page.getByRole('menuitem', { name: '刷新' })).toBeDisabled();
     await expect(page.getByRole('menuitem', { name: '取用' })).toBeDisabled();
     await expect(page.getByRole('menuitem', { name: '详情' })).toBeEnabled();
   });

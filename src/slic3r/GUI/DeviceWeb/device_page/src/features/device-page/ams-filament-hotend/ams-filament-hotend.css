@@ -2108,6 +2108,13 @@
   height: 42px;
 }
 
+.hotend-icon-nozzle {
+  display: block;
+  width: 36px;
+  height: 42px;
+  object-fit: contain;
+}
+
 .hotend-tool-icon-empty {
   width: 12px;
   height: 36px;

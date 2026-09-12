@@ -285,10 +285,10 @@ let AMS_FILAMENT_HOTEND_STATE: AmsFilamentHotendViewModel = cloneHotendState();
 
 function setMockHotendReading(displayIndex: number, total: number) {
   const steps = [
-    { id: 1, label: 'Homing Induction Hotend Rack', state: 'done' as const },
+    { id: 1, label: 'Homing PrintTool Rack', state: 'done' as const },
     { id: 2, label: 'Homing Toolhead', state: 'active' as const },
     { id: 3, label: 'Calibrating Hotend Rack', state: 'pending' as const },
-    { id: 10, label: 'Locking Hotend', state: 'pending' as const },
+    { id: 10, label: 'Locking Tool', state: 'pending' as const },
   ];
   AMS_FILAMENT_HOTEND_STATE = {
     ...AMS_FILAMENT_HOTEND_STATE,
@@ -331,12 +331,12 @@ function setMockHotendReading(displayIndex: number, total: number) {
 
 function setMockHotendTaking(displayIndex: number) {
   const steps = [
-    { id: 1, label: 'Homing Induction Hotend Rack', state: 'done' as const },
+    { id: 1, label: 'Homing PrintTool Rack', state: 'done' as const },
     { id: 2, label: 'Homing Toolhead', state: 'done' as const },
     { id: 3, label: 'Calibrating Hotend Rack', state: 'done' as const },
     { id: 5, label: 'Cutting Filament', state: 'done' as const },
-    { id: 9, label: 'Taking Hotend', state: 'active' as const },
-    { id: 10, label: 'Locking Hotend', state: 'pending' as const },
+    { id: 9, label: 'Fetching Tool', state: 'active' as const },
+    { id: 10, label: 'Locking Tool', state: 'pending' as const },
   ];
   AMS_FILAMENT_HOTEND_STATE = {
     ...AMS_FILAMENT_HOTEND_STATE,

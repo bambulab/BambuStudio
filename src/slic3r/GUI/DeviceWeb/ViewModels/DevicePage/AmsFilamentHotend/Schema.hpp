@@ -202,7 +202,7 @@ namespace values {
 // values for filament_page::mode - the four UI modes the page can render.
 //   * normal           - default page (IDLE or single-slot filament change running)
 //   * batch_ams_load   - entered by clicking the toolbar Auto Load button
-//   * batch_ext_load   - entered by clicking the toolbar Load External Spool
+//   * batch_ext_load   - entered by clicking the toolbar Manual Loading
 //   * batch_unload     - entered by clicking the toolbar Unload button
 // `Dry` is not a mode - it opens AMSDryCtrWin directly as a single-step dialog.
 namespace mode {

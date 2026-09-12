@@ -9,7 +9,7 @@ import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types'
 function batchCommitLabel(mode: FilamentPageMode, t: TFunction): string {
   switch (mode) {
     case 'batch_ams_load': return t('Auto Load');
-    case 'batch_ext_load': return t('Load External Spool');
+    case 'batch_ext_load': return t('Manual Loading');
     case 'batch_unload': return t('Unload');
     default: return t('Confirm');
   }

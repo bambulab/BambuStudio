@@ -6,7 +6,7 @@
 namespace Slic3r { namespace GUI {
 
 // Batch external manual load mode. Triggered by the toolbar
-// "Load External Spool" button. Real selectability rules ship in P1; this
+// "Manual Loading" button. Real selectability rules ship in P1; this
 // stage of the rollout only provides the scaffolding so the Web can switch
 // to the mode and see its checkboxes rendered.
 class BatchExtLoadModeBuilder final : public IFilamentPageModeBuilder {
