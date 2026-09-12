@@ -16162,8 +16162,12 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
 //BBS: add part plate related logic
 void Plater::priv::on_plate_right_click(RBtnPlateEvent& evt)
 {
+    const int hover_id = evt.data.second;
+    if (hover_id >= 0)
+        q->SetPlateIndexByRightMenuInLeftUI(hover_id / PartPlate::GRABBER_COUNT);
     wxMenu* menu = menus.plate_menu();
     show_right_click_menu(evt.data.first, menu);
+    q->SetPlateIndexByRightMenuInLeftUI(-1);
 }
 
 void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)

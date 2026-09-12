@@ -4504,13 +4504,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 }
                 return;
             }
-            case 'e':
-            case 'E':
-            case WXK_CONTROL_E: {
-                m_labels.show_object_labels(!m_labels.are_object_labels_shown());
-                m_dirty = true;
-                return;
-            }
             }
         }
         // CTRL is pressed
@@ -4753,6 +4746,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     post_event(SimpleEvent(EVT_GLCANVAS_ORIENT_PARTPLATE));
                 else
                     post_event(SimpleEvent(EVT_GLCANVAS_ORIENT));
+                break;
+            }
+        case 'e':
+        case 'E':
+            {
+                if ((evt.GetModifiers() & shiftMask) != 0) {
+                    m_labels.show_object_labels(!m_labels.are_object_labels_shown());
+                    m_dirty = true;
+                }
                 break;
             }
 #if !BBL_RELEASE_TO_PUBLIC

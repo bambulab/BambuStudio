@@ -3359,12 +3359,31 @@ void MainFrame::init_menubar_as_editor()
             [this]() { return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview) && m_plater->is_sidebar_enabled(); },
             this);
         viewMenu->AppendSeparator();
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Layer") + "\t" + ctrl + "E", _L("Show Labels of printing by layer in 3D scene"),
-            [this](wxCommandEvent&) { m_plater->show_view3D_layer_labels(!m_plater->are_view3D_layer_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
-            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_layer_labels_shown(); }, this);
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Object") + "\t" + ctrl + "Shift+" + "E", _L("Show Labels of printing by object in 3D scene"),
-            [this](wxCommandEvent&) { m_plater->show_view3D_object_labels(!m_plater->are_view3D_object_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
-            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_object_labels_shown(); }, this);
+        auto curr_plate_is_by_object = [this]() {
+            PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
+            return plate && plate->get_real_print_seq() == PrintSequence::ByObject;
+        };
+        wxMenuItem *labels_item = append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Layer") + "\t" + ctrl + "E", _L("Show Labels of printing by layer in 3D scene"),
+            [this, curr_plate_is_by_object](wxCommandEvent &) {
+                if (curr_plate_is_by_object())
+                    m_plater->show_view3D_object_labels(!m_plater->are_view3D_object_labels_shown());
+                else
+                    m_plater->show_view3D_layer_labels(!m_plater->are_view3D_layer_labels_shown());
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this, [this]() { return m_plater->is_view3D_shown(); },
+            [this, curr_plate_is_by_object]() {
+                return curr_plate_is_by_object() ? m_plater->are_view3D_object_labels_shown() : m_plater->are_view3D_layer_labels_shown();
+            },
+            this);
+        this->Bind(wxEVT_UPDATE_UI, [this, labels_item, curr_plate_is_by_object](wxUpdateUIEvent &evt) {
+            if (curr_plate_is_by_object())
+                labels_item->SetItemLabel(_L("Show Labels by Object") + "\t" + "Shift+" + "E");
+            else
+                labels_item->SetItemLabel(_L("Show Labels by Layer") + "\t" + ctrl + "E");
+            evt.Enable(m_plater->is_view3D_shown());
+            evt.Check(curr_plate_is_by_object() ? m_plater->are_view3D_object_labels_shown() : m_plater->are_view3D_layer_labels_shown());
+        }, labels_item->GetId());
 
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Overhang") + "\t" + ctrl + "L", _L("Show object overhang highlight in 3D scene"),
             [this](wxCommandEvent &) {

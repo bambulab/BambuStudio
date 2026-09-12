@@ -11,6 +11,7 @@
 
 #include "OptionsGroup.hpp"
 #include "GLCanvas3D.hpp"
+#include "GLToolbar.hpp"
 #include "Selection.hpp"
 #include "format.hpp"
 //BBS: add partplate related logic
@@ -1267,14 +1268,9 @@ void MenuFactory::create_default_menu()
         []() {return true; }, m_parent);
 #endif
 
-    m_default_menu.AppendSeparator();
-
-    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels by Layer"), "",
-        [](wxCommandEvent&) { plater()->show_view3D_layer_labels(!plater()->are_view3D_layer_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
-        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_layer_labels_shown(); }, m_parent);
-    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels by Object"), "",
-        [](wxCommandEvent&) { plater()->show_view3D_object_labels(!plater()->are_view3D_object_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
-        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_object_labels_shown(); }, m_parent);
+    append_menu_item(&m_default_menu, wxID_ANY, _L("Add New Plate"), _L("Add a new plate"),
+        [](wxCommandEvent &) { plater()->get_current_canvas3D()->post_event(SimpleEvent(EVT_GLTOOLBAR_ADD_PLATE)); },
+        "", nullptr, []() { return plater()->can_add_plate(); }, m_parent);
 }
 
 void MenuFactory::create_common_object_menu(wxMenu* menu)
@@ -1925,6 +1921,7 @@ wxMenu* MenuFactory::plate_menu()
 {
     append_menu_item_locked(&m_plate_menu);
     append_menu_item_plate_name(&m_plate_menu);
+    append_menu_item_show_labels(&m_plate_menu);
     {
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) agent->track_update_property("plate_menu", std::to_string(++plate_menu_count));
@@ -2518,6 +2515,56 @@ void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
         [](wxCommandEvent &) { plater()->fill_bed_with_instances(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
 }
 
+void MenuFactory::append_menu_item_show_labels(wxMenu *menu)
+{
+    const std::vector<wxString> names = { _L("Show Labels by Layer"), _L("Show Labels by Object") };
+    for (const wxString &name : names) {
+        const int item_id = menu->FindItem(name);
+        if (item_id != wxNOT_FOUND)
+            menu->Destroy(item_id);
+    }
+
+    auto get_context_plate = []() -> PartPlate * {
+        PartPlateList &list      = plater()->get_partplate_list();
+        int            plate_idx = plater()->GetPlateIndexByRightMenuInLeftUI();
+        if (plate_idx < 0) {
+            GLCanvas3D *canvas = plater()->get_current_canvas3D();
+            if (canvas) {
+                const int hover_idx = canvas->GetHoverId();
+                if (hover_idx >= 0)
+                    plate_idx = hover_idx / PartPlate::GRABBER_COUNT;
+            }
+        }
+        if (plate_idx >= 0 && plate_idx < list.get_plate_count())
+            return list.get_plate(plate_idx);
+        PartPlate *plate = list.get_selected_plate();
+        return plate ? plate : list.get_curr_plate();
+    };
+    auto plate_is_by_object = [get_context_plate]() {
+        PartPlate *plate = get_context_plate();
+        return plate && plate->get_real_print_seq() == PrintSequence::ByObject;
+    };
+
+    wxMenuItem *labels_item = append_menu_check_item(menu, wxID_ANY, names[0], "",
+        [plate_is_by_object](wxCommandEvent &) {
+            if (plate_is_by_object())
+                plater()->show_view3D_object_labels(!plater()->are_view3D_object_labels_shown());
+            else
+                plater()->show_view3D_layer_labels(!plater()->are_view3D_layer_labels_shown());
+            plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+        },
+        menu, []() { return plater()->is_view3D_shown(); },
+        [plate_is_by_object]() {
+            return plate_is_by_object() ? plater()->are_view3D_object_labels_shown() : plater()->are_view3D_layer_labels_shown();
+        },
+        m_parent);
+    m_parent->Bind(wxEVT_UPDATE_UI, [labels_item, plate_is_by_object](wxUpdateUIEvent &evt) {
+        labels_item->SetItemLabel(plate_is_by_object() ? _L("Show Labels by Object") : _L("Show Labels by Layer"));
+        evt.Enable(plater()->is_view3D_shown());
+        evt.Check(plate_is_by_object() ? plater()->are_view3D_object_labels_shown() : plater()->are_view3D_layer_labels_shown());
+    }, labels_item->GetId());
+}
+
 void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
 {
     wxString name= _L("Edit Plate Name");
@@ -2561,7 +2608,7 @@ void MenuFactory::update_object_menu()
 
 void MenuFactory::update_default_menu()
 {
-    for (auto& name : { _L("Add Primitive") , _L("Show Labels") }) {
+    for (auto& name : { _L("Add Primitive"), _L("Add New Plate") }) {
         const auto menu_item_id = m_default_menu.FindItem(name);
         if (menu_item_id != wxNOT_FOUND)
             m_default_menu.Destroy(menu_item_id);
