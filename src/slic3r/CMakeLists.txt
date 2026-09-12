@@ -82,6 +82,12 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/SideTools.hpp
     GUI/Widgets/WebView.cpp
     GUI/Widgets/WebView.hpp
+    GUI/Widgets/WebViewTraceLogger.cpp
+    GUI/Widgets/WebViewTraceLogger.hpp
+    GUI/Widgets/WebViewWatcher.cpp
+    GUI/Widgets/WebViewWatcher.hpp
+    GUI/DeviceWeb/DeviceWebHealth.cpp
+    GUI/DeviceWeb/DeviceWebHealth.hpp
     GUI/Widgets/ErrorMsgStaticText.cpp
     GUI/Widgets/ErrorMsgStaticText.hpp
     GUI/Widgets/MultiNozzleSync.hpp
