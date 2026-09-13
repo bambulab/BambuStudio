@@ -2642,10 +2642,21 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         s_ext_cfg = collect_nozzle_configs_from_machine(obj, 0, extruder_max_nozzle_count[0]);
         update_extruder_full_stats(LOGIC_UNIQUE_EXTRUDER_ID, selected_diameter, s_ext_cfg);
 
-        single_extruder->combo_diameter->SetSelection(index);
-        is_switching_diameter = true;
-        switch_diameter(true);
-        is_switching_diameter = false;
+        // Multi-diameter slicing stays anchored on the canonical 0.2 printer preset, so the machine's
+        // dominant physical diameter must not re-point it. The per-slot stat collected above already
+        // carries the real hardware into slicing, and update_presets() re-derives both diameter
+        // widgets from printer_variant.
+        if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+            single_extruder->combo_diameter->SetSelection(index);
+            if (diameter_btns->IsShown()) {
+                diameter_btns->SetSelectedDiameter(selected_diameter);
+            }
+
+            is_switching_diameter = true;
+            switch_diameter(true);
+            is_switching_diameter = false;
+        }
+
 
         AMSCountPopupWindow::SetAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, ams_cnt_map[{LOGIC_UNIQUE_EXTRUDER_ID, 4}], ams_cnt_map[{LOGIC_UNIQUE_EXTRUDER_ID, 1}]);
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, s_extruder_panel);

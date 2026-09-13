@@ -1903,10 +1903,17 @@ wxString TabPresetComboBox::get_preset_name(const Preset& preset)
 {
     const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
         multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
-    const bool supported_printer = m_type == Preset::TYPE_PRINTER ?
-        is_single_ext_multi_nozzle(preset.config) :
-        m_type == Preset::TYPE_PRINT && m_preset_bundle != nullptr &&
-        is_single_ext_multi_nozzle(m_preset_bundle->printers.get_edited_preset().config);
+    // Only the canonical 0.2 baseline earns the "Multiple nozzle" label. Renaming every diameter
+    // would make a printer that some path wrongly re-pointed (0.4, 0.6, ...) indistinguishable from
+    // the baseline the mode is supposed to slice against.
+    bool supported_printer = false;
+    if (m_preset_bundle != nullptr) {
+        const PresetCollection &printers = m_preset_bundle->printers;
+        if (m_type == Preset::TYPE_PRINTER)
+            supported_printer = is_canonical_multi_nozzle_diameter_printer_preset(printers, preset);
+        else if (m_type == Preset::TYPE_PRINT)
+            supported_printer = is_canonical_multi_nozzle_diameter_printer_preset(printers, printers.get_edited_preset());
+    }
     if (multi_nozzle_mode && preset.is_system && supported_printer)
         return from_u8(multi_nozzle_preset_name(preset, m_type));
     return from_u8(preset.label(true));
