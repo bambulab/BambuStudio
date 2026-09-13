@@ -73,6 +73,7 @@ using namespace std::literals::string_view_literals;
 #include <assert.h>
 #include <libslic3r/GCode/Smoothing.hpp>
 #include <libslic3r/GCode/CoolingBuffer.hpp>
+#include <libslic3r/GCode/LayerTimeSmoothing.hpp>
 
 namespace Slic3r {
 
@@ -3611,6 +3612,37 @@ void GCode::set_extrude_acceleration(bool is_first_layer)
     }
 }
 
+void GCode::smooth_layer_times(
+    std::vector<LayerResult>                         &layers,
+    std::vector<std::vector<PerExtruderAdjustments>> &layers_extruder_adjustments,
+    std::vector<std::string>                         &layer_comments) const
+{
+    LayerTimeSmoother smoother(LayerTimeSmoother::params_from_config(m_config));
+    std::vector<std::vector<PerExtruderAdjustments> *> lines;
+    std::vector<float>                                 times;
+    lines.reserve(layers.size());
+    times.reserve(layers.size());
+    for (const LayerResult &res : layers) {
+        lines.emplace_back(&layers_extruder_adjustments[res.gcode_store_pos]);
+        times.emplace_back(res.layer_time);
+    }
+    smoother.process(lines, times);
+    for (size_t i = 0; i < layers.size(); ++ i) {
+        layers[i].layer_time = times[i];
+        if (layers[i].gcode_store_pos < layer_comments.size())
+            layer_comments[layers[i].gcode_store_pos] = smoother.layer_comment(i);
+    }
+}
+
+// Insert a comment after the first line of a layer G-code, which is the layer change tag.
+static void insert_layer_comment(std::string &gcode, const std::string &comment)
+{
+    if (gcode.empty() || comment.empty())
+        return;
+    size_t pos = gcode.find('\n');
+    gcode.insert(pos == std::string::npos ? gcode.size() : pos + 1, comment);
+}
+
 // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
 // and export G-code into file.
@@ -3694,21 +3726,29 @@ void GCode::process_layers(
     });
 
     // step 5: rewite
+    // BBS: diagnostic comments of the layer time smoothing, indexed by gcode_store_pos
+    std::vector<std::string> layer_time_smoothing_comments(layers_to_print.size());
+    const bool layer_time_smoothing = m_config.layer_time_smoothing.value;
+
     const auto write_gocde= tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
-    [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments](GCode::LayerResult in) -> std::string {
-         return gcode_editer.write_layer_gcode(std::move(in.gcode), in.not_set_additional_fan, in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
+    [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments, &layer_time_smoothing_comments](GCode::LayerResult in) -> std::string {
+         std::string out = gcode_editer.write_layer_gcode(std::move(in.gcode), in.not_set_additional_fan, in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
+         if (in.gcode_store_pos < layer_time_smoothing_comments.size())
+             insert_layer_comment(out, layer_time_smoothing_comments[in.gcode_store_pos]);
+         return out;
     });
 
     std::vector<GCode::LayerResult> gcode_res;
 
     // BBS: apply new feedrate of outwall and recalculate layer time
     int layer_idx = 0;
-     const auto calculate_layer_time= tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order, [&layer_idx, &smooth_calculator, &layers_extruder_adjustments, &gcode_res](tbb::flow_control& fc) -> GCode::LayerResult {
+     const auto calculate_layer_time= tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order, [&layer_idx, &smooth_calculator, &layers_extruder_adjustments, &gcode_res, layer_time_smoothing](tbb::flow_control& fc) -> GCode::LayerResult {
          if(layer_idx == gcode_res.size()){
             fc.stop();
             return{};
         }else{
-             if (layer_idx > 0){
+             // BBS: with layer time smoothing the layer times were already recalculated for all layers
+             if (layer_idx > 0 && !layer_time_smoothing){
                 gcode_res[layer_idx].layer_time = smooth_calculator.recaculate_layer_time(layer_idx, layers_extruder_adjustments[gcode_res[layer_idx].gcode_store_pos]);
              }
              return gcode_res[layer_idx++];
@@ -3723,13 +3763,15 @@ void GCode::process_layers(
     // The pipeline elements are joined using const references, thus no copying is performed.
     if (m_spiral_vase)
         tbb::parallel_pipeline(12, generator & spiral_mode & parsing & cooling & write_gocde & output);
-    else if (!m_config.z_direction_outwall_speed_continuous)
+    else if (!m_config.z_direction_outwall_speed_continuous && !layer_time_smoothing)
         tbb::parallel_pipeline(12, generator & parsing & cooling & write_gocde & output);
     else {
         tbb::parallel_pipeline(12, generator & parsing & cooling & build_node);
         std::string message;
-        message = _L("Smoothing z direction speed");
-        m_print->set_status(85, message);
+        if (m_config.z_direction_outwall_speed_continuous) {
+            message = _L("Smoothing z direction speed");
+            m_print->set_status(85, message);
+        }
         //append data
         for (const LayerResult &res : layers_results) {
             //remove empty gcode layer caused by support independent layers
@@ -3739,7 +3781,16 @@ void GCode::process_layers(
             }
         }
 
-        smooth_calculator.smooth_layer_speed();
+        if (m_config.z_direction_outwall_speed_continuous)
+            smooth_calculator.smooth_layer_speed();
+        if (layer_time_smoothing) {
+            message = _L("Smoothing layer time");
+            m_print->set_status(85, message);
+            // Apply the smoothed outer wall speeds first, so that the layer time smoother sees the final layer times.
+            for (size_t i = 1; i < gcode_res.size(); ++ i)
+                gcode_res[i].layer_time = smooth_calculator.recaculate_layer_time(int(i), layers_extruder_adjustments[gcode_res[i].gcode_store_pos]);
+            this->smooth_layer_times(gcode_res, layers_extruder_adjustments, layer_time_smoothing_comments);
+        }
         message = _L("Exporting G-code");
         m_print->set_status(90, message);
         tbb::parallel_pipeline(12, calculate_layer_time & write_gocde & output);
@@ -3836,9 +3887,16 @@ void GCode::process_layers(
     });
 
     // step 5: rewite
+    // BBS: diagnostic comments of the layer time smoothing, indexed by gcode_store_pos
+    std::vector<std::string> layer_time_smoothing_comments(layers_to_print.size());
+    const bool layer_time_smoothing = m_config.layer_time_smoothing.value;
+
     const auto write_gocde= tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
-    [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments](GCode::LayerResult in) -> std::string {
-         return gcode_editer.write_layer_gcode(std::move(in.gcode), in.not_set_additional_fan, in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
+    [&gcode_editer = *this->m_gcode_editer.get(), &layers_extruder_adjustments, &layer_time_smoothing_comments](GCode::LayerResult in) -> std::string {
+         std::string out = gcode_editer.write_layer_gcode(std::move(in.gcode), in.not_set_additional_fan, in.layer_id, in.layer_time, layers_extruder_adjustments[in.gcode_store_pos]);
+         if (in.gcode_store_pos < layer_time_smoothing_comments.size())
+             insert_layer_comment(out, layer_time_smoothing_comments[in.gcode_store_pos]);
+         return out;
     });
 
     std::vector<GCode::LayerResult> gcode_res;
@@ -3846,12 +3904,13 @@ void GCode::process_layers(
      // BBS: apply new feedrate of outwall and recalculate layer time
      int layer_idx = 0;
      //restart pipeline
-     const auto calculate_layer_time = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order, [&layer_idx, &gcode_res, &smooth_calculator, &layers_extruder_adjustments](tbb::flow_control& fc) -> GCode::LayerResult {
+     const auto calculate_layer_time = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order, [&layer_idx, &gcode_res, &smooth_calculator, &layers_extruder_adjustments, layer_time_smoothing](tbb::flow_control& fc) -> GCode::LayerResult {
          if(layer_idx == gcode_res.size()){
             fc.stop();
             return{};
         }else{
-             if (layer_idx > 0) {
+             // BBS: with layer time smoothing the layer times were already recalculated for all layers
+             if (layer_idx > 0 && !layer_time_smoothing) {
                 gcode_res[layer_idx].layer_time = smooth_calculator.recaculate_layer_time(layer_idx, layers_extruder_adjustments[gcode_res[layer_idx].gcode_store_pos]);
              }
              return gcode_res[layer_idx++];
@@ -3866,7 +3925,7 @@ void GCode::process_layers(
     // The pipeline elements are joined using const references, thus no copying is performed.
     if (m_spiral_vase)
         tbb::parallel_pipeline(12, generator & spiral_mode & parsing & cooling & write_gocde & output);
-    else if (!m_config.z_direction_outwall_speed_continuous)
+    else if (!m_config.z_direction_outwall_speed_continuous && !layer_time_smoothing)
         tbb::parallel_pipeline(12, generator & parsing & cooling & write_gocde & output);
     else {
         tbb::parallel_pipeline(12, generator & parsing & cooling & build_node);
@@ -3881,7 +3940,14 @@ void GCode::process_layers(
             }
         }
 
-        smooth_calculator.smooth_layer_speed();
+        if (m_config.z_direction_outwall_speed_continuous)
+            smooth_calculator.smooth_layer_speed();
+        if (layer_time_smoothing) {
+            // Apply the smoothed outer wall speeds first, so that the layer time smoother sees the final layer times.
+            for (size_t i = 1; i < gcode_res.size(); ++ i)
+                gcode_res[i].layer_time = smooth_calculator.recaculate_layer_time(int(i), layers_extruder_adjustments[gcode_res[i].gcode_store_pos]);
+            this->smooth_layer_times(gcode_res, layers_extruder_adjustments, layer_time_smoothing_comments);
+        }
 
         tbb::parallel_pipeline(12, calculate_layer_time & write_gocde & output);
     }
