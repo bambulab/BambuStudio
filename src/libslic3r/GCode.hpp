@@ -384,6 +384,12 @@ private:
         const size_t                     single_object_idx = size_t(-1),
         // BBS
         const bool                       prime_extruder = false);
+    // Limit the layer to layer variation of the layer times of the collected layers (see LayerTimeSmoother).
+    // Updates LayerResult::layer_time and stores a diagnostic G-code comment per LayerResult::gcode_store_pos.
+    void smooth_layer_times(
+        std::vector<LayerResult>                         &layers,
+        std::vector<std::vector<PerExtruderAdjustments>> &layers_extruder_adjustments,
+        std::vector<std::string>                         &layer_comments) const;
     // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
     // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
     // and export G-code into file.

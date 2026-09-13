@@ -205,6 +205,8 @@ set(lisbslic3r_sources
     GCode/Smoothing.hpp
     GCode/CoolingBuffer.cpp
     GCode/CoolingBuffer.hpp
+    GCode/LayerTimeSmoothing.cpp
+    GCode/LayerTimeSmoothing.hpp
     GCode/TimelapsePosPicker.cpp
     GCode/TimelapsePosPicker.hpp
     GCode.cpp

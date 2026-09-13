@@ -3305,6 +3305,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("avoid_crossing_wall_includes_support","parameter/quality-advance-settings");
         optgroup->append_single_option_line("z_direction_outwall_speed_continuous", "parameter/quality-advance-settings");
 
+        optgroup = page->new_optgroup(L("Layer time smoothing"), L"param_advanced");
+        optgroup->append_single_option_line("layer_time_smoothing", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("layer_time_max_variation", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("layer_time_smoothing_max_slowdown", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("layer_time_smoothing_max_time_increase", "parameter/quality-advance-settings");
+        optgroup->append_single_option_line("layer_time_smoothing_scope", "parameter/quality-advance-settings");
+
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
         optgroup->append_single_option_line("wall_loops","wall-generator");
