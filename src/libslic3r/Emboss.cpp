@@ -1475,9 +1475,16 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
             text_scales.emplace_back(real_scale);
         }
         cur_x = cursor.x() * standard_scale;
-        text_cursors.emplace_back(cur_x - last_x);
-        text_absolute_cursors.emplace_back(cur_x);
-        last_x = cur_x;
+        // After a line break cursor.x is reset; do not treat that as a negative advance into the previous line.
+        if (letter == '\n' || letter == '\r') {
+            text_cursors.emplace_back(0.f);
+            text_absolute_cursors.emplace_back(cur_x);
+            last_x = 0.f;
+        } else {
+            text_cursors.emplace_back(cur_x - last_x);
+            text_absolute_cursors.emplace_back(cur_x);
+            last_x = cur_x;
+        }
     }
     std::vector<Point> offset_xy;
     if (bfc_fn) {// support_backup_fonts
@@ -1487,11 +1494,13 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
     }
     std::vector<Vec2f> text_align_offsets;
     text_align_offsets.resize(text_scales.size());
-    for (int i = 0; i < text_scales.size(); i++) {
-        float x                  = (float) offset_xy[i][0] * standard_scale;
-        float y                  = (float) offset_xy[i][1] * standard_scale;
-        text_align_offsets[i][0] = x;
-        text_align_offsets[i][1] = y;
+    for (int i = 0; i < (int) text_scales.size(); i++) {
+        if (i < (int) offset_xy.size()) {
+            text_align_offsets[i][0] = (float) offset_xy[i][0] * standard_scale;
+            text_align_offsets[i][1] = (float) offset_xy[i][1] * standard_scale;
+        } else {
+            text_align_offsets[i] = Vec2f::Zero();
+        }
     }
     emboss_shape.text_align_offsets    = text_align_offsets;
     std::vector<float> no_use_text_scales;
@@ -1691,6 +1700,172 @@ double Emboss::get_text_shape_scale(const FontProp &fp, const FontFile &ff)
     double scale  = fp.size_in_mm / (double) info.unit_per_em;
     // Shape is scaled for store point coordinate as integer
     return scale * SHAPE_SCALE;
+}
+
+namespace {
+double measure_line_width_mm(FontFileWithCache &font_with_cache, const FontProp &font_prop, const std::wstring &line)
+{
+    if (!font_with_cache.has_value() || line.empty())
+        return 0.;
+    const double  scale = get_text_shape_scale(font_prop, *font_with_cache.font_file);
+    fontinfo_opt  font_info_cache;
+    Point         cursor(0, 0);
+    for (wchar_t letter : line) {
+        if (letter == '\n' || letter == '\r')
+            continue;
+        letter2shapes(letter, cursor, font_with_cache, font_prop, font_info_cache);
+    }
+    return cursor.x() * scale;
+}
+
+double measure_text_height_mm(FontFileWithCache &font_with_cache, const FontProp &font_prop, const std::string &text)
+{
+    if (!font_with_cache.has_value())
+        return 0.;
+    const unsigned lines = std::max(1u, get_count_lines(text));
+    const double   scale = get_text_shape_scale(font_prop, *font_with_cache.font_file);
+    return get_line_height(*font_with_cache.font_file, font_prop) * scale * lines;
+}
+} // namespace
+
+std::string Emboss::apply_text_wrap(FontFileWithCache &font_with_cache, const std::string &text, const FontProp &font_prop, double wrap_width_mm)
+{
+    if (!font_with_cache.has_value() || wrap_width_mm <= 1e-3 || text.empty())
+        return text;
+
+    const std::wstring src = boost::nowide::widen(text);
+    std::wstring       out;
+    out.reserve(src.size() + 8);
+
+    size_t para_start = 0;
+    while (para_start <= src.size()) {
+        size_t para_end = src.find('\n', para_start);
+        if (para_end == std::wstring::npos)
+            para_end = src.size();
+        const std::wstring paragraph = src.substr(para_start, para_end - para_start);
+
+        std::wstring line;
+        auto         flush_line = [&]() {
+            if (line.empty())
+                return;
+            if (!out.empty())
+                out.push_back('\n');
+            out += line;
+            line.clear();
+        };
+
+        size_t i = 0;
+        while (i < paragraph.size()) {
+            size_t start = i;
+            if (paragraph[i] == ' ' || paragraph[i] == '\t') {
+                while (i < paragraph.size() && (paragraph[i] == ' ' || paragraph[i] == '\t'))
+                    ++i;
+            } else {
+                while (i < paragraph.size() && paragraph[i] != ' ' && paragraph[i] != '\t')
+                    ++i;
+            }
+            const std::wstring token = paragraph.substr(start, i - start);
+            const std::wstring trial = line + token;
+            if (line.empty() || measure_line_width_mm(font_with_cache, font_prop, trial) <= wrap_width_mm) {
+                line = trial;
+                continue;
+            }
+            flush_line();
+            if (measure_line_width_mm(font_with_cache, font_prop, token) <= wrap_width_mm) {
+                line = token;
+            } else {
+                for (wchar_t ch : token) {
+                    std::wstring next = line;
+                    next.push_back(ch);
+                    if (!line.empty() && measure_line_width_mm(font_with_cache, font_prop, next) > wrap_width_mm) {
+                        flush_line();
+                        line.assign(1, ch);
+                    } else {
+                        line.swap(next);
+                    }
+                }
+            }
+        }
+        flush_line();
+
+        // Preserve blank lines from consecutive Enter presses
+        if (para_end < src.size() && paragraph.empty()) {
+            if (!out.empty())
+                out.push_back('\n');
+        }
+
+        if (para_end >= src.size())
+            break;
+        para_start = para_end + 1;
+    }
+
+    return boost::nowide::narrow(out);
+}
+
+std::string Emboss::fit_text_to_box(FontFileWithCache &font_with_cache,
+                                   FontProp &         font_prop,
+                                   const std::string &text,
+                                   double             wrap_width_mm,
+                                   double             wrap_height_mm,
+                                   bool               do_wrap,
+                                   bool               do_shrink)
+{
+    if (!font_with_cache.has_value() || text.empty())
+        return text;
+
+    const float original_size = font_prop.size_in_mm;
+    std::string working       = text;
+    // Work on a private glyph cache so fitting does not wipe the caller's style-manager cache.
+    FontFileWithCache local_font = font_with_cache;
+    local_font.cache             = std::make_shared<Glyphs>();
+
+    auto rebuild = [&](float size) {
+        font_prop.size_in_mm = size;
+        local_font.cache     = std::make_shared<Glyphs>();
+        working = do_wrap && wrap_width_mm > 1e-3 ? apply_text_wrap(local_font, text, font_prop, wrap_width_mm) : text;
+    };
+
+    rebuild(original_size);
+
+    if (!do_shrink || wrap_width_mm <= 1e-3)
+        return working;
+
+    auto fits = [&]() {
+        // Width: every line must fit (wrap already enforces when enabled; still check for shrink-only)
+        std::wstring ws = boost::nowide::widen(working);
+        size_t       start = 0;
+        while (start <= ws.size()) {
+            size_t end = ws.find('\n', start);
+            if (end == std::wstring::npos)
+                end = ws.size();
+            if (measure_line_width_mm(local_font, font_prop, ws.substr(start, end - start)) > wrap_width_mm + 1e-3)
+                return false;
+            if (end >= ws.size())
+                break;
+            start = end + 1;
+        }
+        if (wrap_height_mm > 1e-3 && measure_text_height_mm(local_font, font_prop, working) > wrap_height_mm + 1e-3)
+            return false;
+        return true;
+    };
+
+    if (fits())
+        return working;
+
+    float lo = 1.f;
+    float hi = original_size;
+    for (int iter = 0; iter < 16; ++iter) {
+        float mid = 0.5f * (lo + hi);
+        rebuild(mid);
+        if (fits())
+            lo = mid;
+        else
+            hi = mid;
+    }
+    rebuild(lo);
+    if (font_prop.size_in_mm < 1.f)
+        font_prop.size_in_mm = 1.f;
+    return working;
 }
 
 namespace {
@@ -2193,8 +2368,8 @@ void align_shape(ExPolygonsWithIds &shapes, std::vector<Point> &offset_xy, const
 
     // Speed up for left aligned text
     if (prop.align.first == FontProp::HorizontalAlign::left){
-        // already horizontaly aligned
-        offset_xy.emplace_back(Point(0, y_offset));
+        // already horizontaly aligned — still emit one offset per character for callers
+        offset_xy.assign(shapes.size(), Point(0, y_offset));
         for (ExPolygonsWithId& shape : shapes)
             for (ExPolygon &s : shape.expoly)
                 s.translate(Point(0, y_offset));
@@ -2216,9 +2391,11 @@ void align_shape(ExPolygonsWithIds &shapes, std::vector<Point> &offset_xy, const
     Point offset(
         get_align_x_offset(prop.align.first, shape_bb, get_line_bb(0)),
         y_offset);
+    offset_xy.reserve(shapes.size());
     for (size_t i = 0; i < shapes.size(); ++i) {
         wchar_t letter = text[i];
         if (letter == '\n'){
+            offset_xy.emplace_back(offset); // keep 1:1 with shapes/text for multiline
             offset.x() = get_align_x_offset(prop.align.first, shape_bb, get_line_bb(i + 1));
             continue;
         }
@@ -2272,9 +2449,11 @@ void align_shape(ExPolygonsWithIds &            shapes,
 
     // Align x line by line
     Point main_offset(get_align_x_offset(prop.align.first, shape_bb, get_line_bb(0)), main_y_offset);
+    offset_xy.reserve(shapes.size());
     for (size_t i = 0; i < shapes.size(); ++i) {
         wchar_t letter = text[i];
         if (letter == '\n') {//Enter the next line of text
+            offset_xy.emplace_back(main_offset); // keep 1:1 with shapes/text for multiline
             main_offset.x() = get_align_x_offset(prop.align.first, shape_bb, get_line_bb(i + 1));
             continue;
         }
