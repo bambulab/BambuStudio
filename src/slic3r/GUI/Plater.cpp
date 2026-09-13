@@ -982,10 +982,17 @@ struct Sidebar::priv
     NozzleDetailPopup        *nozzle_detail_popup = nullptr;
     wxPoint                   fila_switch_pos;
 
+    // Printer preset that was active right before the user turned multi_nozzle_diameter_mode ON, so
+    // turning it back OFF returns there instead of the generic 0.4 fallback. Session-local and only
+    // written by an explicit toggle: a project that already opens in multi-diameter mode has no
+    // return point, so its first switch to single-diameter still lands on 0.4.
+    std::optional<std::string> m_printer_preset_before_multi_diameter;
+
     int  FromDIP(int n) { return plater->FromDIP(n); }
     void layout_printer(bool isBBL, bool isDual, bool isMultiNozzle);
     void update_extruder_panel();
     void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
+    bool apply_multi_nozzle_diameter_mode(bool enabled);
     void update_extruder_full_stats(int extruder_id, wxString diameter, const std::vector<NozzleConfig> &configs);
     NozzleVolumeType get_volume_type_from_configs(wxString diameter, const std::vector<NozzleConfig> &configs);
     NozzleVolumeType derive_volume_type_from_full_stat(int extruder_id, const wxString &diameter) const;
@@ -1832,7 +1839,21 @@ static bool select_system_multi_nozzle_printer_preset(const std::string &printer
     return printer_tab->select_preset(target->name);
 }
 
-static bool select_printer_preset_for_multi_nozzle_mode(bool enabled)
+// The remembered printer preset, but only while it is still there and still belongs to printer_model:
+// one the user deleted, or one left over from another machine, must not be forced back.
+static Preset *find_restorable_printer_preset(const std::string &name, const std::string &printer_model)
+{
+    Preset *target = wxGetApp().preset_bundle->printers.find_preset(name, false);
+    if (target == nullptr || target->config.opt_string("printer_model") != printer_model)
+        return nullptr;
+    return target;
+}
+
+// Selects the printer preset the requested mode needs. Turning the mode on always lands on canonical
+// 0.2. Turning it off prefers restore_target - the preset the user came from - and only falls back to
+// the same-model 0.4 system preset when there is no usable return point.
+static bool select_printer_preset_for_multi_nozzle_mode(bool enabled,
+                                                        const std::optional<std::string> &restore_target = std::nullopt)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const Preset &current = preset_bundle->printers.get_edited_preset();
@@ -1840,16 +1861,31 @@ static bool select_printer_preset_for_multi_nozzle_mode(bool enabled)
     if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
         return false;
 
-    const std::string target_variant = enabled ? "0.2" : "0.4";
     if (enabled) {
         // Keep a current user/project preset that already inherits from canonical 0.2.
-        if (base->config.opt_string("printer_variant") == target_variant)
+        if (base->config.opt_string("printer_variant") == "0.2")
             return true;
-    } else if (current.is_system && current.config.opt_string("printer_variant") == target_variant) {
-        return true;
+        return select_system_multi_nozzle_printer_preset("0.2");
     }
 
-    return select_system_multi_nozzle_printer_preset(target_variant);
+    if (restore_target.has_value()) {
+        if (*restore_target == current.name)
+            return true;
+        // Once the return point resolves, its select_preset() outcome is final: falling through to
+        // the 0.4 fallback after a cancelled switch would ask about unsaved changes a second time.
+        if (Preset *target = find_restorable_printer_preset(*restore_target, base->config.opt_string("printer_model"))) {
+            Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+            if (printer_tab == nullptr)
+                return false;
+            target->is_visible = true;
+            return printer_tab->select_preset(target->name);
+        }
+    }
+
+    if (current.is_system && current.config.opt_string("printer_variant") == "0.4")
+        return true;
+
+    return select_system_multi_nozzle_printer_preset("0.4");
 }
 
 static void refresh_multi_nozzle_preset_choices()
@@ -1866,9 +1902,10 @@ static void refresh_multi_nozzle_preset_choices()
 // The preset combos hide every non-canonical printer while the gate is on, so "gate on + 0.4
 // printer" is a state they cannot render. Ordering the two writes by direction keeps every
 // intermediate state legal: turning the gate on writes it only once the 0.2 printer is active,
-// turning it off writes it before the 0.4 printer is selected. Returns whether the project ended
+// turning it off writes it before the single-diameter printer is selected. Turning it on also
+// records where to return to, which turning it off then consumes. Returns whether the project ended
 // up in the requested mode.
-static bool apply_multi_nozzle_diameter_mode(bool enabled)
+bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
 {
     auto *option = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
     if (option == nullptr)
@@ -1877,18 +1914,23 @@ static bool apply_multi_nozzle_diameter_mode(bool enabled)
         return true;
 
     if (enabled) {
+        // Capture the return point before select_preset() moves the project onto canonical 0.2.
+        const std::string preset_before = wxGetApp().preset_bundle->printers.get_edited_preset().name;
         if (!select_printer_preset_for_multi_nozzle_mode(true))
             return false;
         option->value = true;
+        m_printer_preset_before_multi_diameter = preset_before;
     } else {
         option->value = false;
-        if (!select_printer_preset_for_multi_nozzle_mode(false)) {
+        if (!select_printer_preset_for_multi_nozzle_mode(false, m_printer_preset_before_multi_diameter)) {
             // select_preset() rebuilt the combos under the abandoned mode before reporting failure,
-            // so they need another pass once the gate is back to its previous value.
+            // so they need another pass once the gate is back to its previous value. The return point
+            // is kept so a later attempt can still use it.
             option->value = true;
             refresh_multi_nozzle_preset_choices();
             return false;
         }
+        m_printer_preset_before_multi_diameter.reset();
     }
 
     refresh_multi_nozzle_preset_choices();
@@ -3306,7 +3348,7 @@ Sidebar::Sidebar(Plater *parent)
             const bool previous_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
             if (previous_mode == enabled)
                 return;
-            if (!apply_multi_nozzle_diameter_mode(enabled)) {
+            if (!p->apply_multi_nozzle_diameter_mode(enabled)) {
                 p->diameter_btns->SetMultiDiameterMode(previous_mode);
                 return;
             }
@@ -4332,6 +4374,11 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
     const bool enabled = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
     const std::string current_diameter =
         preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+
+    // A project that opens in multi-diameter mode was never toggled there by the user, so it has no
+    // return point and its first switch to single-diameter must land on the 0.4 fallback. Clearing
+    // here also drops a stale return point left by a previously open project.
+    p->m_printer_preset_before_multi_diameter.reset();
 
     p->diameter_btns->SetMultiDiameterMode(enabled);
     if (!enabled || current_diameter == "0.2") {
