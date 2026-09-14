@@ -83,6 +83,40 @@ wxBitmap *tray_color_icon(const DynamicPrintConfig &tray, const std::string &nam
     return (multi_color.size() > 1) ? get_extruder_color_icon(multi_color, ctype_str == "0", name, icon_width, 16) : get_extruder_color_icon(color, name, icon_width, 16);
 }
 
+static bool supports_multi_nozzle_diameter_mode(const PresetCollection& printers, const Preset& preset)
+{
+    const Preset* base = printers.get_preset_base(preset);
+    return base != nullptr && base->is_system && is_single_ext_multi_nozzle(base->config);
+}
+
+static bool is_canonical_multi_nozzle_diameter_printer_preset(const PresetCollection& printers, const Preset& preset)
+{
+    const Preset* base = printers.get_preset_base(preset);
+    return base != nullptr && base->is_system &&
+        is_single_ext_multi_nozzle(base->config) &&
+        base->config.opt_string("printer_variant") == "0.2";
+}
+
+// Multi-diameter slicing anchors the project on the canonical 0.2 printer, so the sibling diameters
+// of that machine must not be offered anywhere a printer is picked. Other printer models, and
+// machines that cannot do multi-diameter at all, are untouched. Callers add their own "keep the
+// preset in use" exemption, so a transient "mode on + non-canonical printer" state cannot drop the
+// active printer out of a list.
+static bool hidden_by_multi_nozzle_diameter_mode(const PresetBundle*     preset_bundle,
+                                                 const PresetCollection& collection,
+                                                 Preset::Type            type,
+                                                 const Preset&           preset)
+{
+    if (type != Preset::TYPE_PRINTER || preset_bundle == nullptr)
+        return false;
+    if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+        return false;
+    if (!preset.is_system && !preset.is_user() && !preset.is_project_embedded)
+        return false;
+    return supports_multi_nozzle_diameter_mode(collection, preset) &&
+           !is_canonical_multi_nozzle_diameter_printer_preset(collection, preset);
+}
+
 // ---------------------------------
 // ***  PresetComboBox  ***
 // ---------------------------------
@@ -403,6 +437,12 @@ void PresetComboBox::update(std::string select_preset_name)
     {
         const Preset& preset = presets[i];
         if (!m_show_all && (!preset.is_visible || !preset.is_compatible))
+            continue;
+
+        // Exempt both the collection's own selection and the preset this call is asked to select:
+        // the compare dialog restores a remembered pick here, which must not vanish from the list.
+        if (i != m_collection->get_selected_idx() && preset.name != select_preset_name &&
+            hidden_by_multi_nozzle_diameter_mode(m_preset_bundle, *m_collection, m_type, preset))
             continue;
 
         // marker used for disable incompatible printer models for the selected physical printer
@@ -1337,20 +1377,6 @@ wxString PlaterPresetComboBox::get_preset_name(const Preset& preset)
     return from_u8(preset.label(false));
 }
 
-static bool supports_multi_nozzle_diameter_mode(const PresetCollection& printers, const Preset& preset)
-{
-    const Preset* base = printers.get_preset_base(preset);
-    return base != nullptr && base->is_system && is_single_ext_multi_nozzle(base->config);
-}
-
-static bool is_canonical_multi_nozzle_diameter_printer_preset(const PresetCollection& printers, const Preset& preset)
-{
-    const Preset* base = printers.get_preset_base(preset);
-    return base != nullptr && base->is_system &&
-        is_single_ext_multi_nozzle(base->config) &&
-        base->config.opt_string("printer_variant") == "0.2";
-}
-
 // Only the compatible presets are shown.
 // If an incompatible preset is selected, it is shown as well.
 void PlaterPresetComboBox::update()
@@ -1407,8 +1433,6 @@ void PlaterPresetComboBox::update()
     wxString selected_uncompatible_preset;
     wxString tooltip;
     const std::deque<Preset>& presets = m_collection->get_presets();
-    const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
-        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
 
     //BBS:  move system to the end
     /*if (!presets.front().is_visible)
@@ -1420,11 +1444,8 @@ void PlaterPresetComboBox::update()
         // The preset in use stays listed whatever the gate says, mirroring the incompatible-preset
         // exemption below: a transient "gate on + non-canonical printer" state must not drop the
         // active printer out of the list.
-        if (multi_nozzle_mode && m_type == Preset::TYPE_PRINTER &&
-            i != m_collection->get_selected_idx() &&
-            (preset.is_system || preset.is_user() || preset.is_project_embedded) &&
-            supports_multi_nozzle_diameter_mode(*m_collection, preset) &&
-            !is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset))
+        if (i != m_collection->get_selected_idx() &&
+            hidden_by_multi_nozzle_diameter_mode(m_preset_bundle, *m_collection, m_type, preset))
             continue;
 
         bool is_selected =  m_type == Preset::TYPE_FILAMENT ?
@@ -1960,8 +1981,6 @@ void TabPresetComboBox::update()
     /*if (!presets.front().is_visible)
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));*/
     size_t idx_selected = m_collection->get_selected_idx();
-    const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
-        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
 
     // unselect printer
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
@@ -1977,10 +1996,7 @@ void TabPresetComboBox::update()
             continue;
         // Same idx_selected exemption as above: keep the printer currently in use listed even while
         // the gate would otherwise hide it.
-        if (multi_nozzle_mode && m_type == Preset::TYPE_PRINTER && i != idx_selected &&
-            (preset.is_system || preset.is_user() || preset.is_project_embedded) &&
-            supports_multi_nozzle_diameter_mode(*m_collection, preset) &&
-            !is_canonical_multi_nozzle_diameter_printer_preset(*m_collection, preset))
+        if (i != idx_selected && hidden_by_multi_nozzle_diameter_mode(m_preset_bundle, *m_collection, m_type, preset))
             continue;
 
         // marker used for disable incompatible printer models for the selected physical printer
