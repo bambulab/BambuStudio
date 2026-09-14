@@ -45,7 +45,7 @@
         "Direct Drive TPU285"
     ],
     "filament_flow_ratio": [
-        "1.16"
+        "1.21"
     ],
     "filament_flush_temp": [
         "0"
@@ -84,7 +84,10 @@
         "0.28,0.35,0.7"
     ],
     "filament_prime_volume": [
-        "60"
+        "70"
+    ],
+    "filament_prime_volume_nc": [
+        "70"
     ],
     "filament_ramming_travel_time": [
         "20"
@@ -117,7 +120,7 @@
         "2"
     ],
     "filament_retraction_minimum_travel": [
-        "nil"
+        "5"
     ],
     "filament_retraction_speed": [
         "10"
@@ -148,10 +151,10 @@
         "-1"
     ],
     "nozzle_temperature": [
-        "230"
+        "240"
     ],
     "nozzle_temperature_initial_layer": [
-        "230"
+        "240"
     ],
     "optional_cooling_fan_speed": [
         "75"
