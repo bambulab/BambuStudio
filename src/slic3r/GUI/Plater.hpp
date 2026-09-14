@@ -1025,7 +1025,12 @@ public:
     void    SetPlateIndexByRightMenuInLeftUI(int);
     static bool has_illegal_filename_characters(const wxString& name);
     static bool has_illegal_filename_characters(const std::string& name);
+    // For paths that get rendered into the home page HTML: checks the whole path, not just the
+    // file name, and only for characters that break out of HTML rather than the file name rules.
+    static bool has_html_unsafe_path_characters(const wxString& path);
+    static bool has_html_unsafe_path_characters(const std::string& path);
     static void show_illegal_characters_warning(wxWindow* parent);
+    static void show_unsafe_path_warning(wxWindow* parent);
 
 
     std::string get_preview_only_filename() { return m_preview_only_filename; };

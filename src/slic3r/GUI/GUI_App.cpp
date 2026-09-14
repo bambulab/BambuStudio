@@ -5140,11 +5140,18 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     pt::ptree                    data_node = root.get_child("data");
                     boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
                     if (path.has_value()) {
-                        wxLaunchDefaultBrowser(path.value());
-                        if (m_agent) {
-                            json j;
-                            j["user_guide"] = path.value();
-                            m_agent->track_event("user_guide", j.dump());
+                        // Remote pages may send this command, so refuse anything but plain web URLs:
+                        // local schemes (file://, ms-msdt:, custom protocol handlers) must never reach the shell.
+                        const std::string &url = path.value();
+                        if (boost::istarts_with(url, "http://") || boost::istarts_with(url, "https://")) {
+                            wxLaunchDefaultBrowser(url);
+                            if (m_agent) {
+                                json j;
+                                j["user_guide"] = url;
+                                m_agent->track_event("user_guide", j.dump());
+                            }
+                        } else {
+                            BOOST_LOG_TRIVIAL(warning) << "userguide_wiki_open: refused non-http(s) url";
                         }
                     }
                 }

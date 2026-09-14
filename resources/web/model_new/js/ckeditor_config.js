@@ -62,13 +62,20 @@ function detectEditorLanguage() {
 		return 'en';
 	}
 	const normalizedUnderscore = lang.replace('-', '_');
-	if (CKEDITOR_LANGUAGE_MAP[normalizedUnderscore]) {
-		return CKEDITOR_LANGUAGE_MAP[normalizedUnderscore];
+	const mapped = lookupEditorLanguage(normalizedUnderscore) || lookupEditorLanguage(lang);
+	if (mapped) {
+		return mapped;
 	}
-	if (CKEDITOR_LANGUAGE_MAP[lang]) {
-		return CKEDITOR_LANGUAGE_MAP[lang];
-	}
-	return normalizedUnderscore.replace('_', '-').toLowerCase();
+	// The result is interpolated into a script src below, and `lang` comes from a query string or
+	// from localStorage - both attacker-reachable. Returning it verbatim allowed path traversal
+	// into any local file, which same-origin file: URLs make CSP unable to stop. Never pass through
+	// anything that is not one of the codes we actually ship.
+	return 'en';
+}
+
+// Plain property access would also hit Object.prototype members such as `constructor`.
+function lookupEditorLanguage(key) {
+	return Object.prototype.hasOwnProperty.call(CKEDITOR_LANGUAGE_MAP, key) ? CKEDITOR_LANGUAGE_MAP[key] : null;
 }
 
 const editorLanguage = detectEditorLanguage();

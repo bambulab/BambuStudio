@@ -2,6 +2,16 @@
 <html>
 <head>
 <meta charset="utf-8">
+<!-- Scripts may only come from the bundled resources. This page renders user-controlled file names,
+     so an injected handler must not be able to pull code in from a remote host.
+
+     Careful when adding code here: there is no 'unsafe-eval', and that restriction fails SILENTLY.
+     Anything the engine has to compile from source text - setTimeout()/setInterval() handed a
+     string instead of a function, eval(), new Function(), $.getScript() - is refused without an
+     error the user can see; the call simply never happens. That is how a page-to-host command can
+     stop working with no symptom at all. Every script this page pulls in was swept for those
+     forms when the policy was added; keep it that way. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' file:; style-src 'self' 'unsafe-inline' file:; img-src 'self' file: data: blob: https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'" />
 <meta http-equiv="Cache-Control" content="max-age=7200" />
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />	
 <title>homepage</title>

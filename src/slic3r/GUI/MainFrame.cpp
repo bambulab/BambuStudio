@@ -4385,6 +4385,14 @@ void MainFrame::set_print_button_to_default(PrintSelectType select_type)
 
 void MainFrame::add_to_recent_projects(const wxString& filename)
 {
+    // Never record a path that would break out of its attribute when the home page renders the
+    // recent-file list. Plater::load_project() rejects these too; this keeps any other caller safe.
+    // The whole path is checked, not just the file name: the home page renders the full path.
+    if (Plater::has_html_unsafe_path_characters(filename)) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": skipped project with unsafe characters in its path";
+        return;
+    }
+
     if (wxFileExists(filename))
     {
         m_recent_projects.AddFileToHistory(filename);
@@ -4459,7 +4467,13 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int imag
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
         boost::property_tree::wptree item;
         std::wstring proj = m_recent_projects.GetHistoryFile(i).ToStdWstring();
-        item.put(L"project_name", proj.substr(proj.find_last_of(L"/\\") + 1));
+        std::wstring project_name = proj.substr(proj.find_last_of(L"/\\") + 1);
+        // Entries persisted by an older build may still carry a path that breaks out of the
+        // attribute it is rendered into, so filter on the way out as well as on the way in.
+        // Both fields below reach the page, so the full path has to be clean, not just the name.
+        if (Plater::has_html_unsafe_path_characters(wxString(proj)))
+            continue;
+        item.put(L"project_name", project_name);
         item.put(L"path", proj);
         boost::system::error_code ec;
         std::time_t t = boost::filesystem::last_write_time(proj, ec);

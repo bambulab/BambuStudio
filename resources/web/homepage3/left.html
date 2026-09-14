@@ -2,6 +2,9 @@
 <html>
 <head>
 <meta charset="utf-8">
+<!-- Scripts may only come from the bundled resources; no remote code, see home.html.
+     No 'unsafe-eval' either: string-form setTimeout/setInterval and eval() fail silently here. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' file:; style-src 'self' 'unsafe-inline' file:; img-src 'self' file: data: blob: https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'" />
 <meta http-equiv="Cache-Control" content="max-age=7200" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,user-scalable=no">
 <title>homepage</title>

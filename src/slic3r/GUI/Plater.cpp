@@ -42,6 +42,7 @@
 #include <wx/statbox.h>
 #include <wx/statbmp.h>
 #include <wx/filedlg.h>
+#include <wx/filename.h>
 #include <wx/dnd.h>
 #include <wx/progdlg.h>
 #include <wx/timer.h>
@@ -383,9 +384,43 @@ bool Plater::has_illegal_filename_characters(const std::string& name)
     return false;
 }
 
+// The recent-project list on the home page renders the *whole* project path into HTML attributes,
+// so any component of the path - a parent directory just as much as the file name - can break out
+// of the attribute it lands in. Kept separate from has_illegal_filename_characters(): that one
+// enforces the Windows file name rules and rejects ':' and the separators, which would refuse
+// perfectly ordinary paths when applied to a full path.
+bool Plater::has_html_unsafe_path_characters(const wxString& wxs_path)
+{
+    std::string path = into_u8(wxs_path);
+    return has_html_unsafe_path_characters(path);
+}
+
+bool Plater::has_html_unsafe_path_characters(const std::string& path)
+{
+    // The apostrophe is deliberately not on this list: it is legal in directory names on every
+    // platform and turns up in real ones ("Bob's Projects", a user called O'Brien), whereas <, >
+    // and " are already illegal in Windows paths. Rejecting it would refuse ordinary paths for no
+    // gain - the page renders these values inside double-quoted attributes and escapes them anyway.
+    if (path.find_first_of("<>\"") != std::string::npos)
+        return true;
+    // An already-escaped sequence would be decoded again by anything that unescapes before
+    // rendering, so treat it as unsafe too.
+    std::array<std::string, 4> escape_characters = {"&lt;", "&gt;", "&amp;", "&quot;"};
+    for (const auto &escape : escape_characters) {
+        if (boost::contains(path, escape))
+            return true;
+    }
+    return false;
+}
+
 void Plater::show_illegal_characters_warning(wxWindow* parent)
 {
     show_error(parent, _L("Invalid name, the following characters are not allowed:") + " <>:/\\|?*\"" +_L("(Including its escape characters)"));
+}
+
+void Plater::show_unsafe_path_warning(wxWindow* parent)
+{
+    show_error(parent, _L("Invalid name, the following characters are not allowed:") + " <>\"" + _L("(Including its escape characters)"));
 }
 
 void Plater::mark_plate_toolbar_image_dirty()
@@ -20221,6 +20256,15 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
 int Plater::load_project(wxString const &filename2,
     wxString const& originfile)
 {
+    // The project path is rendered into the home page recent-file list as raw HTML, so quotes or
+    // angle brackets anywhere in it - a parent directory name just as much as the file name - can
+    // break out of the surrounding attribute. Refuse such files before anything is loaded or recorded.
+    if (!filename2.empty() && has_html_unsafe_path_characters(filename2)) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": refused project file with unsafe characters in its path";
+        show_unsafe_path_warning(this);
+        return wxID_CANCEL;
+    }
+
     model().calib_pa_pattern.reset(nullptr);
     model().plates_custom_gcodes.clear();
 
@@ -20234,6 +20278,14 @@ int Plater::load_project(wxString const &filename2,
         if (filename.empty()) {
             // Ask user for a project file name.
             wxGetApp().load_project(this, filename);
+            // The file dialog may hand back a path we refuse to render. Reject it here, from
+            // inside close_with_confirm()'s check: bailing out after it returns would leave the
+            // user with the previous project already closed and nothing loaded in its place.
+            if (has_html_unsafe_path_characters(filename)) {
+                BOOST_LOG_TRIVIAL(warning) << "load_project: refused project file with unsafe characters in its path";
+                show_unsafe_path_warning(this);
+                filename.clear();
+            }
         }
         return !filename.empty();
     };
