@@ -3729,7 +3729,8 @@ void PrintObject::update_slicing_parameters()
 {
     if (!m_slicing_params.valid)
         m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders());
+            this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders(),
+            layer_grid_subdivision(this->print()->full_print_config()));
 }
 
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full_config, const ModelObject& model_object, float object_max_z, std::vector<int> variant_index)
@@ -3767,7 +3768,8 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 
     if (object_max_z <= 0.f)
         object_max_z = (float)model_object.raw_bounding_box().size().z();
-    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders);
+    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders,
+                                                 layer_grid_subdivision(full_config));
 }
 
 // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
@@ -4138,14 +4140,15 @@ void PrintObject::discover_horizontal_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 }
 
-// The diameter every band size is measured against. A multi-diameter plate is always sliced with the finest
-// preset the machine offers, whatever the nozzles it actually uses, so the layer stack is a grid of that
-// preset's layer height and each nozzle covers diameter/reference of its steps. Deriving the reference from
-// the nozzles in use instead would rescale that grid whenever the finest one is absent: a 0.4 + 0.8 plate
-// would call 0.4 the reference and leave 0.4 printing single steps of the 0.2 preset.
+// The diameter every band size is measured against: the nozzle the layer grid resolves, i.e. the finest one
+// the machine offers, whatever the nozzles this plate actually uses. SlicingParameters divided the preset's
+// layer height down to that nozzle's step, so each nozzle covers diameter/reference of those steps. The
+// reference is deliberately not the preset diameter (the preset may be a coarse one) and not the finest
+// nozzle in use either: the latter would rescale the grid whenever the finest one is absent, so a 0.4 + 0.8
+// plate would call 0.4 the reference and leave 0.4 printing single steps of a grid built for the 0.2.
 static double band_reference_nozzle(const PrintObject &object)
 {
-    const double primary = primary_nozzle_diameter(object.print()->full_print_config());
+    const double primary = layer_grid_nozzle_diameter(object.print()->full_print_config());
     if (primary > EPSILON)
         return primary;
     // No printer preset to read the variant from. Fall back to the finest nozzle laying material down.
@@ -4202,44 +4205,41 @@ void PrintObject::compute_adaptive_merge_groups()
     if (min_nozzle <= EPSILON)
         return;
 
-    // Only a colour boundary ends a band, and paint normalization has recorded them already: a colour's Z
-    // extent is invisible from here, the paint has been cut into regions by now. An object that pass never
-    // ran on carries no paint at all, so there is nothing to protect and the grid stays plain.
+    // Only a colour boundary ends a band. Paint normalization records MM colour starts/stops; a preview
+    // slider tool change is the same kind of Z colour boundary but never went through that pass, so it is
+    // recovered here from which regions actually own each layer.
     std::vector<uint8_t> band_tops = this->adaptive_band_tops();
     if (band_tops.size() != layer_count)
         band_tops.assign(layer_count, 0);
+    {
+        std::vector<uint8_t> prev(region_count, 0);
+        for (size_t region_id = 0; region_id < region_count; ++ region_id)
+            prev[region_id] = ! m_layers.front()->get_region(region_id)->raw_slices.empty();
+        for (size_t layer_idx = 0; layer_idx + 1 < layer_count; ++ layer_idx) {
+            std::vector<uint8_t> next(region_count, 0);
+            for (size_t region_id = 0; region_id < region_count; ++ region_id)
+                next[region_id] = ! m_layers[layer_idx + 1]->get_region(region_id)->raw_slices.empty();
+            if (next != prev)
+                band_tops[layer_idx] = 1;
+            prev = std::move(next);
+        }
+        this->set_adaptive_band_tops(band_tops);
+    }
 
     auto build_region_bands = [&](size_t region_id, size_t band_size,
                                   const AdaptiveLayerHeightRange &range) {
         if (band_size < 2 || ! m_layers.front()->get_region(region_id)->raw_slices.empty())
             return build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
 
-        // A color absent from the true first layer starts its own ladder immediately above layer 0.
-        // Protect that first full-size group from a later color boundary; otherwise DP tail balancing
-        // shifts [1,3] to [2,4], delaying a 0.6/0.2 combination from Z=0.4 to Z=0.5.
-        const size_t first_bottom = 1;
-        if (first_bottom + band_size > layer_count)
-            return build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
-        AdaptiveLayerBand first { first_bottom, first_bottom + band_size - 1, 0. };
-        for (size_t layer_idx = first.bottom_idx; layer_idx <= first.top_idx; ++ layer_idx)
-            first.merged_height += layer_heights[layer_idx];
-        if (! range.contains(first.merged_height))
-            return build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);
-
-        std::vector<AdaptiveLayerBand> out { first };
-        const size_t suffix_bottom = first.top_idx + 1;
-        if (suffix_bottom < layer_count) {
-            std::vector<double> suffix_heights(layer_heights.begin() + suffix_bottom, layer_heights.end());
-            std::vector<uint8_t> suffix_tops(band_tops.begin() + suffix_bottom, band_tops.end());
-            std::vector<AdaptiveLayerBand> suffix =
-                build_adaptive_layer_bands(suffix_heights, band_size, range, suffix_tops);
-            for (AdaptiveLayerBand &band : suffix) {
-                band.bottom_idx += suffix_bottom;
-                band.top_idx += suffix_bottom;
-                out.emplace_back(band);
-            }
-        }
-        return out;
+        // A color absent from the true first layer starts its own ladder on the first layer it owns.
+        // Pin that first full-size group; otherwise DP tail balancing shifts [1,3] to [2,4] (delaying a
+        // 0.6/0.2 combination from Z=0.4 to Z=0.5) or, for a mid-object tool change, keeps the coarse
+        // ladder aligned to layer 1 so the first overlapping band is dropped by occupied().
+        size_t first_bottom = 1;
+        while (first_bottom < layer_count &&
+               m_layers[first_bottom]->get_region(region_id)->raw_slices.empty())
+            ++ first_bottom;
+        return build_adaptive_layer_bands_from(layer_heights, first_bottom, band_size, range, band_tops);
     };
 
     {
@@ -4248,7 +4248,6 @@ void PrintObject::compute_adaptive_merge_groups()
         for (uint8_t mark : band_tops)
             marks.push_back(mark ? 'T' : '.');
         BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] layers=" << layer_count << " min_nozzle=" << min_nozzle
-                                 << " band_tops_source=" << (this->adaptive_band_tops().size() == layer_count ? "shared" : "unpainted")
                                  << " band_tops(T=forced boundary)=" << marks;
     }
 
@@ -4288,7 +4287,7 @@ void PrintObject::compute_adaptive_merge_groups()
             continue;
 
         const AdaptiveLayerHeightRange       range = adaptive_layer_height_range(nozzle);
-        const size_t                         band_size = adaptive_layer_band_size(nozzle, min_nozzle, m_config.layer_height.value);
+        const size_t                         band_size = adaptive_layer_band_size(nozzle, min_nozzle, m_slicing_params.layer_height);
         const std::vector<AdaptiveLayerBand> bands = build_region_bands(region_id, band_size, range);
 
         {
@@ -4547,7 +4546,11 @@ void PrintObject::combine_adaptive_infill()
         if (covered.empty()) {
             if (bottom_idx != 0)
                 return;
-            covered = merge_area;
+            // The first-band wall may consume the entire narrow slice. Fall back to the cavity left by
+            // perimeter generation, not the full slice, or infill will overlap the merged wall.
+            covered = intersection_ex(merge_area, layerm->fill_expolygons);
+            if (covered.empty())
+                return;
         } else {
             covered = union_ex(to_polygons(covered));
         }
@@ -4739,7 +4742,7 @@ void PrintObject::combine_adaptive_infill()
             for (const FillGroup &group : fill_groups) {
                 const double nozzle = nozzle_diameter_for_filament(print_config, group.filament);
                 const AdaptiveLayerHeightRange       range     = adaptive_layer_height_range(nozzle);
-                const size_t                         band_size = adaptive_layer_band_size(nozzle, min_nozzle, m_config.layer_height.value);
+                const size_t                         band_size = adaptive_layer_band_size(nozzle, min_nozzle, m_slicing_params.layer_height);
 
                 std::vector<ExPolygons> mergeable(layer_count);
                 for (size_t layer_idx = 0; layer_idx < layer_count; ++layer_idx) {
@@ -4756,27 +4759,12 @@ void PrintObject::combine_adaptive_infill()
                 }
 
                 std::vector<AdaptiveLayerBand> bands;
-                if (mergeable.front().empty() && band_size >= 2 && 1 + band_size <= layer_count) {
-                    AdaptiveLayerBand first { 1, band_size, 0. };
-                    for (size_t layer_idx = first.bottom_idx; layer_idx <= first.top_idx; ++ layer_idx)
-                        first.merged_height += layer_heights[layer_idx];
-                    if (range.contains(first.merged_height)) {
-                        bands.emplace_back(first);
-                        const size_t suffix_bottom = first.top_idx + 1;
-                        if (suffix_bottom < layer_count) {
-                            std::vector<double> suffix_heights(
-                                layer_heights.begin() + suffix_bottom, layer_heights.end());
-                            std::vector<uint8_t> suffix_tops(
-                                band_tops.begin() + suffix_bottom, band_tops.end());
-                            std::vector<AdaptiveLayerBand> suffix =
-                                build_adaptive_layer_bands(suffix_heights, band_size, range, suffix_tops);
-                            for (AdaptiveLayerBand &band : suffix) {
-                                band.bottom_idx += suffix_bottom;
-                                band.top_idx += suffix_bottom;
-                                bands.emplace_back(band);
-                            }
-                        }
-                    }
+                if (mergeable.front().empty() && band_size >= 2) {
+                    size_t first_bottom = 1;
+                    while (first_bottom < layer_count && mergeable[first_bottom].empty())
+                        ++ first_bottom;
+                    bands = build_adaptive_layer_bands_from(layer_heights, first_bottom, band_size, range,
+                                                            band_tops);
                 }
                 if (bands.empty())
                     bands = build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);

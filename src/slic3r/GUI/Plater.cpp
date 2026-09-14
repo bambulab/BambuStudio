@@ -3387,6 +3387,17 @@ Sidebar::Sidebar(Plater *parent)
                 return;
             }
 
+            if (enabled) {
+                for (auto &plate_custom_gcodes : wxGetApp().plater()->model().plates_custom_gcodes) {
+                    auto &gcodes = plate_custom_gcodes.second.gcodes;
+                    gcodes.erase(std::remove_if(gcodes.begin(), gcodes.end(),
+                                               [](const CustomGCode::Item &item) {
+                                                   return item.type == CustomGCode::Type::ToolChange;
+                                               }),
+                                 gcodes.end());
+                }
+            }
+
             // Before validate_filament_nozzle_diameter_selections() clears per-slot state on the
             // toggle-OFF path, snapshot the current values so they can be restored on a later toggle-
             // ON within the same session. Without this, switching multi-diameter off and back on

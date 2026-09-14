@@ -995,10 +995,13 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                                  << " max=" << max_nozzle;
         return;
     }
-    // Bands are counted off the preset the plate was sliced with, not off the nozzles it happens to use, so
-    // that this grid is the one compute_adaptive_merge_groups() decimates on.
-    const double primary          = primary_nozzle_diameter(print_object.print()->full_print_config());
+    // Bands are counted off the grid the plate was sliced on, not off the nozzles it happens to use, so that
+    // this grid is the one compute_adaptive_merge_groups() decimates on. Both the reference diameter and the
+    // base height must come from the sliced layer stack: the process preset's layer height is only the
+    // authored value, which SlicingParameters may have subdivided to resolve a finer nozzle.
+    const double primary          = layer_grid_nozzle_diameter(print_object.print()->full_print_config());
     const double reference_nozzle = primary > EPSILON ? primary : min_nozzle;
+    const double base_layer_height = print_object.slicing_parameters().layer_height;
     {
         std::string bases;
         for (double diameter : base_nozzles)
@@ -1007,7 +1010,7 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
                                  << " base_nozzles:" << (bases.empty() ? " none" : bases)
                                  << " min=" << min_nozzle << " max=" << max_nozzle
                                  << " primary=" << primary << " reference=" << reference_nozzle
-                                 << " base_layer_height=" << print_object.config().layer_height.value;
+                                 << " base_layer_height=" << base_layer_height;
     }
 
     std::vector<double> layer_heights(layer_count, 0.);
@@ -1084,7 +1087,7 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
         const double nozzle = extruder_nozzles[extruder_id];
         if (nozzle <= EPSILON)
             continue;
-        const size_t band_size = adaptive_layer_band_size(nozzle, reference_nozzle, print_object.config().layer_height.value);
+        const size_t band_size = adaptive_layer_band_size(nozzle, reference_nozzle, base_layer_height);
         if (band_size < 2)
             continue;
         const AdaptiveLayerHeightRange range = adaptive_layer_height_range(nozzle);
@@ -1128,7 +1131,7 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
         const double nozzle = extruder_nozzles[extruder_id];
         if (nozzle <= EPSILON)
             continue;
-        const size_t band_size = adaptive_layer_band_size(nozzle, reference_nozzle, print_object.config().layer_height.value);
+        const size_t band_size = adaptive_layer_band_size(nozzle, reference_nozzle, base_layer_height);
         if (band_size < 2) {
             BOOST_LOG_TRIVIAL(debug) << "[mm_band] pass1 E" << extruder_id << " d=" << nozzle
                                      << " band_size=" << band_size << " -> prints every layer, untouched";
@@ -1260,7 +1263,7 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
     };
     std::vector<ExPolygons> base_claimed(layer_count);
     for (double diameter : base_nozzles) {
-        const size_t band_size = adaptive_layer_band_size(diameter, reference_nozzle, print_object.config().layer_height.value);
+        const size_t band_size = adaptive_layer_band_size(diameter, reference_nozzle, base_layer_height);
         if (band_size < 2) {
             BOOST_LOG_TRIVIAL(debug) << "[mm_band] pass2 base d=" << diameter << " band_size=" << band_size
                                      << " -> prints every layer, untouched";
@@ -1268,27 +1271,11 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
         }
         const AdaptiveLayerHeightRange range = adaptive_layer_height_range(diameter);
         std::vector<AdaptiveLayerBand> bands;
-        if (unpainted_at(0, diameter).empty() && 1 + band_size <= layer_count) {
-            AdaptiveLayerBand first { 1, band_size, 0. };
-            for (size_t layer_idx = first.bottom_idx; layer_idx <= first.top_idx; ++ layer_idx)
-                first.merged_height += layer_heights[layer_idx];
-            if (range.contains(first.merged_height)) {
-                bands.emplace_back(first);
-                const size_t suffix_bottom = first.top_idx + 1;
-                if (suffix_bottom < layer_count) {
-                    std::vector<double> suffix_heights(
-                        layer_heights.begin() + suffix_bottom, layer_heights.end());
-                    std::vector<uint8_t> suffix_tops(
-                        band_tops.begin() + suffix_bottom, band_tops.end());
-                    std::vector<AdaptiveLayerBand> suffix =
-                        build_adaptive_layer_bands(suffix_heights, band_size, range, suffix_tops);
-                    for (AdaptiveLayerBand &band : suffix) {
-                        band.bottom_idx += suffix_bottom;
-                        band.top_idx += suffix_bottom;
-                        bands.emplace_back(band);
-                    }
-                }
-            }
+        if (unpainted_at(0, diameter).empty() && band_size >= 2) {
+            size_t first_bottom = 1;
+            while (first_bottom < layer_count && unpainted_at(first_bottom, diameter).empty())
+                ++ first_bottom;
+            bands = build_adaptive_layer_bands_from(layer_heights, first_bottom, band_size, range, band_tops);
         }
         if (bands.empty())
             bands = build_adaptive_layer_bands(layer_heights, band_size, range, band_tops);

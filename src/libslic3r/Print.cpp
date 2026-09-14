@@ -593,10 +593,12 @@ bool Print::uses_multiple_nozzle_diameters() const
     if (has_multiple_used_nozzle_diameters(m_config, filaments))
         return true;
 
-    // A plate using only one coarse filament still needs adaptive bands when the process layer grid is
-    // based on a smaller primary nozzle. "Multiple diameter mode" describes the machine/grid capability,
-    // not a requirement that two differently sized tools must both appear on this plate.
-    const double reference_nozzle = primary_nozzle_diameter(m_full_print_config);
+    // A plate using only one coarse filament still needs adaptive bands when the layer grid is anchored to a
+    // smaller nozzle. "Multiple diameter mode" describes the machine/grid capability, not a requirement that
+    // two differently sized tools must both appear on this plate. The comparison is against the grid anchor
+    // rather than the preset diameter, so a coarse preset over a finer grid - a 0.4 preset on a rack that
+    // carries a 0.2, where 0.2mm layers are sliced as 2 x 0.1mm - still merges its steps back together.
+    const double reference_nozzle = layer_grid_nozzle_diameter(m_full_print_config);
     if (reference_nozzle <= EPSILON)
         return false;
     return std::any_of(filaments.begin(), filaments.end(), [&](unsigned int filament_id) {

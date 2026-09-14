@@ -95,6 +95,18 @@ std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
     const AdaptiveLayerHeightRange &height_range,
     const std::vector<uint8_t>     &band_tops = {});
 
+// Same grid as build_adaptive_layer_bands(), but the first full-size band is pinned at first_bottom
+// instead of layer 0. A colour (or a preview-slider tool change) that is absent from the true first
+// layer must start its own ladder on the first layer it actually owns; otherwise DP tail balancing
+// shifts the group, and a later occupied() check from the finer nozzle drops the first coarse band.
+// first_bottom == 0 is equivalent to build_adaptive_layer_bands().
+std::vector<AdaptiveLayerBand> build_adaptive_layer_bands_from(
+    const std::vector<double>      &layer_heights,
+    size_t                          first_bottom,
+    size_t                          band_size,
+    const AdaptiveLayerHeightRange &height_range,
+    const std::vector<uint8_t>     &band_tops = {});
+
 // Tail recovery may pin a band top on a layer this nozzle never owns (the geometric stack top after
 // a colour disappears). Pull top_idx down to the last layer in the band that still has material,
 // and recompute merged_height. Returns false when no such layer exists, the leftover is a single

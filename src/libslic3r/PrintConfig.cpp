@@ -175,26 +175,12 @@ double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value)
     return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 32.0, 125.9, 125.9, 125.9 });
 }
 
-bool has_multiple_configured_nozzle_diameters(const ConfigBase &config)
+// The diameters that describe what the machine offers: per-slot where that data is authoritative,
+// per-extruder otherwise. Per-slot diameters describe the capability of both single-extruder multi-nozzle
+// machines and H2C-class multi-extruder machines. Both the "offers more than one diameter" query and the
+// layer grid anchor read this, so the two can never disagree about which nozzles exist.
+static const std::vector<double> *configured_nozzle_diameters(const ConfigBase &config)
 {
-    if (! multi_nozzle_diameter_mode_enabled(config))
-        return false;
-
-    auto has_multiple = [](const std::vector<double> &diameters) {
-        double first = 0.;
-        for (double diameter : diameters) {
-            if (diameter <= EPSILON)
-                continue;
-            if (first <= EPSILON)
-                first = diameter;
-            else if (std::abs(diameter - first) > EPSILON)
-                return true;
-        }
-        return false;
-    };
-
-    // Per-slot diameters describe the capability of both single-extruder multi-nozzle machines and
-    // H2C-class multi-extruder machines. Invalid per-slot data falls back to the per-extruder values.
     const auto *per_slot     = config.option<ConfigOptionFloats>("extruder_nozzle_diameter");
     const auto *slot_counts  = config.option<ConfigOptionInts>("extruder_nozzle_count");
     const auto *hotend_as_extruder = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
@@ -203,9 +189,57 @@ bool has_multiple_configured_nozzle_diameters(const ConfigBase &config)
         hotend_as_extruder != nullptr && hotend_as_extruder->value,
         slot_counts != nullptr ? slot_counts->values : no_slot_counts,
         per_slot->values))
-        return has_multiple(per_slot->values);
+        return &per_slot->values;
     const auto *per_extruder = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    return per_extruder != nullptr && has_multiple(per_extruder->values);
+    return per_extruder != nullptr ? &per_extruder->values : nullptr;
+}
+
+bool has_multiple_configured_nozzle_diameters(const ConfigBase &config)
+{
+    if (! multi_nozzle_diameter_mode_enabled(config))
+        return false;
+
+    const std::vector<double> *diameters = configured_nozzle_diameters(config);
+    if (diameters == nullptr)
+        return false;
+
+    double first = 0.;
+    for (double diameter : *diameters) {
+        if (diameter <= EPSILON)
+            continue;
+        if (first <= EPSILON)
+            first = diameter;
+        else if (std::abs(diameter - first) > EPSILON)
+            return true;
+    }
+    return false;
+}
+
+double layer_grid_nozzle_diameter(const ConfigBase &config)
+{
+    const double primary = primary_nozzle_diameter(config);
+    if (! multi_nozzle_diameter_mode_enabled(config) || primary <= EPSILON)
+        return primary;
+
+    // The grid has to resolve the finest nozzle the rack carries, not the finest one this plate happens to
+    // load: a plate that leaves the 0.2 at home must still slice on the grid the 0.2 would need, or every
+    // band count rescales the moment it is used again.
+    double finest = primary;
+    if (const std::vector<double> *diameters = configured_nozzle_diameters(config))
+        for (double diameter : *diameters)
+            if (diameter > EPSILON && diameter < finest)
+                finest = diameter;
+    return finest;
+}
+
+int layer_grid_subdivision(const ConfigBase &config)
+{
+    const double primary = primary_nozzle_diameter(config);
+    const double anchor  = layer_grid_nozzle_diameter(config);
+    if (primary <= EPSILON || anchor <= EPSILON)
+        return 1;
+    // Integer ratio: a fractional one would leave band_size unable to divide the grid evenly.
+    return std::max(1, int(primary / anchor + 0.5));
 }
 
 bool complete_filament_nozzle_diameter_selections(

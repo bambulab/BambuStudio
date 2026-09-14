@@ -1,5 +1,6 @@
 #include "IMSlider.hpp"
 #include "libslic3r/GCode.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "NotificationManager.hpp"
@@ -245,7 +246,10 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         // post_ticks_changed_event();
     }
 
-    if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
+    const bool tool_change_disabled =
+        !m_can_change_color ||
+        multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+    if (m_ticks.has_tick_with_code(ToolChange) && tool_change_disabled) {
         if (!wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->using_exported_file())
         {
             m_ticks.erase_all_ticks_with_code(ToolChange);
@@ -382,6 +386,9 @@ void IMSlider::add_custom_gcode(std::string custom_gcode)
 void IMSlider::add_code_as_tick(Type type, int selected_extruder)
 {
     if (m_selection == ssUndef) return;
+    if (type == ToolChange &&
+        multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config))
+        return;
     const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
 
     if (!check_ticks_changed_event(type)) {
@@ -1373,7 +1380,10 @@ void IMSlider::render_add_menu()
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
-            if (!m_can_change_color) {
+            const bool can_change_filament =
+                m_can_change_color &&
+                !multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+            if (!can_change_filament) {
                 begin_menu(_u8L("Change Filament").c_str(), false);
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {
@@ -1423,7 +1433,10 @@ void IMSlider::render_edit_menu(const TickCode& tick)
         case CustomGCode::ToolChange: {
             int extruder_num = m_extruder_colors.size();
             if (extruder_num > 1) {
-                if (!m_can_change_color) {
+                const bool can_change_filament =
+                    m_can_change_color &&
+                    !multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+                if (!can_change_filament) {
                     begin_menu(_u8L("Change Filament").c_str(), false);
                 }
                 else if (begin_menu(_u8L("Change Filament").c_str())) {

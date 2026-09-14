@@ -63,10 +63,15 @@ SlicingParameters SlicingParameters::create_from_config(
 	const PrintConfig 		&print_config, 
 	const PrintObjectConfig &object_config,
 	coordf_t				 object_height,
-	const std::vector<unsigned int> &object_extruders)
+	const std::vector<unsigned int> &object_extruders,
+	int                      layer_grid_subdivision)
 {
-    coordf_t initial_layer_print_height                      = (print_config.initial_layer_print_height.value <= 0) ? 
-        object_config.layer_height.value : print_config.initial_layer_print_height.value;
+    layer_grid_subdivision = std::max(1, layer_grid_subdivision);
+    // The initial layer belongs to the same subdivided Z grid as the regular layers. Keeping its authored
+    // height while subdividing the remaining layers leaves the first grid step inconsistent with the preset.
+    coordf_t initial_layer_print_height = ((print_config.initial_layer_print_height.value <= 0) ?
+        object_config.layer_height.value : print_config.initial_layer_print_height.value) /
+        coordf_t(layer_grid_subdivision);
     // If object_config.support_filament == 0 resp. object_config.support_interface_filament == 0,
     // nozzle_diameter_for_filament returns the 0th nozzle diameter,
     // which is consistent with the requirement that if support_filament == 0 resp. support_interface_filament == 0,
@@ -77,7 +82,11 @@ SlicingParameters SlicingParameters::create_from_config(
     bool     soluble_interface                       = object_config.support_top_z_distance.value == 0.;
 
     SlicingParameters params;
-    params.layer_height = object_config.layer_height.value;
+    // BBS multi-diameter: the preset's layer height states what the preset's own nozzle lays down, not the
+    // resolution of the grid. Dividing it out here is what lets the plate be sliced with a coarse preset
+    // (keeping its speeds and line widths) while the layer stack stays fine enough for the finest nozzle on
+    // the machine, which then merges layer_grid_subdivision steps back into one extrusion.
+    params.layer_height = object_config.layer_height.value / coordf_t(layer_grid_subdivision);
     params.first_print_layer_height = initial_layer_print_height;
     params.first_object_layer_height = initial_layer_print_height;
     params.object_print_z_min = 0.;
@@ -118,9 +127,11 @@ SlicingParameters SlicingParameters::create_from_config(
         params.gap_object_support = params.gap_support_object;
 
     if (!print_config.independent_support_layer_height) {
-        params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
-        params.gap_object_support = std::round(params.gap_object_support / object_config.layer_height + EPSILON) * object_config.layer_height;
-        params.gap_support_object = std::round(params.gap_support_object / object_config.layer_height + EPSILON) * object_config.layer_height;
+        // Snap to the grid the layers are actually on, which is params.layer_height once the preset height has
+        // been subdivided. Identical to the authored height whenever layer_grid_subdivision is 1.
+        params.gap_raft_object = std::round(params.gap_raft_object / params.layer_height + EPSILON) * params.layer_height;
+        params.gap_object_support = std::round(params.gap_object_support / params.layer_height + EPSILON) * params.layer_height;
+        params.gap_support_object = std::round(params.gap_support_object / params.layer_height + EPSILON) * params.layer_height;
     }
 
     if (params.base_raft_layers > 0) {

@@ -166,6 +166,42 @@ std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
     return bands;
 }
 
+std::vector<AdaptiveLayerBand> build_adaptive_layer_bands_from(
+    const std::vector<double>      &layer_heights,
+    size_t                          first_bottom,
+    size_t                          band_size,
+    const AdaptiveLayerHeightRange &height_range,
+    const std::vector<uint8_t>     &band_tops)
+{
+    if (first_bottom == 0)
+        return build_adaptive_layer_bands(layer_heights, band_size, height_range, band_tops);
+    if (band_size < 2 || first_bottom + band_size > layer_heights.size())
+        return build_adaptive_layer_bands(layer_heights, band_size, height_range, band_tops);
+
+    AdaptiveLayerBand first { first_bottom, first_bottom + band_size - 1, 0. };
+    for (size_t layer_idx = first.bottom_idx; layer_idx <= first.top_idx; ++ layer_idx)
+        first.merged_height += layer_heights[layer_idx];
+    if (! height_range.contains(first.merged_height))
+        return build_adaptive_layer_bands(layer_heights, band_size, height_range, band_tops);
+
+    std::vector<AdaptiveLayerBand> out { first };
+    const size_t suffix_bottom = first.top_idx + 1;
+    if (suffix_bottom < layer_heights.size()) {
+        std::vector<double> suffix_heights(layer_heights.begin() + suffix_bottom, layer_heights.end());
+        std::vector<uint8_t> suffix_tops;
+        if (suffix_bottom < band_tops.size())
+            suffix_tops.assign(band_tops.begin() + suffix_bottom, band_tops.end());
+        std::vector<AdaptiveLayerBand> suffix =
+            build_adaptive_layer_bands(suffix_heights, band_size, height_range, suffix_tops);
+        for (AdaptiveLayerBand &band : suffix) {
+            band.bottom_idx += suffix_bottom;
+            band.top_idx += suffix_bottom;
+            out.emplace_back(band);
+        }
+    }
+    return out;
+}
+
 bool pull_adaptive_band_top_to_material(
     AdaptiveLayerBand                &band,
     const std::vector<double>        &layer_heights,

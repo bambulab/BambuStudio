@@ -28,11 +28,17 @@ struct SlicingParameters
 {
 	SlicingParameters() = default;
 
+    // BBS multi-diameter: layer_grid_subdivision cuts the preset's authored layer height into that many
+    // object layers, decoupling the grid resolution from the preset the plate was sliced with. It comes from
+    // layer_grid_subdivision(full_print_config); printer_variant is not readable from PrintConfig, so the
+    // callers that own the full config resolve it. 1 means "grid == authored layer height", the historical
+    // behavior and the only value single-diameter printing ever sees.
     static SlicingParameters create_from_config(
         const PrintConfig       &print_config, 
         const PrintObjectConfig &object_config,
         coordf_t                 object_height,
-        const std::vector<unsigned int> &object_extruders);
+        const std::vector<unsigned int> &object_extruders,
+        int                      layer_grid_subdivision = 1);
 
     // Has any raft layers?
     bool        has_raft() const { return raft_layers() > 0; }
