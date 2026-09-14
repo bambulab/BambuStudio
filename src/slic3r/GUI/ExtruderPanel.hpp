@@ -86,6 +86,12 @@ public:
 private:
     void OnButtonClicked(wxCommandEvent &event);
     void CreateLayout();
+    /**
+     * \brief Widen the mode selector so its widest item shows without ellipsis
+     *
+     * No-op until the combo exists and its items are populated.
+     */
+    void FitModeComboToWidestItem();
     // In multi-diameter mode every configured diameter is valid, so the diameter selector is meaningless;
     // hide its title + buttons. Sidebar panel only (the one carrying the mode selector).
     void UpdateSelectorVisibility();

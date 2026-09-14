@@ -669,4 +669,67 @@ namespace Slic3r
         return 0;
     }
 
+    std::vector<FilamentInfo> DevMappingUtil::enumerate_dest_slots(const MachineObject* obj)
+    {
+        std::vector<FilamentInfo> slots;
+        if (!obj || !obj->GetFilaSystem() || !obj->GetNozzleRack())
+            return slots;
+
+        auto set_diameter = [](FilamentInfo& info, const std::optional<DevNozzle>& nz) {
+            if (nz.has_value()) {
+                info.nozzle_diameter    = (double) nz->GetNozzleDiameter();
+                info.nozzle_volume_type = DevNozzle::GetNozzleFlowTypeString(nz->GetNozzleFlowType());
+            }
+        };
+
+        const auto rack_type = obj->GetNozzleRack()->GetRackType();
+        if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+            std::map<int, FilamentInfo>             tray_filaments;
+            std::map<int, std::optional<DevNozzle>> tray_nozzles;
+            std::set<int>                           ext_keys, not_loaded_keys, sub_ams_keys;
+            _collect_mapping_hotend_item_candidates(obj, true, tray_filaments, tray_nozzles, ext_keys, not_loaded_keys, sub_ams_keys);
+            for (auto& kv : tray_filaments) {
+                FilamentInfo info = kv.second;
+                auto         it   = tray_nozzles.find(kv.first);
+                if (it != tray_nozzles.end())
+                    set_diameter(info, it->second);
+                slots.push_back(info);
+            }
+            return slots;
+        }
+
+        // Legacy single/dual-extruder AMS plus external spools.
+        // A single-nozzle machine (P1 / A1 / X1 class) has no nozzle rack, so the per-slot lookup below
+        // (rack nozzles only) never resolves one. Its lone extruder nozzle feeds every slot, so fall back
+        // to it for the diameter / volume type when the lookup comes back empty.
+        std::optional<DevNozzle> single_ext_nozzle;
+        if (auto* ns = obj->GetNozzleSystem(); ns && ns->GetExtNozzleCount() == 1)
+            single_ext_nozzle = ns->GetExtNozzles().begin()->second;
+        auto resolve_nozzle = [&](const DevAmsTray* tray) -> std::optional<DevNozzle> {
+            auto nz = _query_slot_nozzle(obj, tray);
+            return nz.has_value() ? nz : single_ext_nozzle;
+        };
+        const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
+        for (auto ams = ams_list.begin(); ams != ams_list.end(); ++ams) {
+            auto ams_type = ams->second->GetAmsType();
+            if (ams_type == DevAmsType::AMS_LITE && ams->second->IsAmsLiteMixed())
+                ams_type = DevAmsType::AMS_LITE_MIXED;
+            for (auto tray = ams->second->GetTrays().begin(); tray != ams->second->GetTrays().end(); ++tray) {
+                if (!tray->second->is_tray_info_ready())
+                    continue;
+                FilamentInfo info;
+                _parse_tray_info(atoi(ams->first.c_str()), atoi(tray->first.c_str()), ams_type, *(tray->second), info);
+                set_diameter(info, resolve_nozzle(tray->second));
+                slots.push_back(info);
+            }
+        }
+        for (auto tray : obj->vt_slot) {
+            FilamentInfo info;
+            _parse_tray_info(atoi(tray.id.c_str()), 0, DevAmsType::EXT_SPOOL, tray, info);
+            set_diameter(info, resolve_nozzle(&tray));
+            slots.push_back(info);
+        }
+        return slots;
+    }
+
 }

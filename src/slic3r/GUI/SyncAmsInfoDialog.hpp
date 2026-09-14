@@ -44,8 +44,6 @@ class SyncAmsInfoDialog : public DPIDialog
     std::map<std::string, PrintOption *> m_checkbox_list;
     std::vector<wxString>                m_bedtype_list;
     std::vector<MachineObject *>         m_list;
-    std::vector<FilamentInfo>            m_filaments;
-    std::vector<FilamentInfo>            m_ams_mapping_result;
     std::vector<FilamentInfo>            m_back_ams_mapping_result;
     std::vector<int>                     m_filaments_map;
 
@@ -65,6 +63,9 @@ protected:
     AmsMapingTipPopup m_mapping_tip_popup{nullptr};
     AmsTutorialPopup  m_mapping_tutorial_popup{nullptr};
     MaterialHash      m_materialList;
+    // Exposed to the multi-diameter fork: it fills m_filaments and reads m_ams_mapping_result back.
+    std::vector<FilamentInfo> m_filaments;
+    std::vector<FilamentInfo> m_ams_mapping_result;
     Plater *          m_plater{nullptr};
     wxPanel *         m_options_other{nullptr};
     wxBoxSizer *      m_sizer_options_timelapse{nullptr};
@@ -108,8 +109,16 @@ protected:
     wxBoxSizer *m_two_image_panel_sizer{nullptr};
     StaticBox *m_two_thumbnail_panel{nullptr};
     wxBoxSizer *m_two_thumbnail_panel_sizer{nullptr};
+    StaticBox *m_mode_panel{nullptr}; ///< wraps the map-mode toggle so a fork can give it a card background
     wxBoxSizer *m_choose_plate_sizer{nullptr};
     ComboBox *  m_combobox_plate{nullptr};
+    wxButton *  m_left_image_button  = nullptr;
+    wxButton *  m_right_image_button = nullptr;
+    wxBoxSizer *m_left_sizer_thumbnail{nullptr};
+    wxBoxSizer *m_right_sizer_thumbnail{nullptr};
+    wxBoxSizer *m_left_title_sizer{nullptr};
+    bool        m_expand_more_settings = true;
+    bool        m_hide_hint_labels     = false; ///< when set, the tip/confirm hint labels stay hidden.
     //TextInput *m_plate_number{nullptr};
     wxArrayString    m_plate_number_choices_str;
     std::vector<int> m_plate_choices;
@@ -151,6 +160,25 @@ protected:
     wxBoxSizer *  m_sizer_show_page{nullptr};
     wxAnimationCtrl *m_gif_ctrl{nullptr};
 
+    /// Fold or expand the advanced ("More settings") section.
+    void set_advanced_settings_expanded(bool expanded);
+    /// Permanently hide the explanatory hint labels (the "Tip:" line above and the "cannot be
+    /// undone" line below the advanced-settings section); they stay hidden across mode switches.
+    void hide_advanced_settings_hint_labels();
+
+    /// Scroll-area height for the three content states (compact / with hint / with advanced settings).
+    /// A subclass that adds rows can override these to reserve more room without resizing the base dialog.
+    virtual int dialog_height_min()    const { return FromDIP(620); }
+    virtual int dialog_height_middle() const { return FromDIP(630); }
+    virtual int dialog_height_max()    const { return FromDIP(660); }
+
+    /// When true, the AMS mapping popup opens with every slot pickable (fork override). Off in the base.
+    virtual bool sync_popup_match_all() const { return false; }
+    /// Register a mapping item in m_materialList and bind its click to open the AMS mapping popup.
+    /// Shared by the base grid layout and the fork's row layout so the popup wiring lives in one place.
+    void wire_sync_item(MaterialSyncItem* item, int extruder,
+                        const std::vector<std::string>& materials, const std::string& item_index_str);
+
 public:
     void check_empty_project();
     void reinit_dialog();
@@ -176,10 +204,12 @@ public:
     void     show_errors(wxString &info);
     void     Enable_Auto_Refill(bool enable);
     void     on_refresh(wxCommandEvent &event);
-    void     on_set_finish_mapping(wxCommandEvent &evt);
+    /// Virtual so the multi-diameter fork can extend it (e.g. reflect the chosen slot's diameter)
+    /// while still being reached through the base's pointer-to-member Bind.
+    virtual void on_set_finish_mapping(wxCommandEvent &evt);
     void     on_print_job_cancel(wxCommandEvent &evt);
-    void     reset_and_sync_ams_list();
-    void     generate_override_fix_ams_list();
+    virtual void reset_and_sync_ams_list();
+    virtual void generate_override_fix_ams_list();
     void     clone_thumbnail_data();
     void     record_edge_pixels_data();
     wxColour adjust_color_for_render(const wxColour &color);
@@ -209,7 +239,10 @@ public:
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) { m_print_type = type; };
     bool has_selector(MachineObject *obj_) const;
-    bool do_ams_mapping(MachineObject *obj_);
+    virtual bool do_ams_mapping(MachineObject *obj_);
+    /// When true, the auto-map filters candidate slots by nozzle diameter and flow type (checked
+    /// before colour). Base ignores the nozzle; a subclass enables it for precision matching.
+    virtual bool use_nozzle_type_match() const { return false; }
     void deal_only_exist_ext_spool(MachineObject *obj_);
     void show_thumbnail_page();
     bool get_ams_mapping_result(std::string &mapping_array_str, std::string &mapping_array_str2, std::string &ams_mapping_info);
@@ -243,7 +276,7 @@ public:
     ~SyncAmsInfoDialog();
     void set_info(SyncInfo &info);
     void on_dpi_changed(const wxRect &suggested_rect) override;
-    const SyncResult &get_result() { return m_result; }
+    virtual const SyncResult &get_result() { return m_result; }
 
 public:
     bool Show(bool show) override;
@@ -254,7 +287,7 @@ public:
     bool is_must_finish_slice_then_connected_printer() ;
     void hide_no_use_controls();
     void show_sizer(wxSizer *sizer, bool show);
-    void deal_ok();
+    virtual void deal_ok();
     bool get_is_double_extruder();
     bool is_dirty_filament();
     bool is_need_show();
@@ -293,10 +326,6 @@ private:
     //wxStaticText *m_specify_color_cluster_title = nullptr;
     //wxStaticText*  m_used_colors_tip_text{nullptr};
     wxStaticText* m_warning_text{nullptr};
-    wxBoxSizer *  m_left_sizer_thumbnail{nullptr};
-    wxBoxSizer *  m_right_sizer_thumbnail{nullptr};
-    wxButton *      m_left_image_button = nullptr;
-    wxButton *      m_right_image_button = nullptr;
     wxBoxSizer *    sizer_basic_right_info = nullptr;
     wxBoxSizer *    sizer_advanced_options_title = nullptr;
     Label *  m_confirm_title                = nullptr;
@@ -325,7 +354,6 @@ private:
     bool m_is_empty_project = true;
 
     bool m_check_dirty_fialment  = true;
-    bool m_expand_more_settings  = true;
     bool m_image_is_top          = false;
 
     const int LEFT_THUMBNAIL_SIZE_WIDTH = 100;

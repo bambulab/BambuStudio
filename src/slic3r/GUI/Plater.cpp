@@ -142,6 +142,7 @@
 #include "ModelMall.hpp"
 #include "ConfigWizard.hpp"
 #include "SyncAmsInfoDialog.hpp"
+#include "MultiDiameterSyncAmsDialog.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
@@ -2762,6 +2763,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     plater->on_config_change(preset_bundle->full_config());
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
+
+    if (is_single_ext_multi_nozzle(machine_preset->config)) { plater->sidebar().sync_ams_list(); }
     return true;
 }
 
@@ -6019,8 +6022,17 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     SyncAmsInfoDialog::SyncInfo temp_info;
     temp_info.use_dialog_pos = false;
     temp_info.cancel_text_to_later = is_from_big_sync_btn;
+    // Multi-diameter-capable projects/printers open the diameter-aware fork; everything else keeps
+    // the legacy dialog. Recreate the cached instance when the required variant changes.
+    const auto &printer_cfg  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    bool        use_multi    = is_single_ext_multi_nozzle(printer_cfg) || multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->full_config());
+    const bool  dlg_is_multi = dynamic_cast<MultiDiameterSyncAmsDialog *>(m_sync_dlg) != nullptr;
+    if (m_sync_dlg && dlg_is_multi != use_multi) {
+        m_sync_dlg->Destroy();
+        m_sync_dlg = nullptr;
+    }
     if (m_sync_dlg == nullptr) {
-        m_sync_dlg = new SyncAmsInfoDialog(this, temp_info);
+        m_sync_dlg = use_multi ? new MultiDiameterSyncAmsDialog(this, temp_info) : new SyncAmsInfoDialog(this, temp_info);
     } else {
         m_sync_dlg->set_info(temp_info);
     }
@@ -22096,7 +22108,9 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
                 tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->get_dev_name() % printer_model % printer_model).str());
             else
                 tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
-                    "To use this printer for printing, please switch the preset first.")) % obj->get_dev_name() % printer_model).str());
+                                                   "To use this printer for printing, please sync the connected printer.")) %
+                                obj->get_dev_name() % printer_model)
+                                   .str());
 
             std::map<wxStandardID, wxString>option_map = {
                 {wxID_YES,_L("Switch now")},

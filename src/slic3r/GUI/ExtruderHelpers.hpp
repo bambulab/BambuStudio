@@ -38,7 +38,8 @@ struct NozzleConfig
 /**
  * \brief Human-readable nozzle spec for a config, e.g. "0.4mm Standard".
  *
- * Returns a localized status word ("Empty" / "Error" / "Unknown") when the nozzle is not usable.
+ * Driven by the configured diameter/volume, not the live machine status, so a disconnected nozzle
+ * still reads as its preset spec. Returns "Empty" when no diameter is set.
  *
  * \param cfg  the nozzle configuration to describe
  */

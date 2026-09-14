@@ -284,6 +284,7 @@ class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
     bool m_ext_mapping_filatype_check = true;
+    bool m_match_all = false; ///< when set, every normal AMS slot is pickable regardless of filament type
     wxStaticText* m_title_text{ nullptr };
 
     wgtDeviceNozzleRackSelect *m_rack_nozzle_select{nullptr};
@@ -390,6 +391,8 @@ public:
     void msw_rescale();
 
     void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
+    /// Allow every normal AMS slot to be picked, ignoring the source filament type. Off by default.
+    void set_match_all(bool match_all) { m_match_all = match_all; }
 
     // Web path: VM stages the last selected slot's ctype/material_cols
     // here so SelectMachine.cpp can recover them when handling

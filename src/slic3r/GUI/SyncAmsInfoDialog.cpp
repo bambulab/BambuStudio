@@ -36,9 +36,6 @@ using namespace Slic3r::GUI;
 #define OK_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
 #define CANCEL_BUTTON_SIZE wxSize(FromDIP(58), FromDIP(24))
 #define SyncAmsInfoDialogWidth  FromDIP(675)
-#define SyncAmsInfoDialogHeightMIN FromDIP(620)
-#define SyncAmsInfoDialogHeightMIDDLE FromDIP(630)
-#define SyncAmsInfoDialogHeightMAX FromDIP(660)
 #define SyncLabelWidth FromDIP(640)
 #define SyncAttentionTipWidth FromDIP(550)
 
@@ -79,8 +76,8 @@ bool SyncAmsInfoDialog::Show(bool show)
         m_filament_left_panel->Show(false); // empty_project
         m_filament_right_panel->Show(false);
         m_are_you_sure_title->Show(false);
-        if (m_mode_combox_sizer) {
-            m_mode_combox_sizer->Show(false);
+        if (m_mode_panel) {
+            m_mode_panel->Show(false);
         }
     }
     if (dirty_filament) {
@@ -92,8 +89,8 @@ bool SyncAmsInfoDialog::Show(bool show)
         m_filament_left_panel->Show(false); // empty_project
         m_filament_right_panel->Show(false);
         m_are_you_sure_title->Show(true);
-        if (m_mode_combox_sizer) {
-            m_mode_combox_sizer->Show(true);
+        if (m_mode_panel) {
+            m_mode_panel->Show(true);
             m_reset_all_btn->Hide();
         }
         m_confirm_title->SetLabel(m_undone_str);
@@ -138,7 +135,7 @@ void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
             }
         }
         //image.SaveFile("preview-left.png", wxBITMAP_TYPE_PNG);
-        image = image.Rescale(FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), FromDIP(LEFT_THUMBNAIL_SIZE_WIDTH), wxIMAGE_QUALITY_BOX_AVERAGE);
+        image = image.Rescale(m_left_image_button->GetSize().x, m_left_image_button->GetSize().y, wxIMAGE_QUALITY_BOX_AVERAGE);
         m_left_image_button->SetBitmap(image);
     }
     if (data.is_valid() && m_right_image_button) {
@@ -153,7 +150,7 @@ void SyncAmsInfoDialog::set_default_normal(const ThumbnailData &data)
             }
         }
         //image.SaveFile("preview-right.png", wxBITMAP_TYPE_PNG);
-        image = image.Rescale(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), wxIMAGE_QUALITY_BOX_AVERAGE);
+        image = image.Rescale(m_right_image_button->GetSize().x, m_right_image_button->GetSize().y, wxIMAGE_QUALITY_BOX_AVERAGE);
         m_right_image_button->SetBitmap(image);
         auto extruders = wxGetApp().plater()->get_partplate_list().get_plate(m_specify_plate_idx)->get_extruders();
         if (wxGetApp().plater()->get_extruders_colors().size() == extruders.size()) {
@@ -266,10 +263,11 @@ wxBoxSizer *SyncAmsInfoDialog::create_sizer_thumbnail(wxButton *image_button, bo
     auto sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
     if (left) {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_left_title_sizer     = text_sizer;
         auto        sync_text  = new Label(image_button->GetParent(), _CTX(L_CONTEXT("Original", "Sync_AMS"), "Sync_AMS"));
         sync_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         text_sizer->Add(sync_text, 0, wxALIGN_CENTER | wxALL, 0);
-        sizer_thumbnail->Add(sync_text, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
+        sizer_thumbnail->Add(text_sizer, FromDIP(0), wxALIGN_CENTER | wxALL, FromDIP(4));
     }
     else {
         wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -304,18 +302,18 @@ void SyncAmsInfoDialog::update_when_change_map_mode(int idx)
         m_confirm_title->SetLabel(m_undone_str);
         m_after_map_text->SetLabel(_L("After mapping"));
         m_tip_text->SetLabel(m_tip_attention_color_map);
-        m_scrolledWindow->SetMinSize(wxSize(-1, SyncAmsInfoDialogHeightMAX));
-        m_scrolledWindow->SetMaxSize(wxSize(-1, SyncAmsInfoDialogHeightMAX));
+        m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_max()));
+        m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_max()));
 
     } else if (m_map_mode == MapModeEnum::Override) {
         show_color_panel(false,false);
-        m_confirm_title->Show();
+        if (!m_hide_hint_labels) m_confirm_title->Show();
         m_confirm_title->SetLabel(m_override_undone_str);
-        m_are_you_sure_title->Show();
+        if (!m_hide_hint_labels) m_are_you_sure_title->Show();
         m_after_map_text->SetLabel(_L("After overwriting"));
         m_tip_text->SetLabel(m_tip_attention_override);
-        m_scrolledWindow->SetMinSize(wxSize(-1, SyncAmsInfoDialogHeightMIN));
-        m_scrolledWindow->SetMaxSize(wxSize(-1, SyncAmsInfoDialogHeightMIN));
+        m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_min()));
+        m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_min()));
     }
     update_map_when_change_map_mode();
     m_scrolledWindow->FitInside();
@@ -398,8 +396,8 @@ void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
 {
     //show_sizer(m_plate_combox_sizer, flag);
     show_advanced_settings(flag, update_layout);
-    m_confirm_title->Show(flag);
-    m_are_you_sure_title->Show(flag);
+    m_confirm_title->Show(flag && !m_hide_hint_labels);
+    m_are_you_sure_title->Show(flag && !m_hide_hint_labels);
     if (flag) {
         auto extruders = wxGetApp().plater()->get_partplate_list().get_plate(m_specify_plate_idx)->get_extruders();
         /*if (wxGetApp().plater()->get_extruders_colors().size() != extruders.size()) {
@@ -414,19 +412,34 @@ void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
     }
 }
 
+void SyncAmsInfoDialog::set_advanced_settings_expanded(bool expanded)
+{
+    m_expand_more_settings = expanded;
+    update_more_setting(true, false);
+}
+
+void SyncAmsInfoDialog::hide_advanced_settings_hint_labels()
+{
+    m_hide_hint_labels = true;
+    if (m_attention_text)     m_attention_text->Hide();
+    if (m_tip_text)           m_tip_text->Hide();
+    if (m_confirm_title)      m_confirm_title->Hide();
+    if (m_are_you_sure_title) m_are_you_sure_title->Hide();
+}
+
 void SyncAmsInfoDialog::update_more_setting(bool layout, bool from_more_seting_text)
 {
     if (!m_expand_more_settings) {
         m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option3", m_scrolledWindow, 18));
         if (from_more_seting_text) {
-            m_scrolledWindow->SetMinSize(wxSize(-1, SyncAmsInfoDialogHeightMIDDLE));
-            m_scrolledWindow->SetMaxSize(wxSize(-1, SyncAmsInfoDialogHeightMIDDLE));
+            m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_middle()));
+            m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_middle()));
         }
     } else {
         m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option4", m_scrolledWindow, 18));
         if (from_more_seting_text) {
-            m_scrolledWindow->SetMinSize(wxSize(-1, SyncAmsInfoDialogHeightMAX));
-            m_scrolledWindow->SetMaxSize(wxSize(-1, SyncAmsInfoDialogHeightMAX));
+            m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_max()));
+            m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_max()));
         }
     }
     show_sizer(m_append_color_sizer, m_expand_more_settings);
@@ -595,8 +608,8 @@ void SyncAmsInfoDialog::update_swipe_button_state()
 void SyncAmsInfoDialog::updata_ui_when_priner_not_same() {
     show_color_panel(false);
     m_are_you_sure_title->Show(false);
-    if (m_mode_combox_sizer)
-        m_mode_combox_sizer->Show(false);
+    if (m_mode_panel)
+        m_mode_panel->Show(false);
 
     m_button_cancel->Hide();
     m_button_ok->Show();
@@ -686,8 +699,8 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     m_scrolledWindow = new wxScrolledWindow(m_show_page, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_scrolledWindow->SetBackgroundColour(*wxWHITE);
     m_scrolledWindow->SetScrollRate(0, 20);
-    m_scrolledWindow->SetMinSize(wxSize(-1, SyncAmsInfoDialogHeightMAX));
-    m_scrolledWindow->SetMaxSize(wxSize(-1, SyncAmsInfoDialogHeightMAX));
+    m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_max()));
+    m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_max()));
     m_scrolledWindow->EnableScrolling(false,true);
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
@@ -699,26 +712,32 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
         { // content
         check_empty_project();
         //use map mode
+        // The toggle lives in its own panel so a fork can give the header a card background; stretch
+        // spacers centre the buttons in whatever width the panel gets (full width, or a fork's inset).
+        m_mode_panel        = new StaticBox(m_scrolledWindow);
+        m_mode_panel->SetBorderWidth(0);
         m_mode_combox_sizer = new wxBoxSizer(wxHORIZONTAL);
-        m_colormap_btn      = new CapsuleButton(m_scrolledWindow, PageType::ptColorMap, _L("Mapping"), true);
-        m_override_btn      = new CapsuleButton(m_scrolledWindow, PageType::ptOverride, _L("Overwriting"), false);
-        m_mode_combox_sizer->AddSpacer(SyncAmsInfoDialogWidth / 2.0f - FromDIP(8) / 2.0f - m_colormap_btn->GetSize().GetX());
+        m_colormap_btn      = new CapsuleButton(m_mode_panel, PageType::ptColorMap, _L("Mapping"), true);
+        m_override_btn      = new CapsuleButton(m_mode_panel, PageType::ptOverride, _L("Overwriting"), false);
+        m_mode_combox_sizer->AddStretchSpacer();
         m_mode_combox_sizer->Add(m_colormap_btn, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(2));
         m_mode_combox_sizer->AddSpacer(FromDIP(8));
         m_mode_combox_sizer->Add(m_override_btn, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(2));
-        m_mode_combox_sizer->AddSpacer(SyncAmsInfoDialogWidth / 2.0f - FromDIP(8) / 2.0f - m_override_btn->GetSize().GetX() - FromDIP(60));
-        m_reset_all_btn = new ScalableButton(m_scrolledWindow, wxID_ANY, "reset_gray", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,
+        m_mode_combox_sizer->AddSpacer(FromDIP(8));
+        m_reset_all_btn = new ScalableButton(m_mode_panel, wxID_ANY, "reset_gray", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,
                                                         true, 14);
         m_reset_all_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { reset_all_ams_info(); });
         m_reset_all_btn->SetBackgroundColour(*wxWHITE);
         m_reset_all_btn->SetToolTip(_L("Reset all filament mapping"));
 
-        m_mode_combox_sizer->Add(m_reset_all_btn, 0, wxALIGN_LEFT | wxEXPAND | wxALL, FromDIP(2));
+        m_mode_combox_sizer->Add(m_reset_all_btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(2));
+        m_mode_combox_sizer->AddStretchSpacer();
 
         m_colormap_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this); // update_when_change_map_mode(e.GetSelection());
         m_override_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this);
 
-        bSizer->Add(m_mode_combox_sizer, FromDIP(0), wxEXPAND | wxALIGN_LEFT | wxTOP, FromDIP(10));
+        m_mode_panel->SetSizer(m_mode_combox_sizer);
+        bSizer->Add(m_mode_panel, FromDIP(0), wxEXPAND | wxALIGN_LEFT | wxTOP, FromDIP(10));
     }
 
     m_basic_panel = new wxPanel(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -1257,13 +1276,15 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
             map_opt[3] = false;
         }
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
-                                                     wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
+                                                     wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
+                                                     use_nozzle_type_match());
     }
     // single nozzle
     else {
         map_opt = { false, true, false, true }; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
-                                                               wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
+                                                               wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
+                                                               use_nozzle_type_match());
     }
 
     if (filament_result == 0) {
@@ -1385,7 +1406,13 @@ bool SyncAmsInfoDialog::get_ams_mapping_result(std::string &mapping_array_str, s
                 if (m_ams_mapping_result[k].id == i) {
                     tray_id                      = m_ams_mapping_result[k].tray_id;
                     mapping_item["ams"]          = tray_id;
-                    mapping_item["filamentType"] = m_filaments[k].type;
+                    // Look up the source filament by id (== i). The result index k is not guaranteed to
+                    // align with m_filaments (the result may hold extra ext/auto-supply entries), so
+                    // indexing m_filaments[k] can run past its end.
+                    const FilamentInfo* src_f = nullptr;
+                    for (const auto& f : m_filaments)
+                        if (f.id == i) { src_f = &f; break; }
+                    if (src_f) mapping_item["filamentType"] = src_f->type;
                     if (i >= 0 && i < wxGetApp().preset_bundle->filament_presets.size()) {
                         auto it = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
                         if (it != nullptr) { mapping_item["filamentId"] = it->filament_id; }
@@ -1393,7 +1420,7 @@ bool SyncAmsInfoDialog::get_ams_mapping_result(std::string &mapping_array_str, s
                     /* nozzle id */
                     if (i >= 0 && i < filament_maps.size()) { mapping_item["nozzleId"] = convert_filament_map_nozzle_id_to_task_nozzle_id(filament_maps[i]); }
                     // convert #RRGGBB to RRGGBBAA
-                    mapping_item["sourceColor"] = m_filaments[k].color;
+                    if (src_f) mapping_item["sourceColor"] = src_f->color;
                     mapping_item["targetColor"] = m_ams_mapping_result[k].color;
                     if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) { tray_id = -1; }
 
@@ -2521,6 +2548,76 @@ void SyncAmsInfoDialog::set_default(bool hide_some)
     Fit();
 }
 
+void SyncAmsInfoDialog::wire_sync_item(MaterialSyncItem* item, int extruder,
+                                      const std::vector<std::string>& materials, const std::string& item_index_str)
+{
+    item->set_material_index_str(item_index_str);
+    item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
+    item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder, item_index_str](wxMouseEvent &e) {
+        MaterialHash::iterator iter = m_materialList.begin();
+        while (iter != m_materialList.end()) {
+            int           id   = iter->first;
+            Material *    item = iter->second;
+            auto          m    = item->item;
+            m->on_normal();
+            iter++;
+        }
+
+        m_current_filament_id = extruder;
+        item->on_selected();
+
+        auto    mouse_pos = ClientToScreen(e.GetPosition());
+        wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
+
+        // update ams data
+        DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (!dev_manager) return;
+        MachineObject *obj_        = dev_manager->get_selected_machine();
+        const auto &   full_config = wxGetApp().preset_bundle->full_config();
+        size_t         nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+        bool           is_selector = false;
+        if (nozzle_nums > 1) {
+            if (has_selector(obj_)) {//选料器
+                m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT_DYNAMIC);
+                is_selector = true;
+            } else {
+                m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
+            }
+        } else {
+            m_mapping_popup.set_show_type(ShowType::RIGHT);
+        }
+        if (obj_) {
+            if (m_mapping_popup.IsShown())
+                return;
+            wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
+            pos.y += item->GetRect().height;
+            m_mapping_popup.Move(pos);
+
+            if (obj_ && m_checkbox_list["use_ams"]->getValue() == "on") {
+                m_mapping_popup.set_parent_item(item);
+                m_mapping_popup.set_current_filament_id(extruder);
+                m_mapping_popup.set_material_index_str(item_index_str);
+                m_mapping_popup.show_reset_button();
+                auto reset_call_back = [this](const std::string &item_index_str) {
+                    reset_one_ams_material(item_index_str);
+                    update_final_thumbnail_data();
+                    m_mapping_popup.update_items_check_state(m_ams_mapping_result);
+                    m_mapping_popup.Refresh();
+                    if (!m_reset_all_btn->IsShown()) {
+                        m_reset_all_btn->Show();
+                    }
+                };
+                m_mapping_popup.set_reset_callback(reset_call_back);
+                m_mapping_popup.set_tag_texture(materials[extruder]);
+                m_mapping_popup.set_send_win(this);
+                m_mapping_popup.set_match_all(sync_popup_match_all());
+                m_mapping_popup.update(obj_, m_ams_mapping_result, is_selector, std::nullopt);
+                m_mapping_popup.Popup();
+            }
+        }
+    });
+}
+
 void SyncAmsInfoDialog::reset_and_sync_ams_list()
 {
     BOOST_LOG_TRIVIAL(info) <<__FUNCTION__;
@@ -2638,73 +2735,9 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         auto item_index_str = std::to_string(item_index);
-        item->set_material_index_str(item_index_str);
         item_index++;
-
         contronal_index++;
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder, item_index_str](wxMouseEvent &e) {
-            MaterialHash::iterator iter = m_materialList.begin();
-            while (iter != m_materialList.end()) {
-                int           id   = iter->first;
-                Material *    item = iter->second;
-                auto          m    = item->item;
-                m->on_normal();
-                iter++;
-            }
-
-            m_current_filament_id = extruder;
-            item->on_selected();
-
-            auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
-
-            // update ams data
-            DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev_manager) return;
-            MachineObject *obj_        = dev_manager->get_selected_machine();
-            const auto &   full_config = wxGetApp().preset_bundle->full_config();
-            size_t         nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-            bool           is_selector = false;
-            if (nozzle_nums > 1) {
-                if (has_selector(obj_)) {//选料器
-                    m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT_DYNAMIC);
-                    is_selector = true;
-                } else {
-                    m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
-                }
-            } else {
-                m_mapping_popup.set_show_type(ShowType::RIGHT);
-            }
-            if (obj_) {
-                if (m_mapping_popup.IsShown())
-                    return;
-                wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
-                pos.y += item->GetRect().height;
-                m_mapping_popup.Move(pos);
-
-                if (obj_ && m_checkbox_list["use_ams"]->getValue() == "on") {
-                    m_mapping_popup.set_parent_item(item);
-                    m_mapping_popup.set_current_filament_id(extruder);
-                    m_mapping_popup.set_material_index_str(item_index_str);
-                    m_mapping_popup.show_reset_button();
-                    auto reset_call_back = [this](const std::string &item_index_str) {
-                        reset_one_ams_material(item_index_str);
-                        update_final_thumbnail_data();
-                        m_mapping_popup.update_items_check_state(m_ams_mapping_result);
-                        m_mapping_popup.Refresh();
-                        if (!m_reset_all_btn->IsShown()) {
-                            m_reset_all_btn->Show();
-                        }
-                    };
-                    m_mapping_popup.set_reset_callback(reset_call_back);
-                    m_mapping_popup.set_tag_texture(materials[extruder]);
-                    m_mapping_popup.set_send_win(this);
-                    m_mapping_popup.update(obj_, m_ams_mapping_result, is_selector, std::nullopt);
-                    m_mapping_popup.Popup();
-                }
-            }
-        });
+        wire_sync_item(item, extruder, materials, item_index_str);
 
         Material *material_item = new Material();
         material_item->id       = extruder;
@@ -3085,8 +3118,8 @@ void SyncAmsInfoDialog::show_ams_controls(bool flag)
 {
     m_filament_panel->Show(flag);
     if (flag) { m_filament_panel->Fit(); }
-    m_attention_text->Show(flag);
-    m_tip_text->Show(flag);
+    m_attention_text->Show(flag && !m_hide_hint_labels);
+    m_tip_text->Show(flag && !m_hide_hint_labels);
 }
 
 void SyncAmsInfoDialog::update_thumbnail_data_accord_plate_index(bool allow_clone_ams_color)

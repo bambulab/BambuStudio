@@ -632,7 +632,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
 
         // check filament type
         if (can_pick_the_item) {
-            if (tray_data[i].type == NORMAL && !is_match_material(tray_data[i].filament_type)){
+            if (tray_data[i].type == NORMAL && !m_match_all && !is_match_material(tray_data[i].filament_type)){
                 can_pick_the_item = false;
             } else if(tray_data[i].type == EMPTY){
                 can_pick_the_item = false;

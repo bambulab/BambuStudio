@@ -32,8 +32,6 @@ std::string get_diameter_string(float diameter)
 
 wxString format_nozzle_spec(const NozzleConfig &cfg)
 {
-    if (cfg.status == NozzleStatus::nsError) return _L("Error");
-    if (cfg.status == NozzleStatus::nsUnknown) return _L("Unknown");
     if (cfg.diameter.IsEmpty()) return _L("Empty");
 
     const auto    &names      = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();

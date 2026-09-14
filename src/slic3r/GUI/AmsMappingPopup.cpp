@@ -1262,7 +1262,7 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
                 if (!m_ext_mapping_filatype_check && (item->m_ams_id == VIRTUAL_TRAY_MAIN_ID || item->m_ams_id == VIRTUAL_TRAY_DEPUTY_ID)) {
                     // Do nothing
                 } else {
-                    if(!is_match_material(item->m_tray_data.filament_type)) { return; }
+                    if(!m_match_all && !is_match_material(item->m_tray_data.filament_type)) { return; }
                 }
             }
 

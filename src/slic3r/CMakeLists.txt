@@ -426,6 +426,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BaseTransparentDPIFrame.hpp
     GUI/SyncAmsInfoDialog.cpp
     GUI/SyncAmsInfoDialog.hpp
+    GUI/MultiDiameterSyncAmsDialog.cpp
+    GUI/MultiDiameterSyncAmsDialog.hpp
     GUI/SurfaceDrag.cpp
     GUI/SurfaceDrag.hpp
     GUI/TextLines.cpp

@@ -64,10 +64,14 @@ void DiameterButtonPanel::CreateLayout()
 
     // Production nozzle-diameter mode selector (was a debug SwitchButton). Item 0 = single, 1 = multi.
     if (m_show_multi_diameter_mode) {
-        m_multi_diameter_mode_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(150, 24)), 0, nullptr, wxCB_READONLY);
+        // The project config is the source of truth for the mode; mirror it so the combo and the
+        // selector-visibility gate reflect the real state on every rebuild, not a stale local value.
+        m_multi_diameter_mode_enabled = multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+        m_multi_diameter_mode_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(200, 24)), 0, nullptr, wxCB_READONLY);
         m_multi_diameter_mode_combo->Append(_L("Single-diameter mode"), {});
         m_multi_diameter_mode_combo->Append(_L("Multi-diameter mode"), {});
         m_multi_diameter_mode_combo->SetSelection(m_multi_diameter_mode_enabled ? 1 : 0);
+        FitModeComboToWidestItem();
         m_multi_diameter_mode_combo->Show(m_mode_selector_visible);
         m_multi_diameter_mode_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &event) {
             m_multi_diameter_mode_enabled = (m_multi_diameter_mode_combo->GetSelection() == 1);
@@ -76,7 +80,7 @@ void DiameterButtonPanel::CreateLayout()
                 m_multi_diameter_mode_callback(m_multi_diameter_mode_enabled);
             event.Skip();
         });
-        main_sizer->Add(m_multi_diameter_mode_combo, 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(4));
+        main_sizer->Add(m_multi_diameter_mode_combo, 0, wxBOTTOM, FromDIP(4));
     }
 
     m_title_sizer = nullptr;
@@ -109,6 +113,20 @@ void DiameterButtonPanel::CreateLayout()
     SetSizer(main_sizer);
     UpdateSelectorVisibility();
     Layout();
+}
+
+void DiameterButtonPanel::FitModeComboToWidestItem()
+{
+    if (!m_multi_diameter_mode_combo)
+        return;
+
+    int text_w = 0;
+    for (unsigned int i = 0; i < m_multi_diameter_mode_combo->GetCount(); ++i)
+        text_w = std::max(text_w, m_multi_diameter_mode_combo->GetTextExtent(m_multi_diameter_mode_combo->GetString(i)).x);
+
+    // Reserve room for the drop-down arrow and the left/right text margins.
+    const int width = text_w + m_multi_diameter_mode_combo->FromDIP(40);
+    m_multi_diameter_mode_combo->SetMinSize(wxSize(width, FromDIP(24)));
 }
 
 void DiameterButtonPanel::RefreshLayout(const std::vector<wxString> &choices)
@@ -203,8 +221,7 @@ void DiameterButtonPanel::UpdateButtonStates()
 
 void DiameterButtonPanel::Rescale()
 {
-    if (m_multi_diameter_mode_combo)
-        m_multi_diameter_mode_combo->SetMinSize(FromDIP(wxSize(150, 24)));
+    FitModeComboToWidestItem();
     for (auto *btn : m_buttons) {
         if (btn) {
             const int button_width = m_tooltip_context == FilamentContext ? 40 : 54;
