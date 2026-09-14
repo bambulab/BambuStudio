@@ -1201,8 +1201,7 @@ void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_se
     if (skip_filament_shrink) {
         this->active_step_add_warning(
             PrintStateBase::WarningLevel::CRITICAL,
-            L("An object's shrinkage compensation will not be used because it is also color-painted.\n"
-              "Shrinkage compensation can not be combined with color-painting."));
+            L("Shrinkage compensation does not take effect on color-painted models."));
         BOOST_LOG_TRIVIAL(info) << "filament shrink compensation will not work for object " << this->model_object()->name << " for multi filament.";
     }
 
