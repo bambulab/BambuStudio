@@ -2636,9 +2636,21 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         if (!this->plater)
             return false;
 
-        this->plater->update_objects_position_when_select_preset([&obj, machine_preset]() {
+        // get_printer_preset() resolves the machine down to the diameter of its first usable nozzle,
+        // which multi-diameter mode must not adopt: slicing there anchors on the canonical 0.2 grid
+        // and carries the real per-slot nozzles separately. Only the machine's model may decide the
+        // destination, so aim at that model's 0.2 baseline instead.
+        Preset *target_preset = machine_preset;
+        if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+            if (Preset *canonical = find_system_multi_nozzle_printer_preset(machine_preset->config.opt_string("printer_model"), "0.2")) {
+                canonical->is_visible = true;
+                target_preset         = canonical;
+            }
+        }
+
+        this->plater->update_objects_position_when_select_preset([target_preset]() {
             Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
-            printer_tab->select_preset(machine_preset->name);
+            printer_tab->select_preset(target_preset->name);
         });
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " go on sync_extruder_list";
