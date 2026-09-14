@@ -5,7 +5,10 @@ const {
 	Paragraph,
 	ImageUtils,
 	ImageEditing,
+	Image,
+	GeneralHtmlSupport,
 	Link,
+	LinkImage,
 	List,
 	Alignment,
 	Bold,
@@ -103,7 +106,7 @@ const editorConfig = {
 		],
 		shouldNotGroupWhenFull: false
 	},
-	plugins: [Alignment, AutoLink, Autosave, Bold, Essentials, Heading, ImageEditing, ImageUtils, Italic, Link, List, Paragraph, Underline],
+	plugins: [Alignment, AutoLink, Autosave, Bold, Essentials, GeneralHtmlSupport, Heading, Image, ImageEditing, ImageUtils, Italic, Link, LinkImage, List, Paragraph, Underline],
 	heading: {
 		options: [
 			{
@@ -146,6 +149,25 @@ const editorConfig = {
 				view: 'h6',
 				title: 'Heading 6',
 				class: 'ck-heading_heading6'
+			}
+		]
+	},
+	// Keep the markup that the read-only page (index.js) already allows through DOMPurify,
+	// otherwise a single edit+save round trip strips it from the 3mf description for good.
+	// Attributes are listed explicitly instead of `true` so that on* handlers stay out.
+	htmlSupport: {
+		allow: [
+			{
+				name: 'img',
+				attributes: ['src', 'alt', 'title', 'width', 'height'],
+				classes: true,
+				styles: true
+			},
+			{
+				name: /^(a|div|figure|figcaption|font|p|s|span|sub|sup|u)$/,
+				attributes: ['color', 'face', 'size', 'target', 'rel', 'title'],
+				classes: true,
+				styles: true
 			}
 		]
 	},

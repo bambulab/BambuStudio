@@ -500,6 +500,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         //    event.Veto();
         //    return;
         //}
+        // Runs before close_with_confirm() so that a save triggered from here marks
+        // the plater dirty in time for the "save project" prompt to pick it up.
+        if (event.CanVeto() && !confirm_project_page_can_leave([this] { Close(); })) {
+            event.Veto();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancelled or deferred by the project page";
+            return;
+        }
+
         auto check = [](bool yes_or_no) {
             if (yes_or_no)
                 return true;
@@ -1351,18 +1359,9 @@ void MainFrame::init_tabpanel()
             new_sel != old_sel &&
             m_project != nullptr &&
             m_tabpanel->GetPage((size_t)old_sel) == m_project &&
-            m_project->is_editing_page()) {
-            MessageDialog dlg(this,
-                              _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
-                              _L("Save"),
-                              wxYES_NO | wxCANCEL |wxCENTRE);
-            int ret = dlg.ShowModal();
-            if (ret == wxID_YES) {
-                m_project->save_project();
-            } else {
-                e.Veto();
-                return;
-            }
+            !confirm_project_page_can_leave([this, new_sel] { m_tabpanel->SetSelection(new_sel); })) {
+            e.Veto();
+            return;
         }
         if (wxGetApp().preset_bundle &&
             wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
@@ -1730,6 +1729,56 @@ bool MainFrame::is_active_and_shown_tab(wxPanel* panel)
     if (m_tabpanel->GetCurrentPage() != panel)
         return false;
     return true;
+}
+
+bool MainFrame::confirm_project_page_can_leave(std::function<void()> retry)
+{
+    if (m_project == nullptr || !m_project->is_editing_page())
+        return true;
+
+    const bool dirty_known = m_project_leave_checked;
+    m_project_leave_checked = false;
+    bool page_dirty = m_project_leave_dirty;
+
+    if (!dirty_known) {
+        // Whether anything actually changed is only known inside the page, and the
+        // answer arrives as a separate message, so hold the action back and replay
+        // it from the callback.
+        const long long now = wxGetUTCTimeMillis().GetValue();
+        if (m_project_leave_query_ms == 0 || now - m_project_leave_query_ms < 1500) {
+            m_project_leave_query_ms = now;
+            m_project->query_unsaved_changes([this, retry](bool dirty) {
+                m_project_leave_checked  = true;
+                m_project_leave_dirty    = dirty;
+                m_project_leave_query_ms = 0;
+                CallAfter(retry);
+            });
+            return false;
+        }
+        // The page never answered. Prompt rather than risk discarding edits.
+        m_project_leave_query_ms = 0;
+        page_dirty = true;
+    }
+
+    if (!page_dirty)
+        return true;
+
+    MessageDialog dlg(this,
+                      _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
+                      _L("Save"),
+                      wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
+    const int ret = dlg.ShowModal();
+    if (ret == wxID_YES) {
+        m_project->save_project([this, retry] {
+            m_project_leave_checked  = true;
+            m_project_leave_dirty    = false;
+            CallAfter(retry);
+        });
+        return false;
+    }
+
+    // wxID_NO drops the edits and lets the action through; cancel stays on the page.
+    return ret == wxID_NO;
 }
 
 bool MainFrame::can_start_new_project() const

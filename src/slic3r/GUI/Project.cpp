@@ -798,6 +798,33 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
             wxGetApp().CallAfter([this, script] {
                 RunScript(script.ToStdString());
             });
+
+            // Release the waiter only once the data actually landed; on failure it
+            // is dropped so that a pending close stays cancelled.
+            if (m_save_finished_cb) {
+                auto cb = std::move(m_save_finished_cb);
+                m_save_finished_cb = nullptr;
+                if (!response.contains("error"))
+                    cb();
+            }
+        }
+        else if (strCmd == "page_dirty_state") {
+            // Answer to query_unsaved_changes. Assume the worst if the page sent
+            // something unexpected, so that edits are never dropped silently.
+            bool dirty = true;
+            if (j.contains("dirty") && j["dirty"].is_boolean())
+                dirty = j["dirty"].get<bool>();
+
+            if (m_dirty_query_cb) {
+                auto cb = std::move(m_dirty_query_cb);
+                m_dirty_query_cb = nullptr;
+                cb(dirty);
+            }
+        }
+        else if (strCmd == "save_project_aborted") {
+            // The page refused to save (empty name, no pictures, ...) and never sent
+            // update_3mf_info, so drop the waiter instead of blocking the app forever.
+            m_save_finished_cb = nullptr;
         }
         else if (strCmd == "debug_info") {
             //wxString msg =  j["msg"];
@@ -1022,8 +1049,25 @@ bool ProjectPanel::Show(bool show)
     return wxPanel::Show(show);
 }
 
-void ProjectPanel::save_project()
+void ProjectPanel::query_unsaved_changes(std::function<void(bool)> on_result)
 {
+    m_dirty_query_cb = std::move(on_result);
+
+    json resp = json::object();
+    resp["command"] = "query_unsaved_changes";
+    resp["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+
+    wxString strJS = wxString::Format("window.HandleEditor && window.HandleEditor(%s);",
+                                      resp.dump(-1, ' ', false, json::error_handler_t::ignore));
+    wxGetApp().CallAfter([this, strJS] {
+        RunScript(strJS.ToStdString());
+    });
+}
+
+void ProjectPanel::save_project(std::function<void()> on_saved)
+{
+    m_save_finished_cb = std::move(on_saved);
+
     json resp = json::object();
     resp["command"] = "save_project";
     resp["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
