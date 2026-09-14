@@ -15746,11 +15746,12 @@ void Plater::priv::on_action_send_to_multi_app(SimpleEvent &)
             return;
         }
 
-        wxString filename = q->get_export_gcode_filename("", true, partplate_list.get_curr_plate_index() == PLATE_ALL_IDX ? true : false);
-        wxString filepath = wxString::FromUTF8(data._3mf_path.string());
+        wxString filename = q->get_export_gcode_filename("", true, partplate_list.get_curr_plate_index() == PLATE_ALL_IDX);
+        wxString filepath = from_path(data._3mf_path);
         filepath.Replace("\\", "/");
-        std::string filePath = "?version=v1.6.0&path=" + filepath.ToStdString() + "&name=" + filename.utf8_string();
-        wxString    url      = "bambu-farm-client://upload-file" + Http::url_encode(filePath);
+
+        const std::string query = "?version=v1.6.0&path=" + into_u8(filepath) + "&name=" + into_u8(filename);
+        const wxString    url   = from_u8("bambu-farm-client://upload-file" + Http::url_encode(query));
         if (!wxLaunchDefaultBrowser(url)) {
             GUI::MessageDialog msgdialog(nullptr, _L("Failed to start Bambu Farm Manager Client."), "", wxAPPLY | wxOK);
             msgdialog.ShowModal();
