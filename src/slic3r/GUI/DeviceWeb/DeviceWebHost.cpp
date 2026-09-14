@@ -509,7 +509,12 @@ void DeviceWebHost::Suspend()
     UpdateReadyWatchdogPaused();
     // Replace the live React SPA with an empty document so the WKWebView stops
     // animating/compositing/running timers and lets the macOS run loop go idle.
-    m_device_webview->load_url("about:blank");
+    if (wxGetApp().dark_mode()) {
+    m_device_webview->load_url(
+        "data:text/html,%3C!doctype%20html%3E%3Chtml%20style%3D%22background%3A%231a1a1a%22%3E%3Cbody%20style%3D%22margin%3A0%3Bbackground%3A%231a1a1a%22%3E%3C%2Fbody%3E%3C%2Fhtml%3E");
+    } else {
+        m_device_webview->load_url("about:blank");
+    }
 }
 
 #if defined(__WXOSX__)
