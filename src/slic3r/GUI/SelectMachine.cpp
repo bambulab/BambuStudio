@@ -3256,7 +3256,10 @@ void SelectMachineDialog::on_send_print()
     BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_info = " << ams_mapping_info;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result end";
 
-    if (m_print_type == PrintFromType::FROM_NORMAL) {
+    const bool is_imported_3mf = m_print_type == PrintFromType::FROM_NORMAL && m_plater->using_exported_file();
+    if (is_imported_3mf) {
+        m_plater->set_print_job_plate_idx(m_print_plate_idx);
+    } else if (m_print_type == PrintFromType::FROM_NORMAL) {
         result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {
             if (this->m_is_canceled) return;
             bool     cancelled = false;
@@ -3293,6 +3296,8 @@ void SelectMachineDialog::on_send_print()
     }
 
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
+    if (is_imported_3mf)
+        m_print_job->set_imported_3mf_path(m_plater->get_3mf_filename());
     m_print_job->m_dev_ip = obj_->get_dev_ip();
     m_print_job->m_ftp_folder = obj_->get_ftp_folder();
     m_print_job->m_access_code = obj_->get_access_code();
@@ -3309,7 +3314,10 @@ void SelectMachineDialog::on_send_print()
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_normal";
         m_print_job->m_print_type = "from_normal";
-        m_print_job->set_project_name(m_current_project_name.utf8_string());
+        std::string project_name = m_current_project_name.utf8_string();
+        if (is_imported_3mf && boost::algorithm::iends_with(project_name, ".gcode"))
+            project_name.erase(project_name.size() - std::string(".gcode").size());
+        m_print_job->set_project_name(std::move(project_name));
     }
     else if(m_print_type == PrintFromType::FROM_SDCARD_VIEW){
         BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_sdcard_view";
