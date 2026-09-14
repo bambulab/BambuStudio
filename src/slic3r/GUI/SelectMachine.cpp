@@ -6462,10 +6462,13 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles(Mac
     }
 
     const auto mapping = obj ? obj->get_nozzle_mapping_result() : nullptr;
+    const bool is_hotend_rack = obj && obj->GetNozzleRack()->IsDirectConnectedRack();
+    const bool use_mapping = mapping && mapping->HasSliceContext() &&
+                             (is_hotend_rack ||
+                              (mapping->IsSupportDynamicNozzleMap() && nozzle_volume_type_opt->values.size() == 2));
 
     try {
-        if (mapping && mapping->HasSliceContext() && mapping->IsSupportDynamicNozzleMap() &&
-            nozzle_volume_type_opt->values.size() == 2) {
+        if (use_mapping) {
             const auto& used_nozzles = mapping->GetUsedNozzlesInExtruder();
             for (const auto& used_nozzle : used_nozzles) {
                 NozzleDef nozzle_data;
