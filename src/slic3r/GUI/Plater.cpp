@@ -6523,7 +6523,11 @@ void Sidebar::udpate_combos_filament_badge() {
 // ---- Mixed Filament sidebar methods ----
 
 static constexpr int kMaxFilamentScrollRows  = 6;
-static constexpr int kScrollCapThreshold     = 12;
+// Cap the panel height at kMaxFilamentScrollRows the moment the list exceeds it, instead of
+// letting it grow all the way up to a separate threshold and then snapping down. Otherwise
+// adding filaments looks smooth up to (threshold) and then a single + click collapses the panel
+// suddenly, which reads as a UI glitch.
+static constexpr int kScrollCapThreshold     = kMaxFilamentScrollRows;
 
 void Sidebar::recalc_filament_scroll_sizes()
 {

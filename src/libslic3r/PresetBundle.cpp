@@ -3778,7 +3778,13 @@ static std::vector<std::string> get_filament_nozzle_diameter_options(
     std::set<std::string> supported = filament_preset_diameters_for_model(*current, printer_name_to_diameter);
     if (!current->filament_id.empty()) {
         for (auto it = bundle.filaments.begin(); it != bundle.filaments.end(); ++it) {
-            if (it->is_system && it->filament_id == current->filament_id) {
+            // Broaden by every sibling preset sharing the same filament_id, not just system ones:
+            // user-created filaments (e.g. "Polymaker ABS 777") are saved as one preset per printer-
+            // nozzle variant with matching filament_id, all is_system == false. Requiring is_system
+            // dropped every one of those, leaving only the current variant's own compatible_printers,
+            // so the FilamentNozzlePopup only offered the currently active diameter for custom
+            // filaments even when the user had explicitly configured all four nozzle variants.
+            if (it->filament_id == current->filament_id) {
                 const auto diameters = filament_preset_diameters_for_model(*it, printer_name_to_diameter);
                 supported.insert(diameters.begin(), diameters.end());
             }

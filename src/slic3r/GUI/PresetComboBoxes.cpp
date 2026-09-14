@@ -675,6 +675,22 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
                 row_matches_current = false;
             }
         }
+        // Single-diameter mode on a single-extruder multi-nozzle machine: only ONE physical nozzle
+        // is active at a time (the one the user picked via the diameter buttons). Trays physically
+        // bound to the other nozzles route through nozzles that aren't part of this print, so they
+        // shouldn't count as the "synced source" for any slot -- otherwise every AMS-loaded filament
+        // shows the sync badge even when only one nozzle is actually in use. Filter to the trays
+        // whose diameter matches the printer's currently-active primary diameter.
+        if (row_matches_current && !multi_diameter_mode && is_single_ext_multi_nozzle(m_preset_bundle->full_config())) {
+            const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
+            const auto *printer_nd = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+            if (tray_nd && !tray_nd->values.empty() && printer_nd && !printer_nd->values.empty()) {
+                const std::string tray_diameter_str    = format_diameter_to_str(tray_nd->values.front());
+                const std::string printer_diameter_str = format_diameter_to_str(printer_nd->values.front());
+                if (tray_diameter_str != printer_diameter_str)
+                    row_matches_current = false;
+            }
+        }
         // Once the user has manually changed diameter/flow via FilamentNozzlePopup, this slot is no
         // longer sourced from AMS.
         auto *this_plater_combo = dynamic_cast<PlaterPresetComboBox *>(this);
