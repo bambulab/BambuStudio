@@ -98,11 +98,24 @@ bool is_extruder_stat_synced(int target_extruder_id)
     auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     auto nozzle_diameter_values = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
     auto extruder_nozzle_stats = preset_bundle->extruder_nozzle_stat.get_raw_stat();
-
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
 
     std::vector<std::vector<NozzleGroupInfo>> preset_nozzle_infos(nozzle_diameter_values.size());
 
     for (size_t extruder_id = 0; extruder_id < nozzle_diameter_values.size(); ++extruder_id) {
+        // Multi-diameter slicing stays on the canonical 0.2 printer preset. The green sync badge
+        // must follow the per-slot hardware snapshot, not that preset's nozzle_diameter.
+        if (multi_diameter_mode) {
+            std::map<std::pair<std::string, NozzleVolumeType>, int> groups;
+            for (const auto &[d, v] : preset_bundle->extruder_full_stat.get_extruder_stats(static_cast<int>(extruder_id))) {
+                if (d.empty() || v.empty()) continue;
+                groups[{d, DevNozzle::ToNozzleVolumeType(v)}]++;
+            }
+            for (const auto &[key, count] : groups)
+                preset_nozzle_infos[extruder_id].emplace_back(key.first, key.second, static_cast<int>(extruder_id), count);
+            continue;
+        }
+
         NozzleVolumeType preset_volume_type = NozzleVolumeType(nozzle_volume_values[extruder_id]);
         std::string      preset_diameter = format_diameter_to_str(nozzle_diameter_values[extruder_id]);
 
@@ -128,6 +141,19 @@ bool is_extruder_stat_synced(int target_extruder_id)
         target_nozzle_groups = preset_nozzle_infos;
     else
         target_nozzle_groups = { preset_nozzle_infos[target_extruder_id] };
+
+    // No recorded per-slot nozzles means we cannot claim a match against the machine.
+    if (multi_diameter_mode) {
+        bool has_groups = false;
+        for (const auto &groups : target_nozzle_groups) {
+            if (!groups.empty()) {
+                has_groups = true;
+                break;
+            }
+        }
+        if (!has_groups)
+            return false;
+    }
 
     for (auto preset_groups : target_nozzle_groups) {
         for (auto& preset_group : preset_groups) {
