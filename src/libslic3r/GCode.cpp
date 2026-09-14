@@ -4814,7 +4814,8 @@ GCode::LayerResult GCode::process_layer(
                 continue;
             int temperature = print.config().nozzle_temperature.get_at(extruder.id());
             if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
-                gcode += m_writer.set_temperature(temperature, false, extruder.id());
+                gcode += m_writer.set_temperature(
+                    temperature, false, extruder.id(), TemperatureCommandType::LayerChange);
         }
 
         // BBS
