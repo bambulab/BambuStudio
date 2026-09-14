@@ -1812,6 +1812,21 @@ NozzleVolumeType Sidebar::priv::derive_volume_type_from_full_stat(int extruder_i
     return NozzleVolumeType::nvtStandard;
 }
 
+// The system printer preset of printer_model at printer_variant, but only when that preset is a
+// single-extruder multi-nozzle machine - the only kind multi-diameter mode can anchor on.
+static Preset *find_system_multi_nozzle_printer_preset(const std::string &printer_model, const std::string &printer_variant)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    for (const Preset &preset : preset_bundle->printers.get_presets()) {
+        if (preset.is_system &&
+            preset.config.opt_string("printer_model") == printer_model &&
+            preset.config.opt_string("printer_variant") == printer_variant &&
+            is_single_ext_multi_nozzle(preset.config))
+            return preset_bundle->printers.find_preset(preset.name, false);
+    }
+    return nullptr;
+}
+
 static bool select_system_multi_nozzle_printer_preset(const std::string &printer_variant)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -1820,17 +1835,7 @@ static bool select_system_multi_nozzle_printer_preset(const std::string &printer
     if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
         return false;
 
-    Preset *target = nullptr;
-    const std::string printer_model = base->config.opt_string("printer_model");
-    for (const Preset &preset : preset_bundle->printers.get_presets()) {
-        if (preset.is_system &&
-            preset.config.opt_string("printer_model") == printer_model &&
-            preset.config.opt_string("printer_variant") == printer_variant &&
-            is_single_ext_multi_nozzle(preset.config)) {
-            target = preset_bundle->printers.find_preset(preset.name, false);
-            break;
-        }
-    }
+    Preset *target = find_system_multi_nozzle_printer_preset(base->config.opt_string("printer_model"), printer_variant);
     Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
     if (target == nullptr || printer_tab == nullptr)
         return false;
@@ -21838,12 +21843,29 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     bool sync_printer_preset = false;
     nozzle_diameter          = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     bool is_multi_extruder   = nozzle_diameter > 1;
+
+    // Multi-diameter slicing pins the printer preset to the canonical 0.2 grid while the machine keeps
+    // its real per-slot nozzles, so extruder 0 reporting 0.4 against a 0.2 preset is the expected state
+    // rather than a preset that needs syncing. What can genuinely drift there is the project's per-slot
+    // nozzle snapshot, which is what the sync badge tracks and what sync_extruder_list() refreshes. The
+    // printer model still has to agree, and when it does not the destination is the new model's 0.2
+    // baseline instead of the diameter-matched preset.
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    Preset *   target_preset       = machine_preset;
+    if (multi_diameter_mode) {
+        if (Preset *canonical = find_system_multi_nozzle_printer_preset(printer_model, "0.2"))
+            target_preset = canonical;
+    }
+    const bool model_mismatch  = printer_preset.get_current_printer_type(preset_bundle) != printer_type;
+    const bool nozzle_mismatch = multi_diameter_mode ? !is_extruder_stat_synced() :
+                                                       !is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter);
+
     if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
-        if (printer_preset.get_current_printer_type(preset_bundle) != printer_type || !is_approx((float)(preset_nozzle_diameter), machine_nozzle_diameter)) {
+        if (model_mismatch || nozzle_mismatch) {
             wxString tips;
-            if (printer_preset.get_current_printer_type(preset_bundle) != printer_type)
+            if (model_mismatch)
                 tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->get_dev_name() % printer_model % printer_model).str());
-            else if (!is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter))
+            else
                 tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
                     "To use this printer for printing, please switch the preset first.")) % obj->get_dev_name() % printer_model).str());
 
@@ -21861,18 +21883,25 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     }
     else {
         sync_printer_preset = wxGetApp().app_config->get("sync_after_load_file_show_flag") == "true";
-        if (sync_printer_preset && printer_preset.get_current_printer_type(preset_bundle) == printer_type && is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter))
+        if (sync_printer_preset && !model_mismatch && !nozzle_mismatch)
             sync_printer_preset = false;
     }
     if (!sync_printer_preset)
         return false;
     //do sync_printer_preset
-    update_objects_position_when_select_preset([&obj, machine_preset]() {
-        machine_preset->is_visible = true;
-        Tab* printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
-        printer_tab->select_preset(machine_preset->name);
+    const std::string selected_preset_name = printer_preset.name;
+    update_objects_position_when_select_preset([&obj, target_preset, multi_diameter_mode, &selected_preset_name]() {
+        // In multi-diameter mode the target is usually the preset already in use, and re-selecting it
+        // would only re-ask about unsaved changes.
+        if (target_preset->name != selected_preset_name) {
+            target_preset->is_visible = true;
+            Tab* printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
+            printer_tab->select_preset(target_preset->name);
+        }
 
-        if (obj->is_multi_extruders())
+        // Multi-diameter needs this even on a single-extruder machine: the per-slot snapshot, not the
+        // preset, is what carries the real nozzles into slicing and into the sync badge.
+        if (multi_diameter_mode || obj->is_multi_extruders())
             GUI::wxGetApp().sidebar().sync_extruder_list();
     });
     return true;
