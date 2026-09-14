@@ -26,6 +26,10 @@ ExtruderPanelGroup::ExtruderPanelGroup(wxWindow *parent) : wxPanel(parent, wxID_
     SetBackgroundColour(ThemeColor::Grey200);
     Bind(wxEVT_PAINT, &ExtruderPanelGroup::OnPaint, this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent &) { SetHoverShown(false); }); // grace elapsed -> hide
+    Bind(wxEVT_SIZE, &ExtruderPanelGroup::OnSize, this);
+#ifdef __WXOSX__
+    Bind(wxEVT_SIZE, &ExtruderPanelGroup::OnSizeBadge, this);
+#endif
 }
 
 void ExtruderPanelGroup::Build()
@@ -142,6 +146,44 @@ void ExtruderPanelGroup::UpdateNozzles(int index, const std::vector<NozzleConfig
     // The panel just rebuilt its tiles as new windows; re-arm the whole card so the body stays live.
     BindClickEvents();
     BindHoverEvents();
+    FitToPanels();
+}
+
+// A panel that wrapped its tiles onto extra lines is taller than the size the card was fitted to, so
+// the card has to be re-fitted and the sidebar re-laid out to make room for the new height.
+void ExtruderPanelGroup::FitToPanels()
+{
+    // Hand the panels their current width first: a wrapped tile row only reports its real height
+    // once it knows how wide it may be.
+    Layout();
+
+    const int height = m_main_sizer->GetMinSize().y;
+    if (height <= 0 || GetMinSize().y == height) return;
+
+    SetMinSize(wxSize(-1, height)); // the card frames its panels, so it takes their height
+
+    if (wxWindow *parent = GetParent()) {
+        parent->Layout();
+        if (wxWindow *grand_parent = parent->GetParent()) grand_parent->Layout();
+    }
+
+    Layout();
+    Refresh();
+}
+
+// The sidebar can be resized at any time, which changes how many tiles fit on a line, so the card
+// re-fits itself whenever it is resized. Deferred and guarded: re-fitting resizes this window again.
+void ExtruderPanelGroup::OnSize(wxSizeEvent &evt)
+{
+    evt.Skip();
+
+    if (m_fit_pending) return;
+
+    m_fit_pending = true;
+    CallAfter([this]() {
+        m_fit_pending = false;
+        FitToPanels();
+    });
 }
 
 // Enter shows the tip synchronously; a leave that truly exits the card arms a short grace timer that a
@@ -181,6 +223,7 @@ void ExtruderPanelGroup::Rescale()
 
     Layout();
     Fit();
+    FitToPanels();
     Refresh();
 }
 
@@ -221,7 +264,7 @@ void ExtruderPanelGroup::LayoutBadge()
     m_badge->SetPosition(wxPoint(x, y));
 }
 
-void ExtruderPanelGroup::OnSize(wxSizeEvent &evt)
+void ExtruderPanelGroup::OnSizeBadge(wxSizeEvent &evt)
 {
     LayoutBadge();
     evt.Skip();

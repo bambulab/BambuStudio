@@ -2,6 +2,7 @@
 
 #include <wx/dialog.h>
 #include <wx/panel.h>
+#include <wx/wrapsizer.h>
 
 #include "GUI_Utils.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -179,7 +180,7 @@ protected:
 
     /**
      * \brief Build the variant's middle content into \p main_sizer.
-     * \param main_sizer the horizontal sizer, positioned between the shared labels and the trailing disabled icon
+     * \param main_sizer the horizontal sizer holding the variant content next to the tile row
      */
     virtual void CreateContent(wxBoxSizer *main_sizer) = 0;
 
@@ -188,6 +189,21 @@ protected:
 
     // Shared tail of a projection: mixed-diameter warning tooltip, scroll buttons, re-layout.
     void finish_projection(bool enabled);
+
+    // Re-layout the tile row after the card changed size, so the tiles re-wrap to the new width.
+    void OnSize(wxSizeEvent &evt);
+
+    // Width the tiles occupy when all of them are kept on one line.
+    int tiles_single_line_width() const;
+
+    /**
+     * \brief Give the tile row a line of its own once it no longer fits beside the variant content.
+     *
+     * A row of tiles that has outgrown the space left of the content would otherwise be squeezed
+     * onto one line and clipped, so it moves to a second line instead. Call after any change that
+     * can alter the tile count or the available width.
+     */
+    void update_tile_row_line();
 
     /**
      * \brief Which extruder slot this panel represents.
@@ -199,9 +215,12 @@ protected:
     GroupType                    m_type;
     bool                         m_show_title{false};
     int                          m_nozzle_count{0};
-    wxBoxSizer                  *m_summary_sizer{nullptr};
+    bool                         m_tiles_on_own_line{false}; // true once the tile row sits below the content
+    wxWrapSizer                 *m_summary_sizer{nullptr};
     std::vector<NozzleSummary *> m_summaries;
     wxStaticBitmap              *m_warning_icon{nullptr}; // shown at the right end when no nozzle matches the selection
+    wxBoxSizer                  *m_content_sizer{nullptr}; // variant content + warning icon, kept together
+    wxBoxSizer                  *m_content_row{nullptr};   // tiles + content, split across lines when the tiles don't fit
     wxBoxSizer                  *m_main_sizer{nullptr};
 };
 

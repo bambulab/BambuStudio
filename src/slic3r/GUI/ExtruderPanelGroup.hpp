@@ -93,17 +93,29 @@ private:
     void SetHoverShown(bool shown);  // drives m_on_hover; a show is dropped while disabled/inactive
     void OnPaint(wxPaintEvent &evt);
 
+    /**
+     * \brief Re-fit the card to the height its panels now need.
+     *
+     * Call after a panel changed its height, so the card and the sidebar following it grow to hold
+     * a tile row that wrapped onto extra lines instead of clipping it.
+     */
+    void FitToPanels();
+
+    // Re-fit after a resize, since a different width fits a different number of tiles per line.
+    void OnSize(wxSizeEvent &evt);
+
 #ifdef __WXMSW__
     ScalableBitmap m_badge;
 #endif
 #ifdef __WXOSX__
     ScalableButton *m_badge{nullptr};
     void            LayoutBadge();
-    void            OnSize(wxSizeEvent &event);
+    void            OnSizeBadge(wxSizeEvent &evt); // keeps the badge pinned while the card resizes
 #endif
 
     // Layout components
     wxBoxSizer               *m_main_sizer{nullptr};
+    bool                      m_fit_pending{false}; // a re-fit is already queued for this resize
     std::function<void(bool)> m_on_click{};
     std::function<void(bool)> m_on_hover{};
     bool                      m_hover_shown{false};

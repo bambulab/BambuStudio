@@ -359,20 +359,31 @@ ExtruderPanel::ExtruderPanel(wxWindow *parent, GroupType type) : wxPanel(parent,
 
 void ExtruderPanel::Build()
 {
-    SetMinSize(wxSize(-1, FromDIP(40)));
-    m_main_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_main_sizer = new wxBoxSizer(wxVERTICAL);
+    // Floor the card at a comfortable height on the sizer, not on the window: a min height set on the
+    // window would also cap it, leaving no room for the tile row to wrap onto extra lines.
+    m_main_sizer->SetMinSize(wxSize(-1, FromDIP(40)));
 
-    m_summary_sizer = new wxBoxSizer(wxHORIZONTAL); // NozzleSummary tiles, filled by UpdateNozzles
-    m_main_sizer->Add(m_summary_sizer, 0, wxALIGN_CENTER_VERTICAL);
+    // No wxEXTEND_LAST_ON_EACH_LINE: that raises the last tile's proportion, so it would stretch to
+    // fill its line instead of keeping its own width.
+    m_summary_sizer = new wxWrapSizer(wxHORIZONTAL, 0); // NozzleSummary tiles, filled by UpdateNozzles
 
-    CreateContent(m_main_sizer);
+    m_content_row = new wxBoxSizer(wxHORIZONTAL);
+    m_content_row->Add(m_summary_sizer, 0, wxALIGN_CENTER_VERTICAL);
+
+    m_content_sizer = new wxBoxSizer(wxHORIZONTAL);
+    CreateContent(m_content_sizer);
 
     // Trailing warning icon; UpdateNozzles shows it when the selected diameter has no matching nozzle.
     m_warning_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
     m_warning_icon->Hide();
-    m_main_sizer->Add(m_warning_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+    m_content_sizer->Add(m_warning_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+
+    m_content_row->Add(m_content_sizer, 1, wxEXPAND);
+    m_main_sizer->Add(m_content_row, 0, wxEXPAND);
 
     SetSizer(m_main_sizer);
+    Bind(wxEVT_SIZE, &ExtruderPanel::OnSize, this);
     Layout();
 
     wxGetApp().UpdateDarkUIWin(this);
@@ -389,6 +400,24 @@ static void set_tooltip_recursive(wxWindow *window, const wxString &tooltip, boo
 
 static wxString volume_short(NozzleVolumeType volume) { return wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(volume)); }
 
+// Orders the tile groups by diameter and then by flow type, so a given nozzle set always projects
+// to the same left-to-right order. The flow types follow the order the enum declares them in, which
+// runs standard, high flow, then the TPU types.
+static bool nozzle_group_less(const std::pair<wxString, NozzleVolumeType> &a, const std::pair<wxString, NozzleVolumeType> &b)
+{
+    // ToCDouble, not ToDouble: the diameters come from config as "0.4" and must read the same way
+    // whatever decimal separator the user's locale uses.
+    double     da = 0.0, db = 0.0;
+    const bool a_numeric = a.first.ToCDouble(&da);
+    const bool b_numeric = b.first.ToCDouble(&db);
+
+    // A diameter that does not read as a number keeps to the end, behind every real one.
+    if (a_numeric != b_numeric) return a_numeric;
+    if (a_numeric ? da != db : a.first != b.first) return a_numeric ? da < db : a.first < b.first;
+
+    return a.second < b.second;
+}
+
 void ExtruderPanel::add_summary_tile(const wxString &diameter, const wxString &flow, int count, bool show_count)
 {
     auto *tile = new NozzleSummary(this);
@@ -396,9 +425,63 @@ void ExtruderPanel::add_summary_tile(const wxString &diameter, const wxString &f
     tile->SetFlow(flow);
     tile->SetNozzleNumber(count);
     tile->ShowNozzleNumber(show_count);
-    m_summary_sizer->Add(tile, 0, wxALIGN_CENTER_VERTICAL);
+    m_summary_sizer->Add(tile, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(2));
     m_summaries.push_back(tile);
     wxGetApp().UpdateDarkUIWin(tile); // tiles are created after Build()'s one-time dark-mode pass
+}
+
+// Width the tiles occupy when they are all kept on a single line. Measured from the tiles rather
+// than from the wrapping sizer, whose own min size shrinks to the wrapped width once it wraps and
+// would otherwise make the two placements below flip back and forth.
+int ExtruderPanel::tiles_single_line_width() const
+{
+    int width = 0;
+    for (const auto *tile : m_summaries)
+        if (tile && tile->IsShown()) width += tile->GetBestSize().x + FromDIP(2);
+
+    return width;
+}
+
+// A wrap sizer only wraps when its parent hands it a width, which the horizontal row holding it
+// never does; the card's own vertical sizer does. So the row stays beside the content while the
+// tiles still fit there on one line, and moves below it once they do not, where it can wrap.
+void ExtruderPanel::update_tile_row_line()
+{
+    if (!m_content_row || !m_content_sizer) return;
+
+    const wxSize available = GetClientSize();
+    if (available.x <= 0) return; // not shown yet; size events re-run this once it is
+
+    // Keep the tiles beside the content while that leaves room for them on one line, and give the
+    // tiles a line of their own once it does not, so the extra tiles wrap there instead of clipping.
+    const int  beside    = available.x - m_content_sizer->GetMinSize().x - FromDIP(8);
+    const bool fits_wide = tiles_single_line_width() <= beside;
+    if (m_tiles_on_own_line == !fits_wide) return; // already placed this way
+
+    m_tiles_on_own_line = !fits_wide;
+
+    // The row may currently sit in either the content row or the card's vertical sizer, so both
+    // have to be cleared before it is placed again.
+    m_content_row->Detach(m_summary_sizer);
+    m_main_sizer->Detach(m_summary_sizer);
+    m_content_row->Detach(m_content_sizer);
+
+    if (fits_wide) {
+        m_content_row->Add(m_summary_sizer, 0, wxALIGN_CENTER_VERTICAL);
+        m_content_row->Add(m_content_sizer, 1, wxEXPAND);
+    } else {
+        m_content_row->Add(m_content_sizer, 1, wxEXPAND);
+        m_main_sizer->Add(m_summary_sizer, 0, wxEXPAND | wxTOP, FromDIP(2)); // a line of its own, under the content
+    }
+
+    m_main_sizer->Layout();
+    Layout();
+}
+
+void ExtruderPanel::OnSize(wxSizeEvent &evt)
+{
+    update_tile_row_line();
+    evt.Skip();
 }
 
 void ExtruderPanel::finish_projection(bool enabled)
@@ -411,7 +494,7 @@ void ExtruderPanel::finish_projection(bool enabled)
                                 "Printing with mixed nozzle diameters is experimental.");
     set_tooltip_recursive(this, tooltip, enabled);
 
-    Layout();
+    update_tile_row_line();
     Refresh();
 }
 
@@ -935,6 +1018,9 @@ void SingleExtruderPanel::UpdateNozzles(const std::vector<NozzleConfig> &configs
         else
             it->second++;
     }
+    // Tiles read left to right, smallest diameter first and standard flow ahead of the high flow
+    // types, so the same nozzle set always projects to the same order.
+    std::sort(groups.begin(), groups.end(), [](const auto &a, const auto &b) { return nozzle_group_less(a.first, b.first); });
     for (const auto &g : groups) add_summary_tile(g.first.first, volume_short(g.first.second), g.second, true);
 
     finish_projection(true); // every configured diameter is valid in multi mode
