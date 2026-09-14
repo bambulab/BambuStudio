@@ -93,6 +93,15 @@ bool is_extruder_stat_synced(int target_extruder_id)
         return false;
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle)
+        return false;
+
+    // Nozzle groups are a one-way subset of the machine inventory and do not encode the printer
+    // model. An A1 0.8 preset can still match a leftover 0.8 on an H3C rack, so require the
+    // selected preset's type to match the connected machine first.
+    if (preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) != obj->get_show_printer_type())
+        return false;
+
     bool is_synced = true;
 
     auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;

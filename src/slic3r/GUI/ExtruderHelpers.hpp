@@ -70,7 +70,8 @@ inline int   decode_volume(void *data) { return static_cast<int>(reinterpret_cas
 
 std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj);
 
-// check whether nozzle status is synced with printer; extruder = -1 means check both
+// True when the selected printer preset's type matches the connected machine and the nozzle
+// groups agree. extruder = -1 means check both extruders.
 bool is_extruder_stat_synced(int target_extruder_id = -1);
 
 // The nozzles the machine reports for one logical extruder, as slot-ordered configs; slots the
