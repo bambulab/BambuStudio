@@ -7787,6 +7787,9 @@ msgstr "检查喷嘴是否被耗材或其他异物堵塞。"
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "检测由喷嘴堵塞引起的空打。"
 
+msgid "Detects air printing caused by nozzle clogging, filament tangling, or filament grinding."
+msgstr "检测由喷嘴堵塞、耗材缠绕或耗材碾磨引起的空打。"
+
 msgid "Foreign Object Detection"
 msgstr "异物检测"
 
@@ -7852,6 +7855,21 @@ msgstr "通知"
 
 msgid "Pause printing"
 msgstr "暂停打印"
+
+msgid "Notify only"
+msgstr "仅通知"
+
+msgid "Slow down toolhead"
+msgstr "换头降速"
+
+msgid "Enable Slow Down Toolhead?"
+msgstr "开启换头降速？"
+
+msgid "When the door is opened during printing, the printer slows down the toolhead related moves for safety. This may increase the toolhead switching time and affect the print quality."
+msgstr "打印中开门时，出于安全考虑，设备会降低换头相关动作速度。该功能可能增加换头耗时，并影响打印质量。"
+
+msgid "Enable Anyway"
+msgstr "仍然开启"
 
 msgid "Print Status Snapshot"
 msgstr "打印状态快照"
