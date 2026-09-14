@@ -4132,6 +4132,17 @@ bool MachineObject::is_firmware_info_valid()
 }
 
 
+std::optional<DevAmsTray> MachineObject::get_vt_tray(const std::string &ams_id) const
+{
+    if (ams_id.empty()) { return std::nullopt; }
+
+    for (const auto &tray : vt_slot) {
+        if (tray.id == ams_id) { return tray; }
+    }
+
+    return std::nullopt;
+}
+
 DevAmsTray MachineObject::parse_vt_tray(json vtray)
 {
     auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
@@ -4153,6 +4164,11 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
         } else {
             vt_tray.id = id;
         }
+    }
+    vt_tray.ams_id = vt_tray.id;
+
+    if (auto old_vt_tray = get_vt_tray(vt_tray.id); old_vt_tray.has_value()) {
+        vt_tray.hold_count = old_vt_tray->hold_count;
     }
 
     auto curr_time = std::chrono::system_clock::now();
@@ -4297,7 +4313,6 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
         vt_tray.binded_extruder_set = { DEPUTY_EXTRUDER_ID };
     }
 
-    vt_tray.ams_id = vt_tray.id;
     return vt_tray;
 }
 
