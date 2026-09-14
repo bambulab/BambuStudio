@@ -944,6 +944,11 @@ public:
     void                                set_use_color_clip_plane(bool use) { m_volumes.set_use_color_clip_plane(use); }
     void                                set_color_clip_plane(const Vec3d &cp_normal, double offset) { m_volumes.set_color_clip_plane(cp_normal, offset); }
     void                                set_color_clip_plane_colors(const std::array<ColorRGBA, 2> &colors) { m_volumes.set_color_clip_plane_colors(colors); }
+    void                                set_use_dovetail_clip(bool use) { m_volumes.set_use_dovetail_clip(use); }
+    void                                set_dovetail_clip(const Transform3d &world_to_groove, const Vec4f &params, const Vec2f &tolerance)
+    {
+        m_volumes.set_dovetail_clip(world_to_groove, params, tolerance);
+    }
 
     // Volume color override methods (for mesh boolean gizmo)
     void set_use_volume_color_override(bool use) { m_volumes.set_use_volume_color_override(use); }
