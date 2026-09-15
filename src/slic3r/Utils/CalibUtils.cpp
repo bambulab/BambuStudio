@@ -321,13 +321,6 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
         return true;
 
     try {
-        std::string nozzle_type;
-
-        const ConfigOptionEnumsGenericNullable * config_nozzle_type = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
-        std::vector<std::string> config_nozzle_types_str(config_nozzle_type->size());
-        for (size_t idx = 0; idx < config_nozzle_type->size(); ++idx)
-            config_nozzle_types_str[idx] = NozzleTypeEumnToStr[NozzleType(config_nozzle_type->values[idx])];
-
         auto opt_nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
 
         std::vector<float> config_nozzle_diameters(opt_nozzle_diameters->size());

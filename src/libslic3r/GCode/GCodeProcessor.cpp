@@ -1977,10 +1977,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.filament_vitrification_temperature.resize(filament_count);
     m_result.filament_costs.resize(filament_count);
     m_extruder_temps.resize(filament_count);
-    std::vector<NozzleType>(config.nozzle_type.size()).swap(m_result.nozzle_type);
-    for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx) {
-        m_result.nozzle_type[idx] = NozzleType(config.nozzle_type.values[idx]);
-    }
 
     std::vector<int> filament_map = config.filament_map.values; // 1 based idxs
     // if filament map has wrong length, set filament to master extruder_id
@@ -2146,14 +2142,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionInts* physical_extruder_map = config.option<ConfigOptionInts>("physical_extruder_map");
     if (physical_extruder_map != nullptr) {
         m_physical_extruder_map = physical_extruder_map->values;
-    }
-
-    const ConfigOptionEnumsGenericNullable* nozzle_type = config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
-    if (nozzle_type != nullptr) {
-        m_result.nozzle_type.resize(nozzle_type->size());
-        for (size_t idx = 0; idx < nozzle_type->values.size(); ++idx) {
-            m_result.nozzle_type[idx] = NozzleType(nozzle_type->values[idx]);
-        }
     }
 
     const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
@@ -5866,13 +5854,10 @@ void GCodeProcessor::process_T(const std::string_view command, int nozzle_id)
 }
 
 
-void GCodeProcessor::init_filament_maps_and_nozzle_type_when_import_only_gcode()
+void GCodeProcessor::init_filament_maps_when_import_only_gcode()
 {
     if (m_filament_maps.empty()) {
         m_filament_maps.assign((int) EnforcerBlockerType::ExtruderMax, 1);
-    }
-    if (m_result.nozzle_type.empty()) {
-        m_result.nozzle_type.assign((int) EnforcerBlockerType::ExtruderMax, NozzleType::ntUndefine);
     }
 }
 
@@ -6355,43 +6340,6 @@ void GCodeProcessor::update_slice_warnings()
     auto used_filaments = get_used_filaments();
     assert(!used_filaments.empty());
     GCodeProcessorResult::SliceWarning warning;
-
-    //bbs:HRC checker // remove the checker
-    //warning.params.clear();
-    //warning.level=1;
-
-    //std::vector<int> nozzle_hrc_lists(m_result.nozzle_type.size(), 0);
-    //// store the nozzle hrc of each extruder
-    //for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx)
-    //    nozzle_hrc_lists[idx] = Print::get_hrc_by_nozzle_type(m_result.nozzle_type[idx]);
-
-    //for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
-    //    int filament_hrc = 0;
-
-    //    if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
-    //        filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
-
-    //    int extruder_hrc = 0;
-    //    int filament_extruder_id = 0;
-    //    if (used_filaments[idx] >= 0 && used_filaments[idx] < m_filament_maps.size()) {
-    //        filament_extruder_id = m_filament_maps[used_filaments[idx]];
-    //        if (filament_extruder_id >= 0 && filament_extruder_id < nozzle_hrc_lists.size()) {
-    //            extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
-    //        }
-    //    }
-
-    //    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
-
-    //    if (extruder_hrc!=0 && extruder_hrc < filament_hrc)
-    //        warning.params.push_back(std::to_string(used_filaments[idx]));
-    //}
-
-    //if (!warning.params.empty()) {
-    //    warning.level      = 3;
-    //    warning.msg = NOZZLE_HRC_CHECKER;
-    //    warning.error_code = "1000C002";
-    //    m_result.warnings.push_back(warning);
-    //}
 
     // bbs:timelapse checker
     warning.params.clear();

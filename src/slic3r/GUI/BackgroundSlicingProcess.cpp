@@ -847,7 +847,7 @@ void BackgroundSlicingProcess::finalize_gcode()
     // IMPORTANT: only update fields that reflect G-code TEXT content (moves,
     // lines_ends). We must NOT replace the whole result — slicer-computed
     // state (filament_maps, nozzle_group_result, filament_change_sequence,
-    // required_nozzle_HRC, extruder_colors, nozzle_type, print_statistics,
+    // required_nozzle_HRC, extruder_colors, print_statistics,
     // etc.) is derived from config during slicing and is not reconstructable
     // from the G-code text alone. Replacing it wholesale breaks the H2C/H2D
     // send-to-printer nozzle auto-mapping flow (the printer rejects the

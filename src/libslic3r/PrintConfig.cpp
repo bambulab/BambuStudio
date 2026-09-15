@@ -3713,25 +3713,6 @@ void PrintConfigDef::init_fff_params()
     // def->mode = comSimple;
     // def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("nozzle_type", coEnums);
-    def->label = L("Nozzle type");
-    def->tooltip = L("The metallic material of nozzle. This determines the abrasive resistance of nozzle, and "
-                     "what kind of filament can be printed");
-    def->enum_keys_map = &ConfigOptionEnum<NozzleType>::get_enum_values();
-    def->enum_values.push_back("undefine");
-    def->enum_values.push_back("hardened_steel");
-    def->enum_values.push_back("stainless_steel");
-    def->enum_values.push_back("tungsten_carbide");
-    def->enum_values.push_back("brass");
-    def->enum_labels.push_back(L("Undefine"));
-    def->enum_labels.push_back(L("Hardened steel"));
-    def->enum_labels.push_back(L("Stainless steel"));
-    def->enum_labels.push_back(L("Tungsten carbide"));
-    def->enum_labels.push_back(L("Brass"));
-    def->mode = comDevelop;
-    def->nullable = true;
-    def->set_default_value(new ConfigOptionEnumsGenericNullable({ ntUndefine }));
-
     def = this->add("printer_structure", coEnum);
     def->label = L("Printer structure");
     def->tooltip = L("The physical arrangement and components of a printing device");
@@ -7602,7 +7583,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top","bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
         "prime_volume",
-        "apply_top_surface_compensation"
+        "apply_top_surface_compensation",
+        "nozzle_type"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -7742,7 +7724,6 @@ std::set<std::string> printer_options_with_variant_1 = {
     "retract_restart_extra_toolchange",
     "long_retractions_when_cut",
     "retraction_distances_when_cut",
-    "nozzle_type",
     "printer_extruder_id",
     "printer_extruder_variant",
     "hotend_cooling_rate",

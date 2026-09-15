@@ -299,7 +299,6 @@ namespace Slic3r {
         std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;
         //BBS
         std::vector<SliceWarning> warnings;
-        std::vector<NozzleType> nozzle_type;
         // first key stores filaments, second keys stores the layer ranges(enclosed) that use the filaments
         std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>,FilamentSequenceHash> layer_filaments;
         std::vector<unsigned int> nozzle_change_sequence;
@@ -1241,7 +1240,7 @@ namespace Slic3r {
 
     public:
         GCodeProcessor();
-        void init_filament_maps_and_nozzle_type_when_import_only_gcode();
+        void init_filament_maps_when_import_only_gcode();
         // check whether the gcode path meets the filament_map grouping requirements
         bool check_multi_extruder_gcode_valid(const int                               extruder_size,
                                               const Pointfs                           plate_printable_area,
