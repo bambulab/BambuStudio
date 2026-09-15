@@ -2177,6 +2177,12 @@ bool has_authoritative_per_slot_nozzle_diameters(
 // and presents exactly as it did before multi-diameter printing existed. Missing option means off.
 bool multi_nozzle_diameter_mode_enabled(const ConfigOptionResolver &config);
 
+// printer_variant of the system printer multi-diameter mode slices against.
+inline constexpr const char *canonical_multi_nozzle_printer_variant() { return "0.4"; }
+
+// printer_variant used when leaving multi-diameter with no restorable return point.
+inline constexpr const char *default_single_nozzle_printer_variant() { return "0.4"; }
+
 // MVP multi-diameter tuning. These values intentionally live in code instead of presets: all nozzle
 // diameters share one machine/process preset while slicing resolves the effective value per filament.
 // Unknown diameters keep the preset value so non-standard/custom nozzles are not silently mistuned.

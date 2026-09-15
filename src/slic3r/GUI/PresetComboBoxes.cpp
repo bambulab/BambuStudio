@@ -94,10 +94,10 @@ static bool is_canonical_multi_nozzle_diameter_printer_preset(const PresetCollec
     const Preset* base = printers.get_preset_base(preset);
     return base != nullptr && base->is_system &&
         is_single_ext_multi_nozzle(base->config) &&
-        base->config.opt_string("printer_variant") == "0.2";
+        base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant();
 }
 
-// Multi-diameter slicing anchors the project on the canonical 0.2 printer, so the sibling diameters
+// Multi-diameter slicing anchors the project on the canonical printer variant, so the sibling diameters
 // of that machine must not be offered anywhere a printer is picked. Other printer models, and
 // machines that cannot do multi-diameter at all, are untouched. Callers add their own "keep the
 // preset in use" exemption, so a transient "mode on + non-canonical printer" state cannot drop the
@@ -1921,16 +1921,9 @@ static bool numeric_text(const std::string& text)
     return end == text.c_str() + text.size();
 }
 
-static std::string multi_nozzle_preset_name(const Preset& preset, Preset::Type type)
+static std::string multi_nozzle_printer_preset_name(const Preset& preset)
 {
     std::string name = preset.name;
-    if (type == Preset::TYPE_PRINT) {
-        const size_t first_space = name.find(' ');
-        if (first_space != std::string::npos && first_space > 2 &&
-            name.compare(first_space - 2, 2, "mm") == 0 &&
-            numeric_text(name.substr(0, first_space - 2)))
-            name.erase(0, first_space + 1);
-    }
 
     const std::string nozzle_suffix = " nozzle";
     if (boost::algorithm::ends_with(name, nozzle_suffix)) {
@@ -1946,21 +1939,14 @@ static std::string multi_nozzle_preset_name(const Preset& preset, Preset::Type t
 
 wxString TabPresetComboBox::get_preset_name(const Preset& preset)
 {
-    const bool multi_nozzle_mode = m_preset_bundle != nullptr &&
-        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
-    // Only the canonical 0.2 baseline earns the "Multiple nozzle" label. Renaming every diameter
-    // would make a printer that some path wrongly re-pointed (0.4, 0.6, ...) indistinguishable from
-    // the baseline the mode is supposed to slice against.
-    bool supported_printer = false;
-    if (m_preset_bundle != nullptr) {
-        const PresetCollection &printers = m_preset_bundle->printers;
-        if (m_type == Preset::TYPE_PRINTER)
-            supported_printer = is_canonical_multi_nozzle_diameter_printer_preset(printers, preset);
-        else if (m_type == Preset::TYPE_PRINT)
-            supported_printer = is_canonical_multi_nozzle_diameter_printer_preset(printers, printers.get_edited_preset());
-    }
-    if (multi_nozzle_mode && preset.is_system && supported_printer)
-        return from_u8(multi_nozzle_preset_name(preset, m_type));
+    // Only the printer gets relabelled, and only on the canonical variant: renaming every diameter
+    // would make a printer that some path wrongly re-pointed indistinguishable from the baseline the
+    // mode is supposed to slice against. Every other preset type - process included - keeps the name
+    // it actually has, so what the list shows always matches the preset being edited.
+    if (m_type == Preset::TYPE_PRINTER && m_preset_bundle != nullptr && preset.is_system &&
+        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config) &&
+        is_canonical_multi_nozzle_diameter_printer_preset(m_preset_bundle->printers, preset))
+        return from_u8(multi_nozzle_printer_preset_name(preset));
     return from_u8(preset.label(true));
 }
 

@@ -984,9 +984,9 @@ struct Sidebar::priv
     wxPoint                   fila_switch_pos;
 
     // Printer preset that was active right before the user turned multi_nozzle_diameter_mode ON, so
-    // turning it back OFF returns there instead of the generic 0.4 fallback. Session-local and only
-    // written by an explicit toggle: a project that already opens in multi-diameter mode has no
-    // return point, so its first switch to single-diameter still lands on 0.4.
+    // turning it back OFF returns there instead of default_single_nozzle_printer_variant(). Session-local
+    // and only written by an explicit toggle: a project that already opens in multi-diameter mode has no
+    // return point, so its first switch to single-diameter still lands on that fallback.
     std::optional<std::string> m_printer_preset_before_multi_diameter;
 
     int  FromDIP(int n) { return plater->FromDIP(n); }
@@ -1863,9 +1863,10 @@ static Preset *find_restorable_printer_preset(const std::string &name, const std
     return target;
 }
 
-// Selects the printer preset the requested mode needs. Turning the mode on always lands on canonical
-// 0.2. Turning it off prefers restore_target - the preset the user came from - and only falls back to
-// the same-model 0.4 system preset when there is no usable return point.
+// Selects the printer preset the requested mode needs. Turning the mode on always lands on the
+// canonical printer variant. Turning it off prefers restore_target - the preset the user came from -
+// and only falls back to the same-model default single-diameter system preset when there is no usable
+// return point.
 static bool select_printer_preset_for_multi_nozzle_mode(bool enabled,
                                                         const std::optional<std::string> &restore_target = std::nullopt)
 {
@@ -1876,17 +1877,17 @@ static bool select_printer_preset_for_multi_nozzle_mode(bool enabled,
         return false;
 
     if (enabled) {
-        // Keep a current user/project preset that already inherits from canonical 0.2.
-        if (base->config.opt_string("printer_variant") == "0.2")
+        // Keep a current user/project preset that already inherits from the canonical printer variant.
+        if (base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant())
             return true;
-        return select_system_multi_nozzle_printer_preset("0.2");
+        return select_system_multi_nozzle_printer_preset(canonical_multi_nozzle_printer_variant());
     }
 
     if (restore_target.has_value()) {
         if (*restore_target == current.name)
             return true;
         // Once the return point resolves, its select_preset() outcome is final: falling through to
-        // the 0.4 fallback after a cancelled switch would ask about unsaved changes a second time.
+        // the default-single fallback after a cancelled switch would ask about unsaved changes a second time.
         if (Preset *target = find_restorable_printer_preset(*restore_target, base->config.opt_string("printer_model"))) {
             Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
             if (printer_tab == nullptr)
@@ -1896,10 +1897,10 @@ static bool select_printer_preset_for_multi_nozzle_mode(bool enabled,
         }
     }
 
-    if (current.is_system && current.config.opt_string("printer_variant") == "0.4")
+    if (current.is_system && current.config.opt_string("printer_variant") == default_single_nozzle_printer_variant())
         return true;
 
-    return select_system_multi_nozzle_printer_preset("0.4");
+    return select_system_multi_nozzle_printer_preset(default_single_nozzle_printer_variant());
 }
 
 static void refresh_multi_nozzle_preset_choices()
@@ -1913,10 +1914,10 @@ static void refresh_multi_nozzle_preset_choices()
 }
 
 // Writes the multi-nozzle-diameter gate together with the printer preset that mode requires.
-// The preset combos hide every non-canonical printer while the gate is on, so "gate on + 0.4
-// printer" is a state they cannot render. Ordering the two writes by direction keeps every
-// intermediate state legal: turning the gate on writes it only once the 0.2 printer is active,
-// turning it off writes it before the single-diameter printer is selected. Turning it on also
+// The preset combos hide every non-canonical printer while the gate is on, so "gate on + default
+// single-diameter printer" is a state they cannot render. Ordering the two writes by direction keeps
+// every intermediate state legal: turning the gate on writes it only once the canonical printer is
+// active, turning it off writes it before the single-diameter printer is selected. Turning it on also
 // records where to return to, which turning it off then consumes. Returns whether the project ended
 // up in the requested mode.
 bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
@@ -1928,7 +1929,7 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
         return true;
 
     if (enabled) {
-        // Capture the return point before select_preset() moves the project onto canonical 0.2.
+        // Capture the return point before select_preset() moves the project onto the canonical printer.
         const std::string preset_before = wxGetApp().preset_bundle->printers.get_edited_preset().name;
         if (!select_printer_preset_for_multi_nozzle_mode(true))
             return false;
@@ -2637,12 +2638,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
             return false;
 
         // get_printer_preset() resolves the machine down to the diameter of its first usable nozzle,
-        // which multi-diameter mode must not adopt: slicing there anchors on the canonical 0.2 grid
-        // and carries the real per-slot nozzles separately. Only the machine's model may decide the
-        // destination, so aim at that model's 0.2 baseline instead.
+        // which multi-diameter mode must not adopt: slicing there anchors on the canonical printer
+        // variant and carries the real per-slot nozzles separately. Only the machine's model may decide
+        // the destination, so aim at that model's canonical baseline instead.
         Preset *target_preset = machine_preset;
         if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
-            if (Preset *canonical = find_system_multi_nozzle_printer_preset(machine_preset->config.opt_string("printer_model"), "0.2")) {
+            if (Preset *canonical = find_system_multi_nozzle_printer_preset(machine_preset->config.opt_string("printer_model"), canonical_multi_nozzle_printer_variant())) {
                 canonical->is_visible = true;
                 target_preset         = canonical;
             }
@@ -2715,7 +2716,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         s_ext_cfg = collect_nozzle_configs_from_machine(obj, 0, extruder_max_nozzle_count[0]);
         update_extruder_full_stats(LOGIC_UNIQUE_EXTRUDER_ID, selected_diameter, s_ext_cfg);
 
-        // Multi-diameter slicing stays anchored on the canonical 0.2 printer preset, so the machine's
+        // Multi-diameter slicing stays anchored on the canonical printer preset, so the machine's
         // dominant physical diameter must not re-point it. The per-slot stat collected above already
         // carries the real hardware into slicing, and update_presets() re-derives both diameter
         // widgets from printer_variant.
@@ -4482,12 +4483,12 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
         preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
 
     // A project that opens in multi-diameter mode was never toggled there by the user, so it has no
-    // return point and its first switch to single-diameter must land on the 0.4 fallback. Clearing
+    // return point and its first switch to single-diameter must land on the default-single fallback. Clearing
     // here also drops a stale return point left by a previously open project.
     p->m_printer_preset_before_multi_diameter.reset();
 
     p->diameter_btns->SetMultiDiameterMode(enabled);
-    if (!enabled || current_diameter == "0.2") {
+    if (!enabled || current_diameter == canonical_multi_nozzle_printer_variant()) {
         BOOST_LOG_TRIVIAL(info)
             << "multi-diameter project load: sidebar mode=" << enabled
             << ", printer_variant=" << current_diameter
@@ -4499,7 +4500,7 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
     const auto *extruder_variants =
         preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
     const bool is_dual = extruder_variants != nullptr && extruder_variants->size() == 2;
-    p->diameter_btns->SetSelectedDiameter("0.2");
+    p->diameter_btns->SetSelectedDiameter(canonical_multi_nozzle_printer_variant());
     p->is_switching_diameter = true;
     const bool switched = p->switch_diameter(!is_dual);
     p->is_switching_diameter = false;
@@ -4509,7 +4510,7 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
     BOOST_LOG_TRIVIAL(info)
         << "multi-diameter project load: sidebar mode=" << enabled
         << ", printer_variant_before=" << current_diameter
-        << ", switch_to_0.2=" << switched
+        << ", switch_to_canonical=" << switched
         << ", printer_variant_after="
         << preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
     refresh_filament_diameter_buttons();
@@ -22101,16 +22102,16 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     nozzle_diameter          = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     bool is_multi_extruder   = nozzle_diameter > 1;
 
-    // Multi-diameter slicing pins the printer preset to the canonical 0.2 grid while the machine keeps
-    // its real per-slot nozzles, so extruder 0 reporting 0.4 against a 0.2 preset is the expected state
-    // rather than a preset that needs syncing. What can genuinely drift there is the project's per-slot
-    // nozzle snapshot, which is what the sync badge tracks and what sync_extruder_list() refreshes. The
-    // printer model still has to agree, and when it does not the destination is the new model's 0.2
-    // baseline instead of the diameter-matched preset.
+    // Multi-diameter slicing pins the printer preset to the canonical variant while the machine keeps
+    // its real per-slot nozzles, so extruder 0 reporting a different diameter against that preset is
+    // the expected state rather than a preset that needs syncing. What can genuinely drift there is
+    // the project's per-slot nozzle snapshot, which is what the sync badge tracks and what
+    // sync_extruder_list() refreshes. The printer model still has to agree, and when it does not the
+    // destination is the new model's canonical baseline instead of the diameter-matched preset.
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
     Preset *   target_preset       = machine_preset;
     if (multi_diameter_mode) {
-        if (Preset *canonical = find_system_multi_nozzle_printer_preset(printer_model, "0.2"))
+        if (Preset *canonical = find_system_multi_nozzle_printer_preset(printer_model, canonical_multi_nozzle_printer_variant()))
             target_preset = canonical;
     }
     const bool model_mismatch  = printer_preset.get_current_printer_type(preset_bundle) != printer_type;
