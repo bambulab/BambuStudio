@@ -214,6 +214,7 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
     bool any_changed           = false;
     std::vector<wgtFilaManagerCloudSync::AmsChangedSpool> changed;
     std::map<std::string, MountUpdate> present_now;
+    std::set<std::string> handled_spools;
 
     const auto ams_ver_map = obj->get_ams_version();
 
@@ -243,6 +244,10 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         BOOST_LOG_TRIVIAL(info)
             << "[ams-sync] matched tray -> spool_id=" << matched->spool_id
             << " ams_id=" << ams_id << " slot_id=" << tray.id;
+
+        if (!handled_spools.insert(matched->spool_id).second) {
+            return;
+        }
 
         int ams_id_int = -1;
         try { ams_id_int = std::stoi(ams_id); } catch (...) {}
@@ -399,7 +404,8 @@ const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray,
     }
     if (!tray.setting_id.empty()) {
         auto* sp = m_store->find_by_setting_and_color(tray.setting_id, tray.color);
-        if (sp) return sp;
+        if (sp && !FilamentSpool::is_valid_tag_uid(sp->tag_uid))
+            return sp;
     }
     return nullptr;
 }
