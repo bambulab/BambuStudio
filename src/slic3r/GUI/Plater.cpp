@@ -12107,15 +12107,21 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             if (!current_plate->contains(center_point))
                 this->partplate_list.select_plate_view();*/
 
-            // keeps current gcode preview, if any
-            if (this->m_slice_all) {
+            // Keep the previous plate's gcode only while slice-all is still running.
+            // After it finishes, m_slice_all may still be true, but the current plate
+            // can already be different (user switched plates in Prepare).
+            if (this->m_slice_all && this->m_is_slicing) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": slicing all, just reload shells");
                 this->update_fff_scene_only_shells();
             }
             else {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": single slice, reload print");
-                if (model_fits)
-                    this->preview->reload_print(true);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": reload print for current plate");
+                if (model_fits) {
+                    const bool plate_changed = !this->preview->is_print_loaded(current_plate->fff_print());
+                    if (plate_changed)
+                        reset_gcode_toolpaths();
+                    this->preview->reload_print(!plate_changed);
+                }
                 else
                     this->update_fff_scene_only_shells();
             }
@@ -13062,6 +13068,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":finished, reload print soon");
         m_is_slicing = false;
+        m_slice_all = false;
         this->preview->reload_print(false);
         q->mark_plate_toolbar_image_dirty();
         /* BBS if in publishing progress */
@@ -26109,6 +26116,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
     int ret;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, need_slice %3% ")%__LINE__ %plate_index  %need_slice;
     take_snapshot("select partplate!");
+    const int old_plate_index = p->partplate_list.get_curr_plate_index();
     ret = p->partplate_list.select_plate(plate_index);
     if (!ret) {
         if (is_view3D_shown())
@@ -26121,6 +26129,10 @@ int Plater::select_plate(int plate_index, bool need_slice)
         //select successfully
         p->partplate_list.update_slice_context_to_current_plate(p->background_process);
         p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+        // Preview is hidden while switching plates in Prepare; drop the previous
+        // plate's toolpaths only when the selected plate actually changed.
+        if (!is_preview_shown() && old_plate_index != plate_index)
+            reset_gcode_toolpaths();
         p->update_print_volume_state();
 
         PartPlate* part_plate = p->partplate_list.get_curr_plate();
