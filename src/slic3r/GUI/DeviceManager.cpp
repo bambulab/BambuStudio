@@ -4988,6 +4988,7 @@ void MachineObject::add_command_error_code_dlg(int command_err, json action_json
         {
             if (token.expired()) { return;}
             GUI::DeviceErrorDialog* device_error_dialog = new GUI::DeviceErrorDialog(this, (wxWindow*)GUI::wxGetApp().mainframe);
+            m_command_error_code_dlgs.insert(device_error_dialog);
             device_error_dialog->Bind(wxEVT_DESTROY, [this, token = std::weak_ptr<int>(m_token)](auto& event)
                 {
                     if (!token.expired()) { m_command_error_code_dlgs.erase((GUI::DeviceErrorDialog*)event.GetEventObject());}
@@ -4996,7 +4997,7 @@ void MachineObject::add_command_error_code_dlg(int command_err, json action_json
 
             if(!action_json.is_null()) device_error_dialog->set_action_json(action_json);
             device_error_dialog->show_error_code(command_err);
-            m_command_error_code_dlgs.insert(device_error_dialog);
+            if (!device_error_dialog->IsShown() && !device_error_dialog->IsModal()) { device_error_dialog->Destroy(); }
         });
     };
 }

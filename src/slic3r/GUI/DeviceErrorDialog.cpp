@@ -6,9 +6,37 @@
 #include "MainFrame.hpp"
 #include "ReleaseNote.hpp"
 
+#include <wx/modalhook.h>
+
 namespace Slic3r {
 namespace GUI
 {
+
+wxDEFINE_EVENT(EVT_ELEVATE_ERROR_DIALOG, wxCommandEvent);
+
+// Detects when any OTHER dialog is about to enter its modal loop. A pre-existing
+// non-modal error dialog would otherwise be disabled by that dialog's
+// wxWindowDisabler (visible-but-dead). We post an event so the error dialog can
+// re-enable itself and nest its own ShowModal() on top, staying both on-top and
+// interactive across Win/macOS/GTK.
+class ErrorDialogModalHook : public wxModalDialogHook
+{
+public:
+    explicit ErrorDialogModalHook(DeviceErrorDialog* dlg) : m_dlg(dlg) {}
+
+    int Enter(wxDialog* dialog) override
+    {
+        if (dialog != m_dlg && m_dlg->IsShown() && !m_dlg->IsModal() && !m_dlg->m_elevate_pending) {
+            m_dlg->m_elevate_pending = true;
+            wxCommandEvent event(EVT_ELEVATE_ERROR_DIALOG);
+            wxPostEvent(m_dlg, event);
+        }
+        return wxID_NONE;
+    }
+
+private:
+    DeviceErrorDialog* m_dlg{nullptr};
+};
 
 static std::unordered_set<std::string> message_containing_retry{
     "0701-8004",
@@ -23,7 +51,7 @@ static std::unordered_set<std::string> message_containing_retry{
 
 
 DeviceErrorDialog::DeviceErrorDialog(MachineObject* obj, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-    :DPIDialog(parent, id, title, pos, size, style), m_obj(obj)
+    : DPIDialog(parent, id, title, pos, size, style), m_obj(obj)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -89,15 +117,29 @@ DeviceErrorDialog::DeviceErrorDialog(MachineObject* obj, wxWindow* parent, wxWin
             m_uiop_sent = true;
             m_obj->command_clean_print_error_uiop(m_error_code);
         }
+        if (!IsModal()) {
+            Destroy();
+            return;
+        }
         e.Skip();
     });
 
     m_request_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, &DeviceErrorDialog::on_request_timeout, this, m_request_timer->GetId());
+
+    Bind(EVT_ELEVATE_ERROR_DIALOG, &DeviceErrorDialog::elevate_to_modal, this);
+    m_modal_hook = new ErrorDialogModalHook(this);
+    m_modal_hook->Register();
 }
 
 DeviceErrorDialog::~DeviceErrorDialog()
 {
+    if (m_modal_hook) {
+        m_modal_hook->Unregister();
+        delete m_modal_hook;
+        m_modal_hook = nullptr;
+    }
+
     if (m_request_timer) {
         m_request_timer->Stop();
         m_request_timer->Disconnect();
@@ -307,6 +349,7 @@ void DeviceErrorDialog::apply_loading()
 
 void DeviceErrorDialog::handle_hms_result(const HMSResult& r)
 {
+    if (IsBeingDeleted()) { return; }
     if (r.status == HMSStatus::Ready && r.is_internal) { Close(); return; }
 
     if (r.status == HMSStatus::Loading)
@@ -314,14 +357,57 @@ void DeviceErrorDialog::handle_hms_result(const HMSResult& r)
     else
         apply_result(r);
 
-    Show();
-    Raise();
+    show_error_dialog();
+}
+
+static bool is_other_modal_dialog_shown(const DeviceErrorDialog *error_dialog)
+{
+    for (wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst(); node != nullptr; node = node->GetNext()) {
+        auto *dialog = dynamic_cast<wxDialog *>(node->GetData());
+        if (dialog != nullptr && dialog != error_dialog && dialog->IsShown() && dialog->IsModal()) { return true; }
+    }
+
+    return false;
+}
+
+void DeviceErrorDialog::show_error_dialog()
+{
+    if (IsModal()) {
+        Raise();
+        return;
+    }
 
 #ifdef __WXOSX__
     SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
 #endif
 
+    // Another modal dialog already owns the event loop: showing non-modally now
+    // would leave us disabled (visible-but-dead), so become the top nested modal.
+    if (is_other_modal_dialog_shown(this)) {
+        Enable(true);
+        Raise();
+        ShowModal();
+        Destroy();
+        return;
+    }
+
+    Show();
+    Raise();
     this->RequestUserAttention(wxUSER_ATTENTION_ERROR);
+}
+
+void DeviceErrorDialog::elevate_to_modal(wxCommandEvent& event)
+{
+    m_elevate_pending = false;
+
+    if (!IsShown() || IsModal()) { return; }
+
+    // The other dialog's ShowModal() disabled us via wxWindowDisabler; re-enable,
+    // rise above it, and take over as the active nested modal so we stay closable.
+    Enable(true);
+    Raise();
+    ShowModal();
+    Destroy();
 }
 
 wxString DeviceErrorDialog::show_error_code(int error_code)

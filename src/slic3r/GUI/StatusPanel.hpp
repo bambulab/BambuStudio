@@ -13,6 +13,7 @@
 #include <wx/image.h>
 #include <wx/sizer.h>
 #include <wx/gbsizer.h>
+#include <wx/weakref.h>
 #include <wx/webrequest.h>
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
@@ -692,7 +693,7 @@ protected:
     AMSNewOfficialFilamentDlg *m_new_official_filament_dlg{nullptr};
     SoftMatchPendingResponse   m_soft_match_pending;
 
-    DeviceErrorDialog* m_print_error_dlg = nullptr;
+    wxWeakRef<DeviceErrorDialog> m_print_error_dlg;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* con_load_dlg = nullptr;
     MessageDialog *       ctrl_e_hint_dlg             = nullptr;

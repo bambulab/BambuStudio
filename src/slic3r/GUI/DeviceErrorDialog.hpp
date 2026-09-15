@@ -18,8 +18,16 @@ class MachineObject;//Previous definitions
 
 namespace GUI {
 
+class DeviceErrorDialog;
+
+// Fired (via wxPostEvent) when another dialog enters its modal loop while this
+// error dialog is shown non-modally, asking it to elevate itself to a nested modal.
+wxDECLARE_EVENT(EVT_ELEVATE_ERROR_DIALOG, wxCommandEvent);
+
 class DeviceErrorDialog : public DPIDialog
 {
+    friend class ErrorDialogModalHook;
+
 public:
     enum ActionButton : int {
         RESUME_PRINTING = 2,
@@ -99,12 +107,17 @@ protected:
     void clear_request_timer();
     bool get_fail_snapshot_from_cloud();
     bool get_fail_snapshot_from_local(const wxString& image_url);
+    void show_error_dialog();
+    void elevate_to_modal(wxCommandEvent& event);
 
 private:
     MachineObject* m_obj;
 
     bool m_uiop_sent = false;
     int m_error_code = 0;
+
+    class ErrorDialogModalHook* m_modal_hook{nullptr};
+    bool m_elevate_pending{false};
 
     HMSSubscription m_hms_sub;
     std::unordered_set<Button*> m_used_button;

@@ -3693,24 +3693,40 @@ void StatusPanel::update_error_message()
     if (!obj) return;
 
     static int last_error = -1;
+    const int current_error = obj->print_error;
 
-    if (obj->print_error <= 0) {
+    if (current_error <= 0) {
         error_info_reset();
         if (m_print_error_dlg) {
-            delete m_print_error_dlg;
+            if (m_print_error_dlg->IsModal()) {
+                m_print_error_dlg->EndModal(wxID_CANCEL);
+                last_error = current_error;
+                return;
+            }
+            m_print_error_dlg->Destroy();
             m_print_error_dlg = nullptr;
         }
-    } else if (obj->print_error != last_error) {
+    } else if (current_error != last_error) {
         /* clear old dialog */
         if (m_print_error_dlg) {
-            delete m_print_error_dlg;
+            if (m_print_error_dlg->IsModal()) {
+                m_print_error_dlg->EndModal(wxID_CANCEL);
+                return;
+            }
+            m_print_error_dlg->Destroy();
             m_print_error_dlg = nullptr;
         }
 
         /* show device error message*/
+        last_error = current_error;
         m_print_error_dlg  = new DeviceErrorDialog(obj, this);
-        wxString error_msg = m_print_error_dlg->show_error_code(obj->print_error);
-        BOOST_LOG_TRIVIAL(info) << "print error: device error code = " << obj->print_error;
+        wxString error_msg = m_print_error_dlg->show_error_code(current_error);
+        BOOST_LOG_TRIVIAL(info) << "print error: device error code = " << current_error;
+
+        if (!m_print_error_dlg->IsShown() && !m_print_error_dlg->IsModal()) {
+            m_print_error_dlg->Destroy();
+            m_print_error_dlg = nullptr;
+        }
 
         /* show error message on task panel */
         if (!error_msg.IsEmpty()) {
@@ -3719,7 +3735,7 @@ void StatusPanel::update_error_message()
         }
     }
 
-    last_error = obj->print_error;
+    last_error = current_error;
 }
 
 void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
