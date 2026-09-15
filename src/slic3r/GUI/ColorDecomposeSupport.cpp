@@ -288,6 +288,7 @@ bool ensure_official_series_installed(const std::string& basic_type)
     return true;
 }
 
+
 std::string official_basic_type_from_preset_name(const std::string& preset_name)
 {
     if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePlaPaletteType) != std::string::npos)
@@ -409,6 +410,8 @@ bool prepare_decompose_mixed_result(
     if (standard_mode) {
         basic_type = resolve_decompose_basic_type(result.material_type, source_config_idx,
                                                   source_physical_idx, physical_types);
+        if (basic_type == kDecomposePlaPaletteType)
+            ensure_official_series_installed(basic_type);
         preset_name = find_decompose_standard_preset_name(source_config_idx, basic_type);
     }
 

@@ -7321,6 +7321,7 @@ void TextureImportDialog::add_pla_basic_cmyw_to_project()
 
     ensure_official_series_installed(kDecomposePlaBasicType);
     const std::string preset_name = find_decompose_standard_preset_name(0, kDecomposePlaBasicType);
+
     if (preset_name.empty()) {
         MessageDialog dlg(this,
             _L("The current printer has no compatible PLA Basic filament."),
