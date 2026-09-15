@@ -134,6 +134,5 @@
   "machine_end_gcode": "",
   "layer_change_gcode": "",
   "scan_first_layer": "0",
-  "nozzle_type": "undefine",
   "auxiliary_fan": "0"
 }
