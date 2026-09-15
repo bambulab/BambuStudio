@@ -6,6 +6,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 
 #include "slic3r/GUI/UserNotification.hpp"
+#include "slic3r/Utils/CalibUtils.hpp"
 #include "libslic3r/PrintConfig.hpp"
 
 #include <wx/dir.h>
@@ -309,16 +310,18 @@ bool DevCalib::PrepareFetchQueue()
         return true;
     }
 
-    DevExtderSystem *ext_sys = obj->GetExtderSystem();
-    if (!ext_sys)
-        return false;
-
+    /* Model supported diameters, not the installed ones: cali_version does not change on a nozzle swap. */
     std::set<NozzleDiameterType> diameter_types;
-    for (int ext = 0; ext < ext_sys->GetTotalExtderCount(); ++ext) {
-        const NozzleDiameterType dia_type = ext_sys->GetNozzleDiameterType(ext);
+    for (const std::string &diameter : GUI::CalibUtils::get_supported_nozzle_diameters_by_model(obj)) {
+        const NozzleDiameterType dia_type = DevNozzle::ToNozzleDiameterType(diameter);
         if (dia_type != NozzleDiameterType::NONE_DIAMETER_TYPE) {
             diameter_types.insert(dia_type);
         }
+    }
+
+    if (diameter_types.empty()) {
+        diameter_types.insert(NozzleDiameterType::NOZZLE_DIAMETER_0_4);
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " no model supported nozzle, fallback to 0.4";
     }
 
     for (NozzleDiameterType dia_type : diameter_types) {
