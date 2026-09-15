@@ -11278,6 +11278,9 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     this->background_process.set_task(PrintBase::TaskParams());
     this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
 }
+namespace {
+std::optional<bool> plater_saved_post_process_script_skip_choice();
+}
 void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job)
 {
     wxCHECK_RET(!(output_path.empty() && upload_job.empty()), "export_gcode: output_path and upload_job empty");
@@ -11303,6 +11306,11 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
         notification_manager->push_delayed_notification(NotificationType::ExportOngoing, []() {return true; }, 1000, 0);
     } else {
+        std::optional<bool> skip = m_post_process_script_skip_choice;
+        if (!skip)
+            skip = plater_saved_post_process_script_skip_choice();
+        if (skip)
+            background_process.set_skip_post_process_once(*skip);
         background_process.schedule_upload(std::move(upload_job));
     }
 
