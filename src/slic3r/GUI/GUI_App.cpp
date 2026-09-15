@@ -1095,6 +1095,82 @@ std::vector<std::string> GUI_App::split_str(std::string src, std::string separat
     return result;
 }
 
+namespace {
+bool host_in_domain(const std::string &host, const std::string &domain)
+{
+    return host == domain ||
+           (host.size() > domain.size() + 1 && boost::algorithm::ends_with(host, "." + domain));
+}
+
+bool is_trusted_model_download_url(const std::string &download_str)
+{
+    std::string target = download_str;
+    size_t name_pos = target.find("&name=");
+    if (name_pos != std::string::npos)
+        target = target.substr(0, name_pos);
+
+    CURLU *hurl = curl_url();
+    if (!hurl)
+        return false;
+
+    bool trusted = false;
+    if (curl_url_set(hurl, CURLUPART_URL, target.c_str(), 0) == CURLUE_OK) {
+        std::string scheme, host;
+        bool        has_userinfo = false;
+        char *      part         = nullptr;
+        if (curl_url_get(hurl, CURLUPART_SCHEME, &part, 0) == CURLUE_OK) { scheme = part; curl_free(part); part = nullptr; }
+        if (curl_url_get(hurl, CURLUPART_HOST, &part, 0) == CURLUE_OK) { host = part; curl_free(part); part = nullptr; }
+        if (curl_url_get(hurl, CURLUPART_USER, &part, 0) == CURLUE_OK) { if (part && *part) has_userinfo = true; curl_free(part); part = nullptr; }
+        if (!has_userinfo && curl_url_get(hurl, CURLUPART_PASSWORD, &part, 0) == CURLUE_OK) { if (part && *part) has_userinfo = true; curl_free(part); part = nullptr; }
+
+        boost::algorithm::to_lower(scheme);
+        boost::algorithm::to_lower(host);
+
+        if (!host.empty() && !has_userinfo && (scheme == "http" || scheme == "https")) {
+            struct TrustEntry { const char *host; bool suffix; bool https_only; };
+            static const TrustEntry trusted_entries[] = {
+                {"or-cloud-makerlab-prod.s3-accelerate.amazonaws.com", false, true},
+                {"or-cloud-makerlab-test.s3-accelerate.amazonaws.com", false, true},
+                {"sh-makerlab-prod.oss-cn-shanghai.aliyuncs.com", false, true},
+                {"sh-makerlab-test.oss-cn-shanghai.aliyuncs.com", false, true},
+                {"public-cdn.bblmw.com", false, false},
+                {"makerworld.com", true, false},
+                {"makerworld.com.cn", true, false},
+            };
+            for (const auto &e : trusted_entries) {
+                bool match = e.suffix ? host_in_domain(host, e.host) : (host == e.host);
+                if (!match)
+                    continue;
+                if (e.https_only && scheme != "https")
+                    break;
+                trusted = true;
+                break;
+            }
+        }
+    }
+    curl_url_cleanup(hurl);
+    return trusted;
+}
+
+std::string extract_model_download_url_from_open(const std::string &protocol_url)
+{
+    std::string       decoded = Http::url_decode(protocol_url);
+    const std::string key     = "file=";
+    size_t            pos     = decoded.find(key);
+    if (pos == std::string::npos)
+        return {};
+    return decoded.substr(pos + key.size());
+}
+
+std::string extract_model_download_url_from_mac(const std::string &protocol_url)
+{
+    const std::string key = "bambustudioopen://";
+    if (!boost::istarts_with(protocol_url, key))
+        return {};
+    return Http::url_decode(protocol_url.substr(key.size()));
+}
+} // namespace
+
 void GUI_App::post_init()
 {
     assert(initialized());
@@ -1129,39 +1205,23 @@ void GUI_App::post_init()
         if (this->init_params->input_files.size() == 1 &&
             boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
 
-            std::string download_params_url = url_decode(this->init_params->input_files.front());
-            auto input_str_arr = split_str(download_params_url, "file=");
-            if (input_str_arr.size() > 1) {input_str_arr.erase(input_str_arr.begin());}
+            std::string input_str = extract_model_download_url_from_open(this->init_params->input_files.front());
 
             std::string download_url;
 #if BBL_RELEASE_TO_PUBLIC
-			short ext_url_open_state = -1; // -1 not set, wxNO not open, wxYES open
-            for (auto input_str : input_str_arr) {
-                if (boost::starts_with(input_str, "http://makerworld") ||
-                    boost::starts_with(input_str, "https://makerworld") ||
-                    boost::starts_with(input_str, "http://public-cdn.bblmw.com") ||
-                    boost::starts_with(input_str, "https://public-cdn.bblmw.com") ||
-                    boost::algorithm::contains(input_str, "amazonaws.com") ||
-                    boost::algorithm::contains(input_str, "aliyuncs.com")) {
+            if (is_trusted_model_download_url(input_str)) {
+                download_url = input_str;
+            }
+            else {
+                MessageDialog msg_dlg(nullptr,
+                                      _L("This file is not from a trusted site, do you want to open it anyway?"), "",
+                                      wxAPPLY | wxYES_NO);
+                if (msg_dlg.ShowModal() == wxID_YES) {
                     download_url = input_str;
-                }
-                else {
-                    if (ext_url_open_state == -1) {
-
-                        MessageDialog msg_dlg(nullptr,
-                                              _L("This file is not from a trusted site, do you want to open it anyway?"), "",
-                                              wxAPPLY | wxYES_NO);
-                        ext_url_open_state   = msg_dlg.ShowModal();
-                    }
-                    if (ext_url_open_state == wxID_YES) {
-                        download_url = input_str;
-                    }
                 }
             }
 #else
-            for (auto input_str : input_str_arr) {
-                download_url = input_str;
-            }
+            download_url = input_str;
 #endif
             download_url = sanitize_download_url(download_url);
 
@@ -7753,20 +7813,10 @@ void GUI_App::MacOpenURL(const wxString& url)
 #endif
 
     if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
-        auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
-        if (input_str_arr.size() > 1) {input_str_arr.erase(input_str_arr.begin());}
-
-        std::string download_origin_url;
-        for (auto input_str : input_str_arr) {
-            if (!input_str.empty()) download_origin_url = input_str;
-        }
-
-        std::string decoded_url = url_decode(download_origin_url);
+        std::string decoded_url = extract_model_download_url_from_mac(url.ToStdString());
         std::string download_file_url;
 #if BBL_RELEASE_TO_PUBLIC
-        if (boost::starts_with(decoded_url, "http://makerworld") || boost::starts_with(decoded_url, "https://makerworld") ||
-            boost::starts_with(decoded_url, "http://public-cdn.bblmw.com") || boost::starts_with(decoded_url, "https://public-cdn.bblmw.com") ||
-            boost::algorithm::contains(decoded_url, "amazonaws.com") || boost::algorithm::contains(decoded_url, "aliyuncs.com")) {
+        if (is_trusted_model_download_url(decoded_url)) {
             download_file_url = decoded_url;
         } else {
             MessageDialog msg_dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "", wxAPPLY | wxYES_NO);
