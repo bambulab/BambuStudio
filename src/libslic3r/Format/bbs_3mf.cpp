@@ -5205,7 +5205,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         text_info.m_embeded_depth = bbs_get_attribute_value_float(attributes, num_attributes, EMBEDED_DEPTH_ATTR);
         text_info.m_rotate_angle  = bbs_get_attribute_value_float(attributes, num_attributes, ROTATE_ANGLE_ATTR);
         text_info.m_text_gap      = bbs_get_attribute_value_float(attributes, num_attributes, TEXT_GAP_ATTR);
-        text_info.m_line_gap      = bbs_get_attribute_value_float(attributes, num_attributes, LINE_GAP_ATTR);
+        // Persist FontProp::line_gap (font points), same as face_name on text_configuration.
+        // Missing attribute must not become an explicit 0 that later overwrites a loaded style.
+        if (bbs_has_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR)) {
+            const int line_gap = bbs_get_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR);
+            if (line_gap != 0)
+                text_info.text_configuration.style.prop.line_gap = line_gap;
+        }
 
         text_info.m_bold      = bbs_get_attribute_value_int(attributes, num_attributes, BOLD_ATTR);
         text_info.m_italic    = bbs_get_attribute_value_int(attributes, num_attributes, ITALIC_ATTR);
@@ -8251,7 +8257,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << EMBEDED_DEPTH_ATTR << "=\"" << text_info.m_embeded_depth << "\" ";
         stream << ROTATE_ANGLE_ATTR << "=\"" << text_info.m_rotate_angle << "\" ";
         stream << TEXT_GAP_ATTR << "=\"" << text_info.m_text_gap << "\" ";
-        stream << LINE_GAP_ATTR << "=\"" << text_info.m_line_gap << "\" ";
+        if (text_info.text_configuration.style.prop.line_gap.has_value())
+            stream << LINE_GAP_ATTR << "=\"" << *text_info.text_configuration.style.prop.line_gap << "\" ";
 
         stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
         stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";

@@ -1758,9 +1758,11 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     }
                     // Re-apply authoritative 3mf fields after any preset load (load_style may reset face/size).
                     m_style_manager.get_font_prop().size_in_mm = m_font_size;
-                    set_style_line_gap(m_style_manager, m_line_gap);
                     if (!m_font_name.empty())
                         select_facename(wxString::FromUTF8(m_font_name.c_str()), false);
+                    // Volume FontProp is the persisted line gap; keep it after any preset / face load.
+                    m_style_manager.get_font_prop().line_gap = text_info.text_configuration.style.prop.line_gap;
+                    m_line_gap = get_style_line_gap_mm(m_style_manager);
                 }
                 if (m_is_serializing) { // undo redo
                     m_style_manager.get_style().angle = calc_angle(selection);
@@ -1883,7 +1885,9 @@ void  GLGizmoText::data_changed(bool is_serializing) {
     }
 
     if (wxGetApp().plater()->is_show_text_cs()) {
+        // per line slices / CS marks belong to the previous volume
         m_lines_mark.reset();
+        m_debug_line_idx = 0;
     }
 }
 
@@ -1993,7 +1997,24 @@ void GLGizmoText::on_render()
                 auto text_volume_tran_world = mi->get_transformation().get_matrix() * tran.get_matrix();
                 render_cross_mark(text_volume_tran_world, Vec3f::Zero(),true);
             }
-            render_lines(GenerateTextJob::debug_cut_points_in_world);
+            // Base line slice and CS of every text line
+            const auto &debug_lines = GenerateTextJob::debug_lines;
+            if (m_debug_lines_version != GenerateTextJob::debug_lines_version) {
+                m_debug_lines_version = GenerateTextJob::debug_lines_version;
+                m_lines_mark.reset();
+            }
+            std::vector<std::vector<Vec3d>> cut_polylines;
+            cut_polylines.reserve(debug_lines.size() + 1);
+            for (const auto &debug_line : debug_lines) {
+                if (debug_line.cut_points_in_world.empty()) // line without glyphs, it is not placed
+                    continue;
+                cut_polylines.emplace_back(debug_line.cut_points_in_world);
+                render_cross_mark(debug_line.tran_in_world, Vec3f::Zero(), true);
+            }
+            // Curve of the text handle, empty unless a line fell back on it
+            if (!GenerateTextJob::debug_anchor_cut_in_world.empty())
+                cut_polylines.emplace_back(GenerateTextJob::debug_anchor_cut_in_world);
+            render_lines(cut_polylines);
         }
     }
     if (m_last_text_mv) {
@@ -2277,8 +2298,56 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0, 5.0) * currt_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 4.0f * currt_scale);
     GizmoImguiBegin("Text", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    float space_size    = m_imgui->get_style_scaling() * 8;
+    float font_cap      = m_imgui->calc_text_size(_L("Font")).x;
+    float size_cap      = m_imgui->calc_text_size(_L("Size")).x;
+    float thickness_cap = m_imgui->calc_text_size(_L("Thickness")).x;
+    float input_cap     = m_imgui->calc_text_size(_L("Input text")).x;
+    float caption_size  = std::max(std::max(font_cap, size_cap), input_cap) + space_size + ImGui::GetStyle().WindowPadding.x;
 #if BBL_RELEASE_TO_PUBLIC == 0
     if (wxGetApp().plater()->is_show_text_cs()) {
+        // Per text line slice data, one line at a time
+        const auto &debug_lines = GenerateTextJob::debug_lines;
+        if (debug_lines.empty()) {
+            m_imgui->text("text lines: <no surface slice>");
+        } else {
+            if (m_debug_line_idx >= debug_lines.size())
+                m_debug_line_idx = 0;
+            if (debug_lines.size() > 1) { // a single line has nothing to pick
+                std::vector<std::string> line_names;
+                line_names.reserve(debug_lines.size());
+                for (size_t i = 0; i < debug_lines.size(); ++i)
+                    line_names.emplace_back("line " + std::to_string(i));
+                // Same caption column and control width as the other inputs of the panel
+                const float item_width = m_gui_cfg->input_width;
+                ImGui::AlignTextToFramePadding();
+                ImGuiWrapper::push_combo_style(m_parent.get_scale());
+                render_combo("text line", line_names, m_debug_line_idx, caption_size, item_width);
+                ImGuiWrapper::pop_combo_style();
+            }
+
+            if (!GenerateTextJob::debug_anchor_cut_in_world.empty())
+                m_imgui->text("handle cut drawn: no base line crosses the object");
+
+            const auto &debug_line = debug_lines[m_debug_line_idx];
+            if (debug_line.cut_points_in_world.empty()) {
+                m_imgui->text("line has no glyph, it is not placed");
+            } else {
+                m_imgui->text("line base y:" + formatFloat(debug_line.line_y) + " cut y:" + formatFloat(debug_line.placed_y) +
+                              (debug_line.hit ? " (own cut)" : " (borrowed cut)"));
+                m_imgui->text("line glyphs:[" + std::to_string(debug_line.glyph_first) + "," + std::to_string(debug_line.glyph_last) +
+                              ") cut points:" + std::to_string(debug_line.cut_points_in_world.size()));
+                const Vec3d line_pos   = debug_line.tran_in_world.translation();
+                const Vec3d line_x_dir = debug_line.tran_in_world.linear().col(0);
+                const Vec3d line_y_dir = debug_line.tran_in_world.linear().col(1);
+                const Vec3d line_z_dir = debug_line.tran_in_world.linear().col(2);
+                m_imgui->text("line key point in world:" + formatFloat(line_pos[0]) + " y:" + formatFloat(line_pos[1]) + " z:" + formatFloat(line_pos[2]));
+                m_imgui->text("line x_dir:" + formatFloat(line_x_dir[0]) + " y:" + formatFloat(line_x_dir[1]) + " z:" + formatFloat(line_x_dir[2]));
+                m_imgui->text("line y_dir:" + formatFloat(line_y_dir[0]) + " y:" + formatFloat(line_y_dir[1]) + " z:" + formatFloat(line_y_dir[2]));
+                m_imgui->text("line z_dir:" + formatFloat(line_z_dir[0]) + " y:" + formatFloat(line_z_dir[1]) + " z:" + formatFloat(line_z_dir[2]));
+            }
+        }
+
         std::string world_hit = "world hit x:" + formatFloat(m_text_position_in_world[0]) + " y:" + formatFloat(m_text_position_in_world[1]) +" z:" + formatFloat(m_text_position_in_world[2]);
         std::string hit     = "local hit x:" + formatFloat(m_rr.hit[0]) + " y:" + formatFloat(m_rr.hit[1]) + " z:" + formatFloat(m_rr.hit[2]);
         std::string normal  = "normal x:" + formatFloat(m_rr.normal[0]) + " y:" + formatFloat(m_rr.normal[1]) + " z:" + formatFloat(m_rr.normal[2]);
@@ -2333,13 +2402,6 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         }
     }
 #endif
-    float space_size    = m_imgui->get_style_scaling() * 8;
-    float font_cap      = m_imgui->calc_text_size(_L("Font")).x;
-    float size_cap      = m_imgui->calc_text_size(_L("Size")).x;
-    float thickness_cap = m_imgui->calc_text_size(_L("Thickness")).x;
-    float input_cap     = m_imgui->calc_text_size(_L("Input text")).x;
-    float caption_size  = std::max(std::max(font_cap, size_cap), input_cap) + space_size + ImGui::GetStyle().WindowPadding.x;
-
     float input_text_size = m_imgui->scaled(10.0f);
     float button_size     = ImGui::GetFrameHeight();
 
@@ -3545,9 +3607,10 @@ TextInfo GLGizmoText::get_text_info()
     text_info.m_rr.mesh_id    = m_rr.mesh_id;
     text_info.m_rotate_angle  = m_rotate_angle;
     text_info.m_text_gap      = m_text_gap;
-    text_info.m_line_gap      = m_line_gap;
     text_info.m_surface_type  = m_surface_type;
     text_info.text_configuration = m_ui_text_configuration;
+    set_style_line_gap(m_style_manager, m_line_gap);
+    text_info.text_configuration.style.prop.line_gap = m_style_manager.get_font_prop().line_gap;
     text_info.m_font_version     = CUR_FONT_VERSION;
     return text_info;
 }
@@ -3571,7 +3634,6 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     m_rotate_angle = (float) Geometry::rad2deg(limit_angle);
 
     m_text_gap      = text_info.m_text_gap;
-    m_line_gap      = text_info.m_line_gap;
     m_surface_type  = (TextInfo::TextType) text_info.m_surface_type;
 
     if (is_old_text_info(text_info)) { // compatible with older versions
@@ -3586,6 +3648,8 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     }
     m_custom_boldness          = text_info.text_configuration.style.prop.boldness.value_or(0.f);
     m_custom_skew              = text_info.text_configuration.style.prop.skew.value_or(0.f);
+    m_style_manager.get_font_prop().line_gap = text_info.text_configuration.style.prop.line_gap;
+    m_line_gap = get_style_line_gap_mm(m_style_manager);
     if (is_text_changed) {
         process(true,std::nullopt,false);
     }

@@ -1407,7 +1407,9 @@ void calc_position_points_by_lines(std::vector<Vec3d> &position_points, const st
 }
 
 GenerateTextJob::GenerateTextJob(InputInfo &&input) : m_input(std::move(input)) {}
-std::vector<Vec3d> GenerateTextJob::debug_cut_points_in_world;
+std::vector<GenerateTextJob::LineDebug> GenerateTextJob::debug_lines;
+std::vector<Vec3d>                      GenerateTextJob::debug_anchor_cut_in_world;
+size_t                                  GenerateTextJob::debug_lines_version = 0;
 void GenerateTextJob::process(Ctl &ctl)
 {
     auto canceled = was_canceled(ctl, *m_input.m_data_update.base);
@@ -1426,7 +1428,6 @@ void GenerateTextJob::process(Ctl &ctl)
     }
     if (!generate_text_points(m_input))
        throw JobException("generate_text_volume fail.");
-    GenerateTextJob::debug_cut_points_in_world = m_input.m_cut_points_in_world;
     if (m_input.use_surface) {
         if (m_input.m_text_shape.shapes_with_ids.empty())
             throw JobException(_u8L("Font doesn't have any shape for given text.").c_str());
@@ -1504,6 +1505,9 @@ bool GenerateTextJob::update_text_positions(InputInfo &input_info)
 bool GenerateTextJob::generate_text_points(InputInfo &input_info)
 {
     if (input_info.m_surface_type == GenerateTextJob::SurfaceType::None) {
+        debug_lines.clear(); // flat text has no slices, do not keep the previous ones on screen
+        debug_anchor_cut_in_world.clear();
+        ++debug_lines_version;
         return true;
     }
     auto &m_text_tran_in_object = input_info.m_text_tran_in_object;
@@ -1547,37 +1551,42 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     // for debug
     // its_write_obj(slice_meshs.its, "D:/debug_files/mesh.obj");
     auto world_tran = m_model_object_in_world_tran * text_tran_in_object;
-    auto point_in_line_rectange = [](const Line &line, const Point &point, double &distance) {
-        distance = line.distance_to(point);
-        return distance < line.length() / 2;
-    };
-    // Place glyphs of one text line along the slice polygon: middle glyph on the tangent point
-    // nearest to the text origin, the others by their lengths and gap to both sides.
-    auto place_line_on_polygon = [&](Slic3r::Polygon_3D &new_polygon, int index, std::vector<double> &text_lengths, std::vector<Vec3d> &m_position_points) {
+    // Place glyphs of one text line along its own slice polygon: the line is centered on its key point,
+    // the others follow by their lengths and gap to both sides. The key point is the line anchor (the
+    // text handle shifted by the line gap) projected on the polygon: the surface curves away from the
+    // handle, so the anchor itself is off the slice contour.
+    // Returns the key point the line was centered on.
+    auto place_line_on_polygon = [&](Slic3r::Polygon_3D &new_polygon, int index, const Vec3d &line_anchor, std::vector<double> &text_lengths,
+                                     std::vector<Vec3d> &m_position_points) -> Vec3d {
         int text_num = static_cast<int>(text_lengths.size());
         m_position_points.resize(text_num);
-        if (text_num % 2 == 1) {
-            m_position_points[text_num / 2] = Vec3d::Zero();
-            std::vector<Line_3D> lines = new_polygon.get_lines();
-            Line_3D              line  = lines[index];
-            auto                 min_dist   = 1e6;
-            {// Find the nearest tangent point
-                for (int i = 0; i < lines.size(); i++) {
-                    Line_3D temp_line = lines[i];
-                    Vec3d   intersection_pt;
-                    float   proj_length;
-                    auto    pt = Vec3d::Zero();
-                    Linef3::get_point_projection_to_line(pt, temp_line.a, temp_line.vector(), intersection_pt, proj_length);
-                    auto dist = (intersection_pt - pt).norm();
-                    if (min_dist > dist) {
-                        min_dist = dist;
-                        m_position_points[text_num / 2] = intersection_pt;
-                    }
+        std::vector<Line_3D> lines     = new_polygon.get_lines();
+        Vec3d                key_point = line_anchor;
+        {// Find the nearest point of the polygon, it is the projected anchor of this text line
+            auto min_dist = 1e6;
+            for (int i = 0; i < lines.size(); i++) {
+                Line_3D temp_line = lines[i];
+                Vec3d   intersection_pt;
+                float   proj_length;
+                Linef3::get_point_projection_to_line(line_anchor, temp_line.a, temp_line.vector(), intersection_pt, proj_length);
+                if (proj_length < 0.f) // keep the projection inside the segment
+                    intersection_pt = temp_line.a;
+                else if (proj_length > temp_line.length())
+                    intersection_pt = temp_line.b;
+                auto dist = (intersection_pt - line_anchor).norm();
+                if (min_dist > dist) {
+                    min_dist  = dist;
+                    key_point = intersection_pt;
+                    index     = i;
                 }
             }
+        }
+        if (text_num % 2 == 1) {
+            m_position_points[text_num / 2] = key_point;
+            Line_3D              line  = lines[index];
             {
                 int    index1      = index;
-                double left_length = (Vec3d::Zero() - line.a).cast<double>().norm();
+                double left_length = (key_point - line.a).cast<double>().norm();
                 int    left_num    = text_num / 2;
                 while (left_num > 0) {
                     double gap_length = (text_lengths[left_num] + m_text_gap + text_lengths[left_num - 1]);
@@ -1611,7 +1620,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
 
             {
                 int    index2       = index;
-                double right_length = (line.b - Vec3d::Zero()).cast<double>().norm();
+                double right_length = (line.b - key_point).cast<double>().norm();
                 int    right_num    = text_num / 2;
                 while (right_num > 0) {
                     double gap_length = (text_lengths[text_num - right_num] + m_text_gap + text_lengths[text_num - right_num - 1]);
@@ -1646,11 +1655,10 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
             }
         } else {
             for (int i = 0; i < text_num / 2; ++i) {
-                std::vector<Line_3D> lines = new_polygon.get_lines();
                 Line_3D              line  = lines[index];
                 {
                     int    index1      = index;
-                    double left_length = (Vec3d::Zero() - line.a).cast<double>().norm();
+                    double left_length = (key_point - line.a).cast<double>().norm();
                     int    left_num    = text_num / 2;
                     for (int i = 0; i < text_num / 2; ++i) {
                         double gap_length = 0;
@@ -1688,7 +1696,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
 
                 {
                     int    index2       = index;
-                    double right_length = (line.b - Vec3d::Zero()).cast<double>().norm();
+                    double right_length = (line.b - key_point).cast<double>().norm();
                     int    right_num    = text_num / 2;
                     double gap_length   = 0;
                     for (int i = 0; i < text_num / 2; ++i) {
@@ -1727,22 +1735,29 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                 }
             }
         }
-
+        return key_point;
     };
 
-    // Every text line lies on its own curve: the object is sliced by the plane of the line base line.
-    // Base line offset is text CS Y, which rotate_tran maps to slicing Z. Line offsets baked in
-    // glyph shapes are removed later by calc_mesh_offset (see m_text_line_y).
+    // Every text line lies on its own curve: the object is sliced by the plane of the line base line,
+    // so each line repeats the single line placement on its own cross section. Base line offsets are
+    // symmetric about the text handle (first_line_offset_y), they are text CS Y, which rotate_tran
+    // maps to slicing Z. The Y baked in glyph shapes is removed by calc_mesh_offset (see m_text_line_y).
     const EmbossShape &shape       = input_info.m_text_shape;
     const LineRanges   line_ranges = get_line_ranges(shape.shapes_with_ids);
     m_position_points.assign(text_lengths.size(), Vec3d::Zero());
     input_info.m_text_line_y.assign(text_lengths.size(), 0.f);
+    // Where the surface normal of a glyph is taken, it is the position itself unless the line runs on
+    // a borrowed curve, see below.
+    std::vector<Vec3d> normal_sample_points(text_lengths.size(), Vec3d::Zero());
     m_cut_points_in_world.clear();
     m_cut_points_in_local.clear();
+    // published to debug_lines in one step at the end, the viewer reads it from the GUI thread
+    std::vector<LineDebug> line_debugs(line_ranges.size());
 
     // A line gap can push a base line above or below the mesh, then the object is not sliced there.
-    // Cut every base line first, so such a line can borrow the nearest one that did cross the object
-    // instead of dropping the whole text. Only text that misses the object completely is an error.
+    // Cut every base line first, so such a line can borrow a curve instead of dropping the whole text:
+    // the nearest line that did cross the object, the line above or below first, and if no line crossed
+    // at all the curve of the handle the user picked. Only text that misses the object is an error.
     struct LineCut
     {
         bool    used = false;
@@ -1752,11 +1767,13 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
         float   line_y = 0.f;
     };
     std::vector<LineCut> line_cuts(line_ranges.size());
-    bool                 any_hit = false;
-    // Slice the object by the plane of one base line and keep the polygon nearest to the anchor.
+    // Slice the object by the plane of one base line and keep the polygon nearest to the line anchor.
+    // The anchor of every line is the text handle shifted along text Y, so it projects to the slice
+    // origin. Only the first line lies on its contour, the ones moved by the line gap are off it,
+    // the surface curves away. Take the nearest edge, do not ask the anchor to be beside it.
     auto cut_base_line = [&](LineCut &cut) {
         const Polygons temp_polys = slice_mesh(slice_meshs.its, cut.line_y, slicing_params);
-        Vec3d          scale_click_pt(scale_(0), scale_(0), 0);
+        const Point    anchor_pt(scale_(0), scale_(0));
         Polygons       polys = union_(temp_polys);
 
         double min_distance = 1e12;
@@ -1765,24 +1782,16 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                 continue;
             Lines lines = poly.lines();
             for (int i = 0; i < lines.size(); ++i) {
-                Line   line     = lines[i];
-                double distance = min_distance;
-                if (point_in_line_rectange(line, Point(scale_click_pt.x(), scale_click_pt.y()), distance)) {
-                    if (distance < min_distance) {
-                        min_distance = distance;
-                        cut.index    = i;
-                        cut.poly     = poly;
-                    }
+                const double distance = lines[i].distance_to(anchor_pt);
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    cut.index    = i;
+                    cut.poly     = poly;
                 }
             }
         }
         cut.hit = cut.poly.points.size() > 0;
     };
-    {
-        BoundingBoxf3 dbgbb;
-        for (const stl_vertex &v : slice_meshs.its.vertices)
-            dbgbb.merge(Vec3d(slicing_params.trafo * Vec3d(v.x(), v.y(), v.z())));
-    }
     for (size_t line_i = 0; line_i < line_ranges.size(); ++line_i) {
         const size_t first = line_ranges[line_i].first;
         const size_t last  = line_ranges[line_i].second;
@@ -1792,26 +1801,20 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
         cut.used     = true;
         cut.line_y   = shape.first_line_offset_y - static_cast<float>(line_i) * shape.line_height;
         cut_base_line(cut);
-        any_hit = any_hit || cut.hit;
     }
 
+    // Last resort curve: the one of the handle the user picked, it is a point of the surface. Cut on
+    // demand, text that keeps every base line on the object never needs it.
     LineCut anchor_cut;
-    bool    use_anchor = false;
-    if (!any_hit) {
-        // No base line crossed the object, the text as a whole sits past an edge. The anchor the
-        // user picked is on the surface, so cut there and keep every line on that curve.
-        anchor_cut.used   = true;
-        anchor_cut.line_y = 0.f;
-        cut_base_line(anchor_cut);
-        if (!anchor_cut.hit) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("Text: the hit polygon is null,") << "x:" << m_text_position_in_world.x() << ",y:" << m_text_position_in_world.y()
-                                    << ",z:" << m_text_position_in_world.z();
-            throw JobException("The hit polygon is null,please try to regenerate after adjusting text position.");
-            return false;
+    auto    get_anchor_cut = [&]() -> const LineCut & {
+        if (!anchor_cut.used) {
+            anchor_cut.used   = true;
+            anchor_cut.line_y = 0.f;
+            cut_base_line(anchor_cut);
+            BOOST_LOG_TRIVIAL(info) << "Text: no base line crosses the object, every line placed on the curve of the text handle.";
         }
-        BOOST_LOG_TRIVIAL(info) << "Text: no base line crosses the object, every line placed on the text anchor.";
-        use_anchor = true;
-    }
+        return anchor_cut;
+    };
 
     for (size_t line_i = 0; line_i < line_ranges.size(); ++line_i) {
         if (!line_cuts[line_i].used)
@@ -1822,8 +1825,8 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
         // so it stays the nominal value even when the line is placed on a borrowed base line.
         const float nominal_line_y = line_cuts[line_i].line_y;
 
-        LineCut cut = use_anchor ? anchor_cut : line_cuts[line_i];
-        if (!cut.hit) { // borrow the nearest base line that crossed the object
+        LineCut cut = line_cuts[line_i];
+        if (!cut.hit) { // borrow the curve of the nearest line that crossed the object
             size_t nearest      = line_cuts.size();
             size_t nearest_dist = 0;
             for (size_t j = 0; j < line_cuts.size(); ++j) {
@@ -1835,16 +1838,28 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                     nearest_dist = dist;
                 }
             }
-            BOOST_LOG_TRIVIAL(info) << boost::format("Text: base line of line %1% misses the object, placed on the base line of line %2%.") % line_i % nearest;
-            cut = line_cuts[nearest];
+            if (nearest < line_cuts.size()) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("Text: base line of line %1% misses the object, placed on the curve of line %2%.") % line_i % nearest;
+                cut = line_cuts[nearest];
+            } else { // no line crossed the object, the text as a whole sits past an edge
+                cut = get_anchor_cut();
+                if (!cut.hit) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Text: the hit polygon is null,") << "x:" << m_text_position_in_world.x()
+                                            << ",y:" << m_text_position_in_world.y() << ",z:" << m_text_position_in_world.z();
+                    throw JobException("The hit polygon is null,please try to regenerate after adjusting text position.");
+                }
+            }
         }
         for (size_t i = first; i < last; ++i)
             input_info.m_text_line_y[i] = nominal_line_y;
 
+        // A borrowed curve gives the line its shape only, the line keeps its own base line: the curve is
+        // lifted from the base line it was cut on to the one of this line (slicing Z is text Y), else
+        // both lines land on the same curve and overlap.
         std::vector<Vec3d> cut_points_in_local;
         cut_points_in_local.reserve(cut.poly.points.size());
         for (int i = 0; i < cut.poly.points.size(); ++i) {
-            cut_points_in_local.emplace_back(rotate_tran * Vec3d(unscale_(cut.poly.points[i].x()), unscale_(cut.poly.points[i].y()), cut.line_y));
+            cut_points_in_local.emplace_back(rotate_tran * Vec3d(unscale_(cut.poly.points[i].x()), unscale_(cut.poly.points[i].y()), nominal_line_y));
             m_cut_points_in_local.emplace_back(cut_points_in_local.back());
             m_cut_points_in_world.emplace_back(world_tran.get_matrix() * cut_points_in_local.back());
         }
@@ -1852,9 +1867,41 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
         Slic3r::Polygon_3D  new_polygon(cut_points_in_local);
         std::vector<double> line_lengths(text_lengths.begin() + first, text_lengths.begin() + last);
         std::vector<Vec3d>  line_points;
-        place_line_on_polygon(new_polygon, cut.index, line_lengths, line_points);
+        // Anchor of this line: the text handle shifted by the line gap, in text CS
+        const Vec3d key_point = place_line_on_polygon(new_polygon, cut.index, Vec3d(0., nominal_line_y, 0.), line_lengths, line_points);
         std::copy(line_points.begin(), line_points.end(), m_position_points.begin() + first);
+
+        // A lifted curve hangs off the surface, the triangle nearest to it is a wall the line runs past
+        // and its normal would turn the glyphs sideways. Sample the normal back on the base line the
+        // curve was cut on, so the line keeps the face orientation of the line it borrowed from.
+        const Vec3d normal_sample_offset(0., cut.line_y - nominal_line_y, 0.);
+        for (size_t i = first; i < last; ++i)
+            normal_sample_points[i] = m_position_points[i] + normal_sample_offset;
+
+        LineDebug &dbg  = line_debugs[line_i];
+        dbg.line_y      = nominal_line_y;
+        dbg.placed_y    = cut.line_y;
+        dbg.hit         = line_cuts[line_i].hit;
+        dbg.glyph_first = first;
+        dbg.glyph_last  = last;
+        // CS of the line, placed on its key point: the line anchor projected on the slice contour
+        dbg.tran_in_world = world_tran.get_matrix() * Geometry::translation_transform(key_point);
+        dbg.cut_points_in_world.reserve(cut_points_in_local.size() + 1);
+        for (const Vec3d &pt : cut_points_in_local)
+            dbg.cut_points_in_world.emplace_back(world_tran.get_matrix() * pt);
+        if (!dbg.cut_points_in_world.empty()) // close the slice polygon
+            dbg.cut_points_in_world.emplace_back(dbg.cut_points_in_world.front());
     }
+    std::vector<Vec3d> anchor_cut_in_world; // only drawn when a line had to fall back on it
+    if (anchor_cut.used && anchor_cut.hit) {
+        anchor_cut_in_world.reserve(anchor_cut.poly.points.size() + 1);
+        for (const Point &pt : anchor_cut.poly.points)
+            anchor_cut_in_world.emplace_back(world_tran.get_matrix() * (rotate_tran * Vec3d(unscale_(pt.x()), unscale_(pt.y()), anchor_cut.line_y)));
+        anchor_cut_in_world.emplace_back(anchor_cut_in_world.front()); // close the slice polygon
+    }
+    debug_lines               = std::move(line_debugs);
+    debug_anchor_cut_in_world = std::move(anchor_cut_in_world);
+    ++debug_lines_version;
 
     std::vector<double> mesh_values(m_position_points.size(), 1e9);
     m_normal_points.resize(m_position_points.size());
@@ -1891,7 +1938,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
             Vec3d point1 = stl_point1.cast<double>();
             Vec3d point2 = stl_point2.cast<double>();
 
-            double abs_area = point_in_triangle_delete_area(m_position_points[i], point0, point1, point2);
+            double abs_area = point_in_triangle_delete_area(normal_sample_points[i], point0, point1, point2);
             if (mesh_values[i] > abs_area) {
                 mesh_values[i] = abs_area;
                 debug_incides[i]   = debug_index;

@@ -26116,7 +26116,6 @@ int Plater::select_plate(int plate_index, bool need_slice)
     int ret;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, need_slice %3% ")%__LINE__ %plate_index  %need_slice;
     take_snapshot("select partplate!");
-    const int old_plate_index = p->partplate_list.get_curr_plate_index();
     ret = p->partplate_list.select_plate(plate_index);
     if (!ret) {
         if (is_view3D_shown())
@@ -26129,10 +26128,6 @@ int Plater::select_plate(int plate_index, bool need_slice)
         //select successfully
         p->partplate_list.update_slice_context_to_current_plate(p->background_process);
         p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
-        // Preview is hidden while switching plates in Prepare; drop the previous
-        // plate's toolpaths only when the selected plate actually changed.
-        if (!is_preview_shown() && old_plate_index != plate_index)
-            reset_gcode_toolpaths();
         p->update_print_volume_state();
 
         PartPlate* part_plate = p->partplate_list.get_curr_plate();

@@ -27,14 +27,17 @@ enum class SLAGizmoEventType : unsigned char;
 //2.2 mean v2.2 bambu version(20250815) fix char gap of text
 // 2.3 mean v2.3 bambu version(20250826) add custom boldness and skew
 //2.5 mean v2.3 bambu version(20251130) fix text more accurate layout
+//2.8 mean v2.8 bambu version(20260917) add multi line text functiont
 const std::string NEW_FONT_BEGIN_VERSION  = "2.0";
-const std::string CUR_FONT_VERSION        = "2.5";
+const std::string CUR_FONT_VERSION        = "2.8";
 class GLGizmoText : public GLGizmoBase
 {
 private:
     bool  m_is_direct_create_text = false;
     std::vector<Transform3d> m_trafo_matrices;//Need to correspond m_c->raycaster()->raycasters
     int m_show_calc_meshtod = 0;//1 preview //2 draging
+    size_t m_debug_line_idx      = 0; // show_text_cs: text line shown in the debug panel
+    size_t m_debug_lines_version = 0; // version of GenerateTextJob::debug_lines held by m_lines_mark
     std::vector<std::string> m_avail_font_names;
     std::string   m_text{""};
     std::string   m_font_name;
