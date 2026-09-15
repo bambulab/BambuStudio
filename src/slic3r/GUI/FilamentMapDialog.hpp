@@ -5,6 +5,7 @@
 #include "libslic3r/PrintConfig.hpp"
 
 class Button;
+class wxScrolledWindow;
 
 namespace Slic3r {
 class Print;
@@ -79,11 +80,12 @@ public:
     int ShowModal() override;
 
 private:
-    void make_header(wxBoxSizer *sizer, bool only_saving_mode, bool single_default_mode);
+    void make_header(wxBoxSizer *sizer, bool only_saving_mode, bool single_default_mode, bool show_manual_mode);
     void make_body(wxBoxSizer                         *sizer,
                    bool                                only_saving_mode,
                    bool                                single_default_mode,
                    bool                                is_multi_nozzle_mode,
+                   bool                                show_manual_mode,
                    const std::vector<FilamentMapMode> &modes_to_use,
                    const std::vector<int>             &filaments,
                    const FilamentMapMode               mode,
@@ -96,20 +98,23 @@ private:
     void on_smart_filament_checkbox(wxCommandEvent &event);
 
     void update_panel_status(PageType page);
+    void constrain_dialog_height();
 
  private:
      FilamentMapPanel   *m_auto_panel{};
      FilamentMapPanel   *m_manual_panel{};
+     wxScrolledWindow   *m_manual_scroll{};
      SmartFilamentPanel *smart_filament{};
 
-     CapsuleButton *m_auto_btn;
-     CapsuleButton *m_manual_btn;
+     CapsuleButton *m_auto_btn{};
+     CapsuleButton *m_manual_btn{};
 
      Button *m_ok_btn{};
      Button *m_cancel_btn{};
 
      PageType m_page_type;
      bool     m_fila_switch_ready{false};
+     bool     m_auto_mode_available{true};
 
      std::vector<int>         m_filament_map;
      std::vector<int>         m_filament_volume_map;

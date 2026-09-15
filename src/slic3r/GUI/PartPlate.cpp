@@ -34,6 +34,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"
+#include "FilamentMapPanel.hpp"
 #include "Widgets/Label.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
@@ -855,22 +856,20 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
             if (nozzle_count_opt)
                 has_multiple_nozzle = std::any_of(nozzle_count_opt->values.begin(), nozzle_count_opt->values.end(), [](int i) { return i > 1; });
         }
-        // Single-extruder multi-nozzle machines set per-slot nozzle diameter/flow directly on the
-        // filament panel (see FilamentNozzlePopup) once "多口径模式" is on -- the "Edit filament
-        // grouping" dialog is disabled for them (FilamentMapDialog gates it out), so this plate icon
-        // would be a dead-link entry. Hide it in that state.
-        const bool filament_group_disabled =
-            is_single_ext_multi_nozzle(wxGetApp().preset_bundle->full_config())
-            && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
-        if ((extruder_count == 2 || has_multiple_nozzle) && !filament_group_disabled) {
-            if (hover_id == PLATE_FILAMENT_MAP_ID){
-                render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_hovered_texture);
-                show_tooltip(_u8L("Edit filament grouping"));
-            }
-            else
-                render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_texture);
+        if (extruder_count == 2 || has_multiple_nozzle) {
+            const auto full_config = wxGetApp().preset_bundle->full_config();
+            if (is_multi_diameter_without_ams(full_config)) {
+                m_partplate_list->m_plate_filament_map_icon.set_visible(false);
+            } else {
+                if (hover_id == PLATE_FILAMENT_MAP_ID){
+                    render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_hovered_texture);
+                    show_tooltip(_u8L("Edit filament grouping"));
+                }
+                else
+                    render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_texture);
 
-            m_partplate_list->m_plate_filament_map_icon.set_visible(true);
+                m_partplate_list->m_plate_filament_map_icon.set_visible(true);
+            }
         } else {
             m_partplate_list->m_plate_filament_map_icon.set_visible(false);
         }

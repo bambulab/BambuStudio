@@ -2092,17 +2092,6 @@ wxBoxSizer* MainFrame::create_side_tools()
             return;
         }
 #endif
-        // Single-extruder multi-nozzle machines set per-slot nozzle diameter/flow directly on the
-        // filament panel (see FilamentNozzlePopup) once "多口径模式" is on. The hover popup here
-        // advertises the auto/custom mode selector, which is fully hidden for that class of machine
-        // (see FilamentGroupPopup/FilamentMapDialog/NotificationManager gates) -- suppress it here
-        // too so no dead-link entry point surfaces.
-        {
-            const auto full_cfg = wxGetApp().preset_bundle->full_config();
-            if (is_single_ext_multi_nozzle(full_cfg)
-                && multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config))
-                return;
-        }
         wxPoint pos = m_slice_btn->ClientToScreen(wxPoint(0, 0));
         pos.y += m_slice_btn->GetRect().height * 1.25;
         pos.x -= (m_slice_option_btn->GetRect().width + FromDIP(380) * 0.6);

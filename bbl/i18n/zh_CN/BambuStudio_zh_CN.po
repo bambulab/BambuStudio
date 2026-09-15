@@ -18157,6 +18157,14 @@ msgstr "无法连接到 PrusaLink。"
 msgid "Connection to Repetier works correctly."
 msgstr "与 Repetier 的连接正常。"
 
+#, c-format, boost-format
+msgid "Nozzle %s"
+msgstr "%s号喷嘴"
+
+msgid "Nozzle "
+msgstr "喷嘴 "
+
+
 msgid "Could not connect to Repetier"
 msgstr "无法连接到Repetier"
 

@@ -11,6 +11,8 @@
 #include "libslic3r/Config.hpp"
 
 #include <algorithm>
+#include <wx/display.h>
+#include <wx/scrolwin.h>
 
 namespace Slic3r::GUI {
 
@@ -201,15 +203,13 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     if (!support_popup)
         return true;
 
-    // Single-extruder multi-nozzle machines fully disable custom/manual mode -- but only once
-    // "多口径模式" (multi_nozzle_diameter_mode) is turned on, since that is what makes the per-slot
-    // nozzle diameter/flow selector on the filament panel authoritative in the first place.
-    // With the toggle off, these machines fall through and behave like the default case below.
-    // Never show this dialog for them, even through a force_pop_up fallback entry point.
-    if (is_single_ext_multi_nozzle(full_config) && multi_nozzle_diameter_mode_enabled(full_config))
-        return true;
-
     bool sync_plate = true;
+
+    // Ensure the validated AMS helper has a slot snapshot to inspect.
+    if (wxGetApp().preset_bundle->extruder_full_stat.empty())
+        wxGetApp().preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
+    if (is_multi_diameter_without_ams(full_config))
+        return true;
 
     std::vector<std::string> filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
     std::vector<std::string> filament_types = full_config.option<ConfigOptionStrings>("filament_type")->values;
@@ -248,15 +248,15 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
 
     std::vector<FilamentMapMode> requested_modes = get_default_auto_modes();
     Print* print_obj = partplate_ref->fff_print();
-    std::vector<FilamentMapMode> available_modes = resolve_available_auto_modes(
-        print_obj,
-        requested_modes,
-        plater_ref->get_machine_sync_status()
-    );
-
-    // Ensure the per-slot nozzle snapshot is populated before the panel reads it.
-    if (wxGetApp().preset_bundle->extruder_full_stat.empty())
-        wxGetApp().preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
+    std::vector<FilamentMapMode> available_modes;
+    if (is_single_ext_multi_nozzle(full_config))
+        available_modes = {fmmAutoForMatch};
+    else
+        available_modes = resolve_available_auto_modes(
+            print_obj,
+            requested_modes,
+            plater_ref->get_machine_sync_status()
+        );
 
     FilamentMapDialog map_dlg(plater_ref,
         filament_types,
@@ -373,49 +373,65 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                           *parent,
     if (modes_to_use.empty()) modes_to_use = get_default_auto_modes();
 
     m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
-    bool only_saving_mode = m_fila_switch_ready && (std::find(modes_to_use.cbegin(), modes_to_use.cend(), FilamentMapMode::fmmAutoForQuality) == modes_to_use.cend());
-
-
     auto       full_config          = wxGetApp().preset_bundle->full_config();
     const bool is_multi_nozzle_mode = is_single_ext_multi_nozzle(full_config);
-    const bool single_default_mode  = is_multi_nozzle_mode && get_effective_ams_nozzle_idx_for_active_diameter(full_config) < 0;
+    const bool multi_diameter_mode  = multi_nozzle_diameter_mode_enabled(full_config);
+    const int ams_nozzle_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
+    const bool single_default_mode  = false;
+    const bool only_convenience_mode = modes_to_use.size() == 1 && modes_to_use.front() == fmmAutoForMatch;
+    const bool show_manual_mode = !(is_multi_nozzle_mode && multi_diameter_mode && ams_nozzle_idx < 0);
+    const bool only_saving_mode = !only_convenience_mode && m_fila_switch_ready &&
+        (std::find(modes_to_use.cbegin(), modes_to_use.cend(), FilamentMapMode::fmmAutoForQuality) == modes_to_use.cend());
+    m_auto_mode_available = !(only_convenience_mode && !machine_synced);
 
-    if (is_auto_filament_map_mode(mode))
+    if ((is_auto_filament_map_mode(mode) && m_auto_mode_available) || !show_manual_mode)
         m_page_type = PageType::ptAuto;
     else
         m_page_type = PageType::ptManual;
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
-    make_header(main_sizer, only_saving_mode, single_default_mode);
-    make_body(main_sizer, only_saving_mode, single_default_mode, is_multi_nozzle_mode, modes_to_use, filaments, mode, machine_synced);
+    make_header(main_sizer, only_saving_mode, single_default_mode, show_manual_mode);
+    make_body(main_sizer, only_saving_mode, single_default_mode, is_multi_nozzle_mode, show_manual_mode,
+              modes_to_use, filaments, mode, machine_synced);
     make_footer(main_sizer, mode);
 
     SetSizer(main_sizer);
+
+    const bool initial_manual = m_page_type == PageType::ptManual;
+    if (m_manual_panel)
+        m_manual_panel->Show(initial_manual);
+    if (m_manual_scroll)
+        m_manual_scroll->Show(initial_manual);
+    m_auto_panel->Show(!initial_manual);
 
     // we dont want width changes when switching modes
     auto width = std::max({GetBestSize().GetWidth(), FromDIP(580)});
     SetMinClientSize({width, -1});
 
     Fit();
+    constrain_dialog_height();
     CenterOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void FilamentMapDialog::make_header(wxBoxSizer *main_sizer, bool only_saving_mode, bool single_default_mode)
+void FilamentMapDialog::make_header(wxBoxSizer *main_sizer, bool only_saving_mode, bool single_default_mode,
+                                    bool show_manual_mode)
 {
     wxBoxSizer *mode_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxString auto_label = single_default_mode ? _L("Default") : (only_saving_mode ? _L("Fila Saving") : _L("Auto"));
-    m_auto_btn   = new CapsuleButton(this, PageType::ptAuto, auto_label, false);
-    m_manual_btn = new CapsuleButton(this, PageType::ptManual, _L("Custom"), false);
+    m_auto_btn = new CapsuleButton(this, PageType::ptAuto, auto_label, false);
 
     m_auto_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
-    m_manual_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
 
     const int button_padding = FromDIP(2);
     mode_sizer->AddStretchSpacer();
     mode_sizer->Add(m_auto_btn, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT, button_padding);
-    mode_sizer->Add(m_manual_btn, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT, button_padding);
+    if (show_manual_mode) {
+        m_manual_btn = new CapsuleButton(this, PageType::ptManual, _L("Custom"), false);
+        m_manual_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
+        mode_sizer->Add(m_manual_btn, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT, button_padding);
+    }
     mode_sizer->AddStretchSpacer();
 
     main_sizer->AddSpacer(FromDIP(22));
@@ -424,7 +440,9 @@ void FilamentMapDialog::make_header(wxBoxSizer *main_sizer, bool only_saving_mod
 }
 
 void FilamentMapDialog::make_body(
-    wxBoxSizer *sizer, bool only_saving_mode, bool single_default_mode, bool is_multi_nozzle_mode, const std::vector<FilamentMapMode> &modes_to_use, const std::vector<int> &filaments, const FilamentMapMode mode, bool machine_synced)
+    wxBoxSizer *sizer, bool only_saving_mode, bool single_default_mode, bool is_multi_nozzle_mode,
+    bool show_manual_mode, const std::vector<FilamentMapMode> &modes_to_use,
+    const std::vector<int> &filaments, const FilamentMapMode mode, bool machine_synced)
 {
     FilamentMapMode default_auto_mode = is_auto_filament_map_mode(mode) ? mode : fmmAutoForFlush;
     if (!machine_synced && default_auto_mode == fmmAutoForMatch)
@@ -432,23 +450,37 @@ void FilamentMapDialog::make_body(
     if (std::find(modes_to_use.begin(), modes_to_use.end(), default_auto_mode) == modes_to_use.end())
         default_auto_mode = modes_to_use.front();
 
-    if (is_multi_nozzle_mode) {
-        m_manual_panel = new FilamentMapMultiNozzlePanel(this, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
+    if (show_manual_mode && is_multi_nozzle_mode) {
+        m_manual_scroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxBORDER_NONE);
+        m_manual_scroll->SetBackgroundColour(*wxWHITE);
+        m_manual_scroll->SetScrollRate(0, FromDIP(10));
+        auto *scroll_sizer = new wxBoxSizer(wxVERTICAL);
+        m_manual_panel = new FilamentMapMultiNozzlePanel(
+            m_manual_scroll, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
+        scroll_sizer->Add(m_manual_panel, 1, wxEXPAND);
+        m_manual_scroll->SetSizer(scroll_sizer);
+        m_manual_scroll->FitInside();
+        m_manual_scroll->SetMinSize({
+            FromDIP(580),
+            m_manual_panel->GetBestSize().GetHeight()
+        });
         SetTitle(_L("Set filament placement"));
-    } else {
+    } else if (show_manual_mode) {
         m_manual_panel = new FilamentMapManualPanel(this, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
     }
-    m_manual_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent &event) {
-        if (m_page_type != PageType::ptManual) {
-            if (!m_ok_btn->IsEnabled()) { m_ok_btn->Enable(); }
-            return;
-        }
-        if (event.GetInt()) {
-            if (!m_ok_btn->IsEnabled()) { m_ok_btn->Enable(); }
-        } else {
-            if (m_ok_btn->IsEnabled()) { m_ok_btn->Disable(); }
-        }
-    });
+    if (m_manual_panel) {
+        m_manual_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent &event) {
+            if (m_page_type != PageType::ptManual) {
+                if (!m_ok_btn->IsEnabled()) { m_ok_btn->Enable(); }
+                return;
+            }
+            if (event.GetInt()) {
+                if (!m_ok_btn->IsEnabled()) { m_ok_btn->Enable(); }
+            } else {
+                if (m_ok_btn->IsEnabled()) { m_ok_btn->Disable(); }
+            }
+        });
+    }
 
     if (single_default_mode)
         m_auto_panel = new FilamentMapSavingPanel(this, _L("Automatically and intelligently assigns filaments to minimize filament time consumption"));
@@ -459,7 +491,10 @@ void FilamentMapDialog::make_body(
 
     auto flags = wxSizerFlags().CenterHorizontal();
     sizer->Add(m_auto_panel, flags);
-    sizer->Add(m_manual_panel, flags);
+    if (m_manual_scroll)
+        sizer->Add(m_manual_scroll, 0, wxEXPAND);
+    else if (m_manual_panel)
+        sizer->Add(m_manual_panel, flags);
 }
 
 void FilamentMapDialog::make_footer(wxBoxSizer *main_sizer, const FilamentMapMode mode)
@@ -518,7 +553,7 @@ int FilamentMapDialog::ShowModal()
 
 void FilamentMapDialog::on_ok(wxCommandEvent &event)
 {
-    if (m_page_type == PageType::ptManual) {
+    if (m_page_type == PageType::ptManual && m_manual_panel) {
         if (auto multi_nozzle = dynamic_cast<FilamentMapMultiNozzlePanel *>(m_manual_panel)) {
             m_filament_map        = multi_nozzle->GetFilamentMaps();
             m_filament_volume_map = multi_nozzle->GetFilamentVolumeMaps();
@@ -537,18 +572,60 @@ void FilamentMapDialog::update_panel_status(PageType page)
 {
     const bool is_manual = (page == PageType::ptManual);
 
-    m_manual_btn->Select(is_manual);
+    if (m_manual_btn)
+        m_manual_btn->Select(is_manual);
     m_auto_btn->Select(!is_manual);
 
-    m_manual_panel->Show(is_manual);
+    if (m_manual_panel)
+        m_manual_panel->Show(is_manual);
+    if (m_manual_scroll)
+        m_manual_scroll->Show(is_manual);
     m_auto_panel->Show(!is_manual);
 
-    if (!is_manual) m_ok_btn->Enable(true);
+    if (!is_manual)
+        m_ok_btn->Enable(m_auto_mode_available);
+    else if (!m_ok_btn->IsEnabled())
+        m_ok_btn->Enable();
 
     if (smart_filament) smart_filament->Show(get_mode() == fmmAutoForFlush);
 
     Layout();
     Fit();
+    constrain_dialog_height();
+}
+
+void FilamentMapDialog::constrain_dialog_height()
+{
+    if (!m_manual_scroll || !m_manual_scroll->IsShown())
+        return;
+
+    m_manual_scroll->FitInside();
+    const int display_index = wxDisplay::GetFromWindow(this);
+    const wxRect display_area = display_index == wxNOT_FOUND
+        ? wxGetClientDisplayRect()
+        : wxDisplay(static_cast<unsigned int>(display_index)).GetClientArea();
+    const int max_dialog_height = std::min(FromDIP(780), std::max(FromDIP(300), display_area.GetHeight() - FromDIP(40)));
+    const int overflow = GetSize().GetHeight() - max_dialog_height;
+    if (overflow <= 0)
+        return;
+
+    const int content_height = m_manual_panel->GetBestSize().GetHeight();
+    const int viewport_height = std::max(FromDIP(120), content_height - overflow);
+    const int viewport_width = FromDIP(580);
+    m_manual_scroll->SetMinSize({viewport_width, viewport_height});
+    m_manual_scroll->SetMaxSize({-1, viewport_height});
+    m_manual_scroll->FitInside();
+    Layout();
+    Fit();
+
+    const int remaining_overflow = GetSize().GetHeight() - max_dialog_height;
+    if (remaining_overflow > 0 && viewport_height > FromDIP(120)) {
+        const int adjusted_height = std::max(FromDIP(120), viewport_height - remaining_overflow);
+        m_manual_scroll->SetMinSize({viewport_width, adjusted_height});
+        m_manual_scroll->SetMaxSize({-1, adjusted_height});
+        Layout();
+        Fit();
+    }
 }
 
 void FilamentMapDialog::on_switch_mode(wxCommandEvent &event)

@@ -28589,9 +28589,13 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     bool need_slice = value ==1;  // If from gcode view, should slice
 
     auto preset_bundle = wxGetApp().preset_bundle;
-    // 预生成槽位快照
+    // Ensure the validated AMS helper has a slot snapshot to inspect.
     if (preset_bundle->extruder_full_stat.empty())
         preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
+    const auto full_config = preset_bundle->full_config();
+    if (is_multi_diameter_without_ams(full_config))
+        return;
+
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     auto filament_colors = config()->option<ConfigOptionStrings>("filament_colour")->values;
     auto filament_types = config()->option<ConfigOptionStrings>("filament_type")->values;
@@ -28607,9 +28611,8 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     // FilamentMapDialog构造函数参数赋值，plate_filament_maps=1/2 区分左右面板
     // 单挤出机多喷嘴机型用filament_nozzle_map 记录分组信息(对应plate_filament_maps=1 为AMS组，=2时为固定喷嘴组)
     {
-        auto full_cfg = preset_bundle->full_config();
-        auto opt_hotend = full_cfg.option<ConfigOptionBool>("handle_hotend_as_extruder");
-        int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_cfg);
+        auto opt_hotend = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+        int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
         if (opt_hotend && opt_hotend->value && ams_idx >= 0) {
             auto plate_nozzle_maps = curr_plate->get_filament_nozzle_maps();
             for (size_t i = 0; i < plate_filament_maps.size() && i < plate_nozzle_maps.size(); ++i)
@@ -28621,11 +28624,15 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 
     std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
     Print* print_obj = curr_plate->fff_print();
-    std::vector<FilamentMapMode> available_modes = resolve_available_auto_modes(
-        print_obj,
-        requested_modes,
-        this->get_machine_sync_status()
-    );
+    std::vector<FilamentMapMode> available_modes;
+    if (is_single_ext_multi_nozzle(full_config))
+        available_modes = {fmmAutoForMatch};
+    else
+        available_modes = resolve_available_auto_modes(
+            print_obj,
+            requested_modes,
+            this->get_machine_sync_status()
+        );
 
     FilamentMapDialog filament_dlg(this,
         filament_types,

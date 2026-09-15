@@ -14,6 +14,7 @@ std::vector<int> get_fixed_nozzle_indices(int total_count, int ams_index);
 wxString get_ams_nozzle_label(int ams_index_0based);
 wxString get_fixed_nozzle_label(int total_count, int ams_index_0based);
 int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config);
+bool is_multi_diameter_without_ams(const ConfigBase& config);
 class FilamentMapBtnPanel;
 
 class FilamentMapPanel : public wxPanel

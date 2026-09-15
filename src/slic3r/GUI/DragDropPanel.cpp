@@ -2,6 +2,8 @@
 #include "GUI_App.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include <slic3r/GUI/wxExtensions.hpp>
+#include <wx/graphics.h>
+#include <wx/wrapsizer.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -93,8 +95,8 @@ private:
 
 ///////////////   ColorPanel  start ////////////////////////
 // The UI panel of drag item
-ColorPanel::ColorPanel(DragDropPanel *parent, int filament_id, const std::string &type)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(32, 40), wxBORDER_NONE), m_parent(parent), m_type(type), m_filament_id(filament_id)
+ColorPanel::ColorPanel(DragDropPanel *parent, int filament_id, const std::string &type, const wxSize &size)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, size, wxBORDER_NONE), m_parent(parent), m_type(type), m_filament_id(filament_id)
 {
     Bind(wxEVT_LEFT_DOWN, &ColorPanel::OnLeftDown, this);
     Bind(wxEVT_LEFT_UP, &ColorPanel::OnLeftUp, this);
@@ -103,6 +105,8 @@ ColorPanel::ColorPanel(DragDropPanel *parent, int filament_id, const std::string
 
 void ColorPanel::OnLeftDown(wxMouseEvent &event)
 {
+    if (!m_parent->IsInteractionEnabled())
+        return;
     m_parent->set_is_draging(true);
     m_parent->DoDragDrop(this, GetType(), GetFilamentId());
 }
@@ -144,6 +148,15 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
         dc.DrawLabel(rest, wxRect(0, svg_size + type_label_height + type_label_margin, svg_size, type_label_height), wxALIGN_CENTER);
     } else {
         dc.DrawLabel(type_label, wxRect(0, svg_size + type_label_margin, svg_size, type_label_height), wxALIGN_CENTER);
+    }
+
+    if (!m_parent->IsInteractionEnabled()) {
+        if (wxGraphicsContext *gc = wxGraphicsContext::Create(dc)) {
+            gc->SetPen(*wxTRANSPARENT_PEN);
+            gc->SetBrush(wxBrush(wxColour(245, 245, 245, 190)));
+            gc->DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
+            delete gc;
+        }
     }
 }
 
@@ -224,9 +237,11 @@ static constexpr int GRID_BORDER   = 8;
 static constexpr int GRID_REF_PANEL_W = 260;
 static constexpr int GRID_REF_COLS    = 6;
 
-DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto, bool has_title, bool is_sub)
+DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto, bool has_title, bool is_sub,
+                             bool use_fixed_grid_item_size)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_is_auto(is_auto)
+    , m_use_fixed_grid_item_size(use_fixed_grid_item_size)
 {
     SetBackgroundColour(0xF8F8F8);
 
@@ -268,9 +283,14 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
 
 void DragDropPanel::AddColorBlock(const std::string &type, int filament_id, bool update_ui)
 {
-    ColorPanel *panel = new ColorPanel(this, filament_id, type);
-    panel->SetMinSize(wxSize(FromDIP(30), FromDIP(60)));
-    m_grid_item_sizer->Add(panel, 0);
+    const wxSize block_size(FromDIP(30), FromDIP(60));
+    const wxSize initial_size = m_use_fixed_grid_item_size ? block_size : wxSize(32, 40);
+    ColorPanel  *panel = new ColorPanel(this, filament_id, type, initial_size);
+    panel->SetMinSize(block_size);
+    if (m_use_fixed_grid_item_size)
+        m_grid_item_sizer->Add(panel, 0, wxFIXED_MINSIZE)->SetMinSize(block_size);
+    else
+        m_grid_item_sizer->Add(panel, 0);
     m_filament_blocks.push_back(panel);
     if (update_ui) {
         Freeze();
@@ -301,13 +321,20 @@ void DragDropPanel::RemoveColorBlock(ColorPanel *panel, bool update_ui)
         GetParent()->GetParent()->Fit();
 
         Thaw();
+        if (m_use_fixed_grid_item_size) {
+            wxWindow *refresh_parent = GetParent();
+            refresh_parent->CallAfter([refresh_parent]() {
+                if (!refresh_parent->IsBeingDeleted())
+                    refresh_parent->Refresh(true);
+            });
+        }
         NotifyDragDropCompleted();
     }
 }
 
 void DragDropPanel::DoDragDrop(ColorPanel *panel, const std::string &type, int filament_id)
 {
-    if (m_is_auto)
+    if (m_is_auto || !m_interaction_enabled)
         return;
 
     ColorDropSource source(this, panel, type, filament_id);
@@ -351,6 +378,25 @@ void DragDropPanel::SetGridColumnsForWidth(int panel_width)
     // 必须钉死宽度，否则网格会把多余宽度摊到各单元格上，间距被拉散。
     SetMaxSize({cols * pitch - gap + 2 * border, -1});
     SetGridColumns(cols);
+}
+
+void DragDropPanel::SetInteractionEnabled(bool enabled)
+{
+    m_interaction_enabled = enabled;
+    const wxColour background = enabled ? *wxWHITE : wxColour("#F2F2F2");
+    const wxColour foreground = enabled ? wxColour("#6B6B6B") : wxColour("#9A9A9A");
+    SetBackgroundColour(background);
+    for (wxWindow *child : GetChildren()) {
+        child->SetBackgroundColour(background);
+        child->SetForegroundColour(foreground);
+        child->Refresh(true);
+        for (wxWindow *grandchild : child->GetChildren()) {
+            grandchild->SetBackgroundColour(background);
+            grandchild->SetForegroundColour(foreground);
+            grandchild->Refresh(true);
+        }
+    }
+    Refresh(true);
 }
 
 std::vector<int> DragDropPanel::GetAllFilaments() const
@@ -424,7 +470,12 @@ wxDragResult SeparatedColorDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragRe
     return wxDropTarget::OnDragOver(x, y, def);
 }
 
-SeparatedDragDropPanel::SeparatedDragDropPanel(wxWindow *parent, const wxString &label, bool use_separation) : wxPanel(parent), m_use_separation(use_separation)
+SeparatedDragDropPanel::SeparatedDragDropPanel(wxWindow *parent, const wxString &label, bool use_separation,
+                                               bool show_unified_title, bool expand_drop_target,
+                                               bool use_fixed_grid_item_size)
+    : wxPanel(parent)
+    , m_use_separation(use_separation)
+    , m_use_fixed_grid_item_size(use_fixed_grid_item_size)
 {
     SetBackgroundColour(0xF8F8F8);
 
@@ -440,19 +491,32 @@ SeparatedDragDropPanel::SeparatedDragDropPanel(wxWindow *parent, const wxString 
     m_label->SetBackgroundColour(0xEEEEEE);
 
     title_sizer->Add(m_label, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    if (expand_drop_target) {
+        title_panel->SetDropTarget(new SeparatedColorDropTarget(this));
+        m_label->SetDropTarget(new SeparatedColorDropTarget(this));
+    }
 
     m_main_sizer->Add(title_panel, 0, wxEXPAND);
     m_main_sizer->AddSpacer(10);
 
     m_content_panel = new wxPanel(this);
     m_content_panel->SetBackgroundColour(0xF8F8F8);
+    if (expand_drop_target)
+        m_content_panel->SetDropTarget(new SeparatedColorDropTarget(this));
     m_content_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_diameter_volume_container = new wxPanel(m_content_panel);
+    m_diameter_volume_container->SetBackgroundColour(0xF8F8F8);
+    if (expand_drop_target)
+        m_diameter_volume_container->SetDropTarget(new SeparatedColorDropTarget(this));
+    m_diameter_volume_sizer = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
+    m_diameter_volume_container->SetSizer(m_diameter_volume_sizer);
     m_content_panel->SetSizer(m_content_sizer);
 
-    m_high_flow_panel = new DragDropPanel(m_content_panel, _L("High Flow"), false, true, true);
-    m_standard_panel  = new DragDropPanel(m_content_panel, _L("Standard"), false, true, true);
-    m_tpu_panel       = new DragDropPanel(m_content_panel, _L("TPU285"), false, true, true);
-    m_unified_panel   = new DragDropPanel(m_content_panel, wxEmptyString, false, false);
+    m_high_flow_panel = new DragDropPanel(m_content_panel, _L("High Flow"), false, true, true, m_use_fixed_grid_item_size);
+    m_standard_panel  = new DragDropPanel(m_content_panel, _L("Standard"), false, true, true, m_use_fixed_grid_item_size);
+    m_tpu_panel       = new DragDropPanel(m_content_panel, _L("TPU285"), false, true, true, m_use_fixed_grid_item_size);
+    m_unified_panel   = new DragDropPanel(m_content_panel, wxEmptyString, false, show_unified_title,
+                                          show_unified_title, m_use_fixed_grid_item_size);
 
     m_high_flow_panel->SetBackgroundColour(0xF8F8F8);
     m_standard_panel->SetBackgroundColour(0xF8F8F8);
@@ -476,7 +540,17 @@ void SeparatedDragDropPanel::UpdateLayout()
 {
     m_content_sizer->Clear(false);
 
-    if (m_use_separation) {
+    if (!m_diameter_volume_panels.empty()) {
+        m_high_flow_panel->Hide();
+        m_standard_panel->Hide();
+        m_tpu_panel->Hide();
+        m_unified_panel->Hide();
+        m_diameter_volume_container->Show();
+        for (auto &group : m_diameter_volume_panels)
+            group.panel->Show();
+        m_content_sizer->Add(m_diameter_volume_container, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
+    } else if (m_use_separation) {
+        m_diameter_volume_container->Hide();
         m_unified_panel->Hide();
 
         auto preset_bundle = wxGetApp().preset_bundle;
@@ -532,6 +606,7 @@ void SeparatedDragDropPanel::UpdateLayout()
             m_content_sizer->Add(m_tpu_panel, 1, wxEXPAND | wxRIGHT, FromDIP(8));
         }
     } else {
+        m_diameter_volume_container->Hide();
         m_high_flow_panel->Hide();
         m_standard_panel->Hide();
         m_tpu_panel->Hide();
@@ -550,6 +625,62 @@ void SeparatedDragDropPanel::UpdateLayout()
     }
 }
 
+void SeparatedDragDropPanel::UpdateDiameterVolumeLayout()
+{
+    if (m_diameter_volume_panels.empty())
+        return;
+
+    const int card_width = FromDIP(110);
+    std::vector<int> content_heights;
+    content_heights.reserve(m_diameter_volume_panels.size());
+    for (auto &group : m_diameter_volume_panels) {
+        group.panel->SetMaxSize(wxDefaultSize);
+        group.panel->SetMinSize({card_width, -1});
+        const int content_height = group.panel->GetSizer()
+            ? group.panel->GetSizer()->CalcMin().GetHeight()
+            : FromDIP(100);
+        const int panel_height = std::max(FromDIP(100), content_height);
+        content_heights.push_back(panel_height);
+        group.panel->SetMinSize({card_width, panel_height});
+        group.panel->SetMaxSize({-1, panel_height});
+        group.panel->SetSize({card_width, panel_height});
+        group.panel->Layout();
+    }
+
+    m_diameter_volume_container->Layout();
+    std::vector<int> row_positions;
+    std::vector<int> row_heights;
+    for (size_t i = 0; i < m_diameter_volume_panels.size(); ++i) {
+        const int y = m_diameter_volume_panels[i].panel->GetPosition().y;
+        auto row = std::find(row_positions.begin(), row_positions.end(), y);
+        if (row == row_positions.end()) {
+            row_positions.push_back(y);
+            row_heights.push_back(content_heights[i]);
+        } else {
+            const size_t row_idx = std::distance(row_positions.begin(), row);
+            row_heights[row_idx] = std::max(row_heights[row_idx], content_heights[i]);
+        }
+    }
+    for (auto &group : m_diameter_volume_panels) {
+        const int y = group.panel->GetPosition().y;
+        const auto row = std::find(row_positions.begin(), row_positions.end(), y);
+        const size_t row_idx = std::distance(row_positions.begin(), row);
+        const int row_height = row_heights[row_idx];
+        group.panel->SetMinSize({card_width, row_height});
+        group.panel->SetMaxSize({-1, row_height});
+        group.panel->SetSize({card_width, row_height});
+        group.panel->Layout();
+    }
+
+    m_diameter_volume_sizer->Layout();
+    m_diameter_volume_container->Layout();
+    m_diameter_volume_container->Fit();
+    m_content_panel->Layout();
+    m_content_panel->Fit();
+    Layout();
+    Fit();
+}
+
 void SeparatedDragDropPanel::UpdateLabel(const wxString &label)
 {
     if (m_label) {
@@ -557,6 +688,12 @@ void SeparatedDragDropPanel::UpdateLabel(const wxString &label)
         m_label->Refresh();
         Layout();
     }
+}
+
+void SeparatedDragDropPanel::UpdateUnifiedLabel(const wxString &label)
+{
+    if (m_unified_panel)
+        m_unified_panel->UpdateLabel(label);
 }
 
 void SeparatedDragDropPanel::UpdateVolumeTypeCounts(int standard_count, int high_flow_count, int tpu_count)
@@ -585,6 +722,38 @@ void SeparatedDragDropPanel::SetUnifiedGridWidth(int box_width)
     Layout();
 }
 
+void SeparatedDragDropPanel::SetDiameterVolumeGroups(const std::vector<DiameterVolumeGroup> &groups, bool use_white_cards)
+{
+    for (auto &group : m_diameter_volume_panels)
+        group.panel->Destroy();
+    m_diameter_volume_panels.clear();
+    m_diameter_volume_sizer->Clear(false);
+
+    for (const auto &group : groups) {
+        auto *panel = new DragDropPanel(
+            m_diameter_volume_container, group.label, false, true, true, m_use_fixed_grid_item_size);
+        const wxColour background = use_white_cards ? *wxWHITE : wxColour("#F8F8F8");
+        panel->SetBackgroundColour(background);
+        for (wxWindow *child : panel->GetChildren()) {
+            child->SetBackgroundColour(background);
+            for (wxWindow *grandchild : child->GetChildren())
+                grandchild->SetBackgroundColour(background);
+        }
+        panel->SetMinSize({FromDIP(110), FromDIP(100)});
+        m_diameter_volume_sizer->Add(panel, 0, wxRIGHT | wxBOTTOM, FromDIP(8));
+        m_diameter_volume_panels.push_back({group.diameter, group.volume_type, panel});
+    }
+    UpdateLayout();
+    UpdateDiameterVolumeLayout();
+}
+
+void SeparatedDragDropPanel::SetEnabledDiameterVolumeGroup(const std::string &diameter, NozzleVolumeType volume_type)
+{
+    for (auto &group : m_diameter_volume_panels)
+        group.panel->SetInteractionEnabled(group.diameter == diameter && group.volume_type == volume_type);
+    m_diameter_volume_container->Refresh(true);
+}
+
 void SeparatedDragDropPanel::set_accept_filament_predicate(std::function<bool(int)> pred)
 {
     m_accept_filament = pred;
@@ -593,10 +762,24 @@ void SeparatedDragDropPanel::set_accept_filament_predicate(std::function<bool(in
     if (m_standard_panel)  m_standard_panel->set_accept_filament_predicate(pred);
     if (m_tpu_panel)       m_tpu_panel->set_accept_filament_predicate(pred);
     if (m_unified_panel)   m_unified_panel->set_accept_filament_predicate(std::move(pred));
+    for (auto &group : m_diameter_volume_panels)
+        group.panel->set_accept_filament_predicate(m_accept_filament);
+}
+
+void SeparatedDragDropPanel::set_diameter_group_accept_filament_predicate(
+    std::function<bool(int, const std::string &)> pred)
+{
+    for (auto &group : m_diameter_volume_panels) {
+        const std::string diameter = group.diameter;
+        group.panel->set_accept_filament_predicate(
+            [pred, diameter](int filament_id) { return !pred || pred(filament_id, diameter); });
+    }
 }
 
 void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
 {
+    if (!m_diameter_volume_panels.empty())
+        return;
     if (m_use_separation != use_separation) {
         m_use_separation = use_separation;
 
@@ -631,9 +814,19 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
     }
 }
 
-void SeparatedDragDropPanel::AddColorBlock(const std::string &type, int filament_id, NozzleVolumeType volume_type, bool update_ui)
+void SeparatedDragDropPanel::AddColorBlock(const std::string &type, int filament_id, NozzleVolumeType volume_type,
+                                           bool update_ui, const std::string &diameter)
 {
-    if (m_use_separation) {
+    if (!m_diameter_volume_panels.empty()) {
+        auto matches = [volume_type, &diameter](const DiameterVolumePanel &group) {
+            return group.volume_type == volume_type && (diameter.empty() || group.diameter == diameter);
+        };
+        auto group = std::find_if(m_diameter_volume_panels.begin(), m_diameter_volume_panels.end(), matches);
+        if (group == m_diameter_volume_panels.end())
+            group = m_diameter_volume_panels.begin();
+        group->panel->AddColorBlock(type, filament_id, update_ui);
+        UpdateDiameterVolumeLayout();
+    } else if (m_use_separation) {
         if (volume_type == NozzleVolumeType::nvtHighFlow) {
             m_high_flow_panel->AddColorBlock(type, filament_id, update_ui);
         } else if (volume_type == NozzleVolumeType::nvtTPUHighFlow || volume_type == NozzleVolumeType::nvtTPU285) {
@@ -649,6 +842,15 @@ void SeparatedDragDropPanel::AddColorBlock(const std::string &type, int filament
 
 void SeparatedDragDropPanel::RemoveColorBlock(ColorPanel *panel, bool update_ui)
 {
+    for (auto &group : m_diameter_volume_panels) {
+        auto blocks = group.panel->get_filament_blocks();
+        if (std::find(blocks.begin(), blocks.end(), panel) != blocks.end()) {
+            group.panel->RemoveColorBlock(panel, update_ui);
+            UpdateDiameterVolumeLayout();
+            return;
+        }
+    }
+
     auto high_flow_blocks = m_high_flow_panel->get_filament_blocks();
     auto standard_blocks  = m_standard_panel->get_filament_blocks();
     auto tpu_blocks       = m_tpu_panel->get_filament_blocks();
@@ -668,7 +870,14 @@ void SeparatedDragDropPanel::RemoveColorBlock(ColorPanel *panel, bool update_ui)
 
 std::vector<int> SeparatedDragDropPanel::GetAllFilaments() const
 {
-    if (m_use_separation) {
+    if (!m_diameter_volume_panels.empty()) {
+        std::vector<int> result;
+        for (const auto &group : m_diameter_volume_panels) {
+            auto filaments = group.panel->GetAllFilaments();
+            result.insert(result.end(), filaments.begin(), filaments.end());
+        }
+        return result;
+    } else if (m_use_separation) {
         auto high_flow = m_high_flow_panel->GetAllFilaments();
         auto standard  = m_standard_panel->GetAllFilaments();
         auto tpu       = m_tpu_panel->GetAllFilaments();
@@ -685,6 +894,16 @@ std::vector<int> SeparatedDragDropPanel::GetAllFilaments() const
 
 std::vector<int> SeparatedDragDropPanel::GetHighFlowFilaments() const
 {
+    if (!m_diameter_volume_panels.empty()) {
+        std::vector<int> result;
+        for (const auto &group : m_diameter_volume_panels) {
+            if (group.volume_type != nvtHighFlow && group.volume_type != nvtE3DHighFlow)
+                continue;
+            auto filaments = group.panel->GetAllFilaments();
+            result.insert(result.end(), filaments.begin(), filaments.end());
+        }
+        return result;
+    }
     if (m_use_separation) {
         return m_high_flow_panel->GetAllFilaments();
     }
@@ -702,6 +921,16 @@ std::vector<int> SeparatedDragDropPanel::GetHighFlowFilaments() const
 
 std::vector<int> SeparatedDragDropPanel::GetStandardFilaments() const
 {
+    if (!m_diameter_volume_panels.empty()) {
+        std::vector<int> result;
+        for (const auto &group : m_diameter_volume_panels) {
+            if (group.volume_type != nvtStandard)
+                continue;
+            auto filaments = group.panel->GetAllFilaments();
+            result.insert(result.end(), filaments.begin(), filaments.end());
+        }
+        return result;
+    }
     if (m_use_separation) {
         return m_standard_panel->GetAllFilaments();
     }
@@ -718,6 +947,16 @@ std::vector<int> SeparatedDragDropPanel::GetStandardFilaments() const
 
 std::vector<int> SeparatedDragDropPanel::GetTPUHighFlowFilaments() const
 {
+    if (!m_diameter_volume_panels.empty()) {
+        std::vector<int> result;
+        for (const auto &group : m_diameter_volume_panels) {
+            if (group.volume_type != nvtTPUHighFlow && group.volume_type != nvtTPU285)
+                continue;
+            auto filaments = group.panel->GetAllFilaments();
+            result.insert(result.end(), filaments.begin(), filaments.end());
+        }
+        return result;
+    }
     if (m_use_separation) {
         return m_tpu_panel->GetAllFilaments();
     }
@@ -734,7 +973,14 @@ std::vector<int> SeparatedDragDropPanel::GetTPUHighFlowFilaments() const
 
 std::vector<ColorPanel *> SeparatedDragDropPanel::get_filament_blocks() const
 {
-    if (m_use_separation) {
+    if (!m_diameter_volume_panels.empty()) {
+        std::vector<ColorPanel *> result;
+        for (const auto &group : m_diameter_volume_panels) {
+            auto blocks = group.panel->get_filament_blocks();
+            result.insert(result.end(), blocks.begin(), blocks.end());
+        }
+        return result;
+    } else if (m_use_separation) {
         auto high_flow = m_high_flow_panel->get_filament_blocks();
         auto standard  = m_standard_panel->get_filament_blocks();
         auto tpu       = m_tpu_panel->get_filament_blocks();
@@ -751,21 +997,57 @@ std::vector<ColorPanel *> SeparatedDragDropPanel::get_filament_blocks() const
 
 std::vector<ColorPanel *> SeparatedDragDropPanel::get_high_flow_blocks() const
 {
+    if (!m_diameter_volume_panels.empty()) {
+        std::vector<ColorPanel *> result;
+        for (const auto &group : m_diameter_volume_panels) {
+            if (group.volume_type != nvtHighFlow && group.volume_type != nvtE3DHighFlow)
+                continue;
+            auto blocks = group.panel->get_filament_blocks();
+            result.insert(result.end(), blocks.begin(), blocks.end());
+        }
+        return result;
+    }
     return m_high_flow_panel->get_filament_blocks();
 }
 
 std::vector<ColorPanel *> SeparatedDragDropPanel::get_standard_blocks() const
 {
+    if (!m_diameter_volume_panels.empty()) {
+        std::vector<ColorPanel *> result;
+        for (const auto &group : m_diameter_volume_panels) {
+            if (group.volume_type != nvtStandard)
+                continue;
+            auto blocks = group.panel->get_filament_blocks();
+            result.insert(result.end(), blocks.begin(), blocks.end());
+        }
+        return result;
+    }
     return m_standard_panel->get_filament_blocks();
 }
 
 std::vector<ColorPanel *> SeparatedDragDropPanel::get_tpu_blocks() const
 {
+    if (!m_diameter_volume_panels.empty()) {
+        std::vector<ColorPanel *> result;
+        for (const auto &group : m_diameter_volume_panels) {
+            if (group.volume_type != nvtTPUHighFlow && group.volume_type != nvtTPU285)
+                continue;
+            auto blocks = group.panel->get_filament_blocks();
+            result.insert(result.end(), blocks.begin(), blocks.end());
+        }
+        return result;
+    }
     return m_tpu_panel->get_filament_blocks();
 }
 
 void SeparatedDragDropPanel::ClearAllBlocks()
 {
+    for (auto &group : m_diameter_volume_panels) {
+        auto blocks = group.panel->get_filament_blocks();
+        for (auto &block : blocks)
+            group.panel->RemoveColorBlock(block, false);
+    }
+
     auto high_flow_blocks = m_high_flow_panel->get_filament_blocks();
     for (auto &block : high_flow_blocks) {
         m_high_flow_panel->RemoveColorBlock(block, false);
