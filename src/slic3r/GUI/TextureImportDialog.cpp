@@ -1171,8 +1171,7 @@ static void texture_sync_mixed_filament_name(std::vector<TextureFilamentEntry>& 
 static wxString texture_filament_label_wx(const std::vector<TextureFilamentEntry>& entries,
                                          const std::vector<std::string>& names,
                                          int idx,
-                                         int display_number)
-{
+                                         int display_number){
     if (idx >= 0 && idx < (int)entries.size() && texture_entry_is_mixed(entries[idx].kind)) {
         const std::string name = texture_mixed_filament_display_name(
             entries, texture_mixed_component_dialog_indices(entries[idx]));
@@ -7855,8 +7854,12 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         m_mapping_rows[row_index].target_filament_idx = idx;
         if (row_index < m_current_matches.size())
             m_current_matches[row_index].filament_index = idx;
-        drop_unused_new_filaments_and_refresh();
-    };
+        if (m_mapping_rows[row_index].target_panel) {
+            wxString label = texture_filament_label_wx(m_filament_entries, m_filament_names, idx, display_number(idx));
+            m_mapping_rows[row_index].target_panel->SetToolTip(label);
+            m_mapping_rows[row_index].target_panel->Refresh();
+        }
+        update_filament_color_map();    };
 
     auto on_add_filament = [this, row_index]() {
         wxWindow* color_anchor = nullptr;
@@ -7912,10 +7915,27 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
                 wxBell();
                 return;
             }
-            drop_unused_new_filaments_and_refresh();
-            if (!(m_filament_popup && m_filament_popup->IsShown()) &&
-                row_index < m_mapping_rows.size()) {
-                show_filament_popup(row_index);
+            update_filament_color_map();
+
+            const auto display_numbers = compute_display_numbers();
+            auto display_number = [&display_numbers](int idx) -> int {
+                return (idx >= 0 && idx < (int)display_numbers.size() && display_numbers[idx] > 0)
+                    ? display_numbers[idx] : idx + 1;
+            };
+            for (auto& row : m_mapping_rows) {
+                if (!row.target_panel)
+                    continue;
+                const int idx = row.target_filament_idx;
+                wxString label = texture_filament_label_wx(m_filament_entries, m_filament_names, idx, display_number(idx));
+                row.target_panel->SetToolTip(label);
+                row.target_panel->Refresh();
+            }
+
+            if (m_filament_popup && m_filament_popup->IsShown()) {
+                m_filament_popup->refresh_filaments(
+                    m_filament_entries, m_filament_colors_rgba, m_filament_names,
+                    m_existing_filament_count, compute_display_numbers());
+            } else if (row_index < m_mapping_rows.size()) {                show_filament_popup(row_index);
             }
         });
     };
@@ -8042,14 +8062,24 @@ void TextureImportDialog::match_clusters_to_physical_filaments()
     }
     if (existing_filament_colors.empty()) {
         for (size_t i = 0; i < existing_n && i < m_filament_entries.size(); ++i) {
+            // do_auto_match() only runs with mix off: never auto-bind mixed slots.
             if (texture_entry_is_mixed(m_filament_entries[i].kind))
                 continue;
+            const std::string ft = texture_entry_family_type(m_filament_entries[i], m_filament_entries);
+            if (!ft.empty() && ft != match_type)                continue;
             existing_filament_colors.push_back(m_filament_colors_rgba[i]);
             names.push_back(m_filament_names.size() > i ? m_filament_names[i] : default_filament_stored_name((int)i + 1));
             index_map.push_back((int)i);
         }
-    }
-
+        if (existing_filament_colors.empty()) {
+            for (size_t i = 0; i < existing_n && i < m_filament_entries.size(); ++i) {
+                if (texture_entry_is_mixed(m_filament_entries[i].kind))
+                    continue;
+                existing_filament_colors.push_back(m_filament_colors_rgba[i]);
+                names.push_back(m_filament_names.size() > i ? m_filament_names[i] : default_filament_stored_name((int)i + 1));
+                index_map.push_back((int)i);
+            }
+        }
     m_current_matches = Slic3r::match_clusters_to_filaments(
         m_painted.cluster_colors, existing_filament_colors, names);
     for (auto& m : m_current_matches) {
@@ -8067,17 +8097,31 @@ void TextureImportDialog::match_clusters_to_physical_filaments()
     }
 }
 
-void TextureImportDialog::do_auto_match()
-{
-    if (m_painted.cluster_colors.empty()) return;
-
-    // Drop leftover virtual filaments that the current mapping no longer
-    // references, so they do not inflate the slot count for a later add.
-    compact_used_virtual_filaments();
-
-    if (m_auto_merge_cb && m_auto_merge_cb->GetValue()) {
-        match_clusters_to_physical_filaments();
-    } else {
+        // For clusters with poor match (CIEDE2000 ΔE > 5), create virtual filaments.
+        // Unmapped clusters (no physical candidate, default delta_e == 0) also
+        // get a NewPhysical slot instead of remaining unbound or falling onto mixed.
+        constexpr double NEW_FILAMENT_THRESHOLD = 5.0;
+        std::map<std::array<std::size_t, 3>, int> virtual_color_index;
+        for (auto& m : m_current_matches) {
+            if (m.filament_index >= 0 && m.delta_e <= NEW_FILAMENT_THRESHOLD)
+                continue;
+            auto it = virtual_color_index.find(m.cluster_color);
+            if (it != virtual_color_index.end()) {
+                m.filament_index = it->second;
+            } else {
+                int new_idx = get_or_add_virtual_filament(m.cluster_color);
+                if (new_idx >= 0)
+                    virtual_color_index[m.cluster_color] = new_idx;
+                m.filament_index = new_idx >= 0 ? new_idx :
+                    find_closest_filament_index(m.cluster_color, -1, true, match_type);
+            }
+            if (m.filament_index >= 0 && m.filament_index < (int)m_filament_colors_rgba.size()) {
+                m.filament_color = m_filament_colors_rgba[m.filament_index];
+                m.delta_e = Slic3r::compute_delta_e(m.cluster_color, m.filament_color);
+                if (m.filament_index >= (int)m_existing_filament_count)
+                    m.delta_e = 0.0;
+            }
+        }    } else {
         // Auto-merge off: do not match existing filaments and do not create
         // virtual ones. Every cluster stays unmatched until the user picks
         // a slot or uses one-click add.
@@ -8086,9 +8130,24 @@ void TextureImportDialog::do_auto_match()
         for (size_t i = 0; i < m_painted.cluster_colors.size(); ++i) {
             Slic3r::FilamentMatch fm;
             fm.cluster_index = (int)i;
-            fm.cluster_color = m_painted.cluster_colors[i];
-            fm.filament_index = -1;
-            m_current_matches.push_back(fm);
+            fm.cluster_color = cc;
+
+            auto it = virtual_map.find(cc);
+            if (it != virtual_map.end()) {
+                fm.filament_index = it->second;
+            } else {
+                int idx = get_or_add_virtual_filament(cc);
+                if (idx >= 0)
+                    virtual_map[cc] = idx;
+                fm.filament_index = idx >= 0 ? idx :
+                    find_closest_filament_index(cc, -1, true, match_type);
+            }
+            if (fm.filament_index >= 0 && fm.filament_index < (int)m_filament_colors_rgba.size()) {
+                fm.filament_color = m_filament_colors_rgba[fm.filament_index];
+                fm.delta_e = Slic3r::compute_delta_e(fm.cluster_color, fm.filament_color);
+                if (fm.filament_index >= (int)m_existing_filament_count)
+                    fm.delta_e = 0.0;
+            }            m_current_matches.push_back(fm);
         }
     }
 
