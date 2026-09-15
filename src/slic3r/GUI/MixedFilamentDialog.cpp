@@ -847,7 +847,7 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
 
     auto* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_btn_add_material = new Button(this, _L("+ Add Material"));
+    m_btn_add_material = new Button(this, _L("+ Add Filament"));
     m_btn_add_material->SetBackgroundColor(wxColour("#F8F8F8"));
     m_btn_add_material->SetBorderColor(wxColour("#EEEEEE"));
     m_btn_add_material->SetTextColor(wxColour("#262E30"));
@@ -857,7 +857,7 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
     m_btn_add_material->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_add_material(); });
     btn_sizer->Add(m_btn_add_material, 1, wxRIGHT, FromDIP(6));
 
-    m_btn_remove_material = new Button(this, _L("- Delete Material"));
+    m_btn_remove_material = new Button(this, _L("- Delete Filament"));
     m_btn_remove_material->SetBackgroundColor(wxColour("#F8F8F8"));
     m_btn_remove_material->SetBorderColor(wxColour("#EEEEEE"));
     m_btn_remove_material->SetTextColor(wxColour("#262E30"));

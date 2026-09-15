@@ -2820,6 +2820,7 @@ public:
         m_decompose_label->SetFont(Label::Body_12);
         m_add_label->SetBackgroundColour(pop_bg);
         m_decompose_label->SetBackgroundColour(pop_bg);
+
         m_decompose_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
             auto on_decompose_color = m_on_decompose_color;
             m_closing_from_action = true;

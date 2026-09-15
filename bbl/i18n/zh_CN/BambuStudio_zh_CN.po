@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 15:53+0800\n"
-"PO-Revision-Date: 2025-02-20 20:32+0800\n"
+"POT-Creation-Date: 2026-08-20 20:25+0800\n"
+"PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -216,9 +216,6 @@ msgstr "PPS-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
-
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "夜光耗材可能磨损 AMS 进料口，建议使用外挂料盘打印。"
 
@@ -294,8 +291,11 @@ msgstr "标准"
 msgid "TPU High Flow"
 msgstr "TPU高流量"
 
+msgid "TPU285"
+msgstr "TPU285"
+
 msgid "E3D High Flow"
-msgstr "E3D高流量"
+msgstr "E3D 高流量"
 
 msgid "Unknown"
 msgstr "未知"
@@ -499,6 +499,271 @@ msgstr "需要读取喷嘴信息"
 
 msgid "Note:"
 msgstr "注意："
+
+msgid "Idling..."
+msgstr "空闲中"
+
+msgid "Pause"
+msgstr "暂停"
+
+msgid "Heat the nozzle"
+msgstr "加热喷嘴"
+
+msgid "Cut filament"
+msgstr "切断耗材"
+
+msgid "Pull back current filament"
+msgstr "抽回耗材丝"
+
+msgid "Push new filament into extruder"
+msgstr "送出新耗材到挤出机"
+
+msgid "Grab new filament"
+msgstr "咬入耗材丝"
+
+msgid "Purge old filament"
+msgstr "冲刷旧耗材丝"
+
+msgid "Check filament location"
+msgstr "检查耗材位置"
+
+msgid "Switch extruder"
+msgstr "切换挤出机"
+
+msgid "Switch hotend"
+msgstr "切换热端"
+
+msgid "Wait for AMS cooling"
+msgstr "等待 AMS 冷却"
+
+msgid "Switch current filament at Filament Track Switch"
+msgstr "切换变轨器的当前耗材"
+
+msgid "Pull back current filament at Filament Track Switch"
+msgstr "退变轨器处当前使用料"
+
+msgid "Switch track at Filament Track Switch"
+msgstr "变轨器开关切换"
+
+msgid "Batch pull back the filaments"
+msgstr "批量抽回耗材"
+
+#, boost-format
+msgid "Please manually pull out the filament from slot %1%."
+msgstr "请将%1%号槽耗材手动拉出。"
+
+#, boost-format
+msgid "Please manually pull out the filament from hotend %1% on the toolhead."
+msgstr "请将工具头上%1%号热端内耗材手动拉出。"
+
+#, boost-format
+msgid "Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further."
+msgstr "请将耗材手动插入工具头上%1%号热端进料口，直到推不动为止。"
+
+#, boost-format
+msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
+msgstr "请将%1%号槽耗材手动插入挤出机进料口，直到推不动为止。"
+
+msgid "Other filaments are info-only"
+msgstr "其他耗材仅供查看"
+
+msgid "Filament not removed"
+msgstr "耗材未拔出"
+
+msgid "Hotend rack moving"
+msgstr "热端挂架移动中"
+
+msgid "Homing PrintTool Rack"
+msgstr "打印头挂架回到起始点"
+
+msgid "Homing Toolhead"
+msgstr "工具头回中"
+
+msgid "Calibrating Hotend Rack"
+msgstr "校准热端架位置"
+
+msgid "Waiting for hotend to heat"
+msgstr "等待热端升温"
+
+msgid "Cutting Filament"
+msgstr "切料"
+
+msgid "Unlocking Hotend"
+msgstr "解锁热端"
+
+msgid "Lifting Hotend Rack"
+msgstr "热端挂架抬升"
+
+msgid "Nesting Tool"
+msgstr "放置工具"
+
+msgid "Fetching Tool"
+msgstr "取用工具"
+
+msgid "Locking Tool"
+msgstr "锁定工具"
+
+msgid "Moving PrintTool Rack"
+msgstr "移动打印头挂架"
+
+msgid "Refresh Tool Info"
+msgstr "刷新工具类型"
+
+msgid "Running"
+msgstr "运行中"
+
+#, boost-format
+msgid "Reading (%1% / %2%)"
+msgstr "读取中 (%1% / %2%)"
+
+#, boost-format
+msgid "Reading Hotend %1%"
+msgstr "读取热端 %1%"
+
+msgid "Please wait..."
+msgstr "请稍后..."
+
+msgid "Empty slot"
+msgstr "槽位为空"
+
+msgid "RFID is being read"
+msgstr "正在读取 RFID"
+
+msgid "Filament change in progress"
+msgstr "正在换料"
+
+msgid "Slot is in error state"
+msgstr "槽位状态异常"
+
+msgid "Filament already loaded"
+msgstr "耗材已进料"
+
+msgid "Ready to load"
+msgstr "可进料"
+
+msgid "Loaded"
+msgstr "已进料"
+
+msgid "Unknown filament"
+msgstr "未知耗材"
+
+msgid "Other batch mode active"
+msgstr "其他批量模式正在进行"
+
+msgid "External filament already loaded into hotend"
+msgstr "外挂耗材已进料至热端"
+
+msgid "The current tool is not a nozzle"
+msgstr "当前工具头不是喷嘴"
+
+msgid "There are no nozzle installed"
+msgstr "未安装喷嘴"
+
+msgid "Nozzle is in error state"
+msgstr "喷嘴状态异常"
+
+msgid "Nozzle has been detached"
+msgstr "喷嘴已卸下"
+
+msgid "Slot not loaded"
+msgstr "槽位未进料"
+
+msgid "Ext AMS Operation"
+msgstr "外挂 AMS 操作"
+
+msgid "AMS Bridge Debug"
+msgstr ""
+
+msgid "Edit Filament"
+msgstr "编辑材料"
+
+msgid "Cannot read all while printing or upgrading"
+msgstr "打印或固件升级过程中无法全部读取"
+
+msgid "The printer is busy on other job"
+msgstr "打印机正忙于其他任务"
+
+msgid "Cannot stop filament change while printing or calibrating"
+msgstr "打印或校准过程中无法停止换料"
+
+msgid "No slots selected for batch run"
+msgstr "未选择需要批量操作的槽位"
+
+msgid "All selected slots are invalid"
+msgstr "所选槽位均无效"
+
+msgid "MQTT publish failed for multi_slot_ams_change_filament"
+msgstr "multi_slot_ams_change_filament 的 MQTT 下发失败"
+
+msgid "Pen"
+msgstr "笔"
+
+msgid "Cutter"
+msgstr "刀具"
+
+msgid "Laser"
+msgstr "激光"
+
+msgid "Fan"
+msgstr "风扇"
+
+msgid "Hotend Details"
+msgstr "热端详情"
+
+msgid "Hotend rack is busy"
+msgstr "热端架忙碌中"
+
+msgid "Hotend rack cannot read all"
+msgstr "热端挂架无法全部读取"
+
+msgid "Invalid hotend display_index"
+msgstr "热端序号无效"
+
+msgid "Invalid hotend temperature payload"
+msgstr "热端温度参数无效"
+
+msgid "No hotend rack"
+msgstr "无热端挂架"
+
+msgid "Hotend cannot set temperature"
+msgstr "该热端不支持设置温度"
+
+msgid "Loading/Unloading"
+msgstr "进/退料"
+
+msgid "Checking"
+msgstr "检测中"
+
+msgid "Cooling"
+msgstr "冷却模式"
+
+msgid "Stopping"
+msgstr "停止中"
+
+msgid "Heat fault"
+msgstr "加热异常"
+
+msgid "Self test"
+msgstr "自检"
+
+msgid "No selected machine"
+msgstr "未选择设备"
+
+msgid "loading/unloading"
+msgstr "进/退料"
+
+#, boost-format
+msgid "Slot %1% filament %2% in progress"
+msgstr "槽位 %1% 耗材%2%中"
+
+msgid "The system has created auto-refill groups based on material type, color, and brand."
+msgstr "系统已根据材料类型、颜色和品牌为您创建自动续料组。"
+
+msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
+msgstr "打印时，当前耗材用完后，将按组内顺序自动切换到下一卷兼容耗材，列表末尾会自动回到开头继续。"
+
+msgid "Drag spools to adjust their priority."
+msgstr "您可以拖动耗材调整使用优先级。"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -905,11 +1170,13 @@ msgstr "零件"
 msgid "Object"
 msgstr "对象"
 
-msgid "Right-click a part to assign it to the other side"
-msgstr "右键单击零件将其分配到另一侧"
-
 msgid "Drag to move the cut plane"
 msgstr "拖动切割平面可移动"
+
+msgid ""
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
+msgstr "拖动切割平面可移动；在零件上单击鼠标右键以将其指定给另一侧"
 
 msgid "Left click"
 msgstr "左击"
@@ -954,7 +1221,7 @@ msgid "Cut"
 msgstr "剪切"
 
 msgid "Cutting model object"
-msgstr "正在切割模型对象"
+msgstr "切割模型对象"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "因切割产生了开放边，您是否想现在修复？"
@@ -979,15 +1246,6 @@ msgstr "移动："
 
 msgid "Groove Angle"
 msgstr "凹槽角"
-
-msgid "Pick face"
-msgstr "选择面"
-
-msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
-msgstr "点击模型的一个面以设置切割平面。切割平面将与该面齐平；使用“移动”进行偏移。"
-
-msgid "Click a face of the model."
-msgstr "点击模型的面。"
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -1338,7 +1596,7 @@ msgid "Flip by Face 2"
 msgstr "通过面2翻转"
 
 msgid "Rotate the object on selected Face 2 around the perpendicular line of the selected plane"
-msgstr "围绕所选平面法线，在所选面 2 上旋转对象"
+msgstr "绕所选平面的垂线旋转选中面 2 上的对象"
 
 msgid "Assemble"
 msgstr "装配"
@@ -1544,9 +1802,6 @@ msgstr "内嵌深度"
 msgid "Text Gap"
 msgstr "文字间距"
 
-msgid "Line Gap"
-msgstr "行间距"
-
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "警告：文本矩阵中存在镜像，拖动它将完全重新生成。"
 
@@ -1610,14 +1865,6 @@ msgstr "粗细"
 msgid "Skew"
 msgstr "偏斜"
 
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "对齐"
-
-msgid "Align center horizontally"
-msgstr "水平居中对齐"
-
 msgid "No symbol"
 msgstr "没有符号"
 
@@ -1638,6 +1885,11 @@ msgstr "使用表面"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "按字符"
+
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "对齐"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -2446,11 +2698,11 @@ msgstr "解除切割关系"
 msgid "Add Primitive"
 msgstr "添加标准模型"
 
-msgid "Add New Plate"
-msgstr "添加新盘"
+msgid "Show Labels by Layer"
+msgstr "按逐层显示标签"
 
-msgid "Add a new plate"
-msgstr "添加新盘"
+msgid "Show Labels by Object"
+msgstr "按逐件显示标签"
 
 msgid "To objects"
 msgstr "拆分到对象"
@@ -2481,6 +2733,9 @@ msgstr "编辑"
 
 msgid "Delete this filament"
 msgstr "删除此耗材丝"
+
+msgid "Decompose Color"
+msgstr "拆解颜色"
 
 msgid "Merge with"
 msgstr "合并到"
@@ -2590,14 +2845,11 @@ msgstr "铺满打印板"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "用选定对象的副本填充床的剩余区域"
 
-msgid "Show Labels by Layer"
-msgstr "按逐层显示标签"
-
-msgid "Show Labels by Object"
-msgstr "按逐件显示标签"
-
 msgid "Edit Plate Name"
 msgstr "编辑盘名"
+
+msgid "Show Labels"
+msgstr "显示标签"
 
 msgid "Name"
 msgstr "名称"
@@ -2624,13 +2876,13 @@ msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] "错误：%1$d 非流形顶点"
 
-msgid "Error: reversed faces detected, which may affect rendering"
-msgstr "错误：存在反向面片，可能导致渲染异常"
-
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
 msgstr[0] "信息：发现 %1$d 个开放边"
+
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr "错误：检测到反向面片，可能影响渲染"
 
 msgid "Right click the icon to fix model object"
 msgstr "右键点击此图标可修复模型对象"
@@ -2640,9 +2892,6 @@ msgstr "右键点击此图标以舍弃对象的设置"
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "点击此图标可重置对象的所有设置"
-
-msgid "Unprintable object"
-msgstr "不可打印对象"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "右键点击此图标以舍弃对象的可打印属性"
@@ -2710,6 +2959,9 @@ msgstr ""
 
 msgid "Delete all connectors"
 msgstr "删除所有连接件"
+
+msgid "Deleting the last solid part is not allowed."
+msgstr "不允许删除对象的最后一个实体零件。"
 
 msgid "The target object contains only one part and can not be split."
 msgstr "目标对象仅包含一个零件，无法被拆分。"
@@ -2883,9 +3135,6 @@ msgstr "走线类型"
 msgid "Color"
 msgstr "颜色"
 
-msgid "Pause"
-msgstr "暂停"
-
 msgid "Template"
 msgstr "模板"
 
@@ -2991,15 +3240,6 @@ msgstr "连接中..."
 msgid "Auto-refill"
 msgstr "自动续料"
 
-msgid "The system has created auto-refill groups based on material type, color, and brand."
-msgstr "系统已根据材料类型、颜色和品牌为您创建自动续料组。"
-
-msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
-msgstr "打印时，当前耗材用完后，将按组内顺序自动切换到下一卷兼容耗材，列表末尾会自动回到开头继续。"
-
-msgid "Drag spools to adjust their priority."
-msgstr "您可以拖动耗材调整使用优先级。"
-
 msgid "Load"
 msgstr "进料"
 
@@ -3038,6 +3278,16 @@ msgstr "仍然改动"
 msgid "Off"
 msgstr "关闭"
 
+msgid "Air Purifier"
+msgstr "空气净化器"
+
+msgctxt "AirPurifier"
+msgid "Max"
+msgstr "最大"
+
+msgid "Silent"
+msgstr "静音"
+
 msgid "Filter"
 msgstr "过滤"
 
@@ -3049,9 +3299,6 @@ msgstr "开启过滤后会降低冷却效果，同时可能会影响打印质量
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
 msgstr "所选材料只支持当前的风扇模式，在打印过程中无法更改"
-
-msgid "Cooling"
-msgstr "冷却模式"
 
 msgid "Heating"
 msgstr "腔温保持模式"
@@ -3098,9 +3345,6 @@ msgstr "腔温保持模式适合打印%s材质，在机箱内部循环过滤腔�
 msgid "Strong Cooling"
 msgstr "强冷却模式"
 
-msgid "Fan"
-msgstr "风扇"
-
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "右（辅助）"
@@ -3108,6 +3352,10 @@ msgstr "右（辅助）"
 msgctxt "air_duct"
 msgid "Right(Filter)"
 msgstr "右（过滤）"
+
+msgctxt "air_duct"
+msgid "Right(Heating)"
+msgstr "右侧（加热）"
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
@@ -3143,62 +3391,14 @@ msgstr "主控板"
 msgid "Heat"
 msgstr "加热"
 
-msgid "Idling..."
-msgstr "空闲中"
-
-msgid "Heat the nozzle"
-msgstr "加热喷嘴"
-
-msgid "Cut filament"
-msgstr "切断耗材"
-
-msgid "Pull back current filament"
-msgstr "抽回耗材丝"
-
-msgid "Push new filament into extruder"
-msgstr "送出新耗材到挤出机"
-
-msgid "Grab new filament"
-msgstr "咬入耗材丝"
-
-msgid "Purge old filament"
-msgstr "冲刷旧耗材丝"
-
 msgid "Switch"
 msgstr "切换"
 
 msgid "hotend"
 msgstr "热端"
 
-msgid "Wait for AMS cooling"
-msgstr "等待 AMS 冷却"
-
-msgid "Switch current filament at Filament Track Switch"
-msgstr "切换变轨器的当前耗材"
-
-msgid "Pull back current filament at Filament Track Switch"
-msgstr "退变轨器处当前使用料"
-
-msgid "Switch track at Filament Track Switch"
-msgstr "变轨器开关切换"
-
-msgid "Please manually pull out the filament from slot %1%."
-msgstr "请将%1%号槽耗材手动拉出。"
-
-msgid "Please manually pull out the filament from hotend %1% on the toolhead."
-msgstr "请将工具头上%1%号热端内耗材手动拉出。"
-
-msgid "Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further."
-msgstr "请将耗材手动插入工具头上%1%号热端进料口，直到推不动为止。"
-
-msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
-msgstr "请将%1%号槽耗材手动插入挤出机进料口，直到推不动为止。"
-
 msgid "Confirm extruded"
 msgstr "确认挤出"
-
-msgid "Check filament location"
-msgstr "检查耗材位置"
 
 msgid "The maximum temperature cannot exceed "
 msgstr "最大温度不超过"
@@ -3343,7 +3543,7 @@ msgid "Label"
 msgstr "标签"
 
 msgid "Explosion"
-msgstr "爆炸"
+msgstr "爆炸图"
 
 msgid "Unassembled"
 msgstr "未组装"
@@ -3397,10 +3597,10 @@ msgid "Show explosion state column"
 msgstr "显示爆炸状态列"
 
 msgid "Allow modify text note foreground"
-msgstr "允许修改文本注释前景"
+msgstr "允许修改文字标注前景色"
 
 msgid "Allow modify text note background"
-msgstr "允许修改文本注释背景"
+msgstr "允许修改文字标注背景色"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
 msgstr "当前帧的相机边距系数。值越大，边距越大。"
@@ -3427,7 +3627,7 @@ msgid "Options"
 msgstr "选项"
 
 msgid "Delete all assembly steps"
-msgstr "删除所有步骤"
+msgstr "删除全部组装步骤"
 
 msgid "There’s no step to delete"
 msgstr "没有可删除的步骤"
@@ -3436,16 +3636,16 @@ msgid "Go to Wiki"
 msgstr "查看Wiki"
 
 msgid "Inherit the state of Step"
-msgstr "继承步骤的状态"
+msgstr "继承步骤状态"
 
 msgid "Assembled parts are not exploded"
-msgstr "已组装的部件未爆炸"
+msgstr "已组装零件不爆炸展开"
 
 msgid "Copy and inherit this step"
 msgstr "复制并继承此步骤"
 
 msgid "Add objects to this step before copying"
-msgstr "请先添加对象到此步骤再复制"
+msgstr "复制前请先向此步骤添加对象"
 
 msgid "Delete current step"
 msgstr "删除当前步骤"
@@ -3464,16 +3664,16 @@ msgid "Only add empty steps. This has nothing to do with the selected objects on
 msgstr "仅添加空步骤。这与画布上的选定对象无关。"
 
 msgid "Merge and add steps."
-msgstr "合并并添加步骤。"
+msgstr "合并和添加步骤。"
 
 msgid "Click to exit assembly step editing, or press Esc."
-msgstr "点击退出装配步骤编辑，或按 Esc。"
+msgstr "点击退出组装步骤编辑，或按 Esc。"
 
 msgid "Not"
-msgstr "未"
+msgstr "否"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "请先点击确认。在画布上生成标签后，就可以使用此标签控件。"
+msgstr "请先点击确认。画布上生成标签后，才能使用此标签控件。"
 
 msgid "Click to add Cyber Brick"
 msgstr "点击添加 Cyber Brick"
@@ -3518,7 +3718,7 @@ msgid "Label settings"
 msgstr "标签设置"
 
 msgid "Reset all closed labels"
-msgstr "重置所有关闭的标签"
+msgstr "重置所有已关闭的标签"
 
 msgid "Show Object/Part labels"
 msgstr "显示对象/零件标签"
@@ -3551,7 +3751,7 @@ msgid "Automatically choose object-or-part-level labels: a fully-used object alr
 msgstr "自动选择对象或零件级别的标签：在先前步骤中已完全使用的对象将折叠为单个对象标签；部分对象和首次出现的对象将按单个零件进行标记。"
 
 msgid "Please create an assembly step before exporting."
-msgstr "请先创建一个装配步骤再导出。"
+msgstr "导出前请先创建组装步骤。"
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "导出装配指南 PDF、Markdown 或 MP4"
@@ -3608,19 +3808,19 @@ msgid "At least two keyframes are required to play."
 msgstr "至少需要两个关键帧才能播放。"
 
 msgid "Add the selected object or part to the current step first"
-msgstr "请先将选定的对象或部件添加到当前步骤"
+msgstr "请先将所选对象或零件添加到当前步骤"
 
 msgid "Add a new object to the current step first"
-msgstr "请先将一个新对象添加到当前步骤"
+msgstr "请先向当前步骤添加新对象"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "将最终装配姿态应用于当前选定的对象或零件（如果未选择任何内容，则将其应用于当前帧中添加的所有对象）"
 
 msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
-msgstr "自动爆炸本步骤中新增的对象。先前步骤中已组装的对象将保持在一起。"
+msgstr "自动爆炸展开本步骤新增的对象。已在先前步骤组装的对象保持合拢。"
 
 msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
-msgstr "自动爆炸新部件。先前继承或已组装的对象将作为一个整体保持在一起。"
+msgstr "自动爆炸展开新增零件。继承而来或已在先前步骤组装的对象保持为一个整体。"
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "将当前相机角度应用于当前步骤的所有帧"
@@ -3656,10 +3856,10 @@ msgid "Assembly list"
 msgstr "装配列表"
 
 msgid "Show all objects"
-msgstr "显示所有对象"
+msgstr "显示全部对象"
 
 msgid "Show unassembled only"
-msgstr "仅显示未组装的"
+msgstr "仅显示未组装"
 
 msgid "Object name"
 msgstr "对象名称"
@@ -3749,7 +3949,7 @@ msgid "Filling"
 msgstr "正在填充"
 
 msgid "Bed filling aborted: invalid bed shape."
-msgstr "底板填充已中止：底板形状无效。"
+msgstr "铺板已中止：热床形状无效。"
 
 msgid "Bed filling canceled."
 msgstr "填充热床已取消。"
@@ -3866,32 +4066,14 @@ msgstr "保温热床可以优化首层打印质量，保温完成后将发起打
 msgid "Remaining time: %dmin%ds"
 msgstr "剩余时间：%d分%d秒"
 
-msgid "Transition Smoothness (between color blocks): the higher, the smoother"
-msgstr "调整色块间的过渡平滑程度，值越高越平滑。"
+msgid "One-click RYBW auto-mix"
+msgstr "一键RYBW自动混色"
 
-msgid "Auto Merge Small Fragments: the higher, the more merging"
-msgstr "自动合并模型上的小碎块到相邻色块，值越高合并越多"
+msgid "One-click CMYKW auto-mix"
+msgstr "一键 CMYKW 自动混色"
 
-msgid "Add Filament"
-msgstr "添加耗材"
-
-msgid "More Colors"
-msgstr "其他颜色"
-
-msgid "Official Filament"
-msgstr "官方材料"
-
-msgid "Filament matching color difference threshold"
-msgstr "耗材匹配色差阈值"
-
-msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
-msgstr "耗材自动匹配允许的颜色差异范围。值越大，颜色差异容忍度越高，越容易匹配。"
-
-msgid "Decompose Color"
-msgstr "拆解颜色"
-
-msgid "+ Add Filament"
-msgstr "+ 添加耗材"
+msgid "One-click CMYW auto-mix"
+msgstr "一键CMYW自动混色"
 
 msgid "Project Physical Filaments"
 msgstr "项目耗材列表"
@@ -3905,12 +4087,66 @@ msgstr "项目混色列表"
 msgid "New Mixed Filaments"
 msgstr "新增混色耗材"
 
-#, boost-format
-msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
-msgstr "项目最多支持%1%种耗材，超出的耗材需在导入前被合并。"
+msgid "+ Add Filament"
+msgstr "添加耗材"
 
-msgid "Updating"
-msgstr "更新中"
+msgid "Add Filament"
+msgstr "添加耗材"
+
+#, c-format, boost-format
+msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+msgstr "项目最多支持 %d 个耗材，多余的耗材将被丢弃。"
+
+msgid "Import Model"
+msgstr "导入模型"
+
+msgid "Original"
+msgstr "原项目"
+
+msgid "Multi-Color"
+msgstr "多色"
+
+msgid "Your input texture model"
+msgstr "您输入的纹理模型"
+
+msgid "Processed multi-color model"
+msgstr "处理后的多色模型"
+
+msgid "Color Count"
+msgstr "颜色数目"
+
+msgid "Smooth Level"
+msgstr "光滑程度"
+
+msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgstr "自动确定最佳颜色数量并重新计算耗材映射"
+
+msgid "Convert texture to painting using the specified color count and smooth level"
+msgstr "使用指定的颜色数目和光滑程度将纹理转换为涂色"
+
+msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr "提醒：参数已更改，请点击应用生效"
+
+msgid "Filament Mapping"
+msgstr "耗材映射"
+
+msgid "Reset filament mapping to the state before one-click mixing"
+msgstr "重置耗材映射至一键混色前的状态"
+
+msgid "Choose the one-click auto-mix mode for texture color import"
+msgstr "选择纹理颜色导入的一键自动混色模式"
+
+msgid "Auto-merge same filament"
+msgstr "自动合并相同的耗材"
+
+msgid "Automatically merge identical filaments into existing filaments in the project"
+msgstr "自动将新耗材合并到项目中现有的相同耗材"
+
+msgid "Skip Matching"
+msgstr "跳过匹配"
+
+msgid "Skip filament mapping and import as a single-color model"
+msgstr "跳过耗材匹配，导入为单色模型"
 
 msgid "Simplify Colors"
 msgstr "简化颜色"
@@ -3921,63 +4157,32 @@ msgstr "耗材匹配"
 msgid "Import Model: Simplify Colors"
 msgstr "导入模型：简化颜色"
 
-msgid "Original"
-msgstr "原项目"
+msgid "Import Model: Filament Matching"
+msgstr "导入模型：耗材匹配"
+
+msgid "Original Model"
+msgstr "原始模型"
 
 msgid "Simplified"
 msgstr "简化后"
 
-msgid "Color Count"
-msgstr "颜色数目"
-
-msgid "Advanced settings"
-msgstr "高级设置"
-
-msgid "Boundary Smoothness"
-msgstr "边缘平滑度"
-
-msgid "Gap Area"
-msgstr "间隙面积"
+msgid "Smoothing Factor"
+msgstr "光滑程度"
 
 msgid "Automatically determine the optimal color count"
-msgstr "自动计算最佳颜色数量"
+msgstr "自动确定最佳颜色数量"
 
-msgid "Color mixing"
-msgstr "混色"
-
-msgid "Use official mixing kits →"
-msgstr "使用官方混色套装 →"
-
-msgid "Some colors have no matching filament. Please match them before importing."
-msgstr "有颜色未匹配对应耗材，请匹配完成后，再导入。"
-
-msgid "Auto-Add All Filaments"
-msgstr "自动添加所有耗材"
-
-msgid "Fix now"
-msgstr "立即处理"
-
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "自动将新耗材合并到项目中现有的相同耗材"
+msgid "Adjust filament matching"
+msgstr "调整耗材匹配"
 
 msgid "Automatically merge filaments of the same color and type"
-msgstr "自动合并相同颜色与材质的耗材"
+msgstr "自动合并颜色和类型相同的耗材"
 
-msgid "Skip"
-msgstr "跳过"
-
-msgid "Skip filament mapping and import as a single-color model"
-msgstr "跳过耗材匹配，导入为单色模型"
-
-msgid "Next"
-msgstr "下一步"
-
-msgctxt "TextureImport"
 msgid "Previous"
 msgstr "上一步"
 
 msgid "Discard newly added filaments and re-run automatic matching"
-msgstr "移除新增的耗材并重新自动匹配"
+msgstr "丢弃本次新增耗材并重新自动匹配"
 
 msgid "Before matching"
 msgstr "匹配前"
@@ -3987,14 +4192,19 @@ msgstr "匹配后"
 
 #, c-format, boost-format
 msgid "Before simplification: %d colors"
-msgstr "简化前：%d 颜色"
+msgstr "简化前：%d 种颜色"
 
 #, c-format, boost-format
 msgid "After simplification: %d colors"
-msgstr "简化后：%d 颜色"
+msgstr "简化后：%d 种颜色"
 
-msgid "Import Model: Filament Matching"
-msgstr "导入模型：耗材匹配"
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
+msgstr "颜色数量不能超过原始颜色数（%d）。"
+
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
+msgstr "颜色数量不能超过项目耗材上限（%d）。"
 
 msgid "Processing"
 msgstr "处理中"
@@ -4005,73 +4215,23 @@ msgstr "正在计算纹理颜色..."
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr "计算失败。请调整参数后重试。"
 
-#, c-format, boost-format
-msgid "The color count cannot exceed the original color count (%d)."
-msgstr "颜色数量超过了原模型颜色数量（%d）"
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+msgstr "网格具有非流形几何或开放边界。您可以直接导入，或在导入前使用 Windows 3D 修复服务进行修复。"
 
-#, c-format, boost-format
-msgid "The color count cannot exceed the project's filament limit (%d)."
-msgstr "颜色数量超过了项目最大耗材数量（%d）"
+msgid "Mesh repair"
+msgstr "网状修复"
 
-msgid "The current printer has no compatible PLA Basic filament."
-msgstr "当前打印机没有兼容的 PLA Basic耗材。"
+msgid "Import without repair"
+msgstr "不修复并导入"
 
-msgid "Click to select a matching filament"
-msgstr "点击选择匹配耗材"
+msgid "Repair and import"
+msgstr "修复并导入"
 
-#, boost-format
-msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
-msgstr "项目最多支持%1%个耗材，当前%2%个耗材，超出限制。"
+msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+msgstr "请注意，网格具有非流形或开放边界。"
 
-msgid "Error Prompt"
-msgstr "错误提示"
-
-msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
-msgstr "本方案无法合并任意耗材，存在不同材质的耗材。"
-
-#, boost-format
-msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
-msgstr "本方案减少到%1%种耗材（限制%2%），剩余耗材因材质不同而不能被合并。"
-
-msgid "Kept filaments"
-msgstr "保留耗材"
-
-msgid "Deleted filaments"
-msgstr "被删除的耗材"
-
-msgid "After merging"
-msgstr "合并后"
-
-#, boost-format
-msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
-msgstr "项目最多支持 %1% 种耗材，当前有 %2% 种，超出了限制。请选择如何处理。"
-
-msgid "Prioritize merging similar-color filaments"
-msgstr "优先合并近似色耗材"
-
-msgid "Prioritize merging small-area filaments"
-msgstr "优先合并小面积耗材"
-
-msgid "How to use standard mixing kits"
-msgstr "如何使用标准混色套装"
-
-msgid "What is the CMYW mixing kit?"
-msgstr "什么是 CMYW 混色套装？"
-
-msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
-msgstr "经过官方打印测试，只需一套标准 CMYW 混色套装即可混合出数百种颜色效果。"
-
-msgid "4-color CMYW"
-msgstr "四色 CMYW"
-
-msgid "Cyan · Magenta · Yellow · White"
-msgstr "青 · 品红 · 黄 · 白"
-
-msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
-msgstr "因此，导入模型时可以使用这些套装耗材及其混色进行颜色匹配。"
-
-msgid "Add to project filament list"
-msgstr "添加到项目耗材列表"
+msgid "Mesh issue"
+msgstr "网格故障"
 
 msgid "Choose SLA archive:"
 msgstr "选择SLA存档："
@@ -4188,11 +4348,32 @@ msgstr "材料设置"
 msgid "Colour"
 msgstr "颜色"
 
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr "挤出头温度"
+
+msgid "max"
+msgstr "最大"
+
+msgid "min"
+msgstr "最小"
+
+#, boost-format
+msgid "The input value should be greater than %1% and less than %2%"
+msgstr "输入的范围在 %1% 和 %2% 之间"
+
+msgid "Weight"
+msgstr "重量"
+
+msgid "Total Weight"
+msgstr "总重量"
+
+msgid "Remain Weight"
+msgstr "剩余重量"
+
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "动态流量校准系数"
-
-msgid "View Wiki for details"
-msgstr "详情查看Wiki"
 
 msgid "Nozzle Type"
 msgstr "喷嘴类型"
@@ -4206,31 +4387,17 @@ msgstr "系数K"
 msgid "Factor N"
 msgstr "系数N"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr "挤出头温度"
+msgid "Setting AMS slot information while printing is not supported"
+msgstr "不支持在打印时设置AMS槽位信息"
 
-msgid "Tip: Setting AMS slot information while printing is not supported"
-msgstr "提示：不支持在打印时设置AMS槽位信息"
+msgid "Setting Virtual slot information while printing is not supported"
+msgstr "不支持在打印时设置虚拟槽位信息"
 
-msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr "提示：不支持在打印时设置虚拟槽位信息"
+msgid "Please enter valid filament weights."
+msgstr "请输入有效的耗材重量。"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "您确定要清除耗材丝信息吗？"
-
-msgid "Add to Filament Library?"
-msgstr "是否添加到耗材管理器？"
-
-msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
-msgstr "修改耗材类型或颜色将解除与耗材库的绑定，是否将此耗材作为新的一卷加入耗材库？"
-
-msgid "Add to Filament Library"
-msgstr "加入耗材库"
-
-msgid "Save Only"
-msgstr "仅保存"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU 需采用特殊的进料路径和流程，否则可能导致堵塞或卡料。请在使用前阅读教程。"
@@ -4241,15 +4408,52 @@ msgstr "前往查看"
 msgid "You need to select the material type and color first."
 msgstr "您需要先选择材料类型和颜色。"
 
-msgid "Please select a color"
-msgstr "请选择颜色"
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
 
 msgid "Remark"
 msgstr "备注"
 
+msgid "Other"
+msgstr "其他"
+
+msgid "Filament Manager"
+msgstr "耗材管理"
+
+msgid "In printer"
+msgstr "机内耗材"
+
 #, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
+msgid "In printer: %s"
+msgstr "机内耗材：%s"
+
+msgctxt "Filament Manager"
+msgid "Note"
+msgstr "提示"
+
+msgid "Unsupported Filaments"
+msgstr "不支持的耗材"
+
+msgctxt "Unsupported Filaments"
+msgid "Note"
+msgstr "提示"
+
+msgid "No unsupported filaments"
+msgstr "无不受支持的耗材"
+
+msgid "No filaments"
+msgstr "暂无耗材"
+
+msgid "System presets"
+msgstr "系统配置"
+
+msgid "Recently used"
+msgstr "最近使用"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4262,26 +4466,32 @@ msgstr ""
 "喷嘴的流量未设置，无法编辑材料，请设置喷嘴流量后再操作。\n"
 "'设备页面->打印机零件'"
 
-msgid "Matched filament"
-msgstr "可用于匹配的耗材"
+msgid "AMS"
+msgstr "AMS"
+
+msgid "Other Color"
+msgstr "其他颜色"
+
+msgid "Custom Color"
+msgstr "自定义颜色"
+
+msgid "AMS detected a new official filament. Add it to Filament Manager?"
+msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"
 
 msgid "Add as new filament"
 msgstr "作为新耗材录入"
 
-msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr "AMS检测到新的耗材，是否添加到耗材管理器？"
+msgid "Link to existing filament"
+msgstr "关联已录入的耗材"
 
-msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr "耗材管理器中发现一卷相似耗材，已经自动匹配。"
+msgid "Not now"
+msgstr "暂不录入"
 
-msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr "耗材管理器中发现多卷相似耗材，请确认匹配结果"
+msgid "Please select"
+msgstr "请选择"
 
-msgid "New Filament"
-msgstr "新耗材录入"
-
-msgid "New filament information has been recorded."
-msgstr "新的耗材信息已经被录入。"
+msgid "No matching filament"
+msgstr "暂无匹配的耗材"
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量校准"
@@ -4310,6 +4520,9 @@ msgstr "床温"
 msgid "Start calibration"
 msgstr "开始"
 
+msgid "Next"
+msgstr "下一步"
+
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "校准完成。请在您的热床上找到如下图所示的最均匀的挤出线，并将其左侧的数值填入因子K的输入框。"
 
@@ -4328,10 +4541,6 @@ msgstr "校准中... %d%%"
 
 msgid "Calibration completed"
 msgstr "校准已完成"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4484,8 +4693,8 @@ msgstr "干燥"
 msgid "WET"
 msgstr "潮湿"
 
-msgid "AMS"
-msgstr "AMS"
+msgid "Please select the filament to match."
+msgstr "请选择要匹配的耗材。"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
@@ -4508,6 +4717,9 @@ msgstr "选择材料预设和喷头"
 
 msgid "Select Filament"
 msgstr "选择耗材"
+
+msgid "Ext"
+msgstr "外挂"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -4532,6 +4744,12 @@ msgstr "每次开机时，AMS将会自动读取其所插入的耗材信息(读�
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
 msgstr "AMS不会在启动时自动读取耗材丝信息。它会使用上次关机前记录的信息。"
+
+msgid "Automatically refresh unloaded filaments"
+msgstr "自动刷新未装载的耗材"
+
+msgid "For official filaments, the filament type is automatically refreshed when entering the Device page. To avoid frequent refreshes, automatic refreshes occur no more than once per minute."
+msgstr "对于官方耗材，进入设备页时会自动刷新耗材类型。为避免频繁刷新，自动刷新最多每分钟一次。"
 
 msgid "Update remaining capacity"
 msgstr "更新剩余容量"
@@ -4581,12 +4799,6 @@ msgstr "您确定要重置已连接AMS的ID序列吗？"
 
 msgid "Reset AMS Sequence"
 msgstr "重置AMS序列"
-
-msgid "View wiki for details"
-msgstr "详情查看Wiki"
-
-msgid "Nozzle Temperature"
-msgstr "喷嘴温度"
 
 msgid "File"
 msgstr "文件"
@@ -4658,7 +4870,7 @@ msgid "Running post-processing scripts"
 msgstr "运行后处理脚本"
 
 msgid "Updating preview with post-processed G-code"
-msgstr "正在使用后处理的 G-code 更新预览"
+msgstr "正在用后处理 G-code 更新预览"
 
 msgid "Successfully executed post-processing script"
 msgstr "成功执行后处理脚本"
@@ -4778,12 +4990,9 @@ msgid ""
 "Reset to default"
 msgstr "起始高度不应大于100%。将重置为默认值"
 
-msgid "Value is out of range."
-msgstr "值越界。"
-
-#, boost-format
-msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
-msgstr "%1% 不能过壳体层数 (%2%)，否则涂色层将会到达稀疏填充区域，导致打印失败"
+#, c-format, boost-format
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
+msgstr "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温度为 %d。"
 
 msgid ""
 "Too small layer height.\n"
@@ -4799,8 +5008,8 @@ msgid ""
 "Should not be larger than layer height.\n"
 "Reset to 10%"
 msgstr ""
-"起始高度不应大于层高度。\n"
-"重置为10%"
+"不应大于层高。\n"
+"重置为 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -4928,10 +5137,10 @@ msgid ""
 "Thus, reset the skirt layer to 1 to avoid that."
 msgstr "逐件打印时，挤出机可能与裙边碰撞。因此将裙边的层数重置为1。"
 
-#, no-c-format, no-boost-format
+#, c-format, boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
-"Reset to 50% of skin depth"
+"Reset to 50%% of skin depth"
 msgstr ""
 "互锁深度应该比表皮深度小,\n"
 "重设为表皮深度的一半"
@@ -4962,18 +5171,6 @@ msgstr ""
 "是 - 应用修改并保持交替额外墙层启用\n"
 "否 - 不使用交替额外墙层"
 
-msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
-msgstr "周期性修改器与旋转花瓶模式不兼容。若要启用周期性修改器，建议进行以下调整："
-
-msgid ""
-"Change these settings automatically?\n"
-"Yes - Apply and keep periodic modifier enabled\n"
-"No  - Don't use periodic modifier"
-msgstr ""
-"自动更改这些设置吗？\n"
-"是 - 应用并保持周期性修改器启用\n"
-"否 - 不使用周期性修改器"
-
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "为使交替额外墙层正常工作，建议进行以下调整："
 
@@ -4986,8 +5183,8 @@ msgstr ""
 "是 - 应用修改并保持交替额外墙层启用\n"
 "否 - 保持当前设置并启用交替额外墙层"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
-msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即拍模式，Z方向墙速度平滑不启用且周期性修改器关闭。"
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为传统，Z方向墙速度平滑不启用且交替额外墙层关闭。"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "但是I3结构的机器将不会生成延时视频。"
@@ -5348,12 +5545,6 @@ msgstr "重试"
 msgid "Resume"
 msgstr "继续"
 
-msgid "Loading error details ..."
-msgstr "正在加载错误详情 ..."
-
-msgid "Unable to load error details."
-msgstr "无法加载错误详情。"
-
 msgid "Unknown error."
 msgstr "未知错误。"
 
@@ -5365,6 +5556,9 @@ msgstr "网络不可用"
 
 msgid "default"
 msgstr "默认"
+
+msgid "parameter name"
+msgstr "参数名称"
 
 msgid "N/A"
 msgstr "N/A"
@@ -5383,6 +5577,9 @@ msgstr "参数验证"
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
 msgstr "值 %s 超出了范围，有效的范围是从 %d 到 %d 。"
+
+msgid "Value is out of range."
+msgstr "值越界。"
 
 #, c-format, boost-format
 msgid ""
@@ -5498,12 +5695,12 @@ msgstr "高于"
 msgid "from"
 msgstr "从"
 
-msgid "Slicing Result"
-msgstr "切片结果"
-
 #, boost-format
 msgid "No.%1%"
 msgstr "%1%号"
+
+msgid "Slicing Result"
+msgstr "切片结果"
 
 msgid "Color Scheme"
 msgstr "颜色方案"
@@ -5621,6 +5818,9 @@ msgstr "耗材分组"
 
 msgid "Why this grouping"
 msgstr "为什么这样分组"
+
+msgid "AMS nozzle"
+msgstr "AMS 喷嘴"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "请按上述分组结果到打印机放置耗材"
@@ -5789,6 +5989,22 @@ msgstr "以下物体位于盘的边界上或超过了高度限制：\n"
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "请通过将物体完全移动到盘上或移出盘来解决问题，并确认其高度在构建范围内。\n"
 
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+msgstr "装配体的边界框过大（最大尺寸 >= %1% 英寸），这可能会导致渲染问题。\n"
+
+#, boost-format
+msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+msgstr "装配体的边界框过大（最大尺寸 >= %1% mm），这可能会导致渲染问题。\n"
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% 英寸）：\n"
+
+#, boost-format
+msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% mm）：\n"
+
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "一些模型的位置或者尺寸超出了%s的可打印范围。"
@@ -5930,7 +6146,7 @@ msgid "return"
 msgstr "返回"
 
 msgid "Exit current gizmo editing"
-msgstr "退出当前 Gizmo 编辑"
+msgstr "退出当前编辑器"
 
 msgid "Return to prepare view"
 msgstr "返回准备视图"
@@ -6037,17 +6253,17 @@ msgstr "材料 %s 不能在直接在当前打印板上打印。"
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。"
 
+msgid "Your printer does not support a prime tower with different support material. The slicing has automatically switched to the heat preservation wall solution."
+msgstr "当前打印机不支持不同支撑材料的擦料塔。切片已自动切换为保温墙方案。"
+
 msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
-msgstr "检测到易碎耗材（例如 PPS-CF）。请将模型放置在加热床的中心。在边缘附近打印可能导致耗材过度弯曲并在管内断裂。"
+msgstr "检测到脆性耗材（如 PPS-CF）。请将模型放置在热床中央。靠近边缘打印可能导致耗材过度弯折并在料管内折断。"
 
 msgid "The prime tower improves multi-color print quality and is recommended."
 msgstr "擦料塔可提升多色打印质量，建议启用。"
 
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "料塔超出了打印版边界。"
-
-msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
-msgstr "盘子上的所有对象都不可打印，请检查对象列表中的打印设置。"
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，请重新调整冲刷值。"
@@ -6056,10 +6272,16 @@ msgid "Click Wiki for help."
 msgstr "点击Wiki寻求帮助。"
 
 msgid "Click Wiki for details."
-msgstr "点击 Wiki 获取详细信息。"
+msgstr "点击 Wiki 查看详情。"
 
 msgid "Jump to: Prime tower"
 msgstr "转跳到：擦料塔"
+
+msgid "Jump to: Support on build plate only"
+msgstr "跳转到：仅在打印板上生成支撑"
+
+msgid "Jump to: Support"
+msgstr "跳转到：支撑"
 
 msgid "Enable Clumping Detection"
 msgstr "启用触碰裹头检测"
@@ -6125,6 +6347,12 @@ msgstr "监控录像"
 msgid "Go Live"
 msgstr "开启直播"
 
+msgid "Live Camera Recording"
+msgstr "实时摄像头录像"
+
+msgid "Visual Enhancement Camera Recording"
+msgstr "视觉增强摄像头录像"
+
 msgid "Liveview Retry"
 msgstr "实时预览重试"
 
@@ -6157,12 +6385,6 @@ msgstr ""
 msgid "Invalid input."
 msgstr "非法输入"
 
-msgid "Network error"
-msgstr "网络错误"
-
-msgid "Unknown error"
-msgstr "未知错误。"
-
 msgid "New Window"
 msgstr "新窗口"
 
@@ -6184,6 +6406,9 @@ msgstr "准备"
 msgid "Preview"
 msgstr "预览"
 
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "当前页面有未保存的更改。您可以继续编辑，或选择保存/放弃后离开。"
+
 msgid "Home"
 msgstr "首页"
 
@@ -6196,9 +6421,6 @@ msgstr "多设备"
 msgid "Project"
 msgstr "项目"
 
-msgid "Filament Manager"
-msgstr "耗材管理"
-
 msgid "Yes"
 msgstr "是"
 
@@ -6207,9 +6429,6 @@ msgstr "否"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
-
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "当前页面有未保存的更改。您可以继续编辑，或选择保存/放弃后离开。"
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "使用 Helio Additive 解锁更快、更可靠、更不易翘曲的打印。"
@@ -6509,6 +6728,9 @@ msgstr "重置为默认窗口布局"
 msgid "Show Labels of printing by layer in 3D scene"
 msgstr "在3D场景中显示按逐层打印的标签"
 
+msgid "Show Labels of printing by object in 3D scene"
+msgstr "在 3D 场景中显示按逐件打印的标签"
+
 msgid "Show &Overhang"
 msgstr "显示悬空高亮"
 
@@ -6723,6 +6945,18 @@ msgstr "未能加载播放器，请重新点击“播放”按钮。"
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "插件库加载失败，点击这里查看解决办法。"
 
+msgid "Switch to the auxiliary live camera view"
+msgstr "切换到辅助实时摄像头画面"
+
+msgid "Switch to the main live camera view"
+msgstr "切换到主实时摄像头画面"
+
+msgid "Switch live camera view"
+msgstr "切换实时摄像头画面"
+
+msgid "Current camera is abnormal"
+msgstr "当前摄像头异常"
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "加载失败。请检查网络后重试。"
 
@@ -6910,7 +7144,7 @@ msgid "Failed to parse model information."
 msgstr "解析模型信息失败。"
 
 msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu Studio and export a new .gcode.3mf file."
-msgstr ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的.gcode.3mf文件。"
+msgstr ".gcode.3mf 文件中没有 G-code 数据。请使用 Bambu Studio 切片并导出新的 .gcode.3mf 文件。"
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7017,9 +7251,6 @@ msgstr "3Dconnexion设置"
 msgid "Swap Y/Z axes"
 msgstr "交换Y/Z轴"
 
-msgid "Lock horizon"
-msgstr "锁定水平"
-
 msgid "(LAN)"
 msgstr "（局域网）"
 
@@ -7106,9 +7337,6 @@ msgstr "打印进度"
 msgid "Pausing"
 msgstr "暂停"
 
-msgid "Stopping"
-msgstr "停止中"
-
 msgid "Parts Skip"
 msgstr "零件跳过"
 
@@ -7165,9 +7393,6 @@ msgstr "%d秒"
 msgid "Finished"
 msgstr "完成"
 
-msgid "Almost complete"
-msgstr "即将完成"
-
 msgid "Camera"
 msgstr "摄像机"
 
@@ -7191,6 +7416,9 @@ msgstr "安全选项"
 
 msgid "Hotends"
 msgstr "热端"
+
+msgid "Unclamped"
+msgstr "未夹持"
 
 msgid "100%"
 msgstr "100%"
@@ -7297,9 +7525,6 @@ msgstr "无法读取耗材丝信息：耗材丝已经加载到工具头，请退
 
 msgid "This only takes effect during printing"
 msgstr "仅在打印过程中生效"
-
-msgid "Silent"
-msgstr "静音"
 
 msgid "Sport"
 msgstr "运动"
@@ -7457,6 +7682,9 @@ msgstr "计算中，请等待..."
 msgid "Status"
 msgstr "设备状态"
 
+msgid "Print queue"
+msgstr "打印队列"
+
 msgctxt "Firmware"
 msgid "Update"
 msgstr "固件更新"
@@ -7502,6 +7730,9 @@ msgstr "%s 信息"
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s 信息"
+
+msgid "Skip"
+msgstr "跳过"
 
 msgid "Newer 3mf version"
 msgstr "较新的3mf版本"
@@ -7644,17 +7875,11 @@ msgstr "错误："
 msgid "Open link for more info"
 msgstr "打开链接获取更多信息"
 
-msgid "Jump to: Support on build plate only"
-msgstr "跳转到：支撑-仅打印板生成"
-
-msgid "Jump to: Support"
-msgstr "跳转到：支撑"
-
 msgid "Warning:"
 msgstr "警告："
 
 msgid "Wiki for details."
-msgstr "详情查看Wiki"
+msgstr "Wiki 详情。"
 
 msgid "Export successfully."
 msgstr "导出成功。"
@@ -7902,7 +8127,7 @@ msgid "Please change the nozzle settings on the printer."
 msgstr "如需修改喷嘴信息，请去打印机操作。"
 
 msgid "View wiki"
-msgstr "查看 wiki"
+msgstr "查看 Wiki"
 
 msgid "Brass"
 msgstr "黄铜"
@@ -7924,537 +8149,6 @@ msgstr "空闲加热保护"
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "闲置5分钟后自动停止加热以保障安全。"
-
-msgid "Note: "
-msgstr "注意："
-
-msgid "Controls the printed height of each layer."
-msgstr "控制模型每一层的打印高度"
-
-msgid ""
-"A larger layer height prints faster but shows more obvious layer lines.\n"
-"A smaller layer height gives finer curved surfaces but takes longer to print.\n"
-"If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
-msgstr ""
-"层高越大,打印更快,但层纹会更明显。\n"
-"层高越小,曲面越细腻,但打印时间越长。\n"
-"层高过小再配过快速度，容易造成模型表面破损"
-
-msgid "Recommended layer height is 20%-70% of the nozzle diameter."
-msgstr "建议层高范围为喷嘴的20%～70%"
-
-msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
-msgstr "控制模型第一层挤出的厚度，影响首层与热床的贴合程度"
-
-msgid ""
-"Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
-"Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
-msgstr ""
-"层高过小，容易受到热床平整度的影响，首层出现打印瑕疵。\n"
-"层高过大，首层挤出走线的宽高比过小，不利于材料附着。"
-
-msgid "Usually set to half the nozzle diameter."
-msgstr "通常设置为喷嘴口径的一半。"
-
-msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
-msgstr "用于混色耗材分层功能"
-
-msgid ""
-"When off, colors change per full layer, so the blend is coarser and less even.\n"
-"When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
-msgstr ""
-"启用后，使用混色耗材的层会按比例拆分为更薄的子层，以实现更均匀的混色效果\n"
-"关闭时按整层换色，混色相对不细腻不均匀"
-
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "建议仅在使用混色耗材时开启，获得更好的叠色效果"
-
-msgid "Controls where each layer's outer wall starts and ends."
-msgstr "控制每层外墙打印的起止位置。"
-
-msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr "起止处可能留下细小凸点或缝线，选择合适的位置可降低接缝对模型外观的影响"
-
-msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr "顶面区域只打印一圈墙，尽可能让顶面被填充图案充满，获得更一致的视觉效果"
-
-msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
-msgstr "对于斜坡面，穹顶面，该选项会加剧台阶纹，不建议开启。"
-
-msgid "Recommended only for flat top surfaces."
-msgstr "建议只对平坦的顶面开启。"
-
-msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr "接触热床的模型首层仅使用单层墙，让尽可能大的区域被首层填充图案占满，获得更一致的视觉效果。"
-
-msgid ""
-"When off, the first layer uses multiple wall loops.\n"
-"When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
-msgstr ""
-"关闭时第一层为多圈墙\n"
-"开启后填充更连续，底面更平整，但首层边缘轮廓略弱"
-
-msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
-msgstr "控制每一层外壳的墙圈数，是影响模型强度的重要参数"
-
-msgid ""
-"More walls give higher strength but use more material and time;\n"
-"fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
-msgstr ""
-"墙层数越多，强度越高，但更费料、耗时更长；\n"
-"墙层数越少，打印更快更省料，但强度降低，表面容易透出填充纹路。"
-
-msgid "2-3 loops is recommended for typical models; increase it for functional parts."
-msgstr "常规模型建议 2–3 圈，功能件可适当增加"
-
-msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
-msgstr "用于有墙区域与无墙区域的交接处，隔层将墙体嵌入没有外墙的填充区域"
-
-msgid ""
-"It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
-"Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
-msgstr ""
-"只处理一边有墙、一边墙层数为 0 的交接，同一零件内部的墙–填充交界不处理。\n"
-"隔一层嵌入，形成交错咬合，比齐缝对接更结实。"
-
-msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
-msgstr "两边都正常打墙时不必开。"
-
-msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
-msgstr "在奇数层额外增加一圈墙，偶数层保持不变。"
-
-msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
-msgstr "隔一层多打一圈墙，用来加强层间咬合，可以提升层间结合与零件强度，同时避免全程加墙的用料与时间成本。"
-
-msgid "Requires sparse infill; not applicable in vase mode."
-msgstr "需配合稀疏填充使用，花瓶模式不适用"
-
-msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
-msgstr "最顶层实心填充的走线方式，主要影响顶面平整度和观感。"
-
-msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
-msgstr "控制模型底面的填充走线，影响底面纹理与平整度。"
-
-msgid "Bridging areas are not affected by this parameter."
-msgstr "桥接区域不受此参数影响。"
-
-msgid "Controls the number of solid top shell layers, including the top surface."
-msgstr "控制顶部实心壳体的层数，包括顶面等"
-
-msgid ""
-"More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
-"If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
-msgstr ""
-"层数越多，顶壳越厚，越不易透出内部填充\n"
-"若计算 层数x层高 小于「顶部壳体厚度」，切片会自动增加层数"
-
-msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
-msgstr "限制顶部实心壳体的最小厚度，避免层高较小时顶壳过薄"
-
-msgid ""
-"Set to 0 to disable this and let the layer count alone decide.\n"
-"If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
-msgstr ""
-"设为 0 则关闭此功能，只由层数决定\n"
-"若按 层数x层高 算出的厚度不足，切片会自动增加顶壳层数"
-
-msgid "Controls the number of solid bottom shell layers, including the bottom surface."
-msgstr "控制底部实心壳体的层数，包括底面等"
-
-msgid ""
-"More layers make the bottom more solid but take longer.\n"
-"If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
-msgstr ""
-"层数较多时底面更实，但更耗时。\n"
-"若计算 层高x层数 小于「底部壳体厚度」，切片会自动增加层数。"
-
-msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
-msgstr "限制底部实心壳体的最小厚度，避免层高较小时底壳过薄。"
-
-msgid ""
-"Set to 0 to disable this and let the layer count alone decide.\n"
-"If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
-msgstr ""
-"设为 0 则关闭此功能，完全由层数决定\n"
-"若按层数算出的厚度不足，切片会自动增加底壳层数"
-
-msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
-msgstr "控制顶面涂色向下渗透的层数，避免内部的其他耗材颜色透出"
-
-msgid ""
-"Fewer layers make color bleed-through more likely.\n"
-"More layers reduce bleed-through but increase the number of filament changes.\n"
-"To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
-msgstr ""
-"层数越少，越容易透色\n"
-"层数越多，越不容易透色，但换料次数会增加。\n"
-"为了避免向下渗透影响到模型的侧面的颜色，向下渗透的区域会逐层缩小"
-
-msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
-msgstr "控制底面涂色向上渗透的层数，避免内部其他耗材颜色透出"
-
-msgid ""
-"Fewer layers make color bleed-through more likely.\n"
-"More layers reduce bleed-through but increase the number of filament changes.\n"
-"To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
-msgstr ""
-"层数越少，越容易透色\n"
-"层数越多，越不容易透色，但换料次数会增加\n"
-"为了避免向上渗透影响到模型的侧面颜色，向上渗透的区域会逐层缩小"
-
-msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
-msgstr "控制内部实心填充的走线图案，作用于顶/底壳中间实心层及内部实心区域。"
-
-msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
-msgstr "若开启狭窄内部实心填充检测，小区域会自动使用同心图案。"
-
-msgid "Controls how dense the model's internal sparse infill is."
-msgstr "控制模型内部稀疏填充的疏密程度"
-
-#, no-c-format, no-boost-format
-msgid ""
-"10-15% is recommended for typical models; raise it for functional parts.\n"
-"100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
-msgstr ""
-"常规模型建议 10–15%，功能件可适当提高。\n"
-"100% 表示完全实心，仅同心、直线、单调、单调线、直线排列、希尔伯特曲线、阿基米德弦、八角螺旋可用"
-
-msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
-msgstr "启用多线填充模式，把每条填充路径打成多根并排线"
-
-msgid ""
-"Higher values make the infill beams thicker and stronger but use more material and time;\n"
-"1 is ordinary single-line infill."
-msgstr ""
-"数值越大，填充梁越粗、强度更好，但更耗料、更耗时；\n"
-"设为 1 即为普通单线填充。"
-
-msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
-msgstr "支持直线、网格、Gyroid、蜂窝、立方体、闪电等图案"
-
-msgid "Controls the toolpath structure of the internal sparse infill."
-msgstr "控制内部稀疏填充的走线结构"
-
-msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
-msgstr "支撑是打印时在悬空、大角度区域下方临时搭的可拆除支架，用来托住后续层、避免塌陷。"
-
-msgid ""
-"When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
-"Recommended when the model has obvious overhangs."
-msgstr ""
-"参数开启后为悬空和大角度区域生成支撑，模型成型更稳定，但需拆除支撑，可能留下痕迹。\n"
-"有明显悬空结构时建议开启。"
-
-msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
-msgstr "选择支撑形态与生成方式，普通(自动)/树状(自动)会按悬垂自动生成"
-
-msgid ""
-"Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
-"Choose a manual mode when you need precise control."
-msgstr ""
-"普通支撑更规整稳定；树状支撑接触更少、更好拆\n"
-"需要精确控制时，可以选择手动模式。"
-
-msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
-msgstr "手动模式配合gizmo工具中的支撑绘制工具一起使用"
-
-msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
-msgstr "为悬垂角度低于阈值的表面生成支撑，自动模型下支持自定义"
-
-msgid ""
-"A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
-"A larger threshold also supports more slopes, giving more support."
-msgstr ""
-"阈值较小：只给接近水平的大悬垂加支撑，支撑更少，缓斜面可能无支撑\n"
-"阈值较大：更多斜面也会加支撑，支撑较多"
-
-msgid "A common default of 30 degrees balances print stability against the amount of support used."
-msgstr "常见默认 30°：在成型稳定与支撑用量之间较均衡"
-
-msgid "Generates support only from the build plate, not on the model's surfaces."
-msgstr "不在模型表面上生成支撑，只在热床上生成。"
-
-msgid ""
-"When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
-"When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
-msgstr ""
-"关闭时可能会在模型表面起支撑，覆盖更全但易留痕；\n"
-"开启后支撑都从热床开始，模型表面更干净。"
-
-msgid "Recommended when appearance matters."
-msgstr "开启后部分悬垂可能支撑不到"
-
-msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
-msgstr "支撑界面是支撑与模型贴合处更密的接触层，该参数可指定打印支撑与模型接触面的耗材"
-
-msgid ""
-"By default the interface uses the same filament as the model, which can make removal harder.\n"
-"Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
-msgstr ""
-"默认时界面与模型同料，拆除可能更费力；\n"
-"指定易分离耗材后，接触面更好拆，表面更干净，但会增加换料"
-
-msgid "The filament used to print the support body and the raft."
-msgstr "打印支撑主体和筏层的耗材"
-
-msgid ""
-"By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
-"Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
-msgstr ""
-"默认时支撑与模型同料，多耗材时与对应层的模型耗材保持一致\n"
-"指定其他耗材可更易拆除或降低成本，但会增加换料时间。"
-
-msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
-msgstr "在模型外围打印不相连的轮廓线（裙边），用于打印开始前排空喷嘴、稳定挤出"
-
-msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
-msgstr "圈数越多，排空越充分，但更费料；"
-
-msgid "Controls how many layers the skirt is printed."
-msgstr "控制 Skirt 打印多少层"
-
-msgid ""
-"During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
-"The default is 1 layer."
-msgstr ""
-"在打印前几层时，一圈较高Skirt可以一定程度上阻挡模型周围的冷空气，保持模型底部的温度微环境，减少前几层因收缩导致的早期翘曲风险\n"
-"默认1层"
-
-msgid "Requires the skirt loop count to be greater than 0."
-msgstr "需先将 Skirt 圈数设为大于 0"
-
-msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
-msgstr "指在模型底部外围添加的一圈相接触的单层打印材料，是防翘曲、保粘接的“加固边框”"
-
-msgid ""
-"This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
-"The default is Auto."
-msgstr ""
-"该参数控制生成 Brim（与模型首层相连的一圈底板）的类型，用于增强粘床、减少翘边。\n"
-"默认自动"
-
-msgid "The distance from the model to the outermost brim line."
-msgstr "从模型到最外圈 Brim 走线的距离"
-
-msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
-msgstr "宽度越大，粘床越好、越不易翘边，但更费料、更难清理；"
-
-msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr "在换色/换料后，会单独起擦料塔，再继续打印模型"
-
-msgid ""
-"Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
-"On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
-msgstr ""
-"开启：换料时有利于排空残留料并稳定喷嘴腔压换色过渡更干净，多色打印外观更稳定。\n"
-"关闭：更省料、占热床更少；换色时残留料可能打到模型上，出现混色、拉丝或局部缺料。"
-
-msgid "Mutually exclusive with by-object printing and independent support layer height."
-msgstr "与逐件模式、支撑独立层高功能互斥"
-
-msgid "Controls the horizontal size of the prime tower."
-msgstr "控制擦料塔的横向尺寸"
-
-msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
-msgstr "宽度越大，擦料余量更充足，塔更稳固；但更费料，占用更多热床空间"
-
-msgid "The width cannot be customized when the rib outer wall is enabled."
-msgstr "开启斜肋外墙时，宽度不支持自定义"
-
-msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
-msgstr "给擦料塔外墙增加四个角肋，提升塔身稳定性"
-
-msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
-msgstr "高擦料塔、PETG 等粘性较大材料，或换色频繁时建议开启。热床空间紧张且塔不高时可关闭以便调窄宽度"
-
-msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
-msgstr "换料后的过渡料部分用于打印对象内部填充，从而减少浪费、缩短打印时间"
-
-msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
-msgstr "透明外观件可开启以省料；透明件、薄壁件或对内部颜色敏感时建议关闭"
-
-msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
-msgstr "换料过渡料用于打印对应模型的支撑，减少浪费并缩短时间"
-
-msgid "Enabling it saves material, but the supports may show mixed colors."
-msgstr "开启更省料，支撑可能出现混色"
-
-msgid "Takes effect when printing multiple filaments through the same nozzle."
-msgstr "同一喷嘴多料打印时生效"
-
-msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
-msgstr "选择整盘按层一起打，还是一个对象打完再打下一个"
-
-msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
-msgstr "常规多件、多色用「逐层」；小件多、怕中途失败可考虑「逐件」，并检查间隙与擦料塔限制"
-
-msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
-msgstr "沿外轮廓连续螺旋上升打印，一条线打完整个模型，侧面通常没有接缝"
-
-msgid ""
-"When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
-"It is best for single, thin-walled, open-top models."
-msgstr "开启后模型无顶壳、无填充、通常仅单墙，强度弱，且与支撑、顶壳层数等多项设置冲突。"
-
-msgid "Requires top shell layers to be 0 and is not compatible with support."
-msgstr "开启后顶壳层数需为 0，同时与支撑功能不兼容"
-
-msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
-msgstr "打印过程中每层拍摄一张照片，打印结束后合成延时视频"
-
-msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
-msgstr "此处选择不同的延时摄影模式，在发送打印页面控制是否开启该功能"
-
-msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
-msgstr "打印墙时对路径做随机抖动，让外表面呈现粗糙、磨砂般的绒毛效果"
-
-msgid ""
-"It affects only walls; the top and bottom surfaces are unchanged.\n"
-"Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
-msgstr ""
-"仅作用于墙面，顶面和底面不受影响\n"
-"装饰件、手办外壳可用,尺寸敏感或光滑表面需求时关闭"
-
-msgid "Selects how the fuzzy texture is generated."
-msgstr "选择绒毛纹理的生成方式"
-
-msgid "There are three generator modes; pick the one that suits your needs."
-msgstr "该功能有三种不同的方式，可以按需使用"
-
-msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
-msgstr "决定绒毛纹理的随机规律，影响表面纹理的观感风格"
-
-msgid "Several noise types are available; pick the one that suits your needs."
-msgstr "该功能有多种不同的生效类型，可以根据需求选择"
-
-msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
-msgstr "控制生成绒毛时，沿墙体路径插入的随机点之间的平均距离"
-
-msgid ""
-"A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
-"A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
-msgstr ""
-"较大的值会使随机点间隔更远，从而产生更粗糙的纹理，但会使用更少的路径点，因此切片和打印速度更快，G 代码文件也更小。\n"
-"较小的值会使点更紧密地排列，从而产生更精细、更均匀的纹理，但会增加更多路径点，因此切片和打印速度会变慢，G 代码文件也会变大。"
-
-msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
-msgstr "过小时软件会因避免点距过小导致路径异常，而禁用绒毛"
-
-msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
-msgstr "控制产生绒毛时墙体路径抖动的宽度，也就是纹理的深浅幅度"
-
-msgid ""
-"A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
-"The default is about 0.3 mm; keep it below the outer wall's line width."
-msgstr ""
-"该参数数值越大纹理更深更明显，颗粒感强；但外形轮廓外扩、尺寸精度下降，墙体可能出现空隙、强度变差。\n"
-"默认约 0.3 mm，建议小于外圈墙的线宽。"
-
-msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
-msgstr "超过线宽时，生成器的挤出与组合模式将失效，只能按位移方式生成"
-
-msgid "Determines whether the fuzzy effect is also applied to the first layer."
-msgstr "决定第一层是否也应用绒毛效果"
-
-msgid ""
-"When on, the first-layer side walls also get the fuzzy texture.\n"
-"Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
-msgstr ""
-"开启后首层侧壁也有绒毛纹理。\n"
-"一般保持关闭；仅当底部边缘外观也需要统一纹理，且粘床条件良好时再开启。"
-
-msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
-msgstr "优先放在凹角或凸角，并缩短空驶路径，适合有明显棱角的模型。"
-
-msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
-msgstr "各层接缝上下集中，形成一条竖向接缝，便于将痕迹集中隐藏。"
-
-msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
-msgstr "将接缝放到模型背面，适合朝向固定的展示模型。"
-
-msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
-msgstr "接缝分散在各层不同位置，避免形成竖线，但表面可能出现零散小凸点。"
-
-msgid "All top surfaces print with the normal number of wall loops."
-msgstr "所有顶面都按常规墙圈数打印。"
-
-msgid "Applies to every flat upward-facing top surface, for the widest coverage."
-msgstr "对模型中所有朝上的平坦顶面生效，覆盖范围最大。"
-
-msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
-msgstr "仅对模型最上方的顶面生效，作用范围更保守，中间层顶面仍按常规处理。"
-
-msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
-msgstr "自动分析并计算需要的 Brim 宽度与位置，多数模型推荐。"
-
-msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
-msgstr "只在模型外轮廓生成 Brim，增强外围粘附。"
-
-msgid "Generates a brim in inner holes only."
-msgstr "仅在内部孔洞中生成 Brim。"
-
-msgid "Generates a brim on both the outer contour and inner holes."
-msgstr "在外轮廓和内孔处均生成裙边。"
-
-msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
-msgstr "按绘制或局部加强方式生成，适合尖角易翘部位。"
-
-msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
-msgstr "不生成，底面更干净，但粘床能力下降。"
-
-msgid "All objects rise together, layer by layer."
-msgstr "所有对象同步按层上升"
-
-msgid "Finishes one object before starting the next; has placement clearance requirements."
-msgstr "完成一个对象后再打下一个，有摆放要求"
-
-msgid "A snapshot is taken directly after each layer."
-msgstr "每层结束后直接拍照"
-
-msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
-msgstr "每层结束后工具头先移到吐料槽再拍照，画面更干净；拍摄时可能漏料，因此需要擦料塔擦嘴，单色任务也会因此生成擦料塔。"
-
-msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
-msgstr "全局不自动加绒毛，仍可用绘制工具局部指定。"
-
-msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
-msgstr "只对最外轮廓加绒毛，内孔保持光滑。"
-
-msgid "Adds fuzzy skin to both the outer contour and inner holes."
-msgstr "外轮廓与内孔都加绒毛。"
-
-msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
-msgstr "所有墙线都抖动，效果最强，尺寸偏差也可能更大。"
-
-msgid "Turns fuzzy skin fully off; even painting has no effect."
-msgstr "完全关闭，连绘制也不生效。"
-
-msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
-msgstr "喷嘴左右偏移形成纹理，立体感强，但圈间可能有空隙；"
-
-msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
-msgstr "走线保持平直，仅改变挤出量，墙体更密实；"
-
-msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
-msgstr "位移 + 挤出，观感接近位移并填补空隙。"
-
-msgid "Uniform random noise with a fine, grainy texture and no clear direction."
-msgstr "均匀随机噪声，纹理细碎、颗粒感明显，无明显走向。"
-
-msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
-msgstr "相邻层平滑过渡，纹理更均匀连绵，起伏柔和规整。"
-
-msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
-msgstr "类似柏林，但起伏更聚集，出现成团的鼓包与平坦区，像云朵。"
-
-msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
-msgstr "带锋利锯齿脊线，凸起呈尖峰、凹陷成细沟，呈大理石般纹理。"
-
-msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
-msgstr "表面被划成若干单元，每个单元整体偏移，形成拼贴式台阶纹理。"
-
-msgid "View details on Wiki"
-msgstr "详细信息查看Wiki"
 
 msgid "Global"
 msgstr "全局"
@@ -8589,20 +8283,18 @@ msgstr "AMS（4槽）"
 msgid "AMS(1 slot)"
 msgstr "AMS（单槽）"
 
+#, c-format, boost-format
+msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+msgstr "已配置的喷嘴类型中没有 %smm 直径，因此无法使用 %smm 直径进行切片。"
+
+msgid "Configure Nozzle diameter"
+msgstr "配置喷嘴直径"
+
+msgid "Modify Nozzle Type"
+msgstr "修改喷嘴类型"
+
 msgid "Not installed"
 msgstr "未安装"
-
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
-msgstr ""
-"软件暂不支持使用两种不同直径的喷嘴同时打印。\n"
-"由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。\n"
-"请确认使用哪个喷嘴打印当前项目。"
-
-msgid "Switch diameter"
-msgstr "设置喷嘴直径"
 
 msgid "Sync printer information"
 msgstr "同步打印机信息"
@@ -8620,12 +8312,6 @@ msgstr "当前打印机预设（准备页面）：%s"
 
 msgid "Sync now"
 msgstr "立即同步"
-
-msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
-msgstr "有未设置的喷嘴类型。请在同步之前设置所有挤出机的喷嘴类型"
-
-msgid "Sync extruder information"
-msgstr "同步挤出机信息"
 
 msgid ""
 "Tips:\n"
@@ -8686,24 +8372,6 @@ msgstr "不支持不同类型的耗材进行混色打印，请到软件左侧的
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
 
-#, c-format, boost-format
-msgid ", and %d more"
-msgstr "，和其他 %d"
-
-#, c-format, boost-format
-msgid "model \"%s\""
-msgstr "模型 \"%s\""
-
-#, c-format, boost-format
-msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
-msgstr "删除的耗材正被模型 %s 使用，删除后模型耗材将被重置为第一个耗材。"
-
-msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
-msgstr "注意：如果你想要使用其他耗材替换，请使用耗材列表右侧的“合并到”功能。"
-
-msgid "Delete Filament"
-msgstr "删除材料"
-
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "该物理耗材已被混色耗材引用。合并后该物理耗材将被移除，可能导致相关混色耗材失效。是否继续？"
 
@@ -8755,11 +8423,14 @@ msgstr ""
 msgid "Restore"
 msgstr "恢复"
 
+msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
+msgstr "当前热床温度相对较高。在封闭式外壳中打印这种丝可能会导致喷嘴堵塞。请打开前门和/或取下上部玻璃。"
+
 msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
 msgstr "耗材丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。请更换硬化的喷嘴或耗材丝，否则喷嘴可能被磨损或损坏。"
 
-msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr "开启即拍模式延时摄影可能导致表面瑕疵，建议修改为平滑模式。"
+msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+msgstr "开启传统模式延时摄影可能导致表面瑕疵，建议修改为平滑模式。"
 
 msgid "\n"
 msgstr ""
@@ -8781,16 +8452,16 @@ msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr "3mf 文件配置无效，仅加载几何数据"
+msgstr "3MF 文件配置无效，仅加载几何数据"
+
+msgid "Load 3mf"
+msgstr "加载3mf"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr "该3mf文件不是来自Bambu Lab，将只加载几何数据。"
 
 msgid "The Config can not be loaded."
 msgstr "配置无法加载。"
-
-msgid "Load 3mf"
-msgstr "加载3mf"
 
 msgid "Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"
 msgstr "由于Bambu Studio版本较低，无法完整地加载此3mf文件。请将Bambu Studio更新到最新版本。"
@@ -8850,6 +8521,20 @@ msgstr "体积为零的对象已被移除"
 msgid "The volume of the object is zero"
 msgstr "对象的体积为零"
 
+#, c-format, boost-format
+msgid ""
+"The object from file %s is too small, and maybe in meters or inches.\n"
+" Do you want to scale to millimeters?"
+msgstr ""
+"文件 %s 中对象的尺寸似乎是以米或者英寸为单位定义的。\n"
+"BambuStudio的内部单位为毫米。是否要转换成毫米？"
+
+msgid "Object too small"
+msgstr "对象尺寸过小"
+
+msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
+msgstr "文件中的对象尺寸过小。是否按毫米作为默认单位导入？"
+
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
 "Instead of considering them as multiple objects, should \n"
@@ -8862,8 +8547,8 @@ msgid "Multi-part object detected"
 msgstr "检测到多部分对象"
 
 #, c-format, boost-format
-msgid "Computing model colors: %s"
-msgstr "计算模型颜色：%s"
+msgid "Computing texture colors: %s"
+msgstr "正在计算纹理颜色：%s"
 
 msgid "Texture Import Warning"
 msgstr "导入纹理警告"
@@ -9098,10 +8783,10 @@ msgid "Refreshing printer and material data..."
 msgstr "正在刷新打印机和材料数据……"
 
 msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
-msgstr "Helio 无法刷新所有打印机和材料数据。先前完整的可用数据仍保留。"
+msgstr "Helio 无法刷新全部打印机与材料数据。仍可使用此前完整的数据。"
 
 msgid "Helio could not load complete printer and material data. Matching remains paused."
-msgstr "Helio 无法加载完整的打印机和材料数据。匹配已暂停。"
+msgstr "Helio 无法加载完整的打印机与材料数据。匹配仍处于暂停状态。"
 
 msgid "Helio Data Refresh Failed"
 msgstr "Helio 数据刷新失败"
@@ -9229,7 +8914,7 @@ msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "点击优化/增强按钮开始您的第一次优化。"
 
 msgid "Previous Helio action is still stopping; try again shortly"
-msgstr "上一个 Helio 操作仍在进行中，请稍后重试"
+msgstr "上一次 Helio 操作仍在停止中，请稍后重试"
 
 msgid "Helio Additive"
 msgstr "Helio Additive"
@@ -9260,25 +8945,13 @@ msgid "Synchronizing Helio"
 msgstr "正在同步 Helio"
 
 msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
-msgstr "Helio 无法加载支持的打印机和材料列表。匹配已暂停，以避免将不可用数据视为不支持的材料。"
+msgstr "Helio 无法加载支持的打印机与材料列表。匹配已暂停，以免将不可用数据误判为不支持的材料。"
 
 msgid "Helio Data Load Failed"
 msgstr "Helio 数据加载失败"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
-
-msgid "Send G-code file"
-msgstr "发送 G-code 文件"
-
-msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
-msgstr "Bambu Studio不支持直接发送并打印.gcode文件，你可以发送至机器后，从机器开启打印。"
-
-msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
-msgstr "注意：直接使用gcode打印可能导致打印异常，建议使用3mf打印。"
-
-msgid "Send now"
-msgstr "立即发送"
 
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "启动Bambu农场管理客户端失败。"
@@ -9466,17 +9139,18 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "原因：零件\"%1%\"没有封闭一个体积。"
 
 #, boost-format
+msgid "Reason: part \"%1%\" has self intersection."
+msgstr "原因：零件\"%1%\"有自相交。"
+
+#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "原因：零件\"%1%\"与另一个零件没有交集。"
-
-msgid "Reason: the meshes have face issues."
-msgstr "原因：网格存在面片问题。"
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "检测到负零件。在导出前，您是否想执行网格布尔运算？"
 
 msgid "Failed to save the project: an invalid setting value was found while writing the file."
-msgstr "保存项目失败：写入文件时发现了无效的设置值。"
+msgstr "保存项目失败：写入文件时发现无效设置值。"
 
 msgid "Please check your settings and try again."
 msgstr "请检查您的设置并重试."
@@ -9539,6 +9213,10 @@ msgstr "打印机上没有任何耗材，请先去机器上放置耗材。"
 
 msgid "The filaments on the printer are all unknown types. Please go to the printer screen or software device page to set the filament type."
 msgstr "打印机上的耗材均为未知类型，请先去打印机屏幕或者软件设备页面设置耗材类型。"
+
+#, c-format, boost-format
+msgid "The currently connected printer is not available, please check the status of %s before syncing."
+msgstr "当前连接的打印机不可用，请在同步前检查 %s 的状态。"
 
 msgid "Device Page"
 msgstr "设备页"
@@ -9734,26 +9412,14 @@ msgstr "单位"
 msgid "Enable dark mode"
 msgstr "开启深色模式"
 
-msgid "All related changes"
-msgstr "所有相关变更"
+msgid "All"
+msgstr "所有"
 
-msgid "When color changes"
-msgstr "仅耗材颜色变化时"
+msgid "Disabled"
+msgstr "关闭"
 
-msgid "Turn off auto calculate"
-msgstr "关闭自动计算"
-
-msgid "Auto calculate when color changes, type or configuration changes"
-msgstr "当颜色、类型或预设发生变化时自动计算"
-
-msgid "Auto calculate when sync or modify filament colors"
-msgstr "同步或修改耗材颜色时自动计算"
-
-msgid "Keep current flush volumes, trigger manually when needed"
-msgstr "保持当前冲刷体积，在需要时手动触发重新计算"
-
-msgid "Auto Calculate Flush Volume"
-msgstr "自动计算冲刷体积"
+msgid "Auto Flush"
+msgstr "自动冲刷计算"
 
 msgid "Auto calculate flush volumes"
 msgstr "自动计算冲刷体积"
@@ -9831,12 +9497,6 @@ msgstr "取消高低温材料混合打印的限制。"
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "启用此选项后，您可以同时打印具有较大温度差异的材料。"
 
-msgid "Automatically optimize wipe tower placement"
-msgstr "自动优化擦料塔的位置"
-
-msgid "With this option enabled, the wipe tower will be placed at its optimal position."
-msgstr "启用此选项后，擦料塔将被放置在最佳位置"
-
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "同步用户预设（打印机/耗材丝/工艺）"
 
@@ -9855,29 +9515,11 @@ msgstr "自动填充历史账户信息"
 msgid "3D Settings"
 msgstr "3D设置"
 
-msgid "Mouse Settings"
-msgstr "鼠标设置"
-
-msgid "Import Settings"
-msgstr "导入设置"
-
 msgid "Zoom to mouse position"
 msgstr "放大到鼠标位置"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
-
-msgid "Reverse direction of zoom with mouse wheel"
-msgstr "反转鼠标滚轮缩放方向"
-
-msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr "勾选后，反转鼠标滚轮的缩放方向。"
-
-msgid "Drag with left mouse button to move"
-msgstr "鼠标左键拖拽移动"
-
-msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
-msgstr "勾选后，可用鼠标左键拖拽移动模型；取消勾选后，左键仅用于选中或点击。"
 
 msgid "Display overview"
 msgstr "显示整体视图"
@@ -9912,10 +9554,10 @@ msgstr "在预览界面总是显示透明壳"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "始终在预览视图选项卡中显示或不显示壳。如果更改值，您应该重新切片。"
 
-msgid "Show Thermal Preconditioning Area"
+msgid "Show heat-soak area"
 msgstr "显示热床保温区域"
 
-msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
 msgstr "当模型超出热床保温区域时发出警告。仅支持此功能的打印机可用。"
 
 msgid "Show the step mesh parameter setting dialog."
@@ -10027,7 +9669,7 @@ msgid "Skip AMS blacklist check"
 msgstr "跳过AMS黑名单检查"
 
 msgid "Enable DevTools For Webview"
-msgstr "启用Webview的调试工具"
+msgstr "为 WebView 启用开发者工具"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio文件关联"
@@ -10125,22 +9767,17 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
-"- Delete a filament used by a model"
+"- Mixed color sublayer with variable layer height warning"
 msgstr ""
 "- 清除加载文件后同步打印机预设的设置\n"
 "- 清除”加载3mf“对话框设置\n"
 "- 清除执行后处理脚本的设置\n"
 "- 清除禁用支撑参数推荐的设置\n"
 "- 清除对未保存的项目的选择\n"
-"- 带有可变层高的混合颜色子层警告\n"
-"- 删除模型使用的耗材警告"
+"- 带有可变层高的混合颜色子层警告"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "确定重置所有首选项设置吗?下次重新启动之后生效。"
-
-msgid "System presets"
-msgstr "系统配置"
 
 msgid "User presets"
 msgstr "用户配置"
@@ -10150,6 +9787,12 @@ msgstr "不兼容的预设"
 
 msgid "My Printer"
 msgstr "我的打印机"
+
+msgid "Available Nozzles"
+msgstr "可用喷嘴"
+
+msgid "Unavailable Nozzles"
+msgstr "不可用喷嘴"
 
 msgid "AMS filaments"
 msgstr "AMS 耗材丝"
@@ -10173,7 +9816,7 @@ msgid "Project-inside presets"
 msgstr "项目预设"
 
 msgid "System"
-msgstr "系统"
+msgstr ""
 
 msgid "Unsupported presets"
 msgstr "不支持的预设"
@@ -10381,6 +10024,21 @@ msgstr "目前可用的热端数量不足。"
 msgid "No hotends available."
 msgstr "没有可用的热端。"
 
+msgid "No PrintTool available. Please install a compatible tool and try again."
+msgstr "没有可用的打印头。请安装兼容工具后重试。"
+
+msgid "PrintTool detached. Please install before printing."
+msgstr "打印头已卸下。请安装后再打印。"
+
+msgid "CutTool detached. Please install before printing."
+msgstr "刀切头已卸下。请安装后再打印。"
+
+msgid "DrawTool detached. Please install before printing."
+msgstr "画笔头已卸下。请安装后再打印。"
+
+msgid "None of the current tools have completed Docking Calibration. Please calibrate and try again."
+msgstr "当前工具均未完成对接校准。请完成校准后重试。"
+
 msgid "Please complete the hotend rack setup and try again."
 msgstr "请先进行热端挂架初始化后重试。"
 
@@ -10418,7 +10076,7 @@ msgid "Send print job"
 msgstr "发送打印任务"
 
 msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr "根据实际耗材映射重新计算了当前估计时间。"
+msgstr "已根据实际耗材映射重新计算预计时间。"
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "对耗材左右分组不满意？重新分组并切片 ->"
@@ -10468,6 +10126,9 @@ msgstr "同类型喷嘴与耗材共用PA配置文件"
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "如果主挤出机的耗材/喷嘴未更换，将复用上次的校准值。辅助挤出机将使用系统默认值。"
 
+msgid "Add to queue"
+msgstr "加入队列"
+
 msgid "send completed"
 msgstr "发送完成"
 
@@ -10496,8 +10157,8 @@ msgstr "当前选择的打印机（%s）与打印文件配置（%s）不兼容�
 msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "启用螺旋花瓶模式时，具有I3结构的机器将不会生成延时视频。"
 
-msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
-msgstr "当前打印机在逐件打印时不支持即拍模式下的延时摄影。"
+msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
+msgstr "当前打印机在逐件打印时不支持传统模式下的延时摄影。"
 
 msgid "Errors"
 msgstr "错误"
@@ -10529,14 +10190,17 @@ msgstr "继续打印"
 msgid "Return to modify"
 msgstr "返回修改"
 
+msgid "Only the current sliced plate can be added to the print queue."
+msgstr "仅当前已切片的盘可加入打印队列。"
+
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "检测热床的平整度。调平可以使挤出的高度更均匀。"
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "此过程确定动态流量校准的最佳系数，从而提升打印质量。"
 
-msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr "开启延时摄影后，无论选择即拍模式或平滑模式，打印机都会在每层拍照前移动热床和工具头，可能增加打印时间。"
+msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+msgstr "开启延时摄影后，无论选择传统或平滑模式，打印机都会在每层拍照前移动热床和工具头，可能增加打印时间。"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10564,7 +10228,7 @@ msgid "Cancel Timelapse & Print"
 msgstr "取消延时摄影，继续打印"
 
 msgid "Clean Up"
-msgstr "清理"
+msgstr "清除"
 
 msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "自动：如果主挤出机的耗材/喷嘴未更改，将复用上次的校准值。辅助挤出机将使用系统默认值。"
@@ -10638,7 +10302,10 @@ msgid "Refreshing information of hotends(%d/%d)."
 msgstr "正在刷新喷嘴信息(%d/%d)。"
 
 msgid "Please wait a moment..."
-msgstr "请稍等片刻..."
+msgstr "请稍等片刻……"
+
+msgid "PrintToolRack moving, please wait."
+msgstr "打印头挂架移动中，请稍候。"
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "工具头和热端挂架已满，请卸下至少一个热端后再打印。"
@@ -10684,6 +10351,21 @@ msgstr "当前材料（%s）的硬度高于 %s（%s）的硬度，可能导致�
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "若动态流量校准设置为自动/打开，系统将使用您的手动校准值或默认值，并跳过流量校准过程。可以在'校准'页面对TPU耗材进行手动流量校准。"
 
+msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+msgstr "AMS 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+
+#, possible-c-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr "%s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+
+#, possible-c-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr "自动续料组合 %s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+
+#, possible-c-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr "自动续料组合 %s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "某些耗材在打印过程中可能会在挤出机之间切换。手动 K 值校准无法在整个打印过程中应用，这可能会影响打印质量。建议启用动态校准。"
 
@@ -10691,16 +10373,12 @@ msgid "There is stringing-prone filament in this file. For best print quality, w
 msgstr "该文件存在易拉丝耗材，为获得最佳打印质量，建议裹头检测切换至“自动模式”"
 
 #, c-format, boost-format
-msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
-msgstr "%s 中的耗材可能不足以完成本次打印。请补充或更换耗材。"
+msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
+msgstr "槽位 %s 中的耗材可能未正确装入打印头。请参阅装载指南。"
 
 #, c-format, boost-format
-msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
-msgstr "自动续料组 %s 中的耗材可能不足以完成本次打印。请重新装载或更换。"
-
-#, c-format, boost-format
-msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
-msgstr "自动补给组 %s 中的耗材可能不足以完成本次打印。请补充或更换耗材。"
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
 
 msgid "Cool"
 msgstr ""
@@ -10712,7 +10390,7 @@ msgid "High Temp"
 msgstr ""
 
 msgid "Cool(Supertack)"
-msgstr "增稳低温打印板"
+msgstr ""
 
 msgid "Click here if you can't connect to the printer"
 msgstr "如果您无法连接打印机，请点击这里"
@@ -10777,6 +10455,12 @@ msgstr "录制延时摄影需要先插入存储设备。"
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "您在一个挤出机中同时选择了使用外挂和AMS耗材，这将需要您在打印过程中手动进行换料，请谨慎选择。"
 
+msgid "Filament on external spool is not loaded. Printing may pause for filament change. Please load the filament before printing."
+msgstr "外挂料盘上的耗材未装载。打印可能会因换料而暂停。请在打印前装载耗材。"
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr "在热端中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
+
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
 msgstr "TPU 90A/TPU85A硬度过低，建议在‘校准’页面进行手动流量校准。若使用自动/打开动态流量校准，将使用上一次的校准值，跳过流量校准。"
 
@@ -10788,6 +10472,9 @@ msgstr "该打印机不支持打印所有盘"
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "请确认所需喷嘴直径和流量是否和当前显示一致。"
+
+msgid "The currently connected printer does not support printing supports in a different material from the model using the wipe tower. Please re-slice the model."
+msgstr "当前连接的打印机不支持使用擦料塔以不同于模型的材料打印支撑。请重新切片。"
 
 msgid "How to install"
 msgstr "如何安装"
@@ -10991,7 +10678,7 @@ msgid ""
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"0 顶部 Z 距离，0 底部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+"0顶部z距离，0底部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -11030,17 +10717,17 @@ msgid ""
 "The selected printer has a bed temperature limit of %d°C.\n"
 "Setting a higher bed temperature may cause damage to the printer."
 msgstr ""
-"所选打印机的热床温度限制为 %d°C。\n"
-"设置更高的热床温度可能会损坏打印机。"
+"所选打印机的热床温度上限为 %d°C。\n"
+"设置更高的热床温度可能损坏打印机。"
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "平滑延时摄影需要在每一层都生成装料塔，这与“无稀疏层”不兼容。“无稀疏层”已被关闭。"
+msgstr "平滑延时摄影需要每层都有擦料塔，与“无稀疏层”不兼容。已关闭“无稀疏层”。"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
 
-msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
-msgstr "“无稀疏层”与需要每一层都生成擦料塔的平滑延时摄影不兼容。延时摄影已切换到即拍模式。"
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr "“无稀疏层”与需要每层擦料塔的平滑延时摄影不兼容。延时摄影已切换为传统模式。"
 
 msgid "Still print by object?"
 msgstr "仍然按对象打印吗？"
@@ -11084,7 +10771,7 @@ msgstr ""
 "将自动设置为最小层高的值。\n"
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
-msgstr "层高超过了“打印设置 -> 挤出机 -> 层高限制”中的限值，这可能会导致打印质量问题。"
+msgstr "层高超出“打印机设置 → 挤出机 → 层高限制”，可能导致打印质量问题。"
 
 msgid "Adjust to the set range automatically? \n"
 msgstr "是否自动调整到范围内？\n"
@@ -11156,6 +10843,9 @@ msgstr "加速度"
 msgid "Jerk(XY)"
 msgstr "抖动（XY轴）"
 
+msgid "Support ring"
+msgstr "支撑环"
+
 msgid "Raft"
 msgstr "筏层"
 
@@ -11185,9 +10875,6 @@ msgstr "注释"
 
 msgid "Frequent"
 msgstr "常用"
-
-msgid "Modifier cycle"
-msgstr "修改器循环"
 
 #, c-format, boost-format
 msgid ""
@@ -11323,39 +11010,6 @@ msgstr "最大风扇速度阈值"
 msgid "Part cooling fan speed will be max when the estimated layer time is shorter than the setting value"
 msgstr "当预计的层打印时间比设置值要短时，部件冷却风扇转速将达到最大值"
 
-msgid "Auxiliary part cooling fan"
-msgstr "辅助部件冷却风扇"
-
-msgid "Auxiliary part cooling fan (right)"
-msgstr "辅助部件冷却风扇（右侧）"
-
-msgid "Auxiliary part cooling fan (left)"
-msgstr "辅助部件冷却风扇（左侧）"
-
-msgid "Set special optional auxiliary cooling fan for the first certain layers."
-msgstr "为起始几层设置特殊的选配辅助冷却风扇速度。"
-
-msgid "Special optional auxiliary cooling fan speed, effective only for the first x layers"
-msgstr "该值仅用于选配辅助散热风扇，在前x层生效。"
-
-msgid "Speed of the optional auxiliary part cooling fan. It will run at this speed during printing except the first several layers which are defined by no cooling layers"
-msgstr "选配辅助部件冷却风扇的转速。选配辅助部件冷却风扇将一直运行在该速度，除了设置的无需冷却的前若干层"
-
-msgid "Optional auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
-msgstr "选配辅助风扇转速将从”起始层“风扇线性递增至层的全风扇转速。“全风扇速度层”如果低于“初始层”，则将被忽略，此时风扇将在”起始层“ + 1层处以全风扇转速运行。"
-
-msgid "Independent optional auxiliary fan control"
-msgstr "独立控制选配辅助风扇"
-
-msgid "Enable this if the printer has an optional auxiliary part cooling fan that can be adjusted separately from the standard one"
-msgstr "若打印机有选配辅助部件冷却风扇，且可与标配辅助风扇分别调节，请启用此项"
-
-msgid "Standard auxiliary fan side"
-msgstr "标配辅助风扇所在侧"
-
-msgid "Physical side of the standard auxiliary part cooling fan. Only used to tell the two fans apart in the user interface"
-msgstr "标配辅助部件冷却风扇的物理安装侧，仅用于在界面中区分两路风扇"
-
 msgid "Set the auxiliary fan speed for the first few layers"
 msgstr "为前几层设置辅助风扇速度"
 
@@ -11370,6 +11024,12 @@ msgstr "在"
 
 msgid "ramp up to"
 msgstr "提速至"
+
+msgid "Auxiliary part cooling fan"
+msgstr "辅助部件冷却风扇"
+
+msgid "Auxiliary part cooling fan (left)"
+msgstr "辅助部件冷却风扇（左侧）"
 
 msgid "Exhaust fan"
 msgstr "排风扇"
@@ -11389,6 +11049,9 @@ msgstr "耗材丝结束G-code"
 msgid "Multi Filament"
 msgstr "多材料"
 
+msgid "Auxiliary part cooling fan (right)"
+msgstr "辅助部件冷却风扇（右侧）"
+
 msgid "Purge Mode: Standard"
 msgstr "冲刷模式：标准"
 
@@ -11399,7 +11062,7 @@ msgid "Printable space"
 msgstr "可打印区域"
 
 msgid "AMS filament load/unload time"
-msgstr "AMS 耗材进/退料时间"
+msgstr "AMS 耗材进退料时间"
 
 msgid "Extruder Clearance"
 msgstr "挤出机避让空间"
@@ -11524,9 +11187,6 @@ msgstr ""
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "确定要%1%所选预设吗？"
-
-msgid "All"
-msgstr "所有"
 
 msgid "Set"
 msgstr "设置"
@@ -11682,35 +11342,11 @@ msgstr "左: "
 msgid "Right: "
 msgstr "右:"
 
-msgid "Preset A"
-msgstr "预设 A"
-
-msgid "Preset B"
-msgstr "预设 B"
+msgid "Select presets to compare"
+msgstr "选择要比较的预设"
 
 msgid "Show all presets (including incompatible)"
 msgstr "显示所有预设(包括不兼容的)"
-
-msgid "Parameters"
-msgstr "参数"
-
-msgid "Process Preset"
-msgstr "工艺预设"
-
-msgid "Filament Preset"
-msgstr "材料预设"
-
-msgid "Material Preset"
-msgstr "材料预设"
-
-msgid "Machine Preset"
-msgstr "机器预设"
-
-msgid "These two presets have no visible differences"
-msgstr "这两个预设没有可见的区别"
-
-msgid "Please select two different presets A and B to compare"
-msgstr "请选择两个不同的预设A和B进行比较"
 
 msgid "Add File"
 msgstr "添加文件"
@@ -11925,6 +11561,9 @@ msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "使用打印机内的耗材，依次替换项目耗材列表。未使用的打印机耗材将自动添加至列表末尾。"
 
+msgid "Advanced settings"
+msgstr "高级设置"
+
 msgid "Add unused AMS filaments to filaments list."
 msgstr "将未使用的 AMS 耗材添加到耗材列表中。"
 
@@ -12033,16 +11672,6 @@ msgstr "点此下载"
 msgid "Login"
 msgstr "登录"
 
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"删除材料之后，附属的材料预设也会被一并删除。\n"
-"如果该材料正在您的打印机上使用，请重新设置该槽位的材料信息。"
-
-msgid "Delete filament"
-msgstr "删除材料"
-
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "参数配置包在之前的配置向导中发生了变更"
 
@@ -12057,16 +11686,16 @@ msgid "Open in browser"
 msgstr "在浏览器中打开"
 
 msgid "View Source"
-msgstr "查看源文件"
+msgstr "查看源码"
 
 msgid "View Text"
 msgstr "查看文本"
 
 msgid "Handle Navigation"
-msgstr "处理导航"
+msgstr ""
 
 msgid "Handle New Windows"
-msgstr "处理新窗口"
+msgstr ""
 
 msgid "Edit Mode"
 msgstr "编辑模式"
@@ -12075,28 +11704,28 @@ msgid "Run Script"
 msgstr "运行脚本"
 
 msgid "Add user script"
-msgstr "添加用户脚本"
+msgstr ""
 
 msgid "Set custom user agent"
-msgstr "设置自定义用户代理"
+msgstr ""
 
 msgid "Clear Selection"
-msgstr "取消选择"
+msgstr ""
 
 msgid "Delete Selection"
-msgstr "删除选定内容"
+msgstr ""
 
 msgid "Custom Scheme Example"
-msgstr "自定义方案示例"
+msgstr ""
 
 msgid "Memory File System Example"
-msgstr "内存文件系统示例"
+msgstr ""
 
 msgid "Enable Context Menu"
-msgstr "启用上下文菜单"
+msgstr ""
 
 msgid "Enable Dev Tools"
-msgstr "启用开发者工具"
+msgstr ""
 
 msgid "Toolbar"
 msgstr "工具栏"
@@ -12649,7 +12278,7 @@ msgid "Environment Settings"
 msgstr "环境设置"
 
 msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
-msgstr "可选。使用耗材设置中的腔室温度；您可以在此处覆盖。"
+msgstr "可选。可用时使用耗材设置中的腔体温度；也可在此覆盖。"
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
 msgstr "若可用，则使用耗材设置中的腔体温度；否则根据热床温度进行估算。"
@@ -12858,7 +12487,7 @@ msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "应用 Helio 优化的速度/流量/风扇策略。"
 
 msgid "Save the simulated sliced 3MF locally"
-msgstr "保存仿真切片后的 3MF 文件"
+msgstr "将仿真切片的 3MF 保存到本地"
 
 msgid "✅ Will Print"
 msgstr "✅ 可打印"
@@ -12951,7 +12580,7 @@ msgid "Why use the Beta version?"
 msgstr "为什么要使用测试版？"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
-msgstr "通过使用测试版并分享反馈、错误报告和建议,您可以帮助Bambu Lab在正式发布前改进稳定性、兼容性和未来功能。"
+msgstr "通过使用测试版并分享反馈、错误报告和建议,您可以帮助Bamibu Lab在正式发布前改进稳定性、兼容性和未来功能。"
 
 msgid "How to change settings?"
 msgstr "如何更改设置？"
@@ -12983,9 +12612,6 @@ msgstr "更新固件"
 msgid "Hotends on Rack"
 msgstr "热端&挂架"
 
-msgid "Copy Device Info"
-msgstr "复制设备信息"
-
 msgid "Beta version"
 msgstr "Beta版本"
 
@@ -12994,6 +12620,9 @@ msgstr "刷新热端信息中..."
 
 msgid "Checking version..."
 msgstr "版本检查中..."
+
+msgid "Updating"
+msgstr "更新中"
 
 msgid "Updating failed"
 msgstr "更新失败"
@@ -13076,21 +12705,25 @@ msgstr "配置包已更新到"
 msgid "Open G-code file:"
 msgstr "打开G-code文件："
 
-msgid "Print task sending times out."
-msgstr "发送打印任务超时。"
-
-msgid "Sending print job with LAN acceleration"
-msgstr "通过局域网加速发送打印任务"
-
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "云服务发送失败。通过局域网发送打印任务，无打印历史记录。"
-
-msgid "Sending print configuration"
-msgstr "正在发送打印配置"
+#, c-format, boost-format
+msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+msgstr "已成功加入打印队列。将在 %s 秒后自动跳转到打印队列页面"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
+
+msgid "Print task sending times out."
+msgstr "发送打印任务超时。"
+
+msgid "Sending print job with LAN acceleration"
+msgstr "正在通过局域网加速发送打印任务"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "云服务发送失败。正在通过局域网发送打印任务（无打印历史）。"
+
+msgid "Sending print configuration"
+msgstr "正在发送打印配置"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -13098,6 +12731,9 @@ msgstr "已成功发送。将在%ss后自动跳转到下一页。"
 
 msgid "Refreshing printer access code"
 msgstr "正在刷新打印机访问码"
+
+msgid "Adding print job to queue"
+msgstr "正在将打印任务加入队列"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
@@ -13168,6 +12804,15 @@ msgstr "请更换喷嘴类型或重新分配耗材，然后重试。"
 
 msgid "No valid nozzle found. Please check nozzle count."
 msgstr "未找到有效的喷嘴。请检查喷嘴数量。"
+
+msgid "Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."
+msgstr "喷嘴分配错误：固定耗材组没有可用的兼容固定喷嘴。请检查喷嘴设置或重新分组。"
+
+msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."
+msgstr "喷嘴分配错误：按耗材的喷嘴映射无效。请检查喷嘴设置或重新分组。"
+
+msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
+msgstr "喷嘴分配错误：按耗材的喷嘴映射指向空或不可用的喷嘴。"
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "自定义模式分组错误。请检查喷嘴数量或重新分组。"
@@ -13386,14 +13031,26 @@ msgstr "螺旋花瓶模式无法在包含多种打印设置区域的物体上使
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "不支持同时使用可变层高和有机树支撑。"
 
-msgid "Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled."
-msgstr "启用擦料塔时，不允许使用不同的喷嘴直径和不同的材料直径。"
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgstr "启用支撑环时不允许使用不同的喷嘴直径。"
+
+msgid "Different nozzle diameters are not allowed when prime tower is enabled."
+msgstr "启用擦料塔时不允许使用不同的喷嘴直径。"
+
+msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
+msgstr "支撑环当前仅支持相对挤出机寻址（use_relative_e_distances=1）。"
 
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
 msgstr "当前仅支持使用相对挤出器寻址（use_relative_e_distances=1）的情况下使用擦料塔。"
 
+msgid "Ooze prevention is currently not supported with the support ring enabled."
+msgstr "启用支撑环时，目前不支持防滴功能。"
+
 msgid "Ooze prevention is currently not supported with the prime tower enabled."
 msgstr "当启用擦料塔时，目前不支持防滴功能。"
+
+msgid "The support ring is not supported in \"By object\" print. Switch to \"By layer\" or disable the support ring."
+msgstr "支撑环不支持“逐件”打印。请切换为“逐层”或关闭支撑环。"
 
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
 msgstr "擦料塔目前仅支持Marlin、RepRap/Sprinter、RepRapFirmware和Repetier G-code风格。"
@@ -13407,23 +13064,29 @@ msgstr "不支持在可变层高开启时使用擦料塔。它要求所有对象
 msgid "The prime tower requires \"support gap\" to be multiple of layer height"
 msgstr "擦料塔要求”支撑间隙“为层高的整数倍"
 
+msgid "The support ring requires that all objects have the same layer heights"
+msgstr "支撑环要求所有对象具有相同的层高"
+
 msgid "The prime tower requires that all objects have the same layer heights"
 msgstr "擦料塔要求各个对象拥有同样的层高"
+
+msgid "The support ring requires that all objects are printed over the same number of raft layers"
+msgstr "支撑环要求所有对象使用相同数量的筏层"
 
 msgid "The prime tower requires that all objects are printed over the same number of raft layers"
 msgstr "擦料塔要求各个对象使用同样的筏层数量"
 
+msgid "The support ring requires that all objects are sliced with the same layer heights."
+msgstr "支撑环要求所有对象以相同层高切片。"
+
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "擦料塔要求各个对象拥有同样的层高。"
 
+msgid "The support ring is only supported if all objects have the same variable layer height"
+msgstr "仅当所有对象使用相同的可变层高时，才支持支撑环"
+
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "各个对象的层高存在差异，无法启用擦料塔"
-
-msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
-msgstr "精准Z高度会导致对象有不同的层高，这会极大增加擦拭塔尺寸。"
-
-msgid "Jump to: Precise Z height"
-msgstr "跳转到：精准Z高度"
 
 msgid "Too small line width"
 msgstr "线宽太小"
@@ -13454,7 +13117,13 @@ msgid "Generating G-code"
 msgstr "正在生成G-code"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "模型与擦拭塔相对位置不符合料塔无稀疏层功能要求，请移动相对位置、降低模型高度或关闭‘无稀疏层’功能"
+msgstr "模型与擦料塔的相对位置不满足“无稀疏层”功能要求。请调整相对位置、降低模型高度，或关闭“无稀疏层”。"
+
+msgid "Failed to assign filaments to nozzles for the support ring."
+msgstr "无法为支撑环将耗材分配到喷嘴。"
+
+msgid "The support ring extends outside the area both nozzles can reach. Move the affected object closer to the center of the plate."
+msgstr "支撑环超出了双喷嘴均可到达的区域。请将受影响对象移近盘面中心。"
 
 msgid "Failed processing of the filename_format template."
 msgstr "处理文件名格式模板失败。"
@@ -13675,14 +13344,12 @@ msgstr "秒"
 msgid "Cooling overhang threshold"
 msgstr "冷却悬空阈值"
 
-#, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
-msgstr "当打印件的悬空程度超过此值时，强制冷却风扇达到特定速度。用百分比表示，表明没有下层支撑的线的宽度是多少。0%意味着无论悬垂程度如何，都要对所有外壁强制冷却。"
+msgstr "当打印件的悬空程度超过此值时，强制冷却风扇达到特定速度。用百分比表示，表明没有下层支撑的线的宽度是多少。0%%意味着无论悬垂程度如何，都要对所有外壁强制冷却。"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "参与冷却降速的悬垂阈值"
 
-#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "决定多少阈值的悬垂参与冷却降速.用百分比表示超出线宽的范围。"
 
@@ -13767,9 +13434,9 @@ msgstr "打开这个选项将降低不同悬垂程度的走线的打印速度"
 msgid "mm/s"
 msgstr "mm/s"
 
-#, no-c-format, no-boost-format
-msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr "100% 悬空墙的速度，与下层无重叠。"
+#, c-format, boost-format
+msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
+msgstr "与下层无重叠的 100%% 悬空墙速度。"
 
 msgid "Slow down by height"
 msgstr "随高度降速"
@@ -13975,6 +13642,12 @@ msgstr "满速风扇在"
 msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
 msgstr "辅助风扇转速将从”起始层“风扇线性递增至层的全风扇转速。“全风扇速度层”如果低于“初始层”，则将被忽略，此时风扇将在”起始层“ + 1层处以全风扇转速运行。"
 
+msgid "Set special optional auxiliary cooling fan for the first certain layers."
+msgstr "为起始几层设置特殊的选配辅助冷却风扇速度。"
+
+msgid "Optional auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr "选配辅助风扇转速将从”起始层“风扇线性递增至层的全风扇转速。“全风扇速度层”如果低于“初始层”，则将被忽略，此时风扇将在”起始层“ + 1层处以全风扇转速运行。"
+
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "为前几层设置专用冷却风扇。首层的部件冷却风扇通常关闭，以获得更好的打印平台附着力，同时用于自动冷却功能"
 
@@ -13983,6 +13656,9 @@ msgstr "起始层部件冷却风扇速度。设置为 0 将在起始层禁用部
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "该值仅用于辅助散热风扇，在前x层生效。"
+
+msgid "Special optional auxiliary cooling fan speed, effective only for the first x layers"
+msgstr "该值仅用于选配辅助散热风扇，在前x层生效。"
 
 msgid "Don't support bridges"
 msgstr "不支撑桥接"
@@ -14022,9 +13698,6 @@ msgstr "确保垂直外壳厚度"
 
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
-
-msgid "Disabled"
-msgstr "关闭"
 
 msgid "Partial"
 msgstr "部分"
@@ -14071,9 +13744,6 @@ msgstr "单调"
 msgid "Monotonic line"
 msgstr "单调线"
 
-msgid "Global monotonic line"
-msgstr "全局单调线"
-
 msgid "Aligned Rectilinear"
 msgstr "直线排列"
 
@@ -14107,21 +13777,14 @@ msgstr "除了桥接外的底面填充的走线图案"
 msgid "Bottom surface density"
 msgstr "底面密度"
 
-#, no-c-format, no-boost-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
-msgstr "底面的填充密度，100%表示底面为完全实心填充。较低数值会产生纹理化的底面，旨在满足美观或功能需求，而非用于修复诸如过度挤出等问题。警告：降低此值可能会负面影响打印平台附着性。"
+msgstr "底面的填充密度，100%%表示底面为完全实心填充。较低数值会产生纹理化的底面，旨在满足美观或功能需求，而非用于修复诸如过度挤出等问题。警告：降低此值可能会负面影响打印平台附着性。"
 
 msgid "Internal solid infill pattern"
 msgstr "内部实心填充图案"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "内部实心填充的线型图案。如果启用了检测狭窄的内部实心填充，将使用同心圆图案来填充小区域。"
-
-msgid "Sub-top surface pattern"
-msgstr "次顶面图案"
-
-msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
-msgstr "支撑顶面的那层实心填充所使用的走线图案。这一层的走线可能透到顶面上留下痕迹，因此使用单调填充可以获得最平整的顶面效果。顶面所覆盖到的整块实心区域都会使用该图案，而不仅是顶面正下方的部分。"
 
 msgid "Line width of outer wall"
 msgstr "外墙的线宽"
@@ -14220,7 +13883,7 @@ msgid "Enable pressure advance"
 msgstr "启用压力提前补偿"
 
 msgid "Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer"
-msgstr "启用压力提前补偿，启用后自动校准结果将被覆盖。对于 Bambu 打印机无效"
+msgstr "启用压力提前（Pressure Advance）；启用后将覆盖自动校准结果。对拓竹打印机无效"
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer"
 msgstr "压力提前补偿（Klipper）也称为线性提前补偿因子（Marlin）。对于Bambu打印机无效。"
@@ -14361,25 +14024,25 @@ msgid "AMS filament unload time"
 msgstr "AMS 耗材退料时间"
 
 msgid "Filament unload time when printing with an AMS. For statistics only"
-msgstr "使用 AMS 打印时耗材退料时间。仅用于统计"
+msgstr "使用 AMS 打印时的耗材退料时间。仅用于统计"
 
 msgid "AMS Lite filament unload time"
 msgstr "AMS Lite 耗材退料时间"
 
 msgid "Filament unload time when printing with an AMS Lite. For statistics only"
-msgstr "使用 AMS Lite 打印时耗材退料时间。仅用于统计"
+msgstr "使用 AMS Lite 打印时的耗材退料时间。仅用于统计"
 
 msgid "N3F/N3S filament unload time"
 msgstr "N3F/N3S 耗材退料时间"
 
 msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
-msgstr "使用 N3F 或 N3S 打印时耗材退料时间。仅用于统计"
+msgstr "使用 N3F 或 N3S 打印时的耗材退料时间。仅用于统计"
 
 msgid "Default AMS type"
 msgstr "默认 AMS 类型"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "用于估算耗材进/退料时间的默认 AMS 类型，存储为 AMS 定时类型枚举值。它来自打印机预设，并不反映当前连接到机器的 AMS。"
+msgstr "用于估算耗材进退料时间的默认 AMS 类型，保存为 AMS 计时类型枚举值。该值来自打印机预设，并不反映机器当前连接的 AMS。"
 
 msgid "Extruder switch time"
 msgstr "挤出机切换时间"
@@ -14506,6 +14169,12 @@ msgstr "更换挤出机时，建议从原挤出机中挤出一定长度的耗材
 msgid "When changing the hotend, it is recommended to extrude a certain length of filament from the original nozzle. This helps minimize nozzle oozing."
 msgstr "更换热端时，建议从原热端中挤出一定长度的耗材丝。这有助于最大限度地减少喷嘴漏料。"
 
+msgid "Idle travel cooling"
+msgstr "空驶冷却"
+
+msgid "When filament change length is zero, perform idle travel cooling to help the nozzle cool down. Disabling this will turn off the heater directly without idle travel, which saves print time but may cause stringing for some materials."
+msgstr "当换料长度为 0 时，执行空驶冷却以帮助喷嘴降温。关闭后将直接关闭加热且不做空驶，可节省打印时间，但对部分材料可能产生拉丝。"
+
 msgid "Support material"
 msgstr "支撑材料"
 
@@ -14522,13 +14191,13 @@ msgid "Mixed filament components"
 msgstr "混色耗材组成"
 
 msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
-msgstr "逗号分隔的 1 基索引的组件耗材，例如“1,3”"
+msgstr "逗号分隔的组分耗材序号（从 1 起），例如 \"1,3\""
 
 msgid "Mixed filament sublayer ratios"
 msgstr "混色耗材子层比例"
 
 msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
-msgstr "逗号分隔的比例值，总和为 1.0，例如“0.7,0.3”"
+msgstr "逗号分隔的比例值，总和为 1.0，例如 \"0.7,0.3\""
 
 msgid "Mixed filament gradient"
 msgstr "混色耗材渐变"
@@ -14536,17 +14205,23 @@ msgstr "混色耗材渐变"
 msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
 msgstr "启用混色耗材子层的 Z 方向渐变模式。启用后，子层比例随层数线性变化。"
 
+msgid "Prime tower speed factor curve"
+msgstr "擦料塔速度因子曲线"
+
+msgid "Controls the speed factor ramp when priming on the wipe tower after a tool change. Enter comma-separated multipliers of the target speed, one per wipe line. For example: \"0.33,0.375,0.458,0.875,0.875\" means the 1st line runs at 33%, the 2nd at 37.5%, and so on. If fewer than 5 values are given, the last value is reused for remaining lines. Each value is clamped to 0.01 ~ 5.0. Leave empty to use the built-in default curve (0.33, 0.375, 0.458, 0.875, 0.875)."
+msgstr "控制换料后在擦料塔上预冲刷时的速度因子爬升。输入逗号分隔的目标速度倍率，每条擦拭走线一个。例如：\"0.33,0.375,0.458,0.875,0.875\" 表示第 1 条为 33%、第 2 条为 37.5%，以此类推。若少于 5 个值，剩余走线复用最后一个值。每个值限制在 0.01～5.0。留空则使用内置默认曲线（0.33, 0.375, 0.458, 0.875, 0.875）。"
+
 msgid "Mixed filament gradient range"
 msgstr "混色耗材渐变范围"
 
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
-msgstr "渐变模式下第一个组件的开始和结束比例。逗号分隔的对，例如“0.10,0.90”表示 10% 到 90%。"
+msgstr "渐变模式下第一组分的起止比例。逗号分隔的一对值，例如 \"0.10,0.90\" 表示从 10% 到 90%。"
 
 msgid "Mixed filament gradient curve"
 msgstr "混色耗材渐变曲线"
 
 msgid "Optional Photoshop-style custom curve mapping Z progress to the first component ratio. Encoded as pipe-separated control points, either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override is needed (empty token or \"nan\" means use PCHIP default). x in [0,1]; y is clamped to the configured ratio range, e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear gradient_range is used instead."
-msgstr "可选的 Photoshop 风格自定义曲线，将 Z 进度映射到第一个组件比例。使用管道分隔的控制点进行编码，可以是“x,y”（旧版）或“x,y,m_in,m_out”（需要切线覆盖）（空标记或“nan”表示使用 PCHIP 默认值）。x 在 [0,1] 范围内；y 被限制在配置的比例范围内，例如“0,0.15|0.5,0.50|1,0.85”。如果为空，则使用线性 gradient_range。"
+msgstr "可选的 Photoshop 风格自定义曲线，将 Z 进度映射到第一组分比例。以竖线分隔控制点编码：\"x,y\"（旧格式），或需要覆盖切线时用 \"x,y,m_in,m_out\"（空标记或 \"nan\" 表示使用 PCHIP 默认值）。x 取值 [0,1]；y 会被钳制到配置的比例范围，例如 \"0,0.15|0.5,0.50|1,0.85\"。为空时改用线性 gradient_range。"
 
 msgid "Mixed filament per-part gradient"
 msgstr "混色耗材单个零件渐变"
@@ -14564,7 +14239,7 @@ msgid "Filament-extruder compatibility"
 msgstr "耗材-挤出机兼容性"
 
 msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
-msgstr "一个 32 位整数，用于编码耗材在所有挤出机（最多 10 台）上的兼容性级别。每 3 位代表一个挤出机（挤出机 i 的位为 [3*i, 3*i+2]）。0：可打印，1：错误，2：严重警告，3：警告，4-7：保留"
+msgstr "用单个 32 位整数编码该耗材在所有挤出机（最多 10 个）上的兼容等级。每 3 位表示一台挤出机（挤出机 i 对应位 [3*i, 3*i+2]）。0：可打印，1：错误，2：严重警告，3：警告，4–7：保留"
 
 msgid "Filament change"
 msgstr "耗材丝更换"
@@ -14576,10 +14251,10 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "换热端所需的擦料塔上的清理量。"
 
 msgid "Preheat temperature delta"
-msgstr "预热温度差"
+msgstr "预热温差"
 
 msgid "Temperature delta applied during pre-heating before tool change."
-msgstr "在工具更换前的预热过程中应用的温度差。"
+msgstr "换料前预热时施加的温度差。"
 
 msgid "Wipe tower cooling"
 msgstr "擦料塔冷却"
@@ -14635,6 +14310,12 @@ msgstr "软化温度"
 msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
 msgstr "材料在这个温度下会软化，因此当热床温度等于或高于这个温度时，强烈建议打开前门和/或去除上玻璃以避免堵塞。"
 
+msgid "Fin extrude safe temperature"
+msgstr "鳍片挤出安全温度"
+
+msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr "鳍片挤出时的安全热端温度。0 表示未设置。可在自定义 G-code 中通过 fins_extrude_safe_temp 访问。"
+
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "为了防止溢料，预冲刷完成后，喷嘴会进行一段时间的反向空驶。该设置用于定义空驶时间。"
 
@@ -14671,9 +14352,8 @@ msgstr "稀疏填充图案的角度，决定走线的开始或整体方向。"
 msgid "Sparse infill density"
 msgstr "稀疏填充密度"
 
-#, no-c-format, no-boost-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "稀疏填充密度, 100% 意味着完全实心。"
+msgstr "稀疏填充密度, 100%% 意味着完全实心。"
 
 msgid "Fill multiline"
 msgstr "填充多线"
@@ -14805,7 +14485,7 @@ msgid "Initial layer infill"
 msgstr "首层填充"
 
 msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
-msgstr "首层填充的线宽，包括稀疏填充、实心填充和顶面。首层的墙、支撑以及其他部分不受影响，仍使用首层线宽。设置为0表示使用首层线宽。"
+msgstr ""
 
 msgid "Initial layer height"
 msgstr "首层层高"
@@ -14986,14 +14666,35 @@ msgstr "缩略图大小"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "决定存储在Gcode文件中的缩略图大小"
 
+msgid "Nozzle type"
+msgstr "喷嘴类型"
+
+msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+msgstr "喷嘴的金属材料。这将决定喷嘴的耐磨性，以及可打印材料的种类"
+
+msgid "Undefine"
+msgstr "未定义"
+
+msgid "Hardened steel"
+msgstr "硬化钢"
+
+msgid "Stainless steel"
+msgstr "不锈钢"
+
+msgid "Tungsten carbide"
+msgstr "碳化钨"
+
 msgid "Printer structure"
 msgstr "打印机结构"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "打印设备的物理排列和组件"
 
-msgid "Undefine"
-msgstr "未定义"
+msgid "Default wipe tower position"
+msgstr "默认擦料塔位置"
+
+msgid "Normalized default position of the wipe tower, each axis in [0,1] relative to bed width/depth."
+msgstr "擦料塔的归一化默认位置，各轴取值 [0,1]，相对于热床宽度/深度。"
 
 msgid "Best object position"
 msgstr "最佳对象位置"
@@ -15004,14 +14705,32 @@ msgstr "相对于热床尺寸的最佳自动摆放位置，范围为[0,1]。"
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 
+msgid "Sync auxiliary fan to second fan"
+msgstr "辅助风扇同步到第二风扇"
+
+msgid "Enable this if the printer has a second auxiliary part cooling fan that should use the same speed as the auxiliary fan"
+msgstr "若打印机有第二路辅助部件冷却风扇，且应与辅助风扇同速，请启用此项"
+
+msgid "Independent optional auxiliary fan control"
+msgstr "独立控制选配辅助风扇"
+
+msgid "Enable this if the printer has an optional auxiliary part cooling fan that can be adjusted separately from the standard one"
+msgstr "若打印机有选配辅助部件冷却风扇，且可与标配辅助风扇分别调节，请启用此项"
+
+msgid "Standard auxiliary fan side"
+msgstr "标配辅助风扇所在侧"
+
+msgid "Physical side of the standard auxiliary part cooling fan. Only used to tell the two fans apart in the user interface"
+msgstr "标配辅助部件冷却风扇的物理安装侧，仅用于在界面中区分两路风扇"
+
+msgid "Both"
+msgstr "两者都"
+
 msgid "Fan direction"
 msgstr "风扇方向"
 
 msgid "Cooling fan direction of the printer"
 msgstr "打印机冷却风扇方向"
-
-msgid "Both"
-msgstr "两者都"
 
 msgid "Support control chamber temperature"
 msgstr "支持腔温控制"
@@ -15096,66 +14815,6 @@ msgstr "骨架线宽"
 
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "为选择的骨架走线设置线宽"
-
-msgid "Conformal infill"
-msgstr "随形填充"
-
-msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
-msgstr "使稀疏填充遵循每层的轮廓，而非使用一组平行线。在拉长或弯曲的形状中，线条会从中心辐射。适用于之字形、交叉之字形、直线形、对齐直线形和锁定之字形等填充图案。"
-
-msgid "Layer stagger"
-msgstr "层交错"
-
-msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
-msgstr "相邻层如何偏移。关闭模式下，层堆叠布局相同。交替模式下，保持相同的线条方向，但将每条线条连接到相邻层的对侧，从而改善层间粘合。"
-
-msgid "Alternate"
-msgstr "交替"
-
-msgid "Forward layers"
-msgstr "正向层"
-
-msgid "Conformal forward layers"
-msgstr "随形正向层"
-
-msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
-msgstr "保持正向Z字形的连续层数。与反向层配合，重复：N层正向，然后M层反向。0表示从第一层开始反向。"
-
-msgid "Reverse layers"
-msgstr "反向层"
-
-msgid "Conformal reverse layers"
-msgstr "随形反向层"
-
-msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
-msgstr "连续反向之字形填充的层数（从对侧边缘开始）。0 禁用反向。设置为“正向 1”或“反向 1”时，将每隔一层反向。"
-
-msgid "Radial center"
-msgstr "随形中心点"
-
-msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
-msgstr "径向中心的生成方式。每个层都会在该切片上选择一个中心点。轴线模式通过这些中心点拟合一条三维直线。平滑曲线模式则拟合一条曲线，确保中心点在层与层之间平稳过渡，不会跳动。"
-
-msgid "Each layer"
-msgstr "每层"
-
-msgid "Axis"
-msgstr "轴"
-
-msgid "Smooth curve"
-msgstr "平滑曲线"
-
-msgid "Radial line count"
-msgstr "径向线条数"
-
-msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
-msgstr "围绕中心的径向线条数量。0表示使用稀疏填充密度中的数量。正值表示径向线条的数量，并向上取整为至少4的偶数。"
-
-msgid "Center region radius"
-msgstr "中心区域半径"
-
-msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
-msgstr "使用普通直线填充的中心区域半径；在此圆外，填充保持径向。设为0将自动选择半径。正值以毫米为单位。"
 
 msgid "Symmetric infill y axis"
 msgstr "填充关于y轴对称"
@@ -15335,7 +14994,7 @@ msgid "Support fast purge mode"
 msgstr "支持快速冲刷模式"
 
 msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
-msgstr "此打印机是否支持具有优化温度和乘数的快速冲刷模式。"
+msgstr "该打印机是否支持带温度与冲刷乘数优化的快速冲刷模式。"
 
 msgid "Maximum speed X"
 msgstr "X最大速度"
@@ -15422,19 +15081,19 @@ msgid "N"
 msgstr ""
 
 msgid "Bed mass of the Y axis"
-msgstr "Y 轴的底板质量"
+msgstr "Y 轴热床质量"
 
 msgid "The machine bed mass load of Y axis"
-msgstr "Y 轴的机器底板质量负载"
+msgstr "机器 Y 轴热床负载质量"
 
 msgid "g"
-msgstr "克"
+msgstr ""
 
 msgid "The allowed max printed mass"
 msgstr "允许的最大打印质量"
 
 msgid "The allowed max printed mass on a plate"
-msgstr "打印板上允许的最大打印质量"
+msgstr "单盘允许的最大打印质量"
 
 msgid "Minimum speed for extruding"
 msgstr "最小挤出速度"
@@ -15480,6 +15139,9 @@ msgstr "部件冷却风扇的最小转速"
 
 msgid "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers which are defined by no cooling layers"
 msgstr "辅助部件冷却风扇的转速。辅助部件冷却风扇将一直运行在该速度，除了设置的无需冷却的前若干层"
+
+msgid "Speed of the optional auxiliary part cooling fan. It will run at this speed during printing except the first several layers which are defined by no cooling layers"
+msgstr "选配辅助部件冷却风扇的转速。选配辅助部件冷却风扇将一直运行在该速度，除了设置的无需冷却的前若干层"
 
 msgid "Min"
 msgstr "最小"
@@ -15573,39 +15235,6 @@ msgstr "交替额外墙层"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "在奇数层额外增加一圈墙，以增强层间结合与零件强度，同时避免全程使用额外墙层所带来的耗材与时间成本。"
-
-msgid "Periodic modifier"
-msgstr "周期性修改器"
-
-msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
-msgstr "将此修改器应用于重复层循环。对于跳过的层，它将被忽略，如同此修改器不存在一样。"
-
-msgid "Skip for"
-msgstr "跳过"
-
-msgid "Periodic modifier skip layers"
-msgstr "周期性修改器跳过层数"
-
-msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
-msgstr "此修改器不应用的连续层数。0表示修改器应用于每一层。"
-
-msgid "Apply for"
-msgstr "应用到"
-
-msgid "Periodic modifier apply layers"
-msgstr "周期修改器应用层数"
-
-msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
-msgstr "此修改器每个周期内完全应用的连续层数。周期从第0层开始：先应用，后跳过。"
-
-msgid "Ignore infill settings"
-msgstr "忽略填充设置"
-
-msgid "Modifier ignore infill settings"
-msgstr "修改器忽略填充设置"
-
-msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
-msgstr "不应用此修改器的填充设置（填充模式、密度、随形填充及相关选项）。墙和其它覆盖设置仍会生效。填充将沿用父区域的设置。"
 
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"
@@ -15853,10 +15482,10 @@ msgid "Distance from skirt to brim or object"
 msgstr "从skirt到模型或者brim的距离"
 
 msgid "Skirt per object"
-msgstr "每个对象的裙边"
+msgstr "按对象生成裙边"
 
 msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
-msgstr "在顺序打印模式下，为每个对象生成独立的裙边。禁用时，会在所有对象周围绘制一个裙边。"
+msgstr "在逐件打印模式下为每个对象生成独立裙边。关闭时，将围绕全部对象绘制一条裙边。"
 
 msgid "Skirt height"
 msgstr "Skirt高度"
@@ -15906,17 +15535,17 @@ msgstr "最大XY平滑阈值"
 msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf expressed as a %, it will be computed over nozzle diameter"
 msgstr "最大的XY平面移动距离。当以%为单位时，基于喷嘴直径计算。"
 
-msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "如果启用平滑模式或者即拍模式，将在每次打印时生成延时摄影视频。打印完每层后，将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦料塔进行喷嘴擦拭。"
+msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+msgstr "如果启用平滑模式或者传统模式，将在每次打印时生成延时摄影视频。打印完每层后，将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦料塔进行喷嘴擦拭。"
 
-msgid "Instant"
-msgstr "即拍模式"
+msgid "Traditional"
+msgstr "传统模式"
 
 msgid "Farthest point timelapse"
 msgstr "最远点延时摄影"
 
-msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
-msgstr "启用时，延时摄影快照将在远离摄像头的最远点拍摄，而不是移动到清洗塔或废料槽。仅在非 I3 打印机的即拍延时摄影模式下有效。"
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgstr "启用后，延时摄影快照会在距相机最远点拍摄，而不是移动到擦料塔或废料槽。仅在非 I3 机型的传统延时摄影模式下生效。"
 
 msgid "Temperature variation"
 msgstr "软化温度"
@@ -15934,7 +15563,7 @@ msgid "No sparse layers (experimental)"
 msgstr "无稀疏层（实验性）"
 
 msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
-msgstr "启用后，在没有工具更换的层上将不会打印擦拭塔。在有工具更换的层上，挤出机会向下移动以打印擦拭塔。用户有责任确保与打印件没有碰撞。"
+msgstr "启用后，无换料的层将不打印擦料塔。有换料的层，挤出机会下移打印擦料塔。请自行确保不会与模型发生碰撞。"
 
 msgid "Slice gap closing radius"
 msgstr "切片间隙闭合半径"
@@ -15944,9 +15573,6 @@ msgstr "在三角形网格切片过程中，小于2倍间隙闭合半径的裂�
 
 msgid "Slicing Mode"
 msgstr "切片模式"
-
-msgid "Other"
-msgstr "其他"
 
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "对3DLabPrint的飞机模型使用 \"奇偶\"。使用 \"闭孔 \"来关闭模型上的所有孔。"
@@ -16312,6 +15938,34 @@ msgstr "启用混色分层。启用后，使用混色耗材的层将被拆分为
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "擦料塔可以用来清理喷嘴上的残留料和让喷嘴内部的腔压达到稳定状态，以避免打印物体时出现外观瑕疵。"
 
+msgid "Generate a ring around the object. Tree supports may land on the ring. Cannot be combined with the prime tower."
+msgstr "在对象周围生成一圈支撑环。树状支撑可落在环上。不可与擦料塔同时使用。"
+
+msgid "Support ring object gap"
+msgstr "支撑环对象间隙"
+
+msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
+msgstr "模型投影边界与最内圈支撑环路径之间的水平距离。"
+
+msgid "Support ring notch width"
+msgstr "支撑环缺口宽度"
+
+msgid "Width of the gap left in the support ring so the chamber camera can see the object. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value; 0 closes the ring completely and blocks the timelapse view."
+msgstr "支撑环上预留缺口的宽度，以便腔体摄像头能看到对象。各圈在同一方位留出缺口，树状支撑也不会伸入缺口。缺口占用的擦拭长度随该值增大；设为 0 则完全闭合，会挡住延时摄影视角。"
+
+msgid "Support ring skip points"
+msgstr "支撑环跳过点"
+
+msgid "Leave gaps in the support ring outer wall at each wipe entry so the nozzle can reach the wipe path from outside the ring, and travel around the ring contour instead of crossing the model."
+msgstr "在每处擦拭入口处为支撑环外壁留出缺口，使喷嘴可从环外到达擦拭路径，并沿环轮廓空驶，而不是穿越模型。"
+
+msgid "Support ring infill gap"
+msgstr "支撑环填充间隙"
+
+#, fuzzy
+msgid "Radial spacing between sparse wipe rings, as a percentage of line width. 100% packs neighbouring rings so they touch; larger values leave a gap."
+msgstr "稀疏擦拭环之间的径向间距，按线宽百分比表示。100% 时相邻环贴合；更大则留下间隙。"
+
 msgid "Internal ribs"
 msgstr "内支撑肋"
 
@@ -16418,10 +16072,10 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "实际冲刷量等于冲刷量乘数乘以表格单元中的冲刷量"
 
 msgid "Flush multiplier (Fast mode)"
-msgstr "冲刷系数（快速模式）"
+msgstr "冲刷量乘数（快速模式）"
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr "在快速冲刷模式下使用的冲刷系数。"
+msgstr "快速冲刷模式下使用的冲刷量乘数。"
 
 msgid "Width of prime tower"
 msgstr "擦料塔宽度"
@@ -16431,6 +16085,45 @@ msgstr "最大速度"
 
 msgid "The maximum printing speed on the prime tower excluding ramming."
 msgstr "擦料塔上除了预冲刷外的最大打印速度。"
+
+msgid "Prime tower feedrate factor"
+msgstr "擦料塔进给倍率"
+
+msgid "Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up."
+msgstr "将热端按挤出机处理时，擦料塔挤出的进给缩放系数。不影响全部塔上空驶。1.0 表示不变；小于 1.0 减速，大于 1.0 加速。"
+
+msgid "Tail speed factor"
+msgstr "尾段速度因子"
+
+msgid "Scale the printing speed of the last section printed each time before the toolhead leaves the prime tower (the length is set by the tail slowdown volume) relative to the tower printing speed. That trailing section may be the outer wall, a tool-change wipe or infill, whichever comes last. Lower values slow it down to soften the flow change when moving back to the model. Does not affect the first layer."
+msgstr "工具头每次离开擦料塔前，最后一段打印相对塔打印速度的缩放（长度由尾段降速体积决定）。该尾段可能是外壁、换料擦拭或填充，以最后打印者为准。较低取值可减缓回到模型时的流量变化。不影响首层。"
+
+msgid "Tail slowdown volume"
+msgstr "尾段降速体积"
+
+msgid "Only the final part printed each time before the toolhead leaves the prime tower, measured as this extruded volume, is slowed down by the tail speed factor; the rest keeps the normal tower speed. That trailing part may be the outer wall, a tool-change wipe or infill. Set to 0 to slow down the whole tower path of each visit. Does not affect the first layer."
+msgstr "仅工具头每次离开擦料塔前最后挤出的这段体积按尾段速度因子降速，其余保持正常塔速。该尾段可能是外壁、换料擦拭或填充。设为 0 则对该次整段塔路径降速。不影响首层。"
+
+msgid "The acceleration used for prime tower extrusions. Does not affect the first layer. 0 means using the global default acceleration."
+msgstr "擦料塔挤出所用加速度。不影响首层。0 表示使用全局默认加速度。"
+
+msgid "Line width for prime tower normal wiping paths. 0 means auto-calculated from nozzle diameter."
+msgstr "擦料塔常规擦拭路径的线宽。0 表示按喷嘴直径自动计算。"
+
+msgid "Ramming line width"
+msgstr "预冲刷线宽"
+
+msgid "Line width for prime tower nozzle-change (ramming) paths. 0 means using the default mapping table."
+msgstr "擦料塔换喷嘴（预冲刷）路径的线宽。0 表示使用默认映射表。"
+
+msgid "The speed of wipe movement before printing on the prime tower during tool change. 0 means using prime tower max speed."
+msgstr "换料时在擦料塔上打印前的擦拭移动速度。0 表示使用擦料塔最大速度。"
+
+msgid "Wipe distance"
+msgstr "擦拭距离"
+
+msgid "The wipe path distance during tool change. 0 means using the filament-level wipe distance."
+msgstr "换料时的擦拭路径距离。0 表示使用耗材级擦拭距离。"
 
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr "擦料塔的Brim宽度，负数意味着宽度根据擦拭塔的高度自动计算。"
@@ -16452,6 +16145,75 @@ msgstr "外墙缺口"
 
 msgid "The wall of prime tower will skip the start points of wipe path"
 msgstr "擦料塔的外墙跳过内部擦拭路径的起点"
+
+msgid "Flat ironing"
+msgstr "平面熨烫"
+
+msgid "Enable flat ironing for prime tower to smooth the top surface after wiping"
+msgstr "启用擦料塔平面熨烫，以在擦拭后平整顶面"
+
+msgid "Line ironing"
+msgstr "走线熨烫"
+
+msgid "Enable line ironing for prime tower wipe paths"
+msgstr "为擦料塔擦拭路径启用走线熨烫"
+
+msgid "Speed of prime tower ironing movements"
+msgstr "擦料塔熨烫移动速度"
+
+msgid "Side scrape after tool change"
+msgstr "换料后侧面刮料"
+
+msgid "After a tool change and before the wipe line, move the nozzle to the prime tower side wall and do a diagonal lift scrape (travel only, no extrusion). This scrapes the oozed filament stub onto the side wall instead of letting it pile up on the prime tower top surface."
+msgstr "换料后、擦拭线之前，将喷嘴移到擦料塔侧壁做斜向抬升刮料（仅空驶、不挤出）。把渗出的料头刮到侧壁，避免堆积在擦料塔顶面。"
+
+msgid "Side scrape walls"
+msgstr "侧面刮料墙面"
+
+msgid "Which pair of opposite prime tower walls the diagonal scrape runs on. Note that enabling the side scrape always disables depth shrinkage of the prime tower (the outer wall stays at the full depth on every layer), regardless of this setting, so that the scrape can descend safely outside the walls."
+msgstr "斜向刮料作用在擦料塔哪一对相对侧壁。注意：启用侧面刮料后，无论本项如何设置，都会关闭擦料塔深度收缩（每层外壁保持完整深度），以便刮料可在墙外安全下探。"
+
+msgid "Left and right"
+msgstr "左和右"
+
+msgid "Front and back"
+msgstr "前和后"
+
+msgid "Side scrape length"
+msgstr "侧面刮料长度"
+
+msgid "Horizontal distance the nozzle travels inward from the prime tower side wall during the diagonal scrape."
+msgstr "斜向刮料时喷嘴从擦料塔侧壁向内移动的水平距离。"
+
+msgid "Side scrape lift height"
+msgstr "侧面刮料下探高度"
+
+msgid "How far the nozzle descends below the current wipe-tower top before the diagonal scrape. The actual descent is clamped so the nozzle stays above the wipe tower's brim and first layer (avoids hitting the brim or the bed when the tower is still short). Layers with no room left for a descent get no scrape."
+msgstr "斜向刮料前喷嘴相对当前擦料塔顶面向下探入的距离。实际下探会被钳制，使喷嘴保持在擦料塔裙边与首层之上（塔尚矮时避免撞裙边或热床）。无可下探空间的层不做刮料。"
+
+msgid "Side scrape speed"
+msgstr "侧面刮料速度"
+
+msgid "Movement speed of the diagonal side scrape."
+msgstr "斜向侧面刮料的移动速度。"
+
+msgid "Side scrape wall gap"
+msgstr "侧面刮料墙间隙"
+
+msgid "Distance kept between the diagonal side scrape line and the prime tower outer wall. A positive value keeps the scrape outside the wall; the outer wall position is taken as the outermost of the current and previous layer walls at the scrape location so the scrape never cuts into the tower."
+msgstr "斜向侧面刮料线与擦料塔外壁的间距。正值使刮料保持在墙外；外壁位置取刮料处当前层与上一层外壁的最外侧，避免切入塔体。"
+
+msgid "Side scrape point spacing"
+msgstr "侧面刮料点间距"
+
+msgid "Target distance between consecutive side scrape start points along one side wall. Scrape starts are spread over both side walls so the ooze stubs do not pile up at a single spot. The number of points is derived from this spacing and the length of the straight part of the side wall, so the effective spacing can be smaller than requested when the straight part is short."
+msgstr "同一侧壁上相邻侧面刮料起点的目标间距。起点分布在两侧壁，避免渗料头堆在同一位置。点数由该间距与侧壁直线段长度推导，直线段较短时实际间距可能小于设定值。"
+
+msgid "Side scrape along-wall length"
+msgstr "侧面刮料沿墙长度"
+
+msgid "Upper bound for the empty travel along the side wall performed right after the diagonal scrape, before the nozzle moves to the wipe line start. It smears the ooze stub further along the wall. The travel never leaves the straight part of the side wall, so the actual length is only the room left between the scrape start and the end of that straight part. On a rib prime tower the straight part can be just a few millimetres, in which case the travel is much shorter than the value set here."
+msgstr "斜向刮料后、移向擦拭线起点前，沿侧壁空驶的上限长度，用于把渗料头继续抹开。空驶不离开侧壁直线段，实际长度仅为刮料起点到该直线段末端的剩余距离。肋形擦料塔直线段可能仅数毫米，此时实际空驶会远短于设定值。"
 
 msgid "Rib wall"
 msgstr "斜肋外墙"
@@ -16552,9 +16314,9 @@ msgstr "--use-firmware-retraction 仅支持 Marlin、Klipper、Smoothie、RepRap
 msgid "--use-firmware-retraction is not compatible with --wipe"
 msgstr "--use-firmware-retraction 与 --wipe 不兼容"
 
-#, no-c-format, no-boost-format
-msgid " doesn't work at 100% density "
-msgstr "填充图案不支持 100% 密度"
+#, c-format, boost-format
+msgid " doesn't work at 100%% density "
+msgstr " 填充图案不支持 100%% 密度"
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "旋转花瓶模式下非法的值"
@@ -16602,27 +16364,27 @@ msgstr "大面积悬空"
 msgid "It seems object %s has %s. Please re-orient the object or enable support generation."
 msgstr "似乎对象%s有%s。请重新调整对象的方向或启用支撑生成。"
 
-msgid "Generating support"
-msgstr "正在生成支撑"
-
-msgid "Optimizing toolpath"
-msgstr "正在优化走线"
-
 #, boost-format
 msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
 msgstr ""
-"检测到悬空部分未加支撑。\n"
-"模型\"%1%\"有 %2% 处悬垂区域。由于开启了\"仅在打印板上生成支撑\"，支撑无法生长到热床上。建议关闭该选项。"
+"检测到悬空部分未加支撑\n"
+"模型“%1%”有 %2% 处悬空区域，由于开启了“仅在打印板上生成支撑”，支撑无法生长到热床上。建议关闭该选项"
 
 #, boost-format
 msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
 msgstr ""
-"检测到悬空部分未加支撑。\n"
-"模型\"%1%\"有%2%处悬空区域未能生成支撑。可尝试调整支撑参数或模型朝向。"
+"检测到悬空部分未加支撑\n"
+"模型“%1%”有 %2% 处悬空区域未能生成支撑。可尝试调整支撑参数或模型朝向"
+
+msgid "Generating support"
+msgstr "正在生成支撑"
+
+msgid "Optimizing toolpath"
+msgstr "正在优化走线"
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "底部出现空层，已被最近的正常层替换。"
@@ -16635,9 +16397,6 @@ msgstr "正在切片网格"
 
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "没有检测到层。您可能需要修复STL文件，或检查模型尺寸、厚度等，之后再重试。\n"
-
-msgid "Shrinkage compensation does not take effect on color-painted models."
-msgstr "收缩率补偿功能在涂色模型上不会生效"
 
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
@@ -16675,10 +16434,10 @@ msgid "Canceled"
 msgstr "已取消"
 
 msgid "Restoring support painting"
-msgstr "正在恢复支撑绘制"
+msgstr "正在恢复支撑涂绘"
 
 msgid "Restoring seam painting"
-msgstr "正在恢复接缝绘制"
+msgstr "正在恢复接缝涂绘"
 
 msgid "Restoring paint color"
 msgstr "正在恢复涂色"
@@ -16687,7 +16446,7 @@ msgid "Restoring fuzzy skin"
 msgstr "正在恢复绒毛表面"
 
 msgid "Restoring painting"
-msgstr "正在恢复绘制"
+msgstr "正在恢复涂绘"
 
 msgid "load_obj: failed to parse"
 msgstr "加载对象：无法分析"
@@ -16696,13 +16455,10 @@ msgid "load mtl in obj: failed to parse"
 msgstr "在 obj 中加载 mtl：无法解析"
 
 msgid "The file contains polygons with less than 3 vertices."
-msgstr "该文件包含顶点少于 3 个的多边形。"
+msgstr "文件包含顶点数少于 3 的多边形。"
 
 msgid "The file contains invalid vertex index."
 msgstr "文件包含无效的顶点索引。"
-
-msgid "The file contains invalid texture coordinate index."
-msgstr "该文件包含无效的纹理坐标索引。"
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "无法读取此OBJ文件，因为它是空的。"
@@ -16739,6 +16495,12 @@ msgstr "校准"
 
 msgid "Finish"
 msgstr "完成"
+
+msgid "Nozzle Type and Diameter"
+msgstr "喷嘴类型与直径"
+
+msgid "Not Selected"
+msgstr "未选择"
 
 msgid "How to use calibration result?"
 msgstr "如何使用校准结果？"
@@ -17178,6 +16940,9 @@ msgstr "成功获取历史结果"
 msgid "Refreshing the historical Flow Dynamics Calibration records"
 msgstr "刷新历史动态流量校准记录"
 
+msgid "PrintTool"
+msgstr "打印头"
+
 msgid "Action"
 msgstr "操作"
 
@@ -17578,6 +17343,9 @@ msgstr "系列"
 msgid "e.g. Basic, Matte, Silk, Marble"
 msgstr "例如：Basic, Matte, Silk, Marble"
 
+msgid "Filament Preset"
+msgstr "材料预设"
+
 msgid "Create"
 msgstr "创建"
 
@@ -17613,9 +17381,8 @@ msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"您创建的耗材丝 %s 已经存在。\n"
-"如果您继续创建，您创建的预设将保存在已有的自定义耗材之内，以预设全名显示区分。\n"
-"是否继续？"
+"您创建的耗材丝名字%s已经存在。\n"
+"如果您继续创建，您创建的预设将保存在已有自定义耗材之内，以预设全名显示区分。您想继续吗？"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "以下一些现有预设未能成功创建：\n"
@@ -17902,9 +17669,6 @@ msgstr "请选择一个您想导出的类型"
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "无法创建临时文件夹，请再次尝试导出配置。"
 
-msgid "Edit Filament"
-msgstr "编辑材料"
-
 msgid "Filament presets under this filament"
 msgstr "此材料下的所有材料预设"
 
@@ -17929,6 +17693,19 @@ msgstr "删除预设"
 
 msgid "+ Add Preset"
 msgstr "+ 添加预设"
+
+msgid "Delete Filament"
+msgstr "删除材料"
+
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"删除材料之后，附属的材料预设也会被一并删除。\n"
+"如果该材料正在您的打印机上使用，请重新设置该槽位的材料信息。"
+
+msgid "Delete filament"
+msgstr "删除材料"
 
 msgid "Add Preset"
 msgstr "添加预设"
@@ -18008,7 +17785,7 @@ msgid "Need select printer"
 msgstr "需要选择打印机"
 
 msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
-msgstr "加载校准预设失败。请检查所选的打印机、喷嘴和打印配置文件是否有效。"
+msgstr "加载校准预设失败。请检查所选打印机、喷嘴与打印预设是否有效。"
 
 msgid "The start, end or step is not valid value."
 msgstr "起始、结束或者步长输入值无效。"
@@ -18156,14 +17933,6 @@ msgstr "无法连接到 PrusaLink。"
 
 msgid "Connection to Repetier works correctly."
 msgstr "与 Repetier 的连接正常。"
-
-#, c-format, boost-format
-msgid "Nozzle %s"
-msgstr "%s号喷嘴"
-
-msgid "Nozzle "
-msgstr "喷嘴 "
-
 
 msgid "Could not connect to Repetier"
 msgstr "无法连接到Repetier"
@@ -18355,7 +18124,7 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "0.8mm喷嘴的默认参数，速度优先。"
 
 msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
-msgstr "适配0.4mm喷嘴的低加速度配置，适用于打印机放置在晃动的桌面或置物架上的场景"
+msgstr "适用于 0.4mm 喷嘴的低加速度配置。打印机放在不稳的桌面或架子上时使用"
 
 msgid "Helio GCode status response is incomplete"
 msgstr "Helio GCode 状态响应不完整"
@@ -18376,7 +18145,7 @@ msgid "Helio GCode status check failed"
 msgstr "Helio GCode 状态检查失败"
 
 msgid "Helio GCode creation timed out while checking status"
-msgstr "Helio GCode 创建在检查状态时超时"
+msgstr "检查状态时 Helio GCode 创建超时"
 
 msgid "Failed to create Simulation"
 msgstr "创建仿真失败"
@@ -18412,13 +18181,13 @@ msgid "Helio: Presigned URL Created"
 msgstr "Helio：预签名URL已创建"
 
 msgid "Helio: file successfully uploaded"
-msgstr "Helio：文件已成功上传"
+msgstr "Helio：文件上传成功"
 
 msgid "Helio: file upload failed"
 msgstr "Helio：文件上传失败"
 
 msgid "Please make sure you have the correct API key set in preferences."
-msgstr "请确保您已在偏好设置中正确设置了 API 密钥。"
+msgstr "请确认已在偏好设置中配置正确的 API 密钥。"
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio：G代码已成功创建"
@@ -18592,15 +18361,15 @@ msgstr "无内容"
 
 #, c-format, boost-format
 msgid "Printer presets (%d)"
-msgstr "打印机预设 (%d)"
+msgstr "打印机预设（%d）"
 
 #, c-format, boost-format
 msgid "Filament presets (%d)"
-msgstr "耗材预设 (%d)"
+msgstr "耗材预设（%d）"
 
 #, c-format, boost-format
 msgid "Process presets (%d)"
-msgstr "工艺预设 (%d)"
+msgstr "工艺预设（%d）"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -18621,6 +18390,12 @@ msgstr "耗材分组"
 
 msgid "Fila Saving"
 msgstr "省料"
+
+msgid "Set filament placement"
+msgstr "设置耗材放置"
+
+msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
+msgstr "自动计算智能分配材料，使耗材耗时最少"
 
 msgid "Filament-Saving Mode"
 msgstr "省料模式"
@@ -18650,26 +18425,34 @@ msgstr "优先保证打印质量，并自动生成节省材料%s和%s的分组�
 msgid "Manually assign filament to the %s or %s"
 msgstr "手动分配耗材给%s或%s"
 
-msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
-msgstr "自动计算智能分配材料，使耗材耗时最少"
-
-msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
-msgstr "根据打印机AMS中当前安装的耗材，智能分配耗材"
-
-msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
-msgstr "根据打印机喷嘴上当前装载的耗材，智能分配耗材"
-
-msgid "Manually assign filaments to the printhead"
-msgstr "手动分配耗材给工具头"
-
 msgid "Global settings"
 msgstr "全局设置"
 
 msgid "Video tutorial"
 msgstr "视频指南"
 
+msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
+msgstr "根据打印机喷嘴上当前装载的耗材，智能分配耗材"
+
+msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
+msgstr "根据打印机AMS中当前安装的耗材，智能分配耗材"
+
+msgid "Manually assign filaments to the printhead"
+msgstr "手动分配耗材给工具头"
+
 msgid "(Sync with printer)"
 msgstr "（请连接打印机）"
+
+#, c-format, boost-format
+msgid "Nozzle %d"
+msgstr "喷嘴 %d"
+
+#, c-format, boost-format
+msgid "Nozzle %s"
+msgstr "%s号喷嘴"
+
+msgid "Nozzle "
+msgstr "喷嘴 "
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -18686,6 +18469,17 @@ msgstr "请调整您的分组或点击 "
 
 msgid " to set nozzle count"
 msgstr "设置喷嘴数量"
+
+msgid "We will slice according to this arrangement:"
+msgstr "将按以下排布进行切片："
+
+#, c-format, boost-format
+msgid "Nozzle (%d)"
+msgstr "喷嘴（%d）"
+
+#, c-format, boost-format
+msgid "Nozzle (%d) - %s"
+msgstr "喷嘴（%d） - %s"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
@@ -18743,35 +18537,23 @@ msgstr "此操作无法撤销，是否继续？"
 msgid "Skipping objects."
 msgstr "正在跳过对象。"
 
-msgid "Custom Color"
-msgstr "自定义颜色"
-
 msgid "Null Color"
 msgstr "空颜色"
 
 msgid "Multiple Color"
 msgstr "多色"
 
-msgid "Search filament"
-msgstr "搜索耗材"
+msgid "Official Filament"
+msgstr "官方材料"
 
-msgid "Unsupported Filaments"
-msgstr "不支持的耗材"
-
-msgid "No filaments"
-msgstr "无耗材"
-
-msgid "slot"
-msgstr "槽"
-
-msgid "Recently used"
-msgstr "最近使用"
-
-msgid "Set nozzle count"
-msgstr "设置喷嘴数量"
+msgid "More Colors"
+msgstr "其他颜色"
 
 msgid "Please set nozzle count"
 msgstr "请设置喷嘴数量"
+
+msgid "TPU"
+msgstr "TPU"
 
 msgid "Error: Can not set both nozzle count to zero."
 msgstr "错误：无法将两个喷嘴数量都设置为零。"
@@ -18782,9 +18564,6 @@ msgstr "错误：喷嘴数量不可以超过%d。"
 
 msgid "Nozzle Selection"
 msgstr "喷嘴选择"
-
-msgid "Available Nozzles"
-msgstr "可用喷嘴"
 
 msgid "Sync Nozzle status"
 msgstr "同步喷嘴状态"
@@ -18850,9 +18629,6 @@ msgstr "请拔出并收起耗材（如图）"
 msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
 msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
 
-msgid "Rotate spool when drying"
-msgstr "烘干时旋转料盘"
-
 msgctxt "amsdrying"
 msgid "Back"
 msgstr "返回"
@@ -18874,9 +18650,6 @@ msgstr "该耗材可能无法完全烘干。"
 
 msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
 msgstr "此AMS当前正在打印。为确保打印质量，烘干温度不得超过推荐的烘干温度。"
-
-msgid "The temperature shall not exceed the filament's heat distortion temperature"
-msgstr "温度不得超过耗材的压溃温度"
 
 #, c-format, boost-format
 msgid "Minimum time value cannot be less than %d."
@@ -19097,10 +18870,7 @@ msgstr "效果预览"
 msgid "Select Mixed Materials"
 msgstr "选择混色材料"
 
-msgid "+ Add Material"
-msgstr "添加耗材"
-
-msgid "- Delete Material"
+msgid "- Delete Filament"
 msgstr "删除耗材"
 
 msgid "Ratio"
@@ -19117,12 +18887,6 @@ msgstr "混色推荐"
 
 msgid "-- Select --"
 msgstr "-- 请选择 --"
-
-msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "渐变效果需要启用「混色子层」功能，是否立即启用？"
-
-msgid "Mixed Color Sublayer"
-msgstr "混色子层"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
@@ -19146,52 +18910,33 @@ msgstr "已达到最大组分数量"
 msgid "Remove the third material"
 msgstr "移除第三种材料"
 
-#, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
-msgstr ""
+msgid "Project Filament List"
+msgstr "项目耗材列表"
 
-msgid "Decomposition result for this combination"
-msgstr "该组合拆色结果"
+msgid "Standard Mode Recommendations"
+msgstr "标准模式推荐"
 
-msgid "Filament Color"
-msgstr "耗材颜色"
-
-msgid "Decomposed Colors"
-msgstr "拆分后颜色"
+msgid "Target Color"
+msgstr "目标色"
 
 msgid "Select Color Decomposition"
 msgstr "请选择拆色组合"
 
-msgid "Project Filament"
-msgstr "项目耗材"
+msgid "Arbitrary Mode"
+msgstr "任意模式"
 
 msgid "Material List"
 msgstr "材料列表"
 
-msgid "Standard Palette"
-msgstr "标准色板"
+msgid "Standard Mode"
+msgstr "标准模式"
 
 msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "分解需要至少两种相同材质类型的耗材"
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "按青、品红、黄、白四种基色计算更接近的混色。当前仅支持 PLA Basic。如果项目中没有匹配的耗材，将自动添加。"
-
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "按红、黄、蓝、白四种基色计算更接近的混色。当前仅支持 PLA Basic。如果项目中没有匹配的耗材，将自动添加。"
+msgstr "颜色分解至少需要两种相同材料类型的耗材"
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "材质列表最多支持 %1% 种颜色。分解 %2% 后，材质数量将超过 %1%。请在分解前删除主屏幕上未使用的耗材。"
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "拆解颜色（不支持渐变色）"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "拆解颜色（不支持透明色）"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "拆解颜色（不支持拼色）"
+msgstr "材料列表最多支持 %1% 种颜色。按 %2% 分解后材料数量将超过 %1%。请先在主界面删除未使用的耗材再分解。"
 
 msgid "Cyan"
 msgstr "青色"
@@ -19203,7 +18948,7 @@ msgid "Yellow"
 msgstr "黄色"
 
 msgid ", "
-msgstr "，"
+msgstr ""
 
 msgid "The current filament list does not contain "
 msgstr "当前耗材列表中不包含 "
@@ -19218,17 +18963,72 @@ msgid "Model Height"
 msgstr "模型高度"
 
 msgid "Auxiliaries"
-msgstr "附件"
+msgstr "辅助件"
 
 msgid "An unexpected error occurred"
 msgstr "发生意外错误"
 
-msgid "Create Custom Filament"
-msgstr "创建自定义耗材"
+#, c-format, boost-format
+msgid "Nozzle %d "
+msgstr "喷嘴 %d "
+
+msgid "Unknown Filament"
+msgstr "未知耗材"
+
+msgid "Hotend status is abnormal and not available. Click to update firmware."
+msgstr "热端状态异常，当前不可用。点击更新固件。"
+
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr "热端信息未知。请先刷新喷嘴信息后再使用。"
+
+msgid "4-slot AMS"
+msgstr "4槽AMS"
+
+msgid "1-slot AMS"
+msgstr "单槽AMS"
+
+msgid "Remove this AMS"
+msgstr "移除此AMS"
+
+msgid "Extruder Settings"
+msgstr "挤出机设置"
+
+msgid "Select Nozzle Diameter"
+msgstr "选择喷嘴直径"
+
+msgid "Configure Nozzle Settings"
+msgstr "配置喷嘴设置"
+
+msgid "Hotend status is abnormal. Please update the firmware."
+msgstr "热端状态异常。请更新固件。"
+
+msgid "Update Firmware"
+msgstr "更新固件"
+
+msgid "Note: BambuStudio does not support mixed-diameter slicing."
+msgstr "注意：Bambu Studio 不支持混合喷嘴直径切片。"
+
+msgid "Nozzles have different diameter from print setting and cannot be used during slicing/printing."
+msgstr "喷嘴直径与打印设置不同，切片/打印时不可用。"
+
+msgid "Empty nozzles cannot be used during slicing/printing."
+msgstr "空喷嘴在切片/打印时不可用。"
+
+msgid "Set nozzle diameter"
+msgstr "设置喷嘴直径"
 
 #, c-format, boost-format
-msgid "Preset \"%s\" already exists. Overwrite?"
-msgstr "预设“%s”已存在。您想覆盖它吗？"
+msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+msgstr "请先在下方为打印机设置 %smm 直径喷嘴，然后再使用该直径进行切片。"
+
+msgid "BambuStudio does not support slicing with mixed diameters. Extruders with diffenrent diameters from the printing diameter are not available. If you want to use this extruder, you can either modify nozzle diameter or click to adjust extruder settings."
+msgstr "Bambu Studio 不支持混合直径切片。与打印直径不同的挤出机不可用。若要使用该挤出机，可修改喷嘴直径，或点击调整挤出机设置。"
+
+msgid "No Available Nozzle"
+msgstr "无可用喷嘴"
+
+msgid "Nozzle NO. "
+msgstr "喷嘴编号 "
 
 msgid "Multi-nozzle mode"
 msgstr "多口径模式"
@@ -19459,7 +19259,7 @@ msgid ""
 "Flush into support/objects/infill\n"
 "Did you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
 msgstr ""
-"冲刷到支撑/对象/填充中\n"
+"冲刷到支持/对象/填充中\n"
 "您知道吗？您可以在换料时将它们冲入支撑/对象/填充，以节省浪费的料丝。"
 
 #: resources/data/hints.ini: [hint:Improve strength]
@@ -19495,7 +19295,7 @@ msgstr ""
 "耗材收缩\n"
 "%s 等材料的收缩率较高，冷却后可能导致尺寸略有偏差，影响装配贴合度。建议参考 Wiki 中的收缩校准方法，以获得更精确的打印效果。"
 
-#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
+#: resources/data/hints.ini: [hint: Run Nylon & PC (and other advanced
 #: materials) Like a Pro]
 msgid ""
 "Run Nylon & PC (and other advanced materials) Like a Pro\n"
@@ -19504,8 +19304,7 @@ msgstr ""
 "像专业人士一样打印尼龙与 PC（以及其他高级材料）\n"
 "在打印尼龙 612、聚碳酸酯（PC）或其他高级材料？Helio 帮你避免“差点成功但最终失败”的情况。"
 
-#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
-#: (Safely)]
+#: resources/data/hints.ini: [hint: Make Prints up to 30% Faster (Safely)]
 msgid ""
 "Make Prints up to 30% Faster (Safely)\n"
 "Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
@@ -19513,7 +19312,7 @@ msgstr ""
 "安全地让打印速度最高提升 30%\n"
 "获得真正的产出提升，而不是冒险的“速度模式”。原本 8 小时的打印可能降至约 5.6 小时。"
 
-#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
+#: resources/data/hints.ini: [hint: Stop Wasting Precious Design Time on
 #: Tuning]
 msgid ""
 "Stop Wasting Precious Design Time on Tuning\n"
@@ -19522,8 +19321,8 @@ msgstr ""
 "帮助你节省调参花费的时间\n"
 "更少的试打、更快的参数收敛。无需反复测试打印，提前发现问题，一次就打对。"
 
-#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
-#: advanced materials]
+#: resources/data/hints.ini: [hint: Cut Warping on ASA/ABS and other advanced
+#: materials]
 msgid ""
 "Cut Warping on ASA/ABS and other advanced materials\n"
 "Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
@@ -19531,7 +19330,7 @@ msgstr ""
 "减少 ASA/ABS 等高级材料的翘曲\n"
 "翘曲会毁掉长时间作业。Helio 会在打印前指出风险最高的位置，并通过增强将翘曲风险降到几乎为零。"
 
-#: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
+#: resources/data/hints.ini: [hint: Quality Check Before You Hit Print]
 msgid ""
 "Quality Check Before You Hit Print\n"
 "Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
@@ -19539,7 +19338,7 @@ msgstr ""
 "点击打印前先做质量检查\n"
 "把它当作“起飞前检查”。例如：如果一个 PC 支架在薄肋处显示较低的 TQI，你就能在通宵打印前先做调整。"
 
-#: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
+#: resources/data/hints.ini: [hint: Stronger Parts With One Click]
 msgid ""
 "Stronger Parts With One Click\n"
 "Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
@@ -19547,7 +19346,7 @@ msgstr ""
 "一键获得更强的零件\n"
 "层间粘结更好，更少脆裂失败。例如：对聚碳酸酯（PC），优化后结果显示抗拉强度约提升 +65%。"
 
-#: resources/data/helio_hints.ini: [hint: Save Money Every Run]
+#: resources/data/hints.ini: [hint: Save Money Every Run]
 msgid ""
 "Save Money Every Run\n"
 "Faster + fewer failures = real savings."
@@ -19555,7 +19354,7 @@ msgstr ""
 "每次打印都能省钱\n"
 "更快 + 更少失败 = 真正的成本节省。"
 
-#: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
+#: resources/data/hints.ini: [hint: First-Time-Right Reliability]
 msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
@@ -19563,374 +19362,8 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
-msgctxt "air_duct"
-msgid "Right(Heating)"
-msgstr "右侧（加热）"
-
-#~ msgid "Adjust filament matching"
-#~ msgstr "调整耗材匹配"
-
-#~ msgid "Previous"
-#~ msgstr "上一条"
-
-#~ msgid "One-click CMYW auto-mix"
-#~ msgstr "一键CMYW自动混色"
-
-#~ msgid "One-click RYBW auto-mix"
-#~ msgstr "一键RYBW自动混色"
-
-#, c-format, boost-format
-#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-#~ msgstr "项目最多支持 %d 个耗材，多余的耗材将被丢弃。"
-
-#~ msgid "Original Model"
-#~ msgstr "原模型"
-
-#~ msgid "Reset filament mapping to the state before one-click mixing"
-#~ msgstr "重置耗材映射至一键混色前的状态"
-
-#~ msgid "Choose the one-click auto-mix mode for texture color import"
-#~ msgstr "选择纹理颜色导入的一键自动混色模式"
-
-#, c-format, boost-format
-#~ msgid "Computing texture colors: %s"
-#~ msgstr "正在计算纹理颜色：%s"
-
-#~ msgid "Show Labels"
-#~ msgstr "显示标签"
-
-#~ msgid "Import Model"
-#~ msgstr "导入模型"
-
-#~ msgid "Multi-Color"
-#~ msgstr "多色"
-
-#~ msgid "Your input texture model"
-#~ msgstr "您输入的纹理模型"
-
-#~ msgid "Processed multi-color model"
-#~ msgstr "处理后的多色模型"
-
-#~ msgid "Smooth Level"
-#~ msgstr "光滑程度"
-
-#~ msgid "Automatically determine the optimal color count only and recompute filament mapping"
-#~ msgstr "自动确定最佳颜色数量并重新计算耗材映射"
-
-#~ msgid "Convert texture to painting using the specified color count and smooth level"
-#~ msgstr "使用指定的颜色数目和光滑程度将纹理转换为涂色"
-
-#~ msgid "Reminder: parameters changed, click Apply to take effect"
-#~ msgstr "提醒：参数已更改，请点击应用生效"
-
-#~ msgid "Filament Mapping"
-#~ msgstr "耗材映射"
-
-#~ msgid "Auto-merge same filament"
-#~ msgstr "自动合并相同的耗材"
-
-#~ msgid "Skip Matching"
-#~ msgstr "跳过匹配"
-
-#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-#~ msgstr "网格具有非流形几何或开放边界。您可以直接导入，或在导入前使用 Windows 3D 修复服务进行修复。"
-
-#~ msgid "Mesh repair"
-#~ msgstr "网状修复"
-
-#~ msgid "Import without repair"
-#~ msgstr "不修复并导入"
-
-#~ msgid "Repair and import"
-#~ msgstr "修复并导入"
-
-#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-#~ msgstr "请注意，网格具有非流形或开放边界。"
-
-#~ msgid "Mesh issue"
-#~ msgstr "网格故障"
-
-#~ msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-#~ msgstr "当前盘上的所有对象都无法打印。切片将生成空结果。请检查。"
-
-#~ msgid "Show Labels of printing by object in 3D scene"
-#~ msgstr "在 3D 场景中显示按逐件打印的标签"
-
-#~ msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-#~ msgstr "文件中对象尺寸过小，是否默认转换成毫米单位导入？"
-
-#~ msgid "Object too small"
-#~ msgstr "对象尺寸过小"
-
-#, boost-format
-#~ msgid "Reason: part \"%1%\" has self intersection."
-#~ msgstr "原因：零件\"%1%\"有自相交。"
-
-#~ msgid ""
-#~ "- Sync printer presets after loading a file\n"
-#~ "- \"Load 3MF\" dialog settings\n"
-#~ "- Executing post-processing scripts\n"
-#~ "- Support structure recommendation prompt\n"
-#~ "- Unsaved projects.\n"
-#~ "- Mixed color sublayer with variable layer height warning"
-#~ msgstr ""
-#~ "- 清除加载文件后同步打印机预设的设置\n"
-#~ "- 清除”加载3mf“对话框设置\n"
-#~ "- 清除执行后处理脚本的设置\n"
-#~ "- 清除禁用支撑参数推荐的设置\n"
-#~ "- 清除对未保存的项目的选择\n"
-#~ "- 带有可变层高的混合颜色子层警告"
-
-#~ msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-#~ msgstr "AMS 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
-
-#~ msgid "Nozzle type"
-#~ msgstr "喷嘴类型"
-
-#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-#~ msgstr "喷嘴的金属材料。这将决定喷嘴的耐磨性，以及可打印材料的种类"
-
-#~ msgid "Hardened steel"
-#~ msgstr "硬化钢"
-
-#~ msgid "Stainless steel"
-#~ msgstr "不锈钢"
-
-#~ msgid "Tungsten carbide"
-#~ msgstr "碳化钨"
-
-#~ msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
-#~ msgstr "可见顶面正下方那层内部实心填充的走线图案。单调填充能减少透过顶面表层显现的挤出纹路。"
-
-#~ msgid ""
-#~ "During the first few layers, a taller skirt can partly block cold air around the printer, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
-#~ "The default is 1 layer."
-#~ msgstr ""
-#~ "在打印前几层时，一圈较高Skirt可以一定程度上阻挡打印机周围的冷空气，保持模型底部的温度微环境，减少前几层因收缩导致的早期翘曲风险\n"
-#~ "默认1层"
-
-#~ msgid "Target Color"
-#~ msgstr "目标色"
-
-#~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
-#~ msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"
-
-#~ msgid "Link to existing filament"
-#~ msgstr "关联已录入的耗材"
-
-#~ msgid "Please select"
-#~ msgstr "请选择"
-
-#~ msgid "No matching filament"
-#~ msgstr "暂无匹配的耗材"
-
-#, c-format, boost-format
-#~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
-#~ msgstr "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温度为 %d。"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "lock depth should smaller than skin depth.\n"
-#~ "Reset to 50%% of skin depth"
-#~ msgstr ""
-#~ "互锁深度应该比表皮深度小,\n"
-#~ "重设为表皮深度的一半"
-
-#~ msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
-#~ msgstr "当前热床温度相对较高。在封闭式外壳中打印这种丝可能会导致喷嘴堵塞。请打开前门和/或取下上部玻璃。"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "The object from file %s is too small, and maybe in meters or inches.\n"
-#~ " Do you want to scale to millimeters?"
-#~ msgstr ""
-#~ "文件 %s 中对象的尺寸似乎是以米或者英寸为单位定义的。\n"
-#~ "BambuStudio的内部单位为毫米。是否要转换成毫米？"
-
-#~ msgid "Material"
-#~ msgstr "材料"
-
-#, c-format, boost-format
-#~ msgid " doesn't work at 100%% density "
-#~ msgstr " 填充图案不支持 100%% 密度"
-
-#~ msgid ""
-#~ "Drag to move the cut plane\n"
-#~ "Right-click a part to assign it to the other side"
-#~ msgstr "拖动切割平面可移动；在零件上单击鼠标右键以将其指定给另一侧"
-
-#~ msgid "Deleting the last solid part is not allowed."
-#~ msgstr "不允许删除对象的最后一个实体零件。"
-
-#~ msgid "max"
-#~ msgstr "最大"
-
-#~ msgid "min"
-#~ msgstr "最小"
-
-#, boost-format
-#~ msgid "The input value should be greater than %1% and less than %2%"
-#~ msgstr "输入的范围在 %1% 和 %2% 之间"
-
-#~ msgid "Setting AMS slot information while printing is not supported"
-#~ msgstr "不支持在打印时设置AMS槽位信息"
-
-#~ msgid "Setting Virtual slot information while printing is not supported"
-#~ msgstr "不支持在打印时设置虚拟槽位信息"
-
-#~ msgid "In printer"
-#~ msgstr "机内耗材"
-
-#, c-format, boost-format
-#~ msgid "In printer: %s"
-#~ msgstr "机内耗材：%s"
-
-#~ msgctxt "Filament Manager"
-#~ msgid "Note"
-#~ msgstr "提示"
-
-#~ msgctxt "Unsupported Filaments"
-#~ msgid "Note"
-#~ msgstr "提示"
-
-#~ msgid "No unsupported filaments"
-#~ msgstr "无不支持的耗材"
-
-#~ msgid "Other Color"
-#~ msgstr "其他颜色"
-
-#~ msgid "Not now"
-#~ msgstr "暂不录入"
-
-#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-#~ msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为传统，Z方向墙速度平滑不启用且交替额外墙层关闭。"
-
-#~ msgid "parameter name"
-#~ msgstr "参数名称"
-
-#~ msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-#~ msgstr "开启传统模式延时摄影可能导致表面瑕疵，建议修改为平滑模式。"
-
-#~ msgid "Auto Flush"
-#~ msgstr "自动冲刷计算"
-
-#~ msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
-#~ msgstr "当前打印机在逐件打印时不支持传统模式下的延时摄影。"
-
-#~ msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-#~ msgstr "开启延时摄影后，无论选择传统或平滑模式，打印机都会在每层拍照前移动热床和工具头，可能增加打印时间。"
-
-#~ msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-#~ msgstr "“无稀疏层”与需要每一层都生成擦料塔的平滑延时摄影不兼容。延时摄影已切换到传统模式。"
-
-#~ msgid "Select presets to compare"
-#~ msgstr "选择要比较的预设"
-
-#~ msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-#~ msgstr "如果启用平滑模式或者传统模式，将在每次打印时生成延时摄影视频。打印完每层后，将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦料塔进行喷嘴擦拭。"
-
-#~ msgid "Traditional"
-#~ msgstr "传统模式"
-
-#~ msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
-#~ msgstr "启用时，延时摄影快照将在远离摄像头的最远点拍摄，而不是移动到清洗塔或废料槽。仅在非 I3 打印机的传统延时摄影模式下有效。"
-
-#~ msgid "Project Filament List"
-#~ msgstr "项目耗材列表"
-
-#~ msgid "Standard Mode Recommendations"
-#~ msgstr "标准模式推荐"
-
-#~ msgid "Arbitrary Mode"
-#~ msgstr "任意模式"
-
-#~ msgid "Standard Mode"
-#~ msgstr "标准模式"
-
-#~ msgid "Air Purifier"
-#~ msgstr "空气净化器"
-
-#~ msgctxt "AirPurifier"
-#~ msgid "Max"
-#~ msgstr "强效"
-
-#, boost-format
-#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-#~ msgstr "装配体的边界框过大（最大尺寸 >= %1% 英寸），这可能会导致渲染问题。\n"
-
-#, boost-format
-#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-#~ msgstr "装配体的边界框过大（最大尺寸 >= %1% mm），这可能会导致渲染问题。\n"
-
-#, boost-format
-#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-#~ msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% 英寸）：\n"
-
-#, boost-format
-#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-#~ msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% mm）：\n"
-
-#~ msgid "Print queue"
-#~ msgstr "打印队列"
-
-#~ msgid "Add to queue"
-#~ msgstr "添加到队列"
-
-#~ msgid "Only the current sliced plate can be added to the print queue."
-#~ msgstr "只能将当前切片的工作台添加到打印队列。"
-
-#~ msgid "Print immediately"
-#~ msgstr "立即打印"
-
-#, c-format, boost-format
-#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-#~ msgstr "已成功添加到打印队列。将在%ss后自动跳转到打印队列页面"
-
-#~ msgid "Adding print job to queue"
-#~ msgstr "正在将打印任务添加到队列"
-
-#, boost-format
-#~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-#~ msgstr "%1% 离压缩的擦料塔太近了。喷嘴在 Z %2% mm 处下降到擦料塔，而物体已达到 Z %3% mm，工具头需要 %4% mm 的水平间隙才能从旁边通过，但仅剩 %5% mm。请关闭“无稀疏层”选项、移动擦料塔或降低物体高度。"
-
-#, boost-format
-#~ msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
-#~ msgstr "%1% 太高，无法与压缩的擦拭塔一起打印。喷嘴在 Z %2% mm 处下降到擦拭塔，而物体已达到 Z %3% mm，这超出了 %4% mm 的间隙。请关闭“无稀疏层”选项或降低物体高度。"
-
-#, boost-format
-#~ msgid "Plate %1%"
-#~ msgstr "盘 %1%"
-
-#~ msgid "For more details, see the Wiki."
-#~ msgstr "更多详情，请参阅 Wiki。"
-
-#, c-format, boost-format
-#~ msgid "%s is not compatible with %s nozzle."
-#~ msgstr "%s耗材不支持使用%s类型喷嘴打印"
-
-#~ msgid "True multi-material support will be added in a future update."
-#~ msgstr "真正的多材料支持将在后续更新中加入。"
-
-#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
-#~ msgstr "当在 A2L 打印机上启用“首层优化热预处理”时，预处理时长将根据模型占地面积自动调整，以获得最佳的首层质量。较大的占地面积需要更长的预处理时间。白色框表示不同预处理时长的边界。"
-
-#~ msgid "Failed to create GCodeV2"
-#~ msgstr "无法创建 GCode"
-
-#~ msgid "Failed to create GCodeV3"
-#~ msgstr "无法创建 GCodeV3"
-
-#~ msgid "Please make sure you have the corrent API key set in preferences."
-#~ msgstr "请确保您已在偏好设置中正确设置了 API 密钥。"
-
-#~ msgid "Helio: Simulation check failed"
-#~ msgstr "Helio：仿真检测失败"
-
-#~ msgid "Helio: Optimzaion check failed"
-#~ msgstr "Helio：优化检查失败"
-
-#~ msgid "Helio: Failed to create Optimization"
-#~ msgstr "Helio: 创建优化失败"
+#~ msgid "Rotate spool when drying"
+#~ msgstr "烘干时旋转料盘"
 
 #~ msgid "Start your assembly journey from Add Step"
 #~ msgstr "从添加步骤开始您的组装之旅"
@@ -19941,6 +19374,10 @@ msgstr "右侧（加热）"
 
 #~ msgid "not used in any assembly step"
 #~ msgstr "未在任何组装步骤中使用"
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "盘 %1%"
 
 #~ msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
 #~ msgstr "当前未选中任何步骤卡。诸如移动工具之类的姿态更改操作将影响实际的最终装配视图。"
@@ -19990,6 +19427,31 @@ msgstr "右侧（加热）"
 #~ msgstr ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的.gcode.3mf文件。"
 
 #, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s耗材不支持使用%s类型喷嘴打印"
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "软件暂不支持使用两种不同直径的喷嘴同时打印。\n"
+#~ "由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。\n"
+#~ "请确认使用哪个喷嘴打印当前项目。"
+
+#~ msgid "Switch diameter"
+#~ msgstr "设置喷嘴直径"
+
+#~ msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
+#~ msgstr "有未设置的喷嘴类型。请在同步之前设置所有挤出机的喷嘴类型"
+
+#~ msgid "Sync extruder information"
+#~ msgstr "同步挤出机信息"
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "真正的多材料支持将在后续更新中加入。"
+
+#, c-format, boost-format
 #~ msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 #~ msgstr "当前打印机的%s直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装的喷嘴直径和机器设置中一致，并在切片时设置相同的喷嘴直径。"
 
@@ -20005,6 +19467,36 @@ msgstr "右侧（加热）"
 
 #~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 #~ msgstr "层高超出了打印机设置->挤出机->层高限制中的范围，这可能导致打印质量问题。"
+
+#~ msgid "Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled."
+#~ msgstr "启用擦料塔时，不允许使用不同的喷嘴直径和不同的材料直径。"
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "无法创建 GCode"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "创建 GCodeV3 失败"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "请确保您已在偏好设置中正确设置了 API 密钥。"
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio：仿真检测失败"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio：优化检查失败"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: 创建优化失败"
+
+#~ msgid "The temperature shall not exceed the filament's heat distortion temperature"
+#~ msgstr "温度不得超过耗材的压溃温度"
+
+#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+#~ msgstr "渐变效果需要启用「混色子层」功能，是否立即启用？"
+
+#~ msgid "Mixed Color Sublayer"
+#~ msgstr "混色子层"
 
 #~ msgid "Show Current Step Objects Only"
 #~ msgstr "仅显示当前步骤对象"
@@ -20038,9 +19530,6 @@ msgstr "右侧（加热）"
 
 #~ msgid "New Filaments"
 #~ msgstr "新增耗材"
-
-#~ msgid "Add Material"
-#~ msgstr "添加材料"
 
 #~ msgid ""
 #~ "Should not large than 100%.\n"
@@ -20495,15 +19984,6 @@ msgstr "右侧（加热）"
 #~ msgid "Assembly View"
 #~ msgstr "装配体视图"
 
-#~ msgid "4-slot AMS"
-#~ msgstr "4槽AMS"
-
-#~ msgid "1-slot AMS"
-#~ msgstr "单槽AMS"
-
-#~ msgid "Remove this AMS"
-#~ msgstr "移除此AMS"
-
 #~ msgid "Right Nozzle(Aux)"
 #~ msgstr "右喷嘴（辅助）"
 
@@ -20951,6 +20431,9 @@ msgstr "右侧（加热）"
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "了解更多冲刷模式信息"
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "当前直径下无喷嘴。继续切换将自动更改所有喷嘴的直径。"
@@ -24421,6 +23904,9 @@ msgstr "右侧（加热）"
 
 #~ msgid "Pressure Advance"
 #~ msgstr "压力提升"
+
+#~ msgid "Material"
+#~ msgstr "材料"
 
 #~ msgid "Edit plate settings"
 #~ msgstr "编辑盘设置"
@@ -28185,648 +27671,3 @@ msgstr "右侧（加热）"
 
 #~ msgid "Start the application"
 #~ msgstr "启动应用程序"
-
-msgid "TPU285"
-msgstr "TPU285"
-
-msgid "Air Purifier"
-msgstr "空气净化器"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr "最大"
-
-msgid "One-click CMYKW auto-mix"
-msgstr "一键 CMYKW 自动混色"
-
-msgid "Weight"
-msgstr "重量"
-
-msgid "Total Weight"
-msgstr "总重量"
-
-msgid "Remain Weight"
-msgstr "剩余重量"
-
-msgid "Please enter valid filament weights."
-msgstr "请输入有效的耗材重量。"
-
-msgid "No unsupported filaments"
-msgstr "无不受支持的耗材"
-
-msgid "Please select the filament to match."
-msgstr "请选择要匹配的耗材。"
-
-msgid "Ext"
-msgstr "外挂"
-
-msgid "Automatically refresh unloaded filaments"
-msgstr "自动刷新未装载的耗材"
-
-msgid "For official filaments, the filament type is automatically refreshed when entering the Device page. To avoid frequent refreshes, automatic refreshes occur no more than once per minute."
-msgstr "对于官方耗材，进入设备页时会自动刷新耗材类型。为避免频繁刷新，自动刷新最多每分钟一次。"
-
-msgid "AMS nozzle"
-msgstr "AMS 喷嘴"
-
-msgid "Your printer does not support a prime tower with different support material. The slicing has automatically switched to the heat preservation wall solution."
-msgstr "当前打印机不支持不同支撑材料的擦料塔。切片已自动切换为保温墙方案。"
-
-msgid "Live Camera Recording"
-msgstr "实时摄像头录像"
-
-msgid "Visual Enhancement Camera Recording"
-msgstr "视觉增强摄像头录像"
-
-msgid "Switch to the auxiliary live camera view"
-msgstr "切换到辅助实时摄像头画面"
-
-msgid "Switch to the main live camera view"
-msgstr "切换到主实时摄像头画面"
-
-msgid "Switch live camera view"
-msgstr "切换实时摄像头画面"
-
-msgid "Current camera is abnormal"
-msgstr "当前摄像头异常"
-
-msgid "Unclamped"
-msgstr "未夹紧"
-
-msgid "Print queue"
-msgstr "打印队列"
-
-#, c-format, boost-format
-msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
-msgstr "已配置的喷嘴类型中没有 %smm 直径，因此无法使用 %smm 直径进行切片。"
-
-msgid "Configure Nozzle diameter"
-msgstr "配置喷嘴直径"
-
-msgid "Modify Nozzle Type"
-msgstr "修改喷嘴类型"
-
-#, c-format, boost-format
-msgid "The currently connected printer is not available, please check the status of %s before syncing."
-msgstr "当前连接的打印机不可用，请在同步前检查 %s 的状态。"
-
-msgid "Show heat-soak area"
-msgstr "显示热床保温区域"
-
-msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
-msgstr "当模型超出热床保温区域时发出警告。仅支持此功能的打印机可用。"
-
-msgid "Unavailable Nozzles"
-msgstr "不可用喷嘴"
-
-msgid "No PrintTool available. Please install a compatible tool and try again."
-msgstr "没有可用的 PrintTool。请安装兼容工具后重试。"
-
-msgid "PrintTool detached. Please install before printing."
-msgstr "PrintTool 已卸下。请安装后再打印。"
-
-msgid "CutTool detached. Please install before printing."
-msgstr "CutTool 已卸下。请安装后再打印。"
-
-msgid "DrawTool detached. Please install before printing."
-msgstr "DrawTool 已卸下。请安装后再打印。"
-
-msgid "None of the current tools have completed Docking Calibration. Please calibrate and try again."
-msgstr "当前工具均未完成对接校准。请完成校准后重试。"
-
-msgid "Add to queue"
-msgstr "加入队列"
-
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "仅当前已切片的盘可加入打印队列。"
-
-msgid "PrintToolRack moving, please wait."
-msgstr "PrintTool 挂架移动中，请稍候。"
-
-msgid "Pen"
-msgstr "笔"
-
-msgid "Cutter"
-msgstr "刀具"
-
-msgid "Laser"
-msgstr "激光"
-
-#, c-format, boost-format
-msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
-msgstr "槽位 %s 中的耗材可能未正确装入 PrintTool。请参阅装载指南。"
-
-#, c-format, boost-format
-msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
-
-msgid "Filament on external spool is not loaded. Printing may pause for filament change. Please load the filament before printing."
-msgstr "外挂料盘上的耗材未装载。打印可能会因换料而暂停。请在打印前装载耗材。"
-
-msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-msgstr "在热端中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
-
-msgid "The currently connected printer does not support printing supports in a different material from the model using the wipe tower. Please re-slice the model."
-msgstr "当前连接的打印机不支持使用擦料塔以不同于模型的材料打印支撑。请重新切片。"
-
-msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "“无稀疏层”与需要每层擦料塔的平滑延时摄影不兼容。延时摄影已切换为传统模式。"
-
-msgid "Support ring"
-msgstr "支撑环"
-
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "已成功加入打印队列。将在 %s 秒后自动跳转到打印队列页面"
-
-msgid "Adding print job to queue"
-msgstr "正在将打印任务加入队列"
-
-msgid "Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."
-msgstr "喷嘴分配错误：固定耗材组没有可用的兼容固定喷嘴。请检查喷嘴设置或重新分组。"
-
-msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."
-msgstr "喷嘴分配错误：按耗材的喷嘴映射无效。请检查喷嘴设置或重新分组。"
-
-msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
-msgstr "喷嘴分配错误：按耗材的喷嘴映射指向空或不可用的喷嘴。"
-
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
-msgstr "启用支撑环时不允许使用不同的喷嘴直径。"
-
-msgid "Different nozzle diameters are not allowed when prime tower is enabled."
-msgstr "启用擦料塔时不允许使用不同的喷嘴直径。"
-
-msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
-msgstr "支撑环当前仅支持相对挤出机寻址（use_relative_e_distances=1）。"
-
-msgid "Ooze prevention is currently not supported with the support ring enabled."
-msgstr "启用支撑环时，目前不支持防滴功能。"
-
-msgid "The support ring is not supported in \"By object\" print. Switch to \"By layer\" or disable the support ring."
-msgstr "支撑环不支持“逐件”打印。请切换为“逐层”或关闭支撑环。"
-
-msgid "The support ring requires that all objects have the same layer heights"
-msgstr "支撑环要求所有对象具有相同的层高"
-
-msgid "The support ring requires that all objects are printed over the same number of raft layers"
-msgstr "支撑环要求所有对象使用相同数量的筏层"
-
-msgid "The support ring requires that all objects are sliced with the same layer heights."
-msgstr "支撑环要求所有对象以相同层高切片。"
-
-msgid "The support ring is only supported if all objects have the same variable layer height"
-msgstr "仅当所有对象使用相同的可变层高时，才支持支撑环"
-
-msgid "Failed to assign filaments to nozzles for the support ring."
-msgstr "无法为支撑环将耗材分配到喷嘴。"
-
-msgid "The support ring extends outside the area both nozzles can reach. Move the affected object closer to the center of the plate."
-msgstr "支撑环超出了双喷嘴均可到达的区域。请将受影响对象移近盘面中心。"
-
-#, c-format, boost-format
-msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
-msgstr "与下层无重叠的 100%% 悬空墙速度。"
-
-msgid "Idle travel cooling"
-msgstr "空驶冷却"
-
-msgid "When filament change length is zero, perform idle travel cooling to help the nozzle cool down. Disabling this will turn off the heater directly without idle travel, which saves print time but may cause stringing for some materials."
-msgstr "当换料长度为 0 时，执行空驶冷却以帮助喷嘴降温。关闭后将直接关闭加热且不做空驶，可节省打印时间，但对部分材料可能产生拉丝。"
-
-msgid "Prime tower speed factor curve"
-msgstr "擦料塔速度因子曲线"
-
-msgid "Controls the speed factor ramp when priming on the wipe tower after a tool change. Enter comma-separated multipliers of the target speed, one per wipe line. For example: \"0.33,0.375,0.458,0.875,0.875\" means the 1st line runs at 33%, the 2nd at 37.5%, and so on. If fewer than 5 values are given, the last value is reused for remaining lines. Each value is clamped to 0.01 ~ 5.0. Leave empty to use the built-in default curve (0.33, 0.375, 0.458, 0.875, 0.875)."
-msgstr "控制换料后在擦料塔上预冲刷时的速度因子爬升。输入逗号分隔的目标速度倍率，每条擦拭走线一个。例如：\"0.33,0.375,0.458,0.875,0.875\" 表示第 1 条为 33%、第 2 条为 37.5%，以此类推。若少于 5 个值，剩余走线复用最后一个值。每个值限制在 0.01～5.0。留空则使用内置默认曲线（0.33, 0.375, 0.458, 0.875, 0.875）。"
-
-msgid "Fin extrude safe temperature"
-msgstr "鳍片挤出安全温度"
-
-msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
-msgstr "鳍片挤出时的安全热端温度。0 表示未设置。可在自定义 G-code 中通过 fins_extrude_safe_temp 访问。"
-
-msgid "Default wipe tower position"
-msgstr "默认擦料塔位置"
-
-msgid "Normalized default position of the wipe tower, each axis in [0,1] relative to bed width/depth."
-msgstr "擦料塔的归一化默认位置，各轴取值 [0,1]，相对于热床宽度/深度。"
-
-msgid "Sync auxiliary fan to second fan"
-msgstr "辅助风扇同步到第二风扇"
-
-msgid "Enable this if the printer has a second auxiliary part cooling fan that should use the same speed as the auxiliary fan"
-msgstr "若打印机有第二路辅助部件冷却风扇，且应与辅助风扇同速，请启用此项"
-
-msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
-msgstr "启用后，延时摄影快照会在距相机最远点拍摄，而不是移动到擦料塔或废料槽。仅在非 I3 机型的传统延时摄影模式下生效。"
-
-msgid "Generate a ring around the object. Tree supports may land on the ring. Cannot be combined with the prime tower."
-msgstr "在对象周围生成一圈支撑环。树状支撑可落在环上。不可与擦料塔同时使用。"
-
-msgid "Support ring object gap"
-msgstr "支撑环对象间隙"
-
-msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
-msgstr "模型投影边界与最内圈支撑环路径之间的水平距离。"
-
-msgid "Support ring notch width"
-msgstr "支撑环缺口宽度"
-
-msgid "Width of the gap left in the support ring so the chamber camera can see the object. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value; 0 closes the ring completely and blocks the timelapse view."
-msgstr "支撑环上预留缺口的宽度，以便腔体摄像头能看到对象。各圈在同一方位留出缺口，树状支撑也不会伸入缺口。缺口占用的擦拭长度随该值增大；设为 0 则完全闭合，会挡住延时摄影视角。"
-
-msgid "Support ring skip points"
-msgstr "支撑环跳过点"
-
-msgid "Leave gaps in the support ring outer wall at each wipe entry so the nozzle can reach the wipe path from outside the ring, and travel around the ring contour instead of crossing the model."
-msgstr "在每处擦拭入口处为支撑环外壁留出缺口，使喷嘴可从环外到达擦拭路径，并沿环轮廓空驶，而不是穿越模型。"
-
-msgid "Support ring infill gap"
-msgstr "支撑环填充间隙"
-
-msgid "Radial spacing between sparse wipe rings, as a percentage of line width. 100% packs neighbouring rings so they touch; larger values leave a gap."
-msgstr "稀疏擦拭环之间的径向间距，按线宽百分比表示。100% 时相邻环贴合；更大则留下间隙。"
-
-msgid "Prime tower feedrate factor"
-msgstr "擦料塔进给倍率"
-
-msgid "Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up."
-msgstr "将热端按挤出机处理时，擦料塔挤出的进给缩放系数。不影响全部塔上空驶。1.0 表示不变；小于 1.0 减速，大于 1.0 加速。"
-
-msgid "Tail speed factor"
-msgstr "尾段速度因子"
-
-msgid "Scale the printing speed of the last section printed each time before the toolhead leaves the prime tower (the length is set by the tail slowdown volume) relative to the tower printing speed. That trailing section may be the outer wall, a tool-change wipe or infill, whichever comes last. Lower values slow it down to soften the flow change when moving back to the model. Does not affect the first layer."
-msgstr "工具头每次离开擦料塔前，最后一段打印相对塔打印速度的缩放（长度由尾段降速体积决定）。该尾段可能是外壁、换料擦拭或填充，以最后打印者为准。较低取值可减缓回到模型时的流量变化。不影响首层。"
-
-msgid "Tail slowdown volume"
-msgstr "尾段降速体积"
-
-msgid "Only the final part printed each time before the toolhead leaves the prime tower, measured as this extruded volume, is slowed down by the tail speed factor; the rest keeps the normal tower speed. That trailing part may be the outer wall, a tool-change wipe or infill. Set to 0 to slow down the whole tower path of each visit. Does not affect the first layer."
-msgstr "仅工具头每次离开擦料塔前最后挤出的这段体积按尾段速度因子降速，其余保持正常塔速。该尾段可能是外壁、换料擦拭或填充。设为 0 则对该次整段塔路径降速。不影响首层。"
-
-msgid "The acceleration used for prime tower extrusions. Does not affect the first layer. 0 means using the global default acceleration."
-msgstr "擦料塔挤出所用加速度。不影响首层。0 表示使用全局默认加速度。"
-
-msgid "Line width for prime tower normal wiping paths. 0 means auto-calculated from nozzle diameter."
-msgstr "擦料塔常规擦拭路径的线宽。0 表示按喷嘴直径自动计算。"
-
-msgid "Ramming line width"
-msgstr "预冲刷线宽"
-
-msgid "Line width for prime tower nozzle-change (ramming) paths. 0 means using the default mapping table."
-msgstr "擦料塔换喷嘴（预冲刷）路径的线宽。0 表示使用默认映射表。"
-
-msgid "The speed of wipe movement before printing on the prime tower during tool change. 0 means using prime tower max speed."
-msgstr "换料时在擦料塔上打印前的擦拭移动速度。0 表示使用擦料塔最大速度。"
-
-msgid "Wipe distance"
-msgstr "擦拭距离"
-
-msgid "The wipe path distance during tool change. 0 means using the filament-level wipe distance."
-msgstr "换料时的擦拭路径距离。0 表示使用耗材级擦拭距离。"
-
-msgid "Flat ironing"
-msgstr "平面熨烫"
-
-msgid "Enable flat ironing for prime tower to smooth the top surface after wiping"
-msgstr "启用擦料塔平面熨烫，以在擦拭后平整顶面"
-
-msgid "Line ironing"
-msgstr "走线熨烫"
-
-msgid "Enable line ironing for prime tower wipe paths"
-msgstr "为擦料塔擦拭路径启用走线熨烫"
-
-msgid "Speed of prime tower ironing movements"
-msgstr "擦料塔熨烫移动速度"
-
-msgid "Side scrape after tool change"
-msgstr "换料后侧面刮料"
-
-msgid "After a tool change and before the wipe line, move the nozzle to the prime tower side wall and do a diagonal lift scrape (travel only, no extrusion). This scrapes the oozed filament stub onto the side wall instead of letting it pile up on the prime tower top surface."
-msgstr "换料后、擦拭线之前，将喷嘴移到擦料塔侧壁做斜向抬升刮料（仅空驶、不挤出）。把渗出的料头刮到侧壁，避免堆积在擦料塔顶面。"
-
-msgid "Side scrape walls"
-msgstr "侧面刮料墙面"
-
-msgid "Which pair of opposite prime tower walls the diagonal scrape runs on. Note that enabling the side scrape always disables depth shrinkage of the prime tower (the outer wall stays at the full depth on every layer), regardless of this setting, so that the scrape can descend safely outside the walls."
-msgstr "斜向刮料作用在擦料塔哪一对相对侧壁。注意：启用侧面刮料后，无论本项如何设置，都会关闭擦料塔深度收缩（每层外壁保持完整深度），以便刮料可在墙外安全下探。"
-
-msgid "Left and right"
-msgstr "左和右"
-
-msgid "Front and back"
-msgstr "前和后"
-
-msgid "Side scrape length"
-msgstr "侧面刮料长度"
-
-msgid "Horizontal distance the nozzle travels inward from the prime tower side wall during the diagonal scrape."
-msgstr "斜向刮料时喷嘴从擦料塔侧壁向内移动的水平距离。"
-
-msgid "Side scrape lift height"
-msgstr "侧面刮料下探高度"
-
-msgid "How far the nozzle descends below the current wipe-tower top before the diagonal scrape. The actual descent is clamped so the nozzle stays above the wipe tower's brim and first layer (avoids hitting the brim or the bed when the tower is still short). Layers with no room left for a descent get no scrape."
-msgstr "斜向刮料前喷嘴相对当前擦料塔顶面向下探入的距离。实际下探会被钳制，使喷嘴保持在擦料塔裙边与首层之上（塔尚矮时避免撞裙边或热床）。无可下探空间的层不做刮料。"
-
-msgid "Side scrape speed"
-msgstr "侧面刮料速度"
-
-msgid "Movement speed of the diagonal side scrape."
-msgstr "斜向侧面刮料的移动速度。"
-
-msgid "Side scrape wall gap"
-msgstr "侧面刮料墙间隙"
-
-msgid "Distance kept between the diagonal side scrape line and the prime tower outer wall. A positive value keeps the scrape outside the wall; the outer wall position is taken as the outermost of the current and previous layer walls at the scrape location so the scrape never cuts into the tower."
-msgstr "斜向侧面刮料线与擦料塔外壁的间距。正值使刮料保持在墙外；外壁位置取刮料处当前层与上一层外壁的最外侧，避免切入塔体。"
-
-msgid "Side scrape point spacing"
-msgstr "侧面刮料点间距"
-
-msgid "Target distance between consecutive side scrape start points along one side wall. Scrape starts are spread over both side walls so the ooze stubs do not pile up at a single spot. The number of points is derived from this spacing and the length of the straight part of the side wall, so the effective spacing can be smaller than requested when the straight part is short."
-msgstr "同一侧壁上相邻侧面刮料起点的目标间距。起点分布在两侧壁，避免渗料头堆在同一位置。点数由该间距与侧壁直线段长度推导，直线段较短时实际间距可能小于设定值。"
-
-msgid "Side scrape along-wall length"
-msgstr "侧面刮料沿墙长度"
-
-msgid "Upper bound for the empty travel along the side wall performed right after the diagonal scrape, before the nozzle moves to the wipe line start. It smears the ooze stub further along the wall. The travel never leaves the straight part of the side wall, so the actual length is only the room left between the scrape start and the end of that straight part. On a rib prime tower the straight part can be just a few millimetres, in which case the travel is much shorter than the value set here."
-msgstr "斜向刮料后、移向擦拭线起点前，沿侧壁空驶的上限长度，用于把渗料头继续抹开。空驶不离开侧壁直线段，实际长度仅为刮料起点到该直线段末端的剩余距离。肋形擦料塔直线段可能仅数毫米，此时实际空驶会远短于设定值。"
-
-msgid "Nozzle Type and Diameter"
-msgstr "喷嘴类型与直径"
-
-msgid "Not Selected"
-msgstr "未选择"
-
-msgid "PrintTool"
-msgstr ""
-
-msgid "Set filament placement"
-msgstr "设置耗材放置"
-
-#, c-format, boost-format
-msgid "Nozzle %d"
-msgstr "喷嘴 %d"
-
-msgid "Nozzle "
-msgstr "喷嘴 "
-
-msgid "We will slice according to this arrangement:"
-msgstr "将按以下排布进行切片："
-
-#, c-format, boost-format
-msgid "Nozzle (%d)"
-msgstr "喷嘴（%d）"
-
-#, c-format, boost-format
-msgid "Nozzle (%d) - %s"
-msgstr "喷嘴（%d） - %s"
-
-msgid "TPU"
-msgstr "TPU"
-
-#, c-format, boost-format
-msgid "Nozzle %d "
-msgstr "喷嘴 %d "
-
-msgid "Unknown Filament"
-msgstr "未知耗材"
-
-msgid "Hotend status is abnormal and not available. Click to update firmware."
-msgstr "热端状态异常，当前不可用。点击更新固件。"
-
-msgid "Hotend information is unknown. Please refresh nozzle information before use."
-msgstr "热端信息未知。请先刷新喷嘴信息后再使用。"
-
-msgid "4-slot AMS"
-msgstr "4槽AMS"
-
-msgid "1-slot AMS"
-msgstr "单槽AMS"
-
-msgid "Remove this AMS"
-msgstr "移除此AMS"
-
-msgid "Extruder Settings"
-msgstr "挤出机设置"
-
-msgid "Select Nozzle Diameter"
-msgstr "选择喷嘴直径"
-
-msgid "Configure Nozzle Settings"
-msgstr "配置喷嘴设置"
-
-msgid "Hotend status is abnormal. Please update the firmware."
-msgstr "热端状态异常。请更新固件。"
-
-msgid "Update Firmware"
-msgstr "更新固件"
-
-msgid "Note: BambuStudio does not support mixed-diameter slicing."
-msgstr "注意：Bambu Studio 不支持混合喷嘴直径切片。"
-
-msgid "Nozzles have different diameter from print setting and cannot be used during slicing/printing."
-msgstr "喷嘴直径与打印设置不同，切片/打印时不可用。"
-
-msgid "Empty nozzles cannot be used during slicing/printing."
-msgstr "空喷嘴在切片/打印时不可用。"
-
-msgid "Set nozzle diameter"
-msgstr "设置喷嘴直径"
-
-#, c-format, boost-format
-msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
-msgstr "请先在下方为打印机设置 %smm 直径喷嘴，然后再使用该直径进行切片。"
-
-msgid "BambuStudio does not support slicing with mixed diameters. Extruders with diffenrent diameters from the printing diameter are not available. If you want to use this extruder, you can either modify nozzle diameter or click to adjust extruder settings."
-msgstr "Bambu Studio 不支持混合直径切片。与打印直径不同的挤出机不可用。若要使用该挤出机，可修改喷嘴直径，或点击调整挤出机设置。"
-
-msgid "No Available Nozzle"
-msgstr "无可用喷嘴"
-
-msgid "Nozzle NO. "
-msgstr "喷嘴编号 "
-
-msgid "Switch extruder"
-msgstr "切换挤出机"
-
-msgid "Switch hotend"
-msgstr "切换热端"
-
-msgid "Batch pull back the filaments"
-msgstr "批量抽回耗材"
-
-msgid "Other filaments are info-only"
-msgstr "其他耗材仅供查看"
-
-msgid "Filament not removed"
-msgstr "耗材未拔出"
-
-msgid "Hotend rack moving"
-msgstr "热端挂架移动中"
-
-msgid "Homing Induction Hotend Rack"
-msgstr "热端挂架回中"
-
-msgid "Homing Toolhead"
-msgstr "工具头回中"
-
-msgid "Calibrating Hotend Rack"
-msgstr "校准热端架位置"
-
-msgid "Waiting for hotend to heat"
-msgstr "等待热端升温"
-
-msgid "Cutting Filament"
-msgstr "切料"
-
-msgid "Unlocking Hotend"
-msgstr "解锁热端"
-
-msgid "Lifting Hotend Rack"
-msgstr "热端挂架抬升"
-
-msgid "Placing Hotend"
-msgstr "放置热端"
-
-msgid "Taking Hotend"
-msgstr "取用热端"
-
-msgid "Locking Hotend"
-msgstr "上锁热端"
-
-msgid "Moving Hotend Rack"
-msgstr "刀架移动中"
-
-msgid "Refreshing Hotend Info"
-msgstr "刷新热端信息"
-
-msgid "Running"
-msgstr "运行中"
-
-#, boost-format
-msgid "Reading (%1% / %2%)"
-msgstr "读取中 (%1% / %2%)"
-
-#, boost-format
-msgid "Reading Hotend %1%"
-msgstr "读取热端 %1%"
-
-msgid "Please wait..."
-msgstr "请稍后..."
-
-msgid "Empty slot"
-msgstr "槽位为空"
-
-msgid "RFID is being read"
-msgstr "正在读取 RFID"
-
-msgid "Filament change in progress"
-msgstr "正在换料"
-
-msgid "Slot is in error state"
-msgstr "槽位状态异常"
-
-msgid "Filament already loaded"
-msgstr "耗材已进料"
-
-msgid "Ready to load"
-msgstr "可进料"
-
-msgid "Loaded"
-msgstr "已进料"
-
-msgid "Unknown filament"
-msgstr "未知耗材"
-
-msgid "Other batch mode active"
-msgstr "其他批量模式正在进行"
-
-msgid "External filament already loaded into hotend"
-msgstr "外挂耗材已进料至热端"
-
-msgid "The current tool is not a nozzle"
-msgstr "当前工具头不是喷嘴"
-
-msgid "There are no nozzle installed"
-msgstr "未安装喷嘴"
-
-msgid "Nozzle is in error state"
-msgstr "喷嘴状态异常"
-
-msgid "Nozzle has been detached"
-msgstr "喷嘴已卸下"
-
-msgid "Slot not loaded"
-msgstr "槽位未进料"
-
-msgid "Ext AMS Operation"
-msgstr "外挂 AMS 操作"
-
-msgid "AMS Bridge Debug"
-msgstr ""
-
-msgid "Cannot read all while printing or upgrading"
-msgstr "打印或固件升级过程中无法全部读取"
-
-msgid "The printer is busy on other job"
-msgstr "打印机正忙于其他任务"
-
-msgid "Cannot stop filament change while printing or calibrating"
-msgstr "打印或校准过程中无法停止换料"
-
-msgid "No slots selected for batch run"
-msgstr "未选择需要批量操作的槽位"
-
-msgid "All selected slots are invalid"
-msgstr "所选槽位均无效"
-
-msgid "MQTT publish failed for multi_slot_ams_change_filament"
-msgstr "multi_slot_ams_change_filament 的 MQTT 下发失败"
-
-msgid "Hotend Details"
-msgstr "热端详情"
-
-msgid "Hotend rack is busy"
-msgstr "热端架忙碌中"
-
-msgid "Hotend rack cannot read all"
-msgstr "热端挂架无法全部读取"
-
-msgid "Invalid hotend display_index"
-msgstr "热端序号无效"
-
-msgid "Invalid hotend temperature payload"
-msgstr "热端温度参数无效"
-
-msgid "No hotend rack"
-msgstr "无热端挂架"
-
-msgid "Hotend cannot set temperature"
-msgstr "该热端不支持设置温度"
-
-msgid "Loading/Unloading"
-msgstr "进/退料"
-
-msgid "Checking"
-msgstr "检测中"
-
-msgid "Heat fault"
-msgstr "加热异常"
-
-msgid "Self test"
-msgstr "自检"
-
-msgid "No selected machine"
-msgstr "未选择设备"
-
-msgid "loading/unloading"
-msgstr "进/退料"
-
-#, boost-format
-msgid "Slot %1% filament %2% in progress"
-msgstr "槽位 %1% 耗材%2%中"
