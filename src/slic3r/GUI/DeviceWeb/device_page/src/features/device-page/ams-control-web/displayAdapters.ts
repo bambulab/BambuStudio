@@ -1,10 +1,11 @@
 import type { SlotLayout } from './geometry';
 import type { AmsListUnit, ExtruderView, UnitView } from './types';
 
-export function unitSlotLayout(unit: UnitView, dataUnits: AmsListUnit[]): SlotLayout {
-  const data = dataUnits.find((item) => item.ams_id === unit.ams_id);
-  if (data?.is_ams_lite_mixed || unit.ams_type_name === 'AMS_LITE') return 'lite_cross';
-  if (unit.ams_type_name === 'N3S' || unit.slot_count === 1) return 'single_ht';
+// C++ resolves the unit layout while building the hub, so the page no longer
+// sniffs machine types here: it only renames the hub kind to its road layout.
+export function unitSlotLayout(unit: UnitView): SlotLayout {
+  if (unit.hub.kind === 'cross4') return 'lite_cross';
+  if (unit.hub.kind === 'passthrough') return 'single_ht';
   return 'row4';
 }
 

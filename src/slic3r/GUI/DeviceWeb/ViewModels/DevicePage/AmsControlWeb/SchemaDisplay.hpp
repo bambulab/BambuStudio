@@ -97,12 +97,30 @@ namespace humidity {
     inline constexpr const char* support_drying = "support_drying";
 } // namespace humidity
 
+// AMS-internal routing: the fitting under the unit that merges its slots into
+// the single output tube. Slot to hub is the unit's own business; whether the
+// filament made it past the output tube belongs to filament_line_area.
+namespace unit_hub {
+    inline constexpr const char* kind           = "kind";
+    inline constexpr const char* port_count     = "port_count";
+    // Draw the grey fitting block. Only the four-slot hub has visible art.
+    inline constexpr const char* show_body      = "show_body";
+    // Slot the unit routes right now, empty while idle. A slot id alone names it
+    // because the hub never reaches outside its own unit.
+    inline constexpr const char* active_slot_id = "active_slot_id";
+    // hub_link_state: slot to hub only. slot_link.state answers the longer
+    // question, so a live slot_link implies this run is live too.
+    inline constexpr const char* state          = "state";
+    inline constexpr const char* color          = "color";
+} // namespace unit_hub
+
 namespace unit_view {
     inline constexpr const char* ams_id        = "ams_id";
     inline constexpr const char* ams_type_name = "ams_type_name";
     inline constexpr const char* active        = "active";
     inline constexpr const char* slot_count    = "slot_count";
     inline constexpr const char* humidity      = "humidity";
+    inline constexpr const char* hub           = "hub";
     inline constexpr const char* slots         = "slots";
 } // namespace unit_view
 
@@ -151,9 +169,11 @@ namespace line_area {
     inline constexpr const char* links   = "links";
 } // namespace line_area
 
-// Where the filament of one slot goes, and whether that line carries filament
-// right now. This is the wiring of the machine, not the tube artwork: the page
-// decides how to draw a line once it knows the two ends it joins.
+// Where the filament of one slot goes, and whether it made it there. `state`
+// covers the whole run, slot through the hub to the switch input or the extruder
+// throat, so it is strictly longer than unit_hub.state: a live link means the
+// slot-to-hub run is live as well. This is the wiring of the machine, not the
+// tube artwork: the page decides how to draw a line once it knows the ends.
 namespace slot_link {
     inline constexpr const char* ams_id        = "ams_id";
     inline constexpr const char* slot_id       = "slot_id";
@@ -211,6 +231,24 @@ namespace values {
         inline constexpr const char* loading   = "loading";
         inline constexpr const char* unloading = "unloading";
     } // namespace link_state
+
+    // Slot to hub only. Kept apart from link_state on purpose: that one answers a
+    // longer question (slot all the way to the switch or the extruder), so the two
+    // must be free to gain states independently.
+    namespace hub_link_state {
+        inline constexpr const char* idle      = "idle";
+        inline constexpr const char* loaded    = "loaded";
+        inline constexpr const char* loading   = "loading";
+        inline constexpr const char* unloading = "unloading";
+    } // namespace hub_link_state
+
+    // The hub follows the unit layout: four slots merge into one visible fitting,
+    // AMS Lite crosses over without one, a single-slot unit only passes through.
+    namespace hub_kind {
+        inline constexpr const char* merge4      = "merge4";
+        inline constexpr const char* cross4      = "cross4";
+        inline constexpr const char* passthrough = "passthrough";
+    } // namespace hub_kind
 
     // One column on a single extruder machine, one per extruder otherwise.
     namespace layout_style {
@@ -291,6 +329,16 @@ struct HumidityView
     bool        support_drying = false;
 };
 
+struct UnitHub
+{
+    std::string kind       = values::hub_kind::merge4;
+    int         port_count = 0;
+    bool        show_body  = false;
+    std::string active_slot_id;
+    std::string state      = values::hub_link_state::idle;
+    std::string color;
+};
+
 struct UnitView
 {
     std::string           ams_id;
@@ -298,6 +346,7 @@ struct UnitView
     bool                  active        = false;
     int                   slot_count    = 0;
     HumidityView          humidity;
+    UnitHub               hub;
     std::vector<SlotView> slots;
 };
 
@@ -463,6 +512,18 @@ inline void to_json(nlohmann::json& j, const HumidityView& v)
     };
 }
 
+inline void to_json(nlohmann::json& j, const UnitHub& v)
+{
+    j = {
+        {unit_hub::kind,           v.kind},
+        {unit_hub::port_count,     v.port_count},
+        {unit_hub::show_body,      v.show_body},
+        {unit_hub::active_slot_id, v.active_slot_id},
+        {unit_hub::state,          v.state},
+        {unit_hub::color,          v.color},
+    };
+}
+
 inline void to_json(nlohmann::json& j, const UnitView& v)
 {
     j = {
@@ -471,6 +532,7 @@ inline void to_json(nlohmann::json& j, const UnitView& v)
         {unit_view::active,        v.active},
         {unit_view::slot_count,    v.slot_count},
         {unit_view::humidity,      v.humidity},
+        {unit_view::hub,           v.hub},
         {unit_view::slots,         v.slots},
     };
 }

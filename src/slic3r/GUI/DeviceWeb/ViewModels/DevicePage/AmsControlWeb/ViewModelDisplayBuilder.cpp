@@ -226,11 +226,79 @@ std::string switcher_port_for_slot(const SchemaFormat::FilaSwitchData& fila_swit
     return {};
 }
 
+// Mirrors the front-end unitSlotLayout(): AMS Lite crosses over without a
+// visible fitting, single-slot units only pass through, everything else merges
+// four inlets into the grey fitting the page draws.
+std::string hub_kind_for_unit(const SchemaFormat::Unit& unit)
+{
+    if (unit.is_ams_lite_mixed || unit.ams_type_name == "AMS_LITE")
+        return SchemaValues::hub_kind::cross4;
+    if (unit.ams_type_name == "N3S" || unit.trays.size() == 1)
+        return SchemaValues::hub_kind::passthrough;
+    return SchemaValues::hub_kind::merge4;
+}
+
+// GetTargetAmsId can stay on the last target (often Ext "255") long after a run
+// ended, so it only names a live target while the system reports busy loading.
+bool is_load_target(MachineObject* machine_obj, const SchemaFormat::Tray& tray)
+{
+    auto* extder_system = machine_obj ? machine_obj->GetExtderSystem() : nullptr;
+    if (!extder_system || !extder_system->IsBusyLoading())
+        return false;
+    return extder_system->GetTargetAmsId() == tray.ams_id &&
+           extder_system->GetTargetSlotId() == tray.slot_id;
+}
+
+// Slot to hub. Reaching the fitting only takes slot_now: the filament left the
+// slot, which is true well before it shows up at the switch or the extruder.
+std::string hub_link_state_for_slot(const SchemaFormat::Tray& tray, MachineObject* machine_obj)
+{
+    if (is_load_target(machine_obj, tray))
+        return SchemaValues::hub_link_state::loading;
+    if (AmsControlWebData::IsSlotRoutedToHub(machine_obj, tray.ams_id, tray.slot_id))
+        return SchemaValues::hub_link_state::loaded;
+    return SchemaValues::hub_link_state::idle;
+}
+
+SchemaFormat::UnitHub build_unit_hub(const SchemaFormat::Unit& unit, MachineObject* machine_obj)
+{
+    SchemaFormat::UnitHub hub;
+    hub.kind       = hub_kind_for_unit(unit);
+    hub.port_count = static_cast<int>(unit.trays.size());
+    hub.show_body  = hub.kind == SchemaValues::hub_kind::merge4;
+
+    for (const auto& tray : unit.trays) {
+        const std::string state = hub_link_state_for_slot(tray, machine_obj);
+        if (state == SchemaValues::hub_link_state::idle) continue;
+
+        hub.active_slot_id = tray.slot_id;
+        hub.state          = state;
+        hub.color          = tray.color;
+        break;
+    }
+    return hub;
+}
+
+// Far-end evidence on top of slot_now: the switch input reports filament when one
+// is fitted, otherwise the throat of the extruder that owns this slot does (which
+// is what IsSlotLoaded checks).
+bool filament_left_ams(const SchemaFormat::Tray& tray,
+                       const SchemaFormat::FilaSwitchData& fila_switch,
+                       const std::string& switcher_port,
+                       MachineObject* machine_obj)
+{
+    if (!switcher_port.empty()) {
+        const auto& in = switcher_port == SchemaValues::switcher_port::a ? fila_switch.in_a : fila_switch.in_b;
+        // Never reported: fall back to slot_now instead of hiding the line.
+        if (in.has_filament < 0) return true;
+        return in.has_filament == 1 && in.ams_id == tray.ams_id && in.slot_id == tray.slot_id;
+    }
+    return AmsControlWebData::IsSlotLoaded(machine_obj, tray.ams_id, tray.slot_id);
+}
+
 SchemaFormat::SlotLink build_slot_link(const SchemaFormat::Tray& tray,
                                       const SchemaFormat::State& state,
                                       MachineObject* machine_obj,
-                                      const std::string& loading_ams_id,
-                                      const std::string& loading_slot_id,
                                       bool is_ext)
 {
     SchemaFormat::SlotLink link;
@@ -244,16 +312,15 @@ SchemaFormat::SlotLink build_slot_link(const SchemaFormat::Tray& tray,
     if (is_ext && state.data.fila_switch.installed)
         link.extruder_ids.clear();
 
-    if (!loading_ams_id.empty() && tray.ams_id == loading_ams_id && tray.slot_id == loading_slot_id)
+    if (is_load_target(machine_obj, tray)) {
+        // Loading is a run in progress, so it does not wait for an arrival.
         link.state = SchemaValues::link_state::loading;
-    else if (AmsControlWebData::IsSlotLoaded(machine_obj, tray.ams_id, tray.slot_id))
+    } else if (AmsControlWebData::IsSlotRoutedToHub(machine_obj, tray.ams_id, tray.slot_id) &&
+               filament_left_ams(tray, state.data.fila_switch, link.switcher_port, machine_obj)) {
         link.state = SchemaValues::link_state::loaded;
+    }
 
-    // Colour the backbone from HasFilamentInExt (`loaded`), not IsBusyLoading:
-    // snow != star can keep IsBusyLoading true with an empty throat.
-    if (link.state == SchemaValues::link_state::loaded ||
-        link.state == SchemaValues::link_state::loading ||
-        link.state == SchemaValues::link_state::unloading)
+    if (link.state != SchemaValues::link_state::idle)
         link.color = tray.color;
     return link;
 }
@@ -342,6 +409,7 @@ void Build(MachineObject* machine_obj, SchemaFormat::State& state)
         unit_view.slot_count    = slot_count;
         unit_view.humidity      = build_humidity_view(
             unit, fila_system ? fila_system->GetAmsById(unit.ams_id) : nullptr);
+        unit_view.hub           = build_unit_hub(unit, machine_obj);
         for (const auto& tray : unit.trays)
             unit_view.slots.push_back(build_slot_view(
                 tray, state, machine_obj, /*is_ext=*/false, view_only,
@@ -365,30 +433,14 @@ void Build(MachineObject* machine_obj, SchemaFormat::State& state)
             tray, state, machine_obj, /*is_ext=*/true, view_only, /*show_kn=*/true));
     }
 
-    // GetTargetAmsId can stay on the last target (often Ext "255") while the
-    // throat is empty; only treat it as loading when that extruder has filament.
-    std::string loading_ams_id;
-    std::string loading_slot_id;
-    if (extder_system && extder_system->IsBusyLoading()) {
-        bool filament_in_loading_ext = false;
-        if (const auto loading_id = extder_system->GetLoadingExtderId()) {
-            if (auto ext = extder_system->GetExtderById(*loading_id))
-                filament_in_loading_ext = ext->HasFilamentInExt();
-        }
-        if (filament_in_loading_ext) {
-            loading_ams_id  = extder_system->GetTargetAmsId();
-            loading_slot_id = extder_system->GetTargetSlotId();
-        }
-    }
-
     auto& line   = state.display.filament_line_area;
     line.visible = ams_ext.visible;
     for (const auto& unit : data.ams_units) {
         for (const auto& tray : unit.trays)
-            line.links.push_back(build_slot_link(tray, state, machine_obj, loading_ams_id, loading_slot_id, /*is_ext=*/false));
+            line.links.push_back(build_slot_link(tray, state, machine_obj, /*is_ext=*/false));
     }
     for (const auto& tray : data.ext_slots)
-        line.links.push_back(build_slot_link(tray, state, machine_obj, loading_ams_id, loading_slot_id, /*is_ext=*/true));
+        line.links.push_back(build_slot_link(tray, state, machine_obj, /*is_ext=*/true));
 
     const auto& fila_switch = data.fila_switch;
     auto& switcher = state.display.switcher_area;

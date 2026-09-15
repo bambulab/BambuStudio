@@ -19,7 +19,7 @@ import {
   unitWidth,
   type SlotLayout,
 } from './geometry';
-import type { SlotLink, SlotView } from './types';
+import type { SlotLink, SlotView, UnitHub } from './types';
 
 export type RoadLayer = 'slot' | 'line';
 
@@ -61,6 +61,7 @@ export type RoadBlock =
       origin: number;
       kind: SlotLayout;
       slots: SlotView[];
+      hub: UnitHub;
       links: SlotLink[];
       exit?: RoadExit;
       bodyWidth?: number;
@@ -84,8 +85,30 @@ function pts(coords: Array<[number, number]>) {
   return coords.map(([x, y]) => `${snapRoadX(x)},${Math.round(y)}`).join(' ');
 }
 
-function linkOf(links: SlotLink[], slot: SlotView) {
-  return links.find((link) => link.ams_id === slot.ams_id && link.slot_id === slot.slot_id);
+// The slot-to-hub run belongs to whichever record proves the filament left the
+// slot. A live SlotLink covers the whole path, hub included, so it wins; the hub
+// answers the shorter question and only speaks up once the link falls back to
+// idle, which is the case where the filament reached the fitting and stopped.
+interface UnitRun {
+  slotId: string;
+  color: string;
+  // The tube below the fitting carries filament out of the unit, so it belongs to
+  // the link. A hub-only run stops at the fitting and leaves that tube grey.
+  exitsUnit: boolean;
+}
+
+function unitRun(block: Extract<RoadBlock, { kind: SlotLayout }>): UnitRun {
+  const live = block.links.find((link) => link.state !== 'idle');
+  // Reuse the down-road test instead of re-deriving one: a link may be non-idle
+  // while the target extruder is still empty, and then the road below stays grey.
+  if (live) return { slotId: live.slot_id, color: live.color, exitsUnit: !!block.exit?.active };
+  if (block.hub.state !== 'idle')
+    return { slotId: block.hub.active_slot_id, color: block.hub.color, exitsUnit: false };
+  return { slotId: '', color: '', exitsUnit: false };
+}
+
+function unitRunStroke(run: UnitRun, slotId: string) {
+  return linkRoadStroke(slotId && run.slotId === slotId ? run.color : undefined);
 }
 
 function paint(stroke: { color: string; width: number }) {
@@ -214,16 +237,12 @@ function appendLite(
   const innerLeft = liteInnerLeft(bodyWidth);
   const exitX = snapRoadX(block.origin + unitExitOffset('lite_cross', bodyWidth));
   const bySlotId = new Map(block.slots.map((slot) => [slot.slot_id, slot]));
-  const loaded = block.slots.find((slot) => {
-    const link = linkOf(block.links, slot);
-    return link && link.state !== 'idle';
-  });
-  const loadedLink = loaded ? linkOf(block.links, loaded) : undefined;
-  const loadedTurnY = loadedLink ? road.bySlot[loadedLink.slot_id] : road.mergeY;
+  const run = unitRun(block);
+  const loadedTurnY = run.slotId ? road.bySlot[run.slotId] : road.mergeY;
 
   for (const { slotId, row, col } of LITE_CELLS) {
     const slot = bySlotId.get(slotId);
-    const stroke = paint(linkRoadStroke(slot ? linkOf(block.links, slot)?.color : undefined));
+    const stroke = paint(unitRunStroke(run, slot ? slotId : ''));
     const centerX = snapRoadX(block.origin + innerLeft + liteSlotCenterX(col));
     const stubY = row === 0 ? road.topStubY : road.bottomStubY;
     const turnY = road.bySlot[slotId];
@@ -255,8 +274,8 @@ function appendLite(
     linejoin: 'miter',
   });
 
-  if (loadedLink?.color) {
-    const stroke = paint(linkRoadStroke(loadedLink.color));
+  if (run.slotId && run.color && run.exitsUnit) {
+    const stroke = paint(unitRunStroke(run, run.slotId));
     polylines.push({
       key: `${block.key}-lite-loaded-trunk`,
       layer: 'slot',
@@ -284,10 +303,8 @@ function appendRow4(
   const barLeft = centers[0];
   const barRight = centers[centers.length - 1];
   const middle = snapRoadX(block.origin + UNIT_BODY.width / 2);
-  const loaded = block.slots.find((slot) => {
-    const link = linkOf(block.links, slot);
-    return link && link.state !== 'idle';
-  });
+  const run = unitRun(block);
+  const loaded = run.slotId ? block.slots.find((slot) => slot.slot_id === run.slotId) : undefined;
   const loadedIndex = loaded ? block.slots.indexOf(loaded) : -1;
   const loadedX = loadedIndex >= 0 && loadedIndex < centers.length ? centers[loadedIndex] : middle;
 
@@ -333,16 +350,17 @@ function appendRow4(
   });
 
   if (loaded && loadedIndex >= 0 && loadedIndex < centers.length) {
-    const stroke = paint(linkRoadStroke(linkOf(block.links, loaded)?.color));
+    const stroke = paint(unitRunStroke(run, loaded.slot_id));
+    const points: Array<[number, number]> = [
+      [loadedX, UNIT_ROAD_TOP],
+      [loadedX, barY],
+      [middle, barY],
+    ];
+    if (run.exitsUnit) points.push([middle, UNIT_BODY.height]);
     polylines.push({
       key: `${block.key}-row4-loaded`,
       layer: 'slot',
-      points: pts([
-        [loadedX, UNIT_ROAD_TOP],
-        [loadedX, barY],
-        [middle, barY],
-        [middle, UNIT_BODY.height],
-      ]),
+      points: pts(points),
       color: stroke.color,
       width: stroke.width,
       linecap: 'round',
@@ -369,7 +387,7 @@ function appendSingle(
   const width = unitWidth('single_ht');
   const x = snapRoadX(block.origin + width / 2);
   const slot = block.slots[0];
-  const stroke = paint(linkRoadStroke(slot ? linkOf(block.links, slot)?.color : undefined));
+  const stroke = paint(unitRunStroke(unitRun(block), slot ? slot.slot_id : ''));
   polylines.push({
     key: `${block.key}-single`,
     layer: 'slot',

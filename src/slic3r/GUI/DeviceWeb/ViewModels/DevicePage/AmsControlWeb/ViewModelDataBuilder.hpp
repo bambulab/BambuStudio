@@ -25,8 +25,12 @@ struct LoadedSlot
 // printers can have more than one, so display code must not treat it as unique.
 LoadedSlot Build(MachineObject* machine_obj, AmsControlWebSchema::format::AmsListData& data);
 
-// True when any extruder throat currently holds this slot (`HasFilamentInExt`
-// plus `GetSlotNow`). Dual-nozzle machines can answer true for two slots.
+// An extruder's slot_now points at this slot: the machine routed it out of the
+// slot into its AMS hub, whether or not the filament arrived at the far end yet.
+bool IsSlotRoutedToHub(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id);
+
+// slot_now plus filament in that extruder's throat: the filament made it all the
+// way through. Dual-nozzle machines can answer true for two slots.
 bool IsSlotLoaded(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id);
 
 const AmsControlWebSchema::format::Tray* FindTray(const AmsControlWebSchema::format::AmsListData& data,

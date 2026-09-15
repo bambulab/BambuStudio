@@ -66,7 +66,7 @@ std::string slot_name_for_tray(MachineObject* machine_obj, const DevAmsTray& tra
 
         const char val_char = static_cast<char>('A' + ams_count);
         if (tray.ams_type == DevAmsType::N3S) return std::string("HT-") + val_char;
-        return val_char + std::to_string(tray_index);
+        return val_char + std::to_string(tray_index + 1);
     }
 
     const int total_extruder_count = machine_obj->GetExtderSystem()->GetTotalExtderCount();
@@ -172,6 +172,17 @@ SchemaFormat::FilaSwitchData build_fila_switch(MachineObject* machine_obj)
 }
 
 } // namespace
+
+bool IsSlotRoutedToHub(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
+{
+    if (!machine_obj || !machine_obj->GetExtderSystem() || ams_id.empty() || slot_id.empty())
+        return false;
+    for (const auto& ext : machine_obj->GetExtderSystem()->GetExtruders()) {
+        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id)
+            return true;
+    }
+    return false;
+}
 
 bool IsSlotLoaded(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
 {

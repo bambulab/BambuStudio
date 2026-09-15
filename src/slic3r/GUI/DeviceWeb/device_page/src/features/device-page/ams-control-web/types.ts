@@ -112,12 +112,32 @@ export interface HumidityView {
   support_drying: boolean;
 }
 
+export type HubKind = 'merge4' | 'cross4' | 'passthrough';
+
+// Slot to hub only. Deliberately not LinkState: that one answers the longer
+// question, so the two are free to gain states independently.
+export type HubLinkState = 'idle' | 'loaded' | 'loading' | 'unloading';
+
+// AMS-internal routing: the fitting that merges this unit's slots into its one
+// output tube. Whether the filament made it past that tube is SlotLink's job.
+export interface UnitHub {
+  kind: HubKind;
+  port_count: number;
+  // Draw the grey fitting block. Only the four-slot hub has visible art.
+  show_body: boolean;
+  // Slot the unit routes right now, empty while idle.
+  active_slot_id: string;
+  state: HubLinkState;
+  color: string;
+}
+
 export interface UnitView {
   ams_id: string;
   ams_type_name: string;
   active: boolean;
   slot_count: number;
   humidity: HumidityView;
+  hub: UnitHub;
   slots: SlotView[];
 }
 

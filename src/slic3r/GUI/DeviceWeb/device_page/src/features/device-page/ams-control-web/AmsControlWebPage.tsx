@@ -93,9 +93,6 @@ export function AmsControlWebPage() {
   const extAmsIds = new Set(amsExt.ext_slots.map((slot) => slot.ams_id));
   const links = lineArea.links;
   const extruders = extrudersLeftToRight(display.extruder_area.extruders);
-  const extruderHasFilament = (extruderId: number) =>
-    extruders.some((extruder) => extruder.id === extruderId && extruder.has_filament);
-
   const handlers: SlotHandlers = {
     onSelect: (slot: SlotView) => { void selectSlot(slot.ams_id, slot.slot_id); },
     onEdit: (slot: SlotView) => { void editSlot(slot.ams_id, slot.slot_id); },
@@ -140,7 +137,7 @@ export function AmsControlWebPage() {
     const mixedBody = isLiteMixedBodyRow(unitsInColumn);
 
     for (const unit of unitsInColumn) {
-      const slotLayout = unitSlotLayout(unit, state.data.ams_units);
+      const slotLayout = unitSlotLayout(unit);
       const mixedCompact = mixedBody && slotLayout === 'lite_cross';
       const blockWidth = unitWidth(slotLayout, mixedCompact);
       const unitLinks = unit.slots
@@ -149,10 +146,7 @@ export function AmsControlWebPage() {
       const carrying = carryingLink(unitLinks);
       const destId = carrying ? roadExtruderId(carrying) : undefined;
       const drawn = destId !== undefined;
-      const passing = !!carrying && destId !== undefined && isFilamentRoadActive(
-        carrying.color,
-        extruderHasFilament(destId),
-      );
+      const passing = !!carrying && destId !== undefined && isFilamentRoadActive(carrying);
       blocks.push({
         key: `unit-${column.pos}-${unit.ams_id}`,
         width: blockWidth,
@@ -160,6 +154,7 @@ export function AmsControlWebPage() {
           key: `unit-${column.pos}-${unit.ams_id}`,
           kind: slotLayout,
           slots: unit.slots,
+          hub: unit.hub,
           links: unitLinks,
           bodyWidth: slotLayout === 'lite_cross' ? blockWidth : undefined,
           exit: drawn
@@ -173,7 +168,6 @@ export function AmsControlWebPage() {
         render: () => (
           <AmsUnitPanel
             unit={unit}
-            links={unitLinks}
             slotLayout={slotLayout}
             bodyWidth={blockWidth}
             onHumidityClick={onHumidityClick}
@@ -190,10 +184,7 @@ export function AmsControlWebPage() {
       const framed = bareSingleExt;
       const extShift = framed ? SINGLE_EXT_ELBOW : 0;
       const panelWidth = extPanelWidth(mixedBody && !framed);
-      const passing = !!link && destId !== undefined && isFilamentRoadActive(
-        link.color,
-        extruderHasFilament(destId),
-      );
+      const passing = !!link && destId !== undefined && isFilamentRoadActive(link);
       blocks.push({
         key: `ext-${slot.ams_id}-${slot.slot_id}`,
         width: framed ? UNIT_BODY.width : panelWidth,

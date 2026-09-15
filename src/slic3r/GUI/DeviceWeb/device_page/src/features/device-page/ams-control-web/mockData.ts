@@ -3,9 +3,13 @@ import type {
   AmsControlWebViewModel,
   AmsListData,
   AmsListTray,
+  AmsListUnit,
+  HubKind,
+  HubLinkState,
   PanelLayout,
   SlotLink,
   SlotView,
+  UnitHub,
 } from './types';
 
 function tray(
@@ -117,6 +121,24 @@ function slotView(
   };
 }
 
+// Mirrors the C++ hub_kind_for_unit / build_unit_hub pair.
+function unitHub(unit: AmsListUnit, loaded: { amsId: string; slotId: string }): UnitHub {
+  const kind: HubKind = unit.is_ams_lite_mixed || unit.ams_type_name === 'AMS_LITE'
+    ? 'cross4'
+    : (unit.ams_type_name === 'N3S' || unit.trays.length === 1 ? 'passthrough' : 'merge4');
+  const routed = unit.trays.find(
+    (item) => item.ams_id === loaded.amsId && item.slot_id === loaded.slotId,
+  );
+  return {
+    kind,
+    port_count: unit.trays.length,
+    show_body: kind === 'merge4',
+    active_slot_id: routed?.slot_id ?? '',
+    state: (routed ? 'loaded' : 'idle') as HubLinkState,
+    color: routed?.color ?? '',
+  };
+}
+
 function slotLink(item: AmsListTray, loaded: { amsId: string; slotId: string }): SlotLink {
   const isLoaded = item.ams_id === loaded.amsId && item.slot_id === loaded.slotId;
   return {
@@ -225,6 +247,7 @@ function buildDisplay(
           left_dry_time: 0,
           support_drying: unit.ams_type_name === 'N3F' || unit.ams_type_name === 'N3S',
         },
+        hub: unitHub(unit, loaded),
         slots: unit.trays.map((item) => slotView(item, false, selected, loaded)),
       })),
       ext_slots: mockData.ext_slots.map((item) => slotView(item, true, selected, loaded)),

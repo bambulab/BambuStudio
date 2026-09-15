@@ -203,8 +203,11 @@ export function isPassingRoad(state: string) {
   return state === 'loading' || state === 'unloading';
 }
 
-export function isFilamentRoadActive(color: string, extruderHasFilament: boolean) {
-  return extruderHasFilament && !!color;
+// SlotLink.state already says whether the filament is on the road: 'loaded' once it
+// reached the extruder, 'loading' / 'unloading' while it is still in transit. Do not
+// re-derive this from the extruder's filament flag, which stays false mid-load.
+export function isFilamentRoadActive(link: { state: string; color: string }) {
+  return link.state !== 'idle' && !!link.color;
 }
 
 // Switcher IN_A is the left / deputy nozzle (id 1), IN_B the right / main (id 0).

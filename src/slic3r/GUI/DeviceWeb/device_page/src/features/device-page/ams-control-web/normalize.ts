@@ -12,6 +12,8 @@ import type {
   ExtruderState,
   ExtruderView,
   FilamentLineArea,
+  HubKind,
+  HubLinkState,
   HumidityDisplayType,
   HumidityView,
   LayoutStyle,
@@ -28,6 +30,7 @@ import type {
   SlotState,
   SlotView,
   SwitcherArea,
+  UnitHub,
   UnitView,
 } from './types';
 
@@ -107,6 +110,14 @@ function asSlotState(value: unknown): SlotState {
 
 function asLinkState(value: unknown): LinkState {
   return value === 'loaded' || value === 'loading' || value === 'unloading' ? value : 'idle';
+}
+
+function asHubLinkState(value: unknown): HubLinkState {
+  return value === 'loaded' || value === 'loading' || value === 'unloading' ? value : 'idle';
+}
+
+function asHubKind(value: unknown): HubKind {
+  return value === 'cross4' || value === 'passthrough' ? value : 'merge4';
 }
 
 function asLayoutStyle(value: unknown): LayoutStyle {
@@ -237,6 +248,17 @@ function normalizeHumidityView(raw: Partial<HumidityView> | undefined): Humidity
   };
 }
 
+function normalizeUnitHub(raw: Partial<UnitHub> | undefined): UnitHub {
+  return {
+    kind: asHubKind(raw?.kind),
+    port_count: asNumber(raw?.port_count, 0),
+    show_body: !!raw?.show_body,
+    active_slot_id: asString(raw?.active_slot_id),
+    state: asHubLinkState(raw?.state),
+    color: asString(raw?.color),
+  };
+}
+
 function normalizeUnitView(raw: unknown): UnitView {
   const item = (raw ?? {}) as Partial<UnitView>;
   return {
@@ -245,6 +267,7 @@ function normalizeUnitView(raw: unknown): UnitView {
     active: !!item.active,
     slot_count: asNumber(item.slot_count, 0),
     humidity: normalizeHumidityView(item.humidity),
+    hub: normalizeUnitHub(item.hub),
     slots: asList(item.slots, normalizeSlotView),
   };
 }

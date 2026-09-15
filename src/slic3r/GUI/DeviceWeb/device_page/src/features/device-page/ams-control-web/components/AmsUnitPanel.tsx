@@ -21,7 +21,7 @@ import {
   unitWidth,
 } from '../geometry';
 import type { SlotLayout } from '../geometry';
-import type { SlotLink, SlotView, UnitView } from '../types';
+import type { SlotView, UnitView } from '../types';
 import { HumidityBar } from './HumidityBar';
 import { SlotCard } from './SlotCard';
 import { SlotRefresh } from './SlotRefresh';
@@ -36,13 +36,12 @@ export interface SlotHandlers {
 
 interface UnitPanelProps extends SlotHandlers {
   unit: UnitView;
-  links: SlotLink[];
   slotLayout: SlotLayout;
   onHumidityClick?: (unit: UnitView) => void;
   bodyWidth?: number;
 }
 
-type UnitBodyProps = Omit<UnitPanelProps, 'links' | 'slotLayout'>;
+type UnitBodyProps = Omit<UnitPanelProps, 'slotLayout'>;
 
 function SlotStack({
   slot,
@@ -175,7 +174,7 @@ function LiteCrossUnit({ unit, bodyWidth = UNIT_BODY.width, ...handlers }: UnitB
 }
 
 export function AmsUnitPanel(props: UnitPanelProps) {
-  const { links: _links, slotLayout, ...rest } = props;
+  const { slotLayout, ...rest } = props;
   switch (slotLayout) {
     case 'lite_cross':
       return <LiteCrossUnit {...rest} />;
