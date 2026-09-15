@@ -74,6 +74,13 @@ struct SurfaceFillParams
     float           infill_shift_step          = 0;// param for cross zag
     float           infill_rotate_step         = 0; // param for zig zag to get cross texture
     bool            symmetric_infill_y_axis = false;
+    bool            conformal_infill        = false;
+    ConformalStagger conformal_stagger      = ConformalStagger::None;
+    int             conformal_link_keep_layers = 1;
+    int             conformal_link_flip_layers = 0;
+    ConformalPole    conformal_pole         = ConformalPole::Layer;
+    int             conformal_ray_count    = 0;
+    float           conformal_hub_radius   = 0.f;
 
     // Params for 2Dlattice infill angles
     float lattice_angle_1 = -45.0f;
@@ -110,6 +117,13 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(infill_shift_step);
 		RETURN_COMPARE_NON_EQUAL(infill_rotate_step);
 		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
+		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, conformal_infill);
+		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, conformal_stagger);
+		RETURN_COMPARE_NON_EQUAL(conformal_link_keep_layers);
+		RETURN_COMPARE_NON_EQUAL(conformal_link_flip_layers);
+		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, conformal_pole);
+		RETURN_COMPARE_NON_EQUAL(conformal_ray_count);
+		RETURN_COMPARE_NON_EQUAL(conformal_hub_radius);
         RETURN_COMPARE_NON_EQUAL(lattice_angle_1);
         RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
         RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skin_pattern);
@@ -140,6 +154,13 @@ struct SurfaceFillParams
 				this->infill_shift_step             == rhs.infill_shift_step &&
 				this->infill_rotate_step            == rhs.infill_rotate_step &&
 				this->symmetric_infill_y_axis	== rhs.symmetric_infill_y_axis &&
+				this->conformal_infill			== rhs.conformal_infill &&
+				this->conformal_stagger			== rhs.conformal_stagger &&
+				this->conformal_link_keep_layers	== rhs.conformal_link_keep_layers &&
+				this->conformal_link_flip_layers	== rhs.conformal_link_flip_layers &&
+				this->conformal_pole			== rhs.conformal_pole &&
+				this->conformal_ray_count		== rhs.conformal_ray_count &&
+				this->conformal_hub_radius		== rhs.conformal_hub_radius &&
 			    this->lattice_angle_1 == rhs.lattice_angle_1 &&
                 this->lattice_angle_2 == rhs.lattice_angle_2&&
 				this-> skin_pattern     == rhs.skin_pattern &&
@@ -209,6 +230,17 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 		        if (layer.id() == 0)
 		            params.initial_layer_flow_ratio = region_config.initial_layer_flow_ratio.value;
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
+		        params.conformal_infill = region_config.conformal_infill && !surface.is_solid();
+		        params.conformal_stagger = params.conformal_infill ? region_config.conformal_stagger.value : ConformalStagger::None;
+		        if (params.conformal_stagger == ConformalStagger::HalfStep)
+		            params.conformal_stagger = ConformalStagger::Alternate;
+		        else if (params.conformal_stagger == ConformalStagger::Orthogonal)
+		            params.conformal_stagger = ConformalStagger::None;
+		        params.conformal_link_keep_layers = params.conformal_infill ? region_config.conformal_link_keep_layers.value : 1;
+		        params.conformal_link_flip_layers = params.conformal_infill ? region_config.conformal_link_flip_layers.value : 0;
+		        params.conformal_pole    = params.conformal_infill ? region_config.conformal_pole.value : ConformalPole::Layer;
+		        params.conformal_ray_count = params.conformal_infill ? region_config.conformal_ray_count.value : 0;
+		        params.conformal_hub_radius = params.conformal_infill ? float(region_config.conformal_hub_radius.value) : 0.f;
 		        params.density       = float(region_config.sparse_infill_density);
 				params.multiline	 = int(region_config.fill_multiline);
                 if (params.pattern == ipLockedZag) {
@@ -628,6 +660,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         std::unique_ptr<Fill> f = std::unique_ptr<Fill>(Fill::new_from_type(surface_fill.params.pattern));
         f->set_bounding_box(bbox);
         f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
+        f->lock_region_id = surface_fill.region_id;
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
         f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
@@ -730,17 +763,23 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.extrusion_role = surface_fill.params.extrusion_role;
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
+		params.conformal = surface_fill.params.conformal_infill;
+		params.conformal_stagger = surface_fill.params.conformal_stagger;
+		params.conformal_link_keep_layers = surface_fill.params.conformal_link_keep_layers;
+		params.conformal_link_flip_layers = surface_fill.params.conformal_link_flip_layers;
+		params.conformal_pole = surface_fill.params.conformal_pole;
+		params.conformal_ray_count = surface_fill.params.conformal_ray_count;
+		params.conformal_hub_radius = surface_fill.params.conformal_hub_radius;
 		if( surface_fill.params.pattern == ipLockedZag ) {
 			params.locked_zag = true;
             f->set_lock_region_param(lock_param);
             f->set_skin_and_skeleton_pattern(surface_fill.params.skin_pattern, surface_fill.params.skeleton_pattern);
 		}
         if (surface_fill.params.pattern == ipCrossZag || surface_fill.params.pattern == ipLockedZag) {
-            if (f->layer_id % 2 == 0) {
+            if (f->layer_id % 2 == 0)
                 params.horiz_move -= surface_fill.params.infill_shift_step * (f->layer_id / 2);
-            } else {
+            else
                 params.horiz_move += surface_fill.params.infill_shift_step * (f->layer_id / 2);
-            }
 
             params.symmetric_infill_y_axis = surface_fill.params.symmetric_infill_y_axis;
 
@@ -834,10 +873,10 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
 		std::unique_ptr<Fill> f = std::unique_ptr<Fill>(Fill::new_from_type(surface_fill.params.pattern));
 		f->set_bounding_box(bbox);
 		f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
+		f->lock_region_id = surface_fill.region_id;
 		f->z = this->print_z;
 		f->angle = surface_fill.params.angle;
 		f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
-
 
 		if (surface_fill.params.pattern == ipLightning)
 			dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
@@ -871,6 +910,13 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
 		params.resolution = resolution;
 		params.use_arachne = false;
 		params.layer_height = layerm.layer()->height;
+		params.conformal = surface_fill.params.conformal_infill;
+		params.conformal_stagger = surface_fill.params.conformal_stagger;
+		params.conformal_link_keep_layers = surface_fill.params.conformal_link_keep_layers;
+		params.conformal_link_flip_layers = surface_fill.params.conformal_link_flip_layers;
+		params.conformal_pole = surface_fill.params.conformal_pole;
+		params.conformal_ray_count = surface_fill.params.conformal_ray_count;
+		params.conformal_hub_radius = surface_fill.params.conformal_hub_radius;
 
 		// Pass pattern-specific parameters so that anchoring lines match the actual infill.
 		if (surface_fill.params.pattern == ip2DLattice) {

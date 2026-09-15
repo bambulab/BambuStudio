@@ -93,6 +93,21 @@ enum InfillPattern : int {
     ipCount,
 };
 
+enum class ConformalStagger {
+    None,
+    HalfStep,
+    Orthogonal,
+    Alternate,
+    Count,
+};
+
+enum class ConformalPole {
+    Layer,
+    Axis,
+    Bezier,
+    Count,
+};
+
 enum EnsureVerticalThicknessLevel{
     evtDisabled,
     evtPartial,
@@ -534,6 +549,8 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NoiseType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ConformalStagger)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ConformalPole)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
@@ -1100,6 +1117,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, infill_lock_depth))
     ((ConfigOptionFloat, skin_infill_depth))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
+    ((ConfigOptionBool, conformal_infill))
+    ((ConfigOptionEnum<ConformalStagger>, conformal_stagger))
+    ((ConfigOptionInt, conformal_link_keep_layers))
+    ((ConfigOptionInt, conformal_link_flip_layers))
+    ((ConfigOptionEnum<ConformalPole>, conformal_pole))
+    ((ConfigOptionInt, conformal_ray_count))
+    ((ConfigOptionFloat, conformal_hub_radius))
     ((ConfigOptionEnum<InfillPattern>, locked_skin_infill_pattern))
     ((ConfigOptionEnum<InfillPattern>, locked_skeleton_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>, fuzzy_skin))
@@ -1137,6 +1161,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, inner_wall_speed))
     // Total number of perimeters.
     ((ConfigOptionInt, wall_loops))
+    // Modifier-only: apply this modifier for m layers, then skip it for n layers.
+    ((ConfigOptionBool, periodic_modifier))
+    ((ConfigOptionInt, periodic_modifier_skip_layers))
+    ((ConfigOptionInt, periodic_modifier_apply_layers))
+    // Modifier-only: do not apply this volume's internal infill overrides.
+    ((ConfigOptionBool, modifier_ignore_infill))
     ((ConfigOptionFloat, minimum_sparse_infill_area))
     ((ConfigOptionInt, solid_infill_filament))
     ((ConfigOptionFloat, internal_solid_infill_line_width))
@@ -1189,6 +1219,28 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 embedding_wall_into_infill))
     ((ConfigOptionBool,                 alternate_extra_wall))
 )
+
+// Effective wall loop count for a layer. Spiral vase ignores alternate_extra_wall.
+inline int effective_wall_loops(const PrintRegionConfig &cfg, int layer_id, bool spiral_vase)
+{
+    int loops = cfg.wall_loops.value;
+    if (cfg.alternate_extra_wall.value && (layer_id % 2 == 1) && !spiral_vase)
+        ++loops;
+    return loops;
+}
+
+// Whether a periodic modifier should overlay this layer. Disabled modifiers are always "active"
+// so callers can write: cfg.periodic_modifier && !periodic_modifier_active(cfg, layer_id).
+inline bool periodic_modifier_active(const PrintRegionConfig &cfg, int layer_id)
+{
+    if (!cfg.periodic_modifier.value || cfg.periodic_modifier_apply_layers.value < 1 || layer_id < 0)
+        return true;
+    const int m = cfg.periodic_modifier_apply_layers.value;
+    int n = cfg.periodic_modifier_skip_layers.value;
+    if (n < 0)
+        n = 0;
+    return (layer_id % (m + n)) < m;
+}
 
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,

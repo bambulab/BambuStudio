@@ -253,6 +253,21 @@ static t_config_enum_values s_keys_map_IroningType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(IroningType)
 
+static t_config_enum_values s_keys_map_ConformalStagger {
+    { "none",       int(ConformalStagger::None) },
+    { "halfstep",   int(ConformalStagger::HalfStep) },
+    { "orthogonal", int(ConformalStagger::Orthogonal) },
+    { "alternate",  int(ConformalStagger::Alternate) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ConformalStagger)
+
+static t_config_enum_values s_keys_map_ConformalPole {
+    { "layer",  int(ConformalPole::Layer) },
+    { "axis",   int(ConformalPole::Axis) },
+    { "bezier", int(ConformalPole::Bezier) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ConformalPole)
+
 //BBS:
 static t_config_enum_values s_keys_map_TopOneWallType {
     {"not apply", int(TopOneWallType::None)},
@@ -3916,6 +3931,88 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
+    def           = this->add("conformal_infill", coBool);
+    def->label    = L("Conformal infill");
+    def->category = L("Strength");
+    def->tooltip  = L("Make sparse infill follow each layer's outline instead of using one set of parallel lines. "
+                      "On elongated or curved shapes, lines radiate from a center. "
+                      "Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("conformal_stagger", coEnum);
+    def->label    = L("Layer stagger");
+    def->category = L("Strength");
+    def->tooltip  = L("How neighboring layers are offset. Off stacks the same layout. "
+                      "Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding.");
+    def->enum_keys_map = &ConfigOptionEnum<ConformalStagger>::get_enum_values();
+    def->enum_values.push_back("none");
+    def->enum_values.push_back("alternate");
+    def->enum_labels.push_back(L("Off"));
+    def->enum_labels.push_back(L("Alternate"));
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<ConformalStagger>(ConformalStagger::None));
+
+    def           = this->add("conformal_link_keep_layers", coInt);
+    def->label    = L("Forward layers");
+    def->full_label = L("Conformal forward layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Number of consecutive layers that keep the forward zigzag. "
+                      "Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer.");
+    def->sidetext = L("layers");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def           = this->add("conformal_link_flip_layers", coInt);
+    def->label    = L("Reverse layers");
+    def->full_label = L("Conformal reverse layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Number of consecutive layers that reverse the zigzag (start from the opposite rim). "
+                      "0 disables reversing. Forward 1 and Reverse 1 reverses every other layer.");
+    def->sidetext = L("layers");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
+    def           = this->add("conformal_pole", coEnum);
+    def->label    = L("Radial center");
+    def->category = L("Strength");
+    def->tooltip  = L("Where the radial center comes from. Each layer picks a center on that slice. "
+                      "Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers.");
+    def->enum_keys_map = &ConfigOptionEnum<ConformalPole>::get_enum_values();
+    def->enum_values.push_back("layer");
+    def->enum_values.push_back("axis");
+    def->enum_values.push_back("bezier");
+    def->enum_labels.push_back(L("Each layer"));
+    def->enum_labels.push_back(L("Axis"));
+    def->enum_labels.push_back(L("Smooth curve"));
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<ConformalPole>(ConformalPole::Layer));
+
+    def           = this->add("conformal_ray_count", coInt);
+    def->label    = L("Radial line count");
+    def->category = L("Strength");
+    def->tooltip  = L("How many radial lines around the center. 0 uses the count from sparse infill density. "
+                      "A positive value is the radial line count, rounded up to an even number of at least 4.");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
+    def           = this->add("conformal_hub_radius", coFloat);
+    def->label    = L("Center region radius");
+    def->category = L("Strength");
+    def->tooltip  = L("Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. "
+                      "0 chooses the radius automatically. A positive value is in millimeters.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 200;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def           = this->add("symmetric_infill_y_axis", coBool);
     def->label    = L("Symmetric infill y axis");
     def->category = L("Strength");
@@ -4683,6 +4780,39 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip  = L("Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall.");
     def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("periodic_modifier", coBool);
+    def->label = L("Periodic modifier");
+    def->category = L("Others");
+    def->tooltip = L("Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there.");
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("periodic_modifier_skip_layers", coInt);
+    def->label = L("Skip for");
+    def->full_label = L("Periodic modifier skip layers");
+    def->category = L("Others");
+    def->tooltip = L("Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer.");
+    def->sidetext = L("layers");
+    def->min = 0;
+    def->max = 1000;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("periodic_modifier_apply_layers", coInt);
+    def->label = L("Apply for");
+    def->full_label = L("Periodic modifier apply layers");
+    def->category = L("Others");
+    def->tooltip = L("Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for.");
+    def->sidetext = L("layers");
+    def->min = 1;
+    def->max = 1000;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("modifier_ignore_infill", coBool);
+    def->label = L("Ignore infill settings");
+    def->full_label = L("Modifier ignore infill settings");
+    def->category = L("Others");
+    def->tooltip = L("Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("post_process", coStrings);
@@ -9553,6 +9683,21 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     // --perimeters
     if (cfg.wall_loops.value < 0) {
         error_message.emplace("wall_loops", L("invalid value ") + std::to_string(cfg.wall_loops.value));
+    }
+    if (cfg.periodic_modifier_skip_layers.value < 0) {
+        error_message.emplace("periodic_modifier_skip_layers", L("invalid value ") + std::to_string(cfg.periodic_modifier_skip_layers.value));
+    }
+    if (cfg.periodic_modifier_apply_layers.value < 1) {
+        error_message.emplace("periodic_modifier_apply_layers", L("invalid value ") + std::to_string(cfg.periodic_modifier_apply_layers.value));
+    }
+    if (cfg.conformal_link_keep_layers.value < 0) {
+        error_message.emplace("conformal_link_keep_layers", L("invalid value ") + std::to_string(cfg.conformal_link_keep_layers.value));
+    }
+    if (cfg.conformal_link_flip_layers.value < 0) {
+        error_message.emplace("conformal_link_flip_layers", L("invalid value ") + std::to_string(cfg.conformal_link_flip_layers.value));
+    }
+    if (cfg.conformal_ray_count.value < 0) {
+        error_message.emplace("conformal_ray_count", L("invalid value ") + std::to_string(cfg.conformal_ray_count.value));
     }
 
     // --solid-layers

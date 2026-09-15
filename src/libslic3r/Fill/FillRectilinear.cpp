@@ -19,6 +19,7 @@
 #include "../VariableWidth.hpp"
 
 #include "FillRectilinear.hpp"
+#include "FillConformal.hpp"
 
 // #define SLIC3R_DEBUG
 // #define INFILL_DEBUG_OUTPUT
@@ -3073,6 +3074,12 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
 Polylines FillRectilinear::fill_surface(const Surface *surface, const FillParams &params)
 {
+    if (params.conformal) {
+        Polylines conformal_out;
+        if (FillConformal::fill_surface(*this, surface, params, conformal_out))
+            return conformal_out;
+    }
+
     Polylines polylines_out;
     if (params.full_infill() || params.multiline == 1 || params.pattern == ipCrossZag || params.pattern == ipZigZag || params.pattern == ipLockedZag)
     {
@@ -3854,6 +3861,7 @@ Polylines FillLockedZag::generate_skeleton_pattern(FillParams params, Surface su
 
     if (this->skeleton_pattern!= ipCrossZag)
         params.horiz_move = 0;
+    params.conformal = false;
     //union exps
     auto it_depth = this->lock_param.locked_depths_params.begin();
     while (it_depth != this->lock_param.locked_depths_params.end()) {

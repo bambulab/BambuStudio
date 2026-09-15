@@ -1008,7 +1008,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string object_path;
             std::string zip_path;
             _BBS_3MF_Importer *top_importer{nullptr};
-            XML_Parser object_xml_parser;
+            XML_Parser object_xml_parser { nullptr };
             bool obj_parse_error { false };
             std::string obj_parse_error_message;
 

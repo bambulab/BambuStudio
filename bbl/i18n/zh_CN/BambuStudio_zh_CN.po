@@ -4839,8 +4839,8 @@ msgstr ""
 "是 - 应用修改并保持交替额外墙层启用\n"
 "否 - 保持当前设置并启用交替额外墙层"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即拍，Z方向墙速度平滑不启用且交替额外墙层关闭。"
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
+msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即拍，Z方向墙速度平滑不启用，交替额外墙层关闭且按层周期套用关闭。"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "但是I3结构的机器将不会生成延时视频。"
@@ -15299,6 +15299,114 @@ msgstr "交替额外墙层"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "在奇数层额外增加一圈墙，以增强层间结合与零件强度，同时避免全程使用额外墙层所带来的耗材与时间成本。"
+
+msgid "Periodic modifier"
+msgstr "按层周期套用"
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr "按「连续套用 / 连续跳过」的周期套用此修改器。跳过的层完全不套用，等同于该层没有这颗修改器。"
+
+msgid "Skip for"
+msgstr "连续跳过"
+
+msgid "Periodic modifier skip layers"
+msgstr "按层周期套用：连续跳过层数"
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr "连续不套用此修改器的层数。0 表示每层都套用。"
+
+msgid "Apply for"
+msgstr "连续套用"
+
+msgid "Periodic modifier apply layers"
+msgstr "按层周期套用：连续套用层数"
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr "每个周期内连续套用此修改器的层数。周期从第 0 层开始：先连续套用，再连续跳过。"
+
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr "按层周期套用与旋转花瓶模式不兼容。若要启用按层周期套用，建议进行以下调整："
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+"是否自动修改这些设置？\n"
+"是 - 应用修改并保持按层周期套用启用\n"
+"否 - 不使用按层周期套用"
+
+msgid "Modifier cycle"
+msgstr "修改器周期"
+
+msgid "Conformal infill"
+msgstr "贴形填充"
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr "让稀疏填充贴着每层轮廓走，而不是一整片平行直线。细长或弯曲外形上，线条从中心向外呈径向。适用于 Zig Zag、Cross Zag、直线、对齐直线，以及 Locked Zag 的皮肤。"
+
+msgid "Layer stagger"
+msgstr "层间错开"
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr "相邻层填充如何错开。关闭时各层走线对齐。交替时走线方向不变，但连接到对侧相邻线条，有利于层间结合。"
+
+msgid "Alternate"
+msgstr "交替"
+
+msgid "Forward layers"
+msgstr "正向层数"
+
+msgid "Conformal forward layers"
+msgstr "贴形填充：正向层数"
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr "连续使用正向锯齿的层数。与反向层数组成周期：先正向 N 层，再反向 M 层。0 表示从第一层就开始反向。"
+
+msgid "Reverse layers"
+msgstr "反向层数"
+
+msgid "Conformal reverse layers"
+msgstr "贴形填充：反向层数"
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr "反向锯齿的连续层数（从对侧外圈起）。0 表示不反向。正向 1、反向 1 为隔层反向。"
+
+msgid "Radial center"
+msgstr "径向中心"
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr "径向中心从哪来。逐层：每层单独取中心。轴线：各层中心拟合成一条三维直线。平滑曲线：拟合曲线，减少中心跳层。"
+
+msgid "Each layer"
+msgstr "逐层"
+
+msgid "Radial line count"
+msgstr "径向线条数"
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr "绕中心的径向线条数。0 按稀疏填充密度自动算。大于 0 为强制条数（向上取整为不少于 4 的偶数）。"
+
+msgid "Center region radius"
+msgstr "中心直线区半径"
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr "中心区域半径：圆内使用普通直线填充，圆外保持径向贴形。0 为自动半径；大于 0 为毫米值。"
+
+msgid "Axis"
+msgstr "轴线"
+
+msgid "Smooth curve"
+msgstr "平滑曲线"
+
+msgid "Ignore infill settings"
+msgstr "忽略填充设置"
+
+msgid "Modifier ignore infill settings"
+msgstr "修改器忽略填充设置"
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
+msgstr "不套用此修改器的填充设置（图案、密度、贴形填充及相关选项）。墙和其他覆盖仍生效，填充沿用父区域。"
 
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"

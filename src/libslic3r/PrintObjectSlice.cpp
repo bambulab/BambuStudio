@@ -394,8 +394,11 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                 RegionSlice &parent_slice = temp_slices[region.parent];
                                 RegionSlice &this_slice   = temp_slices[idx_region];
                                 ExPolygons   source       = std::move(this_slice.expolygons);
-                                if (parent_slice.expolygons.empty()) {
-                                    this_slice  .expolygons.clear();
+                                const bool skip_periodic = region.region
+                                    && region.region->config().periodic_modifier.value
+                                    && !periodic_modifier_active(region.region->config(), int(z_idx));
+                                if (skip_periodic || parent_slice.expolygons.empty()) {
+                                    this_slice.expolygons.clear();
                                 } else {
                                     this_slice  .expolygons = intersection_ex(parent_slice.expolygons, source);
                                     parent_slice.expolygons = diff_ex        (parent_slice.expolygons, source);

@@ -3332,6 +3332,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("fill_multiline");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("conformal_infill", "", -1, true);
+        optgroup->append_single_option_line("conformal_stagger", "", -1, true);
+        optgroup->append_single_option_line("conformal_link_keep_layers", "", -1, true);
+        optgroup->append_single_option_line("conformal_link_flip_layers", "", -1, true);
+        optgroup->append_single_option_line("conformal_pole", "", -1, true);
+        optgroup->append_single_option_line("conformal_ray_count", "", -1, true);
+        optgroup->append_single_option_line("conformal_hub_radius", "", -1, true);
         optgroup->append_single_option_line("locked_skin_infill_pattern", "fill-patterns#infill types and their properties of sparse", -1, true);
         optgroup->append_single_option_line("skin_infill_density", "", -1, true);
         optgroup->append_single_option_line("locked_skeleton_infill_pattern", "fill-patterns#infill types and their properties of sparse", -1, true);
@@ -4321,6 +4328,50 @@ TabPrintPart::TabPrintPart(ParamsPanel* parent) :
     TabPrintModel(parent, PrintRegionConfig().keys())
 {
     m_parent_tab = wxGetApp().get_model_tab();
+}
+
+void TabPrintPart::build()
+{
+    TabPrintModel::build();
+    PageShp others;
+    for (auto &page : m_pages) {
+        if (page->title() == L("Others")) {
+            others = page;
+            break;
+        }
+    }
+    if (!others)
+        others = add_options_page(L("Others"), "advanced");
+    auto optgroup = others->new_optgroup(L("Modifier cycle"), L"param_wall");
+    optgroup->have_sys_config = [this] {
+        m_back_to_sys = true;
+        return true;
+    };
+    optgroup->append_single_option_line("periodic_modifier");
+    optgroup->append_single_option_line("periodic_modifier_skip_layers");
+    optgroup->append_single_option_line("periodic_modifier_apply_layers");
+    optgroup->append_single_option_line("modifier_ignore_infill");
+}
+
+void TabPrintPart::toggle_options()
+{
+    TabPrint::toggle_options();
+    bool is_modifier = false;
+    if (!m_object_configs.empty()) {
+        is_modifier = true;
+        for (auto &item : m_object_configs) {
+            auto *vol = dynamic_cast<ModelVolume *>(item.first);
+            if (!vol || !vol->is_modifier()) {
+                is_modifier = false;
+                break;
+            }
+        }
+    }
+    toggle_line("periodic_modifier", is_modifier);
+    const bool show_nm = is_modifier && m_config->has("periodic_modifier") && m_config->opt_bool("periodic_modifier");
+    toggle_line("periodic_modifier_skip_layers", show_nm);
+    toggle_line("periodic_modifier_apply_layers", show_nm);
+    toggle_line("modifier_ignore_infill", is_modifier);
 }
 
 void TabPrintPart::notify_changed(ObjectBase * object)
