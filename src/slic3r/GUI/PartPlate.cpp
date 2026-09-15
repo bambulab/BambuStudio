@@ -2102,7 +2102,7 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
 bool PartPlate::check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg)
 {
     error_msg.clear();
-    std::vector<NozzleVolumeType> tpu_nozzle_volume_type = {nvtTPUHighFlow};
+    std::vector<NozzleVolumeType> tpu_nozzle_volume_type = {nvtTPUHighFlow, nvtTPU285};
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
 

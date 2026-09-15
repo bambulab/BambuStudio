@@ -798,6 +798,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                     case NozzleVolumeType::nvtStandard:     nozzle_id_str += _L("Standard Flow"); break;
                     case NozzleVolumeType::nvtHighFlow:     nozzle_id_str += _L("High Flow"); break;
                     case NozzleVolumeType::nvtTPUHighFlow:  nozzle_id_str += _L("TPU High Flow"); break;
+                    case NozzleVolumeType::nvtTPU285:       nozzle_id_str += _L("TPU285"); break;
                     default: break;
                 }
                 nozzle_id_value->SetLabel(nozzle_id_str);

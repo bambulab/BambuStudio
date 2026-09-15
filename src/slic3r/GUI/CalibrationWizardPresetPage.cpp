@@ -37,7 +37,7 @@ namespace Slic3r { namespace GUI {
 static int PA_LINE = 0;
 static int PA_PATTERN = 1;
 
-static std::vector<NozzleVolumeType> volumes = { nvtStandard, nvtHighFlow, nvtTPUHighFlow, nvtHybrid};
+static std::vector<NozzleVolumeType> volumes = { nvtStandard, nvtHighFlow, nvtTPUHighFlow, nvtTPU285, nvtHybrid};
 
 static DynamicPrintConfig get_empty_dynamic_print_config() {
     DynamicPrintConfig empty_config;

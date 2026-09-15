@@ -394,6 +394,10 @@ static wxString _generate_nozzle_id(NozzleVolumeType nozzle_type, const std::str
         nozzle_id += "U";
         break;
     }
+    case NozzleVolumeType::nvtTPU285: {
+        nozzle_id += "T";
+        break;
+    }
     case NozzleVolumeType::nvtE3DHighFlow: {
         nozzle_id += "B";
         break;
