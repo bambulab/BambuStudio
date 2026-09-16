@@ -42,7 +42,7 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
 
         std::string sn_number;
         if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01")
-            sn_number = tray.uuid;
+            sn_number = tray.tag_uid;
 
         wxString color_name;
         if (!tray.setting_id.empty()) {
@@ -98,7 +98,7 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
     dlg.m_is_third = !DevFilaSystem::IsBBL_Filament(tray.tag_uid);
 
     if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01") {
-        sn_number = tray.uuid;
+        sn_number = tray.tag_uid;
     }
     if (!dlg.m_is_third) {
         filament = tray.sub_brands;

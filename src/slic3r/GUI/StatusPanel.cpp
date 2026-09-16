@@ -5643,7 +5643,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 
             const bool is_third = DevFilaSystem::IsBBL_Filament(vt_tray->tag_uid) ? false : true;
             if (vt_tray->tag_uid.size() == 16 && vt_tray->tag_uid.substr(12, 2) == "01") {
-                sn_number = vt_tray->uuid;
+                sn_number = vt_tray->tag_uid;
             }
             if (!is_third) {
                 filament  = vt_tray->sub_brands;
