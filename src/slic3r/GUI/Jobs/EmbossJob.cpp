@@ -1391,17 +1391,46 @@ void calc_position_points(std::vector<Vec3d> &position_points, std::vector<doubl
     }
 }
 
-// Every text line is laid out separately and centered on the text origin along pos_dir.
+// Distance every text line has to move along its base line to follow the horizontal alignment. A line
+// is laid out centered on the text handle, which is the center align. Left align puts the handle on the
+// left edge of every line, right align on the right edge, so the handle is the pivot of the text.
+std::vector<double> calc_line_align_shifts(const std::vector<double> &text_lengths, const LineRanges &lines, float text_gap, int h_align)
+{
+    std::vector<double> shifts(lines.size(), 0.);
+    if (h_align == (int) FontProp::HorizontalAlign::center)
+        return shifts;
+
+    const double direction = (h_align == (int) FontProp::HorizontalAlign::left) ? 0.5 : -0.5;
+    for (size_t i = 0; i < lines.size(); ++i) {
+        const auto &[first, last] = lines[i];
+        if (first >= last || last > text_lengths.size())
+            continue;
+        double width = text_gap * (last - first - 1);
+        for (size_t j = first; j < last; ++j) // text_lengths hold half of the glyph advance
+            width += 2. * text_lengths[j];
+        shifts[i] = direction * width;
+    }
+    return shifts;
+}
+
+// Every text line is laid out separately and centered on the text origin along pos_dir, then moved by
+// the horizontal alignment of the style.
 // Line Y offsets are baked in glyph shapes by text2vshapes, '\n' glyphs stay at origin (empty mesh).
-void calc_position_points_by_lines(std::vector<Vec3d> &position_points, const std::vector<double> &text_lengths, const LineRanges &lines, float text_gap, const Vec3d &pos_dir)
+void calc_position_points_by_lines(
+    std::vector<Vec3d> &position_points, const std::vector<double> &text_lengths, const LineRanges &lines, float text_gap, const Vec3d &pos_dir, int h_align)
 {
     position_points.assign(text_lengths.size(), Vec3d::Zero());
-    for (const auto &[first, last] : lines) {
+    const std::vector<double> align_shifts = calc_line_align_shifts(text_lengths, lines, text_gap, h_align);
+    for (size_t line_i = 0; line_i < lines.size(); ++line_i) {
+        const auto &[first, last] = lines[line_i];
         if (first >= last || last > text_lengths.size())
             continue;
         std::vector<double> line_lengths(text_lengths.begin() + first, text_lengths.begin() + last);
         std::vector<Vec3d>  line_points;
         calc_position_points(line_points, line_lengths, text_gap, pos_dir);
+        const Vec3d align_offset = align_shifts[line_i] * pos_dir.normalized();
+        for (Vec3d &point : line_points)
+            point += align_offset;
         std::copy(line_points.begin(), line_points.end(), position_points.begin() + first);
     }
 }
@@ -1494,7 +1523,8 @@ bool GenerateTextJob::update_text_positions(InputInfo &input_info)
         auto  mouse_normal_local = inv_ * mouse_normal_world;
         mouse_normal_local.normalize();
 
-        calc_position_points_by_lines(input_info.m_position_points, text_lengths, get_line_ranges(input_info.m_text_shape.shapes_with_ids), input_info.m_text_gap, pos_dir);
+        calc_position_points_by_lines(input_info.m_position_points, text_lengths, get_line_ranges(input_info.m_text_shape.shapes_with_ids), input_info.m_text_gap,
+                                      pos_dir, input_info.m_align_type.first);
         input_info.m_normal_points.assign(input_info.m_position_points.size(), mouse_normal_local);
         return true;
     }
@@ -1556,7 +1586,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     // text handle shifted by the line gap) projected on the polygon: the surface curves away from the
     // handle, so the anchor itself is off the slice contour.
     // Returns the key point the line was centered on.
-    auto place_line_on_polygon = [&](Slic3r::Polygon_3D &new_polygon, int index, const Vec3d &line_anchor, std::vector<double> &text_lengths,
+    auto place_line_on_polygon = [&](Slic3r::Polygon_3D &new_polygon, int index, const Vec3d &line_anchor, double arc_shift, std::vector<double> &text_lengths,
                                      std::vector<Vec3d> &m_position_points) -> Vec3d {
         int text_num = static_cast<int>(text_lengths.size());
         m_position_points.resize(text_num);
@@ -1579,6 +1609,23 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                     key_point = intersection_pt;
                     index     = i;
                 }
+            }
+        }
+        if (std::abs(arc_shift) > EPSILON) {
+            // Horizontal alignment: walk the key point along the curve, toward the b end of the
+            // segments for a positive shift. Bounded to two laps, a degenerate polygon can not spin.
+            const int count    = static_cast<int>(lines.size());
+            double    distance = arc_shift;
+            for (int step = 0; step < 2 * count + 2 && std::abs(distance) > EPSILON; ++step) {
+                const bool   forward = distance > 0.;
+                const double to_end  = ((forward ? lines[index].b : lines[index].a) - key_point).norm();
+                if (std::abs(distance) <= to_end) {
+                    key_point += distance * lines[index].vector().normalized();
+                    break;
+                }
+                distance += forward ? -to_end : to_end;
+                index     = forward ? (index + 1) % count : (index + count - 1) % count;
+                key_point = forward ? lines[index].a : lines[index].b;
             }
         }
         if (text_num % 2 == 1) {
@@ -1753,6 +1800,8 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     m_cut_points_in_local.clear();
     // published to debug_lines in one step at the end, the viewer reads it from the GUI thread
     std::vector<LineDebug> line_debugs(line_ranges.size());
+    // how far every line slides along its curve to follow the horizontal alignment
+    const std::vector<double> align_shifts = calc_line_align_shifts(text_lengths, line_ranges, m_text_gap, input_info.m_align_type.first);
 
     // A line gap can push a base line above or below the mesh, then the object is not sliced there.
     // Cut every base line first, so such a line can borrow a curve instead of dropping the whole text:
@@ -1868,7 +1917,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
         std::vector<double> line_lengths(text_lengths.begin() + first, text_lengths.begin() + last);
         std::vector<Vec3d>  line_points;
         // Anchor of this line: the text handle shifted by the line gap, in text CS
-        const Vec3d key_point = place_line_on_polygon(new_polygon, cut.index, Vec3d(0., nominal_line_y, 0.), line_lengths, line_points);
+        const Vec3d key_point = place_line_on_polygon(new_polygon, cut.index, Vec3d(0., nominal_line_y, 0.), align_shifts[line_i], line_lengths, line_points);
         std::copy(line_points.begin(), line_points.end(), m_position_points.begin() + first);
 
         // A lifted curve hangs off the surface, the triangle nearest to it is a wall the line runs past
@@ -1880,6 +1929,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
 
         LineDebug &dbg  = line_debugs[line_i];
         dbg.line_y      = nominal_line_y;
+        dbg.align_shift = align_shifts[line_i];
         dbg.placed_y    = cut.line_y;
         dbg.hit         = line_cuts[line_i].hit;
         dbg.glyph_first = first;
@@ -2043,10 +2093,10 @@ Vec2f GenerateTextJob::calc_mesh_offset(const std::pair<int, int> &align_type,
 {
     Vec2f mesh_offset(Vec2f::Zero());
     if (i < text_absolute_cursors.size() && i < text_align_offsets.size()) {
-        if (align_type.first == (int) Slic3r::FontProp::HorizontalAlign::center) {
-            // horizontal align offset differs per text line
-            mesh_offset[0] = -text_absolute_cursors[i] - text_align_offsets[i][0] + text_cursors[i] / 2.f;
-        } // else todo
+        // Every glyph is placed on its own position point, so the layout baked in the shape has to go:
+        // the cursor of the glyph and the horizontal align offset of its line. Holds for every align,
+        // the left aligned shapes simply carry a zero align offset.
+        mesh_offset[0] = -text_absolute_cursors[i] - text_align_offsets[i][0] + text_cursors[i] / 2.f;
     }
     // surface text: glyph is placed on the curve of its own line, remove line offset baked in shape
     mesh_offset[1] = -line_y;
@@ -2122,7 +2172,8 @@ void CreateObjectTextJob::process(Ctl &ctl) {
     }
     std::vector<double> text_lengths;
     calc_text_lengths(text_lengths, m_input.m_text_cursors);
-    calc_position_points_by_lines(m_input.m_position_points, text_lengths, get_line_ranges(m_input.m_text_shape.shapes_with_ids), m_input.text_info.m_text_gap, Vec3d(1, 0, 0));
+    calc_position_points_by_lines(m_input.m_position_points, text_lengths, get_line_ranges(m_input.m_text_shape.shapes_with_ids), m_input.text_info.m_text_gap,
+                                  Vec3d(1, 0, 0), m_input.m_align_type.first);
 }
 
 void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {

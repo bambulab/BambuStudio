@@ -115,6 +115,9 @@ enum class IconType : unsigned {
     save,
     add,
     erase,
+    align_horizontal_left,
+    align_horizontal_center,
+    align_horizontal_right,
     /*
     italic,
     unitalic,
@@ -126,9 +129,6 @@ enum class IconType : unsigned {
     lock_bold,
     unlock,
     unlock_bold,
-    align_horizontal_left,
-    align_horizontal_center,
-    align_horizontal_right,
     align_vertical_top,
     align_vertical_center,
     align_vertical_bottom,*/
@@ -207,6 +207,9 @@ IconManager::VIcons init_text_icons(IconManager &mng, const CurGuiCfg &cfg)//ini
         "text_save.svg",         // save
         "add_copies.svg",
         "delete2.svg",
+        "align_horizontal_left.svg",
+        "align_horizontal_center.svg",
+        "align_horizontal_right.svg",
         //"text_refresh.svg",      // refresh
         //"text_open.svg",         // changhe_file
         //"text_bake.svg",         // bake
@@ -1763,6 +1766,7 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     // Volume FontProp is the persisted line gap; keep it after any preset / face load.
                     m_style_manager.get_font_prop().line_gap = text_info.text_configuration.style.prop.line_gap;
                     m_line_gap = get_style_line_gap_mm(m_style_manager);
+                    m_style_manager.get_font_prop().align = text_info.text_configuration.style.prop.align;
                 }
                 if (m_is_serializing) { // undo redo
                     m_style_manager.get_style().angle = calc_angle(selection);
@@ -2337,6 +2341,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
                               (debug_line.hit ? " (own cut)" : " (borrowed cut)"));
                 m_imgui->text("line glyphs:[" + std::to_string(debug_line.glyph_first) + "," + std::to_string(debug_line.glyph_last) +
                               ") cut points:" + std::to_string(debug_line.cut_points_in_world.size()));
+                m_imgui->text("line align shift:" + formatFloat(static_cast<float>(debug_line.align_shift)));
                 const Vec3d line_pos   = debug_line.tran_in_world.translation();
                 const Vec3d line_x_dir = debug_line.tran_in_world.linear().col(0);
                 const Vec3d line_y_dir = debug_line.tran_in_world.linear().col(1);
@@ -3181,6 +3186,38 @@ void GLGizmoText::draw_advanced(float caption_size, float slider_width, float sl
             m_need_update_text = true;
         }
     }
+
+    // Horizontal alignment of the text lines, center by default
+    FontProp::HorizontalAlign &h_align = font_prop.align.first;
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(_L("Alignment"));
+    ImGui::SameLine(caption_size + ad_space_size);
+    auto draw_align_button = [&](IconType icon_type, FontProp::HorizontalAlign align, const wxString &tooltip) {
+        const IconManager::Icon &icon       = get_icon(m_icons, icon_type, IconState::activable);
+        const IconManager::Icon &icon_hover = get_icon(m_icons, icon_type, IconState::hovered);
+        // An icon is only an image, take the clicks with an invisible button of the same rect. draw()
+        // centers the icon in the row, the button has to follow it to stay under the pixels.
+        const float  line_height = ImGui::GetTextLineHeight() + ImGui::GetStyle().FramePadding.y * 2;
+        const ImVec2 cursor      = ImGui::GetCursorPos();
+        ImGui::SetCursorPosY(cursor.y + std::max(0.f, std::floor((line_height - icon.size.y) / 2.f)));
+        ImGui::PushID(static_cast<int>(icon_type));
+        const bool clicked = ImGui::InvisibleButton("##align", icon.size);
+        const bool hovered = ImGui::IsItemHovered();
+        ImGui::PopID();
+        ImGui::SetCursorPos(cursor);
+        draw((hovered || h_align == align) ? icon_hover : icon);
+        if (hovered)
+            m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
+        if (clicked && h_align != align) {
+            h_align            = align;
+            m_need_update_text = true;
+        }
+    };
+    draw_align_button(IconType::align_horizontal_left, FontProp::HorizontalAlign::left, _L("Align left"));
+    ImGui::SameLine();
+    draw_align_button(IconType::align_horizontal_center, FontProp::HorizontalAlign::center, _L("Align center horizontally"));
+    ImGui::SameLine();
+    draw_align_button(IconType::align_horizontal_right, FontProp::HorizontalAlign::right, _L("Align right"));
 }
 
 void GLGizmoText::init_font_name_texture()
@@ -3611,6 +3648,7 @@ TextInfo GLGizmoText::get_text_info()
     text_info.text_configuration = m_ui_text_configuration;
     set_style_line_gap(m_style_manager, m_line_gap);
     text_info.text_configuration.style.prop.line_gap = m_style_manager.get_font_prop().line_gap;
+    text_info.text_configuration.style.prop.align    = m_style_manager.get_font_prop().align;
     text_info.m_font_version     = CUR_FONT_VERSION;
     return text_info;
 }
@@ -3650,6 +3688,7 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     m_custom_skew              = text_info.text_configuration.style.prop.skew.value_or(0.f);
     m_style_manager.get_font_prop().line_gap = text_info.text_configuration.style.prop.line_gap;
     m_line_gap = get_style_line_gap_mm(m_style_manager);
+    m_style_manager.get_font_prop().align = text_info.text_configuration.style.prop.align;
     if (is_text_changed) {
         process(true,std::nullopt,false);
     }

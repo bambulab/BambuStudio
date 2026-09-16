@@ -413,6 +413,7 @@ public:
         std::vector<Vec3d> cut_points_in_world;                   // slice polygon the line is placed on
         Transform3d        tran_in_world{Transform3d::Identity()}; // line CS, on the projected line anchor
         float              line_y      = 0.f;                     // [mm] nominal base line offset in text CS
+        double             align_shift = 0.;                      // [mm] slide along the curve of the horizontal align
         float              placed_y    = 0.f;                     // [mm] offset of the used slice, differs when borrowed
         bool               hit         = false;                   // own base line crossed the object
         size_t             glyph_first = 0;

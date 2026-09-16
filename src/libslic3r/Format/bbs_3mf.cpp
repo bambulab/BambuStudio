@@ -5212,6 +5212,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (line_gap != 0)
                 text_info.text_configuration.style.prop.line_gap = line_gap;
         }
+        // FontProp::align, same names as EmbossStyleManager. Missing attribute keeps the default center.
+        {
+            const std::string h = bbs_get_attribute_value_string(attributes, num_attributes, HORIZONTAL_ALIGN_ATTR);
+            if (h == "left" || h == "0")
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::left;
+            else if (h == "right" || h == "2")
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::right;
+            else if (!h.empty())
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::center;
+
+            const std::string v = bbs_get_attribute_value_string(attributes, num_attributes, VERTICAL_ALIGN_ATTR);
+            if (v == "top" || v == "0")
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::top;
+            else if (v == "bottom" || v == "2")
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::bottom;
+            else if (!v.empty())
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::center;
+        }
 
         text_info.m_bold      = bbs_get_attribute_value_int(attributes, num_attributes, BOLD_ATTR);
         text_info.m_italic    = bbs_get_attribute_value_int(attributes, num_attributes, ITALIC_ATTR);
@@ -8259,6 +8277,22 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << TEXT_GAP_ATTR << "=\"" << text_info.m_text_gap << "\" ";
         if (text_info.text_configuration.style.prop.line_gap.has_value())
             stream << LINE_GAP_ATTR << "=\"" << *text_info.text_configuration.style.prop.line_gap << "\" ";
+        {
+            const auto h = text_info.text_configuration.style.prop.align.first;
+            const char *h_name = "center";
+            if (h == FontProp::HorizontalAlign::left)
+                h_name = "left";
+            else if (h == FontProp::HorizontalAlign::right)
+                h_name = "right";
+            stream << HORIZONTAL_ALIGN_ATTR << "=\"" << h_name << "\" ";
+            const auto v = text_info.text_configuration.style.prop.align.second;
+            const char *v_name = "middle";
+            if (v == FontProp::VerticalAlign::top)
+                v_name = "top";
+            else if (v == FontProp::VerticalAlign::bottom)
+                v_name = "bottom";
+            stream << VERTICAL_ALIGN_ATTR << "=\"" << v_name << "\" ";
+        }
 
         stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
         stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";
