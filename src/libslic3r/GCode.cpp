@@ -4802,6 +4802,22 @@ bool GCode::filament_in_first_layer_phase(unsigned int filament_id) const
             }
         }
     }
+    // A support may be the only material reaching the bed even when its object starts above it, so inspect
+    // support independently of the object-layer contact test above.
+    for (const PrintObject *object : m_print->objects()) {
+        for (const SupportLayer *support_layer : object->support_layers()) {
+            if (support_layer->print_z - support_layer->effective_print_height() > EPSILON)
+                continue;
+            auto consider = [&](int filament_1based) {
+                if (filament_1based > 0 && unsigned(filament_1based - 1) == filament_id)
+                    last_contact_z = std::max(last_contact_z, support_layer->print_z);
+            };
+            consider(object->config().support_filament.value);
+            consider(support_layer->planned_filament_id);
+            consider(object->config().support_interface_filament.value);
+            consider(support_layer->planned_interface_filament_id);
+        }
+    }
     if (last_contact_z <= EPSILON)
         return on_first_layer();
     return m_layer->print_z <= last_contact_z + EPSILON;

@@ -798,6 +798,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     int layerCount = 0;
     std::vector<int> firstLayerExtruders;
     firstLayerExtruders.clear();
+    // A merged first band may reach the bed while being emitted above the physical first print layer.
+    // Only filaments actually emitted on the first print layer may schedule a brim-layer tower visit.
     std::vector<unsigned int> bed_contact_extruders;
 
     // Collect the object extruders.
@@ -850,7 +852,9 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     }
                     if ((layerCount == 0 || starts_at_object_base) &&
                         ! object.layers().empty() &&
-                        std::abs(object.layers().front()->bottom_z()) <= EPSILON)
+                        std::abs(object.layers().front()->bottom_z()) <= EPSILON &&
+                        ! m_layer_tools.empty() &&
+                        std::abs(layer->print_z - m_layer_tools.front().print_z) <= EPSILON)
                         bed_contact_extruders.emplace_back(wall_filament);
                 }
 

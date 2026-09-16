@@ -1494,8 +1494,9 @@ void merge_support_layers_multi_diameter(
         }
     };
 
-    // Merging the raft or the first object layer would change how the print sticks to the bed.
-    const coordf_t z_frozen_max = std::max(slicing_params.raft_contact_top_z, slicing_params.first_print_layer_height) + EPSILON;
+    // Keep raft and bridging-contact geometry fixed, but let a support first layer join the first band.
+    // Its merged extrusion still reaches the bed (or the raft) and retains the first-layer footprint.
+    const coordf_t z_frozen_max = slicing_params.raft_contact_top_z + EPSILON;
 
     // Collect the print_z levels that carry support areas. The raft is only listed so the level indices match
     // the support layer ids; its layers are never merged.
@@ -2456,11 +2457,12 @@ void generate_support_toolpaths(
                 bool  no_sort = false;
                 bool  done    = false;
                 if (base_layer.layer->bottom_z < EPSILON) {
-                    // Base flange (the 1st layer).
+                    // A merged base flange keeps the first-layer pattern and width, while its flow height
+                    // spans the complete slab down to the bed.
                     filler = filler_first_layer;
                     filler->angle = Geometry::deg2rad(float(config.support_angle.value + 90.));
                     density = float(config.raft_first_layer_density.value * 0.01);
-                    flow = support_params.first_layer_flow;
+                    flow = support_params.first_layer_flow.with_height(float(base_layer.layer->height));
                     // use the proper spacing for first layer as we don't need to align
                     // its pattern to the other layers
                     //FIXME When paralellizing, each thread shall have its own copy of the fillers.

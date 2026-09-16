@@ -196,6 +196,7 @@ public:
 	// wipe_area	-- space available for one toolchange in mm
 	// BBS: add partplate logic
 	WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origin, size_t initial_tool, const float wipe_tower_height, const std::vector<unsigned int>& slice_used_filaments);
+    void set_foundation_required(bool required) { m_foundation_required = required; }
 
 
 	// Set the extruder properties.
@@ -463,6 +464,8 @@ public:
     // Set by the ladder planner when the tower deviates from one slab per base layer. While false the tower
     // behaves exactly as before.
     bool m_merged_slabs_active{false};
+    // Keep the raw first tower layer only when that Z also carries real object or support extrusion.
+    bool m_foundation_required{true};
     bool has_multiple_nozzle_diameters() const;
     // Whether the tower prints nothing at all on that planned layer.
     bool layer_is_skipped(int layer_id) const
@@ -491,6 +494,8 @@ public:
 	void plan_tower_new();
     // Decide which planned layers the tower prints at all and how thick each printed layer is.
     void plan_tower_ladder();
+    // First planned layer the tower actually visits after ladder planning.
+    int first_printed_layer_idx() const;
     // Give the layers [run_begin, run_end] to the tool-change layer above them. False when that layer cannot
     // take them, which leaves the run at its base layer heights.
     bool absorb_run_into_next_layer(int run_begin, int run_end);
@@ -510,9 +515,11 @@ public:
         int   filament_id { -1 };
         float height      { 0.f };
     };
-    // Planned layers the tower prints above its own first layer, in Z order. Everything merged across Z is
-    // planned on these steps: the layers in between are not visited at all.
+    // Planned layers the tower prints, in Z order, starting at its foundation. Everything merged across Z
+    // is planned on these steps: the layers in between are not visited at all.
     void collect_printed_steps(std::vector<int> &printed) const;
+    // Bottom of the tower foundation.
+    double tower_bed_z() const;
     // Filaments that visit the tower on each printed step and can therefore lay something down there: the
     // ones taking part in its tool changes, or the loaded one on a layer that only carries the tower.
     // Sorted by nozzle diameter so that the finest able nozzle is preferred.
@@ -736,7 +743,19 @@ private:
     std::vector<std::vector<Vec2f>> m_wall_skip_points;
     std::map<float,Polylines> m_outer_wall;
     std::vector<double>        m_printable_height;
-    bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
+    bool is_first_layer() const
+    {
+        if (m_plan.empty() || m_layer_info == m_plan.end())
+            return false;
+        const size_t idx = size_t(m_layer_info - m_plan.begin());
+        if (idx == m_first_layer_idx)
+            return true;
+        const size_t first = m_first_layer_idx == size_t(-1) ? 0 : m_first_layer_idx;
+        if (first >= m_plan.size())
+            return false;
+        const float bed = m_plan[first].z - m_plan[first].height;
+        return m_z_pos - m_layer_height <= bed + WT_EPSILON;
+    }
     float calc_tower_feedrate(int filament_id, float extrusion_flow) const {
         if (is_first_layer())
             return std::min(m_first_layer_speed * 60.f, m_max_speed);
@@ -870,6 +889,8 @@ private:
 		WipeTowerWriter &writer,
 		const box_coordinates  &cleaning_box,
 		float wipe_volume);
+    // Shared Y pitch of a purge zigzag. Its start position and emitted rows must use the same value.
+    float wipe_line_spacing(bool solid_toolchange);
     void get_wall_skip_points(const WipeTowerInfo &layer, int layer_id, int wall_filament);
     void get_all_wall_skip_points(int wall_filament);
     ToolChangeResult merge_tcr(ToolChangeResult &first, ToolChangeResult &second);

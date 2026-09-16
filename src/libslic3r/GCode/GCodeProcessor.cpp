@@ -3368,7 +3368,20 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
 
     // ; Z_HEIGHT:
     if (boost::starts_with(comment, " Z_HEIGHT:")) {
-        m_print_z = get_z_height(comment);
+        const float print_z = get_z_height(comment);
+        if (m_layer_id == 1 && print_z > 0.f && std::abs(print_z - m_first_layer_height) > EPSILON) {
+            // Multi-diameter merging may make the actual first print Z lower than the configured initial
+            // layer height. Startup paths were provisionally flattened to the configured value, so move
+            // them onto the first Z tag before the first model path is processed.
+            m_first_layer_height = print_z;
+            for (GCodeProcessorResult::MoveVertex &move : m_result.moves) {
+                move.position.z()            = print_z;
+                move.arc_center_position.z() = print_z;
+                for (Vec3f &point : move.interpolation_points)
+                    point.z() = print_z;
+            }
+        }
+        m_print_z = print_z;
         return;
     }
 

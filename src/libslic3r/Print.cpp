@@ -3998,6 +3998,11 @@ void Print::_make_wipe_tower()
         // Don't generate any wipe tower.
         return;
 
+    const bool foundation_required =
+        !m_wipe_tower_data.tool_ordering.empty() &&
+        (m_wipe_tower_data.tool_ordering.front().has_object ||
+         m_wipe_tower_data.tool_ordering.front().has_support);
+
     // Check whether there are any layers in m_tool_ordering, which are marked with has_wipe_tower,
     // they print neither object, nor support. Each such layer needs a virtual support layer
     // counterpart in m_objects.front() so that GCode::collect_layers_to_print picks it up and the
@@ -4039,6 +4044,7 @@ void Print::_make_wipe_tower()
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
     WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_wipe_tower_data.tool_ordering.first_extruder(),
                          m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z, m_wipe_tower_data.tool_ordering.all_extruders());
+    wipe_tower.set_foundation_required(foundation_required);
     wipe_tower.set_first_layer_flow_ratio(m_default_region_config.initial_layer_flow_ratio);
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_multi_diameter_print(this->uses_multiple_nozzle_diameters());
