@@ -76,6 +76,9 @@
         "45"
     ],
     "filament_dev_drying_softening_temperature": [
+        "50",
+        "50",
+        "50",
         "50"
     ],
     "hot_plate_temp": [
