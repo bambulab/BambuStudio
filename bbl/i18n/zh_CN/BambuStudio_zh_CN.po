@@ -10473,6 +10473,9 @@ msgstr "您可以将动态流量校准设置为'关闭'来启用自定义的动�
 msgid "This printer does not support printing all plates"
 msgstr "该打印机不支持打印所有盘"
 
+msgid "Printing a project that uses multiple nozzle diameters directly from storage is not supported yet. You can download the file and import it into Studio to print."
+msgstr "暂不支持从存储介质直接发起多口径项目的打印。您可以下载到本地后，导入Studio进行打印。"
+
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "请确认所需喷嘴直径和流量是否和当前显示一致。"
 

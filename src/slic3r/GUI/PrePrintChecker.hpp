@@ -113,6 +113,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusNeedForceUpgrading,
     PrintStatusNeedConsistencyUpgrading,
     PrintStatusNotSupportedPrintAll,
+    PrintStatusNotSupportedMultiNozzleDiameterFromSdcard,
     PrintStatusBlankPlate,
     PrintStatusSliceResultInvalid,
     PrintStatusUnsupportedPrinter,

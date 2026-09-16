@@ -505,6 +505,7 @@ public:
     bool CheckErrorSyncNozzleMappingResultV1(MachineObject* obj);// return true if no errors
     bool CheckErrorSyncNozzleMappingResultV0(MachineObject* obj);// return true if no errors
     bool CheckErrorDynamicSwitchNozzle(MachineObject* obj);// return true if no errors
+    bool CheckErrorMultiNozzleDiameterFromSdcard();// return true if no errors
 
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
     void CheckWarningRackStatus(MachineObject* obj_);

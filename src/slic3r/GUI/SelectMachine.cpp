@@ -2113,6 +2113,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
+    } else if (status == PrintDialogStatus::PrintStatusNotSupportedMultiNozzleDiameterFromSdcard) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusTimelapseWarning) {  //this is warning
         wxString   msg_text;
         PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
@@ -4407,6 +4410,10 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         return;
     }
 
+    if (!CheckErrorMultiNozzleDiameterFromSdcard()) {
+        return;
+    }
+
     if (!m_check_flag && obj_->is_info_ready()) {
         update_select_layout(obj_);
         update_ams_check(obj_);
@@ -6671,6 +6678,21 @@ bool SelectMachineDialog::CheckErrorDynamicSwitchNozzle(MachineObject* obj_)
     }
 
     return true;
+}
+
+bool SelectMachineDialog::CheckErrorMultiNozzleDiameterFromSdcard()
+{
+    if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {
+        return true;
+    }
+
+    if (!multi_nozzle_diameter_mode_enabled(m_required_data_config)) {
+        return true;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": blocked, the project was sliced with multi nozzle diameter mode on";
+    show_status(PrintDialogStatus::PrintStatusNotSupportedMultiNozzleDiameterFromSdcard);
+    return false;
 }
 
 bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV1(MachineObject* obj_)
