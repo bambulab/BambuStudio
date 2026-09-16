@@ -97,6 +97,45 @@ static bool is_canonical_multi_nozzle_diameter_printer_preset(const PresetCollec
         base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant();
 }
 
+static bool numeric_text(const std::string& text)
+{
+    if (text.empty())
+        return false;
+    char* end = nullptr;
+    std::strtod(text.c_str(), &end);
+    return end == text.c_str() + text.size();
+}
+
+// Display-only rewrite: "Bambu Lab H3C 0.4 nozzle" -> "Bambu Lab H3C Multiple nozzle". Heuristic on the
+// name shape - a name that does not end in "<number> nozzle" is returned untouched, because showing the
+// real name is always better than inventing a wrong one. Never touches Preset::name itself.
+static std::string multi_nozzle_printer_preset_name(const Preset& preset)
+{
+    std::string name = preset.name;
+
+    const std::string nozzle_suffix = " nozzle";
+    if (boost::algorithm::ends_with(name, nozzle_suffix)) {
+        const size_t suffix_pos = name.size() - nozzle_suffix.size();
+        const size_t diameter_pos = name.rfind(' ', suffix_pos - 1);
+        if (diameter_pos != std::string::npos &&
+            numeric_text(name.substr(diameter_pos + 1, suffix_pos - diameter_pos - 1)))
+            name.replace(diameter_pos + 1, name.size() - diameter_pos - 1, "Multiple nozzle");
+    }
+
+    return name;
+}
+
+// Only the printer gets relabelled, and only on the canonical variant: renaming every diameter would make
+// a printer that some path wrongly re-pointed indistinguishable from the baseline the mode is supposed to
+// slice against. Every other preset type - process included - keeps the name it actually has, so what a
+// list shows always matches the preset behind it. User copies keep their real name for the same reason.
+static bool use_multi_nozzle_printer_display_name(const PresetBundle* preset_bundle, Preset::Type type, const Preset& preset)
+{
+    return type == Preset::TYPE_PRINTER && preset_bundle != nullptr && preset.is_system &&
+           multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
+           is_canonical_multi_nozzle_diameter_printer_preset(preset_bundle->printers, preset);
+}
+
 // Multi-diameter slicing anchors the project on the canonical printer variant, so the sibling diameters
 // of that machine must not be offered anywhere a printer is picked. Other printer models, and
 // machines that cannot do multi-diameter at all, are untouched. Callers add their own "keep the
@@ -415,19 +454,37 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
 
 wxString PresetComboBox::get_preset_name(const Preset & preset)
 {
+    if (use_multi_nozzle_printer_display_name(m_preset_bundle, m_type, preset))
+        return from_u8(multi_nozzle_printer_preset_name(preset));
     return from_u8(preset.name/* + suffix(preset)*/);
+}
+
+std::string PresetComboBox::preset_name_for_selection(int selection) const
+{
+    const auto it = m_item_preset_names.find(selection);
+    if (it != m_item_preset_names.end())
+        return it->second;
+    return selection >= 0 && selection < int(GetCount()) ? GetString(selection).ToUTF8().data() : std::string();
 }
 
 void PresetComboBox::update(std::string select_preset_name)
 {
     Freeze();
     Clear();
+    m_item_preset_names.clear();
     invalidate_selection();
 
     const std::deque<Preset>& presets = m_collection->get_presets();
 
-    std::map<wxString, std::pair<wxBitmap*, bool>>  nonsys_presets;
-    std::map<wxString, wxBitmap*>                   incomp_presets;
+    // The label is not always the preset name (multi-diameter mode rewrites the printer label), so the
+    // real name travels alongside the bitmap and lands in m_item_preset_names when the item is appended.
+    struct PresetItem {
+        wxBitmap*   bitmap;
+        bool        enabled;
+        std::string preset_name;
+    };
+    std::map<wxString, PresetItem>  nonsys_presets;
+    std::map<wxString, PresetItem>  incomp_presets;
 
     wxString selected = "";
     if (!presets.front().is_visible)
@@ -454,15 +511,16 @@ void PresetComboBox::update(std::string select_preset_name)
         assert(bmp);
 
         if (!is_enabled)
-            incomp_presets.emplace(get_preset_name(preset), bmp);
+            incomp_presets.emplace(get_preset_name(preset), PresetItem{bmp, is_enabled, preset.name});
         else if (preset.is_default || preset.is_system)
         {
-            Append(get_preset_name(preset), *bmp);
+            int item_id = Append(get_preset_name(preset), *bmp);
+            m_item_preset_names.emplace(item_id, preset.name);
             validate_selection(preset.name == select_preset_name);
         }
         else
         {
-            nonsys_presets.emplace(get_preset_name(preset), std::pair<wxBitmap*, bool>(bmp, is_enabled));
+            nonsys_presets.emplace(get_preset_name(preset), PresetItem{bmp, is_enabled, preset.name});
             if (preset.name == select_preset_name || (select_preset_name.empty() && is_enabled))
                 selected = get_preset_name(preset);
         }
@@ -472,9 +530,10 @@ void PresetComboBox::update(std::string select_preset_name)
     if (!nonsys_presets.empty())
     {
         set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-        for (std::map<wxString, std::pair<wxBitmap*, bool>>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            int item_id = Append(it->first, *it->second.first);
-            bool is_enabled = it->second.second;
+        for (auto it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.bitmap);
+            m_item_preset_names.emplace(item_id, it->second.preset_name);
+            bool is_enabled = it->second.enabled;
             if (!is_enabled)
                 set_label_marker(item_id, LABEL_ITEM_DISABLED);
             validate_selection(it->first == selected);
@@ -483,8 +542,10 @@ void PresetComboBox::update(std::string select_preset_name)
     if (!incomp_presets.empty())
     {
         set_label_marker(Append(_L("Incompatible presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-        for (std::map<wxString, wxBitmap*>::iterator it = incomp_presets.begin(); it != incomp_presets.end(); ++it) {
-            set_label_marker(Append(it->first, *it->second), LABEL_ITEM_DISABLED);
+        for (auto it = incomp_presets.begin(); it != incomp_presets.end(); ++it) {
+            int item_id = Append(it->first, *it->second.bitmap);
+            m_item_preset_names.emplace(item_id, it->second.preset_name);
+            set_label_marker(item_id, LABEL_ITEM_DISABLED);
         }
     }
 
@@ -500,7 +561,9 @@ void PresetComboBox::show_all(bool show_all)
 
 void PresetComboBox::update()
 {
-    this->update(into_u8(this->GetString(this->GetSelection())));
+    // Never the displayed text: in multi-diameter mode the printer label is a rewrite that matches no
+    // preset, so re-selecting by label would drop the current selection.
+    this->update(preset_name_for_selection(this->GetSelection()));
 }
 
 void PresetComboBox::update_from_bundle()
@@ -1912,50 +1975,13 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
 #endif
 }
 
-static bool numeric_text(const std::string& text)
-{
-    if (text.empty())
-        return false;
-    char* end = nullptr;
-    std::strtod(text.c_str(), &end);
-    return end == text.c_str() + text.size();
-}
-
-static std::string multi_nozzle_printer_preset_name(const Preset& preset)
-{
-    std::string name = preset.name;
-
-    const std::string nozzle_suffix = " nozzle";
-    if (boost::algorithm::ends_with(name, nozzle_suffix)) {
-        const size_t suffix_pos = name.size() - nozzle_suffix.size();
-        const size_t diameter_pos = name.rfind(' ', suffix_pos - 1);
-        if (diameter_pos != std::string::npos &&
-            numeric_text(name.substr(diameter_pos + 1, suffix_pos - diameter_pos - 1)))
-            name.replace(diameter_pos + 1, name.size() - diameter_pos - 1, "Multiple nozzle");
-    }
-
-    return (preset.is_dirty ? Preset::suffix_modified() : "") + name;
-}
-
 wxString TabPresetComboBox::get_preset_name(const Preset& preset)
 {
-    // Only the printer gets relabelled, and only on the canonical variant: renaming every diameter
-    // would make a printer that some path wrongly re-pointed indistinguishable from the baseline the
-    // mode is supposed to slice against. Every other preset type - process included - keeps the name
-    // it actually has, so what the list shows always matches the preset being edited.
-    if (m_type == Preset::TYPE_PRINTER && m_preset_bundle != nullptr && preset.is_system &&
-        multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config) &&
-        is_canonical_multi_nozzle_diameter_printer_preset(m_preset_bundle->printers, preset))
-        return from_u8(multi_nozzle_printer_preset_name(preset));
+    // The "modified" mark is prepended by hand here, because the rewrite replaces the tail of the name
+    // and so cannot go through Preset::label(), which is what supplies the mark on the plain path.
+    if (use_multi_nozzle_printer_display_name(m_preset_bundle, m_type, preset))
+        return from_u8((preset.is_dirty ? Preset::suffix_modified() : "") + multi_nozzle_printer_preset_name(preset));
     return from_u8(preset.label(true));
-}
-
-std::string TabPresetComboBox::preset_name_for_selection(int selection) const
-{
-    const auto it = m_item_preset_names.find(selection);
-    if (it != m_item_preset_names.end())
-        return it->second;
-    return selection >= 0 && selection < int(GetCount()) ? GetString(selection).ToUTF8().data() : std::string();
 }
 
 // Update the choice UI from the list of presets.

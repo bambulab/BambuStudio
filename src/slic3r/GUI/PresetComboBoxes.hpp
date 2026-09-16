@@ -101,6 +101,10 @@ public:
     static wxColor different_color(wxColor const & color);
 
     virtual wxString get_preset_name(const Preset& preset);
+    // Real Preset::name behind a list item. The displayed label is not always the name (multi-diameter
+    // mode rewrites the printer label), so every selection -> preset lookup must go through here
+    // instead of GetString(). Falls back to the item text for items this combo did not fill in itself.
+    std::string      preset_name_for_selection(int selection) const;
     Preset::Type     get_type() { return m_type; }
     void             show_all(bool show_all);
     virtual void update();
@@ -117,6 +121,9 @@ protected:
 
     PresetBundle*       m_preset_bundle {nullptr};
     PresetCollection*   m_collection {nullptr};
+
+    // Item index -> Preset::name, filled while the list is populated. See preset_name_for_selection().
+    std::map<int, std::string> m_item_preset_names;
 
     // Caching bitmaps for the all bitmaps, used in preset comboboxes
     static BitmapCache& bitmap_cache();
@@ -266,7 +273,6 @@ public:
     void update_dirty();
     void msw_rescale() override;
     void OnSelect(wxCommandEvent& evt) override;
-    std::string preset_name_for_selection(int selection) const;
 
     void set_enable_all(bool enable=true) { m_enable_all = enable; }
 
@@ -276,7 +282,6 @@ public:
 private:
     std::vector<wxString> m_last_presets;
     wxString m_last_select_name;
-    std::map<int, std::string> m_item_preset_names;
 };
 
 // ---------------------------------

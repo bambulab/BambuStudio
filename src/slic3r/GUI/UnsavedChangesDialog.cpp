@@ -2270,9 +2270,11 @@ private:
     std::map<Preset::Type, std::string> m_last_sel_right;
 };
 
+// The combo's item text is not the preset name in multi-diameter mode (the canonical printer is shown as
+// "... Multiple nozzle"), so the selection is resolved through the combo's own item -> name map.
 static std::string get_selection(PresetComboBox* preset_combo)
 {
-    return into_u8(preset_combo->GetString(preset_combo->GetSelection()));
+    return preset_combo->preset_name_for_selection(preset_combo->GetSelection());
 }
 
 PresetSelectorPanel::PresetSelectorPanel(wxWindow *parent, PresetBundle *bundle_left, PresetBundle *bundle_right)
@@ -2327,7 +2329,7 @@ void PresetSelectorPanel::rebuild_combo(PresetComboBox *&cb, wxBoxSizer *column,
     // (tab switch). Capturing this local instead binds the callback to its own combo for good.
     PresetComboBox *combo = cb;
     combo->set_selection_changed_function([this, &memory, bundle, combo](int selection) {
-        std::string preset_name = combo->GetString(selection).ToUTF8().data();
+        std::string preset_name = combo->preset_name_for_selection(selection);
         // Remember the pick so it survives the combo being rebuilt on a later tab switch.
         memory[m_type] = preset_name;
         if (on_compatibility) on_compatibility(Preset::remove_suffix_modified(preset_name), m_type, bundle);
