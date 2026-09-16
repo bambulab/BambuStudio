@@ -218,6 +218,24 @@
   white-space: nowrap;
 }
 
+.cs-ams-climate-status--interactive {
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.cs-ams-climate-status--interactive:hover,
+.cs-ams-climate-status--interactive:focus-visible {
+  border-color: var(--ams-brand, #00ae42);
+  color: var(--ams-brand, #00ae42);
+}
+
+.cs-ams-climate-status--interactive:focus-visible {
+  outline: 2px solid rgba(0, 174, 66, 0.35);
+  outline: 2px solid color-mix(in srgb, var(--ams-brand, #00ae42) 35%, transparent);
+  outline-offset: 1px;
+}
+
 .cs-ams-climate-status__item {
   display: inline-flex;
   align-items: center;

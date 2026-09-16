@@ -8,9 +8,11 @@
 
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverDeviceState.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.h"
+#include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 
 #include <cstdlib>
@@ -67,10 +69,23 @@ nlohmann::json ConnectedSlotsActions::HandleTrayAction(ConnectedSlotsVM&     vm,
                                                        const std::string&    action,
                                                        const nlohmann::json& payload)
 {
-    const std::string ams_id  = payload.value(SK::tray_action::ams_id, std::string());
+    const std::string ams_id  = payload.value(SK::dry_action::ams_id, std::string());
     const std::string slot_id = payload.value(SK::tray_action::slot_id, std::string());
 
-    if (!obj || !obj->GetFilaSystem() || ams_id.empty() || slot_id.empty()) {
+    if (!obj || !obj->GetFilaSystem() || ams_id.empty()) {
+        return vm.MakeResponse(vm.GetModule(), "action", action, 1, "invalid action target", vm.BuildState());
+    }
+
+    if (action == "dry") {
+        const DevAms* ams = obj->GetFilaSystem()->GetAmsById(ams_id);
+        if (!ams || !ams->SupportDrying()) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 1, "AMS does not support drying", vm.BuildState());
+        }
+        wxGetApp().CallAfter([ams_id]() { AMSDryCtrWin::RunModal(wxGetApp().mainframe, ams_id); });
+        return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
+    }
+
+    if (slot_id.empty()) {
         return vm.MakeResponse(vm.GetModule(), "action", action, 1, "invalid tray action target", vm.BuildState());
     }
 

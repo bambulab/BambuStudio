@@ -22,10 +22,12 @@ function parseAddrIdFromHash(): number | undefined {
 function SlotView({
   slot,
   onSelectSource,
+  onDry,
   onTrayAction,
 }: {
   slot: ConnectedSlotsSlotViewModel;
   onSelectSource: (extIndex: number) => void;
+  onDry: (amsId: string) => void;
   onTrayAction: (action: ConnectedSlotsTrayAction, tray: ConnectedSlotsTrayInfo) => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -41,10 +43,10 @@ function SlotView({
       <div className="cs-body" ref={stageRef}>
         <div className="cs-boards">
           <div className="cs-boards__left">
-            <AmsUnitBoard column={slot.top_slots_area.left_slot} side="left" onTrayAction={onTrayAction} />
+            <AmsUnitBoard column={slot.top_slots_area.left_slot} side="left" onDry={onDry} onTrayAction={onTrayAction} />
           </div>
           <div className="cs-boards__right">
-            <AmsUnitBoard column={slot.top_slots_area.right_slots} side="right" onTrayAction={onTrayAction} />
+            <AmsUnitBoard column={slot.top_slots_area.right_slots} side="right" onDry={onDry} onTrayAction={onTrayAction} />
           </div>
         </div>
         <HotendFilamentPath slot={slot} stageRef={stageRef} />
@@ -57,7 +59,7 @@ export function ConnectedSlotsPage() {
   useDeviceWebTheme();
   const setTheme = useStore((s) => s.filament.setTheme);
   const addrId = useMemo(() => parseAddrIdFromHash(), []);
-  const { state, error, getReport, selectSource, runTrayAction } = useConnectedSlotsBridge(addrId);
+  const { state, error, getReport, selectSource, openDryControls, runTrayAction } = useConnectedSlotsBridge(addrId);
   // Diagnostics affordance: Debug builds and the vite dev server only, never an
   // internal or public Release package.
   const showCopyReport = import.meta.env.DEV
@@ -75,6 +77,7 @@ export function ConnectedSlotsPage() {
           key={slot.addr_id}
           slot={slot}
           onSelectSource={(extIndex) => void selectSource(extIndex)}
+          onDry={(amsId) => void openDryControls(amsId)}
           onTrayAction={(action, tray) => void runTrayAction(action, tray.ams_id, tray.slot_id)}
         />
       ))}

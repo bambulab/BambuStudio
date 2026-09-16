@@ -7,12 +7,14 @@ import { AmsTrayCard } from './AmsTrayCard';
 export function AmsUnitBoard({
   column,
   side,
+  onDry,
   onTrayAction,
 }: {
   column: ConnectedSlotsColumn;
   // Which feed route anchors on this board; HotendFilamentPath measures the
   // marked tray card to place the vertical stub.
   side: 'left' | 'right';
+  onDry?: (amsId: string) => void;
   onTrayAction?: (action: ConnectedSlotsTrayAction, tray: ConnectedSlotsTrayInfo) => void;
 }) {
   const unit = column.unit;
@@ -26,7 +28,7 @@ export function AmsUnitBoard({
     >
       <div className="cs-ams-unit-board__head">
         <span className="cs-ams-unit-board__name">{unit.display_name || unit.ams_id}</span>
-        <AmsClimateStatus unit={unit} />
+        <AmsClimateStatus unit={unit} onDry={onDry} />
       </div>
       <div className="cs-ams-unit-board__trays">
         {unit.trays.map((tray, i) => (

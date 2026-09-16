@@ -98,6 +98,7 @@ namespace ams_unit {
     inline constexpr const char* ams_type     = "ams_type";
     inline constexpr const char* display_name = "display_name"; // C++ product name, e.g. "AMS H3" / "AMS-A"
     inline constexpr const char* slot_count   = "slot_count";
+    inline constexpr const char* can_dry      = "can_dry";
     inline constexpr const char* humidity_raw = "humidity_raw";
     inline constexpr const char* temp         = "temp";         // celsius; omit or null when unknown
     inline constexpr const char* dry_status   = "dry_status";
@@ -132,6 +133,11 @@ namespace tray_actions {
 namespace tray_action {
     inline constexpr const char* ams_id  = "ams_id";
     inline constexpr const char* slot_id = "slot_id";
+}
+
+/// Payload of the `action` / `dry` command.
+namespace dry_action {
+    inline constexpr const char* ams_id = "ams_id";
 }
 
 /// column.line / bottom.line - same shape as AmsFilamentHotend filament_line.

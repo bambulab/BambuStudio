@@ -45,6 +45,19 @@ export function useConnectedSlotsBridge(addrId?: number) {
 
   const getReport = useCallback(() => JSON.stringify(lastPushRef.current, null, 2), []);
 
+  const openDryControls = useCallback(async (amsId: string) => {
+    const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<ConnectedSlotsViewModel>>(
+      makeBody('action', 'dry', { ams_id: amsId }),
+      8000,
+    );
+    if (!resp.ok) return;
+    if (resp.value.error_code !== 0) {
+      setError(resp.value.message ?? 'Connected Slots dry action failed');
+      return;
+    }
+    setError('');
+  }, [request]);
+
   const selectSource = useCallback(async (extIndex: number) => {
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<ConnectedSlotsViewModel>>(
       makeBody('source', 'select', { ext_index: extIndex }),
@@ -117,5 +130,5 @@ export function useConnectedSlotsBridge(addrId?: number) {
     return () => document.removeEventListener('cpp:device', handler);
   }, [applyState]);
 
-  return { state, error, refresh, getReport, selectSource, runTrayAction };
+  return { state, error, refresh, getReport, selectSource, openDryControls, runTrayAction };
 }

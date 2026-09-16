@@ -33,14 +33,21 @@ function isActiveDryStatus(status?: string) {
 }
 
 /** Humidity % and drying status pill on an AMS unit board. */
-export function AmsClimateStatus({ unit }: { unit: ConnectedSlotsUnitInfo }) {
+export function AmsClimateStatus({
+  unit,
+  onDry,
+}: {
+  unit: ConnectedSlotsUnitInfo;
+  onDry?: (amsId: string) => void;
+}) {
   const humidity = typeof unit.humidity_raw === 'number' && unit.humidity_raw >= 0
     ? unit.humidity_raw
     : null;
   const dry = isActiveDryStatus(unit.dry_status) ? unit.dry_status : '';
   if (humidity === null && !dry) return null;
-  return (
-    <span className="cs-ams-climate-status" data-testid="ams-climate-status">
+
+  const content = (
+    <>
       {humidity !== null && (
         <span className="cs-ams-climate-status__item">
           <DropletIcon />
@@ -54,6 +61,22 @@ export function AmsClimateStatus({ unit }: { unit: ConnectedSlotsUnitInfo }) {
           <span>{dry}</span>
         </span>
       )}
-    </span>
+    </>
   );
+
+  if (unit.can_dry && onDry) {
+    return (
+      <button
+        type="button"
+        className="cs-ams-climate-status cs-ams-climate-status--interactive"
+        data-testid={`ams-climate-status-${unit.ams_id}`}
+        aria-label={`Open drying controls for ${unit.display_name || unit.ams_id}`}
+        onClick={() => onDry(unit.ams_id)}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return <span className="cs-ams-climate-status" data-testid={`ams-climate-status-${unit.ams_id}`}>{content}</span>;
 }

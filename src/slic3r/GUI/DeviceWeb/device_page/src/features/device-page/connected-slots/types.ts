@@ -58,6 +58,7 @@ export interface ConnectedSlotsUnitInfo {
   /** C++ product name, e.g. "AMS H3" / "AMS-A". */
   display_name?: string;
   slot_count?: number;
+  can_dry?: boolean;
   humidity_raw?: number;
   temp?: number | null;
   dry_status?: string;
