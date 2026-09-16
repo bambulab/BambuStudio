@@ -4,6 +4,7 @@
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Geometry.hpp"
 
+#include <cmath>
 #include <boost/algorithm/string.hpp>
 
 #include "test_data.hpp" // get access to init_print, etc
@@ -264,4 +265,73 @@ SCENARIO("Original Slic3r Skirt/Brim tests", "[SkirtBrim]") {
             }
         }
     }
+}
+
+// Thin-walled ring whose first-layer wall is narrower than filament_shrink's radial expansion.
+// Without scaling firstLayerObjSlice, brim grouping drops every island
+// (GitHub #12186 / feishu issue-7112906345).
+static TriangleMesh make_thin_walled_ring(double r_outer, double r_inner, double height, size_t n_steps)
+{
+    indexed_triangle_set its;
+    its.vertices.reserve(n_steps * 4);
+    its.indices.reserve(n_steps * 8);
+    for (size_t i = 0; i < n_steps; ++i) {
+        const float a = float(2. * PI * double(i) / double(n_steps));
+        const float c = std::cos(a);
+        const float s = std::sin(a);
+        its.vertices.emplace_back(float(r_outer) * c, float(r_outer) * s, 0.f);
+        its.vertices.emplace_back(float(r_inner) * c, float(r_inner) * s, 0.f);
+        its.vertices.emplace_back(float(r_outer) * c, float(r_outer) * s, float(height));
+        its.vertices.emplace_back(float(r_inner) * c, float(r_inner) * s, float(height));
+    }
+    auto vid = [n_steps](size_t i, int k) { return int((i % n_steps) * 4 + k); };
+    for (size_t i = 0; i < n_steps; ++i) {
+        its.indices.emplace_back(vid(i, 0), vid(i + 1, 0), vid(i + 1, 2));
+        its.indices.emplace_back(vid(i, 0), vid(i + 1, 2), vid(i, 2));
+        its.indices.emplace_back(vid(i, 1), vid(i, 3), vid(i + 1, 3));
+        its.indices.emplace_back(vid(i, 1), vid(i + 1, 3), vid(i + 1, 1));
+        its.indices.emplace_back(vid(i, 0), vid(i, 1), vid(i + 1, 1));
+        its.indices.emplace_back(vid(i, 0), vid(i + 1, 1), vid(i + 1, 0));
+        its.indices.emplace_back(vid(i, 2), vid(i + 1, 2), vid(i + 1, 3));
+        its.indices.emplace_back(vid(i, 2), vid(i + 1, 3), vid(i, 3));
+    }
+    return TriangleMesh(std::move(its));
+}
+
+TEST_CASE("Outer brim survives filament shrink on a thin-walled ring", "[SkirtBrim]") {
+    DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "brim_type",                 "outer_only" },
+        { "brim_width",                5 },
+        { "brim_object_gap",           0 },
+        { "skirt_loops",               0 },
+        { "filament_shrink",           "97%" },
+        { "elefant_foot_compensation", 0 },
+        { "wall_loops",                1 },
+        { "sparse_infill_density",     "0%" },
+        { "top_shell_layers",          0 },
+        { "bottom_shell_layers",       1 },
+        { "enable_prime_tower",        false },
+        { "enable_support",            false }
+    });
+
+    // R=50 mm, wall=0.6 mm: 97% shrink expands the ring by ~1.5 mm, past the wall.
+    TriangleMesh ring = make_thin_walled_ring(50., 49.4, 2., 48);
+    Print print;
+    Slic3r::Test::init_and_process_print({ ring }, print, config);
+
+    REQUIRE(!print.objects().empty());
+    size_t grouped_islands = 0;
+    for (const auto &group : print.objects().front()->firstLayerObjGroups())
+        grouped_islands += group.slices.size();
+    REQUIRE(grouped_islands > 0);
+
+    bool has_brim_extrusions = false;
+    for (const auto &kv : print.get_brimMap()) {
+        if (!kv.second.entities.empty()) {
+            has_brim_extrusions = true;
+            break;
+        }
+    }
+    REQUIRE(has_brim_extrusions);
 }

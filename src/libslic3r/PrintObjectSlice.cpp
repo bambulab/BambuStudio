@@ -1278,6 +1278,15 @@ void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_se
                 region->slices.set(std::move(ex_polys), stInternal);
             }
         }
+        // firstLayerObjSlice is captured from raw volume slices before this compensation.
+        // Brim grouping matches those slices against compensated lslices; scale them by the
+        // same factor or thin-walled rings can stop overlapping (GitHub #12186, feishu issue-7112906345).
+        if (const double shrink_scale = this->support_shrinkage_scale(); shrink_scale != 1.) {
+            for (VolumeSlices &vs : firstLayerObjSliceByVolume)
+                for (ExPolygons &expolys : vs.slices)
+                    for (ExPolygon &poly : expolys)
+                        poly.scale(shrink_scale);
+        }
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
