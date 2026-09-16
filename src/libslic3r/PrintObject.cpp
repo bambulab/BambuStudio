@@ -4500,7 +4500,40 @@ void PrintObject::combine_adaptive_infill()
         return solid.empty() ? ExPolygons{} : intersection_ex(merge_area, union_ex(solid));
     };
 
-    auto apply_merged_fill = [&void_fill, &span_solid_area, this](
+    // Surface types were detected on the fine slicing grid, but a merged extrusion is exposed according
+    // to the footprint of the next physical slab. A patch stored on a swallowed layer still describes
+    // that slab because all copies across its span share the group-top geometry.
+    const bool spiral_mode      = print_config.spiral_mode.value;
+    const bool interface_shells = ! spiral_mode && m_config.interface_shells.value;
+    std::unordered_map<size_t, ExPolygons> extrusion_footprint_cache;
+    auto extrusion_footprint = [this, interface_shells, region_count, &extrusion_footprint_cache](
+                                  size_t layer_idx, size_t region_id) -> const ExPolygons& {
+        static const ExPolygons empty;
+        if (layer_idx >= m_layers.size())
+            return empty;
+
+        const size_t cache_region = interface_shells ? region_id : 0;
+        const size_t cache_key    = layer_idx * (interface_shells ? region_count : 1) + cache_region;
+        if (auto cached = extrusion_footprint_cache.find(cache_key); cached != extrusion_footprint_cache.end())
+            return cached->second;
+
+        m_print->throw_if_canceled();
+        Polygons footprint;
+        const size_t first_region = interface_shells ? region_id : 0;
+        const size_t last_region  = interface_shells ? region_id + 1 : region_count;
+        for (size_t current_region = first_region; current_region < last_region; ++ current_region) {
+            const LayerRegion *layerm = m_layers[layer_idx]->get_region(current_region);
+            if (layerm->adaptive_merge_patches.empty()) {
+                polygons_append(footprint, to_polygons(layerm->slices.surfaces));
+            } else {
+                for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches)
+                    polygons_append(footprint, to_polygons(patch.area()));
+            }
+        }
+        return extrusion_footprint_cache.emplace(cache_key, union_ex(footprint)).first->second;
+    };
+
+    auto apply_merged_fill = [&void_fill, &span_solid_area, &extrusion_footprint, spiral_mode, this](
                                  size_t region_id, size_t bottom_idx, size_t top_idx, double merged_height,
                                  const ExPolygons &merge_area,
                                  bool includes_sparse, bool includes_solid) {
@@ -4529,12 +4562,18 @@ void PrintObject::combine_adaptive_infill()
             void_fill(m_layers[layer_idx]->get_region(region_id), merge_area);
 
         LayerRegion *layerm = m_layers[top_idx]->get_region(region_id);
-        Polygons top;
-        if (includes_solid)
-            for (const Surface &surface : layerm->fill_surfaces.surfaces)
-                if (surface.is_top())
-                    polygons_append(top, to_polygons(surface.expolygon));
-        const ExPolygons top_area = union_ex(top);
+        // The fine layer above may be swallowed by a later coarse-nozzle slab. Compare against that
+        // slab's actual footprint, otherwise an exposed group top keeps the stale internal-solid role.
+        const PrintRegionConfig &region_config = layerm->region().config();
+        const bool detect_top = spiral_mode || region_config.top_shell_layers.value > 0;
+        ExPolygons top_area;
+        if (includes_solid && detect_top) {
+            top_area = opening_ex(
+                diff_ex(solid_area, extrusion_footprint(top_idx + 1, region_id), ApplySafetyOffset::Yes),
+                layerm->flow(frExternalPerimeter).scaled_width() / 10.f);
+            if (! object_bottom_area.empty())
+                top_area = diff_ex(top_area, object_bottom_area);
+        }
 
         Surfaces   kept;
         ExPolygons covered;
@@ -4578,8 +4617,8 @@ void PrintObject::combine_adaptive_infill()
         }
         ExPolygons remaining = diff_ex(covered, union_ex(bridge_claimed));
 
-        // A first band has one extrusion representing the complete slab. Where its top and bottom faces
-        // overlap, keep the visible top role; bed contact is carried independently by the merged height.
+        // A first band has one extrusion representing the complete slab. Bottom contact wins where its
+        // top and bottom faces overlap, matching detect_surfaces_type().
         ExPolygons top_fill = intersection_ex(remaining, top_area);
         ExPolygons bottom_fill = diff_ex(intersection_ex(remaining, object_bottom_area), top_fill);
         Polygons visible_fill = to_polygons(bottom_fill);
