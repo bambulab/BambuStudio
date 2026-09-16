@@ -10131,6 +10131,14 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
     auto painted = dlg.get_painted_mesh();
     auto final_matches = dlg.get_matches();
 
+    const bool has_unmatched = std::any_of(final_matches.begin(), final_matches.end(),
+        [](const Slic3r::FilamentMatch& m) { return m.filament_index < 0; });
+    if (has_unmatched) {
+        BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: unmatched filaments, aborting apply";
+        loaded_model.texture_mesh.reset();
+        return false;
+    }
+
     if (painted.face_colors.empty() || final_matches.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: no painting result";
         result.fallback_to_geometry_only = true;

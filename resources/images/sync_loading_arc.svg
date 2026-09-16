@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52" fill="none">
-  <g stroke="#B6F34F" stroke-width="3" stroke-linecap="round" fill="none">
+  <g stroke="#00AE42" stroke-width="3" stroke-linecap="round" fill="none">
     <!-- Head (alpha = 1) at 12 o'clock, tracing clockwise around the ring.
          Alpha drops linearly to 0 over 260°; last ~100° (right side) is the gap. -->
     <path d="M 26,2     A 24,24 0 0 1 38,5.22"   stroke-opacity="0.94"/>

@@ -7,6 +7,7 @@
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/statbmp.h>
 #include "Widgets/PopupWindow.hpp"
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
@@ -30,12 +31,14 @@
 #include <string>
 
 class GreenSlider;
+class GreenDoubleSlider;
 
 namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_PROGRESS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_ERROR, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TEXTURE_PATCH_DONE, wxCommandEvent);
 
 enum class TextureImportState {
     Idle,
@@ -89,6 +92,8 @@ struct FilamentMappingRow {
     wxPanel*                   target_panel  = nullptr;
 };
 
+struct GapPreviewState;
+
 class FilamentSelectPopup;
 class AutoMixSelectPopup;
 // Lightweight 3D preview panel using wxGLCanvas.
@@ -117,7 +122,7 @@ public:
     void set_computing_overlay(bool show);
     void reset_view();
 
-    enum class ResetOverlayAlign { Hidden, CenterOnRightEdge, CenterOnLeftEdge };
+    enum class ResetOverlayAlign { Hidden, BottomRight };
     void set_reset_overlay_align(ResetOverlayAlign align);
     void set_reset_overlay_hovered(bool hovered);
     void set_reset_overlay_hover_callback(std::function<void(bool)> cb);
@@ -125,7 +130,7 @@ public:
     // The canvas covers the rounded corners of its container, and child windows
     // cannot be reshaped portably, so the corners are painted back here in GL.
     // "inset" is the gap between the container edge and the canvas edge.
-    enum class RoundedCornerSide { None, Left, Right };
+    enum class RoundedCornerSide { None, Left, Right, All };
     void set_rounded_corners(RoundedCornerSide side, int radius, int inset,
                              const wxColour& outside, const wxColour& border);
 
@@ -263,6 +268,7 @@ private:
     void on_computation_complete(wxCommandEvent& evt);
     void on_computation_progress(wxCommandEvent& evt);
     void on_computation_error(wxCommandEvent& evt);
+    void on_patch_build_complete(wxCommandEvent& evt);
 
     void rebuild_mapping_rows();
     void layout_mapping_rows();
@@ -309,12 +315,18 @@ private:
     void   set_color_count_exceeded(bool exceeded);
     void   update_color_count_warning();
     bool can_add_virtual_filament() const;
+    // True when at least one mapping row / match has no filament assigned.
+    bool has_unmatched_mapping() const;
+    // Create NewPhysical filaments for every unmatched cluster color, using the
+    // same family type / preset vote as auto-match. Same color shares one slot.
+    void add_virtual_filaments_for_unmatched();
     // Recomputes m_drop_warning_label visibility from m_filaments_dropped and
     // m_state. Safe to call whether or not the label has been created yet.
-    // Visibility reflects ONLY the result of the most recent do_auto_match():
-    // if the latest match did not drop any cluster, the label is hidden even
-    // if a previous match had dropped (no historical accumulation).
+    // Visibility reflects the most recent add that hit the filament cap
+    // (one-click add or manual add), not historical accumulation.
     void update_drop_warning_visibility();
+    void update_unmatched_warning_visibility();
+    void wrap_unmatched_warning_label();
     void compact_used_virtual_filaments();
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color,
@@ -332,9 +344,12 @@ private:
     void on_color_preset_clicked(wxCommandEvent& evt);
     void on_color_slider_changed(wxCommandEvent& evt);
     void on_color_spin_text_changed(wxCommandEvent& evt);
-    void on_color_spin_commit();
+    void on_color_spin_commit(bool from_enter = false);
     void on_smooth_slider_changed(wxCommandEvent& evt);
     void on_smooth_spin_commit();
+    void on_gap_slider_changed(wxCommandEvent& evt);
+    void on_gap_spin_commit();
+    void toggle_advanced_design();
     void on_auto_merge_toggled(wxCommandEvent& evt);
     void on_skip_clicked(wxCommandEvent& evt);
     void on_next_clicked(wxCommandEvent& evt);
@@ -344,6 +359,24 @@ private:
 
     void set_color_count_value(int value, bool update_spin);
     void set_smooth_value(int value, bool update_spin);
+    void set_gap_value(double value, bool update_spin);
+
+    GapPreviewState&       gap_preview();
+    const GapPreviewState& gap_preview() const;
+    // Install worker-built patches and refresh the gap preview from the current slider.
+    void install_gap_preview(std::unique_ptr<GapPreviewState> preview);
+    // Rebuild same-color connected patches from the last simplified mesh.
+    void update_color_patches();
+    void schedule_color_patches_rebuild();
+    // Preview only: recolor smallest patches until their combined area reaches the gap percent.
+    void apply_gap_area();
+    // Write gap preview colors into m_painted for filament matching. Does not
+    // overwrite the last simplified face colors or reset the gap slider.
+    void commit_gap_area_to_painted();
+    void clear_color_patches();
+    int  resolve_visible_patch_id(int patch_id) const;
+    void refresh_gap_preview();
+    int  gap_split_index_for_threshold(double threshold) const;
 
     bool has_valid_result() const;
     void update_confirm_button_state();
@@ -363,12 +396,10 @@ private:
     TextureImportWizardStep            m_wizard_step = TextureImportWizardStep::SimplifyColors;
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
-    // True iff *the most recent* do_auto_match() ran into the global filament
-    // limit and had to drop one or more clusters. Reset to false on every
-    // do_auto_match() entry so it never accumulates across runs: a run that
-    // does not drop anything must observe false here, regardless of whether
-    // previous runs dropped. Drives the inline orange warning above the
-    // bottom buttons; never affects the mapping itself.
+    // True iff the most recent add-filament attempt (one-click or manual)
+    // hit the global filament cap. Reset at the start of do_auto_match() and
+    // add_virtual_filaments_for_unmatched(). Drives the inline orange warning
+    // above the bottom buttons; never affects the mapping itself.
     bool                               m_filaments_dropped = false;
     bool                               m_auto_merge_enabled = true;
     TextureAutoMixMode                 m_auto_mix_mode = TextureAutoMixMode::CMYW;
@@ -382,8 +413,11 @@ private:
     boost::thread                      m_worker;
     std::atomic<bool>                  m_cancel_flag{false};
     std::atomic<int>                   m_compute_generation{0};
+    std::atomic<int>                   m_patch_generation{0};
     std::mutex                         m_result_mutex;
     Slic3r::PaintedMesh               m_pending_result;
+    std::unique_ptr<GapPreviewState>  m_pending_gap_preview;
+    bool                              m_patch_building = false;
     wxTimer*                           m_recompute_timer = nullptr;
     bool                               m_pending_auto_color = false;
     bool                               m_updating_params = false;
@@ -416,6 +450,11 @@ private:
     TextInput*   m_color_spin     = nullptr;
     GreenSlider* m_smooth_slider  = nullptr;
     TextInput*   m_smooth_spin    = nullptr;
+    GreenDoubleSlider* m_gap_slider = nullptr;
+    TextInput*         m_gap_spin   = nullptr;
+    wxPanel*              m_advanced_header = nullptr;
+    wxPanel*              m_advanced_body   = nullptr;
+    bool                  m_advanced_expanded = false;
     wxPanel*              m_params_panel   = nullptr;
     wxPanel*              m_mapping_panel  = nullptr;
     wxPanel*              m_preview_container = nullptr;
@@ -436,7 +475,6 @@ private:
 
     TexturePreviewCanvas* m_preview_canvas       = nullptr;
     TexturePreviewCanvas* m_preview_canvas_right = nullptr;
-    wxPanel*              m_preview_divider      = nullptr;
     wxPanel*              m_lbl_preview_left_panel  = nullptr;
     wxPanel*              m_lbl_preview_right_panel = nullptr;
     wxPanel*              m_updating_overlay        = nullptr;
@@ -454,10 +492,17 @@ private:
     Button*       m_btn_reset  = nullptr;
     Button*       m_btn_ok     = nullptr;
     wxStaticText* m_drop_warning_label = nullptr;
+    wxPanel*      m_unmatched_warning  = nullptr;
+    wxStaticBitmap* m_unmatched_warning_icon = nullptr;
+    wxStaticText* m_unmatched_warning_label = nullptr;
+    wxStaticText* m_unmatched_add_link = nullptr;
     wxBoxSizer*   m_footer_btn_sizer   = nullptr;
 
-    int   m_param_color_count = 4;
-    int   m_param_smooth      = 5;
+    int    m_param_color_count = 4;
+    int    m_param_smooth      = 5;
+    double m_param_gap_area    = 0.0; // percent of total mesh area, 0..10
+
+    std::unique_ptr<GapPreviewState> m_gap_preview;
 
     int   m_applied_color_count = -1;
     int   m_applied_smooth      = -1;
@@ -485,6 +530,8 @@ private:
         bool auto_mix_applied = false;
         TextureAutoMixMode auto_mix_mode = TextureAutoMixMode::CMYW;
         TextureImportState state = TextureImportState::Idle;
+        double param_gap_area = 0.0;
+        std::unique_ptr<GapPreviewState> gap_preview;
     };
     ComputeSnapshot m_compute_snapshot;
 
