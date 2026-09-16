@@ -470,6 +470,14 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     ImGui::SameLine();
     if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
+    ImGui::SameLine();
+    if (imgui.button(_L("Copy")))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_COPY_LAYER_HEIGHT_PROFILE));
+    ImGui::SameLine();
+    if (imgui.button(_L("Paste")) && has_copied_layer_height_profile())
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_PASTE_LAYER_HEIGHT_PROFILE));
+    if (ImGui::IsItemHovered() && ! has_copied_layer_height_profile())
+        imgui.tooltip(_L("Copy a variable layer height profile from another object first."), ImGui::GetFontSize() * 20.0f);
 
     GLCanvas3D::LayersEditing::s_overlay_window_width = ImGui::GetWindowSize().x;
     imgui.end();
@@ -828,6 +836,27 @@ void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D & canvas,
 {
     this->update_slicing_parameters();
     m_layer_height_profile = smooth_height_profile(m_layer_height_profile, *m_slicing_parameters, smoothing_params);
+    const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
+    m_layers_texture.valid = false;
+    canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    wxGetApp().obj_list()->update_info_items(last_object_id);
+    m_profile_dirty = true;
+}
+
+void GLCanvas3D::LayersEditing::copy_layer_height_profile()
+{
+    // m_layer_height_profile is kept in sync with m_model_object's actual profile by
+    // generate_layer_height_texture()/update_layer_height_profile() - it's whatever's really on
+    // the object right now (painted, adaptive, or the flat default), not just a pending edit.
+    m_copied_layer_height_profile = m_layer_height_profile;
+}
+
+void GLCanvas3D::LayersEditing::paste_layer_height_profile(GLCanvas3D & canvas)
+{
+    if (m_copied_layer_height_profile.empty())
+        return;
+    this->update_slicing_parameters();
+    m_layer_height_profile = m_copied_layer_height_profile;
     const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
@@ -1350,6 +1379,8 @@ wxDEFINE_EVENT(EVT_CUSTOMEVT_TICKSCHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_COPY_LAYER_HEIGHT_PROFILE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_PASTE_LAYER_HEIGHT_PROFILE, SimpleEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 const double GLCanvas3D::DefaultCameraZoomToBedMarginFactor = 2.00;
@@ -2436,6 +2467,20 @@ void GLCanvas3D::smooth_layer_height_profile(const HeightProfileSmoothingParams&
 {
     wxGetApp().plater()->take_snapshot("Variable layer height - Smooth all");
     m_layers_editing.smooth_layer_height_profile(*this, smoothing_params);
+    m_layers_editing.state = LayersEditing::Completed;
+    m_dirty = true;
+}
+
+void GLCanvas3D::copy_layer_height_profile()
+{
+    // Read-only, doesn't touch the model - no undo/redo snapshot needed.
+    m_layers_editing.copy_layer_height_profile();
+}
+
+void GLCanvas3D::paste_layer_height_profile()
+{
+    wxGetApp().plater()->take_snapshot("Variable layer height - Paste");
+    m_layers_editing.paste_layer_height_profile(*this);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }
