@@ -1186,7 +1186,7 @@ void OG_CustomCtrl::CtrlLine::render_nozzle_mirrors(wxDC& dc, wxCoord h_pos, wxC
         dc.SetFont(ctrl->m_font);
         const double diameter = ctrl->m_nozzle_diameters[i];
         const int row_y = v_pos + base_height * wxCoord(i + 1);
-        const wxString diameter_label = from_u8(format_diameter_to_str(diameter)) + "mm";
+        const wxString diameter_label = from_u8(format_diameter_to_str(diameter)) + "mm " + _L("nozzle");
         const wxSize label_size = dc.GetTextExtent(diameter_label);
         const int label_x = h_pos + lround(1.5 * ctrl->m_em_unit);
         const int label_y = row_y + (base_height - label_size.y) / 2;
