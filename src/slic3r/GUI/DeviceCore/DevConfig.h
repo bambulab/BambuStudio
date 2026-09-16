@@ -52,6 +52,8 @@ public:
 
     bool SupportNozzlePosToNozzleAddr() const { return m_support_nozzle_pos_to_nozzle_addr; }
 
+    bool SupportMultiDiameterCalibration() const { return m_support_multi_diameter_calibration; }
+
 public:
     /*Setters*/
     void ParseConfig(const json& print_json);
@@ -91,6 +93,7 @@ private:
 
     bool m_support_calibration_pa_flow_auto = false;// PA flow calibration. used in SendPrint
     bool m_support_nozzle_pos_to_nozzle_addr = false;// map firmware nozzle_pos (0/1) to rack address on rack machines
+    bool m_support_multi_diameter_calibration = false;// mixed nozzle diameters allowed within one flow calibration run
 };
 
 };

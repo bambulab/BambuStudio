@@ -1977,7 +1977,8 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
     if (cali_infos.empty())
         return true;
 
-    if(!std::all_of(cali_infos.begin(), cali_infos.end(), [&](auto& info){ return is_approx(info.nozzle_diameter, cali_infos.front().nozzle_diameter);}))
+    const bool mixed_diameter_calib = obj->GetConfig() && obj->GetConfig()->SupportMultiDiameterCalibration();
+    if(!mixed_diameter_calib && !std::all_of(cali_infos.begin(), cali_infos.end(), [&](auto& info){ return is_approx(info.nozzle_diameter, cali_infos.front().nozzle_diameter);}))
     {
         error_message = _L("Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again.");
         return false;
