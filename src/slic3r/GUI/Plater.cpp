@@ -9187,19 +9187,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
                 else if (model.looks_like_saved_in_meters()) {
-                    // BBS do not handle look like in meters
-                    MessageDialog dlg(q,
-                                      _L("The object size in the file is very small. Would you like to import it using millimeters as the default unit?"),
-                                      _L("Object too small"), wxICON_QUESTION | wxYES_NO);
-                    int           answer = dlg.ShowModal();
-                    if (answer == wxID_YES) model.convert_from_meters(true);
+                    BOOST_LOG_TRIVIAL(warning) << "object loaded seems in meter units, convert to millimeters:" << filename;
+                    model.convert_from_meters(true);
                 } else if (model.looks_like_imperial_units()) {
-                    // BBS do not handle look like in meters
-                    MessageDialog dlg(q,
-                                      _L("The object size in the file is very small. Would you like to import it using millimeters as the default unit?"),
-                                      _L("Object too small"), wxICON_QUESTION | wxYES_NO);
-                    int           answer = dlg.ShowModal();
-                    if (answer == wxID_YES) convert_from_imperial_units(model, true);
+                    BOOST_LOG_TRIVIAL(warning) << "object loaded seems in imperial units, convert to millimeters:" << filename;
+                    convert_from_imperial_units(model, true);
                 }
                 // else if (model.looks_like_imperial_units()) {
                 // BBS do not handle look like in imperial
