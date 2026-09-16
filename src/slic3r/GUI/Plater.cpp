@@ -1952,10 +1952,14 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
     }
 
     refresh_multi_nozzle_preset_choices();
-    // On the turn-on path the gate is written after select_preset(), so the printer pages were laid
-    // out while it was still off. Re-evaluate the lines gated on it.
-    if (Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER))
+    // On the turn-on path the gate is written after select_preset(), so refresh mode-dependent
+    // printer/process UI after the final mode value is available.
+    if (Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER)) {
         printer_tab->toggle_options();
+        printer_tab->update_extruder_variants(-1, false);
+    }
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+        print_tab->update_extruder_variants(-1, false);
     return true;
 }
 

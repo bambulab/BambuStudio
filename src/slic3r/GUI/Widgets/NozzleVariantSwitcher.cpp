@@ -122,12 +122,14 @@ private:
 class NozzleVariantButton : public wxPanel
 {
 public:
-    NozzleVariantButton(wxWindow *parent, const NozzleVariantSwitcher::Option &opt) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    NozzleVariantButton(wxWindow *parent, const NozzleVariantSwitcher::Option &opt, bool show_diameter)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         SetBackgroundColour(parent->GetBackgroundColour());
 
-        wxString label_text = wxString::Format(wxS("%g %s"), opt.diameter_mm, _L(get_nozzle_volume_type_string(opt.volume_type)));
+        const wxString volume_label = _L(get_nozzle_volume_type_string(opt.volume_type));
+        wxString       label_text   = show_diameter ? wxString::Format(wxS("%g %s"), opt.diameter_mm, volume_label) : volume_label;
         m_label             = new ::Label(this, ::Label::Head_13, label_text);
 
         const int pad_x   = FromDIP(12);
@@ -267,19 +269,20 @@ void NozzleVariantSwitcher::inherit_parent_background()
 
 NozzleVariantSwitcher::~NozzleVariantSwitcher() { clear(); }
 
-void NozzleVariantSwitcher::SetOptions(const std::vector<Option> &options)
+void NozzleVariantSwitcher::SetOptions(const std::vector<Option> &options, bool show_diameter)
 {
-    if (options == m_options) return;
+    if (options == m_options && show_diameter == m_show_diameter) return;
 
     int prev_sel   = sel;
     int prev_count = int(btns.size());
+    m_show_diameter = show_diameter;
 
     FreezeGuard fg(this);
 
     clear();
     for (size_t i = 0; i < options.size(); ++i) {
         const auto &opt = options[i];
-        auto *btn = new NozzleVariantButton(this, opt);
+        auto *btn = new NozzleVariantButton(this, opt, m_show_diameter);
         btns.push_back(btn);
         m_options.push_back(opt);
         GetSizer()->Add(btn, 0, wxRIGHT, FromDIP(i < (options.size() - 1) ? 8 : 0));

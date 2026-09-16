@@ -8248,7 +8248,8 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         nozzle_volumes->values.resize(extruder_nums);
         auto options = generate_nozzle_variant_options();
         if (options.size() > 1) {
-            m_variant_switch->SetOptions(options);
+            const bool show_diameter = !multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
+            m_variant_switch->SetOptions(options, show_diameter);
 
             int selection_index;
             if (extruder_id >= 0) {

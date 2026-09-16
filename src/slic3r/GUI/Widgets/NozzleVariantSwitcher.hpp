@@ -30,7 +30,7 @@ public:
 
     NozzleVariantSwitcher(wxWindow *parent = nullptr, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = 0);
     ~NozzleVariantSwitcher();
-    void SetOptions(const std::vector<Option> &options);
+    void SetOptions(const std::vector<Option> &options, bool show_diameter = true);
 
     unsigned int GetCount() const { return btns.size(); }
     int          GetSelection() const { return sel; }
@@ -52,7 +52,8 @@ private:
 
     std::vector<NozzleVariantButton *> btns;
     std::vector<Option>                m_options;
-    int                                sel = -1;
+    int                                sel             = -1;
+    bool                               m_show_diameter = true;
 };
 
 } // namespace Slic3r::GUI
