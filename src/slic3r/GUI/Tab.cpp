@@ -6109,7 +6109,18 @@ void TabPrinter::refresh_extruder_full_stat_for_model_change()
     if (m_preset_bundle->extruder_nozzle_stat.get_force_keep_flag())
         return;
     m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
-    m_preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
+    // Prefer the project's own persisted per-slot nozzle snapshot (extruder_nozzle_count/diameter/
+    // volume_type/slot in project_config) over blindly stamping every slot with this preset's single
+    // printer_variant. Those project options are what the Extruder Settings dialog reads/writes and
+    // outlive a printer-model switch, so when they are still internally consistent (same model was
+    // configured for per-slot diameters earlier in this project) they reflect the nozzles the user
+    // actually told us are installed -- e.g. two 0.2mm extruders on a machine whose default variant is
+    // 0.4mm. Rebuilding from printer_variant alone here made validate_filament_nozzle_diameter_selections()
+    // immediately flag every filament slot right after switching to that machine, before the user had a
+    // chance to reopen the dialog and see it was already configured correctly.
+    // update_extruder_full_stats_from_config() still falls back to generate_extruder_full_stats_from_nozzle_stats()
+    // when the persisted snapshot is missing/inconsistent, so a genuinely new model keeps today's behavior.
+    m_preset_bundle->update_extruder_full_stats_from_config();
     m_full_stat_prebuilt_for_model_change = true;
 }
 

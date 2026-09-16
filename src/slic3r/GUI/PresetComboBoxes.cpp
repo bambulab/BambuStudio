@@ -287,10 +287,26 @@ void PresetComboBox::update_selection()
         m_last_selected = 1;
         // For filament comboboxes the AMS/nozzle entries are appended before the preset groups, so
         // item 1 belongs to a printer tray. Landing there would show that tray's filament name and
-        // tray-number icon as if this slot used it, so step past the AMS block.
-        if (m_first_ams_filament && m_last_selected >= m_first_ams_filament && m_last_selected < m_last_ams_filament &&
+        // tray-number icon as if this slot used it, so step past the AMS block. Guarded on the
+        // block being non-empty (m_last_ams_filament > m_first_ams_filament), not on
+        // m_first_ams_filament itself: that block almost always starts at index 0 (the very first
+        // thing appended into a freshly cleared combo), and 0 is falsy, so the old
+        // `if (m_first_ams_filament && ...)` silently skipped this correction in the common case.
+        if (m_last_ams_filament > m_first_ams_filament && m_last_selected >= m_first_ams_filament && m_last_selected < m_last_ams_filament &&
             m_last_ams_filament < (int) GetCount())
             m_last_selected = m_last_ams_filament;
+
+        // The index above can still land squarely on a group-header row ("System presets" / "User
+        // presets", appended via set_label_marker()/DD_ITEM_STYLE_SPLIT_ITEM) instead of a real
+        // preset -- e.g. exactly one AMS/nozzle entry before the first preset group puts index 1
+        // right on that group's header. Showing a header's raw label text as this slot's filament
+        // name is worse than showing the wrong material, so step past any label-marker item(s).
+        while (m_last_selected < (int) GetCount()) {
+            auto marker = reinterpret_cast<Marker>(GetClientData(m_last_selected));
+            if (marker < LABEL_ITEM_DISABLED || marker >= LABEL_ITEM_MAX)
+                break;
+            ++m_last_selected;
+        }
     }
 
     SetSelection(m_last_selected);
@@ -1557,8 +1573,16 @@ void PlaterPresetComboBox::update()
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
 #endif
             if (preset.is_system) {
-                if (!preset.is_compatible && preset_filament_vendors.count(name) > 0)
+                if (!preset.is_compatible && preset_filament_vendors.count(name) > 0) {
+                    // This exact variant is being dropped as a duplicate of an already-listed,
+                    // compatible sibling with the same alias - but if it's the one this slot
+                    // actually uses, its alias must still be recorded as the selection here,
+                    // before we skip it, or is_selected never fires for this alias below and
+                    // update_selection() falls back to item 1 (see comment above at ~line 1512).
+                    if (is_selected)
+                        selected_system_preset = name;
                     continue;
+                }
                 else if (preset.is_compatible && preset_filament_vendors.count(name) > 0)
                     uncompatible_presets.erase(name);
                 preset_filament_vendors[name] = preset.config.option<ConfigOptionStrings>("filament_vendor")->values.at(0);

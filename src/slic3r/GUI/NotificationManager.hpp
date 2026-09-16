@@ -166,6 +166,7 @@ enum class NotificationType
     BBLMixUsePLAAndPETG,
     BBLBrittleFilament,
     BBLMixedFilamentBroken,
+    BBLFilamentNozzleDiameterMismatch,
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,
 	BBLTpuNozzleHasMultiFilament,

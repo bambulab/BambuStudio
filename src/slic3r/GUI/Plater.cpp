@@ -1005,7 +1005,7 @@ struct Sidebar::priv
     PlaterPresetComboBox *combo_print = nullptr;
     std::vector<PlaterPresetComboBox*> combos_filament;
     std::vector<DiameterButtonPanel*> filament_diameter_btns;
-    std::vector<wxPanel*> filament_items;
+    std::vector<StaticBox*> filament_items;
     int editing_filament = -1;
     wxBoxSizer *sizer_filaments = nullptr;
     bool fila_switch_warning_shown = false;
@@ -1015,8 +1015,19 @@ struct Sidebar::priv
 
     std::vector<Button*> filament_nozzle_labels;
     std::vector<wxStaticLine*> filament_nozzle_dividers;
+    // Figma node 7808:13253: the incompatibility marker is an exclamation icon living inside the
+    // combo box right after the diameter/flow badge, not a separate icon out at the row's edge.
+    // Plain wxStaticBitmap rather than ScalableButton: a native themed push-button ignores
+    // SetBackgroundColour on MSW and paints its own button-face box behind the bitmap, which is
+    // exactly the unwanted "filled square" this icon must not have (it's not clickable anyway).
+    std::vector<wxStaticBitmap*> filament_incompatible_icons;
     FilamentNozzlePopup* m_filament_nozzle_popup = nullptr;
     void refresh_filament_nozzle_label(size_t idx, int filament_idx);
+
+    // Last incompatible-slot set pushed to the notification manager, so refresh_filament_diameter_buttons
+    // only pushes/closes BBLFilamentNozzleDiameterMismatch when the set actually changes rather than on
+    // every refresh (which fires far more often than the set itself changes).
+    std::set<size_t> m_notified_incompatible_nozzle_slots;
 
     // Session snapshot of per-slot diameter/flow selections captured when multi_nozzle_diameter_mode
     // is turned OFF -- validate_filament_nozzle_diameter_selections() unconditionally clears them
@@ -1075,7 +1086,20 @@ struct Sidebar::priv
     //ScalableButton *btn_eject_device;
     ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
+    // Set for the duration of switch_diameter()'s select_preset() call. That call cascades the same
+    // way as sync_extruder_list()'s model switch below (see is_syncing_extruder_list_model_switch) --
+    // through the dependent-tab refresh into a premature filament-nozzle validation -- so it is checked
+    // by the same guarded call sites, alongside is_syncing_extruder_list_model_switch.
     bool                    is_switching_diameter{false};
+    // Set for the duration of sync_extruder_list()'s printer-model switch: the select_preset() call
+    // there cascades into update_all_preset_comboboxes(), which validates and redisplays filament-nozzle
+    // compatibility against whatever extruder_full_stat holds at that moment -- still the previous
+    // machine's data, since the real per-slot diameters queried from the connected device are not
+    // written in until later in that same function. Left unguarded, that cascade briefly flags every
+    // slot red before the correct data arrives a few lines later and clears it right back. Checked by
+    // update_all_preset_comboboxes() to skip that intermediate pass; sync_extruder_list() performs the
+    // real one itself once extruder_full_stat is accurate.
+    bool                    is_syncing_extruder_list_model_switch{false};
     Search::OptionsSearcher     searcher;
     std::string ams_list_device;
 
@@ -1963,40 +1987,10 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
     return true;
 }
 
-static void notify_filament_nozzle_diameter_fallback(const std::vector<std::string> &previous_selections)
-{
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
-        return;
-
-    const auto *current =
-        preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-    if (current == nullptr)
-        return;
-
-    std::set<std::string> configured_diameters;
-    const auto &full_stat = preset_bundle->extruder_full_stat;
-    for (int extruder = 0; extruder < full_stat.get_extruder_count(); ++extruder)
-        for (const auto &slot : full_stat.get_extruder_stats(extruder)) {
-            const double diameter = std::atof(slot.first.c_str());
-            if (diameter > 0.)
-                configured_diameters.insert(format_diameter_to_str(diameter));
-        }
-
-    const size_t count = std::min(previous_selections.size(), current->values.size());
-    for (size_t i = 0; i < count; ++i) {
-        const std::string &previous = previous_selections[i];
-        if (previous.empty() || configured_diameters.count(previous) != 0 || current->values[i] == previous)
-            continue;
-
-        MessageDialog notice(static_cast<wxWindow *>(wxGetApp().mainframe),
-                             _L("Some filament nozzle diameter selections are no longer available in the updated machine configuration and have been automatically changed to available diameters."),
-                             _L("Filament nozzle diameters updated"),
-                             wxOK | wxICON_INFORMATION);
-        notice.ShowModal();
-        return;
-    }
-}
+// Replaced by the red-icon + bottom-right notification path: an incompatible slot is now pushed
+// into PresetBundle::incompatible_nozzle_diameter_slots by validate_filament_nozzle_diameter_selections()
+// and left at its original diameter, instead of being silently reassigned to the smallest remaining
+// diameter and reported through a one-shot modal dialog here.
 
 void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diameter)
 {
@@ -2004,10 +1998,6 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
     bool is_dual           = extruder_variants && extruder_variants->size() == 2;
 
     auto diameter = preselect_diameter.IsEmpty() ? diameter_btns->GetSelectedDiameter() : preselect_diameter;
-    const auto *selected_nozzle_diameters =
-        wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-    const std::vector<std::string> previous_filament_diameters =
-        selected_nozzle_diameters ? selected_nozzle_diameters->values : std::vector<std::string>{};
 
     // Grey-button path: the clicked diameter has no configured nozzle. Confirm the user
     // wants to modify the nozzle type before opening the settings dialog.
@@ -2064,7 +2054,16 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         const bool previous_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
         bool target_multi_diameter_mode = previous_multi_diameter_mode;
         if (new_multi_diameter_mode.has_value()) {
+            // apply_multi_nozzle_diameter_mode() switches the printer preset internally
+            // (Tab::select_preset() -> PresetBundle::update_compatible(Always)), same as the sidebar's
+            // own multi-diameter toggle callback -- guard it the same way so an incompatible filament
+            // is flagged red instead of silently substituted before the validation pass below runs.
+            // block_filament_fallback_substitution is cleared by the unconditional reset further down
+            // in this function (shared with the single-diameter switch branch below).
+            is_switching_diameter = true;
+            wxGetApp().preset_bundle->block_filament_fallback_substitution = true;
             apply_multi_nozzle_diameter_mode(*new_multi_diameter_mode);
+            is_switching_diameter = false;
             target_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
             diameter_btns->SetMultiDiameterMode(target_multi_diameter_mode);
         }
@@ -2091,10 +2090,17 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             !selected_diameter.IsEmpty() && selected_diameter != diameter) {
             diameter_btns->SetSelectedDiameter(selected_diameter);
             is_switching_diameter = true;
+            wxGetApp().preset_bundle->block_filament_fallback_substitution = true;
             auto result = switch_diameter(!is_dual);
-            is_switching_diameter = false;
             if (!result)
                 diameter_btns->SetSelectedDiameter(selected_diameter);
+            // Must run the validation/notification pass while the guard flag above is still
+            // set, otherwise this entry point silently falls back to the old auto-substitute
+            // behavior (validate_filament_nozzle_diameter_selections would run unguarded).
+            // The guard itself stays up past this point -- see the reset below, after the
+            // set_extruder_volume_type() calls that also indirectly re-run validation.
+            wxGetApp().plater()->sidebar().refresh_filament_diameter_buttons(true);
+            is_switching_diameter = false;
         } else {
             diameter_btns->UpdateButtonStates();
             // The extruder_full_stat may still have gained/lost a diameter, so recompute
@@ -2103,8 +2109,6 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
             wxGetApp().plater()->sidebar().update_presets(Preset::TYPE_FILAMENT);
         }
-
-        notify_filament_nozzle_diameter_fallback(previous_filament_diameters);
 
         if (multi_diameter_mode_changed) {
             // Turning the gate on or off changes the nozzle diameter slicing sees, so the plate has to be
@@ -2145,6 +2149,14 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
                 }
             }
         }
+
+        // set_extruder_volume_type() above calls update_dirty() -> on_presets_changed() ->
+        // Sidebar::update_presets(TYPE_PRINTER), which unconditionally re-runs
+        // validate_filament_nozzle_diameter_selections(). Only clear the guard now that block
+        // is done, so that re-run stays guarded too and doesn't silently substitute the
+        // incompatible slot back to a default preset. (No-op if the branch above never set it.)
+        wxGetApp().preset_bundle->block_filament_fallback_substitution = false;
+        wxGetApp().plater()->sidebar().refresh_filament_diameter_buttons();
 
         if (plater) {
             plater->update_machine_sync_status();
@@ -2613,10 +2625,6 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     std::string machine_print_name = obj->get_show_printer_type();
     wxString machine_display_name = obj->get_printer_type_display_str();
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    const auto *selected_nozzle_diameters =
-        preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-    const std::vector<std::string> previous_filament_diameters =
-        selected_nozzle_diameters ? selected_nozzle_diameters->values : std::vector<std::string>{};
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
     const Preset &selected_preset = preset_bundle->printers.get_selected_preset();
     const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(selected_preset);
@@ -2656,10 +2664,16 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
             }
         }
 
+        // select_preset() below cascades into update_all_preset_comboboxes(), which would otherwise
+        // validate filament-nozzle compatibility against extruder_full_stat before the real per-slot
+        // diameters queried from the connected device (further down in this function) replace it --
+        // see is_syncing_extruder_list_model_switch's declaration for why that flashes a false flag.
+        is_syncing_extruder_list_model_switch = true;
         this->plater->update_objects_position_when_select_preset([target_preset]() {
             Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
             printer_tab->select_preset(target_preset->name);
         });
+        is_syncing_extruder_list_model_switch = false;
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " go on sync_extruder_list";
     const Preset &cur_preset  = preset_bundle->printers.get_selected_preset();
@@ -2714,6 +2728,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         return -1;
     };
 
+    bool single_diameter_switched = false;
+    bool dual_diameter_switched = false;
     if (extruder_nums > 1) {
         wxString selected_diameter = wxString::FromUTF8(get_diameter_string(nozzle_diameters[0]));
         l_ext_cfg                  = collect_nozzle_configs_from_machine(obj, LOGIC_L_EXTRUDER_ID, extruder_max_nozzle_count[0]);
@@ -2722,9 +2738,16 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         update_extruder_full_stats(LOGIC_R_EXTRUDER_ID, selected_diameter, r_ext_cfg);
 
         diameter_btns->SetSelectedDiameter(selected_diameter);
+        // switch_diameter() -> Tab::select_preset() runs update_compatible(Always) internally, same
+        // cascade the single-extruder branch below already guards -- without this, a dual-extruder
+        // machine reporting a new diameter here would silently substitute an incompatible filament.
+        // Kept up through the validate_filament_nozzle_diameter_selections() call further down
+        // (see dual_diameter_switched), not reset immediately like is_switching_diameter.
+        preset_bundle->block_filament_fallback_substitution = true;
         is_switching_diameter = true;
         switch_diameter(false);
         is_switching_diameter = false;
+        dual_diameter_switched = true;
         AMSCountPopupWindow::SetAMSCount(DEPUTY_EXTRUDER_ID, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
         AMSCountPopupWindow::SetAMSCount(MAIN_EXTRUDER_ID, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
 
@@ -2749,8 +2772,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
             }
 
             is_switching_diameter = true;
+            preset_bundle->block_filament_fallback_substitution = true;
             switch_diameter(true);
             is_switching_diameter = false;
+            single_diameter_switched = true;
         }
 
 
@@ -2790,8 +2815,22 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     auto *has_switcher = dynamic_cast<ConfigOptionBool *>(project_config.option("has_filament_switcher"));
     if (has_switcher) { has_switcher->value = is_fila_switch_ready(); }
 
-    preset_bundle->validate_filament_nozzle_diameter_selections();
-    notify_filament_nozzle_diameter_fallback(previous_filament_diameters);
+    if (single_diameter_switched) {
+        // Keep the guard engaged through this validation/refresh pass -- otherwise the synced
+        // machine diameter would silently fall back to a substitute filament preset here, same
+        // as the bug this guard fixes for the manual diameter-switch entry points.
+        wxGetApp().plater()->sidebar().refresh_filament_diameter_buttons(true);
+        preset_bundle->block_filament_fallback_substitution = false;
+    } else if (!is_single_ext_multi_nozzle(machine_preset->config)) {
+        // A single-extruder multi-nozzle machine always falls through to the automatic
+        // sync_ams_list() call below, which re-validates against the freshly-synced AMS/tray
+        // mapping. Validating here too would flag every slot against a nozzle diameter whose
+        // filament mapping has not been synced yet, flashing a red/incompatible state that
+        // clears itself a moment later once that call finishes -- so leave the validation to it.
+        preset_bundle->validate_filament_nozzle_diameter_selections();
+        if (dual_diameter_switched)
+            preset_bundle->block_filament_fallback_substitution = false;
+    }
 
     // Per-slot nozzle data is derived from extruder_full_stat in full_config(). Selecting the same
     // printer preset may not emit a config change, so explicitly invalidate stale nozzle grouping.
@@ -3404,8 +3443,28 @@ Sidebar::Sidebar(Plater *parent)
             const bool previous_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
             if (previous_mode == enabled)
                 return;
-            if (!p->apply_multi_nozzle_diameter_mode(enabled)) {
+            // Guard raised before apply_multi_nozzle_diameter_mode(), not just before the
+            // validate_filament_nozzle_diameter_selections()/update_compatible() pair below: turning
+            // multi-diameter mode ON forces the printer preset over to the canonical "0.2" variant
+            // (select_printer_preset_for_multi_nozzle_mode -> select_system_multi_nozzle_printer_preset),
+            // and that preset switch runs Tab::select_preset() -> PresetBundle::update_compatible(Always)
+            // *inside* apply_multi_nozzle_diameter_mode() -- before this point. A filament incompatible
+            // with 0.2 (e.g. PA6-GF) would get silently substituted there, before the later guarded pair
+            // ever runs. Cleared at the end of this lambda, after update_presets(TYPE_FILAMENT)/
+            // on_config_change (which can indirectly re-run validation too) have both completed.
+            preset_bundle->block_filament_fallback_substitution = true;
+            // apply_multi_nozzle_diameter_mode() internally calls select_preset() on the printer tab
+            // (see the comment above), which cascades into the same premature filament-nozzle
+            // validation that is_switching_diameter guards elsewhere (see its declaration) -- the
+            // call sites it protects would otherwise run against stale extruder_full_stat/project
+            // config before this lambda's own validate_filament_nozzle_diameter_selections()/
+            // update_presets(TYPE_FILAMENT) pass below runs with the real, settled data.
+            p->is_switching_diameter = true;
+            bool mode_applied = p->apply_multi_nozzle_diameter_mode(enabled);
+            p->is_switching_diameter = false;
+            if (!mode_applied) {
                 p->diameter_btns->SetMultiDiameterMode(previous_mode);
+                preset_bundle->block_filament_fallback_substitution = false;
                 return;
             }
 
@@ -3434,6 +3493,8 @@ Sidebar::Sidebar(Plater *parent)
 
             // The printer preset is already the one this mode needs, so the diameter buttons are
             // left to update_presets(TYPE_PRINTER) below, which derives them from printer_variant.
+            // block_filament_fallback_substitution is already raised above (before
+            // apply_multi_nozzle_diameter_mode()); it stays up through this pass too.
             preset_bundle->validate_filament_nozzle_diameter_selections();
             preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
 
@@ -3482,6 +3543,7 @@ Sidebar::Sidebar(Plater *parent)
             update_presets(Preset::TYPE_FILAMENT);
             wxGetApp().plater()->update_project_dirty_from_presets();
             wxGetApp().plater()->on_config_change(preset_bundle->full_config());
+            preset_bundle->block_filament_fallback_substitution = false;
         });
         p->diameter_btns->SetNozzleQueryCallback([this](const wxString &query_diameter) -> bool {
             PresetBundle *preset_bundle     = wxGetApp().preset_bundle;
@@ -3515,15 +3577,22 @@ Sidebar::Sidebar(Plater *parent)
 
         p->diameter_btns->Bind(wxEVT_BUTTON, [this](wxCommandEvent &evt) {
             auto selected_diameter = p->diameter_btns->GetSelectedDiameter();
+            auto *preset_bundle = wxGetApp().preset_bundle;
             p->is_switching_diameter = true;
+            preset_bundle->block_filament_fallback_substitution = true;
             auto result = p->switch_diameter(false);
             p->is_switching_diameter = false;
             if (!result) {
-                auto previous_diameter = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+                auto previous_diameter = preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
                 p->diameter_btns->SetSelectedDiameter(wxString(previous_diameter));
             }
             refresh_filament_diameter_buttons(true);
 
+            // Keep the guard up through the extruder-panel sync below: set_extruder_volume_type()
+            // calls update_dirty() -> on_presets_changed() -> Sidebar::update_presets(TYPE_PRINTER),
+            // which unconditionally re-runs validate_filament_nozzle_diameter_selections(). If the
+            // guard were already cleared here, that re-run would silently substitute the
+            // incompatible slot back to a default preset, undoing the marking just applied above.
             for (auto* panel : { p->r_extruder_panel, p->l_extruder_panel, p->s_extruder_panel }) {
                 if (panel && panel->IsShownOnScreen()) {
                     auto printer_tab = dynamic_cast<TabPrinter*>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
@@ -3559,6 +3628,12 @@ Sidebar::Sidebar(Plater *parent)
                     }
                 }
             }
+
+            preset_bundle->block_filament_fallback_substitution = false;
+            // set_extruder_volume_type() above may have re-run validate_filament_nozzle_diameter_selections()
+            // (still guarded) via on_presets_changed(); refresh once more so the icon/notification state
+            // reflects the final incompatible_nozzle_diameter_slots.
+            refresh_filament_diameter_buttons();
         });
 
         p->dual_panel       = new DualExtruderPanelGroup(p->m_panel_printer_content);
@@ -3584,12 +3659,15 @@ Sidebar::Sidebar(Plater *parent)
 
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
+            auto *preset_bundle = wxGetApp().preset_bundle;
             p->is_switching_diameter = true;
+            preset_bundle->block_filament_fallback_substitution = true;
             auto result              = p->switch_diameter(extruder == p->single_extruder);
             p->is_switching_diameter = false;
             if (!result)
                 extruder->combo_diameter->SetValue(extruder->diameter);
             refresh_filament_diameter_buttons(true);
+            preset_bundle->block_filament_fallback_substitution = false;
         };
         p->single_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);
 
@@ -4236,8 +4314,15 @@ void Sidebar::priv::relayout_mixed_filament_grid(bool force)
 
 void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx)
 {
-    auto filament_item = new wxPanel(p->m_panel_filament_content);
+    auto filament_item = new StaticBox(p->m_panel_filament_content);
+    filament_item->SetBackgroundColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Normal)));
     filament_item->SetBackgroundColour(*wxWHITE);
+    filament_item->SetCornerRadius(FromDIP(6));
+    filament_item->SetBorderWidth(1);
+    // Border starts the same colour as the card's own fill (i.e. invisible) -- refresh_filament_nozzle_label
+    // switches it to ThemeColor::Danger for a whole-row outline once this slot is marked incompatible
+    // (Figma node 7808:13253), rather than only flagging it with the small inline icon.
+    filament_item->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Normal)));
     wxGetApp().UpdateDarkUIWin(filament_item);
     auto item_sizer = new wxBoxSizer(wxVERTICAL);
     filament_item->SetSizer(item_sizer);
@@ -4326,6 +4411,21 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     p->filament_nozzle_labels.push_back(nozzle_label);
     p->filament_nozzle_dividers.push_back(nozzle_divider);
 
+    // Exclamation icon for nozzle-diameter incompatibility, positioned inline inside combo itself,
+    // on its right side (see reposition_filament_nozzle_indicator) -- not as a separate control
+    // outside combo. Unlike the diameter/flow badge, this icon is not gated on
+    // filament_nozzle_chip_supported(): single-diameter-mode machines hide the diameter badge
+    // entirely but still need a visible in-row marker when a slot is incompatible.
+    auto *incompatible_icon = new wxStaticBitmap(*combo, wxID_ANY, create_scaled_bitmap("error", *combo, 16));
+    // combo (a TextInput/StaticBox) paints its own background per-state; a native themed button
+    // parented into it ignores SetBackgroundColour and paints its own button-face box, so this is
+    // a plain static bitmap instead -- it isn't clickable, only shown with a tooltip, and actually
+    // honors SetBackgroundColour, matched here to combo's normal-state (white) background.
+    incompatible_icon->SetBackgroundColour(*wxWHITE);
+    incompatible_icon->SetToolTip(_L("Printer does not support this filament at the current nozzle diameter. Please fix it."));
+    incompatible_icon->Hide();
+    p->filament_incompatible_icons.push_back(incompatible_icon);
+
     ScalableButton* edit_btn = new ScalableButton(filament_item, wxID_ANY, "menu_filament");
     edit_btn->SetToolTip(_L("Click to edit preset"));
     edit_btn->Bind(wxEVT_BUTTON, [this, edit_btn, combobox](wxCommandEvent) {
@@ -4406,6 +4506,32 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
         return;
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const auto &incompatible_slots = preset_bundle->incompatible_nozzle_diameter_slots;
+    const bool is_incompatible = std::find(incompatible_slots.begin(), incompatible_slots.end(),
+        static_cast<size_t>(filament_idx)) != incompatible_slots.end();
+
+    // Figma node 7808:13253: an incompatible slot is marked by (1) an exclamation icon inline inside
+    // combo, on its right side, and (2) combo's own outline turning red -- not by swapping the "..."
+    // edit button's own icon out at the row's edge, so leave that button alone.
+    if (idx < filament_incompatible_icons.size() && filament_incompatible_icons[idx] != nullptr)
+        filament_incompatible_icons[idx]->Show(is_incompatible);
+
+    if (idx < combos_filament.size() && combos_filament[idx] != nullptr) {
+        PlaterPresetComboBox *combo = combos_filament[idx];
+        // Preserve TextInput's own default border-color states (Disabled/Hovered/Normal, set in
+        // TextInput's ctor) and only repaint them red when incompatible -- replacing the whole
+        // StateColor with a Normal-only pair would silently drop the disabled/hover-green look for
+        // a compatible combo.
+        const wxColour disabled_color(0xDB, 0xDB, 0xDB);
+        const wxColour normal_color  = is_incompatible ? ThemeColor::Danger : wxColour(0xDB, 0xDB, 0xDB);
+        const wxColour hovered_color = is_incompatible ? ThemeColor::Danger : ThemeColor::BrandGreen;
+        combo->SetBorderColor(StateColor(
+            std::make_pair(disabled_color, (int) StateColor::Disabled),
+            std::make_pair(hovered_color, (int) StateColor::Hovered),
+            std::make_pair(normal_color, (int) StateColor::Normal)));
+        combo->Refresh();
+    }
+
     // This per-slot nozzle diameter/flow-type selector only applies to single-extruder multi-nozzle
     // machines: other machines have one fixed nozzle per extruder, so there is nothing here to
     // switch between -- hide the label and its divider entirely.
@@ -4418,11 +4544,11 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
     if (divider != nullptr)
         divider->Show(nozzle_selector_supported);
     if (!nozzle_selector_supported) {
-        // Nothing to reserve space for once the overlay is hidden -- otherwise switching to a
-        // printer preset that doesn't need this selector would leave the combo's preset-name
-        // text truncated for a divider/label that is no longer drawn.
-        if (idx < combos_filament.size() && combos_filament[idx] != nullptr)
-            combos_filament[idx]->SetReservedRightWidth(0);
+        // The incompatibility icon above may still need to be shown/positioned even though the
+        // diameter badge itself stays hidden (e.g. single-diameter-mode machines) -- let
+        // reposition_filament_nozzle_indicator compute the reserved width from whichever of the
+        // icon/label/divider are actually visible, instead of unconditionally zeroing it here.
+        reposition_filament_nozzle_indicator(idx);
         return;
     }
 
@@ -4456,6 +4582,7 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
     const wxString text = diameter.empty() ? wxString() :
         wxString::FromUTF8(diameter + " " + DevNozzle::ToNozzleVolumeShortString(type));
     label->SetLabel(text);
+    label->SetTextColorNormal(is_incompatible ? ThemeColor::Danger : ThemeColor::TextMuted);
     reposition_filament_nozzle_indicator(idx);
 }
 
@@ -4466,6 +4593,7 @@ void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
     PlaterPresetComboBox *combo   = combos_filament[idx];
     Button                *label   = filament_nozzle_labels[idx];
     wxStaticLine          *divider = filament_nozzle_dividers[idx];
+    wxStaticBitmap        *icon    = idx < filament_incompatible_icons.size() ? filament_incompatible_icons[idx] : nullptr;
     if (combo == nullptr || label == nullptr || divider == nullptr)
         return;
 
@@ -4478,34 +4606,72 @@ void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
     // top-right corner (it must stay pinned there, not be pushed aside) and sits on top of this
     // label whenever their rects overlap, since child windows always paint over their parent's
     // own drawing. Reserve enough width on the label's side to keep clear of that corner instead.
-    const int right_margin = combo->HasBadge() ? combo->GetBadgeWidth() + FromDIP(4) : FromDIP(8);
+    // Small breathing room (FromDIP(10)) so the incompatibility icon below does not read as
+    // jammed against combo's own right edge / rounded corner. (FromDIP(20) was only needed to
+    // compensate for the icon's width being miscomputed as -1 before the GetBestSize() fix above;
+    // now that the icon's real width is used, its right edge sits exactly at this margin.)
+    const int right_margin = combo->HasBadge() ? combo->GetBadgeWidth() + FromDIP(4) : FromDIP(10);
     const int gap          = FromDIP(8);
-    // Stretch the label to (almost) the full row height instead of just its snug
+    // Stretch the label/icon to (almost) the full row height instead of just its snug
     // text height -- otherwise the hover/pressed fill renders as a thin chip with
     // visible blank space above and below it rather than filling the area to the
     // right of the divider the way the rest of the row's controls do.
     const int vert_inset = FromDIP(3);
     const int label_h = std::max(0, comboHeight - vert_inset * 2);
 
+    // Right-to-left layout: [right_margin] [icon?] [gap] [divider+label?]. The incompatibility
+    // icon (Figma node 7808:13253) sits closest to the combo's right edge, ahead of the
+    // diameter/flow badge, since it must stay visible even on hardware where that badge is
+    // hidden (filament_nozzle_chip_supported() == false).
+    int cursor_x    = std::max(0, comboWidth - right_margin);
+    int leftmost_x  = cursor_x;
+
+    const bool icon_visible = icon != nullptr && icon->IsShown();
+    if (icon_visible) {
+        // Unlike ScalableButton (a themed push-button that centers its bitmap within whatever
+        // rect it's given), wxStaticBitmap does not stretch or re-center its content -- so size
+        // it to its own natural bitmap size and center that rect vertically here instead of
+        // stretching it to comboHeight. Note: GetMinSize() is wrong here -- unlike Button (which
+        // explicitly calls SetMinSize() in messureSize()), plain wxStaticBitmap never sets an
+        // explicit min size, so GetMinSize() returns wxDefaultSize (-1,-1); SetSize() below would
+        // then treat -1/-1 as "keep current size" while still moving the origin down to the
+        // computed center, leaving the bitmap's real (unshrunk) height hanging below that point --
+        // exactly the "icon sinks toward the bottom" symptom. GetBestSize() reports the bitmap's
+        // actual natural size instead.
+        const wxSize icon_min = icon->GetBestSize();
+        const int icon_w = icon_min.GetWidth();
+        const int icon_h = icon_min.GetHeight();
+        const int icon_x = std::max(0, cursor_x - icon_w);
+        const int icon_y = (comboHeight - icon_h) / 2;
+        icon->SetSize(icon_x, icon_y, icon_w, icon_h);
+        leftmost_x = icon_x;
+        cursor_x   = icon_x - gap;
+    }
+
     // Button's messureSize() computes its content-fit size via SetMinSize() rather than
     // an overridden GetBestSize(), so read the width back from GetMinSize() here. Height
     // is overridden above instead of using the measured height (isCenter still centers
     // the text vertically inside whatever rect SetSize() below gives it).
-    const int labelWidth = label->GetMinSize().GetWidth();
-    const int label_x = std::max(0, comboWidth - right_margin - labelWidth);
-    label->SetSize(label_x, vert_inset, labelWidth, label_h);
+    const bool label_visible = label->IsShown();
+    if (label_visible) {
+        const int labelWidth = label->GetMinSize().GetWidth();
+        const int label_x = std::max(0, cursor_x - labelWidth);
+        label->SetSize(label_x, vert_inset, labelWidth, label_h);
 
-    const int divider_width  = divider->GetSize().GetWidth();
-    const int divider_height = divider->GetSize().GetHeight();
-    const int divider_x = std::max(0, label_x - gap - divider_width);
-    const int divider_y = (comboHeight - divider_height) / 2;
-    divider->SetSize(divider_x, divider_y, divider_width, divider_height);
+        const int divider_width  = divider->GetSize().GetWidth();
+        const int divider_height = divider->GetSize().GetHeight();
+        const int divider_x = std::max(0, label_x - gap - divider_width);
+        const int divider_y = (comboHeight - divider_height) / 2;
+        divider->SetSize(divider_x, divider_y, divider_width, divider_height);
 
-    // Reserve the space occupied by the divider+label overlay so the combo's own
-    // preset-name text always ellipsizes before reaching it, instead of being drawn
-    // underneath it (the combo has no other awareness of this overlay, which is
+        leftmost_x = divider_x;
+    }
+
+    // Reserve the space occupied by whichever of the icon/divider+label overlay is actually
+    // visible so the combo's own preset-name text always ellipsizes before reaching it, instead
+    // of being drawn underneath it (the combo has no other awareness of this overlay, which is
     // positioned independently of its internal text layout).
-    combo->SetReservedRightWidth(comboWidth - divider_x);
+    combo->SetReservedRightWidth((icon_visible || label_visible) ? std::max(0, comboWidth - leftmost_x) : 0);
 }
 
 void Sidebar::sync_multi_nozzle_mode_from_project()
@@ -4534,9 +4700,15 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
         preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
     const bool is_dual = extruder_variants != nullptr && extruder_variants->size() == 2;
     p->diameter_btns->SetSelectedDiameter(canonical_multi_nozzle_printer_variant());
+    // switch_diameter() -> Tab::select_preset() runs PresetBundle::update_compatible(Always)
+    // internally, same cascade the sidebar's diameter-switch entry points guard against -- without
+    // this, a filament incompatible with the canonical printer variant would get silently substituted
+    // while loading a project that was saved in multi-diameter mode on a different printer_variant.
+    preset_bundle->block_filament_fallback_substitution = true;
     p->is_switching_diameter = true;
     const bool switched = p->switch_diameter(!is_dual);
     p->is_switching_diameter = false;
+    preset_bundle->block_filament_fallback_substitution = false;
     if (!switched)
         p->diameter_btns->SetSelectedDiameter(from_u8(current_diameter));
 
@@ -4603,6 +4775,51 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
         panel->Show(false);
         p->refresh_filament_nozzle_label(i, filament_idx);
     }
+
+    // Push/close the right-bottom notification only when the incompatible-slot set actually changes --
+    // this is called far more often (any sidebar refresh) than the set itself changes.
+    {
+        const std::vector<size_t> &incompatible_vec = preset_bundle->incompatible_nozzle_diameter_slots;
+        std::set<size_t> incompatible_now(incompatible_vec.begin(), incompatible_vec.end());
+        if (incompatible_now != p->m_notified_incompatible_nozzle_slots) {
+            auto *notify = wxGetApp().plater()->get_notification_manager();
+            if (notify) {
+                if (!incompatible_now.empty()) {
+                    // Slots can be missing different diameters at once (e.g. some were 0.2, others
+                    // 0.4, and neither is installed any more), so collect each flagged slot's own
+                    // stored diameter instead of describing every slot with the single current
+                    // printer_variant -- that value is meaningless here in multi-diameter mode.
+                    std::set<std::string> diameters;
+                    wxString slot_list;
+                    for (size_t idx : incompatible_now) {
+                        std::string diameter = selected != nullptr && idx < selected->values.size() ?
+                            selected->values[idx] : std::string();
+                        if (diameter.empty())
+                            diameter = preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+                        diameters.insert(diameter + " " + DevNozzle::ToNozzleVolumeShortString(NozzleVolumeType::nvtStandard));
+                        if (!slot_list.empty())
+                            slot_list += ", ";
+                        slot_list += wxString::Format("%d", (int) idx + 1);
+                    }
+                    wxString diameter_list;
+                    for (const std::string &desc : diameters) {
+                        if (!diameter_list.empty())
+                            diameter_list += ", ";
+                        diameter_list += wxString::FromUTF8(desc);
+                    }
+                    const wxString text = wxString::Format(
+                        _L("The printer does not support the %s nozzle for filament slot %s. It has been flagged in the filament list -- please update the nozzle information before use."),
+                        diameter_list, slot_list);
+                    notify->push_notification(NotificationType::BBLFilamentNozzleDiameterMismatch,
+                        NotificationManager::NotificationLevel::ErrorNotificationLevel, into_u8(text));
+                } else {
+                    notify->close_notification_of_type(NotificationType::BBLFilamentNozzleDiameterMismatch);
+                }
+            }
+            p->m_notified_incompatible_nozzle_slots = incompatible_now;
+        }
+    }
+
     if (p->m_panel_filament_content != nullptr)
         p->m_panel_filament_content->Layout();
     recalc_filament_scroll_sizes();
@@ -4633,6 +4850,8 @@ void Sidebar::remove_unused_filament_combos(const size_t current_extruder_count)
         p->filament_items.pop_back();
         p->filament_nozzle_labels.pop_back();
         p->filament_nozzle_dividers.pop_back();
+        if (!p->filament_incompatible_icons.empty())
+            p->filament_incompatible_icons.pop_back();
     }
     p->relayout_filament_grid(true);
 }
@@ -4747,7 +4966,7 @@ void Sidebar::update_all_preset_comboboxes()
     //p->combo_printer->update();
     // Update the filament choosers to only contain the compatible presets, update the color preview,
     // update the dirty flags.
-    if (print_tech == ptFFF) {
+    if (print_tech == ptFFF && !p->is_syncing_extruder_list_model_switch && !p->is_switching_diameter) {
         preset_bundle.validate_filament_nozzle_diameter_selections();
         for (PlaterPresetComboBox* cb : p->combos_filament)
             cb->update();
@@ -4789,10 +5008,18 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         }
 
-        preset_bundle.validate_filament_nozzle_diameter_selections();
-        for (size_t i = 0; i < filament_cnt; i++)
-            p->combos_filament[i]->update();
-        refresh_filament_diameter_buttons();
+        // A printer preset switch (machine-model sync, or a diameter switch_diameter() call) reaches
+        // this same TYPE_FILAMENT update as a dependent-tab refresh cascading off the printer tab's own
+        // select_preset() (Tab::on_presets_changed() reloads every tab in m_dependent_tabs). At that
+        // point extruder_full_stat/the project diameter map still reflect the previous state, so skip
+        // validating here too -- see is_syncing_extruder_list_model_switch's declaration; the caller
+        // that triggered the switch performs the real validation once its own data is correct.
+        if (!p->is_syncing_extruder_list_model_switch && !p->is_switching_diameter) {
+            preset_bundle.validate_filament_nozzle_diameter_selections();
+            for (size_t i = 0; i < filament_cnt; i++)
+                p->combos_filament[i]->update();
+            refresh_filament_diameter_buttons();
+        }
 
         dynamic_filament_list.update();
         break;
@@ -5289,7 +5516,7 @@ void Sidebar::sys_color_changed()
 #endif
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->sys_color_changed();
-    for (wxPanel *item : p->filament_items)
+    for (StaticBox *item : p->filament_items)
         wxGetApp().UpdateDarkUIWin(item);
     for (DiameterButtonPanel *panel : p->filament_diameter_btns)
         wxGetApp().UpdateDarkUIWin(panel);
@@ -5451,6 +5678,8 @@ void Sidebar::on_filaments_delete(size_t filament_id)
                 p->filament_nozzle_labels.pop_back();
             if (!p->filament_nozzle_dividers.empty())
                 p->filament_nozzle_dividers.pop_back();
+            if (!p->filament_incompatible_icons.empty())
+                p->filament_incompatible_icons.pop_back();
         }
 
         auto sizer = p->m_panel_filament_title->GetSizer();
@@ -26839,13 +27068,22 @@ bool Plater::on_filament_change(size_t filament_idx)
         return false;
     std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
     if (filament_type == "PVA") {
-        auto  nozzle_diameters = p->config->option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
+        auto nozzle_diameters = p->config->option<ConfigOptionFloatsNullable>("nozzle_diameter")->values;
         if (std::find(nozzle_diameters.begin(), nozzle_diameters.end(), 0.2) != nozzle_diameters.end()) {
-            wxString msg_text = _(L("It is not recommended to use PVA filaments with 0.2mm nozzles."));
-            msg_text += "\n" + _(L("Are you sure to use them? \n"));
-            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
-            if (dialog.ShowModal() == wxID_NO) {
-                return false;
+            // Gate the warning on the current printer model's own preset data instead of a hardcoded
+            // model check: a model whose preset library never shipped a 0.2mm-compatible PVA preset
+            // never offers "0.2" here, so this slot could not actually reach that combination through
+            // the normal selector in the first place -- the warning would be unreachable noise there.
+            const auto options = wxGetApp().preset_bundle->get_filament_nozzle_diameter_options(filament_idx);
+            const bool model_offers_0_2mm_pva_preset =
+                std::find(options.begin(), options.end(), std::string("0.2")) != options.end();
+            if (model_offers_0_2mm_pva_preset) {
+                wxString msg_text = _(L("It is not recommended to use PVA filaments with 0.2mm nozzles."));
+                msg_text += "\n" + _(L("Are you sure to use them? \n"));
+                MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+                if (dialog.ShowModal() == wxID_NO) {
+                    return false;
+                }
             }
         }
     }

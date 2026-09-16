@@ -590,6 +590,9 @@ public:
     void undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text);
     int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     bool search_string_getter(int idx, const char** label, const char** tooltip);
+    // Asks for confirmation when a slot is switched to a filament that is not recommended for the
+    // nozzle diameter that slot is actually going to print at. Returns false if the user backs out.
+    bool on_filament_change(size_t filament_idx);
     // For the memory statistics.
     const Slic3r::UndoRedo::Stack& undo_redo_stack_main() const;
     void clear_undo_redo_stack_main();
@@ -598,7 +601,6 @@ public:
     // BBS: return false if not changed
     bool leave_gizmos_stack();
 
-    bool on_filament_change(size_t filament_idx);
     void on_filament_count_change(size_t extruders_count);
     void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1, const std::vector<unsigned char>& is_mixed_before_delete = {});
     std::vector<std::array<float, 4>> get_extruders_colors();

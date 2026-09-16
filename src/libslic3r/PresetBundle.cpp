@@ -1932,6 +1932,25 @@ void PresetBundle::note_per_slot_nozzle_options_from_project_file(const DynamicP
         && raw_file_config.has("extruder_nozzle_slot");
 }
 
+// Every printer_variant value among the presets that share printer_model: the full set of nozzle
+// diameters this machine model was ever sold/configured with, independent of extruder_full_stat
+// (which is the very thing update_extruder_full_stats_from_config() is about to rebuild, so it
+// cannot be used to validate the snapshot that feeds that rebuild).
+static std::set<std::string> collect_printer_model_nozzle_diameters(const PresetBundle &bundle, const std::string &printer_model)
+{
+    std::set<std::string> result;
+    if (printer_model.empty())
+        return result;
+    for (auto it = bundle.printers.begin(); it != bundle.printers.end(); ++it) {
+        if (it->config.opt_string("printer_model") != printer_model)
+            continue;
+        const double diam = atof(it->config.opt_string("printer_variant").c_str());
+        if (diam > 0.0)
+            result.insert(format_diameter_to_str(diam));
+    }
+    return result;
+}
+
 void PresetBundle::update_extruder_full_stats_from_config()
 {
     // Rebuild the per-slot snapshot from the per-slot nozzle params instead of a dedicated
@@ -1950,15 +1969,42 @@ void PresetBundle::update_extruder_full_stats_from_config()
     int total = 0;
     for (int c : counts) total += c;
 
-    if (!m_project_file_has_per_slot_nozzle_options || !per_slot_nozzle_options_consistent(project_config)) {
+    const bool has_per_slot_diameter = (static_cast<int>(diams.size()) == total);
+    const bool has_slot_id           = (static_cast<int>(slots.size()) == total);
+
+    // The persisted per-slot diameters must also belong to the CURRENTLY selected printer's model:
+    // two different models that happen to share the same extruder count (e.g. two dual-extruder
+    // machines) both pass the extruder-count check below, but a diameter only the previous model
+    // sold (e.g. its 0.8mm variant) would otherwise be carried over as if this model supported it.
+    const std::string current_printer_model = printers.get_edited_preset().config.opt_string("printer_model");
+    const auto model_diameters = collect_printer_model_nozzle_diameters(*this, current_printer_model);
+    bool diameters_match_model = true;
+    if (has_per_slot_diameter && !model_diameters.empty()) {
+        for (double d : diams) {
+            if (model_diameters.count(format_diameter_to_str(d)) == 0) {
+                diameters_match_model = false;
+                break;
+            }
+        }
+    }
+
+    // counts.size() must also match the CURRENTLY selected printer's own extruder count: this is also
+    // called right after a printer/model switch (TabPrinter::refresh_extruder_full_stat_for_model_change),
+    // and a project's per-slot snapshot saved against a previous, differently-shaped printer (e.g. a
+    // 1-extruder machine's counts=[1] surviving a switch to a 2-extruder machine) is internally
+    // "consistent" by per_slot_nozzle_options_consistent()'s own checks but no longer describes the
+    // active printer. Not gated on m_project_file_has_per_slot_nozzle_options here: that flag only ever
+    // becomes true from a 3mf load, so requiring it would keep every in-session printer switch (no
+    // reload involved) on the printer_variant-collapsing fallback even when project_config's own
+    // per-slot values are perfectly consistent and already match the newly selected printer.
+    if (!per_slot_nozzle_options_consistent(project_config) ||
+        static_cast<int>(counts.size()) != get_printer_extruder_count() ||
+        !diameters_match_model) {
         // Rebuild legacy projects that lack a complete per-slot nozzle snapshot.
         generate_extruder_full_stats_from_nozzle_stats();
         sync_per_slot_nozzle_options_from_full_stat(project_config, extruder_full_stat);
         return;
     }
-
-    const bool has_per_slot_diameter = (static_cast<int>(diams.size()) == total);
-    const bool has_slot_id           = (static_cast<int>(slots.size()) == total);
 
     const Preset& printer_preset    = printers.get_edited_preset();
     auto          max_nozzle_count  = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
@@ -3984,12 +4030,43 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
 {
     auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
     selected->values.resize(filament_presets.size());
-    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
+    // multi_nozzle_diameter_mode is a project-level toggle that outlives a printer switch: a
+    // project last edited against a per-slot-diameter machine keeps it set to true even after the
+    // active printer preset is switched to a plain single-diameter machine, whose
+    // filament_diameter_map values are equally stale leftovers from that earlier machine. Without
+    // this gate every slot below is compared against the wrong "still in multi-diameter mode"
+    // semantics on a machine that never supported per-slot diameters at all, and any mismatching
+    // leftover value gets flagged instead of silently normalized -- matching
+    // collect_configured_nozzle_diameters()'s own gate keeps the two in agreement.
+    //
+    // Gated on is_single_ext_multi_nozzle(), not the broader uses_per_slot_nozzle_diameters(): the
+    // flag/notification behavior below is the Nozzle Settings dialog's companion feature (you swap
+    // a physical nozzle for a different diameter on the same extruder, so a filament slot that was
+    // relying on the removed diameter needs to be called out). Every other consumer of that same
+    // swap-nozzle UX (Plater's Nozzle Settings dialog, FilamentMapDialog, FilamentGroupPopup,
+    // NotificationManager, PresetComboBoxes, PartPlate) already restricts itself to
+    // is_single_ext_multi_nozzle(), which excludes a multi-extruder machine whose nozzles live one
+    // per extruder rather than several on the same extruder. This function was the odd one out
+    // still using the broader check, so a multi-extruder machine's filament_diameter_map leftovers
+    // (stale values from an earlier machine, or never normalized because it never routes through
+    // the dialog that would clear them) were being flagged/red instead of silently normalized like
+    // a plain machine.
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config) &&
+        is_single_ext_multi_nozzle(printers.get_edited_preset().config);
     const std::vector<std::string> retained_selections =
         multi_diameter_mode ? std::vector<std::string>{} : selected->values;
     const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
     const auto configured = collect_configured_nozzle_diameters(*this);
     const auto installed = collect_installed_nozzle_variants(*this);
+
+    // Cleared unconditionally, not just inside the configured.size() < 2 branch below: turning
+    // multi-diameter mode ON drives the printer preset onto canonical 0.2 *before* the project's
+    // own multi_nozzle_diameter_mode gate is flipped (see apply_multi_nozzle_diameter_mode()), so
+    // this function can run once mid-switch with configured == {"0.2"} and flag a slot like a
+    // 0.4/0.6/0.8-only filament as incompatible. That entry must not survive into the settled
+    // multi-diameter pass moments later (configured.size() >= 2), which never touched this vector
+    // at all -- leaving a permanent false-positive red icon on an otherwise-compatible filament.
+    incompatible_nozzle_diameter_slots.clear();
 
     // Per-filament flow is only user-owned where the filament panel's nozzle selector is shown
     // (single-extruder multi-nozzle + multi-diameter mode). On every other machine
@@ -4013,10 +4090,49 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
 
                 const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
                     *this, i, printer_name_to_diameter, configured);
+
+                if (multi_diameter_mode) {
+                    // Only ever assign a diameter here when the slot never had one (a brand-new
+                    // slot). An already-selected slot is left exactly as it was, even when the
+                    // remaining nozzle would also work for this filament -- the Nozzle Settings
+                    // dialog must not silently recompute every slot down to the sole remaining
+                    // diameter, it only removes nozzles for the diameters the user took out.
+                    const std::string &current_value = selected->values[i];
+                    if (current_value.empty()) {
+                        if (std::find(options.begin(), options.end(), target) != options.end())
+                            ::Slic3r::set_filament_nozzle_diameter(
+                                *this, i, target, nullptr, printer_name_to_diameter, options);
+                        continue;
+                    }
+                    if (format_diameter_to_str(atof(current_value.c_str())) == target)
+                        continue; // the nozzle for this slot's diameter is still installed
+
+                    // The nozzle for this slot's previously-selected diameter was removed. Flag
+                    // the slot instead of silently moving it onto the sole remaining diameter.
+                    incompatible_nozzle_diameter_slots.push_back(i);
+                    BOOST_LOG_TRIVIAL(warning) << boost::format(
+                        "validate_filament_nozzle_diameter_selections: slot %1% nozzle diameter %2% "
+                        "no longer installed, fallback substitution blocked") % i % current_value;
+                    continue;
+                }
+
+                // Legacy single-diameter-machine behavior: the whole rack switched to a different
+                // target diameter, so follow it when this filament preset supports it, otherwise
+                // replace the preset with a default for the new diameter.
                 if (std::find(options.begin(), options.end(), target) != options.end() &&
                     ::Slic3r::set_filament_nozzle_diameter(
                         *this, i, target, nullptr, printer_name_to_diameter, options))
                     continue;
+
+                if (block_filament_fallback_substitution) {
+                    // Preserve the user's original filament selection instead of silently
+                    // substituting a different material; the UI marks this slot instead.
+                    incompatible_nozzle_diameter_slots.push_back(i);
+                    BOOST_LOG_TRIVIAL(warning) << boost::format(
+                        "validate_filament_nozzle_diameter_selections: slot %1% incompatible with "
+                        "nozzle diameter %2%, fallback substitution blocked") % i % target;
+                    continue;
+                }
 
                 if (const Preset *fallback = find_default_filament_for_nozzle_diameter(
                         *this, target, printer_name_to_diameter)) {
@@ -4030,10 +4146,17 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                 }
             }
         }
-        if (multi_diameter_mode)
-            std::fill(selected->values.begin(), selected->values.end(), std::string());
-        else
+        if (multi_diameter_mode) {
+            // Blank every slot's stored per-diameter selection except the ones just flagged above:
+            // a flagged slot keeps its original (now-unavailable) diameter so the sidebar can still
+            // show which diameter is incompatible instead of silently losing that information.
+            for (size_t i = 0; i < selected->values.size(); ++i)
+                if (std::find(incompatible_nozzle_diameter_slots.begin(), incompatible_nozzle_diameter_slots.end(), i) ==
+                    incompatible_nozzle_diameter_slots.end())
+                    selected->values[i].clear();
+        } else {
             selected->values = retained_selections;
+        }
         // A single configured diameter still leaves the flow selectable on a multi-nozzle rack, so the
         // flow repair has to run on this path too instead of only on the multi-diameter one below.
         repair_filament_nozzle_flows(*this, volume_map, installed, printer_name_to_diameter, configured);
@@ -4064,7 +4187,11 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
             *this, i, printer_name_to_diameter, configured);
         if (options.empty()) {
-            selected->values[i].clear();
+            // This filament preset has no compatible diameter among any currently installed nozzle
+            // at all (stronger than a single diameter being removed below) -- flag it the same way
+            // instead of silently blanking the slot's selection.
+            if (!selected->values[i].empty())
+                incompatible_nozzle_diameter_slots.push_back(i);
             continue;
         }
 
@@ -4109,8 +4236,17 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
 
         std::string target = device_maps != nullptr ? options.front() : selected->values[i];
         const std::string normalized = format_diameter_to_str(atof(target.c_str()));
-        if (target.empty() || std::find(options.begin(), options.end(), normalized) == options.end())
+        if (std::find(options.begin(), options.end(), normalized) == options.end()) {
+            // A non-empty target that fell out of `options` means a nozzle of that diameter was
+            // physically removed (Nozzle Settings dialog), as opposed to this slot never having had
+            // a selection. Flag it like the preset-incompatibility case instead of silently moving
+            // the slot onto the smallest remaining diameter.
+            if (!target.empty() && multi_diameter_mode) {
+                incompatible_nozzle_diameter_slots.push_back(i);
+                continue;
+            }
             target = options.front();
+        }
         // `options` only says a filament preset exists for that diameter. The rack still has to carry a
         // nozzle of that diameter whose flow this slot's filament can print, otherwise an inherited or
         // preset-switched "0.4 Standard" survives on a slot whose 2.85mm TPU only fits a TPU285 nozzle.
@@ -6818,10 +6954,17 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
         // (selected via "set nozzle diameter") as compatible, so the user can keep using them while
         // running mixed-diameter printing. Reset afterwards to avoid leaking state into later passes.
         this->filaments.set_extra_compatible_printers(this->get_extra_compatible_printers_by_full_stat());
-        this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_filament_if_incompatible,
+        // When fallback substitution is blocked, also stop this call from silently reselecting the
+        // filaments collection's own edited/selected preset to some other compatible default -- that
+        // reselection is invisible to filament_presets[] here, but downstream single-slot consumers
+        // (Sidebar::update_presets's filament_cnt == 1 branch) read get_selected_preset_name() and
+        // write it straight into filament_presets[0], bypassing the guard entirely.
+        const PresetSelectCompatibleType filaments_select_other_if_incompatible =
+            block_filament_fallback_substitution ? PresetSelectCompatibleType::Never : select_other_filament_if_incompatible;
+        this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, filaments_select_other_if_incompatible,
             PreferedFilamentsProfileMatch(this->filaments.get_selected_idx() == size_t(-1) ? nullptr : &this->filaments.get_edited_preset(), prefered_filament_profiles));
         this->filaments.clear_extra_compatible_printers();
-        if (select_other_filament_if_incompatible != PresetSelectCompatibleType::Never) {
+        if (select_other_filament_if_incompatible != PresetSelectCompatibleType::Never && !block_filament_fallback_substitution) {
             // Verify validity of the current filament presets.
             const std::string prefered_filament_profile = prefered_filament_profiles.empty() ? std::string() : prefered_filament_profiles.front();
             if (this->filament_presets.size() == 1) {

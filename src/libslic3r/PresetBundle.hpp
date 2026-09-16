@@ -350,6 +350,12 @@ public:
     // Device mappings, when supplied, take precedence and bind a filament to its physical slot diameter.
     void                        validate_filament_nozzle_diameter_selections(
                                     const std::map<int, AMSMapInfo> *device_maps = nullptr);
+    // When true, update_compatible() and validate_filament_nozzle_diameter_selections() skip their
+    // silent fallback substitution of incompatible filament presets, recording the affected slots into
+    // incompatible_nozzle_diameter_slots instead of replacing them. Used by the single-diameter-mode
+    // nozzle-diameter switch entry points so the user's original filament selection is preserved.
+    bool                        block_filament_fallback_substitution = false;
+    std::vector<size_t>         incompatible_nozzle_diameter_slots;
 
     /**
      * \brief Set the ams count for extruder \p index
