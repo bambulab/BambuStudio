@@ -188,6 +188,9 @@ protected:
     /// Whether Overwrite mode shows the display-only project-to-AMS list. Overwrite replaces the
     /// project filaments directly, so a fork that previews the outcome elsewhere can hide the list.
     virtual bool override_shows_mapping_list() const { return true; }
+    /// Whether the "reset all filament mapping" button is offered. A fork whose mapping is driven
+    /// by auto-map, with no manual per-slot edits to undo, overrides this to keep the button hidden.
+    virtual bool shows_reset_all_btn() const { return true; }
     /// Register a mapping item in m_materialList and bind its click to open the AMS mapping popup.
     /// Shared by the base grid layout and the fork's row layout so the popup wiring lives in one place.
     void wire_sync_item(MaterialSyncItem* item, int extruder,

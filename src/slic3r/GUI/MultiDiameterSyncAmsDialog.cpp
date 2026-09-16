@@ -407,13 +407,70 @@ int MultiDiameterSyncAmsDialog::max_scroll_height() const
 
 void MultiDiameterSyncAmsDialog::apply_resizable_bounds()
 {
-    const int locked_w = GetMinSize().x; // base pinned the width via SetMinSize == SetMaxSize
-    // Lock the width; bound the height between a small floor (the sizer's own content min dominates in
-    // practice) and the display work area itself. Max is the screen directly — decoupled from the
-    // dialog chrome so it can never collapse to min == max the way a chrome-offset cap did.
-    const int idx    = wxDisplay::GetFromWindow(this);
-    const int work_h = (idx != wxNOT_FOUND) ? wxDisplay(idx).GetClientArea().GetHeight() : FromDIP(1000);
-    SetSizeHints(wxSize(locked_w, FromDIP(240)), wxSize(locked_w, work_h - FromDIP(30)));
+    const int  base_w = GetMinSize().x; // base pinned this as the design width; use it as the width floor
+    const int  idx    = wxDisplay::GetFromWindow(this);
+    const wxRect area  = (idx != wxNOT_FOUND) ? wxDisplay(idx).GetClientArea()
+                                              : wxRect(0, 0, FromDIP(1400), FromDIP(1000));
+    // Width: floor at the design width, ceiling a moderate step wider (never past the display). Height:
+    // floor plus the display work area, decoupled from the dialog chrome so it can never collapse to
+    // min == max. std::max guards a tiny screen from demanding a max below the floor.
+    const int max_w = std::max(base_w, std::min(area.GetWidth() - FromDIP(30), base_w * 3 / 2));
+    SetSizeHints(wxSize(base_w, FromDIP(240)), wxSize(max_w, area.GetHeight() - FromDIP(30)));
+}
+
+void MultiDiameterSyncAmsDialog::relax_content_width()
+{
+    if (!m_pages)
+        return;
+    // The base re-pins the content book to its design width on every mapping refresh; free it so it
+    // stretches to the (now resizable) dialog width, keeping the design width as the floor.
+    m_pages->SetMinSize(wxSize(GetMinSize().x, -1));
+    m_pages->SetMaxSize(wxSize(-1, -1));
+}
+
+bool MultiDiameterSyncAmsDialog::apply_preview_size()
+{
+    if (!m_left_image_button || !m_right_image_button)
+        return false;
+    // The two cards split the content width; size each square preview to fill its half.
+    const int content_w = usable_content_width();
+    const int card_w    = (content_w - FromDIP(12)) / 2;      // 6px inner gap on each card edge
+    const int s         = std::max(FromDIP(180), card_w - FromDIP(12));
+    if (s == m_preview_px)
+        return false;
+    m_preview_px = s;
+    for (wxButton* b : {m_left_image_button, m_right_image_button}) {
+        b->SetMinSize(wxSize(s, s));
+        b->SetSize(wxSize(s, s));
+    }
+    return true;
+}
+
+void MultiDiameterSyncAmsDialog::apply_header_text_width()
+{
+    const int content_w = usable_content_width();
+    const int pad       = FromDIP(20);                                     // 10px on each side of a line
+    const int desc_w    = std::max(FromDIP(260), content_w - pad);
+    const int warn_w    = std::max(FromDIP(260), content_w - pad - FromDIP(16 + 6)); // also loses icon + gap
+    // Re-pin each auto-wrap line to a fixed width (min == max keeps its best height deterministic for a
+    // one-pass layout) and re-break it now so the coming Layout picks up the new height.
+    auto fit = [](Label* l, int w) {
+        if (!l) return;
+        l->SetMinSize(wxSize(w, -1));
+        l->SetMaxSize(wxSize(w, -1));
+        l->Wrap(w);
+    };
+    fit(m_header_desc, desc_w);
+    fit(m_header_warn, warn_w);
+}
+
+int MultiDiameterSyncAmsDialog::usable_content_width() const
+{
+    // Measured from the dialog (not an inner panel) so a narrow drag shrinks content back: an inner
+    // panel's width is held up by the very min sizes the callers set, so it could never shrink. Reserve
+    // a little for a possible scrollbar so content never overruns the viewport.
+    const int w = GetClientSize().x - FromDIP(72) - FromDIP(20); // 36px side margins + scrollbar reserve
+    return w > FromDIP(100) ? w : FromDIP(675) - FromDIP(72) - FromDIP(20);
 }
 
 bool MultiDiameterSyncAmsDialog::Show(bool show)
@@ -423,6 +480,7 @@ bool MultiDiameterSyncAmsDialog::Show(bool show)
     // first paint, so there is no visible resize.
     const bool ret = SyncAmsInfoDialog::Show(show);
     if (show) {
+        relax_content_width(); // safety net in case no mapping ran during the base show
         apply_scroll_height(0);
         Layout();
         Fit();
@@ -505,6 +563,8 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
         if (m_two_image_panel && m_two_image_panel_sizer && m_left_sizer_thumbnail && m_right_sizer_thumbnail) {
             auto* card_orig   = new StaticBox(m_two_image_panel);
             auto* card_mapped = new StaticBox(m_two_image_panel);
+            m_preview_card_orig   = card_orig;   // kept so a width change can re-centre each preview
+            m_preview_card_mapped = card_mapped;
             for (StaticBox* c : {card_orig, card_mapped}) {
                 c->SetBorderWidth(0);
                 c->SetBackgroundColor(card_bg);
@@ -533,6 +593,7 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
             header_v->Add(toggle, 0, wxEXPAND);
 
             m_header_desc = new Label(m_mode_panel, wxEmptyString, LB_AUTO_WRAP);
+            m_header_desc->SetFont(::Label::Body_12);
             m_header_desc->SetMinSize(wxSize(FromDIP(520), -1));
             m_header_desc->SetMaxSize(wxSize(FromDIP(520), -1));
             m_header_desc->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
@@ -541,14 +602,15 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
             auto* warn_sizer = new wxBoxSizer(wxHORIZONTAL);
             auto* warn_icon  = new wxStaticBitmap(m_mode_panel, wxID_ANY, create_scaled_bitmap("warning", m_mode_panel, 16),
                                                   wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
-            auto* warn_text  = new Label(m_mode_panel,
-                _L("After modification, the filament list cannot be restored. Are you sure you want to sync?"),
+            m_header_warn = new Label(m_mode_panel,
+                _L("After modification, the filament list cannot be restored."),
                 LB_AUTO_WRAP);
-            warn_text->SetMinSize(wxSize(FromDIP(520), -1));
-            warn_text->SetMaxSize(wxSize(FromDIP(520), -1));
-            warn_text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
+            m_header_warn->SetFont(::Label::Body_12);
+            m_header_warn->SetMinSize(wxSize(FromDIP(520), -1));
+            m_header_warn->SetMaxSize(wxSize(FromDIP(520), -1));
+            m_header_warn->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
             warn_sizer->Add(warn_icon, 0, wxALIGN_TOP | wxRIGHT, FromDIP(6));
-            warn_sizer->Add(warn_text, 1, wxEXPAND);
+            warn_sizer->Add(m_header_warn, 1, wxEXPAND);
             header_v->Add(warn_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
             m_mode_panel->SetSizer(header_v);
         }
@@ -607,6 +669,30 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
             m_filament_panel->Layout();
         });
 
+        // Width reflow. The header, preview and mapping cards are StaticBox and do not re-lay-out their
+        // own sizers, and the previews/labels carry width-driven min sizes that would otherwise pin the
+        // content wide and clip it on a narrow drag. So drive everything from the dialog's own size:
+        // recompute the previews and header text from the (non-inflated) dialog width, then re-lay-out
+        // outer-to-inner so the boxes can actually shrink back.
+        Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
+            e.Skip();
+            if (!m_layout_applied)
+                return;
+            const bool grew = apply_preview_size();
+            apply_header_text_width();
+            Layout();
+            for (wxWindow* p : {static_cast<wxWindow*>(m_mode_panel),
+                                static_cast<wxWindow*>(m_two_thumbnail_panel),
+                                static_cast<wxWindow*>(m_two_image_panel),
+                                m_preview_card_orig, m_preview_card_mapped,
+                                static_cast<wxWindow*>(m_filament_panel)})
+                if (p) p->Layout();
+            // Rescale the plate renders only when the size actually changed, and only once shown with
+            // valid data, so a drag does not churn the bitmaps every pixel.
+            if (grew && m_cur_input_thumbnail_data.is_valid() && IsShownOnScreen())
+                update_final_thumbnail_data();
+        });
+
         m_layout_applied = true;
     }
 
@@ -614,16 +700,10 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
     refresh_mapping_scroll(m_mapping_scroll, m_sizer_ams_mapping, m_filaments.size());
     refresh_mapping_scroll(m_fix_mapping_scroll, m_fix_sizer_ams_mapping, m_fix_filaments.size());
 
-    // Equal-size previews sized to fill each half-width card (re-applied on DPI change after the
-    // base rescale). Kept square so the plate thumbnail is not stretched; the card centres it.
+    // Equal-size previews sized to fill each half-width card at the current width (re-applied on DPI
+    // change and on resize). Kept square so the plate thumbnail is not stretched; the card centres it.
     // set_default_normal() rescales the bitmap to the button size, so the render grows with it.
-    const int content_w = FromDIP(675) - FromDIP(72); // base dialog width minus the 36px side margins
-    const int card_w    = (content_w - FromDIP(12)) / 2;        // 6px inner gap on each card edge
-    const int s         = std::max(FromDIP(180), card_w - FromDIP(12));
-    m_left_image_button->SetMinSize(wxSize(s, s));
-    m_left_image_button->SetSize(wxSize(s, s));
-    m_right_image_button->SetMinSize(wxSize(s, s));
-    m_right_image_button->SetSize(wxSize(s, s));
+    apply_preview_size();
 
     // The plate ComboBox parked beside the "Original" title makes the left title row taller than
     // the plain right title; reserve the combo's height on the right title so both previews align.
@@ -880,6 +960,27 @@ static void align_dest_column(MaterialHash& list)
             it->set_max_dst(max_dst);
 }
 
+/**
+ * \brief Resolve a printer slot's filament id to the project preset that syncing would select.
+ *
+ * Picks the same preset the sync picks — the compatible base preset carrying this id — so the
+ * mapped-side preview matches the filament a sync will write. Null when no compatible preset matches.
+ *
+ * \param filament_id   the slot's filament id (tray info index)
+ */
+static const Preset* resolve_slot_preset(const std::string& filament_id)
+{
+    if (filament_id.empty())
+        return nullptr;
+    auto& filaments = wxGetApp().preset_bundle->filaments;
+    for (auto it = filaments.begin(); it != filaments.end(); ++it) {
+        Preset& p = *it;
+        if (p.is_compatible && filaments.get_preset_base(p) == &p && p.filament_id == filament_id)
+            return &p;
+    }
+    return nullptr;
+}
+
 void MultiDiameterSyncAmsDialog::paint_items(MachineObject* obj, MaterialHash& list, const std::vector<FilamentInfo>& result)
 {
     // Reflect a mapping result onto the horizontal rows. The swatch colour is set via the base
@@ -916,18 +1017,11 @@ void MultiDiameterSyncAmsDialog::paint_items(MachineObject* obj, MaterialHash& l
             // type; Bambu system filament ids start with "GF" when no preset/vendor is found).
             wxString name  = _L(type);
             bool     bambu = fid.rfind("GF", 0) == 0;
-            if (!fid.empty()) {
-                auto pb = wxGetApp().preset_bundle;
-                for (int i = 0; i < (int) pb->filaments.size(); ++i) {
-                    const Preset& p = pb->filaments.preset(i);
-                    if (p.filament_id != fid)
-                        continue;
-                    auto*             v     = dynamic_cast<const ConfigOptionStrings*>(p.config.option("filament_vendor"));
-                    const std::string brand = (v && !v->values.empty()) ? v->values[0] : std::string();
-                    name  = from_u8(clean_filament_name(p.name, brand));
-                    bambu = brand_is_bambu(brand);
-                    break;
-                }
+            if (const Preset* p = resolve_slot_preset(fid)) {
+                auto*             v     = dynamic_cast<const ConfigOptionStrings*>(p->config.option("filament_vendor"));
+                const std::string brand = (v && !v->values.empty()) ? v->values[0] : std::string();
+                name  = from_u8(clean_filament_name(p->name, brand));
+                bambu = brand_is_bambu(brand);
             }
             item->set_dest(name, d > 0.0 ? from_u8(format_diameter_to_str(d)) : wxString(),
                            vol.empty() ? wxString() : _L(vol), bambu);
@@ -1008,6 +1102,9 @@ bool MultiDiameterSyncAmsDialog::do_ams_mapping(MachineObject* obj_)
     // true, so the matcher gates candidates on diameter+flow before colour and leaves a filament unmapped
     // when no compatible slot exists. We only add the dest name / diameter / volume onto the rows.
     const bool ok = SyncAmsInfoDialog::do_ams_mapping(obj_);
+    // The base's show_thumbnail_page() (reached here) re-pins the content book to the design width, so
+    // free it again before the layout settles — otherwise a re-map would snap a widened dialog back.
+    relax_content_width();
     if (obj_)
         paint_items(obj_, m_materialList, m_ams_mapping_result);
     return ok;

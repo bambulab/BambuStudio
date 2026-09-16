@@ -65,6 +65,9 @@ protected:
     /// Overwrite replaces the project filaments directly and the twin preview already shows the
     /// before/after, so this dialog hides the redundant project-to-AMS list in Overwrite mode.
     bool override_shows_mapping_list() const override { return false; }
+    /// Mapping here is driven by auto-map (Color-first / Precision-first), so there is nothing to
+    /// manually reset; the reset-all button is never shown.
+    bool shows_reset_all_btn() const override { return false; }
     /// After the base updates the mapping, reflect the chosen slot's nozzle diameter onto the row.
     void on_set_finish_mapping(wxCommandEvent& evt) override;
     /// Refresh the header's mode-specific description line (Match vs. Overwrite) on a mode switch.
@@ -97,8 +100,20 @@ private:
     void refresh_mapping_scroll(wxScrolledWindow* scroll, wxFlexGridSizer* grid, size_t filament_rows);
     /// Largest the scroll area may grow: ~90% of the current display's work area minus the dialog chrome.
     int max_scroll_height() const;
-    /// Lock the width and bound the height for vertical resizing, tracking the current display/DPI.
+    /// Bound the width and height for resizing, tracking the current display/DPI.
     void apply_resizable_bounds();
+    /// Let the content book stretch to the dialog width instead of clamping at the base width. Must be
+    /// re-applied after any base mapping refresh, which re-pins the book to the base width.
+    void relax_content_width();
+    /// Size both plate previews to the current dialog width. Returns true when the size changed (so the
+    /// caller can rescale the renders); a no-op when the width is unchanged.
+    bool apply_preview_size();
+    /// Size the header description and warning lines to the current dialog width so they re-wrap with it
+    /// instead of at a fixed column. A no-op before the header is laid out.
+    void apply_header_text_width();
+    /// Width available to the content between the side margins, measured from the dialog so a narrow
+    /// drag can shrink content back. Falls back to the design width before the first layout.
+    int  usable_content_width() const;
     /// Re-tint the plain-wx surfaces StaticBox can't auto-map (mapping scroll backgrounds and the
     /// reparented preview titles) for the active theme. Runs on every show: the dialog is cached and
     /// can outlive a light/dark switch.
@@ -109,7 +124,11 @@ private:
     wxScrolledWindow*   m_fix_mapping_scroll{nullptr}; ///< Scrollable wrapper of the override-mode rows.
     ::ComboBox*         m_priority_combo{nullptr};     ///< "Filament matching" Color-first/Precision-first selector.
     Label*              m_header_desc{nullptr};        ///< Header description line; text tracks the active map mode.
+    Label*              m_header_warn{nullptr};        ///< Header warning line; re-wraps with the dialog width.
     FilamentMatchScheme m_scheme{FilamentMatchScheme::ColorFirst}; ///< Current auto-map strategy.
+    wxWindow*           m_preview_card_orig{nullptr};   ///< "Original" preview card; re-centred as the width changes.
+    wxWindow*           m_preview_card_mapped{nullptr}; ///< "Mapped" preview card; re-centred as the width changes.
+    int                 m_preview_px{0};                ///< Last applied preview edge length (guards the render rescale).
 
     // SyncAmsInfoDialog keeps m_result private, so the fork owns its own (get_result/deal_ok use this).
     SyncResult        m_result;

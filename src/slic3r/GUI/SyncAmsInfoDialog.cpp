@@ -731,6 +731,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info, long extr
         m_reset_all_btn->SetToolTip(_L("Reset all filament mapping"));
 
         m_mode_combox_sizer->Add(m_reset_all_btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(2));
+        m_reset_all_btn->Hide(); // nothing to reset yet; shown only after a manual edit, and never when shows_reset_all_btn() is off
         m_mode_combox_sizer->AddStretchSpacer();
 
         m_colormap_btn->Bind(wxEVT_BUTTON, &SyncAmsInfoDialog::update_when_change_map_mode,this); // update_when_change_map_mode(e.GetSelection());
@@ -2077,7 +2078,7 @@ void SyncAmsInfoDialog::on_set_finish_mapping(wxCommandEvent &evt)
             change_default_normal(old_filament_id, ams_colour);
             final_deal_edge_pixels_data(m_preview_thumbnail_data);
             set_default_normal(m_preview_thumbnail_data); // do't reset ams
-            if (!m_reset_all_btn->IsShown()) {
+            if (shows_reset_all_btn() && !m_reset_all_btn->IsShown()) {
                 m_reset_all_btn->Show();
                 Layout();
                 Fit();
@@ -2603,7 +2604,7 @@ void SyncAmsInfoDialog::wire_sync_item(MaterialSyncItem* item, int extruder,
                     update_final_thumbnail_data();
                     m_mapping_popup.update_items_check_state(m_ams_mapping_result);
                     m_mapping_popup.Refresh();
-                    if (!m_reset_all_btn->IsShown()) {
+                    if (shows_reset_all_btn() && !m_reset_all_btn->IsShown()) {
                         m_reset_all_btn->Show();
                     }
                 };
