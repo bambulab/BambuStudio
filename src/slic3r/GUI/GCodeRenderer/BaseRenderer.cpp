@@ -1754,7 +1754,7 @@ namespace Slic3r
                     return result;
 
                     };
-                // 单挤出机多喷嘴：把耗材所分到的喷嘴描述为 "<口径> <流量缩写>"（如"0.4 Std"）；AMS 喷嘴额外带槽位号，如 "0.4 Std (5号)"。缩写：标准 Std、 高流量 HF、TPU TPU285。
+                // 单挤出机多喷嘴：把耗材所分到的喷嘴描述为 "<口径> <流量缩写>"（如"0.4 Std"）。缩写：标准 Std、 高流量 HF、TPU TPU285。
                 auto get_n1x_nozzle_label = [this](const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> &group_result, int filament_id) -> std::string {
                     if (!group_result)
                         return "";
@@ -1772,8 +1772,9 @@ namespace Slic3r
                         }
                     };
                     std::string label = nz->diameter + " " + vol_abbr(nz->volume_type);
-                    if (m_ams_nozzle_idx >= 0 && nz->group_id == m_ams_nozzle_idx)
-                        label += " (" + (boost::format(_u8L("No.%1%")) % (nz->group_id + 1)).str() + ")";
+                    // 喷嘴编号只是内部喷嘴数组下标，机身无对应标识，用户无法据此操作，暂时屏蔽
+                    // if (m_ams_nozzle_idx >= 0 && nz->group_id == m_ams_nozzle_idx)
+                    //     label += " (" + (boost::format(_u8L("No.%1%")) % (nz->group_id + 1)).str() + ")";
                     return label;
                     };
                 //BBS Slicing Result title
