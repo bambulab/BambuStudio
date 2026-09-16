@@ -307,6 +307,9 @@ public:
     void hide_no_use_controls();
     void show_sizer(wxSizer *sizer, bool show);
     virtual void deal_ok();
+    /// Switch the shown plate. The base refreshes the preview; a fork may also rebuild its rows.
+    virtual void update_when_change_plate(int);
+    int          get_specify_plate_idx() const { return m_specify_plate_idx; }
     bool get_is_double_extruder();
     bool is_dirty_filament();
     bool is_need_show();
@@ -314,7 +317,6 @@ public:
 
 private:
     wxBoxSizer *create_sizer_thumbnail(wxButton *image_button, bool left);
-    void        update_when_change_plate(int);
     void        update_when_change_map_mode(int);
     void        update_plate_combox();
     void        update_map_when_change_map_mode();

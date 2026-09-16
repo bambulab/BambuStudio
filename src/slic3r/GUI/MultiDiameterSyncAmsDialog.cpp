@@ -17,6 +17,7 @@
 #include "GUI_App.hpp"
 #include "GuiColor.hpp"
 #include "I18N.hpp"
+#include "PartPlate.hpp" // PartPlate::get_extruders for the current plate's used filaments
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/StateColor.hpp"
@@ -891,6 +892,27 @@ void MultiDiameterSyncAmsDialog::collect_project_filaments(std::vector<std::stri
     }
 }
 
+/**
+ * \brief The filaments the given plate uses, as ascending 0-based ids.
+ *
+ * \param specify_plate_idx   plate to read; negative selects the current plate
+ *
+ * Empty when the plate has no printable objects.
+ */
+static std::vector<int> plate_used_filaments(int specify_plate_idx)
+{
+    auto            &plate_list = wxGetApp().plater()->get_partplate_list();
+    PartPlate       *plate      = specify_plate_idx < 0 ? plate_list.get_curr_plate() : plate_list.get_plate(specify_plate_idx);
+    std::vector<int> ids;
+    if (!plate) return ids;
+
+    for (int e : plate->get_extruders(true)) // get_extruders returns 1-based ids
+        ids.push_back(e - 1);
+    std::sort(ids.begin(), ids.end());
+    ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
+    return ids;
+}
+
 void MultiDiameterSyncAmsDialog::build_sync_rows(wxWindow* panel, wxFlexGridSizer* sizer,
                                                  MaterialHash& material_list, std::vector<FilamentInfo>& filaments,
                                                  bool interactive)
@@ -902,8 +924,8 @@ void MultiDiameterSyncAmsDialog::build_sync_rows(wxWindow* panel, wxFlexGridSize
     // Mixed filaments are virtual blended slots with no physical spool, so they cannot be mapped to a tray.
     auto* is_mixed_opt = wxGetApp().preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
 
-    std::vector<int> extruders(wxGetApp().plater()->get_extruders_colors().size());
-    std::iota(extruders.begin(), extruders.end(), 0);
+    // Only the filaments the selected plate actually uses, so unused project filaments are hidden.
+    const std::vector<int> extruders  = plate_used_filaments(get_specify_plate_idx());
     int item_index = 1;
     for (int extruder : extruders) {
         if (extruder < 0 || extruder >= (int) materials.size())
@@ -1050,6 +1072,25 @@ void MultiDiameterSyncAmsDialog::on_mode_changed()
     // Re-wrap the description at its fixed width so its new height feeds the enclosing size pass.
     if (m_mode_panel)
         m_mode_panel->Layout();
+}
+
+void MultiDiameterSyncAmsDialog::update_when_change_plate(int idx)
+{
+    SyncAmsInfoDialog::update_when_change_plate(idx); // preview + selected-plate index + relayout
+    // The base only swaps the preview; rebuild the rows so the source list tracks the chosen plate.
+    reset_and_sync_ams_list();
+    if (m_generate_fix_sizer_ams_mapping) { // rebuild the override list only when it already exists
+        m_generate_fix_sizer_ams_mapping = false;
+        generate_override_fix_ams_list();
+    }
+    // The rebuilds force-show their own list; Overwrite mode hides the match list, so restore that.
+    if (is_override_mode()) m_filament_panel->Hide();
+    if (m_scrolledWindow) {
+        apply_scroll_height(0);
+        m_scrolledWindow->Layout();
+        m_scrolledWindow->FitInside();
+    }
+    Layout();
 }
 
 void MultiDiameterSyncAmsDialog::build_priority_toggle()

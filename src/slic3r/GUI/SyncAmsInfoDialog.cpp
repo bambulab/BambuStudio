@@ -2956,6 +2956,11 @@ void SyncAmsInfoDialog::clone_thumbnail_data()
                 auto m = item->item;
                 if (m) {
                     if (item->id < m_cur_colors_in_thumbnail.size()) {
+                        // Rows may be a sparse subset of the filaments (e.g. only a plate's used ones),
+                        // so item->id can exceed the row count the preview array was sized to; grow it
+                        // to fit, matching the branch below.
+                        if ((size_t) item->id >= m_preview_colors_in_thumbnail.size())
+                            m_preview_colors_in_thumbnail.resize(item->id + 1);
                         m_preview_colors_in_thumbnail[item->id] = m->m_material_coloul;
                         if (m->m_ams_name == "-") {
                             m_cur_colors_in_thumbnail[item->id] = m->m_material_coloul;

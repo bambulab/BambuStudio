@@ -72,6 +72,8 @@ protected:
     void on_set_finish_mapping(wxCommandEvent& evt) override;
     /// Refresh the header's mode-specific description line (Match vs. Overwrite) on a mode switch.
     void on_mode_changed() override;
+    /// Rebuild the mapping rows for the newly selected plate (the base only refreshes the preview).
+    void update_when_change_plate(int idx) override;
 
 private:
     /// Rework the base's twin-preview panel: drop the swipe buttons and plate row, park the plate
