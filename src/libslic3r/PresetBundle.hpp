@@ -367,6 +367,14 @@ public:
      */
     std::pair<int, int> get_ams_count(int index);
 
+    /**
+     * \brief whether any AMS is present, either synced from a connected printer
+     *        or added manually, as recorded in \ref extruder_ams_counts
+     *
+     * \return true if at least one extruder has a non-zero AMS count
+     */
+    bool has_ams() const;
+
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;

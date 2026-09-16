@@ -76,7 +76,11 @@ void set_ams_count(int extruder_index, int ams4, int ams1)
     pb.set_ams_count(extruder_index, ams4, ams1);
     std::vector<std::string> parts = save_extruder_ams_count_to_string(pb.extruder_ams_counts);
     wxGetApp().app_config->set("presets", "extruder_ams_count", boost::algorithm::join(parts, ","));
-    if (auto *plater = wxGetApp().plater()) plater->update();
+    if (auto *plater = wxGetApp().plater()) {
+        // AMS presence gates the purge-mode button; refresh it whenever counts change.
+        plater->sidebar().update_purge_mode_btn();
+        plater->update();
+    }
 }
 
 // One "N slots AMS" menu row: a rounded blue highlight with white text on hover

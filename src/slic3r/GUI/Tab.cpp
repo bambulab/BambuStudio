@@ -6212,7 +6212,7 @@ void TabPrinter::on_preset_loaded()
                 prime_volume_type->value = PrimeVolumeMode::pvmDefault;
             else if (!support_fast_purge && prime_volume_type->value == PrimeVolumeMode::pvmFast)
                 prime_volume_type->value = PrimeVolumeMode::pvmDefault;
-            wxGetApp().plater()->sidebar().enable_purge_mode_btn(show_purge_mode);
+            wxGetApp().plater()->sidebar().update_purge_mode_btn();
             wxGetApp().plater()->get_notification_manager()->remove_notification_of_type(NotificationType::BBLArcFittingInfo);
         }
         m_base_preset_model = base_model;

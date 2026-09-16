@@ -1693,6 +1693,9 @@ public:
         std::vector<std::string> extruder_ams_count     = save_extruder_ams_count_to_string(preset_bundle.extruder_ams_counts);
         std::string              extruder_ams_count_str = boost::algorithm::join(extruder_ams_count, ",");
         wxGetApp().app_config->set("presets", "extruder_ams_count", extruder_ams_count_str);
+        // AMS presence gates the purge-mode button; refresh it whenever counts change.
+        if (wxGetApp().plater())
+            wxGetApp().plater()->sidebar().update_purge_mode_btn();
         if (update) {
             wxGetApp().plater()->update(); // update slice status
         }
@@ -5952,6 +5955,35 @@ void Sidebar::enable_purge_mode_btn(bool enable)
         p->adjust_filament_title_layout();
     });
 }
+
+void Sidebar::update_purge_mode_btn()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle)
+        return;
+
+    const Preset &printer = preset_bundle->printers.get_selected_preset();
+    auto *max_nozzle_count = printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool  has_multiple_nozzle = false;
+    if (max_nozzle_count) {
+        for (int count : max_nozzle_count->values) {
+            if (count > 1) { has_multiple_nozzle = true; break; }
+        }
+    }
+    auto *support_fast_purge_opt = printer.config.option<ConfigOptionBool>("support_fast_purge_mode");
+    bool  support_fast_purge     = support_fast_purge_opt ? support_fast_purge_opt->value : false;
+
+    // Purge mode only applies with an AMS present (synced from a printer or added manually).
+    bool show_purge_mode = (has_multiple_nozzle || support_fast_purge) && preset_bundle->has_ams();
+    enable_purge_mode_btn(show_purge_mode);
+}
+
+void Sidebar::reset_all_nozzle_status()
+{
+    p->reset_all_nozzle_status();
+    reset_fila_switch();
+}
+
 
 void Sidebar::load_ams_list(MachineObject* obj)
 
