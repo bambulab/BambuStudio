@@ -1715,7 +1715,7 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
         return;
 
     //step 1: update combobox filament list
-    float nozzle_value = get_nozzle_value();
+    float nozzle_value = obj->is_multi_extruders() ? get_nozzle_diameter(MAIN_EXTRUDER_ID) : get_nozzle_value();
     obj->GetCalib()->SetSelectedNozzleDiameter(DevNozzle::ToNozzleDiameterType(nozzle_value));
     if (nozzle_value < 1e-3) {
         return;
@@ -2139,8 +2139,11 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
 
                 wxArrayString values;
                 ExtruderType extruder_type  = ExtruderType::etDirectDrive;
-                Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
                 std::vector<FilamentComboBox *> selected_filament = get_selected_filament_combobox();
+                int extruder_id = selected_filament.empty() || selected_filament[0]->GetExtuderRole() != ExtruderRole::DEPUTY_EXTRUDER
+                                      ? MAIN_EXTRUDER_ID
+                                      : DEPUTY_EXTRUDER_ID;
+                Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_diameter(extruder_id));
                 if (!selected_filament.empty() && printer_preset) {
                     int tray_id     = selected_filament[0]->get_tray_id();
                     int out_tray_id = tray_id;
@@ -2983,6 +2986,9 @@ void CalibrationPresetPage::update_slots_panel(FilamentComboBoxList& fila_combox
 
 void CalibrationPresetPage::update_extruder_filament_combobox(ExtruderRole role, const std::string &ams_id)
 {
+    if (!curr_obj)
+        return;
+
     std::map<ExtruderRole, FilamentComboBoxList*> filament_combox_map{
         {ExtruderRole::SINGLE_EXTRUDER, &m_filament_comboBox_list},
         {ExtruderRole::MAIN_EXTRUDER,   &m_main_filament_comboBox_list},
@@ -2994,6 +3000,14 @@ void CalibrationPresetPage::update_extruder_filament_combobox(ExtruderRole role,
         {ExtruderRole::MAIN_EXTRUDER,   &m_main_ams_preview_list},
         {ExtruderRole::DEPUTY_EXTRUDER, &m_deputy_ams_preview_list}
     };
+
+    int   extruder_id = role == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+    float nozzle_value = curr_obj->is_multi_extruders() ? get_nozzle_diameter(extruder_id) : get_nozzle_value();
+    Preset* printer_preset = get_printer_preset(curr_obj, nozzle_value);
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    // CalibrateFilamentComboBox reads this shared compatibility set while rebuilding each extruder's controls.
+    if (preset_bundle)
+        preset_bundle->set_calibrate_printer(printer_preset ? printer_preset->name : "");
 
     for (auto &fcb : *filament_combox_map[role]) {
         fcb->update_from_preset();
@@ -3049,9 +3063,9 @@ Preset* CalibrationPresetPage::get_printer_preset(MachineObject* obj, float nozz
     return printer_preset;
 }
 
-Preset* CalibrationPresetPage::get_print_preset()
+Preset* CalibrationPresetPage::get_print_preset(int extruder_id)
 {
-    Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
+    Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_diameter(extruder_id));
 
     Preset* print_preset = nullptr;
     wxArrayString print_items;
@@ -3080,9 +3094,9 @@ Preset* CalibrationPresetPage::get_print_preset()
     return print_preset;
 }
 
-std::string CalibrationPresetPage::get_print_preset_name()
+std::string CalibrationPresetPage::get_print_preset_name(int extruder_id)
 {
-    Preset* print_preset = get_print_preset();
+    Preset* print_preset = get_print_preset(extruder_id);
     if (print_preset)
         return print_preset->name;
     return "";
