@@ -517,12 +517,6 @@ public:
 
     size_t                      num_printing_regions() const throw() { return m_shared_regions->all_regions.size(); }
     const PrintRegion&          printing_region(size_t idx) const throw() { return *m_shared_regions->all_regions[idx].get(); }
-    // Layers that must end a band, one entry per layer, shared by every multi-diameter pass. A colour
-    // boundary is the only thing marked, and it is filled in while the paint is normalized, because that is
-    // the only point where a colour's Z extent is still visible. Empty means the object carries no paint,
-    // so nothing constrains the grid.
-    const std::vector<uint8_t>& adaptive_band_tops() const throw() { return m_adaptive_band_tops; }
-    void                        set_adaptive_band_tops(std::vector<uint8_t> band_tops) { m_adaptive_band_tops = std::move(band_tops); }
     //FIXME returing all possible regions before slicing, thus some of the regions may not be slicing at the end.
     std::vector<std::reference_wrapper<const PrintRegion>> all_regions() const;
     const PrintObjectRegions*   shared_regions() const throw() { return m_shared_regions; }
@@ -679,8 +673,6 @@ private:
     PrintObjectRegions                     *m_shared_regions { nullptr };
 
     SlicingParameters                       m_slicing_params;
-    // See adaptive_band_tops(). Reset at the start of every slice.
-    std::vector<uint8_t>                    m_adaptive_band_tops;
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
     SupportStageTimes                       m_support_stage_times;

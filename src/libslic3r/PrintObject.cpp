@@ -4205,26 +4205,9 @@ void PrintObject::compute_adaptive_merge_groups()
     if (min_nozzle <= EPSILON)
         return;
 
-    // Only a colour boundary ends a band. Paint normalization records MM colour starts/stops; a preview
-    // slider tool change is the same kind of Z colour boundary but never went through that pass, so it is
-    // recovered here from which regions actually own each layer.
-    std::vector<uint8_t> band_tops = this->adaptive_band_tops();
-    if (band_tops.size() != layer_count)
-        band_tops.assign(layer_count, 0);
-    {
-        std::vector<uint8_t> prev(region_count, 0);
-        for (size_t region_id = 0; region_id < region_count; ++ region_id)
-            prev[region_id] = ! m_layers.front()->get_region(region_id)->raw_slices.empty();
-        for (size_t layer_idx = 0; layer_idx + 1 < layer_count; ++ layer_idx) {
-            std::vector<uint8_t> next(region_count, 0);
-            for (size_t region_id = 0; region_id < region_count; ++ region_id)
-                next[region_id] = ! m_layers[layer_idx + 1]->get_region(region_id)->raw_slices.empty();
-            if (next != prev)
-                band_tops[layer_idx] = 1;
-            prev = std::move(next);
-        }
-        this->set_adaptive_band_tops(band_tops);
-    }
+    // A colour transition changes ownership inside a band, not the nozzle's Z ladder. The normalization
+    // pass has already aligned painted ownership to each band's anchor contour.
+    const std::vector<uint8_t> band_tops;
 
     auto build_region_bands = [&](size_t region_id, size_t band_size,
                                   const AdaptiveLayerHeightRange &range) {
@@ -4242,14 +4225,8 @@ void PrintObject::compute_adaptive_merge_groups()
         return build_adaptive_layer_bands_from(layer_heights, first_bottom, band_size, range, band_tops);
     };
 
-    {
-        std::string marks;
-        marks.reserve(band_tops.size());
-        for (uint8_t mark : band_tops)
-            marks.push_back(mark ? 'T' : '.');
-        BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] layers=" << layer_count << " min_nozzle=" << min_nozzle
-                                 << " band_tops(T=forced boundary)=" << marks;
-    }
+    BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] layers=" << layer_count << " min_nozzle=" << min_nozzle
+                             << " band_tops=none (fixed nozzle ladders)";
 
     // Finest nozzle first. A region printing every layer of a band is already on the plate when the band
     // above it is laid down, and a nozzle cannot dip below an extrusion of its own height, so it is the
@@ -4471,10 +4448,8 @@ void PrintObject::combine_adaptive_infill()
     if (min_nozzle <= EPSILON)
         return;
 
-    // Same grid the walls are decimated on, so a fill band never straddles a wall band boundary.
-    std::vector<uint8_t> band_tops = this->adaptive_band_tops();
-    if (band_tops.size() != layer_count)
-        band_tops.assign(layer_count, 0);
+    // Fill follows the same fixed nozzle ladder as walls. Colour transitions do not split either grid.
+    const std::vector<uint8_t> band_tops;
 
     // The merged extrusion of the group-top layer already fills this volume, so the fill of the layers below
     // must disappear. Surfaces are rebuilt one by one to keep the template (bridge angle, thickness) of the

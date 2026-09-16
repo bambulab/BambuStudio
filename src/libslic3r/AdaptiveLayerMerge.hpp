@@ -77,14 +77,10 @@ size_t adaptive_layer_band_size(double nozzle_diameter, double min_nozzle_diamet
 // object's raft/support substrate. Every nozzle shares that anchor, so bands of commensurate sizes nest
 // into each other and their boundaries never straddle.
 //
-// band_tops marks layers that must end a band, which is where a colour starts or stops: a band carries one
-// contour through its whole Z range, so straddling that layer hands the slab to whoever owns the band top.
-// Geometry is deliberately not consulted. A coarse nozzle is asked to look the way it would if it had
-// sliced the object on its own, and slicing a slope exposes a step of layer_height / tan(angle) on every
-// single layer - marking those cuts the grid to pieces and leaves the nozzle printing the base layer
-// height, which is both slower and outside what it can extrude. Losing detail is what a coarse nozzle
-// does. The marks are honored unless doing so would leave a segment the nozzle cannot extrude, in which
-// case printability wins and the mark is dropped. Pass an empty vector for a plain fixed grid.
+// band_tops optionally marks hard structural boundaries that a band must not straddle. Colour ownership
+// changes are deliberately not such boundaries: every nozzle keeps its fixed ladder and the caller aligns
+// ownership to the band's anchor contour. The marks are honored unless doing so would leave a segment the
+// nozzle cannot extrude, in which case printability wins. Pass an empty vector for the normal fixed grid.
 //
 // Unlike a fixed stride, no layer is left out: a tail too short for a full band is folded back into the
 // segment before it and the segment is re-cut, so eight layers with band_size five come out as 4 + 4 rather

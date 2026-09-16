@@ -829,7 +829,6 @@ void PrintObject::slice()
               "exceed the allowed range of the current nozzle."));
     m_print->throw_if_canceled();
     m_typed_slices = false;
-    m_adaptive_band_tops.clear();
     this->clear_layers();
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile, m_config.precise_z_height.value));
     this->slice_volumes(&region_split_time, &mm_segment_time);
@@ -1017,58 +1016,11 @@ static void normalize_mm_segmentation_to_layer_bands(PrintObject &print_object,
     for (size_t layer_idx = 0; layer_idx < layer_count; ++ layer_idx)
         layer_heights[layer_idx] = print_object.get_layer(int(layer_idx))->height;
 
-    // A band carries one contour through its whole Z range, so it must not straddle the layer where a
-    // colour starts or stops. Straddling hands the slab to whoever owns the band top and leaves the other
-    // extruder, on a tapered wall, a ring narrower than its own extrusion - nothing it can print.
-    //
-    // A colour that keeps printing but loses nearly all of its footprint ends a band for the same reason:
-    // the band top is then a sliver of the face below it, that face is left to a nozzle which never
-    // extrudes it, and no other colour owns it either. The top of a step is exactly that.
-    //
-    // The geometry of the object is still never consulted, and the collapse is measured as a ratio, which
-    // is what keeps a slope out of it. A coarse nozzle is meant to come out the way it would have if it had
-    // sliced the object on its own, and a slope sliced on the fine grid exposes a step of
-    // layer_height / tan(angle) on every single layer: it sheds a little of its area per layer, where a
-    // step loses nearly all of it at once. Treating every one of those rings as a surface worth keeping
-    // cuts the grid to pieces and leaves the nozzle printing the base layer height, which is slower and may
-    // be below what it can extrude at all. Giving detail up is what choosing a coarse nozzle means;
-    // splitting a band inside one colour is not.
-    constexpr double     band_top_collapse_ratio = 0.5;
-    std::vector<uint8_t> band_tops(layer_count, 0);
-    for (size_t layer_idx = 0; layer_idx + 1 < layer_count; ++ layer_idx)
-        for (size_t extruder_id = 0; extruder_id < extruder_count; ++ extruder_id) {
-            const ExPolygons &here  = segmentation[layer_idx][extruder_id];
-            const ExPolygons &above = segmentation[layer_idx + 1][extruder_id];
-            if (here.empty() != above.empty()) {
-                band_tops[layer_idx] = 1;
-                break;
-            }
-            const double diameter = extruder_nozzles[extruder_id];
-            if (here.empty() || diameter <= EPSILON)
-                continue;
-            const double held = area_mm2(here);
-            const double kept = area_mm2(above);
-            if (kept > band_top_collapse_ratio * held)
-                continue;
-            // Slivers are not faces: the fringe two contours polygonised apart leave behind must not cut
-            // the grid, so the vacated area has to be something this nozzle could lay a bead into.
-            if (printable_pieces(diff_ex(here, above), diameter).empty())
-                continue;
-            band_tops[layer_idx] = 1;
-            BOOST_LOG_TRIVIAL(debug) << "[mm_band] forced band top at layer=" << layer_idx
-                                     << " E" << extruder_id << " footprint " << held << " -> " << kept;
-            break;
-        }
-    // Every later pass decimates on this very grid, so hand it over instead of letting them derive their
-    // own: the paint's Z extent is not visible any more once it has been cut into regions.
-    print_object.set_adaptive_band_tops(band_tops);
-    {
-        std::string marks;
-        marks.reserve(band_tops.size());
-        for (uint8_t mark : band_tops)
-            marks.push_back(mark ? 'T' : '.');
-        BOOST_LOG_TRIVIAL(debug) << "[mm_band] band_tops(T=forced boundary)=" << marks;
-    }
+    // Keep every nozzle on its own fixed ladder. Colour ownership is normalized to the band's anchor
+    // contour below; colour starts, stops and layer-to-layer footprint changes must not split the ladder.
+    // Short object or colour tails are handled by pull_adaptive_band_top_to_material().
+    const std::vector<uint8_t> band_tops;
+    BOOST_LOG_TRIVIAL(debug) << "[mm_band] band_tops=none (fixed nozzle ladders)";
 
     // A coarse colour discarded below its band top may have overpainted another colour there. Restore
     // that colour from the immutable top-layer ownership before normalizing any extruder; otherwise the
