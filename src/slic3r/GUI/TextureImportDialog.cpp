@@ -7351,12 +7351,10 @@ void TextureImportDialog::add_pla_basic_cmyw_to_project()
     Sidebar& sidebar = wxGetApp().plater()->sidebar();
     std::vector<std::pair<wxColour, std::string>> to_add;
     std::vector<DecomposeOfficialComponent> officials;
-    to_add.reserve(4);
-    officials.reserve(4);
-    bool hit_cap = false;
+    to_add.reserve(5);
+    officials.reserve(5);    bool hit_cap = false;
     const size_t current_count = wxGetApp().preset_bundle->filament_presets.size();
-    for (size_t i = 0; i < 4; ++i) {
-        const DecomposeOfficialComponent official = lookup_decompose_official_component(
+    for (size_t i = 0; i < 5; ++i) {        const DecomposeOfficialComponent official = lookup_decompose_official_component(
             kDecomposePlaBasicType, kPlaBasicCmywBases[i], kPlaBasicCmywFallbacks[i]);
         if (find_existing_decompose_component(official, physical_colors, physical_indices) >= 0)
             continue;
@@ -7366,10 +7364,20 @@ void TextureImportDialog::add_pla_basic_cmyw_to_project()
         }
         wxColour col(official.color_hex);
         if (!col.IsOk())
-            col = kPlaBasicCmywFallbacks[i];
+            col = kPaletteCmykwFallbacks[i];
         to_add.emplace_back(col, preset_name);
         officials.push_back(official);
     }
+
+    wxBusyCursor wait;
+    if (!to_add.empty()) {
+        const size_t insert_pos = sidebar.add_custom_filaments(to_add);
+        const size_t added = (insert_pos == size_t(-1)) ? 0 :
+            std::min(to_add.size(), sidebar.combos_filament().size() - insert_pos);
+        if (added < to_add.size())
+            hit_cap = true;
+        for (size_t i = 0; i < added; ++i)
+            set_created_standard_component_metadata(insert_pos + i, officials[i]);    }
 
     wxBusyCursor wait;
     if (!to_add.empty()) {

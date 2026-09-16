@@ -5664,7 +5664,6 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
         return size_t(-1);
     if (wxGetApp().preset_bundle->filament_presets.size() >= max_n)
         return size_t(-1);
-
     const size_t total = wxGetApp().preset_bundle->filament_presets.size();
     const size_t insert_pos = p->combos_filament.size();
     const size_t k = std::min({ items.size(), max_n - total, max_n - insert_pos });
@@ -5674,8 +5673,7 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
     const std::string first_color = items.front().first.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
     wxGetApp().preset_bundle->set_num_filaments((unsigned int)(total + k), first_color);
 
-    // Maintain physical-first ordering: rotate the new slots from the end to insert_pos.
-    if (insert_pos < total) {
+    // Maintain physical-first ordering: rotate the new slots from the end to insert_pos.    if (insert_pos < total) {
         auto& presets = wxGetApp().preset_bundle->filament_presets;
         std::rotate(presets.begin() + insert_pos, presets.begin() + total, presets.end());
 
@@ -7498,40 +7496,6 @@ static void ensure_mixed_gradient_options(DynamicPrintConfig& project_config)
         project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
 }
 
-// Mixing is only allowed between filaments printed by the same nozzle diameter.
-static bool check_mixed_filament_nozzle_diameters(Sidebar* sidebar, const MixedFilamentResult& result)
-{
-    auto& project_config = wxGetApp().preset_bundle->project_config;
-    if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
-        const std::vector<size_t> physical_indices = wxGetApp().preset_bundle->physical_filament_config_indices();
-        std::set<std::string> component_diameters;
-        bool missing_diameter = false;
-        for (unsigned int component : result.components) {
-            if (component < 1 || component > physical_indices.size()) {
-                missing_diameter = true;
-                continue;
-            }
-            const size_t config_index = physical_indices[component - 1];
-            if (config_index < selected->values.size()) {
-                component_diameters.insert(selected->values[config_index]);
-                if (selected->values[config_index].empty())
-                    missing_diameter = true;
-            } else {
-                missing_diameter = true;
-            }
-        }
-        if (component_diameters.size() > 1 ||
-            (multi_diameter_filament_selection_active() && missing_diameter)) {
-            MessageDialog dlg(sidebar,
-                _L("Only filaments using the same nozzle diameter can be mixed."),
-                _L("Unable to mix filaments"), wxOK | wxICON_WARNING);
-            dlg.ShowModal();
-            return false;
-        }
-    }
-    return true;
-}
-
 static void write_mixed_filament_slot(
     DynamicPrintConfig& project_config,
     size_t new_idx,
@@ -7542,8 +7506,7 @@ static void write_mixed_filament_slot(
     if (auto* colour_opt = project_config.option<ConfigOptionStrings>("filament_colour")) {
         while (colour_opt->values.size() <= new_idx) colour_opt->values.push_back("");
         colour_opt->values[new_idx] = mixed_color;
-    }
-    auto* multi_colour_opt = project_config.option<ConfigOptionStrings>("filament_multi_colour");
+    }    auto* multi_colour_opt = project_config.option<ConfigOptionStrings>("filament_multi_colour");
     if (multi_colour_opt) {
         while (multi_colour_opt->values.size() <= new_idx) multi_colour_opt->values.push_back("");
         multi_colour_opt->values[new_idx] = mixed_color;
@@ -7621,7 +7584,6 @@ static std::vector<int> create_mixed_filaments_from_results(
         return created;
     if (!dynamic_cast<Plater*>(sidebar->GetParent()))
         return created;
-
     const size_t num_physical = sidebar->combos_filament().size();
     if (num_physical < 2)
         return created;
@@ -7658,8 +7620,7 @@ static std::vector<int> create_mixed_filaments_from_results(
     for (size_t i = 1; i <= m; ++i)
         wxGetApp().plater()->get_partplate_list().on_filament_added((int)(total + i));
 
-    const size_t filament_count = wxGetApp().preset_bundle->filament_presets.size();
-    wxGetApp().plater()->on_filament_count_change(filament_count);
+    const size_t filament_count = wxGetApp().preset_bundle->filament_presets.size();    wxGetApp().plater()->on_filament_count_change(filament_count);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     wxGetApp().plater()->update_project_dirty_from_presets();
@@ -7672,11 +7633,8 @@ static bool create_mixed_filament_from_result(
     const MixedFilamentResult& result,
     const std::vector<std::string>& color_strs)
 {
-    if (!sidebar || !check_mixed_filament_nozzle_diameters(sidebar, result))
-        return false;
     const std::vector<int> created = create_mixed_filaments_from_results(sidebar, { result }, color_strs);
-    return !created.empty() && created.front() >= 0;
-}
+    return !created.empty() && created.front() >= 0;}
 
 void Sidebar::add_mixed_filament()
 {
