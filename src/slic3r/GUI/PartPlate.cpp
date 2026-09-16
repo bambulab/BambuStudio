@@ -1,6 +1,8 @@
 #include <cstddef>
 #include <algorithm>
+#include <cmath>
 #include <numeric>
+#include <set>
 #include <vector>
 #include <string>
 #include <future>
@@ -1765,6 +1767,99 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         }
     }
     return true;
+}
+
+bool PartPlate::check_missing_tpu285_nozzle(const DynamicPrintConfig &config) const
+{
+    std::vector<int> used_filaments = get_extruders(true); // 1-based
+    if (used_filaments.empty())
+        return false;
+
+    const PresetCollection &fil_collection = wxGetApp().preset_bundle->filaments;
+    const auto             &fil_preset_names = wxGetApp().preset_bundle->filament_presets;
+
+    auto is_tpu285_filament = [&](const Preset *fil_preset) -> bool {
+        if (!fil_preset)
+            return false;
+        if (fil_preset->config.has("filament_extruder_variant")) {
+            for (const auto &variant : fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values) {
+                if (convert_to_nvt_type(variant) == nvtTPU285)
+                    return true;
+            }
+        }
+        // Official 2.85mm TPU also stores the physical diameter; keep that as a fallback identity.
+        if (fil_collection.is_bbl_brand_filament(*fil_preset)) {
+            if (auto *diam = fil_preset->config.option<ConfigOptionFloats>("filament_diameter"); diam && !diam->values.empty()) {
+                if (std::abs(diam->values.front() - 2.85) < 1e-3)
+                    return true;
+            }
+        }
+        return false;
+    };
+
+    bool uses_tpu285_filament = false;
+    for (int filament_idx : used_filaments) {
+        int filament_id = filament_idx - 1;
+        if (filament_id < 0 || filament_id >= (int) fil_preset_names.size())
+            continue;
+        if (is_tpu285_filament(fil_collection.find_preset(fil_preset_names[filament_id]))) {
+            uses_tpu285_filament = true;
+            break;
+        }
+    }
+    if (!uses_tpu285_filament)
+        return false;
+
+    auto add_volume_type = [](std::set<NozzleVolumeType> &types, NozzleVolumeType nvt) {
+        if (nvt != nvtHybrid && nvt >= nvtStandard && nvt < nvtCount)
+            types.insert(nvt);
+    };
+
+    std::set<NozzleVolumeType> configured_types;
+    auto collect_from_opt = [&](const ConfigOptionEnumsGeneric *opt) {
+        if (!opt)
+            return;
+        for (int v : opt->values)
+            add_volume_type(configured_types, static_cast<NozzleVolumeType>(v));
+    };
+    collect_from_opt(config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type"));
+    collect_from_opt(config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type"));
+
+    if (PresetBundle *bundle = wxGetApp().preset_bundle) {
+        const int extruder_count = std::max(bundle->get_printer_extruder_count(), bundle->extruder_full_stat.get_extruder_count());
+        for (int eid = 0; eid < extruder_count; ++eid) {
+            if (bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, nvtTPU285) > 0)
+                add_volume_type(configured_types, nvtTPU285);
+            for (const auto &slot : bundle->extruder_full_stat.get_extruder_stats(eid)) {
+                if (slot.second.empty())
+                    continue;
+                add_volume_type(configured_types, nozzle_volume_type_from_string(slot.second));
+            }
+        }
+    }
+    if (configured_types.count(nvtTPU285))
+        return false;
+
+    // Only offer "add TPU285 nozzle" when the printer preset can actually carry that type.
+    auto contains_tpu285 = [](const ConfigOptionStrings *opt) {
+        if (!opt)
+            return false;
+        for (const auto &variant : opt->values) {
+            if (variant.find("TPU285") != std::string::npos)
+                return true;
+        }
+        return false;
+    };
+    if (contains_tpu285(config.option<ConfigOptionStrings>("extruder_variant_list")) ||
+        contains_tpu285(config.option<ConfigOptionStrings>("printer_extruder_variant")))
+        return true;
+
+    const int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
+    for (int eid = 0; eid < extruder_count; ++eid) {
+        if (get_extruder_supported_nozzle_volume_types(config, eid).count(nvtTPU285))
+            return true;
+    }
+    return false;
 }
 
 bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments)

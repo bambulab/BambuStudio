@@ -6548,6 +6548,11 @@ void Sidebar::reset_all_nozzle_status()
     reset_fila_switch();
 }
 
+void Sidebar::open_extruder_settings_dialog(const wxString &preselect_diameter)
+{
+    p->open_extruder_settings_dialog(preselect_diameter);
+}
+
 
 void Sidebar::load_ams_list(MachineObject* obj)
 
@@ -29048,8 +29053,10 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 
     if (model_fits) { // Filament printable check
         wxString filament_printable_error_msg;
-        bool filament_printable = cur_plate->check_filament_printable(wxGetApp().preset_bundle->full_config(), filament_printable_error_msg);
-        model_fits &= filament_printable;
+        const auto &full_config = wxGetApp().preset_bundle->full_config();
+        bool tpu285_missing = cur_plate->check_missing_tpu285_nozzle(full_config);
+        bool filament_printable = cur_plate->check_filament_printable(full_config, filament_printable_error_msg);
+        model_fits &= filament_printable && !tpu285_missing;
     }
 
     model_fits = model_fits && object_results.filaments.empty();

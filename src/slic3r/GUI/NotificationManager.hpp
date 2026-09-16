@@ -160,6 +160,7 @@ enum class NotificationType
     BBLPrinterConfigUpdateAvailable,
 	BBLUserPresetExceedLimit,
     BBLFilamentPrintableError,
+    BBLMissingTPU285Nozzle,
     BBLSliceLimitError,
     BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,

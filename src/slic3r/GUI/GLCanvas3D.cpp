@@ -4147,8 +4147,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool tpu_valid = cur_plate->check_tpu_printable_status(full_config_temp, wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
             _set_warning_notification(EWarning::TPUPrintableError, !tpu_valid);
 
+            bool tpu285_missing = cur_plate->check_missing_tpu285_nozzle(full_config_temp);
+            _set_warning_notification(EWarning::MissingTPU285Nozzle, tpu285_missing);
+
             bool filament_printable = cur_plate->check_filament_printable(full_config_temp, filament_printable_error_msg);
-            _set_warning_notification(EWarning::FilamentPrintableError, !filament_printable);
+            _set_warning_notification(EWarning::FilamentPrintableError, !filament_printable && !tpu285_missing);
 
             bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(full_config_temp);
             _set_warning_notification(EWarning::MixUsePLAAndPETG, !mix_pla_and_petg);
@@ -4164,12 +4167,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool filament_mixture_compatible = cur_plate->check_mixture_filament_compatible(full_config_temp, get_filament_mixture_warning_text());
             _set_warning_notification(EWarning::MixtureFilamentIncompatible, !filament_mixture_compatible);
 
-            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable;
+            bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable && !tpu285_missing;
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
             ppl.get_curr_plate()->update_slice_ready_status(model_fits);
 
             bool filament_flow_compatible = cur_plate->check_flow_compatible_of_nozzle_and_filament(full_config_temp, wxGetApp().preset_bundle->filament_presets, get_filament_flow_warning_text());
-            _set_warning_notification(EWarning::FilamentNozzleFlowIncompatible, !filament_flow_compatible);
+            _set_warning_notification(EWarning::FilamentNozzleFlowIncompatible, !filament_flow_compatible && !tpu285_missing);
 
             bool tpu_nozzle_has_multi_filaments = cur_plate->check_tpu_nozzle_has_multiple_filaments(full_config_temp, get_tpu_nozzle_multi_filaments_warning_text());
             _set_warning_notification(EWarning::TpuNozzleMultipleFilaments, tpu_nozzle_has_multi_filaments);
@@ -4192,6 +4195,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             //_set_warning_notification(EWarning::SlaSupportsOutside, false);
            _set_warning_notification(EWarning::TPUPrintableError, false);
            _set_warning_notification(EWarning::FilamentPrintableError, false);
+           _set_warning_notification(EWarning::MissingTPU285Nozzle, false);
            _set_warning_notification(EWarning::MixUsePLAAndPETG, false);
            _set_warning_notification(EWarning::BrittleFilament, false);
            _set_warning_notification(EWarning::MultiFilaNoWipeTower, false);
@@ -13821,6 +13825,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         error = ErrorType::SLICING_ERROR;
         break;
     }
+    case EWarning::MissingTPU285Nozzle: {
+        text  = _u8L("The printer preset is missing a TPU285 nozzle.");
+        error = ErrorType::SLICING_ERROR;
+        break;
+    }
     case EWarning::PrintedWeightOverLimitWarn: {
         text  = _u8L("The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects.");
         error = ErrorType::PLATER_WARNING;
@@ -14163,6 +14172,17 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             else
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel);
+        }
+        else if (warning == EWarning::MissingTPU285Nozzle) {
+            if (state) {
+                auto callback = [](wxEvtHandler *) {
+                    wxGetApp().CallAfter([]() { wxGetApp().sidebar().open_extruder_settings_dialog(); });
+                    return false;
+                };
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLMissingTPU285Nozzle, NotificationLevel::ErrorNotificationLevel, text,
+                                                                               _u8L("Click to add a TPU285 nozzle"), callback);
+            } else
+                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLMissingTPU285Nozzle, NotificationLevel::ErrorNotificationLevel);
         }
         else if (warning == EWarning::FlushingVolumeZero) {
             if (state) {

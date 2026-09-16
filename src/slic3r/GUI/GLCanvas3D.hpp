@@ -409,6 +409,7 @@ class GLCanvas3D
         ToolHeightOutside,
         TPUPrintableError,
         FilamentPrintableError,
+        MissingTPU285Nozzle,
         PrintedWeightOverLimitWarn,
         LeftExtruderPrintableError,  // before slice
         RightExtruderPrintableError, // before slice

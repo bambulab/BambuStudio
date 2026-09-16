@@ -8202,6 +8202,12 @@ msgstr "自定义当前盘"
 msgid "The %s nozzle can not print %s."
 msgstr "%s喷嘴不可以打印%s"
 
+msgid "The printer preset is missing a TPU285 nozzle."
+msgstr "打印机预设缺少TPU285喷嘴"
+
+msgid "Click to add a TPU285 nozzle"
+msgstr "点击去添加TPU285喷嘴"
+
 #, boost-format
 msgid "Mixing %1% with %2% in printing is not recommended.\n"
 msgstr "不建议在打印中混合使用 %1% 和 %2%。\n"
@@ -18452,7 +18458,7 @@ msgid "Intelligently assigns filaments based on the filaments currently installe
 msgstr "根据打印机AMS中当前安装的耗材，智能分配耗材"
 
 msgid "Manually assign filaments to the printhead"
-msgstr "手动分配耗材给工具头"
+msgstr "按喷嘴类型手动分配耗材"
 
 msgid "Manually assign filaments by nozzle type"
 msgstr "按喷嘴类型手动分配耗材"
