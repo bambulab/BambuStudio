@@ -201,6 +201,7 @@ void DevicePageAmsMappingHotendVM::Refresh(MachineObject*                       
                                            int                                  current_filament_id,
                                            ShowType                             show_type,
                                            bool                                 ext_mapping_filatype_check,
+                                           bool                                 match_all,
                                            const std::string&                   material_index,
                                            const ResetCallback&                 reset_cb,
                                            wxWindow*                            send_win,
@@ -212,6 +213,7 @@ void DevicePageAmsMappingHotendVM::Refresh(MachineObject*                       
     m_current_filament_id        = current_filament_id;
     m_show_type                  = show_type;
     m_ext_mapping_filatype_check = ext_mapping_filatype_check;
+    m_match_all                  = match_all;
     m_material_index             = material_index;
     m_reset_callback             = reset_cb;
     m_send_win                   = send_win;
@@ -557,8 +559,10 @@ SlotJudgement DevicePageAmsMappingHotendVM::ResolveSlotJudgement(MachineObject* 
     j.has_filament  = (td.type != EMPTY);
 
     // THIRD-party trays don't expose a usable filament_type; treat them as
-    // material-match by default so we don't false-positive a mismatch.
-    j.material_match = (td.type != NORMAL) || is_match(td.filament_type);
+    // material-match by default so we don't false-positive a mismatch. match_all
+    // lifts the type restriction outright: every present filament counts as a
+    // material match, leaving only the nozzle dimension to gate pickability.
+    j.material_match = m_match_all || (td.type != NORMAL) || is_match(td.filament_type);
 
     // Inline nozzle dia / flow comparison. Skipped when the slicing spec is
     // unknown (no rack on this device) or the rack nozzle could not be

@@ -30,6 +30,8 @@ class MultiDiameterSyncAmsDialog : public SyncAmsInfoDialog
 public:
     MultiDiameterSyncAmsDialog(wxWindow* parent, SyncInfo& info);
     ~MultiDiameterSyncAmsDialog() override = default;
+    /// Re-fit the adaptive height once the base has built all content for a fresh show.
+    bool Show(bool show) override;
 
 protected:
     /// Build the horizontal mapping rows (Match mode) in place of the base chip grid.
@@ -52,10 +54,21 @@ protected:
     int dialog_height_middle() const override { return FromDIP(690); }
     int dialog_height_max()    const override { return FromDIP(720); }
 
+    /// Fit the scroll area to the visible content (clamped to the screen) instead of a fixed tier,
+    /// so the dialog height tracks its content and the user-added resize border stays in range.
+    void apply_scroll_height(int height) override;
+
     /// Every AMS slot is pickable in this dialog (no filament-type restriction).
     bool sync_popup_match_all() const override { return true; }
+    /// This dialog drops the "Are you sure to synchronize the filaments?" confirm line.
+    bool needs_are_you_sure_title() const override { return false; }
+    /// Overwrite replaces the project filaments directly and the twin preview already shows the
+    /// before/after, so this dialog hides the redundant project-to-AMS list in Overwrite mode.
+    bool override_shows_mapping_list() const override { return false; }
     /// After the base updates the mapping, reflect the chosen slot's nozzle diameter onto the row.
     void on_set_finish_mapping(wxCommandEvent& evt) override;
+    /// Refresh the header's mode-specific description line (Match vs. Overwrite) on a mode switch.
+    void on_mode_changed() override;
 
 private:
     /// Rework the base's twin-preview panel: drop the swipe buttons and plate row, park the plate
@@ -82,11 +95,20 @@ private:
                              wxScrolledWindow*& out_scroll);
     /// Fit a mapping scroll window: cap the height so more than 5 filament rows scroll; centre rows.
     void refresh_mapping_scroll(wxScrolledWindow* scroll, wxFlexGridSizer* grid, size_t filament_rows);
+    /// Largest the scroll area may grow: ~90% of the current display's work area minus the dialog chrome.
+    int max_scroll_height() const;
+    /// Lock the width and bound the height for vertical resizing, tracking the current display/DPI.
+    void apply_resizable_bounds();
+    /// Re-tint the plain-wx surfaces StaticBox can't auto-map (mapping scroll backgrounds and the
+    /// reparented preview titles) for the active theme. Runs on every show: the dialog is cached and
+    /// can outlive a light/dark switch.
+    void refresh_dynamic_colors();
 
     bool                m_layout_applied{false};       ///< Guards the one-time preview-panel surgery.
     wxScrolledWindow*   m_mapping_scroll{nullptr};     ///< Scrollable wrapper of the match-mode rows.
     wxScrolledWindow*   m_fix_mapping_scroll{nullptr}; ///< Scrollable wrapper of the override-mode rows.
     ::ComboBox*         m_priority_combo{nullptr};     ///< "Filament matching" Color-first/Precision-first selector.
+    Label*              m_header_desc{nullptr};        ///< Header description line; text tracks the active map mode.
     FilamentMatchScheme m_scheme{FilamentMatchScheme::ColorFirst}; ///< Current auto-map strategy.
 
     // SyncAmsInfoDialog keeps m_result private, so the fork owns its own (get_result/deal_ok use this).

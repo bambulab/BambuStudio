@@ -128,7 +128,8 @@ void NozzleCard::build_header(wxSizer *v, int number)
 
     m_warning_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning_serious", this, 14), wxDefaultPosition, FromDIP(wxSize(14, 14)), 0);
     m_warning_icon->Hide();
-    row->Add(m_warning_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(2));
+    // Clear the grey pill painted behind the title, which extends FromDIP(6) past the label (see OnPaint).
+    row->Add(m_warning_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(8));
 
     m_badge_bmp = create_scaled_bitmap("badge", this, 16); // drawn at the card's top-right corner in OnPaint
 

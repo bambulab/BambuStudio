@@ -58,6 +58,7 @@ public:
                  int                                  current_filament_id,
                  ShowType                             show_type,
                  bool                                 ext_mapping_filatype_check,
+                 bool                                 match_all,
                  const std::string&                   material_index,
                  const ResetCallback&                 reset_cb,
                  wxWindow*                            send_win,
@@ -166,6 +167,7 @@ private:
     int                          m_current_filament_id{0};
     ShowType                     m_show_type{ShowType::RIGHT};
     bool                         m_ext_mapping_filatype_check{true};
+    bool                         m_match_all{false}; ///< when set, any present filament matches regardless of type
     std::string                  m_material_index;
     ResetCallback                m_reset_callback{nullptr};
     wxWindow*                    m_send_win{nullptr};

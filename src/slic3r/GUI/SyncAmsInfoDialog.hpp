@@ -172,8 +172,22 @@ protected:
     virtual int dialog_height_middle() const { return FromDIP(630); }
     virtual int dialog_height_max()    const { return FromDIP(660); }
 
+    /// Pin the scroll area (and therefore the dialog) to this height. Base fixes min == max; a fork
+    /// can override to fit the visible content and let the dialog resize.
+    virtual void apply_scroll_height(int height);
+    /// Called after the map mode has changed (and its per-mode labels set), before the layout is
+    /// re-sized. A fork can override to refresh mode-specific header text. Base does nothing.
+    virtual void on_mode_changed() {}
+
     /// When true, the AMS mapping popup opens with every slot pickable (fork override). Off in the base.
     virtual bool sync_popup_match_all() const { return false; }
+    /// Whether the "Are you sure to synchronize the filaments?" confirm line is shown.
+    virtual bool needs_are_you_sure_title() const { return true; }
+    /// True while the map-mode toggle is on Overwrite (the alternative is colour mapping).
+    bool is_override_mode() const { return m_map_mode == MapModeEnum::Override; }
+    /// Whether Overwrite mode shows the display-only project-to-AMS list. Overwrite replaces the
+    /// project filaments directly, so a fork that previews the outcome elsewhere can hide the list.
+    virtual bool override_shows_mapping_list() const { return true; }
     /// Register a mapping item in m_materialList and bind its click to open the AMS mapping popup.
     /// Shared by the base grid layout and the fork's row layout so the popup wiring lives in one place.
     void wire_sync_item(MaterialSyncItem* item, int extruder,
@@ -272,7 +286,9 @@ public:
         bool is_same_printer = true;
         std::map<int, AMSMapInfo> sync_maps;
     };
-    SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info);
+    /// \param extra_style  extra top-level window style ORed into the frame (e.g. wxRESIZE_BORDER for a
+    ///                     resizable fork); must be set at construction since MSW bakes the frame then.
+    SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info, long extra_style = 0);
     ~SyncAmsInfoDialog();
     void set_info(SyncInfo &info);
     void on_dpi_changed(const wxRect &suggested_rect) override;

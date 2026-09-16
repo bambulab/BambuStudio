@@ -678,7 +678,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
 #endif
     // set button
     if (tray_data.type == NORMAL) {
-        if (is_match_material(tray_data.filament_type)) {
+        if (m_match_all || is_match_material(tray_data.filament_type)) {
             item->set_data(m_tag_material, tray_data.colour, tray_data.name, false, tray_data);
         } else {
             item->set_data(m_tag_material, m_ext_mapping_filatype_check ? wxColour(0xEE, 0xEE, 0xEE) : tray_data.colour, tray_data.name, false, tray_data, true);
@@ -687,7 +687,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
 
         item->Bind(wxEVT_LEFT_UP, [this, tray_data, item](wxMouseEvent &e) {
             if (!item->GetParent() || !item->GetParent()->IsEnabled()) return;
-            if (m_ext_mapping_filatype_check && !is_match_material(tray_data.filament_type)) return;
+            if (!m_match_all && m_ext_mapping_filatype_check && !is_match_material(tray_data.filament_type)) return;
             item->send_event(m_current_filament_id);
             Dismiss();
         });
@@ -772,6 +772,7 @@ void AmsMapingPopup::update_hotend_web(MachineObject* obj,
                     m_current_filament_id,
                     m_show_type,
                     m_ext_mapping_filatype_check,
+                    m_match_all,
                     m_tag_material,
                     m_reset_callback,
                     send_win,

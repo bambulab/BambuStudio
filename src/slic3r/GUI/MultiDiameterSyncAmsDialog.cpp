@@ -6,12 +6,14 @@
 #include <numeric>
 #include <wx/statbmp.h>
 #include <wx/dcgraph.h>
+#include <wx/display.h>
 
 #include "AmsMappingPopup.hpp"
 #include "DeviceCore/DevManager.h"   // full DeviceManager definition (DeviceManager.hpp only forward-declares it)
 #include "DeviceCore/DevMapping.h"
 #include "DeviceCore/DevNozzleSystem.h" // DevNozzle flow-type helpers for the nozzle volume type
 #include "DeviceManager.hpp"
+#include "FilamentBitmapUtils.hpp" // create_filament_bitmap for src/dst colour swatches
 #include "GUI_App.hpp"
 #include "GuiColor.hpp"
 #include "I18N.hpp"
@@ -117,6 +119,8 @@ public:
         // Guarded: a missing resource must not crash the dialog (the mark is simply not drawn).
         try { m_bambu_bmp = create_scaled_bitmap("bambu_mark", this, 12); } catch (...) {}
         messure_size();
+        Bind(wxEVT_MOTION, &MaterialSyncItemH::on_mouse_move, this);
+        Bind(wxEVT_LEAVE_WINDOW, &MaterialSyncItemH::on_mouse_leave, this);
     }
 
     /// Source cell text: filament name, nozzle diameter, volume type, and whether it is Bambu-brand.
@@ -176,15 +180,47 @@ protected:
     }
 
 private:
-    void draw_swatch(wxDC& dc, const wxRect& r, const wxColour& col, const std::vector<wxColour>& cols)
+    /// Raise the incompatibility tip only while the cursor sits on the amber diameter/volume pill;
+    /// hovering elsewhere on the row shows nothing. Only toggled on boundary crossings to avoid flicker.
+    void on_mouse_move(wxMouseEvent& e)
     {
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        if (cols.size() > 1)
-            dc.GradientFillLinear(r, cols.front(), cols.back(), wxEAST);
-        else {
-            dc.SetBrush(wxBrush(col.Alpha() == 0 ? wxColour(0xEE, 0xEE, 0xEE) : col));
-            dc.DrawRoundedRectangle(r.x, r.y, r.width, r.height, FromDIP(3));
+        const bool over = m_pill_rect.Contains(e.GetPosition());
+        if (over != m_pill_hover) {
+            m_pill_hover = over;
+            if (over)
+                SetToolTip(_L("The current nozzle diameter is incompatible with the printer"));
+            else
+                UnsetToolTip();
         }
+        e.Skip();
+    }
+
+    /// Drop the tip when the cursor leaves the row, since motion events stop at the edge.
+    void on_mouse_leave(wxMouseEvent& e)
+    {
+        if (m_pill_hover) { m_pill_hover = false; UnsetToolTip(); }
+        e.Skip();
+    }
+
+    /// Paint a filament colour swatch (source or destination) with a hairline Grey300 outline.
+    /// ctype 0 renders a gradient; any other value renders a discrete multi-colour split. A fully
+    /// transparent single slot falls back to a light Grey300 chip so it stays visible.
+    void draw_swatch(wxDC& dc, const wxRect& r, const wxColour& col, const std::vector<wxColour>& cols, int ctype)
+    {
+        std::vector<wxColour> colors;
+        if (cols.size() > 1)
+            colors = cols;
+        else
+            colors.push_back(col.Alpha() == 0 ? ThemeColor::Grey300 : col);
+
+        const bool     force_gradient = ctype == 0 && colors.size() > 1;
+        const wxBitmap bmp            = create_filament_bitmap(colors, wxSize(r.width, r.height), force_gradient);
+        if (bmp.IsOk())
+            dc.DrawBitmap(bmp, r.x, r.y, true);
+
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.SetPen(wxPen(ThemeColor::Grey300, 1));
+        dc.DrawRectangle(r);
     }
 
     /// The second line's text ("dia  vol"), so both the width helper and the painter agree on it.
@@ -206,13 +242,13 @@ private:
 
     /// Draw one cell: swatch at swatch_x, then the two-line text block starting at text_x. When
     /// mismatch is set, the diameter+volume line is drawn amber on a rounded "pill" background.
-    void draw_cell(wxDC& dc, int swatch_x, int text_x, const wxColour& swcol, const std::vector<wxColour>& scols,
+    void draw_cell(wxDC& dc, int swatch_x, int text_x, const wxColour& swcol, const std::vector<wxColour>& scols, int ctype,
                    const wxString& name, bool bambu, const wxString& dia, const wxString& vol, bool mismatch,
                    const wxColour& txt, const wxColour& sub)
     {
         const wxSize size = GetSize();
         const int    sw   = FromDIP(30);
-        draw_swatch(dc, wxRect(swatch_x, (size.y - sw) / 2, sw, sw), swcol, scols);
+        draw_swatch(dc, wxRect(swatch_x, (size.y - sw) / 2, sw, sw), swcol, scols, ctype);
 
         dc.SetFont(::Label::Body_13);
         const int l1h = dc.GetTextExtent(name).y;
@@ -240,9 +276,11 @@ private:
             if (mismatch) {
                 const int px = FromDIP(6);
                 const int ph = l2sz.y + FromDIP(4);
+                // Remember the pill's bounds so a hover here (and only here) can raise a tooltip.
+                m_pill_rect = wxRect(text_x - px, y2 + (l2sz.y - ph) / 2, l2sz.x + 2 * px, ph);
                 dc.SetPen(*wxTRANSPARENT_PEN);
                 dc.SetBrush(wxBrush(wxColour(0xFF, 0xF7, 0xED)));                  // pale pill background
-                dc.DrawRoundedRectangle(text_x - px, y2 + (l2sz.y - ph) / 2, l2sz.x + 2 * px, ph, ph / 2);
+                dc.DrawRoundedRectangle(m_pill_rect, ph / 2);
                 dc.SetTextForeground(wxColour(0xFA, 0x94, 0x4B));                  // amber text
             } else {
                 dc.SetTextForeground(sub);
@@ -253,6 +291,7 @@ private:
 
     void draw(wxDC& dc)
     {
+        m_pill_rect = wxRect(); // recomputed below only if the dest cell paints its mismatch pill
         const wxSize   size = GetSize();
         const wxColour txt  = IsEnabled() ? StateColor::darkModeColorFor(ThemeColor::TextPrimary) : wxColour(0x90, 0x90, 0x90);
         const wxColour sub  = IsEnabled() ? StateColor::darkModeColorFor(ThemeColor::TextMuted)   : wxColour(0x90, 0x90, 0x90);
@@ -264,7 +303,7 @@ private:
         const int drop_x = size.x - pad - tw;
 
         // source cell, left-aligned
-        draw_cell(dc, pad, pad + sw + gap, m_material_coloul, m_material_cols,
+        draw_cell(dc, pad, pad + sw + gap, m_material_coloul, m_material_cols, m_material_ctype,
                   m_src_name, m_src_bambu, m_src_dia, m_src_vol, false, txt, sub);
 
         // dest cell: shared left edge across rows, pushed as far right as the widest dest still fits
@@ -280,7 +319,7 @@ private:
         const int      dst_w    = m_max_dst > 0 ? m_max_dst : sw + gap + cell_text_width(dc, dname, dbambu, ddia, dvol);
         int            dleft    = drop_x - FromDIP(10) - dst_w;
         dleft = std::max(dleft, size.x / 2 + FromDIP(8)); // never cross into the source half
-        draw_cell(dc, dleft, dleft + sw + gap, m_ams_coloul, m_ams_cols,
+        draw_cell(dc, dleft, dleft + sw + gap, m_ams_coloul, m_ams_cols, m_ams_ctype,
                   dname, dbambu, ddia, dvol, mismatch, txt, sub);
 
         // arrow centred in the middle, between the left source and the right dest
@@ -311,6 +350,8 @@ private:
     bool     m_src_bambu{false};
     bool     m_dst_bambu{false};
     int      m_max_dst{0}; ///< shared widest-dest-cell width (0 = not computed yet)
+    wxRect   m_pill_rect;  ///< dest diameter/volume mismatch pill in client coords (empty when none)
+    bool     m_pill_hover{false};
 };
 
 // Reparent every window a sizer lays out (recursing into nested sizers) onto a new parent window.
@@ -327,13 +368,67 @@ static void reparent_sizer_windows(wxSizer* s, wxWindow* parent)
 }
 
 MultiDiameterSyncAmsDialog::MultiDiameterSyncAmsDialog(wxWindow* parent, SyncInfo& info)
-    : SyncAmsInfoDialog(parent, info)
+    : SyncAmsInfoDialog(parent, info, wxRESIZE_BORDER) // resizable frame; MSW bakes the border at creation
 {
     // The sync flow verifies the connected/selected printer matches before opening this dialog,
     // so a same-printer direct-sync default is safe (deal_ok refines it per mode).
     m_result.direct_sync     = true;
     m_result.is_same_printer = true;
     apply_multi_diameter_layout();
+
+    // Height-only resize: the content is fixed-width, so lock the width and bound the height between a
+    // floor and the screen cap. The resize border itself is set at construction (see the base ctor).
+    apply_resizable_bounds();
+}
+
+void MultiDiameterSyncAmsDialog::apply_scroll_height(int /*height*/)
+{
+    if (!m_scrolledWindow || !m_sizer_main)
+        return;
+    // Hidden panels (e.g. the Overwrite-mode mapping list) contribute 0 to the sizer's min size,
+    // so the content height already tracks the active mode.
+    m_scrolledWindow->Layout();
+    const int content = m_sizer_main->GetMinSize().y;
+    const int height  = std::clamp(content, FromDIP(240), max_scroll_height());
+    m_scrolledWindow->SetMinSize(wxSize(-1, height));
+    // No max cap: the dialog's own size hints bound the height, and the proportion chain lets the
+    // scroll stretch with the dialog. A hard max here would pin min == max when content hits the cap.
+    m_scrolledWindow->SetMaxSize(wxSize(-1, -1));
+}
+
+int MultiDiameterSyncAmsDialog::max_scroll_height() const
+{
+    const int idx    = wxDisplay::GetFromWindow(const_cast<MultiDiameterSyncAmsDialog*>(this));
+    const int work_h = (idx != wxNOT_FOUND) ? wxDisplay(idx).GetClientArea().GetHeight() : FromDIP(1000);
+    // Leave room for the title bar + button row so the scroll content never forces the dialog past
+    // the work area; the dialog's own max (apply_resizable_bounds) is the harder screen bound.
+    return std::max(FromDIP(300), work_h - FromDIP(160));
+}
+
+void MultiDiameterSyncAmsDialog::apply_resizable_bounds()
+{
+    const int locked_w = GetMinSize().x; // base pinned the width via SetMinSize == SetMaxSize
+    // Lock the width; bound the height between a small floor (the sizer's own content min dominates in
+    // practice) and the display work area itself. Max is the screen directly — decoupled from the
+    // dialog chrome so it can never collapse to min == max the way a chrome-offset cap did.
+    const int idx    = wxDisplay::GetFromWindow(this);
+    const int work_h = (idx != wxNOT_FOUND) ? wxDisplay(idx).GetClientArea().GetHeight() : FromDIP(1000);
+    SetSizeHints(wxSize(locked_w, FromDIP(240)), wxSize(locked_w, work_h - FromDIP(30)));
+}
+
+bool MultiDiameterSyncAmsDialog::Show(bool show)
+{
+    // The base Show() builds the mapping rows (set_default) only now, after Plater's pre-show height
+    // pin, so re-fit once the content is final. This runs synchronously before the modal loop's
+    // first paint, so there is no visible resize.
+    const bool ret = SyncAmsInfoDialog::Show(show);
+    if (show) {
+        apply_scroll_height(0);
+        Layout();
+        Fit();
+        CenterOnScreen();
+    }
+    return ret;
 }
 
 void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
@@ -391,9 +486,13 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
         m_filament_panel->SetMaxSize(wxSize(-1, -1));
         m_fix_filament_panel->SetMinSize(wxSize(-1, -1));
         m_fix_filament_panel->SetMaxSize(wxSize(-1, -1));
-        // Light-gray card backgrounds for the header (mode toggle) and mapping panels.
-        const wxColour card_bg    = StateColor::darkModeColorFor(ThemeColor::Grey200);
-        const wxColour surface_bg = StateColor::darkModeColorFor(ThemeColor::White);
+        // Header (mode toggle), preview and mapping cards: hand StaticBox the semantic tokens and let
+        // it map them through the dark palette at paint time. This dialog is cached and reused across
+        // opens, so a pre-resolved colour would bake in the first-open theme and keep rendering the
+        // dark card fill in a later light session (and vice-versa); paint-time mapping tracks the
+        // active theme instead.
+        const wxColour card_bg    = ThemeColor::Grey200;
+        const wxColour surface_bg = ThemeColor::White;
         if (m_mode_panel) m_mode_panel->SetBackgroundColor(card_bg);
         m_filament_panel->SetBackgroundColor(card_bg);
         m_fix_filament_panel->SetBackgroundColor(card_bg);
@@ -420,34 +519,30 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
             m_two_image_panel_sizer->Clear(false); // only spacers remain; safe (no sub-sizers left)
             m_two_image_panel_sizer->Add(card_orig, 1, wxEXPAND | wxRIGHT, FromDIP(6));
             m_two_image_panel_sizer->Add(card_mapped, 1, wxEXPAND | wxLEFT, FromDIP(6));
-            // The "Original"/"After mapping" title labels were built against the old preview panel
-            // and kept its dark background after reparenting; repaint them to the card so the text
-            // sits on the card surface, not a black block. (Left title is the first item of the
-            // left title row; the right title is the first item of the right column sizer.)
-            const wxColour title_fg = StateColor::darkModeColorFor(ThemeColor::TextMuted);
-            auto repaint_title = [&](wxSizer* title_sizer) {
-                if (!title_sizer) return;
-                if (wxSizerItem* it = title_sizer->GetItem((size_t) 0))
-                    if (wxWindow* w = it->GetWindow()) {
-                        w->SetBackgroundColour(card_bg);
-                        w->SetForegroundColour(title_fg);
-                    }
-            };
-            repaint_title(m_left_title_sizer);
-            repaint_title(m_right_sizer_thumbnail);
+            // The "Original"/"After mapping" title labels kept the old preview panel's dark background
+            // after reparenting; refresh_dynamic_colors() repaints them onto the card. They are plain
+            // wx labels that, unlike StaticBox, do not remap on a theme switch, so it re-runs on show.
         }
-        // Warning banner below the mode toggle, inside the header card: stack the toggle row and the
-        // banner in a vertical sizer (the toggle row keeps its own centring).
+        // Header text under the mode toggle: a mode-specific description line (refreshed by
+        // on_mode_changed()) followed by a fixed warning line (icon + text). Stack them with the
+        // toggle row in one vertical sizer (the toggle row keeps its own centring).
         if (m_mode_panel && m_mode_panel->GetSizer()) {
             wxSizer* toggle = m_mode_panel->GetSizer();
             m_mode_panel->SetSizer(nullptr, false); // detach the toggle row without deleting it
-            auto* header_v   = new wxBoxSizer(wxVERTICAL);
+            auto* header_v = new wxBoxSizer(wxVERTICAL);
             header_v->Add(toggle, 0, wxEXPAND);
+
+            m_header_desc = new Label(m_mode_panel, wxEmptyString, LB_AUTO_WRAP);
+            m_header_desc->SetMinSize(wxSize(FromDIP(520), -1));
+            m_header_desc->SetMaxSize(wxSize(FromDIP(520), -1));
+            m_header_desc->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
+            header_v->Add(m_header_desc, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
+
             auto* warn_sizer = new wxBoxSizer(wxHORIZONTAL);
             auto* warn_icon  = new wxStaticBitmap(m_mode_panel, wxID_ANY, create_scaled_bitmap("warning", m_mode_panel, 16),
                                                   wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
             auto* warn_text  = new Label(m_mode_panel,
-                _L("After syncing, the project's material presets and colors are discarded and replaced with the mapped result. This cannot be undone. Are you sure you want to sync?"),
+                _L("After modification, the filament list cannot be restored. Are you sure you want to sync?"),
                 LB_AUTO_WRAP);
             warn_text->SetMinSize(wxSize(FromDIP(520), -1));
             warn_text->SetMaxSize(wxSize(FromDIP(520), -1));
@@ -490,6 +585,28 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
         // Drop the explanatory hint labels above and below the advanced-settings expander; the
         // expander itself stays. They would otherwise reappear on every mode switch.
         hide_advanced_settings_hint_labels();
+        // The mapping scroll surfaces and reparented preview titles are plain wx widgets that cannot
+        // self-map on a theme switch the way the StaticBox cards do; re-tint them now and on every
+        // show, since this dialog is cached and can outlive a light/dark switch.
+        Bind(wxEVT_SHOW, [this](wxShowEvent& e) { if (e.IsShown()) refresh_dynamic_colors(); e.Skip(); });
+        refresh_dynamic_colors();
+
+        // Let a taller dialog flow down to the mapping list so more rows appear (instead of only adding
+        // whitespace). The stretch chain is m_sizer_this -> m_pages -> m_show_page -> m_scrolledWindow
+        // (already proportion 1) -> m_filament_panel; the inner scroll is proportion 1 inside the card.
+        // Nothing here inflates a minimum, so the dialog still shrinks back to the ~5-row floor.
+        if (m_sizer_this && m_pages)
+            if (wxSizerItem* it = m_sizer_this->GetItem(static_cast<wxWindow*>(m_pages)))
+                it->SetProportion(1);
+        if (wxSizerItem* it = m_sizer_main->GetItem(static_cast<wxWindow*>(m_filament_panel)))
+            it->SetProportion(1);
+        // StaticBox does not re-lay-out its sizer on resize, so when the card is stretched, lay it out
+        // by hand so the inner scroll fills the new height.
+        m_filament_panel->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
+            e.Skip();
+            m_filament_panel->Layout();
+        });
+
         m_layout_applied = true;
     }
 
@@ -521,10 +638,9 @@ void MultiDiameterSyncAmsDialog::apply_multi_diameter_layout()
     }
 
     if (m_scrolledWindow) {
-        // The base constructor sized the scroll area before this fork's height overrides were reachable
-        // (virtual dispatch during base construction resolves to the base heights); re-assert ours now.
-        m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_max()));
-        m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_max()));
+        // Size the scroll area to the visible content (clamped to the screen) instead of the base's
+        // fixed height; the ctor enables vertical resize around this adaptive height.
+        apply_scroll_height(0);
         m_scrolledWindow->Layout();
         m_scrolledWindow->FitInside();
     }
@@ -535,6 +651,27 @@ void MultiDiameterSyncAmsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     SyncAmsInfoDialog::on_dpi_changed(suggested_rect);
     apply_multi_diameter_layout();
+    apply_resizable_bounds(); // the display/DPI may have changed; refresh the height cap
+}
+
+void MultiDiameterSyncAmsDialog::refresh_dynamic_colors()
+{
+    const wxColour card_bg  = StateColor::darkModeColorFor(ThemeColor::Grey200);
+    const wxColour title_fg = StateColor::darkModeColorFor(ThemeColor::TextMuted);
+    for (wxScrolledWindow* s : {m_mapping_scroll, m_fix_mapping_scroll})
+        if (s) s->SetBackgroundColour(card_bg);
+    // Left title is the first item of the left title row; the right title the first item of the
+    // right column sizer.
+    auto repaint_title = [&](wxSizer* title_sizer) {
+        if (!title_sizer) return;
+        if (wxSizerItem* it = title_sizer->GetItem((size_t) 0))
+            if (wxWindow* w = it->GetWindow()) {
+                w->SetBackgroundColour(card_bg);
+                w->SetForegroundColour(title_fg);
+            }
+    };
+    repaint_title(m_left_title_sizer);
+    repaint_title(m_right_sizer_thumbnail);
 }
 
 void MultiDiameterSyncAmsDialog::wrap_mapping_scroll(wxWindow* owner, wxBoxSizer* owner_sizer,
@@ -569,8 +706,10 @@ void MultiDiameterSyncAmsDialog::refresh_mapping_scroll(wxScrolledWindow* scroll
     int          height     = grid_min.y;
     if (filament_rows > 5 && grid_rows > 0)
         height = grid_min.y * (has_toggle ? 6 : 5) / grid_rows;
+    // Floor only: the ~5-row height is the minimum. The card is proportion 1, so ScrollLayout
+    // stretches the list to fill a taller dialog (no vertical scrollbar) instead of capping it.
     scroll->SetMinSize(wxSize(-1, height));
-    scroll->SetMaxSize(wxSize(-1, height));
+    scroll->SetMaxSize(wxSize(-1, -1));
     scroll->Layout();
     scroll->FitInside();
     scroll->Scroll(0, 0);
@@ -680,11 +819,16 @@ void MultiDiameterSyncAmsDialog::build_sync_rows(wxWindow* panel, wxFlexGridSize
     collect_project_filaments(materials, display_materials, display_names, brands, filament_ids);
     const auto& cfg = wxGetApp().preset_bundle->full_config();
 
+    // Mixed filaments are virtual blended slots with no physical spool, so they cannot be mapped to a tray.
+    auto* is_mixed_opt = wxGetApp().preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
+
     std::vector<int> extruders(wxGetApp().plater()->get_extruders_colors().size());
     std::iota(extruders.begin(), extruders.end(), 0);
     int item_index = 1;
     for (int extruder : extruders) {
         if (extruder < 0 || extruder >= (int) materials.size())
+            continue;
+        if (is_mixed_opt && extruder < (int) is_mixed_opt->values.size() && is_mixed_opt->values[extruder])
             continue;
         const std::string colour_str = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
         const wxColour    colour     = DevAmsTray::decode_color(colour_str);
@@ -802,6 +946,18 @@ void MultiDiameterSyncAmsDialog::on_set_finish_mapping(wxCommandEvent& evt)
     paint_items(dev ? dev->get_selected_machine() : nullptr, m_materialList, m_ams_mapping_result);  // dest diameter
 }
 
+void MultiDiameterSyncAmsDialog::on_mode_changed()
+{
+    if (!m_header_desc)
+        return;
+    m_header_desc->SetLabel(is_override_mode()
+        ? _L("Overwrite the project filaments list with the filaments in the printer.")
+        : _L("Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."));
+    // Re-wrap the description at its fixed width so its new height feeds the enclosing size pass.
+    if (m_mode_panel)
+        m_mode_panel->Layout();
+}
+
 void MultiDiameterSyncAmsDialog::build_priority_toggle()
 {
     wxWindow* owner = m_mapping_scroll ? static_cast<wxWindow*>(m_mapping_scroll) : m_filament_panel;
@@ -818,8 +974,13 @@ void MultiDiameterSyncAmsDialog::build_priority_toggle()
         m_scheme = (m_priority_combo->GetSelection() == 0) ? FilamentMatchScheme::ColorFirst
                                                            : FilamentMatchScheme::PrecisionFirst;
         DeviceManager* dev = wxGetApp().getDeviceManager();
-        if (MachineObject* obj = dev ? dev->get_selected_machine() : nullptr)
+        if (MachineObject* obj = dev ? dev->get_selected_machine() : nullptr) {
             do_ams_mapping(obj);
+            // The preview repaints from a cached per-filament colour table that is only rebuilt on
+            // demand; force the rebuild so the rendered object colour follows the new mapping
+            // (same refresh the reset-all path performs).
+            update_final_thumbnail_data();
+        }
         // do_ams_mapping's internal Fit() can collapse the width-freed mapping panel; re-layout the
         // scrolled window so it expands back to the full content width (the reset path does the same).
         m_sizer_ams_mapping->Layout();
@@ -854,9 +1015,7 @@ bool MultiDiameterSyncAmsDialog::do_ams_mapping(MachineObject* obj_)
 
 void MultiDiameterSyncAmsDialog::deal_ok()
 {
-    // The base keeps m_map_mode private; read the active mode from the visible override panel.
-    const bool override_mode = m_fix_filament_panel && m_fix_filament_panel->IsShown();
-    if (override_mode) {
+    if (is_override_mode()) {
         m_result.direct_sync = true;  // 直接覆盖: overwrite directly, no per-slot mapping
         return;
     }

@@ -1068,17 +1068,24 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
                   m_scrolled_window->SetScrollRate(0, FromDIP(10));
               }
 
+              // Measure the popup at its final width so the below/above decision uses its real
+              // rendered height (title bar + padding included), not just the scroll-content min —
+              // otherwise a low row is judged to "fit below" and the taller popup clips off-screen.
+              Layout();
+              Fit();
+              const int popup_full_height = GetSize().GetHeight();
+
               //Vertical Direction Processing
               int available_height_below = screen_size.GetBottom() - (show_pos.y + parent_size.height);
               int available_height_above = show_pos.y - screen_size.GetTop();
 
-              if (popup_size.y <= available_height_below)
+              if (popup_full_height <= available_height_below)
               {
                    show_pos.y = show_pos.y + parent_size.height;
               }
-              else if (popup_size.y <= available_height_above)
+              else if (popup_full_height <= available_height_above)
               {
-                  show_pos.y = show_pos.y - popup_size.y - FromDIP(34) - FromDIP(14);// title_height = FromDIP(30) + FromDIP(4)  padding = FromDIP(14)
+                  show_pos.y = show_pos.y - popup_full_height;// flip above: popup bottom meets the row top
               }
               else
               {

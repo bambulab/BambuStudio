@@ -88,7 +88,7 @@ bool SyncAmsInfoDialog::Show(bool show)
         show_color_panel(true);
         m_filament_left_panel->Show(false); // empty_project
         m_filament_right_panel->Show(false);
-        m_are_you_sure_title->Show(true);
+        m_are_you_sure_title->Show(needs_are_you_sure_title());
         if (m_mode_panel) {
             m_mode_panel->Show(true);
             m_reset_all_btn->Hide();
@@ -297,25 +297,28 @@ void SyncAmsInfoDialog::update_when_change_map_mode(int idx)
 {
     m_map_mode = (MapModeEnum) idx;
     show_ams_controls(true);
+    int tier = dialog_height_max();
     if (m_map_mode == MapModeEnum::ColorMap) {
         show_color_panel(true,false);
         m_confirm_title->SetLabel(m_undone_str);
         m_after_map_text->SetLabel(_L("After mapping"));
         m_tip_text->SetLabel(m_tip_attention_color_map);
-        m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_max()));
-        m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_max()));
+        tier = dialog_height_max();
 
     } else if (m_map_mode == MapModeEnum::Override) {
         show_color_panel(false,false);
         if (!m_hide_hint_labels) m_confirm_title->Show();
         m_confirm_title->SetLabel(m_override_undone_str);
-        if (!m_hide_hint_labels) m_are_you_sure_title->Show();
+        if (!m_hide_hint_labels) m_are_you_sure_title->Show(needs_are_you_sure_title());
         m_after_map_text->SetLabel(_L("After overwriting"));
         m_tip_text->SetLabel(m_tip_attention_override);
-        m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_min()));
-        m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_min()));
+        tier = dialog_height_min();
     }
+    on_mode_changed();
+    // Finalize which mapping panel is visible BEFORE sizing: a fork that measures live content must
+    // see the mode's real layout, otherwise Overwrite reserves the hidden list's space.
     update_map_when_change_map_mode();
+    apply_scroll_height(tier);
     m_scrolledWindow->FitInside();
     Layout();
     Fit();
@@ -397,7 +400,7 @@ void SyncAmsInfoDialog::show_color_panel(bool flag, bool update_layout)
     //show_sizer(m_plate_combox_sizer, flag);
     show_advanced_settings(flag, update_layout);
     m_confirm_title->Show(flag && !m_hide_hint_labels);
-    m_are_you_sure_title->Show(flag && !m_hide_hint_labels);
+    m_are_you_sure_title->Show(flag && !m_hide_hint_labels && needs_are_you_sure_title());
     if (flag) {
         auto extruders = wxGetApp().plater()->get_partplate_list().get_plate(m_specify_plate_idx)->get_extruders();
         /*if (wxGetApp().plater()->get_extruders_colors().size() != extruders.size()) {
@@ -432,14 +435,12 @@ void SyncAmsInfoDialog::update_more_setting(bool layout, bool from_more_seting_t
     if (!m_expand_more_settings) {
         m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option3", m_scrolledWindow, 18));
         if (from_more_seting_text) {
-            m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_middle()));
-            m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_middle()));
+            apply_scroll_height(dialog_height_middle());
         }
     } else {
         m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option4", m_scrolledWindow, 18));
         if (from_more_seting_text) {
-            m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_max()));
-            m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_max()));
+            apply_scroll_height(dialog_height_max());
         }
     }
     show_sizer(m_append_color_sizer, m_expand_more_settings);
@@ -621,8 +622,8 @@ void SyncAmsInfoDialog::updata_ui_when_priner_not_same() {
     Fit();
 }
 
-SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
-    DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Synchronize AMS Filament Information"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info, long extra_style) :
+    DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Synchronize AMS Filament Information"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | extra_style)
     , m_input_info(info)
     , m_export_3mf_cancel(false)
     , m_mapping_popup(AmsMapingPopup(this,true))
@@ -699,8 +700,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     m_scrolledWindow = new wxScrolledWindow(m_show_page, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_scrolledWindow->SetBackgroundColour(*wxWHITE);
     m_scrolledWindow->SetScrollRate(0, 20);
-    m_scrolledWindow->SetMinSize(wxSize(-1, dialog_height_max()));
-    m_scrolledWindow->SetMaxSize(wxSize(-1, dialog_height_max()));
+    apply_scroll_height(dialog_height_max());
     m_scrolledWindow->EnableScrolling(false,true);
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
@@ -3122,13 +3122,21 @@ void SyncAmsInfoDialog::show_ams_controls(bool flag)
     m_tip_text->Show(flag && !m_hide_hint_labels);
 }
 
+void SyncAmsInfoDialog::apply_scroll_height(int height)
+{
+    m_scrolledWindow->SetMinSize(wxSize(-1, height));
+    m_scrolledWindow->SetMaxSize(wxSize(-1, height));
+}
+
 void SyncAmsInfoDialog::update_thumbnail_data_accord_plate_index(bool allow_clone_ams_color)
 {
     if (m_map_mode == MapModeEnum::Override) {
         show_advanced_settings(false,false);
         m_filament_panel->Show(false);
-        m_fix_filament_panel->Show();
-        generate_override_fix_ams_list();
+        const bool show_list = override_shows_mapping_list();
+        m_fix_filament_panel->Show(show_list);
+        if (show_list)
+            generate_override_fix_ams_list();
     } else if (m_map_mode == MapModeEnum::ColorMap) {
         show_advanced_settings(true, false);
         m_filament_panel->Show();
