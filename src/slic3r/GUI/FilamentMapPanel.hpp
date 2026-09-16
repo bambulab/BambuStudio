@@ -114,6 +114,7 @@ private:
     void OnTimer(wxTimerEvent &evt);
     void SyncPanelHeights();
     void OnDragDropCompleted(wxCommandEvent &evt);
+    void OnDragHover(wxCommandEvent &evt);
 
     SeparatedDragDropPanel *m_left_panel;
     SeparatedDragDropPanel *m_right_panel;
@@ -138,8 +139,8 @@ private:
     int      m_ams_nozzle_idx{0};
     bool     m_topology_changed{false};
     int      m_total_nozzle_count{1};
-    int      m_ams_slot_count{1};
     bool     m_pending_height_sync{false};
+    bool     m_show_drag_unsupported_tip{false};
 };
 
 class FilamentMapAutoPanel : public FilamentMapPanel

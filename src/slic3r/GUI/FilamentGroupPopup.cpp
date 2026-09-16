@@ -339,7 +339,7 @@ void FilamentGroupPopup::UpdateNozzleLabels()
             case fmmManual:
                 label = no_ams ? _L("Custom") : _L("Custom Mode");
                 detail = single_ext_multi_nozzle
-                    ? _L("Manually assign filaments to the printhead")
+                    ? _L("Manually assign filaments by nozzle type")
                     : wxString::Format(_L("Manually assign filament to the %s or %s"), deputy_nozzle_lower, main_nozzle_lower);
                 break;
             default: continue;
@@ -481,9 +481,12 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         std::vector<FilamentMapMode> new_available_modes;
         const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(full_config);
         if (single_ext_multi_nozzle) {
+            const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(full_config);
+            const bool has_ams = get_effective_ams_nozzle_idx_for_active_diameter(full_config) >= 0;
             new_available_modes = {fmmAutoForMatch};
-            if (!multi_nozzle_diameter_mode_enabled(full_config) ||
-                get_effective_ams_nozzle_idx_for_active_diameter(full_config) >= 0)
+            if (!multi_diameter_mode && has_ams)
+                new_available_modes.insert(new_available_modes.begin(), fmmAutoForFlush);
+            if (!multi_diameter_mode || has_ams)
                 new_available_modes.push_back(fmmManual);
         } else {
             std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };

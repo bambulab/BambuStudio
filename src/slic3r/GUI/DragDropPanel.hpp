@@ -13,11 +13,10 @@
 #include <functional>
 #include <string>
 
-class wxWrapSizer;
-
 namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(wxEVT_DRAG_DROP_COMPLETED, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_FILAMENT_DRAG_HOVER, wxCommandEvent);
 
 class FilamentMapManualPanel;
 
@@ -36,6 +35,7 @@ public:
     void UpdateLabel(const wxString &label);
     void SetGridColumns(int cols);
     void SetGridColumnsForWidth(int panel_width);
+    void SetGridHorizontalPadding(int padding, int gap);
     void SetInteractionEnabled(bool enabled);
     bool IsInteractionEnabled() const { return m_interaction_enabled; }
 
@@ -56,6 +56,7 @@ public:
 private:
     wxBoxSizer *m_sizer;
     wxGridSizer *m_grid_item_sizer;
+    wxSizerItem *m_grid_sizer_item{nullptr};
     Label       *m_title_label = nullptr;
     bool         m_is_auto;
     bool         m_use_fixed_grid_item_size{false};
@@ -127,6 +128,7 @@ public:
     // 列数决定 unified（非分隔）网格的列宽，列宽小于图标宽度时图标之间就没有间隙。
     void SetUnifiedGridColumns(int cols);
     void SetUnifiedGridWidth(int box_width);
+    void SetUnifiedGridHorizontalPadding(int padding, int gap);
     void SetDiameterVolumeGroups(const std::vector<DiameterVolumeGroup> &groups, bool use_white_cards = true);
     void SetEnabledDiameterVolumeGroup(const std::string &diameter, NozzleVolumeType volume_type);
     bool IsUseDiameterVolumeGroups() const { return !m_diameter_volume_panels.empty(); }
@@ -169,7 +171,7 @@ private:
         DragDropPanel   *panel;
     };
     wxPanel                       *m_diameter_volume_container{nullptr};
-    wxWrapSizer                    *m_diameter_volume_sizer{nullptr};
+    wxFlexGridSizer                *m_diameter_volume_sizer{nullptr};
     std::vector<DiameterVolumePanel> m_diameter_volume_panels;
 };
 

@@ -3,11 +3,32 @@
 #include "FilamentBitmapUtils.hpp"
 #include <slic3r/GUI/wxExtensions.hpp>
 #include <wx/graphics.h>
-#include <wx/wrapsizer.h>
 
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(wxEVT_DRAG_DROP_COMPLETED, wxCommandEvent);
+wxDEFINE_EVENT(wxEVT_FILAMENT_DRAG_HOVER, wxCommandEvent);
+
+static void notify_filament_drag_hover(wxWindow *source, bool accepted)
+{
+    wxCommandEvent event(wxEVT_FILAMENT_DRAG_HOVER);
+    event.SetEventObject(source);
+    event.SetInt(accepted);
+
+    for (wxWindow *parent = source->GetParent(); parent; parent = parent->GetParent()) {
+        if (parent->GetName() == wxT("FilamentMapMultiNozzlePanel")) {
+            parent->GetEventHandler()->ProcessEvent(event);
+            break;
+        }
+    }
+}
+
+static wxColour drag_panel_background(bool enabled)
+{
+    if (wxGetApp().dark_mode())
+        return enabled ? wxColour("#4C4B50") : wxColour("#424147");
+    return enabled ? *wxWHITE : wxColour("#F2F2F2");
+}
 
 struct CustomData
 {
@@ -153,7 +174,9 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     if (!m_parent->IsInteractionEnabled()) {
         if (wxGraphicsContext *gc = wxGraphicsContext::Create(dc)) {
             gc->SetPen(*wxTRANSPARENT_PEN);
-            gc->SetBrush(wxBrush(wxColour(245, 245, 245, 190)));
+            gc->SetBrush(wxBrush(wxGetApp().dark_mode()
+                ? wxColour(66, 65, 71, 190)
+                : wxColour(245, 245, 245, 190)));
             gc->DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
             delete gc;
         }
@@ -213,9 +236,12 @@ wxDragResult ColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 
     // Multi-diameter restriction: refuse a filament whose preset does not support this panel's working
     // diameter. Returning wxDragNone leaves the block on its source panel (the drag snaps back).
-    if (!m_panel->accepts_filament(m_data->GetFilament()))
+    if (!m_panel->accepts_filament(m_data->GetFilament())) {
+        notify_filament_drag_hover(m_panel, false);
         return wxDragNone;
+    }
 
+    notify_filament_drag_hover(m_panel, true);
     m_panel->AddColorBlock(m_data->GetType(), m_data->GetFilament());
 
     return wxDragCopy;
@@ -223,7 +249,9 @@ wxDragResult ColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 
 wxDragResult ColorDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
-    if (s_dragged_filament_id > 0 && !m_panel->accepts_filament(s_dragged_filament_id))
+    const bool accepted = s_dragged_filament_id <= 0 || m_panel->accepts_filament(s_dragged_filament_id);
+    notify_filament_drag_hover(m_panel, accepted);
+    if (!accepted)
         return wxDragNone;
     return wxDropTarget::OnDragOver(x, y, def);
 }
@@ -266,10 +294,11 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
 
     if (is_sub) {
         m_grid_item_sizer = new wxGridSizer(0, 3, FromDIP(6), FromDIP(6));
-        m_sizer->Add(m_grid_item_sizer, 0, wxEXPAND);
+        m_grid_sizer_item = m_sizer->Add(m_grid_item_sizer, 0, wxEXPAND);
     } else {
         m_grid_item_sizer = new wxGridSizer(0, 6, FromDIP(GRID_ITEM_GAP), FromDIP(GRID_ITEM_GAP));
-        m_sizer->Add(m_grid_item_sizer, 0, wxEXPAND | wxALL, FromDIP(GRID_BORDER));
+        m_grid_sizer_item = m_sizer->Add(
+            m_grid_item_sizer, 0, wxEXPAND | wxALL, FromDIP(GRID_BORDER));
     }
 
     // set droptarget
@@ -288,7 +317,8 @@ void DragDropPanel::AddColorBlock(const std::string &type, int filament_id, bool
     ColorPanel  *panel = new ColorPanel(this, filament_id, type, initial_size);
     panel->SetMinSize(block_size);
     if (m_use_fixed_grid_item_size)
-        m_grid_item_sizer->Add(panel, 0, wxFIXED_MINSIZE)->SetMinSize(block_size);
+        m_grid_item_sizer->Add(
+            panel, 0, wxFIXED_MINSIZE | wxALIGN_CENTER_HORIZONTAL)->SetMinSize(block_size);
     else
         m_grid_item_sizer->Add(panel, 0);
     m_filament_blocks.push_back(panel);
@@ -339,7 +369,9 @@ void DragDropPanel::DoDragDrop(ColorPanel *panel, const std::string &type, int f
 
     ColorDropSource source(this, panel, type, filament_id);
     ScopedDraggedFilament dragged_filament(filament_id);
-    if (source.DoDragDrop(wxDrag_CopyOnly) == wxDragResult::wxDragCopy) {
+    const wxDragResult result = source.DoDragDrop(wxDrag_CopyOnly);
+    notify_filament_drag_hover(this, true);
+    if (result == wxDragResult::wxDragCopy) {
         this->RemoveColorBlock(panel);
     }
 }
@@ -380,10 +412,22 @@ void DragDropPanel::SetGridColumnsForWidth(int panel_width)
     SetGridColumns(cols);
 }
 
+void DragDropPanel::SetGridHorizontalPadding(int padding, int gap)
+{
+    if (!m_grid_sizer_item)
+        return;
+
+    m_grid_item_sizer->SetHGap(gap);
+    m_grid_sizer_item->SetFlag(wxEXPAND | wxLEFT | wxRIGHT);
+    m_grid_sizer_item->SetBorder(padding);
+    Layout();
+    Fit();
+}
+
 void DragDropPanel::SetInteractionEnabled(bool enabled)
 {
     m_interaction_enabled = enabled;
-    const wxColour background = enabled ? *wxWHITE : wxColour("#F2F2F2");
+    const wxColour background = drag_panel_background(enabled);
     const wxColour foreground = enabled ? wxColour("#6B6B6B") : wxColour("#9A9A9A");
     SetBackgroundColour(background);
     for (wxWindow *child : GetChildren()) {
@@ -456,16 +500,21 @@ wxDragResult SeparatedColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult
 
     // Multi-diameter restriction: refuse a filament whose preset does not support this extruder's
     // working diameter (see ColorDropTarget::OnData).
-    if (!m_panel->accepts_filament(m_data->GetFilament()))
+    if (!m_panel->accepts_filament(m_data->GetFilament())) {
+        notify_filament_drag_hover(m_panel, false);
         return wxDragNone;
+    }
 
+    notify_filament_drag_hover(m_panel, true);
     m_panel->AddColorBlock(m_data->GetType(), m_data->GetFilament(), nvtStandard);
     return wxDragCopy;
 }
 
 wxDragResult SeparatedColorDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
-    if (s_dragged_filament_id > 0 && !m_panel->accepts_filament(s_dragged_filament_id))
+    const bool accepted = s_dragged_filament_id <= 0 || m_panel->accepts_filament(s_dragged_filament_id);
+    notify_filament_drag_hover(m_panel, accepted);
+    if (!accepted)
         return wxDragNone;
     return wxDropTarget::OnDragOver(x, y, def);
 }
@@ -508,7 +557,9 @@ SeparatedDragDropPanel::SeparatedDragDropPanel(wxWindow *parent, const wxString 
     m_diameter_volume_container->SetBackgroundColour(0xF8F8F8);
     if (expand_drop_target)
         m_diameter_volume_container->SetDropTarget(new SeparatedColorDropTarget(this));
-    m_diameter_volume_sizer = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
+    m_diameter_volume_sizer = new wxFlexGridSizer(0, 3, FromDIP(8), FromDIP(8));
+    for (int col = 0; col < 3; ++col)
+        m_diameter_volume_sizer->AddGrowableCol(col, 1);
     m_diameter_volume_container->SetSizer(m_diameter_volume_sizer);
     m_content_panel->SetSizer(m_content_sizer);
 
@@ -548,7 +599,7 @@ void SeparatedDragDropPanel::UpdateLayout()
         m_diameter_volume_container->Show();
         for (auto &group : m_diameter_volume_panels)
             group.panel->Show();
-        m_content_sizer->Add(m_diameter_volume_container, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
+        m_content_sizer->Add(m_diameter_volume_container, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(16));
     } else if (m_use_separation) {
         m_diameter_volume_container->Hide();
         m_unified_panel->Hide();
@@ -630,20 +681,19 @@ void SeparatedDragDropPanel::UpdateDiameterVolumeLayout()
     if (m_diameter_volume_panels.empty())
         return;
 
-    const int card_width = FromDIP(110);
+    const int card_min_width = FromDIP(110);
     std::vector<int> content_heights;
     content_heights.reserve(m_diameter_volume_panels.size());
     for (auto &group : m_diameter_volume_panels) {
         group.panel->SetMaxSize(wxDefaultSize);
-        group.panel->SetMinSize({card_width, -1});
+        group.panel->SetMinSize({card_min_width, -1});
         const int content_height = group.panel->GetSizer()
             ? group.panel->GetSizer()->CalcMin().GetHeight()
             : FromDIP(100);
         const int panel_height = std::max(FromDIP(100), content_height);
         content_heights.push_back(panel_height);
-        group.panel->SetMinSize({card_width, panel_height});
+        group.panel->SetMinSize({card_min_width, panel_height});
         group.panel->SetMaxSize({-1, panel_height});
-        group.panel->SetSize({card_width, panel_height});
         group.panel->Layout();
     }
 
@@ -666,17 +716,17 @@ void SeparatedDragDropPanel::UpdateDiameterVolumeLayout()
         const auto row = std::find(row_positions.begin(), row_positions.end(), y);
         const size_t row_idx = std::distance(row_positions.begin(), row);
         const int row_height = row_heights[row_idx];
-        group.panel->SetMinSize({card_width, row_height});
+        group.panel->SetMinSize({card_min_width, row_height});
         group.panel->SetMaxSize({-1, row_height});
-        group.panel->SetSize({card_width, row_height});
         group.panel->Layout();
     }
 
     m_diameter_volume_sizer->Layout();
     m_diameter_volume_container->Layout();
-    m_diameter_volume_container->Fit();
+    const int bottom_padding = FromDIP(8);
+    m_diameter_volume_container->SetMinSize(
+        {-1, m_diameter_volume_sizer->CalcMin().GetHeight() + bottom_padding});
     m_content_panel->Layout();
-    m_content_panel->Fit();
     Layout();
     Fit();
 }
@@ -709,6 +759,8 @@ void SeparatedDragDropPanel::SetUnifiedGridColumns(int cols)
 {
     if (!m_unified_panel)
         return;
+    m_unified_panel->SetMinSize(wxDefaultSize);
+    m_unified_panel->SetMaxSize(wxDefaultSize);
     m_unified_panel->SetGridColumns(cols);
     Layout();
 }
@@ -722,6 +774,14 @@ void SeparatedDragDropPanel::SetUnifiedGridWidth(int box_width)
     Layout();
 }
 
+void SeparatedDragDropPanel::SetUnifiedGridHorizontalPadding(int padding, int gap)
+{
+    if (!m_unified_panel)
+        return;
+    m_unified_panel->SetGridHorizontalPadding(padding, gap);
+    Layout();
+}
+
 void SeparatedDragDropPanel::SetDiameterVolumeGroups(const std::vector<DiameterVolumeGroup> &groups, bool use_white_cards)
 {
     for (auto &group : m_diameter_volume_panels)
@@ -732,15 +792,18 @@ void SeparatedDragDropPanel::SetDiameterVolumeGroups(const std::vector<DiameterV
     for (const auto &group : groups) {
         auto *panel = new DragDropPanel(
             m_diameter_volume_container, group.label, false, true, true, m_use_fixed_grid_item_size);
-        const wxColour background = use_white_cards ? *wxWHITE : wxColour("#F8F8F8");
+        const wxColour background = wxGetApp().dark_mode()
+            ? drag_panel_background(true)
+            : (use_white_cards ? *wxWHITE : wxColour("#F8F8F8"));
         panel->SetBackgroundColour(background);
         for (wxWindow *child : panel->GetChildren()) {
             child->SetBackgroundColour(background);
             for (wxWindow *grandchild : child->GetChildren())
                 grandchild->SetBackgroundColour(background);
         }
+        panel->SetGridHorizontalPadding(FromDIP(4), FromDIP(6));
         panel->SetMinSize({FromDIP(110), FromDIP(100)});
-        m_diameter_volume_sizer->Add(panel, 0, wxRIGHT | wxBOTTOM, FromDIP(8));
+        m_diameter_volume_sizer->Add(panel, 0, wxEXPAND);
         m_diameter_volume_panels.push_back({group.diameter, group.volume_type, panel});
     }
     UpdateLayout();

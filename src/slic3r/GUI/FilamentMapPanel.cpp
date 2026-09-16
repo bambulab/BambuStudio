@@ -7,6 +7,7 @@
 #include <boost/log/trivial.hpp>
 #include <cassert>
 #include <wx/dcbuffer.h>
+#include <wx/scrolwin.h>
 #include "wx/graphics.h"
 #include <map>
 #include <set>
@@ -127,20 +128,6 @@ static std::optional<NozzleVolumeType> get_single_fixed_nozzle_volume_from_full_
     if (!has_full_stat || fixed_counts.size() != 1)
         return std::nullopt;
     return fixed_counts.begin()->first;
-}
-
-static int get_ams_slot_count_from_config(const ConfigBase& config)
-{
-    const auto* ams_count_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("extruder_ams_count"));
-    if (!ams_count_opt)
-        return 1;
-    const auto counts = get_extruder_ams_count(ams_count_opt->values);
-    int slots = 0;
-    for (const auto& ext : counts)
-        for (const auto& kv : ext)
-            slots += kv.first * kv.second;
-    // The AMS-fed nozzle also has one native Ext slot in addition to external AMS slots.
-    return std::max(1, slots + 1);
 }
 
 static NozzleVolumeType get_ams_nozzle_volume_from_full_stat(int ams_nozzle_idx)
@@ -820,9 +807,9 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     auto cnt_opt = full_cfg.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     m_total_nozzle_count = (cnt_opt && !cnt_opt->values.empty()) ? cnt_opt->values[0] : 1;
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    m_show_drag_unsupported_tip = is_single_ext_multi_nozzle(full_cfg) && multi_diameter_mode;
     m_ams_nozzle_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_cfg);
     bool has_ams = (m_ams_nozzle_idx >= 0);
-    m_ams_slot_count = has_ams ? get_ams_slot_count_from_config(full_cfg) : 1;
 
     auto top_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -835,7 +822,7 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
 
     if (has_ams) {
         m_left_panel  = new SeparatedDragDropPanel(this, get_ams_nozzle_label(m_ams_nozzle_idx), false,
-                                                   !multi_diameter_mode, true, true);
+                                                   true, true, true);
         m_right_panel = new SeparatedDragDropPanel(
             this, get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx), false, false, false, true);
     } else {
@@ -871,9 +858,8 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
             if (diameter_value > 0.0 && !ams_stat.second.empty()) {
                 const std::string diameter = format_diameter_to_str(diameter_value);
                 const auto volume_type = DevNozzle::ToNozzleVolumeType(ams_stat.second);
-                m_left_panel->SetDiameterVolumeGroups({
-                    {diameter, volume_type, wxString::FromUTF8(diameter) + get_volume_type_label(volume_type)}
-                }, false);
+                m_left_panel->UpdateUnifiedLabel(
+                    wxString::FromUTF8(diameter) + get_volume_type_label(volume_type));
                 ams_drag_group = std::make_pair(diameter, volume_type);
             }
         }
@@ -900,31 +886,35 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
         }
     }
 
-    // Multi-diameter restriction: the AMS panel represents its physical nozzle, while the fixed
-    // panel may contain several configured nozzle diameters.
-    const auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
-    std::set<std::string> ams_diameters;
-    std::set<std::string> fixed_diameters;
-    for (size_t i = 0; i < full_stats.size(); ++i) {
-        const double diameter = string_to_double_decimal_point(full_stats[i].first);
-        if (diameter <= 0.0)
-            continue;
-        auto &target = static_cast<int>(i) == m_ams_nozzle_idx ? ams_diameters : fixed_diameters;
-        target.insert(format_diameter_to_str(diameter));
+    if (multi_diameter_mode) {
+        // Multi-diameter restriction (N1X): the AMS panel represents its physical nozzle, while the fixed
+        // panel may contain several configured nozzle diameters.
+        const auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+        std::set<std::string> ams_diameters;
+        std::set<std::string> fixed_diameters;
+        for (size_t i = 0; i < full_stats.size(); ++i) {
+            const double diameter = string_to_double_decimal_point(full_stats[i].first);
+            if (diameter <= 0.0)
+                continue;
+            auto &target = static_cast<int>(i) == m_ams_nozzle_idx ? ams_diameters : fixed_diameters;
+            target.insert(format_diameter_to_str(diameter));
+        }
+        if (m_left_panel && m_left_panel->IsUseDiameterVolumeGroups())
+            m_left_panel->set_diameter_group_accept_filament_predicate(
+                make_diameter_group_accept_predicate(m_allowed_diameters));
+        else if (m_left_panel && !ams_diameters.empty())
+            m_left_panel->set_accept_filament_predicate(make_diameter_accept_predicate(m_allowed_diameters, ams_diameters));
+        if (m_right_panel->IsUseDiameterVolumeGroups())
+            m_right_panel->set_diameter_group_accept_filament_predicate(
+                make_diameter_group_accept_predicate(m_allowed_diameters));
+        else if (!fixed_diameters.empty())
+            m_right_panel->set_accept_filament_predicate(make_diameter_accept_predicate(m_allowed_diameters, fixed_diameters));
     }
-    if (m_left_panel && m_left_panel->IsUseDiameterVolumeGroups())
-        m_left_panel->set_diameter_group_accept_filament_predicate(
-            make_diameter_group_accept_predicate(m_allowed_diameters));
-    else if (m_left_panel && !ams_diameters.empty())
-        m_left_panel->set_accept_filament_predicate(make_diameter_accept_predicate(m_allowed_diameters, ams_diameters));
-    if (m_right_panel->IsUseDiameterVolumeGroups())
-        m_right_panel->set_diameter_group_accept_filament_predicate(
-            make_diameter_group_accept_predicate(m_allowed_diameters));
-    else if (!fixed_diameters.empty())
-        m_right_panel->set_accept_filament_predicate(make_diameter_accept_predicate(m_allowed_diameters, fixed_diameters));
 
     if (has_ams) {
         m_left_panel->SetUnifiedGridColumns(AMS_PANEL_GRID_COLS);
+        if (multi_diameter_mode)
+            m_left_panel->SetUnifiedGridHorizontalPadding(FromDIP(8), FromDIP(4));
         m_left_panel->SetMinSize({FromDIP(AMS_PANEL_MIN_WIDTH), -1});
         m_right_panel->SetMinSize({FromDIP(FIXED_PANEL_MIN_WIDTH), -1});
         drag_sizer->AddSpacer(FromDIP(DRAG_BOX_MARGIN));
@@ -940,7 +930,19 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
 
     top_sizer->Add(drag_sizer, 0, wxEXPAND);
 
-    m_tips = new Label(this, _L("Tips: You can drag the filaments to reassign them to different nozzles."));
+    const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(full_cfg);
+    wxString tips = _L("Tips: You can drag the filaments to reassign them to different nozzles.");
+    if (single_ext_multi_nozzle && !has_ams && !multi_diameter_mode && !m_right_panel->IsUseSeparation()) {
+        const auto *nozzle_diameters = full_cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        if (nozzle_diameters && !nozzle_diameters->values.empty()) {
+            const wxString diameter = wxString::FromUTF8(
+                format_diameter_to_str(nozzle_diameters->values.front()));
+            tips = wxString::Format(
+                _L("Tips: Under a %smm nozzle diameter, there are no mixed nozzle types, so no custom settings are needed."),
+                diameter);
+        }
+    }
+    m_tips = new Label(this, tips);
     m_tips->SetFont(Label::Body_13);
     m_tips->SetForegroundColour(TextNormalGreyColor);
     m_tips->Wrap(FromDIP(520));
@@ -958,6 +960,7 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     m_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, &FilamentMapMultiNozzlePanel::OnTimer, this);
     Bind(wxEVT_DRAG_DROP_COMPLETED, &FilamentMapMultiNozzlePanel::OnDragDropCompleted, this);
+    Bind(wxEVT_FILAMENT_DRAG_HOVER, &FilamentMapMultiNozzlePanel::OnDragHover, this);
 
     SetSizer(top_sizer);
     SetMinSize(wxSize(FromDIP(PANEL_MIN_WIDTH), -1));
@@ -1093,7 +1096,8 @@ void FilamentMapMultiNozzlePanel::SyncPanelHeights()
 
     if (GetParent()) {
         GetParent()->Layout();
-        GetParent()->Fit();
+        if (auto *scroll = dynamic_cast<wxScrolledWindow *>(GetParent()))
+            scroll->FitInside();
     }
 }
 
@@ -1111,6 +1115,32 @@ void FilamentMapMultiNozzlePanel::OnDragDropCompleted(wxCommandEvent& event)
         });
     }
     event.Skip();
+}
+
+void FilamentMapMultiNozzlePanel::OnDragHover(wxCommandEvent &event)
+{
+    if (!m_show_drag_unsupported_tip)
+        return;
+
+    const bool show_unsupported = !event.GetInt() && m_show_drag_unsupported_tip;
+    const wxString tips = show_unsupported
+        ? _L("Error: The nozzle type is not supported, so the filament cannot be moved.")
+        : _L("Tips: You can drag the filaments to reassign them to different nozzles.");
+    const wxColour color = show_unsupported ? TextErrorColor : TextNormalGreyColor;
+    if (m_tips->GetLabel() == tips && m_tips->GetForegroundColour() == color)
+        return;
+
+    m_tips->SetLabel(tips);
+    m_tips->SetForegroundColour(color);
+    m_tips->Wrap(FromDIP(520));
+    m_tips->Refresh();
+    Layout();
+    Fit();
+    if (GetParent()) {
+        GetParent()->Layout();
+        if (auto *scroll = dynamic_cast<wxScrolledWindow *>(GetParent()))
+            scroll->FitInside();
+    }
 }
 
 void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
@@ -1131,6 +1161,7 @@ void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
     }
 
     const DynamicPrintConfig full_config = preset_bundle->full_config();
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(full_config);
     const int current_ams_nozzle_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
     m_topology_changed |= current_ams_nozzle_idx != m_ams_nozzle_idx;
 
@@ -1144,18 +1175,24 @@ void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
         auto &target = int(idx) == m_ams_nozzle_idx ? ams_diameters : fixed_diameters;
         target.insert(format_diameter_to_str(diameter));
     }
-    if (m_left_panel && m_left_panel->IsUseDiameterVolumeGroups())
-        m_left_panel->set_diameter_group_accept_filament_predicate(
-            make_diameter_group_accept_predicate(m_allowed_diameters));
-    else if (m_left_panel)
-        m_left_panel->set_accept_filament_predicate(ams_diameters.empty() ? std::function<bool(int)>{} :
-            make_diameter_accept_predicate(m_allowed_diameters, ams_diameters));
-    if (m_right_panel->IsUseDiameterVolumeGroups())
-        m_right_panel->set_diameter_group_accept_filament_predicate(
-            make_diameter_group_accept_predicate(m_allowed_diameters));
-    else
-        m_right_panel->set_accept_filament_predicate(fixed_diameters.empty() ? std::function<bool(int)>{} :
-            make_diameter_accept_predicate(m_allowed_diameters, fixed_diameters));
+    if (multi_diameter_mode) {
+        if (m_left_panel && m_left_panel->IsUseDiameterVolumeGroups())
+            m_left_panel->set_diameter_group_accept_filament_predicate(
+                make_diameter_group_accept_predicate(m_allowed_diameters));
+        else if (m_left_panel)
+            m_left_panel->set_accept_filament_predicate(ams_diameters.empty() ? std::function<bool(int)>{} :
+                make_diameter_accept_predicate(m_allowed_diameters, ams_diameters));
+        if (m_right_panel->IsUseDiameterVolumeGroups())
+            m_right_panel->set_diameter_group_accept_filament_predicate(
+                make_diameter_group_accept_predicate(m_allowed_diameters));
+        else
+            m_right_panel->set_accept_filament_predicate(fixed_diameters.empty() ? std::function<bool(int)>{} :
+                make_diameter_accept_predicate(m_allowed_diameters, fixed_diameters));
+    } else {
+        if (m_left_panel)
+            m_left_panel->set_accept_filament_predicate({});
+        m_right_panel->set_accept_filament_predicate({});
+    }
 
     auto has_incompatible = [this](const std::vector<int> &filaments, const std::set<std::string> &targets) {
         if (targets.empty())
@@ -1172,8 +1209,9 @@ void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
         return false;
     };
     const bool invalid = m_topology_changed ||
-                         (m_left_panel && has_incompatible(GetLeftFilaments(), ams_diameters)) ||
-                         has_incompatible(GetRightFilaments(), fixed_diameters);
+                         (multi_diameter_mode &&
+                          ((m_left_panel && has_incompatible(GetLeftFilaments(), ams_diameters)) ||
+                           has_incompatible(GetRightFilaments(), fixed_diameters)));
     const wxString diameter_error = m_topology_changed ?
         _L("Error: the nozzle configuration changed. Please reopen the filament grouping dialog.") :
         (invalid ? _L("Error: a filament is assigned to a nozzle of incompatible diameter. "
@@ -1274,9 +1312,17 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
             ams_type = DevNozzle::ToNozzleVolumeType(full_stats[m_ams_nozzle_idx].second);
 
         m_left_panel->UpdateLabel(ams_label);
-        if (!m_left_panel->IsUseDiameterVolumeGroups())
-            m_left_panel->UpdateUnifiedLabel(
-                wxString::Format("%s: %d", get_volume_type_label(ams_type), m_ams_slot_count));
+        if (!m_left_panel->IsUseDiameterVolumeGroups()) {
+            if (multi_nozzle_diameter_mode_enabled(full_cfg) &&
+                m_ams_nozzle_idx >= 0 && m_ams_nozzle_idx < static_cast<int>(full_stats.size())) {
+                const std::string diameter = format_diameter_to_str(
+                    string_to_double_decimal_point(full_stats[m_ams_nozzle_idx].first));
+                m_left_panel->UpdateUnifiedLabel(
+                    wxString::FromUTF8(diameter) + get_volume_type_label(ams_type));
+            } else {
+                m_left_panel->UpdateUnifiedLabel(get_volume_type_label(ams_type));
+            }
+        }
     }
 
     if (m_right_panel->IsUseDiameterVolumeGroups()) {

@@ -249,14 +249,19 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     std::vector<FilamentMapMode> requested_modes = get_default_auto_modes();
     Print* print_obj = partplate_ref->fff_print();
     std::vector<FilamentMapMode> available_modes;
-    if (is_single_ext_multi_nozzle(full_config))
+    if (is_single_ext_multi_nozzle(full_config)) {
+        const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(full_config);
+        const bool has_ams = get_effective_ams_nozzle_idx_for_active_diameter(full_config) >= 0;
         available_modes = {fmmAutoForMatch};
-    else
+        if (!multi_diameter_mode && has_ams)
+            available_modes.insert(available_modes.begin(), fmmAutoForFlush);
+    } else {
         available_modes = resolve_available_auto_modes(
             print_obj,
             requested_modes,
             plater_ref->get_machine_sync_status()
         );
+    }
 
     FilamentMapDialog map_dlg(plater_ref,
         filament_types,

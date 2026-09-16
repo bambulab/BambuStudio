@@ -18440,6 +18440,9 @@ msgstr "根据打印机AMS中当前安装的耗材，智能分配耗材"
 msgid "Manually assign filaments to the printhead"
 msgstr "手动分配耗材给工具头"
 
+msgid "Manually assign filaments by nozzle type"
+msgstr "按喷嘴类型手动分配耗材"
+
 msgid "(Sync with printer)"
 msgstr "（请连接打印机）"
 
@@ -18463,6 +18466,13 @@ msgstr "我们将基于当前分配方案切片："
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "提示：您可以拖动耗材以将其重新分配到不同的喷嘴。"
+
+#, c-format, boost-format
+msgid "Tips: Under a %smm nozzle diameter, there are no mixed nozzle types, so no custom settings are needed."
+msgstr "提示：%smm 喷嘴直径下，无混合类型直径，无需自己定义设置。"
+
+msgid "Error: The nozzle type is not supported, so the filament cannot be moved."
+msgstr "错误: 喷嘴类型不支持，无法移动。"
 
 msgid "Please adjust your grouping or click "
 msgstr "请调整您的分组或点击 "
