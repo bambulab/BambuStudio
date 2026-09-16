@@ -532,4 +532,20 @@ float get_best_diameter(MachineObject *obj, int extruder_index)
     return best_diameter;
 }
 
+bool machine_has_nozzle_diameter(MachineObject *obj, int extruder_index, float diameter)
+{
+    if (!obj || !obj->GetNozzleSystem() || diameter <= 0.f) return false;
+
+    const int physical_idx  = DevExtder::to_physical_extruder_id(obj->GetExtderSystem()->GetTotalExtderCount(), extruder_index);
+    auto     *nozzle_system = obj->GetNozzleSystem();
+    for (const auto &nozzles : {nozzle_system->GetRackNozzles(), nozzle_system->GetExtNozzles()}) {
+        for (const auto &[_, nozzle] : nozzles) {
+            if (nozzle.IsEmpty() || nozzle.IsAbnormal() || !nozzle.IsHotend()) continue;
+            if (nozzle.GetExtruderId() != physical_idx) continue;
+            if (std::abs(nozzle.GetNozzleDiameter() - diameter) < EPSILON) return true;
+        }
+    }
+    return false;
+}
+
 }} // namespace Slic3r::GUI

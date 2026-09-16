@@ -2679,10 +2679,25 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     if (!nozzle_option && support_multi_nozzle)
         return false;
 
+    // Syncing brings over the nozzle inventory and the AMS state; the slicing diameter stays the
+    // user's choice. A rack machine serves several diameters at once, so keep the project's diameter
+    // whenever the machine still carries a nozzle of it and only fall back to the machine's dominant
+    // diameter when it cannot.
+    const auto *preset_nozzle_diameters = cur_preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const bool  keep_project_diameter   = is_single_ext_multi_nozzle(cur_preset.config) && preset_nozzle_diameters != nullptr;
+
     std::vector<float> nozzle_diameters;
     nozzle_diameters.resize(extruder_nums);
     for (size_t index = 0; index < extruder_nums; ++index) {
-        nozzle_diameters[index] = nozzle_option ? string_to_double_decimal_point(nozzle_option->diameter) : get_best_diameter(obj, index);
+        if (nozzle_option) {
+            nozzle_diameters[index] = string_to_double_decimal_point(nozzle_option->diameter);
+            continue;
+        }
+
+        const float project_diameter = (keep_project_diameter && index < preset_nozzle_diameters->size()) ?
+                                           (float) preset_nozzle_diameters->values[index] : 0.f;
+        nozzle_diameters[index]      = machine_has_nozzle_diameter(obj, (int) index, project_diameter) ? project_diameter :
+                                                                                                        get_best_diameter(obj, (int) index);
     }
 
     // key:(logical_extruder_id, slot_num) val: count
@@ -22114,14 +22129,36 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     // sync_extruder_list() refreshes. The printer model still has to agree, and when it does not the
     // destination is the new model's canonical baseline instead of the diameter-matched preset.
     const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
-    Preset *   target_preset       = machine_preset;
+    // Whether the *connected machine* carries a nozzle rack. The project's own preset cannot answer
+    // this: coming from a single-nozzle model, it reports no rack even though the machine has one.
+    const bool machine_has_rack = is_single_ext_multi_nozzle(machine_preset->config);
+    Preset *   target_preset    = machine_preset;
     if (multi_diameter_mode) {
         if (Preset *canonical = find_system_multi_nozzle_printer_preset(printer_model, canonical_multi_nozzle_printer_variant()))
             target_preset = canonical;
+    } else if (machine_has_rack) {
+        // get_printer_preset() resolves the machine down to the first nozzle it finds, i.e. whichever
+        // one happens to sit on the extruder. On a rack that is an arbitrary pick among several
+        // diameters, so choose the variant deliberately: keep the project's diameter while the machine
+        // still holds a nozzle of it, and otherwise take the machine's dominant diameter.
+        const float target_diameter = machine_has_nozzle_diameter(obj, 0, (float) preset_nozzle_diameter) ? (float) preset_nozzle_diameter :
+                                                                                                           get_best_diameter(obj, 0);
+        if (Preset *variant = find_system_multi_nozzle_printer_preset(printer_model, get_diameter_string(target_diameter)))
+            target_preset = variant;
     }
     const bool model_mismatch  = printer_preset.get_current_printer_type(preset_bundle) != printer_type;
-    const bool nozzle_mismatch = multi_diameter_mode ? !is_extruder_stat_synced() :
-                                                       !is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter);
+    bool       nozzle_mismatch = false;
+    if (multi_diameter_mode) {
+        nozzle_mismatch = !is_extruder_stat_synced();
+    } else if (machine_has_rack) {
+        // A nozzle-rack machine carries several diameters at once, so the nozzle mounted on the
+        // extruder is not "the machine's diameter": the project keeps slicing at its own diameter as
+        // long as the machine still holds a nozzle of it. Only a diameter the machine cannot provide
+        // justifies moving the project onto another printer variant.
+        nozzle_mismatch = !machine_has_nozzle_diameter(obj, 0, (float) preset_nozzle_diameter);
+    } else {
+        nozzle_mismatch = !is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter);
+    }
 
     if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
         if (model_mismatch || nozzle_mismatch) {
@@ -22155,7 +22192,7 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         return false;
     //do sync_printer_preset
     const std::string selected_preset_name = printer_preset.name;
-    update_objects_position_when_select_preset([&obj, target_preset, multi_diameter_mode, &selected_preset_name]() {
+    update_objects_position_when_select_preset([&obj, target_preset, multi_diameter_mode, machine_has_rack, &selected_preset_name]() {
         // In multi-diameter mode the target is usually the preset already in use, and re-selecting it
         // would only re-ask about unsaved changes.
         if (target_preset->name != selected_preset_name) {
@@ -22165,8 +22202,11 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         }
 
         // Multi-diameter needs this even on a single-extruder machine: the per-slot snapshot, not the
-        // preset, is what carries the real nozzles into slicing and into the sync badge.
-        if (multi_diameter_mode || obj->is_multi_extruders())
+        // preset, is what carries the real nozzles into slicing and into the sync badge. A rack machine
+        // needs it for the same reason: selecting a preset of another printer model rebuilds that
+        // snapshot from the new preset's defaults (every slot at printer_variant), which describes the
+        // preset rather than the machine and leaves the sync badge off.
+        if (multi_diameter_mode || obj->is_multi_extruders() || machine_has_rack)
             GUI::wxGetApp().sidebar().sync_extruder_list();
     });
     return true;

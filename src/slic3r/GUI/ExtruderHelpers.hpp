@@ -103,6 +103,11 @@ std::optional<NozzleOption> deserialize_nozzle_option(const std::string &option_
 // 0.4 -> 0.2 -> 0.6 -> 0.8
 float get_best_diameter(MachineObject *obj, int extruder_index);
 
+// Whether the machine currently carries at least one usable nozzle of `diameter` on `extruder_index`.
+// A nozzle-rack machine holds several diameters at once, so the nozzle mounted on the extruder does
+// not tell whether a diameter is available: the whole inventory (extruder + rack) has to be checked.
+bool machine_has_nozzle_diameter(MachineObject *obj, int extruder_index, float diameter);
+
 } // namespace GUI
 } // namespace Slic3r
 
