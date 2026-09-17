@@ -224,9 +224,12 @@ std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj
         auto addr_id = nozzle.GetAddrId();
         if (addr_id) return addr_id.value();
 
-        // the first empty slot
+        // The first slot holding no actual nozzle. A rack slot the machine reports as vacant still
+        // gets a placeholder DevNozzle with `IsExist() == false`, so testing the pointer alone finds
+        // no free slot once the rack filled every entry, and the nozzle would fall through to the
+        // last resort below and evict a nozzle that is really there.
         for (size_t i = 0; i < nozzles.size(); ++i) {
-            if (!nozzles[i]) return i;
+            if (!nozzles[i] || !nozzles[i]->IsExist()) return i;
         }
         return 0;
     };
