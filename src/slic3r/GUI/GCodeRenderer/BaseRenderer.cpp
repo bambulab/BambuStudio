@@ -1589,6 +1589,10 @@ namespace Slic3r
                                 ImGui::SetCursorPosY(row_top_y + std::max(0.0f, (row_max_h - cell_h) * 0.5f));
                                 imgui.text(columns_offsets[i].first);
                             }
+                            // 窗口 AlwaysAutoResize 且 WindowPadding 为 0，末列文本后需显式占位，
+                            // 否则右边界紧贴最后一列（如喷嘴列）；边距与左侧图标缩进（window_padding*3）对齐
+                            ImGui::SameLine(0.0f, 0.0f);
+                            ImGui::Dummy({ window_padding * 3.0f, 0.0f });
                             if (callback && !checkbox && !visible)
                                 ImGui::PopStyleColor(1);
                         }
