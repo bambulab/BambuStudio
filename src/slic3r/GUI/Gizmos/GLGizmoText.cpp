@@ -2006,6 +2006,7 @@ void GLGizmoText::on_render()
             if (m_debug_lines_version != GenerateTextJob::debug_lines_version) {
                 m_debug_lines_version = GenerateTextJob::debug_lines_version;
                 m_lines_mark.reset();
+                m_text_normal_lines_mark.reset();
             }
             std::vector<std::vector<Vec3d>> cut_polylines;
             cut_polylines.reserve(debug_lines.size() + 1);
@@ -2019,6 +2020,8 @@ void GLGizmoText::on_render()
             if (!GenerateTextJob::debug_anchor_cut_in_world.empty())
                 cut_polylines.emplace_back(GenerateTextJob::debug_anchor_cut_in_world);
             render_lines(cut_polylines);
+            render_lines(m_text_normal_lines_mark, GenerateTextJob::debug_glyph_normal_lines,
+                         {0.0f, 0.35f, 1.0f, 1.0f});
         }
     }
     if (m_last_text_mv) {
@@ -2537,7 +2540,8 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Text Gap"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(slider_width);
-    if (m_imgui->bbl_slider_float_style("##text_gap", &m_text_gap, -10.f, 100.f, "%.2f", 1.0f, true))
+    m_imgui->bbl_slider_float_style("##text_gap", &m_text_gap, -10.f, 100.f, "%.2f", 1.0f, true);
+    if (m_imgui->get_last_slider_status().deactivated_after_edit)
         m_need_update_text = true;
 
     ImGui::SameLine(drag_left_width);
@@ -2569,7 +2573,8 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     // The stored value is never rewritten from the range: the size field applies every keystroke,
     // so a transient size would clamp the gap away for good. The range only bounds what the slider
     // and the input let the user pick, a value from an older file is left alone.
-    if (m_imgui->bbl_slider_float_style("##line_gap", &m_line_gap, line_gap_min, line_gap_max, "%.2f", 1.0f, true))
+    m_imgui->bbl_slider_float_style("##line_gap", &m_line_gap, line_gap_min, line_gap_max, "%.2f", 1.0f, true);
+    if (m_imgui->get_last_slider_status().deactivated_after_edit)
         line_gap_changed = true;
 
     ImGui::SameLine(drag_left_width);

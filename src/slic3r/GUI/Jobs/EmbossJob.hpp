@@ -421,6 +421,7 @@ public:
     };
     static std::vector<LineDebug> debug_lines;
     static std::vector<Vec3d>     debug_anchor_cut_in_world; // curve of the text handle, filled only when a line used it
+    static std::vector<std::vector<Vec3d>> debug_glyph_normal_lines; // final per-glyph normals in world coordinates
     static size_t                 debug_lines_version; // bumped on every fill, viewers re-upload their model
 
 public:

@@ -38,6 +38,7 @@ private:
     int m_show_calc_meshtod = 0;//1 preview //2 draging
     size_t m_debug_line_idx      = 0; // show_text_cs: text line shown in the debug panel
     size_t m_debug_lines_version = 0; // version of GenerateTextJob::debug_lines held by m_lines_mark
+    GLModel m_text_normal_lines_mark;
     std::vector<std::string> m_avail_font_names;
     std::string   m_text{""};
     std::string   m_font_name;

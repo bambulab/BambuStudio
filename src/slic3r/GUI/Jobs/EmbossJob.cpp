@@ -1391,24 +1391,33 @@ void calc_position_points(std::vector<Vec3d> &position_points, std::vector<doubl
     }
 }
 
-// Distance every text line has to move along its base line to follow the horizontal alignment. A line
-// is laid out centered on the text handle, which is the center align. Left align puts the handle on the
-// left edge of every line, right align on the right edge, so the handle is the pivot of the text.
+// Distance every text line has to move along its base line to follow the horizontal alignment.
+// calc_position_points() uses the middle glyph as its origin, which is not the visual center when glyph
+// advances differ (for example, mixed CJK and Latin text). Derive the offset from the actual line edges.
 std::vector<double> calc_line_align_shifts(const std::vector<double> &text_lengths, const LineRanges &lines, float text_gap, int h_align)
 {
     std::vector<double> shifts(lines.size(), 0.);
-    if (h_align == (int) FontProp::HorizontalAlign::center)
-        return shifts;
-
-    const double direction = (h_align == (int) FontProp::HorizontalAlign::left) ? 0.5 : -0.5;
     for (size_t i = 0; i < lines.size(); ++i) {
         const auto &[first, last] = lines[i];
         if (first >= last || last > text_lengths.size())
             continue;
-        double width = text_gap * (last - first - 1);
-        for (size_t j = first; j < last; ++j) // text_lengths hold half of the glyph advance
-            width += 2. * text_lengths[j];
-        shifts[i] = direction * width;
+        std::vector<double> line_lengths(text_lengths.begin() + first, text_lengths.begin() + last);
+        std::vector<Vec3d>  line_points;
+        calc_position_points(line_points, line_lengths, text_gap, Vec3d::UnitX());
+
+        double left_edge  = line_points.front().x() - line_lengths.front();
+        double right_edge = line_points.front().x() + line_lengths.front();
+        for (size_t j = 1; j < line_points.size(); ++j) {
+            left_edge  = std::min(left_edge, line_points[j].x() - line_lengths[j]);
+            right_edge = std::max(right_edge, line_points[j].x() + line_lengths[j]);
+        }
+
+        if (h_align == (int) FontProp::HorizontalAlign::left)
+            shifts[i] = -left_edge;
+        else if (h_align == (int) FontProp::HorizontalAlign::right)
+            shifts[i] = -right_edge;
+        else
+            shifts[i] = -(left_edge + right_edge) * 0.5;
     }
     return shifts;
 }
@@ -1438,6 +1447,7 @@ void calc_position_points_by_lines(
 GenerateTextJob::GenerateTextJob(InputInfo &&input) : m_input(std::move(input)) {}
 std::vector<GenerateTextJob::LineDebug> GenerateTextJob::debug_lines;
 std::vector<Vec3d>                      GenerateTextJob::debug_anchor_cut_in_world;
+std::vector<std::vector<Vec3d>>         GenerateTextJob::debug_glyph_normal_lines;
 size_t                                  GenerateTextJob::debug_lines_version = 0;
 void GenerateTextJob::process(Ctl &ctl)
 {
@@ -1537,6 +1547,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     if (input_info.m_surface_type == GenerateTextJob::SurfaceType::None) {
         debug_lines.clear(); // flat text has no slices, do not keep the previous ones on screen
         debug_anchor_cut_in_world.clear();
+        debug_glyph_normal_lines.clear();
         ++debug_lines_version;
         return true;
     }
@@ -1587,9 +1598,10 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     // handle, so the anchor itself is off the slice contour.
     // Returns the key point the line was centered on.
     auto place_line_on_polygon = [&](Slic3r::Polygon_3D &new_polygon, int index, const Vec3d &line_anchor, double arc_shift, std::vector<double> &text_lengths,
-                                     std::vector<Vec3d> &m_position_points) -> Vec3d {
+                                     std::vector<Vec3d> &m_position_points, std::vector<size_t> &position_line_indices) -> Vec3d {
         int text_num = static_cast<int>(text_lengths.size());
         m_position_points.resize(text_num);
+        position_line_indices.resize(text_num);
         std::vector<Line_3D> lines     = new_polygon.get_lines();
         Vec3d                key_point = line_anchor;
         {// Find the nearest point of the polygon, it is the projected anchor of this text line
@@ -1630,6 +1642,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
         }
         if (text_num % 2 == 1) {
             m_position_points[text_num / 2] = key_point;
+            position_line_indices[text_num / 2] = index;
             Line_3D              line  = lines[index];
             {
                 int    index1      = index;
@@ -1661,6 +1674,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                     Vec3d  new_pos    = new_line.a + Vec3d(deta_x, deta_y, deta_z);
                     left_num--;
                     m_position_points[left_num] = new_pos;
+                    position_line_indices[left_num] = index1;
                     left_length                 = distance_to_a;
                 }
             }
@@ -1696,6 +1710,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                     double deta_z                           = distance_to_b * direction.z() / norm_value;
                     Vec3d  new_pos                          = new_line.b + Vec3d(deta_x, deta_y, deta_z);
                     m_position_points[text_num - right_num] = new_pos;
+                    position_line_indices[text_num - right_num] = index2;
                     right_length                            = distance_to_b;
                     right_num--;
                 }
@@ -1737,6 +1752,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                         Vec3d  new_pos    = new_line.a + Vec3d(deta_x, deta_y, deta_z);
 
                         m_position_points[text_num / 2 - 1 - i] = new_pos;
+                        position_line_indices[text_num / 2 - 1 - i] = index1;
                         left_length                             = distance_to_a;
                     }
                 }
@@ -1777,6 +1793,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                         double deta_z                       = distance_to_b * direction.z() / norm_value;
                         Vec3d  new_pos                      = new_line.b + Vec3d(deta_x, deta_y, deta_z);
                         m_position_points[text_num / 2 + i] = new_pos;
+                        position_line_indices[text_num / 2 + i] = index2;
                         right_length                        = distance_to_b;
                     }
                 }
@@ -1796,6 +1813,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     // Where the surface normal of a glyph is taken, it is the position itself unless the line runs on
     // a borrowed curve, see below.
     std::vector<Vec3d> normal_sample_points(text_lengths.size(), Vec3d::Zero());
+    std::vector<Vec3d> contour_outward_points(text_lengths.size(), Vec3d::UnitZ());
     m_cut_points_in_world.clear();
     m_cut_points_in_local.clear();
     // published to debug_lines in one step at the end, the viewer reads it from the GUI thread
@@ -1916,9 +1934,26 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
         Slic3r::Polygon_3D  new_polygon(cut_points_in_local);
         std::vector<double> line_lengths(text_lengths.begin() + first, text_lengths.begin() + last);
         std::vector<Vec3d>  line_points;
+        std::vector<size_t> line_edge_indices;
         // Anchor of this line: the text handle shifted by the line gap, in text CS
-        const Vec3d key_point = place_line_on_polygon(new_polygon, cut.index, Vec3d(0., nominal_line_y, 0.), align_shifts[line_i], line_lengths, line_points);
+        const Vec3d key_point = place_line_on_polygon(new_polygon, cut.index, Vec3d(0., nominal_line_y, 0.), align_shifts[line_i],
+                                                      line_lengths, line_points, line_edge_indices);
         std::copy(line_points.begin(), line_points.end(), m_position_points.begin() + first);
+
+        // Clipper contours keep solid material on their left (outer contours are
+        // CCW, holes CW), so the right side of each directed edge is always out
+        // of the solid. Preserve the triangle normal's slope and use this local
+        // contour direction only to choose its sign.
+        const std::vector<Line_3D> contour_lines = new_polygon.get_lines();
+        for (size_t i = 0; i < line_edge_indices.size(); ++i) {
+            const size_t edge_idx = line_edge_indices[i];
+            assert(edge_idx < contour_lines.size());
+            if (edge_idx >= contour_lines.size())
+                continue;
+            const Vec3d tangent = contour_lines[edge_idx].vector();
+            if (tangent.squaredNorm() > EPSILON * EPSILON)
+                contour_outward_points[first + i] = tangent.cross(Vec3d::UnitY()).normalized();
+        }
 
         // A lifted curve hangs off the surface, the triangle nearest to it is a wall the line runs past
         // and its normal would turn the glyphs sideways. Sample the normal back on the base line the
@@ -1951,7 +1986,6 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     }
     debug_lines               = std::move(line_debugs);
     debug_anchor_cut_in_world = std::move(anchor_cut_in_world);
-    ++debug_lines_version;
 
     std::vector<double> mesh_values(m_position_points.size(), 1e9);
     m_normal_points.resize(m_position_points.size());
@@ -1972,9 +2006,6 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     };
     slice_meshs.transform(text_tran_in_object.get_matrix().inverse());
     TriangleMesh& mesh = slice_meshs;
-    // In text CS, +Z is the emboss / outward direction. Keep per-char surface
-    // normals on that side so glyphs face out of the solid.
-    const Vec3d expected_out = Vec3d::UnitZ();
     std::vector<int> debug_incides;
     debug_incides.resize(m_position_points.size());
     for (int i = 0; i < m_position_points.size(); ++i) {
@@ -1996,12 +2027,28 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                 Vec3d s2           = point2 - point0;
                 m_normal_points[i] = s1.cross(s2);
                 m_normal_points[i].normalize();
-                if (m_normal_points[i].dot(expected_out) < 0.0)
+                if (m_normal_points[i].dot(contour_outward_points[i]) < 0.0)
                     m_normal_points[i] = -m_normal_points[i];
             }
             debug_index++;
         }
     }
+
+    constexpr double normal_debug_length = 3.0;
+    const Transform3d text_to_world = world_tran.get_matrix();
+    const Matrix3d normal_to_world = text_to_world.linear().inverse().transpose();
+    std::vector<std::vector<Vec3d>> glyph_normal_lines;
+    glyph_normal_lines.reserve(m_position_points.size());
+    for (size_t i = 0; i < m_position_points.size(); ++i) {
+        Vec3d normal_world = normal_to_world * m_normal_points[i];
+        if (normal_world.squaredNorm() <= EPSILON * EPSILON)
+            continue;
+        normal_world.normalize();
+        const Vec3d position_world = text_to_world * m_position_points[i];
+        glyph_normal_lines.push_back({position_world, position_world + normal_debug_length * normal_world});
+    }
+    debug_glyph_normal_lines = std::move(glyph_normal_lines);
+    ++debug_lines_version;
     return true;
 }
 

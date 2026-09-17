@@ -286,7 +286,12 @@ void GLGizmoBase::render_cross_mark(const Transform3d &matrix, const Vec3f &targ
 
 void GLGizmoBase::render_lines(const std::vector<std::vector<Vec3d>> &polylines)
 {
-    if (!m_lines_mark.is_initialized()) {
+    render_lines(m_lines_mark, polylines, {1.0f, 1.0f, 0.0f, 1.0f});
+}
+
+void GLGizmoBase::render_lines(GLModel &model, const std::vector<std::vector<Vec3d>> &polylines, const ColorRGBA &color)
+{
+    if (!model.is_initialized()) {
         GLModel::Geometry geo;
         geo.format.type          = GLModel::PrimitiveType::Lines;
         geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
@@ -301,7 +306,7 @@ void GLGizmoBase::render_lines(const std::vector<std::vector<Vec3d>> &polylines)
         }
         if (geo.is_empty())
             return;
-        m_lines_mark.init_from(std::move(geo));
+        model.init_from(std::move(geo));
     }
     const auto &p_flat_shader = wxGetApp().get_shader("flat");
     if (!p_flat_shader) return;
@@ -322,8 +327,8 @@ void GLGizmoBase::render_lines(const std::vector<std::vector<Vec3d>> &polylines)
 
     p_flat_shader->set_uniform("view_model_matrix", view_model_matrix);
     p_flat_shader->set_uniform("projection_matrix", proj_matrix);
-    m_lines_mark.set_color({1.0f, 1.0f, 0.0f, 1.0f});
-    m_lines_mark.render_geometry();
+    model.set_color(color);
+    model.render_geometry();
     glsafe(::glEnable(GL_DEPTH_TEST));
     wxGetApp().unbind_shader();
 }

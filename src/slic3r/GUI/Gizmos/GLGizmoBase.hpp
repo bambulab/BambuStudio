@@ -180,6 +180,7 @@ protected:
         size_t &selection_idx, float label_width, float item_width);
     void render_cross_mark(const Transform3d& matrix, const Vec3f& target,bool single =false);
     void render_lines(const std::vector<std::vector<Vec3d>> &polylines);
+    void render_lines(GLModel &model, const std::vector<std::vector<Vec3d>> &polylines, const ColorRGBA &color);
     static float get_grabber_size();
 
 public:
