@@ -291,6 +291,7 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
     // flow dynamics section
     if (should_show_kn_section()) {
         // Build the Nozzle Type combo
+        // Must run before update_pa_profile_items() so combo selection (if any) is in place.
         update_nozzle_combo(obj);
         if (obj && obj->GetCalib()->IsVersionInited()) {
             // Set pending flag before populating — PA history may not be ready yet
@@ -302,9 +303,7 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
                 cur_cali_idx = obj->vt_slot[vt_idx].cali_idx;
             } else if (auto* tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id)))
                 cur_cali_idx = tray->cali_idx;
-            // Select the nozzle-type matching the saved PA profile (mirrors AMSMaterialsSetting).
-            auto rack = obj->GetNozzleRack();
-            if (!(rack && rack->IsSupported())) {
+            if (is_nozzle_combo_selector()) {
                 PaHistoryFilter pa_history_filter = obj->GetCalib()->GetPaHistoryFilter();
                 if (const PACalibResult *iter = pa_history_filter.find_by_cali_idx(cur_cali_idx)) {
                     switch_nozzle_combo_to_target(iter->nozzle_volume_type, iter->nozzle_diameter);
