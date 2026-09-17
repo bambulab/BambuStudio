@@ -2168,7 +2168,8 @@ wxBoxSizer* MainFrame::create_side_tools()
             //this->m_plater->select_view_3D("Preview");
             if (m_print_select == ePrintAll || m_print_select == ePrintPlate || m_print_select == ePrintMultiMachine)
             {
-                m_plater->apply_background_progress();
+                if (!m_plater->only_gcode_mode())
+                    m_plater->apply_background_progress();
                 // check valid of print
                 m_print_enable = get_enable_print_status();
                 m_print_btn->Enable(m_print_enable);
@@ -2475,6 +2476,8 @@ bool MainFrame::get_enable_print_status()
     bool is_all_plates = wxGetApp().plater()->get_preview_canvas3D()->is_all_plates_selected();
     if (m_print_select == ePrintAll)
     {
+        if (m_plater->only_gcode_mode())
+            return true;
         if (!part_plate_list.is_all_slice_results_ready_for_print())
         {
             enable = false;
@@ -2482,6 +2485,8 @@ bool MainFrame::get_enable_print_status()
     }
     else if (m_print_select == ePrintPlate)
     {
+        if (m_plater->only_gcode_mode())
+            return true;
         if (!current_plate->is_slice_result_ready_for_print())
         {
             enable = false;
