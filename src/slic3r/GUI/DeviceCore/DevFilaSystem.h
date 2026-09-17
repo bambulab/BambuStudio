@@ -16,7 +16,7 @@
 #include <wx/string.h>
 #include <wx/colour.h>
 
-#define HOLD_COUNT_MAX          3
+#define TRAY_HOLD_COUNT_MAX          5
 
 namespace Slic3r
 {
@@ -108,7 +108,7 @@ public:
     // setters
     void reset();
     void UpdateColorFromStr(const std::string& color);
-    void set_hold_count() { hold_count = HOLD_COUNT_MAX; }
+    void set_hold_count() { hold_count = TRAY_HOLD_COUNT_MAX; }
 
     // getter
     DevAmsSlotId get_ams_slot_id() const;

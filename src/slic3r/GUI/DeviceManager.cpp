@@ -4132,15 +4132,15 @@ bool MachineObject::is_firmware_info_valid()
 }
 
 
-std::optional<DevAmsTray> MachineObject::get_vt_tray(const std::string &ams_id) const
+DevAmsTray* MachineObject::get_vt_tray(const std::string &ams_id)
 {
-    if (ams_id.empty()) { return std::nullopt; }
-
-    for (const auto &tray : vt_slot) {
-        if (tray.id == ams_id) { return tray; }
+    for (int idx = 0; idx < vt_slot.size(); idx++) {
+        if (vt_slot[idx].id == ams_id) {
+            return &vt_slot[idx];
+        }
     }
 
-    return std::nullopt;
+    return nullptr;
 }
 
 DevAmsTray MachineObject::parse_vt_tray(json vtray)
@@ -4167,8 +4167,11 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
     }
     vt_tray.ams_id = vt_tray.id;
 
-    if (auto old_vt_tray = get_vt_tray(vt_tray.id); old_vt_tray.has_value()) {
-        vt_tray.hold_count = old_vt_tray->hold_count;
+    if (auto old_vt_tray = get_vt_tray(vt_tray.id)) {
+        if (old_vt_tray->hold_count > 0) {
+            old_vt_tray->hold_count--;
+            return *old_vt_tray;
+        }
     }
 
     auto curr_time = std::chrono::system_clock::now();

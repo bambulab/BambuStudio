@@ -804,7 +804,7 @@ public:
     /*vi slot data*/
     std::vector<DevAmsTray> vt_slot;
     DevAmsTray parse_vt_tray(json vtray);
-    std::optional<DevAmsTray> get_vt_tray(const std::string &ams_id) const;
+    DevAmsTray* get_vt_tray(const std::string &ams_id);
 
     /*get ams slot info*/
     bool    contains_tray(const std::string &ams_id, const std::string &tray_id) const;

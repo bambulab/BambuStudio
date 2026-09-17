@@ -946,35 +946,30 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, tray_color, m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int,
                                            tray_colors, tray_ctype);
 
+        // Optimistic local update
+        DevAmsTray* the_tray = nullptr;
+        if (auto* ams_obj = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
+            auto tray_it = ams_obj->GetTrays().find(std::to_string(slot_id));
+            if (tray_it != ams_obj->GetTrays().end()) {
+                the_tray = tray_it->second;
+            }
+        } else if (auto vt_tray = obj->get_vt_tray(std::to_string(ams_id))) {
+            the_tray = vt_tray;
+        }
+
+        the_tray->setting_id = ams_setting_id;
+        the_tray->m_fila_type = m_filament_type;
+        the_tray->color = tray_color;
+        the_tray->cols  = tray_colors;
+        the_tray->ctype = static_cast<DevFilaColorType>(tray_ctype);
+        the_tray->set_hold_count();
+
         // Filament Manager entries are identified by their spool ID. Only
         // remember actual system-preset aliases in the shared recent list.
         if (m_selected_spool_id.empty()) {
             remember_ams_recent_filament_preset(
                 m_current_filament_alias);
         }
-    }
-
-    // Optimistic local update: write the new color into the tray object immediately
-    // so the AMS view refreshes on the next 1-second timer tick without waiting for
-    // the MQTT ACK round-trip (typically 1–3 s on cloud connections).
-    if (ams_id != 255) {
-        if (auto* ams_obj = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
-            auto tray_it = ams_obj->GetTrays().find(std::to_string(slot_id));
-            if (tray_it != ams_obj->GetTrays().end() && tray_it->second) {
-                DevAmsTray* tray = tray_it->second;
-                tray->color = tray_color;
-                tray->cols  = tray_colors;
-                tray->ctype = static_cast<DevFilaColorType>(tray_ctype);
-                tray->set_hold_count();
-            }
-        }
-    } else if (!obj->vt_slot.empty()) {
-        // virtual tray (ams_id == 255)
-        DevAmsTray& vt = obj->vt_slot[0];
-        vt.color = tray_color;
-        vt.cols  = tray_colors;
-        vt.ctype = static_cast<DevFilaColorType>(tray_ctype);
-        vt.set_hold_count();
     }
 
     if (!save_pa_profile_selection())
