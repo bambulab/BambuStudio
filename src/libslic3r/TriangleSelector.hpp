@@ -367,6 +367,13 @@ public:
     // Shift all triangle states >= threshold by delta (used when inserting filaments)
     void shift_states_above(EnforcerBlockerType threshold, int delta);
 
+    // Set every unpainted (NONE) triangle to the given state, keeping painted detail.
+    // Used when volumes with different filaments collapse into a single volume: an
+    // unpainted area falls back to the merged volume's one extruder, so each source's
+    // own filament has to be baked in explicitly. Painting only whole facets is not
+    // enough - a facet carrying a brush stroke keeps unpainted areas around it.
+    void fill_unpainted(EnforcerBlockerType state);
+
 protected:
     // Triangle and info about how it's split.
     class Triangle {
