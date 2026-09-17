@@ -8048,6 +8048,7 @@ wxString GUI_App::current_language_code_safe() const
 		{ "de", 	"de_DE", },
 		{ "nl", 	"nl_NL", },
 		{ "sv", 	"sv_SE", },
+		{ "fi", 	"fi_FI", },
 		{ "es", 	"es_ES", },
 		{ "fr", 	"fr_FR", },
 		{ "it", 	"it_IT", },
