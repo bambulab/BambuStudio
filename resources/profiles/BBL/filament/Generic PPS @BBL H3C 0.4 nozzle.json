@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFST97_6",
     "instantiation": "true",
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "filament_change_length": [
         "0"
     ],
@@ -21,22 +24,13 @@
         "4"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,1,0.5"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
         "0",
         "0"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_cooling_fan_speed": [
-        "0"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -57,6 +51,12 @@
     "nozzle_temperature_initial_layer": [
         "320",
         "320"
+    ],
+    "optional_cooling_fan_speed": [
+        "0"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
     ],
     "compatible_printers": [
         "Bambu Lab H3C 0.6 nozzle",

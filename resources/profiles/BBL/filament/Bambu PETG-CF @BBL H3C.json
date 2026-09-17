@@ -23,17 +23,13 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
-    ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
         "6",
         "6"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,1,0.5"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
         "0",

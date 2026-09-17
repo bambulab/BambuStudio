@@ -8,6 +8,9 @@
     "additional_cooling_fan_speed": [
         "100"
     ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "eng_plate_temp": [
         "55"
     ],
@@ -18,10 +21,6 @@
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_flow_ratio": [
@@ -38,7 +37,7 @@
         "12"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,1,0.5"
+        "0.5,1"
     ],
     "filament_prime_volume": [
         "35"
@@ -63,16 +62,7 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_cooling_fan_speed": [
-        "75"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -93,6 +83,12 @@
     "nozzle_temperature_initial_layer": [
         "230",
         "230"
+    ],
+    "optional_cooling_fan_speed": [
+        "75"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
     ],
     "pre_start_fan_time": [
         "2"

@@ -20,10 +20,6 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
-    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -34,7 +30,7 @@
         "10"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,1,0.5"
+        "0.5,1"
     ],
     "filament_prime_volume": [
         "35"

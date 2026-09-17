@@ -8,14 +8,13 @@
     "chamber_temperatures": [
         "60"
     ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "filament_change_length": [
         "0"
     ],
     "filament_change_length_nc": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "0",
         "0"
     ],
     "filament_flow_ratio": [
@@ -28,22 +27,13 @@
         "8"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,1,0.5"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
         "0",
         "0"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_cooling_fan_speed": [
-        "0"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -64,6 +54,12 @@
     "nozzle_temperature_initial_layer": [
         "290",
         "290"
+    ],
+    "optional_cooling_fan_speed": [
+        "0"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
     ],
     "slow_down_min_speed": [
         "20",

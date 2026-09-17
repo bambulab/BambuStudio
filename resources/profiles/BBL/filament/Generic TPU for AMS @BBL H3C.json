@@ -8,6 +8,9 @@
     "additional_cooling_fan_speed": [
         "80"
     ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "eng_plate_temp": [
         "35"
     ],
@@ -47,7 +50,7 @@
         "195"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "0.5,1,1,1,0.5"
+        "0.5,1"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -57,16 +60,7 @@
         "0.8",
         "0.8"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_cooling_fan_speed": [
-        "75"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -87,6 +81,12 @@
     "nozzle_temperature_initial_layer": [
         "230",
         "230"
+    ],
+    "optional_cooling_fan_speed": [
+        "75"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
     ],
     "overhang_fan_threshold": [
         "25%"
