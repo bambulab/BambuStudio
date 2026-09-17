@@ -37,12 +37,17 @@
 
 namespace Slic3r { namespace GUI {
 
-// Distinct timer ids so the deferred-show fallback timer and the hotend-rack
-// poll timer route to their own handlers (both are owned by the popup).
+// Distinct timer ids so every popup-owned timer routes to its own handler.
 enum {
     ID_AMS_SHOW_FALLBACK_TIMER = wxID_HIGHEST + 1,
     ID_AMS_HOTEND_POLL_TIMER,
+    ID_AMS_REVEAL_FALLBACK_TIMER,
 };
+
+#ifdef __APPLE__
+// Mask time covering WKWebView's cross-process composite; 76ms still flickers.
+static constexpr int AMS_HOTEND_MASK_MIN_MS = 150;
+#endif
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(65), FromDIP(50))
 #define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
 #define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(60))
@@ -840,6 +845,11 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 #ifdef __APPLE__
      Bind(wxEVT_LEFT_UP, &AmsMapingPopup::on_left_down, this);
      Bind(wxEVT_MOTION, &AmsMapingPopup::on_mouse_move, this);
+     Bind(wxEVT_IDLE, &AmsMapingPopup::on_idle_mouse_capture, this);
+
+     // Reveal fallback for the near-transparent show, see OnHotendWebRendered.
+     m_reveal_fallback_timer.SetOwner(this, ID_AMS_REVEAL_FALLBACK_TIMER);
+     Bind(wxEVT_TIMER, &AmsMapingPopup::OnRevealFallbackTimer, this, ID_AMS_REVEAL_FALLBACK_TIMER);
 #endif
 
      SetBackgroundColour(*wxWHITE);
@@ -1125,6 +1135,9 @@ void AmsMapingPopup::Popup(wxWindow* focus)
         return;
     }
 
+#ifdef __APPLE__
+    if (m_reveal_pending) reveal_hotend_popup();
+#endif
     PopupWindow::Popup(focus);
 }
 
@@ -1137,6 +1150,15 @@ void AmsMapingPopup::OnHotendWebRendered(std::uint32_t seq)
 
     m_show_pending = false;
     m_show_fallback_timer.Stop();
+#ifdef __APPLE__
+    // A hidden WKWebView keeps its stale layer: show masked, reveal once painted.
+    m_reveal_pending      = true;
+    m_pending_reveal_seq  = seq;
+    m_web_presented       = false;
+    m_mask_window_elapsed = false;
+    SetTransparent(1);
+    m_reveal_fallback_timer.StartOnce(AMS_HOTEND_MASK_MIN_MS);
+#endif
     PopupWindow::Popup();
 }
 
@@ -1146,6 +1168,41 @@ void AmsMapingPopup::OnShowFallbackTimer(wxTimerEvent& /*evt*/)
     m_show_pending = false;
     PopupWindow::Popup();
 }
+
+void AmsMapingPopup::OnHotendWebPresented(std::uint32_t seq)
+{
+#ifdef __APPLE__
+    if (!m_reveal_pending) return;
+    if (seq < m_pending_reveal_seq) return;
+    m_web_presented = true;
+    if (m_mask_window_elapsed) reveal_hotend_popup();
+#else
+    (void) seq;
+#endif
+}
+
+#ifdef __APPLE__
+void AmsMapingPopup::OnRevealFallbackTimer(wxTimerEvent& /*evt*/)
+{
+    if (!m_reveal_pending) return;
+    if (!m_mask_window_elapsed) {
+        m_mask_window_elapsed = true;
+        // No paint ack yet: hold the mask rather than expose a possibly stale frame.
+        if (!m_web_presented) {
+            m_reveal_fallback_timer.StartOnce(AMS_HOTEND_MASK_MIN_MS);
+            return;
+        }
+    }
+    reveal_hotend_popup();
+}
+
+void AmsMapingPopup::reveal_hotend_popup()
+{
+    m_reveal_pending = false;
+    m_reveal_fallback_timer.Stop();
+    SetTransparent(255);
+}
+#endif
 
 void AmsMapingPopup::OnHotendPollTimer(wxTimerEvent& /*evt*/)
 {
@@ -1290,6 +1347,26 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
 }
 
 #ifdef  __APPLE__
+void AmsMapingPopup::on_idle_mouse_capture(wxIdleEvent &evt)
+{
+    // Base OnIdle frees the capture via wxFindWindowAtPoint(), blind to the WKWebView child; use geometry.
+    if (!m_hotend_web_host || !m_hotend_web_host->IsShown()) {
+        evt.Skip(); // legacy wx layout: keep the base class behaviour
+        return;
+    }
+
+    if (IsShown() && m_child) {
+        const bool inside = GetScreenRect().Contains(wxGetMousePosition());
+        if (inside) {
+            if (m_child->HasCapture())
+                m_child->ReleaseMouse();
+        } else if (!m_child->HasCapture() && !wxWindow::GetCapture()) {
+            m_child->CaptureMouse();
+        }
+    }
+    // Not skipping on purpose: the base OnIdle would re-capture via its broken hit test.
+}
+
 void AmsMapingPopup::on_mouse_move(wxMouseEvent &evt)
 {
 
@@ -1359,6 +1436,9 @@ void AmsMapingPopup::OnDismiss()
 #ifdef __APPLE__
     if (m_tip_popup && m_tip_popup->IsShown ())
         m_tip_popup->Hide();
+
+    // Never leave the window stuck masked when dismissed mid-reveal.
+    if (m_reveal_pending) reveal_hotend_popup();
 #endif
 }
 

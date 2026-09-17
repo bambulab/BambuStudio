@@ -303,6 +303,9 @@ public:
     // committed the DOM for `seq`. Shows the deferred popup once seq catches up.
     void OnHotendWebRendered(std::uint32_t seq);
 
+    // Web side painted a frame for `seq`: reveals the masked window (macOS only).
+    void OnHotendWebPresented(std::uint32_t seq);
+
     MaterialItem* m_parent_item{ nullptr };
 
     wxWindow* send_win{ nullptr };
@@ -376,6 +379,8 @@ public:
 
 #ifdef __APPLE__
     void on_mouse_move(wxMouseEvent &evt);
+    // Keeps the hotend-rack WebView clickable, see the implementation comment.
+    void on_idle_mouse_capture(wxIdleEvent &evt);
     wxPopupWindow * m_tip_popup{nullptr};
     Label* m_tip_label{nullptr};
 #endif
@@ -440,6 +445,17 @@ private:
     std::uint32_t          m_pending_show_seq{0};
     wxTimer                m_show_fallback_timer;
     void                   OnShowFallbackTimer(wxTimerEvent& evt);
+
+#ifdef __APPLE__
+    // Second anti-flicker stage: window stays masked until the web side paints.
+    bool                   m_reveal_pending{false};
+    bool                   m_web_presented{false};
+    bool                   m_mask_window_elapsed{false};
+    std::uint32_t          m_pending_reveal_seq{0};
+    wxTimer                m_reveal_fallback_timer;
+    void                   OnRevealFallbackTimer(wxTimerEvent& evt);
+    void                   reveal_hotend_popup();
+#endif
 
     // Poll while the hotend-rack popup is shown so device echoes (incl. after a
     // filament edit) re-publish fresh state without reopening the popup, the

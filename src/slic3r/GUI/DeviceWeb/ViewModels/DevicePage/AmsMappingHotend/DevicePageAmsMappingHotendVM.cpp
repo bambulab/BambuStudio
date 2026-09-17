@@ -919,6 +919,14 @@ nlohmann::json DevicePageAmsMappingHotendVM::HandleAction(const std::string& act
             auto* popup = m_popup;
             wxGetApp().CallAfter([popup, seq]() { popup->OnHotendWebRendered(seq); });
         }
+    } else if (action == "presented") {
+        // Web acked a painted frame; on macOS the popup stays masked until then.
+        namespace SK = AmsMappingHotendSchema::keys;
+        const std::uint32_t seq = payload.value(SK::root::session_seq, 0u);
+        if (m_popup) {
+            auto* popup = m_popup;
+            wxGetApp().CallAfter([popup, seq]() { popup->OnHotendWebPresented(seq); });
+        }
     } else if (action == "open_wiki") {
         // Open the filament-matching-rules Wiki in the system browser. URL kept
         // identical to the wx popup (AmsMapingPopup::update_ams_tips).

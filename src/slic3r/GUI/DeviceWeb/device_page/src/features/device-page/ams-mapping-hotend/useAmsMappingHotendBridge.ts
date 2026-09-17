@@ -166,6 +166,13 @@ export function useAmsMappingHotendBridge() {
         makeBody('action', 'rendered', { session_seq: seq }),
         2000,
       );
+      // A committed DOM is not a painted one: macOS keeps the popup masked until this ack.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        void request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsMappingHotendViewModel>>(
+          makeBody('action', 'presented', { session_seq: seq }),
+          2000,
+        );
+      }));
     }
   }, [state.session_seq, request]);
 
