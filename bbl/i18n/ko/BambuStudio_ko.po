@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
+"POT-Creation-Date: 2026-09-17 19:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -211,6 +211,9 @@ msgstr "PPS-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브�
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브에서 파손될 수 있습니다."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "CF/GF 필라멘트는 단단하고 부서지기 쉬우며, 부러지거나 AMS에 끼기 쉬우므로 주의해서 사용하세요."
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "PLA Glow는 AMS 1단계 공급 장치를 마모시킬 수 있습니다. 대신 외부 스풀을 사용하세요."
@@ -1542,6 +1545,9 @@ msgstr "포함 깊이"
 msgid "Text Gap"
 msgstr "글자 간격"
 
+msgid "Line Gap"
+msgstr ""
+
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "경고: 텍스트 매트릭스에 미러가 있으며, 이를 드래그하면 완전히 새로 생성됩니다."
 
@@ -1605,6 +1611,14 @@ msgstr "대담함"
 msgid "Skew"
 msgstr "왜곡"
 
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "정렬"
+
+msgid "Align center horizontally"
+msgstr ""
+
 msgid "No symbol"
 msgstr "기호 없음"
 
@@ -1625,11 +1639,6 @@ msgstr "표면 사용"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "글리프당"
-
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "정렬"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -2440,11 +2449,11 @@ msgstr "컷 정보 무효화"
 msgid "Add Primitive"
 msgstr "기본 도형 추가"
 
-msgid "Show Labels by Layer"
-msgstr "레이어별 레이블 표시"
+msgid "Add New Plate"
+msgstr ""
 
-msgid "Show Labels by Object"
-msgstr "객체별 레이블 표시"
+msgid "Add a new plate"
+msgstr ""
 
 msgid "To objects"
 msgstr "물체로"
@@ -2584,11 +2593,14 @@ msgstr "복제하여 베드 채우기"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "베드의 나머지 영역을 선택한 객체의 복사본으로 채웁니다."
 
+msgid "Show Labels by Layer"
+msgstr "레이어별 레이블 표시"
+
+msgid "Show Labels by Object"
+msgstr "객체별 레이블 표시"
+
 msgid "Edit Plate Name"
 msgstr "플레이트 명 편집"
-
-msgid "Show Labels"
-msgstr "레이블 표시"
 
 msgid "Name"
 msgstr "이름"
@@ -3841,6 +3853,21 @@ msgstr "원클릭 CMYW 자동 믹싱"
 msgid "One-click RYBW auto-mix"
 msgstr "원클릭 RYBW 자동 믹싱"
 
+msgid "Add Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr "더 많은 색상"
+
+msgid "Official Filament"
+msgstr "공식 필라멘트"
+
+msgid "Decompose Color"
+msgstr "색상 분해"
+
+msgid "+ Add Filament"
+msgstr ""
+
 msgid "Project Physical Filaments"
 msgstr "프로젝트 실물 필라멘트"
 
@@ -3853,48 +3880,51 @@ msgstr "프로젝트 혼합 필라멘트"
 msgid "New Mixed Filaments"
 msgstr "새 혼합 필라멘트"
 
-msgid "Decompose Color"
-msgstr "색상 분해"
-
-msgid "+ Add Material"
-msgstr "+ 재료 추가"
-
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr "이 프로젝트에서는 최대 %d개 필라멘트를 지원하며 남은 필라멘트는 폐기됩니다."
 
-msgid "Import Model"
-msgstr "모델 가져오기"
+msgid "Updating"
+msgstr "업데이트 중"
 
-msgid "Original"
-msgstr "원본"
+msgid "Simplify Colors"
+msgstr ""
 
-msgid "Multi-Color"
-msgstr "멀티 컬러"
+msgid "Filament Matching"
+msgstr ""
 
-msgid "Your input texture model"
-msgstr "입력 텍스처 모델"
+msgid "Import Model: Simplify Colors"
+msgstr ""
 
-msgid "Processed multi-color model"
-msgstr "처리된 멀티 컬러 모델"
+msgid "Original Model"
+msgstr ""
+
+msgid "Simplified"
+msgstr ""
 
 msgid "Color Count"
 msgstr "색상 수"
 
-msgid "Smooth Level"
-msgstr "매끄러움 레벨"
+msgid "Advanced settings"
+msgstr "고급 설정"
 
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr "최적의 색상 수만 자동으로 결정하고 필라멘트 매핑을 다시 계산합니다."
+msgid "Boundary Smoothness"
+msgstr ""
 
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr "지정된 색상 수와 매끄러움 수준을 사용하여 텍스처를 그림으로 변환합니다."
+msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
+msgstr ""
 
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr "알림: 매개변수가 변경되었습니다. 적용하려면 적용을 클릭하세요."
+msgid "Gap Area"
+msgstr ""
 
-msgid "Filament Mapping"
-msgstr "필라멘트 매핑"
+msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
+msgstr ""
+
+msgid "Automatically determine the optimal color count"
+msgstr ""
+
+msgid "Adjust filament matching"
+msgstr ""
 
 msgid "Reset filament mapping to the state before one-click mixing"
 msgstr "원클릭 믹싱 이전 상태로 필라멘트 매핑을 재설정합니다."
@@ -3902,17 +3932,49 @@ msgstr "원클릭 믹싱 이전 상태로 필라멘트 매핑을 재설정합니
 msgid "Choose the one-click auto-mix mode for texture color import"
 msgstr "텍스처 색상을 가져오기 위한 원클릭 자동 혼합 모드를 선택하세요."
 
-msgid "Auto-merge same filament"
-msgstr "동일한 필라멘트 자동 병합"
+msgid "Some colors have no matching filament. Please match them before importing."
+msgstr ""
+
+msgid "Auto-Add All Filaments"
+msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "동일한 필라멘트를 프로젝트 내 기존 필라멘트에 자동으로 병합합니다."
 
-msgid "Skip Matching"
-msgstr "매칭 건너뛰기"
+msgid "Automatically merge filaments of the same color and type"
+msgstr ""
+
+msgid "Skip"
+msgstr "건너뛰기"
 
 msgid "Skip filament mapping and import as a single-color model"
 msgstr "필라멘트 매핑을 건너뛰고 단색 모델로 가져옵니다."
+
+msgid "Next"
+msgstr "다음"
+
+msgid "Previous"
+msgstr "이전"
+
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr ""
+
+msgid "Before matching"
+msgstr ""
+
+msgid "After matching"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Before simplification: %d colors"
+msgstr ""
+
+#, c-format, boost-format
+msgid "After simplification: %d colors"
+msgstr ""
+
+msgid "Import Model: Filament Matching"
+msgstr ""
 
 msgid "Processing"
 msgstr "처리중"
@@ -3923,23 +3985,16 @@ msgstr "텍스처 색상 계산 중..."
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr "계산에 실패했습니다. 매개변수를 조정하고 다시 시도하세요."
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "메시에 비매니폴드 지오메트리 또는 열린 경계가 있습니다. 메시를 그대로 가져오거나 Windows 3D 복구 서비스를 사용하여 복구한 다음 가져올 수 있습니다."
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
+msgstr ""
 
-msgid "Mesh repair"
-msgstr "메쉬 복구"
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
+msgstr ""
 
-msgid "Import without repair"
-msgstr "복구 없이 가져오기"
-
-msgid "Repair and import"
-msgstr "복구 및 가져오기"
-
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "메쉬에 비매니폴드 지오메트리 또는 열린 경계가 있습니다."
-
-msgid "Mesh issue"
-msgstr "메쉬 문제"
+msgid "Click to select a matching filament"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "SLA 아카이브 선택:"
@@ -4179,9 +4234,6 @@ msgstr "베드 온도"
 
 msgid "Start calibration"
 msgstr "캘리브레이션 시작"
-
-msgid "Next"
-msgstr "다음"
 
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "캘리브레이션이 완료되었습니다.아래 그림과 같이 가장 균일한 압출 라인을 찾아 왼쪽의 값을 factor K 입력 상자에 입력하십시오."
@@ -4846,6 +4898,15 @@ msgstr ""
 "예 - 적용하고 대체 추가 벽을 활성화 상태로 유지합니다.\n"
 "아니요 - 대체 추가 벽을 사용하지 않습니다."
 
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "대체 추가 벽이 제대로 작동하려면 다음과 같은 조정이 권장됩니다."
 
@@ -4858,7 +4919,7 @@ msgstr ""
 "예 - 적용하고 대체 추가 벽을 활성화 상태로 유지합니다.\n"
 "아니요 - 현재 설정 및 대체 추가 벽 활성화 상태를 유지합니다."
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5219,6 +5280,12 @@ msgstr "다시 시도"
 
 msgid "Resume"
 msgstr "재개"
+
+msgid "Loading error details ..."
+msgstr ""
+
+msgid "Unable to load error details."
+msgstr ""
 
 msgid "Unknown error."
 msgstr "알 수 없는 오류."
@@ -5907,8 +5974,8 @@ msgstr "프라임 타워는 다색 출력 품질을 향상시키며 권장됩니
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "프라임 타워가 플레이트 경계를 넘었습니다."
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-msgstr "현재 플레이트의 모든 객체를 출력할 수 없습니다. 슬라이싱하면 빈 결과가 생성됩니다. 확인하세요."
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
+msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "부분 플러싱 용량이 0으로 설정되었습니다. 다색 출력 시 모델에서 색상 혼합이 발생할 수 있습니다. 플러싱 설정을 다시 조정해 주세요."
@@ -6017,6 +6084,12 @@ msgstr ""
 
 msgid "Invalid input."
 msgstr "잘못된 입력"
+
+msgid "Network error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
 
 msgid "New Window"
 msgstr "새 창"
@@ -6363,9 +6436,6 @@ msgstr "기본 창 레이아웃으로 재설정"
 
 msgid "Show Labels of printing by layer in 3D scene"
 msgstr "3D 씬에서 레이어별 출력 레이블 표시"
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "3D 씬에서 객체별 출력 라벨 표시"
 
 msgid "Show &Overhang"
 msgstr "오버행 표시"
@@ -7369,9 +7439,6 @@ msgstr "%s 정보"
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s 정보"
-
-msgid "Skip"
-msgstr "건너뛰기"
 
 msgid "Newer 3mf version"
 msgstr "최신 3mf 버전"
@@ -8487,6 +8554,30 @@ msgstr "혼합 필라멘트에 유효하지 않거나 일치하지 않는 구성
 msgid "Search plate, object and part."
 msgstr "플레이트, 개체 및 부품을 검색합니다."
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ", 그리고 %d개 더"
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr "모델 \"%s\""
+
+msgid "support filament"
+msgstr "서포트 필라멘트"
+
+msgid "custom G-code"
+msgstr "커스텀 G-code"
+
+#, c-format, boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr "삭제하려는 필라멘트는 %s에서 사용 중입니다. 삭제 후 해당 필라멘트 할당이 재설정됩니다."
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr "참고: 다른 필라멘트로 대체하려면 필라멘트를 우클릭하여 \"병합\" 기능을 사용하세요."
+
+msgid "Delete Filament"
+msgstr "필라멘트 삭제"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "대상 혼합 필라멘트는 이 물리적 필라멘트를 구성 요소로 사용합니다. 병합하면 이 물리적 필라멘트가 제거되어 혼합 필라멘트가 무효화될 수 있습니다. 계속하시겠습니까?"
 
@@ -8630,12 +8721,6 @@ msgstr "부피가 0인 객체가 제거되었습니다."
 
 msgid "The volume of the object is zero"
 msgstr "객체의 체적이 0입니다."
-
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
-
-msgid "Object too small"
-msgstr "객체가 너무 작음"
 
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
@@ -9248,12 +9333,11 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "이유: 파트 \"%1%\"이 볼륨을 바인딩하지 않습니다."
 
 #, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "이유: \"%1%\" 부분에는 자체 교차점이 있습니다."
-
-#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "이유: \"%1%\"과 다른 부분은 교집합이 없습니다."
+
+msgid "Reason: the meshes have face issues."
+msgstr ""
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "음량 부분이 감지되었습니다. 내보내기 전에 메시 비우기를 수행하시겠습니까?"
@@ -9910,14 +9994,16 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
-"- 파일 로딩 후 프린터 사전 설정 동기화\n"
+"- 파일 로드 후 프린터 프리셋 동기화\n"
 "- \"3MF 로드\" 대화 상자 설정\n"
 "- 후처리 스크립트 실행\n"
-"- 지원 구조 권장 메시지\n"
-"- 저장되지 않은 프로젝트\n"
-"- 가변 레이어 높이를 가진 혼합 색상 하위 레이어 경고"
+"- 서포트 구조 권장 메시지\n"
+"- 저장되지 않은 프로젝트.\n"
+"- 가변 레이어 높이를 가진 혼합 색상 하위 레이어 경고\n"
+"- 모델에서 사용 중인 필라멘트 삭제"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "모든 설정을 초기화할까요? 변경 사항은 재시작 후 적용됩니다."
@@ -10469,14 +10555,23 @@ msgstr "현재 재료(%s)의 경도가 %s(%s)의 경도를 초과합니다. 이�
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "'동적 유량 보정'이 '자동/켜짐'으로 설정된 경우, 시스템은 수동 보정값 또는 기본값을 사용하고 유량 보정 과정을 건너뜁니다. TPU 필라멘트에 대한 수동 유량 보정은 '보정' 페이지에서 수행할 수 있습니다."
 
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr "AMS에 들어 있는 필라멘트가 이 출력에 부족할 수 있습니다. 보충하거나 교체하세요."
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "일부 필라멘트는 출력 중에 압출기 간에 전환될 수 있습니다. 수동 K값 보정은 전체 출력 과정에 적용할 수 없으며, 이로 인해 출력 품질이 저하될 수 있습니다. 유동 역학 보정 기능을 활성화하는 것이 좋습니다."
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr "이 파일에는 스트링잉 현상이 발생하기 쉬운 필라멘트가 포함되어 있습니다. 최상의 출력 품질을 얻으려면 노즐 뭉침 감지 모드를 자동으로 전환하는 것이 좋습니다."
+
+#, c-format, boost-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
 
 msgid "Cool"
 msgstr "쿨한"
@@ -10965,6 +11060,9 @@ msgstr "참고"
 
 msgid "Frequent"
 msgstr "잦은"
+
+msgid "Modifier cycle"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11673,9 +11771,6 @@ msgstr "필라멘트 유형과 색상만 동기화하며, AMS 슬롯 정보는 �
 
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "프린터 필라멘트를 기준으로 프로젝트 필라멘트 목록을 순차적으로 교체합니다. 사용하지 않는 프린터 필라멘트는 자동으로 목록 끝에 추가됩니다."
-
-msgid "Advanced settings"
-msgstr "고급 설정"
 
 msgid "Add unused AMS filaments to filaments list."
 msgstr "미사용 AMS 필라멘트를 필라멘트 목록에 추가하기."
@@ -12738,6 +12833,9 @@ msgstr "펌웨어 업데이트"
 msgid "Hotends on Rack"
 msgstr "랙의 핫엔드"
 
+msgid "Copy Device Info"
+msgstr ""
+
 msgid "Beta version"
 msgstr "베타 버전"
 
@@ -12746,9 +12844,6 @@ msgstr "핫엔드 정보를 새로 고치는 중..."
 
 msgid "Checking version..."
 msgstr "버전 확인 중..."
-
-msgid "Updating"
-msgstr "업데이트 중"
 
 msgid "Updating failed"
 msgstr "업데이트 실패"
@@ -13171,14 +13266,14 @@ msgstr "프라임 타워는 모든 물체가 동일한 수의 래프트 레이�
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "프라임 타워를 사용하려면 모든 물체가 동일한 레이어 높이로 슬라이스되어야 합니다."
 
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "프라임 타워는 모든 객체의 가변 레이어 높이가 동일한 경우에만 지원됩니다."
+
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr ""
 
 msgid "Jump to: Precise Z height"
 msgstr ""
-
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "프라임 타워는 모든 객체의 가변 레이어 높이가 동일한 경우에만 지원됩니다."
 
 msgid "Too small line width"
 msgstr "선폭이 너무 작음"
@@ -14735,29 +14830,14 @@ msgstr "썸네일 크기"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "gcode 파일에 저장된 썸네일의 크기를 결정합니다."
 
-msgid "Nozzle type"
-msgstr "노즐 타입"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "노즐의 금속 소재: 노즐의 내마모성과 출력할 수 있는 필라멘트의 종류를 결정합니다."
-
-msgid "Undefine"
-msgstr "정의되지 않음"
-
-msgid "Hardened steel"
-msgstr "경화 스틸"
-
-msgid "Stainless steel"
-msgstr "스테인리스 스틸"
-
-msgid "Tungsten carbide"
-msgstr "텅스텐 카바이드"
-
 msgid "Printer structure"
 msgstr "프린터 구조"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "출력 장치의 물리적 배열 및 구성 요소"
+
+msgid "Undefine"
+msgstr "정의되지 않음"
 
 msgid "Best object position"
 msgstr "최적의 출력물 위치"
@@ -14860,6 +14940,66 @@ msgstr "골격 선 폭"
 
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "선택한 골격 경로의 선 폭를 조정합니다."
+
+msgid "Conformal infill"
+msgstr ""
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr ""
+
+msgid "Layer stagger"
+msgstr ""
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr ""
+
+msgid "Alternate"
+msgstr ""
+
+msgid "Forward layers"
+msgstr ""
+
+msgid "Conformal forward layers"
+msgstr ""
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr ""
+
+msgid "Reverse layers"
+msgstr ""
+
+msgid "Conformal reverse layers"
+msgstr ""
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr ""
+
+msgid "Radial center"
+msgstr ""
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr ""
+
+msgid "Each layer"
+msgstr ""
+
+msgid "Axis"
+msgstr ""
+
+msgid "Smooth curve"
+msgstr ""
+
+msgid "Radial line count"
+msgstr ""
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr ""
+
+msgid "Center region radius"
+msgstr ""
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "대칭 채우기 y 축"
@@ -15277,6 +15417,39 @@ msgstr "대체 추가 외벽"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "외벽을 영구적으로 추가하는데 비용을 낭비하는 대신 레이어에 번갈아 가며 외벽을 추가해 레이어 간 접착력과 파트 강도를 향상시킬 수 있습니다."
+
+msgid "Periodic modifier"
+msgstr ""
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr ""
+
+msgid "Skip for"
+msgstr ""
+
+msgid "Periodic modifier skip layers"
+msgstr ""
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr ""
+
+msgid "Apply for"
+msgstr ""
+
+msgid "Periodic modifier apply layers"
+msgstr ""
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr ""
+
+msgid "Ignore infill settings"
+msgstr ""
+
+msgid "Modifier ignore infill settings"
+msgstr ""
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
+msgstr ""
 
 msgid "Post-processing Scripts"
 msgstr "후처리 스크립트"
@@ -16307,6 +16480,9 @@ msgstr "메쉬 슬라이싱"
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "감지된 레이어가 없습니다. STL 파일을 복구하거나 크기 또는 두께를 확인하고 다시 시도할 수 있습니다.\n"
 
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr ""
+
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
 "XY Size compensation can not be combined with color-painting."
@@ -16368,6 +16544,9 @@ msgstr "파일에 꼭짓점이 3개 미만인 다각형이 포함되어 있습�
 
 msgid "The file contains invalid vertex index."
 msgstr "파일에 잘못된 꼭짓점 인덱스가 포함되어 있습니다."
+
+msgid "The file contains invalid texture coordinate index."
+msgstr ""
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "이 OBJ 파일은 비어 있어서 읽을 수 없습니다."
@@ -17601,9 +17780,6 @@ msgstr "프리셋 삭제"
 msgid "+ Add Preset"
 msgstr "+ 프리셋 추가"
 
-msgid "Delete Filament"
-msgstr "필라멘트 삭제"
-
 msgid "Add Preset"
 msgstr "프리셋 추가"
 
@@ -18417,12 +18593,6 @@ msgstr "무효 색상"
 msgid "Multiple Color"
 msgstr "다중 색상"
 
-msgid "Official Filament"
-msgstr "공식 필라멘트"
-
-msgid "More Colors"
-msgstr "더 많은 색상"
-
 msgid "Search filament"
 msgstr ""
 
@@ -18437,6 +18607,9 @@ msgstr ""
 
 msgid "Recently used"
 msgstr "최근 사용됨"
+
+msgid "Set nozzle count"
+msgstr ""
 
 msgid "Please set nozzle count"
 msgstr "노즐 수를 설정하세요"
@@ -18762,6 +18935,9 @@ msgstr "효과 미리보기"
 
 msgid "Select Mixed Materials"
 msgstr "혼합 재료 선택"
+
+msgid "+ Add Material"
+msgstr "+ 재료 추가"
 
 msgid "- Delete Material"
 msgstr "- 재료 삭제"
@@ -19189,6 +19365,109 @@ msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
 
+#~ msgid "Show Labels"
+#~ msgstr "레이블 표시"
+
+#~ msgid "Import Model"
+#~ msgstr "모델 가져오기"
+
+#~ msgid "Original"
+#~ msgstr "원본"
+
+#~ msgid "Multi-Color"
+#~ msgstr "멀티 컬러"
+
+#~ msgid "Your input texture model"
+#~ msgstr "입력 텍스처 모델"
+
+#~ msgid "Processed multi-color model"
+#~ msgstr "처리된 멀티 컬러 모델"
+
+#~ msgid "Smooth Level"
+#~ msgstr "매끄러움 레벨"
+
+#~ msgid "Automatically determine the optimal color count only and recompute filament mapping"
+#~ msgstr "최적의 색상 수만 자동으로 결정하고 필라멘트 매핑을 다시 계산합니다."
+
+#~ msgid "Convert texture to painting using the specified color count and smooth level"
+#~ msgstr "지정된 색상 수와 매끄러움 수준을 사용하여 텍스처를 그림으로 변환합니다."
+
+#~ msgid "Reminder: parameters changed, click Apply to take effect"
+#~ msgstr "알림: 매개변수가 변경되었습니다. 적용하려면 적용을 클릭하세요."
+
+#~ msgid "Filament Mapping"
+#~ msgstr "필라멘트 매핑"
+
+#~ msgid "Auto-merge same filament"
+#~ msgstr "동일한 필라멘트 자동 병합"
+
+#~ msgid "Skip Matching"
+#~ msgstr "매칭 건너뛰기"
+
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "메시에 비매니폴드 지오메트리 또는 열린 경계가 있습니다. 메시를 그대로 가져오거나 Windows 3D 복구 서비스를 사용하여 복구한 다음 가져올 수 있습니다."
+
+#~ msgid "Mesh repair"
+#~ msgstr "메쉬 복구"
+
+#~ msgid "Import without repair"
+#~ msgstr "복구 없이 가져오기"
+
+#~ msgid "Repair and import"
+#~ msgstr "복구 및 가져오기"
+
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "메쉬에 비매니폴드 지오메트리 또는 열린 경계가 있습니다."
+
+#~ msgid "Mesh issue"
+#~ msgstr "메쉬 문제"
+
+#~ msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+#~ msgstr "현재 플레이트의 모든 객체를 출력할 수 없습니다. 슬라이싱하면 빈 결과가 생성됩니다. 확인하세요."
+
+#~ msgid "Show Labels of printing by object in 3D scene"
+#~ msgstr "3D 씬에서 객체별 출력 라벨 표시"
+
+#~ msgid "Object too small"
+#~ msgstr "객체가 너무 작음"
+
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "이유: \"%1%\" 부분에는 자체 교차점이 있습니다."
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning"
+#~ msgstr ""
+#~ "- 파일 로딩 후 프린터 사전 설정 동기화\n"
+#~ "- \"3MF 로드\" 대화 상자 설정\n"
+#~ "- 후처리 스크립트 실행\n"
+#~ "- 지원 구조 권장 메시지\n"
+#~ "- 저장되지 않은 프로젝트\n"
+#~ "- 가변 레이어 높이를 가진 혼합 색상 하위 레이어 경고"
+
+#~ msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+#~ msgstr "AMS에 들어 있는 필라멘트가 이 출력에 부족할 수 있습니다. 보충하거나 교체하세요."
+
+#~ msgid "Nozzle type"
+#~ msgstr "노즐 타입"
+
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "노즐의 금속 소재: 노즐의 내마모성과 출력할 수 있는 필라멘트의 종류를 결정합니다."
+
+#~ msgid "Hardened steel"
+#~ msgstr "경화 스틸"
+
+#~ msgid "Stainless steel"
+#~ msgstr "스테인리스 스틸"
+
+#~ msgid "Tungsten carbide"
+#~ msgstr "텅스텐 카바이드"
+
 #~ msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
 #~ msgstr "보이는 상단 표면 바로 아래 내부 솔리드 레이어의 선 패턴입니다. 단조 채우기를 사용하면 상단 스킨을 통해 보이는 압출 줄무늬를 줄일 수 있습니다."
 
@@ -19227,27 +19506,6 @@ msgstr ""
 #~ "잠금 깊이는 표면 깊이보다 작아야 합니다.\n"
 #~ "표면 깊이의 50%%으로 재설정"
 
-#, c-format, boost-format
-#~ msgid ", and %d more"
-#~ msgstr ", 그리고 %d개 더"
-
-#, c-format, boost-format
-#~ msgid "model \"%s\""
-#~ msgstr "모델 \"%s\""
-
-#~ msgid "support filament"
-#~ msgstr "서포트 필라멘트"
-
-#~ msgid "custom G-code"
-#~ msgstr "커스텀 G-code"
-
-#, c-format, boost-format
-#~ msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
-#~ msgstr "삭제하려는 필라멘트는 %s에서 사용 중입니다. 삭제 후 해당 필라멘트 할당이 재설정됩니다."
-
-#~ msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
-#~ msgstr "참고: 다른 필라멘트로 대체하려면 필라멘트를 우클릭하여 \"병합\" 기능을 사용하세요."
-
 #~ msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 #~ msgstr "현재 열판 온도가 상대적으로 높습니다. 밀폐된 환경에서 이 필라멘트를 출력할 경우 노즐이 막힐 수 있습니다. 전면 도어를 열거나 상단 유리를 제거하세요."
 
@@ -19258,23 +19516,6 @@ msgstr ""
 #~ msgstr ""
 #~ "%s 파일의 물체 크기가 너무 작습니다. 미터 또는 인치 단위일 수 있습니다.\n"
 #~ " 밀리미터로 크기를 조절하시겠습니까?"
-
-#~ msgid ""
-#~ "- Sync printer presets after loading a file\n"
-#~ "- \"Load 3MF\" dialog settings\n"
-#~ "- Executing post-processing scripts\n"
-#~ "- Support structure recommendation prompt\n"
-#~ "- Unsaved projects.\n"
-#~ "- Mixed color sublayer with variable layer height warning\n"
-#~ "- Delete a filament used by a model"
-#~ msgstr ""
-#~ "- 파일 로드 후 프린터 프리셋 동기화\n"
-#~ "- \"3MF 로드\" 대화 상자 설정\n"
-#~ "- 후처리 스크립트 실행\n"
-#~ "- 서포트 구조 권장 메시지\n"
-#~ "- 저장되지 않은 프로젝트.\n"
-#~ "- 가변 레이어 높이를 가진 혼합 색상 하위 레이어 경고\n"
-#~ "- 모델에서 사용 중인 필라멘트 삭제"
 
 #~ msgid "Material"
 #~ msgstr "재료"
@@ -20227,9 +20468,6 @@ msgstr ""
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "퍼지 모드에 대해 자세히 알아보기"
-
-#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-#~ msgstr "CF/GF 필라멘트는 단단하고 부서지기 쉬우며, 부러지거나 AMS에 끼기 쉬우므로 주의해서 사용하세요."
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "현재 직경에 해당하는 노즐이 없습니다. 계속 전환하면 모든 노즐의 직경이 자동으로 변경됩니다."

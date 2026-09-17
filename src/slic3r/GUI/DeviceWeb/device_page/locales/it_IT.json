@@ -208,5 +208,12 @@
   "Enter brand name": "Enter brand name",
   "Material Type is required": "Material Type is required",
   "No options": "No options",
-  "Total Net Weight must be greater than 0": "Total Net Weight must be greater than 0"
+  "Total Net Weight must be greater than 0": "Total Net Weight must be greater than 0",
+  "AMS Settings": "Impostazioni AMS",
+  "Auto-refill": "Ricarica automatica",
+  "Humidity": "Umidità",
+  "Load": "Carica",
+  "Unload": "Scarica",
+  "External Spool": "External Spool",
+  "Quantity": "Quantity"
 }

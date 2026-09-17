@@ -194,6 +194,6 @@
   "Humidity": "湿度",
   "Load": "进料",
   "Unload": "退料",
-  "External Spool": "外挂料卷",
-  "Quantity": "数量"
+  "External Spool": "External Spool",
+  "Quantity": "Quantity"
 }

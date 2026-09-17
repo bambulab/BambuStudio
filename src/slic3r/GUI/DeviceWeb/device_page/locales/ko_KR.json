@@ -207,5 +207,12 @@
   "Enter brand name": "Enter brand name",
   "Material Type is required": "Material Type is required",
   "No options": "No options",
-  "Total Net Weight must be greater than 0": "Total Net Weight must be greater than 0"
+  "Total Net Weight must be greater than 0": "Total Net Weight must be greater than 0",
+  "AMS Settings": "AMS 설정",
+  "Auto-refill": "자동 리필",
+  "Humidity": "습도",
+  "Load": "로드",
+  "Unload": "언로드",
+  "External Spool": "External Spool",
+  "Quantity": "Quantity"
 }

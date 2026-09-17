@@ -207,5 +207,12 @@
   "Enter brand name": "Enter brand name",
   "Material Type is required": "Material Type is required",
   "No options": "No options",
-  "Total Net Weight must be greater than 0": "Total Net Weight must be greater than 0"
+  "Total Net Weight must be greater than 0": "Total Net Weight must be greater than 0",
+  "AMS Settings": "AMS beállítások",
+  "Auto-refill": "Automatikus utántöltés",
+  "Humidity": "Páratartalom",
+  "Load": "Betöltés",
+  "Unload": "Kitöltés",
+  "External Spool": "External Spool",
+  "Quantity": "Quantity"
 }

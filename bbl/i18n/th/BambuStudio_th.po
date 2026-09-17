@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
+"POT-Creation-Date: 2026-09-17 19:42+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -215,6 +215,9 @@ msgstr "PPS-CF มีความเปราะและอาจหักใ�
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF มีความเปราะและอาจหักในท่อ PTFE ที่โค้งงอเหนือชุดหัวจ่าย"
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr ""
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "PLA Glow อาจทำให้ตัวป้อนเส้นวัสดุระยะแรกของ AMS สึกหรอได้ ควรใช้ม้วนวัสดุจากภายนอกแทน"
@@ -1546,6 +1549,9 @@ msgstr "ความลึกของการฝัง"
 msgid "Text Gap"
 msgstr "ระยะห่างข้อความ"
 
+msgid "Line Gap"
+msgstr ""
+
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "คำเตือน: พบการสะท้อนในเมทริกซ์ข้อความ การลากจะสร้างข้อความขึ้นใหม่ทั้งหมด"
 
@@ -1609,6 +1615,14 @@ msgstr "ความหนา"
 msgid "Skew"
 msgstr "การเอียง"
 
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "จัดตำแหน่ง"
+
+msgid "Align center horizontally"
+msgstr ""
+
 msgid "No symbol"
 msgstr "ไม่มีสัญลักษณ์"
 
@@ -1629,11 +1643,6 @@ msgstr "ใช้พื้นผิว"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "ต่ออักขระ"
-
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "จัดตำแหน่ง"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -2444,11 +2453,11 @@ msgstr "ล้างข้อมูลการตัด"
 msgid "Add Primitive"
 msgstr "เพิ่มรูปทรงพื้นฐาน"
 
-msgid "Show Labels by Layer"
-msgstr "แสดงป้ายกำกับตามชั้น"
+msgid "Add New Plate"
+msgstr ""
 
-msgid "Show Labels by Object"
-msgstr "แสดงป้ายกำกับตามวัตถุ"
+msgid "Add a new plate"
+msgstr ""
 
 msgid "To objects"
 msgstr "เป็นวัตถุ"
@@ -2588,11 +2597,14 @@ msgstr "เติมสำเนาเต็มฐานพิมพ์"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "เติมสำเนาของวัตถุที่เลือกลงบนพื้นที่ที่เหลือของฐานพิมพ์"
 
+msgid "Show Labels by Layer"
+msgstr "แสดงป้ายกำกับตามชั้น"
+
+msgid "Show Labels by Object"
+msgstr "แสดงป้ายกำกับตามวัตถุ"
+
 msgid "Edit Plate Name"
 msgstr "แก้ไขชื่อแผ่นฐาน"
-
-msgid "Show Labels"
-msgstr "แสดงป้ายกำกับ"
 
 msgid "Name"
 msgstr "ชื่อ"
@@ -3845,6 +3857,21 @@ msgstr "ผสมสี CMYW อัตโนมัติในคลิกเด
 msgid "One-click RYBW auto-mix"
 msgstr "ผสมสี RYBW อัตโนมัติในคลิกเดียว"
 
+msgid "Add Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr "สีเพิ่มเติม"
+
+msgid "Official Filament"
+msgstr "เส้นวัสดุอย่างเป็นทางการ"
+
+msgid "Decompose Color"
+msgstr "แยกสี"
+
+msgid "+ Add Filament"
+msgstr ""
+
 msgid "Project Physical Filaments"
 msgstr "เส้นวัสดุจริงในโปรเจกต์"
 
@@ -3857,48 +3884,51 @@ msgstr "เส้นวัสดุผสมในโปรเจกต์"
 msgid "New Mixed Filaments"
 msgstr "เส้นวัสดุผสมใหม่"
 
-msgid "Decompose Color"
-msgstr "แยกสี"
-
-msgid "+ Add Material"
-msgstr "+ เพิ่มวัสดุ"
-
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr "โปรเจกต์รองรับเส้นวัสดุได้สูงสุด %d ประเภท เส้นวัสดุส่วนเกินจะถูกละทิ้ง"
 
-msgid "Import Model"
-msgstr "นำเข้าโมเดล"
+msgid "Updating"
+msgstr "กำลังอัปเดต"
 
-msgid "Original"
-msgstr "ต้นฉบับ"
+msgid "Simplify Colors"
+msgstr ""
 
-msgid "Multi-Color"
-msgstr "หลายสี"
+msgid "Filament Matching"
+msgstr ""
 
-msgid "Your input texture model"
-msgstr "โมเดลลวดลายที่คุณป้อน"
+msgid "Import Model: Simplify Colors"
+msgstr ""
 
-msgid "Processed multi-color model"
-msgstr "โมเดลหลายสีที่ประมวลผลแล้ว"
+msgid "Original Model"
+msgstr ""
+
+msgid "Simplified"
+msgstr ""
 
 msgid "Color Count"
 msgstr "จำนวนสี"
 
-msgid "Smooth Level"
-msgstr "ระดับความเรียบ"
+msgid "Advanced settings"
+msgstr "การตั้งค่าขั้นสูง"
 
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr "กำหนดจำนวนสีที่เหมาะสมที่สุดโดยอัตโนมัติเท่านั้น และคำนวณการจับคู่เส้นวัสดุใหม่"
+msgid "Boundary Smoothness"
+msgstr ""
 
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr "แปลงลวดลายเป็นการระบายสีโดยใช้จำนวนสีและระดับความเรียบที่กำหนด"
+msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
+msgstr ""
 
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr "การแจ้งเตือน: พารามิเตอร์เปลี่ยนแปลง คลิกใช้เพื่อให้มีผล"
+msgid "Gap Area"
+msgstr ""
 
-msgid "Filament Mapping"
-msgstr "การจับคู่เส้นวัสดุ"
+msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
+msgstr ""
+
+msgid "Automatically determine the optimal color count"
+msgstr ""
+
+msgid "Adjust filament matching"
+msgstr ""
 
 msgid "Reset filament mapping to the state before one-click mixing"
 msgstr "รีเซ็ตการจับคู่เส้นวัสดุให้กลับสู่สถานะก่อนการผสมสีในคลิกเดียว"
@@ -3906,17 +3936,49 @@ msgstr "รีเซ็ตการจับคู่เส้นวัสดุ
 msgid "Choose the one-click auto-mix mode for texture color import"
 msgstr "เลือกโหมดผสมอัตโนมัติในคลิกเดียวสำหรับการนำเข้าสีลวดลาย"
 
-msgid "Auto-merge same filament"
-msgstr "ผสานเส้นวัสดุที่เหมือนกันโดยอัตโนมัติ"
+msgid "Some colors have no matching filament. Please match them before importing."
+msgstr ""
+
+msgid "Auto-Add All Filaments"
+msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "ผสานเส้นวัสดุที่เหมือนกันเข้ากับเส้นวัสดุที่มีอยู่ในโปรเจกต์อัตโนมัติ"
 
-msgid "Skip Matching"
-msgstr "ข้ามการจับคู่"
+msgid "Automatically merge filaments of the same color and type"
+msgstr ""
+
+msgid "Skip"
+msgstr "ข้าม"
 
 msgid "Skip filament mapping and import as a single-color model"
 msgstr "ข้ามการจับคู่เส้นวัสดุและนำเข้าเป็นโมเดลสีเดียว"
+
+msgid "Next"
+msgstr "ถัดไป"
+
+msgid "Previous"
+msgstr "ก่อนหน้า"
+
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr ""
+
+msgid "Before matching"
+msgstr ""
+
+msgid "After matching"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Before simplification: %d colors"
+msgstr ""
+
+#, c-format, boost-format
+msgid "After simplification: %d colors"
+msgstr ""
+
+msgid "Import Model: Filament Matching"
+msgstr ""
 
 msgid "Processing"
 msgstr "กำลังประมวลผล"
@@ -3927,23 +3989,16 @@ msgstr "กำลังคำนวณสีลวดลาย..."
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr "การคำนวณล้มเหลว โปรดปรับพารามิเตอร์แล้วลองอีกครั้ง"
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "เมชมีรูปทรงที่ไม่เป็นแมนิโฟลด์หรือมีขอบเขตเปิด คุณสามารถนำเข้าตามสภาพเดิม หรือซ่อมแซมด้วยบริการซ่อมแซม 3D ของ Windows ก่อนนำเข้า"
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
+msgstr ""
 
-msgid "Mesh repair"
-msgstr "ซ่อมแซมเมช"
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
+msgstr ""
 
-msgid "Import without repair"
-msgstr "นำเข้าโดยไม่ซ่อมแซม"
-
-msgid "Repair and import"
-msgstr "ซ่อมแซมและนำเข้า"
-
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "โปรดทราบว่าเมชมีรูปทรงที่ไม่เป็นแมนิโฟลด์หรือมีขอบเขตเปิด"
-
-msgid "Mesh issue"
-msgstr "ปัญหาเมช"
+msgid "Click to select a matching filament"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "เลือกไฟล์ SLA:"
@@ -4183,9 +4238,6 @@ msgstr "อุณหภูมิฐาน"
 
 msgid "Start calibration"
 msgstr "เริ่มการปรับเทียบ"
-
-msgid "Next"
-msgstr "ถัดไป"
 
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "การปรับเทียบเสร็จสมบูรณ์ โปรดค้นหาเส้นที่ฉีดออกมาสม่ำเสมอที่สุดบนฐานความร้อนของคุณตามภาพด้านล่าง แล้วกรอกค่าที่อยู่ทางด้านซ้ายลงในช่องป้อนค่า K"
@@ -4850,6 +4902,15 @@ msgstr ""
 "ใช่ - นำไปใช้และเปิดใช้งานผนังเสริมสลับชั้นต่อไป\n"
 "ไม่ - ไม่ใช้ผนังเสริมสลับชั้น"
 
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "เพื่อให้ผนังเสริมสลับชั้นทำงานได้อย่างถูกต้อง ขอแนะนำให้ปรับดังต่อไปนี้:"
 
@@ -4862,7 +4923,7 @@ msgstr ""
 "ใช่ - นำไปใช้และเปิดใช้งานผนังเสริมสลับชั้นต่อไป\n"
 "ไม่ - คงการตั้งค่าปัจจุบันและเปิดใช้งานผนังเสริมสลับชั้น"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5223,6 +5284,12 @@ msgstr "ลองใหม่"
 
 msgid "Resume"
 msgstr "พิมพ์ต่อ"
+
+msgid "Loading error details ..."
+msgstr ""
+
+msgid "Unable to load error details."
+msgstr ""
 
 msgid "Unknown error."
 msgstr "ข้อผิดพลาดที่ไม่รู้จัก"
@@ -5911,7 +5978,7 @@ msgstr "ทาวเวอร์สลับสีช่วยปรับปร
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "ทาวเวอร์สลับสียื่นเลยขอบแผ่นฐาน"
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
 msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
@@ -6021,6 +6088,12 @@ msgstr ""
 
 msgid "Invalid input."
 msgstr "ข้อมูลที่ป้อนไม่ถูกต้อง"
+
+msgid "Network error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
 
 msgid "New Window"
 msgstr "หน้าต่างใหม่"
@@ -6367,9 +6440,6 @@ msgstr "รีเซ็ตเป็นเค้าโครงหน้าต่
 
 msgid "Show Labels of printing by layer in 3D scene"
 msgstr "แสดงป้ายกำกับการพิมพ์ตามชั้นในฉาก 3 มิติ"
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "แสดงป้ายกำกับการพิมพ์ตามวัตถุในฉาก 3 มิติ"
 
 msgid "Show &Overhang"
 msgstr "แสดง &ส่วนยื่น"
@@ -7373,9 +7443,6 @@ msgstr "ข้อมูล %s"
 #, c-format, boost-format
 msgid "%s information"
 msgstr "ข้อมูล %s"
-
-msgid "Skip"
-msgstr "ข้าม"
 
 msgid "Newer 3mf version"
 msgstr "ไฟล์ 3mf เวอร์ชันใหม่กว่า"
@@ -8489,6 +8556,30 @@ msgstr "เส้นวัสดุผสมมีส่วนประกอบ
 msgid "Search plate, object and part."
 msgstr "ค้นหาแผ่นฐาน วัตถุ และชิ้นส่วน"
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr ""
+
+msgid "support filament"
+msgstr ""
+
+msgid "custom G-code"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr ""
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr ""
+
+msgid "Delete Filament"
+msgstr "ลบเส้นวัสดุ"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "เส้นวัสดุผสมเป้าหมายใช้เส้นวัสดุจริงนี้เป็นส่วนประกอบ การผสานจะลบเส้นวัสดุจริงนี้ออก และอาจทำให้เส้นวัสดุผสมไม่ถูกต้อง ดำเนินการต่อหรือไม่?"
 
@@ -8634,12 +8725,6 @@ msgstr "ลบวัตถุที่มีปริมาตรเป็นศ
 
 msgid "The volume of the object is zero"
 msgstr "ปริมาตรของวัตถุเป็นศูนย์"
-
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
-
-msgid "Object too small"
-msgstr "วัตถุเล็กเกินไป"
 
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
@@ -9252,12 +9337,11 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "เหตุผล: ชิ้นส่วน \"%1%\" ไม่ปิดล้อมเป็นปริมาตร"
 
 #, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "เหตุผล: ชิ้นส่วน \"%1%\" มีการตัดกันเอง"
-
-#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "เหตุผล: \"%1%\" และอีกชิ้นส่วนไม่มีส่วนที่ตัดกัน"
+
+msgid "Reason: the meshes have face issues."
+msgstr ""
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "ตรวจพบชิ้นส่วนลบ คุณต้องการดำเนินการเมชบูลีนก่อนส่งออกหรือไม่?"
@@ -9914,7 +9998,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
@@ -10465,14 +10550,23 @@ msgstr "ความแข็งของวัสดุปัจจุบัน
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "หากตั้งค่า 'การปรับเทียบพลศาสตร์การไหล' เป็นอัตโนมัติหรือเปิด ระบบจะใช้ค่าจากการปรับเทียบด้วยตนเองหรือค่าเริ่มต้น และจะข้ามกระบวนการปรับเทียบอัตราไหล คุณสามารถทำการปรับเทียบอัตราไหลด้วยตนเองสำหรับเส้นวัสดุ TPU ได้ในหน้า 'การปรับเทียบ'"
 
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr "เส้นวัสดุใน AMS อาจไม่เพียงพอสำหรับการพิมพ์นี้ โปรดเติมหรือเปลี่ยนเส้นวัสดุ"
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "ขณะพิมพ์ เส้นวัสดุบางประเภทอาจสลับไปมาระหว่างเอ็กซ์ทรูเดอร์ การปรับเทียบค่า K ด้วยตนเองไม่สามารถใช้ได้ตลอดการพิมพ์ ซึ่งอาจส่งผลต่อคุณภาพงานพิมพ์ ขอแนะนำให้เปิดใช้งานการปรับเทียบพลศาสตร์การไหล"
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr "ไฟล์นี้มีเส้นวัสดุที่เกิดเส้นใยได้ง่าย เพื่อคุณภาพงานพิมพ์ที่ดีที่สุด เราขอแนะนำให้เปลี่ยนการตรวจจับหัวฉีดจับเป็นก้อนเป็นโหมดอัตโนมัติ"
+
+#, c-format, boost-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
 
 msgid "Cool"
 msgstr "อุณหภูมิต่ำ"
@@ -10962,6 +11056,9 @@ msgstr "บันทึก"
 
 msgid "Frequent"
 msgstr "บ่อยครั้ง"
+
+msgid "Modifier cycle"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11668,9 +11765,6 @@ msgstr "ซิงโครไนซ์เฉพาะประเภทและ
 
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "แทนที่รายการเส้นวัสดุของโปรเจกต์ตามลำดับจากเส้นวัสดุของเครื่องพิมพ์ และเส้นวัสดุเครื่องพิมพ์ที่ไม่ได้ใช้จะถูกเพิ่มต่อท้ายรายการโดยอัตโนมัติ"
-
-msgid "Advanced settings"
-msgstr "การตั้งค่าขั้นสูง"
 
 msgid "Add unused AMS filaments to filaments list."
 msgstr "เพิ่มเส้นวัสดุ AMS ที่ไม่ได้ใช้ไปยังรายการเส้นวัสดุ"
@@ -12733,6 +12827,9 @@ msgstr "อัปเดตเฟิร์มแวร์"
 msgid "Hotends on Rack"
 msgstr "ชุดหัวพิมพ์บนชั้นวาง"
 
+msgid "Copy Device Info"
+msgstr ""
+
 msgid "Beta version"
 msgstr "เวอร์ชันเบต้า"
 
@@ -12741,9 +12838,6 @@ msgstr "กำลังรีเฟรชข้อมูลชุดหัวพ
 
 msgid "Checking version..."
 msgstr "กำลังตรวจสอบเวอร์ชัน..."
-
-msgid "Updating"
-msgstr "กำลังอัปเดต"
 
 msgid "Updating failed"
 msgstr "การอัปเดตล้มเหลว"
@@ -13166,14 +13260,14 @@ msgstr "ทาวเวอร์สลับสีต้องกำหนดใ
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "ทาวเวอร์สลับสีต้องกำหนดให้วัตถุทั้งหมดถูกตัดแบ่งด้วยความหนาต่อชั้นเท่ากัน"
 
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "ทาวเวอร์สลับสีรองรับเฉพาะในกรณีที่วัตถุทั้งหมดมีความหนาต่อชั้นแบบแปรผันเท่ากัน"
+
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr ""
 
 msgid "Jump to: Precise Z height"
 msgstr ""
-
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "ทาวเวอร์สลับสีรองรับเฉพาะในกรณีที่วัตถุทั้งหมดมีความหนาต่อชั้นแบบแปรผันเท่ากัน"
 
 msgid "Too small line width"
 msgstr "ความกว้างของเส้นเล็กเกินไป"
@@ -14729,29 +14823,14 @@ msgstr "ขนาดภาพขนาดย่อ"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "กำหนดขนาดของภาพขนาดย่อที่จัดเก็บไว้ในไฟล์ G-code"
 
-msgid "Nozzle type"
-msgstr "ชนิดหัวฉีด"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "วัสดุโลหะของหัวฉีด สิ่งนี้จะกำหนดความทนทานต่อการขัดถูของหัวฉีด และชนิดของเส้นวัสดุที่สามารถพิมพ์ได้"
-
-msgid "Undefine"
-msgstr "ไม่ระบุ"
-
-msgid "Hardened steel"
-msgstr "เหล็กกล้าชุบแข็ง"
-
-msgid "Stainless steel"
-msgstr "เหล็กกล้าไร้สนิม"
-
-msgid "Tungsten carbide"
-msgstr "ทังสเตนคาร์ไบด์"
-
 msgid "Printer structure"
 msgstr "โครงสร้างเครื่องพิมพ์"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "การจัดวางจริงและส่วนประกอบของอุปกรณ์การพิมพ์"
+
+msgid "Undefine"
+msgstr "ไม่ระบุ"
 
 msgid "Best object position"
 msgstr "ตำแหน่งวัตถุที่ดีที่สุด"
@@ -14854,6 +14933,66 @@ msgstr "ความกว้างของเส้นสเกเลตัน
 
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "ปรับความกว้างของเส้นทางสเกเลตันที่เลือก"
+
+msgid "Conformal infill"
+msgstr ""
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr ""
+
+msgid "Layer stagger"
+msgstr ""
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr ""
+
+msgid "Alternate"
+msgstr ""
+
+msgid "Forward layers"
+msgstr ""
+
+msgid "Conformal forward layers"
+msgstr ""
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr ""
+
+msgid "Reverse layers"
+msgstr ""
+
+msgid "Conformal reverse layers"
+msgstr ""
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr ""
+
+msgid "Radial center"
+msgstr ""
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr ""
+
+msgid "Each layer"
+msgstr ""
+
+msgid "Axis"
+msgstr ""
+
+msgid "Smooth curve"
+msgstr ""
+
+msgid "Radial line count"
+msgstr ""
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr ""
+
+msgid "Center region radius"
+msgstr ""
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "อินฟิลแบบสมมาตรตามแกน Y"
@@ -15271,6 +15410,39 @@ msgstr "ผนังเสริมสลับชั้น"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "เพิ่มผนังเสริมสลับกันในแต่ละชั้นเพื่อปรับปรุงการยึดเกาะระหว่างชั้นและความแข็งแรงของชิ้นงาน โดยไม่ต้องเสียต้นทุนเท่ากับการเสริมผนังถาวร"
+
+msgid "Periodic modifier"
+msgstr ""
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr ""
+
+msgid "Skip for"
+msgstr ""
+
+msgid "Periodic modifier skip layers"
+msgstr ""
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr ""
+
+msgid "Apply for"
+msgstr ""
+
+msgid "Periodic modifier apply layers"
+msgstr ""
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr ""
+
+msgid "Ignore infill settings"
+msgstr ""
+
+msgid "Modifier ignore infill settings"
+msgstr ""
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
+msgstr ""
 
 msgid "Post-processing Scripts"
 msgstr "สคริปต์หลังกระบวนการ"
@@ -16297,6 +16469,9 @@ msgstr "กำลังตัดแบ่งเมช"
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "ไม่พบชั้น คุณอาจลองซ่อมแซมไฟล์ STL หรือตรวจสอบขนาดหรือความหนาของชิ้นงานแล้วลองอีกครั้ง\n"
 
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr ""
+
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
 "XY Size compensation can not be combined with color-painting."
@@ -16358,6 +16533,9 @@ msgstr "ไฟล์มีรูปหลายเหลี่ยมที่ม
 
 msgid "The file contains invalid vertex index."
 msgstr "ไฟล์มีดัชนีจุดยอดที่ไม่ถูกต้อง"
+
+msgid "The file contains invalid texture coordinate index."
+msgstr ""
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "ไม่สามารถอ่านไฟล์ OBJ นี้ได้ เนื่องจากเป็นไฟล์ว่าง"
@@ -17587,9 +17765,6 @@ msgstr "ลบค่าที่ตั้งไว้ล่วงหน้า"
 msgid "+ Add Preset"
 msgstr "+ เพิ่มค่าที่ตั้งไว้ล่วงหน้า"
 
-msgid "Delete Filament"
-msgstr "ลบเส้นวัสดุ"
-
 msgid "Add Preset"
 msgstr "เพิ่มค่าที่ตั้งไว้ล่วงหน้า"
 
@@ -18403,12 +18578,6 @@ msgstr "ไม่มีสี"
 msgid "Multiple Color"
 msgstr "หลายสี"
 
-msgid "Official Filament"
-msgstr "เส้นวัสดุอย่างเป็นทางการ"
-
-msgid "More Colors"
-msgstr "สีเพิ่มเติม"
-
 msgid "Search filament"
 msgstr ""
 
@@ -18422,6 +18591,9 @@ msgid "slot"
 msgstr ""
 
 msgid "Recently used"
+msgstr ""
+
+msgid "Set nozzle count"
 msgstr ""
 
 msgid "Please set nozzle count"
@@ -18748,6 +18920,9 @@ msgstr "ตัวอย่างแสดงผล"
 
 msgid "Select Mixed Materials"
 msgstr "เลือกวัสดุผสม"
+
+msgid "+ Add Material"
+msgstr "+ เพิ่มวัสดุ"
 
 msgid "- Delete Material"
 msgstr "- ลบวัสดุ"
@@ -19174,6 +19349,91 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Show Labels"
+#~ msgstr "แสดงป้ายกำกับ"
+
+#~ msgid "Import Model"
+#~ msgstr "นำเข้าโมเดล"
+
+#~ msgid "Original"
+#~ msgstr "ต้นฉบับ"
+
+#~ msgid "Multi-Color"
+#~ msgstr "หลายสี"
+
+#~ msgid "Your input texture model"
+#~ msgstr "โมเดลลวดลายที่คุณป้อน"
+
+#~ msgid "Processed multi-color model"
+#~ msgstr "โมเดลหลายสีที่ประมวลผลแล้ว"
+
+#~ msgid "Smooth Level"
+#~ msgstr "ระดับความเรียบ"
+
+#~ msgid "Automatically determine the optimal color count only and recompute filament mapping"
+#~ msgstr "กำหนดจำนวนสีที่เหมาะสมที่สุดโดยอัตโนมัติเท่านั้น และคำนวณการจับคู่เส้นวัสดุใหม่"
+
+#~ msgid "Convert texture to painting using the specified color count and smooth level"
+#~ msgstr "แปลงลวดลายเป็นการระบายสีโดยใช้จำนวนสีและระดับความเรียบที่กำหนด"
+
+#~ msgid "Reminder: parameters changed, click Apply to take effect"
+#~ msgstr "การแจ้งเตือน: พารามิเตอร์เปลี่ยนแปลง คลิกใช้เพื่อให้มีผล"
+
+#~ msgid "Filament Mapping"
+#~ msgstr "การจับคู่เส้นวัสดุ"
+
+#~ msgid "Auto-merge same filament"
+#~ msgstr "ผสานเส้นวัสดุที่เหมือนกันโดยอัตโนมัติ"
+
+#~ msgid "Skip Matching"
+#~ msgstr "ข้ามการจับคู่"
+
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "เมชมีรูปทรงที่ไม่เป็นแมนิโฟลด์หรือมีขอบเขตเปิด คุณสามารถนำเข้าตามสภาพเดิม หรือซ่อมแซมด้วยบริการซ่อมแซม 3D ของ Windows ก่อนนำเข้า"
+
+#~ msgid "Mesh repair"
+#~ msgstr "ซ่อมแซมเมช"
+
+#~ msgid "Import without repair"
+#~ msgstr "นำเข้าโดยไม่ซ่อมแซม"
+
+#~ msgid "Repair and import"
+#~ msgstr "ซ่อมแซมและนำเข้า"
+
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "โปรดทราบว่าเมชมีรูปทรงที่ไม่เป็นแมนิโฟลด์หรือมีขอบเขตเปิด"
+
+#~ msgid "Mesh issue"
+#~ msgstr "ปัญหาเมช"
+
+#~ msgid "Show Labels of printing by object in 3D scene"
+#~ msgstr "แสดงป้ายกำกับการพิมพ์ตามวัตถุในฉาก 3 มิติ"
+
+#~ msgid "Object too small"
+#~ msgstr "วัตถุเล็กเกินไป"
+
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "เหตุผล: ชิ้นส่วน \"%1%\" มีการตัดกันเอง"
+
+#~ msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+#~ msgstr "เส้นวัสดุใน AMS อาจไม่เพียงพอสำหรับการพิมพ์นี้ โปรดเติมหรือเปลี่ยนเส้นวัสดุ"
+
+#~ msgid "Nozzle type"
+#~ msgstr "ชนิดหัวฉีด"
+
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "วัสดุโลหะของหัวฉีด สิ่งนี้จะกำหนดความทนทานต่อการขัดถูของหัวฉีด และชนิดของเส้นวัสดุที่สามารถพิมพ์ได้"
+
+#~ msgid "Hardened steel"
+#~ msgstr "เหล็กกล้าชุบแข็ง"
+
+#~ msgid "Stainless steel"
+#~ msgstr "เหล็กกล้าไร้สนิม"
+
+#~ msgid "Tungsten carbide"
+#~ msgstr "ทังสเตนคาร์ไบด์"
 
 #, c-format, boost-format
 #~ msgid " doesn't work at 100%% density "

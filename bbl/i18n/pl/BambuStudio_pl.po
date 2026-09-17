@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
+"POT-Creation-Date: 2026-09-17 19:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -167,7 +167,7 @@ msgid "TPU is not supported by AMS."
 msgstr "TPU nie jest obsługiwane przez AMS."
 
 msgid "AMS does not support 'Bambu Lab PET-CF'."
-msgstr "AMS nie obsługuje \"Bambu Lab PET-CF\"."
+msgstr "AMS nie obsługuje „Bambu Lab PET-CF”."
 
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "Obecny filament nie obsługuje dyszy E3D o wysokim przepływie i nie może być użyty."
@@ -211,6 +211,9 @@ msgstr "PPS-CF jest kruchy i może pęknąć w wygiętym fragmencie rurki PTFE n
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF jest kruchy i może pęknąć w wygiętym fragmencie rurki PTFE nad głowicą."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "Filamenty CF/GF są twarde i kruche. Łatwo się łamią lub zacinają w AMS, prosimy o ostrożne korzystanie z nich."
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "PLA Glow może powodować zużycie podajnika pierwszego stopnia w AMS. Zalecane jest używanie go ze szpuli zewnętrznej."
@@ -451,7 +454,7 @@ msgid "Raised"
 msgstr "Podniesiony"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
-msgstr "Hotend jest w nieprawidłowym stanie i jest obecnie niedostępny. Przejdź do \"Urządzenie -> Aktualizacja\" w celu aktualizacji firmware"
+msgstr "Hotend jest w nieprawidłowym stanie i jest obecnie niedostępny. Przejdź do „Urządzenie -> Aktualizacja” w celu aktualizacji firmware"
 
 msgid "Abnormal Hotend"
 msgstr "Nieprawidłowy hotend"
@@ -1542,6 +1545,9 @@ msgstr "Głębokość osadzania"
 msgid "Text Gap"
 msgstr "Odstęp tekstu"
 
+msgid "Line Gap"
+msgstr ""
+
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Ostrzeżenie: w szyku tekstu znajduje się odbicie, a jego przeciągnięcie spowoduje całkowite ponowne wygenerowanie."
 
@@ -1605,6 +1611,14 @@ msgstr "Pogrubienie"
 msgid "Skew"
 msgstr "Skos"
 
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "Wyrównanie"
+
+msgid "Align center horizontally"
+msgstr ""
+
 msgid "No symbol"
 msgstr "Brak symbolu"
 
@@ -1625,11 +1639,6 @@ msgstr "Użyj powierzchni"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "Na glif"
-
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "Wyrównanie"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -2440,11 +2449,11 @@ msgstr "Unieważnij informacje o cięciu"
 msgid "Add Primitive"
 msgstr "Dodaj prymityw"
 
-msgid "Show Labels by Layer"
-msgstr "Wyświetl etykiety dla każdej warstwy"
+msgid "Add New Plate"
+msgstr ""
 
-msgid "Show Labels by Object"
-msgstr "Pokaż etykiety według obiektu"
+msgid "Add a new plate"
+msgstr ""
 
 msgid "To objects"
 msgstr "Do obiektów"
@@ -2584,11 +2593,14 @@ msgstr "Wypełnij stół kopią modelu"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "Wypełnij pozostałą część stołu kopią wybranego obiektu"
 
+msgid "Show Labels by Layer"
+msgstr "Wyświetl etykiety dla każdej warstwy"
+
+msgid "Show Labels by Object"
+msgstr "Pokaż etykiety według obiektu"
+
 msgid "Edit Plate Name"
 msgstr "Edytuj nazwę płyty"
-
-msgid "Show Labels"
-msgstr "Pokaż etykiety"
 
 msgid "Name"
 msgstr "Nazwa"
@@ -3452,7 +3464,7 @@ msgid "Not"
 msgstr "Nie"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "Najpierw kliknij \"Potwierdź\". Po wygenerowaniu etykiet na obszarze roboczym można użyć tego elementu sterującego etykietami."
+msgstr "Najpierw kliknij „Potwierdź”. Po wygenerowaniu etykiet na obszarze roboczym można użyć tego elementu sterującego etykietami."
 
 msgid "Click to add Cyber Brick"
 msgstr "Kliknij, aby dodać Cyber Brick"
@@ -3853,6 +3865,21 @@ msgstr "Automatyczne mieszanie kolorów CMYW jednym kliknięciem"
 msgid "One-click RYBW auto-mix"
 msgstr "Automatyczne mieszanie RYBW jednym kliknięciem"
 
+msgid "Add Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr "Więcej kolorów"
+
+msgid "Official Filament"
+msgstr "Oficjalne filamenty"
+
+msgid "Decompose Color"
+msgstr "Dekomponuj kolor"
+
+msgid "+ Add Filament"
+msgstr ""
+
 msgid "Project Physical Filaments"
 msgstr "Fizyczne filamenty projektu"
 
@@ -3865,48 +3892,51 @@ msgstr "Mieszane filamenty projektu"
 msgid "New Mixed Filaments"
 msgstr "Nowe filamenty mieszane"
 
-msgid "Decompose Color"
-msgstr "Dekomponuj kolor"
-
-msgid "+ Add Material"
-msgstr "+ Dodaj materiał"
-
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr "Projekt obsługuje maksymalnie %d filamenty(-ów). Nadmiar włókien zostanie odrzucony."
 
-msgid "Import Model"
-msgstr "Importuj model"
+msgid "Updating"
+msgstr "Aktualizowanie"
 
-msgid "Original"
-msgstr "Oryginalny"
+msgid "Simplify Colors"
+msgstr ""
 
-msgid "Multi-Color"
-msgstr "Wielokolorowy"
+msgid "Filament Matching"
+msgstr ""
 
-msgid "Your input texture model"
-msgstr "Twój model tekstury wejściowej"
+msgid "Import Model: Simplify Colors"
+msgstr ""
 
-msgid "Processed multi-color model"
-msgstr "Przetworzony model wielokolorowy"
+msgid "Original Model"
+msgstr ""
+
+msgid "Simplified"
+msgstr ""
 
 msgid "Color Count"
 msgstr "Liczba kolorów"
 
-msgid "Smooth Level"
-msgstr "Poziom gładkości"
+msgid "Advanced settings"
+msgstr "Ustawienia zaawansowane"
 
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr "Określ automatycznie optymalną liczbę kolorów i przelicz mapowanie filamentów"
+msgid "Boundary Smoothness"
+msgstr ""
 
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr "Konwertuj teksturę na malowanie, używając określonej liczby kolorów i poziomu gładkości"
+msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
+msgstr ""
 
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr "Przypomnienie: parametry zostały zmienione, kliknij „Zastosuj”, aby zmiany zaczęły obowiązywać"
+msgid "Gap Area"
+msgstr ""
 
-msgid "Filament Mapping"
-msgstr "Mapowanie filamentów"
+msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
+msgstr ""
+
+msgid "Automatically determine the optimal color count"
+msgstr ""
+
+msgid "Adjust filament matching"
+msgstr ""
 
 msgid "Reset filament mapping to the state before one-click mixing"
 msgstr "Przywróć mapowanie filamentu do stanu sprzed mieszania jednym kliknięciem"
@@ -3914,17 +3944,49 @@ msgstr "Przywróć mapowanie filamentu do stanu sprzed mieszania jednym kliknię
 msgid "Choose the one-click auto-mix mode for texture color import"
 msgstr "Wybierz tryb automatycznego mieszania jednym kliknięciem w celu importowania kolorów tekstur"
 
-msgid "Auto-merge same filament"
-msgstr "Scal automatycznie ten sam filament"
+msgid "Some colors have no matching filament. Please match them before importing."
+msgstr ""
+
+msgid "Auto-Add All Filaments"
+msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "Scal automatyczne identyczne filamenty z filamentami istniejącymi w projekcie"
 
-msgid "Skip Matching"
-msgstr "Pomiń dopasowanie"
+msgid "Automatically merge filaments of the same color and type"
+msgstr ""
+
+msgid "Skip"
+msgstr "Pomiń"
 
 msgid "Skip filament mapping and import as a single-color model"
 msgstr "Pomiń mapowanie filamentów i zaimportuj jako model jednokolorowy"
+
+msgid "Next"
+msgstr "Dalej"
+
+msgid "Previous"
+msgstr "Poprzednie"
+
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr ""
+
+msgid "Before matching"
+msgstr ""
+
+msgid "After matching"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Before simplification: %d colors"
+msgstr ""
+
+#, c-format, boost-format
+msgid "After simplification: %d colors"
+msgstr ""
+
+msgid "Import Model: Filament Matching"
+msgstr ""
 
 msgid "Processing"
 msgstr "Przetwarzanie"
@@ -3935,23 +3997,16 @@ msgstr "Obliczanie kolorów tekstur..."
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Obliczenia nie powiodły się. Dostosuj parametry i spróbuj ponownie."
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "Siatka charakteryzuje się geometrią niebędącą rozmaitością lub posiada otwarte granice. Można ją zaimportować w obecnej postaci lub naprawić za pomocą narzędzia Windows 3D Repair Service przed importem."
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
+msgstr ""
 
-msgid "Mesh repair"
-msgstr "Naprawa siatki"
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
+msgstr ""
 
-msgid "Import without repair"
-msgstr "Importuj bez naprawy"
-
-msgid "Repair and import"
-msgstr "Napraw i importuj"
-
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Należy pamiętać, że siatka ma geometrię niebędącą rozmaitością lub posiada otwarte granice."
-
-msgid "Mesh issue"
-msgstr "Problem z siatką"
+msgid "Click to select a matching filament"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Wybierz archiwum SLA:"
@@ -4192,9 +4247,6 @@ msgstr "Temperatura stołu"
 msgid "Start calibration"
 msgstr "Rozpocznij kalibrację"
 
-msgid "Next"
-msgstr "Dalej"
-
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "Kalibracja zakończona. Proszę znaleźć na płycie roboczej, linie ekstruzji o najbardziej jednolitym wyglądzie, podobne do przedstawionego poniżej obrazu, i wprowadź tę wartość w pole wprowadzania współczynnika K."
 
@@ -4283,15 +4335,15 @@ msgstr "Drukowanie przy użyciu obecnej dyszy może powodować powstanie dodatko
 
 #, c-format, boost-format
 msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Wskazówka: typ filamentu (%s) nie jest zgodny z typem filamentu (%s) w pociętym pliku. Jeśli chcesz używać tego gniazda, możesz zainstalować %s zamiast %s i zmienić informacje o gnieździe na stronie \"Urządzenie\"."
+msgstr "Wskazówka: typ filamentu (%s) nie jest zgodny z typem filamentu (%s) w pociętym pliku. Jeśli chcesz używać tego gniazda, możesz zainstalować %s zamiast %s i zmienić informacje o gnieździe na stronie „Urządzenie”."
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Nie można wybrać: typ filamentu (%s) nie jest zgodny z typem filamentu (%s) w pociętym pliku. Jeśli chcesz używać tego gniazda, możesz zainstalować %s zamiast %s i zmienić informacje o gnieździe na stronie \"Urządzenie\"."
+msgstr "Nie można wybrać: typ filamentu (%s) nie jest zgodny z typem filamentu (%s) w pociętym pliku. Jeśli chcesz używać tego gniazda, możesz zainstalować %s zamiast %s i zmienić informacje o gnieździe na stronie „Urządzenie”."
 
 #, c-format, boost-format
 msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "Nie można wybrać: gniazdo jest puste lub nie zostało zdefiniowane. Jeśli chcesz korzystać z tego gniazda, możesz zainstalować %s i zmienić informacje o gnieździe na stronie \"Urządzenie\"."
+msgstr "Nie można wybrać: gniazdo jest puste lub nie zostało zdefiniowane. Jeśli chcesz korzystać z tego gniazda, możesz zainstalować %s i zmienić informacje o gnieździe na stronie „Urządzenie”."
 
 msgid "Cannot select: No filament loaded in current slot."
 msgstr "Nie można wybrać: brak załadowanego filamentu w bieżącym gnieździe."
@@ -4857,6 +4909,15 @@ msgstr ""
 "Tak – Zastosuj i zachowaj włączoną dodatkową ściankę naprzemienną.\n"
 "Nie – Nie używaj dodatkowej ścianki naprzemiennej"
 
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "Aby dodatkowa ścianka naprzemienna działała prawidłowo, zaleca się wykonanie następujących regulacji:"
 
@@ -4869,7 +4930,7 @@ msgstr ""
 "Tak – Zastosuj i zachowaj włączoną dodatkową ściankę naprzemienną\n"
 "Nie – Zachowaj bieżące ustawienia i włączoną dodatkową ściankę naprzemienną"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5230,6 +5291,12 @@ msgstr "Ponów"
 
 msgid "Resume"
 msgstr "Wznów"
+
+msgid "Loading error details ..."
+msgstr ""
+
+msgid "Unable to load error details."
+msgstr ""
 
 msgid "Unknown error."
 msgstr "Nieznany błąd."
@@ -5918,8 +5985,8 @@ msgstr "Wieża czyszcząca poprawia jakość drukowania wielokolorowego i jest z
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Wieża czyszcząca wystaje poza granicę płyty."
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-msgstr "Nie można wydrukować żadnego obiektu na bieżącej płycie. Cięcie spowoduje utworzenie pustego wyniku. Proszę sprawdzić."
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
+msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Częściowa objętość płukania ustawiona na 0. Druk wielokolorowy może powodować mieszanie się kolorów w modelach. Proszę ponownie dostosować ustawienia płukania."
@@ -6028,6 +6095,12 @@ msgstr ""
 
 msgid "Invalid input."
 msgstr "Nieprawidłowe dane wejściowe."
+
+msgid "Network error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
 
 msgid "New Window"
 msgstr "Nowe okno"
@@ -6374,9 +6447,6 @@ msgstr "Przywróć domyślny układ okien"
 
 msgid "Show Labels of printing by layer in 3D scene"
 msgstr "Pokaż etykiety druku według warstwy w scenie 3D"
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "Pokaż etykiety druku według obiektu w scenie 3D"
 
 msgid "Show &Overhang"
 msgstr "Pokaż &Nadhang"
@@ -7108,7 +7178,7 @@ msgid "Current extruder is busy changing filament"
 msgstr "Obecny ekstruder jest zajęty zmianą filamentu"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "Funkcje \"Ładuj\" i \"Rozładuj\" nie są obsługiwane dla szpuli zewnętrznej podczas korzystania z przełącznika ścieżki filamentu."
+msgstr "Funkcje „Ładuj” i „Rozładuj” nie są obsługiwane dla szpuli zewnętrznej podczas korzystania z przełącznika ścieżki filamentu."
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
 msgstr "Przełącznik ścieżki filamentu nie został skonfigurowany. Proszę skonfigurować go na drukarce."
@@ -7386,9 +7456,6 @@ msgstr "%s info"
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s informacja"
-
-msgid "Skip"
-msgstr "Pomiń"
 
 msgid "Newer 3mf version"
 msgstr "Nowa wersja 3mf"
@@ -8510,6 +8577,30 @@ msgstr "Mieszany filament zawiera nieprawidłowe lub niedopasowane komponenty. P
 msgid "Search plate, object and part."
 msgstr "Wyszukaj płytę, obiekt i część."
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ", i %d więcej"
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr "model „%s”"
+
+msgid "support filament"
+msgstr "filament podpory"
+
+msgid "custom G-code"
+msgstr "niestandardowy kod G"
+
+#, c-format, boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr "Filament, który usuwasz, jest używany przez %s. Po usunięciu jego przypisanie filamentu zostanie zresetowane."
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr "Uwaga: aby zamiast tego zastąpić filament innym, kliknij filament prawym przyciskiem myszy i użyj funkcji „Sccal z”."
+
+msgid "Delete Filament"
+msgstr "Usuń Filament"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Docelowa mieszanka korzysta z tego filamentu jako komponentu. Po jego usunięciu może stać się nieprawidłowa. Kontynuować?"
 
@@ -8653,12 +8744,6 @@ msgstr "Usunięto obiekty o zerowym wolumenie"
 
 msgid "The volume of the object is zero"
 msgstr "Objętość tego obiektu wynosi zero"
-
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
-
-msgid "Object too small"
-msgstr "Obiekt zbyt mały"
 
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
@@ -9062,7 +9147,7 @@ msgid "Regenerate PAT"
 msgstr "Ponownie wygeneruj PAT"
 
 msgid "Failed to obtain Helio PAT, Click Refresh to obtain it again."
-msgstr "Nie udało się uzyskać Helio PAT. Kliknij \"Odśwież\", aby spróbować ponownie."
+msgstr "Nie udało się uzyskać Helio PAT. Kliknij „Odśwież”, aby spróbować ponownie."
 
 msgid "Successfully obtained PAT."
 msgstr "Pomyślnie uzyskano PAT."
@@ -9269,12 +9354,11 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Przyczyna:  \"%1%\" nie ogranicza objętości."
 
 #, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "Przyczyna:  \"%1%\" wprowadzona automatycznie."
-
-#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "Przyczyna: \"%1%\" i inna  nie mają wspólnego przecięcia."
+
+msgid "Reason: the meshes have face issues."
+msgstr ""
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Wykryto części ujemne. Czy chcesz przeprowadzić operacje boole'owskie na siatce przed eksportem?"
@@ -9419,7 +9503,7 @@ msgid "Parameter recommendation"
 msgstr "Zalecane parametry"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr "W ustawieniu procesu, w sekcji \"Inne - Zaawansowane\", zaznacz \"Włącz wykrywanie zlepienia dyszy przez sondowanie\". Funkcja ta tworzy małą wieżę czyszczącą i wykonuje sondowanie w celu wczesnego wykrycia zalepienia dyszy podczas druku, a następnie zatrzymuje drukowanie, zapobiegając błędom lub uszkodzeniu drukarki.\n"
+msgstr "W ustawieniu procesu, w sekcji „Inne - Zaawansowane”, zaznacz „Włącz wykrywanie zlepienia dyszy przez sondowanie”. Funkcja ta tworzy małą wieżę czyszczącą i wykonuje sondowanie w celu wczesnego wykrycia zalepienia dyszy podczas druku, a następnie zatrzymuje drukowanie, zapobiegając błędom lub uszkodzeniu drukarki.\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "Obecnie formularz konfiguracji obiektu nie może być używany z drukarką, z wieloma ekstruderami."
@@ -9931,14 +10015,16 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
-"- Synchronizacja ustawień drukarki po załadowaniu pliku\n"
-"- Ustawienia okna dialogowego „Załaduj 3MF”\n"
-"- Uruchamianie skryptów przetwarzania końcowego\n"
-"- Monit dotyczący zalecanej struktury podporowej\n"
-"- Niezapisane projekty.\n"
-"- Ostrzeżenie o mieszanej podwarstwie kolorystycznej o zmiennej wysokości warstwy"
+"- Synchronizuj ustawienia wstępne drukarki po wczytaniu pliku\n"
+"- Ustawienia okna dialogowego „Wczytaj 3MF”\n"
+"- Wykonywanie skryptów przetwarzania końcowego\n"
+"- Monit rekomendacji struktury podpór\n"
+"- Niezapisane projekty\n"
+"- Ostrzeżenie o podwarstwie o mieszanych kolorach przy zmiennej wysokości warstwy\n"
+"- Usuń filament używany przez model"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Czy na pewno chcesz zresetować wszystkie preferencje? Zmiany zaczną obowiązywać po ponownym uruchomieniu."
@@ -10490,14 +10576,23 @@ msgstr "Twardość obecnego materiału (%s) przekracza twardość %s (%s). Może
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "Jeśli opcja „Dynamiczna kalibracja przepływu” jest ustawiona na „Auto/Wł.”, system wykorzysta wartość z kalibracji ręcznej lub wartość domyślną i pominie proces kalibracji przepływu. Ręczną kalibrację przepływu dla filamentu TPU można przeprowadzić na stronie „Kalibracja”."
 
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr "Ilość filamentu w module AMS może być niewystarczająca do tego wydruku. Uzupełnij go albo wymień."
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Podczas drukowania niektóre filamenty mogą być przełączane między ekstruderami. Ręczna kalibracja wartości K nie może być stosowana dla całego wydruku, co może wpływać na jego jakość. Zaleca się włączenie kalibracji dynamiki przepływu."
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr "W tym pliku znajduje się filament podatny na nitkowanie. Aby uzyskać najlepszą jakość wydruku, zalecamy przełączenie wykrywania zalepiania się dysz na tryb automatyczny."
+
+#, c-format, boost-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -10575,7 +10670,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Dla ekstrudera wybrano zarówno filament zewnętrzny, jak i AMS. Podczas drukowania konieczne będzie ręczne przełączenie zewnętrznego filamentu."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
-msgstr "TPU 90A/TPU 85A są zbyt miękkie. Zaleca się przeprowadzenie ręcznej kalibracji przepływu na stronie \"Kalibracja\". Jeśli \"Kalibracja dynamiki przepływu\" jest ustawiona na auto/włączona, system użyje poprzedniej wartości i pominie proces kalibracji przepływu."
+msgstr "TPU 90A/TPU 85A są zbyt miękkie. Zaleca się przeprowadzenie ręcznej kalibracji przepływu na stronie „Kalibracja”. Jeśli „Kalibracja dynamiki przepływu” jest ustawiona na auto/włączona, system użyje poprzedniej wartości i pominie proces kalibracji przepływu."
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Ustaw dynamiczną kalibrację flow na 'wyłączony' aby włączyć własną wartość dynamicznego flow."
@@ -10835,7 +10930,7 @@ msgstr ""
 "Ustawienie wyższej temperatury podgrzewanego stołu może spowodować uszkodzenie drukarki."
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "Płynny timelapse wymaga wieży czyszczącej na każdej warstwie, co jest niekompatybilne z opcją \"Brak warstw bez czyszczenia\". Opcja \"Brak warstw bez czyszczenia\" została wyłączona."
+msgstr "Płynny timelapse wymaga wieży czyszczącej na każdej warstwie, co jest niekompatybilne z opcją „Brak warstw bez czyszczenia”. Opcja „Brak warstw bez czyszczenia” została wyłączona."
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Wieża czyszcząca jest wymagana dla płynnego timelapse'u. Możliwe są wady na modelu bez wieży czyszczącej. Czy chcesz włączyć wieżę czyszczącą?"
@@ -10987,6 +11082,9 @@ msgstr "Notatki"
 
 msgid "Frequent"
 msgstr "Cz.używ."
+
+msgid "Modifier cycle"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11706,9 +11804,6 @@ msgstr "Synchronizuj tylko typ i kolor filamentu, nie uwzględniając informacji
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "Filamenty z listy projektu będą stopniowo wymieniane na filamenty z drukarki. Nieużywane filamenty drukarki zostaną automatycznie dodane na koniec listy."
 
-msgid "Advanced settings"
-msgstr "Ustawienia zaawansowane"
-
 msgid "Add unused AMS filaments to filaments list."
 msgstr "Dodaj nieużywane filamenty AMS do listy filamentów."
 
@@ -12237,7 +12332,7 @@ msgid "Legal & Activation Terms"
 msgstr "Informacje prawne i warunki aktywacji"
 
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
-msgstr "Nie udało się uzyskać Helio PAT, kliknij \"Odśwież\", aby uzyskać go ponownie."
+msgstr "Nie udało się uzyskać Helio PAT, kliknij „Odśwież”, aby uzyskać go ponownie."
 
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr "Nie udało się uzyskać PAT. Limit ilości został osiągnięty, dlatego nie można go pobrać. Kliknij przycisk odświeżania, aby spróbować ponownie."
@@ -12276,7 +12371,7 @@ msgid " for detailed information."
 msgstr " w celu uzyskania szczegółowych informacji."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
-msgstr "Jednocześnie rozumiesz, że ten produkt jest dostarczany w stanie \"takim, jaki jest\", opierając się na "
+msgstr "Jednocześnie rozumiesz, że ten produkt jest dostarczany w stanie „takim, jaki jest”, opierając się na "
 
 msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
 msgstr "a Bambu Lab nie udziela żadnych wyraźnych ani domniemanych gwarancji jakiegokolwiek rodzaju, ani nie może kontrolować efektów działania usługi. W maksymalnym zakresie dozwolonym przez obowiązujące prawo, Bambu Lab ani jego licencjodawcy/powiązane podmioty nie udzielają żadnych wyraźnych ani domniemanych oświadczeń ani gwarancji, w tym między innymi gwarancji dotyczących zbywalności, zadowalającej jakości, przydatności do określonego celu, dokładności, poufności oraz niełamania praw osób trzecich. Z uwagi na charakter usług sieciowych, Bambu Lab nie może zagwarantować, że usługa będzie dostępna w każdym czasie, a Bambu Lab zastrzega sobie prawo do zakończenia usługi w oparciu o odpowiednie okoliczności. Zgadzasz się nie używać tego produktu oraz jego powiązanych aktualizacji do angażowania się w następujące działania:"
@@ -12636,7 +12731,7 @@ msgid "With Enhance Speed & Quality:"
 msgstr "Z udoskonaloną prędkością i jakością:"
 
 msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
-msgstr "To jest czas, który można zaoszczędzić, korzystając z funkcji udoskonalania Helio Additive. Kliknij przycisk \"Udoskonal prędkość i jakość\", aby kontynuować."
+msgstr "To jest czas, który można zaoszczędzić, korzystając z funkcji udoskonalania Helio Additive. Kliknij przycisk „Udoskonal prędkość i jakość”, aby kontynuować."
 
 msgid "Enhance Speed & Quality"
 msgstr "Udoskonal prędkość i jakość"
@@ -12770,6 +12865,9 @@ msgstr "Aktualizuj firmware"
 msgid "Hotends on Rack"
 msgstr "Hotendy w uchwycie"
 
+msgid "Copy Device Info"
+msgstr ""
+
 msgid "Beta version"
 msgstr "Wersja Beta"
 
@@ -12778,9 +12876,6 @@ msgstr "Odświeżanie informacji o hotendzie..."
 
 msgid "Checking version..."
 msgstr "Sprawdzanie wersji..."
-
-msgid "Updating"
-msgstr "Aktualizowanie"
 
 msgid "Updating failed"
 msgstr "Aktualizacja nieudana"
@@ -13156,7 +13251,7 @@ msgid "Smooth mode of timelapse is not supported when \"by object\" sequence is 
 msgstr "Timelapse nie jest obsługiwany, ponieważ sekwencja druku jest ustawiona na \"Według obiektu\"."
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
-msgstr "W trybie drukowania \"według obiektu\" funkcja wykrywania zalepienia dyszy nie działa."
+msgstr "W trybie drukowania „według obiektu” funkcja wykrywania zalepienia dyszy nie działa."
 
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
 msgstr "Wieża czyszcząca jest niezbędna do wykrywania zlepienia dyszy, w przeciwnym razie na modelu mogą pojawić się wady."
@@ -13203,14 +13298,14 @@ msgstr "Wieża czyszcząca wymaga, aby wszystkie obiekty były drukowane na tej 
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Wieża czyszcząca wymaga, aby wszystkie obiekty były cięte na tej samej wysokości warstw."
 
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "Wieża czyszcząca jest wspierana tylko, gdy wszystkie obiekty mają tę samą zmienną wysokość warstwy"
+
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr ""
 
 msgid "Jump to: Precise Z height"
 msgstr ""
-
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "Wieża czyszcząca jest wspierana tylko, gdy wszystkie obiekty mają tę samą zmienną wysokość warstwy"
 
 msgid "Too small line width"
 msgstr "Zbyt mała szerokość linii"
@@ -13668,9 +13763,9 @@ msgid ""
 msgstr ""
 "Określa, jak drukarka zwalnia, gdy minimalny czas warstwy nie zostanie osiągnięty.\n"
 "\n"
-"\"Równomierne chłodzenie\" spowalnia wszystkie elementy wydruku równomiernie (aktualne domyślne zachowanie).\n"
+"„Równomierne chłodzenie” spowalnia wszystkie elementy wydruku równomiernie (aktualne domyślne zachowanie).\n"
 "\n"
-"\"Jednolita powierzchnia\" priorytetowo spowalnia druk podczas wypełnienia i przy wewnętrznych obrysach, pozostawiając prędkość dla zewnętrznego obrysu w celu lepszego wykończenia powierzchni na błyszczących filamentach. Pomaga to zredukować VFA (pionowe drobne artefakty) i utrzymać równomierny połysk powierzchni."
+"„Jednolita powierzchnia” priorytetowo spowalnia druk podczas wypełnienia i przy wewnętrznych obrysach, pozostawiając prędkość dla zewnętrznego obrysu w celu lepszego wykończenia powierzchni na błyszczących filamentach. Pomaga to zredukować VFA (pionowe drobne artefakty) i utrzymać równomierny połysk powierzchni."
 
 msgid "Uniform cooling"
 msgstr "Równomierne chłodzenie"
@@ -13689,7 +13784,7 @@ msgid ""
 msgstr ""
 "Dystans w milimetrach przed końcem spowolnionych obwodów, gdzie pierwotna prędkość druku jest stopniowo przywracana. Zmniejsza to problemy z jakością podczas przechodzenia ze spowolnionych elementów do szybkiego drukowania zewnętrznego obwodu.\n"
 "\n"
-"Dotyczy tylko sytuacji, gdy wybrana jest logika chłodzenia \"Jednolita powierzchnia\".\n"
+"Dotyczy tylko sytuacji, gdy wybrana jest logika chłodzenia „Jednolita powierzchnia”.\n"
 "Zalecana wartość: 5–10 mm. Ustaw na 0, aby wyłączyć."
 
 msgid "Normal printing"
@@ -13711,7 +13806,7 @@ msgid ""
 "\n"
 "Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
-"Przyspieszenie stosowane podczas krótkich ruchów jałowych w pobliżu zewnętrznych obrysów. Krótkie ruchy to przemieszczenia krótsze niż odległość \"Minimalny ruch podczas retrakcji\".\n"
+"Przyspieszenie stosowane podczas krótkich ruchów jałowych w pobliżu zewnętrznych obrysów. Krótkie ruchy to przemieszczenia krótsze niż odległość „Minimalny ruch podczas retrakcji”.\n"
 "\n"
 "Niższe wartości (np. 250–500 mm/s²) redukują artefakty rezonansowe na ostrych narożnikach bez istotnego wpływu na czas drukowania.\n"
 "\n"
@@ -13760,7 +13855,7 @@ msgid "Full fan speed at layer"
 msgstr "Pełna prędkość wentylatora na warstwie"
 
 msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
-msgstr "Prędkość wentylatora pomocniczego będzie zwiększana liniowo od warstwy \"Dla pierwszych\" do maksymalnej prędkości na warstwie \"Pełna prędkość wentylatora na warstwie\". Wartość \"Pełna prędkość wentylatora na warstwie\" zostanie zignorowana, jeśli będzie niższa niż ustawiona w \"Dla pierwszych\". W takim przypadku wentylator będzie pracował z maksymalną dozwoloną prędkością na warstwie \"Dla pierwszych\" + 1."
+msgstr "Prędkość wentylatora pomocniczego będzie zwiększana liniowo od warstwy „Dla pierwszych” do maksymalnej prędkości na warstwie „Pełna prędkość wentylatora na warstwie”. Wartość „Pełna prędkość wentylatora na warstwie” zostanie zignorowana, jeśli będzie niższa niż ustawiona w „Dla pierwszych”. W takim przypadku wentylator będzie pracował z maksymalną dozwoloną prędkością na warstwie „Dla pierwszych” + 1."
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "Ustaw specjalny tryb pracy wentylatora chłodzącego wydruk dla kilku pierwszych warstw. Wentylator chłodzący wydruk dla pierwszej warstwy jest wyłączony, aby uzyskać lepszą przyczepność do płyty roboczej, a później sterowany jest automatycznie."
@@ -14228,7 +14323,7 @@ msgid "Metal stickiness"
 msgstr "Przywieranie do metalu"
 
 msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
-msgstr "Określa, jak mocno filament przywiera do metalowej dyszy i pozostawia resztki. \"Brak\" oznacza filament niestandardowy lub nieprzetestowany i zachowuje się jak \"Niskie\". Niskie: np. PLA – retrakcję można pominąć w wypełnieniach. Średnie: umiarkowana przyczepność – używać ostrożnie. Wysokie: np. PETG – retrakcja nie powinna być pomijana, aby uniknąć wycieków na ścianach zewnętrznych."
+msgstr "Określa, jak mocno filament przywiera do metalowej dyszy i pozostawia resztki. „Brak” oznacza filament niestandardowy lub nieprzetestowany i zachowuje się jak „Niskie”. Niskie: np. PLA – retrakcję można pominąć w wypełnieniach. Średnie: umiarkowana przyczepność – używać ostrożnie. Wysokie: np. PETG – retrakcja nie powinna być pomijana, aby uniknąć wycieków na ścianach zewnętrznych."
 
 msgid "Density"
 msgstr "Gęstość"
@@ -14303,13 +14398,13 @@ msgid "Mixed filament components"
 msgstr "Komponenty mieszanego filamentu"
 
 msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
-msgstr "Indeksy poszczególnych filamentów, oddzielone przecinkami i zaczynające się od 1, np. \"1,3\""
+msgstr "Indeksy poszczególnych filamentów, oddzielone przecinkami i zaczynające się od 1, np. „1,3”"
 
 msgid "Mixed filament sublayer ratios"
 msgstr "Proporcje sub-warstw w mieszanym filamencie"
 
 msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
-msgstr "Wartości proporcji oddzielone przecinkami, których suma wyniesie 1,0, np. \"0,7,0,3\""
+msgstr "Wartości proporcji oddzielone przecinkami, których suma wyniesie 1,0, np. „0,7,0,3”"
 
 msgid "Mixed filament gradient"
 msgstr "Gradient mieszanego filamentu"
@@ -14321,7 +14416,7 @@ msgid "Mixed filament gradient range"
 msgstr "Zakres gradientu mieszanego filamentu"
 
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
-msgstr "Początkowy i końcowy udział pierwszego komponentu w trybie gradientu. Para wartości oddzielona przecinkiem, np. \"0,10,0,90\" oznacza 10%–90%."
+msgstr "Początkowy i końcowy udział pierwszego komponentu w trybie gradientu. Para wartości oddzielona przecinkiem, np. „0,10,0,90” oznacza 10%–90%."
 
 msgid "Mixed filament gradient curve"
 msgstr "Krzywa gradientu filamentu mieszanego"
@@ -14773,29 +14868,14 @@ msgstr "Rozmiar miniatury"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "Decyduje o rozmiarze miniatury przechowywanej w plikach G-code"
 
-msgid "Nozzle type"
-msgstr "Typ dyszy"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "Materiał metaliczny dyszy. To określa odporność na ścieranie dyszy i jakiego rodzaju filament można używać"
-
-msgid "Undefine"
-msgstr "Nieokreślone"
-
-msgid "Hardened steel"
-msgstr "Stal hartowana"
-
-msgid "Stainless steel"
-msgstr "Stal nierdzewna"
-
-msgid "Tungsten carbide"
-msgstr "Węglik wolframu"
-
 msgid "Printer structure"
 msgstr "Struktura drukarki"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "Fizyczne układ i komponenty urządzenia do druku"
+
+msgid "Undefine"
+msgstr "Nieokreślone"
 
 msgid "Best object position"
 msgstr "Najlepsza pozycja obiektu"
@@ -14898,6 +14978,66 @@ msgstr "Szerokość linii szkieletu"
 
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "Dostosuj szerokość linii wybranych ścieżek szkieletu."
+
+msgid "Conformal infill"
+msgstr ""
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr ""
+
+msgid "Layer stagger"
+msgstr ""
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr ""
+
+msgid "Alternate"
+msgstr ""
+
+msgid "Forward layers"
+msgstr ""
+
+msgid "Conformal forward layers"
+msgstr ""
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr ""
+
+msgid "Reverse layers"
+msgstr ""
+
+msgid "Conformal reverse layers"
+msgstr ""
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr ""
+
+msgid "Radial center"
+msgstr ""
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr ""
+
+msgid "Each layer"
+msgstr ""
+
+msgid "Axis"
+msgstr ""
+
+msgid "Smooth curve"
+msgstr ""
+
+msgid "Radial line count"
+msgstr ""
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr ""
+
+msgid "Center region radius"
+msgstr ""
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "Wypełnienie symetryczne względem osi Y"
@@ -15263,7 +15403,7 @@ msgid "Reduce infill retraction"
 msgstr "Zmniejszenie retrakcji wypełnienia"
 
 msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
-msgstr "Kontroluje, czy retrakcja jest pomijana podczas przemieszczania się w obszarze wypełnienia. \"Auto\" włącza tę optymalizację dla filamentów o niskim przywieraniu do metalu (np. PLA) i wyłącza ją dla filamentów o średnim/wysokim przywieraniu (np. PETG), aby zapobiec niepożądanym śladom wycieków z dyszy. \"Włączone\" zawsze pomija retrakcję w obszarach wypełnienia niezależnie od rodzaju filamentu. \"Wyłączone\" zawsze wykonuje normalną retrakcję."
+msgstr "Kontroluje, czy retrakcja jest pomijana podczas przemieszczania się w obszarze wypełnienia. „Auto” włącza tę optymalizację dla filamentów o niskim przywieraniu do metalu (np. PLA) i wyłącza ją dla filamentów o średnim/wysokim przywieraniu (np. PETG), aby zapobiec niepożądanym śladom wycieków z dyszy. „Włączone” zawsze pomija retrakcję w obszarach wypełnienia niezależnie od rodzaju filamentu. „Wyłączone” zawsze wykonuje normalną retrakcję."
 
 msgid "Filename format"
 msgstr "Format nazwy pliku"
@@ -15315,6 +15455,39 @@ msgstr "Alternatywna dodatkowa ściana"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "Dodaj dodatkową ściankę na co drugą warstwę, aby poprawić przyczepność warstw i wytrzymałość elementu bez ponoszenia pełnych kosztów związanych z dodaniem stałej dodatkowej ścianki."
+
+msgid "Periodic modifier"
+msgstr ""
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr ""
+
+msgid "Skip for"
+msgstr ""
+
+msgid "Periodic modifier skip layers"
+msgstr ""
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr ""
+
+msgid "Apply for"
+msgstr ""
+
+msgid "Periodic modifier apply layers"
+msgstr ""
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr ""
+
+msgid "Ignore infill settings"
+msgstr ""
+
+msgid "Modifier ignore infill settings"
+msgstr ""
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
+msgstr ""
 
 msgid "Post-processing Scripts"
 msgstr "Skrypty po procesie"
@@ -16348,6 +16521,9 @@ msgstr "Dzielenie siatki na warstwy"
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "Nie wykryto żadnych warstw. Możliwe, że chcesz naprawić plik(i) STL lub sprawdzić ich rozmiar lub grubość i spróbować ponownie.\n"
 
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr ""
+
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
 "XY Size compensation can not be combined with color-painting."
@@ -16409,6 +16585,9 @@ msgstr "Plik zawiera wielokąty zawierające mniej niż 3 wierzchołki."
 
 msgid "The file contains invalid vertex index."
 msgstr "Plik zawiera nieprawidłowy indeks wierzchołka."
+
+msgid "The file contains invalid texture coordinate index."
+msgstr ""
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Nie można odczytać tego pliku OBJ, ponieważ jest pusty."
@@ -17643,9 +17822,6 @@ msgstr "Usuń profil"
 msgid "+ Add Preset"
 msgstr "+ Dodaj Profil"
 
-msgid "Delete Filament"
-msgstr "Usuń Filament"
-
 msgid "Add Preset"
 msgstr "Dodaj Profil"
 
@@ -17682,7 +17858,7 @@ msgid ""
 "Please click the Sync button above and restart the calibration."
 msgstr ""
 "Typ dyszy nie jest zgodny z aktualnym typem dyszy drukarki.\n"
-"Kliknij przycisk \"Synchronizuj\" powyżej i ponownie uruchom kalibrację."
+"Kliknij przycisk „Synchronizuj” powyżej i ponownie uruchom kalibrację."
 
 #, c-format, boost-format
 msgid ""
@@ -18459,12 +18635,6 @@ msgstr "Bez koloru"
 msgid "Multiple Color"
 msgstr "Wiele kolorów"
 
-msgid "Official Filament"
-msgstr "Oficjalne filamenty"
-
-msgid "More Colors"
-msgstr "Więcej kolorów"
-
 msgid "Search filament"
 msgstr ""
 
@@ -18479,6 +18649,9 @@ msgstr ""
 
 msgid "Recently used"
 msgstr "Ostatnio używane"
+
+msgid "Set nozzle count"
+msgstr ""
 
 msgid "Please set nozzle count"
 msgstr "Proszę ustawić liczbę dysz"
@@ -18804,6 +18977,9 @@ msgstr "Podgląd efektu"
 
 msgid "Select Mixed Materials"
 msgstr "Wybierz mieszane materiały"
+
+msgid "+ Add Material"
+msgstr "+ Dodaj materiał"
 
 msgid "- Delete Material"
 msgstr "- Usuń materiał"
@@ -19170,7 +19346,7 @@ msgid ""
 "Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
 "Drukuj z Nylonu i PC (oraz z innych zaawansowanych materiałów) jak profesjonalista\n"
-"Drukujesz nylonem 612, poliwęglanem lub innymi zaawansowanymi materiałami? Helio pomaga uniknąć sytuacji \"prawie się udało\"."
+"Drukujesz nylonem 612, poliwęglanem lub innymi zaawansowanymi materiałami? Helio pomaga uniknąć sytuacji „prawie się udało”."
 
 #: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
 #: (Safely)]
@@ -19231,6 +19407,109 @@ msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
 
+#~ msgid "Show Labels"
+#~ msgstr "Pokaż etykiety"
+
+#~ msgid "Import Model"
+#~ msgstr "Importuj model"
+
+#~ msgid "Original"
+#~ msgstr "Oryginalny"
+
+#~ msgid "Multi-Color"
+#~ msgstr "Wielokolorowy"
+
+#~ msgid "Your input texture model"
+#~ msgstr "Twój model tekstury wejściowej"
+
+#~ msgid "Processed multi-color model"
+#~ msgstr "Przetworzony model wielokolorowy"
+
+#~ msgid "Smooth Level"
+#~ msgstr "Poziom gładkości"
+
+#~ msgid "Automatically determine the optimal color count only and recompute filament mapping"
+#~ msgstr "Określ automatycznie optymalną liczbę kolorów i przelicz mapowanie filamentów"
+
+#~ msgid "Convert texture to painting using the specified color count and smooth level"
+#~ msgstr "Konwertuj teksturę na malowanie, używając określonej liczby kolorów i poziomu gładkości"
+
+#~ msgid "Reminder: parameters changed, click Apply to take effect"
+#~ msgstr "Przypomnienie: parametry zostały zmienione, kliknij „Zastosuj”, aby zmiany zaczęły obowiązywać"
+
+#~ msgid "Filament Mapping"
+#~ msgstr "Mapowanie filamentów"
+
+#~ msgid "Auto-merge same filament"
+#~ msgstr "Scal automatycznie ten sam filament"
+
+#~ msgid "Skip Matching"
+#~ msgstr "Pomiń dopasowanie"
+
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "Siatka charakteryzuje się geometrią niebędącą rozmaitością lub posiada otwarte granice. Można ją zaimportować w obecnej postaci lub naprawić za pomocą narzędzia Windows 3D Repair Service przed importem."
+
+#~ msgid "Mesh repair"
+#~ msgstr "Naprawa siatki"
+
+#~ msgid "Import without repair"
+#~ msgstr "Importuj bez naprawy"
+
+#~ msgid "Repair and import"
+#~ msgstr "Napraw i importuj"
+
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Należy pamiętać, że siatka ma geometrię niebędącą rozmaitością lub posiada otwarte granice."
+
+#~ msgid "Mesh issue"
+#~ msgstr "Problem z siatką"
+
+#~ msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+#~ msgstr "Nie można wydrukować żadnego obiektu na bieżącej płycie. Cięcie spowoduje utworzenie pustego wyniku. Proszę sprawdzić."
+
+#~ msgid "Show Labels of printing by object in 3D scene"
+#~ msgstr "Pokaż etykiety druku według obiektu w scenie 3D"
+
+#~ msgid "Object too small"
+#~ msgstr "Obiekt zbyt mały"
+
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "Przyczyna:  \"%1%\" wprowadzona automatycznie."
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning"
+#~ msgstr ""
+#~ "- Synchronizacja ustawień drukarki po załadowaniu pliku\n"
+#~ "- Ustawienia okna dialogowego „Załaduj 3MF”\n"
+#~ "- Uruchamianie skryptów przetwarzania końcowego\n"
+#~ "- Monit dotyczący zalecanej struktury podporowej\n"
+#~ "- Niezapisane projekty.\n"
+#~ "- Ostrzeżenie o mieszanej podwarstwie kolorystycznej o zmiennej wysokości warstwy"
+
+#~ msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+#~ msgstr "Ilość filamentu w module AMS może być niewystarczająca do tego wydruku. Uzupełnij go albo wymień."
+
+#~ msgid "Nozzle type"
+#~ msgstr "Typ dyszy"
+
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "Materiał metaliczny dyszy. To określa odporność na ścieranie dyszy i jakiego rodzaju filament można używać"
+
+#~ msgid "Hardened steel"
+#~ msgstr "Stal hartowana"
+
+#~ msgid "Stainless steel"
+#~ msgstr "Stal nierdzewna"
+
+#~ msgid "Tungsten carbide"
+#~ msgstr "Węglik wolframu"
+
 #~ msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
 #~ msgstr "Wzór linii wewnętrznej pełnej warstwy znajdującej się bezpośrednio pod widoczną powierzchnią wierzchnią. Wypełnienie monotoniczne ogranicza widoczność pasm ekstruzji przez warstwę wierzchnią."
 
@@ -19269,27 +19548,6 @@ msgstr ""
 #~ "głębokość blokady powinna być mniejsza niż głębokość skóry.\n"
 #~ "Przywróć do 50%% głębokości skóry"
 
-#, c-format, boost-format
-#~ msgid ", and %d more"
-#~ msgstr ", i %d więcej"
-
-#, c-format, boost-format
-#~ msgid "model \"%s\""
-#~ msgstr "model „%s”"
-
-#~ msgid "support filament"
-#~ msgstr "filament podpory"
-
-#~ msgid "custom G-code"
-#~ msgstr "niestandardowy kod G"
-
-#, c-format, boost-format
-#~ msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
-#~ msgstr "Filament, który usuwasz, jest używany przez %s. Po usunięciu jego przypisanie filamentu zostanie zresetowane."
-
-#~ msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
-#~ msgstr "Uwaga: aby zamiast tego zastąpić filament innym, kliknij filament prawym przyciskiem myszy i użyj funkcji „Sccal z”."
-
 #~ msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 #~ msgstr "Aktualna temperatura stołu roboczego jest stosunkowo wysoka. Dysza może się zatkać podczas drukowania tego filamentu w zamkniętej obudowie. Proszę otworzyć drzwi z przodu i/lub usunąć górną szybę."
 
@@ -19300,23 +19558,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Obiekt z pliku %s jest zbyt mały, może być w metrach lub calach.\n"
 #~ " Czy chcesz przeskalować do milimetrów?"
-
-#~ msgid ""
-#~ "- Sync printer presets after loading a file\n"
-#~ "- \"Load 3MF\" dialog settings\n"
-#~ "- Executing post-processing scripts\n"
-#~ "- Support structure recommendation prompt\n"
-#~ "- Unsaved projects.\n"
-#~ "- Mixed color sublayer with variable layer height warning\n"
-#~ "- Delete a filament used by a model"
-#~ msgstr ""
-#~ "- Synchronizuj ustawienia wstępne drukarki po wczytaniu pliku\n"
-#~ "- Ustawienia okna dialogowego „Wczytaj 3MF”\n"
-#~ "- Wykonywanie skryptów przetwarzania końcowego\n"
-#~ "- Monit rekomendacji struktury podpór\n"
-#~ "- Niezapisane projekty\n"
-#~ "- Ostrzeżenie o podwarstwie o mieszanych kolorach przy zmiennej wysokości warstwy\n"
-#~ "- Usuń filament używany przez model"
 
 #~ msgid "Material"
 #~ msgstr "Materiał"
@@ -20272,9 +20513,6 @@ msgstr ""
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "Dowiedz się więcej o trybie oczyszczania"
-
-#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-#~ msgstr "Filamenty CF/GF są twarde i kruche. Łatwo się łamią lub zacinają w AMS, prosimy o ostrożne korzystanie z nich."
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "Brak dysz o aktualnej średnicy. Kontynuowanie przełączania spowoduje automatyczną zmianę średnicy wszystkich dysz."

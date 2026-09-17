@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
+"POT-Creation-Date: 2026-09-17 19:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -212,6 +212,9 @@ msgstr "PPS-CF je křehký a může se zlomit v ohnuté PTFE trubičce nad tisko
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF je křehký a může se zlomit v ohnuté PTFE trubičce nad tiskovou hlavou."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr ""
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "PLA Glow může opotřebovat první stupeň podavače v AMS. Použijte místo toho externí cívku."
@@ -1551,6 +1554,9 @@ msgstr "Zapuštěná hloubka"
 msgid "Text Gap"
 msgstr "Odsazení textu"
 
+msgid "Line Gap"
+msgstr ""
+
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Varování: Textová matice je zrcadlená; při přetažení bude zcela znovu vygenerována."
 
@@ -1615,6 +1621,14 @@ msgstr "Tučnost"
 msgid "Skew"
 msgstr "Vyosení"
 
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "Zarovnání"
+
+msgid "Align center horizontally"
+msgstr ""
+
 msgid "No symbol"
 msgstr "Žádný symbol"
 
@@ -1635,11 +1649,6 @@ msgstr "Použít povrch"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "Na každý znak"
-
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "Zarovnání"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -2447,11 +2456,11 @@ msgstr "Zneplatnit informace o řezu"
 msgid "Add Primitive"
 msgstr "Přidat primitivní objekt"
 
-msgid "Show Labels by Layer"
-msgstr "Zobrazit popisky podle vrstvy"
+msgid "Add New Plate"
+msgstr ""
 
-msgid "Show Labels by Object"
-msgstr "Zobrazit popisky podle objektu"
+msgid "Add a new plate"
+msgstr ""
 
 msgid "To objects"
 msgstr "Na objekty"
@@ -2591,11 +2600,14 @@ msgstr "Zaplnit tiskovou plochu kopiemi"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "Vyplňte zbývající část tiskové plochy kopiemi vybraného objektu"
 
+msgid "Show Labels by Layer"
+msgstr "Zobrazit popisky podle vrstvy"
+
+msgid "Show Labels by Object"
+msgstr "Zobrazit popisky podle objektu"
+
 msgid "Edit Plate Name"
 msgstr "Upravit název podložky"
-
-msgid "Show Labels"
-msgstr "Zobrazit štítky"
 
 msgid "Name"
 msgstr "Název"
@@ -3861,6 +3873,21 @@ msgstr ""
 msgid "One-click RYBW auto-mix"
 msgstr ""
 
+msgid "Add Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr "Více barev"
+
+msgid "Official Filament"
+msgstr "Oficiální filament"
+
+msgid "Decompose Color"
+msgstr ""
+
+msgid "+ Add Filament"
+msgstr ""
+
 msgid "Project Physical Filaments"
 msgstr ""
 
@@ -3873,47 +3900,50 @@ msgstr ""
 msgid "New Mixed Filaments"
 msgstr ""
 
-msgid "Decompose Color"
-msgstr ""
-
-msgid "+ Add Material"
-msgstr "+ Přidat materiál"
-
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr ""
 
-msgid "Import Model"
+msgid "Updating"
+msgstr "Probíhá aktualizace"
+
+msgid "Simplify Colors"
 msgstr ""
 
-msgid "Original"
+msgid "Filament Matching"
 msgstr ""
 
-msgid "Multi-Color"
+msgid "Import Model: Simplify Colors"
 msgstr ""
 
-msgid "Your input texture model"
+msgid "Original Model"
 msgstr ""
 
-msgid "Processed multi-color model"
+msgid "Simplified"
 msgstr ""
 
 msgid "Color Count"
 msgstr ""
 
-msgid "Smooth Level"
+msgid "Advanced settings"
+msgstr "Pokročilá nastavení"
+
+msgid "Boundary Smoothness"
 msgstr ""
 
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
 msgstr ""
 
-msgid "Convert texture to painting using the specified color count and smooth level"
+msgid "Gap Area"
 msgstr ""
 
-msgid "Reminder: parameters changed, click Apply to take effect"
+msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
 msgstr ""
 
-msgid "Filament Mapping"
+msgid "Automatically determine the optimal color count"
+msgstr ""
+
+msgid "Adjust filament matching"
 msgstr ""
 
 msgid "Reset filament mapping to the state before one-click mixing"
@@ -3922,16 +3952,48 @@ msgstr ""
 msgid "Choose the one-click auto-mix mode for texture color import"
 msgstr ""
 
-msgid "Auto-merge same filament"
+msgid "Some colors have no matching filament. Please match them before importing."
+msgstr ""
+
+msgid "Auto-Add All Filaments"
 msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr ""
 
-msgid "Skip Matching"
+msgid "Automatically merge filaments of the same color and type"
 msgstr ""
 
+msgid "Skip"
+msgstr "Přeskočit"
+
 msgid "Skip filament mapping and import as a single-color model"
+msgstr ""
+
+msgid "Next"
+msgstr "Další"
+
+msgid "Previous"
+msgstr ""
+
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr ""
+
+msgid "Before matching"
+msgstr ""
+
+msgid "After matching"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Before simplification: %d colors"
+msgstr ""
+
+#, c-format, boost-format
+msgid "After simplification: %d colors"
+msgstr ""
+
+msgid "Import Model: Filament Matching"
 msgstr ""
 
 msgid "Processing"
@@ -3943,22 +4005,15 @@ msgstr ""
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr ""
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
 msgstr ""
 
-msgid "Mesh repair"
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr ""
 
-msgid "Import without repair"
-msgstr ""
-
-msgid "Repair and import"
-msgstr ""
-
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr ""
-
-msgid "Mesh issue"
+msgid "Click to select a matching filament"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -4198,9 +4253,6 @@ msgstr "Teplota podložky"
 
 msgid "Start calibration"
 msgstr "Spustit kalibraci"
-
-msgid "Next"
-msgstr "Další"
 
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "Kalibrace byla dokončena. Najděte podle obrázku níže nejrovnoměrněji vytlačenou linii na své vyhřívané podložce a hodnotu uvedenou po její levé straně zadejte do pole faktoru K."
@@ -4896,6 +4948,15 @@ msgid ""
 "No  - Don't use alternate extra wall"
 msgstr ""
 
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr ""
 
@@ -4905,7 +4966,7 @@ msgid ""
 "No  - Keep current settings and alternate extra wall enabled"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5268,6 +5329,12 @@ msgstr "Zkusit znovu"
 
 msgid "Resume"
 msgstr "Pokračovat"
+
+msgid "Loading error details ..."
+msgstr ""
+
+msgid "Unable to load error details."
+msgstr ""
 
 msgid "Unknown error."
 msgstr "Neznámá chyba."
@@ -5958,7 +6025,7 @@ msgstr "Věž pro oddělení trysky zlepšuje kvalitu vícebarevného tisku a je
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Věž pro oddělení trysky přesahuje okraj podložky."
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
 msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
@@ -6065,6 +6132,12 @@ msgstr "Najdete jej v \"Nastavení > Nastavení > Pouze LAN > Přístupový kód
 
 msgid "Invalid input."
 msgstr "Neplatný vstup."
+
+msgid "Network error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
 
 msgid "New Window"
 msgstr "Nové okno"
@@ -6413,9 +6486,6 @@ msgstr "Obnovit výchozí rozložení okna"
 
 msgid "Show Labels of printing by layer in 3D scene"
 msgstr "Zobrazit štítky tisku podle vrstvy ve 3D scéně"
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "Zobrazit štítky tisku podle objektu ve 3D scéně"
 
 msgid "Show &Overhang"
 msgstr "Zobrazit &převis"
@@ -7432,9 +7502,6 @@ msgstr "%s info"
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s informace"
-
-msgid "Skip"
-msgstr "Přeskočit"
 
 msgid "Newer 3mf version"
 msgstr "Novější verze 3mf"
@@ -8554,6 +8621,30 @@ msgstr "Smíšený filament má neplatné nebo neodpovídající složky. Upravt
 msgid "Search plate, object and part."
 msgstr "Hledat podložku, objekt a část."
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr ""
+
+msgid "support filament"
+msgstr ""
+
+msgid "custom G-code"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr ""
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr ""
+
+msgid "Delete Filament"
+msgstr "Smazat filament"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Cílový smíšený filament používá tento fyzický filament jako jednu ze složek. Sloučením bude tento fyzický filament odstraněn a smíšený filament se může stát neplatným. Pokračovat?"
 
@@ -8700,12 +8791,6 @@ msgstr "Objekty s nulovým objemem byly odstraněny"
 
 msgid "The volume of the object is zero"
 msgstr "Objem objektu je nula"
-
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
-
-msgid "Object too small"
-msgstr "Objekt je příliš malý"
 
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
@@ -9319,12 +9404,11 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Důvod: část \"%1%\" neuzavírá objem."
 
 #, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "Důvod: část \"%1%\" se sama protíná."
-
-#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "Důvod: \"%1%\" a jiná část se neprotínají."
+
+msgid "Reason: the meshes have face issues."
+msgstr ""
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Byly zjištěny negativní části. Chcete před exportem provést booleovskou operaci se sítí?"
@@ -9988,7 +10072,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
@@ -10545,13 +10630,22 @@ msgstr "Tvrdost aktuálního materiálu (%s) převyšuje tvrdost %s (%s). Může
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr ""
 
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr ""
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Některé filamenty mohou během tisku přepínat mezi extrudery. Ruční kalibraci hodnoty K nelze použít po celou dobu tisku, což může ovlivnit kvalitu tisku. Doporučuje se povolit kalibraci dynamiky toku."
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
 msgstr ""
 
 msgid "Cool"
@@ -11038,6 +11132,9 @@ msgstr "Poznámky"
 
 msgid "Frequent"
 msgstr "Časté"
+
+msgid "Modifier cycle"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11761,9 +11858,6 @@ msgstr "Synchronizuje se pouze typ a barva filamentu, informace o slotu AMS nejs
 
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "Seznam filamentů projektu bude postupně nahrazen podle filamentů v tiskárně. Nepoužité filamenty tiskárny budou automaticky přidány na konec seznamu."
-
-msgid "Advanced settings"
-msgstr "Pokročilá nastavení"
 
 msgid "Add unused AMS filaments to filaments list."
 msgstr "Přidat nepoužité filamenty AMS do seznamu filamentů."
@@ -12825,6 +12919,9 @@ msgstr "Aktualizovat firmware"
 msgid "Hotends on Rack"
 msgstr "Hotendy na stojanu"
 
+msgid "Copy Device Info"
+msgstr ""
+
 msgid "Beta version"
 msgstr "Beta verze"
 
@@ -12833,9 +12930,6 @@ msgstr "Obnovuji informace o hotendu..."
 
 msgid "Checking version..."
 msgstr "Kontroluje se verze..."
-
-msgid "Updating"
-msgstr "Probíhá aktualizace"
 
 msgid "Updating failed"
 msgstr "Aktualizace selhala"
@@ -13257,14 +13351,14 @@ msgstr "Čisticí věž vyžaduje, aby všechny objekty byly tištěny přes ste
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Čisticí věž vyžaduje, aby všechny objekty byly nařezány se stejnou výškou vrstvy."
 
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "Čisticí věž je podporována pouze tehdy, pokud mají všechny objekty stejnou proměnlivou výšku vrstvy"
+
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr ""
 
 msgid "Jump to: Precise Z height"
 msgstr ""
-
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "Čisticí věž je podporována pouze tehdy, pokud mají všechny objekty stejnou proměnlivou výšku vrstvy"
 
 msgid "Too small line width"
 msgstr "Příliš malá šířka čáry"
@@ -14828,29 +14922,14 @@ msgstr "Velikost miniatury"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "Určuje velikost náhledu uloženého v souborech G-kódu"
 
-msgid "Nozzle type"
-msgstr "Typ trysky"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "Materiál kovové trysky. Určuje odolnost trysky proti abrazivnímu opotřebení a typ filamentu, který lze tisknout"
-
-msgid "Undefine"
-msgstr "Nespecifikováno"
-
-msgid "Hardened steel"
-msgstr "Kalená ocel"
-
-msgid "Stainless steel"
-msgstr "Nerezová ocel"
-
-msgid "Tungsten carbide"
-msgstr "Karbid wolframu"
-
 msgid "Printer structure"
 msgstr "Konstrukce tiskárny"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "Fyzické uspořádání a součásti tiskového zařízení"
+
+msgid "Undefine"
+msgstr "Nespecifikováno"
 
 msgid "Best object position"
 msgstr "Optimální poloha objektu"
@@ -14953,6 +15032,66 @@ msgstr "Šířka čáry kostry"
 
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "Upravte šířku čáry vybraných tras kostry."
+
+msgid "Conformal infill"
+msgstr ""
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr ""
+
+msgid "Layer stagger"
+msgstr ""
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr ""
+
+msgid "Alternate"
+msgstr ""
+
+msgid "Forward layers"
+msgstr ""
+
+msgid "Conformal forward layers"
+msgstr ""
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr ""
+
+msgid "Reverse layers"
+msgstr ""
+
+msgid "Conformal reverse layers"
+msgstr ""
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr ""
+
+msgid "Radial center"
+msgstr ""
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr ""
+
+msgid "Each layer"
+msgstr ""
+
+msgid "Axis"
+msgstr ""
+
+msgid "Smooth curve"
+msgstr ""
+
+msgid "Radial line count"
+msgstr ""
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr ""
+
+msgid "Center region radius"
+msgstr ""
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "Symetrická výplň podle osy Y"
@@ -15369,6 +15508,39 @@ msgid "Alternate extra wall"
 msgstr ""
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
+msgstr ""
+
+msgid "Periodic modifier"
+msgstr ""
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr ""
+
+msgid "Skip for"
+msgstr ""
+
+msgid "Periodic modifier skip layers"
+msgstr ""
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr ""
+
+msgid "Apply for"
+msgstr ""
+
+msgid "Periodic modifier apply layers"
+msgstr ""
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr ""
+
+msgid "Ignore infill settings"
+msgstr ""
+
+msgid "Modifier ignore infill settings"
+msgstr ""
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
 msgstr ""
 
 msgid "Post-processing Scripts"
@@ -16399,6 +16571,9 @@ msgstr "Řezání sítě"
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "Nebyly detekovány žádné vrstvy. Doporučujeme opravit svůj STL soubor či soubory, nebo zkontrolovat jejich velikost a tloušťku a poté to zkusit znovu.\n"
 
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr ""
+
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
 "XY Size compensation can not be combined with color-painting."
@@ -16462,6 +16637,9 @@ msgstr ""
 
 msgid "The file contains invalid vertex index."
 msgstr "Soubor obsahuje neplatný index vrcholu."
+
+msgid "The file contains invalid texture coordinate index."
+msgstr ""
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Tento soubor OBJ nelze načíst, protože je prázdný."
@@ -17738,9 +17916,6 @@ msgstr "Smazat přednastavení"
 msgid "+ Add Preset"
 msgstr "+ Přidat přednastavení"
 
-msgid "Delete Filament"
-msgstr "Smazat filament"
-
 msgid "Add Preset"
 msgstr "Přidat přednastavení"
 
@@ -18562,12 +18737,6 @@ msgstr "Žádná barva"
 msgid "Multiple Color"
 msgstr "Více barev"
 
-msgid "Official Filament"
-msgstr "Oficiální filament"
-
-msgid "More Colors"
-msgstr "Více barev"
-
 msgid "Search filament"
 msgstr ""
 
@@ -18581,6 +18750,9 @@ msgid "slot"
 msgstr ""
 
 msgid "Recently used"
+msgstr ""
+
+msgid "Set nozzle count"
 msgstr ""
 
 msgid "Please set nozzle count"
@@ -18907,6 +19079,9 @@ msgstr "Náhled efektu"
 
 msgid "Select Mixed Materials"
 msgstr "Vybrat smíšené materiály"
+
+msgid "+ Add Material"
+msgstr "+ Přidat materiál"
 
 msgid "- Delete Material"
 msgstr "- Smazat materiál"
@@ -19358,6 +19533,34 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Show Labels"
+#~ msgstr "Zobrazit štítky"
+
+#~ msgid "Show Labels of printing by object in 3D scene"
+#~ msgstr "Zobrazit štítky tisku podle objektu ve 3D scéně"
+
+#~ msgid "Object too small"
+#~ msgstr "Objekt je příliš malý"
+
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "Důvod: část \"%1%\" se sama protíná."
+
+#~ msgid "Nozzle type"
+#~ msgstr "Typ trysky"
+
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "Materiál kovové trysky. Určuje odolnost trysky proti abrazivnímu opotřebení a typ filamentu, který lze tisknout"
+
+#~ msgid "Hardened steel"
+#~ msgstr "Kalená ocel"
+
+#~ msgid "Stainless steel"
+#~ msgstr "Nerezová ocel"
+
+#~ msgid "Tungsten carbide"
+#~ msgstr "Karbid wolframu"
 
 #, c-format, boost-format
 #~ msgid ""
