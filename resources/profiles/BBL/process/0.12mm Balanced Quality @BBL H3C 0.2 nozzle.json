@@ -3,7 +3,6 @@
     "name": "0.12mm Balanced Quality @BBL H3C 0.2 nozzle",
     "inherits": "fdm_process_single_0.12_nozzle_0.2",
     "from": "system",
-    "prime_tower_side_scrape": "1",
     "setting_id": "GP263",
     "instantiation": "true",
     "bridge_speed": [
@@ -88,6 +87,9 @@
     ],
     "prime_tower_brim_width": "-1",
     "prime_tower_line_ironing": "0",
+    "prime_tower_side_scrape": "1",
+    "prime_tower_tail_slowdown_volume": "3",
+    "prime_tower_tail_speed_factor": "50%",
     "prime_tower_width": "60",
     "print_extruder_id": [
         "2",

@@ -3,7 +3,6 @@
     "name": "0.30mm Standard @BBL H3C 0.6 nozzle",
     "inherits": "fdm_process_single_0.30_nozzle_0.6",
     "from": "system",
-    "prime_tower_side_scrape": "1",
     "setting_id": "GP272",
     "instantiation": "true",
     "description": "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time.",
@@ -109,6 +108,9 @@
     "prime_tower_acceleration": "20000",
     "prime_tower_flat_ironing": "1",
     "prime_tower_line_width": "0.8",
+    "prime_tower_side_scrape": "1",
+    "prime_tower_tail_slowdown_volume": "3",
+    "prime_tower_tail_speed_factor": "50%",
     "prime_tower_width": "60",
     "print_extruder_id": [
         "1",
