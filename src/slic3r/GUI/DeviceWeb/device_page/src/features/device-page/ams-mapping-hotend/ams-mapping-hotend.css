@@ -128,15 +128,11 @@
   cursor: default;
 }
 
-/* Dim the *content* of a non-pickable card rather than the card root: the
-   inline edit (pencil) button must stay fully legible because an already-
-   edited third-party filament that no longer matches the slicing job is still
-   editable. Root-level opacity would fade the pencil too (a descendant cannot
-   raise its opacity above its parent), so the muting is applied per content
-   block and deliberately skips the edit button. */
+/* Dim per content block, not the card root: the edit button and the swap icon
+   stay actionable, and a descendant cannot raise its opacity above its parent. */
 .ams-map-hotend__slot-card:is([data-state="MaterialUnmatch"],[data-state="NozzleUnmatch"],[data-state="MaterialEmpty"],[data-state="NozzleEmpty"],[data-state="Unavailable"]) :is(
   .ams-map-hotend__slot-card__head,
-  .ams-map-hotend__slot-card__spool-wrapper,
+  .spool-ring,
   .ams-map-hotend__slot-card__material-name,
   .ams-map-hotend__slot-card__divider,
   .ams-map-hotend__nozzle-info
@@ -152,12 +148,18 @@
 }
 .ams-map-hotend__slot-card:is([data-state="MaterialEmpty"],[data-state="NozzleEmpty"])[data-has-sub-ams="true"] :is(
   .ams-map-hotend__slot-card__head,
-  .ams-map-hotend__slot-card__spool-wrapper,
+  .spool-ring,
   .ams-map-hotend__slot-card__material-name,
   .ams-map-hotend__slot-card__divider,
   .ams-map-hotend__nozzle-info
 ) {
   opacity: 1;
+}
+
+/* The swap icon only renders when the slot can expand into a sub-AMS panel,
+   so its presence always means clickable. */
+.ams-map-hotend__slot-card[data-has-sub-ams="true"] {
+  cursor: pointer;
 }
 
 
@@ -385,6 +387,7 @@
   width: 20px;
   height: 20px;
   pointer-events: none;
+  opacity: 1;
 }
 
 /* ---------- Sub-AMS badge on SlotCard ---------- */
