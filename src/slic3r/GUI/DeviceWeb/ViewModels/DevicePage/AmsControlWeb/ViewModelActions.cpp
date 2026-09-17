@@ -3,7 +3,6 @@
 #include "ViewModel.hpp"
 
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.h"
-#include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSSetting.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -84,24 +83,6 @@ void show_ams_level_humidity_tip(int humidity_value)
     popup->Popup();
 }
 
-// AMSDryCtrWin has no static modal entry on this branch, so drive it the way
-// AMSControl does: seed the ams id, push one state update, then run it modal.
-// The dialog is a modal here (not an AMSControl member) so it gets no periodic
-// refresh; the single update before ShowModal is what fills it.
-void show_ams_dry_ctr_win(MachineObject* machine_obj, const std::string& ams_id)
-{
-    wxWindow* parent = wxGetApp().mainframe;
-    if (!parent) return;
-
-    auto fila_system = machine_obj->GetFilaSystem();
-    if (!fila_system) return;
-
-    AMSDryCtrWin dlg(parent);
-    dlg.set_ams_id(ams_id);
-    dlg.update(fila_system, machine_obj);
-    dlg.ShowModal();
-}
-
 void open_humidity(const std::string& ams_id)
 {
     auto*          dev_mgr     = wxGetApp().getDeviceManager();
@@ -123,7 +104,7 @@ void open_humidity(const std::string& ams_id)
 
     if (machine_obj->is_support_remote_dry &&
         (type == DevAmsType::N3F || type == DevAmsType::N3S)) {
-        show_ams_dry_ctr_win(machine_obj, ams_id);
+        OpenAmsDryControlDialog(machine_obj, ams_id);
         return;
     }
 

@@ -7,7 +7,11 @@
 
 #include <wx/colour.h>
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r {
+
+class MachineObject;
+
+namespace GUI {
 
 // Snapshot of the filament the user just applied in AMSMaterialsSetting. Lets
 // the send-to-print page sync the edited slot without waiting for the device
@@ -38,6 +42,9 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
 // AmsReplaceMaterialDialog ("Auto Refill"). Same popup AMSControl posts via
 // EVT_AMS_FILAMENT_BACKUP. Must run on the UI thread.
 void OpenAmsAutoRefillDialog();
+
+// AMSDryCtrWin ("Drying") for the N3F / N3S unit `ams_id`. Runs modal
+void OpenAmsDryControlDialog(MachineObject* machine_obj, const std::string& ams_id);
 
 }} // namespace Slic3r::GUI
 

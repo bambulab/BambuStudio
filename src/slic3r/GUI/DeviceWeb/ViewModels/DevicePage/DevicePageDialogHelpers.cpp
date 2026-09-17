@@ -1,5 +1,6 @@
 #include "DevicePageDialogHelpers.h"
 
+#include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
 #include "slic3r/GUI/AMSRFIDMaterialView.hpp"
 #include "slic3r/GUI/EncodedFilament.hpp"
@@ -12,6 +13,40 @@
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 
 namespace Slic3r { namespace GUI {
+
+namespace {
+
+// Same cadence as the monitor page refresh (Monitor.cpp REFRESH_INTERVAL).
+constexpr int AMS_DRY_CTR_REFRESH_INTERVAL_MS = 1000;
+
+// Feeds the ownerless drying dialog with the state of the selected machine,
+// which is what AMSControl::UpdateAmsDryControl does for the AMSControl-owned
+// instance. Notify() is overridden instead of posting wxEVT_TIMER because
+// AMSDryCtrWin binds its progress timer with wxID_ANY and would swallow the
+// event.
+class AmsDryCtrRefreshTimer : public wxTimer
+{
+public:
+    explicit AmsDryCtrRefreshTimer(AMSDryCtrWin* dlg) : m_dlg(dlg) {}
+
+    void Notify() override
+    {
+        auto*          dev_mgr     = wxGetApp().getDeviceManager();
+        MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+        std::shared_ptr<DevFilaSystem> fila_system = machine_obj ? machine_obj->GetFilaSystem() : nullptr;
+        if (!fila_system) {
+            m_dlg->Close();
+            return;
+        }
+
+        m_dlg->update(fila_system, machine_obj);
+    }
+
+private:
+    AMSDryCtrWin* m_dlg;
+};
+
+} // namespace
 
 std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id, bool view_only)
 {
@@ -135,6 +170,24 @@ void OpenAmsAutoRefillDialog()
     AmsReplaceMaterialDialog dlg(parent);
     dlg.update_machine_obj(machine_obj);
     dlg.ShowModal();
+}
+
+void OpenAmsDryControlDialog(MachineObject* machine_obj, const std::string& ams_id)
+{
+    wxWindow* parent = wxGetApp().mainframe;
+    if (!machine_obj || !parent || ams_id.empty()) return;
+
+    auto fila_system = machine_obj->GetFilaSystem();
+    if (!fila_system) return;
+
+    AMSDryCtrWin dlg(parent);
+    dlg.set_ams_id(ams_id);
+    dlg.update(fila_system, machine_obj);
+
+    AmsDryCtrRefreshTimer refresh_timer(&dlg);
+    refresh_timer.Start(AMS_DRY_CTR_REFRESH_INTERVAL_MS);
+    dlg.ShowModal();
+    refresh_timer.Stop();
 }
 
 }} // namespace Slic3r::GUI
