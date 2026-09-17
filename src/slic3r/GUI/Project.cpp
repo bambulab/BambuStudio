@@ -198,7 +198,15 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         //file info
         std::string file_path = encode_path(wxGetApp().plater()->model().get_auxiliary_file_temp_path().c_str());
         if (!file_path.empty()) {
-            files = Reload(file_path);
+            // A malformed auxiliary directory must not take the whole process down: this runs on a
+            // worker thread, where an escaping exception ends up in std::terminate.
+            try {
+                files = Reload(file_path);
+            }
+            catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(error) << "Failed reloading the auxiliary files: " << e.what();
+                files.clear();
+            }
         }
         else {
             clear_model_info();
@@ -888,14 +896,23 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
     }
 
     // Load from new path
+    // Only sub directories are scanned below. A 3mf package may legally place plain files
+    // directly under Auxiliaries/, constructing a directory_iterator on those would throw.
     for (fs::directory_iterator iter(new_aux_path); iter != iter_end; iter++) {
-        wxString path = iter->path().generic_wstring();
+        boost::system::error_code ec;
+        if (!fs::is_directory(iter->path(), ec) || ec) continue;
         dir_cache.push_back(iter->path());
     }
 
 
     for (auto dir : dir_cache) {
-        for (fs::directory_iterator iter(dir); iter != iter_end; iter++) {
+        boost::system::error_code dir_ec;
+        fs::directory_iterator iter(dir, dir_ec);
+        if (dir_ec) {
+            BOOST_LOG_TRIVIAL(error) << "Failed iterating the auxiliary directory: " << dir_ec.message();
+            continue;
+        }
+        for (; iter != iter_end; iter++) {
             if (fs::is_directory(iter->path())) continue;
 
             json pfile_obj;
