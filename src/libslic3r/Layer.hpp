@@ -107,6 +107,9 @@ public:
                             // BBS multi-diameter: a merged wall is supported from below its group bottom,
                             // not from the physical layer immediately below its group top.
                             const ExPolygons      *lower_slices_override = nullptr,
+                            // BBS multi-diameter: compare a group top against the next printed slab,
+                            // not against a physical layer swallowed by that slab.
+                            const ExPolygons      *upper_slices_override = nullptr,
                             // Preserve the patch's fill boundary and surface roles without emitting walls.
                             bool                   fill_only = false,
                             // The merged span starts at object layer 0 even when it is emitted on a later layer.

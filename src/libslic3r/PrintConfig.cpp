@@ -165,6 +165,26 @@ int multi_nozzle_wall_loops(double nozzle_diameter, int preset_value)
     return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 4, 2, 2, 2 });
 }
 
+int multi_nozzle_top_shell_layers(double nozzle_diameter, int preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 7, 5, 3, 3 });
+}
+
+double multi_nozzle_top_shell_thickness(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.8, 1.0, 0.8, 0.8 });
+}
+
+int multi_nozzle_top_color_penetration_layers(double nozzle_diameter, int preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 7, 5, 3, 3 });
+}
+
+int multi_nozzle_bottom_color_penetration_layers(double nozzle_diameter, int preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 5, 3, 3, 3 });
+}
+
 double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value)
 {
     return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.1, 0.2, 0.2, 0.2 });

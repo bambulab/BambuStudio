@@ -2189,6 +2189,10 @@ inline constexpr const char *default_single_nozzle_printer_variant() { return "0
 double multi_nozzle_retraction_length(double nozzle_diameter, double preset_value);
 double multi_nozzle_ironing_inset(double nozzle_diameter, double preset_value);
 int    multi_nozzle_wall_loops(double nozzle_diameter, int preset_value);
+int    multi_nozzle_top_shell_layers(double nozzle_diameter, int preset_value);
+double multi_nozzle_top_shell_thickness(double nozzle_diameter, double preset_value);
+int    multi_nozzle_top_color_penetration_layers(double nozzle_diameter, int preset_value);
+int    multi_nozzle_bottom_color_penetration_layers(double nozzle_diameter, int preset_value);
 double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value);
 double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value);
 

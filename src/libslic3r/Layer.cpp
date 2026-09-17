@@ -286,7 +286,7 @@ void Layer::make_perimeters()
                     // to pass through shell discovery, otherwise a solid layer inside the band disappears
                     // before combine_adaptive_infill() can promote it.
                     lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap,
-                                        this->loop_nodes, 0., true, nullptr, true);
+                                        this->loop_nodes, 0., true, nullptr, nullptr, true);
                     return;
                 }
 
@@ -308,8 +308,27 @@ void Layer::make_perimeters()
                 // support and hide overhangs that start below the band bottom.
                 const ExPolygons *lower_slices = patch.bottom_idx > 0 ?
                     &this->object()->get_layer(int(patch.bottom_idx - 1))->lslices : nullptr;
+
+                ExPolygons upper_slices_storage;
+                const ExPolygons *upper_slices = nullptr;
+                if (patch.top_idx + 1 < this->object()->layer_count()) {
+                    // The next physical layer may be swallowed by another adaptive band. Build the
+                    // footprint that band will actually extrude so top-only walls see the real ceiling.
+                    const Layer *upper_layer = this->object()->get_layer(int(patch.top_idx + 1));
+                    Polygons upper_footprint;
+                    for (const LayerRegion *upper_region : upper_layer->regions()) {
+                        if (upper_region->adaptive_merge_patches.empty()) {
+                            polygons_append(upper_footprint, to_polygons(upper_region->slices.surfaces));
+                        } else {
+                            for (const AdaptiveMergePatch &upper_patch : upper_region->adaptive_merge_patches)
+                                polygons_append(upper_footprint, to_polygons(upper_patch.area()));
+                        }
+                    }
+                    upper_slices_storage = union_ex(upper_footprint);
+                    upper_slices = &upper_slices_storage;
+                }
                 lm->make_perimeters(core_slices, perimeter_regions, out_fill, out_no_overlap,
-                                    this->loop_nodes, patch.merged_height, true, lower_slices, false,
+                                    this->loop_nodes, patch.merged_height, true, lower_slices, upper_slices, false,
                                     patch.bottom_idx == 0);
             };
 

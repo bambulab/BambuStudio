@@ -2206,6 +2206,29 @@ static bool layer_skips_periodic_modifier(const PrintObject &object, int layer_i
     return false;
 }
 
+struct EffectiveTopShellParameters
+{
+    int    layers;
+    double thickness;
+};
+
+static EffectiveTopShellParameters effective_top_shell_parameters(
+    const PrintObject &object, const PrintRegionConfig &config, double base_layer_height)
+{
+    EffectiveTopShellParameters out { config.top_shell_layers.value, config.top_shell_thickness.value };
+    if (! multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()))
+        return out;
+
+    const double nozzle_diameter = nozzle_diameter_for_filament(
+        object.print()->config(), (unsigned int) config.solid_infill_filament.value);
+    out.layers = multi_nozzle_top_shell_layers(nozzle_diameter, out.layers);
+    out.layers *= int(adaptive_layer_band_size(
+        nozzle_diameter, layer_grid_nozzle_diameter(object.print()->full_print_config()), base_layer_height));
+    out.thickness = multi_nozzle_top_shell_thickness(nozzle_diameter, out.thickness);
+    return out;
+}
+
+
 void PrintObject::discover_vertical_shells()
 {
     PROFILE_FUNC();
@@ -2398,14 +2421,16 @@ void PrintObject::discover_vertical_shells()
                         }
                     };
                     static constexpr const bool one_more_layer_below_top_bottom_surfaces = false;
-			        if (int n_top_layers = region_config.top_shell_layers.value; n_top_layers > 0) {
+                    const EffectiveTopShellParameters top_shell = effective_top_shell_parameters(
+                        *this, region_config, m_slicing_params.layer_height);
+			        if (top_shell.layers > 0) {
                         // Gather top regions projected to this layer.
                         coordf_t print_z = layer->print_z;
                         int i = int(idx_layer) + 1;
-                        int itop = int(idx_layer) + n_top_layers;
+                        int itop = int(idx_layer) + top_shell.layers;
                         bool at_least_one_top_projected = false;
 	                    for (; i < int(cache_top_botom_regions.size()) &&
-	                         (i < itop || m_layers[i]->print_z - print_z < region_config.top_shell_thickness - EPSILON);
+	                         (i < itop || m_layers[i]->print_z - print_z < top_shell.thickness - EPSILON);
 	                        ++ i) {
                             at_least_one_top_projected = true;
 	                        const DiscoverVerticalShellsCacheEntry &cache = cache_top_botom_regions[i];
@@ -2426,7 +2451,7 @@ void PrintObject::discover_vertical_shells()
 
                         if (one_more_layer_below_top_bottom_surfaces)
                             if (i < int(cache_top_botom_regions.size()) &&
-                                (i <= itop || m_layers[i]->bottom_z() - print_z < region_config.top_shell_thickness - EPSILON))
+                                (i <= itop || m_layers[i]->bottom_z() - print_z < top_shell.thickness - EPSILON))
                                 combine_holes(cache_top_botom_regions[i].holes);
 	                }
 	                if (int n_bottom_layers = region_config.bottom_shell_layers.value; n_bottom_layers > 0) {
@@ -3966,6 +3991,8 @@ void PrintObject::discover_horizontal_shells()
             Layer* layer = m_layers[i];
             LayerRegion* layerm = layer->regions()[region_id];
             const PrintRegionConfig& region_config = layerm->region().config();
+            const EffectiveTopShellParameters top_shell = effective_top_shell_parameters(
+                *this, region_config, m_slicing_params.layer_height);
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
             if (region_config.ensure_vertical_shell_thickness.value!=EnsureVerticalThicknessLevel::evtDisabled)
                 continue;
@@ -3975,7 +4002,7 @@ void PrintObject::discover_horizontal_shells()
             for (size_t idx_surface_type = 0; idx_surface_type < 3; ++idx_surface_type) {
                 m_print->throw_if_canceled();
                 SurfaceType type = (idx_surface_type == 0) ? stTop : (idx_surface_type == 1) ? stBottom : stBottomBridge;
-                int num_solid_layers = (type == stTop) ? region_config.top_shell_layers.value : region_config.bottom_shell_layers.value;
+                int num_solid_layers = (type == stTop) ? top_shell.layers : region_config.bottom_shell_layers.value;
                 if (num_solid_layers == 0)
                     continue;
                 // Find slices of current type for current layer.
@@ -4007,7 +4034,7 @@ void PrintObject::discover_horizontal_shells()
                 for (int n = (type == stTop) ? int(i) - 1 : int(i) + 1;
                     (type == stTop) ?
                     (n >= 0 && (int(i) - n < num_solid_layers ||
-                        print_z - m_layers[n]->print_z < region_config.top_shell_thickness.value - EPSILON)) :
+                        print_z - m_layers[n]->print_z < top_shell.thickness - EPSILON)) :
                     (n < int(m_layers.size()) && (n - int(i) < num_solid_layers ||
                         m_layers[n]->bottom_z() - bottom_z < region_config.bottom_shell_thickness.value - EPSILON));
                     (type == stTop) ? --n : ++n)

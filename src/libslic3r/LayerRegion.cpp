@@ -127,7 +127,7 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes, double perimeter_layer_height, bool clear_outputs, const ExPolygons *lower_slices_override, bool fill_only, bool starts_at_object_base)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes, double perimeter_layer_height, bool clear_outputs, const ExPolygons *lower_slices_override, const ExPolygons *upper_slices_override, bool fill_only, bool starts_at_object_base)
 {
     if (clear_outputs && ! fill_only) {
         this->perimeters.clear();
@@ -179,7 +179,9 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
     else if (this->layer()->lower_layer != nullptr)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->lslices;
-    if (this->layer()->upper_layer != NULL)
+    if (upper_slices_override != nullptr)
+        g.upper_slices = upper_slices_override;
+    else if (this->layer()->upper_layer != NULL)
         g.upper_slices = &this->layer()->upper_layer->lslices;
 
     g.layer_id              = (int)this->layer()->id();
