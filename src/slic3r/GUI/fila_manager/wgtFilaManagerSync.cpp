@@ -296,13 +296,18 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
 
         if (m_store->update_spool_if_changed(updated)) {
             any_changed = true;
-            const FilamentSpool* persisted = m_store->get_spool(matched->spool_id);
-            const std::string&   tag       = persisted ? persisted->tag_uid : matched->tag_uid;
-            changed.push_back({
-                matched->spool_id,
-                tag,
-                net_weight_g
-            });
+            const bool manual_rfid_bind =
+                FilamentSpool::is_valid_tag_uid(matched->tag_uid) &&
+                !FilamentSpool::is_valid_tag_uid(tray.tag_uid);
+            if (!manual_rfid_bind) {
+                const FilamentSpool* persisted = m_store->get_spool(matched->spool_id);
+                const std::string&   tag       = persisted ? persisted->tag_uid : matched->tag_uid;
+                changed.push_back({
+                    matched->spool_id,
+                    tag,
+                    net_weight_g
+                });
+            }
         }
     };
 

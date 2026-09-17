@@ -1085,6 +1085,12 @@ void wgtFilaManagerCloudSync::sync_slot_mappings_to_cloud(
             << " slotId=" << snap.slot_id;
     }
 
+    if (params.mappings.empty()) {
+        BOOST_LOG_TRIVIAL(info)
+            << "[FilaCloudSync] sync_slot_mappings_to_cloud: no valid mappings, skip send";
+        return;
+    }
+
     m_client->sync_slot_mappings(std::move(params),
         [](const nlohmann::json&) {},
         [dev_id](int code, const std::string& msg) {

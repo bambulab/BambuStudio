@@ -975,25 +975,26 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     if (!save_pa_profile_selection())
         return;
 
-    // When the user picked a Filament Manager spool, immediately update its
-    // in-printer snapshot without waiting for the next MQTT push_status.
     if (!m_selected_spool_id.empty()) {
         auto* store = wxGetApp().fila_manager_store();
         if (store) {
-            // Resolve ams_type from the device object.
             int resolved_ams_type = -1;
             if (auto* ams_obj = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id)))
                 resolved_ams_type = static_cast<int>(ams_obj->GetAmsType());
+
+            std::string resolved_ams_sn;
+            const auto ver_map = obj->get_ams_version();
+            auto vit = ver_map.find(ams_id);
+            if (vit != ver_map.end())
+                resolved_ams_sn = vit->second.sn;
 
             if (store->force_mount_spool(m_selected_spool_id,
                                          obj->get_dev_id(),
                                          obj->get_dev_name(),
                                          ams_id,
                                          resolved_ams_type,
-                                         std::to_string(slot_id))) {
-                // 手动绑定卷通过 slot-mappings/sync 上报绑定关系到云端。
-                // 官方 RFID 卷（tag_uid 有效）不走此路径（它们由 MQTT sync 自动
-                // 更新 in-printer 状态；手动绑定通常只针对无 RFID 的手动录入卷）。
+                                         std::to_string(slot_id),
+                                         resolved_ams_sn)) {
                 if (auto* cloud = wxGetApp().fila_manager_cloud_sync()) {
                     cloud->sync_slot_bindings_to_cloud(obj->get_dev_id(),
                                                        {m_selected_spool_id},
