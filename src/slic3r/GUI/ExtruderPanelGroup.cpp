@@ -258,8 +258,8 @@ void ExtruderPanelGroup::LayoutBadge()
     wxSize panel_size = GetSize();
     wxSize badge_size = m_badge->GetBestSize();
 
-    int x = panel_size.x - badge_size.x - FromDIP(8);
-    int y = FromDIP(8);
+    int x = panel_size.x - badge_size.x;
+    int y = 0;
 
     m_badge->SetPosition(wxPoint(x, y));
 }

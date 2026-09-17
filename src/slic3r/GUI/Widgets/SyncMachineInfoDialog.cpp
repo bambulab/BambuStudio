@@ -10,10 +10,11 @@
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
-#include "slic3r/GUI/Plater.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -40,7 +41,7 @@ struct HotendEntry
     int                      filament_remain{100}; // 0..100, drives the spool's partial arc
     wxString                 nozzle_diameter;      // "0.4 mm"
     wxString                 nozzle_flow_type;     // "Standard" / "High Flow"
-    bool                     syncing{false};       // drives the rotating arc in the card header
+    bool                     syncing{false};       // true while the printer reports any of this hotend's filament as being read
     bool                     is_hotend{true};
     NozzleCardState          nozzle_state{NozzleCardState::Normal};
 };
@@ -68,6 +69,25 @@ int nozzle_id(const DevNozzle &n)
 {
     if (auto a = n.GetAddrId()) return a.value();
     return n.GetNozzleId();
+}
+
+// AMS slots whose read state this hotend follows: the current feed bind plus any
+// distinct preload slot. Binds to an external spool are left out — no AMS unit
+// sits behind them, so there is nothing to report.
+std::vector<DevAmsSlotId> CollectRefreshSlots(MachineObject *obj, const DevNozzle &n)
+{
+    std::vector<DevAmsSlotId> slots;
+    auto                      fila_sys = obj ? obj->GetFilaSystem() : nullptr;
+    if (!fila_sys) return slots;
+
+    auto append = [&](const DevAmsSlotId &slot) {
+        // An external spool bind has no reader, so it must never reach the refresh command.
+        if (fila_sys->IsVirtualTrayId(std::to_string(slot.first))) return;
+        if (std::find(slots.begin(), slots.end(), slot) == slots.end()) slots.push_back(slot);
+    };
+    for (const auto &slot : n.GetBindAmsSlots()) append(slot);
+    for (const auto &slot : n.GetPreloadBindAmsSlots()) append(slot);
+    return slots;
 }
 
 // Resolve a HotendEntry from the live device model
@@ -109,7 +129,14 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
                 e.filament_colors = tray.cols;
                 e.is_gradient     = (tray.ctype == DevFilaColorType::CTYPE_GRADIANT);
             }
-            e.syncing = tray.is_reading(obj->tray_reading_bits);
+        }
+    }
+
+    // Any of this hotend's slots being read keeps its card spinning, preload included.
+    for (const auto &[ams_id, slot_id] : CollectRefreshSlots(obj, n)) {
+        if (auto tray = obj->get_tray(ams_id, slot_id); tray.has_value() && tray->is_reading(obj->tray_reading_bits)) {
+            e.syncing = true;
+            break;
         }
     }
 
@@ -140,8 +167,10 @@ std::vector<HotendEntry> CollectHotendEntries(MachineObject *obj)
     for (const auto &kv : nozzle_sys->GetRackNozzles()) nozzles_by_id[nozzle_id(kv.second)] = &kv.second;
     for (const auto &kv : nozzle_sys->GetExtNozzles()) nozzles_by_id.emplace(nozzle_id(kv.second), &kv.second);
 
-    entries.resize(nozzles_by_id.size());
-    for (const auto &[id, np] : nozzles_by_id) { entries[id] = make_hotend(obj, *np); }
+    // The map walks nozzles in ascending id — the order the card grid and the
+    // poll update rely on. Add in that order; never index by id, which may be sparse.
+    entries.reserve(nozzles_by_id.size());
+    for (const auto &[_, np] : nozzles_by_id) entries.push_back(make_hotend(obj, *np));
     return entries;
 }
 
@@ -359,7 +388,7 @@ MeasuredText MeasureNameTruncated(wxGraphicsContext *gc, const wxString &name_in
 //   |        ●●●●        |
 //   |       ●    ●       |
 //   |      ●  ◯   ● ━━   |   <-- spool   : disc + filament-tag + name below
-//   |       ●    ●       |              when syncing: rotated refresh_nozzle.svg fills this zone
+//   |       ●    ●       |              when syncing: rotated sync_loading_arc fills this zone
 //   |        ●●●●        |
 //   |     Filament name  |
 //   |  [hot]  0.4 mm     |   <-- hotend  : nozzle bitmap + diameter/flow
@@ -373,33 +402,27 @@ class HotendColumn : public wxPanel
 public:
     HotendColumn(wxWindow *parent, const HotendEntry &entry);
     void UpdateEntry(const HotendEntry &entry);
-    bool IsSpinning() const { return m_spinning; }
-    bool IsFilamentLoaded() const { return m_entry.filament_loaded; }
-    bool IsRefreshable() const { return m_entry.nozzle_state == NozzleCardState::Normal && !m_entry.filament_loaded; }
 
-    // Spin starts on user click and runs for kAutoStopMs unless StopSpin() is
-    // called sooner (poll observed filament_loaded or dialog tearing down).
-    void StartSpin();
-    void StopSpin();
+    // True while the printer reports this hotend's filament as being read. The
+    // printer ends a read, not this dialog, so a spinning card always means a
+    // read is really in flight.
+    bool IsSpinning() const { return m_entry.syncing; }
 
 private:
     void OnPaint(wxPaintEvent &event);
+    void UpdateAnimTimer();
 
     void PaintHeader(wxGraphicsContext *gc, const wxRect &r);
     void PaintSpool(wxGraphicsContext *gc, const wxRect &r, const std::vector<wxColour> &palette);
     void PaintHotend(wxGraphicsContext *gc, const wxRect &r);
 
-    static constexpr int kAutoStopMs = 2000;
-
     HotendEntry    m_entry;
-    bool           m_spinning{false};
-    double         m_spin_angle{0.0};       // radians, advanced while spinning
-    wxTimer        m_anim_timer;            // 33ms tick that advances m_spin_angle
-    wxTimer        m_auto_stop_timer;       // single-shot 2s auto-clear
-    ScalableBitmap m_nozzle_bmp;              // hotend glyph for every state (this dialog's own icon)
-    ScalableBitmap m_nozzle_error_badge_bmp;  // red "!" badge overlaid when abnormal (device-page hotend_error_badge)
-    ScalableBitmap m_nozzle_unknown_badge_bmp;// grey "?" badge overlaid when unknown (device-page hotend_unknown_badge)
-    ScalableBitmap m_spinner_bmp;             // sync_loading_arc.svg, rotated by m_spin_angle while spinning
+    double         m_spin_angle{0.0};          // radians, advanced while spinning
+    wxTimer        m_anim_timer;               // 33ms tick that advances m_spin_angle
+    ScalableBitmap m_nozzle_bmp;               // hotend glyph for every state (this dialog's own icon)
+    ScalableBitmap m_nozzle_error_badge_bmp;   // red "!" badge overlaid when abnormal (device-page hotend_error_badge)
+    ScalableBitmap m_nozzle_unknown_badge_bmp; // grey "?" badge overlaid when unknown (device-page hotend_unknown_badge)
+    ScalableBitmap m_spinner_bmp;              // sync_loading_arc.svg, rotated by m_spin_angle while spinning
 };
 
 HotendColumn::HotendColumn(wxWindow *parent, const HotendEntry &entry) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_entry(entry)
@@ -420,31 +443,26 @@ HotendColumn::HotendColumn(wxWindow *parent, const HotendEntry &entry) : wxPanel
         if (m_spin_angle > 2 * M_PI) m_spin_angle -= 2 * M_PI;
         Refresh();
     });
-    m_auto_stop_timer.Bind(wxEVT_TIMER, [this](wxTimerEvent &) { StopSpin(); });
 }
 
-void HotendColumn::StartSpin()
+// Run the rotation only while a read is in flight, so the card never animates
+// for a read the printer has already finished.
+void HotendColumn::UpdateAnimTimer()
 {
-    m_spinning = true;
-    if (!m_anim_timer.IsRunning()) m_anim_timer.Start(33);
-    m_auto_stop_timer.Start(kAutoStopMs, wxTIMER_ONE_SHOT);
-    Refresh();
-}
-
-void HotendColumn::StopSpin()
-{
-    if (!m_spinning) return;
-    m_spinning = false;
-    m_anim_timer.Stop();
-    m_auto_stop_timer.Stop();
-    Refresh();
+    if (IsSpinning()) {
+        if (!m_anim_timer.IsRunning()) m_anim_timer.Start(33);
+    } else {
+        m_anim_timer.Stop();
+    }
 }
 
 void HotendColumn::UpdateEntry(const HotendEntry &entry)
 {
     m_entry = entry;
-    if (m_entry.filament_loaded) StopSpin();
 
+    // Re-check the anim timer so the card stops as soon as the printer clears
+    // its reading flag — the flag, not this poll, decides when the read ends.
+    UpdateAnimTimer();
     Refresh();
 }
 
@@ -543,24 +561,12 @@ void HotendColumn::PaintSpool(wxGraphicsContext *gc, const wxRect &r, const std:
 
     // The label under the disc doubles as the status line for non-normal nozzles.
     wxColour label_colour = C(ThemeColor::TextPrimary);
-    wxString raw_name;
-    switch (m_entry.nozzle_state) {
-    case NozzleCardState::Abnormal:
-        raw_name     = _L("Error");
-        label_colour = C(ThemeColor::Danger);
-        break;
-    case NozzleCardState::Unknown:
-        raw_name     = _L("Unknown");
-        label_colour = C(ThemeColor::TextMuted);
-        break;
-    case NozzleCardState::Empty: raw_name = "--"; break;
-    default: raw_name = m_entry.filament_name.empty() ? wxString("--") : wxString::FromUTF8(m_entry.filament_name); break;
-    }
+    wxString filament_name = m_entry.filament_name.empty() ? wxString("--") : wxString::FromUTF8(m_entry.filament_name);
 
     wxFont f = *wxNORMAL_FONT;
     f.SetPointSize(f.GetPointSize() - 1);
     gc->SetFont(f, label_colour);
-    auto [name, tw, th] = MeasureNameTruncated(gc, raw_name, r.width - FromDIP(8));
+    auto [name, tw, th] = MeasureNameTruncated(gc, filament_name, r.width - FromDIP(8));
 
     const int gap_disc_name = FromDIP(4);
     const int group_h       = diam + gap_disc_name + th;
@@ -629,7 +635,7 @@ void HotendColumn::PaintHotend(wxGraphicsContext *gc, const wxRect &r)
 class SyncMachineInfoDialog : public DPIDialog
 {
 public:
-    SyncMachineInfoDialog(wxWindow *parent, MachineObject *obj, const std::vector<HotendEntry> &entries, std::vector<std::vector<DevAmsSlotId>> unloaded_groups);
+    SyncMachineInfoDialog(wxWindow *parent, MachineObject *obj, const std::vector<HotendEntry> &entries);
     void on_dpi_changed(const wxRect &) override {}
 
 private:
@@ -642,22 +648,24 @@ private:
 
     MachineObject *m_obj{nullptr};
 
-    std::vector<std::vector<DevAmsSlotId>> m_unloaded_groups;
-
     Button *m_confirm_btn{nullptr};
     Button *m_refresh_btn{nullptr};
 
     // Every card on the dialog
     std::vector<HotendColumn *> m_all_columns;
 
+    // The button stays busy this long after a click, so even an instant printer
+    // answer reads as a taken click. A read still in flight holds it past that,
+    // the way the AMS panel's own refresh button behaves.
+    static constexpr int                  kRefreshHoldMs = 2000;
+    std::chrono::steady_clock::time_point m_refresh_hold_until{};
+
     wxTimer m_poll_timer;
     bool    m_refreshing{false};
 };
 
-SyncMachineInfoDialog::SyncMachineInfoDialog(wxWindow *parent, MachineObject *obj, const std::vector<HotendEntry> &entries, std::vector<std::vector<DevAmsSlotId>> unloaded_groups)
-    : DPIDialog(parent, wxID_ANY, _L("Sync printer information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
-    , m_obj(obj)
-    , m_unloaded_groups(std::move(unloaded_groups))
+SyncMachineInfoDialog::SyncMachineInfoDialog(wxWindow *parent, MachineObject *obj, const std::vector<HotendEntry> &entries)
+    : DPIDialog(parent, wxID_ANY, _L("Sync printer information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE), m_obj(obj)
 {
     SetBackgroundColour(C(ThemeColor::White));
     BuildLayout(entries);
@@ -665,20 +673,25 @@ SyncMachineInfoDialog::SyncMachineInfoDialog(wxWindow *parent, MachineObject *ob
     wxGetApp().UpdateDlgDarkUI(this);
 
     m_poll_timer.Bind(wxEVT_TIMER, [this](wxTimerEvent &) { OnPollTick(); });
-    m_poll_timer.Start(1500);
+    m_poll_timer.Start(100);
 }
 
-// Refresh button: fire an RFID-read for every unloaded slot at once
+// Refresh button: ask the printer to re-read the filament in every AMS unit that
+// feeds the rack. One command per unit — the printer sweeps that unit's slots by
+// itself and reports each one as it is read, which is what spins the cards.
 void SyncMachineInfoDialog::OnRefreshClicked()
 {
-    if (m_refreshing || m_unloaded_groups.empty()) return;
+    if (m_refreshing || !m_obj) return;
 
-    m_refreshing = true;
-    for (auto *col : m_all_columns)
-        if (col && col->IsRefreshable()) col->StartSpin();
+    auto fila_sys = m_obj->GetFilaSystem();
+    if (!fila_sys) return;
 
-    for (const auto &group : m_unloaded_groups)
-        for (const auto &[ams_id, slot_id] : group) m_obj->command_ams_refresh_rfid2(ams_id, slot_id);
+    m_refreshing         = true;
+    m_refresh_hold_until = std::chrono::steady_clock::now() + std::chrono::milliseconds(kRefreshHoldMs);
+
+    for (const auto &[_, ams_unit] : fila_sys->GetAmsList()) {
+        if (ams_unit && ams_unit->GetAmsType() == DevAmsType::ZMULTI_B) m_obj->command_ams_read_all(ams_unit->GetAmdIdInt(), 1);
+    }
 
     UpdateRefreshButtonLabel();
 }
@@ -699,11 +712,16 @@ void SyncMachineInfoDialog::OnPollTick()
         col->UpdateEntry(fresh[i]);
     }
 
+    if (!m_refreshing) return;
+
+    // The printer owns the end of a read, so the button stays busy while any card
+    // spins — plus the click window, which covers the printer's answer arriving.
     const bool any_spinning = std::any_of(m_all_columns.begin(), m_all_columns.end(), [](HotendColumn *c) { return c && c->IsSpinning(); });
-    if (!any_spinning) {
-        m_refreshing = false;
-        UpdateRefreshButtonLabel();
-    }
+    const bool holding      = std::chrono::steady_clock::now() < m_refresh_hold_until;
+    if (any_spinning || holding) return;
+
+    m_refreshing = false;
+    UpdateRefreshButtonLabel();
 }
 
 void SyncMachineInfoDialog::BuildLayout(const std::vector<HotendEntry> &entries)
@@ -754,9 +772,6 @@ void SyncMachineInfoDialog::BuildCardGrid(const std::vector<HotendEntry> &hotend
 
 void SyncMachineInfoDialog::BuildButtonBar(wxBoxSizer *root)
 {
-    const wxColour kBrandGreenPressed{27, 136, 68};
-    const wxColour kBrandGreenHovered{61, 203, 115};
-
     StateColor refresh_bg(std::pair<wxColour, int>(C(ThemeColor::Grey250), StateColor::Disabled), std::pair<wxColour, int>(C(ThemeColor::Grey350), StateColor::Pressed),
                           std::pair<wxColour, int>(C(ThemeColor::Grey300), StateColor::Hovered), std::pair<wxColour, int>(C(ThemeColor::White), StateColor::Normal));
     StateColor refresh_border(std::pair<wxColour, int>(C(ThemeColor::Grey400), StateColor::Disabled), std::pair<wxColour, int>(C(ThemeColor::Grey400), StateColor::Normal));
@@ -770,15 +785,17 @@ void SyncMachineInfoDialog::BuildButtonBar(wxBoxSizer *root)
     m_refresh_btn->SetBackgroundColor(refresh_bg);
     m_refresh_btn->SetBorderColor(refresh_border);
     m_refresh_btn->SetTextColor(refresh_text);
-    if (m_unloaded_groups.empty()) m_refresh_btn->Enable(false);
     m_refresh_btn->Bind(wxEVT_LEFT_DOWN, [this](auto &) { OnRefreshClicked(); });
 
-    StateColor confirm_bg(std::pair<wxColour, int>(C(ThemeColor::Grey500), StateColor::Disabled), std::pair<wxColour, int>(kBrandGreenPressed, StateColor::Pressed),
-                          std::pair<wxColour, int>(kBrandGreenHovered, StateColor::Hovered), std::pair<wxColour, int>(C(ThemeColor::BrandGreen), StateColor::Normal));
+    StateColor confirm_bg(std::pair<wxColour, int>(C(ThemeColor::Grey500), StateColor::Disabled), std::pair<wxColour, int>(C(ThemeColor::BrandGreenPressed), StateColor::Pressed),
+                          std::pair<wxColour, int>(C(ThemeColor::BrandGreenHovered), StateColor::Hovered),
+                          std::pair<wxColour, int>(C(ThemeColor::BrandGreen), StateColor::Normal));
     // Solid primary button: border tracks the fill across states so the edge never shows through.
-    StateColor confirm_border(std::pair<wxColour, int>(C(ThemeColor::Grey500), StateColor::Disabled), std::pair<wxColour, int>(kBrandGreenPressed, StateColor::Pressed),
-                              std::pair<wxColour, int>(kBrandGreenHovered, StateColor::Hovered), std::pair<wxColour, int>(C(ThemeColor::BrandGreen), StateColor::Normal));
-    StateColor confirm_text(std::pair<wxColour, int>(C(ThemeColor::White), StateColor::Normal));
+    StateColor confirm_border(std::pair<wxColour, int>(C(ThemeColor::Grey500), StateColor::Disabled),
+                              std::pair<wxColour, int>(C(ThemeColor::BrandGreenPressed), StateColor::Pressed),
+                              std::pair<wxColour, int>(C(ThemeColor::BrandGreenHovered), StateColor::Hovered),
+                              std::pair<wxColour, int>(C(ThemeColor::BrandGreen), StateColor::Normal));
+    StateColor confirm_text(std::pair<wxColour, int>(ThemeColor::White, StateColor::Normal));
 
     m_confirm_btn = new Button(this, _L("Confirm"), "", 0, 0, wxID_ANY);
     m_confirm_btn->SetMinSize(wxSize(FromDIP(70), FromDIP(24)));
@@ -796,37 +813,12 @@ void SyncMachineInfoDialog::BuildButtonBar(wxBoxSizer *root)
     root->Add(button_sizer, 0, wxEXPAND);
 }
 
-// Collect the (ams_id, slot_id) pairs of every unloaded hotend, grouped by nozzle
-std::vector<std::vector<DevAmsSlotId>> CollectUnloadedSlotGroups(MachineObject *obj)
-{
-    if (!obj) return {};
-    DevNozzleSystem *nozzle_sys = obj->GetNozzleSystem();
-    if (!nozzle_sys) return {};
-
-    std::map<int, const DevNozzle *> nozzles_by_id;
-    for (const auto &[_, nozzle] : nozzle_sys->GetRackNozzles()) nozzles_by_id[nozzle_id(nozzle)] = &nozzle;
-    for (const auto &[_, nozzle] : nozzle_sys->GetExtNozzles()) nozzles_by_id.emplace(nozzle_id(nozzle), &nozzle);
-
-    std::vector<std::vector<DevAmsSlotId>> groups;
-    for (const auto &[_, nozzle] : nozzles_by_id) {
-        if (!nozzle->IsHotend() || nozzle->HasFilamentInNozzle()) continue;
-        if (!nozzle->IsNormal()) continue;
-        std::vector<DevAmsSlotId> group;
-        for (const auto &slot : nozzle->GetBindAmsSlots()) group.push_back(slot);
-        groups.push_back(std::move(group));
-    }
-
-    return groups;
-}
-
 bool tryPopUpSyncMachineInfoDialog(MachineObject *obj)
 {
     if (!obj) return true;
 
     std::vector<HotendEntry> entries = CollectHotendEntries(obj);
     if (entries.empty()) return true;
-
-    std::vector<std::vector<DevAmsSlotId>> unloaded_groups = CollectUnloadedSlotGroups(obj);
 
 #if 0
     // clang-format off
@@ -853,7 +845,7 @@ bool tryPopUpSyncMachineInfoDialog(MachineObject *obj)
     const bool any_empty = std::any_of(entries.begin(), entries.end(), [](const HotendEntry &e) { return !e.filament_loaded; });
     if (!any_empty) return true;
 
-    SyncMachineInfoDialog dlg(wxGetApp().plater_, obj, entries, std::move(unloaded_groups));
+    SyncMachineInfoDialog dlg(wxGetApp().plater_, obj, entries);
     return dlg.ShowModal() == wxID_OK;
 }
 
