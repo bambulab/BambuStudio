@@ -10449,6 +10449,9 @@ msgstr "需要更新打印机固件后，才能将打印任务发送到打印机
 msgid "Cannot send the print job for empty plate"
 msgstr "无法为空盘发送打印任务"
 
+msgid "The slicing result of the current plate is invalid. Please re-slice and try again"
+msgstr "当前盘的切片结果已经失效，请重新切片后重试"
+
 msgid "Storage needs to be inserted to record timelapse."
 msgstr "录制延时摄影需要先插入存储设备。"
 

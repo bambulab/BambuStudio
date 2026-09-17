@@ -1830,6 +1830,9 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
     } else if (status == PrintDialogStatus::PrintStatusBlankPlate) {
         wxString msg_text = _L("Cannot send the print job for empty plate");
         update_print_status_msg(msg_text, true, true);
+    } else if (status == PrintDialogStatus::PrintStatusSliceResultInvalid) {
+        wxString msg_text = _L("The slicing result of the current plate is invalid. Please re-slice and try again");
+        update_print_status_msg(msg_text, true, true);
     } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
         wxString msg_text = _L("This printer does not support printing all plates");
         update_print_status_msg(msg_text, true, true);

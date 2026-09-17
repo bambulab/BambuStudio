@@ -2107,6 +2107,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusBlankPlate) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
+    } else if (status == PrintDialogStatus::PrintStatusSliceResultInvalid) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(false);
     } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
@@ -4367,7 +4370,10 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
         if (plate && !plate->is_valid_gcode_file()) {
-            show_status(PrintDialogStatus::PrintStatusBlankPlate);
+            // An empty plate can never be printed, while a plate holding printable instances only
+            // lost its G-code (invalidated slice result / missing file) and re-slicing recovers it.
+            show_status(plate->has_printable_instances() ? PrintDialogStatus::PrintStatusSliceResultInvalid
+                                                        : PrintDialogStatus::PrintStatusBlankPlate);
             return;
         }
     }

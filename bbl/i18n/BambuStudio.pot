@@ -10462,6 +10462,9 @@ msgstr ""
 msgid "Cannot send the print job for empty plate"
 msgstr ""
 
+msgid "The slicing result of the current plate is invalid. Please re-slice and try again"
+msgstr ""
+
 msgid "Storage needs to be inserted to record timelapse."
 msgstr ""
 

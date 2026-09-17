@@ -114,6 +114,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusNeedConsistencyUpgrading,
     PrintStatusNotSupportedPrintAll,
     PrintStatusBlankPlate,
+    PrintStatusSliceResultInvalid,
     PrintStatusUnsupportedPrinter,
     PrintStatusRackReading,
     PrintStatusRackMoving,

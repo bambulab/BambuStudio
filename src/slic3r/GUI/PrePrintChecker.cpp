@@ -47,6 +47,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusNeedConsistencyUpgrading: return "PrintStatusNeedConsistencyUpgrading";
     case PrintStatusNotSupportedPrintAll: return "PrintStatusNotSupportedPrintAll";
     case PrintStatusBlankPlate: return "PrintStatusBlankPlate";
+    case PrintStatusSliceResultInvalid: return "PrintStatusSliceResultInvalid";
     case PrintStatusUnsupportedPrinter: return "PrintStatusUnsupportedPrinter";
     case PrintStatusColorQuantityExceed: return "PrintStatusColorQuantityExceed";
     // Handle filament errors
@@ -119,6 +120,7 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusNeedForceUpgrading: return _L("Cannot send the print job to a printer whose firmware is required to get updated.");
     case PrintStatusNeedConsistencyUpgrading: return _L("Cannot send the print job to a printer whose firmware is required to get updated.");
     case PrintStatusBlankPlate: return _L("Cannot send the print job for empty plate");
+    case PrintStatusSliceResultInvalid: return _L("The slicing result of the current plate is invalid. Please re-slice and try again");
     case PrintStatusTimelapseNoSdcard: return _L("Storage needs to be inserted to record timelapse.");
     case PrintStatusMixAmsAndVtSlotWarning: return _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
     case PrintStatusRackAmsNeedManualUnloadWarning: return _L("The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended.");
