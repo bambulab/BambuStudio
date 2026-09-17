@@ -682,7 +682,7 @@ static void validate_before_boolean(const std::vector<BooleanOperationEngine::Vo
     }
     csg::BooleanFailReason fail_reason;
     std::string warning_text = check_boolean_possible(candidates, fail_reason);
-    if (warning_text == "" || fail_reason == csg::BooleanFailReason::SelfIntersect) return;
+    if (warning_text == "") return;
     result.error_message = warning_text;
 }
 

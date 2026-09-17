@@ -23290,6 +23290,7 @@ bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning, bo
 // OK if fail_msg is empty
 std::string check_boolean_possible(const std::vector<const ModelVolume *> &volumes, csg::BooleanFailReason& fail_reason)
 {
+    fail_reason = csg::BooleanFailReason::OK;
     std::string fail_msg;
     std::vector<csg::CSGPart> csgmesh;
     csgmesh.reserve(2 * volumes.size());
@@ -23305,7 +23306,6 @@ std::string check_boolean_possible(const std::vector<const ModelVolume *> &volum
             {csg::BooleanFailReason::OK, "OK"},
             {csg::BooleanFailReason::MeshEmpty, Slic3r::format(_u8L("Reason: part \"%1%\" is empty."), name)},
             {csg::BooleanFailReason::NotBoundAVolume, Slic3r::format(_u8L("Reason: part \"%1%\" does not bound a volume."), name)},
-            {csg::BooleanFailReason::SelfIntersect, Slic3r::format(_u8L("Reason: part \"%1%\" has self intersection."), name)},
             {csg::BooleanFailReason::NoIntersection, Slic3r::format(_u8L("Reason: \"%1%\" and another part have no intersection."), name)} };
         fail_msg += " " + fail_reasons[std::get<0>(fail_reason_name)];
     }
@@ -23321,9 +23321,9 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
     csgmesh.reserve(2 * mo.volumes.size());
     bool has_splitable_volume = csg::model_to_csgmesh(mo.const_volumes(), Transform3d::Identity(), std::back_inserter(csgmesh),
         csg::mpartsPositive | csg::mpartsNegative);
-    csg::BooleanFailReason fail_reason;
+    csg::BooleanFailReason fail_reason = csg::BooleanFailReason::OK;
     std::string fail_msg = check_boolean_possible(mo.const_volumes(), fail_reason);
-    if (fail_msg.empty() || fail_reason == csg::BooleanFailReason::NotBoundAVolume) {
+    if (fail_reason != csg::BooleanFailReason::MeshEmpty) {
         try {
             MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{std::begin(csgmesh), std::end(csgmesh)});
             mesh                                   = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
@@ -23343,6 +23343,10 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 #endif
     }
     if (mesh.empty()) {
+        if (fail_msg.empty())
+            fail_msg = _u8L("Unable to perform boolean operation on model meshes. "
+                "You may fix the meshes and try again.")
+                + " " + _u8L("Reason: the meshes have face issues.");
         if (notify_func)
             notify_func(fail_msg);
 

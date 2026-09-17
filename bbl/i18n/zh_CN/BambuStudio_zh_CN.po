@@ -9271,6 +9271,9 @@ msgstr "原因：零件\"%1%\"没有封闭一个体积。"
 msgid "Reason: part \"%1%\" has self intersection."
 msgstr "原因：零件\"%1%\"有自相交。"
 
+msgid "Reason: the meshes have face issues."
+msgstr "原因：网格存在面片问题。"
+
 #, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "原因：零件\"%1%\"与另一个零件没有交集。"
