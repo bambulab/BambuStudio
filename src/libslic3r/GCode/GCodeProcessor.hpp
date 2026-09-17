@@ -322,6 +322,8 @@ namespace Slic3r {
         // 0-based mixed (virtual) filament slots actually used on this plate.
         // Recorded before resolve_mixed_filaments expands them to physical components.
         std::vector<unsigned int> used_mixed_filaments;
+        // 0-based physical filament slots used directly on this plate (not only as mixed components).
+        std::vector<unsigned int> directly_used_filaments;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -368,9 +370,10 @@ namespace Slic3r {
             optimal_assignment = other.optimal_assignment;
             pause_printing = other.pause_printing;
             skippable_part_time = other.skippable_part_time;
-            initial_layer_time = other.initial_layer_time;
             used_filaments = other.used_filaments;
             used_mixed_filaments = other.used_mixed_filaments;
+            directly_used_filaments        = other.directly_used_filaments;
+            initial_layer_time = other.initial_layer_time;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif

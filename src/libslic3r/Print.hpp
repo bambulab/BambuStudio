@@ -959,7 +959,7 @@ public:
     const PrintConfig&          config() const { return m_config; }
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
-    
+
     ConstPrintObjectPtrsAdaptor objects() const { return ConstPrintObjectPtrsAdaptor(&m_objects); }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
     PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
@@ -1002,7 +1002,7 @@ public:
     bool                        support_material_on_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data(size_t filaments_cnt = 0) const;
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
-    
+
     // Sequential print support.
     bool                        is_sequential_print() const {
         return config().print_sequence == PrintSequence::ByObject && m_objects.size() > 1;
@@ -1067,6 +1067,12 @@ public:
         m_slice_used_mixed_filaments = used_mixed_filaments;
     }
     const std::vector<unsigned int>& get_slice_used_mixed_filaments() const { return m_slice_used_mixed_filaments; }
+
+    // 0-based physical filament slots used directly on this plate (not only as mixed components).
+    void set_slice_directly_used_filaments(const std::vector<unsigned int> &directly_used_filaments) {
+        m_slice_directly_used_filaments = directly_used_filaments;
+    }
+    const std::vector<unsigned int> &get_slice_directly_used_filaments() const { return m_slice_directly_used_filaments; }
 
     /**
     * @brief Determines the unprintable filaments for each extruder based on its physical attributes
@@ -1248,7 +1254,7 @@ private:
     PrintRegionPtrs                         m_print_regions;
     //BBS.
     bool m_isBBLPrinter = false;
-    
+
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;
     // BBS: collecting extrusion paths to build brim by objs
@@ -1268,7 +1274,7 @@ private:
     // Following section will be consumed by the GCodeGenerator.
     ToolOrdering 							m_tool_ordering;
     WipeTowerData                           m_wipe_tower_data {m_tool_ordering};
-    
+
     std::optional<ByObjectPrintData>        m_sequential_print_data;
 
     // Estimated print time, filament consumed.
@@ -1288,6 +1294,7 @@ private:
     std::vector<unsigned int> m_slice_used_filaments;
     std::vector<unsigned int> m_slice_used_filaments_first_layer;
     std::vector<unsigned int> m_slice_used_mixed_filaments;
+    std::vector<unsigned int> m_slice_directly_used_filaments;
 
     //BBS: plate's origin
     Vec3d   m_origin;

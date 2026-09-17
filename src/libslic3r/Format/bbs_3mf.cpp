@@ -228,6 +228,7 @@ static constexpr const char *FILAMENT_USED_M_TAG = "used_m";
 static constexpr const char *FILAMENT_USED_G_TAG = "used_g";
 static constexpr const char *FILAMENT_USED_FOR_SUPPORT     = "used_for_support";
 static constexpr const char *FILAMENT_USED_FOR_OBJECT      = "used_for_object";
+static constexpr const char *FILAMENT_DIRECTLY_USED_ATTR     = "directly_used";
 static constexpr const char *FILAMENT_TOTAL_LOAD_TIME_TAG   = "total_load_time";
 static constexpr const char *FILAMENT_TOTAL_UNLOAD_TIME_TAG = "total_unload_time";
 static constexpr const char *FILAMENT_TRAY_INFO_ID_TAG     = "tray_info_idx";
@@ -790,6 +791,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return nullptr;
     };
 
+    std::set<unsigned int> directly_used_filaments(result->directly_used_filaments.begin(), result->directly_used_filaments.end());
+    const bool has_direct_usage_hint = !result->directly_used_filaments.empty() || !result->used_mixed_filaments.empty();
+
     for (auto it = ps.total_volumes_per_extruder.begin(); it != ps.total_volumes_per_extruder.end(); it++) {
         double volume                           = it->second;
         auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, it->first);
@@ -806,6 +810,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (unload_it != ps.unload_time_per_filament.end())
                 info.total_unload_time = unload_it->second;
         }
+        info.directly_used = !has_direct_usage_hint || directly_used_filaments.count(static_cast<unsigned int>(it->first)) > 0;
 
         if (result && result->nozzle_group_result) {
             auto nozzles_for_filament = result->nozzle_group_result->get_nozzles_for_filament(it->first);
@@ -4955,6 +4960,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string total_unload_time = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TOTAL_UNLOAD_TIME_TAG);
             filament_info.total_load_time   = total_load_time.empty() ? 0.0 : atof(total_load_time.c_str());
             filament_info.total_unload_time = total_unload_time.empty() ? 0.0 : atof(total_unload_time.c_str());
+            std::string directly_used = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_DIRECTLY_USED_ATTR);
+            filament_info.directly_used = directly_used.empty() ? true : (directly_used == "true" || directly_used == "1");
             m_curr_plater->slice_filaments_info.push_back(filament_info);
         }
         return true;
@@ -8928,6 +8935,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" "
                            << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
                            << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
+                           << FILAMENT_DIRECTLY_USED_ATTR << "=\"" << it->directly_used << "\" "
                            << FILAMENT_TOTAL_LOAD_TIME_TAG << "=\"" << it->total_load_time << "\" "
                            << FILAMENT_TOTAL_UNLOAD_TIME_TAG << "=\"" << it->total_unload_time << "\"/>\n";
                 }

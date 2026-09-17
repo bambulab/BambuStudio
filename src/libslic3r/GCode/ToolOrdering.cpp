@@ -2756,6 +2756,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     // Capture mixed slots that actually appear on layers before they are expanded to
     // physical components. Assigned-but-unused mixed slots never enter layer_tools.
     m_used_mixed_filaments.clear();
+    m_directly_used_filaments.clear();
     if (has_any_mixed_filament(is_mixed)) {
         std::set<unsigned int> used;
         for (const LayerTools &lt : m_layer_tools)
@@ -2763,6 +2764,14 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 if (ext < is_mixed.size() && is_mixed[ext])
                     used.insert(ext);
         m_used_mixed_filaments.assign(used.begin(), used.end());
+    }
+    {
+        std::set<unsigned int> direct;
+        for (const LayerTools &lt : m_layer_tools)
+            for (unsigned int ext : lt.extruders)
+                if (ext >= is_mixed.size() || !is_mixed[ext])
+                    direct.insert(ext);
+        m_directly_used_filaments.assign(direct.begin(), direct.end());
     }
 
     if (!has_any_mixed_filament(is_mixed))

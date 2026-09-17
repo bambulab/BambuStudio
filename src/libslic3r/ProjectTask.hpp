@@ -54,6 +54,9 @@ struct FilamentInfo
     int         mapping_result = 0;
     bool        used_for_support{false};
     bool        used_for_object{false};
+    // True when this project filament slot is used directly; false when it only
+    // appears in slice statistics as a component of a mixed (virtual) filament.
+    bool        directly_used{true};
     double      total_load_time{0.0};
     double      total_unload_time{0.0};
 

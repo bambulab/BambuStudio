@@ -1560,6 +1560,7 @@ void GCodeProcessorResult::reset() {
     optimal_assignment.clear();
     pause_printing.clear();
     used_mixed_filaments.clear();
+    directly_used_filaments.clear();
 
     //BBS: add mutex for protection of gcode result
     unlock();
@@ -1603,6 +1604,7 @@ void GCodeProcessorResult::reset() {
     skippable_part_time.clear();
     warnings.clear();
     used_mixed_filaments.clear();
+    directly_used_filaments.clear();
 
     //BBS: add mutex for protection of gcode result
     unlock();
@@ -6850,7 +6852,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
                 return;
             add_M104_lines(heating_gcode_id, extruder_id, target_temp, block.next_filament_id, true, block.next_filament_id, block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating, "Multi extruder pre heating");
         }
-        return; 
+        return;
         }
     // perform cooling first and then perform heating
     float max_temperature_drop = get_max_temperature_drop_when_ec(block.last_filament_id);

@@ -1280,7 +1280,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             start_filament_gcode_str = gcodegen.placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
             check_add_eol(start_filament_gcode_str);
         }
-        
+
         if (add_change_filament_624) {
             start_filament_gcode_str += "M625\n";
             add_change_filament_624 = false;
@@ -3703,6 +3703,7 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
                 result->nozzle_change_sequence.emplace_back(group_result->get_nozzle_id(fidx, 0));
         }
         result->used_mixed_filaments = m_print->get_slice_used_mixed_filaments();
+        result->directly_used_filaments = m_print->get_slice_directly_used_filaments();
 
         std::vector<int> optimal_assignment;
         if (group_result) {

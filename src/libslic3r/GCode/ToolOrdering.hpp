@@ -326,6 +326,10 @@ public:
     // resolve_mixed_filaments() expanded them to physical components. Empty when unused.
     const std::vector<unsigned int>& used_mixed_filaments() const { return m_used_mixed_filaments; }
 
+    // 0-based physical filament slots used directly (not via mixed virtual slots) before
+    // resolve_mixed_filaments() expanded mixed slots to their components.
+    const std::vector<unsigned int> &directly_used_filaments() const { return m_directly_used_filaments; }
+
     // Find LayerTools with the closest print_z.
     const LayerTools&	tools_for_layer(coordf_t print_z) const;
     LayerTools&			tools_for_layer(coordf_t print_z) { return const_cast<LayerTools&>(std::as_const(*this).tools_for_layer(print_z)); }
@@ -437,6 +441,8 @@ private:
 
     // 0-based mixed slots actually present in any LayerTools::extruders before resolution.
     std::vector<unsigned int> m_used_mixed_filaments;
+    // 0-based physical slots used directly before mixed slots are expanded to components.
+    std::vector<unsigned int> m_directly_used_filaments;
 
     // All layer indices (in m_layer_tools) where each object has actual extrusion.
     // Used by gradient run detection to distinguish real gaps from layers belonging

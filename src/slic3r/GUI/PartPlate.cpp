@@ -7719,8 +7719,16 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 			if (mixed_info.id > 0)
 				gcode_result->used_mixed_filaments.push_back(static_cast<unsigned int>(mixed_info.id - 1));
 		}
-		if (Print *print = dynamic_cast<Print*>(fff_print))
-			print->set_slice_used_mixed_filaments(gcode_result->used_mixed_filaments);
+        gcode_result->directly_used_filaments.clear();
+        for (const auto &filament_info : plate_data_list[i]->slice_filaments_info) {
+            if (filament_info.directly_used)
+				gcode_result->directly_used_filaments.push_back(static_cast<unsigned int>(filament_info.id));
+        }
+
+		if (Print *print = dynamic_cast<Print *>(fff_print)) {
+            print->set_slice_used_mixed_filaments(gcode_result->used_mixed_filaments);
+            print->set_slice_directly_used_filaments(gcode_result->directly_used_filaments);
+        }
 
 		std::vector<int> nozzle_volume_type_values = parse_values(
 			plate_data_list[i]->nozzle_volume_types,
