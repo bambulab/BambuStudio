@@ -4253,14 +4253,45 @@ static std::vector<wxString> models_using_filament(size_t filament_id)
     return names;
 }
 
-// Global support settings (project print config) can pin a filament; 0 means "Default" (no specific filament).
+// Global support settings (the edited FFF print preset) can pin a filament; 0 means "Default" (no specific filament).
+// Read from the print preset config, not the Plater's cached subset (plater()->config()), which can lag or drop these
+// keys while a filament is being deleted.
 static bool global_support_uses_filament(size_t filament_id)
 {
-    const int                 fid1 = (int) filament_id + 1;
-    const DynamicPrintConfig *cfg  = wxGetApp().plater()->config();
-    if (!cfg) return false;
+    const int           fid1 = (int) filament_id + 1;
+    const PresetBundle *pb   = wxGetApp().preset_bundle;
+    if (!pb) return false;
+    const DynamicPrintConfig &cfg = pb->prints.get_edited_preset().config;
     for (const char *key : {"support_filament", "support_interface_filament"})
-        if (cfg->has(key) && cfg->opt_int(key) == fid1) return true;
+        if (cfg.has(key) && cfg.opt_int(key) == fid1) return true;
+    return false;
+}
+
+// Mixed filaments (project config filament_is_mixed + filament_mixed_components) can list this
+// physical filament as a component (1-based, pipe-separated). Deleting it rewrites the component
+// list via remap_mixed_components_on_delete. Only warn when a mixed filament that is itself in use
+// (its own slot is assigned to some object) lists the filament being deleted as a component — an
+// unused mixed preset that merely references it has no effect worth interrupting the delete for.
+static bool used_by_mixed_filaments(size_t filament_id)
+{
+    const PresetBundle *pb = wxGetApp().preset_bundle;
+    if (!pb) return false;
+
+    const auto *is_mixed_opt = pb->project_config.opt<ConfigOptionBools>("filament_is_mixed");
+    const auto *comp_opt     = pb->project_config.opt<ConfigOptionStrings>("filament_mixed_components");
+    if (!is_mixed_opt || !comp_opt) return false;
+
+    const unsigned int fid1 = (unsigned int) filament_id + 1;
+    const size_t       n    = std::min({is_mixed_opt->values.size(), comp_opt->values.size(), pb->filament_presets.size()});
+    for (size_t i = 0; i < n; ++i) {
+        if (!is_mixed_opt->values[i]) continue;
+        bool has_component = false;
+        for (unsigned int c : parse_mixed_components(comp_opt->values[i]))
+            if (c == fid1) { has_component = true; break; }
+        if (!has_component) continue;
+        // The mixed filament at slot i is filament number i+1; it is in use if any object references it.
+        if (!models_using_filament(i).empty()) return true;
+    }
     return false;
 }
 
@@ -4283,9 +4314,10 @@ static bool confirm_delete_used_filament(size_t filament_id, int replace_filamen
     if (replace_filament_id != -1) return true;
     if (wxGetApp().app_config->get("no_warn_delete_used_filament") == "1") return true;
 
-    // Prefer naming the objects that use it; otherwise fall back to the global/plate-level
-    // usages, which have no owning object to point at.
+    // Prefer naming the objects that use it; otherwise fall back to mixed-filament components and
+    // the global/plate-level usages, which have no owning object to point at.
     wxString              subject;
+    wxString              consequence = _L("After deletion, its filament assignment will be reset.");
     std::vector<wxString> used_by = models_using_filament(filament_id);
     if (!used_by.empty()) {
         wxString     names_str;
@@ -4296,6 +4328,9 @@ static bool confirm_delete_used_filament(size_t filament_id, int replace_filamen
         }
         if (used_by.size() > show) names_str += wxString::Format(_L(", and %d more"), (int) (used_by.size() - show));
         subject = wxString::Format(_L("model \"%s\""), names_str);
+    } else if (used_by_mixed_filaments(filament_id)) {
+        subject     = _L("mixed filament");
+        consequence = _L("After deletion, it will be removed from those mixed filaments' components.");
     } else if (global_support_uses_filament(filament_id)) {
         subject = _L("support filament");
     } else if (custom_gcode_uses_filament(filament_id)) {
@@ -4304,7 +4339,7 @@ static bool confirm_delete_used_filament(size_t filament_id, int replace_filamen
         return true;
     }
 
-    wxString msg = wxString::Format(_L("The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."), subject) + "\n\n" +
+    wxString msg = wxString::Format(_L("The filament you are deleting is used by %s. %s"), subject, consequence) + "\n\n" +
                    _L("Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament.");
 
     MessageDialog dlg(nullptr, msg, _L("Delete Filament"), wxICON_WARNING | wxOK | wxCANCEL);
