@@ -4156,6 +4156,12 @@ msgstr ""
 msgid "Adjust filament matching"
 msgstr ""
 
+msgid "Color mixing"
+msgstr ""
+
+msgid "Use official mixing kits →"
+msgstr ""
+
 msgid "Automatically merge filaments of the same color and type"
 msgstr ""
 
@@ -4194,6 +4200,30 @@ msgid "Computing texture colors..."
 msgstr ""
 
 msgid "Computation failed. Please adjust parameters and retry."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr ""
+
+msgid "What is the CMYKW mixing kit?"
+msgstr ""
+
+msgid "After official print testing, you only need a standard CMYKW mixing kit to mix hundreds of color effects."
+msgstr ""
+
+msgid "5-color CMYKW"
+msgstr ""
+
+msgid "Cyan · Magenta · Yellow · Black · White"
+msgstr ""
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "Add to project filament list"
 msgstr ""
 
 msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
@@ -8217,7 +8247,10 @@ msgstr ""
 msgid "Remove last mixed filament"
 msgstr ""
 
-msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
+msgid "Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."
+msgstr ""
+
+msgid "Please modify the original project filament diameter."
 msgstr ""
 
 msgid "Search plate, object and part."
