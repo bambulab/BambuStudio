@@ -319,16 +319,35 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     // 总净重 to the 当前净重 whenever the two differed (e.g. 当前=200,
     // 总=1500 was pushed as netWeight=200, totalNetWeight=200 and the
     // row came back from cloud showing 200/200 instead of 200/1500).
-    const double material_weight = s.net_weight > 0.0
+    // A zero net_weight is known to mean empty only when remain_percent also
+    // reports zero. Otherwise zero may merely be the struct's default for an
+    // unknown value. Positive net_weight always takes precedence, including
+    // for legacy rows that still carry an empty-spool weight.
+    const bool has_known_net_weight =
+        s.net_weight > 0.0 ||
+        (s.net_weight == 0.0 && s.remain_percent == 0);
+
+    const double material_weight = has_known_net_weight
         ? s.net_weight
-        : ((s.initial_weight > s.spool_weight) ? (s.initial_weight - s.spool_weight) : 0.0);
-    const double total_net_weight = (s.spool_weight > 0.0 && s.initial_weight > s.spool_weight)
-        ? (s.initial_weight - s.spool_weight)
-        : s.initial_weight;
-    if (material_weight > 0.0)
-        j["netWeight"] = static_cast<int64_t>(material_weight + 0.5);
+        : ((s.initial_weight > s.spool_weight)
+            ? (s.initial_weight - s.spool_weight)
+            : 0.0);
+
+    const double total_net_weight =
+        (s.spool_weight > 0.0 &&
+         s.initial_weight > s.spool_weight)
+            ? (s.initial_weight - s.spool_weight)
+            : s.initial_weight;
+
+    // Emit zero only for a confirmed empty spool. Unknown zero values retain
+    // the existing fallback behaviour.
+    if (has_known_net_weight || material_weight > 0.0)
+        j["netWeight"] =
+            static_cast<int64_t>(material_weight + 0.5);
+
     if (total_net_weight > 0.0)
-        j["totalNetWeight"] = static_cast<int64_t>(total_net_weight + 0.5);
+        j["totalNetWeight"] =
+            static_cast<int64_t>(total_net_weight + 0.5);
 
     if (!s.note.empty())
         j["note"] = s.note;
