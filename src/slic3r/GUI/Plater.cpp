@@ -1987,10 +1987,42 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
     return true;
 }
 
-// Replaced by the red-icon + bottom-right notification path: an incompatible slot is now pushed
-// into PresetBundle::incompatible_nozzle_diameter_slots by validate_filament_nozzle_diameter_selections()
-// and left at its original diameter, instead of being silently reassigned to the smallest remaining
-// diameter and reported through a one-shot modal dialog here.
+// Whether syncing the project onto `machine_preset` has to give up the multi-diameter gate. A machine
+// that is not single-extruder-multi-nozzle has no canonical printer variant for the mode to anchor on,
+// so find_system_multi_nozzle_printer_preset() finds nothing there and the project would keep being
+// read as multi-diameter on a printer preset that cannot express it: the sync badge compares a per-slot
+// snapshot the machine never filled, and the per-filament diameters fall back to a single one and warn
+// about it.
+static bool clears_multi_nozzle_diameter_mode(const Preset &machine_preset)
+{
+    return multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config) &&
+           !is_single_ext_multi_nozzle(machine_preset.config);
+}
+
+// Written before the printer preset is selected, matching the turn-off ordering of
+// apply_multi_nozzle_diameter_mode(): no consumer may observe "gate on + non-canonical printer".
+// The per-slot selections are deliberately not snapshotted the way the manual toggle does - the
+// project is moving to another printer model, so there is nothing to restore them onto.
+static void clear_multi_nozzle_diameter_mode()
+{
+    if (auto *option = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
+        option->value = false;
+}
+
+// Counterpart of the tail of apply_multi_nozzle_diameter_mode(): the printer panel layout, the preset
+// combos and the diameter lines on the printer/process pages are all built while reading the gate, so
+// they have to be re-evaluated once it is off. layout_printer() takes the diameter buttons' mode from
+// the project config, so refreshing the printer presets already covers them.
+static void refresh_after_multi_nozzle_diameter_mode_cleared()
+{
+    refresh_multi_nozzle_preset_choices();
+    if (Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER)) {
+        printer_tab->toggle_options();
+        printer_tab->update_extruder_variants(-1, false);
+    }
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+        print_tab->update_extruder_variants(-1, false);
+}
 
 void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diameter)
 {
@@ -2652,6 +2684,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         if (!this->plater)
             return false;
 
+        // The gate cannot survive a move onto a machine without a canonical multi-diameter variant, so
+        // drop it first and let the destination below be resolved under the single-diameter rules.
+        const bool cleared_multi_diameter_mode = clears_multi_nozzle_diameter_mode(*machine_preset);
+        if (cleared_multi_diameter_mode)
+            clear_multi_nozzle_diameter_mode();
+
         // get_printer_preset() resolves the machine down to the diameter of its first usable nozzle,
         // which multi-diameter mode must not adopt: slicing there anchors on the canonical printer
         // variant and carries the real per-slot nozzles separately. Only the machine's model may decide
@@ -2674,6 +2712,14 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
             printer_tab->select_preset(target_preset->name);
         });
         is_syncing_extruder_list_model_switch = false;
+        if (cleared_multi_diameter_mode)
+            refresh_after_multi_nozzle_diameter_mode_cleared();
+    } else if (clears_multi_nozzle_diameter_mode(*machine_preset)) {
+        // The model already matches, so no preset switch is needed. The gate can still be on here,
+        // because picking another model in the printer combo is not blocked by it, and it would send
+        // the sync below down the multi-diameter branch on a machine that has no variant for it.
+        clear_multi_nozzle_diameter_mode();
+        refresh_after_multi_nozzle_diameter_mode_cleared();
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " go on sync_extruder_list";
     const Preset &cur_preset  = preset_bundle->printers.get_selected_preset();
@@ -22361,8 +22407,13 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     // Whether the *connected machine* carries a nozzle rack. The project's own preset cannot answer
     // this: coming from a single-nozzle model, it reports no rack even though the machine has one.
     const bool machine_has_rack = is_single_ext_multi_nozzle(machine_preset->config);
-    Preset *   target_preset    = machine_preset;
-    if (multi_diameter_mode) {
+    // Syncing onto a machine that cannot be multi-diameter drops the gate, so both the destination
+    // preset and the mismatch checks below have to describe the state the sync will leave behind
+    // rather than the one the project is in. The gate itself is only written once the user accepts.
+    const bool cleared_multi_diameter_mode = multi_diameter_mode && !machine_has_rack;
+    const bool multi_diameter_after_sync   = multi_diameter_mode && !cleared_multi_diameter_mode;
+    Preset *   target_preset               = machine_preset;
+    if (multi_diameter_after_sync) {
         if (Preset *canonical = find_system_multi_nozzle_printer_preset(printer_model, canonical_multi_nozzle_printer_variant()))
             target_preset = canonical;
     } else if (machine_has_rack) {
@@ -22377,7 +22428,7 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     }
     const bool model_mismatch  = printer_preset.get_current_printer_type(preset_bundle) != printer_type;
     bool       nozzle_mismatch = false;
-    if (multi_diameter_mode) {
+    if (multi_diameter_after_sync) {
         nozzle_mismatch = !is_extruder_stat_synced();
     } else if (machine_has_rack) {
         // A nozzle-rack machine carries several diameters at once, so the nozzle mounted on the
@@ -22421,7 +22472,12 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         return false;
     //do sync_printer_preset
     const std::string selected_preset_name = printer_preset.name;
-    update_objects_position_when_select_preset([&obj, target_preset, multi_diameter_mode, machine_has_rack, &selected_preset_name]() {
+    update_objects_position_when_select_preset([&obj, target_preset, multi_diameter_after_sync, machine_has_rack, cleared_multi_diameter_mode, &selected_preset_name]() {
+        // Ordered like apply_multi_nozzle_diameter_mode()'s turn-off: the gate goes away before the
+        // printer preset moves, so nothing is laid out or filtered in the state the project cannot be in.
+        if (cleared_multi_diameter_mode)
+            clear_multi_nozzle_diameter_mode();
+
         // In multi-diameter mode the target is usually the preset already in use, and re-selecting it
         // would only re-ask about unsaved changes.
         if (target_preset->name != selected_preset_name) {
@@ -22435,8 +22491,11 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         // needs it for the same reason: selecting a preset of another printer model rebuilds that
         // snapshot from the new preset's defaults (every slot at printer_variant), which describes the
         // preset rather than the machine and leaves the sync badge off.
-        if (multi_diameter_mode || obj->is_multi_extruders() || machine_has_rack)
+        if (multi_diameter_after_sync || obj->is_multi_extruders() || machine_has_rack)
             GUI::wxGetApp().sidebar().sync_extruder_list();
+
+        if (cleared_multi_diameter_mode)
+            refresh_after_multi_nozzle_diameter_mode_cleared();
     });
     return true;
 }
