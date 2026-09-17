@@ -1606,8 +1606,32 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 }
             }
 
+            // A height-range modifier always carries its default layer_height, even when the user only
+            // changes its filament. In multi-diameter mode that authored height may span several base-grid
+            // layers, so requiring identical Z series rejects a valid modifier. The wipe tower can merge
+            // those layers as long as every configured height is an integer multiple of the base grid.
+            const bool allow_commensurate_custom_layering =
+                multi_nozzle_diameter_mode_enabled(m_full_print_config) &&
+                has_custom_layering && !has_precise_z_height;
+            if (allow_commensurate_custom_layering) {
+                double base_layer_height = std::numeric_limits<double>::max();
+                for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
+                    const std::vector<coordf_t> &profile = layer_height_profile(idx_object);
+                    for (size_t idx_height = 1; idx_height < profile.size(); idx_height += 2)
+                        if (profile[idx_height] > EPSILON)
+                            base_layer_height = std::min(base_layer_height, double(profile[idx_height]));
+                }
+
+                for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
+                    const std::vector<coordf_t> &profile = layer_height_profile(idx_object);
+                    for (size_t idx_height = 1; idx_height < profile.size(); idx_height += 2) {
+                        const double ratio = profile[idx_height] / base_layer_height;
+                        if (std::abs(profile[idx_height] - std::round(ratio) * base_layer_height) > EPSILON)
+                            return {L("The prime tower is only supported if all objects have the same variable layer height")};
+                    }
+                }
             // BBS: remove obsolete logics and _L()
-            if (has_custom_layering) {
+            } else if (has_custom_layering || has_precise_z_height) {
                 std::vector<std::vector<coordf_t>> layer_z_series;
                 layer_z_series.assign(m_objects.size(), std::vector<coordf_t>());
 

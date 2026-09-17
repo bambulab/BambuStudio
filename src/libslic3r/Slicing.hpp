@@ -65,6 +65,10 @@ struct SlicingParameters
 	// The regular layer height, applied for all but the first layer, if not overridden by layer ranges
 	// or by the variable layer thickness table.
     coordf_t    layer_height { 0 };
+    // Ratio between authored layer heights and the base layer grid used for slicing.
+    int         layer_grid_subdivision { 1 };
+    coordf_t    to_base_layer_height(coordf_t height) const
+        { return height / coordf_t(layer_grid_subdivision > 0 ? layer_grid_subdivision : 1); }
     // Minimum / maximum layer height, to be used for the automatic adaptive layer height algorithm,
     // or by an interactive layer height editor.
     coordf_t    min_layer_height { 0 };
@@ -116,6 +120,7 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
             sp1.interface_raft_layer_height         == sp2.interface_raft_layer_height          &&
             sp1.contact_raft_layer_height           == sp2.contact_raft_layer_height            &&
             sp1.layer_height                        == sp2.layer_height                         &&
+            sp1.layer_grid_subdivision               == sp2.layer_grid_subdivision               &&
             sp1.min_layer_height                    == sp2.min_layer_height                     &&
             sp1.max_layer_height                    == sp2.max_layer_height                     &&
 //            sp1.max_suport_layer_height             == sp2.max_suport_layer_height              &&

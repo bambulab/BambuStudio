@@ -82,6 +82,7 @@ SlicingParameters SlicingParameters::create_from_config(
     bool     soluble_interface                       = object_config.support_top_z_distance.value == 0.;
 
     SlicingParameters params;
+    params.layer_grid_subdivision = layer_grid_subdivision;
     // BBS multi-diameter: the preset's layer height states what the preset's own nozzle lays down, not the
     // resolution of the grid. Dividing it out here is what lets the plate be sliced with a coarse preset
     // (keeping its speeds and line widths) while the layer stack stays fine enough for the finest nozzle on
@@ -100,20 +101,26 @@ SlicingParameters SlicingParameters::create_from_config(
     if (object_config.enable_support.value || params.base_raft_layers > 0 || object_config.enforce_support_layers > 0) {
         // Has some form of support. Add the support layers to the minimum / maximum layer height limits.
         params.min_layer_height = std::max(
-            min_layer_height_from_nozzle(print_config, object_config.support_filament), 
-            min_layer_height_from_nozzle(print_config, object_config.support_interface_filament));
+            params.to_base_layer_height(min_layer_height_from_nozzle(print_config, object_config.support_filament)),
+            params.to_base_layer_height(min_layer_height_from_nozzle(print_config, object_config.support_interface_filament)));
         params.max_layer_height = std::min(
-            max_layer_height_from_nozzle(print_config, object_config.support_filament), 
-            max_layer_height_from_nozzle(print_config, object_config.support_interface_filament));
+            params.to_base_layer_height(max_layer_height_from_nozzle(print_config, object_config.support_filament)),
+            params.to_base_layer_height(max_layer_height_from_nozzle(print_config, object_config.support_interface_filament)));
         params.max_suport_layer_height = params.max_layer_height;
     }
     if (object_extruders.empty()) {
-        params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, 0));
-        params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, 0));
+        params.min_layer_height = std::max(
+            params.min_layer_height, params.to_base_layer_height(min_layer_height_from_nozzle(print_config, 0)));
+        params.max_layer_height = std::min(
+            params.max_layer_height, params.to_base_layer_height(max_layer_height_from_nozzle(print_config, 0)));
     } else {
         for (unsigned int extruder_id : object_extruders) {
-            params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, extruder_id));
-            params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, extruder_id));
+            params.min_layer_height = std::max(
+                params.min_layer_height,
+                params.to_base_layer_height(min_layer_height_from_nozzle(print_config, extruder_id)));
+            params.max_layer_height = std::min(
+                params.max_layer_height,
+                params.to_base_layer_height(max_layer_height_from_nozzle(print_config, extruder_id)));
         }
     }
     params.min_layer_height = std::min(params.min_layer_height, params.layer_height);
@@ -195,7 +202,8 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
     for (t_layer_config_ranges::const_iterator it_range = layer_config_ranges.begin(); it_range != layer_config_ranges.end(); ++it_range) {
         coordf_t lo = it_range->first.first;
         coordf_t hi = std::min(it_range->first.second, slicing_params.object_print_z_height());
-        coordf_t height = it_range->second.option("layer_height")->getFloat();
+        coordf_t height = slicing_params.to_base_layer_height(
+            it_range->second.option("layer_height")->getFloat());
         if (!ranges_non_overlapping.empty())
             // Trim current low with the last high.
             lo = std::max(lo, ranges_non_overlapping.back().first.second);

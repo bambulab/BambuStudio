@@ -3793,8 +3793,9 @@ SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig& full
 
     if (object_max_z <= 0.f)
         object_max_z = (float)model_object.raw_bounding_box().size().z();
-    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders,
-                                                 layer_grid_subdivision(full_config));
+    // The interactive variable-layer editor works in the authored preset's height domain.
+    // Conversion to the finer object grid is applied by the PrintObject slicing parameters.
+    return SlicingParameters::create_from_config(print_config, object_config, object_max_z, object_extruders);
 }
 
 // returns 0-based indices of extruders used to print the object (without brim, support and other helper extrusions)
@@ -3827,6 +3828,8 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
     if (layer_height_profile.empty()) {
         // use the constructor because the assignement is crashing on ASAN OsX
         layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile.get());
+        for (size_t i = 1; i < layer_height_profile.size(); i += 2)
+            layer_height_profile[i] = slicing_parameters.to_base_layer_height(layer_height_profile[i]);
 //        layer_height_profile = model_object.layer_height_profile;
         updated = true;
     }
