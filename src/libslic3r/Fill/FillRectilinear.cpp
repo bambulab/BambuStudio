@@ -3823,6 +3823,44 @@ void FillMonotonicLineWGapFill::fill_surface_by_lines(const Surface* surface, co
 		polylines_from_paths(path, poly_with_offset, segs, polylines_out);
     }
 
+    // Keep the same line geometry / spacing / wall overlap as monotonic line.
+    // Sweep columns strictly from left to right. Within one column, visit all
+    // disconnected segments from one side to the other, then reverse the
+    // direction for the next column.
+    if (this->global_monotonic_sweep() && polylines_out.size() > n_polylines_out_initial) {
+        const auto first = polylines_out.begin() + n_polylines_out_initial;
+        const auto scan_x = [](const Polyline &line) {
+            return std::min(line.first_point().x(), line.last_point().x());
+        };
+        const auto scan_y = [](const Polyline &line) {
+            return std::min(line.first_point().y(), line.last_point().y());
+        };
+        std::sort(first, polylines_out.end(), [&scan_x, &scan_y](const Polyline &a, const Polyline &b) {
+            const coord_t ax = scan_x(a);
+            const coord_t bx = scan_x(b);
+            if (ax != bx)
+                return ax < bx;
+            return scan_y(a) < scan_y(b);
+        });
+
+        size_t column_idx = 0;
+        for (auto column_begin = first; column_begin != polylines_out.end(); ++column_idx) {
+            const coord_t column_x = scan_x(*column_begin);
+            auto column_end = column_begin + 1;
+            while (column_end != polylines_out.end() && scan_x(*column_end) == column_x)
+                ++column_end;
+
+            const bool upward = (column_idx & 1) == 0;
+            if (!upward)
+                std::reverse(column_begin, column_end);
+            for (auto it = column_begin; it != column_end; ++it)
+                if ((it->first_point().y() < it->last_point().y()) != upward)
+                    it->reverse();
+
+            column_begin = column_end;
+        }
+    }
+
     // paths must be rotated back
     for (Polylines::iterator it = polylines_out.begin() + n_polylines_out_initial; it != polylines_out.end(); ++ it) {
         // No need to translate, the absolute position is irrelevant.

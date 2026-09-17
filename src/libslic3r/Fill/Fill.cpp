@@ -272,7 +272,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                         params.density = surface.is_top() ? region_config.top_surface_density.value : region_config.bottom_surface_density.value;
                     } else
 						params.pattern = region_config.top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
-                    if (params.pattern == ipMonotonicLine) params.monotonic_travel_into_wall = region_config.monotonic_travel_into_wall.value;
+                    if (params.pattern == ipMonotonicLine || params.pattern == ipGlobalMonotonicLine)
+                        params.monotonic_travel_into_wall = region_config.monotonic_travel_into_wall.value;
 		        } else if (params.density <= 0)
 		            continue;
 
@@ -683,7 +684,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         } else if (surface_fill.params.pattern == ipLightning){
             dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
 		}
-		else if (surface_fill.params.pattern == ipMonotonicLine){
+		else if (surface_fill.params.pattern == ipMonotonicLine || surface_fill.params.pattern == ipGlobalMonotonicLine){
 			FillMonotonicLineWGapFill* fill_monoline = dynamic_cast<FillMonotonicLineWGapFill*>(f.get());
             fill_monoline->gap_compensation_ratio    = surface_fill.params.monotonic_travel_into_wall * (float) 0.01;
 		}

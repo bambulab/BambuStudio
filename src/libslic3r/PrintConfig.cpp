@@ -241,7 +241,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "crosszag",           ipCrossZag },
     { "lockedzag",          ipLockedZag },
     { "2dlattice",          ip2DLattice  },
-    { "ironingarchimedeanspiral", ipIroningArchimedeanSpiral }
+    { "ironingarchimedeanspiral", ipIroningArchimedeanSpiral },
+    { "globalmonotonicline", ipGlobalMonotonicLine }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -2140,6 +2141,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("monotonic");
     def->enum_values.push_back("monotonicline");
+    def->enum_values.push_back("globalmonotonicline");
     def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
@@ -2148,6 +2150,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Monotonic"));
     def->enum_labels.push_back(L("Monotonic line"));
+    def->enum_labels.push_back(L("Global monotonic line"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
