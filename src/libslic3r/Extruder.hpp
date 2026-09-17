@@ -20,7 +20,7 @@ public:
         // BBS
         if (m_share_extruder) {
             m_share_E = { 0.,0.};
-            m_share_retracted = { 0.,0. };
+            m_share_retracted.assign(m_share_retracted.size(), 0.);
         } else {
             m_E             = 0;
             m_retracted     = 0;
@@ -60,11 +60,15 @@ public:
 
     bool is_share_extruder() const { return m_share_extruder; }
     double get_single_retracted_length() const { return m_retracted; }
-    double get_share_retracted_length() const { return m_share_retracted[extruder_id()]; }
+    double get_share_retracted_length() const;
 
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
+
+    // Slot of m_share_retracted holding the park state of the filament path this filament belongs to.
+    unsigned int retracted_slot_id() const;
+    static double& share_retracted(unsigned int slot);
 
     // Reference to GCodeWriter instance owned by GCodeWriter.
     GCodeConfig *m_config;

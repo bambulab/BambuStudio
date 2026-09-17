@@ -28,6 +28,37 @@ unsigned int Extruder::extruder_id() const
     return 0;
 }
 
+// The park state of a filament belongs to the filament path holding it, i.e. to its hotend.
+// On single-extruder multi-nozzle machines (handle_hotend_as_extruder) filament_map is always
+// all-1, so extruder_id() would collapse every hotend onto one slot and a filament would
+// deretract whatever the previously printed one retracted. Index by hotend there instead;
+// filaments sharing a hotend still share the slot, which is what happens physically.
+unsigned int Extruder::retracted_slot_id() const
+{
+    assert(m_config);
+    if (m_config->handle_hotend_as_extruder && m_id < m_config->filament_nozzle_map.size()) {
+        // filament_nozzle_map is a 0 based index into the nozzle list.
+        int nozzle_idx = m_config->filament_nozzle_map.get_at(m_id);
+        if (nozzle_idx >= 0)
+            return unsigned(nozzle_idx);
+    }
+    return extruder_id();
+}
+
+// filament_nozzle_map is refreshed per layer and may address more hotends than the initial
+// slot count, so grow on demand instead of assuming a fixed size.
+double& Extruder::share_retracted(unsigned int slot)
+{
+    if (slot >= m_share_retracted.size())
+        m_share_retracted.resize(slot + 1, 0.);
+    return m_share_retracted[slot];
+}
+
+double Extruder::get_share_retracted_length() const
+{
+    return share_retracted(retracted_slot_id());
+}
+
 unsigned int Extruder::nozzle_id() const
 {
     assert(m_config);
@@ -46,7 +77,7 @@ double Extruder::extrude(double dE)
         m_share_E[extruder_id()] += dE;
         m_absolute_E += dE;
         if (dE < 0.)
-            m_share_retracted[extruder_id()] -= dE;
+            share_retracted(retracted_slot_id()) -= dE;
     } else {
         // in case of relative E distances we always reset to 0 before any output
         if (m_config->use_relative_e_distances)
@@ -72,12 +103,12 @@ double Extruder::retract(double length, double restart_extra)
     if (m_share_extruder) {
         if (m_config->use_relative_e_distances)
             m_share_E[extruder_id()] = 0.;
-        double to_retract = std::max(0., length - m_share_retracted[extruder_id()]);
+        double to_retract = std::max(0., length - share_retracted(retracted_slot_id()));
         m_restart_extra   = restart_extra;
         if (to_retract > 0.) {
             m_share_E[extruder_id()]             -= to_retract;
             m_absolute_E          -= to_retract;
-            m_share_retracted[extruder_id()]     += to_retract;
+            share_retracted(retracted_slot_id()) += to_retract;
         }
         return to_retract;
     } else {
@@ -99,9 +130,9 @@ double Extruder::unretract()
 {
     // BBS
     if (m_share_extruder) {
-        double dE = m_share_retracted[extruder_id()] + m_restart_extra;
+        double dE = share_retracted(retracted_slot_id()) + m_restart_extra;
         this->extrude(dE);
-        m_share_retracted[extruder_id()]     = 0.;
+        share_retracted(retracted_slot_id()) = 0.;
         m_restart_extra                  = 0.;
         return dE;
     } else {
@@ -186,7 +217,14 @@ double Extruder::retract_restart_extra() const
 
 double Extruder::retract_length_toolchange() const
 {
-    return m_config->retract_length_toolchange.get_at(extruder_id());
+    double retract_length = m_config->retract_length_toolchange.get_at(extruder_id());
+    // Fold PVA cut retraction into this one-shot toolchange retract; change_filament_gcode must
+    // skip its extra retraction for PVA as well.
+    size_t filament_config_idx = get_filament_config_idx(*m_config, m_id);
+    if (m_config->handle_hotend_as_extruder && m_config->filament_type.get_at(m_id) == "PVA" &&
+        m_config->long_retractions_when_cut.get_at(filament_config_idx))
+        retract_length += m_config->retraction_distances_when_cut.get_at(filament_config_idx);
+    return retract_length;
 }
 
 double Extruder::retract_restart_extra_toolchange() const
