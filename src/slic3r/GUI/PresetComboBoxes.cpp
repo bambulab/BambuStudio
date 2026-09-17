@@ -1772,6 +1772,18 @@ void PlaterPresetComboBox::update()
         }
     };
 
+    // The selected preset's alias can end up in the unsupported group rather than the system one: the
+    // duplicate filter above records it as selected_system_preset before skipping it, but whichever
+    // sibling actually put the alias in a map may have been an incompatible one. Re-point the marker at
+    // the group that really carries it -- otherwise add_presets() flags no row as current and
+    // update_selection() falls back to the first selectable item, silently showing another material.
+    // selected_system_preset is left alone: add_ams_filaments() above already consumed it, and
+    // add_presets() simply finds no match for it in system_presets.
+    if (m_type == Preset::TYPE_FILAMENT && selected_uncompatible_preset.IsEmpty() &&
+        !selected_system_preset.IsEmpty() && system_presets.count(selected_system_preset) == 0 &&
+        uncompatible_presets.count(selected_system_preset) > 0)
+        selected_uncompatible_preset = selected_system_preset;
+
     //BBS: add project embedded preset logic
     add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"), _L("Project") + " ");
     add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("Custom") + " ");

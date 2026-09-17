@@ -19056,6 +19056,17 @@ msgstr "在同一盘上使用多种喷嘴直径打印"
 msgid "This filament does not support the %smm nozzle, or no matching nozzle is configured."
 msgstr "该耗材不支持 %smm 喷嘴，或尚未配置匹配的喷嘴。"
 
+msgid "This filament cannot be used as currently configured. Please check and fix it."
+msgstr "该耗材当前不可用，请检查并处理。"
+
+#, c-format, boost-format
+msgid "The printer does not support the %s nozzle for filament slot %s. It has been flagged in the filament list -- please update the nozzle information before use."
+msgstr "打印机不支持 %s 喷嘴，耗材槽位 %s 无法使用。该耗材已在耗材列表中标记，请先更新喷嘴信息后再使用。"
+
+#, c-format, boost-format
+msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgstr "耗材槽位 %s 对应的 AMS 料盘没有匹配的耗材预设，已保留该槽位原有的耗材，请在打印前确认。"
+
 msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
 msgstr "该挤出机的喷嘴直径与当前所选打印直径不同。混合喷嘴直径打印仍为实验性功能。"
 

@@ -2932,6 +2932,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                                          bool                                                       skip_ext)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "use_map:" << use_map << " enable_append:" << enable_append;
+    ams_sync_unmatched_slots.clear();
     std::vector<std::string> ams_filament_presets;
     std::vector<std::string> ams_filament_colors;
     std::vector<std::string> ams_filament_color_types;
@@ -3002,6 +3003,9 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             return f.is_compatible && filaments.get_preset_base(f) == &f && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
+            // Every stand-in picked below is provisional: which slot a tray finally lands on is only known
+            // after the append/overwrite merge, and a tray that lands on a slot the user already configured
+            // has its stand-in undone there (see presets_before_sync at the end of this function).
             if (!filament_type.empty()) {
                 filament_type = "Generic " + filament_type;
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
@@ -3107,6 +3111,11 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             if (mixed_per_part_opt)   mixed_per_part_opt->values.resize(phys_count);
         }
     }
+
+    // The project's materials as they stand going into this sync, indexed by physical slot (the mixed
+    // slots have just been stripped, so these indices line up with the ones `maps` ends up using).
+    // Consulted at the end to tell a slot the user already configured apart from one this sync appends.
+    const std::vector<std::string> presets_before_sync = this->filament_presets;
 
     // AMS trays that end up excluded from the project filament list, so their deferred side
     // effects must not be applied. Only the mapping branch can exclude a tray; the overwrite
@@ -3263,6 +3272,37 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
 
 
     apply_synced_tray_side_effects(ams_infos, unsynced_trays, unknowns);
+
+    // Give back the material of every already-configured slot whose tray had no matching preset: the pass
+    // above could only seed it with a "Generic <type>" stand-in or an arbitrary compatible preset, and
+    // losing a material the user deliberately set is worse than admitting the tray is unrecognised. Done
+    // only here because the slot a tray lands on is decided by the append/overwrite merge (trays get
+    // reordered, dropped, or appended past the end), and `maps` is that finished slot -> tray binding.
+    // `unknowns` has already had the trays that never reached the filament list removed.
+    for (const auto &unknown : unknowns) {
+        const std::string ams_id  = unknown.first->opt_string("ams_id", 0u);
+        const std::string slot_id = unknown.first->opt_string("slot_id", 0u);
+        for (const auto &mapping : maps) {
+            if (mapping.first < 0 || mapping.second.ams_id != ams_id || mapping.second.slot_id != slot_id)
+                continue;
+            const size_t slot = static_cast<size_t>(mapping.first);
+            // A slot this sync appended had no material of its own, so its stand-in is all there is and
+            // there is nothing for the user to restore -- leave it alone and stay quiet about it.
+            if (slot >= presets_before_sync.size() || slot >= this->filament_presets.size())
+                continue;
+            // The stand-in can land on the material the slot already had (a slot seeded by an earlier
+            // sync of this same unrecognised tray, most often). Nothing was taken away, so there is
+            // nothing to warn about either.
+            if (this->filament_presets[slot] == presets_before_sync[slot])
+                continue;
+            this->filament_presets[slot] = presets_before_sync[slot];
+            if (std::find(ams_sync_unmatched_slots.begin(), ams_sync_unmatched_slots.end(), slot) ==
+                ams_sync_unmatched_slots.end())
+                ams_sync_unmatched_slots.push_back(slot);
+        }
+    }
+    // Filled in tray order, but it is read out as a list of slot numbers for the user.
+    std::sort(ams_sync_unmatched_slots.begin(), ams_sync_unmatched_slots.end());
 
     // Re-append mixed filament slots that were stripped before AMS sync
     if (!mixed_snapshots.empty()) {
@@ -3953,15 +3993,28 @@ static bool set_filament_nozzle_diameter(
     if (!current_diameters.empty() && current_diameters.count(normalized) == 0) {
         target_preset.clear();
         if (!current->filament_id.empty()) {
+            // Mirrors the sibling lookup in get_filament_nozzle_diameter_options(): user-created
+            // filaments store one preset per nozzle variant sharing filament_id, all is_system ==
+            // false, so requiring is_system here found no sibling and failed the switch on a diameter
+            // that popup had already offered. Preferring a sibling of the same kind as the current
+            // preset keeps a preset saved off a system one on the user's own variants rather than
+            // jumping back to the system preset and dropping its edits.
+            std::string fallback;
             for (auto it = bundle.filaments.begin(); it != bundle.filaments.end(); ++it) {
-                if (!it->is_system || it->filament_id != current->filament_id)
+                if (it->filament_id != current->filament_id)
                     continue;
                 const auto diameters = filament_preset_diameters_for_model(*it, printer_name_to_diameter);
-                if (diameters.count(normalized) != 0) {
+                if (diameters.count(normalized) == 0)
+                    continue;
+                if (it->is_system == current->is_system) {
                     target_preset = it->name;
                     break;
                 }
+                if (fallback.empty())
+                    fallback = it->name;
             }
+            if (target_preset.empty())
+                target_preset = fallback;
         }
         if (target_preset.empty())
             return false;
@@ -4066,7 +4119,19 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
     // 0.4/0.6/0.8-only filament as incompatible. That entry must not survive into the settled
     // multi-diameter pass moments later (configured.size() >= 2), which never touched this vector
     // at all -- leaving a permanent false-positive red icon on an otherwise-compatible filament.
+    // block_filament_fallback_substitution only covers the synchronous cascade of the entry point that
+    // raised it. A slot marked there stays incompatible afterwards, and the very next validation pass --
+    // any sidebar refresh, or an asynchronous one such as a device status push arriving seconds later --
+    // would run with the flag down and silently substitute the material the user was just told to fix.
+    // Carry the marking over so a slot that was deliberately kept stays kept until its situation really
+    // changes: once the slot can follow the target diameter again (nozzle swapped back, or a different
+    // filament picked) the branch above returns before this set is consulted and the entry drains.
+    const std::vector<size_t> previously_incompatible = incompatible_nozzle_diameter_slots;
     incompatible_nozzle_diameter_slots.clear();
+    auto was_marked_incompatible = [&previously_incompatible](size_t slot) {
+        return std::find(previously_incompatible.begin(), previously_incompatible.end(), slot) !=
+               previously_incompatible.end();
+    };
 
     // Per-filament flow is only user-owned where the filament panel's nozzle selector is shown
     // (single-extruder multi-nozzle + multi-diameter mode). On every other machine
@@ -4124,7 +4189,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                         *this, i, target, nullptr, printer_name_to_diameter, options))
                     continue;
 
-                if (block_filament_fallback_substitution) {
+                if (block_filament_fallback_substitution || was_marked_incompatible(i)) {
                     // Preserve the user's original filament selection instead of silently
                     // substituting a different material; the UI marks this slot instead.
                     incompatible_nozzle_diameter_slots.push_back(i);

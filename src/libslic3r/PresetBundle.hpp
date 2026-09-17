@@ -357,6 +357,12 @@ public:
     bool                        block_filament_fallback_substitution = false;
     std::vector<size_t>         incompatible_nozzle_diameter_slots;
 
+    // Slots whose AMS tray carries a filament no installed preset matches, and whose already-configured
+    // material sync_ams_list() therefore kept instead of substituting a "Generic <type>" or an arbitrary
+    // compatible preset. Marked in the filament list the same way as the nozzle-diameter mismatches
+    // above; cleared per slot once the user picks a material for it themselves.
+    std::vector<size_t>         ams_sync_unmatched_slots;
+
     /**
      * \brief Set the ams count for extruder \p index
      *
