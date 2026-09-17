@@ -72,6 +72,9 @@ namespace Slic3r {
             std::vector<std::pair<EMoveType, float>> moves_times;
             std::vector<std::pair<ExtrusionRole, float>> roles_times;
             std::vector<float> layers_times;
+            // Like layers_times but sliced by unique extrusion Z, for the preview slider only.
+            // Filled only for mixed-color sublayers (empty otherwise, slider falls back to layers_times).
+            std::vector<float> preview_layers_times;
 
             void reset() {
                 time = 0.0f;
@@ -84,6 +87,8 @@ namespace Slic3r {
                 roles_times.shrink_to_fit();
                 layers_times.clear();
                 layers_times.shrink_to_fit();
+                preview_layers_times.clear();
+                preview_layers_times.shrink_to_fit();
             }
         };
 
@@ -1498,6 +1503,10 @@ namespace Slic3r {
         void simulate_st_synchronize(float additional_time = 0.0f, ExtrusionRole target_role =ExtrusionRole::erNone);
 
         void update_estimated_times_stats();
+        // Fill PrintEstimatedStatistics::Mode::preview_layers_times, sliced by extrusion Z so the
+        // preview slider (one tick per extrusion Z) keeps showing an increasing time even when
+        // mixed-color sublayers make it finer than the logical layers layers_times is built from.
+        void update_preview_layers_times_stats();
         //BBS:
         void update_slice_warnings();
 

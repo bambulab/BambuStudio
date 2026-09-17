@@ -2791,6 +2791,9 @@ void GCodeProcessor::finalize(bool post_process)
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+    // Must run after post_process() above, which fills in the move times that were left at 0 during
+    // time estimation; otherwise the per-extrusion-Z slicing below would read incomplete times.
+    update_preview_layers_times_stats();
     //BBS: update slice warning
     update_slice_warnings();
 }
@@ -6321,6 +6324,52 @@ void GCodeProcessor::update_estimated_times_stats()
     m_result.print_statistics.flush_per_filament      = m_used_filaments.flush_per_filament;
     m_result.print_statistics.used_filaments_per_role   = m_used_filaments.filaments_per_role;
     m_result.print_statistics.total_volumes_per_extruder = m_used_filaments.total_volumes_per_filament;
+}
+
+void GCodeProcessor::update_preview_layers_times_stats()
+{
+    // Tag-based layers (spiral vase / scarf) use a different partition; leave them to layers_times.
+    if (m_detect_layer_based_on_tag)
+        return;
+
+    // Build a per-slider-layer time table keyed by unique extrusion Z (matching IMSlider::m_layers_values),
+    // keeping the largest cumulative time at each Z so a Z revisited by a sublayer maps to its finish.
+    for (size_t mode_idx = 0; mode_idx < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++mode_idx) {
+        PrintEstimatedStatistics::Mode& data = m_result.print_statistics.modes[mode_idx];
+        if (data.layers_times.empty())
+            continue;
+
+        std::map<float, float> end_time_by_z; // unique extrusion Z -> cumulative time when that Z is done
+        // Z only changes at layer/sublayer boundaries, so cache the slot and re-query the map only on change.
+        // std::map nodes are stable across insertions, so the cached pointer stays valid.
+        float last_z = std::numeric_limits<float>::quiet_NaN();
+        float* slot = nullptr;
+        for (const GCodeProcessorResult::MoveVertex& move : m_result.moves) {
+            if (move.type != EMoveType::Extrude)
+                continue;
+            if (move.position.z() != last_z) {
+                last_z = move.position.z();
+                slot = &end_time_by_z[last_z];
+            }
+            *slot = std::max(*slot, move.time[mode_idx]);
+        }
+
+        // Only mixed-color sublayers make the unique-Z partition finer than the logical layers.
+        // When the counts match, layers_times already fits the slider, so leave preview empty.
+        if (end_time_by_z.size() <= data.layers_times.size())
+            continue;
+
+        std::vector<float> layer_times;
+        layer_times.reserve(end_time_by_z.size());
+        for (const auto& z_time : end_time_by_z)
+            layer_times.emplace_back(z_time.second); // cumulative end-times, already sorted by Z ascending
+
+        // Convert cumulative end-times into per-layer durations (iterate backwards for in-place diff).
+        layer_times.back() = std::max(layer_times.back(), data.time);
+        for (size_t i = layer_times.size(); i-- > 1; )
+            layer_times[i] = std::max(0.0f, layer_times[i] - layer_times[i - 1]);
+        data.preview_layers_times = std::move(layer_times);
+    }
 }
 
 //BBS: ugly code...
