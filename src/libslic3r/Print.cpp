@@ -3886,6 +3886,52 @@ void Print::_make_wipe_tower()
     this->_make_wipe_tower_geometry(m_objects.front());
 }
 
+// Choose a plate-frame position (the tower footprint's min corner) for one
+// object's prime tower: beside the object, on the bed, clear of everything in
+// `occupied` (earlier objects + towers) and of `exclude_areas`. Tries each side
+// of the object; falls back to the object's right side clamped onto the bed.
+// `fitted` reports whether a non-overlapping spot was actually found.
+Vec2d place_one_wipe_tower(const BoundingBoxf &object_box, const Vec2d &tower_size,
+                          const BoundingBoxf &printable_area,
+                          const std::vector<BoundingBoxf> &occupied,
+                          const std::vector<BoundingBoxf> &exclude_areas,
+                          double clearance, bool &fitted)
+{
+    const double gap = std::max(0.0, clearance) + 1.0;
+    auto boxes_overlap = [](const BoundingBoxf &a, const BoundingBoxf &b) {
+        return a.min.x() < b.max.x() && b.min.x() < a.max.x() &&
+               a.min.y() < b.max.y() && b.min.y() < a.max.y();
+    };
+    auto fits = [&](const Vec2d &tmin) {
+        BoundingBoxf t(tmin, tmin + tower_size);
+        if (printable_area.defined &&
+            (t.min.x() < printable_area.min.x() || t.min.y() < printable_area.min.y() ||
+             t.max.x() > printable_area.max.x() || t.max.y() > printable_area.max.y()))
+            return false;
+        BoundingBoxf grown(t.min - Vec2d(clearance, clearance), t.max + Vec2d(clearance, clearance));
+        for (const BoundingBoxf &o : occupied)
+            if (boxes_overlap(grown, o)) return false;
+        for (const BoundingBoxf &e : exclude_areas)
+            if (boxes_overlap(t, e)) return false;
+        return true;
+    };
+
+    const std::vector<Vec2d> candidates = {
+        { object_box.max.x() + gap,                 object_box.min.y() },
+        { object_box.min.x() - gap - tower_size.x(), object_box.min.y() },
+        { object_box.min.x(),                       object_box.max.y() + gap },
+        { object_box.min.x(),                       object_box.min.y() - gap - tower_size.y() },
+    };
+    fitted = false;
+    Vec2d chosen = candidates.front();
+    for (const Vec2d &c : candidates) { if (fits(c)) { chosen = c; fitted = true; break; } }
+    if (printable_area.defined) {
+        chosen.x() = std::min(std::max(chosen.x(), printable_area.min.x()), printable_area.max.x() - tower_size.x());
+        chosen.y() = std::min(std::max(chosen.y(), printable_area.min.y()), printable_area.max.y() - tower_size.y());
+    }
+    return chosen;
+}
+
 // Sequential (By Object) printing: build one prime tower per object from that
 // object's own ToolOrdering. Results land in m_sequential_print_data->object_wipe_tower_map.
 void Print::_make_sequential_wipe_towers()
@@ -3911,6 +3957,16 @@ void Print::_make_sequential_wipe_towers()
         if (o->model_object()->instances.empty()) continue;
         BoundingBoxf3 b = o->model_object()->instance_bounding_box(0);
         occupied.emplace_back(Vec2d(b.min.x(), b.min.y()), Vec2d(b.max.x(), b.max.y()));
+    }
+
+    // Bed exclusion areas (quads).
+    std::vector<BoundingBoxf> exclude_boxes;
+    {
+        const Pointfs &pts = m_config.bed_exclude_area.values;
+        for (size_t i = 0; i + 3 < pts.size(); i += 4) {
+            std::vector<Vec2d> corners(pts.begin() + i, pts.begin() + i + 4);
+            exclude_boxes.emplace_back(corners);
+        }
     }
 
     const double clearance = std::max(0.0, 0.5 * m_config.extruder_clearance_max_radius.value - 0.1);
@@ -3949,53 +4005,27 @@ void Print::_make_sequential_wipe_towers()
         plan.used_filament         = m_wipe_tower_data.used_filament;
         plan.number_of_toolchanges = m_wipe_tower_data.number_of_toolchanges;
         plan.has_tower             = !plan.tool_changes.empty();
+        if (m_wipe_tower_data.wipe_tower_mesh_data) {
+            plan.preview_bottom     = m_wipe_tower_data.wipe_tower_mesh_data->bottom;
+            plan.preview_tower_mesh = m_wipe_tower_data.wipe_tower_mesh_data->real_wipe_tower_mesh;
+            plan.preview_brim_mesh  = m_wipe_tower_data.wipe_tower_mesh_data->real_brim_mesh;
+        }
 
-        // Place the tower next to its own object, on the bed, clear of every
-        // object and of the towers already placed. Try each side of the object;
-        // pick the first candidate that fits, else fall back to the right side
-        // clamped onto the bed (the clearance check will then reject it if it
-        // really cannot be placed).
+        // Place the tower next to its own object (shared with the plater preview
+        // via place_one_wipe_tower).
         BoundingBoxf obj_bb;
         if (!obj->model_object()->instances.empty()) {
             BoundingBoxf3 b = obj->model_object()->instance_bounding_box(0);
             obj_bb = BoundingBoxf(Vec2d(b.min.x(), b.min.y()), Vec2d(b.max.x(), b.max.y()));
         }
         const Vec2d tsz(plan.bbx.size().x(), plan.bbx.size().y());   // tower footprint incl. brim
-        const double gap = clearance + 1.0;
-
-        auto corner_for = [&](const Vec2d &tower_min) -> Vec2f {
-            // Emission translates by (position + bbx.min + rib_offset); solve for
-            // position so the footprint's min lands at tower_min.
-            return Vec2f(float(tower_min.x() - plan.bbx.min.x() - plan.rib_offset.x()),
-                         float(tower_min.y() - plan.bbx.min.y() - plan.rib_offset.y()));
-        };
-        auto fits = [&](const Vec2d &tmin) {
-            BoundingBoxf t(tmin, tmin + tsz);
-            if (bed_bb.defined && (t.min.x() < bed_bb.min.x() || t.min.y() < bed_bb.min.y() ||
-                                   t.max.x() > bed_bb.max.x() || t.max.y() > bed_bb.max.y()))
-                return false;
-            BoundingBoxf grown(t.min - Vec2d(clearance, clearance), t.max + Vec2d(clearance, clearance));
-            for (const BoundingBoxf &o : occupied)
-                if (grown.min.x() < o.max.x() && o.min.x() < grown.max.x() &&
-                    grown.min.y() < o.max.y() && o.min.y() < grown.max.y())
-                    return false;
-            return true;
-        };
-
-        std::vector<Vec2d> candidates = {
-            { obj_bb.max.x() + gap,          obj_bb.min.y() },            // right, front-aligned
-            { obj_bb.min.x() - gap - tsz.x(), obj_bb.min.y() },           // left
-            { obj_bb.min.x(),               obj_bb.max.y() + gap },       // behind
-            { obj_bb.min.x(),               obj_bb.min.y() - gap - tsz.y() }, // in front
-        };
-        Vec2d chosen = candidates.front();
-        for (const Vec2d &c : candidates) { if (fits(c)) { chosen = c; break; } }
-        if (bed_bb.defined) {
-            chosen.x() = std::min(std::max(chosen.x(), bed_bb.min.x()), bed_bb.max.x() - tsz.x());
-            chosen.y() = std::min(std::max(chosen.y(), bed_bb.min.y()), bed_bb.max.y() - tsz.y());
-        }
-        plan.position = corner_for(chosen);
-        occupied.emplace_back(chosen, chosen + tsz);
+        bool fitted = false;
+        const Vec2d tower_min = place_one_wipe_tower(obj_bb, tsz, bed_bb, occupied, exclude_boxes, clearance, fitted);
+        // Emission translates by (position + bbx.min + rib_offset); solve for
+        // position so the footprint's min lands at tower_min.
+        plan.position = Vec2f(float(tower_min.x() - plan.bbx.min.x() - plan.rib_offset.x()),
+                              float(tower_min.y() - plan.bbx.min.y() - plan.rib_offset.y()));
+        occupied.emplace_back(tower_min, tower_min + tsz);
 
         pod.object_wipe_tower_map[obj_const] = std::move(plan);
     }

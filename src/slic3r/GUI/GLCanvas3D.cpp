@@ -3526,6 +3526,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
     int n_plates = ppl.get_plate_count();
     std::vector<int> volume_idxs_wipe_tower_old(n_plates, -1);
+    // By-Object per-object prime tower preview volumes: keyed by their (unique,
+    // non-plate-encoding) composite id, so they can be reconciled across reloads.
+    static const int PER_OBJECT_WIPE_TOWER_ID_BASE = 500000;
+    std::map<int, int> per_object_wipe_tower_old;
 
     // Snapshot each plate's "tower already placed" flag before reload, to detect
     // first-time tower materialization vs. an existing tower whose position stays untouched.
@@ -3637,11 +3641,15 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (mvs == nullptr || force_full_scene_refresh) {
             // This GLVolume will be released.
             if (volume->is_wipe_tower) {
-                // There is only one wipe tower.
-                //assert(volume_idx_wipe_tower_old == -1);
-                int plate_id = volume->composite_id.object_id - 1000;
-                if (plate_id < n_plates)
-                    volume_idxs_wipe_tower_old[plate_id] = (int)volume_id;
+                const int wt_obj_id = volume->composite_id.object_id;
+                if (wt_obj_id >= PER_OBJECT_WIPE_TOWER_ID_BASE) {
+                    per_object_wipe_tower_old[wt_obj_id] = (int) volume_id;
+                } else {
+                    // There is only one (by-layer / single-object) wipe tower per plate.
+                    int plate_id = wt_obj_id - 1000;
+                    if (plate_id < n_plates)
+                        volume_idxs_wipe_tower_old[plate_id] = (int) volume_id;
+                }
             }
             if (!m_reload_delayed) {
                 deleted_volumes.emplace_back(volume, volume_id);
@@ -3907,8 +3915,35 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 PartPlate* part_plate = ppl.get_plate(plate_id);
                 if (part_plate->get_print_seq() == PrintSequence::ByObject ||
                     (part_plate->get_print_seq() == PrintSequence::ByDefault && co != nullptr && co->value == PrintSequence::ByObject)) {
-                    if (ppl.get_plate(plate_id)->printable_instance_size() != 1)
+                    if (ppl.get_plate(plate_id)->printable_instance_size() != 1) {
+                        // By-Object with 2+ objects: one prime tower per object. The
+                        // per-object tower geometry only exists after slicing, so
+                        // render the previews from the sliced plan (they persist on
+                        // the plater until the plate/settings change).
+                        const Print *cp = part_plate->fff_print();
+                        if (cp && cp->is_step_done(psWipeTower) && cp->sequential_print_data().has_value()) {
+                            const ByObjectPrintData &pod = cp->sequential_print_data().value();
+                            const Vec3d porig = ppl.get_plate(plate_id)->get_origin();
+                            int k = 0;
+                            for (const PrintObject *po : pod.print_object_order) {
+                                auto it = pod.object_wipe_tower_map.find(po);
+                                ++k;
+                                if (it == pod.object_wipe_tower_map.end() || !it->second.has_tower ||
+                                    it->second.preview_tower_mesh.its.vertices.empty())
+                                    continue;
+                                const ObjectWipeTowerPlan &plan = it->second;
+                                const int oid = PER_OBJECT_WIPE_TOWER_ID_BASE + plate_id * 64 + (k - 1);
+                                int vnew = m_volumes.load_real_wipe_tower_preview(
+                                    oid, plate_id,
+                                    plan.position.x() + (float) porig.x(), plan.position.y() + (float) porig.y(),
+                                    plan.preview_tower_mesh, plan.preview_brim_mesh, true, 0.f, true, m_initialized);
+                                auto oldit = per_object_wipe_tower_old.find(oid);
+                                if (oldit != per_object_wipe_tower_old.end())
+                                    map_glvolume_old_to_new[oldit->second] = vnew;
+                            }
+                        }
                         continue;
+                    }
                 }
 
                 DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;

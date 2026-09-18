@@ -1400,6 +1400,17 @@ Polygon compacted_wipe_tower_offender_outline(const Polygon &inst_hull, double b
 // (Camera::calc_tight_frustrum_zs_around) clips away the part of the box closest to the viewer.
 bool should_show_height_limit_lines(const Print &print);
 
+// Choose a plate-frame position (the tower footprint's min corner) for one
+// object's prime tower in By-Object printing: beside the object, on the bed,
+// clear of everything in `occupied` (earlier objects + towers) and of
+// `exclude_areas`. `fitted` = a non-overlapping spot was found (else the return
+// is the clamped fallback). Shared by the slicer and the plater preview.
+Vec2d place_one_wipe_tower(const BoundingBoxf &object_box, const Vec2d &tower_size,
+                           const BoundingBoxf &printable_area,
+                           const std::vector<BoundingBoxf> &occupied,
+                           const std::vector<BoundingBoxf> &exclude_areas,
+                           double clearance, bool &fitted);
+
 } /* slic3r_Print_hpp_ */
 
 #endif

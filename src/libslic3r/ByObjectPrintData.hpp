@@ -2,6 +2,8 @@
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
 #include "BoundingBox.hpp"
+#include "Polygon.hpp"
+#include "TriangleMesh.hpp"
 #include <utility>
 
 
@@ -23,6 +25,13 @@ struct ObjectWipeTowerPlan {
     std::vector<float>                                    used_filament;
     int                                                   number_of_toolchanges = 0;
     bool                                                  has_tower = false;
+
+    // Preview meshes for the plater (same content as WipeTowerData::WipeTowerMeshData,
+    // stored inline to avoid a Print.hpp <-> ByObjectPrintData.hpp include cycle).
+    // Local frame; the plater places them at `position`.
+    Polygon      preview_bottom;
+    TriangleMesh preview_tower_mesh;
+    TriangleMesh preview_brim_mesh;
 };
 
 struct ByObjectPrintData{
