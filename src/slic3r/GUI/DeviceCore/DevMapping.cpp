@@ -446,15 +446,19 @@ namespace Slic3r
     }
 
     int DevMappingUtil::ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result,
-                                             std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext, bool check_nozzle_type)
+                                             std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext, bool check_nozzle_type,
+                                             bool color_over_subtype)
     {
         // Match priority:
         //   type (hard) > setting_id (sub-class) > filament_id (class) > color.
+        // color_over_subtype swaps the last three: type (hard) > color > setting_id > filament_id, using a
+        // sub-DeltaE tie term so product identity only splits an otherwise-equal colour.
         constexpr float kColorDistanceMin    = 0.f;
         constexpr float kColorDistanceMax    = 1000.f;   // > real DeltaE76 upper bound (~260)
         constexpr float kClassDistanceOffset = 10000.f;  // class match (filament_id) only
         constexpr float kTypeDistanceOffset  = 20000.f;  // same type only
         constexpr float kMismatchDistance    = 999999.f; // hard fail (type / alpha mismatch)
+        constexpr float kColorTieBreak       = 0.25f;    // color_over_subtype: below one DeltaE step, so it never overrides a visible colour gap
         static_assert(kColorDistanceMax < kClassDistanceOffset, "color distance must not override sub-class / class match priority");
         static_assert(kTypeDistanceOffset - kClassDistanceOffset > kColorDistanceMax, "class-vs-type gap must exceed the color distance range");
 
@@ -600,7 +604,11 @@ namespace Slic3r
                     const bool is_class_match = !filaments[i].filament_id.empty() && !tray->second.filament_id.empty()
                         && filaments[i].filament_id == tray->second.filament_id;
                     if (!is_sub_class_match) {
-                        val.distance += is_class_match ? kClassDistanceOffset : kTypeDistanceOffset;
+                        // color_over_subtype keeps the same sub-class > class > type order but shrinks the gaps below
+                        // one DeltaE step, so colour stays the primary sort and identity only breaks a tie.
+                        const float class_step = color_over_subtype ? kColorTieBreak : kClassDistanceOffset;
+                        const float type_step  = color_over_subtype ? kColorTieBreak * 2.f : kTypeDistanceOffset;
+                        val.distance += is_class_match ? class_step : type_step;
                     }
 
                     val.is_type_match = true;

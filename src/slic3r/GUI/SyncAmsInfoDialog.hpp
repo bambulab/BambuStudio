@@ -260,6 +260,9 @@ public:
     /// When true, the auto-map filters candidate slots by nozzle diameter and flow type (checked
     /// before colour). Base ignores the nozzle; a subclass enables it for precision matching.
     virtual bool use_nozzle_type_match() const { return false; }
+    /// When true, the auto-map ranks same-type slots by colour, letting product identity (filament
+    /// sub-type) only break a near-equal colour tie. Base keeps product identity dominant over colour.
+    virtual bool use_color_over_subtype() const { return false; }
     void deal_only_exist_ext_spool(MachineObject *obj_);
     void show_thumbnail_page();
     bool get_ams_mapping_result(std::string &mapping_array_str, std::string &mapping_array_str2, std::string &ams_mapping_info);

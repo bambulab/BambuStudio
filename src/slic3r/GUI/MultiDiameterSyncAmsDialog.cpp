@@ -858,7 +858,7 @@ void MultiDiameterSyncAmsDialog::generate_override_fix_ams_list()
         std::vector<FilamentInfo> result;
         DevMappingUtil::ams_filament_mapping(obj, m_fix_filaments, result, default_map_opt(obj), std::vector<int>(),
                                              wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
-                                             use_nozzle_type_match());
+                                             use_nozzle_type_match(), use_color_over_subtype());
         paint_items(obj, m_fix_materialList, result);
     }
     m_fix_filament_panel->Show();

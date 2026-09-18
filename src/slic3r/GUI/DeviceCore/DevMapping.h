@@ -50,7 +50,15 @@ public:
 
     static bool is_valid_mapping_result(const MachineObject* obj, std::vector<FilamentInfo>& result, bool check_empty_slot = false);
 
-    static int ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>(), bool nozzle_has_ams_then_ignore_ext = false, bool check_nozzle_type = false);
+    /**
+     * \brief Auto-map project filaments onto the machine's slots by type, product identity and colour.
+     *
+     * \param check_nozzle_type   also require the slot's nozzle diameter and flow type to match
+     * \param color_over_subtype  rank same-type slots by colour alone; product identity (setting_id /
+     *                            filament_id) then only breaks a near-equal colour tie. Off keeps product
+     *                            identity dominant over colour.
+     */
+    static int ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>(), bool nozzle_has_ams_then_ignore_ext = false, bool check_nozzle_type = false, bool color_over_subtype = false);
 
     // List every installed AMS / external slot on the machine as a mapping candidate, with
     // nozzle_diameter filled from the slot's bound nozzle. A diameter-aware picker uses these to

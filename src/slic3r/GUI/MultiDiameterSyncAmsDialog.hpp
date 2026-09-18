@@ -43,6 +43,10 @@ protected:
     /// Precision-first restricts the auto-map to slots whose nozzle diameter and flow type match the
     /// source filament (checked before colour); Color-first ignores the nozzle.
     bool use_nozzle_type_match() const override { return m_scheme == FilamentMatchScheme::PrecisionFirst; }
+    /// This dialog always lets colour outrank filament sub-type: among the type-matched slots
+    /// (Precision-first also nozzle-matched), a closer-colour slot of a different product (e.g. PLA
+    /// Lite vs PLA Basic) wins over a same-product slot of a different colour. True in both schemes.
+    bool use_color_over_subtype() const override { return true; }
     /// Build the sync result from this dialog's mapping (records each slot's own nozzle diameter).
     void deal_ok() override;
     const SyncResult& get_result() override { return m_result; }

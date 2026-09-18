@@ -3151,10 +3151,6 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
 
-    if (is_single_ext_multi_nozzle(machine_preset->config)) {
-        plater->sidebar().sync_ams_list();
-    }
-
     return true;
 }
 

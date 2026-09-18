@@ -1278,14 +1278,14 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
         }
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
                                                      wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
-                                                     use_nozzle_type_match());
+                                                     use_nozzle_type_match(), use_color_over_subtype());
     }
     // single nozzle
     else {
         map_opt = { false, true, false, true }; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
                                                                wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
-                                                               use_nozzle_type_match());
+                                                               use_nozzle_type_match(), use_color_over_subtype());
     }
 
     if (filament_result == 0) {
