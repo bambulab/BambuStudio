@@ -61,10 +61,9 @@ DynamicPrintConfig make_sequential_multicolour_config(unsigned num_filaments)
 
     config.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
     config.set_key_value("single_extruder_multi_material", new ConfigOptionBool(true));
-    // Anchor near the plate origin so per-object towers (anchor + object shift)
-    // stay on the bed for the test layouts.
-    config.set_key_value("wipe_tower_x", new ConfigOptionFloats(std::vector<double>{5.0}));
-    config.set_key_value("wipe_tower_y", new ConfigOptionFloats(std::vector<double>{5.0}));
+    // A roomy bed (P2S-ish) so per-object tower placement has space.
+    config.set_key_value("printable_area", new ConfigOptionPoints(
+        {Vec2d(0, 0), Vec2d(256, 0), Vec2d(256, 256), Vec2d(0, 256)}));
     config.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByObject));
     // Smooth timelapse and wrapping detection are rejected for By Object.
     config.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlTraditional));
@@ -244,35 +243,54 @@ TEST_CASE("SeqWT: By-Object 2 multicolour objects emit two prime towers (G-code)
         o << gcode;
     }
 
-    // Per-object tower plans exist and are at two distinct positions.
+    // Per-object tower plans exist, each near its object and not on top of it.
     const auto &pod = print.sequential_print_data().value();
     REQUIRE(pod.object_wipe_tower_map.size() == 2);
-    std::vector<Vec2f> positions;
-    for (const auto &kv : pod.object_wipe_tower_map) {
-        REQUIRE(kv.second.has_tower);
-        REQUIRE_FALSE(kv.second.tool_changes.empty());
-        positions.push_back(kv.second.position);
+    auto box2d = [](const BoundingBoxf3 &b) {
+        return BoundingBoxf(Vec2d(b.min.x(), b.min.y()), Vec2d(b.max.x(), b.max.y()));
+    };
+    auto overlaps = [](const BoundingBoxf &a, const BoundingBoxf &b) {
+        return a.min.x() < b.max.x() && b.min.x() < a.max.x() &&
+               a.min.y() < b.max.y() && b.min.y() < a.max.y();
+    };
+    std::vector<BoundingBoxf> tower_boxes;
+    for (const PrintObject *o : pod.print_object_order) {
+        const auto &plan = pod.object_wipe_tower_map.at(o);
+        REQUIRE(plan.has_tower);
+        REQUIRE_FALSE(plan.tool_changes.empty());
+        BoundingBoxf obj = box2d(o->model_object()->instance_bounding_box(0));
+        BoundingBoxf tw(Vec2d(plan.position.x() + plan.bbx.min.x() + plan.rib_offset.x(),
+                              plan.position.y() + plan.bbx.min.y() + plan.rib_offset.y()),
+                        Vec2d(plan.position.x() + plan.bbx.max.x() + plan.rib_offset.x(),
+                              plan.position.y() + plan.bbx.max.y() + plan.rib_offset.y()));
+        INFO("obj x[" << obj.min.x() << "," << obj.max.x() << "] y[" << obj.min.y() << "," << obj.max.y() << "]  "
+             "tower x[" << tw.min.x() << "," << tw.max.x() << "] y[" << tw.min.y() << "," << tw.max.y() << "]");
+        REQUIRE_FALSE(overlaps(obj, tw));                     // tower is beside, not on, its object
+        REQUIRE((obj.center() - tw.center()).norm() < 90.f);  // but nearby
+        REQUIRE(tw.min.x() >= 0.0);                           // on the bed
+        REQUIRE(tw.min.y() >= 0.0);
+        REQUIRE(tw.max.x() <= 256.0);
+        REQUIRE(tw.max.y() <= 256.0);
+        tower_boxes.push_back(tw);
     }
-    REQUIRE((positions[0] - positions[1]).norm() > 50.f);
+    REQUIRE_FALSE(overlaps(tower_boxes[0], tower_boxes[1]));   // towers don't overlap each other
 
     // G-code carries wipe-tower extrusion and plenty of tool changes.
     CHECK(gcode.find("WIPE_TOWER") != std::string::npos);
     CHECK(count_tool_changes(gcode) >= 8);
 
-    // The two objects are printed one after the other: exactly one object
-    // boundary in the G-code.
+    // The two objects print one after the other: exactly one object boundary.
     std::vector<size_t> bounds = object_boundaries(gcode);
     REQUIRE(bounds.size() == 1);
     size_t split = bounds[0];
 
-    // Each object's tower activity stays in its own X band, and object 2's tower
-    // region is never touched while object 1 prints (and vice versa).
-    auto span_a = wipe_tower_x_span(gcode, 0, split);
-    auto span_b = wipe_tower_x_span(gcode, split, gcode.size());
-    INFO("tower A x-span [" << span_a.first << "," << span_a.second << "]  "
-         << "tower B x-span [" << span_b.first << "," << span_b.second << "]");
-    REQUIRE(span_a.second < span_a.first + 60.f);          // A tower is compact
-    REQUIRE(span_b.first > span_a.second + 40.f);          // B tower is well to the right of A
+    // All wipe-tower extrusion before the boundary is in tower A's footprint;
+    // after the boundary, in tower B's -- neither tower is revisited.
+    auto in_x = [](std::pair<float,float> sp, const BoundingBoxf &b) {
+        return sp.first >= b.min.x() - 2.f && sp.second <= b.max.x() + 2.f;
+    };
+    REQUIRE(in_x(wipe_tower_x_span(gcode, 0, split), tower_boxes[0]));
+    REQUIRE(in_x(wipe_tower_x_span(gcode, split, gcode.size()), tower_boxes[1]));
 }
 
 TEST_CASE("SeqWT regression: By-Layer 2 multicolour objects keep one global tower", "[SequentialWipeTower]")
@@ -409,21 +427,20 @@ TEST_CASE("SeqWT collision: wide separation slices", "[SequentialWipeTower]")
     REQUIRE(count_object_orderings_with_tower(print) == 2);
 }
 
-// Task doc collision B/C/D: a tower would land on an already-printed object ->
-// slicing is rejected with a clear message.
-TEST_CASE("SeqWT collision: tower over a neighbouring object rejects the slice", "[SequentialWipeTower]")
+// Task doc collision B/C/D: when there is no room on the bed for a tower clear
+// of the other objects, the slice is rejected with a clear message.
+TEST_CASE("SeqWT collision: no room for a tower rejects the slice", "[SequentialWipeTower]")
 {
     DynamicPrintConfig config = make_sequential_multicolour_config(2);
-    // Anchor object A's tower (anchor + A's ~10 mm shift, then + bbx) so it lands
-    // on top of object B at X[80,100].
-    config.set_key_value("wipe_tower_x", new ConfigOptionFloats(std::vector<double>{75.0}));
-    config.set_key_value("wipe_tower_y", new ConfigOptionFloats(std::vector<double>{5.0}));
+    // Tiny bed, two objects taking up most of it -> nowhere to put a tower.
+    config.set_key_value("printable_area", new ConfigOptionPoints(
+        {Vec2d(0, 0), Vec2d(70, 0), Vec2d(70, 30), Vec2d(0, 30)}));
 
     Print print;
     Model model;
     build_sequential_print(print, model, config, {
-        ObjSpec{Vec3d(0, 0, 0),  1, 2, 2.0},   // A at world X[0,20]
-        ObjSpec{Vec3d(80, 0, 0), 1, 2, 3.0},   // B at world X[80,100] (distinct height -> distinct object)
+        ObjSpec{Vec3d(0, 0, 0),  1, 2, 2.0},   // A world X[0,20]
+        ObjSpec{Vec3d(45, 0, 0), 1, 2, 3.0},   // B world X[45,65] (distinct height -> distinct object)
     }, 2);
 
     REQUIRE_THROWS_AS(print.process(), Slic3r::SlicingError);

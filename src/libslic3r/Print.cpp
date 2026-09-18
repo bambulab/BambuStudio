@@ -3899,8 +3899,21 @@ void Print::_make_sequential_wipe_towers()
     // queries the current one, and we swap in each object's below.
     auto saved_nozzle_group_result = m_nozzle_group_result;
 
-    const Vec2f base_pos(float(m_config.wipe_tower_x.get_at(m_plate_index)),
-                         float(m_config.wipe_tower_y.get_at(m_plate_index)));
+    // Plate-local printable-area bounding box, for keeping towers on the bed.
+    BoundingBoxf bed_bb;
+    for (const Vec2d &p : m_config.printable_area.values)
+        bed_bb.merge(p);
+
+    // Rectangles [plate-frame] already claimed on the bed: every object plus any
+    // tower we've placed so far. New towers must avoid these.
+    std::vector<BoundingBoxf> occupied;
+    for (const PrintObject *o : m_objects) {
+        if (o->model_object()->instances.empty()) continue;
+        BoundingBoxf3 b = o->model_object()->instance_bounding_box(0);
+        occupied.emplace_back(Vec2d(b.min.x(), b.min.y()), Vec2d(b.max.x(), b.max.y()));
+    }
+
+    const double clearance = std::max(0.0, 0.5 * m_config.extruder_clearance_max_radius.value - 0.1);
 
     for (const PrintObject *obj_const : pod.print_object_order) {
         auto it_to = pod.object_tool_ordering_map.find(obj_const);
@@ -3937,15 +3950,52 @@ void Print::_make_sequential_wipe_towers()
         plan.number_of_toolchanges = m_wipe_tower_data.number_of_toolchanges;
         plan.has_tower             = !plan.tool_changes.empty();
 
-        // MVP placement: offset the plate tower anchor by this object's XY shift
-        // so each tower sits next to its object. Collision-aware placement is a
-        // later phase; for now conservative manual layout is expected.
-        Vec2f obj_xy(0.f, 0.f);
-        if (!obj->instances().empty()) {
-            Vec2d s = unscale(obj->instances().front().shift);
-            obj_xy = Vec2f(float(s.x()), float(s.y()));
+        // Place the tower next to its own object, on the bed, clear of every
+        // object and of the towers already placed. Try each side of the object;
+        // pick the first candidate that fits, else fall back to the right side
+        // clamped onto the bed (the clearance check will then reject it if it
+        // really cannot be placed).
+        BoundingBoxf obj_bb;
+        if (!obj->model_object()->instances.empty()) {
+            BoundingBoxf3 b = obj->model_object()->instance_bounding_box(0);
+            obj_bb = BoundingBoxf(Vec2d(b.min.x(), b.min.y()), Vec2d(b.max.x(), b.max.y()));
         }
-        plan.position = base_pos + obj_xy;
+        const Vec2d tsz(plan.bbx.size().x(), plan.bbx.size().y());   // tower footprint incl. brim
+        const double gap = clearance + 1.0;
+
+        auto corner_for = [&](const Vec2d &tower_min) -> Vec2f {
+            // Emission translates by (position + bbx.min + rib_offset); solve for
+            // position so the footprint's min lands at tower_min.
+            return Vec2f(float(tower_min.x() - plan.bbx.min.x() - plan.rib_offset.x()),
+                         float(tower_min.y() - plan.bbx.min.y() - plan.rib_offset.y()));
+        };
+        auto fits = [&](const Vec2d &tmin) {
+            BoundingBoxf t(tmin, tmin + tsz);
+            if (bed_bb.defined && (t.min.x() < bed_bb.min.x() || t.min.y() < bed_bb.min.y() ||
+                                   t.max.x() > bed_bb.max.x() || t.max.y() > bed_bb.max.y()))
+                return false;
+            BoundingBoxf grown(t.min - Vec2d(clearance, clearance), t.max + Vec2d(clearance, clearance));
+            for (const BoundingBoxf &o : occupied)
+                if (grown.min.x() < o.max.x() && o.min.x() < grown.max.x() &&
+                    grown.min.y() < o.max.y() && o.min.y() < grown.max.y())
+                    return false;
+            return true;
+        };
+
+        std::vector<Vec2d> candidates = {
+            { obj_bb.max.x() + gap,          obj_bb.min.y() },            // right, front-aligned
+            { obj_bb.min.x() - gap - tsz.x(), obj_bb.min.y() },           // left
+            { obj_bb.min.x(),               obj_bb.max.y() + gap },       // behind
+            { obj_bb.min.x(),               obj_bb.min.y() - gap - tsz.y() }, // in front
+        };
+        Vec2d chosen = candidates.front();
+        for (const Vec2d &c : candidates) { if (fits(c)) { chosen = c; break; } }
+        if (bed_bb.defined) {
+            chosen.x() = std::min(std::max(chosen.x(), bed_bb.min.x()), bed_bb.max.x() - tsz.x());
+            chosen.y() = std::min(std::max(chosen.y(), bed_bb.min.y()), bed_bb.max.y() - tsz.y());
+        }
+        plan.position = corner_for(chosen);
+        occupied.emplace_back(chosen, chosen + tsz);
 
         pod.object_wipe_tower_map[obj_const] = std::move(plan);
     }
