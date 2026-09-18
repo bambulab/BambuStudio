@@ -3771,6 +3771,12 @@ Sidebar::Sidebar(Plater *parent)
             // call sites it protects would otherwise run against stale extruder_full_stat/project
             // config before this lambda's own validate_filament_nozzle_diameter_selections()/
             // update_presets(TYPE_FILAMENT) pass below runs with the real, settled data.
+            // Capture the single-diameter printer_variant before that switch lands on canonical 0.4,
+            // so the first toggle-ON can pin every slot to it instead of the smallest remaining option.
+            const std::string diameter_before = enabled ?
+                format_diameter_to_str(atof(
+                    preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant").c_str())) :
+                std::string();
             p->is_switching_diameter = true;
             bool mode_applied = p->apply_multi_nozzle_diameter_mode(enabled);
             p->is_switching_diameter = false;
@@ -3802,6 +3808,14 @@ Sidebar::Sidebar(Plater *parent)
                 p->m_saved_filament_volume_map       = vol ? vol->values : std::vector<int>{};
                 p->m_saved_per_slot_valid            = true;
             }
+
+            // First single -> multi toggle: there is no per-slot snapshot to restore, and
+            // filament_diameter_map is typically empty in single-diameter mode. Pin every physical
+            // slot to the diameter captured above and the first printable flow for that diameter
+            // before validate runs, otherwise empty slots fall through to options.front().
+            if (enabled && !p->m_saved_per_slot_valid && !diameter_before.empty() &&
+                is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config))
+                preset_bundle->seed_filament_nozzles_from_single_diameter(diameter_before);
 
             // The printer preset is already the one this mode needs, so the diameter buttons are
             // left to update_presets(TYPE_PRINTER) below, which derives them from printer_variant.
@@ -3850,6 +3864,8 @@ Sidebar::Sidebar(Plater *parent)
                 // Re-derive per-plate maps from the restored state (mirrors what the popup does on
                 // any user-driven change), so filament_maps / filament_volume_maps / filament_nozzle_maps
                 // reflect the restored diameters, not the transient cleared state.
+                apply_nozzle_manual_maps_to_plates();
+            } else if (enabled) {
                 apply_nozzle_manual_maps_to_plates();
             }
             update_presets(Preset::TYPE_FILAMENT);

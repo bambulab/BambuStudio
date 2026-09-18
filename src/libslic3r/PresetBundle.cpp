@@ -4047,6 +4047,45 @@ bool PresetBundle::set_filament_nozzle_diameter(size_t filament_index, const std
     return updated;
 }
 
+void PresetBundle::seed_filament_nozzles_from_single_diameter(const std::string &diameter)
+{
+    const std::string normalized = format_diameter_to_str(atof(diameter.c_str()));
+    if (normalized.empty())
+        return;
+
+    auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    auto *volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
+    if (selected == nullptr || volume_map == nullptr)
+        return;
+
+    selected->values.resize(filament_presets.size());
+    volume_map->values.resize(filament_presets.size(), static_cast<int>(nvtStandard));
+
+    const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
+    const auto configured = collect_configured_nozzle_diameters(*this);
+    const auto installed = collect_installed_nozzle_variants(*this);
+
+    for (size_t i = 0; i < filament_presets.size(); ++i) {
+        if (is_mixed_filament(i))
+            continue;
+
+        const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
+            *this, i, printer_name_to_diameter, configured);
+        if (!::Slic3r::set_filament_nozzle_diameter(
+                *this, i, normalized, nullptr, printer_name_to_diameter, options)) {
+            // Keep the requested diameter so validation flags the slot instead of rewriting
+            // it to the smallest remaining option.
+            selected->values[i] = normalized;
+            continue;
+        }
+
+        const auto flows = ::Slic3r::get_filament_nozzle_flow_options(*this, i, normalized, installed);
+        if (flows.empty())
+            continue;
+        volume_map->values[i] = static_cast<int>(flows.front());
+    }
+}
+
 static const Preset *find_default_filament_for_nozzle_diameter(
     PresetBundle                              &bundle,
     const std::string                         &diameter,

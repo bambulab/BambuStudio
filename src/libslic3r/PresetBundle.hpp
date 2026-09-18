@@ -346,6 +346,11 @@ public:
     // Updates the selected diameter and switches to a matching system preset when the current preset cannot serve it.
     bool                        set_filament_nozzle_diameter(size_t filament_index, const std::string &diameter,
                                                            std::string *selected_preset_name = nullptr);
+    // First single-diameter -> multi-diameter toggle: pin every physical slot to `diameter`
+    // (the printer_variant in effect before the switch) and the first printable flow for that
+    // diameter. Slots that cannot use it keep the requested diameter so validation can flag them
+    // instead of rewriting them to the smallest remaining option.
+    void                        seed_filament_nozzles_from_single_diameter(const std::string &diameter);
     // Resizes selections and fills missing or invalid values with a deterministic supported default.
     // Device mappings, when supplied, take precedence and bind a filament to its physical slot diameter.
     void                        validate_filament_nozzle_diameter_selections(
