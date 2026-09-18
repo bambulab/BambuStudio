@@ -102,7 +102,6 @@ public:
         return type != DevAmsType::EXT_SPOOL && !IsRackAms(type);
     }
 
-    // The AMS built into a hotend rack (RackType_A / RackType_B).
     static bool IsRackAms(DevAmsType type)
     {
         return type == DevAmsType::ZMULTI_A || type == DevAmsType::ZMULTI_B;

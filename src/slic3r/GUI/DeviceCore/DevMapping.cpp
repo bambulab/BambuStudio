@@ -480,9 +480,7 @@ namespace Slic3r
         std::set<int> sub_ams_keys; // candidate keys on an attached sub AMS (rack path)
         bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
 
-        const auto rack_type              = obj->GetNozzleRack()->GetRackType();
-        const bool is_mapping_hotend_item = (rack_type == DevNozzleRack::RackType_A ||
-                                             rack_type == DevNozzleRack::RackType_B);
+        const bool is_mapping_hotend_item = obj->GetNozzleRack()->IsDirectConnectedRack();
         if (is_mapping_hotend_item)
         {
             // Hotend-rack machines: every slot reachable from a rack nozzle, with
@@ -703,8 +701,7 @@ namespace Slic3r
             }
         };
 
-        const auto rack_type = obj->GetNozzleRack()->GetRackType();
-        if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+        if (obj->GetNozzleRack()->IsDirectConnectedRack()) {
             std::map<int, FilamentInfo>             tray_filaments;
             std::map<int, std::optional<DevNozzle>> tray_nozzles;
             std::set<int>                           ext_keys, not_loaded_keys, sub_ams_keys;

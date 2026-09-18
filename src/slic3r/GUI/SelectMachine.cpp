@@ -221,8 +221,7 @@ bool check_nozzle_type_for_ams_mapping(const MachineObject *obj, PrintFromType p
     if (print_type != PrintFromType::FROM_NORMAL || !obj)
         return false;
 
-    const auto rack_type = obj->GetNozzleRack()->GetRackType();
-    return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+    return obj->GetNozzleRack()->IsDirectConnectedRack();
 }
 
 void fill_slicing_nozzle_info(FilamentInfo &info, const std::vector<int> &filament_map)
@@ -4585,8 +4584,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         std::unordered_set<int> known_fila_soften_extruders;
         std::unordered_set<int> unknown_fila_soften_extruders;
         // Hotend-rack machines only warn when the toolhead filament type is unknown
-        const auto rack_type = obj_->GetNozzleRack()->GetRackType();
-        const bool warn_soften_on_unknown_only = (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B);
+        const bool warn_soften_on_unknown_only = obj_->GetNozzleRack()->IsDirectConnectedRack();
         auto preset_full_config = wxGetApp().preset_bundle->full_config();
         auto chamber_temperatures = preset_full_config.option<ConfigOptionInts>("chamber_temperatures");
         for (const FilamentInfo& item : m_ams_mapping_result) {
@@ -5006,8 +5004,7 @@ bool SelectMachineDialog::is_hotend_rack() const
 {
     MachineObject* dev = wxGetApp().getDeviceManager()->get_selected_machine();
     if (!dev) { return false; }
-    const auto rack_type = dev->GetNozzleRack()->GetRackType();
-    return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+    return dev->GetNozzleRack()->IsDirectConnectedRack();
 }
 
 MaterialItem* SelectMachineDialog::create_material_item(wxWindow* parent, wxColour colour_rgb,
@@ -5943,8 +5940,7 @@ bool SelectMachineDialog::CheckErrorRackStatus(MachineObject* obj_)
         return false;
     }
 
-    const auto rack_type = rack->GetRackType();
-    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+    if (!rack->IsDirectConnectedRack()) {
         return true;
     }
 
@@ -6429,7 +6425,7 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
                 for (const auto& nozzle_pos : nozzle_pos_vec) {
                     nozzle_map[nozzle_pos] = obj_->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
                 }
-            } else if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+            } else if (obj_->GetNozzleRack()->IsDirectConnectedRack()) {
                 auto mapped_info = get_mapped_filament_info(fila_id);
                 if (mapped_info.has_value()) {
                     auto tray_opt = obj_->get_tray(std::to_string(mapped_info->get_ams_id()), std::to_string(mapped_info->get_slot_id()));
@@ -6533,7 +6529,7 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         }
 
         return "?";
-    } else if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+    } else if (obj_->GetNozzleRack()->IsDirectConnectedRack()) {
         auto mapped_info = get_mapped_filament_info(fila_id);
         if (mapped_info.has_value()) {
             auto tray_opt = obj_->get_tray(std::to_string(mapped_info->get_ams_id()), std::to_string(mapped_info->get_slot_id()));
@@ -7453,8 +7449,7 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
         return true;
     }
 
-    const auto rack_type = rack->GetRackType();
-    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+    if (!rack->IsDirectConnectedRack()) {
         return true;
     }
 
@@ -7516,8 +7511,7 @@ static bool has_mapped_slot_blocked_by(MachineObject* obj_, const std::vector<Fi
 {
     if (!obj_) return false;
 
-    const auto rack_type = obj_->GetNozzleRack()->GetRackType();
-    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B)
+    if (!obj_->GetNozzleRack()->IsDirectConnectedRack())
         return false;
 
     for (const auto& fila : mapping_result) {
@@ -7547,8 +7541,7 @@ bool SelectMachineDialog::CheckWarningSlotNotLoaded(MachineObject* obj_, wxStrin
 
     if (!obj_) return true;
 
-    const auto rack_type = obj_->GetNozzleRack()->GetRackType();
-    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B)
+    if (!obj_->GetNozzleRack()->IsDirectConnectedRack())
         return true;
 
     std::set<int> ext_spool_tool_ids;
@@ -7612,8 +7605,7 @@ bool SelectMachineDialog::CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxSt
     warning_msg.clear();
     if (!obj_) return true;
 
-    const auto rack_type = obj_->GetNozzleRack()->GetRackType();
-    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B)
+    if (!obj_->GetNozzleRack()->IsDirectConnectedRack())
         return true;
 
     auto fila_sys = obj_->GetFilaSystem();
@@ -8051,8 +8043,7 @@ void SelectMachineDialog::update_material_item_pos(MachineObject* obj_)
     const bool is_single_head = obj_->GetExtderSystem()->GetTotalExtderCount() < 2;
     const bool has_switcher = obj_->GetFilaSwitch()->IsInstalled();
     const bool use_single_panel = is_single_head || has_switcher;
-    const auto rack_type_pos = obj_->GetNozzleRack()->GetRackType();
-    const bool is_hotend_rack = (rack_type_pos == DevNozzleRack::RackType_A || rack_type_pos == DevNozzleRack::RackType_B);
+    const bool is_hotend_rack = obj_->GetNozzleRack()->IsDirectConnectedRack();
 
     bool to_change_pos = false;
     for (const auto& iter : m_materialList) {

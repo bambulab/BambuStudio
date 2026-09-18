@@ -32,10 +32,7 @@ bool AMSRFIDMaterialView::should_show_kn_section() const
 bool AMSRFIDMaterialView::should_show_weight_section() const
 {
     if (!obj) return false;
-    auto rack = obj->GetNozzleRack();
-    const bool is_n1x = rack && (rack->GetRackType() == DevNozzleRack::RackType_A ||
-                                  rack->GetRackType() == DevNozzleRack::RackType_B);
-    return is_n1x && support_filament_remain_edit();
+    return support_filament_remain_edit();
 }
 
 bool AMSRFIDMaterialView::can_edit_filament_weight() const

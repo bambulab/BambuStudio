@@ -4020,10 +4020,9 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     bool to_update_layout = false;
     int  nozzle_num       = obj->GetExtderSystem()->GetTotalExtderCount();
     if (nozzle_num == 1) {
-        const bool is_rack_a_or_b = obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType::RackType_A ||
-                                    obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType::RackType_B;
+        const bool direct_rack = obj->GetNozzleRack()->IsDirectConnectedRack();
         const auto main_extder = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID);
-        const bool show_nozzle_empty_hint = is_rack_a_or_b && main_extder.has_value() && !main_extder->GetPickedNozzleAddrId().has_value();
+        const bool show_nozzle_empty_hint = direct_rack && main_extder.has_value() && !main_extder->GetPickedNozzleAddrId().has_value();
         if (m_nozzle_empty_hint && m_nozzle_empty_hint->IsShown() != show_nozzle_empty_hint) {
             to_update_layout = true;
         }
@@ -4038,7 +4037,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
         } else {
             m_nozzle_empty_hint->Hide();
             m_tempCtrl_nozzle->Show();
-            if (is_rack_a_or_b && main_extder.has_value() && main_extder->GetPickedNozzleAddrId().has_value()) {
+            if (direct_rack && main_extder.has_value() && main_extder->GetPickedNozzleAddrId().has_value()) {
                 const auto picked_addr_id = main_extder->GetPickedNozzleAddrId();
                 m_main_extruder_nozzle_idx->SetValue(picked_addr_id.value() + 1);
                 m_main_extruder_nozzle_idx->Show();
@@ -4332,8 +4331,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     } else {
         m_ams_control->SetAmsModel(ams_mode, ams_mode);
         m_filament_step->SetAmsModel(ams_mode, ams_mode);
-        auto rack_type = obj->GetNozzleSystem()->GetNozzleRack()->GetRackType();
-        bool ams_should_show = (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B);
+        bool ams_should_show = !obj->GetNozzleSystem()->GetNozzleRack()->IsDirectConnectedRack();
         show_ams_group(ams_should_show);
         // show_filament_load_group(true);
 
@@ -6284,8 +6282,7 @@ bool StatusPanel::CanShowHotendFilamentPanel(MachineObject* obj) const
         return false;
     }
 
-    const auto rack_type = obj->GetNozzleRack()->GetRackType();
-    return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+    return obj->GetNozzleRack()->IsDirectConnectedRack();
 }
 
 bool StatusPanel::ShowHotendFilamentPanel(MachineObject* obj)
@@ -6317,8 +6314,7 @@ bool StatusPanel::CanShowHotendFilamentDialog(MachineObject* obj) const
         return false;
     }
 
-    const auto rack_type = obj->GetNozzleRack()->GetRackType();
-    return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+    return obj->GetNozzleRack()->IsDirectConnectedRack();
 }
 
 void StatusPanel::ShowHotendFilamentDialog(MachineObject* obj)
@@ -6715,7 +6711,7 @@ void StatusPanel::update_rack(MachineObject *obj)
             refresh_layout = true;
         }
         m_panel_nozzle_rack->UpdateRackInfo(obj->GetNozzleSystem()->GetNozzleRack());
-    } else if (obj && (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
+    } else if (obj && obj->GetNozzleRack()->IsDirectConnectedRack()) {
         if (m_ams_rack_switch->Show(false)) {
             refresh_layout = true;
         }
@@ -6784,8 +6780,7 @@ void StatusPanel::update_filament_loading_panel(MachineObject *obj)
         return;
     }
 
-    if (obj->GetNozzleRack()->IsSupported() && (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
-        obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
+    if (obj->GetNozzleRack()->IsSupported() && obj->GetNozzleRack()->IsDirectConnectedRack()) {
         show_filament_load_group(false);
         return;
     }

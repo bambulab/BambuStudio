@@ -901,13 +901,8 @@ void AMSSettingArrangeAMSOrder::Update(const MachineObject* obj)
         if (print_jj.contains("support_ams_settings_reorder")) {
             bool show = DevJsonValParser::GetVal<bool>(print_jj, "support_ams_settings_reorder", false);
 
-            // N1x hotend-rack machines: the built-in rack AMS is fixed and does not
-            // take part in ID reordering, so only expose this once an external
-            // sub-AMS is connected. Other machines (e.g. N9) keep config-only behavior.
-            auto rack = obj->GetNozzleRack();
-            const bool is_n1x = rack && (rack->GetRackType() == DevNozzleRack::RackType_A ||
-                                         rack->GetRackType() == DevNozzleRack::RackType_B);
-            if (show && is_n1x && !obj->GetFilaSystem()->HasSubAms()) {
+            const bool direct_rack = obj->GetNozzleRack()->IsDirectConnectedRack();
+            if (show && direct_rack && !obj->GetFilaSystem()->HasSubAms()) {
                 show = false;
             }
 

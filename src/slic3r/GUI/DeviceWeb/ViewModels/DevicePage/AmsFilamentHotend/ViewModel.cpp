@@ -367,8 +367,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
 
     std::vector<int> addr_ids;
     std::map<int, std::optional<std::pair<int, int>>> addr_slots;
-    const auto& rack_type = machine_obj->GetNozzleRack()->GetRackType();
-    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+    if (machine_obj->GetNozzleRack()->IsDirectConnectedRack()) {
         auto addr_id_set = machine_obj->GetNozzleRack()->GetTotalRackNozzleAddIdSet();
         for (auto addr_id : addr_id_set) {
             const auto& rack_nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);

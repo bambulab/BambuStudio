@@ -2126,9 +2126,7 @@ void SyncAmsInfoDialog::on_set_finish_mapping(wxCommandEvent &evt)
         wxString       disp_ams_name = selection_data_arr[4];
         auto *         dev           = Slic3r::GUI::wxGetApp().getDeviceManager();
         MachineObject *obj           = dev ? dev->get_selected_machine() : nullptr;
-        if (obj && obj->GetNozzleRack() &&
-            (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
-             obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
+        if (obj && obj->GetNozzleRack() && obj->GetNozzleRack()->IsDirectConnectedRack()) {
             disp_ams_name = wxGetApp().transition_tridid(evt.GetInt(), std::nullopt, obj);
         }
 

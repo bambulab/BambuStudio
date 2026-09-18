@@ -43,9 +43,7 @@ const wxColour kCircleDisabled{ 0xC2, 0xC2, 0xC2 };
 
 bool is_rack_mode(const std::shared_ptr<DevNozzleRack>& rack)
 {
-    return rack && rack->IsSupported() &&
-           (rack->GetRackType() == DevNozzleRack::RackType_A ||
-            rack->GetRackType() == DevNozzleRack::RackType_B);
+    return rack && rack->IsSupported() && rack->IsDirectConnectedRack();
 }
 
 // Decode the active hotend index for the user-visible label.

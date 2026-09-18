@@ -598,8 +598,7 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateRackNozzleInfo(const std::shared_ptr
     if (!rack)
         return;
 
-    const auto rack_type = rack->GetRackType();
-    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+    if (rack->IsDirectConnectedRack()) {
         DevNozzleSystem* nozzle_system = rack->GetNozzleSystem();
         if (!nozzle_system)
             return;

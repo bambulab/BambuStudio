@@ -49,6 +49,7 @@ public:
         RackType_AB = 0,
         RackType_A = 1, // DevAmsType::ZMULTI_A
         RackType_B = 2, // DevAmsType::ZMULTI_B
+        RackType_C = 3,
     };
 
     enum RackABPos : int
@@ -60,15 +61,8 @@ public:
         RACK_POS_END,
     };
 
-    enum class RackAPos : int
-    {
-        RACK_POS_UNKNOWN = 0,
-        RACK_POS_DOWN = 1,
-        RACK_POS_UP = 2,
-        RACK_POS_CENTRE = 3,
-    };
-
-    enum class RackBPos : int
+    // which moves as a single unit instead of the two-side RackABPos layout.
+    enum class DirectRackPos : int
     {
         RACK_POS_UNKNOWN = 0,
         RACK_POS_DOWN = 1,
@@ -95,9 +89,8 @@ public:
     // getters
     DevNozzleSystem* GetNozzleSystem() const { return m_nozzle_system; }
 
-    RackABPos   GetPosition() const { return (RackABPos)m_position; }
-    RackAPos    GetRackAPos() const { return (RackAPos)m_position; }
-    RackBPos    GetRackBPos() const { return (RackBPos)m_position; }
+    RackABPos     GetPosition() const { return (RackABPos)m_position; }
+    DirectRackPos GetDirectRackPos() const { return (DirectRackPos)m_position; }
 
     RackStatus  GetStatus() const { return m_status; }
     RackCaliStatus GetCaliStatus() const { return m_cali_status; }
@@ -141,8 +134,7 @@ public:
 public:
     void ParseRackInfo(const nlohmann::json& rack_info);
 
-    void CtrlRackPosMove(RackAPos new_pos) const;
-    void CtrlRackPosMove(RackBPos new_pos) const;
+    void CtrlRackPosMove(DirectRackPos new_pos) const;
     void CtrlRackPosMove(RackABPos new_pos) const;
     void CtrlRackPosGoHome() const;
 

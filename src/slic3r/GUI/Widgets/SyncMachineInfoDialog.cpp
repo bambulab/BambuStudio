@@ -168,9 +168,11 @@ std::vector<HotendEntry> CollectHotendEntries(MachineObject *obj)
     DevNozzleSystem *nozzle_sys = obj->GetNozzleSystem();
     if (!nozzle_sys) return entries;
 
-    // rack type B cant't auto read rfid
+    // rack type B/C cant't auto read rfid
     auto rack = nozzle_sys->GetNozzleRack();
-    if (!rack || rack->GetRackType() != DevNozzleRack::RackType_B) return entries;
+    if (!rack) return entries;
+    const auto rack_type = rack->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_B && rack_type != DevNozzleRack::RackType_C) return entries;
 
     std::map<int, const DevNozzle *> nozzles_by_id;
     for (const auto &kv : nozzle_sys->GetRackNozzles()) nozzles_by_id[nozzle_id(kv.second)] = &kv.second;

@@ -36,7 +36,6 @@ public:
 
     // Refresh visibility / data based on the current MachineObject.
     // Returns true when the panel should be visible for this machine
-    // (i.e. RackType_A or RackType_B).
     bool UpdateByMachine(Slic3r::MachineObject* obj);
 
     // Mirrors StatusPanel::show_printing_status(ctrl_area).

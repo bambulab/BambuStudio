@@ -1800,7 +1800,17 @@ std::optional<DevNozzle> AMSMaterialsSetting::get_slot_nozzle() const
         return std::nullopt;
 
     if (auto rack = obj->GetNozzleRack(); rack && rack->IsSupported()) {
-        return std::nullopt;
+        if (rack->IsDirectConnectedRack()) {
+            if (auto tray_opt = obj->get_tray(ams_id, slot_id); tray_opt) {
+                if (auto addr_id_opt = tray_opt->get_nozzle_addr_id(obj); addr_id_opt) {
+                    if (auto nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByAddrId(*addr_id_opt); nozzle_opt)
+                        return nozzle_opt;
+                }
+            }
+            return std::nullopt;
+        } else {
+            return std::nullopt;
+        }
     }
 
     const int extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));

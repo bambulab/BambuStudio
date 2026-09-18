@@ -233,8 +233,7 @@ std::optional<int> DevAmsTray::get_nozzle_addr_id(MachineObject* obj) const
     }
 
     try {
-        if (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
-            obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+        if (obj->GetNozzleRack()->IsDirectConnectedRack()) {
             if (ams_type == DevAmsType::ZMULTI_A || ams_type == DevAmsType::ZMULTI_B) {
                 return std::stoi(this->id);
             } else if (ams_type == DevAmsType::EXT_SPOOL) {
@@ -265,8 +264,7 @@ std::optional<int> DevAmsTray::get_nozzle_pos_id(MachineObject* obj) const
     }
 
     try {
-        if (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
-            obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+        if (obj->GetNozzleRack()->IsDirectConnectedRack()) {
             if (ams_type == DevAmsType::ZMULTI_A || ams_type == DevAmsType::ZMULTI_B) {
                 return std::stoi(this->id) + 16;
             } else if (ams_type == DevAmsType::EXT_SPOOL) {
@@ -950,8 +948,7 @@ std::string DevFilaSystem::GetTrayNameByTrayId(int tray_id)
     MachineObject* obj  = GetOwner();
     if (!obj) return tray_name;
 
-    auto rack_type = obj->GetNozzleRack()->GetRackType();
-    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+    if (obj->GetNozzleRack()->IsDirectConnectedRack()) {
         auto it = tray_ams_slot_map.find(tray_id);
         if (it != tray_ams_slot_map.end()) {
             if (auto tray = obj->get_tray(it->second.first, it->second.second); tray.has_value()) {
@@ -1008,13 +1005,12 @@ std::string DevFilaSystem::GetTrayNameByAmsSlotId(const std::string& dev_id, int
 
 int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
 {
-    auto rack_type = GetOwner()->GetNozzleRack()->GetRackType();
     auto it = amsList.find(ams_id);
     if (it != amsList.end()) {
         if (it->second->GetBindedExtruderSet().size() == 1) {
             return *it->second->GetBindedExtruderSet().begin();
         }
-    } else if(IsVirtualTrayId(ams_id) && (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B)) {
+    } else if(IsVirtualTrayId(ams_id) && GetOwner()->GetNozzleRack()->IsDirectConnectedRack()) {
         return MAIN_EXTRUDER_ID;
     } else if (ams_id == VIRTUAL_AMS_MAIN_ID_STR) {
         return MAIN_EXTRUDER_ID;
@@ -1165,8 +1161,7 @@ std::map<DevAmsSlotId, int> DevFilaSystem::GetSlot2HotendDisplayIdx() const {
 		return slot_to_display_index;
 	}
 
-	const auto& rack_type = m_owner->GetNozzleRack()->GetRackType();
-	if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+	if (!m_owner->GetNozzleRack()->IsDirectConnectedRack()) {
 		return slot_to_display_index;
 	}
 
@@ -1388,7 +1383,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
             }
         } else if (extuder_id == 0xE && (type_id == DevAmsType::ZMULTI_A || type_id == DevAmsType::ZMULTI_B)) {
             binded_extruder_set = { MAIN_EXTRUDER_ID };
-        } else if (extuder_id == 0xE && (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
+        } else if (extuder_id == 0xE && obj->GetNozzleRack()->IsDirectConnectedRack()) {
             binded_extruder_set = { MAIN_EXTRUDER_ID };
         } else if (extuder_id == 0xE)
         {

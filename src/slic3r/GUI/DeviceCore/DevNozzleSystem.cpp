@@ -1001,10 +1001,9 @@ void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNoz
     const auto& ams_list = fila_sys->GetAmsList();
     const auto& vt_list = fila_sys->GetVirtualTrays();
     const auto& rack = system->GetOwner()->GetNozzleRack();
-    const auto& rack_type = rack->GetRackType();
-    if (rack_type == DevNozzleRack::None) {
+    if (rack->GetRackType() == DevNozzleRack::None) {
         // DO NOTHING
-    } else if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+    } else if (rack->IsDirectConnectedRack()) {
         nozzle_obj.m_bind_ams_slots.clear();
 
         // using the slot now value
@@ -1044,8 +1043,7 @@ void DevNozzleSystemParser::sTraversePreloadBindAmsSlot(DevNozzleSystem* system,
     const auto& fila_sys = system->GetOwner()->GetFilaSystem();
     const auto& ams_list = fila_sys->GetAmsList();
     const auto& rack     = system->GetOwner()->GetNozzleRack();
-    const auto& rack_type = rack->GetRackType();
-    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+    if (!rack->IsDirectConnectedRack()) {
         return;
     }
 
@@ -1155,12 +1153,12 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             if (njon.contains("stat"))/*maybe not contains*/
             {
                 nozzle_obj.SetStatus(njon["stat"].get<int>());
-                if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+                if (system->GetNozzleRack()->IsDirectConnectedRack()) {
                     nozzle_obj.SetRackNozzleTempStatus(DevUtil::get_flag_bits(njon["stat"].get<int>(), 3, 2));
                 }
 
                 // traverse the has filament
-                if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+                if (system->GetNozzleRack()->IsDirectConnectedRack()) {
                     if (DevUtil::get_flag_bits(njon["stat"].get<int>(), 5, 1) == 1 || DevUtil::get_flag_bits(njon["stat"].get<int>(), 5, 1)) {
                         nozzle_obj.m_has_filament_in_nozzle = true;
                     } else if (DevUtil::get_flag_bits(njon["stat"].get<int>(), 6, 3) != 0) {

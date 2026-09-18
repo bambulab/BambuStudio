@@ -213,7 +213,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
 
     /* Rack machines can produce far more results than the ~4 that fit as columns. */
     auto rack = m_obj ? m_obj->GetNozzleRack() : nullptr;
-    if (rack && rack->IsSupported() && (rack->GetRackType() == DevNozzleRack::RackType_A || rack->GetRackType() == DevNozzleRack::RackType_B)) {
+    if (rack && rack->IsSupported() && rack->IsDirectConnectedRack()) {
         sync_cali_result_for_single_rack(cali_result);
         return;
     }

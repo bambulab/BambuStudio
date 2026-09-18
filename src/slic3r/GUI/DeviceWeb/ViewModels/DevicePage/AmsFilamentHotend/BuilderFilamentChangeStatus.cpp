@@ -105,15 +105,13 @@ FilamentStepStyleInfo filament_step_style(MachineObject* machine_obj, std::optio
             (rack_type == DevNozzleRack::RackType_B && ams_type == DevAmsType::ZMULTI_B)) {
             return { SV::filament_change_step_style::maunal_unload, slot_unload_style_text(display_index) };
         }
-        if ((rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) &&
-            ams_type == DevAmsType::EXT_SPOOL) {
+        if (machine_obj->GetNozzleRack()->IsDirectConnectedRack() && ams_type == DevAmsType::EXT_SPOOL) {
             return { SV::filament_change_step_style::maunal_unload, hotend_unload_style_text(display_index) };
         }
     }
 
     if (step == DevFilamentStep::STEP_PUSH_NEW_FILAMENT) {
-        if ((rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) &&
-            ams_type == DevAmsType::EXT_SPOOL) {
+        if (machine_obj->GetNozzleRack()->IsDirectConnectedRack() && ams_type == DevAmsType::EXT_SPOOL) {
             return { SV::filament_change_step_style::manual_load, hotend_load_style_text(display_index) };
         }
         if (rack_type == DevNozzleRack::RackType_B && ams_type == DevAmsType::ZMULTI_B) {

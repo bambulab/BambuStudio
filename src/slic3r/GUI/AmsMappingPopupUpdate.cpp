@@ -94,8 +94,7 @@ void AmsMapingPopup::update(MachineObject* obj,
 
     // Hotend rack renders the body via Web/DeviceWebHost. Hand off
     // early so the legacy wx layout below stays untouched for that machine.
-    auto rack_type = obj->GetNozzleRack()->GetRackType();
-    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+    if (obj->GetNozzleRack()->IsDirectConnectedRack()) {
         m_title_text->SetLabelText(_L("Please select the filament to match."));
         update_hotend_web(obj, ams_mapping_result, print_type);
         return;

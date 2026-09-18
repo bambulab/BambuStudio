@@ -406,12 +406,12 @@ public:
 
     // filament change steps
     std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const;
-    std::vector<DevFilamentStep> GetCurrentFilamentChangeSteps() const;// some firmwares support this, RackType_A or RackType_B
+    std::vector<DevFilamentStep> GetCurrentFilamentChangeSteps() const;// some firmwares support this, IsDirectConnectedRack
 
     bool IsFilamentChangingSlot(int ams_id, int slot_id) const;
     bool IsCurrentFilamentChangingSlot(int ams_id, int slot_id) const;
     std::optional<DevAmsSlotId> GetCurrentChangingSlot() const;
-    const std::vector<DevAmsSlotId>& GetFilamentChangingSlots() const { return m_filament_changing_slots; }// some firmwares support this, RackType_A or RackType_B
+    const std::vector<DevAmsSlotId>& GetFilamentChangingSlots() const { return m_filament_changing_slots; }// some firmwares support this, IsDirectConnectedRack
 
     /* AMS settings*/
     DevAmsSystemSetting& GetAmsSystemSetting() { return m_ams_system_setting; }

@@ -41,9 +41,7 @@ std::shared_ptr<DevNozzleRack> get_rack(MachineObject* obj)
 
 bool is_single_rack_supported(const std::shared_ptr<DevNozzleRack>& rack)
 {
-    return rack && rack->IsSupported() &&
-           (rack->GetRackType() == DevNozzleRack::RackType_A ||
-            rack->GetRackType() == DevNozzleRack::RackType_B);
+    return rack && rack->IsSupported() && rack->IsDirectConnectedRack();
 }
 
 } // namespace
@@ -181,18 +179,11 @@ void wgtHotendRackControl::update_state()
                    rack->GetStatus() != DevNozzleRack::RACK_STATUS_UNKNOWN) {
             center_label = _L("Running");
             lift_enable = center_enable = lower_enable = false;
-        } else if (rack->GetRackType() == DevNozzleRack::RackType_A) {
-            switch (rack->GetRackAPos()) {
-                case DevNozzleRack::RackAPos::RACK_POS_UP:     lift_label = _L("Raised");    lift_enable = false;   break;
-                case DevNozzleRack::RackAPos::RACK_POS_DOWN:   lower_label = _L("Lowered");  lower_enable = false;  break;
-                case DevNozzleRack::RackAPos::RACK_POS_CENTRE: center_label = _L("Centered"); center_enable = false; break;
-                default: break;
-            }
-        } else if (rack->GetRackType() == DevNozzleRack::RackType_B) {
-            switch (rack->GetRackBPos()) {
-                case DevNozzleRack::RackBPos::RACK_POS_UP:     lift_label = _L("Raised");    lift_enable = false;   break;
-                case DevNozzleRack::RackBPos::RACK_POS_DOWN:   lower_label = _L("Lowered");  lower_enable = false;  break;
-                case DevNozzleRack::RackBPos::RACK_POS_CENTRE: center_label = _L("Centered"); center_enable = false; break;
+        } else if (rack->IsDirectConnectedRack()) {
+            switch (rack->GetDirectRackPos()) {
+                case DevNozzleRack::DirectRackPos::RACK_POS_UP:     lift_label = _L("Raised");    lift_enable = false;   break;
+                case DevNozzleRack::DirectRackPos::RACK_POS_DOWN:   lower_label = _L("Lowered");  lower_enable = false;  break;
+                case DevNozzleRack::DirectRackPos::RACK_POS_CENTRE: center_label = _L("Centered"); center_enable = false; break;
                 default: break;
             }
         }
@@ -211,25 +202,11 @@ void wgtHotendRackControl::update_state()
 void wgtHotendRackControl::dispatch_rack_move(RackMoveDir dir)
 {
     auto rack = get_rack(m_obj);
-    if (!is_single_rack_supported(rack)) return;
-
-    switch (rack->GetRackType()) {
-    case DevNozzleRack::RackType_A: {
-        DevNozzleRack::RackAPos pos = DevNozzleRack::RackAPos::RACK_POS_CENTRE;
-        if (dir == RackMoveDir::Lift)  pos = DevNozzleRack::RackAPos::RACK_POS_UP;
-        if (dir == RackMoveDir::Lower) pos = DevNozzleRack::RackAPos::RACK_POS_DOWN;
+    if (is_single_rack_supported(rack)) {
+        DevNozzleRack::DirectRackPos pos = DevNozzleRack::DirectRackPos::RACK_POS_CENTRE;
+        if (dir == RackMoveDir::Lift)  pos = DevNozzleRack::DirectRackPos::RACK_POS_UP;
+        if (dir == RackMoveDir::Lower) pos = DevNozzleRack::DirectRackPos::RACK_POS_DOWN;
         rack->CtrlRackPosMove(pos);
-        break;
-    }
-    case DevNozzleRack::RackType_B: {
-        DevNozzleRack::RackBPos pos = DevNozzleRack::RackBPos::RACK_POS_CENTRE;
-        if (dir == RackMoveDir::Lift)  pos = DevNozzleRack::RackBPos::RACK_POS_UP;
-        if (dir == RackMoveDir::Lower) pos = DevNozzleRack::RackBPos::RACK_POS_DOWN;
-        rack->CtrlRackPosMove(pos);
-        break;
-    }
-    default:
-        break;
     }
 }
 

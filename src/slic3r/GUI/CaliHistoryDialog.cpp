@@ -281,10 +281,7 @@ void HistoryWindow::on_device_connected(MachineObject* obj)
     }
 
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
-    auto rack_type = rack->GetRackType();
-    if (rack->IsSupported() &&
-        (rack_type == DevNozzleRack::RackType::RackType_A ||
-         rack_type == DevNozzleRack::RackType::RackType_B)) {
+    if (rack->IsSupported() && rack->IsDirectConnectedRack()) {
         build_nozzle_tab_panel();
         m_nozzle_tab_panel->Show();
     } else {
@@ -1000,8 +997,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
             }
         }
 
-        if (rack->GetRackType() == DevNozzleRack::RackType::RackType_A ||
-            rack->GetRackType() == DevNozzleRack::RackType::RackType_B) {
+        if (rack->IsDirectConnectedRack()) {
             int head_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
             auto head_nozzle = obj->GetNozzleSystem()->GetExtNozzle(head_nozzle_id);
             int head_home_slot = head_nozzle.GetAddrId().value_or(head_nozzle_id);

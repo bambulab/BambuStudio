@@ -79,7 +79,7 @@ ManualPullExitConfirmKind resolve_manual_pull_exit_confirm_kind(MachineObject* m
         return ManualPullExitConfirmKind::Risk;
     }
 
-    if (machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+    if (machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B || machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_C) {
         return ManualPullExitConfirmKind::Risk;
     }
 

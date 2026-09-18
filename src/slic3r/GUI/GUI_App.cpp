@@ -4778,8 +4778,7 @@ wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extrud
     // Hotend-rack machines use rack labels; everything else keeps the legacy decoding.
     if (obj) {
         auto rack = obj->GetNozzleRack();
-        if (rack && (rack->GetRackType() == DevNozzleRack::RackType_A ||
-                     rack->GetRackType() == DevNozzleRack::RackType_B)) {
+        if (rack && rack->IsDirectConnectedRack()) {
             return transition_tridid_rack(trid_id, obj);
         }
     }

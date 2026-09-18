@@ -44,36 +44,15 @@ void DevNozzleRack::CtrlRackPosMove(RackABPos new_pos) const
     }
 }
 
-void DevNozzleRack::CtrlRackPosMove(RackAPos new_pos) const
+void DevNozzleRack::CtrlRackPosMove(DirectRackPos new_pos) const
 {
     if (CheckRackMoveWarningDlg()) {
         int action_id = -1;
-        if (new_pos == RackAPos::RACK_POS_UP) {
+        if (new_pos == DirectRackPos::RACK_POS_UP) {
             action_id = 1;
-        } else if (new_pos == RackAPos::RACK_POS_DOWN) {
+        } else if (new_pos == DirectRackPos::RACK_POS_DOWN) {
             action_id = 2;
-        } else if (new_pos == RackAPos::RACK_POS_CENTRE) {
-            action_id = 0;
-        }
-
-        json j;
-        j["print"]["command"] = "nozzle_holder_ctrl";
-        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-        j["print"]["action"] = action_id;
-        m_nozzle_system->GetOwner()->publish_json(j);
-    }
-}
-
-
-void DevNozzleRack::CtrlRackPosMove(RackBPos new_pos) const
-{
-    if (CheckRackMoveWarningDlg()) {
-        int action_id = -1;
-        if (new_pos == RackBPos::RACK_POS_UP) {
-            action_id = 1;
-        } else if (new_pos == RackBPos::RACK_POS_DOWN) {
-            action_id = 2;
-        } else if (new_pos == RackBPos::RACK_POS_CENTRE) {
+        } else if (new_pos == DirectRackPos::RACK_POS_CENTRE) {
             action_id = 0;
         }
 

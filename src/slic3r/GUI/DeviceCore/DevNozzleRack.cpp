@@ -109,7 +109,7 @@ int DevNozzleRack::GetTotalRackNozzleCount() const
 {
     if (m_rack_type == RackType_AB) {
         return 6;
-    } else if (m_rack_type == RackType_A || m_rack_type == RackType_B) {
+    } else if (IsDirectConnectedRack()) {
         return m_nozzle_system->GetOwner()->GetFilaSystem()->GetVirtualTrays().size();
     }
 

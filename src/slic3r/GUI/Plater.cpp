@@ -6445,8 +6445,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     assert(preset_bundle);
 
     // for machines like N1X, which treat hotends as logical extruders
-    const auto rack_type = obj->GetNozzleRack()->GetRackType();
-    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) { return build_filament_ams_list_for_n1x(obj); }
+    if (obj->GetNozzleRack()->IsDirectConnectedRack()) { return build_filament_ams_list_for_n1x(obj); }
 
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (obj->ams_support_virtual_tray) {
@@ -13472,8 +13471,7 @@ std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> Plater::priv::get_nozz
     // 3. 当前只处理 Hotend Rack A/B：设备侧已经维护 rack 槽位、喷嘴和当前送料槽的对应关系。
     auto nozzle_system = obj->GetNozzleSystem();
     auto nozzle_rack   = nozzle_system->GetNozzleRack();
-    if (nozzle_rack->GetRackType() != DevNozzleRack::RackType_A &&
-        nozzle_rack->GetRackType() != DevNozzleRack::RackType_B)
+    if (!nozzle_rack->IsDirectConnectedRack())
         return filament_infos;
 
     // 4. Color 需要 #RRGGBB/#RRGGBBAA；设备侧颜色可能不带 '#', 这里统一后再参与匹配。

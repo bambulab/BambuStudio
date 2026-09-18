@@ -265,8 +265,7 @@ void append_hotend_unit(std::vector<SchemaFormat::Unit>& units,
     const auto rack = obj->GetNozzleRack();
     if (!rack || !obj->GetNozzleSystem()) return;
 
-    const DevNozzleRack::RackType rack_type = rack->GetRackType();
-    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+    if (rack->IsDirectConnectedRack()) {
         SchemaFormat::Unit unit;
         unit.kind = SV::unit_kind::hotend;
         unit.name = resolve_hotend_unit_name(fila_sys);
