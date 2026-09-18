@@ -6282,6 +6282,21 @@ void PrintConfigDef::init_fff_params()
     // BBS: change data type to floats to add partplate logic
     def->set_default_value(new ConfigOptionFloats{ 220. });
 
+    // By-Object per-object prime tower: a manual override of that object's tower
+    // position, in plate-local coordinates (same frame as wipe_tower_x/y above).
+    // Object-level only (stored in ModelObject::config, never a project/global
+    // default) -- read directly from there by Print::_make_sequential_wipe_towers(),
+    // written by GLCanvas3D::do_move() when the user drags the tower preview in the
+    // Prepare view. Presence of the key (ModelConfig::has()) means "overridden";
+    // absence means "auto-place beside the object" (place_one_wipe_tower()).
+    def = this->add("sequential_wipe_tower_x", coFloat);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("sequential_wipe_tower_y", coFloat);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("prime_tower_width", coFloat);
     def->label = L("Width");
     def->tooltip = L("Width of prime tower");

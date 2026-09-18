@@ -1728,8 +1728,29 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         if (! solid_or_modifier_differ) {
             // Synchronize Object's config.
             bool object_config_changed = ! model_object.config.timestamp_matches(model_object_new.config);
+            // By-Object per-object prime tower: sequential_wipe_tower_x/y (a manual
+            // drag override, GLCanvas3D::do_move()) are deliberately NOT part of the
+            // merged PrintObjectConfig diffed just below (see their registration in
+            // PrintConfigDef), so a change here would otherwise go completely
+            // unnoticed -- neither re-running _make_sequential_wipe_towers() nor
+            // marking this apply() call's return status as CHANGED (which is what
+            // un-greys the plater's Slice button). Check for it explicitly, using the
+            // pre-assign_config() values so this compares old vs new, not new vs new.
+            bool seq_wipe_tower_override_changed = false;
+            if (object_config_changed) {
+                for (const char *k : {"sequential_wipe_tower_x", "sequential_wipe_tower_y"}) {
+                    const ConfigOption *o_old = model_object.config.option(k);
+                    const ConfigOption *o_new = model_object_new.config.option(k);
+                    if ((o_old == nullptr) != (o_new == nullptr) || (o_old && o_new && *o_old != *o_new)) {
+                        seq_wipe_tower_override_changed = true;
+                        break;
+                    }
+                }
+            }
 			if (object_config_changed)
 				model_object.config.assign_config(model_object_new.config);
+            if (seq_wipe_tower_override_changed)
+                update_apply_status(this->invalidate_steps({psWipeTower, psSkirtBrim, psGCodeExport}));
             if (! object_diff.empty() || object_config_changed || num_extruders_changed ) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders, print_variant_index);
                 for (const PrintObjectStatus &print_object_status : print_object_status_db.get_range(model_object)) {

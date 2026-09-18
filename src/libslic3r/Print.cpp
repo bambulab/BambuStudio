@@ -4025,12 +4025,25 @@ void Print::_make_sequential_wipe_towers()
             obj_bb = BoundingBoxf(Vec2d(b.min.x(), b.min.y()), Vec2d(b.max.x(), b.max.y()));
         }
         const Vec2d tsz(plan.bbx.size().x(), plan.bbx.size().y());   // tower footprint incl. brim
-        bool fitted = false;
-        const Vec2d tower_min = place_one_wipe_tower(obj_bb, tsz, bed_bb, occupied, exclude_boxes, clearance, fitted);
-        // Emission translates by (position + bbx.min + rib_offset); solve for
-        // position so the footprint's min lands at tower_min.
-        plan.position = Vec2f(float(tower_min.x() - plan.bbx.min.x() - plan.rib_offset.x()),
-                              float(tower_min.y() - plan.bbx.min.y() - plan.rib_offset.y()));
+        Vec2d tower_min;
+        const ModelConfig &obj_cfg = obj->model_object()->config;
+        if (obj_cfg.has("sequential_wipe_tower_x") && obj_cfg.has("sequential_wipe_tower_y")) {
+            // User dragged this object's tower in the plater (GLCanvas3D::do_move()
+            // persists the drop here); honour it instead of auto-placing. Still fed
+            // through `occupied` below, so check_sequential_wipe_tower_clearance()
+            // rejects the slice if the manual spot collides with anything.
+            plan.position = Vec2f(float(obj_cfg.opt_float("sequential_wipe_tower_x")),
+                                  float(obj_cfg.opt_float("sequential_wipe_tower_y")));
+            tower_min = Vec2d(plan.position.x() + plan.bbx.min.x() + plan.rib_offset.x(),
+                              plan.position.y() + plan.bbx.min.y() + plan.rib_offset.y());
+        } else {
+            bool fitted = false;
+            tower_min = place_one_wipe_tower(obj_bb, tsz, bed_bb, occupied, exclude_boxes, clearance, fitted);
+            // Emission translates by (position + bbx.min + rib_offset); solve for
+            // position so the footprint's min lands at tower_min.
+            plan.position = Vec2f(float(tower_min.x() - plan.bbx.min.x() - plan.rib_offset.x()),
+                                  float(tower_min.y() - plan.bbx.min.y() - plan.rib_offset.y()));
+        }
         occupied.emplace_back(tower_min, tower_min + tsz);
 
         pod.object_wipe_tower_map[obj_const] = std::move(plan);
