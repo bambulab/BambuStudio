@@ -2359,6 +2359,13 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
         if (this->has_wipe_tower()) {
             m_nozzle_group_result.reset();
+            if (is_sequential_print()) {
+                // Sequential (By Object) printing: the per-object tool orderings and the
+                // plate nozzle-group result must exist before any tower can be planned.
+                // ByObjectPrintData::build() populates m_nozzle_group_result; without it
+                // _make_wipe_tower()'s global ToolOrdering dereferences a null group result.
+                m_sequential_print_data = ByObjectPrintData::build(this);
+            }
             this->_make_wipe_tower();
         } else if (!is_sequential_print()) {
             // Non-sequential print (by-layer) or single object: use global tool ordering
@@ -2416,7 +2423,9 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         std::vector<unsigned int> printExtruders;
 
         if (is_sequential_print()) {
-            m_sequential_print_data = ByObjectPrintData::build(this);
+            // Already built in the psWipeTower step when a prime tower is enabled.
+            if (!m_sequential_print_data)
+                m_sequential_print_data = ByObjectPrintData::build(this);
 
             std::vector<unsigned int> first_layer_filaments;
             std::vector<unsigned int> used_filaments;
@@ -2571,7 +2580,11 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         using Clock                 = std::chrono::high_resolution_clock;
         auto            startTime   = Clock::now();
         std::optional<const FakeWipeTower *> wipe_tower_opt = {};
-        if (this->has_wipe_tower()) {
+        // Sequential (By Object) printing has one tower per object, which the single
+        // m_fake_wipe_tower cannot represent, and this by-layer "same layer, different
+        // object" conflict notion does not apply between sequential objects anyway.
+        // Per-object tower clearance is handled by sequential_print_clearance_valid().
+        if (this->has_wipe_tower() && !is_sequential_print()) {
             m_fake_wipe_tower.set_pos({m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index)});
             wipe_tower_opt = std::make_optional<const FakeWipeTower *>(&m_fake_wipe_tower);
         }
@@ -3853,10 +3866,13 @@ void Print::validate_compacted_wipe_tower_clearance() const
 
 void Print::_make_wipe_tower()
 {
-    m_wipe_tower_data.clear();
+    // Sequential (By Object) printing plans one tower per object instead.
+    if (is_sequential_print()) {
+        this->_make_sequential_wipe_towers();
+        return;
+    }
 
-    // BBS
-    const unsigned int number_of_extruders = (unsigned int)(m_config.filament_colour.values.size());
+    m_wipe_tower_data.clear();
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     // BBS: priming logic is removed, so don't consider it in tool ordering
@@ -3867,7 +3883,85 @@ void Print::_make_wipe_tower()
         // Don't generate any wipe tower.
         return;
 
-    // Check whether there are any layers in m_tool_ordering, which are marked with has_wipe_tower,
+    this->_make_wipe_tower_geometry(m_objects.front());
+}
+
+// Sequential (By Object) printing: build one prime tower per object from that
+// object's own ToolOrdering. Results land in m_sequential_print_data->object_wipe_tower_map.
+void Print::_make_sequential_wipe_towers()
+{
+    m_wipe_tower_data.clear();
+    if (!m_sequential_print_data)
+        return;
+    ByObjectPrintData &pod = *m_sequential_print_data;
+
+    // Save the plate-global nozzle group result; _make_wipe_tower_geometry
+    // queries the current one, and we swap in each object's below.
+    auto saved_nozzle_group_result = m_nozzle_group_result;
+
+    const Vec2f base_pos(float(m_config.wipe_tower_x.get_at(m_plate_index)),
+                         float(m_config.wipe_tower_y.get_at(m_plate_index)));
+
+    for (const PrintObject *obj_const : pod.print_object_order) {
+        auto it_to = pod.object_tool_ordering_map.find(obj_const);
+        if (it_to == pod.object_tool_ordering_map.end())
+            continue;
+        ToolOrdering &obj_ordering = it_to->second;
+        if (!obj_ordering.has_wipe_tower())
+            continue;
+
+        PrintObject *obj = const_cast<PrintObject *>(obj_const);
+
+        // Scratch state for _make_wipe_tower_geometry: it reads the ordering from
+        // m_wipe_tower_data.tool_ordering and writes tool_changes / depth / bbx
+        // etc. back into m_wipe_tower_data.
+        // NOTE: this is a copy of the object's ordering, so the infill-wiping
+        // marks made during planning are not propagated back to the ordering the
+        // emitter uses. Consequence: the tower purges the full volume instead of
+        // offloading some into object infill. Correct, just slightly more waste.
+        m_wipe_tower_data.clear();
+        m_wipe_tower_data.tool_ordering = obj_ordering;
+        m_nozzle_group_result = std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(
+            obj_ordering.get_layered_nozzle_group_result());
+
+        this->_make_wipe_tower_geometry(obj);
+
+        ObjectWipeTowerPlan plan;
+        plan.tool_changes          = m_wipe_tower_data.tool_changes;
+        plan.final_purge           = m_wipe_tower_data.final_purge ? *m_wipe_tower_data.final_purge : WipeTower::ToolChangeResult{};
+        plan.depth                 = m_wipe_tower_data.depth;
+        plan.brim_width            = m_wipe_tower_data.brim_width;
+        plan.bbx                   = m_wipe_tower_data.bbx;
+        plan.rib_offset            = m_wipe_tower_data.rib_offset;
+        plan.used_filament         = m_wipe_tower_data.used_filament;
+        plan.number_of_toolchanges = m_wipe_tower_data.number_of_toolchanges;
+        plan.has_tower             = !plan.tool_changes.empty();
+
+        // MVP placement: offset the plate tower anchor by this object's XY shift
+        // so each tower sits next to its object. Collision-aware placement is a
+        // later phase; for now conservative manual layout is expected.
+        Vec2f obj_xy(0.f, 0.f);
+        if (!obj->instances().empty()) {
+            Vec2d s = unscale(obj->instances().front().shift);
+            obj_xy = Vec2f(float(s.x()), float(s.y()));
+        }
+        plan.position = base_pos + obj_xy;
+
+        pod.object_wipe_tower_map[obj_const] = std::move(plan);
+    }
+
+    m_nozzle_group_result = saved_nozzle_group_result;
+    m_wipe_tower_data.clear();
+    // m_tool_ordering was used as scratch above; sequential emission drives off
+    // the per-object orderings, not this.
+    m_tool_ordering.clear();
+}
+
+void Print::_make_wipe_tower_geometry(PrintObject *virtual_layer_object)
+{
+    const unsigned int number_of_extruders = (unsigned int)(m_config.filament_colour.values.size());
+
+    // Check whether there are any layers in the tool ordering, which are marked with has_wipe_tower,
     // they print neither object, nor support. Each such layer needs a virtual support layer
     // counterpart in m_objects.front() so that GCode::collect_layers_to_print picks it up and the
     // wipe tower G-code is actually emitted for that z. Such layers appear in two scenarios:
@@ -3879,7 +3973,7 @@ void Print::_make_wipe_tower()
     // The previous implementation only handled the first contiguous run starting at the first
     // virtual layer, which made the second scenario silently produce empty wipe-tower layers.
     {
-        auto &support_layers = m_objects.front()->support_layers();
+        auto &support_layers = virtual_layer_object->support_layers();
         auto it_layer = support_layers.begin();
         const size_t idx_end = m_wipe_tower_data.tool_ordering.layer_tools().size();
         for (size_t i = 0; i < idx_end; ++ i) {
@@ -3896,7 +3990,7 @@ void Print::_make_wipe_tower()
             lt.has_support = true;
             double height = lt.print_z - (i == 0 ? 0. : m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z);
             //FIXME the support layer ID is set to -1, as Vojtech hopes it is not being used anyway.
-            it_layer = m_objects.front()->insert_support_layer(it_layer, -1, 0, height, lt.print_z, lt.print_z - 0.5 * height);
+            it_layer = virtual_layer_object->insert_support_layer(it_layer, -1, 0, height, lt.print_z, lt.print_z - 0.5 * height);
             ++ it_layer;
         }
     }
@@ -4024,7 +4118,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.rib_offset = wipe_tower.get_rib_offset();
 
     // Unload the current filament over the purge tower.
-    coordf_t layer_height = m_objects.front()->config().layer_height.value;
+    coordf_t layer_height = virtual_layer_object->config().layer_height.value;
     if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
         // The wipe tower goes up to the last layer of the print.
         if (wipe_tower.layer_finished()) {

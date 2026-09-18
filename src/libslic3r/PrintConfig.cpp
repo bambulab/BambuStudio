@@ -7831,9 +7831,14 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
             if (mixed_opt)
                 has_mixed_filament = has_any_mixed_filament(mixed_opt->values);
         }
+        // NOTE: this previously also force-disabled the prime tower whenever
+        // (print_sequence == ByObject && num_objects > 1). That blanket
+        // suppression is the root cause of issues #1876 / #9399 (no prime tower
+        // for multi-object multi-material sequential prints). Per-object prime
+        // towers now cover that case, so only a genuine single-filament print
+        // (which needs no tower at all) disables it here.
         if (!is_smooth_timelapse && !enable_wrapping
-            && (  (used_filaments == 1 && !has_mixed_filament)
-                || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
+            && (used_filaments == 1 && !has_mixed_filament)) {
             if (ept_opt->value) {
                 if (ori_values)
                     ori_values->set_key_value("enable_prime_tower", ept_opt->clone());

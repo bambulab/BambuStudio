@@ -1209,6 +1209,14 @@ private:
 
     void                _make_skirt();
     void                _make_wipe_tower();
+    // Sequential (By Object) printing: one prime tower per object. Fills
+    // m_sequential_print_data->object_wipe_tower_map. Uses each object's own
+    // ToolOrdering (already in object_tool_ordering_map).
+    void                _make_sequential_wipe_towers();
+    // Core wipe-tower geometry generation from the ordering currently in
+    // m_wipe_tower_data.tool_ordering, writing the result into m_wipe_tower_data.
+    // `virtual_layer_object` receives inserted tower-only support layers.
+    void                _make_wipe_tower_geometry(PrintObject *virtual_layer_object);
     // Vertical clearance against the compacted wipe tower, see wipe_tower_no_sparse_layers.
     void                validate_compacted_wipe_tower_clearance() const;
     void                finalize_first_layer_convex_hull();
