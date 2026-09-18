@@ -32,9 +32,6 @@ export function PageToolbar({
           data-testid="ams-hotend-tab-filament"
           className={`tab${selectedTab === 'filament' ? ' active' : ''}`}
           onClick={() => onTabChange('filament')}
-          // Tab switching is hidden behind batch mode so the user cannot leave
-          // a partially-selected batch by toggling tabs by accident.
-          disabled={inBatchMode}
         >
           {t('Filament')}
         </button>
@@ -42,8 +39,10 @@ export function PageToolbar({
           type="button"
           data-testid="ams-hotend-tab-hotend"
           className={`tab${selectedTab === 'hotend' ? ' active' : ''}`}
+          // Tabs stay clickable in batch mode; the page drops the pending
+          // selection and returns to normal mode when the user leaves the
+          // Filament tab, so the Hotend tab needs no manual Exit first.
           onClick={() => onTabChange('hotend')}
-          disabled={inBatchMode}
         >
           {t('Hotend')}
         </button>

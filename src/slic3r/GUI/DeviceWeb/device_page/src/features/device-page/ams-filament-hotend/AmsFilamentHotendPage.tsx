@@ -96,6 +96,9 @@ export function AmsFilamentHotendPage() {
   // a display_index across different AMS units cannot collide. Reset whenever
   // the page mode changes (entering / leaving / switching batch modes).
   const [selectedKeys, setSelectedKeys] = useState<ReadonlySet<string>>(() => new Set());
+  // Mode this page last asked C++ for. The batch focus/poll refresh below
+  // reads it so an in-flight poll cannot resurrect a mode the user just left.
+  const requestedModeRef = useRef<FilamentPageMode>('normal');
   const showDebugButton = Boolean((window as Window & { __internalBuild?: boolean }).__internalBuild);
   useReportHostContentSize(pageRef);
   // Sync host theme into page CSS variables.
@@ -170,6 +173,9 @@ export function AmsFilamentHotendPage() {
     if (currentMode !== 'batch_ext_load' && currentMode !== 'batch_ams_load') return;
     let refreshing = false;
     const refreshExtMode = () => {
+      // The user may have left batch mode while this poll was pending; do not
+      // re-request the stale mode and pull the page back into selection.
+      if (requestedModeRef.current !== currentMode) return;
       if (refreshing) return;
       refreshing = true;
       void refresh(currentMode).finally(() => {
@@ -224,13 +230,25 @@ export function AmsFilamentHotendPage() {
     // for the matching mode. Any other action keeps the legacy direct path.
     const nextMode = ACTION_TO_BATCH_MODE[action];
     if (nextMode) {
+      requestedModeRef.current = nextMode;
       void refresh(nextMode);
       return;
     }
     runSlotAction(action);
   };
 
-  const exitBatchMode = useCallback(() => void refresh('normal'), [refresh]);
+  const exitBatchMode = useCallback(() => {
+    requestedModeRef.current = 'normal';
+    void refresh('normal');
+  }, [refresh]);
+
+  // Batch selection lives entirely on the Filament tab, so leaving that tab
+  // drops the pending selection and returns the page to normal mode instead
+  // of forcing the user to press Exit before the Hotend tab becomes usable.
+  const handleTabChange = useCallback((next: AmsFilamentHotendTab) => {
+    setTab(next);
+    if (next !== 'filament' && inBatchMode) exitBatchMode();
+  }, [inBatchMode, exitBatchMode]);
   // Dev-only escape hatch the bridge debug dialog can fall back to.
   useEffect(() => {
     (window as Window & { __exitBatchMode?: () => void }).__exitBatchMode = exitBatchMode;
@@ -284,7 +302,7 @@ export function AmsFilamentHotendPage() {
     <div ref={pageRef} className="ams-filament-hotend-page" data-testid="ams-filament-hotend-page">
       <PageToolbar
         selectedTab={tab}
-        onTabChange={setTab}
+        onTabChange={handleTabChange}
         actions={toolbarActions}
         mode={currentMode}
         onAction={handleToolbarAction}
@@ -321,7 +339,9 @@ export function AmsFilamentHotendPage() {
         />
       )}
 
-      {inBatchMode ? (
+      {/* The tab-driven exit is async, so gate the batch footer on the tab as
+          well to avoid flashing it under the Hotend panel while C++ replies. */}
+      {inBatchMode && tab === 'filament' ? (
         <BatchModeFooter
           mode={currentMode}
           selectableSlots={selectableSlots}
