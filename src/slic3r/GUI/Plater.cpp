@@ -11524,6 +11524,20 @@ static std::vector<std::pair<int, int>> reloadable_volumes(const Model &model, c
     }
     return ret;
 }
+
+static bool source_input_files_match(const std::string &lhs, const std::string &rhs)
+{
+    if (lhs.empty() || rhs.empty())
+        return false;
+    const fs::path lhs_path(lhs);
+    const fs::path rhs_path(rhs);
+    // Both sides have a directory: keep the original full-path match so
+    // /a/model.stl and /b/model.stl do not collide. 3MF often stores only
+    // the filename; fall back to a case-insensitive filename compare then.
+    if (lhs_path.has_parent_path() && rhs_path.has_parent_path())
+        return lhs == rhs;
+    return boost::algorithm::iequals(lhs_path.filename().string(), rhs_path.filename().string());
+}
 #endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
 void Plater::priv::reload_from_disk()
@@ -11781,7 +11795,8 @@ void Plater::priv::reload_from_disk()
                 if (has_source && old_volume->source.object_idx < int(new_model.objects.size())) {
                     const ModelObject *obj = new_model.objects[old_volume->source.object_idx];
                     if (old_volume->source.volume_idx < int(obj->volumes.size())) {
-                        if (obj->volumes[old_volume->source.volume_idx]->source.input_file == old_volume->source.input_file) {
+                        const std::string &loaded_src = obj->volumes[old_volume->source.volume_idx]->source.input_file;
+                        if (source_input_files_match(loaded_src, old_volume->source.input_file)) {
                             new_volume_idx = old_volume->source.volume_idx;
                             new_object_idx = old_volume->source.object_idx;
                             match_found    = true;
@@ -11789,7 +11804,9 @@ void Plater::priv::reload_from_disk()
                     }
                 }
 
-                if (!match_found && has_name) {
+                // Search the loaded model by part name. Do not require the volume
+                // name to equal the source filename (Roller != tpu_tube-Roller.3mf).
+                if (!match_found && !old_volume->name.empty()) {
                     // take idxs from the 1st matching volume
                     for (size_t o = 0; o < new_model.objects.size(); ++o) {
                         ModelObject *obj   = new_model.objects[o];
