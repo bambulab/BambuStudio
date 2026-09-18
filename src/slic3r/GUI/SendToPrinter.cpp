@@ -1607,6 +1607,15 @@ void SendToPrinterDialog::set_default()
         m_thumbnailPanel->set_thumbnail(image);
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " : thumbnail_data invalid." << "current plater: " << m_plater->get_partplate_list().get_curr_plate_index();
+        wxImage placeholder = create_scaled_bitmap("send_to_printer_placeholder", this, 256).ConvertToImage();
+        if (placeholder.IsOk() && placeholder.GetWidth() > 0 && placeholder.GetHeight() > 0) {
+            const int box = FromDIP(256);
+            double     scale = std::min((double) box / placeholder.GetWidth(), (double) box / placeholder.GetHeight());
+            int        target_w = std::max(1, (int) std::round(placeholder.GetWidth() * scale));
+            int        target_h = std::max(1, (int) std::round(placeholder.GetHeight() * scale));
+            placeholder = placeholder.Rescale(target_w, target_h, wxIMAGE_QUALITY_HIGH);
+            m_thumbnailPanel->set_thumbnail(placeholder);
+        }
     }
 
     std::vector<std::string> materials;
