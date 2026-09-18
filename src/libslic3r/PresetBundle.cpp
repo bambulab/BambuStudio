@@ -4264,17 +4264,15 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                 }
             }
         }
-        if (multi_diameter_mode) {
-            // Blank every slot's stored per-diameter selection except the ones just flagged above:
-            // a flagged slot keeps its original (now-unavailable) diameter so the sidebar can still
-            // show which diameter is incompatible instead of silently losing that information.
-            for (size_t i = 0; i < selected->values.size(); ++i)
-                if (std::find(incompatible_nozzle_diameter_slots.begin(), incompatible_nozzle_diameter_slots.end(), i) ==
-                    incompatible_nozzle_diameter_slots.end())
-                    selected->values[i].clear();
-        } else {
+        if (!multi_diameter_mode) {
+            // Turning multi-diameter mode off only makes the per-slot selections inactive; restore
+            // the retained values so turning it back on brings the project state back.
             selected->values = retained_selections;
         }
+        // Keep filament_diameter_map populated even when only one diameter is installed. Blanking
+        // compatible slots here used to force every row through the empty-map fallback, so adding a
+        // second diameter (e.g. 0.2 beside existing 0.4) lost the prior 0.4 selections. Availability
+        // still updates via `options` / incompatible flags above; the stored diameter is left alone.
         // A single configured diameter still leaves the flow selectable on a multi-nozzle rack, so the
         // flow repair has to run on this path too instead of only on the multi-diameter one below.
         repair_filament_nozzle_flows(*this, volume_map, installed, printer_name_to_diameter, configured);
@@ -4375,13 +4373,16 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         const std::string normalized = format_diameter_to_str(atof(target.c_str()));
         if (std::find(options.begin(), options.end(), normalized) == options.end()) {
             // A non-empty target that fell out of `options` means a nozzle of that diameter was
-            // physically removed (Nozzle Settings dialog), as opposed to this slot never having had
-            // a selection. Flag it like the preset-incompatibility case instead of silently moving
-            // the slot onto the smallest remaining diameter.
+            // physically removed (Nozzle Settings dialog). Flag it instead of silently moving the
+            // slot onto another diameter -- availability is refreshed; the selection is not rewritten.
             if (!target.empty() && multi_diameter_mode) {
                 incompatible_nozzle_diameter_slots.push_back(i);
                 continue;
             }
+            // Empty map entries may still exist in legacy projects. Leave them unmapped rather than
+            // inventing options.front() (smallest, e.g. 0.2) when multiple diameters are installed.
+            if (target.empty())
+                continue;
             target = options.front();
         }
         // `options` only says a filament preset exists for that diameter. The rack still has to carry a

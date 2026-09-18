@@ -4893,10 +4893,8 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
     std::string diameter = selected != nullptr && filament_idx < static_cast<int>(selected->values.size())
         ? selected->values[filament_idx] : std::string();
     if (diameter.empty()) {
-        // A legacy/single-diameter project intentionally clears filament_diameter_map
-        // (see PresetBundle::validate_filament_nozzle_diameter_selections) since it does not retain
-        // an explicit per-slot diameter selection. Fall back to the only diameter the machine
-        // actually offers so the label is not left blank in the common single-diameter case.
+        // Legacy projects / older validate passes may leave the map empty when only one diameter
+        // was installed. Fall back to the sole option so the label is not blank in that case.
         const std::vector<std::string> options = preset_bundle->get_filament_nozzle_diameter_options(filament_idx);
         if (!options.empty())
             diameter = options.front();
