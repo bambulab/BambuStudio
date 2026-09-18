@@ -74,10 +74,12 @@ static void LogRecovery(wxWebView *webview, WebViewWatcher::Fault fault, const c
 }
 
 DeviceWebHost::DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode,
-                             std::string initial_path, bool allow_lazy)
+                             std::string initial_path, bool allow_lazy,
+                             std::string entry_file)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
     , m_mode(mode)
     , m_initial_path(std::move(initial_path))
+    , m_entry_file(std::move(entry_file))
     , m_allow_lazy(allow_lazy)
 {
     auto *host_sizer = new wxBoxSizer(wxVERTICAL);
@@ -144,8 +146,14 @@ void DeviceWebHost::EnsureBuilt()
     m_device_http_server = std::make_unique<DeviceHttpServer>();
 #endif
 
+    // Both front-ends share one mode, so the trace view name alone cannot tell them
+    // apart. Tag the native-HTML entry so log lines stay attributable when the two
+    // implementations run side by side.
+    wxString view_name = ViewNameForMode(m_mode);
+    if (!m_entry_file.empty())
+        view_name += "#html";
     m_device_webview = new PrinterWebView(
-        this, ViewNameForMode(m_mode), WebViewProtectionMode::DeviceHost);
+        this, view_name, WebViewProtectionMode::DeviceHost);
     m_device_webview->SetMinSize(wxSize(FromDIP(320), FromDIP(260)));
     if (auto *webview = m_device_webview->GetWebView())
         webview->Bind(EVT_WEBVIEW_RECOVERY, &DeviceWebHost::OnWebViewRecovery, this);
@@ -264,7 +272,9 @@ wxString DeviceWebHost::BuildUrl(const std::string& path) const
     }
     wxString url = wxString::Format("http://localhost:13628/index.html?lang=%s", lang);
 #else
-    wxString url = wxString::Format("file://%s/web/device_page/dist/index.html?lang=%s", from_u8(resources_dir()), lang);
+    const wxString entry = m_entry_file.empty() ? wxString("web/device_page/dist/index.html")
+                                                : wxString::FromUTF8(m_entry_file);
+    wxString url = wxString::Format("file://%s/%s?lang=%s", from_u8(resources_dir()), entry, lang);
 #endif
 
     if (!path.empty()) {

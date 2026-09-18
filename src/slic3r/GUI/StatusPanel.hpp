@@ -57,6 +57,7 @@ namespace GUI {
 // Previous definitions
 class MessageDialog;
 class wgtDeviceFilamentHotendWebDialog;
+class wgtDeviceFilamentHotendHtmlDialog;
 class wgtDeviceNozzleRack;
 #if BBL_ENABLE_AMS_CONTROL_WEB
 class wgtAmsControlWebPanel;
@@ -574,6 +575,9 @@ protected:
     wgtDeviceFilamentHotendWebPanel* m_filament_hotend_web_panel{ nullptr };
     wgtDeviceFilamentHotendWebDialog* m_filament_hotend_web_dlg{ nullptr };
     Button*         m_filament_hotend_web_dlg_btn{ nullptr };
+    // Beta-only native-HTML variant of the same page, gated by enable_device_web_html.
+    wgtDeviceFilamentHotendHtmlDialog* m_filament_hotend_html_dlg{ nullptr };
+    Button*         m_filament_hotend_html_dlg_btn{ nullptr };
 
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
@@ -841,6 +845,7 @@ protected:
 
     void on_show_parts_options(wxCommandEvent& event);
     void on_show_hotend_filament_web(wxCommandEvent& event);
+    void on_show_hotend_filament_html(wxCommandEvent& event);
     /* print options */
     void on_show_print_options(wxCommandEvent &event);
     /* safety options */
@@ -882,6 +887,9 @@ protected:
     bool CanShowHotendFilamentDialog(MachineObject* obj) const;
     void ShowHotendFilamentDialog(MachineObject* obj);
     void CloseHotendFilamentDialog();
+    bool CanShowHotendFilamentHtmlDialog(MachineObject* obj) const;
+    void ShowHotendFilamentHtmlDialog(MachineObject* obj);
+    void CloseHotendFilamentHtmlDialog();
 
     void update_market_scoring(bool show);
     void reset_printing_values();

@@ -804,6 +804,10 @@ if (TARGET device_page_build)
     add_dependencies(libslic3r_gui device_page_build)
 endif()
 
+if (TARGET device_page_html_build)
+    add_dependencies(libslic3r_gui device_page_html_build)
+endif()
+
 #if (MSVC)
 #    target_compile_options(libslic3r_gui PRIVATE /Od /Zi)
 #else ()

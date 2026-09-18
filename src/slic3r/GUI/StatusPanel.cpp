@@ -62,6 +62,7 @@
 #include "DeviceTab/wgtDeviceNozzleRack.h"
 #include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebPanel.h"
 #include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebDialog.h"
+#include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendHtmlDialog.h"
 #include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
 #include "DeviceTab/wgtDeviceAutoRefillWebDialog.h"
 #include "DeviceTab/wgtRackExtruder.h"
@@ -2299,6 +2300,14 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_filament_hotend_web_dlg_btn->SetMinSize(wxSize(-1, FromDIP(26)));
     m_filament_hotend_web_dlg_btn->Hide();
 
+    m_filament_hotend_html_dlg_btn = new Button(m_panel_control_title, "Hotend&Filament (HTML)");
+    m_filament_hotend_html_dlg_btn->SetBackgroundColor(btn_bg_green);
+    m_filament_hotend_html_dlg_btn->SetBorderColor(btn_bd_green);
+    m_filament_hotend_html_dlg_btn->SetTextColor(wxColour("#FFFFFE"));
+    m_filament_hotend_html_dlg_btn->SetSize(wxSize(FromDIP(190), FromDIP(26)));
+    m_filament_hotend_html_dlg_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_filament_hotend_html_dlg_btn->Hide();
+
     m_options_btn = new Button(m_panel_control_title, _L("Print Options"));
     m_options_btn->SetBackgroundColor(btn_bg_green);
     m_options_btn->SetBorderColor(btn_bd_green);
@@ -2328,6 +2337,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     bSizer_control_title->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_control_title->Add(m_parts_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_filament_hotend_web_dlg_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
+    bSizer_control_title->Add(m_filament_hotend_html_dlg_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_options_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_safety_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_calibration_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
@@ -3375,6 +3385,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_safety_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_safety_options), NULL, this);
     m_parts_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
     m_filament_hotend_web_dlg_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_hotend_filament_web), NULL, this);
+    m_filament_hotend_html_dlg_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_hotend_filament_html), NULL, this);
 }
 
 StatusPanel::~StatusPanel()
@@ -3425,6 +3436,13 @@ StatusPanel::~StatusPanel()
     m_safety_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_safety_options), NULL, this);
     m_parts_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
     m_filament_hotend_web_dlg_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_hotend_filament_web), NULL, this);
+    m_filament_hotend_html_dlg_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_hotend_filament_html), NULL, this);
+
+    if (m_filament_hotend_html_dlg) {
+        CloseHotendFilamentHtmlDialog();
+        m_filament_hotend_html_dlg->Destroy();
+        m_filament_hotend_html_dlg = nullptr;
+    }
 
     // remove warning dialogs
     if (m_filament_hotend_web_dlg) {
@@ -3797,6 +3815,10 @@ void StatusPanel::update(MachineObject *obj)
             refresh_control_title = true;
         }
 
+        if (m_filament_hotend_html_dlg_btn->Show(CanShowHotendFilamentHtmlDialog(obj))) {
+            refresh_control_title = true;
+        }
+
         if (refresh_control_title && m_panel_control_title) {
             m_panel_control_title->Layout();
         }
@@ -3820,6 +3842,12 @@ void StatusPanel::update(MachineObject *obj)
         m_filament_hotend_web_dlg->UpdateByMachine(obj);
     } else if (m_filament_hotend_web_dlg && !CanShowHotendFilamentDialog(obj)) {
         CloseHotendFilamentDialog();
+    }
+
+    if (m_filament_hotend_html_dlg && m_filament_hotend_html_dlg->IsShown() && CanShowHotendFilamentHtmlDialog(obj)) {
+        m_filament_hotend_html_dlg->UpdateByMachine(obj);
+    } else if (m_filament_hotend_html_dlg && !CanShowHotendFilamentHtmlDialog(obj)) {
+        CloseHotendFilamentHtmlDialog();
     }
 
     update_camera_state(obj);
@@ -5640,6 +5668,8 @@ void StatusPanel::dismiss_filament_hint_ui(const std::string& dev_id, const std:
         m_filament_hotend_web_panel->UpdateByMachine(obj);
     if (m_filament_hotend_web_dlg && obj && obj->get_dev_id() == dev_id)
         m_filament_hotend_web_dlg->UpdateByMachine(obj);
+    if (m_filament_hotend_html_dlg && obj && obj->get_dev_id() == dev_id)
+        m_filament_hotend_html_dlg->UpdateByMachine(obj);
 }
 
 void StatusPanel::show_new_official_filament_dlg(
@@ -6337,6 +6367,58 @@ void StatusPanel::on_show_hotend_filament_web(wxCommandEvent &event)
     ShowHotendFilamentDialog(obj);
 }
 
+bool StatusPanel::CanShowHotendFilamentHtmlDialog(MachineObject* obj_) const
+{
+    if (!obj_) {
+        return false;
+    }
+
+    // Beta-only opt-in: without the app config key the button never appears, so
+    // release paths are byte-identical to before.
+    if (wgtDeviceFilamentHotendHtmlDialog::IsEnabled()) {
+        const auto rack_type = obj_->GetNozzleRack()->GetRackType();
+        return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+    } else {
+#if BBL_RELEASE_TO_PUBLIC == 0 || BBL_RELEASE_TO_PUBLIC == 2
+        return true;
+#endif
+    }
+
+    return false;
+}
+
+void StatusPanel::ShowHotendFilamentHtmlDialog(MachineObject* obj_)
+{
+    if (!CanShowHotendFilamentHtmlDialog(obj_)) {
+        CloseHotendFilamentHtmlDialog();
+        return;
+    }
+
+    if (!m_filament_hotend_html_dlg) {
+        m_filament_hotend_html_dlg = new wgtDeviceFilamentHotendHtmlDialog(this);
+        m_filament_hotend_html_dlg->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& e) {
+            if (e.GetEventObject() == m_filament_hotend_html_dlg) {
+                m_filament_hotend_html_dlg = nullptr;
+            }
+            e.Skip();
+        });
+    }
+    m_filament_hotend_html_dlg->UpdateByMachine(obj_);
+    m_filament_hotend_html_dlg->ShowModal();
+}
+
+void StatusPanel::CloseHotendFilamentHtmlDialog()
+{
+    if (m_filament_hotend_html_dlg) {
+        m_filament_hotend_html_dlg->Hide();
+    }
+}
+
+void StatusPanel::on_show_hotend_filament_html(wxCommandEvent &event)
+{
+    ShowHotendFilamentHtmlDialog(obj);
+}
+
 void StatusPanel::update_printer_parts_options(MachineObject *obj_)
 {
     if (obj_) {
@@ -6404,6 +6486,7 @@ void StatusPanel::set_default()
     m_safety_btn->Show();
     m_parts_btn->Show();
     m_filament_hotend_web_dlg_btn->Hide();
+    m_filament_hotend_html_dlg_btn->Hide();
 
     if (m_panel_control_title) {
         m_panel_control_title->Layout();
@@ -6445,6 +6528,7 @@ void StatusPanel::show_status(int status)
         m_safety_btn->Disable();
         m_parts_btn->Disable();
         m_filament_hotend_web_dlg_btn->Disable();
+        m_filament_hotend_html_dlg_btn->Disable();
         m_panel_monitoring_title->Disable();
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         show_printing_status(true, true);
@@ -6453,6 +6537,7 @@ void StatusPanel::show_status(int status)
         m_safety_btn->Enable();
         m_parts_btn->Enable();
         m_filament_hotend_web_dlg_btn->Enable();
+        m_filament_hotend_html_dlg_btn->Enable();
         m_panel_monitoring_title->Enable();
     }
 }
@@ -6605,6 +6690,9 @@ void StatusPanel::msw_rescale()
     m_filament_hotend_web_dlg_btn->SetMinSize(wxSize(-1, FromDIP(26)));
     m_filament_hotend_web_dlg_btn->Rescale();
 
+    m_filament_hotend_html_dlg_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_filament_hotend_html_dlg_btn->Rescale();
+
     rescale_camera_icons();
 
     Layout();
@@ -6651,6 +6739,13 @@ void StatusPanel::update_rack(MachineObject *obj)
     }
     if (m_filament_hotend_web_dlg && m_filament_hotend_web_dlg->IsShown()) {
         m_filament_hotend_web_dlg->UpdateByMachine(obj);
+    }
+
+    if (!CanShowHotendFilamentHtmlDialog(obj)) {
+        CloseHotendFilamentHtmlDialog();
+    }
+    if (m_filament_hotend_html_dlg && m_filament_hotend_html_dlg->IsShown()) {
+        m_filament_hotend_html_dlg->UpdateByMachine(obj);
     }
 
     if (m_hotend_rack_control) {

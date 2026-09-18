@@ -244,6 +244,31 @@ add_custom_command(
 # Not ALL: rebuilt only when a dependent target (libslic3r_gui / BambuStudio) is built.
 add_custom_target(device_page_build DEPENDS "${DEVICE_PAGE_BUILD_STAMP}")
 
+# ==================== DeviceWebHtml: native HTML front-end ====================
+# Plain static assets - no Node/pnpm/Vite involved, so this deliberately bypasses
+# prepare_node_env() entirely and is just a directory copy.
+
+set(DEVICE_PAGE_HTML_SRC_DIR    "${CMAKE_CURRENT_SOURCE_DIR}/DeviceWebHtml/web")
+set(DEVICE_PAGE_HTML_TARGET_DIR "${CMAKE_SOURCE_DIR}/resources/web/device_page_html")
+set(DEVICE_PAGE_HTML_STAMP      "${CMAKE_CURRENT_BINARY_DIR}/device_page_html.stamp")
+
+file(GLOB_RECURSE DEVICE_PAGE_HTML_FILES CONFIGURE_DEPENDS
+    "${DEVICE_PAGE_HTML_SRC_DIR}/*"
+)
+
+add_custom_command(
+    OUTPUT "${DEVICE_PAGE_HTML_STAMP}"
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${DEVICE_PAGE_HTML_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_HTML_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_HTML_SRC_DIR}" "${DEVICE_PAGE_HTML_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_HTML_STAMP}"
+    DEPENDS ${DEVICE_PAGE_HTML_FILES}
+    COMMENT "Copying device_page_html static assets..."
+    VERBATIM
+)
+
+add_custom_target(device_page_html_build DEPENDS "${DEVICE_PAGE_HTML_STAMP}")
+
 list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/DeviceHttpServer.cpp
     GUI/DeviceWeb/DeviceHttpServer.hpp

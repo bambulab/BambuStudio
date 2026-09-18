@@ -41,8 +41,13 @@ public:
     using ContentSizeChangedHandler = std::function<void(const wxSize&)>;
     // allow_lazy: if true, webview/bridge/manager construction is deferred until
     // the panel is first shown, avoiding startup cost for hidden tabs.
+    // entry_file: resources-relative HTML entry (e.g. "web/device_page_html/ams_hotend.html").
+    // Empty selects the default React bundle. The mode - and therefore the set of
+    // registered ViewModels - stays the same, so an alternative front-end
+    // implementation reuses the exact same C++ state machine.
     explicit DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode,
-                           std::string initial_path = {}, bool allow_lazy = false);
+                           std::string initial_path = {}, bool allow_lazy = false,
+                           std::string entry_file = {});
     ~DeviceWebHost() override;
 
     void LoadUrl();
@@ -122,6 +127,7 @@ private:
 private:
     DeviceWebHostMode                 m_mode{ DeviceWebHostMode::AllForDebug };
     std::string                       m_initial_path;
+    std::string                       m_entry_file;          // empty = default React dist
     bool                              m_allow_lazy{false};   // deferred construction enabled
     bool                              m_built{false};        // has EnsureBuilt() run?
     bool                              m_just_built{false};   // skip next NavigateTo after lazy init
