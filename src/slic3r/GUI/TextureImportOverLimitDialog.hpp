@@ -28,7 +28,6 @@ struct TextureOverLimitChip {
 
 struct TextureOverLimitPlan {
     std::vector<Slic3r::FilamentMatch> matches;
-    std::vector<TextureOverLimitChip>  before_chips;
     std::vector<TextureOverLimitChip>  after_chips;
     std::vector<TextureOverLimitChip>  kept_chips;
     std::vector<TextureOverLimitChip>  discarded_chips;
@@ -72,14 +71,12 @@ private:
                                   TextureOverLimitMode mode,
                                   const wxString& title,
                                   RadioBox*& radio);
-    wxPanel* create_merge_card(wxWindow* parent);
-    wxPanel* create_discard_card(wxWindow* parent);
+    wxPanel* create_plan_card(wxWindow* parent, TextureOverLimitMode mode);
     wxWindow* create_preview_card(wxWindow* parent,
                                   const wxString& tag,
                                   TexturePreviewCanvas*& canvas,
                                   const TextureOverLimitPlan& plan);
     void style_primary_button(Button* btn);
-    void style_secondary_button(Button* btn);
     void populate_preview(TexturePreviewCanvas* canvas, const TextureOverLimitPlan& plan);
     void bind_preview_cameras();
     void refresh_previews();
@@ -104,8 +101,7 @@ private:
     TexturePreviewCanvas* m_preview_discard = nullptr;
     PreviewTagPanel*      m_tag_merge       = nullptr;
     PreviewTagPanel*      m_tag_discard     = nullptr;
-    Button* m_btn_ok     = nullptr;
-    Button* m_btn_cancel = nullptr;
+    Button* m_btn_ok = nullptr;
 };
 
 }} // namespace Slic3r::GUI

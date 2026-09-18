@@ -390,6 +390,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/TextureImportUi.cpp
     GUI/TextureImportOverLimitDialog.hpp
     GUI/TextureImportOverLimitDialog.cpp
+    GUI/TextureImportPopupDismiss.hpp
+    GUI/TextureImportPopupDismiss.cpp
     GUI/FilamentPickerDialog.cpp
     GUI/FilamentPickerDialog.hpp
     GUI/FilamentBitmapUtils.cpp
@@ -736,6 +738,7 @@ if (APPLE)
             GUI/InstanceCheckMac.h
             GUI/CameraFullscreenMac.mm
             GUI/CameraFullscreenMac.hpp
+            GUI/TextureImportPopupDismiss.mm
             GUI/MacIME.mm
             GUI/MacIME.hpp
             GUI/wxMediaCtrl2.mm

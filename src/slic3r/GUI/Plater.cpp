@@ -9601,7 +9601,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     + (texture_progress_file_end - texture_progress_start) * 70 / 100;
                 texture_progress_object_end = texture_progress_start
                     + (texture_progress_file_end - texture_progress_start) * 90 / 100;
-                wxString texture_msg = wxString::Format(_L("Computing texture colors: %s"), from_path(real_filename));
+                wxString texture_msg = wxString::Format(_L("Computing model colors: %s"), from_path(real_filename));
                 dlg_cont = dlg.Update(texture_progress_start, texture_msg);
                 if (!dlg_cont) {
                     q->skip_thumbnail_invalid = false;

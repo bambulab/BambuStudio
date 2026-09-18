@@ -19,6 +19,7 @@
 #include <wx/scrolwin.h>
 #include <wx/wrapsizer.h>
 #include <wx/display.h>
+#include <wx/event.h>
 
 #include <algorithm>
 #include <cmath>
@@ -407,7 +408,6 @@ TextureOverLimitPlan compute_merge_plan(const TextureOverLimitInput& input, Over
     plan.matches = input.matches;
     const size_t n = input.colors_rgba.size();
     std::vector<char> alive(n, 1);
-    plan.before_chips = chips_from_alive(input, alive, ctx.areas, ctx.total_area);
 
     const size_t max_count = input.max_count;
     while ((size_t)count_alive(alive) > max_count) {
@@ -449,7 +449,12 @@ TextureOverLimitPlan compute_merge_plan(const TextureOverLimitInput& input, Over
         absorb_filament(absorbed, survivor, alive, plan.matches, input, ctx.families, &ctx.areas);
     }
 
-    plan.after_chips = chips_from_alive(input, alive, ctx.areas, ctx.total_area);
+    std::vector<char> discarded(n, 0);
+    for (size_t i = 0; i < n; ++i)
+        discarded[i] = alive[i] ? 0 : 1;
+    plan.kept_chips = chips_from_alive(input, alive, ctx.areas, ctx.total_area);
+    plan.discarded_chips = chips_from_alive(input, discarded, ctx.areas, ctx.total_area);
+    plan.after_chips = plan.kept_chips;
     finish_plan(plan, max_count, count_alive(alive));
     return plan;
 }
@@ -461,7 +466,6 @@ TextureOverLimitPlan compute_discard_plan(const TextureOverLimitInput& input, Ov
     const size_t n = input.colors_rgba.size();
     std::vector<char> alive(n, 1);
     std::vector<char> discarded(n, 0);
-    plan.before_chips = chips_from_alive(input, alive, ctx.areas, ctx.total_area);
 
     const size_t max_count = input.max_count;
     while ((size_t)count_alive(alive) > max_count) {
@@ -517,9 +521,16 @@ TextureOverLimitPlan compute_texture_overlimit_discard_plan(const TextureOverLim
 
 TextureImportOverLimitDialog::TextureImportOverLimitDialog(wxWindow* parent, TextureOverLimitInput input)
     : DPIDialog(parent, wxID_ANY, _L("Error Prompt"), wxDefaultPosition, wxDefaultSize,
-                wxCAPTION | wxCLOSE_BOX)
+                wxCAPTION)
     , m_input(std::move(input))
 {
+    SetEscapeId(wxID_NONE);
+    Bind(wxEVT_CLOSE_WINDOW, [](wxCloseEvent& e) {
+        if (e.CanVeto())
+            e.Veto();
+        else
+            e.Skip();
+    });
     const OverLimitSolveContext ctx = make_solve_context(m_input);
     m_merge_plan = compute_merge_plan(m_input, ctx);
     m_discard_plan = compute_discard_plan(m_input, ctx);
@@ -547,11 +558,6 @@ void TextureImportOverLimitDialog::on_dpi_changed(const wxRect&)
         m_btn_ok->SetCornerRadius(FromDIP(12));
         style_primary_button(m_btn_ok);
     }
-    if (m_btn_cancel) {
-        m_btn_cancel->SetMinSize(wxSize(FromDIP(60), FromDIP(24)));
-        m_btn_cancel->SetCornerRadius(FromDIP(12));
-        style_secondary_button(m_btn_cancel);
-    }
     Layout();
     Refresh();
     refresh_previews();
@@ -560,11 +566,6 @@ void TextureImportOverLimitDialog::on_dpi_changed(const wxRect&)
 void TextureImportOverLimitDialog::style_primary_button(Button* btn)
 {
     texture_import_style_primary_button(btn);
-}
-
-void TextureImportOverLimitDialog::style_secondary_button(Button* btn)
-{
-    texture_import_style_secondary_button(btn);
 }
 
 void TextureImportOverLimitDialog::on_sys_color_changed()
@@ -632,7 +633,6 @@ void TextureImportOverLimitDialog::apply_theme()
     if (m_tag_discard)
         m_tag_discard->set_theme(tag_bg, tag_fg, preview_bg);
     style_primary_button(m_btn_ok);
-    style_secondary_button(m_btn_cancel);
     const int radius = FromDIP(8);
     const wxColour preview_bd = dark_or(wxColour(206, 206, 206), wxColour(0x54, 0x54, 0x5B));
     if (m_preview_merge)
@@ -756,52 +756,10 @@ wxWindow* TextureImportOverLimitDialog::create_preview_card(wxWindow* parent,
     return half;
 }
 
-wxPanel* TextureImportOverLimitDialog::create_merge_card(wxWindow* parent)
+wxPanel* TextureImportOverLimitDialog::create_plan_card(wxWindow* parent, TextureOverLimitMode mode)
 {
-    auto* card = new wxPanel(parent, wxID_ANY);
-    card->SetBackgroundColour(dark_or(wxColour(0xF8, 0xF8, 0xF8), wxColour(0x2D, 0x2D, 0x31)));
-    card->SetMinSize(wxSize(FromDIP(363), FromDIP(216)));
-    card->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    card->Bind(wxEVT_PAINT, [](wxPaintEvent& e) {
-        auto* p = static_cast<wxPanel*>(e.GetEventObject());
-        texture_import_paint(p, [p](wxDC& dc) {
-            const wxSize sz = p->GetClientSize();
-            const wxColour bg = dark_or(wxColour(0xF8, 0xF8, 0xF8), wxColour(0x2D, 0x2D, 0x31));
-            const wxColour bd = dark_or(wxColour(0xEE, 0xEE, 0xEE), wxColour(0x54, 0x54, 0x5B));
-            dc.SetBrush(wxBrush(p->GetParent()->GetBackgroundColour()));
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.DrawRectangle(0, 0, sz.x, sz.y);
-            dc.SetBrush(wxBrush(bg));
-            dc.SetPen(wxPen(bd, 1));
-            dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, p->FromDIP(8));
-        });
-    });
-    card->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) { select_mode(TextureOverLimitMode::MergeSimilar); });
-
-    auto* scroll = new wxScrolledWindow(card, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    scroll->SetBackgroundColour(card->GetBackgroundColour());
-    scroll->SetScrollRate(0, FromDIP(8));
-    auto* inner = new wxBoxSizer(wxVERTICAL);
-    inner->Add(make_chip_section(scroll, _L("Before merge"), m_merge_plan.before_chips, false),
-               0, wxEXPAND | wxBOTTOM, FromDIP(12));
-    inner->Add(make_chip_section(scroll, _L("After merge"), m_merge_plan.after_chips, false),
-               0, wxEXPAND);
-    scroll->SetSizer(inner);
-    scroll->Bind(wxEVT_SIZE, [scroll](wxSizeEvent& e) {
-        e.Skip();
-        scroll->FitInside();
-    });
-
-    auto* sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(scroll, 1, wxEXPAND | wxALL, FromDIP(12));
-    card->SetSizer(sizer);
-    m_merge_card = card;
-    m_merge_scroll = scroll;
-    return card;
-}
-
-wxPanel* TextureImportOverLimitDialog::create_discard_card(wxWindow* parent)
-{
+    const TextureOverLimitPlan& plan =
+        mode == TextureOverLimitMode::MergeSimilar ? m_merge_plan : m_discard_plan;
     auto* card = new wxPanel(parent, wxID_ANY);
     card->SetBackgroundColour(dark_or(wxColour(0xF8, 0xF8, 0xF8), wxColour(0x2D, 0x2D, 0x31)));
     card->SetMinSize(wxSize(FromDIP(363), FromDIP(222)));
@@ -820,15 +778,15 @@ wxPanel* TextureImportOverLimitDialog::create_discard_card(wxWindow* parent)
             dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, p->FromDIP(8));
         });
     });
-    card->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) { select_mode(TextureOverLimitMode::DiscardSmallArea); });
+    card->Bind(wxEVT_LEFT_DOWN, [this, mode](wxMouseEvent&) { select_mode(mode); });
 
     auto* scroll = new wxScrolledWindow(card, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     scroll->SetBackgroundColour(card->GetBackgroundColour());
     scroll->SetScrollRate(0, FromDIP(8));
     auto* inner = new wxBoxSizer(wxVERTICAL);
-    inner->Add(make_chip_section(scroll, _L("Kept filaments"), m_discard_plan.kept_chips, true),
+    inner->Add(make_chip_section(scroll, _L("Kept filaments"), plan.kept_chips, true),
                0, wxEXPAND | wxBOTTOM, FromDIP(12));
-    inner->Add(make_chip_section(scroll, _L("Discarded filaments"), m_discard_plan.discarded_chips, true),
+    inner->Add(make_chip_section(scroll, _L("Deleted filaments"), plan.discarded_chips, true),
                0, wxEXPAND);
     scroll->SetSizer(inner);
     scroll->Bind(wxEVT_SIZE, [scroll](wxSizeEvent& e) {
@@ -839,8 +797,13 @@ wxPanel* TextureImportOverLimitDialog::create_discard_card(wxWindow* parent)
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(scroll, 1, wxEXPAND | wxALL, FromDIP(12));
     card->SetSizer(sizer);
-    m_discard_card = card;
-    m_discard_scroll = scroll;
+    if (mode == TextureOverLimitMode::MergeSimilar) {
+        m_merge_card = card;
+        m_merge_scroll = scroll;
+    } else {
+        m_discard_card = card;
+        m_discard_scroll = scroll;
+    }
     return card;
 }
 
@@ -887,10 +850,10 @@ wxWindow* TextureImportOverLimitDialog::create_option_block(wxWindow* parent,
 
     auto* body = new wxBoxSizer(wxHORIZONTAL);
     if (mode == TextureOverLimitMode::MergeSimilar) {
-        body->Add(create_merge_card(block), 0, wxRIGHT, FromDIP(12));
+        body->Add(create_plan_card(block, TextureOverLimitMode::MergeSimilar), 0, wxRIGHT, FromDIP(12));
         body->Add(create_preview_card(block, _L("After merging"), m_preview_merge, m_merge_plan), 1, wxEXPAND);
     } else {
-        body->Add(create_discard_card(block), 0, wxRIGHT, FromDIP(12));
+        body->Add(create_plan_card(block, TextureOverLimitMode::DiscardSmallArea), 0, wxRIGHT, FromDIP(12));
         body->Add(create_preview_card(block, _L("After merging"), m_preview_discard, m_discard_plan), 1, wxEXPAND);
     }
     sizer->Add(body, 1, wxEXPAND | wxLEFT, FromDIP(24));
@@ -962,13 +925,7 @@ void TextureImportOverLimitDialog::build_ui()
     m_btn_ok->SetCornerRadius(FromDIP(12));
     style_primary_button(m_btn_ok);
     m_btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); });
-    m_btn_cancel = new Button(this, _L("Cancel"));
-    m_btn_cancel->SetMinSize(wxSize(FromDIP(60), FromDIP(24)));
-    m_btn_cancel->SetCornerRadius(FromDIP(12));
-    style_secondary_button(m_btn_cancel);
-    m_btn_cancel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); });
-    btns->Add(m_btn_ok, 0, wxRIGHT, FromDIP(16));
-    btns->Add(m_btn_cancel, 0);
+    btns->Add(m_btn_ok, 0);
     main->Add(btns, 0, wxEXPAND | wxALL, FromDIP(24));
 
     SetSizer(main);

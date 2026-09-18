@@ -32,6 +32,7 @@
 
 class GreenSlider;
 class GreenDoubleSlider;
+class StaticBox;
 
 namespace Slic3r { namespace GUI {
 
@@ -261,6 +262,10 @@ private:
     void update_stepper();
     void style_primary_button(Button* btn);
     void style_secondary_button(Button* btn);
+    void style_color_count_preset_button(Button* btn);
+    void style_advanced_settings_card();
+    // Re-break the Advanced settings hints against the current column width.
+    void layout_advanced_hints();
     void apply_theme();
 
     void start_computation(bool auto_color = false, bool initial = false);
@@ -277,9 +282,12 @@ private:
     void rebuild_mapping_rows();
     void layout_mapping_rows();
     void do_auto_match();
+    // Bind every cluster to a project physical filament of the voted family.
+    // Mixed slots are skipped. ΔE > NEW_FILAMENT_THRESHOLD stays unmatched.
+    void match_clusters_to_physical_filaments();
     // Drop NewPhysical / NewMixed slots created in this dialog, then rebuild
-    // the baseline mapping with do_auto_match(). Shared by a fresh compute and
-    // the matching-step Reset button.
+    // the baseline mapping with do_auto_match(). Used by a fresh compute when
+    // Color Mixing is off (still respects Auto merge).
     void drop_virtual_filaments_keep_project();
     void reset_to_project_filaments_and_auto_match();
     // Reorder m_current_matches into a canonical, predictable order (ascending
@@ -321,6 +329,11 @@ private:
     void   update_color_count_controls();
     void   set_color_count_exceeded(bool exceeded);
     void   update_color_count_warning();
+    int    visible_simplified_color_count() const;
+    void   sync_color_count_from_preview();
+    bool   can_restore_applied_color_count(int count) const;
+    void   restore_applied_color_result();
+    void   request_color_count(int count, int delay_ms);
     bool filament_count_exceeded() const;
     // True when at least one mapping row / match has no filament assigned.
     bool has_unmatched_mapping() const;
@@ -333,11 +346,16 @@ private:
     void wrap_overlimit_warning_label();
     // Screen Y of the matching-page hint bar bottom; used to dock the filament popup.
     int  filament_popup_align_bottom() const;
-    // Shows the over-limit plan dialog. On OK the chosen plan is applied and
-    // the function returns true; Cancel leaves the matching page unchanged.
+    // Shows the over-limit plan dialog. Closing it requires OK; the chosen
+    // plan is applied and the function returns true.
     bool open_overlimit_dialog();
     void apply_overlimit_matches(const std::vector<Slic3r::FilamentMatch>& matches);
     void compact_used_virtual_filaments();
+    // Drop NewPhysical / NewMixed slots that no mapping row references, then
+    // refresh target cards in place (no rebuild_mapping_rows).
+    void drop_unused_new_filaments_and_refresh();
+    void refresh_mapping_target_panels();
+    void bind_match_inplace(Slic3r::FilamentMatch& match, int filament_index);
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color,
                                     int skip_index, bool physical_only,
@@ -408,6 +426,8 @@ private:
     bool                               m_fallback_to_geometry_only = false;
     bool                               m_auto_merge_enabled = true;
     bool                               m_mix_enabled = false;
+    // Guards the batch binders against re-entry while they rebuild m_current_matches.
+    bool                               m_mix_applying = false;
 
     Slic3r::PaintedMesh               m_painted;
     Slic3r::PaintedMesh               m_original_preview;
@@ -456,9 +476,12 @@ private:
     TextInput*   m_smooth_spin    = nullptr;
     GreenDoubleSlider* m_gap_slider = nullptr;
     TextInput*         m_gap_spin   = nullptr;
+    Label*                m_lbl_smooth_hint = nullptr;
+    Label*                m_lbl_gap_hint    = nullptr;
     wxPanel*              m_advanced_header = nullptr;
-    wxPanel*              m_advanced_body   = nullptr;
+    StaticBox*            m_advanced_body   = nullptr;
     bool                  m_advanced_expanded = false;
+    bool                  m_laying_out_hints = false;
     wxPanel*              m_title_line     = nullptr;
     wxPanel*              m_params_panel   = nullptr;
     wxPanel*              m_mapping_panel  = nullptr;
