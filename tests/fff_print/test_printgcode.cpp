@@ -2,6 +2,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/GCodeReader.hpp"
+#include "libslic3r/Layer.hpp"
 
 #include "test_data.hpp"
 
