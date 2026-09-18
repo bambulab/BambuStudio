@@ -4109,7 +4109,11 @@ void Print::_mark_flush_into_objects_without_tower()
         wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
     float multiplier = (m_config.prime_volume_mode == PrimeVolumeMode::pvmFast) ? m_config.flush_multiplier_fast.get_at(0) : m_config.flush_multiplier.get_at(0);
 
-    float        total_unmet_volume = 0.f;
+    // mm^3 is not a unit anyone has an intuition for at print-time scale (tens of thousands of
+    // mm^3 sounds alarming, but is a few tens of grams) - convert to mass using each transition's
+    // own *incoming* filament's density (that's the material actually being flushed), since a
+    // plate can easily mix filament types of quite different densities (PETG vs PLA vs TPU...).
+    float        total_unmet_mass_g = 0.f;
     unsigned int old_filament_id    = m_tool_ordering.first_extruder();
 
     for (auto &layer_tools : m_tool_ordering.layer_tools()) { // for all layers
@@ -4128,15 +4132,16 @@ void Print::_mark_flush_into_objects_without_tower()
         std::vector<float> unmet = layer_tools.wiping_extrusions().mark_wiping_extrusions_for_layer(*this, transitions);
         for (size_t i = 0; i < transitions.size(); ++i) {
             layer_tools.wiping_extrusions().remember_unmet_purge_volume(transitions[i].old_extruder, transitions[i].new_extruder, unmet[i]);
-            total_unmet_volume += unmet[i];
+            // filament_density is g/cm^3; unmet[i] is mm^3 (1 cm^3 = 1000 mm^3).
+            total_unmet_mass_g += unmet[i] * m_config.filament_density.get_at(transitions[i].new_extruder) * 0.001f;
         }
         layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
     }
 
-    if (total_unmet_volume > 0.f) {
-        std::string message = (boost::format(L("Flush-into-object/infill could not absorb %1$.1f mm^3 of purge volume on this plate; "
+    if (total_unmet_mass_g > 0.f) {
+        std::string message = (boost::format(L("Flush-into-object/infill could not absorb about %1$.1f g of purge material on this plate; "
                                                  "the shortfall will be purged through the printer's normal flush routine instead."))
-                                % total_unmet_volume).str();
+                                % total_unmet_mass_g).str();
         this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, message, PrintStateBase::SlicingPurgeVolumeNotMet);
     }
 }
