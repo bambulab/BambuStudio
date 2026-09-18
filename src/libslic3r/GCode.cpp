@@ -8232,6 +8232,17 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             wipe_volume = flush_matrix[old_filament_id * number_of_extruders + new_filament_id];
             wipe_volume *= m_config.flush_multiplier.get_at(new_extruder_id);  // if is multi_extruder only use the fist extruder matrix
         }
+        // set_extruder() is only ever called when there's no wipe tower (see the
+        // filament_end_gcode comment above), so on plates that use flush_into_objects/infill
+        // Print::_mark_flush_into_objects_without_tower() has already diverted as much of this
+        // toolchange's purge volume as possible into purge-eligible object geometry. Use
+        // whatever it couldn't cover instead of the raw flush-matrix volume; a -1 sentinel means
+        // "not computed" (multi-nozzle machines, or the feature unused on this plate), which
+        // falls back to today's unchanged behaviour.
+        float unmet_purge_volume = const_cast<LayerTools&>(m_print->tool_ordering().tools_for_layer(print_z))
+                                        .wiping_extrusions().unmet_purge_volume((unsigned int) old_filament_id, new_filament_id);
+        if (unmet_purge_volume >= 0.f)
+            wipe_volume = unmet_purge_volume;
         wipe_volume = std::max(0.f, wipe_volume-grab_purge_volume);
 
         old_filament_e_feedrate = (int) (60.0 * m_config.filament_max_volumetric_speed.get_at(old_filament_id) / filament_area);
