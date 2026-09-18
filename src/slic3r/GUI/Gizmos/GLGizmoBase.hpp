@@ -32,6 +32,7 @@ namespace GUI {
 
 class ImGuiWrapper;
 class GLCanvas3D;
+struct Camera;
 enum class CommonGizmosDataID;
 class CommonGizmosDataPool;
 class Selection;
@@ -44,6 +45,16 @@ public:
     static const unsigned int BASE_ID = 255 * 255 * 254;
 
     static float INV_ZOOM;
+    // Cancels the perspective foreshortening for screen-space-sized gizmos, stays 1.0 under an orthographic camera.
+    static float DEPTH_CORRECTION;
+
+    // Refreshes INV_ZOOM and DEPTH_CORRECTION for the given camera. The selection provides the anchor the
+    // gizmo is drawn around; DEPTH_CORRECTION falls back to 1.0 with an orthographic camera, with nothing
+    // selected, or when the screen size mode is off.
+    // Call once per frame, after Camera::apply_projection(), which is what fills in near_z and gui_scale.
+    // Single anchor per frame: grabbers offset from the selection center (Scale corners, the Cut plane,
+    // the Text/SVG cube) keep a residual error proportional to their own depth offset.
+    static void update_camera_scaling(const Camera& camera, const Selection& selection);
 
     //BBS colors
     static std::array<float, 4> DEFAULT_BASE_COLOR;
