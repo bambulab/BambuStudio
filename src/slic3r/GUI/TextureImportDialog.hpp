@@ -52,11 +52,6 @@ enum class TextureImportWizardStep {
     FilamentMatching
 };
 
-enum class TextureAutoMixMode {
-    CMYW,
-    RYBW
-};
-
 enum class TextureFilamentKind {
     ExistingPhysical,
     ExistingMixed,
@@ -95,7 +90,6 @@ struct FilamentMappingRow {
 struct GapPreviewState;
 
 class FilamentSelectPopup;
-class AutoMixSelectPopup;
 // Lightweight 3D preview panel using wxGLCanvas.
 // Renders: original face-colored, multi-color, or filament-mapped.
 class TexturePreviewCanvas : public wxGLCanvas
@@ -296,12 +290,15 @@ private:
     void show_filament_popup(size_t row_index);
     void dismiss_filament_popup();
     void dismiss_filament_popup_on_wheel(wxMouseEvent& evt);
-    void show_auto_mix_popup();
-    void dismiss_auto_mix_popup();
-    void set_auto_mix_mode(TextureAutoMixMode mode);
-    void apply_auto_standard_mix(TextureAutoMixMode mode);
+    void show_mixing_kits_help();
+    void on_mix_toggled(wxCommandEvent& evt);
+    void apply_mix_from_existing_filaments();
+    void add_pla_basic_cmyw_to_project();
+    void reload_existing_filaments_from_project();
+    void rematch_after_project_filament_change();
+    bool has_complete_pla_basic_cmyw() const;
+    std::string preferred_mix_family() const;
     void reset_auto_mix();
-    void update_auto_mix_reset_visibility();
     bool add_decomposed_mixed_filament(size_t row_index);
     int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
                               const std::string& preset_name = std::string());
@@ -402,8 +399,7 @@ private:
     // above the bottom buttons; never affects the mapping itself.
     bool                               m_filaments_dropped = false;
     bool                               m_auto_merge_enabled = true;
-    TextureAutoMixMode                 m_auto_mix_mode = TextureAutoMixMode::CMYW;
-    int                                m_auto_mix_font_point_size = 10;
+    bool                               m_mix_enabled = false;
 
     Slic3r::PaintedMesh               m_painted;
     Slic3r::PaintedMesh               m_original_preview;
@@ -462,10 +458,8 @@ private:
 
     CheckBox*             m_auto_merge_cb = nullptr;
     wxWindow*             m_auto_merge_row = nullptr;
-    Button*               m_btn_auto_mix  = nullptr;
-    Button*               m_btn_mix_reset = nullptr;
-    bool                  m_auto_mix_applied = false;
-    AutoMixSelectPopup*   m_auto_mix_popup = nullptr;
+    CheckBox*             m_mix_cb = nullptr;
+    wxStaticText*         m_lbl_mix_help = nullptr;
     wxScrolledWindow*     m_mapping_scroll = nullptr;
     wxBoxSizer*           m_mapping_sizer  = nullptr;
     std::vector<FilamentMappingRow> m_mapping_rows;
@@ -527,8 +521,6 @@ private:
         int  applied_smooth = -1;
         bool auto_preset_selected = true;
         bool filaments_dropped = false;
-        bool auto_mix_applied = false;
-        TextureAutoMixMode auto_mix_mode = TextureAutoMixMode::CMYW;
         TextureImportState state = TextureImportState::Idle;
         double param_gap_area = 0.0;
         std::unique_ptr<GapPreviewState> gap_preview;

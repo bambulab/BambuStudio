@@ -4444,17 +4444,30 @@ void Sidebar::edit_filament()
 }
 
 void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_name, bool /*skip_preset_validation*/) {
-    if (is_new_project_in_gcode3mf()) { return; }
-    if (p->combos_filament.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
-    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
+    add_custom_filaments({ { new_col, preset_name } });
+}
 
-    size_t      total          = wxGetApp().preset_bundle->filament_presets.size();
-    size_t      insert_pos     = p->combos_filament.size();
-    int         filament_count = (int)(total + 1);
-    std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-    wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
+size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items)
+{
+    if (items.empty() || is_new_project_in_gcode3mf())
+        return size_t(-1);
 
-    // Maintain physical-first ordering: rotate the new slot from end to insert_pos
+    const size_t max_n = size_t(EnforcerBlockerType::ExtruderMax);
+    if (p->combos_filament.size() >= max_n)
+        return size_t(-1);
+    if (wxGetApp().preset_bundle->filament_presets.size() >= max_n)
+        return size_t(-1);
+
+    const size_t total = wxGetApp().preset_bundle->filament_presets.size();
+    const size_t insert_pos = p->combos_filament.size();
+    const size_t k = std::min({ items.size(), max_n - total, max_n - insert_pos });
+    if (k == 0)
+        return size_t(-1);
+
+    const std::string first_color = items.front().first.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    wxGetApp().preset_bundle->set_num_filaments((unsigned int)(total + k), first_color);
+
+    // Maintain physical-first ordering: rotate the new slots from the end to insert_pos.
     if (insert_pos < total) {
         auto& presets = wxGetApp().preset_bundle->filament_presets;
         std::rotate(presets.begin() + insert_pos, presets.begin() + total, presets.end());
@@ -4495,37 +4508,65 @@ void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_na
         if (ams_mc.size() > total)
             std::rotate(ams_mc.begin() + insert_pos, ams_mc.begin() + total, ams_mc.end());
 
-        // Remap object/volume extruder IDs and paint data: anything >= insert_pos+1 (1-based) shifts up by 1
-        int threshold_1based = (int)(insert_pos + 1);
-        auto ebt_threshold = EnforcerBlockerType(threshold_1based);
+        // Remap object/volume extruder IDs and paint data: anything >= insert_pos+1 (1-based) shifts up by k.
+        const int threshold_1based = (int)(insert_pos + 1);
+        const int shift = (int)k;
+        const auto ebt_threshold = EnforcerBlockerType(threshold_1based);
         for (auto* obj : wxGetApp().plater()->model().objects) {
             if (obj->config.has("extruder")) {
                 int ext = obj->config.extruder();
                 if (ext >= threshold_1based)
-                    obj->config.set("extruder", ext + 1);
+                    obj->config.set("extruder", ext + shift);
             }
             for (auto* vol : obj->volumes) {
                 if (vol->config.has("extruder")) {
                     int ext = vol->config.extruder();
                     if (ext >= threshold_1based)
-                        vol->config.set("extruder", ext + 1);
+                        vol->config.set("extruder", ext + shift);
                 }
-                vol->mmu_segmentation_facets.shift_states_above(*vol, ebt_threshold, +1);
+                vol->mmu_segmentation_facets.shift_states_above(*vol, ebt_threshold, shift);
             }
         }
     }
 
-    if (!preset_name.empty() &&
-        wxGetApp().preset_bundle->filaments.find_preset(preset_name, false) &&
-        insert_pos < wxGetApp().preset_bundle->filament_presets.size()) {
-        wxGetApp().preset_bundle->filament_presets[insert_pos] = preset_name;
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    auto* colour_opt = project_config.option<ConfigOptionStrings>("filament_colour");
+    auto* multi_opt = project_config.option<ConfigOptionStrings>("filament_multi_colour");
+    auto* type_opt = project_config.option<ConfigOptionStrings>("filament_colour_type");
+    auto& presets = wxGetApp().preset_bundle->filament_presets;
+    for (size_t i = 0; i < k; ++i) {
+        const size_t idx = insert_pos + i;
+        const std::string new_color = items[i].first.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        if (colour_opt && idx < colour_opt->values.size())
+            colour_opt->values[idx] = new_color;
+        if (multi_opt && idx < multi_opt->values.size())
+            multi_opt->values[idx] = new_color;
+        if (type_opt && idx < type_opt->values.size())
+            type_opt->values[idx] = "1";
+        const std::string& preset_name = items[i].second;
+        if (!preset_name.empty() &&
+            wxGetApp().preset_bundle->filaments.find_preset(preset_name, false) &&
+            idx < presets.size()) {
+            presets[idx] = preset_name;
+        }
     }
 
-    wxGetApp().plater()->get_partplate_list().on_filament_added(filament_count);
+    // Plate maps append one slot per call; keep that contract for each new physical.
+    for (size_t i = 1; i <= k; ++i)
+        wxGetApp().plater()->get_partplate_list().on_filament_added((int)(total + i));
+
+    const int filament_count = (int)wxGetApp().preset_bundle->filament_presets.size();
     wxGetApp().plater()->on_filament_count_change(filament_count);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-    auto_calc_flushing_volumes(insert_pos);
+
+    const int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
+    for (size_t i = 0; i < k; ++i) {
+        for (int eidx = 0; eidx < extruder_count; ++eidx)
+            auto_calc_flushing_volumes_internal((int)(insert_pos + i), eidx);
+    }
+    finalize_auto_calc_flushing_volumes();
+    return insert_pos;
 }
 
 void Sidebar::scroll_filament_area_to_bottom()
@@ -6002,43 +6043,49 @@ static std::string serialize_mixed_gradient_curve_if_custom(const MixedFilamentR
     return Slic3r::serialize_gradient_curve(gc);
 }
 
-static bool create_mixed_filament_from_result(
-    Sidebar* sidebar,
-    const MixedFilamentResult& result,
-    const std::vector<std::string>& color_strs)
+static void ensure_mixed_gradient_options(DynamicPrintConfig& project_config)
 {
-    if (!sidebar || result.components.size() < 2 || result.ratios.size() < 2)
-        return false;
-    if (!dynamic_cast<Plater*>(sidebar->GetParent()))
-        return false;
+    if (!project_config.option("filament_mixed_gradient"))
+        project_config.set_key_value("filament_mixed_gradient", new ConfigOptionBools({false}));
+    if (!project_config.option("filament_mixed_gradient_range"))
+        project_config.set_key_value("filament_mixed_gradient_range", new ConfigOptionStrings({""}));
+    if (!project_config.option("filament_mixed_gradient_curve"))
+        project_config.set_key_value("filament_mixed_gradient_curve", new ConfigOptionStrings({""}));
+    if (!project_config.option("filament_mixed_gradient_per_part"))
+        project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
+}
 
-    size_t num_physical = sidebar->combos_filament().size();
-    if (num_physical < 2)
-        return false;
-    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax))
-        return false;
-
-    auto& project_config = wxGetApp().preset_bundle->project_config;
-    size_t total = wxGetApp().preset_bundle->filament_presets.size();
-    size_t new_idx = total;
-
-    std::string mixed_color = blend_mixed_color(result.components, result.ratios, color_strs);
-    wxGetApp().preset_bundle->set_num_filaments(total + 1, mixed_color);
-
+static void write_mixed_filament_slot(
+    DynamicPrintConfig& project_config,
+    size_t new_idx,
+    size_t num_physical,
+    const MixedFilamentResult& result,
+    const std::string& mixed_color)
+{
+    if (auto* colour_opt = project_config.option<ConfigOptionStrings>("filament_colour")) {
+        while (colour_opt->values.size() <= new_idx) colour_opt->values.push_back("");
+        colour_opt->values[new_idx] = mixed_color;
+    }
     auto* multi_colour_opt = project_config.option<ConfigOptionStrings>("filament_multi_colour");
     if (multi_colour_opt) {
         while (multi_colour_opt->values.size() <= new_idx) multi_colour_opt->values.push_back("");
         multi_colour_opt->values[new_idx] = mixed_color;
     }
 
-    project_config.option<ConfigOptionBools>("filament_is_mixed")->values[new_idx] = true;
+    if (auto* is_mixed_opt = project_config.option<ConfigOptionBools>("filament_is_mixed")) {
+        while (is_mixed_opt->values.size() <= new_idx) is_mixed_opt->values.push_back(false);
+        is_mixed_opt->values[new_idx] = true;
+    }
 
     std::string comp_str;
     for (size_t i = 0; i < result.components.size(); ++i) {
         if (i > 0) comp_str += ",";
         comp_str += std::to_string(result.components[i]);
     }
-    project_config.option<ConfigOptionStrings>("filament_mixed_components")->values[new_idx] = comp_str;
+    if (auto* components_opt = project_config.option<ConfigOptionStrings>("filament_mixed_components")) {
+        while (components_opt->values.size() <= new_idx) components_opt->values.push_back("");
+        components_opt->values[new_idx] = comp_str;
+    }
 
     int ratio_sum = 0;
     for (int r : result.ratios) ratio_sum += r;
@@ -6054,24 +6101,16 @@ static bool create_mixed_filament_from_result(
             ratio_str += buf;
         }
     }
-    project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios")->values[new_idx] = ratio_str;
+    if (auto* ratios_opt = project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios")) {
+        while (ratios_opt->values.size() <= new_idx) ratios_opt->values.push_back("");
+        ratios_opt->values[new_idx] = ratio_str;
+    }
 
-    if (!project_config.option("filament_mixed_gradient"))
-        project_config.set_key_value("filament_mixed_gradient", new ConfigOptionBools({false}));
-    if (!project_config.option("filament_mixed_gradient_range"))
-        project_config.set_key_value("filament_mixed_gradient_range", new ConfigOptionStrings({""}) );
-    if (!project_config.option("filament_mixed_gradient_curve"))
-        project_config.set_key_value("filament_mixed_gradient_curve", new ConfigOptionStrings({""}) );
-    if (!project_config.option("filament_mixed_gradient_per_part"))
-        project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
-
-    {
-        auto* grad_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient");
+    if (auto* grad_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient")) {
         while (grad_opt->values.size() <= new_idx) grad_opt->values.push_back(false);
         grad_opt->values[new_idx] = result.gradient_enabled;
     }
-    {
-        auto* grad_range_opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_range");
+    if (auto* grad_range_opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_range")) {
         while (grad_range_opt->values.size() <= new_idx) grad_range_opt->values.push_back("");
         if (result.gradient_enabled && result.components.size() == 2) {
             const char* fmt = (result.gradient_direction == 0) ? "0.9000,0.1000" : "0.1000,0.9000";
@@ -6080,13 +6119,11 @@ static bool create_mixed_filament_from_result(
             grad_range_opt->values[new_idx] = "";
         }
     }
-    {
-        auto* grad_curve_opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve");
+    if (auto* grad_curve_opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve")) {
         while (grad_curve_opt->values.size() <= new_idx) grad_curve_opt->values.push_back("");
         grad_curve_opt->values[new_idx] = serialize_mixed_gradient_curve_if_custom(result);
     }
-    {
-        auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
+    if (auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part")) {
         while (per_part_opt->values.size() <= new_idx) per_part_opt->values.push_back(false);
         per_part_opt->values[new_idx] = result.gradient_enabled && result.per_part_gradient;
     }
@@ -6094,17 +6131,72 @@ static bool create_mixed_filament_from_result(
     auto& presets = wxGetApp().preset_bundle->filament_presets;
     if (result.components[0] >= 1 && result.components[0] <= num_physical && presets.size() > new_idx)
         presets[new_idx] = presets[result.components[0] - 1];
+}
 
-    size_t filament_count = wxGetApp().preset_bundle->filament_presets.size();
-    wxGetApp().plater()->get_partplate_list().on_filament_added(filament_count);
+// One config index per input result, or -1 if that result was skipped / capped.
+static std::vector<int> create_mixed_filaments_from_results(
+    Sidebar* sidebar,
+    const std::vector<MixedFilamentResult>& results,
+    const std::vector<std::string>& color_strs)
+{
+    std::vector<int> created(results.size(), -1);
+    if (!sidebar || results.empty())
+        return created;
+    if (!dynamic_cast<Plater*>(sidebar->GetParent()))
+        return created;
+
+    const size_t num_physical = sidebar->combos_filament().size();
+    if (num_physical < 2)
+        return created;
+
+    const size_t max_n = size_t(EnforcerBlockerType::ExtruderMax);
+    const size_t total = wxGetApp().preset_bundle->filament_presets.size();
+    if (total >= max_n)
+        return created;
+
+    std::vector<size_t> valid_input_indices;
+    valid_input_indices.reserve(results.size());
+    for (size_t i = 0; i < results.size(); ++i) {
+        if (results[i].components.size() >= 2 && results[i].ratios.size() >= 2)
+            valid_input_indices.push_back(i);
+    }
+    const size_t m = std::min(valid_input_indices.size(), max_n - total);
+    if (m == 0)
+        return created;
+
+    const size_t first_src = valid_input_indices.front();
+    const std::string first_color = blend_mixed_color(results[first_src].components, results[first_src].ratios, color_strs);
+    wxGetApp().preset_bundle->set_num_filaments((unsigned int)(total + m), first_color);
+
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    ensure_mixed_gradient_options(project_config);
+    for (size_t i = 0; i < m; ++i) {
+        const size_t src = valid_input_indices[i];
+        const MixedFilamentResult& result = results[src];
+        const std::string mixed_color = blend_mixed_color(result.components, result.ratios, color_strs);
+        write_mixed_filament_slot(project_config, total + i, num_physical, result, mixed_color);
+        created[src] = (int)(total + i);
+    }
+
+    for (size_t i = 1; i <= m; ++i)
+        wxGetApp().plater()->get_partplate_list().on_filament_added((int)(total + i));
+
+    const size_t filament_count = wxGetApp().preset_bundle->filament_presets.size();
     wxGetApp().plater()->on_filament_count_change(filament_count);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-
-    sidebar->update_mixed_filament_list();
     wxGetApp().plater()->update_project_dirty_from_presets();
     wxPostEvent(sidebar, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, sidebar));
-    return true;
+    return created;
+}
+
+static bool create_mixed_filament_from_result(
+    Sidebar* sidebar,
+    const MixedFilamentResult& result,
+    const std::vector<std::string>& color_strs)
+{
+    const std::vector<int> created = create_mixed_filaments_from_results(sidebar, { result }, color_strs);
+    return !created.empty() && created.front() >= 0;
 }
 
 void Sidebar::add_mixed_filament()
@@ -6457,6 +6549,11 @@ void Sidebar::auto_calc_flushing_volumes(const int filament_idx, const int extru
         }
     }
 
+    finalize_auto_calc_flushing_volumes();
+}
+
+void Sidebar::finalize_auto_calc_flushing_volumes()
+{
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     wxGetApp().plater()->update_project_dirty_from_presets();
     wxPostEvent(this, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, this));
@@ -10274,42 +10371,57 @@ void Plater::priv::apply_textured_mesh_import_result(Slic3r::Model& loaded_model
     // TextureImportDialog::compute_display_numbers(), which mirrors this order
     // so the import dialog shows the same IDs the sidebar will show after OK.
     std::vector<int> filament_index_remap(entries.size(), -1);
-    size_t existing_physical_count = 0;
     size_t new_physical_count = 0;
     for (const auto& entry : entries) {
-        if (entry.kind == TextureFilamentKind::ExistingPhysical)
-            ++existing_physical_count;
-        else if (entry.kind == TextureFilamentKind::NewPhysical)
+        if (entry.kind == TextureFilamentKind::NewPhysical)
             ++new_physical_count;
     }
 
     for (const auto& entry : entries) {
         if (entry.dialog_index < 0 || entry.dialog_index >= (int)filament_index_remap.size())
             continue;
-        if (entry.kind == TextureFilamentKind::ExistingPhysical) {
+        if (entry.kind == TextureFilamentKind::ExistingPhysical)
             filament_index_remap[entry.dialog_index] = (int)entry.project_config_index;
-        } else if (entry.kind == TextureFilamentKind::ExistingMixed) {
-            filament_index_remap[entry.dialog_index] = (int)(entry.project_config_index + new_physical_count);
-        }
     }
 
-    size_t new_physical_order = 0;
+    std::vector<std::pair<wxColour, std::string>> new_physicals;
+    std::vector<int> new_physical_dialog_indices;
+    new_physicals.reserve(new_physical_count);
+    new_physical_dialog_indices.reserve(new_physical_count);
     for (const auto& entry : entries) {
         if (entry.kind != TextureFilamentKind::NewPhysical)
             continue;
-        wxColour new_col(entry.color_hex);
-        const size_t final_idx = existing_physical_count + new_physical_order;
-        sidebar->add_custom_filament(new_col, entry.preset_name);
-        if (entry.dialog_index >= 0 && entry.dialog_index < (int)filament_index_remap.size())
-            filament_index_remap[entry.dialog_index] = (int)final_idx;
-        BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: created pending physical filament dialog="
-                                << entry.dialog_index << " final=" << final_idx
-                                << " color=" << entry.color_hex
-                                << " preset=" << entry.preset_name;
-        ++new_physical_order;
+        new_physicals.emplace_back(wxColour(entry.color_hex), entry.preset_name);
+        new_physical_dialog_indices.push_back(entry.dialog_index);
+    }
+    size_t added_physical = 0;
+    if (!new_physicals.empty()) {
+        const size_t insert_pos = sidebar->add_custom_filaments(new_physicals);
+        added_physical = (insert_pos == size_t(-1)) ? 0 :
+            std::min(new_physicals.size(), sidebar->combos_filament().size() - insert_pos);
+        for (size_t i = 0; i < added_physical; ++i) {
+            const int dialog_index = new_physical_dialog_indices[i];
+            const size_t final_idx = insert_pos + i;
+            if (dialog_index >= 0 && dialog_index < (int)filament_index_remap.size())
+                filament_index_remap[dialog_index] = (int)final_idx;
+            BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: created pending physical filament dialog="
+                                    << dialog_index << " final=" << final_idx
+                                    << " color=" << new_physicals[i].first.GetAsString(wxC2S_HTML_SYNTAX)
+                                    << " preset=" << new_physicals[i].second;
+        }
+    }
+    for (const auto& entry : entries) {
+        if (entry.dialog_index < 0 || entry.dialog_index >= (int)filament_index_remap.size())
+            continue;
+        if (entry.kind == TextureFilamentKind::ExistingMixed)
+            filament_index_remap[entry.dialog_index] = (int)(entry.project_config_index + added_physical);
     }
 
-    std::vector<std::string> physical_colors_for_mixing = collect_physical_color_strs();
+    const std::vector<std::string> physical_colors_for_mixing = collect_physical_color_strs();
+    std::vector<MixedFilamentResult> new_mixed_results;
+    std::vector<int> new_mixed_dialog_indices;
+    new_mixed_results.reserve(result.new_mixed_filaments.size());
+    new_mixed_dialog_indices.reserve(result.new_mixed_filaments.size());
     for (const auto& mixed : result.new_mixed_filaments) {
         MixedFilamentResult mixed_result;
         mixed_result.ratios = mixed.ratios;
@@ -10329,14 +10441,20 @@ void Plater::priv::apply_textured_mesh_import_result(Slic3r::Model& loaded_model
                                        << mixed.dialog_index;
             continue;
         }
-
-        const int final_idx = (int)wxGetApp().preset_bundle->filament_presets.size();
-        if (create_mixed_filament_from_result(sidebar, mixed_result, physical_colors_for_mixing)) {
-            if (mixed.dialog_index >= 0 && mixed.dialog_index < (int)filament_index_remap.size())
-                filament_index_remap[mixed.dialog_index] = final_idx;
-            physical_colors_for_mixing = collect_physical_color_strs();
+        new_mixed_results.push_back(std::move(mixed_result));
+        new_mixed_dialog_indices.push_back(mixed.dialog_index);
+    }
+    if (!new_mixed_results.empty()) {
+        const std::vector<int> created_indices = create_mixed_filaments_from_results(
+            sidebar, new_mixed_results, physical_colors_for_mixing);
+        for (size_t i = 0; i < created_indices.size() && i < new_mixed_dialog_indices.size(); ++i) {
+            if (created_indices[i] < 0)
+                continue;
+            const int dialog_index = new_mixed_dialog_indices[i];
+            if (dialog_index >= 0 && dialog_index < (int)filament_index_remap.size())
+                filament_index_remap[dialog_index] = created_indices[i];
             BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: created pending mixed filament dialog="
-                                    << mixed.dialog_index << " final=" << final_idx;
+                                    << dialog_index << " final=" << created_indices[i];
         }
     }
 

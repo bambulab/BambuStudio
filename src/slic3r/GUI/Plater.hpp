@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <optional>
+#include <utility>
 #include <vector>
 #include <boost/filesystem/path.hpp>
 
@@ -197,6 +198,9 @@ public:
     void change_filament(size_t from_id, size_t to_id);  // 0 base
     void edit_filament();
     void add_custom_filament(wxColour new_col, const std::string& preset_name = std::string(), bool skip_preset_validation = false);
+    // Batch-add physical filaments (physical-first). Returns the starting physical
+    // index, or size_t(-1) if nothing was added. Truncates to ExtruderMax.
+    size_t add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items);
     void scroll_filament_area_to_bottom();
     bool is_new_project_in_gcode3mf();
     // BBS
@@ -297,6 +301,7 @@ private:
                                          std::vector<std::string>& types,
                                          std::vector<size_t>* config_indices = nullptr);
     void  auto_calc_flushing_volumes_internal(const int filament_id, const int extruder_id);
+    void  finalize_auto_calc_flushing_volumes();
     void  update_bed_thumbnail(std::string path);
 
 private:

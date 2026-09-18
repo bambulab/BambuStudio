@@ -73,6 +73,11 @@ DecomposeOfficialComponent lookup_decompose_official_component(
 
 std::string find_decompose_standard_preset_name(size_t source_config_idx, const std::string& basic_type);
 
+// Make every instantiated system preset in the official series visible and persist
+// hidden ones to SECTION_FILAMENTS, matching the system-materials wizard (grouped
+// by shortName). Returns whether the active printer has a compatible series preset.
+bool ensure_official_series_installed(const std::string& basic_type);
+
 // Returns "PLA Basic" / "PETG Basic" when preset_name names an official Bambu
 // basic filament, else an empty string.
 std::string official_basic_type_from_preset_name(const std::string& preset_name);

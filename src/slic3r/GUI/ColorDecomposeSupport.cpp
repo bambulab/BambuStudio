@@ -4,6 +4,7 @@
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
+#include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
@@ -209,7 +210,54 @@ std::string find_decompose_standard_preset_name(size_t source_config_idx, const 
             return preset_name;
     }
 
+    // The series may be absent from the project entirely. Fall back to the
+    // preset library, restricted to what is compatible with the active printer.
+    for (const Preset& preset : preset_bundle.filaments.get_presets()) {
+        if (preset.is_system && preset.is_visible && preset.is_compatible && preset.name.find(prefix) == 0)
+            return preset.name;
+    }
+
     return {};
+}
+
+static bool is_official_series_preset(const Preset& preset, const std::string& basic_type)
+{
+    if (!preset.is_system || basic_type.empty())
+        return false;
+    const std::string series = std::string(kDecomposeBambuPresetPrefix) + basic_type;
+    if (preset.name != series && preset.name.find(series + " @") != 0)
+        return false;
+    // Skip the non-instantiated base profile (e.g. "Bambu PLA Basic @base").
+    return preset.name.find("@base") == std::string::npos;
+}
+
+bool ensure_official_series_installed(const std::string& basic_type)
+{
+    if (basic_type.empty() || !wxGetApp().preset_bundle)
+        return false;
+
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    std::vector<Preset*> series;
+    bool has_compatible = false;
+    for (Preset& preset : preset_bundle.filaments) {
+        if (!is_official_series_preset(preset, basic_type))
+            continue;
+        series.push_back(&preset);
+        if (preset.is_compatible)
+            has_compatible = true;
+    }
+    if (!has_compatible)
+        return false;
+
+    AppConfig* app_config = wxGetApp().app_config;
+    for (Preset* preset : series) {
+        if (preset->is_visible)
+            continue;
+        preset->is_visible = true;
+        if (app_config)
+            app_config->set(AppConfig::SECTION_FILAMENTS, preset->name, "true");
+    }
+    return true;
 }
 
 std::string official_basic_type_from_preset_name(const std::string& preset_name)
