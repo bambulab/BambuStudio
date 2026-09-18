@@ -1823,6 +1823,14 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                              << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
                              << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady()
                              << ", pa_history_status=" << (int)obj->GetCalib()->GetPAHistoryStatus();
+
+    if (auto* store = wxGetApp().fila_manager_store()) {
+        if (store->all_spool_ids().empty()) {
+            if (auto* disp = wxGetApp().fila_manager_cloud_disp())
+                disp->enqueue_pull();
+        }
+    }
+
     update_widgets();
     // set default value
     if (k.IsEmpty())

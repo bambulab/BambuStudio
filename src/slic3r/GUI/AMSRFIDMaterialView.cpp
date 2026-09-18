@@ -327,8 +327,8 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
             m_comboBox_cali_result->SetSelection(0);
             if (m_input_k_val)
                 m_input_k_val->GetTextCtrl()->SetValue(k_val.IsEmpty() ? "0.000" : k_val);
-            update_kval_editability();
         }
+        update_kval_editability();
         m_panel_kn->Show();
     } else {
         m_panel_kn->Hide();
