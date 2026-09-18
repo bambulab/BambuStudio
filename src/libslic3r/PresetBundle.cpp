@@ -4326,7 +4326,13 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
             continue;
         }
 
-        std::string target = device_maps != nullptr ? options.front() : selected->values[i];
+        // Only reached when the device named no diameter for this slot, so there is nothing authoritative
+        // to apply and the slot's own selection stands. Forcing options.front() here instead dragged every
+        // slot the mapping left out down to the smallest installed diameter -- the match dialog maps only
+        // the filaments the plate uses, so that silently rewrote all the others. Never rewrite a diameter
+        // on the user's behalf: if what the slot carries turns out to be unusable, the pass below marks it
+        // red and the user resolves it.
+        std::string target = selected->values[i];
         const std::string normalized = format_diameter_to_str(atof(target.c_str()));
         if (std::find(options.begin(), options.end(), normalized) == options.end()) {
             // A non-empty target that fell out of `options` means a nozzle of that diameter was
