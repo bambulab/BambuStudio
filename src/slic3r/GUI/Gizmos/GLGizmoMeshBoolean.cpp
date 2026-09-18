@@ -79,6 +79,137 @@ namespace {
         }
     };
 
+    static bool meshes_aabb_overlap(const TriangleMesh& a, const TriangleMesh& b)
+    {
+        BoundingBoxf3 ba = a.bounding_box(), bb = b.bounding_box();
+        if (!ba.defined || !bb.defined) return true;
+        // Offset both boxes: Reset/undo can rebuild a slightly different AABB.
+        ba.offset(0.05);
+        bb.offset(0.05);
+        return ba.intersects(bb);
+    }
+
+    static void finalize_boolean_mesh(TriangleMesh& mesh)
+    {
+        if (!mesh.its.indices.empty()) {
+            its_remove_degenerate_faces(mesh.its);
+            its_merge_vertices(mesh.its, true);
+            its_remove_degenerate_faces(mesh.its, true);
+            its_compactify_vertices(mesh.its, true);
+        }
+        const Vec3d shift = mesh.get_init_shift();
+        mesh = TriangleMesh(std::move(mesh.its));
+        mesh.set_init_shift(shift);
+    }
+
+    static bool try_intersect_meshes(const TriangleMesh& a, const TriangleMesh& b, TriangleMesh& out,
+        const std::function<bool()>& cancel_cb = nullptr, const std::function<void(float)>& progress_cb = nullptr,
+        bool require_aabb = true)
+    {
+        if (require_aabb && !meshes_aabb_overlap(a, b)) return false;
+        std::vector<TriangleMesh> results;
+        Slic3r::MeshBoolean::mcut::make_boolean(a, b, results, MeshBooleanConfig::OP_INTERSECTION, cancel_cb, progress_cb);
+        if (!results.empty() && !results[0].empty()) { out = std::move(results[0]); return true; }
+        try {
+            TriangleMesh cgal_try = a;
+            Slic3r::MeshBoolean::cgal::intersect(cgal_try, b);
+            if (cgal_try.empty()) return false;
+            out = std::move(cgal_try);
+            return true;
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] CGAL intersection fallback failed: " << e.what();
+            return false;
+        }
+    }
+
+    // Intersect every selected mesh. Members are never dropped: AABB grouping
+    // only ranks seeds, and a failed pairwise step retries another remaining
+    // operand or another seed. Fail only if no order can include everyone.
+    static std::optional<TriangleMesh> accumulate_intersection_stable(
+        const std::vector<TriangleMesh>& meshes,
+        const std::function<bool()>& cancel_cb = nullptr,
+        const std::function<void(float)>& progress_cb = nullptr)
+    {
+        if (meshes.size() < 2)
+            return meshes.empty() ? std::nullopt : std::optional<TriangleMesh>(meshes[0]);
+
+        const size_t n = meshes.size();
+        std::vector<size_t> parent(n);
+        for (size_t i = 0; i < n; ++i) parent[i] = i;
+        auto find = [&](size_t x) { while (parent[x] != x) x = parent[x]; return x; };
+        for (size_t i = 0; i < n; ++i)
+            for (size_t j = i + 1; j < n; ++j)
+                if (meshes_aabb_overlap(meshes[i], meshes[j]))
+                    parent[find(i)] = find(j);
+
+        std::vector<std::vector<size_t>> groups(n);
+        for (size_t i = 0; i < n; ++i) groups[find(i)].push_back(i);
+        const auto& best = *std::max_element(groups.begin(), groups.end(),
+            [](const auto& a, const auto& b) { return a.size() != b.size() ? a.size() < b.size() : a > b; });
+        // All selected meshes must share one AABB-connected group.
+        if (best.size() != n)
+            return std::nullopt;
+
+        auto deg = [&](size_t i) {
+            size_t d = 0;
+            for (size_t j : best)
+                if (i != j && meshes_aabb_overlap(meshes[i], meshes[j])) ++d;
+            return d;
+        };
+        std::vector<size_t> seeds = best;
+        std::sort(seeds.begin(), seeds.end(),
+            [&](size_t a, size_t b) { return deg(a) != deg(b) ? deg(a) > deg(b) : a < b; });
+
+        const size_t total_ops = n - 1;
+        for (size_t seed : seeds) {
+            TriangleMesh acc = meshes[seed];
+            std::vector<size_t> remaining;
+            remaining.reserve(total_ops);
+            for (size_t idx : best)
+                if (idx != seed) remaining.push_back(idx);
+
+            bool consumed_all = true;
+            size_t step = 0;
+            while (!remaining.empty()) {
+                if (cancel_cb && cancel_cb()) return std::nullopt;
+                std::sort(remaining.begin(), remaining.end(), [&](size_t a, size_t b) {
+                    const bool oa = meshes_aabb_overlap(acc, meshes[a]);
+                    const bool ob = meshes_aabb_overlap(acc, meshes[b]);
+                    return oa != ob ? oa && !ob : a < b;
+                });
+
+                std::function<void(float)> sub;
+                if (progress_cb)
+                    sub = [&, step](float p) {
+                        progress_cb(std::clamp((float(step) + std::clamp(p, 0.f, 100.f) / 100.f) / float(total_ops), 0.f, 1.f));
+                    };
+
+                bool progressed = false;
+                for (size_t i = 0; i < remaining.size(); ++i) {
+                    TriangleMesh next;
+                    // Intermediate AABB can miss after a shrink; still try mcut/CGAL.
+                    if (try_intersect_meshes(acc, meshes[remaining[i]], next, cancel_cb, sub, false)) {
+                        acc = std::move(next);
+                        remaining.erase(remaining.begin() + static_cast<std::ptrdiff_t>(i));
+                        ++step;
+                        progressed = true;
+                        break;
+                    }
+                }
+                if (!progressed) {
+                    consumed_all = false;
+                    break;
+                }
+            }
+            if (!consumed_all)
+                continue;
+            finalize_boolean_mesh(acc);
+            if (!acc.empty())
+                return acc;
+        }
+        return std::nullopt;
+    }
+
     template <class T>
     static bool is_equal_ignore_order(std::vector<T> a, std::vector<T> b)
     {
@@ -376,8 +507,8 @@ void VolumeListManager::sort_volumes_by_type(std::vector<unsigned int>& volume_i
         if (is_a_model_part && !is_b_model_part) return true;
         if (!is_a_model_part && is_b_model_part) return false;
 
-        // If both are the same type, maintain original order (stable sort)
-        return a < b;
+        // Same type: ObjectID stays stable across undo/reset; GLVolume indices do not.
+        return mv_a->id() < mv_b->id();
     });
 }
 
@@ -803,14 +934,12 @@ BooleanOperationResult BooleanOperationEngine::perform_intersection(const Volume
             pre_union_result.push_back(m);
         }
 
-        TriangleMesh cur = pre_union_result[0];
-        for (size_t i = 1; i < pre_union_result.size(); ++i) {
-            cur = execute_boolean_operation(cur, pre_union_result[i], MeshBooleanConfig::OP_INTERSECTION);
-            if (cur.empty()) {
-                result.error_message = MeshBooleanWarnings::OVERLAPING;
-                return result;
-            }
+        auto acc_isect = accumulate_intersection_stable(pre_union_result);
+        if (!acc_isect.has_value()) {
+            result.error_message = MeshBooleanWarnings::OVERLAPING;
+            return result;
         }
+        TriangleMesh cur = *acc_isect;
 
         result.success = true;
         result.result_meshes.push_back(cur);
@@ -971,8 +1100,8 @@ std::vector<BooleanOperationEngine::VolumeInfo> BooleanOperationEngine::prepare_
         // MODEL_PART volumes come first
         if (a_is_model_part && !b_is_model_part) return true;
         if (!a_is_model_part && b_is_model_part) return false;
-        // Same type: maintain original order (stable)
-        return a.volume_index < b.volume_index;
+        // Same type: ObjectID stays stable across undo/reset; GLVolume indices do not.
+        return a.model_volume->id() < b.model_volume->id();
     });
 
     return result;
@@ -1019,6 +1148,9 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
     if (meshes.size() == 1) {
         return meshes[0];  // Single mesh - no operation needed
     }
+
+    if (operation == MeshBooleanConfig::OP_INTERSECTION)
+        return accumulate_intersection_stable(meshes, cancel_cb, progress_cb);
 
     TriangleMesh accumulated_result = meshes[0];
     const size_t total_ops = meshes.size() - 1;
@@ -1446,6 +1578,14 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes(
     const std::string &operation) const
 {
     if (volumes.empty()) return std::nullopt;
+
+    if (operation == MeshBooleanConfig::OP_INTERSECTION) {
+        std::vector<TriangleMesh> meshes;
+        meshes.reserve(volumes.size());
+        for (const auto& volume : volumes)
+            meshes.push_back(get_transformed_mesh(volume));
+        return accumulate_intersection_stable(meshes);
+    }
 
     TriangleMesh accumulated_result = get_transformed_mesh(volumes[0]);
     for (size_t i = 1; i < volumes.size(); ++i) {
