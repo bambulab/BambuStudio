@@ -10169,6 +10169,14 @@ msgstr "多种耗材类型被映射到了同一外挂料，可能会引起打印
 msgid "The filament type setting of external spool is different from the filament in the slicing file."
 msgstr "外挂槽的耗材设置与切片文件中的耗材不同，可能会引起打印不良。"
 
+#, c-format, boost-format
+msgid "Filament are not loaded in PrintTool %s. Printing may pause for filament change. Please load the filament before printing."
+msgstr "%s号打印头耗材尚未进料，可能会导致打印暂停换料，请在打印前先进料。"
+
+#, c-format, boost-format
+msgid "Filament are not loaded in Slot %s. Printing may pause for filament change. Please load the filament before printing."
+msgstr "%s号槽位耗材尚未进料，可能会导致打印暂停换料，请在打印前先进料。"
+
 msgid "The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing."
 msgstr "生成G代码时选择的打印机类型与当前选择的打印机不一致。建议您使用相同的打印机类型进行切片。"
 
