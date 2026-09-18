@@ -6808,11 +6808,6 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     };
     { // badge ams filament
         clear_combos_filament_badge();
-        // A sync explicitly re-establishes AMS as authoritative for every slot -- drop any
-        // "user-diverged via FilamentNozzlePopup" flags that would otherwise keep the outer
-        // badge suppressed (see PlaterPresetComboBox::set_nozzle_selection_diverged).
-        for (PlaterPresetComboBox *c : p->combos_filament)
-            if (c != nullptr) c->set_nozzle_selection_diverged(false);
         if (sync_result.direct_sync) {
             for (size_t i = 0; i < p->combos_filament.size(); ++i) {
                 badge_combox_filament(i, p->combos_filament[i]);
@@ -7896,11 +7891,72 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
 
 }
 
+// Does anything printed on `plate` use one of `slots_1based`? Covers every way a slot can be
+// referenced: the object's own extruder, a per-volume override, colour painting, and a height-range
+// modifier. Deliberately not get_extruders(), which expands mixed slots and so cannot answer a
+// question posed in terms of physical slot indices.
+static bool plate_uses_filament_slots(Plater *plater, const PartPlate *plate, const std::set<size_t> &slots_1based)
+{
+    if (plater == nullptr || plate == nullptr || slots_1based.empty())
+        return false;
+
+    for (auto &entry : plater->model().objects) {
+        if (!plate->contain_instance_totally(entry, 0))
+            continue;
+        const int obj_ext = entry->config.has("extruder") ? entry->config.extruder() : 1;
+        if (slots_1based.count((size_t) obj_ext))
+            return true;
+        for (auto *vol : entry->volumes) {
+            const int vol_ext = vol->config.has("extruder") ? vol->config.extruder() : obj_ext;
+            if (slots_1based.count((size_t) vol_ext))
+                return true;
+            if (vol->is_model_part() && !vol->mmu_segmentation_facets.empty()) {
+                for (size_t slot : slots_1based)
+                    if (vol->mmu_segmentation_facets.has_facets(*vol, EnforcerBlockerType(slot)))
+                        return true;
+            }
+        }
+        for (auto &[range, cfg] : entry->layer_config_ranges) {
+            if (cfg.has("extruder")) {
+                const int layer_ext = cfg.option("extruder")->getInt();
+                if (layer_ext > 0 && slots_1based.count((size_t) layer_ext))
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
 bool Sidebar::has_broken_mixed_filament() const
 {
     auto* plater = dynamic_cast<Plater*>(GetParent());
     if (!plater) return false;
     return has_broken_mixed_filament(plater->get_partplate_list().get_curr_plate());
+}
+
+bool Sidebar::has_incompatible_filament() const
+{
+    auto *plater = dynamic_cast<Plater *>(GetParent());
+    if (!plater) return false;
+    return has_incompatible_filament(plater->get_partplate_list().get_curr_plate());
+}
+
+// A slot the filament list marks red -- no installed nozzle carries its diameter, or AMS sync found
+// no preset matching its tray -- cannot be printed as configured. Scoped to a single plate because
+// slicing is: a plate that never uses the flagged slot is unaffected by it.
+bool Sidebar::has_incompatible_filament(const PartPlate *plate) const
+{
+    auto *plater = dynamic_cast<Plater *>(GetParent());
+    if (!plater || !plate) return false;
+    const PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr) return false;
+
+    std::set<size_t> flagged_1based;
+    for (size_t slot : preset_bundle->incompatible_nozzle_diameter_slots)
+        flagged_1based.insert(slot + 1);
+    for (size_t slot : preset_bundle->ams_sync_unmatched_slots)
+        flagged_1based.insert(slot + 1);
+    return plate_uses_filament_slots(plater, plate, flagged_1based);
 }
 
 bool Sidebar::has_broken_mixed_filament(const PartPlate* plate) const
@@ -7949,39 +8005,7 @@ bool Sidebar::has_broken_mixed_filament(const PartPlate* plate) const
     std::set<size_t> broken_1based;
     for (size_t s : broken_slots) broken_1based.insert(s + 1);
 
-    // Scan model objects on the given plate for raw extruder assignments
-    // (don't use get_extruders() which expands mixed slots)
-    for (auto& entry : plater->model().objects) {
-        if (!plate->contain_instance_totally(entry, 0))
-            continue;
-        // Check object-level extruder
-        int obj_ext = entry->config.has("extruder") ? entry->config.extruder() : 1;
-        if (broken_1based.count((size_t)obj_ext))
-            return true;
-        for (auto* vol : entry->volumes) {
-            // Check volume-level extruder
-            int vol_ext = vol->config.has("extruder") ? vol->config.extruder() : obj_ext;
-            if (broken_1based.count((size_t)vol_ext))
-                return true;
-            // Check color painting data (mmu segmentation facets)
-            if (vol->is_model_part() && !vol->mmu_segmentation_facets.empty()) {
-                for (size_t broken_slot : broken_1based) {
-                    if (vol->mmu_segmentation_facets.has_facets(*vol, EnforcerBlockerType(broken_slot)))
-                        return true;
-                }
-            }
-        }
-        // Check height range modifier extruder overrides
-        for (auto& [range, cfg] : entry->layer_config_ranges) {
-            if (cfg.has("extruder")) {
-                int layer_ext = cfg.option("extruder")->getInt();
-                if (layer_ext > 0 && broken_1based.count((size_t)layer_ext))
-                    return true;
-            }
-        }
-    }
-
-    return false;
+    return plate_uses_filament_slots(plater, plate, broken_1based);
 }
 
 void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_strs,
@@ -14696,10 +14720,13 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                 only_has_gcode_need_preview = true;
 
             bool mixed_broken = sidebar->has_broken_mixed_filament();
+            // Entering the preview auto-slices, so it needs the same gate the slice button has:
+            // reaching the preview must not quietly slice a plate whose filament is flagged.
+            bool incompatible_filament = sidebar->has_incompatible_filament(current_plate);
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from set_current_panel, no_slice %1%, export_in_progress %2%, model_fits %3%, m_is_slicing %4%, mixed_broken %5%")%no_slice%export_in_progress%model_fits%m_is_slicing%mixed_broken;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from set_current_panel, no_slice %1%, export_in_progress %2%, model_fits %3%, m_is_slicing %4%, mixed_broken %5%, incompatible_filament %6%")%no_slice%export_in_progress%model_fits%m_is_slicing%mixed_broken%incompatible_filament;
 
-            if (!no_slice && !current_plate->is_slice_result_valid() && !this->model.objects.empty() && !export_in_progress && model_fits && current_has_print_instances && !mixed_broken)
+            if (!no_slice && !current_plate->is_slice_result_valid() && !this->model.objects.empty() && !export_in_progress && model_fits && current_has_print_instances && !mixed_broken && !incompatible_filament)
             {
                 //if already running in background, not relice here
                 //BBS: add more judge for slicing
@@ -15223,10 +15250,6 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             // reopen. No-op for non-single-ext-multi-nozzle machines (helper checks internally).
             apply_nozzle_manual_maps_to_plates();
         }
-        // Picking a preset re-establishes AMS as authoritative for this slot (either the picked
-        // preset IS an AMS entry, or user explicitly moved away from it) -- either way the
-        // "user-diverged via FilamentNozzlePopup" state from a prior interaction no longer applies.
-        combo->set_nozzle_selection_diverged(false);
         // The slot was flagged because AMS sync had no preset for its tray and kept whatever was already
         // there. Choosing a material for it is exactly the confirmation that warning asked for, so drop
         // the mark rather than leaving the row red until the next sync.
@@ -18376,6 +18399,13 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         m_cur_slice_plate = 0;
         //select plate
         q->select_plate(m_cur_slice_plate);
+        // The first plate goes straight to reslice() instead of through start_next_slice(), so it needs
+        // the flagged-filament check of its own; every later plate is stopped there.
+        if (sidebar->has_incompatible_filament(partplate_list.get_curr_plate())) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": first plate uses a flagged filament, slicing all not started";
+            m_slice_all = false;
+            return;
+        }
         q->reslice();
         if (!m_is_publishing)
             q->select_view_3D("Preview");
@@ -26657,6 +26687,14 @@ void Plater::reslice()
         return;
     }
 
+    // Backstop for every way a slice can start. The entry points above (slice button, entering the
+    // preview, the slice-all chain) refuse earlier so they can keep their own state consistent, but
+    // selecting a plate from the preview's thumbnail list reslices straight from here.
+    if (sidebar().has_incompatible_filament()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": plate uses a flagged filament, refuse to slice";
+        return;
+    }
+
     // In case SLA gizmo is in editing mode, refuse to continue
     // and notify user that he should leave it first.
     if (get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
@@ -27049,6 +27087,15 @@ int Plater::start_next_slice()
 
     // Precondition: only called from on_process_completed() during slice-all chain.
     assert(p->m_slice_all);
+
+    // Stop the chain rather than skipping ahead: a flagged filament is something the user has to fix,
+    // and every later plate would be sliced against the same unresolved state. Plates already sliced
+    // before this one keep their results. Returning non-zero is what the caller treats as "stop".
+    if (sidebar().has_incompatible_filament(p->partplate_list.get_curr_plate())) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% uses a flagged filament, stop slicing all")
+                                                    % p->partplate_list.get_curr_plate_index();
+        return 1;
+    }
 
     // Skip empty plates: queue a fake completion event so the event chain advances to the next plate.
     if (!p->partplate_list.get_curr_plate()->has_printable_instances()) {

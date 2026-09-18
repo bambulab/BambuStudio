@@ -279,18 +279,13 @@ void FilamentNozzlePopup::on_item_clicked(size_t option_idx)
     preset_bundle->export_selections(*wxGetApp().app_config);
     plater->on_config_change(preset_bundle->full_config());
 
-    // Mark this slot as "user manually diverged from AMS binding". This flips a persistent bit on the
-    // combo that add_ams_filaments_grouped_by_nozzle reads on every rebuild -- without it the local-
-    // preset row keeps inheriting FROM_AMS from the still-matching AMS tray (see selected_in_ams in
-    // PresetComboBoxes.cpp), and the outer badge re-latches on every combo->update() and every
-    // periodic udpate_combos_filament_badge() from update_sync_status. The flag is cleared later when
-    // the user picks a different filament preset in the combo (on_select_preset) or hits the big Sync
-    // button (sync_ams_list) -- either action re-establishes AMS as authoritative for this slot.
+    // Rebuild this slot's combo so its synced badge is re-derived against the diameter/flow just
+    // written above: add_ams_filaments_grouped_by_nozzle compares the tray to the slot's live
+    // selection, so the badge drops when the new combination isn't in the rack and comes back if the
+    // user returns the slot to one that is.
     auto &combos = plater->sidebar().combos_filament();
-    if ((size_t) m_filament_idx < combos.size() && combos[m_filament_idx] != nullptr) {
-        combos[m_filament_idx]->set_nozzle_selection_diverged(true);
-        combos[m_filament_idx]->update(); // rebuild so the FROM_AMS-inheritance skip actually applies now
-    }
+    if ((size_t) m_filament_idx < combos.size() && combos[m_filament_idx] != nullptr)
+        combos[m_filament_idx]->update();
 
     Dismiss();
     // on_config_change only rebuilds mixed rows on colour/type/support diffs.

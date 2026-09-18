@@ -2508,6 +2508,12 @@ bool MainFrame::get_enable_slice_status()
         {
             enable = false;
         }
+        // Not applied to eSliceAll: that run walks the plates in order and stops once it reaches a
+        // plate it cannot slice, so the plates before the offending one still get sliced.
+        else if (m_plater->sidebar().has_incompatible_filament(current_plate))
+        {
+            enable = false;
+        }
     }
 
     if (enable && m_plater->sidebar().has_broken_mixed_filament())

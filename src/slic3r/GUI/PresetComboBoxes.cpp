@@ -770,10 +770,10 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
                     row_matches_current = false;
             }
         }
-        // Once the user has manually changed diameter/flow via FilamentNozzlePopup, this slot is no
-        // longer sourced from AMS.
-        auto *this_plater_combo = dynamic_cast<PlaterPresetComboBox *>(this);
-        if (this_plater_combo && this_plater_combo->is_nozzle_selection_diverged()) row_matches_current = false;
+        // Changing diameter/flow via FilamentNozzlePopup needs no separate "user diverged" bookkeeping:
+        // that popup only exists in multi-diameter mode, and the check above already compares the tray
+        // against the slot's live filament_diameter_map / volume map entry. Setting the slot back to a
+        // combination the rack really carries therefore lights the badge again, as it should.
 
         // Per-row dropdown badge: only light up when this tray is the source of THIS combo's own
         // currently-selected preset (filament_id + color match) and printer is connected/matched.
@@ -1326,10 +1326,9 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
 }
 
 void PlaterPresetComboBox::update_badge_according_flag() {
-    // Diverged suppresses badge unconditionally. Otherwise use the cached authoritative result from
-    // the most recent update() (m_last_selected_in_ams) -- do NOT re-query filament_ams_list or
-    // FROM_AMS flag here, both can transiently disagree with what update() actually computed.
-    if (is_nozzle_selection_diverged()) { ShowBadge(false); return; }
+    // Use the cached authoritative result from the most recent update() (m_last_selected_in_ams) --
+    // do NOT re-query filament_ams_list or the FROM_AMS flag here, both can transiently disagree with
+    // what update() actually computed.
     ShowBadge(m_last_selected_in_ams);
 }
 
@@ -1836,11 +1835,8 @@ void PlaterPresetComboBox::update()
         // via row_matches_current -- matched by filament_id + color, same criteria the per-row
         // dropdown badge (tray_is_synced_source) uses, so outer and dropdown light up together.
         m_last_selected_in_ams = selected_in_ams;
-        if (is_nozzle_selection_diverged()) {
-            ShowBadge(false);
-        } else if (wxGetApp().plater()->is_same_printer_for_connected_and_selected(false)) {
+        if (wxGetApp().plater()->is_same_printer_for_connected_and_selected(false))
             ShowBadge(selected_in_ams);
-        }
     }
     Thaw();
 
