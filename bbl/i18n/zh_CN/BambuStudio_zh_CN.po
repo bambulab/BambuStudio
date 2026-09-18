@@ -19102,6 +19102,64 @@ msgstr "不能混合。请选择使用相同喷嘴直径的耗材。"
 msgid "unknown nozzle"
 msgstr "未知喷嘴"
 
+msgid "After modification, the filament list cannot be restored."
+msgstr "修改后，耗材列表将无法恢复。"
+
+msgid "Overwrite the project filaments list with the filaments in the printer."
+msgstr "用打印机中的耗材覆盖项目耗材列表。"
+
+msgid "Match the project filaments with the filaments in the printer according to the matching mode. After syncing, the mapped results will be used."
+msgstr "按照匹配模式将项目耗材与打印机中的耗材匹配起来,同步后使用映射后的结果"
+
+msgid "Filament matching"
+msgstr "耗材匹配"
+
+msgid "Color first"
+msgstr "颜色优先"
+
+msgid "Precision first"
+msgstr "精度优先"
+
+msgid "External AMS"
+msgstr "外置AMS"
+
+msgid "4 slots AMS"
+msgstr "四槽AMS"
+
+msgid "1 slot AMS"
+msgstr "单槽AMS"
+
+msgid "Nozzle Settings"
+msgstr "喷嘴设置"
+
+msgid "Nozzle Details"
+msgstr "喷嘴详情"
+
+msgid "Set your printer's nozzle installation status"
+msgstr "设置打印机喷嘴"
+
+msgid "Single-diameter mode"
+msgstr "单口径模式"
+
+msgid "Multi-diameter mode"
+msgstr "多口径模式"
+
+msgid "Note: Mixed-diameter slicing is only supported in multi-diameter mode."
+msgstr "注意：未开启多口径模式不支持混合直径切片。"
+
+msgid "marks nozzles whose diameter differs from the slice setting; they cannot be used during slicing/printing."
+msgstr "标记喷嘴直径不同于切片设置，切片和打印时无法使用。"
+
+msgid "The current nozzle diameter is incompatible with the printer"
+msgstr "当前喷嘴直径与打印机不兼容"
+
+msgid "Incompatible with the slice diameter"
+msgstr "与切片直径不兼容"
+
+#, c-format, boost-format
+msgid "Nozzle %d: "
+msgstr "喷嘴 %d："
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
