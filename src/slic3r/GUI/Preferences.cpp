@@ -1665,6 +1665,9 @@ wxWindow *PreferencesDialog::create_other_tab()
     });
     auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), scrolled, _L("No warnings when loading 3MF with modified G-codes"),
                                                     50, "no_warn_when_modified_gcodes");
+    auto item_skip_printer_check = create_item_checkbox(_L("Don't check printer information when loading 3MF"), scrolled,
+                                                        _L("No prompt to migrate the preset when the loaded 3MF does not match the connected printer"), 50,
+                                                        "skip_printer_check_on_3mf_load");
     std::vector<wxString>    backup_labels = {_L("10 seconds"), _L("20 seconds"), _L("30 seconds"), _L("1 minute"), _L("2 minutes"),
                                               _L("5 minutes"),  _L("10 minutes"), _L("30 minutes"), _L("never")};
     std::vector<std::string> backup_values = {"10", "20", "30", "60", "120", "300", "600", "1800", "0"};
@@ -1683,6 +1686,7 @@ wxWindow *PreferencesDialog::create_other_tab()
     sizer->Add(wrap_option_row(scrolled, item_max_recent_count), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_backup), flags);
     sizer->Add(wrap_option_row(scrolled, item_gcodes_warning), flags);
+    sizer->Add(wrap_option_row(scrolled, item_skip_printer_check), flags);
 
     // ---- Online Models (visible only when has_model_mall()) ----
     auto title_modelmall   = create_item_title(_L("Online Models"), scrolled, _L("Online Models"));
@@ -2019,6 +2023,7 @@ void PreferencesDialog::on_reset_all_warnings()
     // Keys that the various "Don't show again"-style dialogs persist their
     // dismissal choice under. Erasing them re-enables the corresponding dialog.
     app_config->erase("app", "sync_after_load_file_show_flag");
+    app_config->erase("app", "skip_printer_check_on_3mf_load");
     app_config->erase("app", "skip_non_bambu_3mf_warning");
     app_config->erase("app", "post_process_script_choice");
     app_config->erase("app", "no_warn_mixed_sublayer_variable_layer");
@@ -2077,6 +2082,7 @@ void PreferencesDialog::on_reset_preferences()
         "camera_fullscreen_active_monitor_only",
         "max_recent_count",
         "no_warn_when_modified_gcodes",
+        "skip_printer_check_on_3mf_load",
         "backup_switch",
         "backup_interval",
         "staff_pick_switch",

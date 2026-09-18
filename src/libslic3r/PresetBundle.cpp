@@ -3921,6 +3921,10 @@ static void repair_filament_nozzle_flows(
     for (size_t i = 0; i < bundle.filament_presets.size(); ++i) {
         if (bundle.is_mixed_filament(i))
             continue;
+        if (std::find(bundle.incompatible_nozzle_diameter_slots.begin(),
+                      bundle.incompatible_nozzle_diameter_slots.end(), i) !=
+            bundle.incompatible_nozzle_diameter_slots.end())
+            continue;
         std::string diameter = (selected != nullptr && i < selected->values.size()) ? selected->values[i] : std::string();
         if (diameter.empty()) {
             // A machine carrying a single diameter leaves filament_diameter_map empty on purpose, yet
@@ -4258,6 +4262,19 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
             if (!selected->values[i].empty())
                 incompatible_nozzle_diameter_slots.push_back(i);
             continue;
+        }
+
+        // A failed nozzle-mapping keeps the requested diameter on a material that cannot serve it.
+        // That leftover is still "installed" on a rack, so the usual checks below would treat the
+        // slot as fine (or AMS sync would move it onto options.front()). Hold the red mark until
+        // the stored diameter is actually in this filament's option list.
+        if (was_marked_incompatible(i)) {
+            const std::string stored = format_diameter_to_str(atof(selected->values[i].c_str()));
+            if (stored.empty() ||
+                std::find(options.begin(), options.end(), stored) == options.end()) {
+                incompatible_nozzle_diameter_slots.push_back(i);
+                continue;
+            }
         }
 
         std::string device_diameter;

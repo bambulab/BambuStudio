@@ -19657,6 +19657,33 @@ msgstr ""
 #~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 #~ msgstr "Katman yüksekliği, Yazıcı Ayarları -> Ekstruder -> Katman yüksekliği sınırları bölümündeki sınırı aşıyor bu durum baskı kalitesi sorunlarına neden olabilir."
 
+msgid "The current printer preset does not match the connected printer. Please confirm the migration plan below."
+msgstr ""
+
+msgid "Machine model"
+msgstr ""
+
+msgid "Current preset"
+msgstr ""
+
+msgid "Connected printer"
+msgstr ""
+
+msgid "Don't check again when loading 3MF"
+msgstr ""
+
+msgid "Don't check printer information when loading 3MF"
+msgstr ""
+
+msgid "No prompt to migrate the preset when the loaded 3MF does not match the connected printer"
+msgstr ""
+
+msgid "The connected printer only has a %s nozzle, so every filament is mapped onto it."
+msgstr ""
+
+msgid "The connected printer has not reported its nozzle information, so the nozzles are left unchanged. Only the printer preset will be switched."
+msgstr ""
+
 #~ msgid "Second"
 #~ msgstr "Saniye"
 

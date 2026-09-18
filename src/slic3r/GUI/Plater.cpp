@@ -177,6 +177,7 @@
 #include "Widgets/StaticGroup.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 #include "Widgets/SyncMachineInfoDialog.hpp"
+#include "Widgets/SyncPresetWithPrinterDialog.hpp"
 #include "Widgets/NozzleSettingsListDialog.hpp"
 #include "Widgets/NozzleSettingsCardDialog.hpp"
 #include "Widgets/NozzleDetailPopup.hpp"
@@ -994,6 +995,7 @@ struct Sidebar::priv
     void update_extruder_panel();
     void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
     bool apply_multi_nozzle_diameter_mode(bool enabled);
+    void apply_migration_diameter_mode(const PendingNozzleMigration &migration);
     void update_extruder_full_stats(int extruder_id, wxString diameter, const std::vector<NozzleConfig> &configs);
     NozzleVolumeType get_volume_type_from_configs(wxString diameter, const std::vector<NozzleConfig> &configs);
     NozzleVolumeType derive_volume_type_from_full_stat(int extruder_id, const wxString &diameter) const;
@@ -1125,6 +1127,10 @@ struct Sidebar::priv
     bool              m_mixed_reload_scheduled{false};
     void              relayout_mixed_filament_grid(bool force);
     bool              m_mixed_filament_broken{false};       // true if any used mixed filament has broken components
+
+    // Set by whichever path showed SyncPresetWithPrinterDialog, consumed once by
+    // sync_extruder_list() - the single place both paths funnel through.
+    std::optional<PendingNozzleMigration> pending_nozzle_migration;
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -1932,11 +1938,20 @@ static bool select_printer_preset_for_multi_nozzle_mode(bool enabled,
     return select_system_multi_nozzle_printer_preset(default_single_nozzle_printer_variant());
 }
 
+// validate_filament_nozzle_diameter_selections() / set_filament_nozzle_diameter() can retarget
+// filament_presets[] and the filaments collection without going through Tab::select_preset(), so
+// the filament tab's combo keeps the name it last painted. Rebuild it from the collection.
+static void refresh_filament_tab_preset_choice()
+{
+    if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
+        filament_tab->update_preset_choice();
+}
+
 static void refresh_multi_nozzle_preset_choices()
 {
     if (Plater *plater = wxGetApp().plater())
         plater->sidebar().update_presets(Preset::TYPE_PRINTER);
-    for (Preset::Type type : {Preset::TYPE_PRINTER, Preset::TYPE_PRINT}) {
+    for (Preset::Type type : {Preset::TYPE_PRINTER, Preset::TYPE_PRINT, Preset::TYPE_FILAMENT}) {
         if (Tab *tab = wxGetApp().get_tab(type))
             tab->update_preset_choice();
     }
@@ -2028,6 +2043,198 @@ static void refresh_after_multi_nozzle_diameter_mode_cleared()
         print_tab->update_extruder_variants(-1, false);
     if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
         filament_tab->update_nozzle_status_display();
+}
+
+// The distinct diameters the user's choices land on, spelled the way filament_diameter_map stores
+// them. A zero diameter means the slot has no target and does not count.
+static std::set<std::string> migration_target_diameters(const PendingNozzleMigration &migration)
+{
+    std::set<std::string> diameters;
+    for (const NozzleSpec &spec : migration.per_slot)
+        if (spec.diameter > 0.f)
+            diameters.insert(format_diameter_to_str(spec.diameter));
+    return diameters;
+}
+
+// Point the printer preset at the same model's variant for `diameter`. With the gate off,
+// collect_configured_nozzle_diameters() reports only the selected variant's own diameter, so every
+// other one is filtered out of the per-filament options. Switching the variant is the only way a
+// single-diameter migration can change diameter at all.
+static bool select_printer_variant_for_diameter(const std::string &diameter)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const Preset &current = preset_bundle->printers.get_edited_preset();
+    const Preset *base = preset_bundle->printers.get_preset_base(current);
+    if (base == nullptr)
+        return false;
+    if (base->config.opt_string("printer_variant") == diameter)
+        return true;
+
+    const std::string printer_model = base->config.opt_string("printer_model");
+    Preset *target = nullptr;
+    for (const Preset &preset : preset_bundle->printers.get_presets()) {
+        if (preset.is_system &&
+            preset.config.opt_string("printer_model") == printer_model &&
+            preset.config.opt_string("printer_variant") == diameter) {
+            target = preset_bundle->printers.find_preset(preset.name, false);
+            break;
+        }
+    }
+    Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+    if (target == nullptr || printer_tab == nullptr)
+        return false;
+
+    target->is_visible = true;
+    return printer_tab->select_preset(target->name);
+}
+
+// Match the multi-diameter gate to the migration target: a single target diameter means
+// single-diameter printing, and only a nozzle rack can hold more than one. The variant switch that
+// goes with it is not done here - see apply_migration_printer_variant().
+void Sidebar::priv::apply_migration_diameter_mode(const PendingNozzleMigration &migration)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const std::set<std::string> targets = migration_target_diameters(migration);
+    if (targets.empty())
+        return;
+
+    const bool target_has_rack = is_single_ext_multi_nozzle(preset_bundle->full_config());
+    if (targets.size() > 1 && target_has_rack) {
+        if (!apply_multi_nozzle_diameter_mode(true)) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": could not turn multi_nozzle_diameter_mode on";
+            return;
+        }
+        // The helper returns early when the gate was already on, leaving the variant
+        // get_printer_preset() matched. The combos hide every non-canonical variant while the gate
+        // is on, so that state cannot be rendered.
+        const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
+        if (base != nullptr &&
+            base->config.opt_string("printer_variant") != canonical_multi_nozzle_printer_variant())
+            select_system_multi_nozzle_printer_preset(canonical_multi_nozzle_printer_variant());
+        return;
+    }
+
+    if (target_has_rack) {
+        if (!apply_multi_nozzle_diameter_mode(false))
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": could not turn multi_nozzle_diameter_mode off";
+    } else {
+        // Not apply_multi_nozzle_diameter_mode(): its turn-off path insists on the canonical 0.4
+        // variant of a rack machine and rolls the gate back on when that fails. A fixed-extruder
+        // target must clear it regardless, and wants the variant the user picked.
+        clear_multi_nozzle_diameter_mode();
+        refresh_after_multi_nozzle_diameter_mode_cleared();
+    }
+    if (targets.size() > 1) {
+        // Fixed extruders carry one variant, so only the filaments landing on that diameter can
+        // migrate; validation leaves the rest selected and flags them in the filament list.
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << targets.size()
+                                   << " target diameters on a machine without a nozzle rack";
+    }
+}
+
+// Re-point the printer preset at the variant the user chose. Separate from the gate above and run
+// much later, because switch_diameter() sits between the two and takes its diameter from the
+// machine rather than the dialog. Still has to land before the per-filament migration, which reads
+// the configured diameter set to decide what each slot may move to.
+static void apply_migration_printer_variant(const PendingNozzleMigration &migration)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+        return; // in that mode the gate owns the variant, and every rack diameter is configured
+
+    const std::set<std::string> targets = migration_target_diameters(migration);
+    if (targets.size() != 1)
+        return;
+
+    if (!select_printer_variant_for_diameter(*targets.begin()))
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": no printer variant for diameter " << *targets.begin();
+}
+
+// Write the flow types the user chose. Only a nozzle-rack target is written: the dialog asks about
+// flow types exactly when it is migrating onto one.
+static void apply_migrated_volume_types(const std::vector<int> &volume_by_slot)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+
+    if (!is_single_ext_multi_nozzle(preset_bundle->full_config()))
+        return;
+
+    // Keep the per-slot choices even if this migration collapses to single-diameter: they become
+    // authoritative again if the user later turns multi-diameter back on.
+    auto *volume_map = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+    if (volume_map == nullptr)
+        return;
+    volume_map->values.resize(volume_by_slot.size(), (int) nvtStandard);
+    for (size_t slot = 0; slot < volume_by_slot.size(); ++slot)
+        if (volume_by_slot[slot] >= 0)
+            volume_map->values[slot] = volume_by_slot[slot];
+
+    if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+        apply_nozzle_manual_maps_to_plates();
+        return;
+    }
+
+    // Single-diameter hides the per-slot selector, so fold every slot onto extruder 0. Disagreeing
+    // slots become nvtHybrid.
+    int folded = -1;
+    for (int type : volume_by_slot) {
+        if (type < 0)
+            continue; // no migration result for this slot
+        if (folded < 0)
+            folded = type;
+        else if (folded != type)
+            folded = (int) nvtHybrid;
+    }
+    if (folded < 0)
+        return;
+
+    if (auto *printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER)))
+        printer_tab->set_extruder_volume_type(0, (NozzleVolumeType) folded);
+    if (Plater *plater = wxGetApp().plater())
+        plater->update_filament_volume_map(0, folded);
+}
+
+// Apply the confirmed migration. A slot whose material has no variant for the chosen diameter keeps
+// that material; the requested diameter is still written so the 66747 leftover check can flag it.
+static void apply_nozzle_migration(const PendingNozzleMigration &migration)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const size_t slot_count = preset_bundle->filament_presets.size();
+
+    std::vector<int> volume_by_slot(slot_count, -1);
+    // The printer preset changed since the migration was assembled, so the slot count may have too.
+    const size_t migrated_count = std::min(migration.per_slot.size(), slot_count);
+
+    auto *diameter_map = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    if (diameter_map != nullptr)
+        diameter_map->values.resize(slot_count);
+
+    for (size_t slot = 0; slot < migrated_count; ++slot) {
+        const NozzleSpec &target = migration.per_slot[slot];
+        if (target.diameter <= 0.f)
+            continue; // no target for this slot
+        const std::string diameter = format_diameter_to_str(target.diameter);
+        if (preset_bundle->set_filament_nozzle_diameter(slot, diameter)) {
+            volume_by_slot[slot] = (int) target.volume;
+            continue;
+        }
+        // set_filament_nozzle_diameter() refuses a diameter the current preset cannot serve, and
+        // leaves the slot on its previous (still-installed) diameter. On a rack that still carries
+        // that leftover, validation would treat the slot as fine. Record the requested diameter
+        // instead so the chip and the leftover check describe the mapping that failed.
+        if (diameter_map != nullptr)
+            diameter_map->values[slot] = diameter;
+        auto &flagged = preset_bundle->incompatible_nozzle_diameter_slots;
+        if (std::find(flagged.begin(), flagged.end(), slot) == flagged.end())
+            flagged.push_back(slot);
+        if (migration.apply_flow_type)
+            volume_by_slot[slot] = (int) target.volume;
+    }
+
+    // filament_map is left alone; slicing regroups it. Flow types are written only when the dialog
+    // asked about them.
+    if (migration.apply_flow_type)
+        apply_migrated_volume_types(volume_by_slot);
 }
 
 void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diameter)
@@ -2643,6 +2850,9 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     auto           printer_name = plater->get_selected_printer_name_in_combox();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " begin sync_extruder_list";
+    // Claim a 3MF-armed migration now so an early return cannot leave it for the next sync.
+    std::optional<PendingNozzleMigration> migration = std::move(pending_nozzle_migration);
+    pending_nozzle_migration.reset();
     if (obj == nullptr || !obj->is_online()) {
         plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return false;
@@ -2664,68 +2874,75 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     wxString machine_display_name = obj->get_printer_type_display_str();
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
-    const Preset &selected_preset = preset_bundle->printers.get_selected_preset();
-    const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(selected_preset);
-    wxString target_display_name = pm ? wxString::FromUTF8(pm->name) : wxString(DevPrinterConfigUtil::get_printer_display_name(target_model_id));
     Preset* machine_preset = get_printer_preset(obj);
     if (!machine_preset) {
         plater->pop_warning_and_go_to_device_page(machine_display_name, Plater::PrinterWarningType::NotAvailable, _L("Sync printer information"));
         BOOST_LOG_TRIVIAL(warning) << "can not find a preset matching the connected machine, check installed/enabled machine and the status of the conected machine";
         return false;
     }
-    if (machine_print_name != target_model_id) {
-        wxString msg = _L("Do you want to sync the preset printer with the connected printer, ") + machine_display_name + "\n" +
-               wxString::Format("<span style=\"color:gray !important\">%s</span>",
-                                wxString::Format(_L("Current connected printer (Device page): %s (%s)"), machine_display_name,
-                                                 wxString::FromUTF8(obj->get_dev_name()))) + "\n" +
-               wxString::Format("<span style=\"color:gray !important\">%s</span>",
-                                wxString::Format(_L("Current printer preset (Prepare page): %s"), target_display_name));
-        MessageDialog dlg(this->plater, msg, _L("Sync printer information"), wxYES | wxNO, wxEmptyString, wxEmptyString, nullptr, true);
-        dlg.SetButtonLabel(wxID_YES, _L("Sync now"));
-        dlg.SetButtonLabel(wxID_NO, _L("Cancel"));
-        if (dlg.ShowModal() == wxID_NO) {
-            return false;
+    const bool model_mismatch = machine_print_name != target_model_id;
+    std::optional<PrinterMigrationInfo> migration_info;
+    if (!migration)
+        migration_info = collect_printer_migration_info(obj, /* offer_skip_future_checks */ false);
+    // Ask only when the model differs or some project nozzle is missing. An empty candidate list
+    // is not a reason: the printer may simply not have reported its nozzles yet.
+    const bool nozzle_mismatch = !migration && migration_info && !migration_info->printer_nozzles.empty() &&
+                                 !migration_info->nozzles_fully_covered;
+    if (model_mismatch || nozzle_mismatch) {
+        // Reuse a 3MF-armed answer instead of asking twice.
+        if (!migration) {
+            if (migration_info) {
+                SyncPresetWithPrinterDialog dlg(this->plater, *migration_info);
+                if (dlg.ShowModal() != wxID_OK)
+                    return false;
+                migration = dlg.GetConfirmedMigration();
+            }
         }
 
         if (!this->plater)
             return false;
 
-        // The gate cannot survive a move onto a machine without a canonical multi-diameter variant, so
-        // drop it first and let the destination below be resolved under the single-diameter rules.
-        const bool cleared_multi_diameter_mode = clears_multi_nozzle_diameter_mode(*machine_preset);
-        if (cleared_multi_diameter_mode)
-            clear_multi_nozzle_diameter_mode();
+        // Nozzle-only mismatch stays on this model; the variant switch happens later.
+        if (model_mismatch) {
+            // Drop the gate first when the destination has no canonical multi-diameter variant.
+            const bool cleared_multi_diameter_mode = clears_multi_nozzle_diameter_mode(*machine_preset);
+            if (cleared_multi_diameter_mode)
+                clear_multi_nozzle_diameter_mode();
 
-        // get_printer_preset() resolves the machine down to the diameter of its first usable nozzle,
-        // which multi-diameter mode must not adopt: slicing there anchors on the canonical printer
-        // variant and carries the real per-slot nozzles separately. Only the machine's model may decide
-        // the destination, so aim at that model's canonical baseline instead.
-        Preset *target_preset = machine_preset;
-        if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
-            if (Preset *canonical = find_system_multi_nozzle_printer_preset(machine_preset->config.opt_string("printer_model"), canonical_multi_nozzle_printer_variant())) {
-                canonical->is_visible = true;
-                target_preset         = canonical;
+            // Multi-diameter must not adopt get_printer_preset()'s first-nozzle diameter.
+            Preset *target_preset = machine_preset;
+            if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+                if (Preset *canonical = find_system_multi_nozzle_printer_preset(
+                        machine_preset->config.opt_string("printer_model"),
+                        canonical_multi_nozzle_printer_variant())) {
+                    canonical->is_visible = true;
+                    target_preset         = canonical;
+                }
             }
-        }
 
-        // select_preset() below cascades into update_all_preset_comboboxes(), which would otherwise
-        // validate filament-nozzle compatibility against extruder_full_stat before the real per-slot
-        // diameters queried from the connected device (further down in this function) replace it --
-        // see is_syncing_extruder_list_model_switch's declaration for why that flashes a false flag.
-        is_syncing_extruder_list_model_switch = true;
-        this->plater->update_objects_position_when_select_preset([target_preset]() {
-            Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
-            printer_tab->select_preset(target_preset->name);
-        });
-        is_syncing_extruder_list_model_switch = false;
-        if (cleared_multi_diameter_mode)
-            refresh_after_multi_nozzle_diameter_mode_cleared();
+            // Guard the select_preset() cascade until the real per-slot diameters are written.
+            is_syncing_extruder_list_model_switch = true;
+            this->plater->update_objects_position_when_select_preset([target_preset]() {
+                Tab *printer_tab = GUI::wxGetApp().get_tab(Preset::Type::TYPE_PRINTER);
+                printer_tab->select_preset(target_preset->name);
+            });
+            is_syncing_extruder_list_model_switch = false;
+            if (cleared_multi_diameter_mode)
+                refresh_after_multi_nozzle_diameter_mode_cleared();
+        }
     } else if (clears_multi_nozzle_diameter_mode(*machine_preset)) {
         // The model already matches, so no preset switch is needed. The gate can still be on here,
         // because picking another model in the printer combo is not blocked by it, and it would send
         // the sync below down the multi-diameter branch on a machine that has no variant for it.
         clear_multi_nozzle_diameter_mode();
         refresh_after_multi_nozzle_diameter_mode_cleared();
+    }
+    // Settle the gate before extruder_full_stat is rebuilt. Outside the block above so the 3MF
+    // path, which already selected the printer preset, still runs it.
+    if (migration) {
+        is_switching_diameter = true;
+        apply_migration_diameter_mode(*migration);
+        is_switching_diameter = false;
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " go on sync_extruder_list";
     const Preset &cur_preset  = preset_bundle->printers.get_selected_preset();
@@ -2867,6 +3084,13 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     auto *has_switcher = dynamic_cast<ConfigOptionBool *>(project_config.option("has_filament_switcher"));
     if (has_switcher) { has_switcher->value = is_fila_switch_ready(); }
 
+    if (migration) {
+        is_switching_diameter = true;
+        apply_migration_printer_variant(*migration);
+        is_switching_diameter = false;
+        apply_nozzle_migration(*migration);
+    }
+
     if (single_diameter_switched) {
         // Keep the guard engaged through this validation/refresh pass -- otherwise the synced
         // machine diameter would silently fall back to a substitute filament preset here, same
@@ -2888,9 +3112,19 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     // printer preset may not emit a config change, so explicitly invalidate stale nozzle grouping.
     plater->on_config_change(preset_bundle->full_config());
 
+    // A rack stays on the multi-diameter path above, which skips the chip refresh. The per-slot
+    // labels would keep showing the diameters from before apply_nozzle_migration().
+    if (migration && !single_diameter_switched) {
+        this->plater->sidebar().refresh_filament_diameter_buttons(false);
+        refresh_filament_tab_preset_choice();
+    }
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
 
-    if (is_single_ext_multi_nozzle(machine_preset->config)) { plater->sidebar().sync_ams_list(); }
+    if (is_single_ext_multi_nozzle(machine_preset->config)) {
+        plater->sidebar().sync_ams_list();
+    }
+
     return true;
 }
 
@@ -4803,6 +5037,7 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
         apply_nozzle_manual_maps_to_plates();
         for (PlaterPresetComboBox *combo : p->combos_filament)
             combo->update();
+        refresh_filament_tab_preset_choice();
         // combo->update() can re-latch a stale MinSize floor on any row whose first
         // real update() call happens to land here (see reset_filament_combo_min_heights()) --
         // reset it again now so this doesn't undo relayout_filament_grid()'s earlier work.
@@ -5096,6 +5331,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             preset_bundle.validate_filament_nozzle_diameter_selections();
             for (size_t i = 0; i < filament_cnt; i++)
                 p->combos_filament[i]->update();
+            refresh_filament_tab_preset_choice();
             refresh_filament_diameter_buttons();
         }
 
@@ -6206,6 +6442,8 @@ bool Sidebar::sync_extruder_list()
     bool only_external_material;
     return p->sync_extruder_list(only_external_material);
 }
+
+void Sidebar::arm_nozzle_migration(const PendingNozzleMigration &migration) { p->pending_nozzle_migration = migration; }
 
 bool Sidebar::need_auto_sync_extruder_list_after_connect_priner(const MachineObject *obj)
 {
@@ -10951,15 +11189,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 file_wipe_tower_y = *wipe_tower_y_opt;
                             if (auto *selected_opt = config.opt<ConfigOptionStrings>("filament_diameter_map"))
                                 file_selected_nozzle_diameters = *selected_opt;
+                            // Same gate as collect / save: leftover maps on a non-rack printer (H2D)
+                            // must not revive multi-diameter, whether the 3mf stored the flag or we
+                            // would infer it from filament_diameter_map having more than one value.
+                            const bool file_has_rack = is_single_ext_multi_nozzle(config);
                             const bool inferred_multi_nozzle_diameter_mode =
                                 !loaded_multi_nozzle_diameter_mode.has_value() &&
+                                file_has_rack &&
                                 infer_multi_nozzle_diameter_mode(config);
                             const bool file_multi_nozzle_diameter_mode =
+                                file_has_rack &&
                                 loaded_multi_nozzle_diameter_mode.value_or(inferred_multi_nozzle_diameter_mode);
                             BOOST_LOG_TRIVIAL(info)
                                 << "multi-diameter project load: resolved mode="
                                 << file_multi_nozzle_diameter_mode
-                                << ", inferred=" << inferred_multi_nozzle_diameter_mode;
+                                << ", inferred=" << inferred_multi_nozzle_diameter_mode
+                                << ", file_has_rack=" << file_has_rack;
 
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
                             // BBS: do not change extruder nozzle stat when loading 3mf
@@ -22453,7 +22698,6 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     if (auto opt = printer_preset.config.option("nozzle_diameter"); opt) {
         preset_nozzle_diameter = static_cast<const ConfigOptionFloatsNullable*>(opt)->values[0];
     }
-    float machine_nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
 
     std::string printer_type = obj->get_show_printer_type();
 
@@ -22468,14 +22712,16 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     bool sync_printer_preset = false;
     nozzle_diameter          = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     bool is_multi_extruder   = nozzle_diameter > 1;
-
     // Multi-diameter slicing pins the printer preset to the canonical variant while the machine keeps
     // its real per-slot nozzles, so extruder 0 reporting a different diameter against that preset is
     // the expected state rather than a preset that needs syncing. What can genuinely drift there is
     // the project's per-slot nozzle snapshot, which is what the sync badge tracks and what
     // sync_extruder_list() refreshes. The printer model still has to agree, and when it does not the
     // destination is the new model's canonical baseline instead of the diameter-matched preset.
-    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    // Same gate as collect_printer_migration_info: the project flag alone is not enough, because it
+    // survives a switch onto a machine that has no per-slot diameters (H2D leftover 3mf).
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
+                                     is_single_ext_multi_nozzle(printer_preset.config);
     // Whether the *connected machine* carries a nozzle rack. The project's own preset cannot answer
     // this: coming from a single-nozzle model, it reports no rack even though the machine has one.
     const bool machine_has_rack = is_single_ext_multi_nozzle(machine_preset->config);
@@ -22499,52 +22745,33 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
             target_preset = variant;
     }
     const bool model_mismatch  = printer_preset.get_current_printer_type(preset_bundle) != printer_type;
-    bool       nozzle_mismatch = false;
-    if (multi_diameter_after_sync) {
-        nozzle_mismatch = !is_extruder_stat_synced();
-    } else if (machine_has_rack) {
-        // A nozzle-rack machine carries several diameters at once, so the nozzle mounted on the
-        // extruder is not "the machine's diameter": the project keeps slicing at its own diameter as
-        // long as the machine still holds a nozzle of it. Only a diameter the machine cannot provide
-        // justifies moving the project onto another printer variant.
-        nozzle_mismatch = !machine_has_nozzle_diameter(obj, 0, (float) preset_nozzle_diameter);
-    } else {
-        nozzle_mismatch = !is_approx((float) (preset_nozzle_diameter), machine_nozzle_diameter);
+
+    // Legacy key: presence meant "stop asking". The new dialog needs a per-nozzle decision, so a
+    // remembered yes can no longer be replayed.
+    AppConfig *app_config = wxGetApp().app_config;
+    if (app_config->has("sync_after_load_file_show_flag")) {
+        app_config->set_bool("skip_printer_check_on_3mf_load", true);
+        app_config->erase("app", "sync_after_load_file_show_flag");
     }
 
-    if (!wxGetApp().app_config->has("sync_after_load_file_show_flag")) {
-        if (model_mismatch || nozzle_mismatch) {
-            wxString tips;
-            if (model_mismatch)
-                tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model.\nTo use this printer for printing, please switch the printer model of project file to %s.")) % obj->get_dev_name() % printer_model % printer_model).str());
-            else
-                tips = from_u8((boost::format(_u8L("The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
-                                                   "To use this printer for printing, please sync the connected printer.")) %
-                                obj->get_dev_name() % printer_model)
-                                   .str());
+    std::optional<PrinterMigrationInfo> info;
+    if (!app_config->get_bool("skip_printer_check_on_3mf_load"))
+        info = collect_printer_migration_info(obj, /* offer_skip_future_checks */ true);
 
-            std::map<wxStandardID, wxString>option_map = {
-                {wxID_YES,_L("Switch now")},
-                {wxID_NO, _L("Later")}
-            };
-            TipsDialog dlg(wxGetApp().mainframe, _L("Tips"), tips, "sync_after_load_file_show_flag", wxYES_NO,option_map);
-            if (dlg.ShowModal() == wxID_YES) {
-                sync_printer_preset = true;
-            } else {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " sync_after_load_file_show_flag";
-            }
-        }
-    }
-    else {
-        sync_printer_preset = wxGetApp().app_config->get("sync_after_load_file_show_flag") == "true";
-        if (sync_printer_preset && !model_mismatch && !nozzle_mismatch)
-            sync_printer_preset = false;
+    // Compare every filament slot. If the comparison cannot be assembled, leave the import untouched.
+    if (info && (model_mismatch || (!info->printer_nozzles.empty() && !info->nozzles_fully_covered))) {
+        SyncPresetWithPrinterDialog dlg(wxGetApp().mainframe, *info);
+        sync_printer_preset = dlg.ShowModal() == wxID_OK;
+        if (dlg.SkipFutureChecks())
+            app_config->set_bool("skip_printer_check_on_3mf_load", true);
+        if (sync_printer_preset)
+            wxGetApp().sidebar().arm_nozzle_migration(dlg.GetConfirmedMigration());
     }
     if (!sync_printer_preset)
         return false;
     //do sync_printer_preset
     const std::string selected_preset_name = printer_preset.name;
-    update_objects_position_when_select_preset([&obj, target_preset, multi_diameter_after_sync, machine_has_rack, cleared_multi_diameter_mode, &selected_preset_name]() {
+    update_objects_position_when_select_preset([target_preset, cleared_multi_diameter_mode, &selected_preset_name]() {
         // Ordered like apply_multi_nozzle_diameter_mode()'s turn-off: the gate goes away before the
         // printer preset moves, so nothing is laid out or filtered in the state the project cannot be in.
         if (cleared_multi_diameter_mode)
@@ -22558,13 +22785,8 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
             printer_tab->select_preset(target_preset->name);
         }
 
-        // Multi-diameter needs this even on a single-extruder machine: the per-slot snapshot, not the
-        // preset, is what carries the real nozzles into slicing and into the sync badge. A rack machine
-        // needs it for the same reason: selecting a preset of another printer model rebuilds that
-        // snapshot from the new preset's defaults (every slot at printer_variant), which describes the
-        // preset rather than the machine and leaves the sync badge off.
-        if (multi_diameter_after_sync || obj->is_multi_extruders() || machine_has_rack)
-            GUI::wxGetApp().sidebar().sync_extruder_list();
+        // Always consume the armed migration here; skipping would drop the user's choices.
+        GUI::wxGetApp().sidebar().sync_extruder_list();
 
         if (cleared_multi_diameter_mode)
             refresh_after_multi_nozzle_diameter_mode_cleared();

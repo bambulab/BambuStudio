@@ -98,6 +98,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/MultiNozzleSync.cpp
     GUI/Widgets/SyncMachineInfoDialog.hpp
     GUI/Widgets/SyncMachineInfoDialog.cpp
+    GUI/Widgets/SyncPresetWithPrinterDialog.hpp
+    GUI/Widgets/SyncPresetWithPrinterDialog.cpp
     GUI/Widgets/NozzleSettingsListDialog.hpp
     GUI/Widgets/NozzleSettingsListDialog.cpp
     GUI/Widgets/NozzleSettingsCardDialog.hpp

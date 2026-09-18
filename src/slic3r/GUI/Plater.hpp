@@ -72,6 +72,7 @@ namespace UndoRedo {
 }
 
 namespace GUI {
+struct PendingNozzleMigration;
 class SyncAmsInfoDialog;
 class MainFrame;
 class ConfigOptionsGroup;
@@ -211,6 +212,9 @@ public:
     std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
     void sync_ams_list(bool is_from_big_sync_btn = false);
     bool sync_extruder_list();
+    // Arms the next sync_extruder_list() with the nozzle migration the user confirmed in
+    // SyncPresetWithPrinterDialog. Consumed once; a sync that runs without it migrates nothing.
+    void arm_nozzle_migration(const PendingNozzleMigration &migration);
     bool need_auto_sync_extruder_list_after_connect_priner(const MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
     int get_sidebar_pos_right_x();
