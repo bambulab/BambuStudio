@@ -717,14 +717,23 @@ void FilamentExtendComboBox::SetNozzleInfo(const DevNozzle& nozzle, MachineObjec
     if (m_id_label && nozzle.GetAddrId().has_value())
         m_id_label->SetLabel(wxString::Format("%d", nozzle.GetAddrId().value() + 1));
 
+    const bool nozzle_info_available = (nozzle.IsExist() || nozzle.IsOnRack()) && nozzle.IsNormal() && nozzle.IsHotend();
+
+    /* SetLabel, not SetSelection(-1): Clear() left selection at -1, so SetSelection won't refresh. */
     init_flow_type_combo(obj);
-    if (m_flow_type_combo && (nozzle.IsExist() || nozzle.IsOnRack())) {
-        switch_combox_to_target(m_flow_type_combo, nozzle.GetNozzleFlowType());
+    if (m_flow_type_combo) {
+        if (nozzle_info_available)
+            switch_combox_to_target(m_flow_type_combo, nozzle.GetNozzleFlowType());
+        else
+            m_flow_type_combo->SetLabel(wxEmptyString);
     }
 
     init_diameter_combo(obj, DevNozzle::ToNozzleVolumeType(nozzle.GetNozzleFlowType()));
-    if (m_diameter_combo && (nozzle.IsExist() || nozzle.IsOnRack())) {
-        switch_combox_to_target(m_diameter_combo, nozzle.GetNozzleDiameterType());
+    if (m_diameter_combo) {
+        if (nozzle_info_available)
+            switch_combox_to_target(m_diameter_combo, nozzle.GetNozzleDiameterType());
+        else
+            m_diameter_combo->SetLabel(wxEmptyString);
     }
 }
 
