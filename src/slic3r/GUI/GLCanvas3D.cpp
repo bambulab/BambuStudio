@@ -1319,6 +1319,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE_OUTPLATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ORIENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ORIENT_PARTPLATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_CURR_PLATE_ALL, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_CENTER_SELECTION, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_SELECT_ALL, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_QUESTION_MARK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>);
@@ -4755,16 +4756,21 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     post_event(SimpleEvent(EVT_GLCANVAS_ORIENT));
                 break;
             }
-#if !BBL_RELEASE_TO_PUBLIC
         case 'C':
         case 'c': {
+            // Painting gizmos use 'C' to pick the circle brush; leave it to them.
+            if (m_canvas_type == ECanvasType::CanvasView3D && !is_in_painting_mode) {
+                post_event(SimpleEvent(EVT_GLCANVAS_CENTER_SELECTION));
+                break;
+            }
+#if !BBL_RELEASE_TO_PUBLIC
             auto& t_gcode_viewer = get_gcode_viewer();
             t_gcode_viewer.toggle_gcode_window_visibility();
             m_dirty = true;
             request_extra_frame();
+#endif
             break;
         }
-#endif
         //case 'G':
         //case 'g': {
         //    if ((evt.GetModifiers() & shiftMask) != 0) {
