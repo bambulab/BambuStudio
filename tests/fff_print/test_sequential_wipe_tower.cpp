@@ -1,11 +1,6 @@
-// Tests for per-object prime towers in By-Object (sequential) printing.
-// See docs/sequential_wipe_tower_architecture.md and
+// Tests for per-object prime towers in By-Object (sequential) printing
+// (issues #1876 / #9399). See docs/sequential_wipe_tower_architecture.md and
 // docs/sequential_wipe_tower_test_strategy.md.
-//
-// Status: baseline characterisation + the target regression for issues
-// #1876 / #9399 (2+ multicolour objects, By Object, prime tower on -> one prime
-// tower per object). The [!shouldfail] case flips to passing once the feature
-// emits per-object tower G-code.
 
 #include <catch2/catch.hpp>
 
@@ -24,9 +19,10 @@ using namespace Slic3r::Test;
 
 namespace {
 
-// A two-colour object: walls on filament `a`, infill/surfaces on filament `b`,
-// set through per-object region config so each sequential object carries its own
-// tool schedule. Every layer has a tool change, so the object needs a tower.
+// An object whose walls print with filament `a` and infill/surfaces with `b`,
+// through per-object region config so each sequential object carries its own
+// tool schedule. With a != b every layer has a tool change and the object needs
+// a tower; with a == b it is single-colour and needs none.
 ModelObject *add_multicolour_object(Model &model, const Vec3d &offset, double w, double d, double h, int a, int b)
 {
     ModelObject *o = model.add_object();
@@ -34,8 +30,6 @@ ModelObject *add_multicolour_object(Model &model, const Vec3d &offset, double w,
     o->config.set_key_value("wall_filament", new ConfigOptionInt(a));
     o->config.set_key_value("solid_infill_filament", new ConfigOptionInt(b));
     o->config.set_key_value("sparse_infill_filament", new ConfigOptionInt(b));
-    o->config.set_key_value("top_surface_filament", new ConfigOptionInt(b));
-    o->config.set_key_value("bottom_surface_filament", new ConfigOptionInt(b));
     o->add_instance();
     o->instances.front()->set_offset(offset);
     return o;
@@ -81,13 +75,20 @@ DynamicPrintConfig make_sequential_multicolour_config(unsigned num_filaments)
     return config;
 }
 
+struct ObjSpec {
+    Vec3d  offset;
+    int    wall = 1;    // wall filament
+    int    infill = 2;  // infill/surface filament (== wall -> single colour)
+    double h = 2.0;     // object height (mm)
+};
+
 void build_sequential_print(Print &print, Model &model, const DynamicPrintConfig &config_in,
-                            const std::vector<Vec3d> &offsets, int n_filaments,
-                            double w = 20, double d = 20, double h = 2.0)
+                            const std::vector<ObjSpec> &objs, int n_filaments,
+                            double w = 20, double d = 20)
 {
     model.clear_objects();
-    for (const Vec3d &off : offsets)
-        add_multicolour_object(model, off, w, d, h, 1, 2);
+    for (const ObjSpec &s : objs)
+        add_multicolour_object(model, s.offset, w, d, s.h, s.wall, s.infill);
 
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
     config.set_num_filaments(n_filaments);
@@ -99,6 +100,19 @@ void build_sequential_print(Print &print, Model &model, const DynamicPrintConfig
     }
     print.apply(model, config);
     print.set_status_silent();
+    // validate() runs sequential_print_clearance_valid(), which assigns each
+    // instance an arrange_order. Without that, sort_object_instances_by_model_order()
+    // collapses all instances onto the first (they all have arrange_order 0).
+    print.validate();
+}
+
+// Convenience: N identical two-colour objects spaced `pitch` mm along X.
+std::vector<ObjSpec> row_of_multicolour(int n, double pitch = 120.0)
+{
+    std::vector<ObjSpec> v;
+    for (int i = 0; i < n; ++i)
+        v.push_back(ObjSpec{Vec3d(pitch * i, 0, 0), 1, 2, 2.0});
+    return v;
 }
 
 // Number of sequential objects that will actually get a prime tower: the plate
@@ -201,7 +215,7 @@ TEST_CASE("SeqWT: By-Object 2 multicolour objects get a tower each (planning)", 
 
     Print print;
     Model model;
-    build_sequential_print(print, model, config, {Vec3d(0, 0, 0), Vec3d(120, 0, 0)}, 2);
+    build_sequential_print(print, model, config, row_of_multicolour(2), 2);
 
     REQUIRE(print.validate().string.empty());
     print.process();
@@ -221,7 +235,7 @@ TEST_CASE("SeqWT: By-Object 2 multicolour objects emit two prime towers (G-code)
 
     Print print;
     Model model;
-    build_sequential_print(print, model, config, {Vec3d(0, 0, 0), Vec3d(120, 0, 0)}, 2);
+    build_sequential_print(print, model, config, row_of_multicolour(2), 2);
     REQUIRE(print.validate().string.empty());
 
     std::string gcode = seq_gcode(print);
@@ -268,7 +282,7 @@ TEST_CASE("SeqWT regression: By-Layer 2 multicolour objects keep one global towe
 
     Print print;
     Model model;
-    build_sequential_print(print, model, config, {Vec3d(0, 0, 0), Vec3d(120, 0, 0)}, 2);
+    build_sequential_print(print, model, config, row_of_multicolour(2), 2);
 
     REQUIRE(print.validate().string.empty());
     print.process();
@@ -286,11 +300,156 @@ TEST_CASE("SeqWT regression: prime tower disabled -> no tower", "[SequentialWipe
 
     Print print;
     Model model;
-    build_sequential_print(print, model, config, {Vec3d(0, 0, 0), Vec3d(120, 0, 0)}, 2);
+    build_sequential_print(print, model, config, row_of_multicolour(2), 2);
 
     REQUIRE(print.validate().string.empty());
     print.process();
 
     REQUIRE_FALSE(print.has_wipe_tower());
     REQUIRE(count_object_orderings_with_tower(print) == 0);
+}
+
+// Task doc Test 3: three objects -> three towers (guards against a 2-object
+// special case).
+TEST_CASE("SeqWT: three multicolour objects get three towers", "[SequentialWipeTower]")
+{
+    DynamicPrintConfig config = make_sequential_multicolour_config(2);
+
+    Print print;
+    Model model;
+    build_sequential_print(print, model, config, row_of_multicolour(3), 2);
+
+    REQUIRE(print.validate().string.empty());
+    print.process();
+
+    REQUIRE(print.sequential_print_data()->print_object_order.size() == 3);
+    REQUIRE(count_object_orderings_with_tower(print) == 3);
+    REQUIRE(print.sequential_print_data()->object_wipe_tower_map.size() == 3);
+
+    std::string gcode = seq_gcode(print);
+    REQUIRE(object_boundaries(gcode).size() == 2);   // three objects, two boundaries
+}
+
+// Task doc Test 4: a single-colour object between two multicolour ones gets no
+// tower of its own.
+TEST_CASE("SeqWT: single-colour object in the middle gets no tower", "[SequentialWipeTower]")
+{
+    DynamicPrintConfig config = make_sequential_multicolour_config(2);
+
+    Print print;
+    Model model;
+    build_sequential_print(print, model, config, {
+        ObjSpec{Vec3d(0, 0, 0),   1, 2, 2.0},   // A: two colours
+        ObjSpec{Vec3d(120, 0, 0), 1, 1, 2.0},   // B: single colour
+        ObjSpec{Vec3d(240, 0, 0), 1, 2, 2.0},   // C: two colours
+    }, 2);
+
+    REQUIRE(print.validate().string.empty());
+    print.process();
+
+    const auto &pod = print.sequential_print_data().value();
+    REQUIRE(pod.print_object_order.size() == 3);
+    // A and C get a tower, B does not.
+    REQUIRE(count_object_orderings_with_tower(print) == 2);
+    const PrintObject *b = pod.print_object_order[1];
+    REQUIRE(pod.object_wipe_tower_map.count(b) == 0);
+}
+
+// Task doc Test 7 (issue #9165): each tower follows its own object's tool order.
+TEST_CASE("SeqWT: each tower follows its object's own filament order", "[SequentialWipeTower]")
+{
+    DynamicPrintConfig config = make_sequential_multicolour_config(3);
+
+    Print print;
+    Model model;
+    build_sequential_print(print, model, config, {
+        ObjSpec{Vec3d(0, 0, 0),   1, 2, 2.0},   // A: walls 1, infill 2
+        ObjSpec{Vec3d(120, 0, 0), 1, 3, 2.0},   // B: walls 1, infill 3 (different schedule)
+    }, 3);
+
+    REQUIRE(print.validate().string.empty());
+    print.process();
+
+    const auto &pod = print.sequential_print_data().value();
+    REQUIRE(pod.print_object_order.size() == 2);
+    const ToolOrdering &to_a = pod.object_tool_ordering_map.at(pod.print_object_order[0]);
+    const ToolOrdering &to_b = pod.object_tool_ordering_map.at(pod.print_object_order[1]);
+
+    // Each object's ToolOrdering uses only its own two filaments -- no cross-talk.
+    auto uses = [](const ToolOrdering &to, unsigned f) {
+        const auto &e = to.all_extruders();
+        return std::find(e.begin(), e.end(), f) != e.end();
+    };
+    REQUIRE(to_a.all_extruders().size() == 2);
+    REQUIRE(to_b.all_extruders().size() == 2);
+    REQUIRE(uses(to_a, 1));                 // filament 2 (id 1)
+    REQUIRE_FALSE(uses(to_a, 2));           // never filament 3
+    REQUIRE(uses(to_b, 2));                 // filament 3 (id 2)
+    REQUIRE_FALSE(uses(to_b, 1));           // never filament 2
+
+    // Both get a tower planned from their own ordering.
+    REQUIRE(count_object_orderings_with_tower(print) == 2);
+    const auto &plan_a = pod.object_wipe_tower_map.at(pod.print_object_order[0]);
+    const auto &plan_b = pod.object_wipe_tower_map.at(pod.print_object_order[1]);
+    REQUIRE_FALSE(plan_a.tool_changes.empty());
+    REQUIRE_FALSE(plan_b.tool_changes.empty());
+}
+
+// Task doc collision A: wide separation slices without complaint.
+TEST_CASE("SeqWT collision: wide separation slices", "[SequentialWipeTower]")
+{
+    DynamicPrintConfig config = make_sequential_multicolour_config(2);
+
+    Print print;
+    Model model;
+    build_sequential_print(print, model, config, row_of_multicolour(2, 150.0), 2);
+
+    REQUIRE(print.validate().string.empty());
+    REQUIRE_NOTHROW(print.process());
+    REQUIRE(count_object_orderings_with_tower(print) == 2);
+}
+
+// Task doc collision B/C/D: a tower would land on an already-printed object ->
+// slicing is rejected with a clear message.
+TEST_CASE("SeqWT collision: tower over a neighbouring object rejects the slice", "[SequentialWipeTower]")
+{
+    DynamicPrintConfig config = make_sequential_multicolour_config(2);
+    // Anchor object A's tower (anchor + A's ~10 mm shift, then + bbx) so it lands
+    // on top of object B at X[80,100].
+    config.set_key_value("wipe_tower_x", new ConfigOptionFloats(std::vector<double>{75.0}));
+    config.set_key_value("wipe_tower_y", new ConfigOptionFloats(std::vector<double>{5.0}));
+
+    Print print;
+    Model model;
+    build_sequential_print(print, model, config, {
+        ObjSpec{Vec3d(0, 0, 0),  1, 2, 2.0},   // A at world X[0,20]
+        ObjSpec{Vec3d(80, 0, 0), 1, 2, 3.0},   // B at world X[80,100] (distinct height -> distinct object)
+    }, 2);
+
+    REQUIRE_THROWS_AS(print.process(), Slic3r::SlicingError);
+}
+
+// Task doc Test 8: objects of different height keep independent towers.
+TEST_CASE("SeqWT: objects of different height keep independent towers", "[SequentialWipeTower]")
+{
+    DynamicPrintConfig config = make_sequential_multicolour_config(2);
+
+    Print print;
+    Model model;
+    build_sequential_print(print, model, config, {
+        ObjSpec{Vec3d(0, 0, 0),   1, 2, 2.0},
+        ObjSpec{Vec3d(120, 0, 0), 1, 2, 4.0},   // twice as tall
+    }, 2);
+
+    REQUIRE(print.validate().string.empty());
+
+    std::string gcode = seq_gcode(print);
+    std::vector<size_t> bounds = object_boundaries(gcode);
+    REQUIRE(bounds.size() == 1);
+
+    // Tower B has more planned layers than tower A (B is taller).
+    const auto &pod = print.sequential_print_data().value();
+    const auto &plan_a = pod.object_wipe_tower_map.at(pod.print_object_order[0]);
+    const auto &plan_b = pod.object_wipe_tower_map.at(pod.print_object_order[1]);
+    REQUIRE(plan_b.tool_changes.size() > plan_a.tool_changes.size());
 }

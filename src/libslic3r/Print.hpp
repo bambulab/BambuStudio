@@ -1215,8 +1215,14 @@ private:
     void                _make_sequential_wipe_towers();
     // Core wipe-tower geometry generation from the ordering currently in
     // m_wipe_tower_data.tool_ordering, writing the result into m_wipe_tower_data.
-    // `virtual_layer_object` receives inserted tower-only support layers.
-    void                _make_wipe_tower_geometry(PrintObject *virtual_layer_object);
+    // `virtual_layer_object` receives inserted tower-only support layers when
+    // `insert_virtual_layers` is set (by-layer path; not yet supported for the
+    // per-object sequential path).
+    void                _make_wipe_tower_geometry(PrintObject *virtual_layer_object, bool insert_virtual_layers = true);
+    // Checks that each sequential object's prime tower is clear of every earlier
+    // object and its tower (and the bed exclusion area). Throws SlicingError on
+    // a hard conflict. MVP: axis-aligned boxes grown by the sequential clearance.
+    void                check_sequential_wipe_tower_clearance() const;
     // Vertical clearance against the compacted wipe tower, see wipe_tower_no_sparse_layers.
     void                validate_compacted_wipe_tower_clearance() const;
     void                finalize_first_layer_convex_hull();
