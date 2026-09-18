@@ -4379,10 +4379,6 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                 incompatible_nozzle_diameter_slots.push_back(i);
                 continue;
             }
-            // Empty map entries may still exist in legacy projects. Leave them unmapped rather than
-            // inventing options.front() (smallest, e.g. 0.2) when multiple diameters are installed.
-            if (target.empty())
-                continue;
             target = options.front();
         }
         // `options` only says a filament preset exists for that diameter. The rack still has to carry a
