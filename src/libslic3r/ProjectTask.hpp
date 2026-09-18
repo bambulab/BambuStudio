@@ -171,6 +171,7 @@ public:
     std::string                 design_title;
     std::string                 title;
     std::string                 instance_title;
+    std::string                 create_client;
 };
 
 class BBLSubTask {

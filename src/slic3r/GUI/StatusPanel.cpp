@@ -989,6 +989,7 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     wxPanel    *task_name_panel      = new wxPanel(parent);
 
     m_staticText_title = new wxStaticText(task_name_panel, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_staticText_title->SetMinSize(wxSize(0, -1));
     m_staticText_title->SetMaxSize(wxSize(FromDIP(600), -1));
     m_staticText_title->Wrap(-1);
 #ifdef __WXOSX_MAC__
@@ -1027,6 +1028,8 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     bSizer_task_name->Add(task_name_panel, 0, wxEXPAND, FromDIP(5));
 
     m_staticText_subtitle = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_staticText_subtitle->SetMinSize(wxSize(0, -1));
+    m_staticText_subtitle->SetMaxSize(wxSize(FromDIP(600), -1));
     m_staticText_subtitle->Wrap(-1);
 #ifdef __WXOSX_MAC__
     m_staticText_subtitle->SetFont(::Label::Body_11);
@@ -1677,6 +1680,7 @@ void PrintingTaskPanel::update_title(const wxString &title)
 {
     if (m_staticText_title->GetLabelText() != title) { BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << title; }
     m_staticText_title->SetLabelText(title);
+    m_staticText_title->SetToolTip(title);
 }
 
 void PrintingTaskPanel::update_stage_value(wxString stage, int val)
@@ -1886,8 +1890,10 @@ void PrintingTaskPanel::show_subtitle(bool show, const wxString &subtitle)
     if (show) {
         if (!m_staticText_subtitle->IsShown()) { m_staticText_subtitle->Show(); }
         m_staticText_subtitle->SetLabelText(subtitle);
+        m_staticText_subtitle->SetToolTip(subtitle);
     } else {
         m_staticText_subtitle->SetLabelText(wxEmptyString);
+        m_staticText_subtitle->UnsetToolTip();
         m_staticText_subtitle->Hide();
     }
 }
@@ -4419,7 +4425,12 @@ StatusPanel::TaskDisplayInfo StatusPanel::resolve_task_display_info(const std::s
 
     if (!model_task->design_title.empty()) {
         display_info.title = GUI::from_u8(model_task->design_title);
-        const std::string &subtitle = model_task->title.empty() ? model_task->instance_title : model_task->title;
+        std::string subtitle;
+        if (model_task->create_client == "app") {
+            subtitle = model_task->instance_title;
+        } else {
+            subtitle = model_task->title.empty() ? model_task->instance_title : model_task->title;
+        }
         display_info.subtitle = GUI::from_u8(subtitle);
     } else if (!model_task->title.empty()) {
         display_info.title = GUI::from_u8(model_task->title);
