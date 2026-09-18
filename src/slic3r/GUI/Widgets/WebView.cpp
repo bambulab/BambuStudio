@@ -8,6 +8,8 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <chrono>
+#include <deque>
 #include <memory>
 
 #include <wx/filename.h>
@@ -115,6 +117,12 @@ bool local_target_missing(const wxString &url, wxString &path_out)
 #ifdef __WIN32__
 
 namespace {
+
+int64_t webview_steady_now_ms()
+{
+    using namespace std::chrono;
+    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+}
 
 /// Probes the WebView2 user data directory for write access.
 bool user_data_path_usable(const wxString &path)
@@ -554,6 +562,8 @@ private:
         }
 
         if (decision.action != Slic3r::GUI::WebViewWatcher::Action::None) {
+            // Owner-managed (DeviceHost): the owning host recreates/reloads via the
+            // recovery event.
             wxWebView *self = this;
             Slic3r::GUI::wxGetApp().CallAfter([self, decision]() {
                 if (Slic3r::GUI::wxGetApp().is_closing() || !webview_alive(self))
@@ -561,6 +571,16 @@ private:
                 if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(self))
                     watcher->ScheduleRecovery(decision);
             });
+        } else if (Slic3r::GUI::WebViewWatcher *self_watcher = webview_watcher(this);
+                   self_watcher &&
+                   self_watcher->Mode() == Slic3r::GUI::WebViewProtectionMode::DiagnosticsOnly &&
+                   (fault == Slic3r::GUI::WebViewWatcher::Fault::RenderProcessGone ||
+                    fault == Slic3r::GUI::WebViewWatcher::Fault::FrameRenderProcessGone)) {
+            // No owner-side recovery consumer (home, makerworld, login, ...). A dead
+            // render process can be revived by re-navigating in the base class, so the
+            // view auto-rebuilds without any WebViewPanel change. A dead browser
+            // process needs the owner to recreate the control and stays log-only here.
+            SelfRecoverRenderer(info.url);
         }
         return S_OK;
     }
@@ -605,11 +625,51 @@ private:
         m_processFailedSubscribed = false;
     }
 
+    // Bounded within a window so a renderer that keeps dying can't spin forever;
+    // matches DeviceWebHost's 60s retry budget.
+    bool AllowSelfReload()
+    {
+        const int64_t now = webview_steady_now_ms();
+        while (!m_selfReloads.empty() && now - m_selfReloads.front() >= kSelfReloadWindowMs)
+            m_selfReloads.pop_front();
+        if (static_cast<int>(m_selfReloads.size()) >= kMaxSelfReloads)
+            return false;
+        m_selfReloads.push_back(now);
+        return true;
+    }
+
+    // A dead render process leaves this control and the browser process alive, so
+    // re-navigating restores the page without the owning panel's help. Used for
+    // views with no owner-side recovery (DiagnosticsOnly): home, makerworld, ...
+    void SelfRecoverRenderer(const wxString &url)
+    {
+        if (!AllowSelfReload()) {
+            Slic3r::GUI::WebViewTraceLogger::Emit(
+                Slic3r::GUI::WebViewTraceLogger::Stage::L3_PROCESS, GetName(),
+                "self_recover_exhausted", {}, Slic3r::GUI::WebViewTraceLogger::Severity::Error);
+            return;
+        }
+        wxWebView *self = this;
+        // Navigating inside the ProcessFailed callback re-enters the backend; defer it.
+        Slic3r::GUI::wxGetApp().CallAfter([self, url]() {
+            if (Slic3r::GUI::wxGetApp().is_closing() || !webview_alive(self))
+                return;
+            if (url.empty() || url == "about:blank")
+                self->Reload();          // no meaningful target; harmless fallback
+            else
+                self->LoadURL(url);      // Reload() is a no-op after a crash, so re-navigate
+        });
+    }
+
     wxString pendingUserAgent;
     COREWEBVIEW2_PREFERRED_COLOR_SCHEME pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
     EventRegistrationToken m_processFailedToken{};
     bool m_processFailedSubscribed{false};
     wxTimer m_backendWatchdog;
+
+    std::deque<int64_t>      m_selfReloads;
+    static constexpr int     kMaxSelfReloads     = 2;
+    static constexpr int64_t kSelfReloadWindowMs = 60000;
 };
 
 #elif defined __WXOSX__

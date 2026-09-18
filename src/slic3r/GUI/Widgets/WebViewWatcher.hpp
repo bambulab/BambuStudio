@@ -70,6 +70,8 @@ public:
     WebViewWatcher(const WebViewWatcher &) = delete;
     WebViewWatcher &operator=(const WebViewWatcher &) = delete;
 
+    WebViewProtectionMode Mode() const { return m_mode; }
+
     /// Returns the suggested action; DeviceWebHost owns retry budgets.
     Decision Decide(Fault fault);
 
