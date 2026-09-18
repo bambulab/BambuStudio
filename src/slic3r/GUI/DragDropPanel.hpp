@@ -66,6 +66,9 @@ private:
     std::vector<ColorPanel *> m_filament_blocks;
 
     void NotifyDragDropCompleted();
+    void BindInteractionHoverEvents(wxWindow *window);
+    void OnInteractionHoverEnter(wxMouseEvent &event);
+    void OnInteractionHoverLeave(wxMouseEvent &event);
 private:
     bool m_is_draging = false;
 };

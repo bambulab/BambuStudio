@@ -305,9 +305,42 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
     auto drop_target = new ColorDropTarget(this);
     SetDropTarget(drop_target);
 
+    BindInteractionHoverEvents(this);
+    for (wxWindow *child : GetChildren())
+        BindInteractionHoverEvents(child);
+
     SetSizer(m_sizer);
     Layout();
     Fit();
+}
+
+void DragDropPanel::BindInteractionHoverEvents(wxWindow *window)
+{
+    window->Bind(wxEVT_ENTER_WINDOW, &DragDropPanel::OnInteractionHoverEnter, this);
+    window->Bind(wxEVT_LEAVE_WINDOW, &DragDropPanel::OnInteractionHoverLeave, this);
+}
+
+void DragDropPanel::OnInteractionHoverEnter(wxMouseEvent &event)
+{
+    if (!m_interaction_enabled)
+        notify_filament_drag_hover(this, false);
+    event.Skip();
+}
+
+void DragDropPanel::OnInteractionHoverLeave(wxMouseEvent &event)
+{
+    if (!m_interaction_enabled) {
+        CallAfter([this]() {
+            for (wxWindow *window = wxFindWindowAtPoint(wxGetMousePosition()); window; window = window->GetParent()) {
+                if (auto *panel = dynamic_cast<DragDropPanel *>(window)) {
+                    notify_filament_drag_hover(panel, panel->IsInteractionEnabled());
+                    return;
+                }
+            }
+            notify_filament_drag_hover(this, true);
+        });
+    }
+    event.Skip();
 }
 
 void DragDropPanel::AddColorBlock(const std::string &type, int filament_id, bool update_ui)
@@ -315,6 +348,7 @@ void DragDropPanel::AddColorBlock(const std::string &type, int filament_id, bool
     const wxSize block_size(FromDIP(30), FromDIP(60));
     const wxSize initial_size = m_use_fixed_grid_item_size ? block_size : wxSize(32, 40);
     ColorPanel  *panel = new ColorPanel(this, filament_id, type, initial_size);
+    BindInteractionHoverEvents(panel);
     panel->SetMinSize(block_size);
     if (m_use_fixed_grid_item_size)
         m_grid_item_sizer->Add(
