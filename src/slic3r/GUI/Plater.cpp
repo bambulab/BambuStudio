@@ -1984,6 +1984,8 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
     }
     if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
         print_tab->update_extruder_variants(-1, false);
+    if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
+        filament_tab->update_nozzle_status_display();
     return true;
 }
 
@@ -2022,6 +2024,8 @@ static void refresh_after_multi_nozzle_diameter_mode_cleared()
     }
     if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
         print_tab->update_extruder_variants(-1, false);
+    if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
+        filament_tab->update_nozzle_status_display();
 }
 
 void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diameter)

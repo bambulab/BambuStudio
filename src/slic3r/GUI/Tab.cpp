@@ -8386,15 +8386,24 @@ std::vector<NozzleVariantSwitcher::Option> Tab::generate_nozzle_variant_options(
 
         const auto supported = printer_supported(extruder_id);
 
-        // Filter against the current printer's nozzle_diameter for this
-        // extruder. extruder_full_stat carries every nozzle the user has
-        // ever configured across all diameters; we only want the ones that
-        // match the active printer preset's diameter.
-        const std::string want_diameter = wxString::Format(wxT("%g"), nozzle_diameter->values[extruder_id]).ToStdString();
+        // extruder_full_stat carries every nozzle the user has ever configured, across
+        // all diameters. Single-diameter mode slices with one diameter only, so keep
+        // just the nozzles matching the printer preset's nozzle_diameter. Multi-diameter
+        // mode slices with all of them at once, so every nozzle belongs to its flow
+        // type's variant regardless of diameter — which is also why the button label
+        // drops the diameter prefix there: one button now spans several diameters.
+        const bool        multi_diameter = multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config);
+        const std::string want_diameter  = wxString::Format(wxT("%g"), nozzle_diameter->values[extruder_id]).ToStdString();
 
         const auto stats = m_preset_bundle->extruder_full_stat.get_extruder_stats(extruder_id);
         for (size_t i = 0; i < stats.size(); ++i) {
-            if (stats[i].first != want_diameter) continue;
+            // A slot without a diameter or without a flow type is a vacant placeholder,
+            // not a nozzle. The diameter comparison below used to reject those as a side
+            // effect; multi-diameter mode skips that comparison, so reject them here.
+            // Letting one through would add a bogus variant, because
+            // DevNozzle::ToNozzleVolumeType() maps an unknown flow string to Standard.
+            if (stats[i].first.empty() || stats[i].second.empty()) continue;
+            if (!multi_diameter && stats[i].first != want_diameter) continue;
             NozzleVolumeType vt = DevNozzle::ToNozzleVolumeType(stats[i].second);
             if (!supported[int(vt)]) continue;
 
@@ -8761,6 +8770,13 @@ void Tab::update_nozzle_status_display()
     if (!has_multiple_nozzle) {
         return;
     }
+
+    // Multi-diameter mode assigns filament diameter per slot on the sidebar, so a
+    // single "available nozzles for current preset" list is not meaningful. The
+    // printer preset's nozzle_diameter is only a representative value and would
+    // mis-filter the chips (e.g. a 0.6 filament showing 0.4 slots).
+    if (multi_nozzle_diameter_mode_enabled(m_preset_bundle->project_config))
+        return;
 
     int selection = m_variant_combo ? m_variant_combo->GetSelection() : -1;
     NozzleFlowType flow_type = get_actual_nozzle_flow_type(selection);
