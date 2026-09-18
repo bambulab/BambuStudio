@@ -1301,14 +1301,16 @@ void MixedFilamentDialog::rebuild_recommendation_items()
     size_t n = m_physical_colors.size();
     int count = 0;
 
-    // Only filaments with the same material type and nozzle diameter may be mixed.
+    // Same type is always required. Nozzle diameter is only a mix constraint
+    // while multi-diameter mode is on (m_enforce_nozzle_diameter).
     std::map<std::pair<std::string, std::string>, std::vector<size_t>> type_groups;
     for (size_t i = 0; i < n; ++i) {
         std::string t = (i < m_physical_types.size()) ? m_physical_types[i] : "PLA";
         // Skip support filaments (type ends with "-S")
         if (t.size() >= 2 && t.compare(t.size() - 2, 2, "-S") == 0)
             continue;
-        const std::string diameter = i < m_physical_diameters.size() ? m_physical_diameters[i] : std::string();
+        const std::string diameter = (m_enforce_nozzle_diameter && i < m_physical_diameters.size())
+            ? m_physical_diameters[i] : std::string();
         type_groups[{t, diameter}].push_back(i);
     }
 
@@ -1440,7 +1442,7 @@ void MixedFilamentDialog::rebuild_all_combos()
             others_selected.insert(phys);
             if (phys >= 1 && phys <= m_physical_types.size())
                 others_types.insert(m_physical_types[phys - 1]);
-            if (phys >= 1 && phys <= m_physical_diameters.size())
+            if (m_enforce_nozzle_diameter && phys >= 1 && phys <= m_physical_diameters.size())
                 others_diameters.insert(m_physical_diameters[phys - 1]);
         }
 
@@ -1469,7 +1471,7 @@ void MixedFilamentDialog::rebuild_all_combos()
                 if (others_types.find(this_type) == others_types.end())
                     style = DD_ITEM_STYLE_DIMMED;
             }
-            if (!others_diameters.empty() && !m_physical_diameters.empty()) {
+            if (m_enforce_nozzle_diameter && !others_diameters.empty() && !m_physical_diameters.empty()) {
                 const std::string this_diameter = j < m_physical_diameters.size() ? m_physical_diameters[j] : std::string();
                 if (others_diameters.find(this_diameter) == others_diameters.end())
                     style = DD_ITEM_STYLE_DIMMED;
@@ -1856,7 +1858,7 @@ void MixedFilamentDialog::update_ok_button_state()
         m_type_mismatch_msg.clear();
     }
 
-    if (!m_physical_diameters.empty() && m_result.components.size() >= 2) {
+    if (m_enforce_nozzle_diameter && !m_physical_diameters.empty() && m_result.components.size() >= 2) {
         std::map<std::string, std::vector<unsigned int>> diameter_groups;
         for (unsigned int phys : m_result.components) {
             if (phys < 1 || phys > m_physical_diameters.size())

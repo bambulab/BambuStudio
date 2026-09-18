@@ -2073,6 +2073,8 @@ static void refresh_after_multi_nozzle_diameter_mode_cleared()
         print_tab->update_extruder_variants(-1, false);
     if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
         filament_tab->update_nozzle_status_display();
+    if (auto *plater = wxGetApp().plater())
+        plater->sidebar().refresh_filament_diameter_buttons();
 }
 
 // The distinct diameters the user's choices land on, spelled the way filament_diameter_map stores
@@ -5112,6 +5114,12 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
         p->refresh_filament_nozzle_label(i, filament_idx);
     }
 
+    // Mixed rows create the nozzle chip during rebuild (they have no persistent Show/Hide
+    // path like refresh_filament_nozzle_label). Rebuild here so toggling
+    // multi_nozzle_diameter_mode hides or restores the chip together with physical rows.
+    if (p->m_panel_mixed_content != nullptr)
+        update_mixed_filament_list(false);
+
     // Push/close the right-bottom notification only when the rendered message actually changes --
     // this is called far more often (any sidebar refresh) than the message itself changes.
     {
@@ -6255,11 +6263,11 @@ void Sidebar::edit_filament()
         p->editing_filament = p->m_menu_filament_id; // sync with TabPresetComboxBox's m_filament_idx
 }
 
-void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_name, bool /*skip_preset_validation*/) {
-    add_custom_filaments({ { new_col, preset_name } });
+void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_name, bool /*skip_preset_validation*/, int inherit_nozzle_from) {
+    add_custom_filaments({ { new_col, preset_name } }, inherit_nozzle_from);
 }
 
-size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items)
+size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::string>>& items, int inherit_nozzle_from)
 {
     if (items.empty() || is_new_project_in_gcode3mf())
         return size_t(-1);
@@ -6362,9 +6370,43 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
         }
     }
 
+    // Color-decompose (and similar) must copy the source slot's diameter/flow.
+    // set_num_filaments() otherwise inherits from the last existing slot, which
+    // is often a mixed row or a different physical diameter.
+    if (inherit_nozzle_from >= 0 && filament_nozzle_chip_supported()) {
+        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+        auto *diameter_opt = project_config.option<ConfigOptionStrings>("filament_diameter_map");
+        auto *volume_opt = project_config.option<ConfigOptionInts>("filament_volume_map");
+        const size_t src = static_cast<size_t>(inherit_nozzle_from);
+        if (diameter_opt && src < diameter_opt->values.size()) {
+            std::string src_diameter = diameter_opt->values[src];
+            if (src_diameter.empty()) {
+                const std::vector<std::string> options =
+                    preset_bundle->get_filament_nozzle_diameter_options(src);
+                if (!options.empty())
+                    src_diameter = options.front();
+            }
+            const int src_volume = (volume_opt && src < volume_opt->values.size())
+                ? volume_opt->values[src]
+                : static_cast<int>(NozzleVolumeType::nvtStandard);
+            for (size_t i = 0; i < k; ++i) {
+                const size_t idx = insert_pos + i;
+                if (volume_opt) {
+                    if (idx >= volume_opt->values.size())
+                        volume_opt->values.resize(idx + 1, src_volume);
+                    volume_opt->values[idx] = src_volume;
+                }
+                preset_bundle->set_filament_nozzle_diameter(idx, src_diameter);
+            }
+        }
+    }
+
     // Plate maps append one slot per call; keep that contract for each new physical.
     for (size_t i = 1; i <= k; ++i)
         wxGetApp().plater()->get_partplate_list().on_filament_added((int)(total + i));
+
+    if (inherit_nozzle_from >= 0 && filament_nozzle_chip_supported())
+        apply_nozzle_manual_maps_to_plates();
 
     const int filament_count = (int)wxGetApp().preset_bundle->filament_presets.size();
     wxGetApp().plater()->on_filament_count_change(filament_count);
@@ -7283,18 +7325,21 @@ static bool multi_diameter_filament_selection_active()
     return filament_nozzle_chip_supported();
 }
 
-// Read-only mixed-row chip: pick the first component that has a diameter.
-// Flow (Std/HF) is display-only and not part of the mix constraint.
-static std::string mixed_component_nozzle_label(
+// Resolve one physical component's diameter and flow for the mixed-row chip.
+static bool mixed_component_nozzle_info(
     unsigned int physical_1based,
     const std::vector<size_t> &physical_indices,
     const std::vector<std::string> &selected_diameters,
-    const std::vector<int> &volume_maps)
+    const std::vector<int> &volume_maps,
+    std::string &diameter,
+    NozzleVolumeType &type)
 {
+    diameter.clear();
+    type = NozzleVolumeType::nvtStandard;
     if (physical_1based < 1 || physical_1based > physical_indices.size())
-        return {};
+        return false;
     const size_t cfg = physical_indices[physical_1based - 1];
-    std::string diameter = (cfg < selected_diameters.size()) ? selected_diameters[cfg] : std::string();
+    diameter = (cfg < selected_diameters.size()) ? selected_diameters[cfg] : std::string();
     if (diameter.empty() && wxGetApp().preset_bundle != nullptr) {
         const std::vector<std::string> options =
             wxGetApp().preset_bundle->get_filament_nozzle_diameter_options(cfg);
@@ -7302,14 +7347,41 @@ static std::string mixed_component_nozzle_label(
             diameter = options.front();
     }
     if (diameter.empty())
-        return {};
-    NozzleVolumeType type = NozzleVolumeType::nvtStandard;
+        return false;
     if (cfg < volume_maps.size())
         type = static_cast<NozzleVolumeType>(volume_maps[cfg]);
-    const std::string volume = DevNozzle::ToNozzleVolumeShortString(type);
-    if (volume.empty())
-        return diameter;
-    return diameter + " " + volume;
+    return true;
+}
+
+// Read-only mixed-row chip: first non-empty component diameter, then Std/HF
+// when every component shares that flow, or Mix when flows differ.
+static std::string mixed_slot_nozzle_label(
+    const std::vector<unsigned int> &comp_ids,
+    const std::vector<size_t> &physical_indices,
+    const std::vector<std::string> &selected_diameters,
+    const std::vector<int> &volume_maps)
+{
+    std::string diameter;
+    std::set<std::string> volumes;
+    for (unsigned int cid : comp_ids) {
+        std::string component_diameter;
+        NozzleVolumeType type = NozzleVolumeType::nvtStandard;
+        if (!mixed_component_nozzle_info(cid, physical_indices, selected_diameters, volume_maps,
+                                         component_diameter, type))
+            continue;
+        if (diameter.empty())
+            diameter = component_diameter;
+        const std::string volume = DevNozzle::ToNozzleVolumeShortString(type);
+        if (!volume.empty())
+            volumes.insert(volume);
+    }
+    if (diameter.empty())
+        return {};
+    if (volumes.size() > 1)
+        return diameter + " Mix";
+    if (volumes.size() == 1)
+        return diameter + " " + *volumes.begin();
+    return diameter;
 }
 
 void Sidebar::update_mixed_filament_list(bool reload_3d)
@@ -7368,12 +7440,17 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
             broken_set.insert(s);
         broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
 
-        if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
-            auto diameter_mismatch_slots = check_mixed_filament_diameter_consistency(
-                is_mixed_opt->values, components_opt->values, selected->values);
-            for (size_t s : diameter_mismatch_slots)
-                broken_set.insert(s);
-            broken_slots.insert(broken_slots.end(), diameter_mismatch_slots.begin(), diameter_mismatch_slots.end());
+        // filament_diameter_map is retained after leaving multi-diameter mode so the
+        // next toggle-on can restore it. Those leftover values are not authoritative
+        // while the chip is hidden, so do not flag mixed slots as broken for them.
+        if (filament_nozzle_chip_supported()) {
+            if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
+                auto diameter_mismatch_slots = check_mixed_filament_diameter_consistency(
+                    is_mixed_opt->values, components_opt->values, selected->values);
+                for (size_t s : diameter_mismatch_slots)
+                    broken_set.insert(s);
+                broken_slots.insert(broken_slots.end(), diameter_mismatch_slots.begin(), diameter_mismatch_slots.end());
+            }
         }
     }
 
@@ -7574,13 +7651,8 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
             bool cp_is_dark   = wxGetApp().dark_mode();
 
             std::string nozzle_text;
-            if (show_mixed_nozzle) {
-                for (unsigned int cid : comp_ids) {
-                    nozzle_text = mixed_component_nozzle_label(cid, physical_indices, selected_diameters, volume_maps);
-                    if (!nozzle_text.empty())
-                        break;
-                }
-            }
+            if (show_mixed_nozzle)
+                nozzle_text = mixed_slot_nozzle_label(comp_ids, physical_indices, selected_diameters, volume_maps);
             const wxString cp_nozzle_label = wxString::FromUTF8(nozzle_text);
             Button *nozzle_lbl = nullptr;
             wxStaticLine *nozzle_divider = nullptr;
@@ -8034,10 +8106,12 @@ bool Sidebar::has_broken_mixed_filament(const PartPlate* plate) const
             is_mixed_opt->values, comp_strs_opt->values, physical_types);
         broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
 
-        if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
-            auto diameter_mismatch_slots = check_mixed_filament_diameter_consistency(
-                is_mixed_opt->values, comp_strs_opt->values, selected->values);
-            broken_slots.insert(broken_slots.end(), diameter_mismatch_slots.begin(), diameter_mismatch_slots.end());
+        if (filament_nozzle_chip_supported()) {
+            if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
+                auto diameter_mismatch_slots = check_mixed_filament_diameter_consistency(
+                    is_mixed_opt->values, comp_strs_opt->values, selected->values);
+                broken_slots.insert(broken_slots.end(), diameter_mismatch_slots.begin(), diameter_mismatch_slots.end());
+            }
         }
     }
 
@@ -8595,7 +8669,7 @@ void Sidebar::decompose_filament_color(int filament_idx)
 
         for (const DecomposeMissingComponent& missing : missing_components) {
             size_t before_count = p->combos_filament.size();
-            add_custom_filament(wxColour(missing.official_component.color_hex), missing.preset_name, true);
+            add_custom_filament(wxColour(missing.official_component.color_hex), missing.preset_name, true, filament_idx);
             size_t after_count = p->combos_filament.size();
             if (after_count <= before_count)
                 return;
