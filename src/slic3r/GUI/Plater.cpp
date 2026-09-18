@@ -3699,12 +3699,14 @@ Sidebar::Sidebar(Plater *parent)
         p->single_panel->SetOnClick([this](bool is_dual) { p->open_extruder_settings_dialog(); });
         // Read-only hover card listing every nozzle's status, shown beside the single-extruder card.
         p->nozzle_detail_popup = new NozzleDetailPopup(p->m_panel_printer_content);
-        p->single_panel->SetOnHover([this](bool shown) {
-            if (shown)
-                p->nozzle_detail_popup->ShowTip(p->s_ext_cfg, p->single_panel->GetScreenRect());
-            else
-                p->nozzle_detail_popup->HideTip();
-        });
+        // p->single_panel->SetOnHover([this](bool shown) {
+        //     if (shown)
+        //         p->nozzle_detail_popup->ShowTip(p->s_ext_cfg, p->single_panel->GetScreenRect());
+        //     else
+        //         p->nozzle_detail_popup->HideTip();
+        // });
+
+
         p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
 
         p->single_extruder->SetEditEnabled(false);

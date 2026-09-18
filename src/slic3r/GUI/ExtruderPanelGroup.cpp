@@ -204,10 +204,11 @@ void ExtruderPanelGroup::OnHover(wxMouseEvent &evt)
 // while a settings dialog owns the panel (disabled) or the app is inactive.
 void ExtruderPanelGroup::SetHoverShown(bool shown)
 {
+    return;
     if (shown && (!IsEnabled() || !wxGetApp().IsActive())) shown = false;
     if (shown == m_hover_shown) return;
     m_hover_shown = shown;
-    if (m_on_hover) m_on_hover(shown);
+    // if (m_on_hover) m_on_hover(shown);
 }
 
 ExtruderPanel *ExtruderPanelGroup::GetPanel(int index) const

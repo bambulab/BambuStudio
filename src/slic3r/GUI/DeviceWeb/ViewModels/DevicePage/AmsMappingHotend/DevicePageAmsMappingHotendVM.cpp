@@ -560,21 +560,18 @@ SlotJudgement DevicePageAmsMappingHotendVM::ResolveSlotJudgement(MachineObject* 
 
     // THIRD-party trays don't expose a usable filament_type; treat them as
     // material-match by default so we don't false-positive a mismatch. match_all
-    // lifts the type restriction outright: every present filament counts as a
-    // material match, leaving only the nozzle dimension to gate pickability.
+    // lifts both the type and the nozzle diameter / flow restriction, so every
+    // present filament on a usable nozzle can be picked (see the nozzle gate below).
     j.material_match = m_match_all || (td.type != NORMAL) || is_match(td.filament_type);
 
-    // Inline nozzle dia / flow comparison. Skipped when the slicing spec is
-    // unknown (no rack on this device) or the rack nozzle could not be
-    // resolved — in both cases we leave nozzle_match=true to avoid false
-    // mismatches on missing data.
+    // Nozzle dia / flow gate. Left as a match when the slicing spec is unknown,
+    // the rack nozzle is unresolved, or match_all is set (the sync-all dialog lets
+    // any slot be picked regardless of diameter). A cutter / pen still fails: it
+    // can never hold a filament, whatever the mode.
     j.nozzle_match = true;
     if (j.has_nozzle && !nz->IsHotend()) {
-        // A cutter / pen / non-printing tool can never accept a filament, so it
-        // is always a nozzle mismatch (and thus non-pickable) regardless of the
-        // slicing spec.
         j.nozzle_match = false;
-    } else if (j.has_nozzle && expected_nozzle.valid) {
+    } else if (!m_match_all && j.has_nozzle && expected_nozzle.valid) {
         if (!is_approx(nz->GetNozzleDiameter(), expected_nozzle.diameter)) {
             j.nozzle_match = false;
         } else if (expected_nozzle.flow != NozzleFlowType::NONE_FLOWTYPE &&
