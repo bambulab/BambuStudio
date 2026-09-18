@@ -193,6 +193,8 @@ let SPOOLS: Spool[] = [
 
 const AMS: AmsData = {
   selected_dev_id: 'mock-dev-1',
+  // Mock a direct-connected rack machine so the "virtual slots" tab shows in dev.
+  is_rack: true,
   ams_units: [
     {
       ams_id: 'ams-1', ams_type: 0,
@@ -221,9 +223,24 @@ const AMS: AmsData = {
           weight: 1000, remain: 60, remain_g: 587, remain_weight: 587,
           diameter: 1.75, is_bbl: true,
           sub_brands: 'Bambu Lab' },
-        { slot_id: '3', is_exists: false },
+        // Unrecognized (问号料): present but no color/type — renders the
+        // checkerboard + orange "?" badge + "Unrecognized" placeholder.
+        { slot_id: '3', is_exists: true, is_unknown: true, weight: 1000, remain: 50 },
       ],
     },
+  ],
+  ext_slots: [
+    { slot_id: '0', ams_id: '253', is_exists: true, tray_label: 'V1',
+      setting_id: 'BBL_PLA_BASIC', fila_type: 'PLA',
+      color: '#22C55E', colors: ['#22C55E'], color_type: 2,
+      weight: 1000, remain: 90, remain_g: 900, remain_weight: 900,
+      diameter: 1.75, is_bbl: true, sub_brands: 'Bambu Lab' },
+    { slot_id: '0', ams_id: '254', is_exists: true, tray_label: 'V2',
+      setting_id: 'BBL_PLA_BASIC', fila_type: 'PLA',
+      color: '#9B5CFF', colors: ['#9B5CFF'], color_type: 2,
+      weight: 1000, remain: 45, remain_g: 450, remain_weight: 450,
+      diameter: 1.75, is_bbl: true, sub_brands: 'Bambu Lab' },
+    { slot_id: '0', ams_id: '255', is_exists: false, tray_label: 'V3' },
   ],
 };
 
