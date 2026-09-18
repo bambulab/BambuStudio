@@ -262,6 +262,59 @@ int layer_grid_subdivision(const ConfigBase &config)
     return std::max(1, int(primary / anchor + 0.5));
 }
 
+void sync_mixed_filament_nozzle_diameters(DynamicPrintConfig &config)
+{
+    auto *selected = config.option<ConfigOptionStrings>("filament_diameter_map");
+    const auto *is_mixed = config.option<ConfigOptionBools>("filament_is_mixed");
+    const auto *components = config.option<ConfigOptionStrings>("filament_mixed_components");
+    if (selected == nullptr || is_mixed == nullptr || components == nullptr)
+        return;
+
+    const size_t slot_count = std::max(
+        selected->values.size(), std::max(is_mixed->values.size(), components->values.size()));
+    selected->values.resize(slot_count);
+
+    for (size_t index = 0; index < slot_count; ++index) {
+        if (index >= is_mixed->values.size() || !is_mixed->values[index])
+            continue;
+
+        selected->values[index].clear();
+        if (index >= components->values.size())
+            continue;
+
+        const std::vector<unsigned int> component_ids =
+            parse_mixed_components(components->values[index]);
+        std::string common_diameter;
+        bool valid = component_ids.size() >= 2;
+        for (unsigned int component_id : component_ids) {
+            const size_t component_index = component_id > 0 ? component_id - 1 : size_t(-1);
+            if (component_id == 0 || component_index >= selected->values.size() ||
+                (component_index < is_mixed->values.size() && is_mixed->values[component_index])) {
+                valid = false;
+                break;
+            }
+
+            const std::string &component_diameter = selected->values[component_index];
+            const double diameter = std::atof(component_diameter.c_str());
+            if (diameter <= 0. || component_diameter.find(';') != std::string::npos) {
+                valid = false;
+                break;
+            }
+
+            const std::string normalized = format_diameter_to_str(diameter);
+            if (common_diameter.empty())
+                common_diameter = normalized;
+            else if (normalized != common_diameter) {
+                valid = false;
+                break;
+            }
+        }
+
+        if (valid)
+            selected->values[index] = common_diameter;
+    }
+}
+
 bool complete_filament_nozzle_diameter_selections(
     DynamicPrintConfig &config, const std::vector<std::string> &supported_diameters)
 {
@@ -319,10 +372,8 @@ bool complete_filament_nozzle_diameter_selections(
     };
 
     for (size_t index = 0; index < filament_count; ++index) {
-        if (is_mixed != nullptr && index < is_mixed->values.size() && is_mixed->values[index]) {
-            selected->values[index].clear();
+        if (is_mixed != nullptr && index < is_mixed->values.size() && is_mixed->values[index])
             continue;
-        }
 
         std::set<std::string> allowed = configured;
         if (index < supported_diameters.size() && !supported_diameters[index].empty()) {
@@ -346,6 +397,7 @@ bool complete_filament_nozzle_diameter_selections(
                 return std::atof(lhs.c_str()) < std::atof(rhs.c_str());
             });
     }
+    sync_mixed_filament_nozzle_diameters(config);
     return true;
 }
 

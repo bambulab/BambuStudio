@@ -4040,8 +4040,11 @@ bool PresetBundle::set_filament_nozzle_diameter(size_t filament_index, const std
     const auto configured = collect_configured_nozzle_diameters(*this);
     const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
         *this, filament_index, printer_name_to_diameter, configured);
-    return ::Slic3r::set_filament_nozzle_diameter(
+    const bool updated = ::Slic3r::set_filament_nozzle_diameter(
         *this, filament_index, diameter, selected_preset_name, printer_name_to_diameter, options);
+    if (updated)
+        sync_mixed_filament_nozzle_diameters(project_config);
+    return updated;
 }
 
 static const Preset *find_default_filament_for_nozzle_diameter(
@@ -4355,6 +4358,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
     // Runs after the loop, not inside it: set_filament_nozzle_diameter() can switch a slot to a
     // sibling preset serving another diameter, which changes filament_extruder_variant, so the flow
     // has to be resolved against the diameter that actually stuck.
+    sync_mixed_filament_nozzle_diameters(project_config);
     repair_filament_nozzle_flows(*this, volume_map, installed, printer_name_to_diameter, configured);
 }
 

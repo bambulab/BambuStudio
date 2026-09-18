@@ -7316,6 +7316,7 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
     const wxColour mc_dim    = StateColor::darkModeColorFor(wxColour("#ACACAC"));
 
     auto& project_config = wxGetApp().preset_bundle->project_config;
+    sync_mixed_filament_nozzle_diameters(project_config);
     auto mixed_indices = plater->mixed_filament_config_indices();
     size_t num_physical = p->combos_filament.size();
 
@@ -8300,6 +8301,7 @@ static std::vector<int> create_mixed_filaments_from_results(
         write_mixed_filament_slot(project_config, total + i, num_physical, result, mixed_color);
         created[src] = (int)(total + i);
     }
+    sync_mixed_filament_nozzle_diameters(project_config);
 
     for (size_t i = 1; i <= m; ++i)
         wxGetApp().plater()->get_partplate_list().on_filament_added((int)(total + i));

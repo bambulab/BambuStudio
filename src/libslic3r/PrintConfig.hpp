@@ -2201,8 +2201,13 @@ double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value);
 // Always false while multi_nozzle_diameter_mode is off.
 bool has_multiple_configured_nozzle_diameters(const ConfigBase &config);
 
+// Copy the common physical-component nozzle diameter into every valid mixed virtual slot.
+// Invalid, nested, incomplete, or mixed-diameter slots are cleared.
+void sync_mixed_filament_nozzle_diameters(DynamicPrintConfig &config);
+
 // Fill every physical filament slot with a deterministic nozzle diameter when multiple configured
-// diameters are active. Mixed virtual slots stay empty. Existing valid selections are preserved.
+// diameters are active, then synchronize mixed virtual slots from their components.
+// Existing valid physical selections are preserved.
 bool complete_filament_nozzle_diameter_selections(
     DynamicPrintConfig &config, const std::vector<std::string> &supported_diameters);
 
