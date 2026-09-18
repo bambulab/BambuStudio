@@ -3528,7 +3528,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     std::vector<int> volume_idxs_wipe_tower_old(n_plates, -1);
     // By-Object per-object prime tower preview volumes: keyed by their (unique,
     // non-plate-encoding) composite id, so they can be reconciled across reloads.
-    static const int PER_OBJECT_WIPE_TOWER_ID_BASE = 500000;
+    // (WIPE_TOWER_PER_OBJECT_ID_BASE/STRIDE are declared in 3DScene.hpp, shared with
+    // wipe_tower_plate_id_from_object_id() so other code can decode these ids back to
+    // a plate index -- see e.g. Selection::translate().)
     std::map<int, int> per_object_wipe_tower_old;
 
     // Snapshot each plate's "tower already placed" flag before reload, to detect
@@ -3642,7 +3644,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             // This GLVolume will be released.
             if (volume->is_wipe_tower) {
                 const int wt_obj_id = volume->composite_id.object_id;
-                if (wt_obj_id >= PER_OBJECT_WIPE_TOWER_ID_BASE) {
+                if (wt_obj_id >= WIPE_TOWER_PER_OBJECT_ID_BASE) {
                     per_object_wipe_tower_old[wt_obj_id] = (int) volume_id;
                 } else {
                     // There is only one (by-layer / single-object) wipe tower per plate.
@@ -3932,7 +3934,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                     it->second.preview_tower_mesh.its.vertices.empty())
                                     continue;
                                 const ObjectWipeTowerPlan &plan = it->second;
-                                const int oid = PER_OBJECT_WIPE_TOWER_ID_BASE + plate_id * 64 + (k - 1);
+                                const int oid = WIPE_TOWER_PER_OBJECT_ID_BASE + plate_id * WIPE_TOWER_PER_OBJECT_ID_STRIDE + (k - 1);
                                 int vnew = m_volumes.load_real_wipe_tower_preview(
                                     oid, plate_id,
                                     plan.position.x() + (float) porig.x(), plan.position.y() + (float) porig.y(),

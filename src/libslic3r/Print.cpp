@@ -1491,7 +1491,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
 #endif
 
-        if (m_objects.size() > 1) {
+        // These checks all compare *different* objects' layer Z sequences against each
+        // other, because the classic wipe tower is one shared shape spanning every
+        // object's Z range. Sequential (By-Object) printing builds one independent
+        // tower per object, following that object's own layer heights (see
+        // _make_sequential_wipe_towers()/ByObjectPrintData), so cross-object agreement
+        // is neither required nor meaningful here.
+        if (m_objects.size() > 1 && !this->is_sequential_print()) {
             // Some of the objects has variable layer height applied by painting or by a table.
             bool has_custom_layering = std::any_of(m_objects.begin(), m_objects.end(),
                 [](const PrintObject* object) { return object->model_object()->has_custom_layering(); });

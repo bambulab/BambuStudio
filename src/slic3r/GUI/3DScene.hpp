@@ -282,6 +282,28 @@ enum LOD_LEVEL {
     SMALL,
 };
 
+// GLVolume::composite_id.object_id encoding for wipe-tower proxy volumes:
+//  - classic (By-Layer, one shared tower) : 1000 + plate_id
+//  - By-Object per-object tower preview   : WIPE_TOWER_PER_OBJECT_ID_BASE + plate_id * WIPE_TOWER_PER_OBJECT_ID_STRIDE + k
+//    (k = the object's index among those with a tower on that plate; see GLCanvas3D::reload_scene)
+// Code that turns such an object_id back into a plate index (to look up that plate's
+// bed/build volume, config slot, etc.) must handle both ranges -- see wipe_tower_plate_id_from_object_id().
+static const int WIPE_TOWER_PER_OBJECT_ID_BASE   = 500000;
+static const int WIPE_TOWER_PER_OBJECT_ID_STRIDE = 64;
+
+// Returns the owning plate index for a GLVolume::composite_id.object_id known to belong
+// to a wipe-tower proxy (volume->is_wipe_tower), or -1 if object_id doesn't decode to
+// either known encoding. Does NOT validate the result against the current plate count --
+// callers must still bounds-check before indexing a per-plate container/vector with it.
+inline int wipe_tower_plate_id_from_object_id(int object_id)
+{
+    if (object_id >= WIPE_TOWER_PER_OBJECT_ID_BASE)
+        return (object_id - WIPE_TOWER_PER_OBJECT_ID_BASE) / WIPE_TOWER_PER_OBJECT_ID_STRIDE;
+    if (object_id >= 1000)
+        return object_id - 1000;
+    return -1;
+}
+
 class GLVolume {
     static float LOD_HIGH_ZOOM;
     static float LOD_MIDDLE_ZOOM;
