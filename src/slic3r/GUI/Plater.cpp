@@ -2088,30 +2088,16 @@ static std::set<std::string> migration_target_diameters(const PendingNozzleMigra
     return diameters;
 }
 
-// Point the printer preset at the same model's variant for `diameter`. With the gate off,
-// collect_configured_nozzle_diameters() reports only the selected variant's own diameter, so every
-// other one is filtered out of the per-filament options. Switching the variant is the only way a
+// Point the printer preset at the same model's variant for `diameter`. Same lookup switch_diameter()
+// uses: with the gate off, only the selected variant is configured, so this is the only way a
 // single-diameter migration can change diameter at all.
 static bool select_printer_variant_for_diameter(const std::string &diameter)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    const Preset &current = preset_bundle->printers.get_edited_preset();
-    const Preset *base = preset_bundle->printers.get_preset_base(current);
-    if (base == nullptr)
-        return false;
-    if (base->config.opt_string("printer_variant") == diameter)
+    if (preset_bundle->printers.get_selected_preset().config.opt_string("printer_variant") == diameter)
         return true;
 
-    const std::string printer_model = base->config.opt_string("printer_model");
-    Preset *target = nullptr;
-    for (const Preset &preset : preset_bundle->printers.get_presets()) {
-        if (preset.is_system &&
-            preset.config.opt_string("printer_model") == printer_model &&
-            preset.config.opt_string("printer_variant") == diameter) {
-            target = preset_bundle->printers.find_preset(preset.name, false);
-            break;
-        }
-    }
+    Preset *target = preset_bundle->get_similar_printer_preset({}, diameter);
     Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
     if (target == nullptr || printer_tab == nullptr)
         return false;
@@ -2120,9 +2106,8 @@ static bool select_printer_variant_for_diameter(const std::string &diameter)
     return printer_tab->select_preset(target->name);
 }
 
-// Match the multi-diameter gate to the migration target: a single target diameter means
-// single-diameter printing, and only a nozzle rack can hold more than one. The variant switch that
-// goes with it is not done here - see apply_migration_printer_variant().
+// Keep multi-diameter only when the user landed on several diameters and the machine can hold them.
+// The variant the user picked is applied later by apply_migration_printer_variant().
 void Sidebar::priv::apply_migration_diameter_mode(const PendingNozzleMigration &migration)
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -2132,13 +2117,12 @@ void Sidebar::priv::apply_migration_diameter_mode(const PendingNozzleMigration &
 
     const bool target_has_rack = is_single_ext_multi_nozzle(preset_bundle->full_config());
     if (targets.size() > 1 && target_has_rack) {
-        if (!apply_multi_nozzle_diameter_mode(true)) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": could not turn multi_nozzle_diameter_mode on";
+        // Several diameters were only offered with the gate already on; do not turn it on here.
+        if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                     << ": multiple target diameters while multi_nozzle_diameter_mode is off";
             return;
         }
-        // The helper returns early when the gate was already on, leaving the variant
-        // get_printer_preset() matched. The combos hide every non-canonical variant while the gate
-        // is on, so that state cannot be rendered.
         const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
         if (base != nullptr &&
             base->config.opt_string("printer_variant") != canonical_multi_nozzle_printer_variant())
@@ -2149,19 +2133,13 @@ void Sidebar::priv::apply_migration_diameter_mode(const PendingNozzleMigration &
     if (target_has_rack) {
         if (!apply_multi_nozzle_diameter_mode(false))
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": could not turn multi_nozzle_diameter_mode off";
-    } else {
-        // Not apply_multi_nozzle_diameter_mode(): its turn-off path insists on the canonical 0.4
-        // variant of a rack machine and rolls the gate back on when that fails. A fixed-extruder
-        // target must clear it regardless, and wants the variant the user picked.
-        clear_multi_nozzle_diameter_mode();
-        refresh_after_multi_nozzle_diameter_mode_cleared();
+        return;
     }
-    if (targets.size() > 1) {
-        // Fixed extruders carry one variant, so only the filaments landing on that diameter can
-        // migrate; validation leaves the rest selected and flags them in the filament list.
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << targets.size()
-                                   << " target diameters on a machine without a nozzle rack";
-    }
+
+    // apply_multi_nozzle_diameter_mode(false) insists on a rack's 0.4 variant and rolls the gate
+    // back on if that select fails. A fixed-extruder target must clear the flag regardless.
+    clear_multi_nozzle_diameter_mode();
+    refresh_after_multi_nozzle_diameter_mode_cleared();
 }
 
 // Re-point the printer preset at the variant the user chose. Separate from the gate above and run

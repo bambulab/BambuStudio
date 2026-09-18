@@ -121,20 +121,31 @@ struct SlotSpec
     NozzleSpec spec;
 };
 
-// The nozzle each filament slot prints with. Diameter from the per-slot selection in multi-diameter
-// mode, from the printer preset otherwise. Flow type read only when it takes part, and then from the
-// current plate with the project default as fallback.
+// The nozzle each filament slot prints with. Single-diameter projects share the printer preset's
+// variant; multi-diameter ones use the per-slot map. Flow type is only filled when it takes part.
 std::vector<SlotSpec> collect_project_slot_specs(const PresetBundle &preset_bundle, bool multi_diameter_mode, bool with_flow_type)
 {
-    const Preset &preset = preset_bundle.printers.get_selected_preset();
+    const size_t slot_count = preset_bundle.filament_presets.size();
+
+    if (!multi_diameter_mode) {
+        const float preset_diameter = (float) std::strtod(
+            preset_bundle.printers.get_selected_preset().config.opt_string("printer_variant").c_str(), nullptr);
+        if (preset_diameter <= 0.f)
+            return {};
+
+        std::vector<SlotSpec> specs;
+        specs.reserve(slot_count);
+        for (size_t i = 0; i < slot_count; ++i)
+            specs.push_back(SlotSpec{i, NozzleSpec{preset_diameter}});
+        return specs;
+    }
+
     const DynamicPrintConfig &project_config = preset_bundle.project_config;
-
     const auto *diameter_map = project_config.option<ConfigOptionStrings>("filament_diameter_map");
-    const auto *nozzle_diams = preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-
-    // nozzle_diameter is per extruder, but a fixed-extruder machine prints one diameter per plate and
-    // its variant names that diameter, so every entry holds the same value. No filament_map lookup.
-    const float preset_diameter = nozzle_diams != nullptr && !nozzle_diams->values.empty() ? (float) nozzle_diams->values.front() : 0.f;
+    const auto *nozzle_diams = preset_bundle.printers.get_selected_preset()
+                                   .config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const float preset_diameter = nozzle_diams != nullptr && !nozzle_diams->values.empty()
+        ? (float) nozzle_diams->values.front() : 0.f;
 
     std::vector<int> plate_volume_map;
     if (with_flow_type) {
@@ -149,99 +160,75 @@ std::vector<SlotSpec> collect_project_slot_specs(const PresetBundle &preset_bund
     }
 
     std::vector<SlotSpec> specs;
-    const size_t slot_count = preset_bundle.filament_presets.size();
     specs.reserve(slot_count);
-
     for (size_t i = 0; i < slot_count; ++i) {
         NozzleSpec spec;
-
-        if (multi_diameter_mode) {
-            if (diameter_map != nullptr && i < diameter_map->values.size() && !diameter_map->values[i].empty())
-                spec.diameter = (float) std::strtod(diameter_map->values[i].c_str(), nullptr);
-
-            // Validation clears the per-slot selection when only one diameter is configured. Fall
-            // back the way the filament list does - to this slot's only option, which still carries
-            // the effective diameter, unlike the canonical 0.2 printer preset.
-            if (spec.diameter <= 0.f) {
-                const std::vector<std::string> options = preset_bundle.get_filament_nozzle_diameter_options(i);
-                if (!options.empty())
-                    spec.diameter = (float) std::strtod(options.front().c_str(), nullptr);
-            }
+        if (diameter_map != nullptr && i < diameter_map->values.size() && !diameter_map->values[i].empty())
+            spec.diameter = (float) std::strtod(diameter_map->values[i].c_str(), nullptr);
+        if (spec.diameter <= 0.f) {
+            const std::vector<std::string> options = preset_bundle.get_filament_nozzle_diameter_options(i);
+            if (!options.empty())
+                spec.diameter = (float) std::strtod(options.front().c_str(), nullptr);
         }
-
         if (spec.diameter <= 0.f)
             spec.diameter = preset_diameter;
-
         if (spec.diameter <= 0.f)
             continue;
-
         if (with_flow_type && i < plate_volume_map.size())
             spec.volume = (NozzleVolumeType) plate_volume_map[i];
-
         specs.push_back(SlotSpec{i, spec});
     }
-
     return specs;
 }
 
-// One row per distinct (diameter, flow type) the project uses. Both sides run multi-diameter here,
-// so each pair is separately selectable.
-std::vector<NozzleSpec> fold_per_nozzle_rows(const std::vector<SlotSpec> &slot_specs,
-                                             std::vector<std::vector<size_t>> &row_slots,
-                                             std::vector<wxString> &row_labels)
+// Dedup slot specs into table rows. Key is the formatted diameter, plus volume only when the table
+// shows flow type. Diameter-only comparisons still have to land on one dropdown, so several keys
+// collapse to a single row whose label lists every diameter.
+std::vector<NozzleSpec> dedupe_project_rows(const std::vector<SlotSpec> &slot_specs,
+                                            bool with_flow_type,
+                                            std::vector<std::vector<size_t>> &row_slots,
+                                            std::vector<wxString> &row_labels)
 {
-    std::vector<NozzleSpec> rows;
     row_slots.clear();
     row_labels.clear();
 
+    struct Group
+    {
+        NozzleSpec spec;
+        std::vector<size_t> slots;
+    };
+    std::map<std::pair<std::string, int>, Group> grouped;
     for (const SlotSpec &entry : slot_specs) {
-        auto it = std::find(rows.begin(), rows.end(), entry.spec);
-        if (it == rows.end()) {
-            rows.push_back(entry.spec);
-            row_slots.push_back({entry.slot});
-        } else {
-            row_slots[(size_t) std::distance(rows.begin(), it)].push_back(entry.slot);
+        const auto key = std::make_pair(format_diameter_to_str(entry.spec.diameter),
+                                        with_flow_type ? (int) entry.spec.volume : 0);
+        Group &group = grouped[key];
+        if (group.slots.empty())
+            group.spec = entry.spec;
+        group.slots.push_back(entry.slot);
+    }
+
+    std::vector<NozzleSpec> rows;
+    if (!with_flow_type && grouped.size() > 1) {
+        wxString label;
+        std::vector<size_t> all_slots;
+        for (auto &[_, group] : grouped) {
+            if (!label.IsEmpty())
+                label += ", ";
+            label += format_nozzle_spec_label(group.spec, false);
+            if (rows.empty())
+                rows.push_back(group.spec);
+            all_slots.insert(all_slots.end(), group.slots.begin(), group.slots.end());
         }
-    }
-    for (const NozzleSpec &row : rows)
-        row_labels.push_back(format_nozzle_spec_label(row, true));
-    return rows;
-}
-
-// The single row used whenever the flow type is out of the comparison. Only one diameter can be
-// picked for the whole project there, so a dropdown per project diameter would let the user express
-// something the target cannot honour. One row covering every slot, its left cell listing the
-// diameters the project uses today.
-std::vector<NozzleSpec> fold_single_diameter_row(const std::vector<SlotSpec> &slot_specs,
-                                                 std::vector<std::vector<size_t>> &row_slots,
-                                                 std::vector<wxString> &row_labels)
-{
-    std::vector<NozzleSpec> rows;
-    row_slots.clear();
-    row_labels.clear();
-    if (slot_specs.empty())
+        row_slots.push_back(std::move(all_slots));
+        row_labels.push_back(std::move(label));
         return rows;
-
-    std::vector<NozzleSpec> diameters;
-    std::vector<size_t> slots;
-    for (const SlotSpec &entry : slot_specs) {
-        push_unique(diameters, entry.spec, false);
-        slots.push_back(entry.slot);
-    }
-    std::sort(diameters.begin(), diameters.end(), [](const NozzleSpec &a, const NozzleSpec &b) { return a.diameter < b.diameter; });
-
-    wxString label;
-    for (const NozzleSpec &spec : diameters) {
-        if (!label.IsEmpty())
-            label += ", ";
-        label += format_nozzle_spec_label(spec, false);
     }
 
-    // Only the slot list and label carry information; the diameter is a placeholder the dropdown
-    // choice replaces.
-    rows.push_back(diameters.front());
-    row_slots.push_back(slots);
-    row_labels.push_back(label);
+    for (auto &[_, group] : grouped) {
+        rows.push_back(group.spec);
+        row_slots.push_back(std::move(group.slots));
+        row_labels.push_back(format_nozzle_spec_label(group.spec, with_flow_type));
+    }
     return rows;
 }
 
@@ -374,23 +361,21 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
     const bool target_has_rack = target_preset != nullptr && is_single_ext_multi_nozzle(target_preset->config);
     info.compare_flow_type = multi_diameter_mode && target_has_rack;
 
+    const size_t slot_count = preset_bundle->filament_presets.size();
     const std::vector<SlotSpec> slot_specs = collect_project_slot_specs(*preset_bundle, multi_diameter_mode, info.compare_flow_type);
-    info.slot_nozzles.assign(preset_bundle->filament_presets.size(), NozzleSpec{});
+    info.slot_nozzles.assign(slot_count, NozzleSpec{});
     for (const SlotSpec &entry : slot_specs)
         if (entry.slot < info.slot_nozzles.size())
             info.slot_nozzles[entry.slot] = entry.spec;
 
-    info.printer_nozzles = collect_printer_nozzles(obj, info.compare_flow_type);
-
-    if (info.compare_flow_type)
-        info.project_nozzles = fold_per_nozzle_rows(slot_specs, info.row_slots, info.row_labels);
-    else
-        info.project_nozzles = fold_single_diameter_row(slot_specs, info.row_slots, info.row_labels);
+    info.project_nozzles = dedupe_project_rows(slot_specs, info.compare_flow_type, info.row_slots, info.row_labels);
 
     if (info.project_nozzles.empty()) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": the project declares no nozzle, nothing to compare";
         return std::nullopt;
     }
+
+    info.printer_nozzles = collect_printer_nozzles(obj, info.compare_flow_type);
 
     info.nozzles_fully_covered = printer_covers_project(info.slot_nozzles, info.printer_nozzles, info.compare_flow_type);
 
