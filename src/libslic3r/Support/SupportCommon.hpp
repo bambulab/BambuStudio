@@ -41,6 +41,7 @@ void merge_support_layers_multi_diameter(
     SupportGeneratorLayersPtr                       &base_interface_layers,
     std::map<coordf_t, SupportMergePlan::Candidate> &planned_filaments,
     std::map<coordf_t, SupportMergePlan::Candidate> &planned_interface_filaments,
+    std::map<coordf_t, coordf_t>                     &planned_base_heights,
     std::map<coordf_t, coordf_t>                     &planned_interface_heights,
     const std::vector<coordf_t>                     *per_layer_area_print_z = nullptr,
     std::vector<ExPolygons>                         *cooldown_areas = nullptr,

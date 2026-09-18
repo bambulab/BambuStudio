@@ -10,6 +10,7 @@
 #include "../MinimumSpanningTree.hpp"
 #include "../Flow.hpp"
 #include "../PrintConfig.hpp"
+#include "../SupportMergePlan.hpp"
 #include "../Fill/Lightning/Generator.hpp"
 #include "TreeModelVolumes.hpp"
 #include "TreeSupport3D.hpp"
@@ -424,6 +425,7 @@ public:
     std::vector<std::pair<Vec3f, Vec3f>>      m_vertical_enforcer_points;
 
 private:
+    coordf_t support_flare_step_width(coordf_t print_z, coordf_t layer_height) const;
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
      *
@@ -438,6 +440,7 @@ private:
     SlicingParameters        m_slicing_params;
     // Various precomputed support parameters to be shared with external functions.
     SupportParameters   m_support_params;
+    SupportMergePlan    m_support_merge_plan;
     size_t          m_raft_layers = 0;  // number of raft layers, including raft base, raft interface, raft gap
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;

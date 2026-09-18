@@ -1476,6 +1476,7 @@ void merge_support_layers_multi_diameter(
     SupportGeneratorLayersPtr                       &base_interface_layers,
     std::map<coordf_t, SupportMergePlan::Candidate> &planned_filaments,
     std::map<coordf_t, SupportMergePlan::Candidate> &planned_interface_filaments,
+    std::map<coordf_t, coordf_t>                     &planned_base_heights,
     std::map<coordf_t, coordf_t>                     &planned_interface_heights,
     const std::vector<coordf_t>                     *per_layer_area_print_z,
     std::vector<ExPolygons>                         *cooldown_areas,
@@ -1531,9 +1532,19 @@ void merge_support_layers_multi_diameter(
             if (level.layer_idx[array_id] >= 0) {
                 if (! plan.enabled)
                     continue;
+                SupportGeneratorLayer *kept = (*arrays[array_id])[level.layer_idx[array_id]];
+                // generate_interface_layers() reuses the organic top interface layer object as the layer it
+                // writes into (SupportGeneratorLayer &layer_new = top_interface_layer ? *top_interface_layer
+                // : ...), so interface_layers and top_interface_layers end up holding the same pointer and
+                // std::merge() lists it twice. Merging a layer into itself ends in rhs.reset() and wipes its
+                // polygons, which is the whole interface stack. Drop the duplicate slot instead.
+                if (kept == layer) {
+                    (*arrays[array_id])[i] = nullptr;
+                    continue;
+                }
                 // Downstream the arrays are looked up by print_z, so two areas of the same kind at the same
                 // height cannot be told apart. Fold them together right away.
-                (*arrays[array_id])[level.layer_idx[array_id]]->merge(std::move(*layer));
+                kept->merge(std::move(*layer));
                 (*arrays[array_id])[i] = nullptr;
                 continue;
             }
@@ -1572,7 +1583,7 @@ void merge_support_layers_multi_diameter(
 
     // Resolve the top contact stack from the model downwards. A thin level stays untouched when that does not
     // strand an unprintable contact directly below it. Otherwise adjacent contacts and, if necessary, sparse
-    // base are folded into the smallest continuous slab printable by an available nozzle.
+    // base are folded into a continuous slab printable by the largest available interface nozzle.
     // Base-interface is a support-transition region printed with the support-body extruder, not with the
     // contact extruder. Keep it out of contact slabs so nozzle planning and extrusion roles stay consistent.
     static constexpr int top_interface_arrays[] { smaTopContact, smaInterface };
@@ -1616,6 +1627,15 @@ void merge_support_layers_multi_diameter(
             found = true;
         }
         return found ? bottom_z : level.print_z;
+    };
+    // Keep interface candidate validation in one place. Interface and sparse base may use different layer
+    // ladders; their overlap is resolved spatially while the sparse base slabs are built below.
+    auto interface_candidate = [&plan, &candidate_fits_bottom_contact](
+                                   const SupportMergeLevel &level, coordf_t top_z, coordf_t height) {
+        SupportMergePlan::Candidate candidate = plan.finest_interface_for_slab(top_z, height);
+        if (candidate.valid() && ! candidate_fits_bottom_contact(level, candidate))
+            candidate = {};
+        return candidate;
     };
     std::vector<Polygons> interface_borrowed_areas(levels.size());
 
@@ -1693,10 +1713,8 @@ void merge_support_layers_multi_diameter(
         const coordf_t top_z = levels[top].print_z;
         const std::pair<coordf_t, coordf_t> height_range = interface_height_range(levels[top]);
         SupportMergePlan::Candidate candidate =
-            plan.finest_interface_for_slab(top_z, height_range.first);
+            interface_candidate(levels[top], top_z, height_range.first);
         if (candidate.valid() && ! candidate.window.contains(height_range.second))
-            candidate = {};
-        if (candidate.valid() && ! candidate_fits_bottom_contact(levels[top], candidate))
             candidate = {};
         if (candidate.valid()) {
             planned_interface_filaments[top_z] = candidate;
@@ -1706,9 +1724,7 @@ void merge_support_layers_multi_diameter(
         int      bottom      = top;
         coordf_t bottom_z    = level_bottom_z(levels[top]);
         coordf_t slab_height = top_z - bottom_z;
-        candidate = plan.finest_interface_for_slab(top_z, slab_height);
-        if (candidate.valid() && ! candidate_fits_bottom_contact(levels[top], candidate))
-            candidate = {};
+        candidate = interface_candidate(levels[top], top_z, slab_height);
         while (! candidate.valid() && bottom > 0) {
             const SupportMergeLevel &below = levels[bottom - 1];
             if (below.frozen || below.print_z < bottom_z - EPSILON)
@@ -1717,12 +1733,15 @@ void merge_support_layers_multi_diameter(
             const SupportGeneratorLayer *base = layer_of(below, smaIntermediate);
             if (! has_interface && (base == nullptr || base->polygons.empty()))
                 break;
+            // Stop once the slab outgrows the tallest band any interface nozzle ends here with, instead of
+            // walking the whole stack down for a slab that can no longer match.
+            const coordf_t grown_height = top_z - level_bottom_z(levels[bottom - 1]);
+            if (grown_height > plan.max_interface_height(top_z, grown_height) + EPSILON)
+                break;
             -- bottom;
             bottom_z    = level_bottom_z(levels[bottom]);
             slab_height = top_z - bottom_z;
-            candidate   = plan.finest_interface_for_slab(top_z, slab_height);
-            if (candidate.valid() && ! candidate_fits_bottom_contact(levels[top], candidate))
-                candidate = {};
+            candidate   = interface_candidate(levels[top], top_z, slab_height);
         }
         if (candidate.valid() && merge_interface_slab(top, bottom, candidate)) {
             top = bottom;
@@ -1741,11 +1760,8 @@ void merge_support_layers_multi_diameter(
             if (upper_bottom_z <= top_z + EPSILON) {
                 const coordf_t combined_height =
                     levels[upper].print_z - level_bottom_z(levels[top]);
-                candidate = plan.finest_interface_for_slab(
-                    levels[upper].print_z, combined_height);
-                if (candidate.valid() &&
-                    ! candidate_fits_bottom_contact(levels[upper], candidate))
-                    candidate = {};
+                candidate = interface_candidate(
+                    levels[upper], levels[upper].print_z, combined_height);
                 if (candidate.valid())
                     merge_interface_slab(upper, top, candidate);
             }
@@ -1772,56 +1788,91 @@ void merge_support_layers_multi_diameter(
         int                         bottom      = top;
         coordf_t                    slab_height = base_top->height;
         SupportMergePlan::Candidate pinned      = plan.coarsest_for_slab(slab_top_z, slab_height);
+        int                         probe       = top;
+        coordf_t                    probe_height = slab_height;
 
-        // Swallow the base of the levels below one at a time. A level without a base is where the support
-        // column ends, so the slab stops there rather than reaching into thin air. The candidate set is
-        // re-read on every step because growing the slab also grows the Z span the filament has to come from.
-        while (bottom > 0 && ! levels[bottom - 1].frozen) {
-            const SupportGeneratorLayer *base_below = layer_of(levels[bottom - 1], smaIntermediate);
+        // Probe down to the next fixed-grid boundary. Intermediate heights may be unprintable by every
+        // candidate (for example 0.2 and 0.3 on a 0.8 / 0.1 ladder) but still lead to its 0.4 band.
+        while (probe > 0 && ! levels[probe - 1].frozen) {
+            const SupportGeneratorLayer *base_below = layer_of(levels[probe - 1], smaIntermediate);
             if (base_below == nullptr || base_below->polygons.empty())
                 break;
             // levels only holds the heights that carry support areas, so the level below may sit under a Z
             // gap. The slab is a single extrusion and would hang over that void, so it stops here instead.
-            if (base_below->print_z < slab_top_z - slab_height - EPSILON)
+            if (base_below->print_z < slab_top_z - probe_height - EPSILON)
                 break;
             const coordf_t height = slab_top_z - (base_below->print_z - base_below->height);
             if (height > plan.max_height_for_slab(slab_top_z, height) + EPSILON)
                 break;
-            // Never emit a slab no filament of this span can extrude, whatever the limit above allowed.
             const SupportMergePlan::Candidate candidate = plan.coarsest_for_slab(slab_top_z, height);
-            if (! candidate.valid())
-                break;
-            -- bottom;
-            slab_height = height;
-            pinned      = candidate;
+            -- probe;
+            probe_height = height;
+            if (candidate.valid()) {
+                bottom      = probe;
+                slab_height = height;
+                pinned      = candidate;
+            }
         }
 
         if (bottom < top) {
-            // Downstream the base is looked up by print_z, so only one base layer may survive per slab.
+            const bool includes_bed = level_bottom_z(levels[bottom]) <= EPSILON;
+            const SupportGeneratorLayer *representative =
+                layer_of(levels[includes_bed ? bottom : top], smaIntermediate);
+            assert(representative != nullptr);
+            // A merged extrusion cannot follow every fine-layer contour through Z. Keep the band face used
+            // by the model ladder instead: top for an ordinary band, bottom for the first bed-adhesion band.
+            // Unioning all contours creates a swept wedge when a tree branch moves laterally between layers.
+            Polygons representative_polygons = representative->polygons;
+
+            // Interface extrusions may be thinner than this sparse-base slab while sharing its print_z.
+            // Removing their footprint from the complete slab would open a column down to slab_bottom_z.
+            // Keep the original fine base layers in that footprint instead, and merge only the remainder.
+            Polygons interface_columns;
+            for (int i = bottom; i <= top; ++ i)
+                for (int array_id = 0; array_id < smaCount; ++ array_id)
+                    if (support_merge_array_is_interface[array_id])
+                        if (const SupportGeneratorLayer *layer = layer_of(levels[i], array_id);
+                            layer != nullptr && ! layer->polygons.empty())
+                            polygons_append(interface_columns, layer->polygons);
+            interface_columns  = union_(interface_columns);
+            if (! interface_columns.empty())
+                representative_polygons = diff(representative_polygons, interface_columns);
+
             for (int i = top - 1; i >= bottom; -- i) {
                 const int idx = levels[i].layer_idx[smaIntermediate];
-                base_top->merge(std::move(*(*arrays[smaIntermediate])[idx]));
-                (*arrays[smaIntermediate])[idx]       = nullptr;
-                levels[i].layer_idx[smaIntermediate]  = -1;
-                slab_top_of_level[i]                  = top;
+                SupportGeneratorLayer *base = (*arrays[smaIntermediate])[idx];
+                Polygons landing_columns;
+                for (int j = bottom; j <= top; ++ j)
+                    for (int array_id = 0; array_id < smaCount; ++ array_id)
+                        if (support_merge_array_is_interface[array_id])
+                            if (const SupportGeneratorLayer *layer = layer_of(levels[j], array_id);
+                                layer != nullptr && ! layer->polygons.empty() &&
+                                layer->print_z - layer->height >= base->print_z - EPSILON)
+                                polygons_append(landing_columns, layer->polygons);
+                Polygons preserved = landing_columns.empty() ?
+                    Polygons() : intersection(base->polygons, union_(landing_columns));
+                if (preserved.empty()) {
+                    (*arrays[smaIntermediate])[idx]      = nullptr;
+                    levels[i].layer_idx[smaIntermediate] = -1;
+                    slab_top_of_level[i]                 = top;
+                } else {
+                    base->polygons = std::move(preserved);
+                }
             }
+            base_top->polygons = std::move(representative_polygons);
             // Levels holding a bridging layer are frozen, so a slab never grows over one of them.
             assert(! base_top->bridging);
             base_top->print_z  = slab_top_z;
             base_top->height   = slab_height;
             base_top->bottom_z = slab_top_z - slab_height;
 
-            // The base now fills the whole slab, so it has to be cut away from everything it grew over: the
-            // object layers it spans, and the interface areas of the levels it swallowed, which stay behind
-            // at their own height and would otherwise be extruded twice.
+            // The merged part of the base fills the whole slab. The transition columns were already removed
+            // above, while the object still has to be kept clear over the complete slab height.
             Polygons trimming = object_clearance(base_top->bottom_z, slab_top_z);
-            for (int i = bottom; i <= top; ++ i)
-                for (int array_id = 0; array_id < smaCount; ++ array_id)
-                    if (support_merge_array_is_interface[array_id])
-                        if (const SupportGeneratorLayer *layer = layer_of(levels[i], array_id); layer != nullptr)
-                            polygons_append(trimming, layer->polygons);
             if (! trimming.empty() && ! base_top->polygons.empty())
                 base_top->polygons = diff(base_top->polygons, union_(trimming));
+            if (! base_top->polygons.empty())
+                planned_base_heights[slab_top_z] = slab_height;
         }
 
         // Pin the slab to its filament only once it got thicker than the object layers: a slab of base height
@@ -2384,7 +2435,9 @@ void generate_support_toolpaths(
                     for (ExPolygon& expoly : expolygons)
                     {
                         auto oldSize = layer_ex.extrusions.size();
-                        fill_expolygon_generate_paths(layer_ex.extrusions, std::move(expoly), filler, fill_params, density, ExtrusionRole::erSupportMaterialInterface,
+                        // Keep the polygon for the outline fallback when a coarse nozzle cannot fit
+                        // the configured interface pattern into a narrow contact region.
+                        fill_expolygon_generate_paths(layer_ex.extrusions, ExPolygon(expoly), filler, fill_params, density, ExtrusionRole::erSupportMaterialInterface,
                                                     interface_flow);
                         // no any infill extrusions generated
                         if (oldSize != layer_ex.extrusions.size())
@@ -2394,7 +2447,8 @@ void generate_support_toolpaths(
                         // using the outline path
                         const double spacing     = interface_flow.scaled_spacing();
                         const double clip_length = spacing * 0.5;
-                        for (auto &shrinkExpoly : offset_ex(expoly, -clip_length)) {
+                        ExPolygons fallback_regions = offset_ex(expoly, -clip_length);
+                        for (auto &shrinkExpoly : fallback_regions) {
                             extrusion_entities_append_paths(layer_ex.extrusions, draw_perimeters(shrinkExpoly, clip_length), ExtrusionRole::erSupportMaterialInterface,
                                                             interface_flow.mm3_per_mm(), interface_flow.width(), interface_flow.height(),
                                                             // Disable reversal of the path, always start with the anchor, always print CCW.
@@ -2462,7 +2516,10 @@ void generate_support_toolpaths(
                     filler = filler_first_layer;
                     filler->angle = Geometry::deg2rad(float(config.support_angle.value + 90.));
                     density = float(config.raft_first_layer_density.value * 0.01);
-                    flow = support_params.first_layer_flow.with_height(float(base_layer.layer->height));
+                    flow = support_layer.planned_nozzle_diameter > EPSILON ?
+                        support_params.support_material_first_layer_flow_for_nozzle(
+                            support_layer.planned_nozzle_diameter, float(base_layer.layer->height)) :
+                        support_params.first_layer_flow.with_height(float(base_layer.layer->height));
                     // use the proper spacing for first layer as we don't need to align
                     // its pattern to the other layers
                     //FIXME When paralellizing, each thread shall have its own copy of the fillers.

@@ -111,6 +111,8 @@ struct SupportParameters {
         // BBS multi-diameter: kept so the support base flow can be rebuilt for a nozzle the support merge plan
         // picked. support_material_flow() derives the nozzle from support_filament, which is 0 in that case.
         this->support_base_width = (object_config.support_line_width.value > 0) ? object_config.support_line_width : object_config.line_width;
+        this->support_first_layer_width = (print_config.initial_layer_line_width.value > 0) ?
+            print_config.initial_layer_line_width : this->support_base_width;
         this->preset_nozzle_diameter = float(primary_nozzle_diameter(object.print()->full_print_config()));
         this->multi_nozzle_diameter_mode = multi_nozzle_diameter_mode_enabled(object.print()->full_print_config());
 
@@ -325,6 +327,7 @@ struct SupportParameters {
     // BBS multi-diameter: the line width option behind the support flows, so base and interface slabs can be
     // rebuilt for the nozzle selected by the support merge plan.
     ConfigOptionFloat support_base_width;
+    ConfigOptionFloat support_first_layer_width;
     float preset_nozzle_diameter { 0.f };
     bool multi_nozzle_diameter_mode { false };
     Flow support_material_flow_for_nozzle(double nozzle_diameter, float layer_height) const {
@@ -335,6 +338,11 @@ struct SupportParameters {
     Flow support_material_interface_flow_for_nozzle(double nozzle_diameter, float layer_height) const {
         return Flow::new_from_config_width(
             frSupportMaterialInterface, support_base_width, preset_nozzle_diameter, float(nozzle_diameter), layer_height,
+            multi_nozzle_diameter_mode);
+    }
+    Flow support_material_first_layer_flow_for_nozzle(double nozzle_diameter, float layer_height) const {
+        return Flow::new_from_config_width(
+            frSupportMaterial, support_first_layer_width, preset_nozzle_diameter, float(nozzle_diameter), layer_height,
             multi_nozzle_diameter_mode);
     }
     coordf_t support_extrusion_width;

@@ -520,10 +520,11 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // print_z -> filament the merged slab at that height was planned for.
     std::map<coordf_t, SupportMergePlan::Candidate> planned_filaments;
     std::map<coordf_t, SupportMergePlan::Candidate> planned_interface_filaments;
+    std::map<coordf_t, coordf_t> planned_base_heights;
     std::map<coordf_t, coordf_t> planned_interface_heights;
     merge_support_layers_multi_diameter(object, m_support_params, m_slicing_params, raft_layers,
         bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
-        planned_filaments, planned_interface_filaments, planned_interface_heights);
+        planned_filaments, planned_interface_filaments, planned_base_heights, planned_interface_heights);
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating layers";
 
@@ -555,6 +556,10 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
             support_layer->planned_interface_nozzle_diameter =
                 interface_it->second.nozzle_diameter;
         }
+        auto base_height_it = planned_base_heights.lower_bound(support_layer->print_z - EPSILON);
+        if (base_height_it != planned_base_heights.end() &&
+            base_height_it->first <= support_layer->print_z + EPSILON)
+            support_layer->base_slab_height = base_height_it->second;
         auto height_it = planned_interface_heights.lower_bound(support_layer->print_z - EPSILON);
         if (height_it != planned_interface_heights.end() &&
             height_it->first <= support_layer->print_z + EPSILON)

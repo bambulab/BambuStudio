@@ -59,7 +59,7 @@ SupportMergePlan::Candidate SupportMergePlan::coarsest_for_slab(double top_z, do
 {
     Candidate best;
     for (const Candidate &candidate : candidates_for_slab(top_z, height))
-        if (candidate.window.contains(height))
+        if (std::abs(fixed_band_height_at(candidate, top_z) - height) < EPSILON)
             if (! best.valid() || candidate.nozzle_diameter > best.nozzle_diameter)
                 best = candidate;
     return best;
@@ -76,7 +76,7 @@ SupportMergePlan::Candidate SupportMergePlan::finest_interface_for_slab(double t
             *this, interface_candidates_per_layer, top_z - height - slack, top_z + slack);
     }
     for (const Candidate &candidate : candidates)
-        if (candidate.window.contains(height) &&
+        if (std::abs(fixed_band_height_at(candidate, top_z) - height) < EPSILON &&
             (! best.valid() || candidate.nozzle_diameter < best.nozzle_diameter))
             best = candidate;
     return best;
@@ -93,17 +93,16 @@ double SupportMergePlan::max_interface_height(double top_z, double height) const
     }
     double max_height = 0.;
     for (const Candidate &candidate : candidates)
-        max_height = std::max(max_height, candidate.window.max_height);
+        max_height = std::max(max_height, fixed_band_height_at(candidate, top_z));
     return max_height;
 }
 
 double SupportMergePlan::max_height_for_slab(double top_z, double height) const
 {
-    Candidate coarsest;
+    double max_height = 0.;
     for (const Candidate &candidate : candidates_for_slab(top_z, height))
-        if (! coarsest.valid() || candidate.nozzle_diameter > coarsest.nozzle_diameter)
-            coarsest = candidate;
-    return coarsest.valid() ? coarsest.window.max_height : 0.;
+        max_height = std::max(max_height, fixed_band_height_at(candidate, top_z));
+    return max_height;
 }
 
 double SupportMergePlan::base_height_at(double top_z) const
@@ -116,6 +115,60 @@ double SupportMergePlan::base_height_at(double top_z) const
     if (it == layer_print_z.begin())
         return layer_heights.front();
     return layer_heights[size_t(it - layer_print_z.begin()) - 1];
+}
+
+double SupportMergePlan::fixed_band_height_at(const Candidate &candidate, double top_z) const
+{
+    if (! enabled || layer_print_z.empty())
+        return 0.;
+
+    auto layer_it = std::lower_bound(layer_print_z.begin(), layer_print_z.end(), top_z - EPSILON);
+    if (layer_it == layer_print_z.end() || *layer_it > top_z + EPSILON)
+        return 0.;
+    const size_t layer_idx = size_t(layer_it - layer_print_z.begin());
+    if (candidate.band_size < 2)
+        return layer_heights[layer_idx];
+
+    auto bands_it = fixed_bands_per_filament.find(candidate.filament_id);
+    if (bands_it == fixed_bands_per_filament.end())
+        return 0.;
+    auto band_it = std::lower_bound(bands_it->second.begin(), bands_it->second.end(), layer_idx,
+        [](const AdaptiveLayerBand &band, size_t idx) { return band.top_idx < idx; });
+    return band_it != bands_it->second.end() && band_it->top_idx == layer_idx ?
+        band_it->merged_height : 0.;
+}
+
+SupportMergePlan::Candidate SupportMergePlan::coarsest_band_containing(
+    double print_z, double &band_height) const
+{
+    band_height = 0.;
+    Candidate best;
+    if (! enabled || layer_print_z.empty())
+        return best;
+
+    auto layer_it = std::lower_bound(layer_print_z.begin(), layer_print_z.end(), print_z - EPSILON);
+    if (layer_it == layer_print_z.end() || *layer_it > print_z + EPSILON)
+        return best;
+    const size_t layer_idx = size_t(layer_it - layer_print_z.begin());
+
+    for (const Candidate &candidate : candidates_per_layer[layer_idx]) {
+        double candidate_height = layer_heights[layer_idx];
+        if (candidate.band_size > 1) {
+            auto bands_it = fixed_bands_per_filament.find(candidate.filament_id);
+            if (bands_it == fixed_bands_per_filament.end())
+                continue;
+            auto band_it = std::lower_bound(bands_it->second.begin(), bands_it->second.end(), layer_idx,
+                [](const AdaptiveLayerBand &band, size_t idx) { return band.top_idx < idx; });
+            if (band_it == bands_it->second.end() || band_it->bottom_idx > layer_idx)
+                continue;
+            candidate_height = band_it->merged_height;
+        }
+        if (! best.valid() || candidate.nozzle_diameter > best.nozzle_diameter) {
+            best        = candidate;
+            band_height = candidate_height;
+        }
+    }
+    return best;
 }
 
 SupportMergePlan make_support_merge_plan(const PrintObject &object)
@@ -138,15 +191,30 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
         plan.layer_heights.emplace_back(layer->height);
     }
 
-    auto make_candidate = [&print_config](int filament_id) {
+    const double grid_nozzle = layer_grid_nozzle_diameter(object.print()->full_print_config());
+    const double base_height = object.slicing_parameters().layer_height;
+
+    auto make_candidate = [&print_config, grid_nozzle, base_height](int filament_id) {
         SupportMergePlan::Candidate candidate;
         candidate.filament_id     = filament_id;
         candidate.nozzle_diameter = nozzle_diameter_for_filament(print_config, (unsigned int) filament_id);
         candidate.window          = adaptive_layer_height_range(candidate.nozzle_diameter);
+        candidate.band_size       = adaptive_layer_band_size(
+            candidate.nozzle_diameter, grid_nozzle, base_height);
         return candidate;
     };
 
-    auto add_candidate = [&make_candidate, &print_config](
+    auto ensure_fixed_grid = [&plan](const SupportMergePlan::Candidate &candidate) {
+        if (candidate.band_size > 1 &&
+            plan.fixed_bands_per_filament.find(candidate.filament_id) ==
+                plan.fixed_bands_per_filament.end())
+            plan.fixed_bands_per_filament.emplace(
+                candidate.filament_id,
+                build_adaptive_layer_bands(
+                    plan.layer_heights, candidate.band_size, candidate.window));
+    };
+
+    auto add_candidate = [&make_candidate, &ensure_fixed_grid, &print_config](
                              std::vector<SupportMergePlan::Candidate> &candidates,
                              int filament_id,
                              bool allow_soluble) {
@@ -158,8 +226,10 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
         if (same != candidates.end())
             return;
         const SupportMergePlan::Candidate candidate = make_candidate(filament_id);
-        if (candidate.nozzle_diameter > EPSILON)
+        if (candidate.nozzle_diameter > EPSILON) {
             candidates.emplace_back(candidate);
+            ensure_fixed_grid(candidate);
+        }
     };
 
     plan.candidates_per_layer.resize(layers.size());
@@ -195,9 +265,11 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
     if (support_filament > 0) {
         if (! print_config.filament_soluble.get_at(size_t(support_filament - 1))) {
             const SupportMergePlan::Candidate candidate = make_candidate(support_filament);
-            if (candidate.nozzle_diameter > EPSILON)
+            if (candidate.nozzle_diameter > EPSILON) {
+                ensure_fixed_grid(candidate);
                 for (std::vector<SupportMergePlan::Candidate> &candidates : plan.candidates_per_layer)
                     candidates.emplace_back(candidate);
+            }
         }
     } else {
         plan.candidates_per_layer = object_candidates;
@@ -206,9 +278,11 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
     const int interface_filament = object_config.support_interface_filament.value;
     if (interface_filament > 0) {
         const SupportMergePlan::Candidate candidate = make_candidate(interface_filament);
-        if (candidate.nozzle_diameter > EPSILON)
+        if (candidate.nozzle_diameter > EPSILON) {
+            ensure_fixed_grid(candidate);
             for (std::vector<SupportMergePlan::Candidate> &candidates : plan.interface_candidates_per_layer)
                 candidates.emplace_back(candidate);
+        }
     } else {
         plan.interface_candidates_per_layer = std::move(object_candidates);
     }

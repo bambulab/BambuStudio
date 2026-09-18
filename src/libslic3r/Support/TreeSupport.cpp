@@ -711,6 +711,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         coordf_t offset = 0;
 
         OverhangType type = Normal;
+        const char  *small_reason = nullptr;
         bool         is_cantilever() { return type & Cantilever; }
         bool         is_sharp_tail() { return type & SharpTail; }
         bool         is_type(OverhangType type_mask) { return type & type_mask; }
@@ -754,15 +755,17 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             return overlaps(overhangs, dilate1);
         }
         // it's basically the combination of push_back and intersects, but saves an offset_ex
-        bool push_back_if_intersects(const ExPolygon& region, int layer_nr, coordf_t offset) {
+        bool push_back_if_intersects(const ExPolygon& region, int layer_nr, coordf_t offset, size_t max_layer_gap) {
             bool is_intersect = false;
             this->offset      = offset;
             ExPolygons dilate1;
             BoundingBox bbox;
             do {
                 if (layer_nr < 1) break;
-                auto it = layer_overhangs.find(layer_nr - 1);
-                if (it == layer_overhangs.end()) break;
+                auto it = layer_overhangs.lower_bound(layer_nr);
+                if (it == layer_overhangs.begin()) break;
+                -- it;
+                if (size_t(layer_nr - it->first) > max_layer_gap) break;
                 const ExPolygons overhangs = it->second;
 
                 dilate1 = offset_ex(region, offset);
@@ -785,9 +788,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             }
             return is_intersect;
         }
-        void check_small_overhang(coordf_t extrusion_width_scaled, double length_thresh_small_overhang, double radius_thresh_small_overhang)
+        void check_small_overhang(coordf_t extrusion_width_scaled, double length_thresh_small_overhang,
+                                  double radius_thresh_small_overhang)
         {
             bool is_small_overhang = false;
+            small_reason = nullptr;
             if ((type & SharpTail) || (type & Cantilever)) {
                 set_type(Small, false);
                 return;
@@ -814,6 +819,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             avg_area /= num_layers;
             is_small_overhang = all_layers_are_small && avg_width < extrusion_width_scaled / 2 && avg_area < SQ(length_thresh_small_overhang) && this->height() < 3;
             if (is_small_overhang) {
+                small_reason = "per-layer";
                 set_type(Small, true);
                 return;
             }
@@ -823,6 +829,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
             if (erodel.empty() ||
                 (bbox_sz.x() < length_thresh_small_overhang && bbox_sz.y() < length_thresh_small_overhang && this->height() < length_thresh_small_overhang / 2)) {
                 is_small_overhang = true;
+                small_reason = erodel.empty() ? "radius" : "bbox-height";
                 set_type(Small, true);
             }
         }
@@ -838,11 +845,24 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     };
     std::vector<OverhangCluster> overhangClusters;
 
-    auto find_and_insert_cluster = [](auto &regionClusters, const ExPolygon &region, int layer_nr, coordf_t offset) {
+    // A coarse region only contributes overhangs at its band tops. Treat the swallowed fine-grid layers as
+    // adjacent here, matching how consecutive coarse layers are clustered in a single-diameter print.
+    size_t max_cluster_layer_gap = 1;
+    for (const Layer *layer : m_object->layers())
+        for (const LayerRegion *region : layer->regions())
+            for (const AdaptiveMergePatch &patch : region->adaptive_merge_patches)
+                if (patch.group_top)
+                    max_cluster_layer_gap =
+                        std::max(max_cluster_layer_gap, patch.top_idx - patch.bottom_idx + 1);
+
+    auto find_and_insert_cluster = [max_cluster_layer_gap](
+                                       auto &regionClusters, const ExPolygon &region,
+                                       int layer_nr, coordf_t offset) {
         OverhangCluster *cluster = nullptr;
         for (int i = 0; i < regionClusters.size(); i++) {
             auto cluster_i = &regionClusters[i];
-            if (cluster_i->push_back_if_intersects(region, layer_nr, offset)) {
+            if (cluster_i->push_back_if_intersects(
+                    region, layer_nr, offset, max_cluster_layer_gap)) {
                 cluster = cluster_i;
                 break;
             }
@@ -897,6 +917,45 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     trim_tail_empty(enforcers);
     trim_tail_empty(blockers);
 
+    // Adaptive multi-nozzle layers are sliced on the finest Z grid, but a coarse nozzle extrudes one
+    // merged slab at the top of each band. Detecting overhangs from every fine-grid slice turns that slab's
+    // overhang into several narrow strips which organic-support avoidance may remove completely. Recreate
+    // the same overhang the coarse nozzle would see on its own: compare the retained slab footprint with
+    // the model below the band and place the result at the slab's physical bottom.
+    std::vector<ExPolygons> adaptive_region_slices(m_object->layer_count());
+    std::vector<ExPolygons> adaptive_overhangs(m_object->layer_count());
+    for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); ++ layer_nr) {
+        Layer *layer = m_object->get_layer(layer_nr);
+        for (const LayerRegion *layerm : layer->regions()) {
+            if (layerm->adaptive_merge_patches.empty())
+                continue;
+
+            for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches) {
+                // The region is physically represented by this retained coarse-slab footprint throughout
+                // the band. LayerRegion::slices may already be empty on merged-out fine-grid layers, which
+                // would let the normal detector process those layers again and fragment one coarse overhang.
+                if (! patch.area().empty())
+                    append(adaptive_region_slices[layer_nr], patch.area());
+                if (! patch.group_top || patch.bottom_idx == 0 || patch.area().empty())
+                    continue;
+
+                const Layer *below_band = m_object->get_layer(patch.bottom_idx - 1);
+                const coord_t support_offset = scale_(patch.merged_height / tan(threshold_rad));
+                ExPolygons overhangs = diff_ex(
+                    patch.area(),
+                    offset_ex(below_band->lslices_extrudable, support_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                if (! overhangs.empty())
+                    append(adaptive_overhangs[patch.bottom_idx], overhangs);
+            }
+        }
+    }
+    for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); ++ layer_nr) {
+        if (! adaptive_region_slices[layer_nr].empty())
+            adaptive_region_slices[layer_nr] = union_ex(adaptive_region_slices[layer_nr]);
+        if (! adaptive_overhangs[layer_nr].empty())
+            adaptive_overhangs[layer_nr] = union_ex(adaptive_overhangs[layer_nr]);
+    }
+
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_object->layer_count()),
         [&](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_nr = range.begin(); layer_nr < range.end(); layer_nr++) {
@@ -930,7 +989,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 coordf_t lower_layer_offset = layer_nr < enforce_support_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
                 //lower_layer_offset = std::min(lower_layer_offset, extrusion_width);
                 coordf_t support_offset_scaled = scale_(lower_layer_offset);
-                ExPolygons& curr_polys = layer->lslices_extrudable;
+                ExPolygons curr_polys = adaptive_region_slices[layer_nr].empty() ?
+                    layer->lslices_extrudable : diff_ex(layer->lslices_extrudable, adaptive_region_slices[layer_nr]);
                 ExPolygons& lower_polys = lower_layer->lslices_extrudable;
                 ExPolygons  lower_layer_offseted  = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
 
@@ -942,6 +1002,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 if (is_auto(stype)) {
                     // normal overhang
                     overhangs_all_layers[layer_nr] = std::move(diff_ex(curr_polys, lower_layer_offseted));
+                    if (! adaptive_overhangs[layer_nr].empty()) {
+                        Polygons combined = to_polygons(overhangs_all_layers[layer_nr]);
+                        polygons_append(combined, to_polygons(adaptive_overhangs[layer_nr]));
+                        overhangs_all_layers[layer_nr] = union_ex(combined);
+                    }
                     // if is auto, add blocker first
                     if (layer_nr < blockers.size() && !blockers[layer_nr].empty()) {
                         // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise,
@@ -1181,7 +1246,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 }
             }
 
-            cluster.check_small_overhang(extrusion_width_scaled, length_thresh_small_overhang, radius_thresh_small_overhang);
+            cluster.check_small_overhang(
+                extrusion_width_scaled, length_thresh_small_overhang, radius_thresh_small_overhang);
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
             const Layer *layer1 = m_object->get_layer(cluster.min_layer);
@@ -1547,9 +1613,22 @@ struct TreeAreaSource
 
 } // namespace
 
+coordf_t TreeSupport::support_flare_step_width(coordf_t print_z, coordf_t layer_height) const
+{
+    double band_height = 0.;
+    const SupportMergePlan::Candidate candidate =
+        m_support_merge_plan.coarsest_band_containing(print_z, band_height);
+    if (! candidate.valid() || band_height <= layer_height + EPSILON)
+        return m_support_params.support_extrusion_width;
+
+    const Flow slab_flow = m_support_params.support_material_flow_for_nozzle(
+        candidate.nozzle_diameter, float(band_height));
+    return slab_flow.width() * layer_height / band_height;
+}
+
 void TreeSupport::merge_base_areas_multi_diameter()
 {
-    const SupportMergePlan plan = make_support_merge_plan(*m_object);
+    const SupportMergePlan &plan = m_support_merge_plan;
     if (! plan.enabled)
         return;
 
@@ -1562,9 +1641,19 @@ void TreeSupport::merge_base_areas_multi_diameter()
         return layer.floor_areas.empty() || candidate.window.contains(layer.height);
     };
 
+    // Keep interface candidate validation in one place. Interface and sparse base may use different layer
+    // ladders; their overlap is resolved spatially while the sparse base slabs are built below.
+    auto interface_candidate = [&plan, &candidate_fits_floor](
+                                   const SupportLayer &layer, coordf_t top_z, coordf_t height) {
+        SupportMergePlan::Candidate candidate = plan.finest_interface_for_slab(top_z, height);
+        if (candidate.valid() && ! candidate_fits_floor(layer, candidate))
+            candidate = {};
+        return candidate;
+    };
+
     // Resolve roof/contact layers from the model downwards. Fine printable layers keep their Z ladder unless
     // doing so would strand a thinner roof directly below. Adjacent roofs and matching base are then folded
-    // into the smallest continuous slab printable by an available nozzle.
+    // into a continuous slab printable by the largest available interface nozzle.
     for (int top = num_layers - 1; top > raft_layers; -- top) {
         SupportLayer *layer_top = m_object->get_support_layer(top);
         if (layer_top == nullptr || (layer_top->roof_areas.empty() && layer_top->roof_1st_layer.empty()))
@@ -1572,9 +1661,7 @@ void TreeSupport::merge_base_areas_multi_diameter()
 
         const coordf_t top_z = layer_top->print_z;
         SupportMergePlan::Candidate candidate =
-            plan.finest_interface_for_slab(top_z, layer_top->height);
-        if (candidate.valid() && ! candidate_fits_floor(*layer_top, candidate))
-            candidate = {};
+            interface_candidate(*layer_top, top_z, layer_top->height);
         int      bottom      = top;
         coordf_t bottom_z    = layer_top->print_z - layer_top->height;
         coordf_t slab_height = layer_top->height;
@@ -1586,13 +1673,11 @@ void TreeSupport::merge_base_areas_multi_diameter()
                 if (below == nullptr || below->print_z < bottom_z - EPSILON ||
                     (below->roof_areas.empty() && below->roof_1st_layer.empty()))
                     break;
-                if (plan.finest_interface_for_slab(below->print_z, below->height).valid())
+                if (interface_candidate(*below, below->print_z, below->height).valid())
                     break;
                 const coordf_t combined_bottom_z = below->print_z - below->height;
                 SupportMergePlan::Candidate combined =
-                    plan.finest_interface_for_slab(top_z, top_z - combined_bottom_z);
-                if (combined.valid() && ! candidate_fits_floor(*layer_top, combined))
-                    combined = {};
+                    interface_candidate(*layer_top, top_z, top_z - combined_bottom_z);
                 if (! combined.valid())
                     break;
                 -- bottom;
@@ -1612,12 +1697,15 @@ void TreeSupport::merge_base_areas_multi_diameter()
             if (below == nullptr || below->print_z < bottom_z - EPSILON ||
                 (below->roof_areas.empty() && below->roof_1st_layer.empty() && below->base_areas.empty()))
                 break;
+            // Stop once the slab outgrows the tallest band any interface nozzle ends here with, instead of
+            // walking the whole stack down for a slab that can no longer match.
+            const coordf_t grown_height = top_z - (below->print_z - below->height);
+            if (grown_height > plan.max_interface_height(top_z, grown_height) + EPSILON)
+                break;
             -- bottom;
             bottom_z    = below->print_z - below->height;
             slab_height = top_z - bottom_z;
-            candidate   = plan.finest_interface_for_slab(top_z, slab_height);
-            if (candidate.valid() && ! candidate_fits_floor(*layer_top, candidate))
-                candidate = {};
+            candidate   = interface_candidate(*layer_top, top_z, slab_height);
         }
         if (! candidate.valid())
             continue;
@@ -1715,12 +1803,15 @@ void TreeSupport::merge_base_areas_multi_diameter()
         top = bottom;
     }
 
-    // The raft and the first support layer decide how the print sticks to the bed. A layer carrying brim
-    // islands is left alone too, because its islands and bounding boxes are derived from its areas.
+    // A support layer carrying brim islands is normally left alone. Without a raft, however, the first
+    // fixed-grid band has to absorb layer zero as well; otherwise a coarse support nozzle is forced to print
+    // every fine layer before the second band begins. Its adhesion geometry is transferred to the band top.
     auto mergeable = [this](int layer_id) {
         const SupportLayer *ts_layer = m_object->get_support_layer(layer_id);
-        return ts_layer != nullptr && ! ts_layer->base_areas.empty() && ts_layer->support_islands.empty();
+        return ts_layer != nullptr && ! ts_layer->base_areas.empty() &&
+               (ts_layer->support_islands.empty() || (m_raft_layers == 0 && layer_id == 0));
     };
+    const int lowest_merge_layer = raft_layers == 0 ? 0 : raft_layers + 1;
 
     for (int top = num_layers - 1; top > raft_layers; -- top) {
         if (! mergeable(top))
@@ -1731,40 +1822,49 @@ void TreeSupport::merge_base_areas_multi_diameter()
         int            bottom      = top;
         coordf_t       slab_height = layer_top->height;
         SupportMergePlan::Candidate pinned = plan.coarsest_for_slab(slab_top_z, slab_height);
+        int            probe       = top;
 
-        // A layer without a base is where the support column ends, so the slab stops there rather than
-        // reaching into thin air. The candidate set is re-read on every step because growing the slab also
-        // grows the Z span the filament has to come from.
-        while (bottom > raft_layers + 1 && mergeable(bottom - 1)) {
-            const SupportLayer *below  = m_object->get_support_layer(bottom - 1);
+        // Probe down to the next fixed-grid boundary. Heights between two boundaries need not be printable
+        // themselves, but every traversed support layer still has to be continuous.
+        while (probe > lowest_merge_layer && mergeable(probe - 1)) {
+            const SupportLayer *below  = m_object->get_support_layer(probe - 1);
             const coordf_t      height = slab_top_z - (below->print_z - below->height);
             if (height > plan.max_height_for_slab(slab_top_z, height) + EPSILON)
                 break;
-            // Never emit a slab no filament of this span can extrude, whatever the limit above allowed.
             const SupportMergePlan::Candidate candidate = plan.coarsest_for_slab(slab_top_z, height);
-            if (! candidate.valid())
-                break;
-            -- bottom;
-            slab_height = height;
-            pinned      = candidate;
+            -- probe;
+            if (candidate.valid()) {
+                bottom      = probe;
+                slab_height = height;
+                pinned      = candidate;
+            }
         }
 
         if (bottom < top) {
+            const bool includes_bed = raft_layers == 0 && bottom == 0;
             std::vector<TreeBaseSource> sources;
-            ExPolygons                  slab_areas;
+            // A thick extrusion has one XY cross-section over its whole height. Use the same representative
+            // face as the model band planner: the top face for ordinary bands and the bed face for the first
+            // band, whose expanded geometry provides adhesion. Unioning every fine-layer cross-section would
+            // turn lateral branch movement into a swept wedge and distort both the tree shape and its clearance.
+            ExPolygons representative_areas =
+                includes_bed ? m_object->get_support_layer(bottom)->base_areas : layer_top->base_areas;
             for (int i = top; i >= bottom; -- i) {
                 SupportLayer *layer = m_object->get_support_layer(i);
                 for (const SupportLayer::AreaGroup &group : layer->area_groups)
                     if (group.type == SupportLayer::BaseType)
                         sources.push_back({ *group.area, get_extents(*group.area), group.dist_to_top, group.need_infill,
                                             group.need_extra_wall, group.need_cooling });
-                append(slab_areas, layer->base_areas);
                 if (i == top)
                     continue;
                 layer->base_areas.clear();
                 layer->area_groups.erase(std::remove_if(layer->area_groups.begin(), layer->area_groups.end(),
                     [](const SupportLayer::AreaGroup &group) { return group.type == SupportLayer::BaseType; }),
                     layer->area_groups.end());
+                if (includes_bed) {
+                    layer->support_islands.clear();
+                    layer->lslices_bboxes.clear();
+                }
             }
 
             // The base now fills the whole slab, so it has to be cut away from everything it grew over: the
@@ -1787,7 +1887,7 @@ void TreeSupport::merge_base_areas_multi_diameter()
                 polygons_append(trimming, offset(object_layer->lslices, float(gap_xy_scaled)));
             }
 
-            ExPolygons merged = union_ex(slab_areas);
+            ExPolygons merged = union_ex(representative_areas);
             if (! trimming.empty())
                 merged = diff_ex(merged, union_(trimming));
             layer_top->base_areas       = std::move(merged);
@@ -1826,6 +1926,14 @@ void TreeSupport::merge_base_areas_multi_diameter()
                 layer_top->area_groups.back().need_cooling    = need_cooling;
             }
             layer_top->area_groups.insert(layer_top->area_groups.end(), others.begin(), others.end());
+            if (includes_bed) {
+                ExPolygons islands;
+                islands.reserve(layer_top->area_groups.size());
+                for (const SupportLayer::AreaGroup &group : layer_top->area_groups)
+                    islands.emplace_back(*group.area);
+                layer_top->support_islands = union_ex(islands);
+                layer_top->lslices_bboxes  = get_extents_vector(layer_top->support_islands);
+            }
         }
 
         // The for loop's decrement then moves below the slab.
@@ -2089,9 +2197,16 @@ void TreeSupport::generate_toolpaths()
 
                 SupportLayer* ts_layer = m_object->get_support_layer(layer_id);
                 const coordf_t base_height = ts_layer->base_slab_height > EPSILON ? ts_layer->base_slab_height : ts_layer->height;
+                const bool base_starts_on_bed =
+                    m_raft_layers == 0 && ts_layer->print_z - base_height <= EPSILON;
                 const Flow support_flow = ts_layer->planned_nozzle_diameter > EPSILON ?
                     m_support_params.support_material_flow_for_nozzle(ts_layer->planned_nozzle_diameter, float(base_height)) :
                     Flow(support_extrusion_width, base_height, nozzle_diameter);
+                const Flow first_layer_support_flow =
+                    ts_layer->planned_nozzle_diameter > EPSILON ?
+                    m_support_params.support_material_first_layer_flow_for_nozzle(
+                        ts_layer->planned_nozzle_diameter, float(base_height)) :
+                    m_support_params.first_layer_flow;
                 const coordf_t interface_height = ts_layer->interface_slab_height > EPSILON ?
                     ts_layer->interface_slab_height : ts_layer->height;
                 Flow interface_flow = ts_layer->planned_interface_nozzle_diameter > EPSILON ?
@@ -2128,7 +2243,10 @@ void TreeSupport::generate_toolpaths()
                     if (area_group.type != SupportLayer::BaseType) {
                         // interface
                         if (layer_id == 0) {
-                            Flow flow = m_raft_layers == 0 ? m_object->print()->brim_flow() : support_flow;
+                            // This brim belongs to the tree support, so its flow must follow support_filament.
+                            // Print::brim_flow() is derived from a model wall filament and may use a different
+                            // nozzle diameter in multi-diameter mode.
+                            Flow flow = first_layer_support_flow;
                             make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, wall_count, flow,
                                                           area_group.type == SupportLayer::RoofType ? erSupportMaterialInterface : erSupportMaterial);
                             polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
@@ -2253,18 +2371,18 @@ void TreeSupport::generate_toolpaths()
                     }
                     else {
                         // base_areas
-                        Flow flow               = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() : support_flow;
+                        Flow flow = base_starts_on_bed ? first_layer_support_flow : support_flow;
                         bool need_infill = with_infill;
                         if(m_object_config->support_base_pattern==smpDefault)
                             need_infill &= area_group.need_infill;
 
-                        std::shared_ptr<Fill> filler_support = std::shared_ptr<Fill>(Fill::new_from_type(layer_id == 0 ? ipConcentric : m_support_params.base_fill_pattern));
+                        std::shared_ptr<Fill> filler_support = std::shared_ptr<Fill>(Fill::new_from_type(base_starts_on_bed ? ipConcentric : m_support_params.base_fill_pattern));
                         filler_support->set_bounding_box(bbox_object);
-                        filler_support->spacing = support_flow.spacing();
+                        filler_support->spacing = flow.spacing();
                         filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
 
                         Polygons loops = to_polygons(poly);
-                        if (layer_id == 0) {
+                        if (base_starts_on_bed) {
                             float density = float(m_object_config->raft_first_layer_density.value * 0.01);
                             fill_expolygons_with_sheath_generate_paths(ts_layer->support_fills.entities, loops, filler_support.get(), density, erSupportMaterial, flow,
                                                                        m_support_params, true, false);
@@ -2318,7 +2436,7 @@ void TreeSupport::generate_toolpaths()
                     // strengthen lightnings while it may make support harder. decide to enable it or not. if yes, proper values for params are remained to be tested
                     auto& lightning_layer = generator->getTreesForLayer(printZ_to_lightninglayer[print_z]);
 
-                    Flow       flow  = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() :support_flow;
+                    Flow       flow  = base_starts_on_bed ? first_layer_support_flow : support_flow;
                     ExPolygons areas = offset_ex(ts_layer->base_areas, -flow.scaled_spacing());
 
                     for (auto& area : areas)
@@ -2487,6 +2605,11 @@ void TreeSupport::generate()
 
     m_ts_data->layer_heights = plan_layer_heights();
 #endif
+
+    // The tree geometry is generated on the fine support-node grid, while a coarse support nozzle prints
+    // several of those nodes as one fixed-grid slab. Cache the plan before dropping nodes so per-node growth
+    // can be normalized to the slab that will eventually be emitted.
+    m_support_merge_plan = make_support_merge_plan(*m_object);
 
     //Drop nodes to lower layers.
     profiler.stage_start(STAGE_DROP_DOWN_NODES);
@@ -3310,7 +3433,6 @@ void TreeSupport::prune_floating_supports()
     // Branches may then move freely, so no region can be told apart as unsupported.
     if (branch_angle >= M_PI / 2) return;
     const double   tan_branch_angle        = tan(branch_angle);
-    const coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const int      wall_count              = std::max(1, config.tree_support_wall_count.value);
     // Footprint of the thinnest branch the tree will ever print, and hence the least support that can still be
     // standing under a region rather than touching it by accident.
@@ -3357,10 +3479,11 @@ void TreeSupport::prune_floating_supports()
             // Both are driven by a layer height, and this support layer's own is taken for it rather than
             // config.layer_height, since independent_support_layer_height lets it run thicker than the
             // nominal one and the bound has to hold for the thicker case.
-            // The last term is the half extrusion width the radius gains per layer under bottom expansion.
-            const coordf_t carry_slack = std::max({std::min(tan_branch_angle * ts_layer->height, support_extrusion_width),
+            // The last term is the per-node share of the slab line width gained under bottom expansion.
+            const coordf_t flare_step_width = support_flare_step_width(ts_layer->print_z, ts_layer->height);
+            const coordf_t carry_slack = std::max({std::min(tan_branch_angle * ts_layer->height, flare_step_width),
                                                    tan_branch_angle * ts_layer->height * wall_count,
-                                                   support_extrusion_width / 2.});
+                                                   flare_step_width / 2.});
             // Assembling the carrier means a union and an offset over everything below, which is a clipper
             // boolean across the whole layer. Clipping first keeps that off the parts of the layer that are too
             // far away to matter: on a plate full of small parts the rest of it is pure overhead.
@@ -3543,10 +3666,12 @@ void TreeSupport::drop_nodes()
     // enabled only when the wall count is set to auto or dual-wall is explicitly enabled by the user.
     const bool bottom_expand_enabled = config.tree_support_wall_count > 1 || config.tree_support_wall_count < 0;
 
-    auto get_max_move_dist = [this, &config, tan_angle, wall_count, support_extrusion_width](const SupportNode *node, int power = 1) {
+    auto get_max_move_dist = [this, &config, tan_angle, wall_count](const SupportNode *node, int power = 1) {
         if (node->max_move_dist == 0) {
             node->radius        = get_radius(node);
-            node->max_move_dist = std::min(tan_angle * node->height, support_extrusion_width);
+            node->max_move_dist = std::min(
+                tan_angle * node->height,
+                support_flare_step_width(node->print_z, node->height));
         }
         double move_dist = node->max_move_dist;
         if (power == 2) move_dist = SQ(move_dist);
@@ -4139,7 +4264,7 @@ first_pass_next:;
                 direction_to_outer     = to_outside - node.position;
                 double dist_to_outer   = unscale_(direction_to_outer.cast<double>().norm());
                 next_node->radius      = (bottom_expand_enabled && next_node->print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM) ?
-                                             node.radius + support_extrusion_width / 2. :
+                                             node.radius + support_flare_step_width(next_node->print_z, next_node->height) / 2. :
                                              std ::max(node.radius, std::min(next_node->radius, dist_to_outer));
                 get_max_move_dist(next_node);
                 m_ts_data->m_mutex.lock();
