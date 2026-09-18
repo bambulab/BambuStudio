@@ -386,6 +386,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/TextureImportDialog.cpp
     GUI/MixingKitsHelpDialog.hpp
     GUI/MixingKitsHelpDialog.cpp
+    GUI/TextureImportUi.hpp
+    GUI/TextureImportUi.cpp
+    GUI/TextureImportOverLimitDialog.hpp
+    GUI/TextureImportOverLimitDialog.cpp
     GUI/FilamentPickerDialog.cpp
     GUI/FilamentPickerDialog.hpp
     GUI/FilamentBitmapUtils.cpp

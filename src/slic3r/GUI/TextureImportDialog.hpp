@@ -71,6 +71,11 @@ struct TextureFilamentEntry {
     std::vector<int>          mixed_ratios;
 };
 
+// Coarse family type (PLA / PETG / ABS / ...). Empty if unknown or mixed
+// components disagree, so callers can skip cross-material pairing.
+std::string texture_entry_family_type(const TextureFilamentEntry& entry,
+                                      const std::vector<TextureFilamentEntry>& entries);
+
 struct TextureNewMixedFilament {
     int                       dialog_index{-1};
     std::string               color_hex;
@@ -217,6 +222,7 @@ public:
 
     int ShowModal() override;
     void on_dpi_changed(const wxRect& suggested_rect) override;
+    void on_sys_color_changed() override;
 
     Slic3r::PaintedMesh               get_painted_mesh() const;
     std::vector<Slic3r::FilamentMatch> get_matches() const;
@@ -249,9 +255,13 @@ private:
     void update_preview_rounded_corners();
     void clear_param_spin_selection();
     void update_dialog_min_size();
+    // Apply the DIP client size after the native window exists (macOS needs
+    // wxEVT_SHOW). When center is true, also CenterOnParent().
+    void apply_dialog_geometry(bool center);
     void update_stepper();
     void style_primary_button(Button* btn);
     void style_secondary_button(Button* btn);
+    void apply_theme();
 
     void start_computation(bool auto_color = false, bool initial = false);
     void cancel_computation();
@@ -311,19 +321,22 @@ private:
     void   update_color_count_controls();
     void   set_color_count_exceeded(bool exceeded);
     void   update_color_count_warning();
-    bool can_add_virtual_filament() const;
+    bool filament_count_exceeded() const;
     // True when at least one mapping row / match has no filament assigned.
     bool has_unmatched_mapping() const;
     // Create NewPhysical filaments for every unmatched cluster color, using the
     // same family type / preset vote as auto-match. Same color shares one slot.
     void add_virtual_filaments_for_unmatched();
-    // Recomputes m_drop_warning_label visibility from m_filaments_dropped and
-    // m_state. Safe to call whether or not the label has been created yet.
-    // Visibility reflects the most recent add that hit the filament cap
-    // (one-click add or manual add), not historical accumulation.
-    void update_drop_warning_visibility();
     void update_unmatched_warning_visibility();
     void wrap_unmatched_warning_label();
+    void update_overlimit_warning_visibility();
+    void wrap_overlimit_warning_label();
+    // Screen Y of the matching-page hint bar bottom; used to dock the filament popup.
+    int  filament_popup_align_bottom() const;
+    // Shows the over-limit plan dialog. On OK the chosen plan is applied and
+    // the function returns true; Cancel leaves the matching page unchanged.
+    bool open_overlimit_dialog();
+    void apply_overlimit_matches(const std::vector<Slic3r::FilamentMatch>& matches);
     void compact_used_virtual_filaments();
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color,
@@ -393,11 +406,6 @@ private:
     TextureImportWizardStep            m_wizard_step = TextureImportWizardStep::SimplifyColors;
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
-    // True iff the most recent add-filament attempt (one-click or manual)
-    // hit the global filament cap. Reset at the start of do_auto_match() and
-    // add_virtual_filaments_for_unmatched(). Drives the inline orange warning
-    // above the bottom buttons; never affects the mapping itself.
-    bool                               m_filaments_dropped = false;
     bool                               m_auto_merge_enabled = true;
     bool                               m_mix_enabled = false;
 
@@ -451,6 +459,7 @@ private:
     wxPanel*              m_advanced_header = nullptr;
     wxPanel*              m_advanced_body   = nullptr;
     bool                  m_advanced_expanded = false;
+    wxPanel*              m_title_line     = nullptr;
     wxPanel*              m_params_panel   = nullptr;
     wxPanel*              m_mapping_panel  = nullptr;
     wxPanel*              m_preview_container = nullptr;
@@ -485,11 +494,16 @@ private:
     Button*       m_btn_prev   = nullptr;
     Button*       m_btn_reset  = nullptr;
     Button*       m_btn_ok     = nullptr;
-    wxStaticText* m_drop_warning_label = nullptr;
     wxPanel*      m_unmatched_warning  = nullptr;
     wxStaticBitmap* m_unmatched_warning_icon = nullptr;
-    wxStaticText* m_unmatched_warning_label = nullptr;
+    Label*        m_unmatched_warning_label = nullptr;
     wxStaticText* m_unmatched_add_link = nullptr;
+    wxPanel*      m_overlimit_warning  = nullptr;
+    wxStaticBitmap* m_overlimit_warning_icon = nullptr;
+    Label*        m_overlimit_warning_label = nullptr;
+    wxStaticText* m_overlimit_fix_link = nullptr;
+    ScalableBitmap m_bmp_unmatched;
+    ScalableBitmap m_bmp_brand;
     wxBoxSizer*   m_footer_btn_sizer   = nullptr;
 
     int    m_param_color_count = 4;
@@ -520,7 +534,6 @@ private:
         int  applied_color_count = -1;
         int  applied_smooth = -1;
         bool auto_preset_selected = true;
-        bool filaments_dropped = false;
         TextureImportState state = TextureImportState::Idle;
         double param_gap_area = 0.0;
         std::unique_ptr<GapPreviewState> gap_preview;
