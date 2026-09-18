@@ -1041,6 +1041,8 @@ struct Sidebar::priv
     bool                     m_saved_per_slot_valid = false;
     std::vector<std::string> m_saved_selected_nozzle_diameters;
     std::vector<int>         m_saved_filament_volume_map;
+    std::optional<bool>      m_previous_supports_multi_diameter;
+    bool                     m_previous_multi_diameter_mode = false;
     void reposition_filament_nozzle_indicator(size_t idx);
 
     //BBS Sidebar widgets
@@ -1162,7 +1164,35 @@ struct Sidebar::priv
 void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
 {
     isDual = isDual && isBBL;  // It indicates a multi-extruder layout.
-    diameter_btns->SetMultiDiameterMode(multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
+    const bool supports_multi_diameter = isBBL && !isDual && isMultiNozzle;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const bool current_multi_diameter_mode =
+        multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
+    const bool leaving_multi_diameter_machine =
+        m_previous_supports_multi_diameter.value_or(false) && !supports_multi_diameter;
+    // Outside multi-diameter mode this map belongs to normal grouping. Reset the per-slot flow
+    // snapshot only at the capability boundary, then let subsequent grouping own it again.
+    if (leaving_multi_diameter_machine &&
+        (m_previous_multi_diameter_mode || m_saved_per_slot_valid)) {
+        const std::vector<int> default_volume_map(
+            preset_bundle->filament_presets.size(), static_cast<int>(NozzleVolumeType::nvtStandard));
+        if (auto *volume_map = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map"))
+            volume_map->values = default_volume_map;
+        if (plater) {
+            for (PartPlate *plate : plater->get_partplate_list().get_plate_list())
+                if (plate != nullptr)
+                    plate->set_filament_volume_maps(default_volume_map);
+        }
+    }
+    if (!supports_multi_diameter) {
+        m_saved_per_slot_valid = false;
+        m_saved_selected_nozzle_diameters.clear();
+        m_saved_filament_volume_map.clear();
+        m_printer_preset_before_multi_diameter.reset();
+    }
+    m_previous_supports_multi_diameter = supports_multi_diameter;
+    m_previous_multi_diameter_mode = supports_multi_diameter && current_multi_diameter_mode;
+    diameter_btns->SetMultiDiameterMode(current_multi_diameter_mode);
     // Printer - preset
     if (auto sizer = static_cast<wxBoxSizer *>(panel_printer_preset->GetSizer());
             sizer == nullptr || isBBL != (sizer->GetOrientation() == wxVERTICAL)) {
@@ -1228,7 +1258,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
 
     diameter_btns->Show(isBBL && (isDual || isMultiNozzle));
     // The single-/multi-diameter mode selector belongs to single-extruder multi-nozzle printers only.
-    diameter_btns->ShowModeSelector(isBBL && !isDual && isMultiNozzle);
+    diameter_btns->ShowModeSelector(supports_multi_diameter);
     dual_panel->Show(isBBL && isDual);
     single_panel->Show(isBBL && !isDual && isMultiNozzle);
 }

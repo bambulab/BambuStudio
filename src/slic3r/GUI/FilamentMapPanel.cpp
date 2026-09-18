@@ -158,11 +158,16 @@ static std::set<std::string> split_diameter_set(const std::string &joined)
 static std::vector<std::set<std::string>> get_filament_allowed_diameters(size_t filament_count)
 {
     std::vector<std::set<std::string>> result(filament_count);
-    const auto joined = wxGetApp().preset_bundle->compute_filament_supported_nozzle_diameters(filament_count);
+    const PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const auto joined = preset_bundle->compute_filament_supported_nozzle_diameters(filament_count);
     for (size_t i = 0; i < filament_count && i < joined.size(); ++i)
         result[i] = split_diameter_set(joined[i]);
-    if (const auto *selected = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>(
-            "filament_diameter_map")) {
+    const bool supports_multi_diameter = is_single_ext_multi_nozzle(
+        preset_bundle->printers.get_edited_preset().config);
+    if (supports_multi_diameter && multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) {
+        const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+        if (selected == nullptr)
+            return result;
         for (size_t i = 0; i < filament_count && i < selected->values.size(); ++i) {
             if (!selected->values[i].empty())
                 result[i] = {format_diameter_to_str(string_to_double_decimal_point(selected->values[i]))};

@@ -4087,6 +4087,13 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
 {
     auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
     selected->values.resize(filament_presets.size());
+    const bool supports_multi_diameter =
+        is_single_ext_multi_nozzle(printers.get_edited_preset().config);
+    if (!supports_multi_diameter) {
+        if (auto *mode = project_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
+            mode->value = false;
+        std::fill(selected->values.begin(), selected->values.end(), std::string());
+    }
     // multi_nozzle_diameter_mode is a project-level toggle that outlives a printer switch: a
     // project last edited against a per-slot-diameter machine keeps it set to true even after the
     // active printer preset is switched to a plain single-diameter machine, whose
@@ -4108,8 +4115,8 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
     // (stale values from an earlier machine, or never normalized because it never routes through
     // the dialog that would clear them) were being flagged/red instead of silently normalized like
     // a plain machine.
-    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config) &&
-        is_single_ext_multi_nozzle(printers.get_edited_preset().config);
+    const bool multi_diameter_mode =
+        multi_nozzle_diameter_mode_enabled(project_config) && supports_multi_diameter;
     const std::vector<std::string> retained_selections =
         multi_diameter_mode ? std::vector<std::string>{} : selected->values;
     const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
