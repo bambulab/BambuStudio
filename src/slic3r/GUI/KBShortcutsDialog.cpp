@@ -264,7 +264,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { "M", L("Gizmo move") },
             { "S", L("Gizmo scale") },
             { "R", L("Gizmo rotate") },
-            { "C", L("Gizmo cut") },
+            { "C", L("Center selected objects on the plate") },
             { "F", L("Gizmo Place face on bed") },
             { "L", L("Gizmo SLA support points") },
             { "P", L("Gizmo FDM paint-on seam") },

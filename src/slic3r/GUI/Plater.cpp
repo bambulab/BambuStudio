@@ -7502,6 +7502,17 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             this->q->orient(); });
         //BBS
         view3D_canvas->Bind(EVT_GLCANVAS_SELECT_CURR_PLATE_ALL, [this](SimpleEvent&) {this->q->select_curr_plate_all(); });
+        // 'C' shortcut: center the selection on its plate, mirroring the right-click "Center" menu item
+        view3D_canvas->Bind(EVT_GLCANVAS_CENTER_SELECTION, [this](SimpleEvent&) {
+            GLCanvas3D* canvas3d = this->q->get_view3D_canvas3D();
+            if (canvas3d == nullptr || canvas3d->get_selection().is_empty())
+                return;
+            GLGizmosManager& gizmos = canvas3d->get_gizmos_manager();
+            gizmos.check_object_located_outside_plate(true);
+            if (gizmos.get_object_located_outside_plate())
+                return;
+            this->center_selection();
+        });
 
         view3D_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) { this->q->select_all(); });
         view3D_canvas->Bind(EVT_GLCANVAS_QUESTION_MARK, [](SimpleEvent&) { wxGetApp().keyboard_shortcuts(); });
