@@ -432,6 +432,10 @@ void SyncAmsInfoDialog::hide_advanced_settings_hint_labels()
 
 void SyncAmsInfoDialog::update_more_setting(bool layout, bool from_more_seting_text)
 {
+    // Toggle the rows before sizing: a content-measuring apply_scroll_height (multi-diameter fork)
+    // reads the live layout, so it must see the rows' final visibility, not the pre-toggle one.
+    show_sizer(m_append_color_sizer, m_expand_more_settings);
+    show_sizer(m_merge_color_sizer, m_expand_more_settings);
     if (!m_expand_more_settings) {
         m_advanced_options_icon->SetBitmap(create_scaled_bitmap("advanced_option3", m_scrolledWindow, 18));
         if (from_more_seting_text) {
@@ -443,8 +447,6 @@ void SyncAmsInfoDialog::update_more_setting(bool layout, bool from_more_seting_t
             apply_scroll_height(dialog_height_max());
         }
     }
-    show_sizer(m_append_color_sizer, m_expand_more_settings);
-    show_sizer(m_merge_color_sizer, m_expand_more_settings);
     if (layout) {
         m_scrolledWindow->FitInside();
         Layout();
@@ -1278,14 +1280,14 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
         }
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
                                                      wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
-                                                     use_nozzle_type_match(), use_color_over_subtype());
+                                                     use_color_over_subtype(), nozzle_match_weight());
     }
     // single nozzle
     else {
         map_opt = { false, true, false, true }; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
                                                                wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
-                                                               use_nozzle_type_match(), use_color_over_subtype());
+                                                               use_color_over_subtype(), nozzle_match_weight());
     }
 
     if (filament_result == 0) {
@@ -3293,11 +3295,10 @@ void SyncAmsInfoDialog::update_lan_machine_list()
 
 SyncNozzleAndAmsDialog::SyncNozzleAndAmsDialog(InputInfo &input_info)
     : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
-                              wxGetApp().preset_bundle->get_printer_extruder_count() == 1 ? 370 :320,
+                              wxGetApp().preset_bundle->get_printer_extruder_count() == 1 ? 370 : 320,
                               input_info.dialog_pos,
                               90,
-                              wxGetApp().preset_bundle->get_printer_extruder_count() == 1 ? _L("Successfully synchronized nozzle information.") :
-                                                                                            _L("Successfully synchronized nozzle and AMS number information."),
+                              _L("Successfully synchronized Printer information."),
                               _L("Continue to sync filaments"),
                               _CTX(L_CONTEXT("Cancel", "Sync_Nozzle_AMS"), "Sync_Nozzle_AMS"),
                               DisappearanceMode::TimedDisappearance)

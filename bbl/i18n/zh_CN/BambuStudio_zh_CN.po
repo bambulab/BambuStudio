@@ -11634,8 +11634,8 @@ msgstr "您在同一挤出机中同时选择了外部和AMS耗材，您需要手
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "注意: 如果您最近更换了喷嘴，请去“设备-打印机零件”更改设置"
 
-msgid "Successfully synchronized nozzle information."
-msgstr "喷嘴信息同步成功。"
+msgid "Successfully synchronized Printer information."
+msgstr "打印机信息同步成功。"
 
 msgid "Successfully synchronized nozzle and AMS number information."
 msgstr "喷嘴信息和AMS数量同步成功。"

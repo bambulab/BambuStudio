@@ -1444,13 +1444,13 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
                 map_opt[0] = false;
                 map_opt[2] = true;
             }
-            int result_first = DevMappingUtil::ams_filament_mapping(obj_, m_filament_left, m_ams_mapping_result_left, map_opt, std::vector<int>(), false, check_nozzle_type);
+            int result_first = DevMappingUtil::ams_filament_mapping(obj_, m_filament_left, m_ams_mapping_result_left, map_opt, std::vector<int>(), false, /*color_over_subtype*/ false, check_nozzle_type ? NozzleMatchWeight::Require : NozzleMatchWeight::Ignore);
             map_opt = { false, true, false, !has_right_ams };
             if (!use_ams) {
                 map_opt[1] = false;
                 map_opt[3] = true;
             }
-            int result_second = DevMappingUtil::ams_filament_mapping(obj_, m_filament_right, m_ams_mapping_result_right, map_opt, std::vector<int>(), false, check_nozzle_type);
+            int result_second = DevMappingUtil::ams_filament_mapping(obj_, m_filament_right, m_ams_mapping_result_right, map_opt, std::vector<int>(), false, /*color_over_subtype*/ false, check_nozzle_type ? NozzleMatchWeight::Require : NozzleMatchWeight::Ignore);
 
             //m_ams_mapping_result.clear();
             m_ams_mapping_result.resize(m_ams_mapping_result_left.size() + m_ams_mapping_result_right.size());
@@ -1468,7 +1468,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
                 map_opt[0] = false;
                 map_opt[1] = false;
             }
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type);
+            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, /*color_over_subtype*/ false, check_nozzle_type ? NozzleMatchWeight::Require : NozzleMatchWeight::Ignore);
         }
         //When filaments cannot be matched automatically, whether to use ext for automatic supply
         //auto_supply_with_ext(obj_->vt_slot);
@@ -1481,7 +1481,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
             map_opt[1] = false;
             map_opt[3] = true;
         }
-        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type);
+        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, /*color_over_subtype*/ false, check_nozzle_type ? NozzleMatchWeight::Require : NozzleMatchWeight::Ignore);
         // auto_supply_with_ext(obj_->vt_slot);
     }
 

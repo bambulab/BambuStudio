@@ -6908,13 +6908,13 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
                 }
             }
         };
-        std::vector<bool> sync_ams_badges;
-        for (auto iter : sync_result.sync_maps) {
-            sync_ams_badges.push_back(false);
-            if (iter.second.ams_id == "" || iter.second.slot_id == "") {
-                continue;
-            }
-            sync_ams_badges.back() = true;
+        // Index badges by filament-slot id (the space merge_info.merges / change_filament use below),
+        // not by map iteration order: sync_maps keys can be sparse, so a positional vector would be
+        // shorter than the largest merge index and erase(begin() + index) would run past end().
+        std::vector<bool> sync_ams_badges(p->combos_filament.size(), false);
+        for (const auto &[idx, ams] : sync_result.sync_maps) {
+            if (idx < 0 || idx >= (int) sync_ams_badges.size()) { continue; }
+            sync_ams_badges[idx] = !(ams.ams_id.empty() || ams.slot_id.empty());
         }
 
         for (size_t i = 0; i < merge_info.merges.size(); i++) {

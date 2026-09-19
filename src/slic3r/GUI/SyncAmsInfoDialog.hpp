@@ -9,6 +9,7 @@
 #include <wx/animate.h>
 #include "SelectMachine.hpp"
 #include "DeviceManager.hpp"
+#include "DeviceCore/DevMapping.h"
 #include "BaseTransparentDPIFrame.hpp"
 class Button;
 class CheckBox;
@@ -257,12 +258,12 @@ public:
     void set_print_type(PrintFromType type) { m_print_type = type; };
     bool has_selector(MachineObject *obj_) const;
     virtual bool do_ams_mapping(MachineObject *obj_);
-    /// When true, the auto-map filters candidate slots by nozzle diameter and flow type (checked
-    /// before colour). Base ignores the nozzle; a subclass enables it for precision matching.
-    virtual bool use_nozzle_type_match() const { return false; }
     /// When true, the auto-map ranks same-type slots by colour, letting product identity (filament
     /// sub-type) only break a near-equal colour tie. Base keeps product identity dominant over colour.
     virtual bool use_color_over_subtype() const { return false; }
+    /// How strongly a candidate slot's nozzle (diameter + flow type) constrains the auto-map. Base
+    /// ignores the nozzle; a subclass raises this to prefer or require a matching nozzle.
+    virtual NozzleMatchWeight nozzle_match_weight() const { return NozzleMatchWeight::Ignore; }
     void deal_only_exist_ext_spool(MachineObject *obj_);
     void show_thumbnail_page();
     bool get_ams_mapping_result(std::string &mapping_array_str, std::string &mapping_array_str2, std::string &ams_mapping_info);

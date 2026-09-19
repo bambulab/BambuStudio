@@ -135,6 +135,11 @@ public:
         m_dst_name = name; m_dst_dia = dia; m_dst_vol = vol; m_dst_bambu = bambu; Refresh();
     }
 
+    /// The number drawn on the source swatch: the original 1-based project filament slot. It can
+    /// differ from the row position because the plate uses only a subset of the project filaments,
+    /// so it is kept separate from the base index string (which stays the positional reset key).
+    void set_index_label(const wxString& s) { m_index_label = s; Refresh(); }
+
     /// Shared width of the widest destination cell across rows, so every dest lines up on the same
     /// left edge, pushed as far right as still fits that widest cell.
     void set_max_dst(int w) { if (m_max_dst != w) { m_max_dst = w; Refresh(); } }
@@ -206,7 +211,8 @@ private:
     /// Paint a filament colour swatch (source or destination) with a hairline Grey300 outline.
     /// ctype 0 renders a gradient; any other value renders a discrete multi-colour split. A fully
     /// transparent single slot falls back to a light Grey300 chip so it stays visible.
-    void draw_swatch(wxDC& dc, const wxRect& r, const wxColour& col, const std::vector<wxColour>& cols, int ctype)
+    void draw_swatch(wxDC& dc, const wxRect& r, const wxColour& col, const std::vector<wxColour>& cols, int ctype,
+                     const wxString& index_label = {})
     {
         std::vector<wxColour> colors;
         if (cols.size() > 1)
@@ -222,6 +228,16 @@ private:
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.SetPen(wxPen(ThemeColor::Grey300, 1));
         dc.DrawRectangle(r);
+
+        // Filament index centred on the swatch; the label flips to white on dark fills and dark on
+        // light fills so it stays legible against the theme-independent filament colour.
+        if (!index_label.empty()) {
+            const wxColour bg = col.Alpha() == 0 ? ThemeColor::Grey300 : col;
+            dc.SetFont(::Label::Body_12);
+            dc.SetTextForeground(bg.GetLuminance() < 0.6 ? ThemeColor::White : ThemeColor::TextPrimary);
+            const wxSize ts = dc.GetTextExtent(index_label);
+            dc.DrawText(index_label, r.x + (r.width - ts.x) / 2, r.y + (r.height - ts.y) / 2);
+        }
     }
 
     /// The second line's text ("dia  vol"), so both the width helper and the painter agree on it.
@@ -245,11 +261,11 @@ private:
     /// mismatch is set, the diameter+volume line is drawn amber on a rounded "pill" background.
     void draw_cell(wxDC& dc, int swatch_x, int text_x, const wxColour& swcol, const std::vector<wxColour>& scols, int ctype,
                    const wxString& name, bool bambu, const wxString& dia, const wxString& vol, bool mismatch,
-                   const wxColour& txt, const wxColour& sub)
+                   const wxColour& txt, const wxColour& sub, const wxString& index_label = {})
     {
         const wxSize size = GetSize();
         const int    sw   = FromDIP(30);
-        draw_swatch(dc, wxRect(swatch_x, (size.y - sw) / 2, sw, sw), swcol, scols, ctype);
+        draw_swatch(dc, wxRect(swatch_x, (size.y - sw) / 2, sw, sw), swcol, scols, ctype, index_label);
 
         dc.SetFont(::Label::Body_13);
         const int l1h = dc.GetTextExtent(name).y;
@@ -303,9 +319,10 @@ private:
         const int tw = FromDIP(8), th = FromDIP(5);
         const int drop_x = size.x - pad - tw;
 
-        // source cell, left-aligned
+        // source cell, left-aligned; its swatch carries the project filament index (as in the sidebar list)
         draw_cell(dc, pad, pad + sw + gap, m_material_coloul, m_material_cols, m_material_ctype,
-                  m_src_name, m_src_bambu, m_src_dia, m_src_vol, false, txt, sub);
+                  m_src_name, m_src_bambu, m_src_dia, m_src_vol, false, txt, sub,
+                  m_index_label);
 
         // dest cell: shared left edge across rows, pushed as far right as the widest dest still fits
         // (leaving room for the dropdown); source stays left, so the two never collide.
@@ -346,6 +363,7 @@ private:
     }
 
     wxBitmap m_bambu_bmp;
+    wxString m_index_label; ///< source-swatch number: 1-based project filament slot (not the row position)
     wxString m_src_name, m_src_dia, m_src_vol;
     wxString m_dst_name, m_dst_dia, m_dst_vol;
     bool     m_src_bambu{false};
@@ -858,7 +876,7 @@ void MultiDiameterSyncAmsDialog::generate_override_fix_ams_list()
         std::vector<FilamentInfo> result;
         DevMappingUtil::ams_filament_mapping(obj, m_fix_filaments, result, default_map_opt(obj), std::vector<int>(),
                                              wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
-                                             use_nozzle_type_match(), use_color_over_subtype());
+                                             use_color_over_subtype(), nozzle_match_weight());
         paint_items(obj, m_fix_materialList, result);
     }
     m_fix_filament_panel->Show();
@@ -944,6 +962,9 @@ void MultiDiameterSyncAmsDialog::build_sync_rows(wxWindow* panel, wxFlexGridSize
         const std::string src_vol = source_volume_for(cfg, extruder);
         item->set_source(src_name, from_u8(format_diameter_to_str(src_dia)),
                          src_vol.empty() ? wxString() : _L(src_vol), brand_is_bambu(brands[extruder]));
+        // Swatch shows the original project filament slot (1-based), not the row position, so it
+        // matches the sidebar list even when the plate uses only a subset of the project filaments.
+        item->set_index_label(from_u8(std::to_string(extruder + 1)));
 
         FilamentInfo info;
         info.id                 = extruder;
@@ -1139,9 +1160,9 @@ bool MultiDiameterSyncAmsDialog::do_ams_mapping(MachineObject* obj_)
     // grow m_ams_mapping_result by N every time, leaving duplicate/stale ids for the dest-paint,
     // get_ams_mapping_result and deal_ok to trip over (the earlier m_filaments[k] out-of-bounds).
     m_ams_mapping_result.clear();
-    // The base matcher and its preview plumbing do the work: Precision-first makes use_nozzle_type_match()
-    // true, so the matcher gates candidates on diameter+flow before colour and leaves a filament unmapped
-    // when no compatible slot exists. We only add the dest name / diameter / volume onto the rows.
+    // The base matcher and its preview plumbing do the work: Precision-first sets nozzle_match_weight()
+    // to Require, so the matcher gates candidates on diameter+flow before colour and leaves a filament
+    // unmapped when no compatible slot exists. We only add the dest name / diameter / volume onto the rows.
     const bool ok = SyncAmsInfoDialog::do_ams_mapping(obj_);
     // The base's show_thumbnail_page() (reached here) re-pins the content book to the design width, so
     // free it again before the layout settles — otherwise a re-map would snap a widened dialog back.

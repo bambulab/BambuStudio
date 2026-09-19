@@ -30,6 +30,14 @@ enum class DevSlotFeedBlock
     BlockedByExtSpool, // an external spool is engaged and has to be pulled out by hand
 };
 
+// How strongly a candidate slot's nozzle (diameter + flow type) constrains the auto-map.
+enum class NozzleMatchWeight
+{
+    Ignore = 0, // the slot's nozzle is not considered
+    Prefer,     // soft: a mismatch only loses a near-equal colour tie to a matching slot
+    Require,    // hard: a mismatch is barred (filament left unmapped when no slot fits)
+};
+
 class DevMappingUtil
 {
 public:
@@ -53,12 +61,14 @@ public:
     /**
      * \brief Auto-map project filaments onto the machine's slots by type, product identity and colour.
      *
-     * \param check_nozzle_type   also require the slot's nozzle diameter and flow type to match
      * \param color_over_subtype  rank same-type slots by colour alone; product identity (setting_id /
      *                            filament_id) then only breaks a near-equal colour tie. Off keeps product
      *                            identity dominant over colour.
+     * \param nozzle_weight       how much a slot's nozzle (diameter + flow type) constrains the match:
+     *                            Ignore skips it; Prefer only breaks a near-equal colour tie toward a
+     *                            matching nozzle; Require bars a mismatched slot from auto mapping.
      */
-    static int ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>(), bool nozzle_has_ams_then_ignore_ext = false, bool check_nozzle_type = false, bool color_over_subtype = false);
+    static int ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id = std::vector<int>(), bool nozzle_has_ams_then_ignore_ext = false, bool color_over_subtype = false, NozzleMatchWeight nozzle_weight = NozzleMatchWeight::Ignore);
 
     // List every installed AMS / external slot on the machine as a mapping candidate, with
     // nozzle_diameter filled from the slot's bound nozzle. A diameter-aware picker uses these to

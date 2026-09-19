@@ -173,7 +173,7 @@ namespace Slic3r
     }
 
     static void _collect_mapping_hotend_item_candidates(const MachineObject*                     obj,
-                                                        bool                                     check_nozzle_type,
+                                                        bool                                     collect_nozzles,
                                                         std::map<int, FilamentInfo>&             tray_filaments,
                                                         std::map<int, std::optional<DevNozzle>>& tray_nozzles,
                                                         std::set<int>&                           ext_tray_keys,
@@ -200,7 +200,7 @@ namespace Slic3r
             const int key = (type == DevAmsType::EXT_SPOOL) ? info.tray_id : info.id;
             if (!tray_filaments.emplace(key, info).second)
                 return; // same slot reachable from multiple nozzles: keep the first
-            if (check_nozzle_type)
+            if (collect_nozzles)
                 tray_nozzles.emplace(key, nz);
             if (is_ext)
                 ext_tray_keys.insert(key);
@@ -446,8 +446,8 @@ namespace Slic3r
     }
 
     int DevMappingUtil::ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result,
-                                             std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext, bool check_nozzle_type,
-                                             bool color_over_subtype)
+                                             std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext,
+                                             bool color_over_subtype, NozzleMatchWeight nozzle_weight)
     {
         // Match priority:
         //   type (hard) > setting_id (sub-class) > filament_id (class) > color.
@@ -459,11 +459,17 @@ namespace Slic3r
         constexpr float kTypeDistanceOffset  = 20000.f;  // same type only
         constexpr float kMismatchDistance    = 999999.f; // hard fail (type / alpha mismatch)
         constexpr float kColorTieBreak       = 0.25f;    // color_over_subtype: below one DeltaE step, so it never overrides a visible colour gap
+        constexpr float kNozzleMismatchWeight = 1.0f;    // NozzleMatchWeight::Prefer soft penalty: ~1 DeltaE, so it outranks the product-identity tie term yet loses to any real colour gap
         static_assert(kColorDistanceMax < kClassDistanceOffset, "color distance must not override sub-class / class match priority");
         static_assert(kTypeDistanceOffset - kClassDistanceOffset > kColorDistanceMax, "class-vs-type gap must exceed the color distance range");
+        static_assert(kNozzleMismatchWeight > 2.f * kColorTieBreak, "nozzle weight must outrank the product-identity tie term");
 
         if (filaments.empty() || !obj)
             return -1;
+
+        // Collect each candidate slot's nozzle whenever the nozzle has any say (Prefer nudges,
+        // Require gates); Ignore skips the lookup entirely.
+        const bool collect_slot_nozzles = (nozzle_weight != NozzleMatchWeight::Ignore);
 
         /////////////////////////
         // Step 1: collect filaments in machine
@@ -481,7 +487,7 @@ namespace Slic3r
         {
             // Hotend-rack machines: every slot reachable from a rack nozzle, with
             // the unreachable ones flagged rather than missing. map_opt is n/a here.
-            _collect_mapping_hotend_item_candidates(obj, check_nozzle_type, tray_filaments, tray_nozzles, ext_tray_keys, no_auto_feed_keys, sub_ams_keys);
+            _collect_mapping_hotend_item_candidates(obj, collect_slot_nozzles, tray_filaments, tray_nozzles, ext_tray_keys, no_auto_feed_keys, sub_ams_keys);
         }
         else
         {
@@ -519,7 +525,7 @@ namespace Slic3r
                 if (right_ams_valid || left_ams_valid)
                 {
                     tray_filaments.emplace(std::make_pair(tray_index, info));
-                    if (check_nozzle_type)
+                    if (collect_slot_nozzles)
                         tray_nozzles.emplace(tray_index, _query_slot_nozzle(obj, tray->second));
                     if (right_ams_valid)
                     {
@@ -555,7 +561,7 @@ namespace Slic3r
                     FilamentInfo info;
                     _parse_tray_info(atoi(tray.id.c_str()), 0, DevAmsType::EXT_SPOOL, tray, info);
                     tray_filaments.emplace(std::make_pair(info.tray_id, info));
-                    if (check_nozzle_type)
+                    if (collect_slot_nozzles)
                         tray_nozzles.emplace(info.tray_id, _query_slot_nozzle(obj, &tray));
                 }
             }
@@ -614,7 +620,7 @@ namespace Slic3r
                     val.is_type_match = true;
                 }
 
-                if (check_nozzle_type) {
+                if (collect_slot_nozzles) {
                     auto nz_it = tray_nozzles.find(tray->first);
                     const bool has_slot_nz = (nz_it != tray_nozzles.end() && nz_it->second.has_value());
                     const bool has_fila_nz = (filaments[i].nozzle_diameter > 0.0) && (!filaments[i].nozzle_volume_type.empty());
@@ -624,8 +630,15 @@ namespace Slic3r
                         const NozzleFlowType fila_flow = DevNozzle::ToNozzleFlowType(filaments[i].nozzle_volume_type);
                         const bool flow_match = (fila_flow == nz.GetNozzleFlowType());
                         if (!diameter_match || !flow_match) {
-                            val.distance = 999999;
-                            val.is_nozzle_match = false;
+                            if (nozzle_weight == NozzleMatchWeight::Require) {
+                                // Precision-first: a nozzle mismatch is barred from auto mapping.
+                                val.distance = kMismatchDistance;
+                                val.is_nozzle_match = false;
+                            } else {
+                                // Color-first: keep the tray eligible but rank it behind a matching
+                                // nozzle, so an otherwise-equal pair resolves to the matching slot.
+                                val.distance += kNozzleMismatchWeight;
+                            }
                         }
                     }
                 }
