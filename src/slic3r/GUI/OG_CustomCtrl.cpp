@@ -435,7 +435,8 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
         if (tag_pos != std::string::npos) opt_key.erase(tag_pos);
         wxPoint pos2 = {focusedLine->rect_label.GetRight() + 16, focusedLine->rect_label.y + focusedLine->rect_label.height / 2};
         pos2 = ClientToScreen(pos2);
-        if (!opt_key.empty() && ParamTooltip::ShowFor(opt_key, focusedLine->og_line.label_path, pos2, focusedLine->og_line.label, focusedLine->og_line.label_tooltip))
+        const wxRect anchor_rect(ClientToScreen(focusedLine->rect_label.GetTopLeft()), focusedLine->rect_label.GetSize());
+        if (!opt_key.empty() && ParamTooltip::ShowFor(opt_key, focusedLine->og_line.label_path, anchor_rect, pos2, focusedLine->og_line.label, focusedLine->og_line.label_tooltip))
             tooltip.clear();
         else
             ParamTooltip::Hide();
