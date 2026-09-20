@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 19:42+0800\n"
+"POT-Creation-Date: 2026-09-20 20:30+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3850,11 +3850,11 @@ msgstr "Den uppvärmda bäddens termiska förberedning hjälper till att optimer
 msgid "Remaining time: %dmin%ds"
 msgstr "Återstående tid: %dmin%ds"
 
-msgid "One-click CMYW auto-mix"
-msgstr "CMYW-automix med ett klick"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
+msgstr ""
 
-msgid "One-click RYBW auto-mix"
-msgstr "RYBW-automix med ett klick"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr ""
 
 msgid "Add Filament"
 msgstr ""
@@ -3883,9 +3883,9 @@ msgstr "Projekt blandade filament"
 msgid "New Mixed Filaments"
 msgstr "Nya blandade filament"
 
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "Projektet stöder upp till%d filament. Ytterligare filament kommer att kasseras."
+#, boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgstr ""
 
 msgid "Updating"
 msgstr "Uppdaterar"
@@ -3899,7 +3899,7 @@ msgstr ""
 msgid "Import Model: Simplify Colors"
 msgstr ""
 
-msgid "Original Model"
+msgid "Original"
 msgstr ""
 
 msgid "Simplified"
@@ -3914,13 +3914,7 @@ msgstr "Avancerade inställningar"
 msgid "Boundary Smoothness"
 msgstr ""
 
-msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
-msgstr ""
-
 msgid "Gap Area"
-msgstr ""
-
-msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
 msgstr ""
 
 msgid "Automatically determine the optimal color count"
@@ -3929,16 +3923,19 @@ msgstr ""
 msgid "Adjust filament matching"
 msgstr ""
 
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "Återställ filamentmappningen till tillståndet före blandning med ett klick"
+msgid "Color mixing"
+msgstr ""
 
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "Välj automix-läget med ett klick för import av texturfärg"
+msgid "Use official mixing kits →"
+msgstr ""
 
 msgid "Some colors have no matching filament. Please match them before importing."
 msgstr ""
 
 msgid "Auto-Add All Filaments"
+msgstr ""
+
+msgid "Fix now"
 msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
@@ -3996,7 +3993,38 @@ msgstr ""
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr ""
 
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr ""
+
 msgid "Click to select a matching filament"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr ""
+
+msgid "Error Prompt"
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr ""
+
+msgid "What is the CMYW mixing kit?"
+msgstr ""
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr ""
+
+msgid "4-color CMYW"
+msgstr ""
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr ""
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "Add to project filament list"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -4118,7 +4146,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr "Faktorer för kalibrering av flödesdynamik"
 
 msgid "View Wiki for details"
-msgstr ""
+msgstr "Se Wiki för mer information"
 
 msgid "Nozzle Type"
 msgstr "Nozzle typ"
@@ -4140,10 +4168,10 @@ msgstr ""
 "temperatur"
 
 msgid "Tip: Setting AMS slot information while printing is not supported"
-msgstr ""
+msgstr "Tips: Inställning av AMS-facks information under utskrift stöds inte"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "Tips: Inställning av information om virtuell plats under utskrift stöds inte"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Är du säker på att du vill rensa filament informationen?"
@@ -4191,19 +4219,19 @@ msgstr ""
 "\"Enhet > Skriv ut delar\""
 
 msgid "Matched filament"
-msgstr ""
+msgstr "Matchat filament"
 
 msgid "Add as new filament"
 msgstr "Lägg till som nytt filament"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS detekterade ett nytt filament. Lägga till det i Filament Manager?"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "Ett liknande filament hittades i Filament Manager och matchades automatiskt."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "Flera liknande filament hittades i Filament Manager. Vänligen bekräfta matchningen."
 
 msgid "New Filament"
 msgstr "Nytt filament"
@@ -4509,10 +4537,10 @@ msgid "Reset AMS Sequence"
 msgstr "Återställ AMS sekvens"
 
 msgid "View wiki for details"
-msgstr ""
+msgstr "Se Wiki för mer information"
 
 msgid "Nozzle Temperature"
-msgstr ""
+msgstr "Nozzle-temperatur"
 
 msgid "File"
 msgstr "Fil"
@@ -4872,6 +4900,8 @@ msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
 msgstr ""
+"låsdjup bör vara mindre än inträngningsdjup.\n"
+"Återställ till 50 % av inträngningsdjupet"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "Alternativ extravägg är inte kompatibel med spiralvasläge. För att aktivera alternativ extravägg rekommenderas följande justeringar:"
@@ -6107,9 +6137,6 @@ msgstr "Förbered"
 msgid "Preview"
 msgstr "Förhandsvisning"
 
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "Den aktuella sidan har osparade ändringar. Du kan fortsätta redigera eller välja att spara/ignorera innan du lämnar."
-
 msgid "Home"
 msgstr "Hem"
 
@@ -6133,6 +6160,9 @@ msgstr "Nej"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "avslutas innan en ny modell skapas. Vill du fortsätta?"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "Den aktuella sidan har osparade ändringar. Du kan fortsätta redigera eller välja att spara/ignorera innan du lämnar."
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Lås upp snabbare, mer pålitliga och warp fria utskrifter med Helio Additive."
@@ -7099,7 +7129,7 @@ msgid "Finished"
 msgstr "Färdig"
 
 msgid "Almost complete"
-msgstr ""
+msgstr "Nästan klart"
 
 msgid "Camera"
 msgstr "Kamera"
@@ -7849,478 +7879,537 @@ msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Avbryter uppvärmningen automatiskt efter 5 minuters inaktivitet för att garantera säkerheten."
 
 msgid "Note: "
-msgstr ""
+msgstr "Notering: "
 
 msgid "Controls the printed height of each layer."
-msgstr ""
+msgstr "Kontrollerar den utskrivna höjden för varje lager."
 
 msgid ""
 "A larger layer height prints faster but shows more obvious layer lines.\n"
 "A smaller layer height gives finer curved surfaces but takes longer to print.\n"
 "If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
 msgstr ""
+"En större lagerhöjd skrivs ut snabbare men visar tydligare lagerlinjer.\n"
+"En mindre lagerhöjd ger finare böjda ytor men tar längre tid att skriva ut.\n"
+"Om lagerhöjden är för liten medan hastigheten är för hög, kan extrudering inte hålla jämna steg och ytan lämnas utmärglad och luddig."
 
 msgid "Recommended layer height is 20%-70% of the nozzle diameter."
-msgstr ""
+msgstr "Rekommenderad lagerhöjd är 20 – 70 % av munstyckets diameter."
 
 msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
-msgstr ""
+msgstr "Kontrollerar tjockleken på modellens första lager som extruderats på värmebädden, vilket påverkar hur väl det första lagret fäster vid plattan."
 
 msgid ""
 "Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
 "Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
 msgstr ""
+"För litet, och det första lagret är känsligt för bäddens platthet och benäget för utskriftsfel.\n"
+"För stort, och det första lagrets bredd-höjd-förhållande blir för litet, vilket försämrar materialets vidhäftning."
 
 msgid "Usually set to half the nozzle diameter."
-msgstr ""
+msgstr "Vanligtvis inställd på halva munstyckets diameter."
 
 msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
-msgstr ""
+msgstr "För funktionen för blandade färger av filament. När det är aktiverat delas lager som använder blandfärgade filament proportionellt upp i tunnare dellager för en jämnare färgblandning."
 
 msgid ""
 "When off, colors change per full layer, so the blend is coarser and less even.\n"
 "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
 msgstr ""
+"När den är avstängd ändras färgerna per helt lager, så blandningen blir grövre och mindre jämn.\n"
+"När den är aktiverad sammanfogas underlagren tätare för en jämnare blandning, men utskriften tar längre tid."
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr ""
+msgstr "Rekommenderas endast vid användning av filament i blandade färger, för att få en bättre effekt med lager på lager-färger."
 
 msgid "Controls where each layer's outer wall starts and ends."
-msgstr ""
+msgstr "Styr var varje lagers yttervägg börjar och slutar."
 
 msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr ""
+msgstr "Den punkten kan lämna en liten fläck eller linje på sömmen, så att välja en lämplig position minskar sömmens inverkan på modellens utseende."
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr ""
+msgstr "Skriver endast ut en enda väggslinga på ovansidan så att ovansidan fylls så mycket som möjligt av ifyllningsmönstret, för ett mer enhetligt utseende."
 
 msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
-msgstr ""
+msgstr "På sluttande eller välvda ytor försämrar detta alternativ trappstegseffekten, så det rekommenderas inte där."
 
 msgid "Recommended only for flat top surfaces."
-msgstr ""
+msgstr "Rekommenderas endast för plana övre ytor."
 
 msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr ""
+msgstr "Använder endast en enda vägg på modellens första lager (det som vidrör bädden) så att största möjliga yta fylls av det första lagrets ifyllningsmönster, för ett mer enhetligt utseende."
 
 msgid ""
 "When off, the first layer uses multiple wall loops.\n"
 "When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
 msgstr ""
+"När den är avstängd använder det första lagret flera vägg slingor.\n"
+"När den är påslagen är fyllningen mer kontinuerlig och botten är plattare, men kantkonturen i det första lagret är något svagare."
 
 msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
-msgstr ""
+msgstr "Styr antalet väggslingor i varje lagers skal, en huvudfaktor i en modells styrka."
 
 msgid ""
 "More walls give higher strength but use more material and time;\n"
 "fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
 msgstr ""
+"Fler väggar ger högre hållfasthet men kräver mer material och tid;\n"
+"färre väggar skrivs ut snabbare och sparar material men minskar styrkan och kan låta fyllningsmönstret synas genom ytan."
 
 msgid "2-3 loops is recommended for typical models; increase it for functional parts."
-msgstr ""
+msgstr "2 – 3 slingor rekommenderas för typiska modeller; öka antalet för funktionella delar."
 
 msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
-msgstr ""
+msgstr "Vid gränsen mellan områden med och utan väggar bäddar detta in väggen i fyllningsområdet som inte har någon yttervägg i alternerande lager, så att väggen och fyllningen ansluter fastare."
 
 msgid ""
 "It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
 "Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
 msgstr ""
+"Den hanterar bara gränser där ena sidan har en vägg och den andra har inga väggar; vanliga vägg-till-utfyllnadsgränser inuti en del lämnas orörda.\n"
+"Att bädda in vartannat lager skapar en förskjuten förregling som är starkare än en jämn fog."
 
 msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
-msgstr ""
+msgstr "Använd den när en modifierare omvandlar ett område till en utfyllnad utan vägg som fortfarande behöver binda ordentligt till det omgivande skalet. Behövs inte när båda sidorna skriver ut vanliga väggar."
 
 msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
-msgstr ""
+msgstr "Lägger till en extra väggslinga på udda lager medan jämna lager lämnas oförändrade."
 
 msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
-msgstr ""
+msgstr "Att lägga till en vägg vartannat lager stärker bindningen mellan lagren utan att lägga till en genomgående, vilket förbättrar lagrens bindning och delarnas styrka samtidigt som material- och tidskostnaden för en hel extra vägg undviks."
 
 msgid "Requires sparse infill; not applicable in vase mode."
-msgstr ""
+msgstr "Kräver gles utfyllnad; gäller ej i vasläge."
 
 msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
-msgstr ""
+msgstr "Verktygsbanans mönster för den översta solida fyllningen; det påverkar främst den övre ytans planhet och utseende."
 
 msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
-msgstr ""
+msgstr "Styr ifyllningsverktygsbanan för modellens bottenyta, vilket påverkar bottentextur och planhet."
 
 msgid "Bridging areas are not affected by this parameter."
-msgstr ""
+msgstr "Bridging-områden påverkas inte av denna parameter."
 
 msgid "Controls the number of solid top shell layers, including the top surface."
-msgstr ""
+msgstr "Styr antalet solida översta skallager, inklusive den övre ytan."
 
 msgid ""
 "More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
 "If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
 msgstr ""
+"Fler lager gör det översta skalet tjockare och mindre sannolikt att det avslöjar fyllningen under.\n"
+"Om lager x lagerhöjd är mindre än det övre skalets tjocklek, lägger slicern till lager automatiskt."
 
 msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "Ställer in en minsta tjocklek för det solida toppskalet, vilket förhindrar att det blir för tunt vid små lagerhöjder."
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
 msgstr ""
+"Ställ in på 0 för att avaktivera detta och låta antalet lager ensamt avgöra.\n"
+"Om tjockleken från lager x lagerhöjd inte räcker, lägger slicer automatiskt till de översta skallagren."
 
 msgid "Controls the number of solid bottom shell layers, including the bottom surface."
-msgstr ""
+msgstr "Styr antalet solida bottenskallager, inklusive bottenytan."
 
 msgid ""
 "More layers make the bottom more solid but take longer.\n"
 "If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
 msgstr ""
+"Fler lager gör botten fastare men tar längre tid.\n"
+"Om lagerhöjden x lager är mindre än det nedre skalets tjocklek, lägger slicer till lager automatiskt."
 
 msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "Ställer in en minsta tjocklek för det solida bottenskalet, vilket förhindrar att det blir för tunt vid små lagerhöjder."
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
 msgstr ""
+"Ställ in på 0 för att avaktivera detta och låta antalet lager ensamt avgöra.\n"
+"Om tjockleken från lagerräkningen inte är tillräcklig lägger slicer automatiskt till skallager på botten."
 
 msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "Styr hur många lager den övre ytfärgen tränger neråt, vilket hindrar andra filamentfärger inuti från att synas igenom."
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"Färre lager gör det mer troligt att färgen blöder igenom.\n"
+"Fler lager minskar genomblödning men ökar antalet filamentbyten.\n"
+"För att förhindra att den nedåtgående penetrationen påverkar modellens sidofärger krymper det penetrerade området lager för lager."
 
 msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "Styr hur många lager färgen på undersidan tränger uppåt, vilket hindrar andra filamentfärger inuti från att synas igenom."
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"Färre lager gör det mer troligt att färgen blöder igenom.\n"
+"Fler lager minskar genomblödning men ökar antalet filamentbyten.\n"
+"För att förhindra att den uppåtgående penetrationen påverkar modellens sidofärger krymper det penetrerade området lager för lager."
 
 msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
-msgstr ""
+msgstr "Styr verktygsbanans mönster för intern solid utfyllnad, tillämpat på de solida lagren mellan de övre och nedre skalen och på interna solida områden."
 
 msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
-msgstr ""
+msgstr "Om detektering av smal intern heldragen utfyllnad är aktiverad använder små områden det koncentriska mönstret automatiskt."
 
 msgid "Controls how dense the model's internal sparse infill is."
-msgstr ""
+msgstr "Styr hur tät modellens interna glesa utfyllnad är."
 
 #, no-c-format, no-boost-format
 msgid ""
 "10-15% is recommended for typical models; raise it for functional parts.\n"
 "100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
 msgstr ""
+"10 – 15 % rekommenderas för typiska modeller; höj det för funktionella delar.\n"
+"100 % betyder helt solid, där endast mönstren Koncentriska, Rektlinjära, Monotoniska, Monotoniska, Linjejusterade, Rektlinjära, Hilbertkurva, Arkimediska ackord och Oktagramspiral är tillgängliga."
 
 msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
-msgstr ""
+msgstr "Möjliggör flerradig ifyllning, där varje ifyllningsbana skrivs ut som flera parallella linjer sida vid sida."
 
 msgid ""
 "Higher values make the infill beams thicker and stronger but use more material and time;\n"
 "1 is ordinary single-line infill."
 msgstr ""
+"Högre värden gör fyllnadsbalkarna tjockare och starkare men kräver mer material och tid;\n"
+"1 är vanlig enradig ifyllning."
 
 msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
-msgstr ""
+msgstr "Stöds av mönster som Linje, Rutnät, Gyroid, Honeycomb, Kubisk och Blixtnedslag."
 
 msgid "Controls the toolpath structure of the internal sparse infill."
-msgstr ""
+msgstr "Styr verktygsbanstrukturen för den interna glesa utfyllnaden."
 
 msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
-msgstr ""
+msgstr "Stöd är avtagbara strukturer som är utskrivna under överhäng och branta vinklar för att hålla upp senare lager och förhindra att de sjunker ihop."
 
 msgid ""
 "When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
 "Recommended when the model has obvious overhangs."
 msgstr ""
+"När det är aktiverat genereras stöd för överhäng och branta vinklar, vilket ger stabilare utskrifter, men de måste tas bort och kan lämna märken.\n"
+"Rekommenderas när modellen har tydliga överhäng."
 
 msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
-msgstr ""
+msgstr "Väljer stödform och hur den genereras; Normal (auto) och Träd (auto) genereras automatiskt baserat på överhäng."
 
 msgid ""
 "Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
 "Choose a manual mode when you need precise control."
 msgstr ""
+"Vanliga stöd är mer regelbundna och stabila; trädstöd vidrör modellen mindre och är lättare att ta bort.\n"
+"Välj ett manuellt läge när du behöver exakt kontroll."
 
 msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
-msgstr ""
+msgstr "Manuellt läge används tillsammans med verktyget för stödmålning i Gizmo-verktygsfältet."
 
 msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
-msgstr ""
+msgstr "Genererar stöd för ytor vars överhängsvinkel är under tröskeln; det är anpassningsbart i automatiska lägen."
 
 msgid ""
 "A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
 "A larger threshold also supports more slopes, giving more support."
 msgstr ""
+"En mindre tröskel stöder endast nästan horisontella stora överhäng, vilket ger mindre stöd men eventuellt lämnar svaga sluttningar utan stöd.\n"
+"En större tröskel stöder också fler lutningar, vilket ger mer stöd."
 
 msgid "A common default of 30 degrees balances print stability against the amount of support used."
-msgstr ""
+msgstr "En vanlig standardvinkel på 30 grader balanserar utskriftsstabiliteten mot mängden stöd som används."
 
 msgid "Generates support only from the build plate, not on the model's surfaces."
-msgstr ""
+msgstr "Genererar stöd endast från byggplattan, inte på modellens ytor."
 
 msgid ""
 "When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
 "When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
 msgstr ""
+"När den är avstängd kan stödet växa på modellytor för mer fullständig täckning, men det är mer sannolikt att det lämnar märken.\n"
+"När den är påslagen börjar allt stöd från plattan, vilket håller modellens ytor renare, men vissa överhäng kan förbli utan stöd."
 
 msgid "Recommended when appearance matters."
-msgstr ""
+msgstr "Rekommenderas när utseendet spelar roll."
 
 msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
-msgstr ""
+msgstr "Stödgränssnittet är ett tätare kontaktlager där stödet möter modellen; det håller modellen stadigt, underlättar borttagning och minskar ytliga märken. Detta ställer in vilket filament som används för den kontaktytan."
 
 msgid ""
 "By default the interface uses the same filament as the model, which can make removal harder.\n"
 "Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
 msgstr ""
+"Som standard använder gränssnittet samma filament som modellen, vilket kan göra borttagningen svårare.\n"
+"Att tilldela ett lättsläppligt filament gör kontaktytan lättare att ta bort och rengöra, men det medför filamentbyten."
 
 msgid "The filament used to print the support body and the raft."
-msgstr ""
+msgstr "Filamentet som används för att skriva ut stödkroppen och flotten."
 
 msgid ""
 "By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
 "Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
 msgstr ""
+"Som standard använder stödet samma filament som modellen, vilket matchar modellfilamentet för varje lager i utskrifter med multifilament.\n"
+"Att tilldela ett annat filament kan göra borttagningen enklare eller sänka kostnaden, men det ökar tiden för filamentbyte."
 
 msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
-msgstr ""
+msgstr "Skriver ut lösgjorda konturslingor (en kjol) runt modellen för att rensa munstycket och stabilisera extrudering innan utskriften börjar."
 
 msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
-msgstr ""
+msgstr "Fler slingor rensar ut mer noggrant men använder mer material; sätt till 0 för att inaktivera kjolen."
 
 msgid "Controls how many layers the skirt is printed."
-msgstr ""
+msgstr "Styr hur många lager kjolen skrivs ut."
 
 msgid ""
 "During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
 "The default is 1 layer."
 msgstr ""
+"Under de första lagren kan en högre kjol delvis blockera kall luft runt modellen, vilket bibehåller ett varmt mikroklimat vid modellens bas och minskar risken för tidig warping orsakad av krympning.\n"
+"Standardvärdet är 1 lager."
 
 msgid "Requires the skirt loop count to be greater than 0."
-msgstr ""
+msgstr "Kräver att antalet kjolslingor är större än 0."
 
 msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
-msgstr ""
+msgstr "Ett brätte är ett enkelskiktat materialband som läggs runt modellens bas och sammanfogas med dess första lager, en förstärkande kant som motverkar warping och bibehåller vidhäftning."
 
 msgid ""
 "This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
 "The default is Auto."
 msgstr ""
+"Detta styr vilken typ av brätte (ett band som är sammanfogat med modellens första lager) som används för att förbättra bäddens vidhäftning och minska warping.\n"
+"Standardinställningen är Auto."
 
 msgid "The distance from the model to the outermost brim line."
-msgstr ""
+msgstr "Avståndet från modellen till den yttersta linjen för brättet."
 
 msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
-msgstr ""
+msgstr "En större bredd förbättrar bäddens vidhäftning och motverkar warping men använder mer material och är svårare att rengöra."
 
 msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr ""
+msgstr "Efter ett färg- eller filamentbyte rensar skrivaren ut kvarvarande filament och stabiliserar munstyckstrycket på ett separat prime-torn innan modellen återupptas, vilket minskar färgblandning, svält och ytdefekter."
 
 msgid ""
 "Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
 "On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
 msgstr ""
+"Av: sparar material och tar mindre plats på bädden, men kvarvarande filament under ett färgbyte kan landa på modellen och orsaka färgblandning, strängning eller lokal utarmning.\n"
+"På: renare färgövergångar och mer enhetliga flerfärgstryck, men det använder extra material och tid och tar upp bäddutrymme."
 
 msgid "Mutually exclusive with by-object printing and independent support layer height."
-msgstr ""
+msgstr "Ömsesidigt uteslutande med utskrift per objekt och oberoende stödlagerhöjd."
 
 msgid "Controls the horizontal size of the prime tower."
-msgstr ""
+msgstr "Styr den horisontella storleken på prime-tornet."
 
 msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
-msgstr ""
+msgstr "En större bredd ger större rensningsmarginal och ett stabilare torn, men använder mer material och bäddutrymme."
 
 msgid "The width cannot be customized when the rib outer wall is enabled."
-msgstr ""
+msgstr "Bredden kan inte anpassas när ribbans yttervägg är aktiverad."
 
 msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
-msgstr ""
+msgstr "Lägger till fyra hörnribbor på rensningstornets yttervägg för att förbättra dess stabilitet."
 
 msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
-msgstr ""
+msgstr "Rekommenderas för höga rensningstorn, klibbigare material som PETG eller frekventa färgbyten; stäng av den när utrymmet på bädden är trångt och tornet är lågt så att bredden kan minskas."
 
 msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
-msgstr ""
+msgstr "Använder en del av övergångsfilamentet efter ett byte för att skriva ut objektets interna utfyllnad, vilket minskar spill och utskriftstid."
 
 msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
-msgstr ""
+msgstr "Aktivera den på ogenomskinliga delar för att spara material; stäng av den för transparenta eller tunnväggiga delar, eller när den interna färgen är viktig."
 
 msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
-msgstr ""
+msgstr "Använder övergångsfilamentet efter ett byte för att skriva ut modellens stöd, vilket minskar slöseri och tid."
 
 msgid "Enabling it saves material, but the supports may show mixed colors."
-msgstr ""
+msgstr "Att aktivera det sparar material, men stöden kan visa blandade färger."
 
 msgid "Takes effect when printing multiple filaments through the same nozzle."
-msgstr ""
+msgstr "Gäller vid utskrift av flera filament genom samma munstycke."
 
 msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
-msgstr ""
+msgstr "Väljer om hela plattan ska skrivas ut lager för lager, eller om ett objekt ska avslutas innan nästa påbörjas."
 
 msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
-msgstr ""
+msgstr "Använd Lagervis för typiska utskrifter med flera delar eller flerfärger; överväg Objektvis för många små delar eller för att begränsa effekten av ett utskriftsfel mitt i en utskrift, och kontrollera utrymmet och begränsningarna för reningstornet."
 
 msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
-msgstr ""
+msgstr "Skriver ut i en kontinuerlig spiral längs den yttre konturen och bygger hela modellen i en linje, vanligtvis utan sömmar på sidorna."
 
 msgid ""
 "When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
 "It is best for single, thin-walled, open-top models."
 msgstr ""
+"När den är påslagen har modellen inget toppskal, ingen utfyllnad och vanligtvis bara en enda vägg, så den är svag och står i konflikt med stöd, toppskallager och flera andra inställningar.\n"
+"Den är bäst för enkla, tunnväggiga modeller med öppet tak."
 
 msgid "Requires top shell layers to be 0 and is not compatible with support."
-msgstr ""
+msgstr "Kräver att de övre skallagren är 0 och inte är kompatibelt med stöd."
 
 msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
-msgstr ""
+msgstr "Tar ett foto per lager under utskrift och sammanställer en timelapse-video när utskriften är klar."
 
 msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
-msgstr ""
+msgstr "Väljer timelapse-läge här; huruvida funktionen faktiskt körs ställs in på sidan för att skicka till utskrift."
 
 msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
-msgstr ""
+msgstr "Skakar slumpmässigt väggens verktygsbanor så att den yttre ytan får en grov, matt och luddig textur."
 
 msgid ""
 "It affects only walls; the top and bottom surfaces are unchanged.\n"
 "Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
 msgstr ""
+"Det påverkar endast väggar; de övre och nedre ytorna är oförändrade.\n"
+"Användbart för dekorativa delar och figurskal; stäng av den när måtten är kritiska eller en slät yta behövs."
 
 msgid "Selects how the fuzzy texture is generated."
-msgstr ""
+msgstr "Väljer hur den luddiga texturen genereras."
 
 msgid "There are three generator modes; pick the one that suits your needs."
-msgstr ""
+msgstr "Det finns tre generatorlägen; välj det som passar dina behov."
 
 msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
-msgstr ""
+msgstr "Bestämmer slumpmässigheten hos den luddiga texturen, vilket påverkar ytstrukturens stil."
 
 msgid "Several noise types are available; pick the one that suits your needs."
-msgstr ""
+msgstr "Flera brustyper finns tillgängliga; välj den som passar dina behov."
 
 msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
-msgstr ""
+msgstr "Styr det genomsnittliga avståndet mellan de slumpmässiga punkterna som infogas längs väggens väg när luddig yta genereras."
 
 msgid ""
 "A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
 "A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
 msgstr ""
+"Ett större värde placerar de slumpmässiga punkterna längre isär för en grövre kornighet, men använder färre banpunkter, så bereder och utskrift går snabbare och G-kodfilen förblir mindre.\n"
+"Ett mindre värde packar punkterna närmare varandra för en finare, jämnare kornighet, men lägger till banpunkter, så bereder och utskrift saktar ner och G-kodfilen växer."
 
 msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
-msgstr ""
+msgstr "Om den är för liten avaktiverar programvaran luddig yta eftersom punktavståndet är för litet (för att undvika onormala banor)."
 
 msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
-msgstr ""
+msgstr "Styr bredden på väggbanans jitter vid generering av luddig yta, det vill säga texturens djup."
 
 msgid ""
 "A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
 "The default is about 0.3 mm; keep it below the outer wall's line width."
 msgstr ""
+"Ett högre värde gör texturen djupare och mer framträdande med en starkare ådring, men konturen expanderar, måttnoggrannheten minskar och väggen kan utveckla springor och förlora styrka.\n"
+"Standardvärdet är cirka 0,3 mm; håll det under ytterväggens linjebredd."
 
 msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
-msgstr ""
+msgstr "När den överskrider linjebredden slutar generatorns Extrudering- och Kombinerade lägen att fungera och endast Förskjutning används."
 
 msgid "Determines whether the fuzzy effect is also applied to the first layer."
-msgstr ""
+msgstr "Avgör om den suddiga effekten även tillämpas på det första lagret."
 
 msgid ""
 "When on, the first-layer side walls also get the fuzzy texture.\n"
 "Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
 msgstr ""
+"När den är påslagen får även det första lagrets sidoväggar den luddiga texturen.\n"
+"Vanligtvis ska du inte använda den; aktivera den bara när underkanten behöver en jämn textur och vidhäftningen mellan underlaget är god."
 
 msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
-msgstr ""
+msgstr "Placerar sömmen företrädesvis vid konkava eller konvexa hörn och förkortar förflyttningen; lämplig för modeller med tydliga kanter."
 
 msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
-msgstr ""
+msgstr "Staplar varje lagers söm i en vertikal linje, vilket håller märkena koncentrerade och lätta att dölja."
 
 msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
-msgstr ""
+msgstr "Sätter sömmen på modellens baksida, lämpligt för visningsmodeller med fast orientering."
 
 msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
-msgstr ""
+msgstr "Sprider sömmen över lagren för att undvika en vertikal linje, även om små lösa upphöjningar kan uppstå på ytan."
 
 msgid "All top surfaces print with the normal number of wall loops."
-msgstr ""
+msgstr "Alla ovansidor skrivs ut med normalt antal väggslingor."
 
 msgid "Applies to every flat upward-facing top surface, for the widest coverage."
-msgstr ""
+msgstr "Appliceras på alla plana uppåtvända ytor för bredast möjliga täckning."
 
 msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
-msgstr ""
+msgstr "Gäller endast modellens översta yta; mellanlagrets översta ytor hanteras fortfarande normalt."
 
 msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
-msgstr ""
+msgstr "Analyserar modellen och beräknar nödvändig bredd av brätte och placering; rekommenderas för de flesta modeller."
 
 msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
-msgstr ""
+msgstr "Skapar ett brätte endast på den yttre konturen för att stärka den yttre vidhäftningen."
 
 msgid "Generates a brim in inner holes only."
-msgstr ""
+msgstr "Genererar ett brätte endast i de inre hålen."
 
 msgid "Generates a brim on both the outer contour and inner holes."
-msgstr ""
+msgstr "Genererar ett brätte på både den yttre konturen och de inre hålen."
 
 msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
-msgstr ""
+msgstr "Skapar brättet genom målning eller lokal förstärkning, lämplig för vassa hörn som lätt utsätts för warping."
 
 msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
-msgstr ""
+msgstr "Inget brätte genereras; botten förblir renare men vidhäftningen vid underlaget är svagare."
 
 msgid "All objects rise together, layer by layer."
-msgstr ""
+msgstr "Alla föremål stiger tillsammans, lager för lager."
 
 msgid "Finishes one object before starting the next; has placement clearance requirements."
-msgstr ""
+msgstr "Avslutar ett objekt innan nästa påbörjas; har krav på placeringsutrymme."
 
 msgid "A snapshot is taken directly after each layer."
-msgstr ""
+msgstr "En ögonblicksbild tas direkt efter varje lager."
 
 msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
-msgstr ""
+msgstr "Efter varje lager flyttas verktygshuvudet till överskottsrännan före ögonblicksbilden för en renare bild; filament kan läcka under bilden, så ett reningstorn krävs för att torka av munstycket och genereras även för enfärgade jobb."
 
 msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
-msgstr ""
+msgstr "Ingen luddig yta läggs till automatiskt, men du kan fortfarande måla på den lokalt."
 
 msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
-msgstr ""
+msgstr "Lägger endast till luddig yta på den yttersta konturen; inre hål förblir släta."
 
 msgid "Adds fuzzy skin to both the outer contour and inner holes."
-msgstr ""
+msgstr "Lägger till luddig yta för både den yttre konturen och de inre hålen."
 
 msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
-msgstr ""
+msgstr "Varje vägglinje skakar, för starkast effekt men möjligen större dimensionsavvikelse."
 
 msgid "Turns fuzzy skin fully off; even painting has no effect."
-msgstr ""
+msgstr "Stänger av luddig yta helt; inte ens målning har någon effekt."
 
 msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
-msgstr ""
+msgstr "Munstycket förskjuts i sidled för att forma texturen, vilket ger en stark 3D-känsla men eventuella mellanrum mellan slingorna."
 
 msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
-msgstr ""
+msgstr "Banan förblir rak och endast den extruderade mängden varierar, vilket håller väggarna tätare."
 
 msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
-msgstr ""
+msgstr "Förskjutning plus extrudering; ser ut som förskjutning samtidigt som den fyller mellanrummen mellan slingorna."
 
 msgid "Uniform random noise with a fine, grainy texture and no clear direction."
-msgstr ""
+msgstr "Uniformt slumpmässigt brus med en fin, kornig textur och ingen tydlig riktning."
 
 msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
-msgstr ""
+msgstr "Jämna övergångar mellan lagren för en jämnare, kontinuerlig textur med mjuka, regelbundna vågor."
 
 msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
-msgstr ""
+msgstr "Liknar Perlin men klumpigare, med klustrade gupp och släta områden, som moln."
 
 msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
-msgstr ""
+msgstr "Skarpa, ojämna åsar med toppar och fina fåror, vilket ger en marmorliknande textur."
 
 msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
-msgstr ""
+msgstr "Delar upp ytan i celler och förskjuter varje cell som en helhet, vilket bildar en stegvis textur, liknande ett lapptäcke."
 
 msgid "View details on Wiki"
-msgstr ""
+msgstr "Visa detaljer på Wiki"
 
 msgid "Global"
 msgstr "Global"
@@ -8562,18 +8651,12 @@ msgstr ", och %d till"
 msgid "model \"%s\""
 msgstr "modell \"%s\""
 
-msgid "support filament"
-msgstr "stödfilament"
-
-msgid "custom G-code"
-msgstr "anpassad G-kod"
-
 #, c-format, boost-format
-msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
-msgstr "Filamentet du raderar används av %s. Efter radering kommer dess filamenttilldelning att återställas."
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
+msgstr ""
 
-msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
-msgstr "Obs: För att ersätta med ett annat filament, använd funktionen \"Sammanfoga med\" genom att högerklicka på filamentet."
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgstr ""
 
 msgid "Delete Filament"
 msgstr "Ta bort filament"
@@ -8629,7 +8712,7 @@ msgid "The nozzle hardness required by the filament is higher than the default n
 msgstr "Nozzelns hårdhet som filamentet kräver är högre än printerns standard för nozzeln. Byt ut den härdade nozzeln eller filamentet, annars kommer nozzeln att slitas ner eller skadas."
 
 msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr ""
+msgstr "Att aktivera omedelbar timelapse-fotografering kan orsaka ytliga defekter. Det rekommenderas att byta till slätt läge."
 
 msgid "\n"
 msgstr ""
@@ -8733,8 +8816,8 @@ msgid "Multi-part object detected"
 msgstr "Objekt i flera delar har upptäckts"
 
 #, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr "Beräkning av texturfärger:%s"
+msgid "Computing model colors: %s"
+msgstr ""
 
 msgid "Texture Import Warning"
 msgstr "Varning för texturimport"
@@ -9138,6 +9221,18 @@ msgstr "Laddningen av Helio-data misslyckades"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lös berednings felen och publicera igen."
+
+msgid "Send G-code file"
+msgstr ""
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr ""
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr ""
+
+msgid "Send now"
+msgstr ""
 
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "Det gick inte att starta Bambu Farm Manager Client."
@@ -9692,10 +9787,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "Med detta alternativet aktiverat kan du skriva ut material med stor temperaturskillnad tillsammans."
 
 msgid "Automatically optimize wipe tower placement"
-msgstr ""
+msgstr "Optimera automatiskt placeringen av torkartornet"
 
 msgid "With this option enabled, the wipe tower will be placed at its optimal position."
-msgstr ""
+msgstr "Med det här alternativet aktiverat placeras torkartornet i sin optimala position."
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Automatisk synkronisering av användarens förinställningar (skrivare/filament/process)"
@@ -10357,7 +10452,7 @@ msgid "When enabling spiral vase mode, machines with I3 structure will not gener
 msgstr "När spiral vas-läget aktiveras genererar maskiner med I3-struktur inte timelapse-videor."
 
 msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
-msgstr ""
+msgstr "Den nuvarande skrivaren stöder inte timelapse i Instant-läge vid utskrift per objekt."
 
 msgid "Errors"
 msgstr "Fel"
@@ -10398,7 +10493,7 @@ msgid "This process determines the dynamic flow values to improve overall print 
 msgstr "Den här processen bestämmer de dynamiska flödesvärdena för att förbättra den övergripande utskriftskvaliteten."
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr ""
+msgstr "Efter att Timelapse har aktiverats, oavsett om omedelbart eller slätt läge är valt, kommer skrivaren att flytta byggplattan och verktygshuvudet före varje bild, vilket kan öka den totala utskriftstiden."
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10903,7 +10998,7 @@ msgid "Prime tower is required for smooth timelapse. There may be flaws on the m
 msgstr "Prime tower krävs för Smooth timelapse-läge. Det kan bli fel på modellen utan prime tower. Vill du aktivera prime tower?"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
-msgstr ""
+msgstr "\"Inga glesa lager\" är inte kompatibelt med smidig timelapse, vilket kräver ett prime-torn på varje lager. Timelapse har bytts till direktläge."
 
 msgid "Still print by object?"
 msgstr "Fortfarande utskrift per objekt?"
@@ -11531,22 +11626,22 @@ msgid "Show all presets (including incompatible)"
 msgstr "Visa alla inställningar (inklusive inkompatibla)"
 
 msgid "Parameters"
-msgstr ""
+msgstr "Parametrar"
 
 msgid "Process Preset"
-msgstr ""
+msgstr "Processinställning"
 
 msgid "Filament Preset"
 msgstr "Filament inställning"
 
 msgid "Material Preset"
-msgstr ""
+msgstr "Materialförinställning"
 
 msgid "Machine Preset"
-msgstr ""
+msgstr "Maskinförinställning"
 
 msgid "These two presets have no visible differences"
-msgstr ""
+msgstr "Dessa två förinställningar har inga synliga skillnader"
 
 msgid "Please select two different presets A and B to compare"
 msgstr "Välj två olika förinställningar A och B för att jämföra."
@@ -13261,10 +13356,10 @@ msgid "The prime tower is only supported if all objects have the same variable l
 msgstr "Prime Tower stöds endast om alla objekt har samma variabla lagerhöjd."
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
-msgstr ""
+msgstr "Exakt Z-höjd ger objekten olika lagerhöjder, vilket kan öka storleken på prime-tornet avsevärt."
 
 msgid "Jump to: Precise Z height"
-msgstr ""
+msgstr "Hoppa till: Exakt Z-höjd"
 
 msgid "Too small line width"
 msgstr "För liten linjebredd"
@@ -13609,7 +13704,7 @@ msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "Hastighet för 100 % överhängsvägg som har 0 överlappning med det nedre lagret."
 
 msgid "Slow down by height"
 msgstr "Sakta ner i höjdled"
@@ -13910,6 +14005,9 @@ msgstr "Monoton"
 
 msgid "Monotonic line"
 msgstr "Monoton linje"
+
+msgid "Global monotonic line"
+msgstr ""
 
 msgid "Aligned Rectilinear"
 msgstr "Justerade Rätlinjig"
@@ -15741,16 +15839,16 @@ msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf
 msgstr "Maximalt avstånd för att flytta punkter i XY för att försöka uppnå en jämn spiral. Om den uttrycks som % beräknas den över nozzel diametern"
 
 msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr ""
+msgstr "Om slät eller direktläge väljs genereras en timelapse-video för varje utskrift. Efter att varje lager har skrivits ut tas en ögonblicksbild med kammarkameran. Alla dessa ögonblicksbilder komponeras till en timelapse-video när utskriften är klar. Om slätt läge är valt kommer verktygshuvudet att flyttas till överskottsrännan efter att varje lager har skrivits ut och sedan ta en ögonblicksbild. Eftersom smält filament kan läcka från munstycket under processen att ta en ögonblicksbild, krävs ett prime-torn för Smooth-läge för att torka munstycket."
 
 msgid "Instant"
-msgstr ""
+msgstr "Omedelbar"
 
 msgid "Farthest point timelapse"
 msgstr "Timelapse av bortersta punkten"
 
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
-msgstr ""
+msgstr "När den är aktiverad tas timelapse-ögonblicksbilden från den punkt som är längst bort från kameran istället för att färdas till avtorkningstornet eller överskottsrännan. Endast effektivt i direkt timelapse-läge på skrivare som inte är I3."
 
 msgid "Temperature variation"
 msgstr "Temperatur variation"
@@ -16389,7 +16487,7 @@ msgstr "--använd-firmware-retraction är inte kompatibel med --wipe"
 
 #, no-c-format, no-boost-format
 msgid " doesn't work at 100% density "
-msgstr ""
+msgstr " fungerar inte vid 100 % densitet "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Ogiltigt värde när spiralvas läget är aktiverat: "
@@ -17452,6 +17550,8 @@ msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
+"Filamentets namn %s du skapade finns redan. \n"
+"Om du fortsätter sparas den nya förinställningen tillsammans med de befintliga anpassade filamenten och visas med sitt fullständiga namn för att särskilja den. Vill du fortsätta?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Vissa befintliga inställningar har inte skapats, enligt följande:\n"
@@ -18586,19 +18686,19 @@ msgid "Multiple Color"
 msgstr "Flera färger"
 
 msgid "Search filament"
-msgstr ""
+msgstr "Sök filament"
 
 msgid "Unsupported Filaments"
-msgstr "Filament utan stöd"
+msgstr "Filament som inte stöds"
 
 msgid "No filaments"
 msgstr "Inga filament"
 
 msgid "slot"
-msgstr ""
+msgstr "Spår"
 
 msgid "Recently used"
-msgstr "Nyligen använt"
+msgstr "Nyligen använd"
 
 msgid "Set nozzle count"
 msgstr ""
@@ -18950,10 +19050,10 @@ msgid "-- Select --"
 msgstr "-- Välj --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "För att kunna använda gradient effekten måste \"Underlager med blandade färger\" vara aktiverat. Vill du aktivera det nu?"
+msgstr "Gradient effekt kräver att \"Underlager med blandade färger\" är aktiverat. Aktivera det nu?"
 
 msgid "Mixed Color Sublayer"
-msgstr "Blandade färger i underlager"
+msgstr "Underlager med blandade färger"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
@@ -18982,47 +19082,47 @@ msgid "RGB(%d, %d, %d)"
 msgstr ""
 
 msgid "Decomposition result for this combination"
-msgstr ""
+msgstr "Uppdelningsresultat för denna kombination"
 
 msgid "Filament Color"
-msgstr ""
+msgstr "Filamentfärg"
 
 msgid "Decomposed Colors"
-msgstr ""
+msgstr "Uppdelade färger"
 
 msgid "Select Color Decomposition"
 msgstr "Välj färgnedbrytning"
 
 msgid "Project Filament"
-msgstr ""
+msgstr "Projekt-Filament"
 
 msgid "Material List"
 msgstr "Lista över material"
 
 msgid "Standard Palette"
-msgstr ""
+msgstr "Standardpalett"
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "Minst två filament av samma typ av material krävs för nedbrytning"
 
 msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "En närmare blandning beräknas från fyra basfärger: cyan, magenta, gul och vit. För närvarande stöds endast PLA Basic. Om matchande filament inte finns i projektet läggs de till automatiskt."
 
 msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "En närmare blandning beräknas utifrån fyra basfärger: röd, gul, blå och vit. För närvarande stöds endast PLA Basic. Om matchande filament inte finns i projektet läggs de till automatiskt."
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "Materiallistan stöder högst %1% färger. Efter %2% nedbrytningen, skulle materialantalet överstiga%1%. Ta bort oanvända filament på huvudskärmen innan nedbrytningen."
 
 msgid "Decompose Color (gradient not supported)"
-msgstr ""
+msgstr "Dela upp färg (gradient stöds inte)"
 
 msgid "Decompose Color (transparent not supported)"
-msgstr ""
+msgstr "Dela upp färg (transparent stöds inte)"
 
 msgid "Decompose Color (multi-color not supported)"
-msgstr ""
+msgstr "Dela upp färg (flerfärg stöds inte)"
 
 msgid "Cyan"
 msgstr "Turkos"
@@ -19055,11 +19155,11 @@ msgid "An unexpected error occurred"
 msgstr "Ett oväntat fel uppstod"
 
 msgid "Create Custom Filament"
-msgstr ""
+msgstr "Skapa anpassat filament"
 
 #, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
-msgstr ""
+msgstr "Förinställningen \"%s\" finns redan. Skriv över?"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -19354,6 +19454,39 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "One-click CMYW auto-mix"
+#~ msgstr "CMYW-automix med ett klick"
+
+#~ msgid "One-click RYBW auto-mix"
+#~ msgstr "RYBW-automix med ett klick"
+
+#, c-format, boost-format
+#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#~ msgstr "Projektet stöder upp till%d filament. Ytterligare filament kommer att kasseras."
+
+#~ msgid "Reset filament mapping to the state before one-click mixing"
+#~ msgstr "Återställ filamentmappningen till tillståndet före blandning med ett klick"
+
+#~ msgid "Choose the one-click auto-mix mode for texture color import"
+#~ msgstr "Välj automix-läget med ett klick för import av texturfärg"
+
+#~ msgid "support filament"
+#~ msgstr "stödfilament"
+
+#~ msgid "custom G-code"
+#~ msgstr "anpassad G-kod"
+
+#, c-format, boost-format
+#~ msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+#~ msgstr "Filamentet du raderar används av %s. Efter radering kommer dess filamenttilldelning att återställas."
+
+#~ msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+#~ msgstr "Obs: För att ersätta med ett annat filament, använd funktionen \"Sammanfoga med\" genom att högerklicka på filamentet."
+
+#, c-format, boost-format
+#~ msgid "Computing texture colors: %s"
+#~ msgstr "Beräkning av texturfärger:%s"
 
 #~ msgid "Show Labels"
 #~ msgstr "Visa Etiketter"

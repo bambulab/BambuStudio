@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 19:42+0800\n"
+"POT-Creation-Date: 2026-09-20 20:30+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -907,7 +907,7 @@ msgid "Object"
 msgstr "Objek"
 
 msgid "Right-click a part to assign it to the other side"
-msgstr ""
+msgstr "Klik kanan pada suatu bagian untuk memasukkan ke sisi lainnya"
 
 msgid "Drag to move the cut plane"
 msgstr "Seret untuk memindahkan bidang potong"
@@ -982,13 +982,13 @@ msgid "Groove Angle"
 msgstr "Sudut Alur"
 
 msgid "Pick face"
-msgstr ""
+msgstr "Pilih wajah"
 
 msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
-msgstr ""
+msgstr "Klik wajah pada model untuk mengatur bidang pemotongan. Bidang akan menempel rata dengan wajah tersebut; gunakan Gerakan untuk menggesernya."
 
 msgid "Click a face of the model."
-msgstr ""
+msgstr "Klik wajah pada model."
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -2633,7 +2633,7 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 
 msgid "Error: reversed faces detected, which may affect rendering"
-msgstr ""
+msgstr "Kesalahan: Wajah terbalik terdeteksi, rendering dapat terpengaruh."
 
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
@@ -2650,7 +2650,7 @@ msgid "Click the icon to reset all settings of the object"
 msgstr "Klik ikon untuk mengatur ulang semua pengaturan objek"
 
 msgid "Unprintable object"
-msgstr ""
+msgstr "Objek yang tidak dapat dicetak"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Klik kanan ikon untuk membuang properti objek yang dapat dicetak"
@@ -3852,11 +3852,11 @@ msgstr "Prapengkondisian termal alas yang dipanaskan membantu mengoptimalkan kua
 msgid "Remaining time: %dmin%ds"
 msgstr "Sisa waktu: %d mnt %d dtk"
 
-msgid "One-click CMYW auto-mix"
-msgstr "Otomatis campur CMYW sekali klik"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
+msgstr ""
 
-msgid "One-click RYBW auto-mix"
-msgstr "Otomatis campur RYBW sekali klik"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr ""
 
 msgid "Add Filament"
 msgstr ""
@@ -3885,9 +3885,9 @@ msgstr "Filamen Campuran Proyek"
 msgid "New Mixed Filaments"
 msgstr "Filamen Campuran Baru"
 
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "Proyek ini mendukung hingga %d filamen. Filamen tambahan akan dihapus."
+#, boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgstr ""
 
 msgid "Updating"
 msgstr "Memperbarui"
@@ -3901,8 +3901,8 @@ msgstr ""
 msgid "Import Model: Simplify Colors"
 msgstr ""
 
-msgid "Original Model"
-msgstr ""
+msgid "Original"
+msgstr "Asli"
 
 msgid "Simplified"
 msgstr ""
@@ -3916,13 +3916,7 @@ msgstr "Pengaturan lanjutan"
 msgid "Boundary Smoothness"
 msgstr ""
 
-msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
-msgstr ""
-
 msgid "Gap Area"
-msgstr ""
-
-msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
 msgstr ""
 
 msgid "Automatically determine the optimal color count"
@@ -3931,16 +3925,19 @@ msgstr ""
 msgid "Adjust filament matching"
 msgstr ""
 
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "Atur ulang pemetaan filamen ke kondisi sebelum pencampuran sekali klik"
+msgid "Color mixing"
+msgstr ""
 
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "Pilih mode otomatis campur sekali klik untuk impor warna tekstur"
+msgid "Use official mixing kits →"
+msgstr ""
 
 msgid "Some colors have no matching filament. Please match them before importing."
 msgstr ""
 
 msgid "Auto-Add All Filaments"
+msgstr ""
+
+msgid "Fix now"
 msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
@@ -3998,7 +3995,38 @@ msgstr ""
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr ""
 
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr ""
+
 msgid "Click to select a matching filament"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr ""
+
+msgid "Error Prompt"
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr ""
+
+msgid "What is the CMYW mixing kit?"
+msgstr ""
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr ""
+
+msgid "4-color CMYW"
+msgstr ""
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr ""
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "Add to project filament list"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -4120,7 +4148,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr "Faktor Kalibrasi Dinamika Aliran"
 
 msgid "View Wiki for details"
-msgstr ""
+msgstr "Lihat Wiki untuk detail selengkapnya"
 
 msgid "Nozzle Type"
 msgstr "Jenis Nosel"
@@ -4142,25 +4170,25 @@ msgstr ""
 "Nosel"
 
 msgid "Tip: Setting AMS slot information while printing is not supported"
-msgstr ""
+msgstr "Tips: Pengaturan informasi slot AMS saat pencetakan tidak didukung"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "Tips: Pengaturan informasi slot Virtual saat pencetakan tidak didukung"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Apakah Anda yakin ingin menghapus informasi filamen?"
 
 msgid "Add to Filament Library?"
-msgstr ""
+msgstr "Tambahkan ke Pustaka Filamen?"
 
 msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
-msgstr ""
+msgstr "Mengubah jenis atau warna filamen akan menghapus keterkaitan dengan Pustaka Filamen. Apakah Anda ingin menambahkan filamen ini sebagai gulungan baru?"
 
 msgid "Add to Filament Library"
-msgstr ""
+msgstr "Tambahkan ke Pustaka Filamen"
 
 msgid "Save Only"
-msgstr ""
+msgstr "Simpan Saja"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU memerlukan jalur pengumpanan dan prosedur pemuatan yang berbeda. Jika tidak, penyumbatan atau macet dapat terjadi. Mohon baca tutorial sebelum menggunakan TPU."
@@ -4172,7 +4200,7 @@ msgid "You need to select the material type and color first."
 msgstr "Anda perlu memilih jenis bahan dan warna terlebih dahulu."
 
 msgid "Please select a color"
-msgstr ""
+msgstr "Silakan pilih warna"
 
 msgid "Remark"
 msgstr "Catatan"
@@ -4193,25 +4221,25 @@ msgstr ""
 "'Perangkat -> Komponen Cetak'"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "Filamen yang cocok"
 
 msgid "Add as new filament"
 msgstr "Tambahkan sebagai filamen baru"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS mendeteksi filamen baru. Tambahkan ke Manajer Filamen?"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "Filamen serupa ditemukan di Manajer Filamen dan telah dicocokkan secara otomatis."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "Beberapa filamen serupa ditemukan di Manajer Filamen. Konfirmasi kecocokannya."
 
 msgid "New Filament"
-msgstr ""
+msgstr "Filamen Baru"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "Informasi filamen baru telah dicatat."
 
 msgid "Dynamic flow calibration"
 msgstr "Kalibrasi aliran dinamika"
@@ -4513,10 +4541,10 @@ msgid "Reset AMS Sequence"
 msgstr "Atur Ulang Urutan AMS"
 
 msgid "View wiki for details"
-msgstr ""
+msgstr "Lihat wiki untuk detail selengkapnya"
 
 msgid "Nozzle Temperature"
-msgstr ""
+msgstr "Suhu Nosel"
 
 msgid "File"
 msgstr ""
@@ -4715,7 +4743,7 @@ msgstr "Nilai di luar rentang."
 
 #, boost-format
 msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
-msgstr ""
+msgstr "%1% tidak dapat melebihi lapisan cangkang (%2%), jika tidak, warna cat akan mencapai bagian sisip jarang."
 
 msgid ""
 "Too small layer height.\n"
@@ -4876,6 +4904,8 @@ msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
 msgstr ""
+"Kedalaman penguncian harus lebih kecil daripada kedalaman kulit.\n"
+"Atur ulang ke 50% kedalaman kulit"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "Lapisan dinding ekstra bergantian tidak kompatibel dengan mode vas spiral. Untuk mengaktifkan lapisan dinding ekstra bergantian, penyesuaian berikut direkomendasikan:"
@@ -6117,9 +6147,6 @@ msgstr "Persiapan"
 msgid "Preview"
 msgstr "Pratinjau"
 
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "Halaman saat ini memiliki perubahan yang belum disimpan. Anda dapat melanjutkan pengeditan atau pilih untuk menyimpan/membuang sebelum keluar."
-
 msgid "Home"
 msgstr "Beranda"
 
@@ -6143,6 +6170,9 @@ msgstr "Tidak"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "akan ditutup sebelum membuat model baru. Apakah Anda ingin melanjutkan?"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "Halaman saat ini memiliki perubahan yang belum disimpan. Anda dapat melanjutkan pengeditan atau pilih untuk menyimpan/membuang sebelum keluar."
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Dapatkan hasil cetak yang lebih cepat, lebih andal, dan bebas lengkung dengan Helio Additive."
@@ -6954,7 +6984,7 @@ msgid "Swap Y/Z axes"
 msgstr "Tukar sumbu Y/Z"
 
 msgid "Lock horizon"
-msgstr ""
+msgstr "Kunci cakrawala"
 
 msgid "(LAN)"
 msgstr ""
@@ -7106,7 +7136,7 @@ msgid "Finished"
 msgstr "Selesai"
 
 msgid "Almost complete"
-msgstr ""
+msgstr "Hampir selesai"
 
 msgid "Camera"
 msgstr "Kamera"
@@ -7587,10 +7617,10 @@ msgid "Open link for more info"
 msgstr "Buka tautan untuk info lebih lanjut"
 
 msgid "Jump to: Support on build plate only"
-msgstr ""
+msgstr "Lompat ke: Dukungan hanya pada pelat cetak"
 
 msgid "Jump to: Support"
-msgstr ""
+msgstr "Lompat ke: Dukungan"
 
 msgid "Warning:"
 msgstr "Peringatan:"
@@ -7852,478 +7882,535 @@ msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Menghentikan pemanasan secara otomatis setelah 5 menit siaga untuk memastikan keamanan."
 
 msgid "Note: "
-msgstr ""
+msgstr "Catatan: "
 
 msgid "Controls the printed height of each layer."
-msgstr ""
+msgstr "Mengatur ketinggian hasil pencetakan pada setiap lapisan."
 
 msgid ""
 "A larger layer height prints faster but shows more obvious layer lines.\n"
 "A smaller layer height gives finer curved surfaces but takes longer to print.\n"
 "If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
 msgstr ""
+"Tinggi lapisan yang lebih tinggi membuat proses pencetakan lebih cepat, tetapi garis lapisan terlihat lebih jelas.\n"
+"Tinggi lapisan yang lebih rendah menghasilkan permukaan melengkung yang lebih halus, tetapi membutuhkan waktu pencetakan lebih lama.\n"
+"Jika tinggi lapisan terlalu kecil sementara kecepatan pencetakan terlalu tinggi, ekstrusi tidak dapat mengimbanginya sehingga permukaan kekurangan material dan berserabut."
 
 msgid "Recommended layer height is 20%-70% of the nozzle diameter."
-msgstr ""
+msgstr "Tinggi lapisan yang direkomendasikan adalah 20%–70% dari diameter nosel."
 
 msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
-msgstr ""
+msgstr "Mengatur ketebalan lapisan pertama yang diekstrusi ke meja pemanas, yang memengaruhi seberapa baik lapisan pertama menempel pada pelat."
 
 msgid ""
 "Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
 "Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
 msgstr ""
+"Jika terlalu kecil, lapisan pertama lebih sensitif terhadap kerataan meja dan rentan mengalami cacat pencetakan.\n"
+"Jika terlalu besar, rasio lebar terhadap tinggi lapisan pertama menjadi terlalu kecil sehingga mengurangi daya rekat material."
 
 msgid "Usually set to half the nozzle diameter."
-msgstr ""
+msgstr "Biasanya diatur menjadi setengah dari diameter nosel."
 
 msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
-msgstr ""
+msgstr "Untuk fitur filamen warna campuran. Jika diaktifkan, lapisan yang menggunakan filamen warna campuran akan dibagi secara proporsional menjadi sub-lapisan yang lebih tipis agar perpaduan warna lebih merata."
 
 msgid ""
 "When off, colors change per full layer, so the blend is coarser and less even.\n"
 "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
 msgstr ""
+"Jika dinonaktifkan, perubahan warna terjadi pada setiap lapisan, sehingga perpaduan warna lebih kasar dan kurang merata.\n"
+"Jika diaktifkan, sub-lapisan akan berselang-seling dengan lebih rapat sehingga perpaduan warna lebih merata, tetapi waktu pencetakan menjadi lebih lama."
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr ""
+msgstr "Disarankan hanya saat menggunakan filamen warna campuran untuk mendapatkan efek warna berlapis yang lebih baik."
 
 msgid "Controls where each layer's outer wall starts and ends."
-msgstr ""
+msgstr "Mengatur posisi awal dan akhir dinding luar pada setiap lapisan."
 
 msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr ""
+msgstr "Titik tersebut dapat meninggalkan sedikit gumpalan atau garis sambungan, sehingga memilih posisi yang tepat dapat mengurangi dampaknya terhadap tampilan model."
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr ""
+msgstr "Hanya mencetak satu lingkaran dinding pada permukaan atas agar permukaan atas dapat terisi semaksimal mungkin oleh pola pengisian, sehingga tampilannya lebih seragam."
 
 msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
-msgstr ""
+msgstr "Pada permukaan miring atau berbentuk kubah, opsi ini membuat efek bertingkat semakin terlihat, sehingga tidak disarankan untuk permukaan tersebut."
 
 msgid "Recommended only for flat top surfaces."
-msgstr ""
+msgstr "Disarankan hanya untuk permukaan atas yang datar."
 
 msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr ""
+msgstr "Hanya menggunakan satu dinding pada lapisan pertama model (yang menyentuh meja) agar area yang terisi oleh pola pengisian lapisan pertama dengan maksimal, sehingga tampilannya lebih seragam."
 
 msgid ""
 "When off, the first layer uses multiple wall loops.\n"
 "When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
 msgstr ""
+"Jika dinonaktifkan, lapisan pertama menggunakan beberapa lingkaran dinding.\n"
+"Jika diaktifkan, pola pengisian menjadi lebih menyatu dan bagian bawah lebih rata, tetapi garis tepi lapisan pertama sedikit berkurang."
 
 msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
-msgstr ""
+msgstr "Mengatur jumlah lingkaran dinding pada setiap lapisan cangkang, yang merupakan faktor penting dalam menentukan kekuatan model."
 
 msgid ""
 "More walls give higher strength but use more material and time;\n"
 "fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
-msgstr ""
+msgstr "Semakin banyak dinding, semakin kuat model, tetapi penggunaan material dan waktu pencetakan juga meningkat; semakin sedikit dinding, semakin cepat pencetakan dan semakin hemat material, tetapi kekuatan berkurang dan pola pengisian dapat terlihat melalui permukaan."
 
 msgid "2-3 loops is recommended for typical models; increase it for functional parts."
-msgstr ""
+msgstr "Disarankan menggunakan 2–3 loop untuk model biasa; tambah jumlahnya untuk komponen fungsional."
 
 msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
-msgstr ""
+msgstr "Pada batas antara area berdinding dan area tanpa dinding, dinding akan ditanam ke dalam area pengisian tanpa dinding luar pada lapisan yang berselang-seling, sehingga dinding dan pengisian terhubung lebih kuat."
 
 msgid ""
 "It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
 "Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
 msgstr ""
+"Fitur ini hanya bekerja pada batas yang salah satu sisinya memiliki dinding dan sisi lainnya tidak memiliki dinding; batas antara dinding dan pengisian biasa di dalam komponen tidak akan diubah.\n"
+"Penanaman pada setiap lapisan lainnya menghasilkan penguncian berselang-seling yang lebih kuat daripada sambungan rata."
 
 msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
-msgstr ""
+msgstr "Gunakan fitur ini jika pengubah membuat suatu area menjadi pengisian tanpa dinding, tetapi area tersebut tetap perlu terikat kuat dengan dinding luar di sekitarnya. Tidak diperlukan jika kedua sisi mencetak dinding seperti biasa."
 
 msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
-msgstr ""
+msgstr "Menambahkan lingkaran dinding tambahan pada lapisan ganjil, sementara lapisan genap tidak berubah."
 
 msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
-msgstr ""
+msgstr "Menambahkan dinding pada setiap lapisan lainnya akan memperkuat ikatan antarlapisan tanpa menambahkannya pada setiap lapisan, sehingga meningkatkan ikatan lapisan dan kekuatan komponen tanpa menggunakan material dan waktu sebanyak dinding tambahan pada semua lapisan."
 
 msgid "Requires sparse infill; not applicable in vase mode."
-msgstr ""
+msgstr "Memerlukan pengisian dengan kepadatan rendah; tidak berlaku dalam mode vas."
 
 msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
-msgstr ""
+msgstr "Pola jalur pencetakan untuk pengisian padat paling atas; biasanya memengaruhi kerataan dan tampilan permukaan atas."
 
 msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
-msgstr ""
+msgstr "Mengatur jalur pencetakan pengisian pada permukaan bawah model, yang memengaruhi tekstur dan kerataan bagian bawah."
 
 msgid "Bridging areas are not affected by this parameter."
-msgstr ""
+msgstr "Area yang menjembatani tidak dipengaruhi oleh parameter ini."
 
 msgid "Controls the number of solid top shell layers, including the top surface."
-msgstr ""
+msgstr "Mengatur jumlah lapisan cangkang atas padat, termasuk permukaan atas."
 
 msgid ""
 "More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
 "If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
 msgstr ""
+"Semakin banyak lapisan, semakin tebal bagian atas cangkang dan semakin kecil kemungkinan pola pengisian di bawahnya terlihat.\n"
+"Jika jumlah lapisan × tinggi lapisan lebih kecil daripada ketebalan bagian atas, slicer akan menambahkan lapisan secara otomatis."
 
 msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "Menetapkan ketebalan minimum untuk bagian atas cangkang yang padat agar tidak menjadi terlalu tipis saat menggunakan tinggi lapisan yang kecil."
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
 msgstr ""
+"Atur ke 0 untuk menonaktifkan pengaturan ini dan menentukan ketebalan hanya berdasarkan jumlah lapisan.\n"
+"Jika ketebalan dari jumlah lapisan × tinggi lapisan tidak mencukupi, slicer akan menambahkan lapisan cangkang atas secara otomatis."
 
 msgid "Controls the number of solid bottom shell layers, including the bottom surface."
-msgstr ""
+msgstr "Mengatur jumlah lapisan cangkang bagian bawah, termasuk permukaan bawah."
 
 msgid ""
 "More layers make the bottom more solid but take longer.\n"
 "If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
 msgstr ""
+"Semakin banyak lapisan, semakin padat bagian bawah, tetapi waktu pencetakan menjadi lebih lama.\n"
+"Jika tinggi lapisan × jumlah lapisan lebih kecil daripada ketebalan bagian bawah, slicer akan menambahkan lapisan secara otomatis."
 
 msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "Menetapkan ketebalan minimum untuk bagian bawah cangkang yang padat agar tidak menjadi terlalu tipis saat menggunakan tinggi lapisan yang kecil."
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
 msgstr ""
+"Atur ke 0 untuk menonaktifkan pengaturan ini dan menentukan ketebalan hanya berdasarkan jumlah lapisan.\n"
+"Jika ketebalan dari jumlah lapisan tidak mencukupi, slicer akan menambahkan lapisan bagian cangkang bawah secara otomatis."
 
 msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "Mengatur jumlah lapisan tempat warna permukaan atas meresap ke bawah, sehingga warna filamen lain di bagian dalam tidak terlihat."
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"Semakin sedikit lapisan, semakin besar kemungkinan warna di bagian dalam terlihat melalui permukaan.\n"
+"Semakin banyak lapisan, semakin kecil kemungkinan warna di bagian dalam terlihat, tetapi jumlah pergantian filamen meningkat.\n"
+"Agar peresapan ke bawah tidak memengaruhi warna sisi model, area yang terkena peresapan akan menyusut pada setiap lapisan."
 
 msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "Mengatur jumlah lapisan tempat warna permukaan bawah meresap ke atas, sehingga warna filamen lain di bagian dalam tidak terlihat."
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"Semakin sedikit lapisan, semakin besar kemungkinan warna di bagian dalam terlihat melalui permukaan.\n"
+"Semakin banyak lapisan, semakin kecil kemungkinan warna di bagian dalam terlihat, tetapi jumlah pergantian filamen meningkat.\n"
+"Agar peresapan ke atas tidak memengaruhi warna sisi model, area yang terkena peresapan akan menyusut pada setiap lapisan."
 
 msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
-msgstr ""
+msgstr "Mengatur pola jalur pencetakan pengisian padat internal, yang diterapkan pada lapisan padat di antara cangkang bagian atas dan bawah serta pada area padat internal."
 
 msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
-msgstr ""
+msgstr "Jika deteksi pengisian padat internal yang sempit diaktifkan, area kecil akan otomatis menggunakan pola konsentris."
 
 msgid "Controls how dense the model's internal sparse infill is."
-msgstr ""
+msgstr "Mengontrol kepadatan pengisian sisipan internal model."
 
 #, no-c-format, no-boost-format
 msgid ""
 "10-15% is recommended for typical models; raise it for functional parts.\n"
 "100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
 msgstr ""
+"Kepadatan 10–15% direkomendasikan untuk model biasa; tingkatkan untuk komponen fungsional.\n"
+"100% berarti model sepenuhnya padat. Pada tingkat ini, hanya pola Konsentris, Rektilinear, Monotonik, Garis Monotonik, Rektilinear Selaras, Kurva Hilbert, Tali Busur Archimedes, dan Spiral Oktagram yang tersedia."
 
 msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
-msgstr ""
+msgstr "Mengaktifkan pengisian multi-garis, sehingga setiap jalur pengisian dicetak sebagai beberapa garis paralel yang berdampingan."
 
 msgid ""
 "Higher values make the infill beams thicker and stronger but use more material and time;\n"
 "1 is ordinary single-line infill."
 msgstr ""
+"Nilai yang lebih tinggi membuat jalur pengisian lebih tebal dan kuat, tetapi menggunakan lebih banyak material dan waktu; \n"
+"1 berarti pengisian satu garis biasa."
 
 msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
-msgstr ""
+msgstr "Didukung oleh pola seperti Garis, Grid, Gyroid, Sarang Lebah, Kubik, dan Petir."
 
 msgid "Controls the toolpath structure of the internal sparse infill."
-msgstr ""
+msgstr "Mengatur struktur jalur pencetakan pengisian sisipan internal."
 
 msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
-msgstr ""
+msgstr "Dudukan adalah struktur yang dapat dilepas dan dicetak di bawah bagian yang menjorok atau memiliki sudut kemiringan tajam untuk menopang lapisan berikutnya dan mencegahnya melendut."
 
 msgid ""
 "When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
 "Recommended when the model has obvious overhangs."
 msgstr ""
+"Jika diaktifkan, dudukan akan dibuat pada bagian yang menjorok dan memiliki sudut kemiringan tajam, sehingga hasil pencetakan lebih stabil, tetapi dudukan harus dilepas dan dapat meninggalkan bekas.\n"
+"Disarankan jika model memiliki bagian menjorok yang jelas."
 
 msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
-msgstr ""
+msgstr "Memilih bentuk dudukan dan cara pembuatannya; Normal (Otomatis) dan Pohon (Otomatis) dibuat secara otomatis berdasarkan bagian yang menjorok."
 
 msgid ""
 "Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
 "Choose a manual mode when you need precise control."
 msgstr ""
+"Dudukan normal lebih teratur dan stabil; dudukan pohon lebih sedikit menyentuh model sehingga lebih mudah dilepas.\n"
+"Pilih mode manual jika Anda memerlukan kontrol yang lebih presisi."
 
 msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
-msgstr ""
+msgstr "Mode manual digunakan bersama alat pengecatan dudukan pada bilah alat gizmo."
 
 msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
-msgstr ""
+msgstr "Membuat dudukan untuk permukaan yang memiliki sudut kemiringan di bawah nilai ambang; pengaturan ini dapat disesuaikan dalam mode otomatis."
 
 msgid ""
 "A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
 "A larger threshold also supports more slopes, giving more support."
 msgstr ""
+"Ambang yang lebih kecil hanya menyokong bagian yang menjorok dan hampir horizontal, sehingga support lebih sedikit, tetapi bagian yang landai mungkin tidak mendapatkan sokongan.\n"
+"Ambang yang lebih besar juga menyokong lebih banyak pada permukaan yang miring, sehingga jumlah dudukan bertambah."
 
 msgid "A common default of 30 degrees balances print stability against the amount of support used."
-msgstr ""
+msgstr "Nilai default 30 derajat merupakan keseimbangan umum antara kestabilan pencetakan dan jumlah dudukan yang digunakan."
 
 msgid "Generates support only from the build plate, not on the model's surfaces."
-msgstr ""
+msgstr "Membuat dudukan hanya dari pelat cetak, bukan dari permukaan model."
 
 msgid ""
 "When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
 "When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
 msgstr ""
+"Jika dinonaktifkan, dudukan dapat tumbuh dari permukaan model untuk memberikan cakupan yang lebih merata, tetapi lebih berpotensi meninggalkan bekas.\n"
+"Jika diaktifkan, semua dudukan dimulai dari pelat cetak sehingga permukaan model tetap lebih bersih, tetapi beberapa bagian yang menjorok mungkin tidak mendapatkan dudukan."
 
 msgid "Recommended when appearance matters."
-msgstr ""
+msgstr "Disarankan jika tampilan model menjadi prioritas."
 
 msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
-msgstr ""
+msgstr "Antarmuka dudukan adalah lapisan kontak yang lebih padat pada bagian tempat dudukan bertemu dengan model; lapisan ini menjaga model tetap stabil, memudahkan pelepasan dudukan, dan mengurangi bekas pada permukaan. Pengaturan ini menentukan filamen yang digunakan untuk lapisan kontak tersebut."
 
 msgid ""
 "By default the interface uses the same filament as the model, which can make removal harder.\n"
 "Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
 msgstr ""
+"Secara default, antarmuka menggunakan filamen yang sama dengan model, sehingga dudukan dapat lebih sulit dilepas.\n"
+"Penggunaan filamen yang mudah dilepas membuat permukaan kontak lebih mudah dibersihkan setelah dilepas, tetapi menambah jumlah pergantian filamen."
 
 msgid "The filament used to print the support body and the raft."
-msgstr ""
+msgstr "Filamen yang digunakan untuk mencetak badan dudukan dan alasnya."
 
 msgid ""
 "By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
 "Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
 msgstr ""
+"Secara default, dudukan menggunakan filamen yang sama dengan model dan mengikuti filamen model pada setiap lapisan dalam pencetakan dengan beberapa filamen.\n"
+"Menggunakan filamen yang berbeda dapat memudahkan pelepasan atau mengurangi biaya, tetapi menambah waktu yang diperlukan untuk pergantian filamen."
 
 msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
-msgstr ""
+msgstr "Mencetak garis luar yang tidak terhubung ke model (skirt) di sekeliling model untuk membersihkan nosel dan menstabilkan ekstrusi sebelum pencetakan dimulai."
 
 msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
-msgstr ""
+msgstr "Semakin banyak garis, semakin menyeluruh proses pembersihan, tetapi semakin banyak material yang digunakan; atur ke 0 untuk menonaktifkan skirt."
 
 msgid "Controls how many layers the skirt is printed."
-msgstr ""
+msgstr "Mengatur jumlah lapisan yang digunakan untuk mencetak skirt."
 
 msgid ""
 "During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
 "The default is 1 layer."
 msgstr ""
+"Pada beberapa lapisan pertama, skirt yang lebih tinggi dapat menghalangi sebagian udara dingin di sekitar model, menjaga lingkungan mikro tetap hangat di bagian dasar model, dan mengurangi risiko penghanian pada tahap awal akibat penyusutan material.\n"
+"Nilai defaultnya adalah 1 lapisan."
 
 msgid "Requires the skirt loop count to be greater than 0."
-msgstr ""
+msgstr "Memerlukan jumlah garis skirt lebih dari 0."
 
 msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
-msgstr ""
+msgstr "Brim adalah pita material satu lapisan yang ditambahkan di sekeliling dasar model dan menyatu dengan lapisan pertamanya. Brim berfungsi sebagai tepian penguat untuk mencegah penghanian dan mempertahankan daya rekat."
 
 msgid ""
 "This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
 "The default is Auto."
 msgstr ""
+"Mengatur jenis brim (pita yang menyatu dengan lapisan pertama model) yang digunakan untuk meningkatkan daya rekat pada meja dan mengurangi penghanian.\n"
+"Pengaturan default adalah Otomatis."
 
 msgid "The distance from the model to the outermost brim line."
-msgstr ""
+msgstr "Jarak dari model ke garis brim terluar."
 
 msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
-msgstr ""
+msgstr "Lebar yang lebih besar meningkatkan daya rekat pada meja dan ketahanan terhadap penghanian, tetapi menggunakan lebih banyak material dan lebih sulit dibersihkan."
 
 msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr ""
+msgstr "Setelah pergantian warna atau filamen, printer membuang sisa filamen dan menstabilkan tekanan nosel pada prime tower terpisah sebelum melanjutkan pencetakan model, hal ini mengurangi pencampuran warna, kekurangan material, dan cacat permukaan."
 
 msgid ""
 "Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
 "On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
 msgstr ""
+"Nonaktif: menghemat material dan menggunakan lebih sedikit ruang pada meja, tetapi sisa filamen saat pergantian warna dapat mengenai model dan menyebabkan pencampuran warna, serabut filamen, atau kekurangan material pada area tertentu.\n"
+"Aktif: menghasilkan perpindahan warna yang lebih bersih dan pencetakan multiwarna yang lebih konsisten, tetapi menggunakan lebih banyak material dan waktu serta memakan ruang pada meja."
 
 msgid "Mutually exclusive with by-object printing and independent support layer height."
-msgstr ""
+msgstr "Tidak dapat digunakan bersamaan dengan pencetakan berdasarkan objek dan tinggi lapisan dudukan independen."
 
 msgid "Controls the horizontal size of the prime tower."
-msgstr ""
+msgstr "Mengatur ukuran horizontal prime tower."
 
 msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
-msgstr ""
+msgstr "Lebar yang lebih besar memberikan ruang pembersihan filamen yang lebih luas dan membuat tower lebih stabil, tetapi menggunakan lebih banyak material dan ruang pada meja."
 
 msgid "The width cannot be customized when the rib outer wall is enabled."
-msgstr ""
+msgstr "Lebar tidak dapat disesuaikan jika dinding luar rusuk diaktifkan."
 
 msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
-msgstr ""
+msgstr "Menambahkan empat rusuk sudut pada dinding luar prime tower untuk meningkatkan kestabilannya."
 
 msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
-msgstr ""
+msgstr "Disarankan untuk prime tower yang tinggi, material yang lebih mudah menempel seperti PETG, atau pergantian warna yang sering; nonaktifkan jika ruang pada meja terbatas dan tower pendek sehingga lebarnya dapat diperkecil."
 
 msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
-msgstr ""
+msgstr "Menggunakan sebagian filamen transisi setelah pergantian untuk mencetak pengisian internal objek, sehingga mengurangi pemborosan material dan waktu pencetakan."
 
 msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
-msgstr ""
+msgstr "Gunakan pada bagian yang tidak tembus cahaya untuk menghemat material; nonaktifkan pada bagian transparan atau berdinding tipis, atau jika warna internal penting."
 
 msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
-msgstr ""
+msgstr "Menggunakan filamen transisi setelah pergantian filamen untuk mencetak support model, sehingga mengurangi pemborosan material dan waktu."
 
 msgid "Enabling it saves material, but the supports may show mixed colors."
-msgstr ""
+msgstr "Mengaktifkannya dapat menghemat material, tetapi dudukan dapat memperlihatkan campuran warna."
 
 msgid "Takes effect when printing multiple filaments through the same nozzle."
-msgstr ""
+msgstr "Terjadi saat mencetak beberapa filamen melalui nosel yang sama."
 
 msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
-msgstr ""
+msgstr "Menentukan apakah seluruh pelat dicetak lapis demi lapis atau setiap objek diselesaikan terlebih dahulu sebelum mulai mencetak objek berikutnya."
 
 msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
-msgstr ""
+msgstr "Gunakan Berdasarkan Lapisan untuk pencetakan beberapa objek atau beberapa warna pada umumnya; pertimbangkan Berdasarkan Objek untuk banyak objek kecil atau untuk membatasi dampak kegagalan di tengah pencetakan, serta periksa jarak antarobjek dan batasan Prime Tower."
 
 msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
-msgstr ""
+msgstr "Mencetak secara spiral berkelanjutan mengikuti kontur luar, sehingga seluruh model dibangun dengan satu garis, biasanya tanpa garis sambungan di sisinya."
 
 msgid ""
 "When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
 "It is best for single, thin-walled, open-top models."
 msgstr ""
+"Jika diaktifkan, model tidak memiliki lapisan atas, pengisian, dan biasanya hanya memiliki satu dinding, sehingga kekuatannya rendah dan tidak dapat digunakan bersama dudukan, lapisan cangkang atas, serta beberapa pengaturan lainnya.\n"
+"Paling cocok untuk model berdinding tipis dan terbuka di bagian atas."
 
 msgid "Requires top shell layers to be 0 and is not compatible with support."
-msgstr ""
+msgstr "Memerlukan lapisan cangkang atas berjumlah 0 dan tidak kompatibel dengan dudukan."
 
 msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
-msgstr ""
+msgstr "Mengambil satu foto pada setiap lapisan selama pencetakan dan menggabungkannya menjadi video timelapse setelah pencetakan selesai."
 
 msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
-msgstr ""
+msgstr "Memilih mode timelapse di sini; apakah fitur ini benar-benar dijalankan diatur pada halaman pengiriman pencetakan."
 
 msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
-msgstr ""
+msgstr "Mengubah jalur pencetakan dinding secara acak sehingga permukaan luar memiliki tekstur kasar, matte, dan menyerupai serat halus."
 
 msgid ""
 "It affects only walls; the top and bottom surfaces are unchanged.\n"
 "Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
 msgstr ""
+"Hanya memengaruhi dinding; permukaan atas dan bawah tidak berubah.\n"
+"Berguna untuk komponen dekoratif dan cangkang tokoh; nonaktifkan jika dimensi harus presisi atau diperlukan permukaan yang halus."
 
 msgid "Selects how the fuzzy texture is generated."
-msgstr ""
+msgstr "Memilih cara membuat tekstur serat halus."
 
 msgid "There are three generator modes; pick the one that suits your needs."
-msgstr ""
+msgstr "Tersedia tiga mode pembuat; pilih yang sesuai dengan kebutuhan Anda."
 
 msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
-msgstr ""
+msgstr "Menentukan tingkat acak tekstur serat halus, yang memengaruhi tampilan tekstur permukaan."
 
 msgid "Several noise types are available; pick the one that suits your needs."
-msgstr ""
+msgstr "Tersedia beberapa jenis derau; pilih yang sesuai dengan kebutuhan Anda."
 
 msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
-msgstr ""
+msgstr "Mengatur jarak rata-rata antara titik-titik acak yang ditambahkan di sepanjang jalur dinding saat membuat tekstur serat halus."
 
 msgid ""
 "A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
 "A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
 msgstr ""
+"Nilai yang lebih besar membuat titik-titik acak lebih berjauhan sehingga menghasilkan tekstur yang lebih kasar, tetapi jumlah titik pada jalur lebih sedikit. Dengan demikian, proses memotong dan mencetak tetap lebih cepat dan ukuran file G-code lebih kecil.\n"
+"Nilai yang lebih kecil membuat titik-titik lebih berdekatan sehingga menghasilkan tekstur yang lebih halus dan merata, tetapi menambah jumlah titik pada jalur sehingga proses memotong dan mencetak menjadi lebih lambat serta ukuran file G-code lebih besar."
 
 msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
-msgstr ""
+msgstr "Jika nilainya terlalu kecil, perangkat lunak akan menonaktifkan tekstur serat halus karena jarak antartitik terlalu kecil (untuk mencegah terbentuknya jalur yang tidak normal)."
 
 msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
-msgstr ""
+msgstr "Mengatur lebar perubahan acak pada jalur dinding saat membuat tekstur serat halus, yaitu kedalaman teksturnya."
 
 msgid ""
 "A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
 "The default is about 0.3 mm; keep it below the outer wall's line width."
 msgstr ""
+"Nilai yang lebih besar membuat tekstur lebih dalam dan terlihat jelas dengan pola yang lebih kasar, tetapi kontur model melebar, akurasi dimensi menurun, dan dinding dapat mengalami celah sehingga kekuatannya berkurang.\n"
+"Nilai defaultnya sekitar 0,3 mm; pertahankan di bawah lebar garis dinding luar."
 
 msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
-msgstr ""
+msgstr "Jika melebihi lebar garis, mode Ekstrusi dan Gabungan pada pembuat tidak lagi berfungsi dan hanya mode Perpindahan yang digunakan."
 
 msgid "Determines whether the fuzzy effect is also applied to the first layer."
-msgstr ""
+msgstr "Menentukan apakah efek serat halus juga diterapkan pada lapisan pertama."
 
 msgid ""
 "When on, the first-layer side walls also get the fuzzy texture.\n"
 "Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
 msgstr ""
+"Jika diaktifkan, dinding samping lapisan pertama juga mendapatkan tekstur serat halus.\n"
+"Biasanya dibiarkan nonaktif; aktifkan hanya jika tepi bawah memerlukan tekstur yang konsisten dan daya rekat ke meja sudah baik."
 
 msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
-msgstr ""
+msgstr "Menempatkan garis sambungan terutama pada sudut cekung atau cembung dan memperpendek gerakan perpindahan; cocok untuk model dengan tepi yang tegas."
 
 msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
-msgstr ""
+msgstr "Menumpuk garis sambungan setiap lapisan menjadi satu garis vertikal, sehingga bekas sambungan terkonsentrasi dan lebih mudah disembunyikan."
 
 msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
-msgstr ""
+msgstr "Menempatkan garis sambungan di bagian belakang model, cocok untuk model pajangan dengan orientasi tetap."
 
 msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
-msgstr ""
+msgstr "Menyebarkan garis sambungan di berbagai lapisan untuk menghindari terbentuknya garis vertikal, meskipun tonjolan kecil yang tidak beraturan mungkin muncul pada permukaan."
 
 msgid "All top surfaces print with the normal number of wall loops."
-msgstr ""
+msgstr "Semua permukaan atas dicetak dengan jumlah lingkaran dinding yang normal."
 
 msgid "Applies to every flat upward-facing top surface, for the widest coverage."
-msgstr ""
+msgstr "Diterapkan pada setiap permukaan atas datar yang menghadap ke atas, sehingga memberikan cakupan paling luas."
 
 msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
-msgstr ""
+msgstr "Hanya diterapkan pada permukaan paling atas model; permukaan atas pada lapisan tengah tetap ditangani seperti biasa."
 
 msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
-msgstr ""
+msgstr "Menganalisis model dan menghitung lebar serta penempatan brim yang diperlukan; direkomendasikan untuk sebagian besar model."
 
 msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
-msgstr ""
+msgstr "Membuat brim hanya di sepanjang kontur luar untuk memperkuat daya rekat bagian luar."
 
 msgid "Generates a brim in inner holes only."
-msgstr ""
+msgstr "Membuat brim hanya di dalam lubang."
 
 msgid "Generates a brim on both the outer contour and inner holes."
-msgstr ""
+msgstr "Membuat brim pada kontur luar dan lubang bagian dalam."
 
 msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
-msgstr ""
+msgstr "Membuat brim dengan pengecatan atau penguatan lokal, cocok untuk sudut tajam yang rentan penghanian."
 
 msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
-msgstr ""
+msgstr "Brim tidak terbentuk; bagian bawah model tetap lebih bersih, tetapi daya rekat ke meja lebih lemah."
 
 msgid "All objects rise together, layer by layer."
-msgstr ""
+msgstr "Semua objek naik bersama-sama, lapis demi lapis."
 
 msgid "Finishes one object before starting the next; has placement clearance requirements."
-msgstr ""
+msgstr "Menyelesaikan satu objek sebelum mulai mencetak objek berikutnya; memerlukan jarak bebas tertentu dalam penempatan objek."
 
 msgid "A snapshot is taken directly after each layer."
-msgstr ""
+msgstr "Snapshot diambil langsung setelah setiap lapisan selesai dicetak."
 
 msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
-msgstr ""
+msgstr "Setelah setiap lapisan, toolhead bergerak ke saluran pembuangan sisa material sebelum snapshot diambil agar hasil gambar lebih bersih; filamen dapat merembes selama pengambilan gambar, sehingga diperlukan Prime Tower untuk membersihkan nosel dan Prime Tower akan dibuat bahkan untuk pencetakan satu warna."
 
 msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
-msgstr ""
+msgstr "Tidak ada kulit serat halus yang ditambahkan secara otomatis, tetapi Anda tetap dapat menerapkannya secara lokal dengan pengecatan."
 
 msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
-msgstr ""
+msgstr "Menambahkan kulit serat halus hanya pada kontur terluar; lubang bagian dalam tetap halus."
 
 msgid "Adds fuzzy skin to both the outer contour and inner holes."
-msgstr ""
+msgstr "Menambahkan kulit serat halus pada kontur luar dan lubang bagian dalam."
 
 msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
-msgstr ""
+msgstr "Setiap garis dinding berubah arah secara acak, menghasilkan efek paling kuat tetapi kemungkinan penyimpangan dimensi yang lebih besar."
 
 msgid "Turns fuzzy skin fully off; even painting has no effect."
-msgstr ""
+msgstr "Menghilangkan kulit serat halus sepenuhnya; pengecatan juga tidak akan memberikan efek."
 
 msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
-msgstr ""
+msgstr "Nosel bergeser ke samping untuk membentuk tekstur, menghasilkan efek 3D tegas tetapi dapat menimbulkan celah di antara dinding."
 
 msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
-msgstr ""
+msgstr "Jalur tetap lurus dan hanya jumlah ekstrusi yang berubah, sehingga dinding tetap lebih padat."
 
 msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
-msgstr ""
+msgstr "Perpindahan ditambah ekstrusi; tampilan mendekati mode perpindahan sekaligus mengisi celah di antara dinding."
 
 msgid "Uniform random noise with a fine, grainy texture and no clear direction."
-msgstr ""
+msgstr "Derau acak yang seragam dengan tekstur halus dan berbutir tanpa arah yang jelas."
 
 msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
-msgstr ""
+msgstr "Transisi antarlapisan yang halus menghasilkan tekstur yang lebih merata dan menyatu dengan gelombang yang halus dan teratur."
 
 msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
-msgstr ""
+msgstr "Mirip dengan Perlin, tetapi lebih menggumpal, dengan tonjolan yang berkelompok dan area datar seperti awan."
 
 msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
-msgstr ""
+msgstr "Tonjolan bergerigi tajam dengan puncak dan alur halus, menghasilkan tekstur seperti marmer."
 
 msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
-msgstr ""
+msgstr "Membagi permukaan menjadi beberapa sel dan menggeser setiap sel secara utuh, sehingga membentuk tekstur bertingkat seperti susunan petak."
 
 msgid "View details on Wiki"
-msgstr ""
+msgstr "Lihat detail selengkapnya di Wiki"
 
 msgid "Global"
 msgstr ""
@@ -8565,17 +8652,11 @@ msgstr ""
 msgid "model \"%s\""
 msgstr ""
 
-msgid "support filament"
-msgstr ""
-
-msgid "custom G-code"
-msgstr ""
-
 #, c-format, boost-format
-msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
 msgstr ""
 
-msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
 msgstr ""
 
 msgid "Delete Filament"
@@ -8636,7 +8717,7 @@ msgid "The nozzle hardness required by the filament is higher than the default n
 msgstr "Kekerasan nosel yang dibutuhkan oleh filamen lebih tinggi dari kekerasan nosel default printer. Harap ganti nosel yang diperkeras atau filamen, jika tidak, nosel akan aus atau rusak."
 
 msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr ""
+msgstr "Mengaktifkan pengambilan foto timelapse instan dapat menyebabkan ketidaksempurnaan pada permukaan. Disarankan untuk beralih ke mode halus."
 
 msgid "\n"
 msgstr ""
@@ -8740,8 +8821,8 @@ msgid "Multi-part object detected"
 msgstr "Terdeteksi objek multi-bagian"
 
 #, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr "Menghitung warna tekstur: %s"
+msgid "Computing model colors: %s"
+msgstr ""
 
 msgid "Texture Import Warning"
 msgstr "Peringatan Impor Tekstur"
@@ -9148,6 +9229,18 @@ msgstr "Pemuatan Data Helio Gagal"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Harap selesaikan kesalahan pemotongan dan publikasikan kembali."
+
+msgid "Send G-code file"
+msgstr ""
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr ""
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr ""
+
+msgid "Send now"
+msgstr ""
 
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "Gagal memulai Klien Bambu Farm Manager."
@@ -9609,25 +9702,25 @@ msgid "Enable dark mode"
 msgstr "Aktifkan mode gelap"
 
 msgid "All related changes"
-msgstr ""
+msgstr "Semua perubahan terkait"
 
 msgid "When color changes"
-msgstr ""
+msgstr "Saat warna berubah"
 
 msgid "Turn off auto calculate"
-msgstr ""
+msgstr "Matikan penghitungan otomatis"
 
 msgid "Auto calculate when color changes, type or configuration changes"
-msgstr ""
+msgstr "Menghitung otomatis saat warna, jenis, atau konfigurasi berubah"
 
 msgid "Auto calculate when sync or modify filament colors"
-msgstr ""
+msgstr "Menghitung otomatis saat warna filamen disinkronkan atau diubah"
 
 msgid "Keep current flush volumes, trigger manually when needed"
-msgstr ""
+msgstr "Mempertahankan volume pembersihan saat ini, picu secara manual bila diperlukan"
 
 msgid "Auto Calculate Flush Volume"
-msgstr ""
+msgstr "Menghitung Otomatis Volume Pembersihan"
 
 msgid "Auto calculate flush volumes"
 msgstr "Otomatis hitung volume bilas"
@@ -9706,10 +9799,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "Dengan opsi ini diaktifkan, Anda dapat mencetak material dengan perbedaan suhu yang besar secara bersamaan."
 
 msgid "Automatically optimize wipe tower placement"
-msgstr ""
+msgstr "Mengoptimalkan penempatan menara pembersihan secara otomatis"
 
 msgid "With this option enabled, the wipe tower will be placed at its optimal position."
-msgstr ""
+msgstr "Jika opsi ini diaktifkan, menara pembersihan akan ditempatkan pada posisi yang optimal."
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Sinkronisasi otomatis preset pengguna (Printer/Filamen/Proses)"
@@ -9730,10 +9823,10 @@ msgid "3D Settings"
 msgstr "Pengaturan 3D"
 
 msgid "Mouse Settings"
-msgstr ""
+msgstr "Pengaturan Mouse"
 
 msgid "Import Settings"
-msgstr ""
+msgstr "Pengaturan Impor"
 
 msgid "Zoom to mouse position"
 msgstr "Perbesar ke posisi kursor"
@@ -9742,16 +9835,16 @@ msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than 
 msgstr "Perbesar ke arah posisi kursor di tampilan 3D, bukan ke tengah jendela 2D."
 
 msgid "Reverse direction of zoom with mouse wheel"
-msgstr ""
+msgstr "Balik arah pembesaran dengan roda mouse"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "Jika diaktifkan, arah pembesaran dengan roda mouse akan dibalik."
 
 msgid "Drag with left mouse button to move"
-msgstr ""
+msgstr "Seret dengan tombol kiri mouse untuk memindahkan"
 
 msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
-msgstr ""
+msgstr "Jika diaktifkan, tombol kiri mouse dapat digunakan untuk memindahkan model dengan menyeretnya; jika dinonaktifkan, tombol kiri hanya digunakan untuk memilih atau mengeklik."
 
 msgid "Display overview"
 msgstr "Tampilkan gambaran umum"
@@ -9787,10 +9880,10 @@ msgid "Always show shells or not in preview view tab. If you change this value, 
 msgstr "Selalu tampilkan atau sembunyikan kulit di tab tampilan pratinjau. Jika Anda mengubah nilai ini, Anda harus potong ulang."
 
 msgid "Show Thermal Preconditioning Area"
-msgstr ""
+msgstr "Tampilkan Area Prakondisi Termal"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr ""
+msgstr "Beri peringatan jika model melewati area prakondisi termal. Hanya tersedia pada printer yang mendukung fitur ini."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Tampilkan dialog pengaturan parameter mesh langkah."
@@ -9901,7 +9994,7 @@ msgid "Skip AMS blacklist check"
 msgstr "Lewati pemeriksaan daftar hitam AMS"
 
 msgid "Enable DevTools For Webview"
-msgstr ""
+msgstr "Aktifkan DevTools untuk Webview"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Kaitkan File ke Bambu Studio"
@@ -10364,7 +10457,7 @@ msgid "When enabling spiral vase mode, machines with I3 structure will not gener
 msgstr "Saat mengaktifkan mode vas spiral, mesin dengan struktur I3 tidak akan menghasilkan video selang waktu."
 
 msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
-msgstr ""
+msgstr "Printer saat ini tidak mendukung timelapse dalam Mode Instan saat mencetak Berdasarkan Objek."
 
 msgid "Errors"
 msgstr "Kesalahan"
@@ -10403,7 +10496,7 @@ msgid "This process determines the dynamic flow values to improve overall print 
 msgstr "Proses ini menentukan nilai aliran dinamika untuk meningkatkan kualitas pencetakan secara keseluruhan."
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr ""
+msgstr "Setelah Timelapse diaktifkan, terlepas dari apakah mode Instan atau Halus dipilih, printer akan menggerakkan pelat cetak dan toolhead sebelum setiap pengambilan gambar, yang dapat menambah waktu cetak secara keseluruhan."
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10911,7 +11004,7 @@ msgid "Prime tower is required for smooth timelapse. There may be flaws on the m
 msgstr "Timelapse yang halus membutuhkan menara prime. Mungkin ada cacat pada model tanpa menara prime. Apakah Anda ingin mengaktifkan menara prime?"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
-msgstr ""
+msgstr "\"Tanpa lapisan sisipan\" tidak kompatibel dengan timelapse halus, yang memerlukan Prime Tower pada setiap lapisan. Timelapse telah dialihkan ke mode instan."
 
 msgid "Still print by object?"
 msgstr "Tetap cetak berdasarkan objek?"
@@ -11523,34 +11616,34 @@ msgid "Right: "
 msgstr "Kanan: "
 
 msgid "Preset A"
-msgstr ""
+msgstr "Prasetel A"
 
 msgid "Preset B"
-msgstr ""
+msgstr "Prasetel B"
 
 msgid "Show all presets (including incompatible)"
 msgstr "Tampilkan semua preset (termasuk yang tidak kompatibel)"
 
 msgid "Parameters"
-msgstr ""
+msgstr "Parameter"
 
 msgid "Process Preset"
-msgstr ""
+msgstr "Prasetel Proses"
 
 msgid "Filament Preset"
 msgstr "Preset Filamen"
 
 msgid "Material Preset"
-msgstr ""
+msgstr "Prasetel Material"
 
 msgid "Machine Preset"
-msgstr ""
+msgstr "Prasetel Mesin"
 
 msgid "These two presets have no visible differences"
-msgstr ""
+msgstr "Kedua prasetel ini tidak memiliki perbedaan yang terlihat"
 
 msgid "Please select two different presets A and B to compare"
-msgstr ""
+msgstr "Pilih dua prasetel yang berbeda untuk A dan B untuk dibandingkan"
 
 msgid "Add File"
 msgstr "Tambah File"
@@ -13265,10 +13358,10 @@ msgid "The prime tower is only supported if all objects have the same variable l
 msgstr "Menara prime hanya didukung jika semua objek memiliki tinggi lapisan variabel yang sama"
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
-msgstr ""
+msgstr "Ketinggian Z yang presisi membuat setiap objek memiliki tinggi lapisan yang berbeda, yang dapat meningkatkan ukuran prime tower secara signifikan."
 
 msgid "Jump to: Precise Z height"
-msgstr ""
+msgstr "Lompat ke: Ketinggian Z Presisi"
 
 msgid "Too small line width"
 msgstr "Lebar garis terlalu kecil"
@@ -13299,7 +13392,7 @@ msgid "Generating G-code"
 msgstr "Menghasilkan G-code"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr ""
+msgstr "Posisi relatif model dan prime tower tidak memenuhi persyaratan fitur \"Tidak ada lapisan sisipan\". Sesuaikan posisi relatif keduanya, kurangi ketinggian model, atau nonaktifkan \"Tidak ada lapisan sisipan\"."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Gagal memproses templat format nama file."
@@ -13613,7 +13706,7 @@ msgstr "mm/dtk"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "Kecepatan bagian yang menjorok 100% yang memiliki 0 tumpang tindih dengan lapisan di bawahnya."
 
 msgid "Slow down by height"
 msgstr "Perlambat berdasarkan tinggi"
@@ -13915,6 +14008,9 @@ msgstr "Monotonik"
 msgid "Monotonic line"
 msgstr "Garis monotonik"
 
+msgid "Global monotonic line"
+msgstr ""
+
 msgid "Aligned Rectilinear"
 msgstr "Rektilinear Disejajarkan"
 
@@ -13959,7 +14055,7 @@ msgid "Line pattern of internal solid infill. if the detect narrow internal soli
 msgstr "Pola garis pengisian padat internal. Jika mendeteksi pengisian padat internal sempit diaktifkan, pola konsentris akan digunakan untuk area kecil."
 
 msgid "Sub-top surface pattern"
-msgstr ""
+msgstr "Pola permukaan bawah-atas"
 
 msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
 msgstr ""
@@ -14643,7 +14739,7 @@ msgid "Initial layer infill"
 msgstr "Pengisian lapisan awal"
 
 msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
-msgstr ""
+msgstr "Lebar garis pengisian pada lapisan awal, termasuk pengisian dengan kepadatan rendah, pengisian padat, dan permukaan atas. Dinding, dudukan, dan bagian lainnya pada lapisan awal tidak terpengaruh dan tetap menggunakan lebar garis lapisan awal. Nilai nol berarti menggunakan lebar garis lapisan awal."
 
 msgid "Initial layer height"
 msgstr "Tinggi lapisan awal"
@@ -15745,16 +15841,16 @@ msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf
 msgstr "Jarak pergerakan maksimal bidang XY. Jika dinyatakan dalam %, akan dihitung berdasarkan diameter nosel"
 
 msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr ""
+msgstr "Jika mode halus atau instan dipilih, video timelapse akan dibuat untuk setiap cetakan. Setelah setiap lapisan dicetak, snapshot diambil menggunakan kamera ruangan cetak. Semua snapshot ini digabungkan menjadi video timelapse setelah pencetakan selesai. Jika mode halus dipilih, toolhead akan bergerak ke saluran pembuangan sisa material setelah setiap lapisan selesai dicetak, lalu mengambil snapshot. Karena filamen cair dapat merembes dari nosel selama proses snapshot diambil, prime tower diperlukan dalam mode halus untuk membersihkan nosel."
 
 msgid "Instant"
-msgstr ""
+msgstr "Instan"
 
 msgid "Farthest point timelapse"
 msgstr "Timelapse titik terjauh"
 
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
-msgstr ""
+msgstr "Jika diaktifkan, snapshot timelapse diambil pada titik yang paling jauh dari kamera, tanpa bergerak ke menara pembersihan atau saluran pembuangan sisa material. Hanya berlaku dalam mode timelapse instan pada printer non-I3."
 
 msgid "Temperature variation"
 msgstr "Suhu Pelunakan"
@@ -16392,7 +16488,7 @@ msgstr "--use-firmware-retraction tidak kompatibel dengan --wipe"
 
 #, no-c-format, no-boost-format
 msgid " doesn't work at 100% density "
-msgstr ""
+msgstr " tidak berfungsi pada kepadatan 100% "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Nilai tidak valid saat mode vas spiral diaktifkan: "
@@ -16451,12 +16547,16 @@ msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
 msgstr ""
+"Bagian yang menjorok tanpa penyangga terdeteksi.\n"
+"Model \"%1%\" memiliki %2% bagian yang menjorok. Karena \"Dudukan hanya pada pelat cetak\" diaktifkan, dudukan tidak dapat memanjang hingga ke pelat cetak. Coba nonaktifkan opsi ini."
 
 #, boost-format
 msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
 msgstr ""
+"Bagian yang menjorok tanpa penyangga terdeteksi.\n"
+"Model \"%1%\" memiliki %2% area bagian yang menjorok yang tidak dapat diberi dudukan. Coba sesuaikan pengaturan penyangga atau ubah orientasi objek."
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Lapisan kosong di sekitar bagian bawah diganti dengan lapisan normal terdekat."
@@ -17449,6 +17549,8 @@ msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
+"Nama filamen %s yang Anda buat sudah ada. \n"
+"Jika Anda melanjutkan, prasetel baru akan disimpan bersama filamen kustom yang sudah ada dan ditampilkan dengan nama lengkapnya untuk membedakannya. Apakah Anda ingin melanjutkan?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Beberapa preset yang ada gagal dibuat, sebagai berikut:\n"
@@ -18580,19 +18682,19 @@ msgid "Multiple Color"
 msgstr "Multiwarna"
 
 msgid "Search filament"
-msgstr ""
+msgstr "Cari filamen"
 
 msgid "Unsupported Filaments"
-msgstr ""
+msgstr "Filamen yang Tidak Didukung"
 
 msgid "No filaments"
-msgstr ""
+msgstr "Tidak ada filamen"
 
 msgid "slot"
 msgstr ""
 
 msgid "Recently used"
-msgstr ""
+msgstr "Baru digunakan"
 
 msgid "Set nozzle count"
 msgstr ""
@@ -18944,10 +19046,10 @@ msgid "-- Select --"
 msgstr "-- Pilih --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "Efek gradasi memerlukan ‘Sublapisan Warna Campuran’ untuk diaktifkan. Aktifkan sekarang?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Sublapisan Warna Campuran"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
@@ -18976,47 +19078,47 @@ msgid "RGB(%d, %d, %d)"
 msgstr ""
 
 msgid "Decomposition result for this combination"
-msgstr ""
+msgstr "Hasil penguraian untuk kombinasi ini"
 
 msgid "Filament Color"
-msgstr ""
+msgstr "Warna Filamen"
 
 msgid "Decomposed Colors"
-msgstr ""
+msgstr "Warna yang Diurai"
 
 msgid "Select Color Decomposition"
 msgstr "Pilih Dekomposisi Warna"
 
 msgid "Project Filament"
-msgstr ""
+msgstr "Filamen Proyek"
 
 msgid "Material List"
 msgstr "Daftar Material"
 
 msgid "Standard Palette"
-msgstr ""
+msgstr "Palet Standar"
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "Setidaknya dua filamen dengan jenis material yang sama diperlukan untuk dekomposisi"
 
 msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "Kombinasi warna yang lebih mendekati dihitung dari empat warna dasar: sian, magenta, kuning, dan putih. Saat ini hanya PLA Basic yang didukung. Jika filamen yang cocok tidak ada dalam proyek, filamen tersebut akan ditambahkan secara otomatis."
 
 msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "Kombinasi empat warna dasar dihitung untuk menghasilkan warna yang lebih mendekati warna target: merah, kuning, biru, dan putih. Saat ini hanya PLA Basic yang didukung. Jika filamen yang cocok tidak ada dalam proyek, filamen tersebut akan ditambahkan secara otomatis."
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "Daftar material mendukung paling banyak %1% warna. Setelah %2% dekomposisi, jumlah material akan melebihi %1%. Harap hapus filamen yang tidak terpakai di layar utama sebelum melakukan dekomposisi."
 
 msgid "Decompose Color (gradient not supported)"
-msgstr ""
+msgstr "Mengurai Warna (gradasi tidak didukung)"
 
 msgid "Decompose Color (transparent not supported)"
-msgstr ""
+msgstr "Mengurai Warna (transparan tidak didukung)"
 
 msgid "Decompose Color (multi-color not supported)"
-msgstr ""
+msgstr "Mengurai Warna (multi-warna tidak didukung)"
 
 msgid "Cyan"
 msgstr "Sian"
@@ -19049,11 +19151,11 @@ msgid "An unexpected error occurred"
 msgstr "Terjadi kesalahan tidak terduga"
 
 msgid "Create Custom Filament"
-msgstr ""
+msgstr "Buat Filamen Kustom"
 
 #, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
-msgstr ""
+msgstr "Prasetel \"%s\" Sudah ada. Timpa?"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -19351,14 +19453,31 @@ msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
 
+#~ msgid "One-click CMYW auto-mix"
+#~ msgstr "Otomatis campur CMYW sekali klik"
+
+#~ msgid "One-click RYBW auto-mix"
+#~ msgstr "Otomatis campur RYBW sekali klik"
+
+#, c-format, boost-format
+#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#~ msgstr "Proyek ini mendukung hingga %d filamen. Filamen tambahan akan dihapus."
+
+#~ msgid "Reset filament mapping to the state before one-click mixing"
+#~ msgstr "Atur ulang pemetaan filamen ke kondisi sebelum pencampuran sekali klik"
+
+#~ msgid "Choose the one-click auto-mix mode for texture color import"
+#~ msgstr "Pilih mode otomatis campur sekali klik untuk impor warna tekstur"
+
+#, c-format, boost-format
+#~ msgid "Computing texture colors: %s"
+#~ msgstr "Menghitung warna tekstur: %s"
+
 #~ msgid "Show Labels"
 #~ msgstr "Tampilkan Label"
 
 #~ msgid "Import Model"
 #~ msgstr "Impor Model"
-
-#~ msgid "Original"
-#~ msgstr "Asli"
 
 #~ msgid "Multi-Color"
 #~ msgstr "Multiwarna"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 19:42+0800\n"
+"POT-Creation-Date: 2026-09-20 20:30+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1545,7 +1545,7 @@ msgid "Text Gap"
 msgstr "文字间距"
 
 msgid "Line Gap"
-msgstr ""
+msgstr "行间距"
 
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "警告：文本矩阵中存在镜像，拖动它将完全重新生成。"
@@ -2447,10 +2447,10 @@ msgid "Add Primitive"
 msgstr "添加标准模型"
 
 msgid "Add New Plate"
-msgstr ""
+msgstr "添加新盘"
 
 msgid "Add a new plate"
-msgstr ""
+msgstr "添加新盘"
 
 msgid "To objects"
 msgstr "拆分到对象"
@@ -3841,11 +3841,11 @@ msgstr "保温热床可以优化首层打印质量，保温完成后将发起打
 msgid "Remaining time: %dmin%ds"
 msgstr "剩余时间：%d分%d秒"
 
-msgid "One-click CMYW auto-mix"
-msgstr "一键CMYW自动混色"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
+msgstr ""
 
-msgid "One-click RYBW auto-mix"
-msgstr "一键RYBW自动混色"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr ""
 
 msgid "Add Filament"
 msgstr ""
@@ -3874,9 +3874,9 @@ msgstr "项目混色列表"
 msgid "New Mixed Filaments"
 msgstr "新增混色耗材"
 
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "项目最多支持 %d 个耗材，多余的耗材将被丢弃。"
+#, boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgstr ""
 
 msgid "Updating"
 msgstr "更新中"
@@ -3890,8 +3890,8 @@ msgstr "耗材匹配"
 msgid "Import Model: Simplify Colors"
 msgstr "导入模型：简化颜色"
 
-msgid "Original Model"
-msgstr "原模型"
+msgid "Original"
+msgstr "原项目"
 
 msgid "Simplified"
 msgstr "简化后"
@@ -3905,13 +3905,7 @@ msgstr "高级设置"
 msgid "Boundary Smoothness"
 msgstr ""
 
-msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
-msgstr ""
-
 msgid "Gap Area"
-msgstr ""
-
-msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
 msgstr ""
 
 msgid "Automatically determine the optimal color count"
@@ -3920,16 +3914,19 @@ msgstr "自动计算最佳颜色数量"
 msgid "Adjust filament matching"
 msgstr "调整耗材匹配"
 
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "重置耗材映射至一键混色前的状态"
+msgid "Color mixing"
+msgstr "混色"
 
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "选择纹理颜色导入的一键自动混色模式"
+msgid "Use official mixing kits →"
+msgstr "使用官方混色套装 →"
 
 msgid "Some colors have no matching filament. Please match them before importing."
 msgstr ""
 
 msgid "Auto-Add All Filaments"
+msgstr ""
+
+msgid "Fix now"
 msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
@@ -3987,8 +3984,39 @@ msgstr "颜色数量超过了原模型颜色数量（%d）"
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "颜色数量超过了项目最大耗材数量（%d）"
 
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr "当前打印机没有兼容的 PLA Basic耗材。"
+
 msgid "Click to select a matching filament"
 msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr ""
+
+msgid "Error Prompt"
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr "如何使用标准混色套装"
+
+msgid "What is the CMYW mixing kit?"
+msgstr "什么是 CMYW 混色套装？"
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr "经过官方打印测试，只需一套标准 CMYW 混色套装即可混合出数百种颜色效果。"
+
+msgid "4-color CMYW"
+msgstr "四色 CMYW"
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr "青 · 品红 · 黄 · 白"
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr "因此，导入模型时可以使用这些套装耗材及其混色进行颜色匹配。"
+
+msgid "Add to project filament list"
+msgstr "添加到项目耗材列表"
 
 msgid "Choose SLA archive:"
 msgstr "选择SLA存档："
@@ -6097,9 +6125,6 @@ msgstr "准备"
 msgid "Preview"
 msgstr "预览"
 
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "当前页面有未保存的更改。您可以继续编辑，或选择保存/放弃后离开。"
-
 msgid "Home"
 msgstr "首页"
 
@@ -6123,6 +6148,9 @@ msgstr "否"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "当前页面有未保存的更改。您可以继续编辑，或选择保存/放弃后离开。"
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "使用 Helio Additive 解锁更快、更可靠、更不易翘曲的打印。"
@@ -8589,17 +8617,11 @@ msgstr ""
 msgid "model \"%s\""
 msgstr ""
 
-msgid "support filament"
-msgstr ""
-
-msgid "custom G-code"
-msgstr ""
-
 #, c-format, boost-format
-msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
 msgstr ""
 
-msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
 msgstr ""
 
 msgid "Delete Filament"
@@ -8763,8 +8785,8 @@ msgid "Multi-part object detected"
 msgstr "检测到多部分对象"
 
 #, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr "正在计算纹理颜色：%s"
+msgid "Computing model colors: %s"
+msgstr ""
 
 msgid "Texture Import Warning"
 msgstr "导入纹理警告"
@@ -9168,6 +9190,18 @@ msgstr "Helio 数据加载失败"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
+
+msgid "Send G-code file"
+msgstr "发送 G-code 文件"
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr "Bambu Studio不支持直接发送并打印.gcode文件，你可以发送至机器后，从机器开启打印。"
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr "注意：直接使用gcode打印可能导致打印异常，建议使用3mf打印。"
+
+msgid "Send now"
+msgstr "立即发送"
 
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "启动Bambu农场管理客户端失败。"
@@ -13923,6 +13957,9 @@ msgstr "单调"
 msgid "Monotonic line"
 msgstr "单调线"
 
+msgid "Global monotonic line"
+msgstr ""
+
 msgid "Aligned Rectilinear"
 msgstr "直线排列"
 
@@ -18597,7 +18634,7 @@ msgid "Recently used"
 msgstr "最近使用"
 
 msgid "Set nozzle count"
-msgstr ""
+msgstr "设置喷嘴数量"
 
 msgid "Please set nozzle count"
 msgstr "请设置喷嘴数量"
@@ -19353,14 +19390,34 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
+#~ msgid "One-click CMYW auto-mix"
+#~ msgstr "一键CMYW自动混色"
+
+#~ msgid "One-click RYBW auto-mix"
+#~ msgstr "一键RYBW自动混色"
+
+#, c-format, boost-format
+#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#~ msgstr "项目最多支持 %d 个耗材，多余的耗材将被丢弃。"
+
+#~ msgid "Original Model"
+#~ msgstr "原模型"
+
+#~ msgid "Reset filament mapping to the state before one-click mixing"
+#~ msgstr "重置耗材映射至一键混色前的状态"
+
+#~ msgid "Choose the one-click auto-mix mode for texture color import"
+#~ msgstr "选择纹理颜色导入的一键自动混色模式"
+
+#, c-format, boost-format
+#~ msgid "Computing texture colors: %s"
+#~ msgstr "正在计算纹理颜色：%s"
+
 #~ msgid "Show Labels"
 #~ msgstr "显示标签"
 
 #~ msgid "Import Model"
 #~ msgstr "导入模型"
-
-#~ msgid "Original"
-#~ msgstr "原项目"
 
 #~ msgid "Multi-Color"
 #~ msgstr "多色"

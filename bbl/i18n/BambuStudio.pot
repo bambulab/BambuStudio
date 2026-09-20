@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 19:42+0800\n"
+"POT-Creation-Date: 2026-09-20 20:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3822,10 +3822,10 @@ msgstr ""
 msgid "Remaining time: %dmin%ds"
 msgstr ""
 
-msgid "One-click CMYW auto-mix"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
 msgstr ""
 
-msgid "One-click RYBW auto-mix"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
 msgstr ""
 
 msgid "Add Filament"
@@ -3855,8 +3855,8 @@ msgstr ""
 msgid "New Mixed Filaments"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#, possible-boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
 msgstr ""
 
 msgid "Updating"
@@ -3871,7 +3871,7 @@ msgstr ""
 msgid "Import Model: Simplify Colors"
 msgstr ""
 
-msgid "Original Model"
+msgid "Original"
 msgstr ""
 
 msgid "Simplified"
@@ -3886,13 +3886,7 @@ msgstr ""
 msgid "Boundary Smoothness"
 msgstr ""
 
-msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
-msgstr ""
-
 msgid "Gap Area"
-msgstr ""
-
-msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
 msgstr ""
 
 msgid "Automatically determine the optimal color count"
@@ -3901,16 +3895,19 @@ msgstr ""
 msgid "Adjust filament matching"
 msgstr ""
 
-msgid "Reset filament mapping to the state before one-click mixing"
+msgid "Color mixing"
 msgstr ""
 
-msgid "Choose the one-click auto-mix mode for texture color import"
+msgid "Use official mixing kits →"
 msgstr ""
 
 msgid "Some colors have no matching filament. Please match them before importing."
 msgstr ""
 
 msgid "Auto-Add All Filaments"
+msgstr ""
+
+msgid "Fix now"
 msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
@@ -3968,7 +3965,38 @@ msgstr ""
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr ""
 
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr ""
+
 msgid "Click to select a matching filament"
+msgstr ""
+
+#, possible-boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr ""
+
+msgid "Error Prompt"
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr ""
+
+msgid "What is the CMYW mixing kit?"
+msgstr ""
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr ""
+
+msgid "4-color CMYW"
+msgstr ""
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr ""
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "Add to project filament list"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -5987,9 +6015,6 @@ msgstr ""
 msgid "Preview"
 msgstr ""
 
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr ""
-
 msgid "Home"
 msgstr ""
 
@@ -6012,6 +6037,9 @@ msgid "No"
 msgstr ""
 
 msgid "will be closed before creating a new model. Do you want to continue?"
+msgstr ""
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
@@ -8401,17 +8429,11 @@ msgstr ""
 msgid "model \"%s\""
 msgstr ""
 
-msgid "support filament"
-msgstr ""
-
-msgid "custom G-code"
-msgstr ""
-
 #, possible-c-format, possible-boost-format
-msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
 msgstr ""
 
-msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
 msgstr ""
 
 msgid "Delete Filament"
@@ -8569,7 +8591,7 @@ msgid "Multi-part object detected"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Computing texture colors: %s"
+msgid "Computing model colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
@@ -8944,6 +8966,18 @@ msgid "Helio Data Load Failed"
 msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
+msgstr ""
+
+msgid "Send G-code file"
+msgstr ""
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr ""
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr ""
+
+msgid "Send now"
 msgstr ""
 
 msgid "Failed to start Bambu Farm Manager Client."
@@ -13577,6 +13611,9 @@ msgid "Monotonic"
 msgstr ""
 
 msgid "Monotonic line"
+msgstr ""
+
+msgid "Global monotonic line"
 msgstr ""
 
 msgid "Aligned Rectilinear"

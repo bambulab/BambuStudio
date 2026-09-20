@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 19:42+0800\n"
+"POT-Creation-Date: 2026-09-20 20:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3849,11 +3849,11 @@ msgstr "Le préconditionnement thermique du plateau chauffant aide à optimiser 
 msgid "Remaining time: %dmin%ds"
 msgstr "Temps restant : %dmin%ds"
 
-msgid "One-click CMYW auto-mix"
-msgstr "Mélange automatique CMYW en un clic"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
+msgstr ""
 
-msgid "One-click RYBW auto-mix"
-msgstr "Mélange automatique RYBW en un clic"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr ""
 
 msgid "Add Filament"
 msgstr ""
@@ -3882,9 +3882,9 @@ msgstr "Projet de filaments mixtes"
 msgid "New Mixed Filaments"
 msgstr "Nouveaux filaments mixtes"
 
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "Le projet prend en charge jusqu’à %d filaments. Les filaments excédentaires seront jetés."
+#, boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgstr ""
 
 msgid "Updating"
 msgstr "Mise à jour"
@@ -3898,7 +3898,7 @@ msgstr ""
 msgid "Import Model: Simplify Colors"
 msgstr ""
 
-msgid "Original Model"
+msgid "Original"
 msgstr ""
 
 msgid "Simplified"
@@ -3913,13 +3913,7 @@ msgstr "Paramètres avancés"
 msgid "Boundary Smoothness"
 msgstr ""
 
-msgid "Adjust the smoothness of transitions between color blocks. Higher values are smoother."
-msgstr ""
-
 msgid "Gap Area"
-msgstr ""
-
-msgid "Automatically merge small fragments on the model into adjacent color blocks. Higher values merge more."
 msgstr ""
 
 msgid "Automatically determine the optimal color count"
@@ -3928,16 +3922,19 @@ msgstr ""
 msgid "Adjust filament matching"
 msgstr ""
 
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "Réinitialiser le mappage des filaments à l'état d'avant le mélange en un clic"
+msgid "Color mixing"
+msgstr ""
 
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "Choisissez le mode de mélange automatique en un clic pour l'importation des couleurs de texture"
+msgid "Use official mixing kits →"
+msgstr ""
 
 msgid "Some colors have no matching filament. Please match them before importing."
 msgstr ""
 
 msgid "Auto-Add All Filaments"
+msgstr ""
+
+msgid "Fix now"
 msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
@@ -3995,7 +3992,38 @@ msgstr ""
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr ""
 
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr ""
+
 msgid "Click to select a matching filament"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr ""
+
+msgid "Error Prompt"
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr ""
+
+msgid "What is the CMYW mixing kit?"
+msgstr ""
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr ""
+
+msgid "4-color CMYW"
+msgstr ""
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr ""
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "Add to project filament list"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -4117,7 +4145,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr "Facteur de Calibration de la Dynamique de Débit"
 
 msgid "View Wiki for details"
-msgstr ""
+msgstr "Consulter le wiki pour plus de détails"
 
 msgid "Nozzle Type"
 msgstr "Type de Buse"
@@ -4137,10 +4165,10 @@ msgid ""
 msgstr "Température de la buse"
 
 msgid "Tip: Setting AMS slot information while printing is not supported"
-msgstr ""
+msgstr "Conseil : La définition des informations relatives à l'emplacement AMS pendant l'impression n'est pas prise en charge"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "Conseil : La définition des informations relatives à l'emplacement virtuel pendant l'impression n'est pas prise en charge"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Êtes-vous sûr de vouloir effacer les informations du filament ?"
@@ -4188,19 +4216,19 @@ msgstr ""
 "appareil -> Pièces d'impression"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "Filament correspondant"
 
 msgid "Add as new filament"
 msgstr "Ajouter comme nouveau filament"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "L'AMS a détecté un nouveau filament. L'ajouter au Gestionnaire de filaments ?"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "Un filament similaire a été trouvé dans le Gestionnaire de filaments et correspond automatiquement."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "Plusieurs filaments similaires ont été trouvés dans le Gestionnaire de filaments. Veuillez confirmer la correspondance."
 
 msgid "New Filament"
 msgstr "Nouveau filament"
@@ -4508,10 +4536,10 @@ msgid "Reset AMS Sequence"
 msgstr "Réinitialiser l’ordre des AMS"
 
 msgid "View wiki for details"
-msgstr ""
+msgstr "Consulter le wiki pour plus de détails"
 
 msgid "Nozzle Temperature"
-msgstr ""
+msgstr "Température de la buse"
 
 msgid "File"
 msgstr "Fichier"
@@ -4868,6 +4896,8 @@ msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
 msgstr ""
+"la profondeur de verrouillage doit être inférieure à l'épaisseur de la surface.\n"
+"Réinitialiser à 50 % de la profondeur de la surface"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "L'option « paroi supplémentaire alternée » est incompatible avec le mode vase spirale. Pour activer cette option, les réglages suivants sont recommandés :"
@@ -6107,9 +6137,6 @@ msgstr "Préparation"
 msgid "Preview"
 msgstr "Aperçu"
 
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "La page actuelle contient des modifications non enregistrées. Vous pouvez continuer la modification ou choisir de sauvegarder/annuler avant de quitter."
-
 msgid "Home"
 msgstr "Accueil"
 
@@ -6133,6 +6160,9 @@ msgstr "Non"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "sera fermé avant de créer un nouveau modèle. Voulez-vous continuer ?"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "La page actuelle contient des modifications non enregistrées. Vous pouvez continuer la modification ou choisir de sauvegarder/annuler avant de quitter."
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Débloquez des impressions plus rapides, plus fiables et sans déformation avec Helio Additive."
@@ -7099,7 +7129,7 @@ msgid "Finished"
 msgstr "Terminé"
 
 msgid "Almost complete"
-msgstr ""
+msgstr "Presque terminé"
 
 msgid "Camera"
 msgstr "Caméra"
@@ -7847,478 +7877,537 @@ msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Arrête automatiquement le chauffage après 5 minutes d’inactivité pour garantir la sécurité."
 
 msgid "Note: "
-msgstr ""
+msgstr "Remarque : "
 
 msgid "Controls the printed height of each layer."
-msgstr ""
+msgstr "Contrôle la hauteur d'impression de chaque couche."
 
 msgid ""
 "A larger layer height prints faster but shows more obvious layer lines.\n"
 "A smaller layer height gives finer curved surfaces but takes longer to print.\n"
 "If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
 msgstr ""
+"Une hauteur de couche plus importante imprime plus vite, mais les lignes de couche sont plus visibles.\n"
+"Une hauteur de couche plus faible permet d'obtenir des surfaces courbes plus fines, mais l'impression est plus longue.\n"
+"Si la hauteur de couche est trop faible alors que la vitesse est trop élevée, l'extrusion ne peut pas suivre et la surface reste clairsemée et floue."
 
 msgid "Recommended layer height is 20%-70% of the nozzle diameter."
-msgstr ""
+msgstr "La hauteur de couche recommandée est de 20 % à 70 % du diamètre de la buse."
 
 msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
-msgstr ""
+msgstr "Contrôle l'épaisseur de la première couche du modèle extrudée sur le plateau chauffant, influençant ainsi la qualité de l'adhérence de cette première couche à la plaque."
 
 msgid ""
 "Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
 "Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
 msgstr ""
+"Trop petite, et la première couche est sensible à la planéité du plateau et sujette aux défauts d'impression.\n"
+"Si elle est trop grande, le rapport largeur/hauteur de la première couche devient trop faible, ce qui nuit à l'adhérence du matériau."
 
 msgid "Usually set to half the nozzle diameter."
-msgstr ""
+msgstr "Généralement réglé à la moitié du diamètre de la buse."
 
 msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
-msgstr ""
+msgstr "Pour la fonction de filament multicolore. Lorsque cette option est activée, les couches utilisant un filament multicolore sont divisées proportionnellement en sous-couches plus fines pour un mélange de couleurs plus uniforme."
 
 msgid ""
 "When off, colors change per full layer, so the blend is coarser and less even.\n"
 "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
 msgstr ""
+"Lorsque cette option est désactivée, les couleurs changent à chaque couche complète, ce qui rend le mélange plus grossier et moins uniforme.\n"
+"Lorsque cette option est activée, les sous-couches s'imbriquent plus densément pour un mélange plus uniforme, mais l'impression est plus longue."
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr ""
+msgstr "Recommandé uniquement lors de l'utilisation de filaments multicolores, pour obtenir un meilleur effet de superposition de couleurs."
 
 msgid "Controls where each layer's outer wall starts and ends."
-msgstr ""
+msgstr "Contrôle où commence et où se termine la paroi extérieure de chaque couche."
 
 msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr ""
+msgstr "Ce point peut laisser une petite tache ou une ligne de couture, donc choisir une position appropriée réduit l'impact du joint sur l'apparence du modèle."
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr ""
+msgstr "N'imprime qu'une seule boucle de paroi sur les surfaces supérieures afin que le motif de remplissage remplisse au maximum la surface, pour un aspect plus uniforme."
 
 msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
-msgstr ""
+msgstr "Sur les surfaces inclinées ou bombées, cette option aggrave l'effet d'escalier, elle n'est donc pas recommandée."
 
 msgid "Recommended only for flat top surfaces."
-msgstr ""
+msgstr "Recommandé uniquement pour les surfaces supérieures planes."
 
 msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr ""
+msgstr "Utilise une seule paroi sur la première couche du modèle (celle qui touche le plateau) afin que la plus grande surface possible soit remplie par le motif de remplissage de la première couche, pour un aspect plus uniforme."
 
 msgid ""
 "When off, the first layer uses multiple wall loops.\n"
 "When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
 msgstr ""
+"Lorsque cette option est désactivée, la première couche utilise plusieurs boucles de paroi.\n"
+"Lorsque cette option est activée, le remplissage est plus continu et le fond est plus plat, mais le contour du bord de la première couche est légèrement moins net."
 
 msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
-msgstr ""
+msgstr "Contrôle le nombre de boucles de paroi dans la coque de chaque couche, un facteur clé de la résistance d'un modèle."
 
 msgid ""
 "More walls give higher strength but use more material and time;\n"
 "fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
 msgstr ""
+"Plus de parois offrent une plus grande résistance, mais nécessitent plus de matériaux et de temps ;\n"
+"moins de parois permettent une impression plus rapide et une économie de matériau, mais réduisent la résistance et peuvent laisser apparaître le motif de remplissage en surface."
 
 msgid "2-3 loops is recommended for typical models; increase it for functional parts."
-msgstr ""
+msgstr "2 à 3 boucles sont recommandées pour les modèles typiques ; augmentez ce nombre pour les pièces fonctionnelles."
 
 msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
-msgstr ""
+msgstr "À la limite entre les zones avec et sans parois, cela intègre la paroi dans la zone de remplissage qui n'a pas de paroi extérieure sur des couches alternées, de sorte que la parois et le remplissage se connectent plus fermement."
 
 msgid ""
 "It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
 "Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
 msgstr ""
+"Il ne gère que les limites où un côté a une paroi et l'autre n'a aucune paroi ; les limites ordinaires entre une paroi et un remplissage à l'intérieur d'une pièce ne sont pas modifiées.\n"
+"L'intégration d'une couche sur deux crée un emboîtement décalé plus résistant qu'un joint affleurant."
 
 msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
-msgstr ""
+msgstr "Utilisez-le lorsqu'un modificateur transforme une région en un remplissage sans parois qui doit encore se lier fermement à la coque environnante. Inutile lorsque les deux faces impriment des parois normales."
 
 msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
-msgstr ""
+msgstr "Ajoute une boucle de paroi supplémentaire sur les couches impaires tout en laissant les couches paires inchangées."
 
 msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
-msgstr ""
+msgstr "L'ajout d'une paroi une couche sur deux renforce la liaison entre les couches sans en ajouter une sur toute la surface, améliorant ainsi l'adhérence des couches et la résistance des pièces tout en évitant le coût en matériaux et en temps d'une paroi supplémentaire complète."
 
 msgid "Requires sparse infill; not applicable in vase mode."
-msgstr ""
+msgstr "Nécessite un remplissage clairsemé ; non applicable en mode Vase."
 
 msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
-msgstr ""
+msgstr "Le modèle de trajectoire d'outil pour le remplissage solide supérieur ; il influe principalement sur la planéité et l'aspect de la surface supérieure."
 
 msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
-msgstr ""
+msgstr "Contrôle la trajectoire d'outil du remplissage de la surface inférieure du modèle, affectant la texture et la planéité du fond."
 
 msgid "Bridging areas are not affected by this parameter."
-msgstr ""
+msgstr "Les zones de pontage ne sont pas affectées par ce paramètre."
 
 msgid "Controls the number of solid top shell layers, including the top surface."
-msgstr ""
+msgstr "Contrôle le nombre de couches solides de coque supérieure, y compris la surface supérieure."
 
 msgid ""
 "More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
 "If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
 msgstr ""
+"L'ajout de couches rend la coque supérieure plus épaisse et réduit la probabilité que le remplissage sous-jacent soit visible.\n"
+"Si le nombre de couches multiplié par la hauteur de la couche est inférieur à l'épaisseur de la coque supérieure, le logiciel de découpe ajoute automatiquement des couches."
 
 msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "Définit une épaisseur minimale pour la coque supérieure solide, l'empêchant de devenir trop mince pour les faibles hauteurs de couche."
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
 msgstr ""
+"Définissez cette valeur sur 0 pour désactiver cette option et laisser le nombre de couches décider seul.\n"
+"Si l'épaisseur résultant du nombre de couches multiplié par la hauteur de la couche est insuffisante, le logiciel de découpe ajoute automatiquement des couches de coque supérieure."
 
 msgid "Controls the number of solid bottom shell layers, including the bottom surface."
-msgstr ""
+msgstr "Contrôle le nombre de couches solides de coque inférieure, y compris la surface inférieure."
 
 msgid ""
 "More layers make the bottom more solid but take longer.\n"
 "If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
 msgstr ""
+"Plus on ajoute de couches, plus le fond est solide, mais cela prend plus de temps.\n"
+"Si la hauteur de couche multipliée par le nombre de couches est inférieure à l'épaisseur de la coque inférieure, le logiciel de découpe ajoute automatiquement des couches."
 
 msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "Définit une épaisseur minimale pour la coque inférieure solide, l'empêchant de devenir trop mince pour les faibles hauteurs de couche."
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
 msgstr ""
+"Définissez cette valeur sur 0 pour désactiver cette option et laisser le nombre de couches décider seul.\n"
+"Si l'épaisseur obtenue avec le nombre de couches est insuffisante, le logiciel de découpe ajoute automatiquement des couches de coque inférieure."
 
 msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "Contrôle le nombre de couches dans lesquelles la couleur de la surface supérieure pénètre vers le bas, empêchant ainsi les autres couleurs de filament à l'intérieur de transparaître."
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"Moins de couches favorisent le débordement des couleurs.\n"
+"Plus de couches réduisent le débordement, mais augmentent le nombre de changements de filament.\n"
+"Pour éviter que la pénétration vers le bas n'affecte les couleurs latérales du modèle, la zone pénétrée se rétrécit couche par couche."
 
 msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "Contrôle le nombre de couches dans lesquelles la couleur de la surface inférieure pénètre vers le haut, empêchant ainsi les autres couleurs de filament à l'intérieur de transparaître."
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"Moins de couches favorisent le débordement des couleurs.\n"
+"Plus de couches réduisent le débordement, mais augmentent le nombre de changements de filament.\n"
+"Pour éviter que la pénétration ascendante n'affecte les couleurs latérales du modèle, la zone pénétrée se rétrécit couche par couche."
 
 msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
-msgstr ""
+msgstr "Contrôle le modèle de trajectoire d'outil du remplissage solide interne, appliqué aux couches solides entre les coques supérieure et inférieure et aux régions solides internes."
 
 msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
-msgstr ""
+msgstr "Si la détection des remplissages solides internes étroits est activée, les petites régions utilisent automatiquement le motif concentrique."
 
 msgid "Controls how dense the model's internal sparse infill is."
-msgstr ""
+msgstr "Contrôle la densité du remplissage clairsemé interne du modèle."
 
 #, no-c-format, no-boost-format
 msgid ""
 "10-15% is recommended for typical models; raise it for functional parts.\n"
 "100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
 msgstr ""
+"Une densité de 10 % à 15 % est recommandée pour les modèles typiques ; augmentez-la pour les pièces fonctionnelles.\n"
+"100 % signifie entièrement solide, où seuls les motifs Concentrique, Rectiligne, Monotone, Ligne monotone, Rectiligne aligné, Courbe de Hilbert, Cordes d'Archimède et Spirale en octagramme sont disponibles."
 
 msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
-msgstr ""
+msgstr "Permet le remplissage multiligne, en imprimant chaque tracé de remplissage sous forme de plusieurs lignes parallèles côte à côte."
 
 msgid ""
 "Higher values make the infill beams thicker and stronger but use more material and time;\n"
 "1 is ordinary single-line infill."
 msgstr ""
+"Des valeurs plus élevées rendent les poutres de remplissage plus épaisses et plus résistantes, mais consomment plus de matériaux et de temps ;\n"
+"1 correspond à un remplissage ordinaire sur une seule ligne."
 
 msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
-msgstr ""
+msgstr "Compatible avec des motifs tels que Ligne, Grille, Gyroïde, Nid d'abeille, Cubique et Éclair."
 
 msgid "Controls the toolpath structure of the internal sparse infill."
-msgstr ""
+msgstr "Contrôle la structure de la trajectoire d'outil du remplissage interne clairsemé."
 
 msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
-msgstr ""
+msgstr "Les supports sont des structures amovibles imprimées sous les surplombs et les angles prononcés pour soutenir les couches suivantes et éviter l'affaissement."
 
 msgid ""
 "When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
 "Recommended when the model has obvious overhangs."
 msgstr ""
+"Lorsque cette option est activée, les supports sont générés pour les surplombs et les angles prononcés, ce qui permet d'obtenir des impressions plus stables, mais ces supports doivent être retirés et peuvent laisser des marques.\n"
+"Recommandé lorsque le modèle présente des surplombs importants."
 
 msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
-msgstr ""
+msgstr "Sélectionne la forme du support et la manière dont il est généré ; Normal (automatique) et Arbre (automatique) sont générés automatiquement en fonction des surplombs."
 
 msgid ""
 "Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
 "Choose a manual mode when you need precise control."
 msgstr ""
+"Les supports normaux sont plus réguliers et stables ; les supports en forme d'arbre touchent moins le modèle et sont plus faciles à retirer.\n"
+"Choisissez le mode Manuel lorsque vous avez besoin d'un contrôle précis."
 
 msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
-msgstr ""
+msgstr "Le mode Manuel s'utilise conjointement avec l'outil de peinture de support dans la barre d'outils du gizmo."
 
 msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
-msgstr ""
+msgstr "Génère un support pour les surfaces dont l'angle de surplomb est inférieur au seuil ; il est personnalisable dans les modes automatiques."
 
 msgid ""
 "A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
 "A larger threshold also supports more slopes, giving more support."
 msgstr ""
+"Un seuil plus petit ne supporte que les grands surplombs quasi horizontaux, offrant moins de support mais pouvant laisser des pentes douces sans support.\n"
+"Un seuil plus élevé supporte également davantage de pentes, offrant ainsi plus de support."
 
 msgid "A common default of 30 degrees balances print stability against the amount of support used."
-msgstr ""
+msgstr "Une valeur par défaut courante de 30 degrés permet d'équilibrer la stabilité d'impression et la quantité de support utilisée."
 
 msgid "Generates support only from the build plate, not on the model's surfaces."
-msgstr ""
+msgstr "Génère des supports uniquement à partir de la plaque d'impression, et non sur les surfaces du modèle."
 
 msgid ""
 "When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
 "When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
 msgstr ""
+"Lorsque cette option est désactivée, le support peut se développer sur les surfaces du modèle pour une couverture plus complète, mais il est plus susceptible de laisser des marques.\n"
+"Lorsque cette option est activée, tout le support part de la plaque, ce qui permet de garder les surfaces du modèle plus propres, mais certains surplombs peuvent rester sans support."
 
 msgid "Recommended when appearance matters."
-msgstr ""
+msgstr "Recommandé lorsque l'apparence compte."
 
 msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
-msgstr ""
+msgstr "L'interface de support est une couche de contact plus dense à l'endroit où le support rencontre le modèle ; elle maintient le modèle stable, facilite son retrait et réduit les marques de surface. Cela détermine le filament utilisé pour cette surface de contact."
 
 msgid ""
 "By default the interface uses the same filament as the model, which can make removal harder.\n"
 "Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
 msgstr ""
+"Par défaut, l'interface utilise le même filament que le modèle, ce qui peut rendre le retrait plus difficile.\n"
+"L'attribution d'un filament à dégagement facile rend la surface de contact plus propre et plus facile à retirer, mais ajoute des changements de filament."
 
 msgid "The filament used to print the support body and the raft."
-msgstr ""
+msgstr "Le filament utilisé pour imprimer le corps de support et le radeau."
 
 msgid ""
 "By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
 "Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
 msgstr ""
+"Par défaut, le support utilise le même filament que le modèle, correspondant au filament du modèle pour chaque couche dans les impressions multifilaments.\n"
+"L'utilisation d'un filament différent peut faciliter le retrait ou en réduire le coût, mais allonge le temps de changement de filament."
 
 msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
-msgstr ""
+msgstr "Imprime des boucles de contour détachées (une jupe) autour du modèle pour purger la buse et stabiliser l'extrusion avant le début de l'impression."
 
 msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
-msgstr ""
+msgstr "Plus il y a de boucles, plus la purge est complète mais cela consomme plus de matière ; définissez la valeur sur 0 pour désactiver la jupe."
 
 msgid "Controls how many layers the skirt is printed."
-msgstr ""
+msgstr "Contrôle le nombre de couches imprimées sur la jupe."
 
 msgid ""
 "During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
 "The default is 1 layer."
 msgstr ""
+"Lors des premières couches, une jupe plus haute peut partiellement bloquer l'air froid autour du modèle, maintenant un microclimat chaud à la base du modèle et réduisant le risque de déformation précoce dû au retrait.\n"
+"La valeur par défaut est de 1 couche."
 
 msgid "Requires the skirt loop count to be greater than 0."
-msgstr ""
+msgstr "Nécessite que le nombre de boucles de la jupe soit supérieur à 0."
 
 msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
-msgstr ""
+msgstr "Une bordure est une bande de matériau monocouche ajoutée autour de la base du modèle et reliée à sa première couche, une bordure de renfort qui empêche la déformation et assure l'adhérence."
 
 msgid ""
 "This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
 "The default is Auto."
 msgstr ""
+"Cela permet de contrôler le type de bordure (une bande fixée à la première couche du modèle) utilisée pour améliorer l'adhérence au plateau et réduire la déformation.\n"
+"La valeur par défaut est Automatique."
 
 msgid "The distance from the model to the outermost brim line."
-msgstr ""
+msgstr "La distance entre le modèle et la ligne de bordure la plus à l'extérieur."
 
 msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
-msgstr ""
+msgstr "Une plus grande largeur améliore l'adhérence au plateau et résiste à la déformation, mais consomme plus de matériau et est plus difficile à nettoyer."
 
 msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr ""
+msgstr "Après un changement de couleur ou de filament, l'imprimante purge le filament résiduel et stabilise la pression de la buse sur une tour d'essuyage séparée avant de reprendre le modèle, réduisant ainsi le mélange des couleurs, la sous-alimentation et les défauts de surface."
 
 msgid ""
 "Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
 "On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
 msgstr ""
+"Désactivé : économise du matériau et prend moins de place sur le plateau, mais des résidus de filament lors d'un changement de couleur peuvent se déposer sur le modèle et provoquer un mélange de couleurs, des fils ou une sous-alimentation locale.\n"
+"Activé : transitions de couleurs plus nettes et impressions multicolores plus homogènes, mais consomme plus de matériau et de temps et occupe de l'espace sur le plateau."
 
 msgid "Mutually exclusive with by-object printing and independent support layer height."
-msgstr ""
+msgstr "Incompatible avec l'impression par objet et la hauteur de couche de support indépendante."
 
 msgid "Controls the horizontal size of the prime tower."
-msgstr ""
+msgstr "Contrôle la taille horizontale de la tour d'essuyage."
 
 msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
-msgstr ""
+msgstr "Une plus grande largeur offre une plus grande marge de purge et une tour plus stable, mais consomme plus de matériau et d'espace sur le plateau."
 
 msgid "The width cannot be customized when the rib outer wall is enabled."
-msgstr ""
+msgstr "La largeur ne peut pas être personnalisée lorsque la paroi extérieure nervurée est activée."
 
 msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
-msgstr ""
+msgstr "Ajoute quatre nervures d'angle à la paroi extérieure de la tour d'essuyage pour améliorer sa stabilité."
 
 msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
-msgstr ""
+msgstr "Recommandé pour les tours d'essuyage hautes, les matériaux plus collants comme le PETG ou les changements de couleur fréquents ; éteignez-le lorsque l'espace sur le plateau est restreint et que la tour est courte afin de pouvoir réduire sa largeur."
 
 msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
-msgstr ""
+msgstr "Utilise une partie du filament de transition après un changement pour imprimer le remplissage interne de l'objet, réduisant ainsi les déchets et le temps d'impression."
 
 msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
-msgstr ""
+msgstr "Activez cette option sur les pièces opaques pour économiser du matériau ; désactivez-la pour les pièces transparentes ou à parois fines, ou lorsque la couleur interne est importante."
 
 msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
-msgstr ""
+msgstr "Utilise le filament de transition après un changement pour imprimer les supports du modèle, réduisant ainsi les déchets et le temps."
 
 msgid "Enabling it saves material, but the supports may show mixed colors."
-msgstr ""
+msgstr "L'activation de cette option permet d'économiser des matériaux, mais les supports peuvent présenter des couleurs mélangées."
 
 msgid "Takes effect when printing multiple filaments through the same nozzle."
-msgstr ""
+msgstr "Cela s'applique lors de l'impression de plusieurs filaments à travers la même buse."
 
 msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
-msgstr ""
+msgstr "Permet de choisir d'imprimer la plaque entière couche par couche, ou de terminer un objet avant de commencer le suivant."
 
 msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
-msgstr ""
+msgstr "Utilisez l'option « Par couche » pour les impressions typiques en plusieurs parties ou multicolores ; envisagez l'option « Par objet » pour de nombreuses petites pièces ou pour limiter l'impact d'une panne en cours d'impression, et vérifiez les dégagements et les restrictions de la tour d'amorçage."
 
 msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
-msgstr ""
+msgstr "Impression en spirale continue le long du contour extérieur, constituant l'ensemble du modèle en une seule ligne, généralement sans joint sur les côtés."
 
 msgid ""
 "When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
 "It is best for single, thin-walled, open-top models."
 msgstr ""
+"Lorsque cette option est activée, le modèle ne possède ni coque supérieure, ni remplissage, et généralement une seule paroi ; il est donc fragile et entre en conflit avec les supports, les couches de coque supérieure et plusieurs autres paramètres.\n"
+"Il est idéal pour les modèles monoblocs, à parois fines et à toit ouvert."
 
 msgid "Requires top shell layers to be 0 and is not compatible with support."
-msgstr ""
+msgstr "Nécessite que les couches de coque supérieure soient égales à 0 et n'est pas compatible avec le support."
 
 msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
-msgstr ""
+msgstr "Elle prend une photo par couche pendant l'impression et compile une vidéo timelapse une fois l'impression terminée."
 
 msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
-msgstr ""
+msgstr "Sélectionner le mode Timelapse ici ; l'activation réelle de cette fonction se fait sur la page d'envoi à l'impression."
 
 msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
-msgstr ""
+msgstr "Modifie aléatoirement les trajectoires des outils de création des parois afin que la surface extérieure prenne une texture rugueuse, mate et floue."
 
 msgid ""
 "It affects only walls; the top and bottom surfaces are unchanged.\n"
 "Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
 msgstr ""
+"Cela n'affecte que les parois ; les surfaces supérieure et inférieure restent inchangées.\n"
+"Utile pour les pièces décoratives et les coques de figurines ; désactivez-le lorsque les dimensions sont critiques ou qu'une surface lisse est nécessaire."
 
 msgid "Selects how the fuzzy texture is generated."
-msgstr ""
+msgstr "Sélectionne le mode de génération de la texture floue."
 
 msgid "There are three generator modes; pick the one that suits your needs."
-msgstr ""
+msgstr "Il existe trois modes de générateur ; choisissez celui qui correspond à vos besoins."
 
 msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
-msgstr ""
+msgstr "Détermine le caractère aléatoire de la texture floue, ce qui influe sur le style de la texture de surface."
 
 msgid "Several noise types are available; pick the one that suits your needs."
-msgstr ""
+msgstr "Plusieurs types de bruit sont disponibles ; choisissez celui qui vous convient."
 
 msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
-msgstr ""
+msgstr "Contrôle la distance moyenne entre les points aléatoires insérés le long du tracé de la paroi lors de la génération d'une surface irrégulière."
 
 msgid ""
 "A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
 "A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
 msgstr ""
+"Une valeur plus élevée espace davantage les points aléatoires pour un grain plus grossier, mais utilise moins de points de trajectoire, ce qui permet de maintenir une vitesse de tranchage et d'impression plus rapide et une taille de fichier G-code plus réduite.\n"
+"Une valeur plus petite rapproche les points pour un grain plus fin et plus uniforme, mais ajoute des points de trajectoire, ce qui ralentit le tranchage et l'impression et augmente la taille du fichier G-code."
 
 msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
-msgstr ""
+msgstr "Si la taille est trop petite, le logiciel désactive la surface irrégulière car l'espacement des points est trop faible (pour éviter les tracés anormaux)."
 
 msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
-msgstr ""
+msgstr "Contrôle la largeur du tremblement du tracé de la paroi lors de la génération d'une surface irrégulière, c'est-à-dire la profondeur de la texture."
 
 msgid ""
 "A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
 "The default is about 0.3 mm; keep it below the outer wall's line width."
 msgstr ""
+"Une valeur plus élevée rend la texture plus profonde et plus prononcée avec un grain plus marqué, mais le contour s'élargit, la précision dimensionnelle diminue et la paroi peut présenter des fissures et perdre en résistance.\n"
+"La valeur par défaut est d'environ 0,3 mm ; veillez à ce qu'elle reste inférieure à la largeur de ligne de la paroi extérieure."
 
 msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
-msgstr ""
+msgstr "Lorsque la largeur de ligne est dépassée, les modes Extrusion et Combiné du générateur cessent de fonctionner et seul le mode Déplacement est utilisé."
 
 msgid "Determines whether the fuzzy effect is also applied to the first layer."
-msgstr ""
+msgstr "Détermine si l'effet flou est également appliqué à la première couche."
 
 msgid ""
 "When on, the first-layer side walls also get the fuzzy texture.\n"
 "Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
 msgstr ""
+"Lorsque cette option est activée, les parois latérales de la première couche acquièrent également cette texture floue.\n"
+"En général, laissez cette option désactivée ; activez-la uniquement lorsque le bord inférieur nécessite une texture uniforme et que l'adhérence au plateau est bonne."
 
 msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
-msgstr ""
+msgstr "Place le joint de préférence aux angles concaves ou convexes et raccourcit les déplacements ; convient aux modèles aux bords marqués."
 
 msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
-msgstr ""
+msgstr "Elle superpose le joint de chaque couche en une seule ligne verticale, concentrant ainsi les marques et les rendant faciles à dissimuler."
 
 msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
-msgstr ""
+msgstr "Place le joint au dos du modèle, ce qui convient aux modèles d'exposition à orientation fixe."
 
 msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
-msgstr ""
+msgstr "Le joint est réparti sur plusieurs couches pour éviter une ligne verticale, même si de petites irrégularités peuvent apparaître en surface."
 
 msgid "All top surfaces print with the normal number of wall loops."
-msgstr ""
+msgstr "Toutes les surfaces supérieures s'impriment avec le nombre normal de boucles de paroi."
 
 msgid "Applies to every flat upward-facing top surface, for the widest coverage."
-msgstr ""
+msgstr "S'applique à toutes les surfaces supérieures planes orientées vers le haut, pour une couverture maximale."
 
 msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
-msgstr ""
+msgstr "S'applique uniquement à la surface supérieure du modèle ; les surfaces supérieures des couches intermédiaires sont toujours traitées normalement."
 
 msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
-msgstr ""
+msgstr "Analyse le modèle et calcule la largeur et l'emplacement nécessaires de la bordure ; recommandé pour la plupart des modèles."
 
 msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
-msgstr ""
+msgstr "Génère une bordure uniquement sur le contour extérieur pour renforcer l'adhérence externe."
 
 msgid "Generates a brim in inner holes only."
-msgstr ""
+msgstr "Génère une bordure uniquement dans les trous intérieurs."
 
 msgid "Generates a brim on both the outer contour and inner holes."
-msgstr ""
+msgstr "Génère une bordure à la fois sur le contour extérieur et sur les trous intérieurs."
 
 msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
-msgstr ""
+msgstr "Génère la bordure par peinture ou renforcement local, adaptée aux angles vifs sujets à la déformation."
 
 msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
-msgstr ""
+msgstr "Aucune bordure ne se forme ; le fond reste plus propre mais l'adhérence au plateau est plus faible."
 
 msgid "All objects rise together, layer by layer."
-msgstr ""
+msgstr "Tous les objets s'élèvent ensemble, couche par couche."
 
 msgid "Finishes one object before starting the next; has placement clearance requirements."
-msgstr ""
+msgstr "Termine un objet avant de commencer le suivant ; nécessite un dégagement suffisant pour son placement."
 
 msgid "A snapshot is taken directly after each layer."
-msgstr ""
+msgstr "Un instantané est pris directement après chaque couche."
 
 msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
-msgstr ""
+msgstr "Après chaque couche, la tête d'outil se déplace vers la goulotte d'évacuation avant la capture de l'instantané pour obtenir un plan plus propre ; du filament peut fuir pendant la prise de vue, une tour d'essuyage est donc requise pour essuyer la buse et est générée même pour les travaux en couleur unique."
 
 msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
-msgstr ""
+msgstr "Aucune surface irrégulière n'est ajoutée automatiquement, mais vous pouvez toujours la peindre localement."
 
 msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
-msgstr ""
+msgstr "Ajoute une surface irrégulière uniquement au contour extérieur ; les trous intérieurs restent lisses."
 
 msgid "Adds fuzzy skin to both the outer contour and inner holes."
-msgstr ""
+msgstr "Ajoute une surface irrégulière à la fois au contour extérieur et aux trous intérieurs."
 
 msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
-msgstr ""
+msgstr "Chaque ligne de paroi présente des fluctuations, pour un effet maximal mais potentiellement une déviation dimensionnelle plus importante."
 
 msgid "Turns fuzzy skin fully off; even painting has no effect."
-msgstr ""
+msgstr "Désactive complètement la surface irrégulière ; même la peinture est sans effet."
 
 msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
-msgstr ""
+msgstr "La buse se déplace latéralement pour former la texture, donnant une forte impression 3D mais avec d'éventuels espaces entre les boucles."
 
 msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
-msgstr ""
+msgstr "Le tracé reste rectiligne et seule la quantité extrudée varie, ce qui permet de conserver des parois plus denses."
 
 msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
-msgstr ""
+msgstr "Déplacement et extrusion ; le résultat est proche du déplacement tout en comblant les espaces entre les boucles."
 
 msgid "Uniform random noise with a fine, grainy texture and no clear direction."
-msgstr ""
+msgstr "Bruit aléatoire uniforme, à la texture fine et granuleuse, sans direction claire."
 
 msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
-msgstr ""
+msgstr "Des transitions douces entre les couches pour une texture plus uniforme et continue, avec des ondulations douces et régulières."
 
 msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
-msgstr ""
+msgstr "Semblable à la méthode Perlin, mais plus grumeleuse, avec des bosses groupées et des zones plates, comme des nuages."
 
 msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
-msgstr ""
+msgstr "Des arêtes vives et irrégulières, parsemées de pics et de fines rainures, lui conférant une texture semblable à celle du marbre."
 
 msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
-msgstr ""
+msgstr "Elle divise la surface en cellules et les décale une à une, formant ainsi une texture en patchwork étagée."
 
 msgid "View details on Wiki"
-msgstr ""
+msgstr "Voir les détails sur le Wiki"
 
 msgid "Global"
 msgstr "Global"
@@ -8560,17 +8649,11 @@ msgstr ""
 msgid "model \"%s\""
 msgstr ""
 
-msgid "support filament"
-msgstr ""
-
-msgid "custom G-code"
-msgstr ""
-
 #, c-format, boost-format
-msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
 msgstr ""
 
-msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
 msgstr ""
 
 msgid "Delete Filament"
@@ -8629,7 +8712,7 @@ msgid "The nozzle hardness required by the filament is higher than the default n
 msgstr "La dureté de la buse requise par le filament est supérieure à la dureté par défaut de la buse de l'imprimante. Veuillez remplacer la buse ou le filament, sinon la buse s'usera ou s'endommagera."
 
 msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr ""
+msgstr "L'activation de la photographie timelapse instantanée peut entraîner des imperfections de surface. Il est recommandé de passer en mode Lisse."
 
 msgid "\n"
 msgstr ""
@@ -8733,8 +8816,8 @@ msgid "Multi-part object detected"
 msgstr "Objet en plusieurs pièces détecté"
 
 #, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr "Calcul des couleurs de texture :%s"
+msgid "Computing model colors: %s"
+msgstr ""
 
 msgid "Texture Import Warning"
 msgstr "Avertissement concernant l’importation de textures"
@@ -9141,6 +9224,18 @@ msgstr "Échec du chargement des données Helio"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Veuillez résoudre les erreurs de découpage et republier."
+
+msgid "Send G-code file"
+msgstr ""
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr ""
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr ""
+
+msgid "Send now"
+msgstr ""
 
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "Échec du démarrage du client Bambu Farm Manager."
@@ -9697,10 +9792,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "Si cette option est activée, vous pouvez imprimer ensemble des matériaux présentant une grande différence de température."
 
 msgid "Automatically optimize wipe tower placement"
-msgstr ""
+msgstr "Optimisation automatique du placement des tours d'essuyage"
 
 msgid "With this option enabled, the wipe tower will be placed at its optimal position."
-msgstr ""
+msgstr "Si cette option est activée, la tour d'essuyage sera placée à son emplacement optimal."
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Synchronisation automatique des pré-réglages utilisateur (Imprimante/Filament/Traitement)"
@@ -10355,7 +10450,7 @@ msgid "When enabling spiral vase mode, machines with I3 structure will not gener
 msgstr "Lorsque le mode vase spirale est activé, les machines dotées d'une structure I3 ne généreront pas de vidéos timelapse."
 
 msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
-msgstr ""
+msgstr "L'imprimante actuelle ne prend pas en charge le timelapse en mode Instantané lors de l'impression par objet."
 
 msgid "Errors"
 msgstr "Erreurs"
@@ -10396,7 +10491,7 @@ msgid "This process determines the dynamic flow values to improve overall print 
 msgstr "Ce processus permet de déterminer les valeurs de la dynamique de débit afin d'améliorer la qualité globale de l'impression."
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr ""
+msgstr "Une fois le mode Timelapse activé, que le mode Instantané ou Fluide soit sélectionné, l'imprimante déplace la plaque d'impression et la tête d'outil avant chaque prise de vue, ce qui peut augmenter le temps d'impression total."
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10903,7 +10998,7 @@ msgid "Prime tower is required for smooth timelapse. There may be flaws on the m
 msgstr "Une tour d'amorçage est requise pour un mode timelapse fluide. Il peut y avoir des défauts sur le modèle sans cette tour. Voulez-vous activer la désactiver?"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
-msgstr ""
+msgstr "L'option « Pas de couches éparses » n'est pas compatible avec le timelapse fluide, qui nécessite une tour d'essuyage sur chaque couche. Le mode Timelapse est passé en mode Instantané."
 
 msgid "Still print by object?"
 msgstr "Vous imprimez toujours par objet ?"
@@ -11527,22 +11622,22 @@ msgid "Show all presets (including incompatible)"
 msgstr "Afficher toutes les configurations (y compris incompatibles)"
 
 msgid "Parameters"
-msgstr ""
+msgstr "Paramètres"
 
 msgid "Process Preset"
-msgstr ""
+msgstr "Préréglage Traitement"
 
 msgid "Filament Preset"
 msgstr "Préréglage Filament"
 
 msgid "Material Preset"
-msgstr ""
+msgstr "Préréglage de matériau"
 
 msgid "Machine Preset"
-msgstr ""
+msgstr "Préréglage de la machine"
 
 msgid "These two presets have no visible differences"
-msgstr ""
+msgstr "Ces deux préréglages ne présentent aucune différence visible"
 
 msgid "Please select two different presets A and B to compare"
 msgstr "Veuillez sélectionner deux préréglages différents A et B à comparer"
@@ -13259,10 +13354,10 @@ msgid "The prime tower is only supported if all objects have the same variable l
 msgstr "La tour d'amorçage n'est prise en charge que si tous les objets ont la même hauteur de couche variable"
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
-msgstr ""
+msgstr "La hauteur Z précise confère aux objets des hauteurs de couche différentes, ce qui peut considérablement augmenter la taille de la tour d'essuyage."
 
 msgid "Jump to: Precise Z height"
-msgstr ""
+msgstr "Aller à : Hauteur Z précise"
 
 msgid "Too small line width"
 msgstr "Largeur d'extrusion trop petite"
@@ -13516,7 +13611,7 @@ msgstr "Ventiler les surplombs dépassant"
 
 #, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
-msgstr "Forcer le ventilateur de refroidissement à atteindre une vitesse spécifique lorsque le degré de surplomb de la pièce imprimée dépasse cette valeur. Ceci est exprimé en pourcentage qui indique la largeur de la ligne sans support provenant de la couche inférieure. 0%% signifie un refroidissement forcé de toutes les parois extérieures, quel que soit le degré de surplomb."
+msgstr "Forcer le ventilateur de refroidissement à une vitesse spécifique lorsque le degré de surplomb de la pièce imprimée dépasse cette valeur. Exprimé en pourcentage, ce qui indique la largeur de la ligne sans support de la couche inférieure. 0 % signifie un refroidissement forcé pour l'ensemble de la paroi extérieure, quel que soit le degré de surplomb"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Seuil de dépassement pour le refroidissement actif"
@@ -13908,6 +14003,9 @@ msgstr "Monotone"
 
 msgid "Monotonic line"
 msgstr "Ligne monotone"
+
+msgid "Global monotonic line"
+msgstr ""
 
 msgid "Aligned Rectilinear"
 msgstr "Rectiligne Aligné"
@@ -15739,16 +15837,16 @@ msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf
 msgstr "Distance maximale de déplacement des points dans l'axe XY pour tenter d'obtenir une spirale régulière. Si elle est exprimée en %, elle sera calculée sur le diamètre de la buse"
 
 msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr ""
+msgstr "Si le mode Lisse ou Instantané est sélectionné, une vidéo timelapse sera générée pour chaque impression. Après l'impression de chaque couche, un instantané est pris avec la caméra de la chambre. Tous ces instantanés sont assemblés en une vidéo timelapse une fois l'impression terminée. Si le mode Lisse est sélectionné, la tête d'outil se déplacera vers la goulotte d'évacuation après l'impression de chaque couche, puis prendra un instantané. Étant donné que le filament fondu peut fuir de la buse pendant la capture de l'instantané, une tour d'essuyage est nécessaire en mode Lisse pour essuyer la buse."
 
 msgid "Instant"
-msgstr ""
+msgstr "Instantané"
 
 msgid "Farthest point timelapse"
 msgstr "Timelapse du point le plus éloigné"
 
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
-msgstr ""
+msgstr "Lorsque cette option est activée, l'instantané timelapse est pris au point le plus éloigné de la caméra au lieu de se déplacer jusqu'à la tour d'essuyage ou la goulotte d'évacuation. Fonctionne uniquement en mode Timelapse instantané sur les imprimantes non-I3."
 
 msgid "Temperature variation"
 msgstr "Variation de température"
@@ -16386,7 +16484,7 @@ msgstr "--use-firmware-retraction n'est pas compatible avec --wipe"
 
 #, no-c-format, no-boost-format
 msgid " doesn't work at 100% density "
-msgstr ""
+msgstr " ne fonctionne pas à une densité de 100 % "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Valeur non valide lorsque le mode vase en spirale est activé: "
@@ -17447,6 +17545,8 @@ msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
+"Le nom du filament %s que vous avez créé existe déjà. \n"
+"Si vous continuez, le nouveau préréglage sera enregistré à côté des filaments personnalisés existants et affiché avec son nom complet pour le distinguer. Voulez-vous continuer ?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Certaines configurations existantes n'ont pas pu être créés, comme suit :\n"
@@ -18583,7 +18683,7 @@ msgid "Multiple Color"
 msgstr "Plusieurs Couleurs"
 
 msgid "Search filament"
-msgstr ""
+msgstr "Rechercher un filament"
 
 msgid "Unsupported Filaments"
 msgstr "Filaments non pris en charge"
@@ -18592,10 +18692,10 @@ msgid "No filaments"
 msgstr "Pas de filaments"
 
 msgid "slot"
-msgstr ""
+msgstr "emplacement"
 
 msgid "Recently used"
-msgstr "Utilisé récemment"
+msgstr "Récemment utilisé"
 
 msgid "Set nozzle count"
 msgstr ""
@@ -18947,7 +19047,7 @@ msgid "-- Select --"
 msgstr "-- Sélectionner --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "L'effet de dégradé nécessite l'activation de l'option « Sous-calque de couleur mixte ». L'activer maintenant ?"
+msgstr "L'effet de dégradé nécessite l'activation de l'option « Sous-couche couleur mélangée ». L'activer maintenant ?"
 
 msgid "Mixed Color Sublayer"
 msgstr "Sous-couche Couleur Mélangée"
@@ -18979,47 +19079,47 @@ msgid "RGB(%d, %d, %d)"
 msgstr ""
 
 msgid "Decomposition result for this combination"
-msgstr ""
+msgstr "Résultat de décomposition pour cette combinaison"
 
 msgid "Filament Color"
-msgstr ""
+msgstr "Couleur du filament"
 
 msgid "Decomposed Colors"
-msgstr ""
+msgstr "Couleurs décomposées"
 
 msgid "Select Color Decomposition"
 msgstr "Sélectionner la décomposition des couleurs"
 
 msgid "Project Filament"
-msgstr ""
+msgstr "Filament de projet"
 
 msgid "Material List"
 msgstr "Liste des matériaux"
 
 msgid "Standard Palette"
-msgstr ""
+msgstr "Palette standard"
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "Au moins deux filaments du même type de matériau sont nécessaires à la décomposition"
 
 msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "Un mélange plus homogène est calculé à partir de quatre couleurs de base : cyan, magenta, jaune et blanc. Actuellement, seule la version PLA Basic est prise en charge. Si les filaments correspondants ne sont pas présents dans le projet, ils seront ajoutés automatiquement."
 
 msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "Un mélange plus homogène est calculé à partir de quatre couleurs de base : rouge, jaune, bleu et blanc. Actuellement, seule la version PLA Basic est prise en charge. Si les filaments correspondants ne sont pas présents dans le projet, ils seront ajoutés automatiquement."
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "La liste des matériaux prend en charge au maximum %1% couleurs. Après la décomposition %2%, le nombre de matériaux dépasserait %1%. Veuillez supprimer les filaments inutilisés sur l'écran principal avant la décomposition."
 
 msgid "Decompose Color (gradient not supported)"
-msgstr ""
+msgstr "Décomposer la couleur (dégradé non pris en charge)"
 
 msgid "Decompose Color (transparent not supported)"
-msgstr ""
+msgstr "Décomposer la couleur (transparence non prise en charge)"
 
 msgid "Decompose Color (multi-color not supported)"
-msgstr ""
+msgstr "Décomposer la couleur (multicolore non pris en charge)"
 
 msgid "Cyan"
 msgstr ""
@@ -19052,11 +19152,11 @@ msgid "An unexpected error occurred"
 msgstr "Une erreur inattendue s'est produite"
 
 msgid "Create Custom Filament"
-msgstr ""
+msgstr "Créer un filament personnalisé"
 
 #, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
-msgstr ""
+msgstr "Le préréglage « %s » existe déjà. Écraser ?"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -19353,6 +19453,26 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "One-click CMYW auto-mix"
+#~ msgstr "Mélange automatique CMYW en un clic"
+
+#~ msgid "One-click RYBW auto-mix"
+#~ msgstr "Mélange automatique RYBW en un clic"
+
+#, c-format, boost-format
+#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#~ msgstr "Le projet prend en charge jusqu’à %d filaments. Les filaments excédentaires seront jetés."
+
+#~ msgid "Reset filament mapping to the state before one-click mixing"
+#~ msgstr "Réinitialiser le mappage des filaments à l'état d'avant le mélange en un clic"
+
+#~ msgid "Choose the one-click auto-mix mode for texture color import"
+#~ msgstr "Choisissez le mode de mélange automatique en un clic pour l'importation des couleurs de texture"
+
+#, c-format, boost-format
+#~ msgid "Computing texture colors: %s"
+#~ msgstr "Calcul des couleurs de texture :%s"
 
 #~ msgid "Show Labels"
 #~ msgstr "Afficher les étiquettes"
