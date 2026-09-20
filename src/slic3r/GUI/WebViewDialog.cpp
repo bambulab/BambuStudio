@@ -458,6 +458,7 @@ void WebViewPanel::ResetWholePage()
     //online
     SetMakerworldModelID("");
     m_onlinefirst = false;
+    m_online_type.Clear();
 
     //PrintHistory
     SetPrintHistoryTaskID(0);
@@ -470,6 +471,14 @@ void WebViewPanel::ResetWholePage()
     //Wiki
     m_WikiFirst = false;
     m_Wiki_LastUrl.Clear();
+
+    // The left panel was reloaded above, which drops the online/makerlab menu
+    // items back to their CSS-hidden default. Clear the retry state as well, or
+    // the heartbeat would treat them as still loaded and never fetch them again.
+    m_makerlab_loaded    = false;
+    m_academy_loaded         = false;
+    m_content_retry_last     = std::chrono::steady_clock::now();
+    m_content_retry_interval = CONTENT_RETRY_INTERVAL_MIN;
 }
 
 wxString WebViewPanel::MakeDisconnectUrl(std::string MenuName)
@@ -765,6 +774,42 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
 
         if (m_TaskInfo != "" && m_browser) ShowUserPrintTask(false);
     }
+
+    // Re-fetch the home-page content whose cloud request failed earlier, typically
+    // because Studio was started with no network: without this the menus stay
+    // hidden until the user happens to switch tabs (home.js OnBoardChange refetches
+    // lazily) or, for the academy list, until a restart. Throttled with a
+    // doubling interval so an offline session, or a server that keeps answering
+    // with an error, does not fire requests and log lines on every 2s tick.
+    auto now = std::chrono::steady_clock::now();
+    if (now - m_content_retry_last >= m_content_retry_interval) {
+        m_content_retry_last = now;
+        bool retried = false;
+
+        // staff_pick_switch off is a deliberate user choice, not a failure, so it
+        // must not be retried back into view. Without model mall the success
+        // callback bails out before setting m_online_type, so it would never stop.
+        if (m_online_type.IsEmpty() && wxGetApp().has_model_mall() &&
+            wxGetApp().app_config->get("staff_pick_switch") == "true") {
+            SendDesignStaffpick(true);
+            retried = true;
+        }
+
+        if (!m_makerlab_loaded) {
+            SendMakerlabList();
+            retried = true;
+        }
+
+        // Nothing to push until the user has opened the wiki tab at least once;
+        // before that m_browserWiki is still about:blank.
+        if (m_WikiFirst && !m_academy_loaded) {
+            get_academy_list();
+            retried = true;
+        }
+
+        if (retried)
+            m_content_retry_interval = std::min(m_content_retry_interval * 2, CONTENT_RETRY_INTERVAL_MAX);
+    }
 }
 
 void WebViewPanel::SendRecentList(int images)
@@ -811,9 +856,17 @@ void WebViewPanel::SendDesignStaffpick(bool on)
                         return;
                     }
                     CallAfter([this, body] {
-                        json jPrefer = json::parse(body);
+                        // Runs outside the try/catch below; an uncaught exception
+                        // here reaches OnExceptionInMainLoop and terminates Studio.
+                        int nRecommendStatus = 0;
+                        try {
+                            json jPrefer     = json::parse(body);
+                            nRecommendStatus = jPrefer.value("recommendStatus", 0);
+                        } catch (const std::exception &e) {
+                            BOOST_LOG_TRIVIAL(warning) << "get_mw_user_preference parse failed: " << e.what();
+                            return;
+                        }
 
-                        int nRecommendStatus = jPrefer["recommendStatus"];
                         if (nRecommendStatus != 1 && nRecommendStatus != 3)
                         {
                             // Default : Staff Pick
@@ -967,6 +1020,7 @@ void WebViewPanel::get_academy_list()
                     resp["command"] = "academy_list_get";
                     auto payload = from_u8(resp.dump(-1, ' ', true));
                     WebView::RunScript(m_browserWiki, wxString::Format("HandleStudio(%s)", payload));
+                    m_academy_loaded = true;
                 } catch (const std::exception &e) {
                     BOOST_LOG_TRIVIAL(error) << "parse academy list failed: " << e.what();
                 }
@@ -991,19 +1045,29 @@ void WebViewPanel::SendMakerlabList(  )
                 return;
             }
             CallAfter([this, body] {
-                auto body2 = from_u8(body);
+                // Runs outside the try/catch below; an uncaught exception here
+                // reaches OnExceptionInMainLoop and terminates Studio.
+                try {
+                    auto body2 = from_u8(body);
 
-                json jLab = json::parse(body2);
-                if (jLab.contains("list"))
-                {
-                    int nSize = jLab["list"].size();
-                    if (nSize > 0)
+                    json jLab = json::parse(body2);
+                    if (jLab.contains("list"))
                     {
-                        body2.insert(1, "\"command\": \"homepage_makerlab_get\", ");
-                        RunScript(wxString::Format("window.postMessage(%s)", body2));
+                        // A well-formed response ends the retry loop even when the
+                        // list is empty - that is a legitimate answer, not a failure.
+                        m_makerlab_loaded = true;
 
-                        SetLeftMenuShow("makerlab", 1);
+                        int nSize = jLab["list"].size();
+                        if (nSize > 0)
+                        {
+                            body2.insert(1, "\"command\": \"homepage_makerlab_get\", ");
+                            RunScript(wxString::Format("window.postMessage(%s)", body2));
+
+                            SetLeftMenuShow("makerlab", 1);
+                        }
                     }
+                } catch (const std::exception &e) {
+                    BOOST_LOG_TRIVIAL(warning) << "get_makerlab_list parse failed: " << e.what();
                 }
             });
         });
@@ -1066,7 +1130,10 @@ void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<voi
         .header("Content-Type", "application/json")
         .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
         .on_error([this, callback](std::string body, std::string error, unsigned status) {
-            callback(body + error);
+            // A 4xx/5xx often carries a JSON error body. Prefix it so the caller's
+            // '{' check rejects it instead of posting it as the model list and
+            // ending the staff pick retry.
+            callback("HTTP " + std::to_string(status) + " " + error + " " + body);
         })
         .perform();
 }
@@ -1079,7 +1146,11 @@ void WebViewPanel::get_makerlab_list(std::function<void(std::string)> callback)
     http.header("accept", "application/json")
         .header("Content-Type", "application/json")
         .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) { callback(body + error); })
+        .on_error([this, callback](std::string body, std::string error, unsigned status) {
+            // Same as get_design_staffpick: a JSON error body, or a truncated one
+            // from a timed-out transfer, must not pass the caller's '{' check.
+            callback("HTTP " + std::to_string(status) + " " + error + " " + body);
+        })
         .perform();
 }
 

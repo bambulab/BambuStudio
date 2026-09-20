@@ -259,6 +259,23 @@ private:
 
     bool m_has_pending_staff_pick { false };
 
+    // Offline-start recovery. The online-models / MakerLab / academy menus and
+    // content areas are only revealed once their cloud request succeeds, so a
+    // fetch that fails while offline leaves them hidden with nothing left to
+    // retrigger it. The 2s login heartbeat re-fetches whatever is still missing,
+    // the same retry-until-success shape as ShowUserPrintTask (which is why
+    // print history already self-heals). Staff pick uses m_online_type as its
+    // success flag, like m_TaskInfo for print history.
+    bool m_makerlab_loaded { false };
+    bool m_academy_loaded { false };
+    // Starts at construction so the first retry cannot race the OnLoaded fetch.
+    std::chrono::steady_clock::time_point m_content_retry_last { std::chrono::steady_clock::now() };
+    // Doubles after every round that still had something to retry, so a
+    // persistent failure (offline, or a server error) backs off to the cap.
+    static constexpr std::chrono::seconds CONTENT_RETRY_INTERVAL_MIN { 10 };
+    static constexpr std::chrono::seconds CONTENT_RETRY_INTERVAL_MAX { 120 };
+    std::chrono::seconds m_content_retry_interval { CONTENT_RETRY_INTERVAL_MIN };
+
     DECLARE_EVENT_TABLE()
 };
 
