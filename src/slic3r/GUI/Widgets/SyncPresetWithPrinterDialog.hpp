@@ -55,6 +55,9 @@ struct PrinterMigrationInfo
     std::string target_model_id;
     wxString target_model_name;
     wxString target_dev_name;
+    // The model table is hidden when both sides agree, since the preset would not move anyway. The
+    // sentences below then have to name the model themselves.
+    bool model_mismatch{false};
 
     // True only when the project runs multi-diameter AND the target has a nozzle rack; otherwise the
     // whole comparison is on diameters alone. Safe to drop the flow type there because it never
@@ -66,8 +69,10 @@ struct PrinterMigrationInfo
     // replays this verbatim.
     std::vector<NozzleSpec> slot_nozzles;
 
-    // Table rows, deduplicated in whatever unit compare_flow_type selects. Collapses to a single row
-    // covering every slot when the flow type is out, since only one diameter can then be picked.
+    // Table rows, deduplicated in whatever unit compare_flow_type selects. Rows the printer already
+    // carries are left out, so the table only lists what still has to be decided. Collapses to a
+    // single row covering every slot when the flow type is out, since only one diameter can then be
+    // picked, and that row is kept even when the printer carries its diameter.
     std::vector<NozzleSpec> project_nozzles;
     // Slots behind each row, and each row's left-cell label. Both parallel to project_nozzles.
     std::vector<std::vector<size_t>> row_slots;

@@ -18159,6 +18159,9 @@ msgstr ""
 msgid "The current printer preset does not match the connected printer. Please confirm the migration plan below."
 msgstr ""
 
+msgid "The nozzles used by the current project do not match the connected printer. Please confirm the migration plan below."
+msgstr ""
+
 msgid "Machine model"
 msgstr ""
 
@@ -18177,7 +18180,10 @@ msgstr ""
 msgid "No prompt to migrate the preset when the loaded 3MF does not match the connected printer"
 msgstr ""
 
-msgid "The connected printer only has a %s nozzle, so every filament is mapped onto it."
+msgid "The connected printer only has a %s nozzle. Every filament will be switched to it after you confirm."
+msgstr ""
+
+msgid "%s only has a %s nozzle. Every filament will be switched to it after you confirm."
 msgstr ""
 
 msgid "The connected printer has not reported its nozzle information, so the nozzles are left unchanged. Only the printer preset will be switched."

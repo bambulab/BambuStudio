@@ -84,9 +84,11 @@ void push_unique(std::vector<NozzleSpec> &specs, const NozzleSpec &spec, bool wi
 
 // What the printer physically carries, both extruders merged and deduplicated.
 //
-// An unreported flow type is dropped, not defaulted: ToNozzleVolumeType() would map NONE_FLOWTYPE
-// to Standard with just a warning, while the rest of the codebase treats it as a hard error
-// (SelectMachine.cpp reports PrintStatusNozzleDataInvalid), so it must not become a target here.
+// An unreported flow type is dropped, not defaulted, while it takes part in the comparison:
+// ToNozzleVolumeType() would map NONE_FLOWTYPE to Standard with just a warning, while the rest of
+// the codebase treats it as a hard error (SelectMachine.cpp reports PrintStatusNozzleDataInvalid),
+// so it must not become a target. A diameter-only comparison never looks at the flow type, so the
+// nozzle still counts there and no volume is derived from the missing report.
 std::vector<NozzleSpec> collect_printer_nozzles(MachineObject *obj, bool with_flow_type)
 {
     std::vector<NozzleSpec> specs;
@@ -99,11 +101,12 @@ std::vector<NozzleSpec> collect_printer_nozzles(MachineObject *obj, bool with_fl
             if (nozzle.IsEmpty() || nozzle.IsAbnormal() || !nozzle.IsHotend())
                 continue;
             const NozzleFlowType flow = nozzle.GetNozzleFlowType();
-            if (flow == NozzleFlowType::NONE_FLOWTYPE)
+            if (with_flow_type && flow == NozzleFlowType::NONE_FLOWTYPE)
                 continue;
             if (nozzle.GetNozzleDiameter() <= 0.f)
                 continue;
-            push_unique(specs, NozzleSpec{nozzle.GetNozzleDiameter(), DevNozzle::ToNozzleVolumeType(flow)}, with_flow_type);
+            const NozzleVolumeType volume = with_flow_type ? DevNozzle::ToNozzleVolumeType(flow) : nvtStandard;
+            push_unique(specs, NozzleSpec{nozzle.GetNozzleDiameter(), volume}, with_flow_type);
         }
     }
 
@@ -184,7 +187,13 @@ std::vector<SlotSpec> collect_project_slot_specs(const PresetBundle &preset_bund
 // Dedup slot specs into table rows. Key is the formatted diameter, plus volume only when the table
 // shows flow type. Diameter-only comparisons still have to land on one dropdown, so several keys
 // collapse to a single row whose label lists every diameter.
+//
+// A row the printer already carries is left out: there is nothing to decide about it, so the table
+// only lists what the machine cannot serve as is. The collapsed row is the exception - it stands for
+// every diameter in the project and the single choice behind it applies to all of them, so it stays
+// even when the printer happens to carry the diameter it was built from.
 std::vector<NozzleSpec> dedupe_project_rows(const std::vector<SlotSpec> &slot_specs,
+                                            const std::vector<NozzleSpec> &printer_nozzles,
                                             bool with_flow_type,
                                             std::vector<std::vector<size_t>> &row_slots,
                                             std::vector<wxString> &row_labels)
@@ -225,6 +234,10 @@ std::vector<NozzleSpec> dedupe_project_rows(const std::vector<SlotSpec> &slot_sp
     }
 
     for (auto &[_, group] : grouped) {
+        const bool already_served = std::any_of(printer_nozzles.begin(), printer_nozzles.end(),
+                                                [&](const NozzleSpec &candidate) { return same_spec(candidate, group.spec, with_flow_type); });
+        if (already_served)
+            continue;
         rows.push_back(group.spec);
         row_slots.push_back(std::move(group.slots));
         row_labels.push_back(format_nozzle_spec_label(group.spec, with_flow_type));
@@ -348,6 +361,7 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
     info.target_model_id = obj->get_show_printer_type();
     info.target_model_name = obj->get_printer_type_display_str();
     info.target_dev_name = wxString::FromUTF8(obj->get_dev_name());
+    info.model_mismatch = info.source_model_id != info.target_model_id;
 
     // Asked of the machine being migrated *to*, not the currently selected preset.
     const Preset *target_preset = get_printer_preset(obj);
@@ -363,21 +377,33 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
 
     const size_t slot_count = preset_bundle->filament_presets.size();
     const std::vector<SlotSpec> slot_specs = collect_project_slot_specs(*preset_bundle, multi_diameter_mode, info.compare_flow_type);
+    // Checked before the rows are folded: those drop what the printer already carries, so an empty
+    // row list is a normal outcome rather than a project without nozzles.
+    if (slot_specs.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": the project declares no nozzle, nothing to compare";
+        return std::nullopt;
+    }
+
     info.slot_nozzles.assign(slot_count, NozzleSpec{});
     for (const SlotSpec &entry : slot_specs)
         if (entry.slot < info.slot_nozzles.size())
             info.slot_nozzles[entry.slot] = entry.spec;
 
-    info.project_nozzles = dedupe_project_rows(slot_specs, info.compare_flow_type, info.row_slots, info.row_labels);
-
-    if (info.project_nozzles.empty()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": the project declares no nozzle, nothing to compare";
-        return std::nullopt;
-    }
-
+    // Collected first because the rows below leave out whatever the printer can already serve.
     info.printer_nozzles = collect_printer_nozzles(obj, info.compare_flow_type);
+    info.project_nozzles = dedupe_project_rows(slot_specs, info.printer_nozzles, info.compare_flow_type, info.row_slots, info.row_labels);
 
-    info.nozzles_fully_covered = printer_covers_project(info.slot_nozzles, info.printer_nozzles, info.compare_flow_type);
+    // Without a rack the machine prints one diameter per plate, so a project asking for several can
+    // never be served as it stands - no matter that the extruders happen to carry each one. Counting
+    // them separately would call it covered, hide the section, and hand several diameters to a
+    // printer preset that can only express one.
+    std::set<std::string> project_diameters;
+    for (const SlotSpec &entry : slot_specs)
+        project_diameters.insert(format_diameter_to_str(entry.spec.diameter));
+    const bool needs_more_diameters_than_target_can_hold = !target_has_rack && project_diameters.size() > 1;
+
+    info.nozzles_fully_covered = !needs_more_diameters_than_target_can_hold &&
+                                 printer_covers_project(info.slot_nozzles, info.printer_nozzles, info.compare_flow_type);
 
     if (info.printer_nozzles.empty())
         info.section_kind = NozzleSectionKind::Unavailable;
@@ -409,15 +435,24 @@ void SyncPresetWithPrinterDialog::build_layout()
     root->AddSpacer(FromDIP(16));
 
     // Neutral wording on purpose: no 3MF is involved on the manual sync path, unlike the mock-up.
-    auto *description = new Label(this, _L("The current printer preset does not match the connected printer. Please confirm the migration plan below."));
+    // Only the nozzles can differ once both sides are on the same model, so say so rather than claim
+    // the whole preset is wrong.
+    const wxString intro = m_info.model_mismatch ?
+        _L("The current printer preset does not match the connected printer. Please confirm the migration plan below.") :
+        _L("The nozzles used by the current project do not match the connected printer. Please confirm the migration plan below.");
+    auto *description = new Label(this, intro);
     description->SetFont(Label::Body_14);
     description->SetForegroundColour(C(ThemeColor::TextPrimary));
     description->Wrap(content_width);
     root->Add(description, 0, wxLEFT | wxRIGHT, FromDIP(kSidePadding));
 
-    root->AddSpacer(FromDIP(12));
-    root->Add(build_section(_L("Machine model"), [this](wxWindow *parent) { return build_model_table(parent); }), 0, wxEXPAND | wxLEFT | wxRIGHT,
-              FromDIP(kSidePadding));
+    // Both sides on the same model means the preset stays where it is; a table repeating it twice
+    // carries nothing.
+    if (m_info.model_mismatch) {
+        root->AddSpacer(FromDIP(12));
+        root->Add(build_section(_L("Machine model"), [this](wxWindow *parent) { return build_model_table(parent); }), 0, wxEXPAND | wxLEFT | wxRIGHT,
+                  FromDIP(kSidePadding));
+    }
 
     // NozzleSectionKind::None draws nothing here: every slot keeps what it had.
     if (m_info.section_kind == NozzleSectionKind::Notice || m_info.section_kind == NozzleSectionKind::Unavailable) {
@@ -563,8 +598,11 @@ wxWindow *SyncPresetWithPrinterDialog::build_nozzle_notice(wxWindow *parent)
         text = _L("The connected printer has not reported its nozzle information, so the nozzles are left unchanged. "
                   "Only the printer preset will be switched.");
     } else {
+        // Name the model when the table above is gone, otherwise the sentence has no subject on screen.
         const wxString only = format_nozzle_spec_label(m_info.printer_nozzles.front(), m_info.compare_flow_type);
-        text = wxString::Format(_L("The connected printer only has a %s nozzle, so every filament is mapped onto it."), only);
+        text = m_info.model_mismatch ?
+            wxString::Format(_L("The connected printer only has a %s nozzle. Every filament will be switched to it after you confirm."), only) :
+            wxString::Format(_L("%s only has a %s nozzle. Every filament will be switched to it after you confirm."), m_info.target_model_name, only);
     }
 
     auto *label = new Label(parent, text);
@@ -677,6 +715,11 @@ PendingNozzleMigration SyncPresetWithPrinterDialog::GetConfirmedMigration() cons
                 migration.per_slot[slot] = m_info.printer_nozzles.front();
         return migration;
     }
+
+    // Slots behind a row the table left out are already served by the printer, so replay their own
+    // spec instead of dropping them: the diameter gate downstream counts every slot, not just the
+    // ones the user was asked about.
+    migration.per_slot = m_info.slot_nozzles;
 
     const std::vector<NozzleSpec> chosen = GetChosenNozzles();
     for (size_t row = 0; row < chosen.size() && row < m_info.row_slots.size(); ++row)
