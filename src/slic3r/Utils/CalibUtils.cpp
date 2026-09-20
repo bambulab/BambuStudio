@@ -103,12 +103,14 @@ static int get_filament_nozzle_map_value(const MachineObject* obj, int nozzle_po
     /* O1C: nozzle_pos_id: 0->0 1->1 rack: 0x10 base -> 2 base */
     constexpr int RACK_NOZZLE_POS_ID_BASE = 0x10;
     if (obj && obj->GetNozzleSystem()) {
-        auto rack_type = obj->GetNozzleSystem()->GetNozzleRack()->GetRackType();
-        switch (rack_type) {
-            case DevNozzleRack::RackType_A:     return nozzle_pos_id - RACK_NOZZLE_POS_ID_BASE;
-            case DevNozzleRack::RackType_B:     return nozzle_pos_id - RACK_NOZZLE_POS_ID_BASE;
-            case DevNozzleRack::RackType_AB:    return nozzle_pos_id < RACK_NOZZLE_POS_ID_BASE ? nozzle_pos_id : nozzle_pos_id - RACK_NOZZLE_POS_ID_BASE + 2;
-            default:                            return nozzle_pos_id;
+        if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+            if (obj->GetNozzleSystem()->GetNozzleRack()->IsDirectConnectedRack()) {
+                return nozzle_pos_id - RACK_NOZZLE_POS_ID_BASE;
+            } else {
+                return nozzle_pos_id < RACK_NOZZLE_POS_ID_BASE ? nozzle_pos_id : nozzle_pos_id - RACK_NOZZLE_POS_ID_BASE + 2;
+            }
+        } else {
+            return nozzle_pos_id;
         }
     }
 
@@ -182,10 +184,19 @@ std::map<int, DynamicPrintConfig> CalibUtils::build_filament_ams_list(MachineObj
         return tray_config;
     };
 
+    const bool direct_rack = obj->GetNozzleSystem()->GetNozzleRack()->IsDirectConnectedRack();
+    const int  ext_count   = obj->GetExtderSystem()->GetTotalExtderCount();
+
     if (obj->ams_support_virtual_tray) {
         // Calibration consumers key by tray_id only; extruder bit is unused here (unlike Sidebar version).
         for (const auto& [vt_id, vt_tray] : obj->GetFilaSystem()->GetVirtualTrays()) {
-            filament_ams_list.emplace(stoi(vt_tray.id), build_tray_config(vt_tray, "Ext", vt_tray.id, "0"));//254 or 255
+            const int         tray_id = stoi(vt_tray.id);
+            if (obj->GetNozzleSystem()->GetNozzleRack()->IsDirectConnectedRack()) {
+                const std::string name = wxGetApp().transition_tridid(tray_id, ext_count, obj).ToStdString();
+                filament_ams_list.emplace(tray_id, build_tray_config(vt_tray, name, vt_tray.id, "0"));//254 or 255
+            } else {
+                filament_ams_list.emplace(tray_id, build_tray_config(vt_tray, "Ext", vt_tray.id, "0"));//254 or 255
+            }
         }
     }
 
@@ -214,9 +225,9 @@ std::map<int, DynamicPrintConfig> CalibUtils::build_filament_ams_list(MachineObj
                 slot_id = std::stoi(tray.first);
                 tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
 
-                auto rack_type = obj->GetNozzleSystem()->GetNozzleRack()->GetRackType();
-                if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
-                    filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, "", std::to_string(ams_id), std::to_string(slot_id)));
+                if (direct_rack) {
+                    const std::string name = wxGetApp().transition_tridid(tray_id, ext_count, obj).ToStdString();
+                    filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, name, std::to_string(ams_id), std::to_string(slot_id)));
                 } else {
                     filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
                 }

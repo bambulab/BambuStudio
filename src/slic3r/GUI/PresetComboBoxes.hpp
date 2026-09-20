@@ -278,6 +278,8 @@ private:
 // ***  CalibrateFilamentComboBox  ***
 // ---------------------------------
 
+#define CALIBRATION_FILAMENT_CHIP_SIZE wxSize(FromDIP(40), FromDIP(20))
+
 class CalibrateFilamentComboBox : public PlaterPresetComboBox
 {
 public:
@@ -289,6 +291,7 @@ public:
     void update() override;
     void msw_rescale() override;
     void OnSelect(wxCommandEvent &evt) override;
+    void SetChipSize(const wxSize &size);
     const Preset* get_selected_preset() { return m_selected_preset; }
     std::string get_tray_name() { return m_tray_name; }
     std::string get_tag_uid() { return m_tag_uid; }
@@ -296,6 +299,7 @@ public:
     bool is_compatible_with_printer() { return m_is_compatible; }
 
 private:
+    wxSize      m_chip_size{0, 0};
     std::string m_tray_name;
     std::string m_filament_id;
     std::string m_tag_uid;

@@ -118,6 +118,8 @@ void CalibrationCaliPage::set_cali_img()
                     } else {
                         image_name += "_left";
                     }
+                } else if (image_name.empty()) {
+                    image_name = "fd_calibration_auto";
                 }
                 m_picture_panel->set_bmp(ScalableBitmap(this, image_name, 400));
             }

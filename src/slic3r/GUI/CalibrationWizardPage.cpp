@@ -399,6 +399,11 @@ SelectedFilamentInfo FilamentComboBox::get_selected_filament_info() const
     return info;
 }
 
+void FilamentComboBox::SetChipSize(const wxSize& size)
+{
+    if (m_comboBox) m_comboBox->SetChipSize(size);
+}
+
 void FilamentComboBox::update_from_preset()
 {
     m_comboBox->update();
@@ -468,6 +473,7 @@ FilamentExtendComboBox::FilamentExtendComboBox(wxWindow* parent, int nozzle_id, 
 {
     if (m_nozzle_bmp)   m_nozzle_bmp->Hide();
     if (m_nozzle_combo) m_nozzle_combo->Hide();
+    if (m_comboBox)     m_comboBox->SetChipSize(CALIBRATION_FILAMENT_CHIP_SIZE);
 
     wxSizer* old_sizer = this->GetSizer();
     if (old_sizer) {
@@ -505,7 +511,7 @@ FilamentExtendComboBox::FilamentExtendComboBox(wxWindow* parent, int nozzle_id, 
     }
 
     // subams placeholder (replaces clr_picker + comboBox visually when active)
-    const wxSize subams_panel_size(FromDIP(20) + FromDIP(8) + CALIBRATION_FILAMENT_COMBOX_SIZE.x, CALIBRATION_FILAMENT_COMBOX_SIZE.y);
+    const wxSize subams_panel_size(CALIBRATION_FILAMENT_CHIP_SIZE.x + FromDIP(8) + CALIBRATION_FILAMENT_COMBOX_SIZE.x, CALIBRATION_FILAMENT_COMBOX_SIZE.y);
     m_subams_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, subams_panel_size, wxBORDER_NONE);
     m_subams_panel->SetBackgroundColour(*wxWHITE);
     m_subams_panel->SetMinSize(subams_panel_size);
@@ -595,13 +601,14 @@ void FilamentExtendComboBox::RefreshSubAmsLabel(const wxString& empty_fallback)
 
     m_subams_label->Show(false);
 
-    const int picker_size = FromDIP(20);
-    const int picker_gap  = FromDIP(4);
+    const int picker_w   = CALIBRATION_FILAMENT_CHIP_SIZE.x;
+    const int picker_h   = CALIBRATION_FILAMENT_CHIP_SIZE.y;
+    const int picker_gap = FromDIP(4);
     int available_width = m_subams_panel ? m_subams_panel->GetClientSize().GetWidth() : 0;
     if (available_width <= 0 && m_subams_panel) available_width = m_subams_panel->GetMinSize().GetWidth();
-    if (available_width <= 0) available_width = picker_size;
+    if (available_width <= 0) available_width = picker_w;
 
-    int max_pickers = std::max(1, (available_width + picker_gap) / (picker_size + picker_gap));
+    int max_pickers = std::max(1, (available_width + picker_gap) / (picker_w + picker_gap));
     const bool overflow = static_cast<int>(m_subams_selection.size()) > max_pickers;
     int visible_count = overflow ? std::max(0, max_pickers - 1) : max_pickers;
 
@@ -612,7 +619,7 @@ void FilamentExtendComboBox::RefreshSubAmsLabel(const wxString& empty_fallback)
     auto ensure_picker = [&](size_t index) -> wxBitmapButton* {
         while (m_subams_picker_buttons.size() <= index) {
             auto* picker = new wxBitmapButton(m_subams_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition,
-                                              wxSize(picker_size, picker_size),
+                                              wxSize(picker_w, picker_h),
                                               wxBU_EXACTFIT | wxBU_AUTODRAW | wxBORDER_NONE);
             picker->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
             forward_click(picker);
@@ -638,7 +645,7 @@ void FilamentExtendComboBox::RefreshSubAmsLabel(const wxString& empty_fallback)
     if (overflow) {
         if (!m_subams_ellipsis_picker) {
             m_subams_ellipsis_picker = new wxButton(m_subams_panel, wxID_ANY, "...", wxDefaultPosition,
-                                                    wxSize(picker_size, picker_size),
+                                                    wxSize(picker_w, picker_h),
                                                     wxBU_EXACTFIT | wxBU_AUTODRAW | wxBORDER_NONE);
             m_subams_ellipsis_picker->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
             forward_click(m_subams_ellipsis_picker);
@@ -813,7 +820,7 @@ void FilamentExtendComboBox::msw_rescale()
         m_flow_type_combo->Rescale();
     }
     if (m_subams_panel) {
-        const wxSize subams_panel_size(FromDIP(20) + FromDIP(8) + CALIBRATION_FILAMENT_COMBOX_SIZE.x, CALIBRATION_FILAMENT_COMBOX_SIZE.y);
+        const wxSize subams_panel_size(CALIBRATION_FILAMENT_CHIP_SIZE.x + FromDIP(8) + CALIBRATION_FILAMENT_COMBOX_SIZE.x, CALIBRATION_FILAMENT_COMBOX_SIZE.y);
         m_subams_panel->SetMinSize(subams_panel_size);
         m_subams_panel->SetSize(subams_panel_size);
         RefreshSubAmsLabel(_L("Not Selected"));

@@ -126,6 +126,8 @@ public:
     void SetCheckBox(CheckBox* cb) { m_checkBox = cb; }
     RadioBox* GetRadioBox() { return m_radioBox; }
     void SetRadioBox(RadioBox* btn) { m_radioBox = btn; }
+    void SetChipSize(const wxSize& size);
+
     virtual bool Show(bool show = true);
     virtual bool Enable(bool enable);
     virtual void SetValue(bool value, bool send_event = true);

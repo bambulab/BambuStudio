@@ -3479,6 +3479,7 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
         check_box->SetBackgroundColour(*wxWHITE);
 
         auto* fcb = new FilamentComboBox(m_scroll);
+        fcb->SetChipSize(CALIBRATION_FILAMENT_CHIP_SIZE);
         fcb->SetBackgroundColour(*wxWHITE);
         fcb->SetRadioBox(radio_btn);
         fcb->SetCheckBox(check_box);
