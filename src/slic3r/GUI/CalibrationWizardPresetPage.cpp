@@ -651,6 +651,19 @@ void CalibrationPresetPage::on_sys_color_changed()
 {
     CalibrationWizardPage::on_sys_color_changed();
     m_ams_sync_button->msw_rescale();
+
+    for (auto& comboBox : m_filament_comboBox_list) {
+        comboBox->msw_rescale();
+    }
+    for (auto& comboBox : m_main_filament_comboBox_list) {
+        comboBox->msw_rescale();
+    }
+    for (auto& comboBox : m_deputy_filament_comboBox_list) {
+        comboBox->msw_rescale();
+    }
+    for (auto& comboBox : m_rack_filament_comboBox_list) {
+        comboBox->msw_rescale();
+    }
 }
 
 void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
@@ -2660,6 +2673,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 
         if (!m_rack_nozzle_panel->GetSizer()) {
             m_rack_nozzle_panel->SetSizer(create_rack_items_sizer(m_rack_nozzle_panel, m_rack_filament_comboBox_list));
+            wxGetApp().UpdateDarkUIWin(m_rack_nozzle_panel);
         }
 
         update_rack_filament_combobox(obj);
@@ -3558,6 +3572,8 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
 
     root->Add(m_scroll, 1, wxEXPAND | wxALL, FromDIP(4));
     SetSizer(root);
+
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void SubAmsPopup::Dismiss()

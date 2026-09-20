@@ -448,7 +448,9 @@ void FilamentComboBox::SetValue(bool value, bool send_event) {
 
 void FilamentComboBox::msw_rescale()
 {
-    //m_checkBox->Rescale();
+    if (m_checkBox) m_checkBox->Rescale();
+    if (m_radioBox) m_radioBox->Rescale();
+
     m_comboBox->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
     m_comboBox->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
     m_comboBox->msw_rescale();
