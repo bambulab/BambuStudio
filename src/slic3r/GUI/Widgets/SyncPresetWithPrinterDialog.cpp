@@ -233,7 +233,8 @@ std::vector<NozzleSpec> dedupe_project_rows(const std::vector<SlotSpec> &slot_sp
         return rows;
     }
 
-    for (auto &[_, group] : grouped) {
+    for (auto &entry : grouped) {
+        Group &group = entry.second;
         const bool already_served = std::any_of(printer_nozzles.begin(), printer_nozzles.end(),
                                                 [&](const NozzleSpec &candidate) { return same_spec(candidate, group.spec, with_flow_type); });
         if (already_served)
