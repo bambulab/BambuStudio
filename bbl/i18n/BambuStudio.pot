@@ -15636,6 +15636,12 @@ msgstr ""
 msgid "Mixed color sublayer"
 msgstr ""
 
+msgid "Mixed Color Sublayer"
+msgstr ""
+
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr ""
+
 msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
 msgstr ""
 

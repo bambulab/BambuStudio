@@ -15982,6 +15982,12 @@ msgstr "表示回抽时擦拭的移动距离。"
 msgid "Mixed color sublayer"
 msgstr "混色子层"
 
+msgid "Mixed Color Sublayer"
+msgstr "混色子层"
+
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr "渐变效果需要启用「混色子层」功能，是否立即启用？"
+
 msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
 msgstr "启用混色分层。启用后，使用混色耗材的层将被拆分为子层，以实现混色效果。"
 
@@ -19656,12 +19662,6 @@ msgstr "连接的打印机未上报喷嘴信息，喷嘴保持不变，将仅切
 
 #~ msgid "The temperature shall not exceed the filament's heat distortion temperature"
 #~ msgstr "温度不得超过耗材的压溃温度"
-
-#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-#~ msgstr "渐变效果需要启用「混色子层」功能，是否立即启用？"
-
-#~ msgid "Mixed Color Sublayer"
-#~ msgstr "混色子层"
 
 #~ msgid "Show Current Step Objects Only"
 #~ msgstr "仅显示当前步骤对象"
