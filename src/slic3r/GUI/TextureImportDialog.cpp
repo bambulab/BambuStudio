@@ -7837,6 +7837,9 @@ void TextureImportDialog::on_reset_clicked(wxCommandEvent&)
         return;
 
     dismiss_filament_popup();
+    m_mix_enabled = false;
+    if (m_mix_cb)
+        m_mix_cb->SetValue(false);
     reset_to_project_filaments_and_auto_match();
     update_confirm_button_state();
     if (GetSizer())
