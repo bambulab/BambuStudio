@@ -443,7 +443,12 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     return travel_to_xy(point, comment, false);
 }
 
-std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment, bool use_short_travel_acceleration)
+std::string GCodeWriter::travel_to_xy(const Vec2d &point, double speed_override, const std::string &comment)
+{
+    return travel_to_xy(point, comment, false, speed_override);
+}
+
+std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment, bool use_short_travel_acceleration, double speed_override)
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
@@ -452,9 +457,12 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     //BBS: take plate offset into consider
     Vec2d point_on_plate = { point(0) - m_x_offset, point(1) - m_y_offset };
 
+    const double travel_speed = speed_override > 0. ? speed_override
+                                                    : this->config.travel_speed.get_at(m_current_process_config_idx);
+
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
-    w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
+    w.emit_f(travel_speed * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return set_travel_acceleration(use_short_travel_acceleration) + w.string();
@@ -581,8 +589,16 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     return travel_to_xyz(point, comment, false);
 }
 
-std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration)
+std::string GCodeWriter::travel_to_xyz(const Vec3d &point, double speed_override, const std::string &comment)
 {
+    return travel_to_xyz(point, comment, false, speed_override);
+}
+
+std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration, double speed_override)
+{
+    const double travel_speed = speed_override > 0. ? speed_override
+                                                    : this->config.travel_speed.get_at(m_current_process_config_idx);
+
     // FIXME: This function was not being used when travel_speed_z was separated (bd6badf).
     // Calculation of feedrate was not updated accordingly. If you want to use
     // this function, fix it first.
@@ -652,7 +668,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);
-                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
+                w0.emit_f(travel_speed * 60.0);
                 //BBS
                 w0.emit_comment(GCodeWriter::full_gcode_comment, "slope lift Z");
                 slop_move = w0.string();
@@ -667,13 +683,13 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             GCodeG1Formatter w0;
             if (this->is_current_position_clear()) {
                 w0.emit_xyz(target);
-                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
+                w0.emit_f(travel_speed * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 xy_z_move = w0.string();
             }
             else {
                 w0.emit_xy(Vec2d(target.x(), target.y()));
-                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
+                w0.emit_f(travel_speed * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 xy_z_move = w0.string() + _travel_to_z(target.z(), comment);
             }
@@ -691,7 +707,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             m_lifted = 0.;
         //BBS
         this->set_current_position_clear(true);
-        return this->travel_to_xy(to_2d(point), std::string(), use_short_travel_acceleration);
+        return this->travel_to_xy(to_2d(point), std::string(), use_short_travel_acceleration, speed_override);
     }
     else {
         /*  In all the other cases, we perform an actual XYZ move and cancel
@@ -709,13 +725,13 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         // Split XY + Z: required after filament change (position unknown),
         // or when mixed sub-layer Z must descend to avoid diagonal collision.
         w.emit_xy(Vec2d(point_on_plate.x(), point_on_plate.y()));
-        w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
+        w.emit_f(travel_speed * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);
         out_string = w.string() + _travel_to_z(point_on_plate.z(), comment);
     } else {
         GCodeG1Formatter w;
         w.emit_xyz(point_on_plate);
-        w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
+        w.emit_f(travel_speed * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);
         out_string = w.string();
     }

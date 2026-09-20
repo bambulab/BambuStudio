@@ -81,9 +81,13 @@ public:
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
     double      get_current_speed() { return m_current_speed; };
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
-    std::string travel_to_xy(const Vec2d &point, const std::string &comment, bool use_short_travel_acceleration);
+    std::string travel_to_xy(const Vec2d &point, const std::string &comment, bool use_short_travel_acceleration, double speed_override = 0.);
+    // Travel at an explicit speed in mm/s; 0 falls back to the configured travel speed.
+    std::string travel_to_xy(const Vec2d &point, double speed_override, const std::string &comment = std::string());
     std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string());
-    std::string travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration);
+    std::string travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration, double speed_override = 0.);
+    // Travel at an explicit speed in mm/s; 0 falls back to the configured travel speed.
+    std::string travel_to_xyz(const Vec3d &point, double speed_override, const std::string &comment = std::string());
     std::string travel_to_z(double z, const std::string &comment = std::string());
     bool        will_move_z(double z) const;
     std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
