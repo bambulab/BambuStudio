@@ -101,7 +101,7 @@
   cursor: not-allowed;
 }
 
-/* New N1x toolbar: icon buttons (Read All / AMS Settings / More) + dropdown.
+/* Toolbar: icon buttons (Read All / AMS Settings / More) + dropdown.
    Scoped under .action-group-icons so they win over the base `.action-group
    button` bordered style. */
 .action-group-icons {

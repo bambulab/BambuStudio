@@ -821,7 +821,7 @@
 
   // The "More" (...) icon button plus its dropdown. Collects the actions that
   // used to sit inline on the toolbar / footer (Load / External Load / Unload /
-  // Dry / Auto-refill) behind a single icon, per the new N1x design.
+  // Dry / Auto-refill) behind a single icon.
   function renderToolbarMoreMenu(actions, onAction) {
     var open = false;
     var menu = null;
