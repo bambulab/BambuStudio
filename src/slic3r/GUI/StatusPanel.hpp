@@ -559,7 +559,7 @@ protected:
 #if BBL_ENABLE_AMS_CONTROL_WEB
     SwitchBoard*    m_ams_control_web_switch{ nullptr };
     wgtAmsControlWebPanel* m_ams_control_web_panel{ nullptr };
-    bool            m_ams_control_web_active{ !BBL_SHOW_AMS_CONTROL_CPP };
+    bool            m_ams_control_web_active{ ams_control_use_web() };
 #endif
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
