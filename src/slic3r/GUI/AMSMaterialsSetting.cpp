@@ -16,6 +16,7 @@
 #include "EncodedFilament.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include "FilamentSelectDialog.hpp"
+#include "AMSRFIDMaterialView.hpp"
 
 
 #include "DeviceCore/DevConfig.h"
@@ -45,6 +46,7 @@
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
+constexpr int RFID_READ_RESULT_DELAY_MS = 2500;
 
 static std::string float_to_string_with_precision(float value, int precision = 3)
 {
@@ -61,6 +63,56 @@ static std::string colour_to_ams_string(const wxColour& color)
     char col_buf[10];
     sprintf(col_buf, "%02X%02X%02X%02X", (int)color.Red(), (int)color.Green(), (int)color.Blue(), (int)color.Alpha());
     return col_buf;
+}
+
+static void popup_rfid_material_view_by_tray(MachineObject* machine_obj, int ams_id, int slot_id, const DevAmsTray& tray)
+{
+    if (!machine_obj) return;
+
+    wxColor color = DevAmsTray::decode_color(tray.color);
+    std::vector<wxColour> cols;
+    for (const auto& col : tray.cols) cols.push_back(DevAmsTray::decode_color(col));
+
+    wxString k_val = wxString::Format("%.3f", tray.k);
+
+    std::string sn_number;
+    if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01") {
+        sn_number = tray.uuid;
+    }
+
+    wxString total_weight;
+    wxString remain_weight;
+    if (!tray.setting_id.empty()) {
+        if (tray.weight != "-1" && tray.weight != "0") {
+            total_weight = wxString::FromUTF8(tray.weight.c_str());
+        }
+
+        if (auto weight = tray.get_filament_remain_weight(); weight.has_value() && weight.value() >= 0) {
+            remain_weight = wxString::Format("%d", *weight);
+        }
+    }
+
+    wxString color_name;
+    if (!tray.setting_id.empty()) {
+        if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
+            FilamentColor fila_color;
+            if (!cols.empty()) {
+                for (const auto& c : cols) fila_color.AddColor(c);
+            } else {
+                fila_color.AddColor(color);
+            }
+            fila_color.EndSet(static_cast<int>(tray.ctype));
+            color_name = clr_query->GetFilaColorName(wxString::FromUTF8(tray.setting_id), fila_color);
+        }
+    }
+
+    wxWindow* parent = static_cast<wxWindow*>(wxGetApp().mainframe);
+    AMSRFIDMaterialView dlg(parent, wxID_ANY);
+    dlg.Popup(machine_obj, ams_id, slot_id,
+              tray.sub_brands, color_name, color, cols,
+              static_cast<int>(tray.ctype),
+              tray.nozzle_temp_min, tray.nozzle_temp_max,
+              sn_number, k_val, total_weight, remain_weight);
 }
 
 static int filament_color_type_to_ams_ctype(FilamentColor::ColorType type, size_t color_count)
@@ -125,6 +177,8 @@ AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id)
     : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     create();
+    m_reread_result_timer.SetOwner(this);
+    Bind(wxEVT_TIMER, &AMSMaterialsSetting::on_reread_result_timer, this, m_reread_result_timer.GetId());
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
@@ -169,6 +223,15 @@ void AMSMaterialsSetting::create()
     m_button_reset->SetCornerRadius(FromDIP(12));
     m_button_reset->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_select_reset, this);
 
+    m_button_reread = new Button(this, _L("Reread"));
+    m_button_reread->SetBackgroundColor(m_btn_bg_gray);
+    m_button_reread->SetBorderColor(AMS_MATERIALS_SETTING_GREY900);
+    m_button_reread->SetTextColor(AMS_MATERIALS_SETTING_GREY900);
+    m_button_reread->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+    m_button_reread->SetCornerRadius(FromDIP(12));
+    m_button_reread->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_select_reread, this);
+    m_button_reread->Hide();
+
     m_button_close = new Button(this, _L("Close"));
     m_button_close->SetBackgroundColor(m_btn_bg_gray);
     m_button_close->SetBorderColor(AMS_MATERIALS_SETTING_GREY900);
@@ -178,6 +241,7 @@ void AMSMaterialsSetting::create()
     m_button_close->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_select_close, this);
 
     m_sizer_button->Add(m_button_reset, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
+    m_sizer_button->Add(m_button_reread, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
     m_sizer_button->Add(m_button_confirm, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
     m_sizer_button->Add(m_button_close, 0, wxALIGN_CENTER, 0);
 
@@ -550,6 +614,10 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
 
 AMSMaterialsSetting::~AMSMaterialsSetting()
 {
+    if (m_reread_result_timer.IsRunning()) {
+        m_reread_result_timer.Stop();
+    }
+    Unbind(wxEVT_TIMER, &AMSMaterialsSetting::on_reread_result_timer, this, m_reread_result_timer.GetId());
 }
 
 void AMSMaterialsSetting::update_nozzle_temp_display()
@@ -576,14 +644,25 @@ void AMSMaterialsSetting::update()
     }
 }
 
+bool AMSMaterialsSetting::can_show_reread_btn() const
+{
+    if (!obj || m_view_only) return false;
+    if (auto tray_opt = obj->get_tray(ams_id, slot_id); tray_opt.has_value()) {
+        return tray_opt->CanReadExternalRFID_TPU(obj);
+    }
+    return false;
+}
+
 void AMSMaterialsSetting::update_filament_editing(bool is_printing)
 {
+    const bool show_reread = can_show_reread_btn();
     if (is_printing) {
         enable_filament_box(obj->is_support_filament_setting_inprinting);
         m_comboBox_nozzle_type->Enable(obj->is_support_filament_setting_inprinting);
         m_comboBox_cali_result->Enable(obj->is_support_filament_setting_inprinting);
         m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
         m_button_reset->Show(obj->is_support_filament_setting_inprinting);
+        m_button_reread->Show(obj->is_support_filament_setting_inprinting && show_reread);
     }
     else {
         enable_filament_box(true);
@@ -591,6 +670,7 @@ void AMSMaterialsSetting::update_filament_editing(bool is_printing)
         m_comboBox_cali_result->Enable(true);
         m_button_reset->Show(true);
         m_button_confirm->Show(true);
+        m_button_reread->Show(show_reread);
     }
 
     if (!m_is_third) {
@@ -1317,6 +1397,69 @@ void AMSMaterialsSetting::on_select_close(wxCommandEvent &event)
     Close();
 }
 
+void AMSMaterialsSetting::on_select_reread(wxCommandEvent& event)
+{
+    if (!obj || !can_show_reread_btn()) return;
+
+    auto tray_opt = obj->get_tray(ams_id, slot_id);
+    if (tray_opt.has_value() && tray_opt->setting_id.empty() && tray_opt->m_fila_type.empty()) {
+        if (auto nozzle_opt = tray_opt->get_nozzle(obj); nozzle_opt.has_value() && !nozzle_opt->GetPreloadBindAmsSlots().empty()) {
+            wxGetApp().CallAfter([]() {
+                MessageDialog dlg(wxGetApp().mainframe, _L("Unable to read filament information.\nFilament is currently loaded in the feeding inlet. Please pull it out first and try again."),
+                                  _L("Tip"), wxOK);
+                dlg.ShowModal();
+            });
+            return;
+        }
+    }
+
+    auto token = obj->command_ams_refresh_rfid2(ams_id, slot_id);
+    if (!token || token->GetStatus() == DevCtrlTokenStatus::SendFailed) return;
+
+    m_reread_token = std::move(token); // keep token alive until delayed result check
+    m_reread_result_timer.StartOnce(RFID_READ_RESULT_DELAY_MS);
+}
+
+void AMSMaterialsSetting::on_reread_result_timer(wxTimerEvent& event)
+{
+    if (!obj) return;
+
+    auto* dev_mgr = wxGetApp().getDeviceManager();
+    MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    if (!machine_obj || machine_obj->get_dev_id() != m_popup_dev_id) {
+        m_reread_token.reset();
+        return;
+    }
+
+    auto tray_opt = machine_obj->get_tray(ams_id, slot_id);
+    if (!tray_opt.has_value()) {
+        m_reread_token.reset();
+        return;
+    }
+
+    if (tray_opt->setting_id.empty() || tray_opt->m_fila_type.empty()) {
+        MessageDialog dlg(wxGetApp().mainframe, _L("No filament information available"), _L("Tip"), wxOK);
+        dlg.ShowModal();
+        m_reread_token.reset();
+        return;
+    }
+
+    const int open_ams_id = ams_id;
+    const int open_slot_id = slot_id;
+    const std::string open_dev_id = m_popup_dev_id;
+    const auto tray_snapshot = *tray_opt;
+    wxGetApp().CallAfter([open_dev_id, open_ams_id, open_slot_id, tray_snapshot]() {
+        auto* dev_mgr = wxGetApp().getDeviceManager();
+        MachineObject* selected = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+        if (!selected || selected->get_dev_id() != open_dev_id) return;
+        popup_rfid_material_view_by_tray(selected, open_ams_id, open_slot_id, tray_snapshot);
+    });
+
+    m_reread_token.reset();
+    if (IsModal()) EndModal(wxID_OK);
+    else Close();
+}
+
 void AMSMaterialsSetting::set_color(wxColour color)
 {
     //m_clrData->SetColour(color);
@@ -1807,6 +1950,9 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n, wxString total_weight, wxString remain_weight)
 {
     if (!obj) return;
+    m_popup_dev_id = obj->get_dev_id();
+    m_reread_token.reset();
+    if (m_reread_result_timer.IsRunning()) m_reread_result_timer.Stop();
 
     BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::Popup dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
                              << ", ams_id=" << ams_id << ", slot_id=" << slot_id
@@ -2698,6 +2844,8 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
     m_filament_arrow->SetBitmap(create_scaled_bitmap("filament_select_arrow", m_filament_box, 10));
     m_button_reset->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
     m_button_reset->SetCornerRadius(FromDIP(12));
+    m_button_reread->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+    m_button_reread->SetCornerRadius(FromDIP(12));
     m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
     m_button_confirm->SetCornerRadius(FromDIP(12));
     m_button_close->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);

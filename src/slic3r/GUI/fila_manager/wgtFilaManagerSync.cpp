@@ -269,7 +269,8 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         present_now[matched->spool_id] = mu;
 
         if (tray.remain_fetch_status == DevAmsTray::RemainFetchStatus::Refreshing ||
-            tray.remain_fetch_status == DevAmsTray::RemainFetchStatus::Initializing) {
+            tray.remain_fetch_status == DevAmsTray::RemainFetchStatus::Initializing ||
+            tray.is_reading(obj)) {
             return;
         }
 

@@ -723,7 +723,7 @@ public:
                                       const std::vector<std::string>& tray_colors = {}, int tray_ctype = 2);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
-    int command_ams_refresh_rfid2(int ams_id, int slot_id);
+    std::shared_ptr<DevCtrlToken> command_ams_refresh_rfid2(int ams_id, int slot_id, int mode = 0);
     // Read all slots' RFID for one AMS (N1x Rack-B "read all"). mode: 0 =
     // indirect (only un-fed slots), 1 = active (all slots). slot_bits is
     // omitted so mode drives the selection.

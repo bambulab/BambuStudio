@@ -213,9 +213,10 @@ namespace mode {
 }
 
 namespace card_state {
-    inline constexpr const char* empty         = "Empty";
-    inline constexpr const char* reading       = "Reading";
-    inline constexpr const char* unknown       = "Unknown";
+    inline constexpr const char* empty             = "Empty";
+    inline constexpr const char* awaiting_tpu_read = "AwaitingTpuRead";
+    inline constexpr const char* reading           = "Reading";
+    inline constexpr const char* unknown           = "Unknown";
     inline constexpr const char* ready_to_load = "ReadyToLoad";
     inline constexpr const char* ready_to_use  = "ReadyToUse";
     inline constexpr const char* loading       = "Loading";

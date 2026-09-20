@@ -1826,14 +1826,41 @@ int MachineObject::command_ams_refresh_rfid(std::string tray_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_refresh_rfid2(int ams_id,  int slot_id)
+std::shared_ptr<DevCtrlToken> MachineObject::command_ams_refresh_rfid2(int ams_id,  int slot_id, int mode)
 {
+    if (auto vt_tray = m_fila_system->GetVirtualTray(ams_id); vt_tray.has_value() && vt_tray->CanReadExternalRFID_TPU(this)) {
+        if (auto nozzle_opt = vt_tray->get_nozzle(this); nozzle_opt.has_value() && nozzle_opt->GetRelatedAmsSlot().has_value()) {
+            auto related_ams_slot = nozzle_opt->GetRelatedAmsSlot();
+            ams_id = nozzle_opt->GetRelatedAmsSlot()->first;
+            slot_id = nozzle_opt->GetRelatedAmsSlot()->second;
+            mode = 1;
+        }
+    };
+
+    const std::string sequence_id = std::to_string(MachineObject::m_sequence_id++);
+
     json j;
     j["print"]["command"]       = "ams_get_rfid";
-    j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["sequence_id"]   = sequence_id;
     j["print"]["ams_id"]        = ams_id;
     j["print"]["slot_id"]       = slot_id;
-    return this->publish_json(j);
+    j["print"]["mode"]       = mode;
+
+    // Build the token before publishing so an unusually fast reply cannot arrive first.
+    const auto token = m_ctrl_token_mgr.Build(sequence_id);
+    const int  send_result = this->publish_json(j);
+    token->SetSendResult(send_result);
+
+    // Optimistic update: enter the reading state right away instead of waiting for the
+    // firmware to report it, so the card does not stay idle for a whole push cycle.
+    if (send_result == 0) {
+        if (auto tray = get_tray(ams_id, slot_id); tray.has_value()) {
+            const long long flag_bit = tray->get_tray_flag_bit();
+            if (flag_bit >= 0) { tray_reading_bits |= (1LL << flag_bit); }
+        }
+    }
+
+    return token;
 }
 
 

@@ -27840,3 +27840,16 @@ msgstr "%1% 不能超过壳体层数 (%2%)，否则涂色层将会到达稀疏�
 
 #~ msgid "Start the application"
 #~ msgstr "启动应用程序"
+
+msgid "Reread"
+msgstr "重读"
+
+msgid ""
+"Unable to read filament information.\n"
+"Filament is currently loaded in the feeding inlet. Please pull it out first and try again."
+msgstr ""
+"无法读取耗材信息。\n"
+"当前进料口中已有耗材，请先将耗材拉出后重试。"
+
+msgid "No filament information available"
+msgstr "暂无任何耗材信息"

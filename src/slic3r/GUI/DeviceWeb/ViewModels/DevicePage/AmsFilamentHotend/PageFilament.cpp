@@ -15,6 +15,8 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
+#include "slic3r/GUI/DeviceCore/DevCtrlToken.h"
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
@@ -24,8 +26,10 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <memory>
 #include <vector>
 #include <boost/format.hpp>
+#include <wx/timer.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -63,6 +67,38 @@ const char* dry_status_short_name(Slic3r::DevAms::DryStatus status)
     case Slic3r::DevAms::DryStatus::PrdTesting:                  return "Self test";
     }
     return "Idle";
+}
+
+// How long to wait for the RFID result before judging the slot as "nothing read".
+constexpr int RFID_READ_RESULT_DELAY_MS = 2500;
+
+// The read result lands in a later push_status, not in the command reply, so the outcome
+// is judged from the freshest slot snapshot. The token is only captured to keep it alive
+// until then, otherwise DevCtrlTokenMgr may drop it while the timer is still pending.
+void check_external_tpu_rfid_read_result_later(const std::string&            dev_id,
+                                  const std::string&            ams_id,
+                                  const std::string&            slot_id,
+                                  std::shared_ptr<DevCtrlToken> token)
+{
+    auto* timer = new wxTimer();
+    timer->Bind(wxEVT_TIMER, [timer, dev_id, ams_id, slot_id, token](wxTimerEvent&) {
+        timer->Stop();
+        wxGetApp().CallAfter([timer]() {
+            delete timer;
+        });
+
+        auto* dev_mgr = wxGetApp().getDeviceManager();
+        MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+        if (obj && obj->get_dev_id() == dev_id) {
+            auto tray = obj->GetFilaSystem()->GetVirtualTray(ams_id);
+            if (tray.has_value() && tray->setting_id.empty() && tray->m_fila_type.empty()) {
+                MessageDialog dlg(wxGetApp().mainframe,
+                                  _L("No filament information available"), _L("Tip"), wxOK);
+                dlg.ShowModal();
+            }
+        }
+    });
+    timer->StartOnce(RFID_READ_RESULT_DELAY_MS);
 }
 
 void open_ams_materials_setting(const std::string& ams_id, const std::string& slot_id)
@@ -204,11 +240,11 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildAmsUnitJson(MachineObject* ma
 
         std::string tray_state = SV::tray_state::ready;
         if (!tray->is_exists) tray_state = SV::tray_state::empty;
-        else if (machine_obj && tray->is_reading(machine_obj->tray_reading_bits)) tray_state = SV::tray_state::reading;
+        else if (tray->is_reading(machine_obj)) tray_state = SV::tray_state::reading;
         else if (tray->setting_id.empty() || tray->m_fila_type.empty()) tray_state = SV::tray_state::unknown;
 
         const std::string tray_ams_id = ams_unit->GetAmsId();
-        const bool is_reading_now = machine_obj && tray->is_reading(machine_obj->tray_reading_bits);
+        const bool is_reading_now = tray->is_reading(machine_obj);
         const bool tray_is_loaded = DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(machine_obj, tray);
         const bool tray_has_filament = tray->is_exists && tray_state != SV::tray_state::empty;
         const char* tray_read_label = (tray_state == SV::tray_state::unknown) ? SV::read_label::read : SV::read_label::reread; // Unknown filament type shows "Read"; known type shows "Reread".
@@ -305,7 +341,7 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
     } else if (action == "auto_refill") {
         wxGetApp().CallAfter([]() { open_auto_refill(); });
     } else if (action == "read_all_slots_rfid") {
-        // N1x Rack-B "read all": refresh every slot's RFID on each connected
+        // Rack-B "read all": refresh every slot's RFID on each connected
         // ZMULTI_B AMS. mode=1 (active, all slots); no slot_bits.
         if (machine_obj->is_in_printing() || machine_obj->is_in_upgrading()) {
             return MakeResponse(GetModule(), "action", action, 3,
@@ -319,16 +355,27 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
             }
         }
     } else if (action == "read" && fila_system && !ams_id.empty() && !slot_id.empty()) {
-        if (const auto& ams_item = fila_system->GetAmsById(ams_id)) {
-            try {
-                if (machine_obj->is_enable_np || machine_obj->is_enable_ams_np) {
-                    machine_obj->command_ams_refresh_rfid2(std::stoi(ams_id), std::stoi(slot_id));
-                } else {
-                    machine_obj->command_ams_refresh_rfid(std::to_string(ams_item->GetTrayId(std::stoi(slot_id))));
+        try {
+            if (machine_obj->is_enable_np || machine_obj->is_enable_ams_np) {
+                if (auto vt_tray = machine_obj->GetFilaSystem()->GetVirtualTray(ams_id); vt_tray.has_value() && vt_tray->CanReadExternalRFID_TPU(machine_obj)) {
+                    if (auto nozzle_opt = vt_tray->get_nozzle(machine_obj); nozzle_opt.has_value() && !nozzle_opt->GetPreloadBindAmsSlots().empty()) {
+                        wxGetApp().CallAfter([]() {
+                            MessageDialog dlg(wxGetApp().mainframe, _L("Unable to read filament information.\nFilament is currently loaded in the feeding inlet. Please pull it out first and try again."), _L("Tip"), wxOK);
+                            dlg.ShowModal();
+                        });
+                        return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
+                    }
                 }
-            } catch (const std::exception& e) {
-                return vm.MakeResponse(vm.GetModule(), "action", action, 2, e.what(), vm.BuildState());
+
+                auto token = machine_obj->command_ams_refresh_rfid2(std::stoi(ams_id), std::stoi(slot_id));
+                if (auto vt_tray = machine_obj->GetFilaSystem()->GetVirtualTray(ams_id); vt_tray.has_value() && vt_tray->CanReadExternalRFID_TPU(machine_obj)) {
+                    if (token && token->GetStatus() != DevCtrlTokenStatus::SendFailed) {
+                        check_external_tpu_rfid_read_result_later(machine_obj->get_dev_id(), ams_id, slot_id, std::move(token));
+                    }
+                };
             }
+        } catch (const std::exception& e) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, e.what(), vm.BuildState());
         }
     } else if (action == "edit" && fila_system && !ams_id.empty() && !slot_id.empty()) {
         wxGetApp().CallAfter([vm_ptr = &vm, ams_id, slot_id]() {

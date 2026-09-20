@@ -80,6 +80,10 @@ std::string DevicePageFilamentSlotStateResolver::ResolveCardState(MachineObject*
         return SV::card_state::reading;
     }
 
+    if (tray && tray->WaitReadExternalRFID_TPU(obj_)) {
+        return SV::card_state::awaiting_tpu_read;
+    }
+
     if (tray->setting_id.empty() || tray->m_fila_type.empty()) {
         return SV::card_state::unknown;
     }
@@ -161,6 +165,7 @@ std::string DevicePageFilamentSlotStateResolver::ResolveStatusText(const std::st
     if (card_state == SV::card_state::ready_to_load) return _u8L("Ready to load");
     if (card_state == SV::card_state::ready_to_use) return _u8L("Loaded");
     if (card_state == SV::card_state::empty) return "--";
+    if (card_state == SV::card_state::awaiting_tpu_read) return _u8L("TPU pending read");
     if (card_state == SV::card_state::unknown) return _u8L("Unknown filament");
     if (card_state == SV::card_state::error) return _u8L("Error");
     return "";
@@ -171,7 +176,7 @@ bool DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(MachineObject
     if (obj_ && tray) {
         if (auto nozzle_addr_opt = tray->get_nozzle_addr_id(obj_); nozzle_addr_opt.has_value()) {
             auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
-            if (nozzle_opt && nozzle_opt->GetSlotNowId().has_value()) {
+            if (nozzle_opt && nozzle_opt->GetSlotNowId().has_value() && nozzle_opt->HasFilamentInNozzle()) {
                 auto slot_now = nozzle_opt->GetSlotNowId().value();
                 if (tray->ams_type != DevAmsType::EXT_SPOOL) {
                     if (std::to_string(slot_now.first) == tray->ams_id && std::to_string(slot_now.second) == tray->id) {

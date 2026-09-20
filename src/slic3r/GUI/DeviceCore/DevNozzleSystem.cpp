@@ -240,6 +240,35 @@ bool DevNozzle::IsInBindAmsSlots(int ams_id, int slot_id) const
     return false;
 }
 
+std::optional<DevAmsSlotId> DevNozzle::GetRelatedAmsSlot() const
+{
+    auto rack = m_nozzle_rack.lock();
+    if (rack && rack->IsDirectConnectedRack() && GetAddrId().has_value()) {
+        auto fila_sys = rack->GetNozzleSystem()->GetOwner()->GetFilaSystem();
+        for (const auto& [_, ams] : fila_sys->GetAmsList()) {
+            if (ams && ams->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
+                return DevAmsSlotId{ ams->GetAmdIdInt(), GetAddrId().value() };
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::optional<DevAmsSlotId> DevNozzle::GetRelatedExtSlot() const
+{
+    auto rack = m_nozzle_rack.lock();
+    if (rack && rack->IsDirectConnectedRack() && GetAddrId().has_value()) {
+        auto fila_sys = rack->GetNozzleSystem()->GetOwner()->GetFilaSystem();
+        const int vt_tray_id = 255 - GetAddrId().value();
+        if (fila_sys->GetVirtualTray(vt_tray_id).has_value()) {
+            return DevAmsSlotId{ vt_tray_id, 0 };
+        }
+    }
+
+    return std::nullopt;
+}
+
 DevNozzle::FilamentEngagementStatus DevNozzle::GetFilamentEngagementStatus() const
 {
     if (IsEmpty()) {

@@ -143,7 +143,7 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
 
     // Any of this hotend's slots being read keeps its card spinning, preload included.
     for (const auto &[ams_id, slot_id] : CollectRefreshSlots(obj, n)) {
-        if (auto tray = obj->get_tray(ams_id, slot_id); tray.has_value() && tray->is_reading(obj->tray_reading_bits)) {
+        if (auto tray = obj->get_tray(ams_id, slot_id); tray.has_value() && tray->is_reading(obj)) {
             e.syncing = true;
             break;
         }

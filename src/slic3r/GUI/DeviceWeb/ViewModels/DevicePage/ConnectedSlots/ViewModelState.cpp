@@ -183,7 +183,7 @@ std::string tray_state_for_web(MachineObject*         obj,
                                const TrayMenuContext& ctx)
 {
     if (!tray || !tray->is_exists) return SV::tray_state::empty;
-    if (obj && tray->is_reading(obj->tray_reading_bits)) return SV::tray_state::reading;
+    if (tray->is_reading(obj)) return SV::tray_state::reading;
     if (tray->setting_id.empty() || tray->m_fila_type.empty()) return SV::tray_state::unknown;
 
     // 进退料中: only the one slot the firmware is actually moving animates. A
@@ -502,7 +502,7 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
 
     const bool has_tool            = nozzle.has_value() && nozzle->IsExist();
     const bool nozzle_has_filament = nozzle.has_value() && nozzle->HasFilamentInNozzle();
-    const bool tray_reading        = feed_tray && feed_tray->is_reading(m_obj->tray_reading_bits);
+    const bool tray_reading        = feed_tray && feed_tray->is_reading(m_obj);
     const bool loaded_in_nozzle    = DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(m_obj, feed_tray);
     const bool current_filament_changing = feed.has_value() && fila_sys->IsCurrentFilamentChangingSlot(feed->first, feed->second);
 

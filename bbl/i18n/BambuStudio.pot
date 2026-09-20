@@ -18802,3 +18802,17 @@ msgstr ""
 
 msgid "The connected printer has not reported its nozzle information, so the nozzles are left unchanged. Only the printer preset will be switched."
 msgstr ""
+
+#: src/slic3r/GUI/AMSMaterialsSetting.cpp
+msgid "Reread"
+msgstr ""
+
+#: src/slic3r/GUI/AMSMaterialsSetting.cpp src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageFilament.cpp
+msgid ""
+"Unable to read filament information.\n"
+"Filament is currently loaded in the feeding inlet. Please pull it out first and try again."
+msgstr ""
+
+#: src/slic3r/GUI/AMSMaterialsSetting.cpp src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageFilament.cpp
+msgid "No filament information available"
+msgstr ""

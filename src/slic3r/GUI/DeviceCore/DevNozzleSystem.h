@@ -199,6 +199,10 @@ public:
     // rack nozzle.
     std::vector<DevAmsSlotId> GetPreloadBindAmsSlots() const { return m_preload_bind_ams_slots; };
 
+    // M2Y
+    std::optional<DevAmsSlotId> GetRelatedAmsSlot() const; // eg. 32,0
+    std::optional<DevAmsSlotId> GetRelatedExtSlot() const; // eg. 254
+
     std::optional<DevAmsSlotId> GetSlotNowId() const { return m_slot_now; }
     std::optional<DevAmsTray> GetSlotNow() const;
 

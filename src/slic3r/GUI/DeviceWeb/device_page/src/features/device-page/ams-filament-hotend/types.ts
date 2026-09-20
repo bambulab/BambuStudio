@@ -2,6 +2,7 @@
 
 export type AmsFilamentHotendCardState =
   | 'Empty'        // 空槽:        灰盘 + 斜杠
+  | 'AwaitingTpuRead' // TPU285 外挂 RFID 待读取: 灰盘 + 刷新图标
   | 'Reading'      // 读取中:      灰盘 + 顶部 1/4 弧
   | 'Unknown'      // 未知耗材:    灰盘+浅芯+右侧缺口; 主文案 ?
   | 'ReadyToLoad'  // 已就绪待进料: 单色甜甜圈

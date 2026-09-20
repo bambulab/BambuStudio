@@ -171,7 +171,9 @@ protected:
     void apply_filament_selection();
     void on_select_ok(wxCommandEvent &event);
     void on_select_reset(wxCommandEvent &event);
+    void on_select_reread(wxCommandEvent& event);
     void on_select_close(wxCommandEvent &event);
+    void on_reread_result_timer(wxTimerEvent& event);
     void on_open_filament_select_dialog();
     void set_filament_box_text(const wxString& text);   // set the filament name shown in the jump box
     void enable_filament_box(bool enable);              // enable/disable the jump box + grey the text
@@ -179,6 +181,7 @@ protected:
     bool colour_palette_visible() const;
     void apply_dialog_size();
     void update_widgets();
+    bool can_show_reread_btn() const;
 
     void update_filament_editing(bool is_printing);
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
@@ -255,6 +258,7 @@ protected:
     StaticBox*          m_panel_temperature;
     Label*              m_nozzle_temp_label;
     Button *            m_button_reset   {nullptr};
+    Button *            m_button_reread  {nullptr};
     Button *            m_button_confirm {nullptr};
     Label*              m_tip_readonly;
     Button *            m_button_close;
@@ -285,6 +289,10 @@ protected:
     std::string                          m_selected_spool_id;
     std::string                          m_pending_spool_id;
     bool                                 m_pending_from_printer{false};
+
+    std::string                          m_popup_dev_id;
+    std::shared_ptr<DevCtrlToken>        m_reread_token;
+    wxTimer                              m_reread_result_timer;
 
     std::string  m_open_spool_id;
     wxColour     m_open_colour;

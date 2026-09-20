@@ -21121,3 +21121,16 @@ msgstr ""
 
 #~ msgid "⌥+Left mouse button"
 #~ msgstr "⌥+Left mouse button"
+
+msgid "Reread"
+msgstr "Reread"
+
+msgid ""
+"Unable to read filament information.\n"
+"Filament is currently loaded in the feeding inlet. Please pull it out first and try again."
+msgstr ""
+"Unable to read filament information.\n"
+"Filament is currently loaded in the feeding inlet. Please pull it out first and try again."
+
+msgid "No filament information available"
+msgstr "No filament information available"

@@ -25,6 +25,7 @@ namespace Slic3r
 {
 class MachineObject;
 class DevFilaSystem;
+struct DevNozzle;
 struct DevFilamentDryingPreset;
 
 class DevAmsTray
@@ -103,9 +104,13 @@ public:
     // getter
     DevAmsSlotId get_ams_slot_id() const;
 
+    // Bit index of this tray inside the MachineObject tray_xxx_bits masks. -1 when the
+    // ams type has no slot in those masks.
+    long long get_tray_flag_bit() const;
+
     // status
     bool is_tray_info_ready() const;
-    bool is_reading(long long tray_reading_bits) const;
+    bool is_reading(MachineObject* obj) const;
 
     bool is_unset_third_filament() const;
 
@@ -121,6 +126,13 @@ public:
     // extruder nozzle
     std::optional<int> get_nozzle_pos_id(MachineObject* obj) const;
     std::optional<int> get_nozzle_addr_id(MachineObject* obj) const;
+    std::optional<DevNozzle> get_nozzle(MachineObject* obj) const;
+
+    // ability
+    bool WaitReadExternalRFID_TPU(MachineObject* obj) const;
+    bool CanReadExternalRFID_TPU(MachineObject* obj) const;
+
+    bool CanResetRFID_FilamentInfo(MachineObject* obj) const;
 
     // static
     static wxColour decode_color(const std::string& color);
@@ -291,6 +303,7 @@ public:
 
     RemainEstimateVersion GetRemainEstimateVersion() const { return m_remain_estimate_version; }
     bool SupportsFilamentTabAutoReadRfid() const { return m_enable_filament_tab_auto_read_rfid; }
+    bool SupportsReadExtRfid() const { return m_support_read_ext_rfid; }
 
 private:
     std::weak_ptr<DevFilaSystem> m_fila_system;
@@ -328,6 +341,7 @@ private:
     
     RemainEstimateVersion m_remain_estimate_version = RemainEstimateVersion::Legacy;
     bool m_enable_filament_tab_auto_read_rfid = false;
+    bool m_support_read_ext_rfid = false;
 };
 
 using DevAmsZone = DevAms::DevAmsZone;

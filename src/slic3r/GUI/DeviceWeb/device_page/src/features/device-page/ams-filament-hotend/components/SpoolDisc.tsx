@@ -92,6 +92,8 @@ export function SpoolDisc({
         </text>
       )}
 
+      {state === 'AwaitingTpuRead' && <RefreshHint center={center} />}
+
       {state === 'Unknown' && (
         <image href={unknownSpoolUrl} x={0} y={0} width={SIZE} height={SIZE} preserveAspectRatio="none" />
       )}
@@ -122,6 +124,22 @@ function NotAllowedOverlay({ center }: { center: number }) {
         strokeWidth={1.6}
         strokeLinecap="round"
       />
+    </g>
+  );
+}
+
+function RefreshHint({ center }: { center: number }) {
+  const r = 8;
+  return (
+    <g
+      fill="none"
+      stroke="var(--ams-text-disabled)"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d={`M ${center - r * 0.15} ${center - r} A ${r} ${r} 0 1 1 ${center - r} ${center}`} />
+      <polyline points={`${center - r * 0.55},${center - r * 0.55} ${center - r * 0.15},${center - r} ${center + r * 0.25},${center - r * 0.55}`} />
     </g>
   );
 }

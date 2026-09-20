@@ -459,13 +459,37 @@ void AMSRFIDMaterialView::on_confirm()
 
 void AMSRFIDMaterialView::on_reset()
 {
-    MessageDialog msg_dlg(nullptr,
-        _L("Are you sure you want to clear the filament information?"),
-        wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
+    MessageDialog msg_dlg(nullptr, _L("Are you sure you want to clear the filament information?"), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
     if (msg_dlg.ShowModal() != wxID_OK) return;
 
-    reset_calibration(ams_filament_id);
+    // Check reset filament info
+    bool filament_info_reset = false;
+    if (obj) {
+        auto tray_opt = obj->get_tray(ams_id, slot_id);
+        if (tray_opt.has_value() && tray_opt->CanResetRFID_FilamentInfo(obj)) {
+            obj->command_ams_filament_settings(ams_id, slot_id, "", "", "FFFFFF00", "", 0, 0);
 
+            // Optimistic local update
+            const std::string   ams_id_str = std::to_string(ams_id);
+            auto      fila_sys   = obj->GetFilaSystem();
+            DevAmsTray*         the_tray   = nullptr;
+            if (fila_sys->IsVirtualTrayId(ams_id_str)) {
+                the_tray = fila_sys->GetVirtualTrayPtr(ams_id_str);
+            } else if (auto* ams_unit = fila_sys->GetAmsById(ams_id_str)) {
+                the_tray = ams_unit->GetTray(std::to_string(slot_id));
+            }
+
+            if (the_tray) {
+                the_tray->reset();
+                the_tray->set_hold_count();
+            }
+
+            filament_info_reset = true;
+        }
+    }
+
+    // Check reset calibration
+    reset_calibration(ams_filament_id);
     if (should_show_kn_section() && m_comboBox_cali_result) {
         int sel = CalibUtils::get_selected_calib_idx(m_pa_profile_items, -1);
         if (sel < 0) sel = 0;
@@ -474,6 +498,9 @@ void AMSRFIDMaterialView::on_reset()
         if (m_input_k_val)
             m_input_k_val->GetTextCtrl()->SetValue(k >= 0.0f ? wxString::Format("%.3f", k) : wxString());
     }
+
+    // Close the dialog
+    EndModal(wxID_OK);
 }
 
 void AMSRFIDMaterialView::on_pa_history_ready()

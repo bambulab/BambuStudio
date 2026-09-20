@@ -211,7 +211,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     const bool current_filament_changing = IsCurrentFilamentChangingSlot(machine_obj, ams_id, tray_id);
     const bool filament_changing = IsFilamentChangeActive(machine_obj);
     const bool loaded_in_nozzle = DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(machine_obj, tray);
-    const bool tray_reading = tray && machine_obj && tray->is_reading(machine_obj->tray_reading_bits);
+    const bool tray_reading = tray && tray->is_reading(machine_obj);
     const std::string card_state = DevicePageFilamentSlotStateResolver::ResolveCardState(machine_obj, tray, rack_nozzle_opt, filament_changing, current_filament_changing, tray_reading, loaded_in_nozzle);
     const std::string line_state = DevicePageFilamentSlotStateResolver::ResolveLineState(card_state, has_hotend_slot, filament_changing, current_filament_changing, loaded_in_nozzle);
     const std::string nozzle_state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(card_state, line_state, has_tool, nozzle_abnormal, nozzle_lost);
@@ -255,6 +255,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         if (slot_colors.empty() && !tray->color.empty()) slot_colors.push_back(tray->color);
         for (auto& c : slot_colors) c = normalize_hex_for_web(c);
         filament_remain = DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(tray);
+    } else if (card_state == SV::card_state::awaiting_tpu_read) {
+        slot_filament_name = DevicePageFilamentSlotStateResolver::ResolveStatusText(card_state);
     }
 
     nlohmann::json hotend = nlohmann::json::object();
@@ -394,10 +396,16 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     if (filament_changing && slot_id.has_value() && fila_sys->IsFilamentChangingSlot(slot_id->first, slot_id->second)) {
         can_read_filament = false;
     } else if (is_external_spool) {
-        can_read_filament = false;
+        auto tray_opt = fila_sys->GetVirtualTray(slot_id->first);
+        if (tray_opt && tray_opt->CanReadExternalRFID_TPU(machine_obj)) {
+            can_read_filament = true;
+        } else {
+            can_read_filament = false;
+        }
     }
 
-    bool can_load_filament = !filament_changing && line_state == SV::line_state::no_filament && card_state != SV::card_state::empty &&
+    bool can_load_filament = !filament_changing && line_state == SV::line_state::no_filament &&
+                             card_state != SV::card_state::empty && card_state != SV::card_state::awaiting_tpu_read &&
                              (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
     bool can_unload_filament = !filament_changing && line_state == SV::line_state::loaded && (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
     bool can_ams_operation = card_state != SV::card_state::empty && hotend_tool_kind == SV::tool_kind::nozzle && machine_obj->GetFilaSystem()->GetAmsList().size() > 0;

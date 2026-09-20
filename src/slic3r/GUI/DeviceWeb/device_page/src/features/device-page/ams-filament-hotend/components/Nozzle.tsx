@@ -278,7 +278,10 @@ export function Nozzle({
           </clipPath>
         </defs>
 
-        <g transform="translate(1, 8)">
+        {/* Keep the mounted-nozzle silhouette on the same visual baseline as the
+            regular nozzle branch; otherwise toggling `onExtruder` makes the row
+            look like it jumps vertically. */}
+        <g transform="translate(1, 15)">
           <path d={EXTRUDER_BODY_PATH}       fill="#C2C2C2" stroke="#858585" strokeWidth={0.55814} />
           <path d={EXTRUDER_FOOT_LEFT_PATH}  fill="#EBEBEB" stroke="#858585" strokeWidth={0.55814} />
           <path d={EXTRUDER_FOOT_RIGHT_PATH} fill="#EBEBEB" stroke="#858585" strokeWidth={0.55814} />

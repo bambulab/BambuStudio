@@ -50,7 +50,7 @@ PrebuiltNozzleInfo find_prebuilt_nozzle(const nlohmann::json& prebuilt_normal_pa
 
 nlohmann::json make_select_action(const std::string& card_state, const nlohmann::json& nozzle_section)
 {
-    const bool is_empty        = (card_state == SV::card_state::empty);
+    const bool is_empty        = (card_state == SV::card_state::empty || card_state == SV::card_state::awaiting_tpu_read);
     const bool is_ready_to_load= (card_state == SV::card_state::ready_to_load);
     const bool is_ready_to_use = (card_state == SV::card_state::ready_to_use);
     const bool is_unknown_type = (card_state == SV::card_state::unknown);
@@ -84,8 +84,11 @@ nlohmann::json make_select_action(const std::string& card_state, const nlohmann:
 
 std::string resolve_ams_slot_card_state(MachineObject* machine_obj, const DevAmsTray* tray)
 {
-    if (!tray || !tray->is_exists) return SV::card_state::empty;
-    if (machine_obj && tray->is_reading(machine_obj->tray_reading_bits)) return SV::card_state::reading;
+    if (!tray || !tray->is_exists) {
+        return SV::card_state::empty;
+    }
+
+    if (tray->is_reading(machine_obj)) return SV::card_state::reading;
     if (tray->setting_id.empty() || tray->m_fila_type.empty()) return SV::card_state::unknown;
     if (DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(machine_obj, tray)) return SV::card_state::ready_to_use;
     return SV::card_state::ready_to_load;
@@ -97,6 +100,7 @@ std::string resolve_status_text(const std::string& card_state)
     if (card_state == SV::card_state::ready_to_load) return _u8L("Ready to load");
     if (card_state == SV::card_state::ready_to_use) return _u8L("Loaded");
     if (card_state == SV::card_state::empty) return "--";
+    if (card_state == SV::card_state::awaiting_tpu_read) return _u8L("TPU pending read");
     if (card_state == SV::card_state::unknown) return _u8L("Unknown filament");
     if (card_state == SV::card_state::error) return _u8L("Error");
     return "";

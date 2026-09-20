@@ -303,6 +303,17 @@ std::optional<int> DevAmsTray::get_nozzle_pos_id(MachineObject* obj) const
     return std::nullopt;
 }
 
+std::optional<DevNozzle> DevAmsTray::get_nozzle(MachineObject* obj) const
+{
+    if (auto addr_id = get_nozzle_addr_id(obj); addr_id.has_value()) {
+        return obj->GetNozzleSystem()->GetNozzleOptByAddrId(*addr_id);
+    } else if (auto pos_id = get_nozzle_pos_id(obj); pos_id.has_value()) {
+        return obj->GetNozzleSystem()->GetNozzleOptByPosId(*pos_id);
+    }
+
+    return std::nullopt;
+}
+
 std::string DevAmsTray::get_slot_name(MachineObject* obj) const
 {
     int slot_id = 0;
@@ -381,9 +392,8 @@ DevAmsSlotId DevAmsTray::get_ams_slot_id() const
     return ams_slot_id;
 }
 
-static long long sGetAmsFlagBit(const DevAmsTray* tray) {
-    auto ams_slot_id = tray->get_ams_slot_id();
-    const auto& ams_type = tray->ams_type;
+long long DevAmsTray::get_tray_flag_bit() const {
+    auto ams_slot_id = get_ams_slot_id();
     if (ams_type == DevAmsType::AMS || ams_type == DevAmsType::AMS_LITE || ams_type == DevAmsType::N3F) {
         return ams_slot_id.first * 4 + ams_slot_id.second;
     } else if (ams_type == DevAmsType::N3S) {
@@ -399,9 +409,73 @@ static long long sGetAmsFlagBit(const DevAmsTray* tray) {
     return -1;
 }
 
-bool DevAmsTray::is_reading(long long tray_reading_bits) const
+bool DevAmsTray::is_reading(MachineObject* obj) const
 {
-    return DevUtil::get_flag_bits(tray_reading_bits, sGetAmsFlagBit(this));
+    if (obj) {
+        if (CanReadExternalRFID_TPU(obj)) {
+            if (auto nozzle_addr_opt = get_nozzle_addr_id(obj); nozzle_addr_opt.has_value()) {
+                auto nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByAddrId(*nozzle_addr_opt);
+                if (nozzle_opt.has_value() && nozzle_opt->IsExist() && nozzle_opt->IsHotend() && nozzle_opt->GetNozzleFlowType() == NozzleFlowType::T_FLOW) {
+                    auto related_ams_slot_opt = nozzle_opt->GetRelatedAmsSlot();
+                    if (related_ams_slot_opt.has_value()) {
+                        if (auto tray_opt = obj->get_tray(related_ams_slot_opt->first, related_ams_slot_opt->second); tray_opt.has_value() && tray_opt->is_reading(obj)) {
+                            return true;
+                        }
+                    }
+                };
+            }
+        }
+
+        return DevUtil::get_flag_bits(obj->tray_reading_bits, get_tray_flag_bit());
+    }
+
+    return false;
+}
+
+bool DevAmsTray::WaitReadExternalRFID_TPU(MachineObject* obj) const
+{
+    if (obj && ams_type == DevAmsType::EXT_SPOOL && (setting_id.empty() || m_fila_type.empty())) {
+        if (auto nozzle_addr_opt = get_nozzle_addr_id(obj); nozzle_addr_opt.has_value()) {
+            auto nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByAddrId(*nozzle_addr_opt);
+            if (nozzle_opt.has_value() && nozzle_opt->IsExist() && nozzle_opt->IsHotend() && nozzle_opt->GetNozzleFlowType() == NozzleFlowType::T_FLOW) {
+                for (const auto& [_, ams] : obj->GetFilaSystem()->GetAmsList()) {
+                    if (ams && ams->SupportsReadExtRfid()) {
+                        return true;
+                    }
+                }
+            };
+        }
+    }
+
+    return false;
+}
+
+bool DevAmsTray::CanReadExternalRFID_TPU(MachineObject* obj) const
+{
+    if (obj && ams_type == DevAmsType::EXT_SPOOL) {
+        if (auto nozzle_addr_opt = get_nozzle_addr_id(obj); nozzle_addr_opt.has_value()) {
+            auto nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByAddrId(*nozzle_addr_opt);
+            if (nozzle_opt.has_value() && nozzle_opt->IsExist() && nozzle_opt->IsHotend() && nozzle_opt->GetNozzleFlowType() == NozzleFlowType::T_FLOW) {
+                for (const auto& [_, ams] : obj->GetFilaSystem()->GetAmsList()) {
+                    if (ams && ams->SupportsReadExtRfid()) {
+                        return true;
+                    }
+                }
+            };
+        }
+    }
+
+    return false;
+}
+
+bool DevAmsTray::CanResetRFID_FilamentInfo(MachineObject* obj) const {
+    if (ams_type == DevAmsType::EXT_SPOOL) {
+        return true;
+    } else if (ams_type == DevAmsType::ZMULTI_B) {
+        return true;
+    }
+
+    return false;
 }
 
 DevAms::DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, DevAmsType type)
@@ -1128,15 +1202,28 @@ std::map<DevAmsSlotId, int> DevFilaSystem::GetSlot2HotendDisplayIdx() const {
 
 void DevFilaSystem::ParseVirtualTrayInfos(const json& jj)
 {
+    auto update_virtual_tray = [this](const DevAmsTray& vslot) {
+        auto current = m_vt_trays.find(vslot.id);
+        if (current != m_vt_trays.end() && current->second.hold_count > 0) {
+            current->second.hold_count--;
+            current->second.is_exists = vslot.is_exists;
+            current->second.current_extruder_id = vslot.current_extruder_id;
+            current->second.binded_extruder_set = vslot.binded_extruder_set;
+            current->second.binded_switcher_pos = vslot.binded_switcher_pos;
+            return;
+        }
+        m_vt_trays[vslot.id] = vslot;
+    };
+
     if (jj.contains("vir_slot") && jj["vir_slot"].is_array()) {
         for (auto it = jj["vir_slot"].begin(); it != jj["vir_slot"].end(); it++) {
             const auto& vslot = MachineObject::parse_vt_tray(m_owner, it.value().get<json>());
-            m_vt_trays[vslot.id] = vslot;
+            update_virtual_tray(vslot);
         }
     } else if (jj.contains("vt_tray")) {
         auto vir_main_slot = MachineObject::parse_vt_tray(m_owner, jj["vt_tray"].get<json>());
         vir_main_slot.id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
-        m_vt_trays[vir_main_slot.id] = vir_main_slot;
+        update_virtual_tray(vir_main_slot);
     }
 }
 
@@ -1281,6 +1368,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
     auto type_id = DevAmsType::AMS; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
     auto remain_estimate_version = DevAms::RemainEstimateVersion::Legacy;
     bool enable_filament_tab_auto_read_rfid = false;
+    bool support_read_ext_rfid = false;
 
     /*ams info*/
     if (j_ams.contains("info")) {
@@ -1312,6 +1400,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
 
         remain_estimate_version = static_cast<DevAms::RemainEstimateVersion>(DevUtil::get_flag_bits(info, 30, 2));
         enable_filament_tab_auto_read_rfid = DevUtil::get_flag_bits(info, 32) != 0;
+        support_read_ext_rfid = DevUtil::get_flag_bits(info, 33) != 0;
     } else {
         binded_extruder_set = { MAIN_EXTRUDER_ID }; // Default extruder id
         if (!obj->is_enable_ams_np && obj->get_printer_ams_type() == "f1") {
@@ -1345,6 +1434,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
     curr_ams->m_binded_extruder_set = binded_extruder_set;
     curr_ams->m_remain_estimate_version = remain_estimate_version;
     curr_ams->m_enable_filament_tab_auto_read_rfid = enable_filament_tab_auto_read_rfid;
+    curr_ams->m_support_read_ext_rfid = support_read_ext_rfid;
 
     // Temperature
     if (j_ams.contains("temp")) {
