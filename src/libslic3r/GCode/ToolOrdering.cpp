@@ -805,6 +805,19 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     // Collect the object extruders.
     for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
+        const size_t layer_idx = static_cast<size_t>(&layer_tools - m_layer_tools.data());
+        auto record_mixed_height = [&](unsigned int filament_1based, const LayerRegion &region) {
+            if (!mixed_slots_1based.count(filament_1based))
+                return;
+            double height = layer->height;
+            for (const AdaptiveMergePatch &patch : region.adaptive_merge_patches)
+                if (patch.group_top && !patch.area().empty())
+                    height = std::max(height, patch.merged_height);
+            if (height <= 0.)
+                return;
+            double &stored = m_mixed_layer_heights[filament_1based - 1][layer_idx];
+            stored = std::max(stored, height);
+        };
 
         // Adaptive merging leaves the swallowed grid layers in object.layers(), but moves all
         // of their extrusion to the group top. Treating those empty layers as real gaps resets
@@ -851,6 +864,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     const unsigned int wall_filament =
                         (extruder_override == 0) ? region.config().wall_filament.value : extruder_override;
                     layer_tools.extruders.emplace_back(wall_filament);
+                    record_mixed_height(wall_filament, *layerm);
                     if (layerCount == 0 || starts_at_object_base) {
                         firstLayerExtruders.emplace_back(wall_filament);
                     }
@@ -890,9 +904,12 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 }
             }
 
-            if (something_nonoverriddable)
-                for (unsigned int slot : fill_slots)
+            if (something_nonoverriddable) {
+                for (unsigned int slot : fill_slots) {
                     layer_tools.extruders.emplace_back(slot);
+                    record_mixed_height(slot, *layerm);
+                }
+            }
             if (! fill_slots.empty())
                 layer_tools.has_object = true;
         }
@@ -901,7 +918,6 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         // All mixed slots are tracked (not just gradient) so that calc_slot_lh
         // can compute accurate layer heights even when a slot skips layers.
         if (!mixed_slots_1based.empty()) {
-            size_t layer_idx = static_cast<size_t>(&layer_tools - m_layer_tools.data());
             std::set<unsigned int> seen;
             for (size_t ei = ext_snapshot; ei < layer_tools.extruders.size(); ++ei) {
                 unsigned int ext_1based = layer_tools.extruders[ei];
@@ -2940,11 +2956,18 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     // prev_print_z_for_slot stays stale. Taking the max of both gives correct lh.
     std::map<unsigned int, coordf_t> prev_relevant_z_for_slot;
 
-    // Compute the effective layer height for a mixed slot by choosing the best
-    // reference Z among: (1) the slot's own last Z, (2) the last Z where the
-    // slot's owning object had any layer, (3) the global previous Z as fallback
-    // when the slot appears for the first time.
-    auto calc_slot_lh = [&](unsigned int ext, coordf_t print_z) -> double {
+    // Prefer the logical layer or adaptive-band height recorded for the mixed slot.
+    // ExtrusionPath::height is deliberately not used: bridge flow may use the nozzle
+    // diameter as its path height even though it still belongs to a thinner layer.
+    // Fall back to the historical Z-based calculation when no band height is available.
+    auto calc_slot_lh = [&](unsigned int ext, coordf_t print_z, size_t layer_idx) -> double {
+        auto height_slot_it = m_mixed_layer_heights.find(ext);
+        if (height_slot_it != m_mixed_layer_heights.end()) {
+            auto height_it = height_slot_it->second.find(layer_idx);
+            if (height_it != height_slot_it->second.end() && height_it->second > 0.)
+                return height_it->second;
+        }
+
         auto slot_pz_it = prev_print_z_for_slot.find(ext);
         auto rel_pz_it  = prev_relevant_z_for_slot.find(ext);
         coordf_t base_z = prev_print_z;
@@ -2991,7 +3014,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
 
             // Skip sublayer splitting for the first layer to preserve bed adhesion.
             if (sublayer_enabled && layer_idx > 0) {
-                double lh = calc_slot_lh(ext, lt.print_z);
+                double lh = calc_slot_lh(ext, lt.print_z, layer_idx);
                 size_t n = s.components.size();
 
                 std::vector<double> sub_heights;
@@ -3155,7 +3178,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 // Deficit Round-Robin: pick one component per layer.
                 // Weight by layer height so volume ratios stay accurate
                 // even with adaptive layer heights.
-                double lh = calc_slot_lh(ext, lt.print_z);
+                double lh = calc_slot_lh(ext, lt.print_z, layer_idx);
                 long long lh_i = std::llround(lh * 1e6);
 
                 // For 2-component gradient on the first layer, use the gradient's

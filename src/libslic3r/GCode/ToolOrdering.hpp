@@ -430,6 +430,10 @@ private:
     // where that object uses the slot. Populated by collect_extruders, consumed by resolve_mixed_filaments.
     std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_mixed_object_layers;
 
+    // Logical layer or adaptive-band height for each mixed slot and LayerTools index.
+    // This is intentionally independent of role-specific extrusion flow heights.
+    std::map<unsigned int, std::map<size_t, double>> m_mixed_layer_heights;
+
     // 0-based mixed slots actually present in any LayerTools::extruders before resolution.
     std::vector<unsigned int> m_used_mixed_filaments;
 
