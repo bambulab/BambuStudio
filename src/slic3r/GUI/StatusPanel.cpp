@@ -6373,6 +6373,12 @@ bool StatusPanel::CanShowHotendFilamentHtmlDialog(MachineObject* obj_) const
         return false;
     }
 
+    {
+        // Open the function for special branch
+        const auto rack_type = obj_->GetNozzleRack()->GetRackType();
+        return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+    }
+
     // Beta-only opt-in: without the app config key the button never appears, so
     // release paths are byte-identical to before.
     if (wgtDeviceFilamentHotendHtmlDialog::IsEnabled()) {
