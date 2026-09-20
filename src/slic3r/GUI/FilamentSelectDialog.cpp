@@ -220,6 +220,8 @@ inline wxColour dlg_badge_bg()     { return wxGetApp().dark_mode() ? wxColour(0x
 inline wxColour dlg_search_border(){ return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(238,238,238); }
 inline wxColour dlg_text_primary()  { return wxGetApp().dark_mode() ? wxColour(0xF0,0xF0,0xF0) : AMS_MATERIALS_SETTING_GREY900; }
 inline wxColour dlg_text_secondary(){ return wxGetApp().dark_mode() ? wxColour(0xC8,0xCA,0xCC) : AMS_MATERIALS_SETTING_GREY800; }
+inline wxColour dlg_text_meta()     { return wxGetApp().dark_mode() ? wxColour(0xC8,0xCA,0xCC) : AMS_MATERIALS_SETTING_GREY700; }
+inline wxColour dlg_text_dimmed()   { return wxGetApp().dark_mode() ? wxColour(0x8A,0x8A,0x8E) : AMS_MATERIALS_SETTING_GREY300; }
 
 // recently-used spool LRU (Filament Manager spools only)
 
@@ -861,10 +863,7 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
     }
     auto* name_lbl = new Label(row, name, wxST_ELLIPSIZE_END);
     name_lbl->SetFont(Label::Body_14);
-    name_lbl->SetForegroundColour(dimmed ? AMS_MATERIALS_SETTING_GREY300 : AMS_MATERIALS_SETTING_GREY900);
-    // Cap the name column's min width so a very long custom filament name cannot
-    // inflate the row (and the scrolled list's virtual width) and push the fixed
-    // weight/badge columns out of the viewport. proportion=1 still lets it grow.
+    name_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_primary());
     name_lbl->SetMinSize(wxSize(FromDIP(120), -1));
     name_lbl->SetToolTip(name);
     h->Add(name_lbl, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -872,7 +871,7 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
     // weight — fixed min-width so the column edge is consistent across all rows
     auto* w_lbl = new Label(row, wxString::Format("%dg", spool_weight_grams(sp)));
     w_lbl->SetFont(Label::Body_14);
-    w_lbl->SetForegroundColour(dimmed ? AMS_MATERIALS_SETTING_GREY300 : AMS_MATERIALS_SETTING_GREY700);
+    w_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_meta());
     w_lbl->SetMinSize(wxSize(FromDIP(52), -1));
     h->Add(w_lbl, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
 
@@ -882,7 +881,7 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
     if (!slot.empty()) {
         auto* slot_lbl = new Label(row, slot + " " + _L("slot"));
         slot_lbl->SetFont(Label::Body_14);
-        slot_lbl->SetForegroundColour(dimmed ? AMS_MATERIALS_SETTING_GREY300 : AMS_MATERIALS_SETTING_GREY700);
+        slot_lbl->SetForegroundColour(dimmed ? dlg_text_dimmed() : dlg_text_meta());
         slot_lbl->SetMinSize(wxSize(badge_col_w, -1));
         h->Add(slot_lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, badge_margin);
     } else if (is_recent && !dimmed) {
