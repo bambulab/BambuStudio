@@ -878,10 +878,19 @@ std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std
 
 std::string GCodeWriter::retract(bool before_wipe)
 {
+    return this->retract(before_wipe, 0.);
+}
+
+// length_override > 0 retracts by that many mm instead of the filament's configured
+// retraction length. Used where a specific retraction is called for regardless of profile,
+// such as at the end of a wave-overhang line that finishes in mid-air.
+std::string GCodeWriter::retract(bool before_wipe, double length_override)
+{
     double factor = before_wipe ? filament()->retract_before_wipe() : 1.;
     assert(factor >= 0. && factor <= 1. + EPSILON);
+    const double length = length_override > 0. ? length_override : filament()->retraction_length();
     return this->_retract(
-        factor * filament()->retraction_length(),
+        factor * length,
         factor * filament()->retract_restart_extra(),
         "retract"
     );

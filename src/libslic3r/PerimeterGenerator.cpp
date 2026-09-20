@@ -9,6 +9,8 @@
 #include "CurveAnalyzer.hpp"
 #include "Clipper2Utils.hpp"
 #include "Arachne/WallToolPaths.hpp"
+#include "WaveOverhangs/WaveOverhangs.hpp"
+#include "WaveOverhangs/AndersonsGenerator.hpp"
 #include "Line.hpp"
 #include "Layer.hpp"
 #include <cmath>
@@ -846,6 +848,291 @@ static Polygons to_polygons_with_flag(const ExPolygon& src, const bool contour_f
 }
 
 
+static std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_wave_overhang_paths(
+    ExPolygons               infill_area,
+    const Polygons          &lower_slices_polygons,
+    int                      perimeter_count,
+    int                      additional_shell_count_override,
+    const PrintRegionConfig &region_config,
+    const Flow              &overhang_flow,
+    double                   scaled_resolution)
+{
+    WaveOverhangs::CommonParams params;
+    params.perimeter_count        = perimeter_count;
+    params.additional_shell_count = std::max(0, additional_shell_count_override);
+    params.line_spacing           = region_config.wave_overhang_line_spacing.value;
+    params.line_width             = overhang_flow.nozzle_diameter();  // Always match nozzle; line_width != nozzle has no sensible regime in air.
+    params.overhang_flow          = overhang_flow;
+    params.scaled_resolution      = scaled_resolution;
+    params.spacing_mode           = (region_config.wave_overhang_spacing_mode == wosmProgressive)
+                                        ? WaveOverhangs::SpacingMode::Progressive
+                                        : WaveOverhangs::SpacingMode::Uniform;
+    switch (region_config.wave_overhang_seam_mode.value) {
+    case woseAligned: params.seam_mode = WaveOverhangs::SeamMode::Aligned; break;
+    case woseRandom:  params.seam_mode = WaveOverhangs::SeamMode::Random;  break;
+    case woseAlternating:
+    default:          params.seam_mode = WaveOverhangs::SeamMode::Alternating; break;
+    }
+    params.min_length_mm        = region_config.wave_overhang_min_length.value;
+    params.max_iterations       = region_config.wave_overhang_max_iterations.value;
+    params.perimeter_overlap    = region_config.wave_overhang_perimeter_overlap.value;
+    params.minimum_wave_width   = region_config.wave_overhang_minimum_width.value;
+    params.pattern              = region_config.wave_overhang_pattern.value;
+    params.min_new_area         = region_config.wave_overhang_min_new_area.value;
+    params.use_instead_of_bridges = region_config.wave_overhangs_instead_of_bridges.value;
+    params.corner_taper_enable    = region_config.wave_overhang_corner_taper_enable.value;
+    params.line_spacing_corner    = region_config.wave_overhang_line_spacing_corner.value;
+    params.corner_taper_distance  = region_config.wave_overhang_corner_taper_distance.value;
+    params.corner_angle_threshold = region_config.wave_overhang_corner_angle_threshold.value;
+
+    // wave_overhang_min_angle is intentionally NOT enforced here. The incoming
+    // overhang region has already been classified as erOverhangPerimeter upstream
+    // by the detect_overhang_wall + overhang_reverse_threshold pipeline, which
+    // is the authoritative slope filter. Any local re-threshold we tried here
+    // (layer_height * tan(angle) envelope) was over-eager and rejected every
+    // legitimate overhang strip, because by construction the strip extends
+    // roughly one layer-height beyond the support. The config key is kept for
+    // profile compatibility and potential future use; see tooltip.
+    if (infill_area.empty())
+        return { {}, {} };
+
+    WaveOverhangs::AndersonsGenerator gen;
+    WaveOverhangs::GenerateResult res = gen.generate(infill_area, lower_slices_polygons, params);
+    return { std::move(res.paths), std::move(res.residual) };
+}
+
+// Replace any entity in `src` whose inset_idx >= preserve_outer_count AND whose bbox
+// overlaps `clip_region` by the diff of its polyline against clip_region. Entities with
+// inset_idx < preserve_outer_count are left alone (used to keep the outer N normal
+// perimeters intact at the model boundary). Closed loops that get cut become
+// ExtrusionMultiPaths; per-path role / width / height / mm³-per-mm are preserved.
+static ExtrusionEntityCollection clip_inner_perimeters_in_zone(const ExtrusionEntityCollection &src,
+                                                               const Polygons                  &clip_region,
+                                                               int                              preserve_outer_count)
+{
+    ExtrusionEntityCollection out;
+    out.no_sort = src.no_sort;
+    if (clip_region.empty()) {
+        out.append(src.entities);
+        return out;
+    }
+    BoundingBox clip_bbox = get_extents(clip_region);
+    clip_bbox.offset(SCALED_EPSILON);
+
+    auto disjoint = [&](const ExtrusionEntity *e) {
+        Points pts;
+        e->collect_points(pts);
+        if (pts.empty())
+            return true;
+        BoundingBox b(pts);
+        return !clip_bbox.overlap(b);
+    };
+
+    auto clip_paths = [&](const ExtrusionPaths &src_paths, ExtrusionPaths &dst_paths) {
+        dst_paths.reserve(dst_paths.size() + src_paths.size());
+        for (const ExtrusionPath &p : src_paths) {
+            Polylines kept = diff_pl(Polylines{p.polyline}, clip_region);
+            // Retract each kept polyline's endpoints by half a line-width. diff_pl cuts
+            // the wall centerline exactly at the clip boundary, but the physical extrusion
+            // footprint extends ~half a line-width past the centerline endpoint as a
+            // rounded cap - which was poking into the wave area as visible overlap.
+            // Shortening the centerline by half a width pulls those caps back so they end
+            // right at the clip boundary, matching the wave's extrusion edge cleanly.
+            const double half_w = scale_(double(p.width) * 0.5);
+            // Polylines shorter than 2 * half_w would be drained past empty by the
+            // chained clip_start + clip_end below: Polyline::clip_end pop_backs without
+            // re-checking emptiness on every iteration and underflows its remove_after_index
+            // counter (size_t), which surfaces non-deterministically as bad_alloc or
+            // length_error in a sibling allocation under TBB. Skip those polylines and
+            // re-check size between the two clip calls.
+            const double cap_drain_length = 2.0 * half_w + double(SCALED_EPSILON);
+            for (Polyline &pl : kept) {
+                if (pl.points.size() < 2)
+                    continue;
+                if (half_w > 0. && pl.length() <= cap_drain_length)
+                    continue;
+                pl.clip_start(half_w);
+                if (pl.points.size() < 2)
+                    continue;
+                pl.clip_end(half_w);
+                if (pl.points.size() < 2)
+                    continue;
+                ExtrusionPath np(p);
+                np.polyline = std::move(pl);
+                dst_paths.emplace_back(std::move(np));
+            }
+        }
+    };
+
+    for (const ExtrusionEntity *ent : src.entities) {
+        if (!ent)
+            continue;
+        // Preserve the outer N *numbered* perimeters (inset_idx 0..N-1) intact. Entities
+        // with inset_idx = -1 are gap-fill / thin-wall / uncategorised extrusions; those
+        // fall through to the normal clip so anything of theirs inside the wave-covered
+        // overhang gets carved out just like inner perimeters.
+        if (ent->inset_idx >= 0 && ent->inset_idx < preserve_outer_count) {
+            out.append(*ent);
+            continue;
+        }
+        if (disjoint(ent)) {
+            out.append(*ent);
+            continue;
+        }
+        if (const ExtrusionLoop *loop = dynamic_cast<const ExtrusionLoop*>(ent)) {
+            ExtrusionPaths kept_paths;
+            clip_paths(loop->paths, kept_paths);
+            if (kept_paths.empty())
+                continue;
+            ExtrusionMultiPath mp(std::move(kept_paths));
+            mp.inset_idx = ent->inset_idx;
+            out.append(std::move(mp));
+        } else if (const ExtrusionMultiPath *mp = dynamic_cast<const ExtrusionMultiPath*>(ent)) {
+            ExtrusionPaths kept_paths;
+            clip_paths(mp->paths, kept_paths);
+            if (kept_paths.empty())
+                continue;
+            ExtrusionMultiPath new_mp(std::move(kept_paths));
+            new_mp.inset_idx = ent->inset_idx;
+            out.append(std::move(new_mp));
+        } else if (const ExtrusionPath *path = dynamic_cast<const ExtrusionPath*>(ent)) {
+            Polylines kept = diff_pl(Polylines{path->polyline}, clip_region);
+            for (Polyline &pl : kept) {
+                if (pl.points.size() < 2)
+                    continue;
+                ExtrusionPath np(*path);
+                np.polyline = std::move(pl);
+                np.inset_idx = ent->inset_idx;
+                out.append(std::move(np));
+            }
+        } else if (const ExtrusionEntityCollection *coll = dynamic_cast<const ExtrusionEntityCollection*>(ent)) {
+            // Recurse into nested collections (Arachne occasionally wraps groups of
+            // gap-fill / thin-wall paths in a sub-collection). Without recursion any
+            // paths inside would fall through the `else` at the bottom and be preserved
+            // verbatim - leaving visible crosshatch fragments at overhang corners.
+            ExtrusionEntityCollection clipped = clip_inner_perimeters_in_zone(*coll, clip_region, preserve_outer_count);
+            if (!clipped.empty())
+                out.append(std::move(clipped));
+        } else {
+            out.append(*ent);
+        }
+    }
+    return out;
+}
+
+// Replace the unsupported part of one island with the wave pattern, keeping the
+// outermost N walls, and carve the covered area out of the fill surfaces so the
+// infill generator does not also fill it.
+//
+// Called from both perimeter generators immediately after the island's infill area
+// has been appended to fill_surfaces, at which point loops->entities.back() is this
+// island's perimeter collection.
+void PerimeterGenerator::apply_wave_overhangs(const ExPolygon &island_region)
+{
+    if (! this->config->wave_overhangs)
+        return;
+    if (m_spiral_vase || this->lower_slices == nullptr || ! this->config->detect_overhang_wall ||
+        this->config->wall_loops <= 0 || this->layer_id <= this->object_config->raft_layers)
+        return;
+    if (this->loops->entities.empty())
+        return;
+
+    // wave_overhang_outer_perimeters = N means "keep N outermost normal walls inside
+    // the overhang zone, replace the rest with wave". Cap N at the number of walls this
+    // layer will actually generate: if the user asks for more walls than exist, the wave
+    // should start where the walls end, not further in. Topmost layers reduced to a
+    // single wall by top_one_wall_type pull the cap down to 1, matching the condition
+    // used when those walls are generated.
+    const int  wave_outer           = std::max(0, this->config->wave_overhang_outer_perimeters.value);
+    int        effective_wall_loops = this->config->wall_loops;
+    const bool is_topmost_layer     = (this->upper_slices == nullptr);
+    if (is_topmost_layer && this->object_config->top_one_wall_type != TopOneWallType::None && effective_wall_loops > 1)
+        effective_wall_loops = 1;
+    const int effective_outer = std::min(wave_outer, effective_wall_loops);
+
+    // Position the wave's outer boundary one perimeter spacing per preserved wall inward
+    // from the island boundary, so the wave's outermost line touches wall N-1's extrusion.
+    // That contact is the physical bond; adding clearance here has broken prints before.
+    const float inset = effective_outer > 0
+        ? float(this->perimeter_flow.scaled_spacing()) * float(effective_outer)
+        : 0.0f;
+    ExPolygons wave_infill = effective_outer > 0
+        ? offset_ex(ExPolygons{island_region}, -inset)
+        : ExPolygons{island_region};
+
+    // Only process_arachne() fills m_lower_slices_polygons; process_classic() leaves it
+    // empty because nothing else in that path reads it. Derive it here when it is missing,
+    // so the wave behaves the same under both wall generators. Same expression as the
+    // Arachne one: the lower slices grown by half a nozzle, i.e. the area where the whole
+    // nozzle is still supported.
+    Polygons lower_grown = this->lower_slices_polygons();
+    if (lower_grown.empty() && this->lower_slices != nullptr) {
+        const double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->wall_filament - 1);
+        lower_grown = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
+    }
+
+    auto [wave_paths, filled_area] = generate_wave_overhang_paths(
+        wave_infill, lower_grown, this->config->wall_loops,
+        /*additional_shell_count=*/0, *this->config, this->overhang_flow, this->m_scaled_resolution);
+    if (wave_paths.empty())
+        return;
+
+    // Wave lines hang in air rather than being squished against the layer below, so their
+    // flow is independent of layer height and comes straight from the config.
+    const double flow_mm3_per_mm = this->config->wave_overhang_flow_mm3_per_mm.value;
+    for (ExtrusionPaths &region : wave_paths)
+        for (ExtrusionPath &path : region)
+            if (path.wave_overhang)
+                path.mm3_per_mm = flow_mm3_per_mm;
+
+    ExtrusionEntityCollection *islands_perimeters = static_cast<ExtrusionEntityCollection *>(this->loops->entities.back());
+    ExtrusionEntityCollection  new_perimeters{};
+    new_perimeters.no_sort = islands_perimeters->no_sort;
+    for (const ExtrusionPaths &paths : wave_paths)
+        new_perimeters.append(paths);
+
+    // Clip the inner walls across the whole geometric overhang zone rather than only where
+    // the wave actually reached: the wave rounds off sharp convex tips that the walls wrap
+    // all the way into, which would otherwise leave wall fragments overlapping the wave.
+    // Use the raw lower slices, not the nozzle-grown ones, so the anchor band where the
+    // wave extrudes into supported material is covered too.
+    const Polygons island_polys  = to_polygons(ExPolygons{island_region});
+    const Polygons lower_raw     = to_polygons(*this->lower_slices);
+    const Polygons overhang_zone = diff(island_polys, lower_raw);
+    if (! filled_area.empty()) {
+        const coord_t  anchor_margin = coord_t(this->perimeter_flow.scaled_spacing() * 1.5);
+        const Polygons clip_region   = expand(overhang_zone, anchor_margin, jtRound, 0.);
+        ExtrusionEntityCollection clipped = clip_inner_perimeters_in_zone(*islands_perimeters, clip_region, wave_outer);
+        new_perimeters.append(std::move(clipped.entities));
+    } else {
+        new_perimeters.append(islands_perimeters->entities);
+    }
+    islands_perimeters->swap(new_perimeters);
+
+    // Carve the fill surfaces by the geometric overhang zone rather than the wave's own
+    // reported area. The wave sees lower slices grown by nozzle/2, so its area stops short
+    // of the true unsupported edge and a thin strip would fall through as a bridge surface
+    // overlapping the wave. Dilating by 1.25 line widths also offsets the fill generator's
+    // end-of-line overshoot, which would otherwise run top fill through the wave's rings.
+    Polygons fill_carve = filled_area;
+    if (! overhang_zone.empty()) {
+        const coord_t fill_overshoot_compensation = coord_t(this->overhang_flow.scaled_width() * 1.25);
+        fill_carve = expand(overhang_zone, fill_overshoot_compensation, jtRound, 0.);
+    }
+
+    SurfaceCollection orig_surfaces = *this->fill_surfaces;
+    this->fill_surfaces->clear();
+    for (const auto &surface : orig_surfaces.surfaces) {
+        ExPolygons new_surfaces = diff_ex({surface.expolygon}, fill_carve);
+        this->fill_surfaces->append(new_surfaces, surface);
+    }
+
+    // Hand the footprint up to the Layer so the surface-classification passes can promote
+    // the floor layers above, and so the support generator can subtract what the wave covered.
+    append(this->out_wave_overhang_floor_polygons,   fill_carve);
+    append(this->out_wave_overhang_covered_polygons, fill_carve);
+}
+
 void PerimeterGenerator::process_classic()
 {
     // other perimeters
@@ -1414,6 +1701,10 @@ void PerimeterGenerator::process_classic()
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
+        // Wave overhangs: runs after the infill area is in fill_surfaces, so it can carve
+        // the wave's footprint back out of it.
+        this->apply_wave_overhangs(surface.expolygon);
+
         // BBS: get the no-overlap infill expolygons
         {
             ExPolygons polyWithoutOverlap;
@@ -1804,6 +2095,10 @@ void PerimeterGenerator::process_arachne()
         const auto    min_perimeter_infill_spacing = coord_t(solid_infill_spacing * (1. - INSET_OVERLAP_TOLERANCE));
         // append infill areas to fill_surfaces
         add_infill_contour_for_arachne(infill_contour, loop_number, ext_perimeter_spacing, perimeter_spacing, min_perimeter_infill_spacing, spacing, false);
+
+        // Wave overhangs: same placement as in process_classic, after the island's infill
+        // area has been appended to fill_surfaces.
+        this->apply_wave_overhangs(surface.expolygon);
 
     }
 }

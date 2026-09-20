@@ -315,6 +315,16 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
                     BOOST_LOG_TRIVIAL(error) << "CoolingBuffer encountered an invalid toolchange, maybe from a custom gcode: " << sline;
             }
 
+        } else if (boost::starts_with(sline, ";_WAVE_OVERHANG_FAN_START")) {
+            // ";_WAVE_OVERHANG_FAN_START <main> <aux>" — each 0-100, or -1 for no override.
+            line.type = CoolingLine::TYPE_WAVE_OVERHANG_FAN_START;
+            int main_pct = -1, aux_pct = -1;
+            if (sscanf(sline.c_str() + strlen(";_WAVE_OVERHANG_FAN_START"), "%d %d", &main_pct, &aux_pct) >= 1) {
+                line.wave_overhang_fan_percent     = main_pct;
+                line.wave_overhang_aux_fan_percent = aux_pct;
+            }
+        } else if (boost::starts_with(sline, ";_WAVE_OVERHANG_FAN_END")) {
+            line.type = CoolingLine::TYPE_WAVE_OVERHANG_FAN_END;
         } else if (boost::starts_with(sline, ";_OVERHANG_FAN_START")) {
             line.type = CoolingLine::TYPE_OVERHANG_FAN_START;
         } else if (boost::starts_with(sline, ";_OVERHANG_FAN_END")) {
@@ -531,6 +541,24 @@ std::string GCodeEditor::write_layer_gcode(
                 search_time                 = 0.f;
             }
             new_gcode.append(line_start, line_end - line_start);
+        } else if (line->type & CoolingLine::TYPE_WAVE_OVERHANG_FAN_START) {
+            // Wave overhangs carry their own fan pair. The main fan is applied
+            // unconditionally rather than only when it would increase, because a wave may
+            // legitimately want less cooling than the surrounding print. The auxiliary fan
+            // is gated on the printer actually having one.
+            if (line->wave_overhang_fan_percent >= 0) {
+                m_current_fan_speed = line->wave_overhang_fan_percent;
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
+            }
+            if (line->wave_overhang_aux_fan_percent >= 0 && m_config.auxiliary_fan.value)
+                new_gcode += GCodeWriter::set_additional_fan(line->wave_overhang_aux_fan_percent);
+        } else if (line->type & CoolingLine::TYPE_WAVE_OVERHANG_FAN_END) {
+            // Restore the layer's fan speed; the auxiliary fan returns to its configured value.
+            m_current_fan_speed = m_fan_speed;
+            new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+            // EXTRUDER_CONFIG is #undef'd above this point, so spell the lookup out.
+            if (m_config.auxiliary_fan.value)
+                new_gcode += GCodeWriter::set_additional_fan(m_config.additional_cooling_fan_speed.get_at(m_current_extruder));
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
             if (overhang_fan_control && m_current_fan_speed < overhang_fan_speed) {
                 //BBS

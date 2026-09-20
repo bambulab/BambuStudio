@@ -92,6 +92,11 @@ set(lisbslic3r_sources
     Extruder.hpp
     ExtrusionEntity.cpp
     ExtrusionEntity.hpp
+    WaveOverhangs/WaveOverhangs.cpp
+    WaveOverhangs/WaveOverhangs.hpp
+    WaveOverhangs/IGenerator.hpp
+    WaveOverhangs/AndersonsGenerator.cpp
+    WaveOverhangs/AndersonsGenerator.hpp
     ExtrusionEntityCollection.cpp
     ExtrusionEntityCollection.hpp
     ExtrusionSimulator.cpp

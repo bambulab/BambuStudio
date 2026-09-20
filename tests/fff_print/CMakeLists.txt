@@ -38,11 +38,20 @@ add_executable(wave_overhang_infra_tests
 	fff_print_tests.cpp
 	test_extrusion_entity.cpp
 	test_gcodewriter_travel.cpp
+	test_wave_overhangs.cpp
+	test_wave_overhangs_gcode.cpp
+	test_data.cpp
 	)
 target_link_libraries(wave_overhang_infra_tests test_common libslic3r
 	libcurl
 	OpenSSL::SSL OpenSSL::Crypto
 )
+if (WIN32)
+	# libslic3r reaches Windows' CNG through boost's UUID generator. Without this the
+	# BCrypt* imports stay unresolved and, since the link is forced through below, calling
+	# them faults at runtime rather than failing to link.
+	target_link_libraries(wave_overhang_infra_tests bcrypt)
+endif()
 if (MSVC)
 	# Same rationale as support_material_on_wipe_tower_tests: libslic3r pulls in
 	# crypto entry points that only the application supplies.
