@@ -1855,6 +1855,35 @@ void GLCanvas3D::reset_volumes(bool set_notice)
     if (set_notice) { _set_warning_notification(EWarning::ObjectOutside, false); }
 }
 
+// A GLVolume locates its ModelVolume by composite_id, which stores the plain index of the
+// ModelObject in Model::objects. Model::delete_object(obj_idx) shifts every object after obj_idx
+// down by one, but the volumes on screen survive that call: they are only rebuilt by the next
+// reload_scene(). Operations that rewrite the Model inline, such as the cut, pump the event loop and
+// so do get rendered in between, with composite_id resolving onto the wrong ModelObject.
+//
+// Call this right before Model::delete_object(). reload_scene() rewrites composite_id anyway, so
+// callers that reload before the next frame do not need it.
+void GLCanvas3D::reindex_volumes_for_object_removal(int obj_idx)
+{
+    for (GLVolume *volume : m_volumes.volumes) {
+        // The wipe tower encodes 1000 + plate_id in object_id, it does not index the Model.
+        if (volume == nullptr || volume->is_wipe_tower)
+            continue;
+        if (volume->composite_id.object_id == obj_idx) {
+            // No ModelVolume left to point at, so there is no index to correct. Detaching makes
+            // render() keep drawing what is already uploaded, instead of rebuilding the MMU meshes
+            // from whichever object takes this index - geometry it would still draw with this
+            // volume's own matrix. reload_scene() drops the volume later, or reattaches it if an
+            // undo brings the original ModelVolume back.
+            volume->mmuseg_detached_from_model = true;
+        } else if (volume->composite_id.object_id > obj_idx) {
+            // This volume's ModelObject moves down one slot, so the index has to follow it, the same
+            // way PartPlateList::notify_instance_removed() moves the plate membership along.
+            -- volume->composite_id.object_id;
+        }
+    }
+}
+
 //BBS: get current plater's bounding box
 BoundingBoxf3 GLCanvas3D::_get_current_partplate_print_volume()
 {

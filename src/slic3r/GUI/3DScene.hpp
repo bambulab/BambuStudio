@@ -469,6 +469,10 @@ public:
     // BBS
     mutable std::vector<GLIndexedVertexArray> mmuseg_ivas;
     mutable ObjectBase::Timestamp       mmuseg_ts;
+    // Set while the Model this volume indexes into is being rewritten (cut): composite_id then
+    // resolves to a different ModelVolume, so the MMU meshes must not be rebuilt from it. The volume
+    // keeps drawing the colors already uploaded until the next reload_scene() drops it.
+    bool                                mmuseg_detached_from_model{false};
 
     // Ranges of triangle and quad indices to be rendered.
     std::pair<size_t, size_t>   tverts_range;

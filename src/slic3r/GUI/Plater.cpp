@@ -23082,15 +23082,20 @@ void Plater::segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha
 
 void Plater::apply_cut_object_to_model(size_t obj_idx, const ModelObjectPtrs &cut_objects)
 {
+    // The GLVolumes of the scene stay on screen until load_model_objects() refreshes it at its very
+    // end, and the steps in between pump the event loop, so they do get rendered against the Model
+    // rewritten below. Bring their indices forward before it changes under them.
+    if (GLCanvas3D *canvas = p->view3D->get_canvas3d())
+        canvas->reindex_volumes_for_object_removal((int) obj_idx);
+
     model().delete_object(obj_idx);
     sidebar().obj_list()->delete_object_from_list(obj_idx);
     p->partplate_list.notify_instance_removed(obj_idx, -1);
 
     // suppress to call selection update for Object List to avoid call of early Gizmos on/off update
+    // load_model_objects() ends with its own update(), so the 3d scene is current from here on.
     p->load_model_objects(cut_objects, false, false);
 
-    // now process all updates of the 3d scene
-    update();
     // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
     // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
     for (size_t idx = 0; idx < p->model.objects.size(); idx++) wxGetApp().obj_list()->update_info_items(idx);

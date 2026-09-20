@@ -874,6 +874,10 @@ public:
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes(bool set_notice = true);
+    // Keep the GLVolumes usable across a Model::delete_object(obj_idx) that the scene has not been
+    // reloaded for yet. Call it right before the deletion; see the definition for what it does and
+    // when it is needed.
+    void reindex_volumes_for_object_removal(int obj_idx);
     ModelInstanceEPrintVolumeState check_volumes_outside_state(ObjectFilamentResults* object_results = nullptr) const;
     bool is_all_plates_selected() { return m_sel_plate_toolbar.m_all_plates_stats_item && m_sel_plate_toolbar.m_all_plates_stats_item->selected; }
     bool is_volumes_selected_and_sinking() const;

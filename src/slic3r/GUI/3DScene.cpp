@@ -864,6 +864,13 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
             if (disable_mmu_colors)
                 break;
 
+            if (mmuseg_detached_from_model) {
+                // Keep the colors already uploaded instead of resolving composite_id onto whatever
+                // sits at that index now that the Model has moved on.
+                color_volume = !mmuseg_ivas.empty();
+                break;
+            }
+
             if ((!printable) || object_idx() >= model_objects.size())
                 break;
 
@@ -915,9 +922,14 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
 
                 if (shader) {
                     if (idx == 0) {
-                        ModelObject* mo = model_objects[object_idx()];
-                        ModelVolume* mv = mo->volumes[volume_idx()];
-                        int extruder_id = mv->extruder_id();
+                        // While detached, composite_id must not be used to index the Model at all;
+                        // GLVolume::extruder_id is the copy reload_scene() keeps in sync.
+                        int extruder_id = this->extruder_id;
+                        if (!mmuseg_detached_from_model) {
+                            ModelObject* mo = model_objects[object_idx()];
+                            ModelVolume* mv = mo->volumes[volume_idx()];
+                            extruder_id = mv->extruder_id();
+                        }
                         //to make black not too hard too see
                         if (extruder_id <= 0) { extruder_id = 1; }
                         if (extruder_id > (int)cp_colors.size()) { extruder_id = 1; }
@@ -1132,6 +1144,13 @@ void GLVolume::simple_render(const std::shared_ptr<GLShaderProgram>& shader, Mod
     ModelObject* model_object = nullptr;
     ModelVolume* model_volume = nullptr;
     do {
+        if (mmuseg_detached_from_model) {
+            // Same as in render(): the Model no longer matches composite_id, so keep what is already
+            // uploaded rather than rebuilding from a different ModelVolume.
+            color_volume = !mmuseg_ivas.empty();
+            break;
+        }
+
         if ((!printable) || object_idx() >= model_objects.size())
             break;
         model_object = model_objects[object_idx()];
@@ -1165,7 +1184,8 @@ void GLVolume::simple_render(const std::shared_ptr<GLShaderProgram>& shader, Mod
 
             if (shader) {
                 if (idx == 0) {
-                    int extruder_id = model_volume->extruder_id();
+                    // model_volume stays null while detached from the Model, see above.
+                    int extruder_id = model_volume != nullptr ? model_volume->extruder_id() : this->extruder_id;
                     if (extruder_id <= 0) { extruder_id = 1; }
                     //to make black not too hard too see
                     if (extruder_id > (int)extruder_colors.size()) { extruder_id = 1; }
