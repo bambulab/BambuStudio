@@ -1009,24 +1009,36 @@ void _arrange(
                 auto rotsh = itm.rawShape();
                 sl::rotate(rotsh, angle);
                 bb = sl::boundingBox(rotsh);
-                bp2d::Coord infl = std::min(original_infl, static_cast<bp2d::Coord>(std::floor(std::min(pure_bin_width - bb.width(), pure_bin_height - bb.height())) / 2.0));
 
-                // check and correct the inflation
-                if (infl > 0 && infl < original_infl){
-                    sl::offset(rotsh, infl);
-                    auto box = sl::boundingBox(rotsh);
-                    auto diff_w = box.width() - pure_bin_width;
-                    auto diff_h = box.height() - pure_bin_height;
-                    if (diff_w > 1 || diff_h > 1)
-                    {
-                        infl -= static_cast<bp2d::Coord>(std::max(diff_w, diff_h));
+                bp2d::Coord infl;
+                if (params.is_seq_print) {
+                    // bin is already inflated by min_obj_distance/2 per side to host this
+                    // inflation; shrinking the inflation overflows the plate and eats
+                    // object clearance. pure_bin is the real plate for seq_print.
+                    if (bb.width() > pure_bin_width + 1 || bb.height() > pure_bin_height + 1)
+                        continue;
+                    infl = original_infl;
+                } else {
+                    infl = std::min(original_infl, static_cast<bp2d::Coord>(std::floor(std::min(pure_bin_width - bb.width(), pure_bin_height - bb.height())) / 2.0));
+
+                    // check and correct the inflation
+                    if (infl > 0 && infl < original_infl){
+                        sl::offset(rotsh, infl);
+                        auto box = sl::boundingBox(rotsh);
+                        auto diff_w = box.width() - pure_bin_width;
+                        auto diff_h = box.height() - pure_bin_height;
+                        if (diff_w > 1 || diff_h > 1)
+                        {
+                            infl -= static_cast<bp2d::Coord>(std::max(diff_w, diff_h));
+                        }
+                    }
+
+                    if (infl >= 0 && params.bed_shrink_x < 0) {
+                        infl = std::max(infl,(bp2d::Coord) scale_(-params.bed_shrink_x));
                     }
                 }
 
                 if (infl >= 0) {
-                    if (params.bed_shrink_x < 0) {
-                        infl = std::max(infl,(bp2d::Coord) scale_(-params.bed_shrink_x));
-                    }
                     itm.allowed_rotations.push_back({angle, infl});
                 }
             }
