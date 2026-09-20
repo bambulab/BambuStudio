@@ -310,6 +310,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/TickCode.hpp
     GUI/Tab.cpp
     GUI/Tab.hpp
+    GUI/SupportComboAdvisor.cpp
+    GUI/SupportComboAdvisor.hpp
     GUI/ParamsDialog.cpp
     GUI/ParamsDialog.hpp
     GUI/ParamsPanel.cpp

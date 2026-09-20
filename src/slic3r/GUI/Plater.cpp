@@ -125,6 +125,7 @@
 #include "IMSlider.hpp"
 #include "Mouse3DController.hpp"
 #include "Tab.hpp"
+#include "SupportComboAdvisor.hpp"
 #include "Jobs/OrientJob.hpp"
 #include "Jobs/ArrangeJob.hpp"
 #include "Jobs/FillBedJob.hpp"
@@ -6236,6 +6237,11 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
 
     if (!confirm_delete_used_filament(filament_id, replace_filament_id)) return;
 
+    // The delete erases every object-level support_interface_filament override naming this slot,
+    // after which "had one, wiped" and "never had one" look the same. Record the per-object combo
+    // state while it is still readable; the recheck queued at the end consumes it.
+    capture_object_support_combo_snapshot();
+
     if (!is_mixed) {
         if (wxGetApp().preset_bundle->is_the_only_edited_filament(filament_id) || (filament_id == 0)) {
             wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", true);
@@ -6259,6 +6265,11 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
     wxGetApp().plater()->update();
+
+    // Deleting a filament remaps support_interface_filament (reset to Default, or shifted down)
+    // without going through Tab::on_value_change(). Queued: the wxBusyCursor above is still alive
+    // and the recheck may raise a modal dialog.
+    Tab::schedule_support_interface_combo_recheck();
 }
 
 void Sidebar::change_filament(size_t from_id, size_t to_id)
@@ -18978,6 +18989,13 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
     if (view3D && view3D->get_canvas3d())
         view3D->get_canvas3d()->update_all_objects_unprintable_warning();
+
+    // The combo baseline belongs to the plate it was taken on. Re-seed silently on a real plate
+    // switch, so the first change made on the new plate is not swallowed by the plate guard.
+    // Guarded by only_if_plate_changed: this event also fires for re-selections.
+    if (auto *tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+        tab->refresh_support_interface_combo_baseline(true);
+
     // The flagged-slot notifications describe the selected plate, so they follow it.
     sidebar->update_incompatible_nozzle_notifications();
 }
