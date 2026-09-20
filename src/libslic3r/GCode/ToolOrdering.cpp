@@ -806,8 +806,12 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
 
-        m_object_all_layer_indices[&object].push_back(
-            static_cast<size_t>(&layer_tools - m_layer_tools.data()));
+        // Adaptive merging leaves the swallowed grid layers in object.layers(), but moves all
+        // of their extrusion to the group top. Treating those empty layers as real gaps resets
+        // gradient runs and makes the mixed sublayer height fall back to one grid step.
+        if (layer->has_extrusions())
+            m_object_all_layer_indices[&object].push_back(
+                static_cast<size_t>(&layer_tools - m_layer_tools.data()));
 
         // Override extruder with the next
     	for (; it_per_layer_extruder_override != per_layer_extruder_switches.end() && it_per_layer_extruder_override->first < layer->print_z + EPSILON; ++ it_per_layer_extruder_override)
@@ -2799,10 +2803,10 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     for (size_t i = 0; i < is_mixed.size(); ++i)
         if (is_gradient[i]) gradient_runs[static_cast<unsigned int>(i)] = {};
 
-    // Build per-slot sets of all layer indices where any slot-owning object has a
-    // layer.  Used by gradient run detection (a gap is real only if the slot is
-    // absent at a layer belonging to one of its own objects) and by calc_slot_lh
-    // to keep prev_relevant_z_for_slot current even when a slot skips many layers.
+    // Build per-slot sets of all layer indices where any slot-owning object has
+    // actual extrusion. Used by gradient run detection (a gap is real only if the
+    // slot is absent while one of its objects prints something) and by calc_slot_lh
+    // to keep prev_relevant_z_for_slot current across genuine material gaps.
     std::map<unsigned int, std::set<size_t>> slot_relevant_layers;
     for (auto &[slot_idx, obj_map] : m_mixed_object_layers) {
         for (auto &[obj, _] : obj_map) {
@@ -2852,8 +2856,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     };
 
     // Detect whether a gap between two consecutive gradient-slot appearances is a
-    // real run break.  A gap is real only if the object has its own layer inside the
-    // gap that does NOT use the gradient slot (i.e. the slot was genuinely absent).
+    // real run break. A gap is real only if the object has extrusion inside the gap
+    // that does NOT use the gradient slot (i.e. the slot was genuinely absent).
     // Uses lower_bound to skip global indices that don't belong to the object.
     auto has_real_gap = [](size_t prev_idx, size_t cur_idx,
                            const std::set<size_t>& obj_set,
@@ -2930,9 +2934,9 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     // slot's own previous appearance, not from a global Z that may include layers
     // belonging only to other objects with different layer heights.
     std::map<unsigned int, coordf_t> prev_print_z_for_slot;
-    // Track the last Z where a slot-owning object had ANY layer (regardless of
+    // Track the last Z where a slot-owning object had any extrusion (regardless of
     // whether the slot was present). Used to detect genuine gaps: if the slot was
-    // absent but its owner objects had layers, prev_relevant_z advances while
+    // absent but its owner objects printed, prev_relevant_z advances while
     // prev_print_z_for_slot stays stale. Taking the max of both gives correct lh.
     std::map<unsigned int, coordf_t> prev_relevant_z_for_slot;
 

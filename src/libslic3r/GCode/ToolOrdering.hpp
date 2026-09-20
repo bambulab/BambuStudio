@@ -433,9 +433,9 @@ private:
     // 0-based mixed slots actually present in any LayerTools::extruders before resolution.
     std::vector<unsigned int> m_used_mixed_filaments;
 
-    // All layer indices (in m_layer_tools) where each object has any layer.
-    // Used by gradient run detection to distinguish real gaps (object has a layer
-    // that doesn't use the slot) from spurious gaps (another object's layer).
+    // All layer indices (in m_layer_tools) where each object has actual extrusion.
+    // Used by gradient run detection to distinguish real gaps from layers belonging
+    // only to another object or empty grid layers swallowed by adaptive merging.
     std::map<const PrintObject*, std::vector<size_t>> m_object_all_layer_indices;
 
     // Per-volume gradient tracking: slot(0-based) -> (PrintObject*, ModelVolume id) -> list of
