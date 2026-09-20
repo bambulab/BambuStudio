@@ -3,7 +3,7 @@ import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
 import { useSendToCpp } from '../../../hooks/Bridge';
 import { useAmsControlWebBridge } from './useAmsControlWebBridge';
 import './ams-control-web.css';
-import { CONTENT_WIDTH, DOWN_ROAD, MIXED_EXT_WIDTH, MIXED_LITE_WIDTH, PREVIEW_BODY_GAP, PREVIEW_STRIP, UNIT_BODY, px } from './dip';
+import { COLORS, CONTENT_WIDTH, DOWN_ROAD, MIXED_EXT_WIDTH, MIXED_LITE_WIDTH, PREVIEW_BODY_GAP, PREVIEW_STRIP, UNIT_BODY, px } from './dip';
 import { extruderIconName, extrudersLeftToRight, unitSlotLayout } from './displayAdapters';
 import { SINGLE_EXT_ELBOW, amsControlWebContentHeight, extPanelWidth, isFilamentRoadActive, nozzleIconLefts, nozzleInletX, overlayStageHeight, roadExtruderId, snapRoadX, unitWidth } from './geometry';
 import type { PanelView, PreviewItem, SlotLink, SlotView, UnitView } from './types';
@@ -329,10 +329,35 @@ export function AmsControlWebPage() {
               <div
                 key={entry.column.pos}
                 className="flex flex-col"
-                style={splitColumns ? { width: px(columnWidth), paddingLeft: px(entry.pad) } : undefined}
+                style={splitColumns ? { width: px(columnWidth) } : undefined}
               >
                 {amsExt.visible ? (
-                  <div className="flex" style={{ gap: px(COLUMN_GAP) }}>
+                  // One backplate per group: `entry.blocks` only ever holds the
+                  // cell this column has open, so the gap between two
+                  // single-slot units is painted as part of the same plate.
+                  // left_right gives both columns the same full-width plate so
+                  // the two sides stay symmetric whatever they hold; the
+                  // centering pad moves inside it, leaving the blocks (and the
+                  // road origin computed from that pad) where they were. A
+                  // single column has no opposite side to match, so there the
+                  // plate shrinks to the blocks.
+                  <div
+                    className={splitColumns ? 'flex' : 'flex self-start'}
+                    style={{
+                      gap: px(COLUMN_GAP),
+                      background: COLORS.unitBg,
+                      ...(splitColumns
+                        ? {
+                            width: px(columnWidth - COLUMN_GAP),
+                            marginLeft: px(COLUMN_GAP / 2),
+                            // Half the seam comes off each side, so the pad has
+                            // to shed the same amount or the blocks would slide
+                            // right and leave the road origin behind.
+                            paddingLeft: px(Math.max(0, entry.pad - COLUMN_GAP / 2)),
+                          }
+                        : null),
+                    }}
+                  >
                     {entry.blocks.map((block) => (
                       <div key={block.key} className="shrink-0" style={{ width: px(block.width), minWidth: px(block.width), maxWidth: px(block.width) }}>{block.render()}</div>
                     ))}

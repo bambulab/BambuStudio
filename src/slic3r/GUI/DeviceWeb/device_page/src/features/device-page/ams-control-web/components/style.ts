@@ -100,33 +100,16 @@ export function slotFill(spool: { color: string; colors: string[]; color_type: A
   return colors[0] || spool.color;
 }
 
-function isLightTheme() {
-  return typeof document === 'undefined'
-    || document.documentElement.getAttribute('data-theme') !== 'dark';
-}
-
-// Light-theme remain bar: pale / white fills must sit darker than the #E4E4E4
-// track. The road-line -20 bump (255 → 235) is still lighter than that track.
-const REMAIN_BAR_PALE_FILL = '#C8C8C8';
-
-function remainBarColor(hex: string) {
-  const adjusted = roadFilamentColor(hex);
-  if (!isLightTheme()) return adjusted;
-
-  const rgba = parseColor(hex);
-  if (!rgba || rgba.r < 220 || rgba.g < 220 || rgba.b < 220) return adjusted;
-
-  if (filamentAlphaKind(hex) === 'opaque') return REMAIN_BAR_PALE_FILL;
-  return 'rgba(200, 200, 200, 0.588)';
-}
-
+// The remainder keeps the spool colour (white only gets the road-line 255 → 235
+// bump). Contrast against the consumed side comes from the darker track and the
+// capsule frame, not from greying the fill down.
 export function remainBarFill(spool: { color: string; colors: string[]; color_type: AmsColorType }) {
-  const colors = spoolColors(spool).map((color) => remainBarColor(color));
+  const colors = spoolColors(spool).map((color) => roadFilamentColor(color));
   if (spool.color_type === 0 && colors.length >= 2) {
     const stops = colors.map((color, index) => `${color} ${(index / (colors.length - 1)) * 100}%`);
     return `linear-gradient(90deg, ${stops.join(', ')})`;
   }
-  return colors[0] || remainBarColor(spool.color);
+  return colors[0] || roadFilamentColor(spool.color);
 }
 
 export function previewCubeFill(cube: { color: string; colors: string[]; color_type: AmsColorType }) {

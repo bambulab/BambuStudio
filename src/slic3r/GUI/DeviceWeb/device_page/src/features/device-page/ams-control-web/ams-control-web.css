@@ -7,6 +7,12 @@
   --ams-web-slot-frame: #828280;
   --ams-web-block-bg: #eeeeee;
   --ams-web-lib-bg: #f8f8f8;
+  /* AmsItem window background, darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR). */
+  --ams-web-unit-bg: #f8f8f8;
+  /* Remain capsule: a gray frame plus a track darker than the spool fill, so a
+     white filament still reads as "almost full" instead of blending into it. */
+  --ams-web-remain-track: #cecece;
+  --ams-web-remain-frame: #828280;
   /* Lite AMSLib uses darkModeColorFor(#F8F8F8) = Grey200. Generic remain canvas does not. */
   --ams-web-lite-lib-bg: #f8f8f8;
   --ams-web-chip-bg: #f7f7f7;
@@ -45,6 +51,9 @@
   /* StateColor Grey300 (#EEEEEE) -> #4C4C55; humidity capsule and AMS block. */
   --ams-web-block-bg: #4c4c55;
   --ams-web-chip-bg: #383d40;
+  --ams-web-unit-bg: #36363c;
+  --ams-web-remain-track: #4a4f51;
+  --ams-web-remain-frame: #9a9a98;
   --ams-web-lite-lib-bg: #36363c;
   --ams-web-disabled: #3a3f41;
   --ams-web-disabled-text: #75797b;

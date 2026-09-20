@@ -40,6 +40,22 @@ function trayArtwork(slot: SlotView, variant: SlotCardVariant): TrayArtwork {
     : { base: trayRightSvg, hover: trayRightHoverSvg, selected: trayRightSelectedSvg, width: TRAY_ICON.sideWidth };
 }
 
+// Mirrors AMSLib::render_generic_text: a name holding a space or a hyphen is laid
+// out as two smaller lines instead of one, so a long name cannot spill over the K
+// row below it. The separator stays with the second line and, as in C++, the last
+// separator of this list wins when the name carries both.
+const NAME_SPLIT_CHARS = [' ', '-'];
+
+function splitFilamentName(name: string): [string, string] | null {
+  let at = -1;
+  for (const separator of NAME_SPLIT_CHARS) {
+    const index = name.indexOf(separator);
+    if (index >= 0) at = index;
+  }
+  if (at < 0) return null;
+  return [name.slice(0, at), name.slice(at)];
+}
+
 const CURSOR_TIP_OFFSET = { x: 16, y: 8 } as const;
 
 function CursorTip({ text, origin }: { text: string; origin: { x: number; y: number } }) {
@@ -291,6 +307,8 @@ export function SlotCard({
       : amsReadonlyUrl;
   const tray = lite ? trayArtwork(slot, variant) : null;
   const showK = !lite && (!!slot.k_text || slot.k_loading);
+  const nameLines =
+    !lite && !showEmptyLabel && !slot.show_unknown ? splitFilamentName(slot.fila_type) : null;
   const kTip = slot.k_loading
     ? (slot.k_loading_text ? `K ${slot.k_loading_text}` : 'K')
     : slot.k_text;
@@ -394,14 +412,35 @@ export function SlotCard({
         >
           {t('Empty')}
         </span>
+      ) : nameLines ? (
+        <>
+          <span
+            className={cn(
+              'pointer-events-none absolute inset-x-0 z-[1] block truncate px-[2px] text-center text-[12px] leading-[14px]',
+              showK ? 'top-[2px]' : 'top-[22px]',
+            )}
+            style={{ color: contrast.textColor }}
+          >
+            {nameLines[0]}
+          </span>
+          <span
+            className={cn(
+              'pointer-events-none absolute inset-x-0 z-[1] block truncate px-[2px] text-center text-[12px] leading-[14px]',
+              showK ? 'top-[16px]' : 'top-[36px]',
+            )}
+            style={{ color: contrast.textColor }}
+          >
+            {nameLines[1]}
+          </span>
+        </>
       ) : (
         <span
           className={
             lite
-              ? 'pointer-events-none absolute inset-x-0 top-[20px] z-[1] block px-[2px] text-center text-[10px] leading-[12px]'
+              ? 'pointer-events-none absolute inset-x-0 top-[20px] z-[1] block truncate px-[2px] text-center text-[10px] leading-[12px]'
               : showK
-                ? 'pointer-events-none absolute inset-x-0 top-[6px] z-[1] block px-[2px] text-center text-[13px] leading-[17px]'
-                : 'absolute inset-x-0 top-[28px] z-[1] block px-[2px] text-center text-[13px] leading-[17px]'
+                ? 'pointer-events-none absolute inset-x-0 top-[6px] z-[1] block truncate px-[2px] text-center text-[13px] leading-[17px]'
+                : 'absolute inset-x-0 top-[28px] z-[1] block truncate px-[2px] text-center text-[13px] leading-[17px]'
           }
           style={{ color: contrast.textColor, transform: lite ? 'translateX(3px)' : undefined }}
         >
@@ -411,7 +450,10 @@ export function SlotCard({
 
       {showK ? (
         <span
-          className="pointer-events-none absolute inset-x-0 top-[24px] z-[1] block px-[2px] text-center text-[11px] leading-[14px]"
+          className={cn(
+            'pointer-events-none absolute inset-x-0 z-[1] block px-[2px] text-center text-[11px] leading-[14px]',
+            nameLines ? 'top-[30px]' : 'top-[24px]',
+          )}
           style={{ color: contrast.textColor }}
         >
           {slot.k_loading ? (
