@@ -4,6 +4,11 @@
 #include "CalibrationWizardPage.hpp"
 #include "DeviceCore/DevNozzleSystem.h"
 
+#ifdef __WXOSX__
+#include <chrono>
+#include <unordered_map>
+#endif
+
 namespace Slic3r { namespace GUI {
 
 enum CaliPresetStage {
@@ -44,6 +49,14 @@ protected:
     void Dismiss() override;
 
 private:
+#ifdef __WXOSX__
+    /* PopupWindow's forwarding never wakes a native toggle's Cocoa layer, so wxEVT_TOGGLEBUTTON
+       never fires in a popup (STUDIO-17396); re-emit it from raw mouse events instead. */
+    bool TryToggleOSX(wxBitmapToggleButton* btn);
+    void OnLeftUpOSX(wxMouseEvent& evt);
+    std::unordered_map<wxBitmapToggleButton*, std::chrono::steady_clock::time_point> m_osx_last_click;
+#endif
+
     wxScrolledWindow*           m_scroll{nullptr};
     wxBoxSizer*                 m_list_sizer{nullptr};
     FilamentComboBoxList        m_fcb_list;

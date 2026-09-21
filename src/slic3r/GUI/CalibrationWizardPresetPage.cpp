@@ -3466,6 +3466,9 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
     m_scroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                     wxVSCROLL | wxBORDER_NONE);
     m_scroll->SetBackgroundColour(*wxWHITE);
+#ifdef __WXOSX__
+    m_scroll->Bind(wxEVT_LEFT_UP, &SubAmsPopup::OnLeftUpOSX, this);
+#endif
 
     m_list_sizer = new wxBoxSizer(wxVERTICAL);
     m_scroll->SetSizer(m_list_sizer);
@@ -3544,6 +3547,11 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             m_owner->SetValue(!m_owner->GetSubAmsSelection().empty(), /*send_event=*/false);
             evt.Skip();
         });
+#ifdef __WXOSX__
+        /* Neither TOGGLEBUTTON handler above ever fires inside a popup on mac; drive them from LEFT_DOWN. */
+        radio_btn->Bind(wxEVT_LEFT_DOWN, [this, radio_btn](wxMouseEvent& evt) { if (!TryToggleOSX(radio_btn)) evt.Skip(); });
+        check_box->Bind(wxEVT_LEFT_DOWN, [this, check_box](wxMouseEvent& evt) { if (!TryToggleOSX(check_box)) evt.Skip(); });
+#endif
         fcb->Bind(EVT_CALI_TRAY_CHANGED, [this, fcb](wxCommandEvent&) {
             if (!m_owner) return;
             m_combo_dropdown_open = false;
@@ -3585,6 +3593,9 @@ void SubAmsPopup::Dismiss()
     PopupWindow::Dismiss();
     /* Shared popup: drop the owner link so a stale pointer can't leak into the next open. */
     m_owner = nullptr;
+#ifdef __WXOSX__
+    m_osx_last_click.clear();
+#endif
 }
 
 void SubAmsPopup::SetData(MachineObject* obj,
@@ -3641,6 +3652,47 @@ void SubAmsPopup::SetData(MachineObject* obj,
     m_scroll->Layout();
     Layout();
 }
+
+#ifdef __WXOSX__
+
+bool SubAmsPopup::TryToggleOSX(wxBitmapToggleButton* btn)
+{
+    if (!btn || !btn->IsShown() || !btn->IsEnabled()) return false;
+
+    /* Per-control debounce: one shared timestamp would swallow consecutive checkbox picks in MULTI mode. */
+    const auto now  = std::chrono::steady_clock::now();
+    auto&      last = m_osx_last_click[btn];
+    if (now - last < std::chrono::milliseconds(300)) return true;
+    last = now;
+
+    /* radio: a click always selects (the TOGGLEBUTTON handler repaints the mutex); checkbox flips. */
+    const bool value = dynamic_cast<RadioBox*>(btn) ? true : !btn->GetValue();
+    btn->SetValue(value);
+
+    wxCommandEvent sel_evt(wxEVT_TOGGLEBUTTON, btn->GetId());
+    sel_evt.SetEventObject(btn);
+    sel_evt.SetInt(value ? 1 : 0);
+    btn->ProcessWindowEvent(sel_evt);
+    return true;
+}
+
+void SubAmsPopup::OnLeftUpOSX(wxMouseEvent& evt)
+{
+    /* Screen coords rather than PopupWindow::HitTest, which uses GetPosition() and drifts once the NSScrollView scrolls. */
+    const wxPoint screen_pt = m_scroll->ClientToScreen(evt.GetPosition());
+    for (auto* fcb : m_fcb_list) {
+        if (!fcb || !fcb->IsShown()) continue;
+        for (wxBitmapToggleButton* btn : {static_cast<wxBitmapToggleButton*>(fcb->GetRadioBox()),
+                                          static_cast<wxBitmapToggleButton*>(fcb->GetCheckBox())}) {
+            if (!btn || !btn->IsShown()) continue;
+            if (wxRect(btn->ClientToScreen(wxPoint(0, 0)), btn->GetSize()).Contains(screen_pt) && TryToggleOSX(btn))
+                return;
+        }
+    }
+    evt.Skip();
+}
+
+#endif // __WXOSX__
 
 void SubAmsPopup::ClearAllRadioVisuals()
 {
