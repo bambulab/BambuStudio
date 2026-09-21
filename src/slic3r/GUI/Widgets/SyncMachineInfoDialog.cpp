@@ -5,6 +5,7 @@
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
@@ -28,7 +29,7 @@
 
 namespace Slic3r ::GUI {
 
-enum class NozzleCardState { Normal, Empty, Abnormal, Unknown };
+enum class NozzleCardState { Normal, Empty, Abnormal, Unknown, Lost };
 
 // Data needed to render a single rack hotend column.
 struct HotendEntry
@@ -43,6 +44,7 @@ struct HotendEntry
     wxString                 nozzle_flow_type;     // "Standard" / "High Flow"
     bool                     syncing{false};       // true while the printer reports any of this hotend's filament as being read
     bool                     is_hotend{true};
+    bool                     is_ext{false};        // filament fed from an external spool (virtual tray)
     NozzleCardState          nozzle_state{NozzleCardState::Normal};
 };
 
@@ -100,7 +102,12 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
     e.nozzle_flow_type = (n.GetNozzleFlowType() == NozzleFlowType::H_FLOW) ? _L("High Flow") : _L("Standard");
     e.is_hotend        = n.IsHotend();
 
-    if (n.IsEmpty())
+    // A rack nozzle whose holder still reports it seated but which is no longer
+    // detected reads as "empty" via IsEmpty(); IsToolLostInHolder() is the only
+    // predicate that separates a dropped nozzle from a truly empty slot.
+    if (n.IsOnRack() && n.IsToolLostInHolder())
+        e.nozzle_state = NozzleCardState::Lost;
+    else if (n.IsEmpty())
         e.nozzle_state = NozzleCardState::Empty;
     else if (n.IsUnknown())
         e.nozzle_state = NozzleCardState::Unknown;
@@ -114,6 +121,8 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
         auto tray_opt = obj->get_tray(slots[0].first, slots[0].second);
         if (tray_opt.has_value()) {
             const auto &tray = *tray_opt;
+            if (auto fila_sys = obj->GetFilaSystem())
+                e.is_ext = fila_sys->IsVirtualTrayId(std::to_string(slots[0].first));
             if (!tray.sub_brands.empty())
                 e.filament_name = tray.sub_brands;
             else if (tray.m_fila_type == "PLA-S")
@@ -122,8 +131,8 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
                 e.filament_name = "Sup.PA";
             else if (tray.m_fila_type == "ABS-S")
                 e.filament_name = "Sup.ABS";
-            else
-                e.filament_name = tray.m_fila_type;
+            else // resolve the sub-type suffix from the filament preset (external spools carry no sub_brands)
+                e.filament_name = DevicePageFilamentSlotStateResolver::ResolveFilamentCardText(&tray, tray.m_fila_type);
             e.filament_remain = std::clamp(tray.remain, 1, 100); // floor at 1 so an empty-but-loaded spool still draws a sliver
             if (!tray.cols.empty()) {
                 e.filament_colors = tray.cols;
@@ -422,6 +431,8 @@ private:
     ScalableBitmap m_nozzle_bmp;               // hotend glyph for every state (this dialog's own icon)
     ScalableBitmap m_nozzle_error_badge_bmp;   // red "!" badge overlaid when abnormal (device-page hotend_error_badge)
     ScalableBitmap m_nozzle_unknown_badge_bmp; // grey "?" badge overlaid when unknown (device-page hotend_unknown_badge)
+    ScalableBitmap m_nozzle_lost_badge_bmp;    // grey "!" badge overlaid when the tool is seated but dropped (device-page hotend_lost_badge)
+    ScalableBitmap m_nozzle_empty_badge_bmp;   // grey "prohibited" ring overlaid when the rack slot is empty (device-page hotend_null prohibit)
     ScalableBitmap m_spinner_bmp;              // sync_loading_arc.svg, rotated by m_spin_angle while spinning
 };
 
@@ -435,6 +446,8 @@ HotendColumn::HotendColumn(wxWindow *parent, const HotendEntry &entry) : wxPanel
     m_nozzle_bmp               = ScalableBitmap(this, "dev_rack_nozzle_print_job", 24);
     m_nozzle_error_badge_bmp   = ScalableBitmap(this, "hotend_error_badge", 16);
     m_nozzle_unknown_badge_bmp = ScalableBitmap(this, "hotend_unknown_badge", 16);
+    m_nozzle_lost_badge_bmp    = ScalableBitmap(this, "hotend_lost_badge", 16);
+    m_nozzle_empty_badge_bmp   = ScalableBitmap(this, "hotend_empty_badge", 16);
     m_spinner_bmp              = ScalableBitmap(this, "sync_loading_arc", kLoadingDiam);
     Bind(wxEVT_PAINT, &HotendColumn::OnPaint, this);
 
@@ -488,9 +501,12 @@ void HotendColumn::OnPaint(wxPaintEvent &)
     const int    radius = FromDIP(kCardRadius);
     const wxRect card_rect(card_x, 0, card_w, FromDIP(kColTotalH));
 
+    const double border_w = FromDIP(1);
     gc->SetBrush(wxBrush(C(ThemeColor::Grey200)));
-    gc->SetPen(*wxTRANSPARENT_PEN);
-    gc->DrawRoundedRectangle(card_rect.x, card_rect.y, card_rect.width, card_rect.height, radius);
+    gc->SetPen(wxPen(C(ThemeColor::Grey400), border_w));
+    // Inset by half the stroke so the border sits fully inside the card bounds (top/bottom edges aren't clipped).
+    gc->DrawRoundedRectangle(card_rect.x + border_w / 2.0, card_rect.y + border_w / 2.0,
+                             card_rect.width - border_w, card_rect.height - border_w, radius);
 
     int y = card_rect.y;
     PaintHeader(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kHeaderH)));
@@ -528,6 +544,19 @@ void HotendColumn::PaintHeader(wxGraphicsContext *gc, const wxRect &r)
     gc->SetPen(*wxTRANSPARENT_PEN);
     gc->DrawRoundedRectangle(pill_x, pill_y, pill_w, pill_h, radius);
     gc->DrawText(index, pill_x + (pill_w - tw) / 2.0, pill_y + (pill_h - th) / 2.0);
+
+    // "Ext" tag pill after the index when the filament is fed from an external spool.
+    if (m_entry.is_ext) {
+        const wxString ext_txt = "Ext";
+        double         ew = 0, eh = 0, ed = 0, el = 0;
+        gc->GetTextExtent(ext_txt, &ew, &eh, &ed, &el);
+        const int ext_w = (int) ew + 2 * pad_x;
+        const int ext_x = pill_x + pill_w + FromDIP(4);
+        gc->SetBrush(wxBrush(C(ThemeColor::Grey300)));
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->DrawRoundedRectangle(ext_x, pill_y, ext_w, pill_h, radius);
+        gc->DrawText(ext_txt, ext_x + (ext_w - ew) / 2.0, pill_y + (pill_h - eh) / 2.0);
+    }
 
     // Upper-right load indicator: filled brand-green dot when loaded,
     // filled dark-grey dot when empty.
@@ -589,9 +618,10 @@ void HotendColumn::PaintHotend(wxGraphicsContext *gc, const wxRect &r)
 
     // An empty rack position has no nozzle, so there is no diameter / flow to
     // show — collapse the two-line label to a single "--".
-    const bool     empty_nozzle = (m_entry.nozzle_state == NozzleCardState::Empty);
-    const wxString line1        = empty_nozzle ? wxString("--") : m_entry.nozzle_diameter;
-    const wxString line2        = empty_nozzle ? wxString() : m_entry.nozzle_flow_type;
+    const bool     show_details = (m_entry.nozzle_state == NozzleCardState::Normal) || (m_entry.nozzle_state == NozzleCardState::Lost);
+    const bool     unknown      = (m_entry.nozzle_state == NozzleCardState::Unknown);
+    const wxString line1        = show_details ? m_entry.nozzle_diameter : unknown ? _L("Unknown") : wxString("--");
+    const wxString line2        = (show_details) ? m_entry.nozzle_flow_type : wxString();
 
     wxFont f = *wxNORMAL_FONT;
     f.SetPointSize(f.GetPointSize() - 1);
@@ -608,10 +638,14 @@ void HotendColumn::PaintHotend(wxGraphicsContext *gc, const wxRect &r)
     gc->DrawBitmap(nb, group_x, nozzle_y, nb.GetWidth(), nb.GetHeight());
 
     // Overlay the device-page status badge on the nozzle: red "!" when abnormal,
-    // grey "?" when unknown.
+    // grey "?" when unknown, grey "!" when dropped, grey prohibit ring when empty.
     const ScalableBitmap *badge_bmp = nullptr;
     if (m_entry.nozzle_state == NozzleCardState::Abnormal)     badge_bmp = &m_nozzle_error_badge_bmp;
     else if (m_entry.nozzle_state == NozzleCardState::Unknown) badge_bmp = &m_nozzle_unknown_badge_bmp;
+    else if (m_entry.nozzle_state == NozzleCardState::Lost)
+        badge_bmp = &m_nozzle_lost_badge_bmp;
+    else if (m_entry.nozzle_state == NozzleCardState::Empty)
+        badge_bmp = &m_nozzle_empty_badge_bmp;
     if (badge_bmp) {
         const wxBitmap &badge = badge_bmp->bmp();
         if (badge.IsOk()) {
@@ -833,7 +867,7 @@ bool tryPopUpSyncMachineInfoDialog(MachineObject *obj)
         // multicolour (拼色): concentric bands, colors[0] innermost
         {5, true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F"}, false, "Multi x4", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Unknown},          // 4 bands
         {6, true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F", "#FFD400"}, false, "Multi x5", 40, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // N>4 + partial remain
-        {7, true, {"#FF6B0080", "#2E7CF680"}, false, "Multi clear", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Normal},                          // translucent bands (拼色+透明)
+        {7, true, {"#FF6B0080", "#2E7CF680"}, false, "Multi clear", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Lost},                          // translucent bands (拼色+透明)
 
         // gradient: smooth radial blend, hub → rim
         {8, true, {"#FF0080", "#FFD400", "#00AE42"}, true, "Gradient x3", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // 3 stops
