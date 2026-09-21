@@ -3454,9 +3454,15 @@ wxDEFINE_EVENT(EVT_SUBAMS_RADIO_SELECTED, wxCommandEvent);
 // -------------------- SubAmsPopup --------------------
 
 SubAmsPopup::SubAmsPopup(wxWindow* parent)
-    : PopupWindow(parent, wxBORDER_SIMPLE | wxPU_CONTAINS_CONTROLS)
+    : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
     SetBackgroundColour(*wxWHITE);
+    Bind(wxEVT_PAINT, [this](auto&) {
+        wxPaintDC dc(this);
+        dc.SetPen({ 0xACACAC });
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRectangle({ 0, 0 }, GetSize());
+    });
 
     auto* root = new wxBoxSizer(wxVERTICAL);
     m_scroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
@@ -3591,6 +3597,10 @@ void SubAmsPopup::Dismiss()
     m_owner = nullptr;
 #ifdef __WXOSX__
     m_osx_last_click.clear();
+    if (wxTheApp && m_activate_app_bound) {
+        wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &SubAmsPopup::OnActivateAppOSX, this);
+        m_activate_app_bound = false;
+    }
 #endif
 }
 
@@ -3672,6 +3682,13 @@ bool SubAmsPopup::TryToggleOSX(wxBitmapToggleButton* btn)
     return true;
 }
 
+void SubAmsPopup::OnActivateAppOSX(wxActivateEvent& evt)
+{
+    evt.Skip();
+    if (!evt.GetActive() && IsShown())
+        Dismiss();
+}
+
 void SubAmsPopup::OnLeftUpOSX(wxMouseEvent& evt)
 {
     /* Screen coords rather than PopupWindow::HitTest, which uses GetPosition() and drifts once the NSScrollView scrolls. */
@@ -3720,6 +3737,13 @@ void SubAmsPopup::PopupAt(wxWindow* anchor)
         wxPoint pos = anchor->ClientToScreen(wxPoint(0, anchor->GetSize().GetHeight()));
         SetPosition(pos);
     }
+
+#ifdef __WXOSX__
+    if (wxTheApp && !m_activate_app_bound) {
+        wxTheApp->Bind(wxEVT_ACTIVATE_APP, &SubAmsPopup::OnActivateAppOSX, this);
+        m_activate_app_bound = true;
+    }
+#endif
 
     Popup();
 }

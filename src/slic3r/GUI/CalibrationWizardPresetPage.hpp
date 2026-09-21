@@ -55,6 +55,8 @@ private:
     bool TryToggleOSX(wxBitmapToggleButton* btn);
     void OnLeftUpOSX(wxMouseEvent& evt);
     std::unordered_map<wxBitmapToggleButton*, std::chrono::steady_clock::time_point> m_osx_last_click;
+    void OnActivateAppOSX(wxActivateEvent& evt);
+    bool m_activate_app_bound{false};
 #endif
 
     wxScrolledWindow*           m_scroll{nullptr};
