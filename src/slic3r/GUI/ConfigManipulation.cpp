@@ -1163,7 +1163,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // Hilbert-floor groups each have their own toggle that reveals the rest of the group.
     const bool wave_enabled = config->opt_bool("wave_overhangs");
     for (auto el : { "wave_overhangs_instead_of_bridges", "support_remaining_areas_after_wave_overhangs",
-                     "wave_overhang_min_angle", "wave_overhang_min_length", "wave_overhang_max_iterations",
+                     "wave_overhang_min_length", "wave_overhang_max_iterations",
                      "wave_overhang_pattern", "wave_overhang_seam_mode", "wave_overhang_outer_perimeters",
                      "wave_overhang_line_spacing", "wave_overhang_spacing_mode", "wave_overhang_perimeter_overlap",
                      "wave_overhang_minimum_width", "wave_overhang_min_new_area", "wave_overhang_flow_mm3_per_mm",

@@ -4726,7 +4726,7 @@ void PrintConfigDef::init_fff_params()
                      "0.15 × (nozzle/0.4)²: about 0.09 for 0.3 mm, 0.34 for 0.6 mm, 0.60 for 0.8 mm.\n\n"
                      "Raise if wave lines look thin or broken; lower if they blob together.");
     def->sidetext = L("mm³/mm");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->min = 0.02;
     def->max = 1.5;
     def->set_default_value(new ConfigOptionFloat(0.15));
@@ -4737,7 +4737,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Print speed for wave-overhang extrusions. Slow speeds give better cooling "
                      "and adhesion of the cantilevered tracks.");
     def->sidetext = L("mm/s");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->min = 0.1;
     def->set_default_value(new ConfigOptionFloat(2.0));
 
@@ -4769,7 +4769,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Part-cooling fan percentage forced during wave-overhang extrusions. "
                      "Maximum cooling is usually best.");
     def->sidetext = L("%");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->min = 0;
     def->max = 100;
     def->set_default_value(new ConfigOptionInt(100));
@@ -4797,7 +4797,7 @@ void PrintConfigDef::init_fff_params()
                      "on the unsupported tracks (less sagging, better cooling). Set to 0 to keep the "
                      "filament default.");
     def->sidetext = L("°C");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->min = 0;
     def->max = 350;
     def->set_default_value(new ConfigOptionInt(0));
@@ -4889,8 +4889,7 @@ void PrintConfigDef::init_fff_params()
                      "independent of the filament's normal retraction settings. Relieves nozzle "
                      "pressure so residual melt doesn't ooze into the gap between adjacent wave "
                      "lines or bead up against the enclosing perimeter. The next wave line's lead-in "
-                     "travel automatically unretracts. Set to 0 to rely on Orca's normal travel-"
-                     "distance retraction heuristic.");
+                     "travel automatically unretracts. Set to 0 to use the normal retraction settings.");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->min = 0;
@@ -4902,8 +4901,9 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Number of solid floor layers placed directly above wave-overhang regions. "
                      "These layers bridge over the wave surface and give the cantilever mechanical backing. "
-                     "0 = let Orca's normal top-shell-layers handle it (no wave-specific override).");
-    def->mode = comAdvanced;
+                     "Replaces the bottom shell layers above the waves. 0 = no solid layers: sparse infill "
+                     "starts directly on the waves.");
+    def->mode = comSimple;
     def->min = 0;
     def->max = 20;
     def->set_default_value(new ConfigOptionInt(2));
@@ -4916,7 +4916,7 @@ void PrintConfigDef::init_fff_params()
                      "paths leave the smallest residual thermal stresses, which significantly reduces "
                      "warping that pulls long cantilevered overhangs upward as the layers above cool. "
                      "Opt-in: when off, floor layers retain the existing pattern.");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("wave_overhang_floor_hilbert_layers", coInt);
@@ -4952,7 +4952,7 @@ void PrintConfigDef::init_fff_params()
                      "neighbouring line lands on top, reducing the residual thermal stress that drives "
                      "warping. 0 = inherit the normal solid-infill speed.");
     def->sidetext = L("mm/s");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->min = 0;
     def->max = 1000;
     def->set_default_value(new ConfigOptionFloat(0.0));
@@ -4965,7 +4965,7 @@ void PrintConfigDef::init_fff_params()
                      "so slowing them lets the substrate stay closer to bed temperature and relaxes "
                      "thermal stress. 0 = inherit the normal wall speed.");
     def->sidetext = L("mm/s");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->min = 0;
     def->max = 1000;
     def->set_default_value(new ConfigOptionFloat(0.0));
@@ -5024,13 +5024,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wave_overhang_min_angle", coFloat);
     def->label = L("Min angle");
     def->category = L("Strength");
-    def->tooltip = L("Soft limit only — currently NOT enforced. Orca's upstream overhang "
-                     "detection (Strength → Detect overhang walls / Overhang reverse "
-                     "threshold) is the primary slope filter that decides which regions "
-                     "become wave-overhang candidates. This value is kept as metadata on "
-                     "the profile for potential future use. 0 = no filtering.");
+    def->tooltip = L("Not currently used. Which overhangs get waves is decided by overhang wall "
+                     "detection (Quality → Detect overhang wall), not by an angle. Kept so that "
+                     "profiles that set it still load. 0 = no filtering.");
     def->sidetext = L("°");
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->min = 0;
     def->max = 90;
     def->set_default_value(new ConfigOptionFloat(0));
@@ -5072,7 +5070,7 @@ void PrintConfigDef::init_fff_params()
                      "extrusions in the G-code. Useful for post-process inspection and debugging. "
                      "Comments-only — no effect on the print.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("wave_overhang_min_length", coFloat);
     def->label = L("Min length");
@@ -5119,7 +5117,7 @@ void PrintConfigDef::init_fff_params()
                      "(treats every overhang as if waves weren't there). Off by default: waves "
                      "alone cannot hold up large unsupported spans, so removing support under them "
                      "is left as a deliberate choice.");
-    def->mode = comAdvanced;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("smooth_speed_discontinuity_area", coBool);
