@@ -299,14 +299,6 @@ private:
     // after the initial computation so the first view the user sees has a
     // stable, intuitive layout.
     void sort_current_matches_by_filament_index();
-    // Reorder m_current_matches so they appear in the same order as
-    // `previous_matches` (keyed by cluster_index). Entries whose cluster_index
-    // was not present before are appended at the end, preserving their current
-    // relative order. Used when the user toggles auto-merge so the rows do not
-    // visually jump around. Assumes each cluster_index appears at most once in
-    // both vectors (this invariant is currently guaranteed by do_auto_match,
-    // which produces one match per cluster).
-    void restore_current_match_order(const std::vector<Slic3r::FilamentMatch>& previous_matches);
     std::vector<Slic3r::FilamentMatch> build_matches_from_rows() const;
     void update_filament_color_map();
     void show_filament_popup(size_t row_index);
@@ -383,6 +375,18 @@ private:
     void on_gap_spin_commit();
     void toggle_advanced_design();
     void on_auto_merge_toggled(wxCommandEvent& evt);
+    // True when two slots are the same kind (physical vs mixed) and can share
+    // one mapping target: physicals need the same hex + family type; mixeds
+    // need the same component dialog indices and ratios.
+    bool filament_slots_mergeable(int lhs, int rhs) const;
+    void retarget_filament_slot(int from_index, int to_index);
+    int  clone_project_filament_as_new(int dialog_index);
+    // Merge NewPhysical / NewMixed into matching existing slots, then fold
+    // matching new slots into each other. Does not rematch color clusters.
+    void merge_new_filaments_with_project_and_each_other();
+    // Replace every mapping that still points at an ExistingPhysical /
+    // ExistingMixed slot with a cloned NewPhysical / NewMixed slot.
+    void replace_project_mapped_filaments_with_new();
     void on_skip_clicked(wxCommandEvent& evt);
     void on_next_clicked(wxCommandEvent& evt);
     void on_prev_clicked(wxCommandEvent& evt);

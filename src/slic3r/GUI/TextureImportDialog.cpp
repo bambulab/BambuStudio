@@ -1083,6 +1083,16 @@ static bool texture_entry_is_mixed(TextureFilamentKind kind)
     return kind == TextureFilamentKind::ExistingMixed || kind == TextureFilamentKind::NewMixed;
 }
 
+static bool texture_entry_is_existing(TextureFilamentKind kind)
+{
+    return kind == TextureFilamentKind::ExistingPhysical || kind == TextureFilamentKind::ExistingMixed;
+}
+
+static bool texture_entry_is_new(TextureFilamentKind kind)
+{
+    return kind == TextureFilamentKind::NewPhysical || kind == TextureFilamentKind::NewMixed;
+}
+
 static std::string texture_entry_official_series(const TextureFilamentEntry& entry)
 {
     if (!texture_entry_is_physical(entry.kind))
@@ -1124,6 +1134,21 @@ static std::vector<int> texture_mixed_component_dialog_indices(const TextureFila
             comps.push_back((int)c - 1);
     }
     return comps;
+}
+
+static std::vector<std::pair<int, int>> texture_mixed_recipe_key(const TextureFilamentEntry& entry)
+{
+    std::vector<std::pair<int, int>> key;
+    const size_t n = std::min(entry.mixed_components.size(), entry.mixed_ratios.size());
+    key.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+        const unsigned int comp = entry.mixed_components[i];
+        if (comp < 1)
+            continue;
+        key.emplace_back((int)comp - 1, entry.mixed_ratios[i]);
+    }
+    std::sort(key.begin(), key.end());
+    return key;
 }
 
 static std::string texture_mixed_filament_display_name(
@@ -4850,7 +4875,7 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
     m_btn_next->SetMinSize(wxSize(FromDIP(60), FromDIP(24)));
     style_primary_button(m_btn_next);
 
-    m_btn_prev = new Button(this, _L("Previous"));
+    m_btn_prev = new Button(this, wxString::FromUTF8(_CTX_utf8(L_CONTEXT("Previous", "TextureImport"), "TextureImport")));
     m_btn_prev->SetId(ID_BTN_PREV);
     m_btn_prev->SetCornerRadius(FromDIP(12));
     m_btn_prev->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
@@ -5887,48 +5912,6 @@ void TextureImportDialog::sort_current_matches_by_filament_index()
                 return false;
 
             return lhs.filament_index < rhs.filament_index;
-        });
-}
-
-// Preserve the row order the user is currently looking at across a
-// re-computation (e.g. when auto-merge is toggled). We key on cluster_index
-// because it survives compact_used_virtual_filaments() and filament-index
-// renumbering, whereas filament_index does not.
-//
-// Behaviour:
-//   * Entries whose cluster_index appeared in `previous_matches` keep their
-//     previous relative order.
-//   * Entries whose cluster_index is new (not in `previous_matches`) are
-//     appended at the end, in their current relative order.
-//
-// Assumption: each cluster_index appears at most once in both vectors. This
-// is currently guaranteed by do_auto_match(), which emits exactly one match
-// per cluster. If that invariant ever changes, the std::map::emplace below
-// silently keeps only the first occurrence and the order will be wrong.
-void TextureImportDialog::restore_current_match_order(const std::vector<Slic3r::FilamentMatch>& previous_matches)
-{
-    if (previous_matches.empty() || m_current_matches.size() < 2)
-        return;
-
-    std::map<int, size_t> previous_order_by_cluster;
-    for (size_t i = 0; i < previous_matches.size(); ++i) {
-        if (previous_matches[i].cluster_index >= 0)
-            previous_order_by_cluster.emplace(previous_matches[i].cluster_index, i);
-    }
-
-    std::stable_sort(m_current_matches.begin(), m_current_matches.end(),
-        [&previous_order_by_cluster](const auto& lhs, const auto& rhs) {
-            const auto lhs_it = previous_order_by_cluster.find(lhs.cluster_index);
-            const auto rhs_it = previous_order_by_cluster.find(rhs.cluster_index);
-            const bool lhs_known = lhs_it != previous_order_by_cluster.end();
-            const bool rhs_known = rhs_it != previous_order_by_cluster.end();
-
-            if (lhs_known != rhs_known)
-                return lhs_known;
-            if (!lhs_known)
-                return false;
-
-            return lhs_it->second < rhs_it->second;
         });
 }
 
@@ -8267,18 +8250,140 @@ void TextureImportDialog::on_auto_merge_toggled(wxCommandEvent& evt)
     bool auto_merge_enabled = !m_auto_merge_cb || m_auto_merge_cb->GetValue();
     m_auto_merge_enabled = auto_merge_enabled;
 
-    if (m_state == TextureImportState::Ready) {
-        if (m_mix_enabled) {
-            apply_mix_from_existing_filaments();
-        } else {
-            const auto previous_matches = m_current_matches;
-            do_auto_match();
-            restore_current_match_order(previous_matches);
-            compact_used_virtual_filaments();
-            update_filament_color_map();
-            rebuild_mapping_rows();
-            update_ui_for_state();
+    if (m_state != TextureImportState::Ready)
+        return;
+
+    if (auto_merge_enabled)
+        merge_new_filaments_with_project_and_each_other();
+    else
+        replace_project_mapped_filaments_with_new();
+    drop_unused_new_filaments_and_refresh();
+}
+
+bool TextureImportDialog::filament_slots_mergeable(int lhs, int rhs) const
+{
+    if (lhs == rhs || lhs < 0 || rhs < 0)
+        return false;
+    if (lhs >= (int)m_filament_entries.size() || rhs >= (int)m_filament_entries.size())
+        return false;
+
+    const TextureFilamentEntry& a = m_filament_entries[lhs];
+    const TextureFilamentEntry& b = m_filament_entries[rhs];
+    if (texture_entry_is_physical(a.kind) && texture_entry_is_physical(b.kind)) {
+        if (texture_normalize_color_hex(a.color_hex) != texture_normalize_color_hex(b.color_hex))
+            return false;
+        return texture_entry_family_type(a, m_filament_entries) ==
+               texture_entry_family_type(b, m_filament_entries);
+    }
+    if (texture_entry_is_mixed(a.kind) && texture_entry_is_mixed(b.kind)) {
+        const auto recipe_a = texture_mixed_recipe_key(a);
+        if (recipe_a.empty())
+            return false;
+        return recipe_a == texture_mixed_recipe_key(b);
+    }
+    return false;
+}
+
+void TextureImportDialog::retarget_filament_slot(int from_index, int to_index)
+{
+    if (from_index < 0 || from_index == to_index)
+        return;
+    for (auto& match : m_current_matches) {
+        if (match.filament_index == from_index)
+            bind_match_inplace(match, to_index);
+    }
+    for (auto& row : m_mapping_rows) {
+        if (row.target_filament_idx == from_index)
+            row.target_filament_idx = to_index;
+    }
+}
+
+int TextureImportDialog::clone_project_filament_as_new(int dialog_index)
+{
+    if (dialog_index < 0 || dialog_index >= (int)m_filament_entries.size())
+        return -1;
+
+    const TextureFilamentEntry src = m_filament_entries[dialog_index];
+    if (src.kind == TextureFilamentKind::ExistingPhysical) {
+        std::array<float, 4> rgba = {0.5f, 0.5f, 0.5f, 1.f};
+        if (dialog_index < (int)m_filament_colors_rgba.size())
+            rgba = m_filament_colors_rgba[dialog_index];
+        return add_virtual_filament(rgba, src.color_hex, texture_filament_preset_name_of(src));
+    }
+    if (src.kind == TextureFilamentKind::ExistingMixed)
+        return add_virtual_mixed_filament(src.color_hex,
+                                          texture_mixed_component_dialog_indices(src),
+                                          src.mixed_ratios);
+    return -1;
+}
+
+void TextureImportDialog::merge_new_filaments_with_project_and_each_other()
+{
+    const int n = (int)m_filament_entries.size();
+    for (int src = 0; src < n; ++src) {
+        if (!texture_entry_is_new(m_filament_entries[src].kind))
+            continue;
+
+        int keep = -1;
+        for (int j = 0; j < n; ++j) {
+            if (j == src || !texture_entry_is_existing(m_filament_entries[j].kind))
+                continue;
+            if (filament_slots_mergeable(src, j)) {
+                keep = j;
+                break;
+            }
         }
+        if (keep < 0) {
+            for (int j = 0; j < src; ++j) {
+                if (!texture_entry_is_new(m_filament_entries[j].kind))
+                    continue;
+                if (filament_slots_mergeable(src, j)) {
+                    keep = j;
+                    break;
+                }
+            }
+        }
+        if (keep >= 0)
+            retarget_filament_slot(src, keep);
+    }
+}
+
+void TextureImportDialog::replace_project_mapped_filaments_with_new()
+{
+    std::map<int, int> existing_to_new;
+    auto clone_mapped = [this, &existing_to_new](int existing_idx) -> int {
+        auto it = existing_to_new.find(existing_idx);
+        if (it != existing_to_new.end())
+            return it->second;
+        const int cloned = clone_project_filament_as_new(existing_idx);
+        if (cloned >= 0)
+            existing_to_new.emplace(existing_idx, cloned);
+        return cloned;
+    };
+
+    for (auto& match : m_current_matches) {
+        const int idx = match.filament_index;
+        if (idx < 0 || idx >= (int)m_filament_entries.size())
+            continue;
+        if (!texture_entry_is_existing(m_filament_entries[idx].kind))
+            continue;
+        const int cloned = clone_mapped(idx);
+        if (cloned >= 0)
+            bind_match_inplace(match, cloned);
+    }
+
+    for (auto& row : m_mapping_rows) {
+        const int idx = row.target_filament_idx;
+        if (idx < 0 || idx >= (int)m_filament_entries.size())
+            continue;
+        if (!texture_entry_is_existing(m_filament_entries[idx].kind))
+            continue;
+        const int cloned = clone_mapped(idx);
+        if (cloned < 0)
+            continue;
+        row.target_filament_idx = cloned;
+        if (row.target_panel)
+            row.target_panel->Refresh();
     }
 }
 
