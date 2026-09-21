@@ -7506,8 +7506,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // Ironing extrusions mark and command
     if (path.role() == erSupportIroning || path.role() == erIroning) { gcode += "M1031 S1 ;IRONING_EXTRUSIONS_START\n"; }
 
-    if (path.role() != m_last_processor_extrusion_role) {
-        m_last_processor_extrusion_role = path.role();
+    // Wave lines are tagged with their own feature so the preview can tell them apart.
+    const ExtrusionRole processor_role = path.wave_overhang ? erWaveOverhang : path.role();
+    if (processor_role != m_last_processor_extrusion_role) {
+        m_last_processor_extrusion_role = processor_role;
         sprintf(buf, ";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(m_last_processor_extrusion_role).c_str());
         gcode += buf;
     }

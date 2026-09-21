@@ -64,6 +64,10 @@ enum ExtrusionRole : uint8_t {
     erWipeTower,
     erCustom,
     erFlush,
+    // Wave-overhang lines. Only the G-code feature tag and the G-code viewer use this role, so the
+    // preview can colour waves apart from ordinary overhang walls; the paths themselves keep
+    // erOverhangPerimeter so speed, cooling and every other role-based decision is unchanged.
+    erWaveOverhang,
     // Extrusion role for a collection with multiple extrusion roles.
     erMixed,
     erCount
@@ -93,7 +97,8 @@ inline bool is_perimeter(ExtrusionRole role)
 {
     return role == erPerimeter
         || role == erExternalPerimeter
-        || role == erOverhangPerimeter;
+        || role == erOverhangPerimeter
+        || role == erWaveOverhang;
 }
 
 inline bool is_infill(ExtrusionRole role)
