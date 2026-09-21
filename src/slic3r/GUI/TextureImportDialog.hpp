@@ -257,8 +257,12 @@ private:
     void clear_param_spin_selection();
     void update_dialog_min_size();
     // Apply the DIP client size after the native window exists (macOS needs
-    // wxEVT_SHOW). When center is true, also CenterOnParent().
-    void apply_dialog_geometry(bool center);
+    // wxEVT_SHOW). allow_center only permits the one-time initial centering;
+    // every later call keeps the window where the user left it.
+    void apply_dialog_geometry(bool allow_center);
+    // Shift the window back into the current display's work area after it grew,
+    // keeping its top-left corner unless that would push it off screen.
+    void keep_dialog_within_display();
     void update_stepper();
     void style_primary_button(Button* btn);
     void style_secondary_button(Button* btn);
@@ -422,6 +426,9 @@ private:
 
     TextureImportState                 m_state = TextureImportState::Idle;
     TextureImportWizardStep            m_wizard_step = TextureImportWizardStep::SimplifyColors;
+    // CenterOnParent runs once, on the first placement. Step switches, the
+    // Advanced settings card and DPI changes must not move the window again.
+    bool                               m_geometry_centered = false;
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
     bool                               m_auto_merge_enabled = true;

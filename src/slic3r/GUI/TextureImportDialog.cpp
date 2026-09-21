@@ -16,6 +16,7 @@
 #include "ColorDecomposeSupport.hpp"
 #include "EncodedFilament.hpp"
 #include "FilamentBitmapUtils.hpp"
+#include "WindowShadow.hpp"
 #include "Widgets/StateColor.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/StaticLine.hpp"
@@ -85,7 +86,7 @@ static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE = "PLA Basic";
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_SHORT_TYPE = "PLA";
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_NAME       = "Bambu PLA Basic";
 // CIEDE2000 cutoff shared by auto-match and mix-uncheck rematch.
-static constexpr double NEW_FILAMENT_THRESHOLD = 5.0;
+static constexpr double NEW_FILAMENT_THRESHOLD = 12.0;
 
 using Slic3r::GUI::texture_import_is_dark;
 using Slic3r::GUI::texture_import_dark_or;
@@ -2221,6 +2222,11 @@ public:
         Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
             e.Skip();
             apply_rounded_shape();
+            refresh_native_shadow();
+        });
+        Bind(wxEVT_MOVE, [this](wxMoveEvent& e) {
+            e.Skip();
+            refresh_native_shadow();
         });
         Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
             e.Skip();
@@ -2235,6 +2241,7 @@ public:
                 SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
 #endif
                 apply_rounded_shape();
+                refresh_native_shadow();
             });
         });
         Bind(wxEVT_MOTION, [this](wxMouseEvent& evt) {
@@ -2320,6 +2327,22 @@ public:
         install_outside_click_monitor();
     }
 
+    // wxPopupTransientWindowBase only calls OnDismiss() from DismissAndNotify(),
+    // i.e. never for a direct Dismiss(). All of this popup's own close paths use
+    // Dismiss() (the action labels, ProcessLeftDown, the macOS outside-click
+    // monitor, app deactivation, the owning dialog), so without this override the
+    // teardown never runs: the outside-click monitor stays installed and the
+    // window is only hidden, never destroyed. On macOS, where that monitor is the
+    // only click-outside path, every close leaked a hidden native window.
+    void Dismiss() override
+    {
+        // Invalidate the cached macOS shadow while still shown so Hide()
+        // dirties the full overhang; then tear down via OnDismiss().
+        refresh_native_shadow();
+        PopupWindow::Dismiss();
+        OnDismiss();
+    }
+
     bool ProcessLeftDown(wxMouseEvent& event) override
     {
         const wxPoint screen = ClientToScreen(event.GetPosition());
@@ -2393,6 +2416,22 @@ public:
         }
         SetShape(wxRegion(mask, *wxBLACK));
 #endif
+#endif
+    }
+
+    // macOS caches the drop shadow of a non-opaque NSWindow (wxBG_STYLE_TRANSPARENT
+    // above) and only recomputes it on request. After a resize or move the cached
+    // shadow can reach past the new frame, and ordering the window out then only
+    // repaints what the window server believes the window covers, leaving the
+    // overhanging shadow pixels on screen. Re-derive it from the current content
+    // on every geometry change so dismissing takes the whole thing with it.
+    // Windows clips with SetWindowRgn and draws its own border, so it is left
+    // alone rather than given a second, layered shadow window.
+    void refresh_native_shadow()
+    {
+#ifdef __WXOSX__
+        if (IsShown())
+            m_shadow.Sync(this, true);
 #endif
     }
 
@@ -2531,6 +2570,11 @@ private:
                 Show();
             return;
         }
+        // Reachable twice for one close: our Dismiss() override notifies, and
+        // wx's own DismissAndNotify() then calls OnDismiss() again.
+        if (m_dismissed)
+            return;
+        m_dismissed = true;
         uninstall_outside_click_monitor();
         restore_cursor_state();
         detach_dialog_anchor();
@@ -2610,7 +2654,10 @@ private:
         if (m_destroy_scheduled)
             return;
         m_destroy_scheduled = true;
-        CallAfter([this]() { Destroy(); });
+        CallAfter([this]() {
+            if (!IsBeingDeleted())
+                Destroy();
+        });
     }
 
     bool row_can_delete(int idx) const
@@ -2935,10 +2982,12 @@ private:
     wxWindow*                                  m_hover_row = nullptr;
     std::vector<std::pair<int, wxWindow*>>     m_row_windows;
     bool                                       m_closing_from_action = false;
+    bool                                       m_dismissed = false;
     bool                                       m_destroy_scheduled = false;
     bool                                       m_refreshing = false;
     void*                                      m_outside_click_monitor = nullptr;
     bool                                       m_activate_app_bound = false;
+    WindowShadow                               m_shadow;
 
     // Returns the display number for a dialog_index, falling back to idx + 1
     // when no mapping is available (e.g. index out of range).
@@ -4206,7 +4255,14 @@ TextureImportDialog::~TextureImportDialog()
         delete m_recompute_timer;
         m_recompute_timer = nullptr;
     }
-    dismiss_filament_popup();
+    // Tear down without Dismiss(): OnDismiss queues CallAfter on this dialog
+    // and on the popup, which is unsafe while ~TextureImportDialog is running.
+    if (m_filament_popup) {
+        FilamentSelectPopup* popup = m_filament_popup;
+        m_filament_popup = nullptr;
+        m_filament_popup_row = -1;
+        popup->Destroy();
+    }
     m_cancel_flag = true;
     m_patch_generation.fetch_add(1);
     m_patch_building = false;
@@ -5261,10 +5317,10 @@ void TextureImportDialog::update_preview_rounded_corners()
 
 void TextureImportDialog::update_dialog_min_size()
 {
-    apply_dialog_geometry(IsShown());
+    apply_dialog_geometry(false);
 }
 
-void TextureImportDialog::apply_dialog_geometry(bool center)
+void TextureImportDialog::apply_dialog_geometry(bool allow_center)
 {
     const bool step1 = (m_wizard_step == TextureImportWizardStep::SimplifyColors);
     const int step1_min_h = m_advanced_expanded ? 620 : 560;
@@ -5274,16 +5330,55 @@ void TextureImportDialog::apply_dialog_geometry(bool center)
     SetMinClientSize(min_client);
 
     // Before the native window exists (macOS pre-SHOW), SetClientSize is a no-op.
-    if (center || IsShown()) {
-        const wxSize cur = GetClientSize();
-        const wxSize next(std::max(cur.x, target_client.x),
-                          std::max(cur.y, target_client.y));
-        if (next != cur)
-            SetClientSize(next);
-        Layout();
-        if (center)
-            CenterOnParent();
+    if (!allow_center && !IsShown())
+        return;
+
+    const wxSize cur = GetClientSize();
+    const wxSize next(std::max(cur.x, target_client.x),
+                      std::max(cur.y, target_client.y));
+    const bool grew = (next != cur);
+    if (grew)
+        SetClientSize(next);
+    Layout();
+
+    // Center exactly once. On macOS on_window_geometry keeps a permanent
+    // wxEVT_SHOW binding, and update_wizard_ui / update_dialog_min_size run on
+    // every step switch, so centering here unconditionally would drag the
+    // window back to the middle of the screen each time.
+    bool did_center = false;
+    if (allow_center && !m_geometry_centered) {
+        m_geometry_centered = true;
+        CenterOnParent();
+        did_center = true;
     }
+    if (grew || did_center)
+        keep_dialog_within_display();
+}
+
+void TextureImportDialog::keep_dialog_within_display()
+{
+    const wxRect frame = GetRect();
+    // GetFromWindow() returns wxNOT_FOUND for windows that are not shown yet.
+    // Windows calls this during construction (on_window_geometry), after
+    // CenterOnParent() has already placed us on the parent's display. Falling
+    // back to wxDisplay() (primary) would drag a secondary-monitor dialog back
+    // to the main screen. Use the just-written origin, then the parent.
+    int display_idx = wxDisplay::GetFromPoint(frame.GetPosition());
+    if (display_idx == wxNOT_FOUND)
+        display_idx = wxDisplay::GetFromWindow(this);
+    if (display_idx == wxNOT_FOUND && GetParent())
+        display_idx = wxDisplay::GetFromWindow(GetParent());
+    if (display_idx == wxNOT_FOUND)
+        return;
+
+    const wxRect area = wxDisplay(display_idx).GetClientArea();
+    wxPoint pos = frame.GetPosition();
+    pos.x = std::clamp(pos.x, area.GetLeft(),
+                       std::max(area.GetLeft(), area.GetRight() - frame.width + 1));
+    pos.y = std::clamp(pos.y, area.GetTop(),
+                       std::max(area.GetTop(), area.GetBottom() - frame.height + 1));
+    if (pos != frame.GetPosition())
+        Move(pos);
 }
 
 void TextureImportDialog::update_wizard_ui()
@@ -5316,7 +5411,7 @@ void TextureImportDialog::update_wizard_ui()
     if (m_btn_ok) m_btn_ok->Show(!step1);
 
     update_ui_for_state();
-    apply_dialog_geometry(IsShown());
+    apply_dialog_geometry(false);
     Layout();
     layout_mapping_rows();
     recenter_preview_tags();
@@ -6487,10 +6582,10 @@ void TextureImportDialog::dismiss_filament_popup()
     FilamentSelectPopup* popup = m_filament_popup;
     m_filament_popup = nullptr;
     m_filament_popup_row = -1;
-    if (popup->IsShown())
-        popup->Dismiss();
-    else
-        popup->Destroy();
+    // FilamentSelectPopup::Dismiss() hides and runs the full teardown (monitor
+    // removal, m_on_close, destroy), and is idempotent, so it also covers a popup
+    // wx already hid behind our back.
+    popup->Dismiss();
 }
 
 void TextureImportDialog::show_mixing_kits_help()
@@ -7135,6 +7230,8 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
     if (!tp) return;
 
     auto on_close = [this, row_index](bool closed_by_action) {
+        if (IsBeingDeleted())
+            return;
         if (m_filament_popup_row == (int)row_index) {
             m_filament_popup = nullptr;
             m_filament_popup_row = -1;
@@ -7142,6 +7239,8 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         if (!closed_by_action) {
             m_skip_next_filament_popup_row = (int)row_index;
             CallAfter([this, row_index]() {
+                if (IsBeingDeleted())
+                    return;
                 if (m_skip_next_filament_popup_row == (int)row_index)
                     m_skip_next_filament_popup_row = -1;
             });
