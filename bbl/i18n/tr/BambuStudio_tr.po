@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-20 20:30+0800\n"
+"POT-Creation-Date: 2026-09-21 12:03+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4009,6 +4009,32 @@ msgstr ""
 msgid "Error Prompt"
 msgstr ""
 
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr ""
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Kept filaments"
+msgstr ""
+
+msgid "Deleted filaments"
+msgstr ""
+
+msgid "After merging"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr ""
+
+msgid "Prioritize merging similar-color filaments"
+msgstr ""
+
+msgid "Prioritize merging small-area filaments"
+msgstr ""
+
 msgid "How to use standard mixing kits"
 msgstr ""
 
@@ -4720,7 +4746,6 @@ msgstr ""
 "Sıcaklık önerilen aralığın dışında olduğunda püskürtme ucu tıkanabilir.\n"
 "Yazdırma için bu sıcaklığın kullanılıp kullanılmayacağını lütfen onayla.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -7346,7 +7371,6 @@ msgid ""
 msgstr ""
 "Görsel yükleme işlemi sırasında aşağıdaki sorunlar ortaya çıktı. Bu sorunları yok saymak istiyor musun?\n"
 "\n"
-""
 
 msgid "info"
 msgstr "bilgi"
@@ -11019,7 +11043,6 @@ msgid ""
 msgstr ""
 "Çözünmeyen destek malzemeleri, destek tabanı olarak önerilmemektedir. \n"
 "Bunları destek tabanı için kullanmak istediğinden emin misin? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -11051,7 +11074,6 @@ msgid ""
 msgstr ""
 "Katman yüksekliği çok küçük.\n"
 "min_layer_height değerine ayarlanacaktır.\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "Katman yüksekliği, Yazıcı Ayarları -> Ekstrüder -> Katman yüksekliği sınırları bölümündeki sınırı aşıyor; bu durum baskı kalitesi sorunlarına neden olabilir."
@@ -13071,7 +13093,6 @@ msgid ""
 msgstr ""
 "Geçersiz özel G-kodu nedeniyle G-kodu oluşturulamadı.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Lütfen özel G-kodunu kontrol et veya varsayılan özel G-kodunu kullan.\n"
@@ -17014,7 +17035,6 @@ msgstr ""
 "Kalibrasyon malzemesi için ipuçları: \n"
 "- Aynı ısıtmalı tabla sıcaklığını kullanabilen malzemeler\n"
 "- Farklı filament markaları ve aileleri (Marka = Bambu, Aile = Basic, Matte)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "(Aux) otomatik akış kalibrasyonunu desteklemiyor."

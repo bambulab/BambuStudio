@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-20 20:30+0800\n"
+"POT-Creation-Date: 2026-09-21 12:03+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -4073,6 +4073,32 @@ msgstr ""
 msgid "Error Prompt"
 msgstr ""
 
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr ""
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Kept filaments"
+msgstr ""
+
+msgid "Deleted filaments"
+msgstr ""
+
+msgid "After merging"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr ""
+
+msgid "Prioritize merging similar-color filaments"
+msgstr ""
+
+msgid "Prioritize merging small-area filaments"
+msgstr ""
+
 msgid "How to use standard mixing kits"
 msgstr ""
 
@@ -4795,7 +4821,6 @@ msgstr ""
 "Сопло может засориться, если температура выходит за пределы рекомендуемого диапазона.\n"
 "Пожалуйста, подтвердите, использовать ли эту температуру для печати.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -6999,7 +7024,6 @@ msgid ""
 msgstr ""
 "Файл: %s\n"
 "Название: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Ожидание скачивания..."
@@ -11188,7 +11212,6 @@ msgid ""
 msgstr ""
 "Нерастворимые материалы поддержки не рекомендуется использовать для основания поддержки. \n"
 "Вы уверены, что хотите использовать их для основания поддержки? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -13283,7 +13306,6 @@ msgid ""
 msgstr ""
 "Не удалось сгенерировать G-код из-за ошибки в пользовательском G-коде.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Проверьте пользовательский G-код или используйте его вариант по умолчанию.\n"
@@ -17281,7 +17303,6 @@ msgstr ""
 "Рекомендации по материалам для калибровки: \n"
 "- Материалы с одинаковой температурой нагревательной плиты\n"
 "- Филаменты разных брендов и семейств (Brand = Bambu, Family = Basic, Matte)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "(Aux) не поддерживает автоматическую калибровку потока."

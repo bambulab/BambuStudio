@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-20 20:30+0800\n"
+"POT-Creation-Date: 2026-09-21 12:03+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1616,7 +1616,7 @@ msgid "Alignment"
 msgstr "对齐"
 
 msgid "Align center horizontally"
-msgstr ""
+msgstr "水平居中对齐"
 
 msgid "No symbol"
 msgstr "没有符号"
@@ -3842,13 +3842,13 @@ msgid "Remaining time: %dmin%ds"
 msgstr "剩余时间：%d分%d秒"
 
 msgid "Transition Smoothness (between color blocks): the higher, the smoother"
-msgstr ""
+msgstr "调整色块间的过渡平滑程度，值越高越平滑。"
 
 msgid "Auto Merge Small Fragments: the higher, the more merging"
-msgstr ""
+msgstr "自动合并模型上的小碎块到相邻色块，值越高合并越多"
 
 msgid "Add Filament"
-msgstr ""
+msgstr "添加耗材"
 
 msgid "More Colors"
 msgstr "其他颜色"
@@ -3860,7 +3860,7 @@ msgid "Decompose Color"
 msgstr "拆解颜色"
 
 msgid "+ Add Filament"
-msgstr ""
+msgstr "+ 添加耗材"
 
 msgid "Project Physical Filaments"
 msgstr "项目耗材列表"
@@ -3876,7 +3876,7 @@ msgstr "新增混色耗材"
 
 #, boost-format
 msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
-msgstr ""
+msgstr "项目最多支持%1%种耗材，超出的耗材需在导入前被合并。"
 
 msgid "Updating"
 msgstr "更新中"
@@ -3903,10 +3903,10 @@ msgid "Advanced settings"
 msgstr "高级设置"
 
 msgid "Boundary Smoothness"
-msgstr ""
+msgstr "边缘平滑度"
 
 msgid "Gap Area"
-msgstr ""
+msgstr "间隙面积"
 
 msgid "Automatically determine the optimal color count"
 msgstr "自动计算最佳颜色数量"
@@ -3921,19 +3921,19 @@ msgid "Use official mixing kits →"
 msgstr "使用官方混色套装 →"
 
 msgid "Some colors have no matching filament. Please match them before importing."
-msgstr ""
+msgstr "有颜色未匹配对应耗材，请匹配完成后，再导入。"
 
 msgid "Auto-Add All Filaments"
-msgstr ""
+msgstr "自动添加所有耗材"
 
 msgid "Fix now"
-msgstr ""
+msgstr "立即处理"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "自动将新耗材合并到项目中现有的相同耗材"
 
 msgid "Automatically merge filaments of the same color and type"
-msgstr ""
+msgstr "自动合并相同颜色与材质的耗材"
 
 msgid "Skip"
 msgstr "跳过"
@@ -3988,14 +3988,40 @@ msgid "The current printer has no compatible PLA Basic filament."
 msgstr "当前打印机没有兼容的 PLA Basic耗材。"
 
 msgid "Click to select a matching filament"
-msgstr ""
+msgstr "点击选择匹配耗材"
 
 #, boost-format
 msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
-msgstr ""
+msgstr "项目最多支持%1%个耗材，当前%2%个耗材，超出限制。"
 
 msgid "Error Prompt"
-msgstr ""
+msgstr "错误提示"
+
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr "本方案无法合并任意耗材，存在不同材质的耗材。"
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr "本方案减少到%1%种耗材（限制%2%），剩余耗材因材质不同而不能被合并。"
+
+msgid "Kept filaments"
+msgstr "保留耗材"
+
+msgid "Deleted filaments"
+msgstr "被删除的耗材"
+
+msgid "After merging"
+msgstr "合并后"
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr "项目最多支持 %1% 种耗材，当前有 %2% 种，超出了限制。请选择如何处理。"
+
+msgid "Prioritize merging similar-color filaments"
+msgstr "优先合并近似色耗材"
+
+msgid "Prioritize merging small-area filaments"
+msgstr "优先合并小面积耗材"
 
 msgid "How to use standard mixing kits"
 msgstr "如何使用标准混色套装"
@@ -4908,16 +4934,16 @@ msgstr ""
 "否 - 不使用交替额外墙层"
 
 msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
-msgstr "按层周期套用与旋转花瓶模式不兼容。若要启用按层周期套用，建议进行以下调整："
+msgstr "周期性修改器与旋转花瓶模式不兼容。若要启用周期性修改器，建议进行以下调整："
 
 msgid ""
 "Change these settings automatically?\n"
 "Yes - Apply and keep periodic modifier enabled\n"
 "No  - Don't use periodic modifier"
 msgstr ""
-"是否自动修改这些设置？\n"
-"是 - 应用修改并保持按层周期套用启用\n"
-"否 - 不使用按层周期套用"
+"自动更改这些设置吗？\n"
+"是 - 应用并保持周期性修改器启用\n"
+"否 - 不使用周期性修改器"
 
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "为使交替额外墙层正常工作，建议进行以下调整："
@@ -4932,7 +4958,7 @@ msgstr ""
 "否 - 保持当前设置并启用交替额外墙层"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
-msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即拍，Z方向墙速度平滑不启用，交替额外墙层关闭且按层周期套用关闭。"
+msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即拍模式，Z方向墙速度平滑不启用且周期性修改器关闭。"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "但是I3结构的机器将不会生成延时视频。"
@@ -5297,7 +5323,7 @@ msgid "Loading error details ..."
 msgstr "正在加载错误详情 ..."
 
 msgid "Unable to load error details."
-msgstr ""
+msgstr "无法加载错误详情。"
 
 msgid "Unknown error."
 msgstr "未知错误。"
@@ -5988,7 +6014,7 @@ msgid "The prime tower extends beyond the plate boundary."
 msgstr "料塔超出了打印版边界。"
 
 msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
-msgstr ""
+msgstr "盘子上的所有对象都不可打印，请检查对象列表中的打印设置。"
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，请重新调整冲刷值。"
@@ -6102,7 +6128,7 @@ msgid "Network error"
 msgstr "网络错误"
 
 msgid "Unknown error"
-msgstr ""
+msgstr "未知错误。"
 
 msgid "New Window"
 msgstr "新窗口"
@@ -8622,7 +8648,7 @@ msgid "The filament you are trying to delete is currently used by %s. After dele
 msgstr ""
 
 msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
-msgstr ""
+msgstr "注意：如果你想要使用其他耗材替换，请使用耗材列表右侧的“合并到”功能。"
 
 msgid "Delete Filament"
 msgstr "删除材料"
@@ -8786,7 +8812,7 @@ msgstr "检测到多部分对象"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
-msgstr ""
+msgstr "计算模型颜色：%s"
 
 msgid "Texture Import Warning"
 msgstr "导入纹理警告"
@@ -10608,15 +10634,15 @@ msgstr "该文件存在易拉丝耗材，为获得最佳打印质量，建议裹
 
 #, c-format, boost-format
 msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
-msgstr "%s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+msgstr "%s 中的耗材可能不足以完成本次打印。请补充或更换耗材。"
 
 #, c-format, boost-format
 msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
-msgstr "自动续料组合 %s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+msgstr "自动续料组 %s 中的耗材可能不足以完成本次打印。请重新装载或更换。"
 
 #, c-format, boost-format
 msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
-msgstr "自动续料组合 %s 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+msgstr "自动补给组 %s 中的耗材可能不足以完成本次打印。请补充或更换耗材。"
 
 msgid "Cool"
 msgstr ""
@@ -11103,7 +11129,7 @@ msgid "Frequent"
 msgstr "常用"
 
 msgid "Modifier cycle"
-msgstr "修改器周期"
+msgstr "修改器循环"
 
 #, c-format, boost-format
 msgid ""
@@ -12870,7 +12896,7 @@ msgid "Hotends on Rack"
 msgstr "热端&挂架"
 
 msgid "Copy Device Info"
-msgstr ""
+msgstr "复制设备信息"
 
 msgid "Beta version"
 msgstr "Beta版本"
@@ -13958,7 +13984,7 @@ msgid "Monotonic line"
 msgstr "单调线"
 
 msgid "Global monotonic line"
-msgstr ""
+msgstr "全局单调线"
 
 msgid "Aligned Rectilinear"
 msgstr "直线排列"
@@ -14984,49 +15010,49 @@ msgid "Adjust the line width of the selected skeleton paths."
 msgstr "为选择的骨架走线设置线宽"
 
 msgid "Conformal infill"
-msgstr "贴形填充"
+msgstr "随形填充"
 
 msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
-msgstr "让稀疏填充贴着每层轮廓走，而不是一整片平行直线。细长或弯曲外形上，线条从中心向外呈径向。适用于 Zig Zag、Cross Zag、直线、对齐直线，以及 Locked Zag 的皮肤。"
+msgstr "使稀疏填充遵循每层的轮廓，而非使用一组平行线。在拉长或弯曲的形状中，线条会从中心辐射。适用于之字形、交叉之字形、直线形、对齐直线形和锁定之字形等填充图案。"
 
 msgid "Layer stagger"
-msgstr "层间错开"
+msgstr "层交错"
 
 msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
-msgstr "相邻层填充如何错开。关闭时各层走线对齐。交替时走线方向不变，但连接到对侧相邻线条，有利于层间结合。"
+msgstr "相邻层如何偏移。关闭模式下，层堆叠布局相同。交替模式下，保持相同的线条方向，但将每条线条连接到相邻层的对侧，从而改善层间粘合。"
 
 msgid "Alternate"
 msgstr "交替"
 
 msgid "Forward layers"
-msgstr "正向层数"
+msgstr "正向层"
 
 msgid "Conformal forward layers"
-msgstr "贴形填充：正向层数"
+msgstr "随形正向层"
 
 msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
-msgstr "连续使用正向锯齿的层数。与反向层数组成周期：先正向 N 层，再反向 M 层。0 表示从第一层就开始反向。"
+msgstr "保持正向Z字形的连续层数。与反向层配合，重复：N层正向，然后M层反向。0表示从第一层开始反向。"
 
 msgid "Reverse layers"
-msgstr "反向层数"
+msgstr "反向层"
 
 msgid "Conformal reverse layers"
-msgstr "贴形填充：反向层数"
+msgstr "随形反向层"
 
 msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
-msgstr "反向锯齿的连续层数（从对侧外圈起）。0 表示不反向。正向 1、反向 1 为隔层反向。"
+msgstr "连续反向之字形填充的层数（从对侧边缘开始）。0 禁用反向。设置为“正向 1”或“反向 1”时，将每隔一层反向。"
 
 msgid "Radial center"
-msgstr "径向中心"
+msgstr "随形中心点"
 
 msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
-msgstr "径向中心从哪来。逐层：每层单独取中心。轴线：各层中心拟合成一条三维直线。平滑曲线：拟合曲线，减少中心跳层。"
+msgstr "径向中心的生成方式。每个层都会在该切片上选择一个中心点。轴线模式通过这些中心点拟合一条三维直线。平滑曲线模式则拟合一条曲线，确保中心点在层与层之间平稳过渡，不会跳动。"
 
 msgid "Each layer"
-msgstr "逐层"
+msgstr "每层"
 
 msgid "Axis"
-msgstr "轴线"
+msgstr "轴"
 
 msgid "Smooth curve"
 msgstr "平滑曲线"
@@ -15035,13 +15061,13 @@ msgid "Radial line count"
 msgstr "径向线条数"
 
 msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
-msgstr "绕中心的径向线条数。0 按稀疏填充密度自动算。大于 0 为强制条数（向上取整为不少于 4 的偶数）。"
+msgstr "围绕中心的径向线条数量。0表示使用稀疏填充密度中的数量。正值表示径向线条的数量，并向上取整为至少4的偶数。"
 
 msgid "Center region radius"
-msgstr "中心直线区半径"
+msgstr "中心区域半径"
 
 msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
-msgstr "中心区域半径：圆内使用普通直线填充，圆外保持径向贴形。0 为自动半径；大于 0 为毫米值。"
+msgstr "使用普通直线填充的中心区域半径；在此圆外，填充保持径向。设为0将自动选择半径。正值以毫米为单位。"
 
 msgid "Symmetric infill y axis"
 msgstr "填充关于y轴对称"
@@ -15461,28 +15487,28 @@ msgid "Add an extra wall on alternating layers to improve layer bonding and part
 msgstr "在奇数层额外增加一圈墙，以增强层间结合与零件强度，同时避免全程使用额外墙层所带来的耗材与时间成本。"
 
 msgid "Periodic modifier"
-msgstr "按层周期套用"
+msgstr "周期性修改器"
 
 msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
-msgstr "按「连续套用 / 连续跳过」的周期套用此修改器。跳过的层完全不套用，等同于该层没有这颗修改器。"
+msgstr "将此修改器应用于重复层循环。对于跳过的层，它将被忽略，如同此修改器不存在一样。"
 
 msgid "Skip for"
-msgstr "连续跳过"
+msgstr "跳过"
 
 msgid "Periodic modifier skip layers"
-msgstr "按层周期套用：连续跳过层数"
+msgstr "周期性修改器跳过层数"
 
 msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
-msgstr "连续不套用此修改器的层数。0 表示每层都套用。"
+msgstr "此修改器不应用的连续层数。0表示修改器应用于每一层。"
 
 msgid "Apply for"
-msgstr "连续套用"
+msgstr "应用到"
 
 msgid "Periodic modifier apply layers"
-msgstr "按层周期套用：连续套用层数"
+msgstr "周期修改器应用层数"
 
 msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
-msgstr "每个周期内连续套用此修改器的层数。周期从第 0 层开始：先连续套用，再连续跳过。"
+msgstr "此修改器每个周期内完全应用的连续层数。周期从第0层开始：先应用，后跳过。"
 
 msgid "Ignore infill settings"
 msgstr "忽略填充设置"
@@ -15491,7 +15517,7 @@ msgid "Modifier ignore infill settings"
 msgstr "修改器忽略填充设置"
 
 msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
-msgstr "不套用此修改器的填充设置（图案、密度、贴形填充及相关选项）。墙和其他覆盖仍生效，填充沿用父区域。"
+msgstr "不应用此修改器的填充设置（填充模式、密度、随形填充及相关选项）。墙和其它覆盖设置仍会生效。填充将沿用父区域的设置。"
 
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"

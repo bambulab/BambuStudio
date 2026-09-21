@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-20 20:30+0800\n"
+"POT-Creation-Date: 2026-09-21 12:03+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4013,6 +4013,32 @@ msgstr ""
 msgid "Error Prompt"
 msgstr ""
 
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr ""
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Kept filaments"
+msgstr ""
+
+msgid "Deleted filaments"
+msgstr ""
+
+msgid "After merging"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr ""
+
+msgid "Prioritize merging similar-color filaments"
+msgstr ""
+
+msgid "Prioritize merging small-area filaments"
+msgstr ""
+
 msgid "How to use standard mixing kits"
 msgstr ""
 
@@ -6896,7 +6922,6 @@ msgid ""
 msgstr ""
 "Αρχείο: %s\n"
 "Τίτλος: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Αναμονή λήψης..."
@@ -7351,7 +7376,6 @@ msgid ""
 msgstr ""
 "Παρουσιάστηκαν τα ακόλουθα προβλήματα κατά τη διαδικασία μεταφόρτωσης εικόνων. Θέλετε να τα αγνοήσετε;\n"
 "\n"
-""
 
 msgid "info"
 msgstr "πληροφορίες"
@@ -11030,7 +11054,6 @@ msgid ""
 msgstr ""
 "Δεν συνιστώνται μη διαλυτά υλικά υποστήριξης για βάση στήριξης. \n"
 "Είστε βέβαιοι ότι θα τα χρησιμοποιήσετε ως βάση στήριξης; \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -11063,7 +11086,6 @@ msgid ""
 msgstr ""
 "Το ύψος επιπέδου είναι πολύ μικρό.\n"
 "Θα οριστεί σε min_layer_height\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "Το ύψος επιπέδου υπερβαίνει το όριο στις Ρυθμίσεις εκτυπωτή -> Εξωθητήρας -> Όρια ύψους επιπέδου. Αυτό ενδέχεται να προκαλέσει προβλήματα στην ποιότητα εκτύπωσης."
@@ -13083,7 +13105,6 @@ msgid ""
 msgstr ""
 "Αποτυχία δημιουργίας κώδικα G για μη έγκυρο προσαρμοσμένο κώδικα G.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Ελέγξτε τον προσαρμοσμένο κώδικα G ή χρησιμοποιήστε τον προεπιλεγμένο προσαρμοσμένο κώδικα G.\n"
@@ -17026,7 +17047,6 @@ msgstr ""
 "Συμβουλές για τη βαθμονόμηση του υλικού: \n"
 "- Υλικά που μπορούν να μοιράζονται την ίδια θερμοκρασία κλίνης/επιφάνειας\n"
 "- Διαφορετική μάρκα και οικογένεια νημάτων (Μάρκα = Bambu, Οικογένεια = Basic, Matte)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "Το (Aux) δεν υποστηρίζει την αυτόματη βαθμονόμηση ροής."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-20 20:30+0800\n"
+"POT-Creation-Date: 2026-09-21 12:03+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4020,6 +4020,32 @@ msgstr ""
 msgid "Error Prompt"
 msgstr ""
 
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr ""
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Kept filaments"
+msgstr ""
+
+msgid "Deleted filaments"
+msgstr ""
+
+msgid "After merging"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr ""
+
+msgid "Prioritize merging similar-color filaments"
+msgstr ""
+
+msgid "Prioritize merging small-area filaments"
+msgstr ""
+
 msgid "How to use standard mixing kits"
 msgstr ""
 
@@ -4729,7 +4755,6 @@ msgstr ""
 "Duza se poate bloca când temperatura este în afara intervalului recomandat.\n"
 "Vă rugăm să confirmați dacă utilizați temperatura pentru imprimare.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -6906,7 +6931,6 @@ msgid ""
 msgstr ""
 "Fișier: %s\n"
 "Titlu: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Descărcarea este în așteptare..."
@@ -7361,7 +7385,6 @@ msgid ""
 msgstr ""
 "Următoarele probleme au apărut în timpul procesului de încărcare a imaginilor. Doriți să le ignorați?\n"
 "\n"
-""
 
 msgid "info"
 msgstr "informații"
@@ -11042,7 +11065,6 @@ msgid ""
 msgstr ""
 "Materialele de suport insolubile nu sunt recomandate pentru baza de suport. \n"
 "Sigur doriți să le utilizați ca bază pentru suport? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -11074,7 +11096,6 @@ msgid ""
 msgstr ""
 "Înălțimea stratului este prea mică.\n"
 "Se va seta la min_layer_height\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "Înălțimea stratului depășește limita din Setări imprimantă -> Extruder -> Limite înălțime strat, acest lucru poate cauza probleme de calitate a imprimării."
@@ -13097,7 +13118,6 @@ msgid ""
 msgstr ""
 "Nu s-a putut genera G-code pentru G-code personalizat nevalid.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Vă rugăm să verificați codul G personalizat sau să utilizați codul G personalizat implicit.\n"
@@ -17040,7 +17060,6 @@ msgstr ""
 "Sfaturi pentru materialul de calibrare: \n"
 "- Materiale care pot avea aceeași temperatură a patului fierbinte\n"
 "- Mărci și familii de filamente diferite (Marcă = Bambu, Familie = Basic, Mat)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "(Aux) nu acceptă calibrarea automată a debitului."
