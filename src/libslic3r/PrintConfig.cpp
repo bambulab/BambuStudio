@@ -4915,9 +4915,9 @@ void PrintConfigDef::init_fff_params()
                      "infill pattern instead of the region's normal solid-infill pattern. Fractal scan "
                      "paths leave the smallest residual thermal stresses, which significantly reduces "
                      "warping that pulls long cantilevered overhangs upward as the layers above cool. "
-                     "Opt-in: when off, floor layers retain the existing pattern.");
+                     "When off, floor layers keep the normal solid-infill pattern.");
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("wave_overhang_floor_hilbert_layers", coInt);
     def->label = L("Hilbert floor layer count");
@@ -4955,7 +4955,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->min = 0;
     def->max = 1000;
-    def->set_default_value(new ConfigOptionFloat(0.0));
+    def->set_default_value(new ConfigOptionFloat(10.0));
 
     def = this->add("wave_overhang_floor_perimeter_speed", coFloat);
     def->label = L("Floor perimeter speed");
@@ -4968,7 +4968,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->min = 0;
     def->max = 1000;
-    def->set_default_value(new ConfigOptionFloat(0.0));
+    def->set_default_value(new ConfigOptionFloat(10.0));
 
     def = this->add("wave_overhang_floor_speed_ramp", coInt);
     def->label = L("Floor speed ramp");
