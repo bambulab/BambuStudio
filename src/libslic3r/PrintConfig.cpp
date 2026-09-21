@@ -5109,14 +5109,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0.01));
 
     def = this->add("support_remaining_areas_after_wave_overhangs", coBool);
-    def->label = L("Support unfilled wave overhang areas");
+    def->label = L("Remove support under wave overhangs");
     def->category = L("Support");
-    def->tooltip = L("When wave overhangs are enabled AND supports are on, only generate supports "
-                     "for overhang areas the wave toolpaths did NOT cover. Explicit support enforcers "
-                     "still apply normally. Disable to let the support generator ignore wave coverage "
-                     "(treats every overhang as if waves weren't there). Off by default: waves "
-                     "alone cannot hold up large unsupported spans, so removing support under them "
-                     "is left as a deliberate choice.");
+    def->tooltip = L("When wave overhangs and supports are both on, do not generate support under "
+                     "the areas the waves cover; only the rest of the overhang gets support. Support "
+                     "enforcers still apply. Off by default: waves alone cannot hold up large "
+                     "unsupported spans, so removing support under them is left as a deliberate choice.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
