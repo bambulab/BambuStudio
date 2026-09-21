@@ -19533,6 +19533,10 @@ msgstr "%s 只有 %s 喷嘴，确定后所有耗材都将切换到该喷嘴。"
 msgid "The connected printer has not reported its nozzle information, so the nozzles are left unchanged. Only the printer preset will be switched."
 msgstr "连接的打印机未上报喷嘴信息，喷嘴保持不变，将仅切换打印机预设。"
 
+#, possible-boost-format
+msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
+msgstr "%1% 不能超过壳体层数 (%2%)，否则涂色层将会到达稀疏填充区域，导致打印失败。"
+
 #~ msgid "Rotate spool when drying"
 #~ msgstr "烘干时旋转料盘"
 
