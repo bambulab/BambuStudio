@@ -154,6 +154,9 @@ private:
     // move gizmo
     Grabber m_move_grabber;
     const int m_move_cube_id = 1;
+    // World point the cube was grabbed at. A text without host mesh drags inside the horizontal
+    // plane through this point, so the object keeps the height it had when the drag started.
+    Vec3d m_cube_drag_start_pos{Vec3d::Zero()};
     // Rotation gizmo
     GLGizmoRotate        m_rotate_gizmo;
     std::optional<float> m_distance;
@@ -198,6 +201,8 @@ protected:
     virtual void on_start_dragging() override;
     virtual void on_stop_dragging() override;
     virtual void on_update(const UpdateData &data) override;
+    Vec3d mouse_to_drag_plane(const Linef3 &mouse_ray, const Vec3d &start_position_3D) const;
+    void drag_only_text_in_bed_plane(const UpdateData &data);
     void push_combo_style(const float scale);
     void pop_combo_style();
     void push_button_style(bool pressed);

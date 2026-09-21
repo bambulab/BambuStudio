@@ -640,7 +640,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
         m_mouse_position = mouse_position;
     }
     else if (action == SLAGizmoEventType::LeftDown) {
-        if (is_only_text_case()) {
+        if (is_only_text_case() && get_hover_id() != m_move_cube_id) {
             return false;
         }
         if (!selection.is_empty() && get_hover_id() != -1) {
@@ -2025,11 +2025,23 @@ void GLGizmoText::on_render()
         }
     }
     if (m_last_text_mv) {
+        // A drag only lives in the GLVolumes, the model instance is written on mouse up. Follow the
+        // live value so the handle tracks the object during the drag, no matter whether the canvas
+        // or the cube grabber drives it.
         if (is_only_text_case()) {//drag in parent
-            if ((m_text_position_in_world - mi->get_transformation().get_offset()).norm() > 0.01) {
-                m_text_position_in_world = mi->get_transformation().get_offset();
-                m_need_update_tran       = true;
-                update_text_tran_in_model_object(false);
+            const GLVolume *gl_volume = get_selected_gl_volume(m_parent);
+            if (gl_volume) {
+                // The handle sits at the origin of the text volume. Only the instance is read live,
+                // a rotation in progress moves the GLVolume before m_text_tran_in_object catches up
+                // and this branch has no business reacting to that.
+                const Vec3d text_pos_in_world = (gl_volume->get_instance_transformation() * m_text_tran_in_object).get_offset();
+                if ((m_text_position_in_world - text_pos_in_world).norm() > 0.01) {
+                    m_text_position_in_world = text_pos_in_world;
+                    m_need_update_tran       = true;
+                    update_text_tran_in_model_object(false);
+                    // The helper above sourced it from the not yet updated model instance.
+                    m_model_object_in_world_tran = gl_volume->get_instance_transformation();
+                }
             }
         }
         if (m_draging_cube) {
@@ -2038,17 +2050,24 @@ void GLGizmoText::on_render()
             m_rotate_gizmo.render();
         }
     }
-    if (!is_only_text_case()) {
-        update_text_pos_normal();
+    {
+        // The cube marks the text handle, the point every text line is laid out around. A text
+        // without a host mesh has no surface hit to follow, its own CS is the handle: show the
+        // cube there too, dragging it then moves the whole object in the bed plane.
+        const bool only_text = is_only_text_case();
         Geometry::Transformation tran;//= m_text_tran_in_world;
-        {
+        if (only_text) {
+            tran.set_matrix(m_text_tran_in_world.get_rotation_matrix());
+            tran.set_offset(m_text_tran_in_world.get_offset());
+        } else {
+            update_text_pos_normal();
             double   phi;
             Vec3d    rotation_axis;
             Matrix3d rotation_matrix;
             Geometry::rotation_from_two_vectors(Vec3d::UnitZ(), m_text_normal_in_world.cast<double>(), rotation_axis, phi, &rotation_matrix);
             tran.set_matrix((Transform3d) rotation_matrix);
+            tran.set_offset(m_text_position_in_world);
         }
-        tran.set_offset(m_text_position_in_world);
         bool                     hover = (m_hover_id == m_move_cube_id);
         std::array<float, 4>     render_color;
         if (hover) {
@@ -2075,12 +2094,17 @@ void GLGizmoText::on_render_for_picking()
     if (!m_draging_cube) {
         m_rotate_gizmo.render_for_picking();
     }
-    if (!is_only_text_case()) {
+    {
         const auto &shader = wxGetApp().get_shader("flat");
         if (shader == nullptr) return;
         wxGetApp().bind_shader(shader);
         int          obejct_idx, volume_idx;
         ModelVolume *model_volume = m_parent.get_selection().get_selected_single_volume(obejct_idx, volume_idx);
+        if (model_volume == nullptr && is_only_text_case()) {
+            // A text without host mesh may be selected as a whole instance, there is no single
+            // volume to query then, but the text volume is the only one anyway.
+            model_volume = m_last_text_mv;
+        }
         if (model_volume && !model_volume->get_text_info().m_text.empty()) {
             const Selection &selection = m_parent.get_selection();
             auto             mo        = selection.get_model()->objects[m_object_idx];
@@ -2103,6 +2127,14 @@ void GLGizmoText::on_start_dragging()
 
     if (m_hover_id == m_move_cube_id) {
         m_draging_cube = true;
+        if (is_only_text_case()) {
+            // No host surface to project on: the cube moves the whole object instead, so the
+            // selection needs instance mode and the same cache a GLVolume drag on the plate uses.
+            Selection &selection = m_parent.get_selection();
+            selection.set_mode(Selection::Instance);
+            selection.start_dragging();
+            m_cube_drag_start_pos = m_move_grabber.center;
+        }
     } else {
         m_rotate_gizmo.start_dragging();
     }
@@ -2110,9 +2142,20 @@ void GLGizmoText::on_start_dragging()
 
 void GLGizmoText::on_stop_dragging()
 {
+    const bool moved_whole_object = m_draging_cube && is_only_text_case();
     m_draging_cube = false;
     m_need_update_tran = true;//dragging
     if (m_hover_id == m_move_cube_id) {
+        if (moved_whole_object) {
+            // Only the instance offset changed, the text mesh itself is untouched: write the new
+            // position into the model and refresh the cached matrices, but do not rebuild the text.
+            m_parent.get_selection().stop_dragging();
+            wxGetApp().plater()->take_snapshot("Move Text", UndoRedo::SnapshotType::GizmoAction);
+            m_parent.do_move("");
+            update_trafo_matrices();
+            update_text_tran_in_model_object(false);
+            return;
+        }
         m_parent.do_move("");//replace by wxGetApp() .plater()->take_snapshot("Modify Text"); in EmbossJob.cpp
         update_trafo_matrices();
         m_need_update_text = true;
@@ -2135,10 +2178,65 @@ void GLGizmoText::on_stop_dragging()
     }
 }
 
+// Projects the mouse onto the horizontal plane passing through start_position_3D. Mirrors the rule
+// GLCanvas3D::on_mouse applies when a GLVolume is dragged over the plate.
+Vec3d GLGizmoText::mouse_to_drag_plane(const Linef3 &mouse_ray, const Vec3d &start_position_3D) const
+{
+    const Camera &camera                  = m_parent.get_active_camera();
+    auto          camera_up_down_rad_limit = abs(asin(camera.get_dir_forward()(2) / 1.0f));
+    if (camera_up_down_rad_limit < PI / 20.0f) {
+        // side view -> move selected volumes orthogonally to camera view direction
+        Vec3d dir = mouse_ray.unit_vector();
+        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+        // in our case plane normal and ray direction are the same (orthogonal view)
+        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+        Vec3d inters = mouse_ray.a + (start_position_3D - mouse_ray.a).dot(dir) / dir.squaredNorm() * dir;
+        // vector from the starting position to the found intersection
+        Vec3d inters_vec = inters - start_position_3D;
+
+        Vec3d camera_right = camera.get_dir_right();
+        Vec3d camera_up    = camera.get_dir_up();
+
+        // finds projection of the vector along the camera axes
+        double projection_x = inters_vec.dot(camera_right);
+        double projection_z = inters_vec.dot(camera_up);
+
+        // apply offset
+        Vec3d cur_pos = start_position_3D + projection_x * camera_right + projection_z * camera_up;
+        cur_pos[2]    = start_position_3D(2);
+        return cur_pos;
+    }
+    // Generic view
+    // Get new position at the same Z of the initial click point.
+    return mouse_ray.intersect_plane(start_position_3D(2));
+}
+
+// A text without host mesh cannot follow a surface hit, so its cube drags the whole object inside
+// the horizontal plane the cube was grabbed at, the same way a GLVolume is dragged over the plate.
+void GLGizmoText::drag_only_text_in_bed_plane(const UpdateData &data)
+{
+    const Vec3d cur_pos = mouse_to_drag_plane(data.mouse_ray, m_cube_drag_start_pos);
+
+    TransformationType trafo_type;
+    trafo_type.set_relative();
+    m_parent.get_selection().translate(cur_pos - m_cube_drag_start_pos, trafo_type);
+
+    // The model instance is only written on stop_dragging, so move the handle here to keep the
+    // cube under the cursor while dragging.
+    m_text_position_in_world = cur_pos;
+    m_text_tran_in_world.set_offset(cur_pos);
+    m_parent.set_as_dirty();
+}
+
 void GLGizmoText::on_update(const UpdateData &data)
 {
     if (m_hover_id == 0) {
         m_rotate_gizmo.update(data);
+        return;
+    }
+    if (m_draging_cube && is_only_text_case()) {
+        drag_only_text_in_bed_plane(data);
         return;
     }
     if (!m_c) { return; }
