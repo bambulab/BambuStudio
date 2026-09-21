@@ -1571,6 +1571,9 @@ std::string IMSlider::get_label(int tick, LabelType label_type)
     } else {
         if (label_type == ltEstimatedTime) {
             if (m_is_wipe_tower) {
+                // Per-tick times follow print order, so index them directly instead of merging repeated Z values.
+                if (m_layers_times.size() == m_values.size())
+                    return value < m_layers_times.size() ? short_and_splitted_time(get_time_dhms(m_layers_times[value])) : "";
                 size_t layer_number = get_layer_number(value, label_type);
                 return (layer_number == size_t(-1) || layer_number == m_layers_times.size()) ? "" : short_and_splitted_time(get_time_dhms(m_layers_times[layer_number]));
             }

@@ -6328,47 +6328,53 @@ void GCodeProcessor::update_estimated_times_stats()
 
 void GCodeProcessor::update_preview_layers_times_stats()
 {
-    // Tag-based layers (spiral vase / scarf) use a different partition; leave them to layers_times.
+    // Tag-based layers (spiral vase / scarf) replace the renderer's layer list, so the per-run
+    // partition below would not line up with the slider ticks; leave those to layers_times.
     if (m_detect_layer_based_on_tag)
         return;
 
-    // Build a per-slider-layer time table keyed by unique extrusion Z (matching IMSlider::m_layers_values),
-    // keeping the largest cumulative time at each Z so a Z revisited by a sublayer maps to its finish.
     for (size_t mode_idx = 0; mode_idx < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++mode_idx) {
         PrintEstimatedStatistics::Mode& data = m_result.print_statistics.modes[mode_idx];
         if (data.layers_times.empty())
             continue;
 
-        std::map<float, float> end_time_by_z; // unique extrusion Z -> cumulative time when that Z is done
-        // Z only changes at layer/sublayer boundaries, so cache the slot and re-query the map only on change.
-        // std::map nodes are stable across insertions, so the cached pointer stays valid.
-        float last_z = std::numeric_limits<float>::quiet_NaN();
-        float* slot = nullptr;
+        // Slice time by the same consecutive extrusion-Z runs the renderer builds the slider ticks from
+        // (a new run starts whenever the extrusion Z changes by more than EPSILON). Summing each move's
+        // own duration into the current run keeps everything in print order, so a height that is printed
+        // again later - mixed-color sublayers, or the same Z reprinted by another object in ByObject -
+        // gets its own run/time instead of being merged with the earlier visit. The result is one time
+        // per slider tick (aligned with IMSlider::m_values), always non-negative and summing to the total.
+        std::vector<float> run_times;
+        float prev_time = 0.0f;   // previous move's cumulative time (move.time is a prefix sum)
+        float last_z    = std::numeric_limits<float>::quiet_NaN();
+        float pending   = 0.0f;   // pre-print time before the first extrusion run
         for (const GCodeProcessorResult::MoveVertex& move : m_result.moves) {
-            if (move.type != EMoveType::Extrude)
-                continue;
-            if (move.position.z() != last_z) {
+            const float current_time = std::max(prev_time, move.time[mode_idx]);
+            const float dt = current_time - prev_time;
+            prev_time = current_time;
+            if (move.type == EMoveType::Extrude && (run_times.empty() || std::abs(move.position.z() - last_z) > EPSILON)) {
+                run_times.emplace_back(0.0f);
                 last_z = move.position.z();
-                slot = &end_time_by_z[last_z];
             }
-            *slot = std::max(*slot, move.time[mode_idx]);
+            if (run_times.empty())
+                pending += dt; // before the first extrusion; folded into the first run below
+            else
+                run_times.back() += dt;
         }
 
-        // Only mixed-color sublayers make the unique-Z partition finer than the logical layers.
-        // When the counts match, layers_times already fits the slider, so leave preview empty.
-        if (end_time_by_z.size() <= data.layers_times.size())
+        // Only mixed-color sublayers make the runs finer than the logical layers; otherwise layers_times
+        // already lines up with the slider, so leave preview empty and let the slider reuse it.
+        if (run_times.size() <= data.layers_times.size())
             continue;
 
-        std::vector<float> layer_times;
-        layer_times.reserve(end_time_by_z.size());
-        for (const auto& z_time : end_time_by_z)
-            layer_times.emplace_back(z_time.second); // cumulative end-times, already sorted by Z ascending
-
-        // Convert cumulative end-times into per-layer durations (iterate backwards for in-place diff).
-        layer_times.back() = std::max(layer_times.back(), data.time);
-        for (size_t i = layer_times.size(); i-- > 1; )
-            layer_times[i] = std::max(0.0f, layer_times[i] - layer_times[i - 1]);
-        data.preview_layers_times = std::move(layer_times);
+        // Fold the pre-print time (and any rounding) into the first run so the prefix sum the slider
+        // builds from these durations ends exactly at the estimated total time.
+        run_times.front() += pending;
+        float sum = 0.0f;
+        for (float t : run_times)
+            sum += t;
+        run_times.front() += std::max(0.0f, data.time - sum);
+        data.preview_layers_times = std::move(run_times);
     }
 }
 
