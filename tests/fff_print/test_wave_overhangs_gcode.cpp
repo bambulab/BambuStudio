@@ -152,10 +152,11 @@ TEST_CASE("WaveOverhangs G-code: supports are not generated under wave-covered a
             { "wave_overhangs", false } }));
         const double with_waves = support_filament(slice_mesh(cantilever(), {
             { "enable_support", true }, { "support_type", support_type },
-            { "wave_overhangs", true } }));
+            { "wave_overhangs", true }, { "support_remaining_areas_after_wave_overhangs", true } }));
+        // Suppression is off by default, so this is also what enabling waves alone does.
         const double waves_but_opted_out = support_filament(slice_mesh(cantilever(), {
             { "enable_support", true }, { "support_type", support_type },
-            { "wave_overhangs", true }, { "support_remaining_areas_after_wave_overhangs", false } }));
+            { "wave_overhangs", true } }));
 
         // Control: the fixture needs support at all, or nothing below means anything.
         REQUIRE(without_waves > 0.);

@@ -5116,9 +5116,11 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("When wave overhangs are enabled AND supports are on, only generate supports "
                      "for overhang areas the wave toolpaths did NOT cover. Explicit support enforcers "
                      "still apply normally. Disable to let the support generator ignore wave coverage "
-                     "(treats every overhang as if waves weren't there).");
+                     "(treats every overhang as if waves weren't there). Off by default: waves "
+                     "alone cannot hold up large unsupported spans, so removing support under them "
+                     "is left as a deliberate choice.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("smooth_speed_discontinuity_area", coBool);
     def->label = L("Smooth speed discontinuity area");
