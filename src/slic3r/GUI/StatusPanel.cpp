@@ -1678,6 +1678,8 @@ void PrintingTaskPanel::enable_abort_button(bool enable)
 
 void PrintingTaskPanel::update_title(const wxString &title)
 {
+    if (m_type == CALIBRATION) return;
+
     if (m_staticText_title->GetLabelText() != title) { BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << title; }
     m_staticText_title->SetLabelText(title);
     m_staticText_title->SetToolTip(title);
@@ -1887,6 +1889,13 @@ void PrintingTaskPanel::show_priting_use_info(bool show, wxString time /*= wxEmp
 
 void PrintingTaskPanel::show_subtitle(bool show, const wxString &subtitle)
 {
+    if (m_type == CALIBRATION) {
+        m_staticText_subtitle->SetLabelText(wxEmptyString);
+        m_staticText_subtitle->UnsetToolTip();
+        m_staticText_subtitle->Hide();
+        return;
+    }
+
     if (show) {
         if (!m_staticText_subtitle->IsShown()) { m_staticText_subtitle->Show(); }
         m_staticText_subtitle->SetLabelText(subtitle);
