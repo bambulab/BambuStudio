@@ -411,9 +411,9 @@ void PrintJob::process()
         20,     // PrintingStageCreate
         30,     // PrintingStageUpload
         70,     // PrintingStageWaiting
-        75,     // PrintingStageRecord
         97,     // PrintingStageSending
-        100,    // PrintingStageFinished
+        75,     // PrintingStageRecord
+        100,    // PrintingStageWaitPrinter
         100     // PrintingStageFinished
     };
 
@@ -538,8 +538,7 @@ void PrintJob::process()
                         // update current percnet
                         if (stage >= 0 && stage <= (int) PrintingStageFinished) {
                             curr_percent = StagePercentPoint[stage];
-                            if ((stage == BBL::SendingPrintJobStage::PrintingStageUpload
-                                || stage == BBL::SendingPrintJobStage::PrintingStageRecord)
+                            if (stage == BBL::SendingPrintJobStage::PrintingStageUpload
                                 && (code > 0 && code <= 100)) {
                                 curr_percent = (StagePercentPoint[stage + 1] - StagePercentPoint[stage]) * code / 100 + StagePercentPoint[stage];
                             }
