@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <map>
+#include <set>
 #include <utility>
 
 #include <boost/container/small_vector.hpp>
@@ -441,6 +442,12 @@ private:
     // Used by gradient run detection to distinguish real gaps from layers belonging
     // only to another object or empty grid layers swallowed by adaptive merging.
     std::map<const PrintObject*, std::vector<size_t>> m_object_all_layer_indices;
+
+    // Layer indices where a mixed slot's region is swallowed by its own adaptive band: the slot is
+    // still printed there, by the group top above. Another nozzle may emit its own group top on such a
+    // layer, so these must not count as gradient gaps. slot(0-based) -> PrintObject* / volume -> layers.
+    std::map<unsigned int, std::map<const PrintObject*, std::set<size_t>>> m_mixed_swallowed_layers;
+    std::map<unsigned int, std::map<LayerTools::MixedSubLayerGroup::VolumeKey, std::set<size_t>>> m_gradient_volume_swallowed_layers;
 
     // Per-volume gradient tracking: slot(0-based) -> (PrintObject*, ModelVolume id) -> list of
     // layer indices where the given volume contributes to the slot. Populated by collect_extruders

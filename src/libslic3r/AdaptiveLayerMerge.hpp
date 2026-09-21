@@ -23,6 +23,8 @@ struct AdaptiveLayerHeightRange
 
 struct AdaptiveMergePatch
 {
+    // A region may carry multiple disjoint patches on one group-top layer. They keep the nozzle's common
+    // top_idx but may start at different bottom_idx values after local Z-conflict clipping.
     size_t     bottom_idx { 0 };
     size_t     top_idx { 0 };
     // Only set on the copy owned by the group-top LayerRegion. Layer::id() may be offset against the
@@ -40,9 +42,25 @@ struct AdaptiveMergePatch
 
     void set_area(ExPolygons area) { m_area = std::make_shared<const ExPolygons>(std::move(area)); }
 
+    // Geometry that could not be assigned to a printable slab. It is intentionally separate from area():
+    // the patch must suppress fill in this footprint without generating walls or claiming Z occupancy.
+    const ExPolygons &suppressed_area() const
+    {
+        static const ExPolygons empty;
+        return m_suppressed_area ? *m_suppressed_area : empty;
+    }
+
+    void set_suppressed_area(ExPolygons area)
+    {
+        m_suppressed_area = std::make_shared<const ExPolygons>(std::move(area));
+    }
+
+    bool has_suppressed_area() const { return bool(m_suppressed_area); }
+
 private:
     // All copies stored across a merge span share the same immutable geometry.
     std::shared_ptr<const ExPolygons> m_area;
+    std::shared_ptr<const ExPolygons> m_suppressed_area;
 };
 
 // One band of the layer stack, [bottom_idx, top_idx] inclusive. A nozzle prints the band as a single
@@ -57,6 +75,14 @@ struct AdaptiveLayerBand
 };
 
 AdaptiveLayerHeightRange adaptive_layer_height_range(double nozzle_diameter);
+
+// Keep only the pieces a nozzle of this diameter could really lay a bead into. Two contours polygonised
+// apart - consecutive slices of a shrinking shape, a slice and the paint covering it - never coincide point
+// for point, and what one has over the other is a fringe of degenerate, near zero area slivers. Offsetting a
+// degenerate contour makes Clipper hand back islands orders of magnitude larger than what it was given, so
+// the area test comes first and the erosion is read as a yes/no answer only: the returned pieces are always
+// the originals, never the output of the offset.
+ExPolygons adaptive_printable_pieces(ExPolygons pieces, double nozzle_diameter);
 
 // True when the filaments handed in do not all share one nozzle diameter. Print::uses_multiple_nozzle_diameters()
 // additionally enables adaptive merging for a single used coarse diameter when it is larger than the
@@ -87,18 +113,6 @@ size_t adaptive_layer_band_size(double nozzle_diameter, double min_nozzle_diamet
 // than 5 + an orphaned 3. Returns an empty plan when band_size is 1, i.e. when this nozzle merges nothing.
 std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
     const std::vector<double>      &layer_heights,
-    size_t                          band_size,
-    const AdaptiveLayerHeightRange &height_range,
-    const std::vector<uint8_t>     &band_tops = {});
-
-// Same grid as build_adaptive_layer_bands(), but the first full-size band is pinned at first_bottom
-// instead of layer 0. A colour (or a preview-slider tool change) that is absent from the true first
-// layer must start its own ladder on the first layer it actually owns; otherwise DP tail balancing
-// shifts the group, and a later occupied() check from the finer nozzle drops the first coarse band.
-// first_bottom == 0 is equivalent to build_adaptive_layer_bands().
-std::vector<AdaptiveLayerBand> build_adaptive_layer_bands_from(
-    const std::vector<double>      &layer_heights,
-    size_t                          first_bottom,
     size_t                          band_size,
     const AdaptiveLayerHeightRange &height_range,
     const std::vector<uint8_t>     &band_tops = {});

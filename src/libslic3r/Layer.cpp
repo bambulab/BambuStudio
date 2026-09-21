@@ -212,6 +212,14 @@ void Layer::make_perimeters()
             return false;
         if (! lhs_merged)
             return true;
+        // A layer may carry both markers of a slab above and a local group top of its own. The group top
+        // of a secondary region would be lost in a shared pass, so any extruding group top forbids it.
+        auto has_extruding_group_top = [](const LayerRegion *layerm) {
+            return std::any_of(layerm->adaptive_merge_patches.begin(), layerm->adaptive_merge_patches.end(),
+                               [](const AdaptiveMergePatch &patch) { return patch.group_top && ! patch.area().empty(); });
+        };
+        if (has_extruding_group_top(lhs) || has_extruding_group_top(rhs))
+            return false;
         const AdaptiveMergePatch &a = lhs->adaptive_merge_patches.front();
         const AdaptiveMergePatch &b = rhs->adaptive_merge_patches.front();
         if (a.bottom_idx != b.bottom_idx || a.top_idx != b.top_idx || a.group_top != b.group_top)
@@ -280,8 +288,10 @@ void Layer::make_perimeters()
                     return;
                 }
 
-                const AdaptiveMergePatch &patch = lm->adaptive_merge_patches.front();
-                if (! patch.group_top) {
+                const auto group_top_patch = std::find_if(
+                    lm->adaptive_merge_patches.begin(), lm->adaptive_merge_patches.end(),
+                    [](const AdaptiveMergePatch &patch) { return patch.group_top; });
+                if (group_top_patch == lm->adaptive_merge_patches.end()) {
                     // Swallowed by the group top, so nothing is extruded here. The fill surfaces still have
                     // to pass through shell discovery, otherwise a solid layer inside the band disappears
                     // before combine_adaptive_infill() can promote it.
@@ -290,31 +300,14 @@ void Layer::make_perimeters()
                     return;
                 }
 
-                // Only the retained contour is extruded. What the band had to give up to a finer nozzle
-                // printing below it is out of reach of this nozzle and is dropped.
-                SurfaceCollection core_slices;
-                const SurfaceCollection &patch_source = patch.bottom_idx == 0 ?
-                    this->object()->get_layer(0)->get_region(region_id)->slices : src;
-                for (const Surface &s : patch_source.surfaces)
-                    for (ExPolygon &e : intersection_ex(ExPolygons{ s.expolygon }, patch.area()))
-                        core_slices.surfaces.emplace_back(s, std::move(e));
-                if (core_slices.surfaces.empty()) {
-                    lm->perimeters.clear();
-                    lm->thin_fills.clear();
-                    return;
-                }
-                // The layers inside the band are not extruded separately. Using the physical layer
-                // immediately below the group top would therefore treat the band's own dropped contours as
-                // support and hide overhangs that start below the band bottom.
-                const ExPolygons *lower_slices = patch.bottom_idx > 0 ?
-                    &this->object()->get_layer(int(patch.bottom_idx - 1))->lslices : nullptr;
-
+                // All local boundary pieces share this fixed group top, so their ceiling is identical.
                 ExPolygons upper_slices_storage;
                 const ExPolygons *upper_slices = nullptr;
-                if (patch.top_idx + 1 < this->object()->layer_count()) {
+                const size_t top_idx = group_top_patch->top_idx;
+                if (top_idx + 1 < this->object()->layer_count()) {
                     // The next physical layer may be swallowed by another adaptive band. Build the
                     // footprint that band will actually extrude so top-only walls see the real ceiling.
-                    const Layer *upper_layer = this->object()->get_layer(int(patch.top_idx + 1));
+                    const Layer *upper_layer = this->object()->get_layer(int(top_idx + 1));
                     Polygons upper_footprint;
                     for (const LayerRegion *upper_region : upper_layer->regions()) {
                         if (upper_region->adaptive_merge_patches.empty()) {
@@ -327,9 +320,33 @@ void Layer::make_perimeters()
                     upper_slices_storage = union_ex(upper_footprint);
                     upper_slices = &upper_slices_storage;
                 }
-                lm->make_perimeters(core_slices, perimeter_regions, out_fill, out_no_overlap,
-                                    this->loop_nodes, patch.merged_height, true, lower_slices, upper_slices, false,
-                                    patch.bottom_idx == 0);
+
+                bool generated = false;
+                for (const AdaptiveMergePatch &patch : lm->adaptive_merge_patches) {
+                    if (! patch.group_top || patch.area().empty())
+                        continue;
+
+                    SurfaceCollection core_slices;
+                    const SurfaceCollection &patch_source = patch.bottom_idx == 0 ?
+                        this->object()->get_layer(0)->get_region(region_id)->slices : src;
+                    for (const Surface &s : patch_source.surfaces)
+                        for (ExPolygon &e : intersection_ex(ExPolygons{ s.expolygon }, patch.area()))
+                            core_slices.surfaces.emplace_back(s, std::move(e));
+                    if (core_slices.surfaces.empty())
+                        continue;
+
+                    // Each local piece rests immediately above its own obstruction.
+                    const ExPolygons *lower_slices = patch.bottom_idx > 0 ?
+                        &this->object()->get_layer(int(patch.bottom_idx - 1))->lslices : nullptr;
+                    lm->make_perimeters(core_slices, perimeter_regions, out_fill, out_no_overlap,
+                                        this->loop_nodes, patch.merged_height, ! generated,
+                                        lower_slices, upper_slices, false, patch.bottom_idx == 0);
+                    generated = true;
+                }
+                if (! generated) {
+                    lm->perimeters.clear();
+                    lm->thin_fills.clear();
+                }
             };
 
 	        if (layerms.size() == 1) {  // optimization

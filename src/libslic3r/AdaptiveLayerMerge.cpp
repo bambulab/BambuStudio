@@ -1,5 +1,6 @@
 #include "AdaptiveLayerMerge.hpp"
 
+#include "ClipperUtils.hpp"
 #include "PrintConfig.hpp"
 #include "libslic3r.h"
 
@@ -22,6 +23,17 @@ bool AdaptiveLayerHeightRange::contains(double height) const
 AdaptiveLayerHeightRange adaptive_layer_height_range(double nozzle_diameter)
 {
     return { 0.2 * nozzle_diameter, 0.7 * nozzle_diameter };
+}
+
+ExPolygons adaptive_printable_pieces(ExPolygons pieces, double nozzle_diameter)
+{
+    const double min_area = 0.25 * nozzle_diameter * nozzle_diameter;
+    const float  erosion  = float(scale_(0.5 * nozzle_diameter));
+    pieces.erase(std::remove_if(pieces.begin(), pieces.end(), [min_area, erosion](const ExPolygon &piece) {
+                     return piece.area() * SCALING_FACTOR * SCALING_FACTOR < min_area ||
+                            (erosion > 0.f && shrink_ex(ExPolygons { piece }, erosion).empty());
+                 }), pieces.end());
+    return pieces;
 }
 
 bool has_multiple_used_nozzle_diameters(const PrintConfig &print_config, const std::vector<unsigned int> &filament_ids)
@@ -109,6 +121,60 @@ static bool cover_span_with_bands(
     return true;
 }
 
+// Same cost as cover_span_with_bands(), but a span starting at the object base is laid out from the
+// bottom up: on a tie a regular band_size band wins, so the remainder of the stack ends up at the top and
+// the first layer of a coarse nozzle no longer depends on the object height.
+static bool cover_span_from_base(
+    const std::vector<double>      &layer_heights,
+    size_t                          bottom_idx,
+    size_t                          top_idx,
+    size_t                          band_size,
+    const AdaptiveLayerHeightRange &height_range,
+    std::vector<AdaptiveLayerBand> &bands)
+{
+    if (bottom_idx != 0)
+        return cover_span_with_bands(layer_heights, bottom_idx, top_idx, band_size, height_range, bands);
+
+    bands.clear();
+    if (bottom_idx > top_idx || top_idx >= layer_heights.size())
+        return false;
+
+    const size_t layer_count = top_idx - bottom_idx + 1;
+    const size_t unreachable = std::numeric_limits<size_t>::max();
+    // cost[i] is how far the bands covering the layers from i up to the span top stray from band_size.
+    std::vector<size_t> cost(layer_count + 1, unreachable);
+    std::vector<size_t> next(layer_count + 1, 0);
+    cost[layer_count] = 0;
+    for (size_t begin = layer_count; begin-- > 0;) {
+        double height = 0.;
+        for (size_t end = begin + 1; end <= layer_count; ++ end) {
+            height += layer_heights[bottom_idx + end - 1];
+            if (height > height_range.max_height + EPSILON)
+                break;
+            if (cost[end] == unreachable || ! height_range.contains(height))
+                continue;
+            const size_t size    = end - begin;
+            const size_t penalty = size > band_size ? size - band_size : band_size - size;
+            const size_t total   = cost[end] + penalty;
+            // Ties keep a regular band, otherwise go to the thickest one, which is also the fastest.
+            if (total < cost[begin] || (total == cost[begin] && next[begin] - begin != band_size)) {
+                cost[begin] = total;
+                next[begin] = end;
+            }
+        }
+    }
+    if (cost[0] == unreachable)
+        return false;
+
+    for (size_t begin = 0; begin < layer_count; begin = next[begin]) {
+        AdaptiveLayerBand band { bottom_idx + begin, bottom_idx + next[begin] - 1, 0. };
+        for (size_t layer_idx = band.bottom_idx; layer_idx <= band.top_idx; ++ layer_idx)
+            band.merged_height += layer_heights[layer_idx];
+        bands.emplace_back(band);
+    }
+    return true;
+}
+
 std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
     const std::vector<double>      &layer_heights,
     size_t                          band_size,
@@ -138,7 +204,7 @@ std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
     size_t last_band_count = 0;
     for (size_t i = 0; i < segment_tops.size(); ++ i) {
         const size_t top_idx = segment_tops[i];
-        if (cover_span_with_bands(layer_heights, bottom_idx, top_idx, band_size, height_range, segment_bands)) {
+        if (cover_span_from_base(layer_heights, bottom_idx, top_idx, band_size, height_range, segment_bands)) {
             last_bottom_idx = bottom_idx;
             last_band_count = segment_bands.size();
             bands.insert(bands.end(), segment_bands.begin(), segment_bands.end());
@@ -152,7 +218,7 @@ std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
         // There is nothing above the last segment to join, so take the segment below back and re-cut both
         // at once. This is what keeps the top of the object merged when its tail is shorter than a band.
         if (last_band_count > 0 &&
-            cover_span_with_bands(layer_heights, last_bottom_idx, top_idx, band_size, height_range, segment_bands)) {
+            cover_span_from_base(layer_heights, last_bottom_idx, top_idx, band_size, height_range, segment_bands)) {
             bands.resize(bands.size() - last_band_count);
             bands.insert(bands.end(), segment_bands.begin(), segment_bands.end());
         }
@@ -164,42 +230,6 @@ std::vector<AdaptiveLayerBand> build_adaptive_layer_bands(
                                [](const AdaptiveLayerBand &band) { return band.top_idx <= band.bottom_idx; }),
                 bands.end());
     return bands;
-}
-
-std::vector<AdaptiveLayerBand> build_adaptive_layer_bands_from(
-    const std::vector<double>      &layer_heights,
-    size_t                          first_bottom,
-    size_t                          band_size,
-    const AdaptiveLayerHeightRange &height_range,
-    const std::vector<uint8_t>     &band_tops)
-{
-    if (first_bottom == 0)
-        return build_adaptive_layer_bands(layer_heights, band_size, height_range, band_tops);
-    if (band_size < 2 || first_bottom + band_size > layer_heights.size())
-        return build_adaptive_layer_bands(layer_heights, band_size, height_range, band_tops);
-
-    AdaptiveLayerBand first { first_bottom, first_bottom + band_size - 1, 0. };
-    for (size_t layer_idx = first.bottom_idx; layer_idx <= first.top_idx; ++ layer_idx)
-        first.merged_height += layer_heights[layer_idx];
-    if (! height_range.contains(first.merged_height))
-        return build_adaptive_layer_bands(layer_heights, band_size, height_range, band_tops);
-
-    std::vector<AdaptiveLayerBand> out { first };
-    const size_t suffix_bottom = first.top_idx + 1;
-    if (suffix_bottom < layer_heights.size()) {
-        std::vector<double> suffix_heights(layer_heights.begin() + suffix_bottom, layer_heights.end());
-        std::vector<uint8_t> suffix_tops;
-        if (suffix_bottom < band_tops.size())
-            suffix_tops.assign(band_tops.begin() + suffix_bottom, band_tops.end());
-        std::vector<AdaptiveLayerBand> suffix =
-            build_adaptive_layer_bands(suffix_heights, band_size, height_range, suffix_tops);
-        for (AdaptiveLayerBand &band : suffix) {
-            band.bottom_idx += suffix_bottom;
-            band.top_idx += suffix_bottom;
-            out.emplace_back(band);
-        }
-    }
-    return out;
 }
 
 bool pull_adaptive_band_top_to_material(

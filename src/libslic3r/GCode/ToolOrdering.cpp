@@ -924,6 +924,36 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 if (mixed_slots_1based.count(ext_1based) && seen.insert(ext_1based).second)
                     m_mixed_object_layers[ext_1based - 1][&object].push_back(layer_idx);
             }
+
+            // A region swallowed by its own adaptive band emits nothing here, but its slot is still
+            // printed through this step by the group top above. Record it so that a group top of another
+            // nozzle landing on this layer is not mistaken for the slot being absent.
+            // Marker copies also reach below a floor raised by an obstruction; the slab does not stand there.
+            const size_t object_layer_idx = layer->id() - object.slicing_parameters().raft_layers();
+            for (const LayerRegion *layerm : layer->regions()) {
+                const bool swallowed = std::any_of(
+                    layerm->adaptive_merge_patches.begin(), layerm->adaptive_merge_patches.end(),
+                    [object_layer_idx](const AdaptiveMergePatch &patch) {
+                        return !patch.group_top && !patch.area().empty() && object_layer_idx >= patch.bottom_idx;
+                    });
+                if (!swallowed)
+                    continue;
+                const PrintRegion       &region = layerm->region();
+                const PrintRegionConfig &rcfg   = region.config();
+                const unsigned int role_slots[3] = {
+                    extruder_override != 0 ? extruder_override : (unsigned int)rcfg.wall_filament.value,
+                    extruder_override != 0 ? extruder_override : (unsigned int)rcfg.sparse_infill_filament.value,
+                    extruder_override != 0 ? extruder_override : (unsigned int)rcfg.solid_infill_filament.value,
+                };
+                const ObjectID vol_id = region.gradient_volume_id();
+                for (unsigned int ext_1based : role_slots) {
+                    if (!mixed_slots_1based.count(ext_1based))
+                        continue;
+                    m_mixed_swallowed_layers[ext_1based - 1][&object].insert(layer_idx);
+                    if (vol_id.valid() && per_part_slots_1based.count(ext_1based))
+                        m_gradient_volume_swallowed_layers[ext_1based - 1][{&object, vol_id}].insert(layer_idx);
+                }
+            }
         }
 
         // Per-part gradient: walk LayerRegions and record which (slot, ModelVolume) pairs
@@ -2823,12 +2853,31 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     // actual extrusion. Used by gradient run detection (a gap is real only if the
     // slot is absent while one of its objects prints something) and by calc_slot_lh
     // to keep prev_relevant_z_for_slot current across genuine material gaps.
+    // Layers where the slot is swallowed by its own adaptive band are excluded: the
+    // slot is still being printed there, whatever other nozzles emit on that layer.
+    auto find_swallowed = [](const auto &swallowed_map, unsigned int slot, const auto &key) -> const std::set<size_t> * {
+        auto slot_it = swallowed_map.find(slot);
+        if (slot_it == swallowed_map.end())
+            return nullptr;
+        auto key_it = slot_it->second.find(key);
+        return key_it == slot_it->second.end() ? nullptr : &key_it->second;
+    };
+    auto relevant_layers = [](const std::vector<size_t> &layers, const std::set<size_t> *swallowed) {
+        std::set<size_t> out;
+        for (size_t li : layers)
+            if (swallowed == nullptr || !swallowed->count(li))
+                out.insert(li);
+        return out;
+    };
     std::map<unsigned int, std::set<size_t>> slot_relevant_layers;
     for (auto &[slot_idx, obj_map] : m_mixed_object_layers) {
         for (auto &[obj, _] : obj_map) {
             auto it = m_object_all_layer_indices.find(obj);
-            if (it != m_object_all_layer_indices.end())
-                slot_relevant_layers[slot_idx].insert(it->second.begin(), it->second.end());
+            if (it != m_object_all_layer_indices.end()) {
+                const std::set<size_t> relevant =
+                    relevant_layers(it->second, find_swallowed(m_mixed_swallowed_layers, slot_idx, obj));
+                slot_relevant_layers[slot_idx].insert(relevant.begin(), relevant.end());
+            }
         }
     }
 
@@ -2914,8 +2963,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             if (!layer_indices.empty() && layer_indices.front() == 0)
                 layer_indices.erase(layer_indices.begin());
 
-            const auto &all_obj_layers = m_object_all_layer_indices[obj];
-            std::set<size_t> all_obj_set(all_obj_layers.begin(), all_obj_layers.end());
+            const std::set<size_t> all_obj_set = relevant_layers(
+                m_object_all_layer_indices[obj], find_swallowed(m_mixed_swallowed_layers, slot, obj));
             std::set<size_t> grad_set(layer_indices.begin(), layer_indices.end());
 
             per_obj_runs[slot][obj] = segment_runs(layer_indices, all_obj_set, grad_set);
@@ -2937,8 +2986,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             if (!layer_indices.empty() && layer_indices.front() == 0)
                 layer_indices.erase(layer_indices.begin());
 
-            const auto &all_obj_layers = m_object_all_layer_indices[vkey.obj];
-            std::set<size_t> all_obj_set(all_obj_layers.begin(), all_obj_layers.end());
+            const std::set<size_t> all_obj_set = relevant_layers(
+                m_object_all_layer_indices[vkey.obj], find_swallowed(m_gradient_volume_swallowed_layers, slot, vkey));
             std::set<size_t> vol_grad_set(layer_indices.begin(), layer_indices.end());
 
             per_vol_runs[slot][vkey] = segment_runs(layer_indices, all_obj_set, vol_grad_set);
