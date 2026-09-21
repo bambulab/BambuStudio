@@ -1158,6 +1158,34 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
     toggle_line("enable_wrapping_detection", DevPrinterConfigUtil::support_wrapping_detection(printer_type));
+
+    // Wave overhangs: while the master toggle is off only it is shown. The corner-reinforcement and
+    // Hilbert-floor groups each have their own toggle that reveals the rest of the group.
+    const bool wave_enabled = config->opt_bool("wave_overhangs");
+    for (auto el : { "wave_overhangs_instead_of_bridges", "support_remaining_areas_after_wave_overhangs",
+                     "wave_overhang_min_angle", "wave_overhang_min_length", "wave_overhang_max_iterations",
+                     "wave_overhang_pattern", "wave_overhang_seam_mode", "wave_overhang_outer_perimeters",
+                     "wave_overhang_line_spacing", "wave_overhang_spacing_mode", "wave_overhang_perimeter_overlap",
+                     "wave_overhang_minimum_width", "wave_overhang_min_new_area", "wave_overhang_flow_mm3_per_mm",
+                     "wave_overhang_corner_taper_enable",
+                     "wave_overhang_print_speed", "wave_overhang_perimeter_speed", "wave_overhang_travel_speed",
+                     "wave_overhang_end_retract_length",
+                     "wave_overhang_fan_speed", "wave_overhang_aux_fan_speed", "wave_overhang_nozzle_temp",
+                     "wave_overhang_min_wave_time", "wave_overhang_min_layer_time",
+                     "wave_overhang_floor_layers", "wave_overhang_floor_perimeter_speed", "wave_overhang_floor_speed_ramp",
+                     "wave_overhang_floor_use_hilbert", "wave_overhang_debug_gcode" })
+        toggle_line(el, wave_enabled);
+
+    const bool wave_corner_taper = wave_enabled && config->opt_bool("wave_overhang_corner_taper_enable");
+    for (auto el : { "wave_overhang_line_spacing_corner", "wave_overhang_corner_taper_distance", "wave_overhang_corner_angle_threshold" })
+        toggle_line(el, wave_corner_taper);
+
+    // The floor print speed and fan overrides only reach paths tagged as Hilbert floor, so they
+    // belong with the Hilbert toggle rather than with the floor layers in general.
+    const bool wave_floor_hilbert = wave_enabled && config->opt_bool("wave_overhang_floor_use_hilbert");
+    for (auto el : { "wave_overhang_floor_hilbert_layers", "wave_overhang_floor_hilbert_density", "wave_overhang_floor_print_speed",
+                     "wave_overhang_floor_fan_speed", "wave_overhang_floor_aux_fan_speed" })
+        toggle_line(el, wave_floor_hilbert);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
