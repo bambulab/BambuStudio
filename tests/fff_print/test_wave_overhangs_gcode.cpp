@@ -78,6 +78,18 @@ bool contains(const std::string &haystack, const char *needle)
 
 } // namespace
 
+TEST_CASE("Exported G-code serializes enum-list options by name", "[WaveOverhangs][GCode]")
+{
+    // append_full_config writes every setting at the end of the file. Enum-list options
+    // held in static print configs used to carry a null key map, so this crashed; and a
+    // null guard alone would stop the crash while writing an empty value. Check for the
+    // actual name, which only a correctly attached key map can produce.
+    const std::string gcode = slice_overhang({});
+
+    REQUIRE_FALSE(gcode.empty());
+    CHECK(contains(gcode, "; cooling_slowdown_logic = uniform_cooling"));
+}
+
 TEST_CASE("WaveOverhangs G-code: disabled leaves no trace", "[WaveOverhangs][GCode]")
 {
     // The default path through the slicer must be untouched by this feature.
@@ -127,8 +139,11 @@ TEST_CASE("WaveOverhangs G-code: the fan marker is consumed, not emitted", "[Wav
 
 TEST_CASE("WaveOverhangs G-code: min_wave_time inserts a dwell", "[WaveOverhangs][GCode]")
 {
+    // The dwell pads each wave line up to min_wave_time, so it only fires when a line takes
+    // less than that. At the default 2 mm/s even a 100 mm line is under a minute, so 60 s
+    // is guaranteed to trigger; a small value like 5 s is already met by ordinary lines.
     const std::string gcode = slice_overhang({ { "wave_overhangs", true },
-                                               { "wave_overhang_min_wave_time", 5 } });
+                                               { "wave_overhang_min_wave_time", 60 } });
 
     REQUIRE_FALSE(gcode.empty());
     CHECK(contains(gcode, "wave-overhang min_wave_time dwell"));
@@ -136,12 +151,17 @@ TEST_CASE("WaveOverhangs G-code: min_wave_time inserts a dwell", "[WaveOverhangs
 
 TEST_CASE("WaveOverhangs G-code: bridge suppression removes bridge fill", "[WaveOverhangs][GCode]")
 {
-    // With wave_overhangs_instead_of_bridges the region should contain no bridge
-    // classifications at all; everything left over becomes solid infill.
-    const std::string gcode = slice_overhang({ { "wave_overhangs", true },
-                                               { "wave_overhangs_instead_of_bridges", true },
-                                               { "gcode_comments", true } });
+    // With wave_overhangs_instead_of_bridges the region should contain no bridge fill;
+    // everything left over becomes solid infill. Match the toolpath feature tag rather than
+    // a bare "bridge": the trailing config block is full of settings such as bridge_speed
+    // and bridge_flow, which would match without meaning anything.
+    const std::string with_bridges = slice_overhang({ { "wave_overhangs", true } });
+    const std::string suppressed   = slice_overhang({ { "wave_overhangs", true },
+                                                      { "wave_overhangs_instead_of_bridges", true } });
 
-    REQUIRE_FALSE(gcode.empty());
-    CHECK_FALSE(contains(gcode, "; bridge"));
+    REQUIRE_FALSE(suppressed.empty());
+    // Control: the fixture has to produce bridge fill in the first place, otherwise the
+    // check below would pass without testing anything.
+    REQUIRE(contains(with_bridges, "; FEATURE: Bridge"));
+    CHECK_FALSE(contains(suppressed, "; FEATURE: Bridge"));
 }
