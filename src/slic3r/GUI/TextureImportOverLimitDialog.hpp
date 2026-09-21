@@ -43,6 +43,7 @@ struct TextureOverLimitInput {
     Slic3r::PaintedMesh                painted;
     TexturePreviewCanvas::ViewState    view;
     size_t                             max_count      = 32;
+    bool                               mix_enabled    = false;
 };
 
 TextureOverLimitPlan compute_texture_overlimit_merge_plan(const TextureOverLimitInput& input);

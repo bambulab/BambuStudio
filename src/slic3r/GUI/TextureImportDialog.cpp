@@ -2171,6 +2171,7 @@ public:
                         const std::vector<std::array<float, 4>>& colors_rgba,
                         const std::vector<std::string>&          names,
                         size_t                                   existing_count,
+                        bool                                     mix_enabled,
                         int                                      popup_width,
                         wxWindow*                                dialog_anchor,
                         std::function<void(int)>                 on_select,
@@ -2184,6 +2185,7 @@ public:
         , m_colors_rgba(colors_rgba)
         , m_names(names)
         , m_existing_count(existing_count)
+        , m_mix_enabled(mix_enabled)
         , m_dialog_anchor(dialog_anchor)
         , m_on_select(std::move(on_select))
         , m_on_add_filament(std::move(on_add_filament))
@@ -2283,9 +2285,9 @@ public:
         auto* inner = new wxBoxSizer(wxVERTICAL);
         inner->Add(m_content, 0, wxEXPAND);
         inner->AddSpacer(FromDIP(4));
-        auto* sep_line = new StaticLine(this);
-        sep_line->SetLineColour(texture_import_separator_colour());
-        inner->Add(sep_line, 0, wxEXPAND | wxLEFT | wxRIGHT, m_pad);
+        m_decompose_sep = new StaticLine(this);
+        m_decompose_sep->SetLineColour(texture_import_separator_colour());
+        inner->Add(m_decompose_sep, 0, wxEXPAND | wxLEFT | wxRIGHT, m_pad);
         inner->Add(m_decompose_label, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, m_pad);
         auto* sep_line2 = new StaticLine(this);
         sep_line2->SetLineColour(texture_import_separator_colour());
@@ -2293,6 +2295,7 @@ public:
         inner->Add(m_add_label, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, m_pad);
         auto* top_sizer = new wxBoxSizer(wxVERTICAL);
         top_sizer->Add(inner, 0, wxEXPAND | wxALL, FromDIP(8));
+        apply_mix_visibility();
         SetSizerAndFit(top_sizer);
         const wxSize min_sz = top_sizer->GetMinSize();
         SetSize(std::max(m_pop_w, min_sz.x), min_sz.y);
@@ -2331,16 +2334,19 @@ public:
                            const std::vector<std::array<float, 4>>& colors_rgba,
                            const std::vector<std::string>&          names,
                            size_t                                   existing_count,
+                           bool                                     mix_enabled,
                            std::vector<int>                         display_numbers)
     {
         m_entries = entries;
         m_colors_rgba = colors_rgba;
         m_names = names;
         m_existing_count = existing_count;
+        m_mix_enabled = mix_enabled;
         m_display_numbers = std::move(display_numbers);
         m_refreshing = true;
         Freeze();
         rebuild_content();
+        apply_mix_visibility();
         if (wxSizer* sizer = GetSizer()) {
             Layout();
             const wxSize min_sz = sizer->GetMinSize();
@@ -2451,8 +2457,10 @@ private:
         // -> NewMixed) instead of jumping (e.g. 1,2 -> 7 -> 3,4,5,6 -> 8,9,10).
         add_section(_L("Project Physical Filaments"), TextureFilamentKind::ExistingPhysical);
         add_section(_L("New Physical Filaments"), TextureFilamentKind::NewPhysical);
-        add_section(_L("Project Mixed Filaments"), TextureFilamentKind::ExistingMixed);
-        add_section(_L("New Mixed Filaments"), TextureFilamentKind::NewMixed);
+        if (m_mix_enabled) {
+            add_section(_L("Project Mixed Filaments"), TextureFilamentKind::ExistingMixed);
+            add_section(_L("New Mixed Filaments"), TextureFilamentKind::NewMixed);
+        }
 
         m_content->SetSizer(outer);
         m_content->FitInside();
@@ -2891,11 +2899,20 @@ private:
         return row;
     }
 
+    void apply_mix_visibility()
+    {
+        if (m_decompose_label)
+            m_decompose_label->Show(m_mix_enabled);
+        if (m_decompose_sep)
+            m_decompose_sep->Show(m_mix_enabled);
+    }
+
     wxScrolledWindow*                         m_content = nullptr;
     std::vector<TextureFilamentEntry>          m_entries;
     std::vector<std::array<float, 4>>          m_colors_rgba;
     std::vector<std::string>                   m_names;
     size_t                                     m_existing_count = 0;
+    bool                                       m_mix_enabled = false;
     wxWindow*                                  m_dialog_anchor = nullptr;
     std::function<void(int)>                   m_on_select;
     std::function<void()>                      m_on_add_filament;
@@ -2908,6 +2925,7 @@ private:
     ScalableBitmap                             m_bmp_delete;
     ScalableBitmap                             m_bmp_brand;
     wxStaticText*                              m_decompose_label = nullptr;
+    StaticLine*                                m_decompose_sep = nullptr;
     wxStaticText*                              m_add_label = nullptr;
     wxColour                                   m_header_clr;
     int                                        m_pop_w = 0;
@@ -6407,7 +6425,7 @@ void TextureImportDialog::drop_unused_new_filaments_and_refresh()
     if (m_filament_popup && m_filament_popup->IsShown()) {
         m_filament_popup->refresh_filaments(
             m_filament_entries, m_filament_colors_rgba, m_filament_names,
-            m_existing_filament_count, compute_display_numbers());
+            m_existing_filament_count, m_mix_enabled, compute_display_numbers());
     }
 }
 
@@ -7132,7 +7150,7 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
 
     auto* popup = new FilamentSelectPopup(
         this, m_filament_entries, m_filament_colors_rgba, m_filament_names,
-        m_existing_filament_count, tp->GetSize().x, tp, on_select, on_add_filament,
+        m_existing_filament_count, m_mix_enabled, tp->GetSize().x, tp, on_select, on_add_filament,
         on_decompose_color, on_delete_filament,
         on_close,
         display_numbers);
@@ -8358,6 +8376,7 @@ bool TextureImportDialog::open_overlimit_dialog()
     input.display_numbers = compute_display_numbers();
     input.painted = m_painted;
     input.max_count = max_filament_count();
+    input.mix_enabled = m_mix_enabled;
     if (m_preview_canvas_right)
         input.view = m_preview_canvas_right->get_view_state();
     else if (m_preview_canvas)

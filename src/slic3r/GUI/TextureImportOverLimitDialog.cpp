@@ -48,6 +48,23 @@ bool is_new_entry(const TextureFilamentEntry& entry)
            entry.kind == TextureFilamentKind::NewMixed;
 }
 
+bool is_mixed_entry(const TextureFilamentEntry& entry)
+{
+    return entry.kind == TextureFilamentKind::ExistingMixed ||
+           entry.kind == TextureFilamentKind::NewMixed;
+}
+
+// Mixed slots still occupy the 32-filament quota, but with Color mixing off
+// they cannot receive remapped colors (same as a minority material family).
+bool can_receive_merge(int idx, const TextureOverLimitInput& input)
+{
+    if (idx < 0 || idx >= (int)input.entries.size())
+        return false;
+    if (!input.mix_enabled && is_mixed_entry(input.entries[idx]))
+        return false;
+    return true;
+}
+
 std::array<std::size_t, 3> rgb_from_rgba(const std::array<float, 4>& rgba)
 {
     return texture_import_rgb_from_rgba(rgba);
@@ -190,6 +207,8 @@ int find_closest_alive(int source_index,
             continue;
         if (!same_family(families, source_index, (int)i))
             continue;
+        if (!can_receive_merge((int)i, input))
+            continue;
         const double de = Slic3r::compute_delta_e(color, input.colors_rgba[i]);
         if (de < best_de) {
             best_de = de;
@@ -265,6 +284,36 @@ void finish_plan(TextureOverLimitPlan& plan, size_t max_count, int remaining)
 {
     plan.remaining_count = remaining;
     plan.fully_resolved = remaining >= 0 && (size_t)remaining <= max_count;
+}
+
+// Color mixing off: leftover matches on mixed slots must move to a still-alive
+// physical so the preview and selected_matches() stay consistent. Mixed slots
+// remain alive and keep occupying quota.
+void peel_mixed_match_targets(std::vector<Slic3r::FilamentMatch>& matches,
+                              const std::vector<char>& alive,
+                              const TextureOverLimitInput& input,
+                              const std::vector<std::string>& families)
+{
+    if (input.mix_enabled)
+        return;
+    std::set<int> mixed_sources;
+    for (const auto& m : matches) {
+        if (m.filament_index < 0 || m.filament_index >= (int)input.entries.size())
+            continue;
+        if (is_mixed_entry(input.entries[m.filament_index]))
+            mixed_sources.insert(m.filament_index);
+    }
+    for (int from : mixed_sources) {
+        const int dest = find_closest_alive(from, alive, input, families);
+        if (dest >= 0) {
+            remap_matches(matches, from, dest, input.colors_rgba);
+            continue;
+        }
+        for (auto& m : matches) {
+            if (m.filament_index == from)
+                m.filament_index = -1;
+        }
+    }
 }
 
 std::map<std::array<std::size_t, 3>, std::array<float, 3>>
@@ -420,6 +469,8 @@ TextureOverLimitPlan compute_merge_plan(const TextureOverLimitInput& input, Over
             for (size_t j = 0; j < n; ++j) {
                 if (!alive[j] || j == i || !same_family(ctx.families, (int)i, (int)j))
                     continue;
+                if (!can_receive_merge((int)j, input))
+                    continue;
                 const double de = Slic3r::compute_delta_e(rgb_from_rgba(input.colors_rgba[i]),
                                                           input.colors_rgba[j]);
                 if (de < best_de) {
@@ -446,8 +497,15 @@ TextureOverLimitPlan compute_merge_plan(const TextureOverLimitInput& input, Over
                 absorbed = best_other;
             }
         }
+        if (!can_receive_merge(survivor, input)) {
+            survivor = best_other;
+            absorbed = best_new;
+        }
+        if (!can_receive_merge(survivor, input))
+            break;
         absorb_filament(absorbed, survivor, alive, plan.matches, input, ctx.families, &ctx.areas);
     }
+    peel_mixed_match_targets(plan.matches, alive, input, ctx.families);
 
     std::vector<char> discarded(n, 0);
     for (size_t i = 0; i < n; ++i)
@@ -499,6 +557,7 @@ TextureOverLimitPlan compute_discard_plan(const TextureOverLimitInput& input, Ov
                 discarded[i] = 1;
         }
     }
+    peel_mixed_match_targets(plan.matches, alive, input, ctx.families);
 
     plan.kept_chips = chips_from_alive(input, alive, ctx.areas, ctx.total_area);
     plan.discarded_chips = chips_from_alive(input, discarded, ctx.areas, ctx.total_area);
