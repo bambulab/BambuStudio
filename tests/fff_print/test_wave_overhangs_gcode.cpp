@@ -8,6 +8,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -17,14 +18,14 @@ using namespace Slic3r::Test;
 
 namespace {
 
-// Slice the overhang fixture, applying the given wave-overhang settings on top of an
-// otherwise default profile, and hand back the resulting G-code.
+// Slice `mesh`, applying the given settings on top of an otherwise default profile, and hand
+// back the resulting G-code.
 //
 // This deliberately does not use Slic3r::Test::init_print. That helper calls
 // arrange_objects() with an InfiniteBed and still ends up throwing "Objects could not fit
 // on the bed" — its own SCENARIO in test_data.cpp fails the same way against current
 // master. Placing the mesh directly sidesteps the arranger entirely.
-std::string slice_overhang(std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> items)
+std::string slice_mesh(TriangleMesh mesh, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> items)
 {
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
     config.set_deserialize_strict({
@@ -38,15 +39,14 @@ std::string slice_overhang(std::initializer_list<Slic3r::ConfigBase::SetDeserial
     Slic3r::Model model;
     Slic3r::Print print;
 
-    // Put the mesh in the middle of the default 200x200 bed.
+    // Put the mesh in the middle of the default 200x200 bed. Test meshes come in arbitrary
+    // coordinates — the overhang fixture sits near X = 1360 — so centre on the bounding box
+    // rather than applying a fixed offset.
     ModelObject *object = model.add_object();
-    object->name = "overhang.stl";
-    // Only the single-argument mesh() is actually defined in test_data.cpp; the
-    // translate/scale overloads are declared in the header but have no implementation,
-    // so calling them fails at link time. Translate by hand instead.
-    TriangleMesh tm = Slic3r::Test::mesh(TestMesh::overhang);
-    tm.translate(100.f, 100.f, 0.f);
-    object->add_volume(std::move(tm));
+    object->name = "fixture.stl";
+    const BoundingBoxf3 bb = mesh.bounding_box();
+    mesh.translate(float(100. - bb.center().x()), float(100. - bb.center().y()), 0.f);
+    object->add_volume(std::move(mesh));
     object->add_instance();
     object->ensure_on_bed();
     print.auto_assign_extruders(object);
@@ -71,9 +71,60 @@ std::string slice_overhang(std::initializer_list<Slic3r::ConfigBase::SetDeserial
     return gcode;
 }
 
+std::string slice_overhang(std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> items)
+{
+    // Only the single-argument mesh() is actually defined in test_data.cpp; the
+    // translate/scale overloads are declared in the header but have no implementation.
+    return slice_mesh(Slic3r::Test::mesh(TestMesh::overhang), items);
+}
+
+// A 12 x 12 x 20 mm post with a 32 x 12 x 4 mm arm at Z 14, anchored on one side only: the
+// shape both wave overhangs and supports exist for. The arm overlaps the post by 4 mm so the
+// two volumes slice as one solid rather than meeting at a zero-thickness face.
+//
+// Tree support generates no support at all for the overhang fixture above, which would make a
+// tree-support assertion on it vacuous; a 28 mm cantilever needs support under either generator.
+TriangleMesh cantilever()
+{
+    TriangleMesh post = Slic3r::make_cube(12., 12., 20.);
+    TriangleMesh arm  = Slic3r::make_cube(32., 12., 4.);
+    arm.translate(8.f, 0.f, 14.f);
+    post.merge(arm);
+    return post;
+}
+
 bool contains(const std::string &haystack, const char *needle)
 {
     return haystack.find(needle) != std::string::npos;
+}
+
+// Filament extruded as support, in mm of filament: every positive E on a move while the
+// current feature tag is one of the support features.
+double support_filament(const std::string &gcode)
+{
+    double total      = 0.;
+    bool   in_support = false;
+    size_t pos        = 0;
+    while (pos < gcode.size()) {
+        size_t eol = gcode.find('\n', pos);
+        if (eol == std::string::npos)
+            eol = gcode.size();
+        const std::string line = gcode.substr(pos, eol - pos);
+        pos = eol + 1;
+        if (line.rfind("; FEATURE: ", 0) == 0) {
+            in_support = line.find("Support", 11) != std::string::npos;
+            continue;
+        }
+        if (! in_support || line.rfind("G1", 0) != 0)
+            continue;
+        const size_t e = line.find(" E");
+        if (e == std::string::npos || line.find(';') < e)
+            continue;
+        const double v = std::atof(line.c_str() + e + 2);
+        if (v > 0.)
+            total += v;
+    }
+    return total;
 }
 
 } // namespace
@@ -88,6 +139,32 @@ TEST_CASE("Exported G-code serializes enum-list options by name", "[WaveOverhang
 
     REQUIRE_FALSE(gcode.empty());
     CHECK(contains(gcode, "; cooling_slowdown_logic = uniform_cooling"));
+}
+
+TEST_CASE("WaveOverhangs G-code: supports are not generated under wave-covered areas", "[WaveOverhangs][GCode]")
+{
+    // Both generators are ported separately, so exercise both.
+    for (const char *support_type : { "normal(auto)", "tree(auto)" }) {
+        INFO("support_type = " << support_type);
+
+        const double without_waves = support_filament(slice_mesh(cantilever(), {
+            { "enable_support", true }, { "support_type", support_type },
+            { "wave_overhangs", false } }));
+        const double with_waves = support_filament(slice_mesh(cantilever(), {
+            { "enable_support", true }, { "support_type", support_type },
+            { "wave_overhangs", true } }));
+        const double waves_but_opted_out = support_filament(slice_mesh(cantilever(), {
+            { "enable_support", true }, { "support_type", support_type },
+            { "wave_overhangs", true }, { "support_remaining_areas_after_wave_overhangs", false } }));
+
+        // Control: the fixture needs support at all, or nothing below means anything.
+        REQUIRE(without_waves > 0.);
+        // Waves cover part of the overhang, so strictly less support is generated.
+        CHECK(with_waves < without_waves);
+        // With the option off, waves are generated but support is untouched. Slicing is not
+        // bit-for-bit reproducible run to run, so allow a small tolerance rather than equality.
+        CHECK(waves_but_opted_out == Approx(without_waves).epsilon(0.02));
+    }
 }
 
 TEST_CASE("WaveOverhangs G-code: disabled leaves no trace", "[WaveOverhangs][GCode]")
