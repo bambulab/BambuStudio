@@ -6583,6 +6583,19 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
+    def           = this->add("tree_support_tip_diameter", coFloat);
+    def->label    = L("Tip diameter");
+    def->category = L("Support");
+    def->tooltip  = L("Diameter a support branch starts with where it touches the overhang. A thicker tip is "
+                       "stronger and sticks to the overhang better, but leaves heavier marks on the surface and "
+                       "is harder to remove. Values below the support extrusion width or above the branch "
+                       "diameter are clamped. Applies to every tree support style.");
+    def->sidetext = L("mm");
+    def->min      = 0.1;
+    def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.8));
+
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Support wall loops");
     def->category = L("Support");

@@ -1644,6 +1644,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_diameter"
             || opt_key == "tree_support_branch_angle"
             || opt_key == "tree_support_branch_diameter_angle"
+            || opt_key == "tree_support_tip_diameter"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
             if (m_config.support_top_z_distance == 0.) {

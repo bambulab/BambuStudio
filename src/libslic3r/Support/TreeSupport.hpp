@@ -447,7 +447,12 @@ private:
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
     float    DO_NOT_MOVER_UNDER_MM = 2.0;
     coordf_t base_radius                        = 0.0;
+    // Radius a branch starts with at the overhang, driven by tree_support_tip_diameter. Floored at
+    // the support extrusion width so a thin tip cannot degenerate into a circle too small to extrude,
+    // and capped by the branch radius, matching what the organic path does in TreeSupportCommon.
+    coordf_t tip_radius                         = 0.4;
     const coordf_t MAX_BRANCH_RADIUS = 10.0;
+    // Stepping granularity for the safe_offset_inc() collision walks, not a branch radius.
     const coordf_t MIN_BRANCH_RADIUS = 0.4;
     const coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
     const coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;

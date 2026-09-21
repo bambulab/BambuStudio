@@ -621,7 +621,16 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     diameter_angle_scale_factor              = std::clamp<double>(m_object_config->tree_support_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
     is_slim                                  = is_tree_slim(support_type, m_support_params.support_style);
     is_strong = is_tree(support_type) && m_support_params.support_style == smsTreeStrong;
-    base_radius                              = std::max(MIN_BRANCH_RADIUS, m_object_config->tree_support_branch_diameter.value / 2);
+    const coordf_t support_extrusion_width = Flow::extrusion_width_for_nozzle(
+        m_object_config->line_width,
+        float(primary_nozzle_diameter(m_object->print()->full_print_config())),
+        nozzle_diameter_for_filament(m_object->print()->config(), m_object_config->support_filament),
+        multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config()));
+    // A branch may not start thinner than a single extrusion, or draw_circles() is handed a circle it
+    // cannot extrude, and it may not start thicker than the branch it grows into.
+    const coordf_t tip_diameter_max          = std::max<coordf_t>(support_extrusion_width, m_object_config->tree_support_branch_diameter.value);
+    tip_radius                               = std::clamp<coordf_t>(m_object_config->tree_support_tip_diameter.value, support_extrusion_width, tip_diameter_max) / 2;
+    base_radius                              = std::max(tip_radius, m_object_config->tree_support_branch_diameter.value / 2);
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
     with_infill              = m_support_params.support_base_pattern != smpNone;
     m_machine_border.contour = get_bed_shape_with_excluded_area(*m_print_config);
@@ -697,9 +706,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     double thresh_angle = config.support_threshold_angle.value > EPSILON ? config.support_threshold_angle.value + 1 : 30;
     thresh_angle = std::min(thresh_angle, 89.); // should be smaller than 90
     const double threshold_rad = Geometry::deg2rad(thresh_angle);
-    // FIXME this is a fudge constant!
-    double support_tree_tip_diameter = 0.8;
-    auto   enforcer_overhang_offset  = scaled<double>(support_tree_tip_diameter);
+    // Dilate painted enforcers by the effective tip, not the raw setting: tip_radius is already clamped
+    // to [support extrusion width, branch diameter], so a large tree_support_tip_diameter cannot blow this
+    // fudge offset up to 10mm. Enforcers are unioned back in after blockers are subtracted below, so an
+    // unclamped offset here would let a thick tip swallow nearby blockers.
+    auto   enforcer_overhang_offset  = scaled<double>(tip_radius * 2);
 
     // for small overhang removal
     struct OverhangCluster {
@@ -2664,7 +2675,7 @@ coordf_t TreeSupport::calc_branch_radius(coordf_t base_radius, size_t layers_to_
             radius = base_radius * (layers_to_top + 1) / (tip_layers * 2);
         }
     }
-    radius = std::clamp(radius, MIN_BRANCH_RADIUS, MAX_BRANCH_RADIUS);
+    radius = std::clamp(radius, tip_radius, MAX_BRANCH_RADIUS);
     return radius;
 }
 
@@ -2680,7 +2691,7 @@ coordf_t TreeSupport::calc_branch_radius(coordf_t base_radius, coordf_t mm_to_to
     {
         radius = mm_to_top;// this is a 45 degree tip
     }
-    radius = std::clamp(radius, MIN_BRANCH_RADIUS, MAX_BRANCH_RADIUS);
+    radius = std::clamp(radius, tip_radius, MAX_BRANCH_RADIUS);
     // if have interface layers, radius should be larger
     if (m_object_config->support_interface_top_layers.value > 0)
         radius = std::max(radius, base_radius);
@@ -4884,7 +4895,7 @@ void TreeSupport::generate_contact_points()
                 for (auto &overhang : overhangs_regular) {
                     if (is_sharp_tail && !m_support_params.soluble_interface && overhang.area() < SQ(scale_(2.))) add_interface = false;
                     BoundingBox overhang_bounds = get_extents(overhang);
-                    double      radius          = std::clamp(unscale_(overhang_bounds.radius()), MIN_BRANCH_RADIUS, base_radius);
+                    double      radius          = std::clamp(unscale_(overhang_bounds.radius()), tip_radius, base_radius);
                     // add supports at corners for both auto and manual overhangs, github #2008
                     auto &points = overhang.contour.points;
                     int   nSize = points.size();

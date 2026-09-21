@@ -244,8 +244,9 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     // +1 makes the threshold inclusive
     double                   tan_threshold          = support_threshold_auto ? 0. : tan(M_PI * double(support_threshold + 1) / 180.);
     //FIXME this is a fudge constant!
-    double support_tree_tip_diameter = 0.8;
-    auto                     enforcer_overhang_offset = scaled<double>(support_tree_tip_diameter);
+    // Same as the classic path: dilate by the effective tip, not the raw setting. settings.min_radius is
+    // half the already clamped tree_support_tip_diameter and is in scaled units.
+    auto                     enforcer_overhang_offset = double(settings.min_radius * 2);
     const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
 
     // calc the extrudable expolygons of each layer

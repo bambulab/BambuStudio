@@ -89,7 +89,6 @@ struct TreeSupportMeshGroupSettings {
         this->support_wall_count        = std::max(1, config.tree_support_wall_count.value);  // at least 1 wall for organic tree support
         this->support_roof_line_distance = scaled<coord_t>(config.support_interface_spacing.value) + this->support_roof_line_width;
         double support_tree_angle_slow = 25;// TODO add a setting?
-        double tree_support_tip_diameter = 0.8;
     	this->support_tree_branch_distance = scaled<coord_t>(config.tree_support_branch_distance.value);
         this->support_tree_angle          = std::clamp<double>(config.tree_support_branch_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
         this->support_tree_angle_slow     = std::clamp<double>(support_tree_angle_slow * M_PI / 180., 0., this->support_tree_angle - EPSILON);
@@ -97,7 +96,12 @@ struct TreeSupportMeshGroupSettings {
         this->support_tree_branch_diameter_angle  = std::clamp<double>(config.tree_support_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
         this->support_tree_top_rate = 30; // percent
     //    this->support_tree_tip_diameter = this->support_line_width;
-        this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(tree_support_tip_diameter), 0, this->support_tree_branch_diameter);
+        // A branch may not start thinner than a single extrusion, or the tip layers degenerate into a
+        // circle too small to be walled, and it may not start thicker than the branch it grows into.
+        // max() on the upper bound keeps std::clamp well defined when the branch is thinner than a line.
+        this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(config.tree_support_tip_diameter.value),
+                                                     this->support_line_width,
+                                                     std::max(this->support_line_width, this->support_tree_branch_diameter));
     }
 
 /*********************************************************************/

@@ -3491,6 +3491,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_diameter_angle", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_tip_diameter", "support#tree-support-only-options");
 
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");
