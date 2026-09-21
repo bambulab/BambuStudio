@@ -833,7 +833,7 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     default: break;
     }
 
-    Close();
+    CallAfter([this]() { Close(); });
 }
 
 }
