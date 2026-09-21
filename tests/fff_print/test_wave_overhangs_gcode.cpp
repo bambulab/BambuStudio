@@ -243,3 +243,32 @@ TEST_CASE("WaveOverhangs G-code: bridge suppression removes bridge fill", "[Wave
     REQUIRE(contains(with_bridges, "; FEATURE: Bridge"));
     CHECK_FALSE(contains(suppressed, "; FEATURE: Bridge"));
 }
+
+TEST_CASE("WaveOverhangs G-code: wave lines carry their own feature tag", "[WaveOverhangs][GCode]")
+{
+    // The preview colours features by the "; FEATURE:" tag, so waves need one of their own to be
+    // told apart from ordinary overhang walls.
+    const std::string with_waves = slice_overhang({ { "wave_overhangs", true } });
+    const std::string without    = slice_overhang({ { "wave_overhangs", false } });
+
+    REQUIRE_FALSE(with_waves.empty());
+    CHECK(contains(with_waves, "; FEATURE: Wave overhang"));
+    CHECK_FALSE(contains(without, "; FEATURE: Wave overhang"));
+}
+
+TEST_CASE("WaveOverhangs G-code: the Hilbert floor gets the floor speed override", "[WaveOverhangs][GCode]")
+{
+    // The floor print speed only reaches paths the Hilbert floor tags, so its feedrate showing up
+    // at all means the floor was generated and tagged. 9 mm/s is unlike any default speed.
+    const std::string hilbert = slice_mesh(cantilever(), { { "wave_overhangs", true },
+                                                           { "wave_overhang_floor_use_hilbert", true },
+                                                           { "wave_overhang_floor_print_speed", 9 } });
+    const std::string plain   = slice_mesh(cantilever(), { { "wave_overhangs", true },
+                                                           { "wave_overhang_floor_use_hilbert", false },
+                                                           { "wave_overhang_floor_print_speed", 9 } });
+
+    REQUIRE_FALSE(hilbert.empty());
+    CHECK(contains(hilbert, "F540"));
+    // Control: without the Hilbert floor nothing is tagged, so the override must not appear.
+    CHECK_FALSE(contains(plain, "F540"));
+}
