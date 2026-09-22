@@ -1,53 +1,25 @@
 ![image](https://user-images.githubusercontent.com/106916061/179006347-497d24c0-9bd6-45b7-8c49-d5cc8ecfe5d7.png)
-# BambuStudio
-Bambu Studio is a cutting-edge, feature-rich slicing software.  
-It contains project-based workflows, systematically optimized slicing algorithms, and an easy-to-use graphic interface, bringing users an incredibly smooth printing experience.
+# BambuStudio-Improved
 
-Prebuilt Windows, macOS 64-bit and Linux releases are available through the [github releases page](https://github.com/bambulab/BambuStudio/releases/).
+- This is an attempt to bring some features to bambu studio or improve some of the existing ones.
+  
+- Currently there are 3 changes:
 
-Bambu Studio is based on [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community.
+- <h3> The filament drop down list</h3>
+   
+  It shows the filament profiles first, without having to go to a submenu and the list can be customized in length to how many profiles it shows, from the settings menu.  
+  <img width="398" height="686" alt="CleanShot 2026-09-10 at 11 48 02" src="https://github.com/user-attachments/assets/807e431d-f19b-44f5-bfcc-105e98353d2d" />
 
-See the [wiki](https://github.com/bambulab/BambuStudio/wiki) and the [documentation directory](https://github.com/bambulab/BambuStudio/tree/master/doc) for more information.
+  The list can be customized in length to how many profiles it shows, from the settings menu.
 
-# What are Bambu Studio's main features?
-Key features are:
-- Basic slicing features & GCode viewer
-- Multiple plates management
-- Remote control & monitoring
-- Auto-arrange objects
-- Auto-orient objects
-- Hybrid/Tree/Normal support types, Customized support
-- multi-material printing and rich painting tools
-- multi-platform (Win/Mac/Linux) support
-- Global/Object/Part level slicing parameters
+- <h3> Bridge Density</h3>
+  
+  I've added bridge density settings as seen in Orca Slicer as from my testing they improve bridge quality more than just increasing the flow.
+ 
+  <img width="433" height="177" alt="CleanShot 2026-09-10 at 11 49 36" src="https://github.com/user-attachments/assets/ee3c6281-1aaa-4f0a-970b-4ceff185b5db" />
 
-Other major features are:
-- Advanced cooling logic controlling fan speed and dynamic print speed
-- Auto brim according to mechanical analysis
-- Support arc path(G2/G3)
-- Support STEP format
-- Assembly & explosion view
-- Flushing transition-filament into infill/object during filament change
+- <h3> Set other flow ratios</h3>
+  
+  I've also added a setting from Orca Slicer to allow to modify other flow ratios, as seen below:
 
-# How to compile
-Following platforms are currently supported to compile:
-- Windows 64-bit, [Compile Guide](https://github.com/bambulab/BambuStudio/wiki/Windows-Compile-Guide)
-- Mac 64-bit, [Compile Guide](https://github.com/bambulab/BambuStudio/wiki/Mac-Compile-Guide)
-- Linux, [Compile Guide](https://github.com/bambulab/BambuStudio/wiki/Linux-Compile-Guide)
-  - currently we only provide linux appimages on [github releases](https://github.com/bambulab/BambuStudio/releases) for Ubuntu/Fedora, and a [flathub version](https://flathub.org/apps/com.bambulab.BambuStudio) can be used for all the linux platforms
-
-# Report issue
-You can add an issue to the [github tracker](https://github.com/bambulab/BambuStudio/issues) if **it isn't already present.**
-
-# License
-Bambu Studio is licensed under the GNU Affero General Public License, version 3. Bambu Studio is based on PrusaSlicer by PrusaResearch.
-
-PrusaSlicer is licensed under the GNU Affero General Public License, version 3. PrusaSlicer is owned by Prusa Research. PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci.
-
-Slic3r is licensed under the GNU Affero General Public License, version 3. Slic3r was created by Alessandro Ranellucci with the help of many other contributors.
-
-The GNU Affero General Public License, version 3 ensures that if you use any part of this software in any way (even behind a web server), your software must be released under the same license.
-
-The bambu networking plugin is based on non-free libraries. It is optional to the Bambu Studio and provides extended networking functionalities for users.
-By default, after installing Bambu Studio without the networking plugin, you can initiate printing through the SD card after slicing is completed.
-
+  <img width="415" height="338" alt="CleanShot 2026-09-10 at 11 51 02" src="https://github.com/user-attachments/assets/217b75ff-b4da-4fff-8240-e95821cfec83" />
