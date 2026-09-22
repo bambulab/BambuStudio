@@ -6,6 +6,7 @@ Install Following tools:
 - Cmake from [cmake.org](https://cmake.org/download/)
 - Git from [gitforwindows.org](https://gitforwindows.org/) 
 - Perl from [strawberryperl](https://strawberryperl.com/)
+- pkg-config, used to find FFmpeg: for example `choco install pkgconfiglite` (what CI uses), or the one Strawberry Perl ships. The build looks for it on `PATH`, or in the `PKG_CONFIG_EXECUTABLE` environment variable.
 
 ## building the deps
 Suppose you download the codes into D:/work/Projects/BambuStudio  
