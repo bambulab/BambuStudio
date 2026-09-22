@@ -429,14 +429,6 @@
         "92",
         "92"
     ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel"
-    ],
     "nozzle_flush_dataset": [
         "1",
         "2",

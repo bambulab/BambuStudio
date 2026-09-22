@@ -57,6 +57,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipConcentricInternal:  return new FillConcentricInternal();
     // BBS: for bottom and top surface only
     case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
+    case ipGlobalMonotonicLine: return new FillGlobalMonotonicLine();
     case ipZigZag:              return new FillZigZag();
     case ipCrossZag:            return new FillCrossZag();
     case ipFloatingConcentric:  return new FillFloatingConcentric();

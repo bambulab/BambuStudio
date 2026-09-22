@@ -1,10 +1,19 @@
 #include "WebView.hpp"
+#include "WebViewTraceLogger.hpp"
+#include "WebViewWatcher.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
 
 #include <boost/log/trivial.hpp>
+
+#include <chrono>
+#include <deque>
+#include <memory>
+
+#include <wx/filename.h>
+#include <wx/filesys.h>
 
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
@@ -22,11 +31,6 @@
 #endif
 
 #ifdef __WIN32__
-#include <chrono>
-#include <cstdint>
-#include <deque>
-#include <memory>
-#include <unordered_map>
 #include <WebView2.h>
 #include <wrl/client.h>
 #include <wrl/event.h>
@@ -86,9 +90,55 @@ register_webview_handler(gpointer data)
 }
 #endif
 
+// Both defined below, next to the WebViewRef that owns the watcher instances.
+static Slic3r::GUI::WebViewWatcher *webview_watcher(wxWebView *webView);
+static bool                         webview_alive(wxWebView *webView);
+
+namespace {
+
+/// Checks whether a file URL points at a missing local file.
+bool local_target_missing(const wxString &url, wxString &path_out)
+{
+    if (!url.StartsWith("file://"))
+        return false;
+
+    wxString     clean = url;
+    const size_t cut   = clean.find_first_of("?#");
+    if (cut != wxString::npos)
+        clean = clean.Left(cut);
+
+    const wxFileName fn = wxFileSystem::URLToFileName(clean);
+    path_out            = fn.GetFullPath();
+    return !fn.FileExists();
+}
+
+} // namespace
+
 #ifdef __WIN32__
 
 namespace {
+
+int64_t webview_steady_now_ms()
+{
+    using namespace std::chrono;
+    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
+/// Probes the WebView2 user data directory for write access.
+bool user_data_path_usable(const wxString &path)
+{
+    if (path.empty() || !wxDir::Exists(path))
+        return false;
+
+    wxLogNull      suppress_log;
+    const wxString probe = path + "\\bambu_write_probe";
+    wxFile         file;
+    if (!file.Create(probe, true))
+        return false;
+    file.Close();
+    wxRemoveFile(probe);
+    return true;
+}
 
 void enable_default_webview2_cdp_for_internal_builds()
 {
@@ -100,14 +150,6 @@ void enable_default_webview2_cdp_for_internal_builds()
     wxSetEnv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
              "--remote-debugging-port=9222 --remote-allow-origins=*");
 #endif
-}
-
-// Wall-clock time must not be used for the recovery and log windows below: a
-// clock adjustment would either hand out an unlimited retry budget or freeze one.
-int64_t steady_now_ms()
-{
-    const auto now = std::chrono::steady_clock::now().time_since_epoch();
-    return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
 }
 
 // Cookie name to clear and the domain substring it must belong to on logout.
@@ -153,6 +195,128 @@ const char *process_failed_reason_str(COREWEBVIEW2_PROCESS_FAILED_REASON reason)
     case COREWEBVIEW2_PROCESS_FAILED_REASON_PROFILE_DELETED: return "PROFILE_DELETED";
     default: return "UNKNOWN_REASON";
     }
+}
+
+constexpr char kEdgeRuntimeClientDll[] = "EmbeddedBrowserWebView.dll";
+constexpr char kEdgeRuntimeHostExe[]   = "msedgewebview2.exe";
+
+void log_runtime_pin(const wxString &view, const char *event,
+                     const Slic3r::GUI::WebViewTraceLogger::Fields &fields,
+                     Slic3r::GUI::WebViewTraceLogger::Severity severity =
+                         Slic3r::GUI::WebViewTraceLogger::Severity::Info)
+{
+    Slic3r::GUI::WebViewTraceLogger::Emit(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND,
+                                          view, event, fields, severity);
+}
+
+/// Directories of every WebView2 client DLL currently mapped into the process.
+/// More than one entry means the process already straddles two runtime versions.
+wxArrayString loaded_edge_runtime_dirs()
+{
+    wxArrayString dirs;
+
+    const wxDynamicLibraryDetailsArray modules = wxDynamicLibrary::ListLoaded();
+    for (size_t i = 0; i < modules.GetCount(); ++i) {
+        wxFileName fn(modules[i].GetPath());
+        if (!fn.GetFullName().IsSameAs(kEdgeRuntimeClientDll, false))
+            continue;
+
+        // ...\Application\<version>\EBWebView\x64\EmbeddedBrowserWebView.dll
+        // The directory the loader wants is the one holding <version>.
+        fn.SetFullName(wxString());
+        if (fn.GetDirCount() < 3)
+            continue;
+        fn.RemoveLastDir(); // x64
+        fn.RemoveLastDir(); // EBWebView
+
+        const wxString dir = fn.GetPathWithSep();
+        if (dirs.Index(dir) == wxNOT_FOUND)
+            dirs.Add(dir);
+    }
+    return dirs;
+}
+
+/// Keeps the whole process on a single WebView2 runtime version.
+///
+/// The loader re-resolves the version from the registry on every environment
+/// creation. When Evergreen updates in the background mid-session, WebViews
+/// created afterwards resolve to the new version while the running browser
+/// process still owns WebView2Cache, and a user data folder must never be
+/// shared across versions: those creations fail and the pages stay blank for
+/// the rest of the session. Pinning the directory of the runtime already in
+/// use makes the update a no-op until the next restart.
+///
+/// Safe by construction: every failure path leaves resolution exactly as it is
+/// today. Never let this keep the application from starting.
+void ensure_edge_runtime_pinned(const wxString &view)
+{
+    using Fields = Slic3r::GUI::WebViewTraceLogger::Fields;
+
+    static bool     s_settled = false;
+    static wxString s_pinned_dir;
+
+    if (s_settled) {
+        // Releasing a pin whose directory the updater removed is the lesser
+        // evil: keeping it would fail every later creation outright.
+        if (!s_pinned_dir.empty() && !wxFileName::DirExists(s_pinned_dir)) {
+            wxWebViewEdge::MSWSetBrowserExecutableDir(wxString());
+            s_pinned_dir.clear();
+            log_runtime_pin(view, "runtime_unpinned",
+                            Fields().Add("reason", "pinned_dir_gone"),
+                            Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+        }
+        return;
+    }
+
+    // An explicit edge_fixed next to the executable wins: it is a deliberate
+    // deployment choice that already gives one version per process.
+    wxFileName fixed_dir(wxStandardPaths::Get().GetExecutablePath());
+    fixed_dir.SetFullName(wxString());
+    fixed_dir.AppendDir("edge_fixed");
+    if (fixed_dir.DirExists()) {
+        wxWebViewEdge::MSWSetBrowserExecutableDir(fixed_dir.GetFullPath());
+        wxLogMessage("Using fixed edge version");
+        s_settled    = true;
+        s_pinned_dir = fixed_dir.GetFullPath();
+        log_runtime_pin(view, "runtime_pinned", Fields().Add("source", "edge_fixed"));
+        return;
+    }
+
+    const wxArrayString dirs = loaded_edge_runtime_dirs();
+    if (dirs.IsEmpty())
+        return; // Runtime not mapped yet; a later creation retries.
+
+    if (dirs.GetCount() > 1) {
+        // Already split. Pinning now could bind new views to the version the
+        // running browser process does not own, which is worse than leaving
+        // the loader alone.
+        s_settled = true;
+        log_runtime_pin(view, "runtime_pin_skipped",
+                        Fields().Add("reason", "already_split")
+                            .Add("versions", static_cast<int>(dirs.GetCount())),
+                        Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+        return;
+    }
+
+    const wxFileName host(dirs[0], kEdgeRuntimeHostExe);
+    if (!host.FileExists()) {
+        s_settled = true;
+        log_runtime_pin(view, "runtime_pin_skipped",
+                        Fields().Add("reason", "host_exe_missing"),
+                        Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+        return;
+    }
+
+    wxWebViewEdge::MSWSetBrowserExecutableDir(dirs[0]);
+    s_settled    = true;
+    s_pinned_dir = dirs[0];
+
+    // Log the version only. The full path carries the user name on per-user
+    // runtime installs.
+    const wxFileName pinned = wxFileName::DirName(dirs[0]);
+    log_runtime_pin(view, "runtime_pinned",
+                    Fields().Add("source", "in_use")
+                        .Add("version", pinned.GetDirCount() ? pinned.GetDirs().Last() : wxString()));
 }
 
 } // namespace
@@ -254,56 +418,9 @@ public:
     }
 
 private:
-    // A dead renderer leaves the control on a blank error page that never repaints,
-    // so recovery has to be driven from here. The budget counts recoveries inside a
-    // sliding window rather than consecutive failures: a page that crashes some time
-    // after every successful load would keep clearing a plain counter and reload for
-    // as long as the app is open, without ever telling the user.
-    static constexpr int     kMaxAutoReloadAttempts = 2;
-    static constexpr int64_t kAutoReloadWindowMs    = 60000;
-    // UNRESPONSIVE re-fires for as long as the renderer stays stuck, so cap how often
-    // the kinds we cannot act on reach the log. Actionable kinds are exempt, see the
-    // handler below.
-    static constexpr int64_t kProcessFailedLogWindowMs = 10000;
     // Generous on purpose: a first-ever WebView2 launch on a slow disk is slow, and
     // this only writes a log line, so erring towards a late report is harmless.
     static constexpr int kBackendReadyTimeoutMs = 30000;
-
-    // Returns the attempt number within the current window, or 0 when it is used up.
-    int RecordAutoReload()
-    {
-        const int64_t now_ms = steady_now_ms();
-        while (!m_autoReloads.empty() && now_ms - m_autoReloads.front() >= kAutoReloadWindowMs)
-            m_autoReloads.pop_front();
-        if (static_cast<int>(m_autoReloads.size()) >= kMaxAutoReloadAttempts)
-            return 0;
-        m_autoReloads.push_back(now_ms);
-        return static_cast<int>(m_autoReloads.size());
-    }
-
-    // Only for the kinds we do not act on. The first failure of a kind is always
-    // recorded; the ones that follow inside the window are folded into a count reported
-    // by the next line that gets through, so the frequency survives even though the
-    // individual lines do not.
-    // Returns the number of swallowed events, or -1 when this one must not be logged.
-    int ThrottleProcessFailedLog(COREWEBVIEW2_PROCESS_FAILED_KIND kind)
-    {
-        const int64_t   now_ms = steady_now_ms();
-        LogWindow      &window = m_processFailedLogWindows[static_cast<int>(kind)];
-        if (!window.active) {
-            window.active   = true;
-            window.start_ms = now_ms;
-            return 0;
-        }
-        if (now_ms - window.start_ms < kProcessFailedLogWindowMs) {
-            ++window.suppressed;
-            return -1;
-        }
-        const int suppressed = window.suppressed;
-        window.start_ms      = now_ms;
-        window.suppressed    = 0;
-        return suppressed;
-    }
 
     void OnBackendWatchdog(wxTimerEvent &)
     {
@@ -318,6 +435,156 @@ private:
             << " (permissions, disk space, corrupted profile).";
     }
 
+    struct ProcessFailedInfo
+    {
+        COREWEBVIEW2_PROCESS_FAILED_KIND kind =
+            COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED;
+        COREWEBVIEW2_PROCESS_FAILED_REASON reason =
+            COREWEBVIEW2_PROCESS_FAILED_REASON_UNEXPECTED;
+        int      exit_code   = 0;
+        int      frame_count = 0;
+        wxString url;
+        wxString first_frame_name;
+        wxString first_frame_url;
+    };
+
+    static void ReadFailedFrames(ICoreWebView2ProcessFailedEventArgs2 *args, ProcessFailedInfo &info)
+    {
+        if (info.kind != COREWEBVIEW2_PROCESS_FAILED_KIND_FRAME_RENDER_PROCESS_EXITED)
+            return;
+
+        Microsoft::WRL::ComPtr<ICoreWebView2FrameInfoCollection> frames;
+        Microsoft::WRL::ComPtr<ICoreWebView2FrameInfoCollectionIterator> iterator;
+        if (FAILED(args->get_FrameInfosForFailedProcess(&frames)) || !frames ||
+            FAILED(frames->GetIterator(&iterator)) || !iterator)
+            return;
+
+        BOOL has_current = FALSE;
+        iterator->get_HasCurrent(&has_current);
+        while (has_current) {
+            Microsoft::WRL::ComPtr<ICoreWebView2FrameInfo> frame;
+            if (SUCCEEDED(iterator->GetCurrent(&frame)) && frame) {
+                ++info.frame_count;
+                if (info.frame_count == 1) {
+                    LPWSTR name = nullptr;
+                    LPWSTR source = nullptr;
+                    if (SUCCEEDED(frame->get_Name(&name)) && name) {
+                        info.first_frame_name = name;
+                        CoTaskMemFree(name);
+                    }
+                    if (SUCCEEDED(frame->get_Source(&source)) && source) {
+                        info.first_frame_url = source;
+                        CoTaskMemFree(source);
+                    }
+                }
+            }
+
+            BOOL has_next = FALSE;
+            if (FAILED(iterator->MoveNext(&has_next)))
+                break;
+            has_current = has_next;
+        }
+    }
+
+    ProcessFailedInfo ReadProcessFailedInfo(ICoreWebView2 *sender,
+                                            ICoreWebView2ProcessFailedEventArgs *args) const
+    {
+        ProcessFailedInfo info;
+        args->get_ProcessFailedKind(&info.kind);
+
+        Microsoft::WRL::ComPtr<ICoreWebView2ProcessFailedEventArgs2> args2;
+        if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))) && args2) {
+            args2->get_Reason(&info.reason);
+            args2->get_ExitCode(&info.exit_code);
+            ReadFailedFrames(args2.Get(), info);
+        }
+
+        if (sender) {
+            LPWSTR source = nullptr;
+            if (SUCCEEDED(sender->get_Source(&source)) && source) {
+                info.url = source;
+                CoTaskMemFree(source);
+            }
+        }
+        if (info.url.empty())
+            info.url = GetCurrentURL();
+        return info;
+    }
+
+    static Slic3r::GUI::WebViewWatcher::Fault ClassifyProcessFailure(
+        COREWEBVIEW2_PROCESS_FAILED_KIND kind)
+    {
+        switch (kind) {
+        case COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED:
+            return Slic3r::GUI::WebViewWatcher::Fault::BrowserProcessGone;
+        case COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED:
+            return Slic3r::GUI::WebViewWatcher::Fault::RenderProcessGone;
+        case COREWEBVIEW2_PROCESS_FAILED_KIND_FRAME_RENDER_PROCESS_EXITED:
+            return Slic3r::GUI::WebViewWatcher::Fault::FrameRenderProcessGone;
+        default:
+            return Slic3r::GUI::WebViewWatcher::Fault::ProcessUnresponsive;
+        }
+    }
+
+    HRESULT OnProcessFailed(ICoreWebView2 *sender, ICoreWebView2ProcessFailedEventArgs *args)
+    {
+        if (!args)
+            return S_OK;
+
+        const ProcessFailedInfo info = ReadProcessFailedInfo(sender, args);
+        const auto fault = ClassifyProcessFailure(info.kind);
+
+        Slic3r::GUI::WebViewWatcher::Decision          decision;
+        Slic3r::GUI::WebViewWatcher::FaultLogDecision log_decision;
+        if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(this)) {
+            decision = watcher->Decide(fault);
+            log_decision = watcher->DecideFaultLog(fault, static_cast<int>(info.kind));
+        }
+
+        Slic3r::GUI::WebViewTraceLogger::Fields fields;
+        fields.Add("kind", process_failed_kind_str(info.kind))
+            .Add("reason", process_failed_reason_str(info.reason))
+            .Add("exit", info.exit_code)
+            .Add("url", Slic3r::GUI::WebViewTraceLogger::SanitizeUrl(info.url));
+        if (info.frame_count > 0) {
+            fields.Add("frame_count", info.frame_count)
+                .Add("frame_name", Slic3r::GUI::WebViewTraceLogger::SanitizeText(info.first_frame_name, 256))
+                .Add("frame_url", Slic3r::GUI::WebViewTraceLogger::SanitizeUrl(info.first_frame_url));
+        }
+        if (decision.delay_ms > 0)
+            fields.Add("delay_ms", decision.delay_ms);
+        if (log_decision.suppressed > 0)
+            fields.Add("suppressed", log_decision.suppressed);
+
+        if (log_decision.emit) {
+            Slic3r::GUI::WebViewTraceLogger::Emit(
+                Slic3r::GUI::WebViewTraceLogger::Stage::L3_PROCESS, GetName(), "process_failed", fields);
+        }
+
+        if (decision.action != Slic3r::GUI::WebViewWatcher::Action::None) {
+            // Owner-managed (DeviceHost): the owning host recreates/reloads via the
+            // recovery event.
+            wxWebView *self = this;
+            Slic3r::GUI::wxGetApp().CallAfter([self, decision]() {
+                if (Slic3r::GUI::wxGetApp().is_closing() || !webview_alive(self))
+                    return;
+                if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(self))
+                    watcher->ScheduleRecovery(decision);
+            });
+        } else if (Slic3r::GUI::WebViewWatcher *self_watcher = webview_watcher(this);
+                   self_watcher &&
+                   self_watcher->Mode() == Slic3r::GUI::WebViewProtectionMode::DiagnosticsOnly &&
+                   (fault == Slic3r::GUI::WebViewWatcher::Fault::RenderProcessGone ||
+                    fault == Slic3r::GUI::WebViewWatcher::Fault::FrameRenderProcessGone)) {
+            // No owner-side recovery consumer (home, makerworld, login, ...). A dead
+            // render process can be revived by re-navigating in the base class, so the
+            // view auto-rebuilds without any WebViewPanel change. A dead browser
+            // process needs the owner to recreate the control and stays log-only here.
+            SelfRecoverRenderer(info.url);
+        }
+        return S_OK;
+    }
+
     void EnsureProcessFailedSubscribed()
     {
         if (m_processFailedSubscribed)
@@ -327,117 +594,25 @@ private:
         if (!webView2)
             return;
 
+        // Process failures must remain observable in release builds.
         using Microsoft::WRL::Callback;
         HRESULT hr = webView2->add_ProcessFailed(
             Callback<ICoreWebView2ProcessFailedEventHandler>(
-                [this](ICoreWebView2 *sender, ICoreWebView2ProcessFailedEventArgs *args) -> HRESULT {
-                    if (!args)
-                        return S_OK;
-
-                    COREWEBVIEW2_PROCESS_FAILED_KIND kind =
-                        COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED;
-                    args->get_ProcessFailedKind(&kind);
-
-                    // A dead renderer can be revived by reloading. A dead browser
-                    // process is terminal for this control, so there is nothing to
-                    // reload. The remaining kinds must not be acted on: UNRESPONSIVE
-                    // means the renderer is stuck rather than gone, and GPU/utility
-                    // exits are restarted by WebView2 itself. They are still recorded,
-                    // because a GPU process that keeps dying is a documented cause of
-                    // blank views; the throttle below is what keeps them readable.
-                    const bool renderer_gone =
-                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED ||
-                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_FRAME_RENDER_PROCESS_EXITED;
-                    const bool terminal =
-                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED;
-                    const bool actionable = renderer_gone || terminal;
-
-                    // Throttling a crash we react to would cost the only record of it:
-                    // once the retry budget is used up there is no reload line either,
-                    // so the user would get a dialog with nothing in the log behind it.
-                    const int suppressed = actionable ? 0 : ThrottleProcessFailedLog(kind);
-                    if (suppressed < 0)
-                        return S_OK;
-
-                    COREWEBVIEW2_PROCESS_FAILED_REASON reason =
-                        COREWEBVIEW2_PROCESS_FAILED_REASON_UNEXPECTED;
-                    int exit_code = 0;
-                    Microsoft::WRL::ComPtr<ICoreWebView2ProcessFailedEventArgs2> args2;
-                    if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))) && args2) {
-                        args2->get_Reason(&reason);
-                        args2->get_ExitCode(&exit_code);
-                    }
-
-                    wxString url;
-                    if (sender) {
-                        LPWSTR source = nullptr;
-                        if (SUCCEEDED(sender->get_Source(&source)) && source) {
-                            url = source;
-                            CoTaskMemFree(source);
-                        }
-                    }
-                    if (url.empty())
-                        url = GetCurrentURL();
-
-                    BOOST_LOG_TRIVIAL(error)
-                        << GetName()
-                        << " [WebView] ProcessFailed"
-                        << " kind=" << process_failed_kind_str(kind)
-                        << " (" << static_cast<int>(kind) << ")"
-                        << " reason=" << process_failed_reason_str(reason)
-                        << " (" << static_cast<int>(reason) << ")"
-                        << " exitCode=" << exit_code
-                        << " suppressed=" << suppressed
-                        << " url=" << url.ToUTF8().data();
-
-                    if (!actionable)
-                        return S_OK;
-
-                    const wxString detail = wxString::Format(
-                        "kind=%s (%d)\nreason=%s (%d)\nexitCode=%d\nurl=%s",
-                        wxString(process_failed_kind_str(kind)), static_cast<int>(kind),
-                        wxString(process_failed_reason_str(reason)), static_cast<int>(reason),
-                        exit_code, url);
-
-                    if (renderer_gone) {
-                        if (const int attempt = RecordAutoReload()) {
-                            BOOST_LOG_TRIVIAL(warning)
-                                << GetName() << " [WebView] reloading after renderer crash, attempt "
-                                << attempt << "/" << kMaxAutoReloadAttempts << " within "
-                                << (kAutoReloadWindowMs / 1000) << "s";
-                            // Reloading inside ProcessFailed re-enters the backend; defer it.
-                            std::weak_ptr<int> weak_alive = m_alive;
-                            Slic3r::GUI::wxGetApp().CallAfter([this, weak_alive]() {
-                                if (weak_alive.expired())
-                                    return;
-                                Reload();
-                            });
-                            return S_OK;
-                        }
-                    }
-
-                    // Left with a dead browser process, or a renderer that kept
-                    // crashing through the whole retry budget. Nothing else to try.
-                    BOOST_LOG_TRIVIAL(error)
-                        << GetName() << " [WebView] giving up: "
-                        << (renderer_gone ? "renderer crash retry budget exhausted"
-                                          : "browser process is gone")
-                        << "; the view stays blank, notifying the user";
-                    NotifyCrash(detail);
-
-                    return S_OK;
+                [this](ICoreWebView2 *sender, ICoreWebView2ProcessFailedEventArgs *args) {
+                    return OnProcessFailed(sender, args);
                 })
                 .Get(),
             &m_processFailedToken);
 
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(hr))
             m_processFailedSubscribed = true;
-            BOOST_LOG_TRIVIAL(info) << GetName() << " [WebView] ProcessFailed handler subscribed";
-        } else {
-            BOOST_LOG_TRIVIAL(warning) << GetName()
-                                      << wxString::Format(" [WebView] add_ProcessFailed failed, hr=0x%08X",
-                                                          static_cast<unsigned>(hr)).ToUTF8().data();
-        }
+        else
+            Slic3r::GUI::WebViewTraceLogger::Emit(
+                Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, GetName(),
+                "process_failed_subscription_failed",
+                Slic3r::GUI::WebViewTraceLogger::Fields().Add(
+                    "hr", wxString::Format("0x%08X", static_cast<unsigned>(hr))),
+                Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
     }
 
     void UnsubscribeProcessFailed()
@@ -450,57 +625,51 @@ private:
         m_processFailedSubscribed = false;
     }
 
-    // Only for crashes we could not recover from: the page is going to stay blank,
-    // so the user needs to know why instead of staring at a white panel.
-    void NotifyCrash(const wxString &detail)
+    // Bounded within a window so a renderer that keeps dying can't spin forever;
+    // matches DeviceWebHost's 60s retry budget.
+    bool AllowSelfReload()
     {
-        const wxString webview_name = GetName();
-        // Do not ShowModal inside ProcessFailed (reentrancy). Defer to UI loop.
-        Slic3r::GUI::wxGetApp().CallAfter([detail, webview_name]() {
-            auto &app = Slic3r::GUI::wxGetApp();
-            if (app.is_closing())
-                return;
-
-            static bool s_showing = false;
-            if (s_showing)
-                return;
-            s_showing = true;
-
-            wxString reason_block = detail;
-            if (!webview_name.empty())
-                reason_block = wxString::Format("name=%s\n%s", webview_name, detail);
-
-            const wxString message = wxString::Format(
-                _L("The embedded webpage has crashed. Please contact Bambu Studio.\n\nReason:\n%s"),
-                reason_block);
-
-            Slic3r::GUI::MessageDialog dlg(nullptr, message, _L("Embedded Webpage Crashed"),
-                                           wxOK | wxICON_ERROR);
-            dlg.ShowModal();
-            s_showing = false;
-        });
+        const int64_t now = webview_steady_now_ms();
+        while (!m_selfReloads.empty() && now - m_selfReloads.front() >= kSelfReloadWindowMs)
+            m_selfReloads.pop_front();
+        if (static_cast<int>(m_selfReloads.size()) >= kMaxSelfReloads)
+            return false;
+        m_selfReloads.push_back(now);
+        return true;
     }
 
-    struct LogWindow
+    // A dead render process leaves this control and the browser process alive, so
+    // re-navigating restores the page without the owning panel's help. Used for
+    // views with no owner-side recovery (DiagnosticsOnly): home, makerworld, ...
+    void SelfRecoverRenderer(const wxString &url)
     {
-        int64_t start_ms   = 0;
-        int     suppressed = 0;
-        bool    active     = false;
-    };
+        if (!AllowSelfReload()) {
+            Slic3r::GUI::WebViewTraceLogger::Emit(
+                Slic3r::GUI::WebViewTraceLogger::Stage::L3_PROCESS, GetName(),
+                "self_recover_exhausted", {}, Slic3r::GUI::WebViewTraceLogger::Severity::Error);
+            return;
+        }
+        wxWebView *self = this;
+        // Navigating inside the ProcessFailed callback re-enters the backend; defer it.
+        Slic3r::GUI::wxGetApp().CallAfter([self, url]() {
+            if (Slic3r::GUI::wxGetApp().is_closing() || !webview_alive(self))
+                return;
+            if (url.empty() || url == "about:blank")
+                self->Reload();          // no meaningful target; harmless fallback
+            else
+                self->LoadURL(url);      // Reload() is a no-op after a crash, so re-navigate
+        });
+    }
 
     wxString pendingUserAgent;
     COREWEBVIEW2_PREFERRED_COLOR_SCHEME pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
     EventRegistrationToken m_processFailedToken{};
     bool m_processFailedSubscribed{false};
-    // Timestamps of the reloads issued for renderer crashes, trimmed to the window.
-    std::deque<int64_t> m_autoReloads;
-    // One window per COREWEBVIEW2_PROCESS_FAILED_KIND, so a chatty kind cannot hide
-    // the first occurrence of another one.
-    std::unordered_map<int, LogWindow> m_processFailedLogWindows;
     wxTimer m_backendWatchdog;
-    // Guards the deferred Reload(): the panel owning this view may be torn down
-    // between the crash and the CallAfter running.
-    std::shared_ptr<int> m_alive{std::make_shared<int>(0)};
+
+    std::deque<int64_t>      m_selfReloads;
+    static constexpr int     kMaxSelfReloads     = 2;
+    static constexpr int64_t kSelfReloadWindowMs = 60000;
 };
 
 #elif defined __WXOSX__
@@ -569,7 +738,12 @@ static std::vector<wxWebView*> g_delay_webviews;
 class WebViewRef : public wxObjectRefData
 {
 public:
-    WebViewRef(wxWebView *webView) : m_webView(webView) {}
+    WebViewRef(wxWebView *webView, Slic3r::GUI::WebViewProtectionMode mode,
+               std::optional<Slic3r::GUI::WebViewWatcher::Fault> creation_fault)
+        : m_webView(webView)
+        , m_watcher(new Slic3r::GUI::WebViewWatcher(webView, mode))
+        , m_creation_fault(creation_fault)
+    {}
     ~WebViewRef() {
         auto iter = std::find(g_webviews.begin(), g_webviews.end(), m_webView);
         assert(iter != g_webviews.end());
@@ -583,7 +757,32 @@ public:
             g_delay_webviews.erase(diter);
     }
     wxWebView *m_webView;
+    // Owned here so a pending recovery can never outlive its webview.
+    std::unique_ptr<Slic3r::GUI::WebViewWatcher> m_watcher;
+    std::optional<Slic3r::GUI::WebViewWatcher::Fault> m_creation_fault;
 };
+
+static Slic3r::GUI::WebViewWatcher *webview_watcher(wxWebView *webView)
+{
+    // Callers can hand us a webview that was already destroyed
+    if (webView == nullptr || !webview_alive(webView))
+        return nullptr;
+    auto *ref = static_cast<WebViewRef *>(webView->GetRefData());
+    return ref ? ref->m_watcher.get() : nullptr;
+}
+
+static bool webview_alive(wxWebView *webView)
+{
+    return std::find(g_webviews.begin(), g_webviews.end(), webView) != g_webviews.end();
+}
+
+static void log_webview(Slic3r::GUI::WebViewTraceLogger::Stage stage, const wxString &view,
+                        const char *event, const Slic3r::GUI::WebViewTraceLogger::Fields &fields = {},
+                        Slic3r::GUI::WebViewTraceLogger::Severity severity =
+                            Slic3r::GUI::WebViewTraceLogger::Severity::Auto)
+{
+    Slic3r::GUI::WebViewTraceLogger::Emit(stage, view, event, fields, severity);
+}
 
 // Every embedded page (home, device, wizard, login, ...) is built through
 // CreateWebView, so a backend that fails to come up turns all of them into blank
@@ -614,26 +813,21 @@ static void notify_webview_backend_unavailable()
     });
 }
 
-// Hand back an inert view when the native control could not be created, so callers
-// keep a valid pointer whose every call is a no-op. Without this they would go on
-// driving a half-constructed control with a null backend.
-static wxWebView *use_fake_webview(wxWindow *parent, wxWebView *failed)
+// An inert view for when the native control could not be created, so callers keep a
+// valid pointer whose every call is a no-op. Without this they would go on driving a
+// half-constructed control with a null backend.
+static wxWebView *make_fake_webview(wxWindow *parent, const wxString &name)
 {
     notify_webview_backend_unavailable();
-    // Safe to drop: a view that failed Create() has neither been registered in
-    // g_webviews nor been given a WebViewRef yet.
-    if (failed)
-        failed->Destroy();
 
     auto *webView = new FakeWebView;
     // Losing this silently would put us back to the HWND-less window the placeholder
     // exists to avoid, and the resulting layout damage looks nothing like its cause.
     if (!webView->CreatePlaceholder(parent))
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-                                 << ": placeholder window could not be created; layout may break";
+        log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, name,
+                    "placeholder_create_failed", {},
+                    Slic3r::GUI::WebViewTraceLogger::Severity::Error);
     webView->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
-    webView->SetRefData(new WebViewRef(webView));
-    g_webviews.push_back(webView);
     return webView;
 }
 
@@ -676,53 +870,80 @@ wxString WebView::BuildEdgeUserDataPath()
 void on_webview_evt(wxWebView *webview)
 {
     webview->Bind(wxEVT_WEBVIEW_NAVIGATING, [webview](wxWebViewEvent &e) {
-        wxLogMessage("NAVIGATING: %s", e.GetURL());
-        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] navigating " << e.GetURL();
-        e.Skip();
-    });
-
-    webview->Bind(wxEVT_WEBVIEW_NAVIGATED, [webview](wxWebViewEvent &e) {
-        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] navigated: " << e.GetURL();
+        if (e.GetURL() == "about:blank") {
+            e.Skip();
+            return;
+        }
+        if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(webview))
+            watcher->RecordNavigationStart();
+        log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L2_NAVIGATION, webview->GetName(), "navigation_start",
+            Slic3r::GUI::WebViewTraceLogger::Fields()
+                .Add("url", Slic3r::GUI::WebViewTraceLogger::SanitizeUrl(e.GetURL())));
         e.Skip();
     });
 
     webview->Bind(wxEVT_WEBVIEW_LOADED, [webview](wxWebViewEvent &e) {
-        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] loaded: " << e.GetURL();
+        if (e.GetURL() == "about:blank") {
+            e.Skip();
+            return;
+        }
+        Slic3r::GUI::WebViewTraceLogger::Fields fields;
+        fields.Add("url", Slic3r::GUI::WebViewTraceLogger::SanitizeUrl(e.GetURL()));
+        if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(webview)) {
+            if (const auto duration_ms = watcher->ConsumeNavigationDurationMs())
+                fields.Add("duration_ms", static_cast<long long>(*duration_ms));
+        }
+        log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L2_NAVIGATION, webview->GetName(), "loaded", fields);
         e.Skip();
     });
 
     webview->Bind(wxEVT_WEBVIEW_ERROR, [webview](wxWebViewEvent &e) {
-        BOOST_LOG_TRIVIAL(info) << webview->GetName()
-                                << wxString::Format(" [WebView] error: url=%s, code=%d, description=%s", e.GetURL(), static_cast<int>(e.GetInt()), e.GetString().utf8_string());
+        const int  code    = static_cast<int>(e.GetInt());
+        const bool offline = code == wxWEBVIEW_NAV_ERR_CONNECTION;
+        Slic3r::GUI::WebViewTraceLogger::Fields fields;
+        fields.Add("url", Slic3r::GUI::WebViewTraceLogger::SanitizeUrl(e.GetURL()))
+            .Add("code", code)
+            .Add("description", Slic3r::GUI::WebViewTraceLogger::SanitizeText(e.GetString(), 512));
+
+        // Errors may be sub-resource failures, so keep main-frame navigation timing untouched.
+        log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L2_NAVIGATION, webview->GetName(),
+            "navigation_error", fields,
+            offline ? Slic3r::GUI::WebViewTraceLogger::Severity::Warning
+                    : Slic3r::GUI::WebViewTraceLogger::Severity::Error);
         e.Skip();
     });
 
-    webview->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, [webview](wxWebViewEvent &e) {
-        BOOST_LOG_TRIVIAL(info) << webview->GetName() << wxString::Format(" [WebView] title changed: %s", e.GetString().utf8_string());
-        e.Skip();
-    });
-
-    webview->Bind(wxEVT_WEBVIEW_NEWWINDOW, [webview](wxWebViewEvent &e) {
-        BOOST_LOG_TRIVIAL(info) << webview->GetName() << wxString::Format(" [WebView] new window: %s", e.GetString());
-        e.Skip();
-    });
 }
 
-wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxString const &name)
+#ifdef __WXOSX__
+namespace {
+// Studio pages served from the local bundle (file://, wxfs://, memory://).
+// PrinterWebView / DeviceWebHost create the view with an empty url and load a
+// local file later, so match them by name as well.
+bool IsStudioLocalWebPage(const wxString &url, const wxString &name)
 {
+    wxString u = url;
+    u.MakeLower();
+    if (u.StartsWith("file:") || u.StartsWith("wxfs:") || u.StartsWith("memory:"))
+        return true;
+    return url.empty() && name == "DeivcePage";
+}
+} // namespace
+#endif
+
+wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxString const &name,
+                                 Slic3r::GUI::WebViewProtectionMode mode)
+{
+    std::optional<Slic3r::GUI::WebViewWatcher::Fault> creation_fault;
 #if wxUSE_WEBVIEW_EDGE
-    // Check if a fixed version of edge is present in
-    // $executable_path/edge_fixed and use it
-    wxFileName edgeFixedDir(wxStandardPaths::Get().GetExecutablePath());
-    edgeFixedDir.SetFullName("");
-    edgeFixedDir.AppendDir("edge_fixed");
-    if (edgeFixedDir.DirExists()) {
-        wxWebViewEdge::MSWSetBrowserExecutableDir(edgeFixedDir.GetFullPath());
-        wxLogMessage("Using fixed edge version");
-    }
+    // Honours $executable_path/edge_fixed first, then falls back to pinning
+    // whichever runtime this process already uses.
+    ensure_edge_runtime_pinned(name);
 
     if(!wxWebView::IsBackendAvailable(wxWebViewBackendEdge)) {
-        BOOST_LOG_TRIVIAL(warning) << "WebView2 runtime is not available. WebView based features may not work properly";
+        creation_fault = Slic3r::GUI::WebViewWatcher::Fault::BackendUnavailable;
+        log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, name, "backend_unavailable",
+                    Slic3r::GUI::WebViewTraceLogger::Fields().Add("backend", "edge"));
     }
 #endif
     auto url2  = url;
@@ -732,17 +953,41 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << url2.ToUTF8();
 
+    // Without this the page renders blank and the log says nothing about why.
+    wxString missing_path;
+    if (local_target_missing(url2, missing_path)) {
+        if (!creation_fault)
+            creation_fault = Slic3r::GUI::WebViewWatcher::Fault::ResourceMissing;
+        log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L1_RESOURCE, name, "local_target_missing",
+                    Slic3r::GUI::WebViewTraceLogger::Fields().Add(
+                        "path", Slic3r::GUI::WebViewTraceLogger::SanitizeText(missing_path)));
+    }
+
 #ifdef __WIN32__
     enable_default_webview2_cdp_for_internal_builds();
 
     WebViewEdge* edgeView = new WebViewEdge;
     wxWebView*   webView  = edgeView;
-    webView->SetUserDataPathOption(BuildEdgeUserDataPath());
+    const wxString user_data_path = BuildEdgeUserDataPath();
+    if (!user_data_path_usable(user_data_path)) {
+        if (!creation_fault)
+            creation_fault = Slic3r::GUI::WebViewWatcher::Fault::UserDataPathUnusable;
+        log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L1_RESOURCE, name, "user_data_path_unusable",
+                    Slic3r::GUI::WebViewTraceLogger::Fields().Add(
+                        "path", Slic3r::GUI::WebViewTraceLogger::SanitizeText(user_data_path)));
+    }
+    webView->SetUserDataPathOption(user_data_path);
 #elif defined(__WXOSX__)
     wxWebView *webView = new WebViewWebKit;
+    // Local Studio pages need no persistent WebKit storage, so keep them off
+    // the default data store, which a second Studio instance cannot open.
+    // Must run before Create(): the data store is fixed at configuration time.
+    if (IsStudioLocalWebPage(url2, name))
+        webView->SetNonPersistentWebsiteDataStore(true);
 #else
     auto webView = wxWebView::New();
 #endif
+    const bool has_backend_attempt = webView != nullptr;
     if (webView) {
         on_webview_evt(webView);
 
@@ -755,11 +1000,16 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
                                                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52 BBL-Slicer/v%s (%s) BBL-Language/%s",
                                                SLIC3R_VERSION, Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
         if (!webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": wxWebView::Create failed for '" << name.ToUTF8().data() << "'";
-            return use_fake_webview(parent, webView);
+            creation_fault = Slic3r::GUI::WebViewWatcher::Fault::BackendUnavailable;
+            log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, name, "create_failed");
+            delete webView;
+            edgeView = nullptr;
+            webView  = make_fake_webview(parent, name);
+        } else {
+            // Create() only reports what it could detect synchronously; the watchdog
+            // covers the asynchronous backend that never arrives.
+            edgeView->StartBackendWatchdog();
         }
-        if (!name.empty()) webView->SetName(name);
-        edgeView->StartBackendWatchdog();
         // We register the wxfs:// protocol for testing purposes
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
         // And the memory: file system
@@ -774,8 +1024,10 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
 #endif
         if (!webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": wxWebView::Create failed for '" << name.ToUTF8().data() << "'";
-            return use_fake_webview(parent, webView);
+            creation_fault = Slic3r::GUI::WebViewWatcher::Fault::BackendUnavailable;
+            log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, name, "create_failed");
+            delete webView;
+            webView = make_fake_webview(parent, name);
         }
         webView->SetUserAgent(wxString::Format("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) BBL-Slicer/v%s (%s) BBL-Language/%s",
                                                SLIC3R_VERSION, Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
@@ -784,13 +1036,26 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
         WKWebView * wkWebView = (WKWebView *) webView->GetNativeBackend();
         Slic3r::GUI::WKWebView_setTransparentBackground(wkWebView);
 #endif
+    } else {
+        // FakeWebView leaves the user with a blank area, so log it as an error.
+        creation_fault = Slic3r::GUI::WebViewWatcher::Fault::BackendUnavailable;
+        log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, name,
+                    "create_failed_fake_webview");
+        webView = make_fake_webview(parent, name);
+    }
+    // Must run after Create(), which resets the window name. The name is
+    // what identifies the page in the health logs, so set it on all
+    // platforms, not only on Windows.
+    if (!name.empty())
+        webView->SetName(name);
+    if (has_backend_attempt) {
         auto addScriptMessageHandler = [] (wxWebView *webView) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": begin to add script message handler for wx.";
             Slic3r::GUI::wxGetApp().set_adding_script_handler(true);
             if (!webView->AddScriptMessageHandler("wx"))
-                wxLogError("Could not add script message handler");
+                log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND, webView->GetName(),
+                            "script_message_handler_failed", {},
+                            Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
             Slic3r::GUI::wxGetApp().set_adding_script_handler(false);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished add script message handler for wx.";
         };
 #ifndef __WIN32__
         webView->CallAfter([webView, addScriptMessageHandler] {
@@ -834,13 +1099,38 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
         if (WKWebView *wkWebView = (WKWebView *) webView->GetNativeBackend())
             Slic3r::GUI::WKWebView_setInspectable(wkWebView, enable_devtools);
 #endif
-    } else {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": no webview backend available. Use fake web view.";
-        return use_fake_webview(parent, nullptr);
     }
-    webView->SetRefData(new WebViewRef(webView));
+    webView->SetRefData(new WebViewRef(webView, mode, creation_fault));
     g_webviews.push_back(webView);
     return webView;
+}
+
+std::optional<Slic3r::GUI::WebViewWatcher::Fault> WebView::CreationFault(wxWebView *webView)
+{
+    if (!webView)
+        return std::nullopt;
+    auto *ref = static_cast<WebViewRef *>(webView->GetRefData());
+    return ref ? ref->m_creation_fault : std::nullopt;
+}
+
+bool WebView::ValidateLocalTarget(wxWebView *webView, const wxString &url)
+{
+    wxString encoded_url = url;
+#ifdef __WIN32__
+    encoded_url.Replace("\\", "/");
+#endif
+    if (!encoded_url.empty())
+        encoded_url = wxURI(encoded_url).BuildURI();
+
+    wxString missing_path;
+    if (!local_target_missing(encoded_url, missing_path))
+        return true;
+    log_webview(
+        Slic3r::GUI::WebViewTraceLogger::Stage::L1_RESOURCE,
+        webView ? webView->GetName() : wxString(), "local_target_missing",
+        Slic3r::GUI::WebViewTraceLogger::Fields().Add(
+            "path", Slic3r::GUI::WebViewTraceLogger::SanitizeText(missing_path)));
+    return false;
 }
 
 void WebView::LoadUrl(wxWebView * webView, wxString const &url)
@@ -1028,6 +1318,46 @@ void WebView::ClearBambulabTokenCookies()
     BOOST_LOG_TRIVIAL(warning)
         << "WebView: ClearBambulabTokenCookies has no implementation for the active webview backend";
 #endif
+}
+
+void WebView::StartReadyWatchdog(wxWebView *webView)
+{
+    if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(webView))
+        watcher->StartReadyWatchdog();
+}
+
+void WebView::CancelReadyWatchdog(wxWebView *webView)
+{
+    if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(webView))
+        watcher->CancelReadyWatchdog();
+}
+
+void WebView::CancelRecovery(wxWebView *webView)
+{
+    if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(webView))
+        watcher->CancelRecovery();
+}
+
+bool WebView::NotifyReady(wxWebView *webView)
+{
+    Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(webView);
+    if (watcher == nullptr)
+        return false;
+
+    const auto duration_ms = watcher->MarkReady();
+    if (!duration_ms)
+        return false;
+
+    log_webview(Slic3r::GUI::WebViewTraceLogger::Stage::L4_READY, webView->GetName(), "ready",
+                Slic3r::GUI::WebViewTraceLogger::Fields().Add(
+                    "duration_ms", static_cast<long long>(*duration_ms)));
+    return true;
+}
+
+void WebView::SetReadyWatchdogPaused(wxWebView *webView, bool paused)
+{
+    if (Slic3r::GUI::WebViewWatcher *watcher = webview_watcher(webView))
+        watcher->SetReadyWatchdogPaused(paused);
 }
 
 void WebView::RecreateAll()

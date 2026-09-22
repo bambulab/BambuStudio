@@ -1761,6 +1761,10 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
             shader->set_uniform("color_clip_plane", m_color_clip_plane);
             shader->set_uniform("uniform_color_clip_plane_1", m_color_clip_plane_colors[0]);
             shader->set_uniform("uniform_color_clip_plane_2", m_color_clip_plane_colors[1]);
+            shader->set_uniform("use_dovetail_clip", m_use_dovetail_clip);
+            shader->set_uniform("dovetail_clip_matrix", m_dovetail_clip_matrix);
+            shader->set_uniform("dovetail_clip_params", m_dovetail_clip_params);
+            shader->set_uniform("dovetail_clip_tolerance", m_dovetail_clip_tolerance);
             //BOOST_LOG_TRIVIAL(info) << boost::format("set uniform_color to {%1%, %2%, %3%, %4%}, with_outline=%5%, selected %6%")
             //    %volume.first->render_color[0]%volume.first->render_color[1]%volume.first->render_color[2]%volume.first->render_color[3]
             //    %with_outline%volume.first->selected;

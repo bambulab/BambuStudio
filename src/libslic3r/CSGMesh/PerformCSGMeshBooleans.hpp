@@ -293,12 +293,8 @@ std::tuple<BooleanFailReason,std::string> check_csgmesh_booleans(const Range<It>
                 return;
             }*/
 
-            if (MeshBoolean::cgal::does_self_intersect(*m)) {
-                BOOST_LOG_TRIVIAL(info) << "check_csgmesh_booleans fails! mesh " << i << "/" << csgrange.size() << " does_self_intersect is true, cannot do boolean!";
-                fail_reason= BooleanFailReason::SelfIntersect;
-                fail_part_name = csgpart.name;
-                return;
-            }
+            // Skip CGAL self-intersection pre-check: it blocks boolean on inverted-face
+            // meshes, and the current backend has no such detector.
         }
         catch (...) { return; }
 

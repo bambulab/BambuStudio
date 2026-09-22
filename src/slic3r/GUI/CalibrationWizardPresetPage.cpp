@@ -1486,6 +1486,9 @@ void CalibrationPresetPage::check_nozzle_diameter_for_auto_cali()
             m_nozzle_diameter_tips->Show();
         }
     }
+
+    Layout();
+    Fit();
 }
 
 void CalibrationPresetPage::check_filament_compatible()

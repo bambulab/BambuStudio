@@ -425,12 +425,15 @@ nlohmann::json wgtFilaManagerStore::spools_to_json() const
     return arr;
 }
 
+static constexpr int MOUNT_HOLD_TICKS = 5;
+
 bool wgtFilaManagerStore::force_mount_spool(const std::string& spool_id,
                                             const std::string& dev_id,
                                             const std::string& dev_name,
                                             int                ams_id,
                                             int                ams_type,
-                                            const std::string& slot_id)
+                                            const std::string& slot_id,
+                                            const std::string& ams_sn)
 {
     auto it = m_spools.find(spool_id);
     if (it == m_spools.end()) {
@@ -458,6 +461,8 @@ bool wgtFilaManagerStore::force_mount_spool(const std::string& spool_id,
     s.ams_id      = ams_id;
     s.ams_type    = ams_type;
     s.slot_id     = slot_id;
+    s.ams_sn      = ams_sn;
+    s.mount_hold_count = MOUNT_HOLD_TICKS;
     set_dirty();
     return true;
 }
@@ -476,9 +481,6 @@ bool wgtFilaManagerStore::apply_mount_diff(
         const bool was_our_hold = (s.in_printer && s.dev_id == dev_id);
 
         if (now_present) {
-            // 本轮在本机上：只在字段实际变化时才写，避免每次 sync 都触发前端刷新。
-            //   - 之前挂在别机 → 这里自然抢过所有权（用户换机场景）
-            //   - 之前也挂在本机同槽 → same_state=true，字段一字不改
             const MountUpdate& u = it->second;
             const bool same_state =
                    s.in_printer  == true
@@ -499,11 +501,14 @@ bool wgtFilaManagerStore::apply_mount_diff(
                 changed = true;
                 if (out_changed_ids) out_changed_ids->push_back(id);
             }
+            s.mount_hold_count = 0;
         } else if (was_our_hold) {
-            // 在清空前捕获拔出快照，供 slot-mappings/sync 解绑使用
+            if (s.mount_hold_count > 0) {
+                --s.mount_hold_count;
+                continue;
+            }
             if (out_ejected)
                 out_ejected->push_back({id, s.ams_sn, s.ams_id, s.ams_type, s.slot_id});
-            // 本机上一次拥有它、这次没上报 → 本机拔出事件，清字段
             s.in_printer  = false;
             s.dev_id.clear();
             s.device_name.clear();
@@ -514,7 +519,6 @@ bool wgtFilaManagerStore::apply_mount_diff(
             changed = true;
             if (out_changed_ids) out_changed_ids->push_back(id);
         }
-        // 其余情况（挂在别机 / 从未在位）保持原状
     }
     return changed;
 }

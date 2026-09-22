@@ -83,6 +83,50 @@ bool DevAmsTray::is_tray_info_ready() const
     return true;
 }
 
+DevAmsSlotId DevAmsTray::get_ams_slot_id() const
+{
+    DevAmsSlotId ams_slot_id;
+    ams_slot_id.first = 0;
+    ams_slot_id.second = 0;
+
+    try {
+        ams_slot_id.first = std::stoi(this->ams_id);
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+    }
+
+    if (ams_type == DevAmsType::EXT_SPOOL) {
+        ams_slot_id.second = 0;
+    } else {
+        try {
+            ams_slot_id.second = std::stoi(id);
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+        }
+    }
+
+    return ams_slot_id;
+}
+
+static long long sGetAmsFlagBit(const DevAmsTray* tray) {
+    auto ams_slot_id = tray->get_ams_slot_id();
+    const auto& ams_type = tray->ams_type;
+    if (ams_type == DevAmsType::AMS || ams_type == DevAmsType::AMS_LITE || ams_type == DevAmsType::N3F) {
+        return ams_slot_id.first * 4 + ams_slot_id.second;
+    } else if (ams_type == DevAmsType::N3S) {
+        return 16 + (ams_slot_id.first - 128) + ams_slot_id.second;
+    } else if (ams_type == DevAmsType::AMS_LITE_MIXED) {
+        return 24 + ams_slot_id.second;
+    }
+
+    return -1;
+}
+
+bool DevAmsTray::is_reading(long long tray_reading_bits) const
+{
+    return DevUtil::get_flag_bits(tray_reading_bits, sGetAmsFlagBit(this));
+}
+
 bool DevAmsTray::is_unset_third_filament() const
 {
     if (this->is_bbl) return false;
@@ -759,9 +803,10 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     // compare tray_list
     DevAmsTray* curr_tray = curr_ams->GetTray(tray_id);
     if (!curr_tray) {
-        curr_tray = new DevAmsTray(tray_id); // new tray event
+        curr_tray = new DevAmsTray(curr_ams->GetAmsId(), tray_id); // new tray event
     }
 
+    curr_tray->ams_id   = curr_ams->GetAmsId();
     curr_tray->ams_type = curr_ams->GetAmsType();
     curr_tray->current_extruder_id = curr_ams->GetCurrentExtruderId();
     curr_tray->binded_extruder_set = curr_ams->GetBindedExtruderSet();

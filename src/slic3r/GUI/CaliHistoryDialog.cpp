@@ -214,32 +214,25 @@ HistoryWindow::~HistoryWindow()
 
 void HistoryWindow::sync_history_result(MachineObject* obj)
 {
-    BOOST_LOG_TRIVIAL(info) << "sync_history_result";
-
     m_calib_results_history.clear();
     if (obj) {
-        auto pa_calib_tab = obj->GetCalib()->GetPAHistory();
-        if (obj->is_multi_extruders()) {
-            for (const PACalibResult &pa_result : pa_calib_tab) {
-                if (pa_result.extruder_id == 0 && m_extruder_switch_btn->GetValue()) {
-                    // left extruder
-                    m_calib_results_history.emplace_back(pa_result);
-                } else if (pa_result.extruder_id == 1 && !m_extruder_switch_btn->GetValue()) {
-                    // right extruder
-                    m_calib_results_history.emplace_back(pa_result);
-                }
-            }
-        }
-        else {
-            m_calib_results_history = pa_calib_tab;
-        }
+        const int sel = m_comboBox_nozzle_dia->GetSelection();
+        const std::optional<NozzleDiameterType> dia = (sel >= 0 && sel < int(nozzle_diameter_list.size())) ? std::optional<NozzleDiameterType>(nozzle_diameter_list[sel]) : std::nullopt;
+        const std::optional<int> extruder_id = obj->is_multi_extruders() ? std::optional<int>(get_extruder_id()) : std::nullopt;
+
+        m_calib_results_history = obj->GetCalib()->GetPaHistoryFilter()
+            .set_nozzle_diameter(dia)
+            .set_extruder_id(extruder_id)
+            .get();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                               << " dia=" << (dia.has_value() ? static_cast<int>(dia.value()) : -1)
+                               << " ext=" << (extruder_id.has_value() ? extruder_id.value() : -1)
+                               << " matched=" << m_calib_results_history.size();
     }
 
     if (m_calib_results_history.empty()) {
         m_tips->SetLabel(_L("No History Result"));
-        return;
-    }
-    else {
+    } else {
         m_tips->SetLabel(_L("Success to get history result"));
     }
     m_tips->Refresh();
@@ -289,14 +282,20 @@ void HistoryWindow::update(MachineObject* obj)
 {
     if (!obj) return;
 
-    if (obj->GetCalib()->IsVersionExpired()) {
-        if (obj->GetCalib()->IsPAHistoryReady()) {
-            reqeust_history_result(obj);
+    auto calib = obj->GetCalib();
+    if (calib->IsVersionExpired()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " version expired, prepare fetch queue";
+        if (calib->PrepareFetchQueue()) {
+            calib->SyncCalibVersion();
         }
     }
 
-    // sync when history is not empty
-    if (obj->GetCalib()->IsPAHistoryReady() && m_calib_results_history.empty()) {
+    calib->SendNextFetch();
+
+    // Combo/extruder change clears the local view; sync once when the fetch queue drains.
+    if (calib->IsPAHistoryReady() && m_pending_sync) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " history ready, sync pending view";
+        m_pending_sync = false;
         sync_history_result(curr_obj);
     }
 }
@@ -315,11 +314,6 @@ void HistoryWindow::on_switch_extruder(wxCommandEvent &evt)
 void HistoryWindow::reqeust_history_result(MachineObject* obj)
 {
     if (curr_obj) {
-        // reset
-        curr_obj->GetCalib()->ResetPAHistory();
-        m_calib_results_history.clear();
-        sync_history_data();
-
         float nozzle_value = get_nozzle_value();
         int extruder_id = get_extruder_id();
         if (nozzle_value > 0) {
@@ -329,8 +323,11 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             cali_info.use_nozzle_volume_type = false;
             cali_info.use_extruder_id        = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
+            m_pending_sync = true;
+            m_calib_results_history.clear();
+            sync_history_data();
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
-            BOOST_LOG_TRIVIAL(info) << "request calib history";
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " request history dia=" << nozzle_value << " extruder_id=" << extruder_id;
         }
     }
 }
@@ -436,7 +433,7 @@ void HistoryWindow::sync_history_data() {
         delete_button->SetBackgroundColour(*wxWHITE);
         delete_button->SetMinSize(wxSize(-1, FromDIP(24)));
         delete_button->SetCornerRadius(FromDIP(12));
-        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, &result, column_count](auto& e) {
+        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, result, column_count](auto& e) {
             if (m_ui_op_lock) {
                 return;
             } else {
@@ -459,6 +456,7 @@ void HistoryWindow::sync_history_data() {
             cali_info.nozzle_pos_id   = result.nozzle_pos_id;
             cali_info.nozzle_sn       = result.nozzle_sn;
             CalibUtils::delete_PA_calib_result(cali_info);
+            CallAfter([this] { reqeust_history_result(curr_obj); });
             });
 
         auto edit_button = new Button(m_history_data_panel, _L("Edit"));
@@ -471,7 +469,7 @@ void HistoryWindow::sync_history_data() {
         edit_button->SetTextColor(wxColour("#FFFFFE"));
         edit_button->SetMinSize(wxSize(-1, FromDIP(24)));
         edit_button->SetCornerRadius(FromDIP(12));
-        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value, edit_button](auto& e) {
+        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value](auto& e) {
             if (m_ui_op_lock) return;
 
             PACalibResult result_buffer = result;
@@ -489,6 +487,7 @@ void HistoryWindow::sync_history_data() {
                 CalibUtils::set_PA_calib_result({ new_result }, true);
 
                 enbale_action_buttons(false);
+                CallAfter([this] { reqeust_history_result(curr_obj); });
             }
             });
 
@@ -566,7 +565,7 @@ void HistoryWindow::on_click_new_button(wxCommandEvent& event)
     }
 
     NewCalibrationHistoryDialog dlg(this, m_calib_results_history);
-    if (dlg.ShowModal() == wxID_OK && m_calib_results_history.empty()) {
+    if (dlg.ShowModal() == wxID_OK) {
         reqeust_history_result(curr_obj);
     }
 }

@@ -580,7 +580,8 @@ static bool repair_cluster_smooth(
     const TextureToColorSettings& settings,
     AlgoProgressCallback progress_callback,
     AlgoCancelCallback cancel_callback,
-    const char* log_prefix)
+    const char* log_prefix,
+    std::size_t cache_input_face_count)
 {
     auto report = [&](int pct, const char* msg) {
         if (progress_callback)
@@ -596,6 +597,20 @@ static bool repair_cluster_smooth(
 
     report(0, "Repairing mesh");
     if (cancelled()) return false;
+
+    MeshRepairCache* cache = settings.mesh_repair_cache;
+
+    auto store_prepared_mesh = [&]() {
+        if (!cache)
+            return;
+        cache->mesh = mesh;
+        cache->face_colors = face_colors;
+        cache->has_prepared_mesh = true;
+        cache->key_input_face_count = cache_input_face_count;
+        cache->key_oversampling_iters = settings.oversampling_iters;
+        cache->key_oversampling_min_face_count = settings.oversampling_min_face_count;
+        cache->key_oversampling_max_face_count = settings.oversampling_max_face_count;
+    };
 
     // Resample face colors onto a repaired mesh via centroid nearest-neighbor.
     auto resample_face_colors = [&](TriMesh&& repaired_mesh) -> bool {
@@ -636,45 +651,93 @@ static bool repair_cluster_smooth(
         return resample_face_colors(std::move(*repaired_mesh));
     };
 
-    {
-        TriangleMesh stats_mesh(static_cast<const indexed_triangle_set&>(mesh));
-        const auto& stats = stats_mesh.stats();
-        if (!stats.manifold() || stats.has_open_edges()) {
-            BOOST_LOG_TRIVIAL(info) << log_prefix << ": mesh has non-manifold geometry or open boundaries, open_edges="
-                                    << stats.open_edges << ", non_manifold_edges=" << stats.non_manifold_edges
-                                    << ", non_manifold_vertices=" << stats.non_manifold_vertices;
-            if (settings.mesh_repair_decision == MeshRepairDecision::Ask) {
-                if (settings.mesh_repair_decision_required)
-                    *settings.mesh_repair_decision_required = true;
-                return false;
-            }
-            if (settings.mesh_repair_decision == MeshRepairDecision::RepairAndImport) {
-                indexed_triangle_set repaired_its;
-                std::string repair_error;
-                bool repaired = settings.mesh_repair_callback && settings.mesh_repair_callback(
-                    static_cast<const indexed_triangle_set&>(mesh), repaired_its,
-                    [&](const char* message, unsigned /*percent*/) {
-                        report(5, message ? message : "Repairing mesh");
-                    },
-                    [&]() { return cancelled(); }, &repair_error);
-                if (repaired) {
-                    if (cancelled()) return false;
-                    BOOST_LOG_TRIVIAL(info) << log_prefix << ": Windows 3D mesh repair finished.";
-                    if (!resample_face_colors(TriMesh(std::move(repaired_its))))
-                        return false;
-                } else {
-                    BOOST_LOG_TRIVIAL(warning) << log_prefix << ": Windows 3D mesh repair failed: " << repair_error;
-                }
-            } else {
-                BOOST_LOG_TRIVIAL(info) << log_prefix << ": importing mesh without Windows 3D repair.";
-            }
-        }
+    if (cache && cache->has_prepared_mesh &&
+        !cache->matches_input(cache_input_face_count,
+                              settings.oversampling_iters,
+                              settings.oversampling_min_face_count,
+                              settings.oversampling_max_face_count)) {
+        cache->invalidate_prepared_mesh();
     }
 
-    if (!cgalutils::is_mesh_halfedge_compatible(mesh)) {
-        BOOST_LOG_TRIVIAL(info) << log_prefix << ": mesh not halfedge-compatible, attempting RepairMesh.";
-        if (!repair_and_resample())
+    if (cache && cache->has_prepared_mesh) {
+        BOOST_LOG_TRIVIAL(info) << log_prefix << ": using cached prepared mesh, skipping repair.";
+        mesh = cache->mesh;
+        face_colors = cache->face_colors;
+    } else {
+        const bool skip_win10 = cache && cache->win10_attempt == MeshRepairAttempt::Failed;
+        if (cache && cache->win10_attempt == MeshRepairAttempt::Succeeded && !cache->mesh.indices.empty()) {
+            // Win10 succeeded earlier but CGAL repair did not finish; reuse the Win10 result.
+            BOOST_LOG_TRIVIAL(info) << log_prefix << ": restoring cached Win10-repaired mesh.";
+            mesh = cache->mesh;
+            face_colors = cache->face_colors;
+        } else {
+            TriangleMesh stats_mesh(static_cast<const indexed_triangle_set&>(mesh));
+            const auto& stats = stats_mesh.stats();
+            if (!stats.manifold() || stats.has_open_edges()) {
+                BOOST_LOG_TRIVIAL(info) << log_prefix << ": mesh has non-manifold geometry or open boundaries, open_edges="
+                                        << stats.open_edges << ", non_manifold_edges=" << stats.non_manifold_edges
+                                        << ", non_manifold_vertices=" << stats.non_manifold_vertices;
+                if (settings.mesh_repair_decision == MeshRepairDecision::RepairAndImport) {
+                    if (skip_win10) {
+                        BOOST_LOG_TRIVIAL(info) << log_prefix << ": skipping Windows 3D mesh repair because a previous attempt failed.";
+                    } else {
+                        indexed_triangle_set repaired_its;
+                        std::string repair_error;
+                        const auto repair_start = std::chrono::steady_clock::now();
+                        bool repair_timed_out = false;
+                        bool repaired = settings.mesh_repair_callback && settings.mesh_repair_callback(
+                            static_cast<const indexed_triangle_set&>(mesh), repaired_its,
+                            [&](const char* message, unsigned /*percent*/) {
+                                report(5, message ? message : "Repairing mesh");
+                            },
+                            [&]() {
+                                if (cancelled())
+                                    return true;
+                                if (settings.mesh_repair_timeout.count() > 0 &&
+                                    std::chrono::steady_clock::now() - repair_start >= settings.mesh_repair_timeout) {
+                                    repair_timed_out = true;
+                                    return true;
+                                }
+                                return false;
+                            }, &repair_error);
+                        if (cancelled())
+                            return false;
+                        if (repaired) {
+                            BOOST_LOG_TRIVIAL(info) << log_prefix << ": Windows 3D mesh repair finished.";
+                            if (!resample_face_colors(TriMesh(std::move(repaired_its))))
+                                return false;
+                            if (cache) {
+                                cache->win10_attempt = MeshRepairAttempt::Succeeded;
+                                cache->mesh = mesh;
+                                cache->face_colors = face_colors;
+                            }
+                        } else if (repair_timed_out) {
+                            BOOST_LOG_TRIVIAL(warning) << log_prefix << ": Windows 3D mesh repair timed out after "
+                                                       << settings.mesh_repair_timeout.count()
+                                                       << "s, skipping Win10 repair and continuing with the current mesh.";
+                            if (cache)
+                                cache->win10_attempt = MeshRepairAttempt::Failed;
+                        } else {
+                            BOOST_LOG_TRIVIAL(warning) << log_prefix << ": Windows 3D mesh repair failed: " << repair_error;
+                            if (cache)
+                                cache->win10_attempt = MeshRepairAttempt::Failed;
+                        }
+                    }
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << log_prefix << ": importing mesh without Windows 3D repair.";
+                }
+            }
+        }
+
+        if (!cgalutils::is_mesh_halfedge_compatible(mesh)) {
+            BOOST_LOG_TRIVIAL(info) << log_prefix << ": mesh not halfedge-compatible, attempting RepairMesh.";
+            if (!repair_and_resample())
+                return false;
+        }
+
+        if (cancelled())
             return false;
+        store_prepared_mesh();
     }
 
 #ifdef OUTPUT_TEST_RESULT
@@ -811,6 +874,29 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         return false;
     }
 
+    using Clock = std::chrono::high_resolution_clock;
+    const auto t_total_start = Clock::now();
+    auto t_step = t_total_start;
+    auto lap = [&](const char* step_name) {
+        auto now = Clock::now();
+        double ms = std::chrono::duration<double, std::milli>(now - t_step).count();
+        BOOST_LOG_TRIVIAL(debug) << "[timing] " << step_name << ": " << ms << "ms"
+                        << " faces=" << color_mesh.facets_count();
+        t_step = now;
+    };
+
+    const bool use_prepared = settings.mesh_repair_cache &&
+        settings.mesh_repair_cache->matches_input(texture_mesh.indices.size(),
+                                                 settings.oversampling_iters,
+                                                 settings.oversampling_min_face_count,
+                                                 settings.oversampling_max_face_count);
+    if (settings.mesh_repair_cache && settings.mesh_repair_cache->has_prepared_mesh && !use_prepared)
+        settings.mesh_repair_cache->invalidate_prepared_mesh();
+    if (use_prepared) {
+        BOOST_LOG_TRIVIAL(info) << "TextureToColor: using cached prepared mesh, skipping oversampling and texture sampling.";
+        color_mesh = settings.mesh_repair_cache->mesh;
+        face_colors = settings.mesh_repair_cache->face_colors;
+    } else {
     if (texture_mesh.indices.size() == 0) {
         BOOST_LOG_TRIVIAL(debug) << "TextureToColor: texture mesh has no faces.";
         return false;
@@ -834,17 +920,6 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         }
     }
     color_mesh = texture_mesh;
-
-    using Clock = std::chrono::high_resolution_clock;
-    const auto t_total_start = Clock::now();
-    auto t_step = t_total_start;
-    auto lap = [&](const char* step_name) {
-        auto now = Clock::now();
-        double ms = std::chrono::duration<double, std::milli>(now - t_step).count();
-        BOOST_LOG_TRIVIAL(debug) << "[timing] " << step_name << ": " << ms << "ms"
-                        << " faces=" << color_mesh.facets_count();
-        t_step = now;
-    };
 
     report(5, "Oversampling");
     if (cancelled()) {
@@ -928,6 +1003,7 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
 #ifdef OUTPUT_TEST_RESULT
     SaveToOFF("texture_to_color_0_initialize.off", color_mesh, face_colors);
 #endif
+    }
 
     // Map progress from repair_cluster_smooth's [0,100] to TextureToColor's [40,100]
     AlgoProgressCallback rcs_progress = nullptr;
@@ -940,7 +1016,8 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
 
     std::vector<RGB> clustered_face_colors;
     if (!repair_cluster_smooth(color_mesh, face_colors, clustered_face_colors,
-                               settings, rcs_progress, cancel_callback, "TextureToColor"))
+                               settings, rcs_progress, cancel_callback, "TextureToColor",
+                               texture_mesh.indices.size()))
         return false;
 
     face_colors = std::move(clustered_face_colors);
@@ -1031,7 +1108,7 @@ bool ClusterAndSmooth(const TriMesh& mesh,
     std::vector<RGB> clustered_face_colors;
     if (!repair_cluster_smooth(out_mesh, face_colors, clustered_face_colors,
                                settings, progress_callback, cancel_callback,
-                               "ClusterAndSmooth"))
+                               "ClusterAndSmooth", mesh.indices.size()))
         return false;
 
     out_face_colors = std::move(clustered_face_colors);

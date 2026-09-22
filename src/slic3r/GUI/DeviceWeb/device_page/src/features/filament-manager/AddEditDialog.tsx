@@ -359,7 +359,7 @@ export function AddEditDialog({
       const curNet = (typeof initSpool.net_weight === 'number' && initSpool.net_weight > 0)
         ? Math.round(initSpool.net_weight)
         : Math.round(netInit * pct / 100);
-      setCurrentNetWeight(curNet > 0 ? curNet : (netInit > 0 ? netInit : 1000));
+      setCurrentNetWeight(curNet);
       setNote(initSpool.note || '');
     } else {
       setBrand(''); setMaterialType(''); setSeries('');

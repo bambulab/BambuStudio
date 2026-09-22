@@ -198,7 +198,15 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         //file info
         std::string file_path = encode_path(wxGetApp().plater()->model().get_auxiliary_file_temp_path().c_str());
         if (!file_path.empty()) {
-            files = Reload(file_path);
+            // A malformed auxiliary directory must not take the whole process down: this runs on a
+            // worker thread, where an escaping exception ends up in std::terminate.
+            try {
+                files = Reload(file_path);
+            }
+            catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(error) << "Failed reloading the auxiliary files: " << e.what();
+                files.clear();
+            }
         }
         else {
             clear_model_info();
@@ -790,6 +798,33 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
             wxGetApp().CallAfter([this, script] {
                 RunScript(script.ToStdString());
             });
+
+            // Release the waiter only once the data actually landed; on failure it
+            // is dropped so that a pending close stays cancelled.
+            if (m_save_finished_cb) {
+                auto cb = std::move(m_save_finished_cb);
+                m_save_finished_cb = nullptr;
+                if (!response.contains("error"))
+                    cb();
+            }
+        }
+        else if (strCmd == "page_dirty_state") {
+            // Answer to query_unsaved_changes. Assume the worst if the page sent
+            // something unexpected, so that edits are never dropped silently.
+            bool dirty = true;
+            if (j.contains("dirty") && j["dirty"].is_boolean())
+                dirty = j["dirty"].get<bool>();
+
+            if (m_dirty_query_cb) {
+                auto cb = std::move(m_dirty_query_cb);
+                m_dirty_query_cb = nullptr;
+                cb(dirty);
+            }
+        }
+        else if (strCmd == "save_project_aborted") {
+            // The page refused to save (empty name, no pictures, ...) and never sent
+            // update_3mf_info, so drop the waiter instead of blocking the app forever.
+            m_save_finished_cb = nullptr;
         }
         else if (strCmd == "debug_info") {
             //wxString msg =  j["msg"];
@@ -888,14 +923,23 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
     }
 
     // Load from new path
+    // Only sub directories are scanned below. A 3mf package may legally place plain files
+    // directly under Auxiliaries/, constructing a directory_iterator on those would throw.
     for (fs::directory_iterator iter(new_aux_path); iter != iter_end; iter++) {
-        wxString path = iter->path().generic_wstring();
+        boost::system::error_code ec;
+        if (!fs::is_directory(iter->path(), ec) || ec) continue;
         dir_cache.push_back(iter->path());
     }
 
 
     for (auto dir : dir_cache) {
-        for (fs::directory_iterator iter(dir); iter != iter_end; iter++) {
+        boost::system::error_code dir_ec;
+        fs::directory_iterator iter(dir, dir_ec);
+        if (dir_ec) {
+            BOOST_LOG_TRIVIAL(error) << "Failed iterating the auxiliary directory: " << dir_ec.message();
+            continue;
+        }
+        for (; iter != iter_end; iter++) {
             if (fs::is_directory(iter->path())) continue;
 
             json pfile_obj;
@@ -1005,8 +1049,25 @@ bool ProjectPanel::Show(bool show)
     return wxPanel::Show(show);
 }
 
-void ProjectPanel::save_project()
+void ProjectPanel::query_unsaved_changes(std::function<void(bool)> on_result)
 {
+    m_dirty_query_cb = std::move(on_result);
+
+    json resp = json::object();
+    resp["command"] = "query_unsaved_changes";
+    resp["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+
+    wxString strJS = wxString::Format("window.HandleEditor && window.HandleEditor(%s);",
+                                      resp.dump(-1, ' ', false, json::error_handler_t::ignore));
+    wxGetApp().CallAfter([this, strJS] {
+        RunScript(strJS.ToStdString());
+    });
+}
+
+void ProjectPanel::save_project(std::function<void()> on_saved)
+{
+    m_save_finished_cb = std::move(on_saved);
+
     json resp = json::object();
     resp["command"] = "save_project";
     resp["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);

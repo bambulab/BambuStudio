@@ -508,6 +508,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                     new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
                     new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
                     new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+                    new_conf.set_key_value("periodic_modifier", new ConfigOptionBool(false));
             }
 
             timelapse_type = TimelapseType::tlTraditional;
@@ -823,6 +824,28 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
     }
 
+    if (config->has("periodic_modifier") && config->opt_bool("periodic_modifier") && config->opt_bool("spiral_mode") && applying_keys().empty()) {
+        const wxString msg_text = _L("Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:")
+                                  + wxString("\n  - ") + _L("Disable spiral vase mode.")
+                                  + "\n\n"
+                                  + _L("Change these settings automatically?\n"
+                                       "Yes - Apply and keep periodic modifier enabled\n"
+                                       "No  - Don't use periodic modifier");
+        MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+        is_msg_dlg_already_exist = true;
+        auto answer = dialog.ShowModal();
+        is_msg_dlg_already_exist = false;
+        if (answer == wxID_YES) {
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));
+            apply(config, &new_conf);
+        } else {
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("periodic_modifier", new ConfigOptionBool(false));
+            apply(config, &new_conf);
+        }
+    }
+
     // Single consolidated prompt for non-optimal companion settings when alternate extra wall
     // is on: EVT == Enabled, wall_loops != 2, sparse_infill_density == 0. Skip during apply()
     // cascades so density sync (Tab::on_value_change skeleton/skin) does not double-prompt.
@@ -930,6 +953,18 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     //cross zag
     bool is_cross_zag  = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipCrossZag;
     bool is_locked_zig = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
+    bool is_conformal_pattern = have_infill && (pattern == InfillPattern::ipZigZag || pattern == InfillPattern::ipCrossZag ||
+                                                pattern == InfillPattern::ipLockedZag || pattern == InfillPattern::ipRectilinear ||
+                                                pattern == InfillPattern::ipAlignedRectilinear);
+    toggle_line("conformal_infill", is_conformal_pattern);
+    bool conformal_on = is_conformal_pattern && config->option<ConfigOptionBool>("conformal_infill") &&
+                        config->option<ConfigOptionBool>("conformal_infill")->value;
+    toggle_line("conformal_stagger", conformal_on);
+    toggle_line("conformal_link_keep_layers", conformal_on);
+    toggle_line("conformal_link_flip_layers", conformal_on);
+    toggle_line("conformal_pole", conformal_on);
+    toggle_line("conformal_ray_count", conformal_on);
+    toggle_line("conformal_hub_radius", conformal_on);
 
     for (auto el : {"infill_instead_top_bottom_surfaces","skeleton_infill_density", "skin_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_line_width", "skeleton_infill_line_width", "locked_skin_infill_pattern", "locked_skeleton_infill_pattern"})
         toggle_line(el, is_locked_zig);
@@ -942,6 +977,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool lattice_options = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ip2DLattice;
     for (auto el : {"sparse_infill_lattice_angle_1", "sparse_infill_lattice_angle_2"}) toggle_line(el, lattice_options);
+
+    bool have_periodic_modifier = config->has("periodic_modifier") && config->opt_bool("periodic_modifier");
+    for (auto el : { "periodic_modifier_skip_layers", "periodic_modifier_apply_layers" })
+        toggle_line(el, have_periodic_modifier);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
@@ -1238,7 +1277,7 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
 
 int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
 {
-    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."));
+    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."));
     auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
     if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
         msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));

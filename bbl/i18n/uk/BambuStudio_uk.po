@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -211,6 +211,9 @@ msgstr ""
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "Філаменти CF/GF є жорсткими і крихкими, їх легко можна зламати або вони можуть застряти в AMS, будьте обережні під час використання."
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr ""
@@ -1539,6 +1542,9 @@ msgstr ""
 msgid "Text Gap"
 msgstr "Пробіл у тексті"
 
+msgid "Line Gap"
+msgstr ""
+
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr ""
 
@@ -1600,6 +1606,14 @@ msgstr ""
 msgid "Skew"
 msgstr ""
 
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr ""
+
+msgid "Align center horizontally"
+msgstr ""
+
 msgid "No symbol"
 msgstr ""
 
@@ -1619,11 +1633,6 @@ msgstr "Використовувати поверхню"
 #. Option to change projection on curved surface
 #. for each character(glyph) in text separately
 msgid "Per glyph"
-msgstr ""
-
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
 msgstr ""
 
 #. TRN - Input label. Be short as possible
@@ -2429,10 +2438,10 @@ msgstr "Недійсна інформація про вирізування"
 msgid "Add Primitive"
 msgstr "Додати примітив"
 
-msgid "Show Labels by Layer"
+msgid "Add New Plate"
 msgstr ""
 
-msgid "Show Labels by Object"
+msgid "Add a new plate"
 msgstr ""
 
 msgid "To objects"
@@ -2573,11 +2582,14 @@ msgstr "Заповнити ліжко копіями"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "Заповнити залишену частину ліжка копіями вибраного об’єкта"
 
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
+
 msgid "Edit Plate Name"
 msgstr "Редагувати назву пластини"
-
-msgid "Show Labels"
-msgstr "Показати ярлики"
 
 msgid "Name"
 msgstr "Ім'я"
@@ -3832,10 +3844,31 @@ msgstr ""
 msgid "Remaining time: %dmin%ds"
 msgstr ""
 
-msgid "One-click CMYW auto-mix"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
 msgstr ""
 
-msgid "One-click RYBW auto-mix"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr ""
+
+msgid "Add Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr ""
+
+msgid "Official Filament"
+msgstr ""
+
+msgid "Filament matching color difference threshold"
+msgstr ""
+
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr ""
+
+msgid "Decompose Color"
+msgstr ""
+
+msgid "+ Add Filament"
 msgstr ""
 
 msgid "Project Physical Filaments"
@@ -3850,65 +3883,95 @@ msgstr ""
 msgid "New Mixed Filaments"
 msgstr ""
 
-msgid "Decompose Color"
+#, boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
 msgstr ""
 
-msgid "+ Add Material"
+msgid "Updating"
+msgstr "Оновлення"
+
+msgid "Simplify Colors"
 msgstr ""
 
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+msgid "Filament Matching"
 msgstr ""
 
-msgid "Import Model"
+msgid "Import Model: Simplify Colors"
 msgstr ""
 
 msgid "Original"
 msgstr ""
 
-msgid "Multi-Color"
-msgstr ""
-
-msgid "Your input texture model"
-msgstr ""
-
-msgid "Processed multi-color model"
+msgid "Simplified"
 msgstr ""
 
 msgid "Color Count"
 msgstr ""
 
-msgid "Smooth Level"
+msgid "Advanced settings"
 msgstr ""
 
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgid "Boundary Smoothness"
 msgstr ""
 
-msgid "Convert texture to painting using the specified color count and smooth level"
+msgid "Gap Area"
 msgstr ""
 
-msgid "Reminder: parameters changed, click Apply to take effect"
+msgid "Automatically determine the optimal color count"
 msgstr ""
 
-msgid "Filament Mapping"
+msgid "Color mixing"
 msgstr ""
 
-msgid "Reset filament mapping to the state before one-click mixing"
+msgid "Use official mixing kits →"
 msgstr ""
 
-msgid "Choose the one-click auto-mix mode for texture color import"
+msgid "Some colors have no matching filament. Please match them before importing."
 msgstr ""
 
-msgid "Auto-merge same filament"
+msgid "Auto-Add All Filaments"
+msgstr ""
+
+msgid "Fix now"
 msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr ""
 
-msgid "Skip Matching"
+msgid "Automatically merge filaments of the same color and type"
 msgstr ""
 
+msgid "Skip"
+msgstr "Пропустити"
+
 msgid "Skip filament mapping and import as a single-color model"
+msgstr ""
+
+msgid "Next"
+msgstr "Наступний"
+
+msgctxt "TextureImport"
+msgid "Previous"
+msgstr ""
+
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr ""
+
+msgid "Before matching"
+msgstr ""
+
+msgid "After matching"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Before simplification: %d colors"
+msgstr ""
+
+#, c-format, boost-format
+msgid "After simplification: %d colors"
+msgstr ""
+
+msgid "Import Model: Filament Matching"
 msgstr ""
 
 msgid "Processing"
@@ -3920,22 +3983,72 @@ msgstr ""
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr ""
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
 msgstr ""
 
-msgid "Mesh repair"
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr ""
 
-msgid "Import without repair"
+msgid "The current printer has no compatible PLA Basic filament."
 msgstr ""
 
-msgid "Repair and import"
+msgid "Click to select a matching filament"
 msgstr ""
 
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
 msgstr ""
 
-msgid "Mesh issue"
+msgid "Error Prompt"
+msgstr ""
+
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr ""
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Kept filaments"
+msgstr ""
+
+msgid "Deleted filaments"
+msgstr ""
+
+msgid "After merging"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr ""
+
+msgid "Prioritize merging similar-color filaments"
+msgstr ""
+
+msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr ""
+
+msgid "What is the CMYW mixing kit?"
+msgstr ""
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr ""
+
+msgid "4-color CMYW"
+msgstr ""
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr ""
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "Add to project filament list"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -4182,9 +4295,6 @@ msgstr "Температура столу"
 
 msgid "Start calibration"
 msgstr "Почати калібрування"
-
-msgid "Next"
-msgstr "Наступний"
 
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr ""
@@ -4827,6 +4937,15 @@ msgid ""
 "No  - Don't use alternate extra wall"
 msgstr ""
 
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr ""
 
@@ -4836,7 +4955,7 @@ msgid ""
 "No  - Keep current settings and alternate extra wall enabled"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5197,6 +5316,12 @@ msgstr "Ще раз"
 
 msgid "Resume"
 msgstr "Продовжити"
+
+msgid "Loading error details ..."
+msgstr ""
+
+msgid "Unable to load error details."
+msgstr ""
 
 msgid "Unknown error."
 msgstr ""
@@ -5883,7 +6008,7 @@ msgstr ""
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
 msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
@@ -5990,6 +6115,12 @@ msgstr ""
 msgid "Invalid input."
 msgstr "Помилка введення."
 
+msgid "Network error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
 msgid "New Window"
 msgstr "Нове вікно"
 
@@ -6010,9 +6141,6 @@ msgstr "Підготувати"
 
 msgid "Preview"
 msgstr "Попередній перегляд"
-
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr ""
 
 msgid "Home"
 msgstr ""
@@ -6037,6 +6165,9 @@ msgstr "Ні"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "буде закрито перед створенням нової моделі. Ви хочете продовжувати?"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr ""
@@ -6330,9 +6461,6 @@ msgid "Reset to default window layout"
 msgstr ""
 
 msgid "Show Labels of printing by layer in 3D scene"
-msgstr ""
-
-msgid "Show Labels of printing by object in 3D scene"
 msgstr ""
 
 msgid "Show &Overhang"
@@ -7339,9 +7467,6 @@ msgstr "%s інфо"
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s інформація"
-
-msgid "Skip"
-msgstr "Пропустити"
 
 msgid "Newer 3mf version"
 msgstr "Нова версія 3mf"
@@ -8454,6 +8579,24 @@ msgstr ""
 msgid "Search plate, object and part."
 msgstr "Пошук плити, об’єкта і деталі."
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
+msgstr ""
+
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgstr ""
+
+msgid "Delete Filament"
+msgstr "Видалити Філамент"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr ""
 
@@ -8601,12 +8744,6 @@ msgstr "Об'єкти з нульовим об'ємом видалені"
 msgid "The volume of the object is zero"
 msgstr "Об'єм об'єкта дорівнює нулю"
 
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
-
-msgid "Object too small"
-msgstr "Об'єкт занадто малий"
-
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
 "Instead of considering them as multiple objects, should \n"
@@ -8620,7 +8757,7 @@ msgid "Multi-part object detected"
 msgstr "Виявлено об'єкт, що складається з кількох частин"
 
 #, c-format, boost-format
-msgid "Computing texture colors: %s"
+msgid "Computing model colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
@@ -9004,6 +9141,18 @@ msgstr ""
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Виправте помилки нарізки та опублікуйте знову."
 
+msgid "Send G-code file"
+msgstr ""
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr ""
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr ""
+
+msgid "Send now"
+msgstr ""
+
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr ""
 
@@ -9184,12 +9333,11 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Причина: частина “%1%” не обмежує об’єм."
 
 #, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "Причина: частина “%1%” має самоперетин."
-
-#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "Причина: “%1%” та інша частина не мають перетину."
+
+msgid "Reason: the meshes have face issues."
+msgstr ""
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Виявлено від’ємні частини. Бажаєте виконати булеву операцію з сітками перед експортом?"
@@ -9836,7 +9984,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
@@ -10373,13 +10522,22 @@ msgstr ""
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr ""
 
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr ""
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr ""
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
 msgstr ""
 
 msgid "Cool"
@@ -10854,6 +11012,9 @@ msgstr "Примітки"
 
 msgid "Frequent"
 msgstr "Частий"
+
+msgid "Modifier cycle"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11560,9 +11721,6 @@ msgid "Only synchronize filament type and color, not including AMS slot informat
 msgstr ""
 
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr ""
-
-msgid "Advanced settings"
 msgstr ""
 
 msgid "Add unused AMS filaments to filaments list."
@@ -12608,6 +12766,9 @@ msgstr "Оновити прошивку"
 msgid "Hotends on Rack"
 msgstr ""
 
+msgid "Copy Device Info"
+msgstr ""
+
 msgid "Beta version"
 msgstr "Бета-версія"
 
@@ -12616,9 +12777,6 @@ msgstr ""
 
 msgid "Checking version..."
 msgstr ""
-
-msgid "Updating"
-msgstr "Оновлення"
 
 msgid "Updating failed"
 msgstr "Оновлення не вдалося"
@@ -13040,14 +13198,14 @@ msgstr "Підставка для очищення форсунки вимага
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Підставка для очищення вимагає, щоб усі об'єкти були розрізані з однаковоювисотою шару."
 
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "Підставка для очищення підтримується лише в тому випадку, якщо всі об'єкти маютьоднакову змінну висоту шару"
+
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr ""
 
 msgid "Jump to: Precise Z height"
 msgstr ""
-
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "Підставка для очищення підтримується лише в тому випадку, якщо всі об'єкти маютьоднакову змінну висоту шару"
 
 msgid "Too small line width"
 msgstr "Надто маленька ширина лінії"
@@ -13681,6 +13839,9 @@ msgstr "Монотонний"
 
 msgid "Monotonic line"
 msgstr "Монотонний прямолінійний"
+
+msgid "Global monotonic line"
+msgstr ""
 
 msgid "Aligned Rectilinear"
 msgstr "Вирівняний прямолінійний"
@@ -14581,29 +14742,14 @@ msgstr "Розмір мініатюри"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "Визначає розмір мініатюри, збереженої в файлах G-code"
 
-msgid "Nozzle type"
-msgstr "Тип сопла"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "Металевий матеріал сопла. Це визначає зносостійкість сопла та який тип нитки можна друкувати"
-
-msgid "Undefine"
-msgstr "Скасувати визначення"
-
-msgid "Hardened steel"
-msgstr "Гартова сталь"
-
-msgid "Stainless steel"
-msgstr "Нержавіюча сталь"
-
-msgid "Tungsten carbide"
-msgstr ""
-
 msgid "Printer structure"
 msgstr "Структура принтера"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "Фізична структура та компоненти пристрою для друку"
+
+msgid "Undefine"
+msgstr "Скасувати визначення"
 
 msgid "Best object position"
 msgstr "Найкраще положення об’єкта"
@@ -14705,6 +14851,66 @@ msgid "Skeleton line width"
 msgstr ""
 
 msgid "Adjust the line width of the selected skeleton paths."
+msgstr ""
+
+msgid "Conformal infill"
+msgstr ""
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr ""
+
+msgid "Layer stagger"
+msgstr ""
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr ""
+
+msgid "Alternate"
+msgstr ""
+
+msgid "Forward layers"
+msgstr ""
+
+msgid "Conformal forward layers"
+msgstr ""
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr ""
+
+msgid "Reverse layers"
+msgstr ""
+
+msgid "Conformal reverse layers"
+msgstr ""
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr ""
+
+msgid "Radial center"
+msgstr ""
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr ""
+
+msgid "Each layer"
+msgstr ""
+
+msgid "Axis"
+msgstr ""
+
+msgid "Smooth curve"
+msgstr ""
+
+msgid "Radial line count"
+msgstr ""
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr ""
+
+msgid "Center region radius"
+msgstr ""
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
 msgstr ""
 
 msgid "Symmetric infill y axis"
@@ -15122,6 +15328,39 @@ msgid "Alternate extra wall"
 msgstr ""
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
+msgstr ""
+
+msgid "Periodic modifier"
+msgstr ""
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr ""
+
+msgid "Skip for"
+msgstr ""
+
+msgid "Periodic modifier skip layers"
+msgstr ""
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr ""
+
+msgid "Apply for"
+msgstr ""
+
+msgid "Periodic modifier apply layers"
+msgstr ""
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr ""
+
+msgid "Ignore infill settings"
+msgstr ""
+
+msgid "Modifier ignore infill settings"
+msgstr ""
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
 msgstr ""
 
 msgid "Post-processing Scripts"
@@ -16147,6 +16386,9 @@ msgstr "Нарізка сітки"
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "Шари не виявлені. Можливо, потрібно відновити файли STL або перевірити їх розмір або товщину і повторити спробу.\n"
 
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr ""
+
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
 "XY Size compensation can not be combined with color-painting."
@@ -16206,6 +16448,9 @@ msgstr ""
 
 msgid "The file contains invalid vertex index."
 msgstr "У файлі містяться недійсний індекс вершини."
+
+msgid "The file contains invalid texture coordinate index."
+msgstr ""
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Цей файл формату OBJ не може бути прочитаний через те, що він порожній."
@@ -17420,9 +17665,6 @@ msgstr "Видалити пресет"
 msgid "+ Add Preset"
 msgstr "+ Додати пресет"
 
-msgid "Delete Filament"
-msgstr "Видалити Філамент"
-
 msgid "Add Preset"
 msgstr "Додати пресет"
 
@@ -18226,12 +18468,6 @@ msgstr ""
 msgid "Multiple Color"
 msgstr ""
 
-msgid "Official Filament"
-msgstr ""
-
-msgid "More Colors"
-msgstr ""
-
 msgid "Search filament"
 msgstr ""
 
@@ -18245,6 +18481,9 @@ msgid "slot"
 msgstr ""
 
 msgid "Recently used"
+msgstr ""
+
+msgid "Set nozzle count"
 msgstr ""
 
 msgid "Please set nozzle count"
@@ -18562,6 +18801,9 @@ msgid "Effect Preview"
 msgstr ""
 
 msgid "Select Mixed Materials"
+msgstr ""
+
+msgid "+ Add Material"
 msgstr ""
 
 msgid "- Delete Material"
@@ -18973,6 +19215,28 @@ msgid ""
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
 
+#~ msgid "Show Labels"
+#~ msgstr "Показати ярлики"
+
+#~ msgid "Object too small"
+#~ msgstr "Об'єкт занадто малий"
+
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "Причина: частина “%1%” має самоперетин."
+
+#~ msgid "Nozzle type"
+#~ msgstr "Тип сопла"
+
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "Металевий матеріал сопла. Це визначає зносостійкість сопла та який тип нитки можна друкувати"
+
+#~ msgid "Hardened steel"
+#~ msgstr "Гартова сталь"
+
+#~ msgid "Stainless steel"
+#~ msgstr "Нержавіюча сталь"
+
 #, c-format, boost-format
 #~ msgid ""
 #~ "The Filament name %s you created already exists. \n"
@@ -19224,9 +19488,6 @@ msgstr ""
 
 #~ msgid "What data would be collected?"
 #~ msgstr "Яка інформація буде зібрана?"
-
-#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-#~ msgstr "Філаменти CF/GF є жорсткими і крихкими, їх легко можна зламати або вони можуть застряти в AMS, будьте обережні під час використання."
 
 #~ msgid "Micro lidar calibration"
 #~ msgstr "Калібрування мікролідара"

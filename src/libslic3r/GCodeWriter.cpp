@@ -119,7 +119,8 @@ std::string GCodeWriter::postamble() const
     return gcode.str();
 }
 
-std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
+std::string GCodeWriter::set_temperature(
+    unsigned int temperature, bool wait, int tool, TemperatureCommandType command_type) const
 {
     if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
         return "";
@@ -138,7 +139,10 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
     }
 
     std::ostringstream gcode;
-    gcode << code << " ";
+    gcode << code;
+    if (command_type == TemperatureCommandType::LayerChange && code == "M104")
+        gcode << " M";
+    gcode << " ";
     if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
         gcode << "P";
     } else {

@@ -1358,6 +1358,10 @@ void TriangleSelectorGUI::update_render_data()
             continue;
 
         int tr_state = int(tr.get_state());
+        // Supports / seam / fuzzy skin deserialize with the default ExtruderMax limit, so a crafted 3MF can
+        // carry a paint state far above the three seed fill buckets. Clamp before indexing.
+        if (tr_state < 0 || tr_state >= int(iva_seed_fills_data.size()))
+            tr_state = 0;
         GLModel::Geometry& iva = tr.is_selected_by_seed_fill()                   ? iva_seed_fills_data[tr_state] :
                                     tr.get_state() == EnforcerBlockerType::ENFORCER ? iva_enforcers_data :
                                                                                       iva_blockers_data;
@@ -1473,15 +1477,17 @@ void TriangleSelectorPatch::render(ImGuiWrapper *imgui, const Transform3d &matri
         if (this->has_VBOs(buffer_idx)) {
             const TrianglePatch& patch = m_triangle_patches[buffer_idx];
             std::array<float, 4> color;
+            auto color_at = [this](size_t color_idx) {
+                return m_ebt_colors.empty() ? std::array<float, 4>{0.f, 0.f, 0.f, 1.f} :
+                       m_ebt_colors[color_idx < m_ebt_colors.size() ? color_idx : 0];
+            };
             if (patch.is_fragment() && !patch.neighbor_types.empty()) {
-                size_t color_idx = (size_t)*patch.neighbor_types.begin();
-                color = m_ebt_colors[color_idx];
+                color = color_at((size_t)*patch.neighbor_types.begin());
                 color[3] = 0.85;
                 TriangleSelectorPatch::exist_gap_area = true;
             }
             else {
-                size_t color_idx = (size_t)patch.type;
-                color = m_ebt_colors[color_idx];
+                color = color_at((size_t)patch.type);
             }
             //to make black not too hard too see
             std::array<float, 4> new_color = adjust_color_for_rendering(color);
@@ -1517,6 +1523,8 @@ void TriangleSelectorPatch::update_triangles_per_type()
             continue;
 
         int state = (int)triangle.get_state();
+        if (state < 0 || state >= int(m_triangle_patches.size()))
+            state = 0;
         auto& patch = m_triangle_patches[state];
         //patch.triangle_indices.insert(patch.triangle_indices.end(), triangle.verts_idxs.begin(), triangle.verts_idxs.end());
         for (int i = 0; i < 3; ++i) {

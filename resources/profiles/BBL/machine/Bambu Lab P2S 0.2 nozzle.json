@@ -100,10 +100,6 @@
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow"
     ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel"
-    ],
     "nozzle_volume": [
         "110",
         "110"
