@@ -783,6 +783,27 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
 
+        // The single-letter scene shortcuts (gizmos, arrange, auto-orient, labels) are dispatched from
+        // GLCanvas3D::on_char and GLGizmosManager::on_char, which both listen to wxEVT_CHAR. A CJK input
+        // method in native mode claims plain character keys, so the WM_CHAR those events are built from
+        // never arrives and none of the shortcuts fire. wxEVT_CHAR_HOOK still carries the raw key, so
+        // rebuild the wxEVT_CHAR from it and hand it to the focused canvas. Consuming the hook event also
+        // keeps TranslateMessage from running, hence no duplicate when no input method is in the way -- but
+        // it suppresses wxEVT_KEY_DOWN as well, so the preview stays out of this: its one-layer mode reads
+        // a plain L from Preview::update_layers_slider_from_canvas, which listens to wxEVT_KEY_DOWN.
+        if (key_code >= 'A' && key_code <= 'Z' && !evt.CmdDown() && m_plater != nullptr &&
+            !m_plater->is_preview_shown() && !wxGetApp().imgui()->want_text_input()) {
+            GLCanvas3D *canvas = m_plater->get_current_canvas3D();
+            auto *target = canvas != nullptr ? (wxWindow *) canvas->get_wxglcanvas() : nullptr;
+            if (target != nullptr && target == wxWindow::FindFocus()) {
+                wxKeyEvent e(evt);
+                e.SetEventType(wxEVT_CHAR);
+                e.SetEventObject(target);
+                wxPostEvent(target, e);
+                return;
+            }
+        }
+
         // Pass 3D view preset shortcuts directly to the current canvas. (Only 0-7 currently used but reserve 8 & 9 anyway.)
         if (evt.CmdDown() && ((key_code >= '0' && key_code <= '9') || (key_code >= WXK_NUMPAD0 && key_code <= WXK_NUMPAD9)) && m_plater) {
             if (auto *canvas = m_plater->canvas3D()) {
