@@ -22,6 +22,19 @@ test.describe('AMS filament hotend page', () => {
     await expect(page.getByTestId('ams-hotend-nozzle-8')).toHaveAttribute('data-nozzle-state', 'Active');
   });
 
+  test('renders AMS unit humidity and temperature outside the dryer chamber', async ({ page }) => {
+    const ambient = page.getByTestId('ams-hotend-ambient-info');
+    await expect(ambient).toHaveCount(1);
+    await expect(ambient).toContainText('24%');
+    await expect(ambient).toContainText('24℃');
+
+    // The readout anchors to the left of the unit's first column, so it must
+    // stay clear of the dryer chamber on the right half of the top tier.
+    const ambientBox = await ambient.boundingBox();
+    const chamberBox = await page.getByTestId('ams-hotend-dryer-chamber').boundingBox();
+    expect(ambientBox!.x + ambientBox!.width).toBeLessThanOrEqual(chamberBox!.x);
+  });
+
   test('renders the icon toolbar and More dropdown wired through mock bridge', async ({ page }) => {
     // New N1x toolbar: Read All (Rack-B only) + AMS Settings + More icons.
     await expect(page.getByTestId('ams-hotend-action-read-all')).toBeVisible();

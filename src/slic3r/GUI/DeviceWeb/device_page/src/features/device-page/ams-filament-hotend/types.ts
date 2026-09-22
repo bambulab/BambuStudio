@@ -391,6 +391,21 @@ export interface AmsFilamentHotendDryerZone {
   temp?: number;
 }
 
+/**
+ * AMS-unit level temperature / humidity. Covers the whole unit rather than a
+ * single chamber, so it is matched by `ams_id` alone and rendered as a bare
+ * readout anchored to the unit's leftmost column — no chamber background and
+ * no dry state.
+ *
+ * - `humidity_raw` — -1 when the device has not reported a valid value.
+ * - `temp`         — null / undefined when no valid temperature is available.
+ */
+export interface AmsFilamentHotendEnvUnit {
+  ams_id?: string;
+  humidity_raw?: number;
+  temp?: number | null;
+}
+
 export interface AmsFilamentHotendSlotActionPayload extends Record<string, unknown> {
   target_temp?: number;
 }
@@ -412,6 +427,9 @@ export interface FilamentPageViewModel {
   // duplicated at the page root.
   // Only zones that physically support drying are listed here (C++ filter).
   ams_dry_zones?: AmsFilamentHotendDryerZone[];
+  // Unit-level temperature / humidity for AMS units that are not entirely a
+  // dryer chamber.
+  ams_env_units?: AmsFilamentHotendEnvUnit[];
   hotend_slots: AmsFilamentHotendSlotViewModel[];
 }
 

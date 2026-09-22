@@ -698,7 +698,7 @@ bool DevAms::IsAmsSlotPreLoadFilament(int slot_id) const
 
 bool DevAms::SupportHumidityPercent() const
 {
-    return (m_ams_type == DevAmsType::N3F) || (m_ams_type == DevAmsType::N3S) || (m_ams_type == DevAmsType::ZMULTI_A) || (m_ams_type == DevAmsType::ZMULTI_B);
+    return (m_ams_type == DevAmsType::N3F) || (m_ams_type == DevAmsType::N3S) || (m_ams_type == DevAmsType::ZMULTI_A);
 }
 
 bool DevAms::SupportDrying() const

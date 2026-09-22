@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { AmsFilamentHotendDryerZone, AmsFilamentHotendSlotViewModel } from '../types';
+import { DryingIcon, HumidityIcon } from './AmsEnvIcons';
 
 const COL = 80;
 
@@ -41,45 +42,17 @@ export function DryerInfo({ humidity, status }: { humidity: number; status: stri
   return (
     <div className="dryer-info" aria-label="dryer humidity and status">
       <div className="dryer-info-row">
-        <DropletIcon />
+        <HumidityIcon />
         <span className="dryer-value">
           {humidity >= 0 ? humidity : '--'}
           <small>%</small>
         </span>
       </div>
       <div className="dryer-info-row">
-        <DryerIcon />
+        <DryingIcon />
         <span className="dryer-text">{status || 'Idle'}</span>
       </div>
     </div>
-  );
-}
-
-function DropletIcon() {
-  return (
-    <svg width={14} height={14} viewBox="0 0 16 16" aria-hidden="true">
-      <path
-        d="M8 2 C5 6 3 8.5 3 11 a5 5 0 1 0 10 0 c0 -2.5 -2 -5 -5 -9 z"
-        fill="none"
-        stroke="var(--ams-text-secondary)"
-        strokeWidth={1.2}
-      />
-    </svg>
-  );
-}
-
-function DryerIcon() {
-  return (
-    <svg width={14} height={14} viewBox="0 0 16 16" aria-hidden="true">
-      <circle cx={8} cy={8} r={6.2} fill="none" stroke="var(--ams-text-secondary)" strokeWidth={1.2} />
-      <path
-        d="M5 9 q1.5 -2 3 0 t3 0"
-        fill="none"
-        stroke="var(--ams-text-secondary)"
-        strokeWidth={1.2}
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }
 

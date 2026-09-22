@@ -316,6 +316,7 @@ export function AmsFilamentHotendPage() {
             topSlots={topSlots}
             bottomSlots={bottomSlots}
             amsDryZones={fp.ams_dry_zones ?? []}
+            amsEnvUnits={fp.ams_env_units ?? []}
             hotendMode={false}
             mode={currentMode}
             selectedKeys={selectedKeys}

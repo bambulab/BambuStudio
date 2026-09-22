@@ -334,6 +334,85 @@
   font-size: 12px;
 }
 
+/* Icons exported from the interaction design. The humidity droplet keeps its
+   own palette; the single-colour glyphs are masked so they follow the theme. */
+.ams-env-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.ams-env-icon-temp,
+.ams-env-icon-drying {
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* The dryer chamber uses the 20px variant of the same icons. */
+.dryer-info-row .ams-env-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.ams-env-icon-temp {
+  -webkit-mask-image: url('./assets/ams_temperature.svg');
+  mask-image: url('./assets/ams_temperature.svg');
+}
+
+.ams-env-icon-drying {
+  -webkit-mask-image: url('./assets/ams_drying.svg');
+  mask-image: url('./assets/ams_drying.svg');
+}
+
+/* Humidity / temperature readout for non-drying zones. Shares the dryer
+   chamber's vertical box so both readouts line up, but has no background and
+   sits in the half-pitch gap left of its first column. */
+.ambient-info {
+  position: absolute;
+  top: -4px;
+  height: 138px;
+  left: var(--ambient-left);
+  width: 60px;
+  box-sizing: border-box;
+  padding-left: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--ams-text-secondary);
+}
+
+.ambient-info-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.ambient-info-row svg {
+  display: block;
+}
+
+.ambient-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  font-weight: 500;
+}
+
+.ambient-value small {
+  font-size: 9px;
+}
+
 .top-tier-row .slot-column {
   position: relative;
   z-index: 1;

@@ -1,7 +1,13 @@
 import type { CSSProperties } from 'react';
-import type { AmsFilamentHotendDryerZone, AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
+import type {
+  AmsFilamentHotendDryerZone,
+  AmsFilamentHotendEnvUnit,
+  AmsFilamentHotendSlotViewModel,
+  FilamentPageMode,
+} from '../types';
 import { SlotColumn } from './SlotColumn';
 import { DryerChamberDecoration, findDryerRuns } from './DryerChamber';
+import { AmbientInfoDecoration, findAmbientAnchors } from './AmbientInfo';
 
 // Top feed lines cross the lower row before reaching the shared nozzle row.
 export const TOP_LINE_HEIGHT = 167;
@@ -34,6 +40,7 @@ export function Stage({
   topSlots,
   bottomSlots,
   amsDryZones,
+  amsEnvUnits,
   hotendMode,
   mode,
   selectedKeys,
@@ -43,6 +50,7 @@ export function Stage({
   topSlots: AmsFilamentHotendSlotViewModel[];
   bottomSlots: AmsFilamentHotendSlotViewModel[];
   amsDryZones: AmsFilamentHotendDryerZone[];
+  amsEnvUnits: AmsFilamentHotendEnvUnit[];
   hotendMode: boolean;
   mode: FilamentPageMode;
   selectedKeys: ReadonlySet<string>;
@@ -52,6 +60,7 @@ export function Stage({
   // Dryer chambers are physically attached to the top tier in the current
   // hardware layout; only top slots can fall under a chamber decoration.
   const dryerRuns = findDryerRuns(topSlots, amsDryZones);
+  const ambientAnchors = findAmbientAnchors(topSlots, amsEnvUnits);
 
   return (
     <section
@@ -68,6 +77,14 @@ export function Stage({
             humidity={run.humidity}
             status={run.status}
             isDrying={run.isDrying}
+          />
+        ))}
+        {ambientAnchors.map((anchor) => (
+          <AmbientInfoDecoration
+            key={`ambient-${anchor.start}`}
+            startIndex={anchor.start}
+            humidity={anchor.humidity}
+            temp={anchor.temp}
           />
         ))}
         {topSlots.map((slot) => (

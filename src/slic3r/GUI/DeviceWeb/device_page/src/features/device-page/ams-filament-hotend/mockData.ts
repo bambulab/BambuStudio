@@ -251,6 +251,13 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
         dry_status_text: 'Drying',
       },
     ],
+    ams_env_units: [
+      {
+        ams_id: '0',
+        humidity_raw: 24,
+        temp: 24,
+      },
+    ],
     hotend_slots: slotSeeds.map((seed) => buildSlot(seed)),
   },
   hotend_page: {

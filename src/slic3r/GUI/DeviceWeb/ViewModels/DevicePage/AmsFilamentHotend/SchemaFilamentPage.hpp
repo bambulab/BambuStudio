@@ -29,6 +29,7 @@ struct FilamentPage
     FilamentActions      actions;
     FilamentChangeStatus filament_change_status;
     nlohmann::json       ams_dry_zones = nlohmann::json::array();
+    nlohmann::json       ams_env_units = nlohmann::json::array();
     nlohmann::json       hotend_slots = nlohmann::json::array();
 };
 
@@ -56,6 +57,7 @@ inline void to_json(nlohmann::json& j, const FilamentPage& v)
         {SK::filament_page::actions,                v.actions},
         {SK::filament_page::filament_change_status, v.filament_change_status},
         {SK::filament_page::ams_dry_zones,          v.ams_dry_zones},
+        {SK::filament_page::ams_env_units,          v.ams_env_units},
         {SK::filament_page::hotend_slots,           v.hotend_slots}
     };
 }

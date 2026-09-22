@@ -46,6 +46,7 @@ namespace filament_page {
     inline constexpr const char* actions                = "actions";
     inline constexpr const char* filament_change_status = "filament_change_status";
     inline constexpr const char* ams_dry_zones          = "ams_dry_zones";
+    inline constexpr const char* ams_env_units          = "ams_env_units";
     inline constexpr const char* hotend_slots           = "hotend_slots";
 }
 
@@ -193,6 +194,28 @@ namespace dryer_zone {
     inline constexpr const char* dry_time        = "dry_time";
     inline constexpr const char* dry_status      = "dry_status";       // logical enum
     inline constexpr const char* dry_status_text = "dry_status_text";  // translated label
+}
+
+// state.filament_page.ams_env_units[] - AMS-unit level temperature / humidity.
+//
+// Unlike `ams_dry_zones`, which describes one dryer chamber each, an entry
+// here covers a whole AMS unit and carries the readings the unit itself
+// reports (`DevAms::GetHumidityPercent()` / `GetCurrentTemperature()`), with
+// no dry state. The Filament tab renders it as a bare readout anchored to the
+// unit's leftmost column; matching is by `ams_id` alone, so no slot list is
+// needed.
+//
+// Emitted only for units that report a real humidity percentage
+// (`DevAms::SupportHumidityPercent()`) AND have an area outside a dryer
+// chamber - a unit that is entirely a chamber already shows its readings
+// through `ams_dry_zones`.
+//
+// `temp` is null when no valid temperature has been reported;
+// `humidity_raw` uses -1 for the same case.
+namespace env_unit {
+    inline constexpr const char* ams_id       = "ams_id";
+    inline constexpr const char* temp         = "temp";
+    inline constexpr const char* humidity_raw = "humidity_raw";
 }
 
 } // namespace keys
