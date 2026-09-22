@@ -85,8 +85,21 @@
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE = "PLA Basic";
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_SHORT_TYPE = "PLA";
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_NAME       = "Bambu PLA Basic";
-// CIEDE2000 cutoff shared by auto-match and mix-uncheck rematch.
-static constexpr double NEW_FILAMENT_THRESHOLD = 12.0;
+// CIEDE2000 cutoff for automatic filament matching. The matching step
+// exposes this as a slider; 0 rejects every non-zero difference. The right
+// end is unlimited, so every color binds to the closest candidate.
+static constexpr int kMatchDeltaThresholdMin = 0;
+static constexpr int kMatchDeltaThresholdMax = 50;
+static constexpr int kMatchDeltaThresholdDefault = 20;
+static_assert(kMatchDeltaThresholdDefault >= kMatchDeltaThresholdMin &&
+              kMatchDeltaThresholdDefault <= kMatchDeltaThresholdMax, "");
+
+static bool match_delta_accepted(double delta, int threshold)
+{
+    if (threshold >= kMatchDeltaThresholdMax)
+        return true;
+    return delta <= static_cast<double>(threshold);
+}
 
 using Slic3r::GUI::texture_import_is_dark;
 using Slic3r::GUI::texture_import_dark_or;
@@ -2183,6 +2196,529 @@ private:
     std::vector<TextureAddFilamentTypeOption> m_types;
     wxColour                                  m_colour;
     std::string                               m_preset_name;
+};
+
+// ============================================================
+// Match-threshold gear + hover popup
+// ============================================================
+
+class MatchThresholdGear : public wxPanel
+{
+public:
+    MatchThresholdGear(wxWindow* parent)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition,
+                  wxSize(parent->FromDIP(16), parent->FromDIP(16)),
+                  wxFULL_REPAINT_ON_RESIZE)
+        , m_normal(this, "tree_set", 16)
+        , m_hover(this, "tree_set_hover", 16)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetMinSize(wxSize(FromDIP(16), FromDIP(16)));
+        SetBackgroundColour(parent->GetBackgroundColour());
+        Bind(wxEVT_PAINT, &MatchThresholdGear::on_paint, this);
+        Bind(wxEVT_ERASE_BACKGROUND, [](wxEraseEvent&) {});
+    }
+
+    void set_hovered(bool hovered)
+    {
+        if (m_hovered == hovered)
+            return;
+        m_hovered = hovered;
+        Refresh();
+    }
+
+    void msw_rescale()
+    {
+        m_normal.msw_rescale();
+        m_hover.msw_rescale();
+        const int side = FromDIP(16);
+        SetMinSize(wxSize(side, side));
+        SetSize(wxSize(side, side));
+        Refresh();
+    }
+
+private:
+    void on_paint(wxPaintEvent&)
+    {
+        wxPaintDC dc(this);
+        const wxColour bg = GetParent() ? GetParent()->GetBackgroundColour() : GetBackgroundColour();
+        dc.SetBackground(wxBrush(bg));
+        dc.Clear();
+        const wxBitmap& bmp = (m_hovered ? m_hover : m_normal).bmp();
+        if (!bmp.IsOk())
+            return;
+        const wxSize sz = GetClientSize();
+        const wxSize bs = ScalableBitmap::GetBmpSize(bmp);
+        dc.DrawBitmap(bmp, (sz.x - bs.x) / 2, (sz.y - bs.y) / 2, true);
+    }
+
+    ScalableBitmap m_normal;
+    ScalableBitmap m_hover;
+    bool           m_hovered = false;
+};
+
+class MatchThresholdPopup : public PopupWindow
+{
+public:
+    MatchThresholdPopup(wxWindow* parent, wxWindow* anchor, int value,
+                        std::function<void(int)> on_changed,
+                        std::function<void(int)> on_committed,
+                        std::function<void()> on_hidden)
+        : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+        , m_anchor(anchor)
+        , m_on_changed(std::move(on_changed))
+        , m_on_committed(std::move(on_committed))
+        , m_on_hidden(std::move(on_hidden))
+        , m_hover_timer(this)
+    {
+        const wxColour pop_bg = texture_import_dialog_bg();
+        SetBackgroundColour(pop_bg);
+#ifdef __WXOSX__
+        SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+#else
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+#endif
+        Bind(wxEVT_PAINT, &MatchThresholdPopup::on_paint_border, this);
+#ifdef __WXOSX__
+        Bind(wxEVT_ERASE_BACKGROUND, [](wxEraseEvent&) {});
+#endif
+        Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
+            e.Skip();
+            apply_rounded_shape();
+            refresh_native_shadow();
+        });
+        Bind(wxEVT_TIMER, &MatchThresholdPopup::on_hover_timer, this);
+
+        const int pad = FromDIP(12);
+        m_pop_w = FromDIP(296);
+        const int hint_w = std::max(FromDIP(80), m_pop_w - 2 * pad);
+
+        auto* title = new Label(this, Label::Head_14,
+            _L("Filament matching color difference threshold"), wxST_NO_AUTORESIZE);
+        title->SetForegroundColour(texture_import_dialog_fg());
+        title->SetBackgroundColour(pop_bg);
+        title->Wrap(hint_w);
+        title->SetMinSize(wxSize(hint_w, title->GetBestSize().y));
+
+        auto* hint = new Label(this, Label::Body_10,
+            _L("Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."),
+            wxST_NO_AUTORESIZE);
+        hint->SetForegroundColour(texture_import_hint_text_colour());
+        hint->SetBackgroundColour(pop_bg);
+        hint->Wrap(hint_w);
+        hint->SetMinSize(wxSize(hint_w, hint->GetBestSize().y));
+
+        m_slider = new GreenSlider(this, std::clamp(value, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax),
+                                   kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
+        m_slider->SetMinSize(wxSize(FromDIP(80), FromDIP(24)));
+        m_slider->SetBackgroundColour(pop_bg);
+
+        m_spin = new TextInput(this, wxString::Format("%d", m_slider->GetValue()),
+                               "", "", wxDefaultPosition,
+                               wxSize(FromDIP(64), FromDIP(28)), wxTE_PROCESS_ENTER);
+        style_param_value_input(m_spin);
+        if (wxTextCtrl* tc = m_spin->GetTextCtrl()) {
+            tc->SetValidator(wxTextValidator(wxFILTER_DIGITS));
+            bind_param_text_ctrl_center(tc);
+            tc->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) {
+                on_spin_text();
+                e.Skip();
+            });
+            tc->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) { on_spin_commit(); });
+            tc->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+                on_spin_commit();
+                e.Skip();
+            });
+        }
+        m_slider->Bind(wxEVT_SLIDER, &MatchThresholdPopup::on_slider, this);
+        // GreenSlider reports each integer while dragging. Deletion waits for release.
+        m_slider->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
+            e.Skip();
+            on_slider_commit();
+        });
+        m_slider->Bind(wxEVT_MOUSE_CAPTURE_LOST, [this](wxMouseCaptureLostEvent& e) {
+            e.Skip();
+            on_slider_commit();
+        });
+
+        auto* slider_row = new wxBoxSizer(wxHORIZONTAL);
+        slider_row->Add(m_slider, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+        slider_row->Add(m_spin, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto* col = new wxBoxSizer(wxVERTICAL);
+        col->Add(title, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
+        col->Add(hint, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+        col->Add(slider_row, 0, wxEXPAND);
+        auto* outer = new wxBoxSizer(wxVERTICAL);
+        outer->Add(col, 0, wxEXPAND | wxALL, pad);
+        SetSizer(outer);
+        const wxSize min_sz = outer->GetMinSize();
+        SetSize(m_pop_w, std::max(min_sz.y, FromDIP(109)));
+        Layout();
+        apply_rounded_shape();
+    }
+
+    ~MatchThresholdPopup() override
+    {
+        shutdown();
+    }
+
+    void shutdown()
+    {
+        m_hover_timer.Stop();
+        unbind_activate();
+        m_anchor = nullptr;
+        m_on_changed = nullptr;
+        m_on_committed = nullptr;
+        m_on_hidden = nullptr;
+        m_close_requested = true;
+    }
+
+    void set_value(int value)
+    {
+        value = std::clamp(value, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
+        m_updating = true;
+        if (m_slider)
+            m_slider->SetValue(value);
+        set_text_input_int(m_spin, value);
+        m_updating = false;
+    }
+
+    void place_and_popup()
+    {
+        if (IsShown())
+            return;
+        m_closed = false;
+        m_close_requested = false;
+        m_hidden_notified = false;
+        if (wxSizer* sizer = GetSizer()) {
+            const wxSize min_sz = sizer->GetMinSize();
+            SetSize(m_pop_w, std::max(min_sz.y, FromDIP(109)));
+            Layout();
+        }
+        if (m_anchor && !m_anchor->IsBeingDeleted()) {
+            const int gap = FromDIP(4);
+            wxPoint origin = m_anchor->ClientToScreen(wxPoint(0, m_anchor->GetSize().y + gap));
+            const int display_idx = wxDisplay::GetFromWindow(m_anchor);
+            const wxRect display = wxDisplay(display_idx == wxNOT_FOUND ? 0 : display_idx).GetClientArea();
+            const wxSize sz = GetSize();
+            if (origin.x + sz.x > display.GetRight())
+                origin.x = std::max(display.GetLeft(), display.GetRight() - sz.x);
+            if (origin.x < display.GetLeft())
+                origin.x = display.GetLeft();
+            if (origin.y + sz.y > display.GetBottom())
+                origin.y = m_anchor->ClientToScreen(wxPoint(0, 0)).y - sz.y - gap;
+            if (origin.y < display.GetTop())
+                origin.y = display.GetTop();
+            SetPosition(origin);
+        }
+        apply_rounded_shape();
+        Popup(nullptr);
+    }
+
+    void request_close()
+    {
+        if (!IsShown())
+            return;
+        m_close_requested = true;
+        Dismiss();
+        m_close_requested = false;
+    }
+
+    void Popup(wxWindow* focus = nullptr) override
+    {
+        m_closed = false;
+        m_close_requested = false;
+        m_hidden_notified = false;
+        PopupWindow::Popup(focus);
+#ifdef __WXMSW__
+        if (!m_unfocus_bound) {
+            BindUnfocusEvent();
+            m_unfocus_bound = true;
+        }
+#endif
+        if (wxTheApp && !m_activate_bound) {
+            wxTheApp->Bind(wxEVT_ACTIVATE_APP, &MatchThresholdPopup::on_activate_app, this);
+            m_activate_bound = true;
+        }
+        m_hover_timer.Start(50);
+        CallAfter([this]() {
+            if (IsBeingDeleted() || !IsShown())
+                return;
+#ifdef __WXOSX__
+            SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+#endif
+            apply_rounded_shape();
+            refresh_native_shadow();
+        });
+    }
+
+    void Dismiss() override
+    {
+        if (!m_close_requested && should_stay_open()) {
+            if (!IsShown())
+                Show();
+            return;
+        }
+        finish_close();
+        if (IsShown())
+            Hide();
+        notify_hidden();
+        PopupWindow::Dismiss();
+    }
+
+    void OnDismiss() override
+    {
+        if (!m_closed && !m_close_requested && should_stay_open()) {
+            if (!IsShown())
+                Show();
+            return;
+        }
+        finish_close();
+        if (IsShown())
+            Hide();
+        wxPopupTransientWindow::OnDismiss();
+        notify_hidden();
+    }
+
+    bool ProcessLeftDown(wxMouseEvent& event) override
+    {
+        const wxPoint screen = ClientToScreen(event.GetPosition());
+        if (GetScreenRect().Contains(screen))
+            return PopupWindow::ProcessLeftDown(event);
+        if (m_anchor && !m_anchor->IsBeingDeleted() && m_anchor->GetScreenRect().Contains(screen))
+            return false;
+        request_close();
+        return false;
+    }
+
+private:
+    void on_slider(wxCommandEvent&)
+    {
+        if (m_updating || !m_slider)
+            return;
+        const int value = m_slider->GetValue();
+        m_updating = true;
+        set_text_input_int(m_spin, value);
+        m_updating = false;
+        if (m_on_changed)
+            m_on_changed(value);
+    }
+
+    void on_spin_text()
+    {
+        if (m_updating || !m_spin || !m_spin->GetTextCtrl() || !m_slider)
+            return;
+        long parsed = 0;
+        if (!m_spin->GetTextCtrl()->GetValue().ToLong(&parsed))
+            return;
+        if (parsed < kMatchDeltaThresholdMin || parsed > kMatchDeltaThresholdMax)
+            return;
+        if (m_slider->GetValue() == (int)parsed)
+            return;
+        m_updating = true;
+        m_slider->SetValue((int)parsed);
+        m_updating = false;
+        if (m_on_changed)
+            m_on_changed((int)parsed);
+    }
+
+    void on_spin_commit()
+    {
+        if (m_updating || !m_spin || !m_spin->GetTextCtrl() || !m_slider)
+            return;
+        long parsed = 0;
+        const wxString text = m_spin->GetTextCtrl()->GetValue();
+        if (!text.ToLong(&parsed)) {
+            set_value(m_slider->GetValue());
+            if (m_on_committed)
+                m_on_committed(m_slider->GetValue());
+            return;
+        }
+        const int clamped = std::clamp((int)parsed, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
+        set_value(clamped);
+        if (m_on_committed)
+            m_on_committed(clamped);
+    }
+
+    void on_slider_commit()
+    {
+        if (m_updating || !m_slider)
+            return;
+        if (m_on_committed)
+            m_on_committed(m_slider->GetValue());
+    }
+
+    void on_hover_timer(wxTimerEvent&)
+    {
+        if (IsBeingDeleted())
+            return;
+        if (!IsShown()) {
+            m_hover_timer.Stop();
+            return;
+        }
+        if (m_slider && m_slider->HasCapture())
+            return;
+        if (should_stay_open())
+            return;
+        request_close();
+    }
+
+    void on_activate_app(wxActivateEvent& e)
+    {
+        e.Skip();
+        if (!e.GetActive() && IsShown())
+            request_close();
+    }
+
+    bool should_stay_open() const
+    {
+        if (!wxGetApp().IsActive())
+            return false;
+        if (m_slider && m_slider->HasCapture())
+            return true;
+        return hot_zone_contains_pointer();
+    }
+
+    bool hot_zone_contains_pointer() const
+    {
+        const wxPoint pt = wxGetMousePosition();
+        const int slack = FromDIP(6);
+        auto contains = [&](const wxRect& rc) {
+            wxRect inflated = rc;
+            inflated.Inflate(slack);
+            return inflated.Contains(pt);
+        };
+        if (IsShown() && contains(GetScreenRect()))
+            return true;
+        if (m_anchor && !m_anchor->IsBeingDeleted() && contains(m_anchor->GetScreenRect()))
+            return true;
+        if (!IsShown() || !m_anchor || m_anchor->IsBeingDeleted())
+            return false;
+        const wxRect gear = m_anchor->GetScreenRect();
+        const wxRect pop = GetScreenRect();
+        const int top = std::min(gear.GetBottom(), pop.GetTop());
+        const int bottom = std::max(gear.GetBottom(), pop.GetTop());
+        const int left = std::min(gear.GetLeft(), pop.GetLeft());
+        const int right = std::max(gear.GetRight(), pop.GetRight());
+        wxRect bridge(left, top, std::max(1, right - left), std::max(1, bottom - top));
+        bridge.Inflate(slack);
+        return bridge.Contains(pt);
+    }
+
+    void finish_close()
+    {
+        if (m_closed)
+            return;
+        m_closed = true;
+        m_hover_timer.Stop();
+        refresh_native_shadow();
+    }
+
+    void notify_hidden()
+    {
+        if (m_hidden_notified)
+            return;
+        m_hidden_notified = true;
+        if (m_on_hidden)
+            m_on_hidden();
+    }
+
+    void unbind_activate()
+    {
+        if (wxTheApp && m_activate_bound) {
+            wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &MatchThresholdPopup::on_activate_app, this);
+            m_activate_bound = false;
+        }
+    }
+
+    void apply_rounded_shape()
+    {
+#ifdef __WXOSX__
+        return;
+#else
+        const wxSize sz = GetSize();
+        if (sz.x <= 0 || sz.y <= 0)
+            return;
+        const int radius = FromDIP(8);
+#ifdef __WXMSW__
+        HWND hwnd = (HWND)GetHWND();
+        if (!hwnd)
+            return;
+        const int d = radius * 2;
+        HRGN body = CreateRoundRectRgn(0, 0, sz.x + 1, sz.y + 1, d, d);
+        if (body)
+            SetWindowRgn(hwnd, body, TRUE);
+#else
+        wxBitmap mask(sz.x, sz.y);
+        {
+            wxMemoryDC dc(mask);
+            dc.SetBackground(*wxBLACK_BRUSH);
+            dc.Clear();
+            dc.SetBrush(*wxWHITE_BRUSH);
+            dc.SetPen(*wxWHITE_PEN);
+            dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, radius);
+        }
+        SetShape(wxRegion(mask, *wxBLACK));
+#endif
+#endif
+    }
+
+    void refresh_native_shadow()
+    {
+#ifdef __WXOSX__
+        if (IsShown())
+            m_shadow.Sync(this, true);
+#endif
+    }
+
+    void on_paint_border(wxPaintEvent&)
+    {
+        const wxSize sz = GetClientSize();
+        if (sz.x <= 0 || sz.y <= 0)
+            return;
+        const int radius = FromDIP(8);
+        const int border_w = std::max(1, FromDIP(1));
+        const wxColour border = dark_or(wxColour(0xEE, 0xEE, 0xEE), wxColour(0x46, 0x46, 0x4C));
+        const wxColour bg = GetBackgroundColour();
+#ifdef __WXMSW__
+        wxPaintDC dc(this);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(border));
+        dc.DrawRectangle(0, 0, sz.x, sz.y);
+        dc.SetBrush(wxBrush(bg));
+        dc.DrawRoundedRectangle(border_w, border_w,
+                                std::max(0, sz.x - 2 * border_w),
+                                std::max(0, sz.y - 2 * border_w),
+                                std::max(0, radius - border_w));
+#else
+        texture_import_paint(this, [&](wxDC& dc) {
+            dc.SetBrush(wxBrush(bg));
+            dc.SetPen(wxPen(border, border_w));
+            dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, radius);
+        });
+#endif
+    }
+
+    wxWindow*                m_anchor = nullptr;
+    GreenSlider*             m_slider = nullptr;
+    TextInput*               m_spin = nullptr;
+    std::function<void(int)> m_on_changed;
+    std::function<void(int)> m_on_committed;
+    std::function<void()>    m_on_hidden;
+    wxTimer                  m_hover_timer;
+    int                      m_pop_w = 0;
+    bool                     m_updating = false;
+    bool                     m_close_requested = false;
+    bool                     m_closed = true;
+    bool                     m_hidden_notified = false;
+    bool                     m_activate_bound = false;
+#ifdef __WXMSW__
+    bool                     m_unfocus_bound = false;
+#endif
+#ifdef __WXOSX__
+    WindowShadow             m_shadow;
+#endif
 };
 
 // ============================================================
@@ -4288,6 +4824,12 @@ TextureImportDialog::~TextureImportDialog()
         m_filament_popup_row = -1;
         popup->Destroy();
     }
+    if (m_match_threshold_popup) {
+        MatchThresholdPopup* popup = m_match_threshold_popup;
+        m_match_threshold_popup = nullptr;
+        popup->shutdown();
+        popup->Destroy();
+    }
     m_cancel_flag = true;
     m_patch_generation.fetch_add(1);
     m_patch_building = false;
@@ -4722,7 +5264,14 @@ void TextureImportDialog::build_mapping_panel(wxWindow* parent, wxSizer* sizer)
 
     wxBoxSizer* header_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_lbl_mapping = new wxStaticText(m_mapping_panel, wxID_ANY, _L("Adjust filament matching"));
+    m_match_threshold_gear = new MatchThresholdGear(m_mapping_panel);
+    m_match_threshold_gear->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
+        show_match_threshold_popup();
+        e.Skip();
+    });
+    header_sizer->Add(m_match_threshold_gear, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+
+    m_lbl_mapping = new wxStaticText(m_mapping_panel, wxID_ANY, _L("Filament Matching"));
     m_lbl_mapping->SetForegroundColour(dark_or(wxColour(50, 58, 61), wxColour(0xEF, 0xEF, 0xF0)));
     m_lbl_mapping->SetFont(Label::Head_14);
     header_sizer->Add(m_lbl_mapping, 0, wxALIGN_CENTER_VERTICAL);
@@ -5144,6 +5693,9 @@ void TextureImportDialog::apply_theme()
 
     m_bmp_unmatched.msw_rescale();
     m_bmp_brand.msw_rescale();
+    if (m_match_threshold_gear)
+        m_match_threshold_gear->msw_rescale();
+    hide_match_threshold_popup();
     if (m_unmatched_warning_icon)
         m_unmatched_warning_icon->SetBitmap(m_bmp_unmatched.bmp());
     if (m_overlimit_warning_icon)
@@ -5191,6 +5743,7 @@ void TextureImportDialog::set_wizard_step(TextureImportWizardStep step)
 {
     if (m_wizard_step == step)
         return;
+    hide_match_threshold_popup();
     const bool returning_to_step1 = (step == TextureImportWizardStep::SimplifyColors);
     m_wizard_step = step;
     auto set_spin_can_focus = [](TextInput* input, bool can) {
@@ -6468,7 +7021,7 @@ void TextureImportDialog::refresh_mapping_target_panels()
     }
 }
 
-void TextureImportDialog::bind_match_inplace(Slic3r::FilamentMatch& match, int filament_index)
+void TextureImportDialog::bind_match_inplace(Slic3r::FilamentMatch& match, int filament_index, bool repaint)
 {
     match.filament_index = filament_index;
     if (filament_index >= 0 && filament_index < (int)m_filament_colors_rgba.size()) {
@@ -6481,7 +7034,7 @@ void TextureImportDialog::bind_match_inplace(Slic3r::FilamentMatch& match, int f
         if (row.cluster_id != match.cluster_index)
             continue;
         row.target_filament_idx = filament_index;
-        if (row.target_panel) {
+        if (row.target_panel && repaint) {
             row.target_panel->Refresh();
             // Flush the repaint now so a batch bind shows progress. Unlike
             // wxYield this dispatches no input, so callers iterating over
@@ -6489,6 +7042,140 @@ void TextureImportDialog::bind_match_inplace(Slic3r::FilamentMatch& match, int f
             row.target_panel->Update();
         }
         break;
+    }
+}
+
+void TextureImportDialog::reapply_match_threshold(bool drop_unused)
+{
+    if (m_state != TextureImportState::Ready || m_mix_applying)
+        return;
+    if (m_painted.cluster_colors.empty() || m_current_matches.empty())
+        return;
+
+    // Same family vote as the initial auto-match. Empty family is kept in the
+    // typed pass; a filament is skipped only when its family is known and differs.
+    // Mixed slots use their display color, the same way a single filament does.
+    const bool merge_on = m_auto_merge_enabled;
+    const std::string match_type = pick_auto_match_filament_type(m_filament_entries, m_existing_filament_count);
+    const size_t filament_count = std::min(m_filament_entries.size(), m_filament_colors_rgba.size());
+
+    auto collect = [&](bool same_type_only) {
+        std::vector<int> indices;
+        indices.reserve(filament_count);
+        for (size_t i = 0; i < filament_count; ++i) {
+            const TextureFilamentKind kind = m_filament_entries[i].kind;
+            if (merge_on) {
+                if (!texture_entry_is_physical(kind) && !texture_entry_is_mixed(kind))
+                    continue;
+            } else if (!texture_entry_is_new(kind)) {
+                continue;
+            }
+            if (same_type_only) {
+                const std::string ft = texture_entry_family_type(m_filament_entries[i], m_filament_entries);
+                if (!ft.empty() && ft != match_type)
+                    continue;
+            }
+            indices.push_back((int)i);
+        }
+        return indices;
+    };
+
+    std::vector<int> candidates = collect(true);
+    if (candidates.empty())
+        candidates = collect(false);
+
+    for (auto& match : m_current_matches) {
+        int best = -1;
+        double best_delta = std::numeric_limits<double>::max();
+        for (int idx : candidates) {
+            const double delta = Slic3r::compute_delta_e(match.cluster_color, m_filament_colors_rgba[idx]);
+            if (delta < best_delta) {
+                best_delta = delta;
+                best = idx;
+            }
+        }
+        const int bind = (best >= 0 && match_delta_accepted(best_delta, m_match_delta_threshold)) ? best : -1;
+        if (match.filament_index != bind)
+            bind_match_inplace(match, bind, false);
+    }
+
+    if (drop_unused) {
+        m_match_threshold_drop_pending = false;
+        drop_unused_new_filaments_and_refresh();
+    } else {
+        m_match_threshold_drop_pending = true;
+        refresh_mapping_target_panels();
+        update_filament_color_map();
+        update_unmatched_warning_visibility();
+        update_overlimit_warning_visibility();
+        update_confirm_button_state();
+    }
+}
+
+void TextureImportDialog::show_match_threshold_popup()
+{
+    if (!m_match_threshold_gear || m_match_threshold_gear->IsBeingDeleted())
+        return;
+    if (m_wizard_step != TextureImportWizardStep::FilamentMatching)
+        return;
+
+    dismiss_filament_popup();
+
+    if (!m_match_threshold_popup) {
+        m_match_threshold_popup = new MatchThresholdPopup(
+            this, m_match_threshold_gear, m_match_delta_threshold,
+            [this](int value) { on_match_threshold_changed(value); },
+            [this](int value) { on_match_threshold_committed(value); },
+            [this]() {
+                if (m_match_threshold_drop_pending) {
+                    m_match_threshold_drop_pending = false;
+                    drop_unused_new_filaments_and_refresh();
+                }
+                update_match_threshold_gear_hover();
+            });
+    } else {
+        m_match_threshold_popup->set_value(m_match_delta_threshold);
+    }
+    m_match_threshold_popup->place_and_popup();
+    if (m_match_threshold_gear)
+        m_match_threshold_gear->set_hovered(true);
+}
+
+void TextureImportDialog::hide_match_threshold_popup()
+{
+    if (m_match_threshold_popup)
+        m_match_threshold_popup->request_close();
+    update_match_threshold_gear_hover();
+}
+
+void TextureImportDialog::update_match_threshold_gear_hover()
+{
+    if (!m_match_threshold_gear || m_match_threshold_gear->IsBeingDeleted())
+        return;
+    const bool popup_open = m_match_threshold_popup && m_match_threshold_popup->IsShown();
+    const bool over_gear = m_match_threshold_gear->GetScreenRect().Contains(wxGetMousePosition());
+    m_match_threshold_gear->set_hovered(popup_open || over_gear);
+}
+
+void TextureImportDialog::on_match_threshold_changed(int value)
+{
+    value = std::clamp(value, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
+    if (m_match_delta_threshold == value)
+        return;
+    m_match_delta_threshold = value;
+    reapply_match_threshold(false);
+}
+
+void TextureImportDialog::on_match_threshold_committed(int value)
+{
+    value = std::clamp(value, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
+    const bool changed = m_match_delta_threshold != value;
+    m_match_delta_threshold = value;
+    if (changed)
+        reapply_match_threshold(true);
+    else if (m_match_threshold_drop_pending) {
+        m_match_threshold_drop_pending = false;
+        drop_unused_new_filaments_and_refresh();
     }
 }
 
@@ -6923,7 +7610,7 @@ void TextureImportDialog::reset_auto_mix()
         const int best = find_closest_filament_index(m.cluster_color, -1, true, match_type);
         if (best >= 0 && best < (int)m_filament_colors_rgba.size()) {
             const double delta = Slic3r::compute_delta_e(m.cluster_color, m_filament_colors_rgba[best]);
-            if (delta <= NEW_FILAMENT_THRESHOLD)
+            if (match_delta_accepted(delta, m_match_delta_threshold))
                 bind_idx = best;
         }
         bind_match_inplace(m, bind_idx);
@@ -7117,6 +7804,8 @@ int TextureImportDialog::filament_popup_align_bottom() const
 void TextureImportDialog::show_filament_popup(size_t row_index)
 {
     if (row_index >= m_mapping_rows.size()) return;
+
+    hide_match_threshold_popup();
 
     if (m_skip_next_filament_popup_row == (int)row_index) {
         m_skip_next_filament_popup_row = -1;
@@ -7340,11 +8029,11 @@ void TextureImportDialog::match_clusters_to_physical_filaments()
             m.filament_index = index_map[m.filament_index];
     }
 
-    // Poor match (CIEDE2000 ΔE > NEW_FILAMENT_THRESHOLD): leave unmatched
+    // Poor match (CIEDE2000 ΔE above the threshold): leave unmatched
     // so mix (if enabled) or the user can pick a slot. Do not auto-create
-    // or fall back to the closest slot.
+    // or fall back to the closest slot. The slider's right end is unlimited.
     for (auto& m : m_current_matches) {
-        if (m.filament_index >= 0 && m.delta_e <= NEW_FILAMENT_THRESHOLD)
+        if (m.filament_index >= 0 && match_delta_accepted(m.delta_e, m_match_delta_threshold))
             continue;
         m.filament_index = -1;
     }
@@ -8444,7 +9133,12 @@ void TextureImportDialog::on_reset_clicked(wxCommandEvent&)
     if (m_state == TextureImportState::Computing)
         return;
 
+    hide_match_threshold_popup();
     dismiss_filament_popup();
+    m_match_delta_threshold = kMatchDeltaThresholdDefault;
+    m_match_threshold_drop_pending = false;
+    if (m_match_threshold_popup)
+        m_match_threshold_popup->set_value(kMatchDeltaThresholdDefault);
     m_mix_enabled = false;
     if (m_mix_cb)
         m_mix_cb->SetValue(false);
@@ -8743,6 +9437,9 @@ void TextureImportDialog::on_dpi_changed(const wxRect&)
 {
     m_bmp_unmatched.msw_rescale();
     m_bmp_brand.msw_rescale();
+    if (m_match_threshold_gear)
+        m_match_threshold_gear->msw_rescale();
+    hide_match_threshold_popup();
     update_dialog_min_size();
 
     for (Button* btn : {m_btn_color_4, m_btn_color_8, m_btn_color_16, m_btn_color_auto}) {

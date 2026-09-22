@@ -96,6 +96,8 @@ struct FilamentMappingRow {
 struct GapPreviewState;
 
 class FilamentSelectPopup;
+class MatchThresholdGear;
+class MatchThresholdPopup;
 // Lightweight 3D preview panel using wxGLCanvas.
 // Renders: original face-colored, multi-color, or filament-mapped.
 class TexturePreviewCanvas : public wxGLCanvas
@@ -287,8 +289,19 @@ private:
     void layout_mapping_rows();
     void do_auto_match();
     // Bind every cluster to a project physical filament of the voted family.
-    // Mixed slots are skipped. ΔE > NEW_FILAMENT_THRESHOLD stays unmatched.
+    // Mixed slots are skipped. ΔE > m_match_delta_threshold stays unmatched.
     void match_clusters_to_physical_filaments();
+    // Rebind each color to the closest same-family filament within the current
+    // threshold. Mixed slots are compared by their display color. Auto merge
+    // on: project filaments and ones created in this dialog. Auto merge off:
+    // only filaments created in this dialog. drop_unused removes created
+    // filaments that no color references; live edits pass false. Keeps row order.
+    void reapply_match_threshold(bool drop_unused);
+    void show_match_threshold_popup();
+    void hide_match_threshold_popup();
+    void update_match_threshold_gear_hover();
+    void on_match_threshold_changed(int value);
+    void on_match_threshold_committed(int value);
     // Drop NewPhysical / NewMixed slots created in this dialog, then rebuild
     // the baseline mapping with do_auto_match(). Used by a fresh compute when
     // Color Mixing is off (still respects Auto merge).
@@ -351,7 +364,7 @@ private:
     // refresh target cards in place (no rebuild_mapping_rows).
     void drop_unused_new_filaments_and_refresh();
     void refresh_mapping_target_panels();
-    void bind_match_inplace(Slic3r::FilamentMatch& match, int filament_index);
+    void bind_match_inplace(Slic3r::FilamentMatch& match, int filament_index, bool repaint = true);
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color,
                                     int skip_index, bool physical_only,
@@ -437,6 +450,12 @@ private:
     bool                               m_fallback_to_geometry_only = false;
     bool                               m_auto_merge_enabled = true;
     bool                               m_mix_enabled = false;
+    // CIEDE2000 ΔE accepted by automatic filament matching. Slider range 0..50.
+    // The right end (50) is unlimited: every color binds to the closest candidate.
+    int                                m_match_delta_threshold = 20;
+    // Live threshold edits only rebind. Unused new filaments are dropped after
+    // the slider is released, the number box is committed, or the popup closes.
+    bool                               m_match_threshold_drop_pending = false;
     // Guards the batch binders against re-entry while they rebuild m_current_matches.
     bool                               m_mix_applying = false;
 
@@ -508,6 +527,8 @@ private:
     std::vector<FilamentMappingRow> m_mapping_rows;
     FilamentSelectPopup*  m_filament_popup = nullptr;
     int                   m_filament_popup_row = -1;
+    MatchThresholdGear*   m_match_threshold_gear = nullptr;
+    MatchThresholdPopup*  m_match_threshold_popup = nullptr;
     int                   m_skip_next_filament_popup_row = -1;
 
     TexturePreviewCanvas* m_preview_canvas       = nullptr;
