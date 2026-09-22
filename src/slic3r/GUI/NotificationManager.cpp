@@ -82,6 +82,31 @@ namespace {
 		auto full_config = wxGetApp().preset_bundle->full_config();
 		return plate->check_high_shrinkage_filament(full_config, filament_names);
 	}
+
+    // Replaces the middle of a text with an ellipsis until it fits into max_width. Used for links
+    // like "Jump to [object name]", which ImGui would otherwise cut off at the window border.
+    std::string ellipsize_middle(const std::string& text, float max_width)
+    {
+        if (max_width <= 0.f || ImGui::CalcTextSize(text.c_str()).x <= max_width)
+            return text;
+
+        const wxString wx_text = from_u8(text);
+        auto build = [&wx_text](size_t keep) {
+            const size_t head = (keep + 1) / 2;
+            return into_u8(wx_text.Left(head)) + "..." + into_u8(wx_text.Right(keep - head));
+        };
+
+        // Binary search the number of kept characters, the width grows monotonically with it.
+        size_t low = 0, high = wx_text.size();
+        while (low < high) {
+            const size_t mid = (low + high + 1) / 2;
+            if (ImGui::CalcTextSize(build(mid).c_str()).x <= max_width)
+                low = mid;
+            else
+                high = mid - 1;
+        }
+        return build(low);
+    }
 }
 
 #if 1
@@ -550,7 +575,11 @@ void NotificationManager::PopNotification::count_lines()
         const float x_offset = m_left_indentation;
         const float link_spacing = ImGui::CalcTextSize("   ").x;
         int prev_end = m_endlines.size() > 1 ? m_endlines[m_endlines.size() - 2] : 0; // m_endlines.size() - 2 because we are fitting hypertext instead of last endline
-        std::string last_line = escape_string_cstyle(text.substr(prev_end, last_end - prev_end));
+        // Skip the separator render_text() skips as well, otherwise the measured last line is
+        // wider than the drawn one and both disagree on whether the hypertext still fits.
+        if (m_endlines.size() > 1 && prev_end < (int) text.size() && (text[prev_end] == '\n' || text[prev_end] == ' '))
+            prev_end++;
+        std::string last_line = text.substr(prev_end, last_end - prev_end);
         float first_hypertext_x = x_offset + ImGui::CalcTextSize((last_line + (last_line.empty() ? "" : " ")).c_str()).x;
         float first_hypertext_w = ImGui::CalcTextSize(m_hypertext.c_str()).x;
         if (first_hypertext_x + first_hypertext_w > available_width) {
@@ -712,11 +741,18 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
         float first_hypertext_x = x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x;
         float first_hypertext_w = ImGui::CalcTextSize(m_hypertext.c_str()).x;
         float hypertext_y = starting_y + (m_endlines.size() - 1) * shift_y;
-        if (first_hypertext_x + first_hypertext_w > available_width) {
+        // count_lines() already reserved an own line for the hypertext when it does not fit
+        // behind the last text line. Only wrap when text precedes it, otherwise a link wider
+        // than the whole text area would be moved one more line down than the window is high.
+        if (!line.empty() && first_hypertext_x + first_hypertext_w > available_width) {
            first_hypertext_x = x_offset;
            hypertext_y += shift_y;
        }
-       render_hypertext(imgui, first_hypertext_x, hypertext_y, m_hypertext);
+        // Neither count_lines() nor this function wraps the link itself, so an overlong one
+        // (long object name) has to be shortened to stay inside the notification.
+        std::string hypertext = ellipsize_middle(m_hypertext, available_width - first_hypertext_x);
+        first_hypertext_w = ImGui::CalcTextSize(hypertext.c_str()).x;
+        render_hypertext(imgui, first_hypertext_x, hypertext_y, hypertext);
 
        if (!m_second_hypertext.empty()) {
             float second_hypertext_x = first_hypertext_x + first_hypertext_w + ImGui::CalcTextSize("   ").x;
