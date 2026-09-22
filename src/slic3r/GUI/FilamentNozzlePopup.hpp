@@ -14,10 +14,13 @@ class wxBoxSizer;
 
 namespace Slic3r { namespace GUI {
 
-// Lightweight transient popup listing every valid (diameter, flow type) combination
-// for a filament as a single flat list (e.g. "0.2 标准", "0.4 高流量", ...), with a
-// checkmark next to the currently active combination. Clicking an item writes back
-// both the diameter and the flow type immediately and dismisses the popup.
+// Lightweight transient popup listing the printer's currently installed (diameter, flow type)
+// nozzles as a single flat list (e.g. "0.2 标准", "0.4 高流量", ...), with a checkmark next to the
+// active one. The list mirrors the rack rather than what the slot's filament happens to support,
+// so it stays put as the user moves between filaments; entries the filament cannot print with are
+// greyed out and ignore clicks. Rebuilt on every popup, so swapping the printer's nozzles is
+// picked up straight away. Clicking a selectable item writes back both the diameter and the flow
+// type immediately and dismisses the popup.
 // Dismissed by clicking outside it (default wxPopupTransientWindow behavior).
 class FilamentNozzlePopup : public PopupWindow
 {
@@ -33,6 +36,9 @@ private:
     {
         std::string      diameter;
         NozzleVolumeType volume_type;
+        // False for a nozzle the rack carries but this filament cannot print with: the row is
+        // still listed (the list mirrors the printer's nozzles) but greyed out and inert.
+        bool             selectable = true;
     };
 
     void rebuild_options();

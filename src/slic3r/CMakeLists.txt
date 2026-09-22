@@ -16,6 +16,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/AxisCtrlButton.hpp
     GUI/Widgets/Button.cpp
     GUI/Widgets/Button.hpp
+    GUI/Widgets/NozzleChipButton.cpp
+    GUI/Widgets/NozzleChipButton.hpp
     GUI/Widgets/CheckBox.cpp
     GUI/Widgets/CheckBox.hpp
     GUI/Widgets/RadioBox.hpp

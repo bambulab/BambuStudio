@@ -172,6 +172,7 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/NozzleChipButton.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/StaticGroup.hpp"
@@ -1015,7 +1016,7 @@ struct Sidebar::priv
     void relayout_filament_grid(bool force);
     void reset_filament_combo_min_heights();
 
-    std::vector<Button*> filament_nozzle_labels;
+    std::vector<NozzleChipButton*> filament_nozzle_labels;
     std::vector<wxStaticLine*> filament_nozzle_dividers;
     // Figma node 7808:13253: the incompatibility marker is an exclamation icon living inside the
     // combo box right after the diameter/flow badge, not a separate icon out at the row's edge.
@@ -1044,6 +1045,13 @@ struct Sidebar::priv
     std::optional<bool>      m_previous_supports_multi_diameter;
     bool                     m_previous_multi_diameter_mode = false;
     void reposition_filament_nozzle_indicator(size_t idx);
+    // Where row `idx` would put its divider on its own, before column alignment. -1 when the row
+    // has nothing to place (not built yet, zero-sized, or its chip hidden).
+    int  natural_divider_x(size_t idx);
+    // natural_divider_x() of every row sharing a column with `idx`, reduced to the leftmost -- the
+    // one row whose chip did not fit drags the rest of its column over to keep the dividers on a
+    // single vertical line.
+    int  aligned_divider_x(size_t idx);
 
     //BBS Sidebar widgets
     wxPanel* m_panel_print_title;
@@ -4639,6 +4647,12 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     *combo = new PlaterPresetComboBox(filament_item, Slic3r::Preset::TYPE_FILAMENT);
     (*combo)->set_filament_idx(filament_idx);
+    // resources/images/badge.svg (the "synced with AMS" corner ribbon StaticBox::doRender draws at
+    // this combo's top-right) is cut with a 4px rounded top-right corner. TextInput defaults to
+    // square corners, which left that rounding as an unfilled notch. Round the combo to match
+    // rather than reshaping the shared asset -- its other hosts use 0, 2 and 8px radii, so no one
+    // shape fits them all.
+    (*combo)->SetCornerRadius(FromDIP(4));
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -4675,11 +4689,11 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     auto *nozzle_divider = new wxStaticLine(*combo, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(1), FromDIP(14)), wxLI_VERTICAL);
 
-    // Button (rather than a bare wxStaticText) so hovering gets a native grey background
-    // and the label is centered using Button's own render()/isCenter logic, matching the
-    // chips DiameterButtonPanel already builds from this same widget class.
-    auto *nozzle_label = new Button(*combo, wxEmptyString, "", wxBORDER_NONE);
-    nozzle_label->SetFont(Label::Body_13);
+    // NozzleChipButton (a Button subclass) rather than a bare wxStaticText so hovering gets a
+    // native grey background and the click still fires wxEVT_BUTTON like the chips
+    // DiameterButtonPanel builds from Button directly -- but drawn as two independent text runs
+    // (see its definition) so the flow-type text can use a smaller font than the diameter.
+    auto *nozzle_label = new NozzleChipButton(*combo);
     nozzle_label->SetTextColorNormal(ThemeColor::TextMuted);
     // Rounded-corner rendering (SetCornerRadius below) clears its offscreen bitmap
     // using the widget's native background colour, separate from the StateColor fill
@@ -4703,7 +4717,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     // disables this same substitution for exactly this reason.
     nozzle_label_bg.setTakeFocusedAsHovered(false);
     nozzle_label->SetBackgroundColor(nozzle_label_bg);
-    nozzle_label->SetPaddingSize(wxSize(FromDIP(6), FromDIP(2)));
+    // Padding is NozzleChipButton's own m_padding, not SetPaddingSize() -- that writes to Button's
+    // private field, which this widget's paintEvent override never reads.
     nozzle_label->SetCornerRadius(FromDIP(4));
     nozzle_label->SetToolTip(_L("Change nozzle diameter"));
     nozzle_label->SetCursor(wxCursor(wxCURSOR_HAND));
@@ -4806,6 +4821,14 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     p->filament_items.push_back(filament_item);
     p->refresh_filament_nozzle_label(p->filament_nozzle_labels.size() - 1, filament_idx);
 
+    // Only now that every child exists: UpdateDarkUIWin() recurses over the window's children, so
+    // the pass done right after filament_item was created reached nothing but the empty card. In a
+    // dark theme that left each child holding the light background it was built with -- visible as
+    // white corners behind the nozzle chip, which clears its rounded-corner bitmap to its own
+    // background colour. Adding a row is the one path that builds these outside a theme switch,
+    // where Sidebar::sys_color_changed() re-runs this over the finished rows.
+    wxGetApp().UpdateDarkUIWin(filament_item);
+
     p->relayout_filament_grid(true);
 }
 
@@ -4813,7 +4836,7 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
 {
     if (idx >= filament_nozzle_labels.size())
         return;
-    Button *label = filament_nozzle_labels[idx];
+    NozzleChipButton *label = filament_nozzle_labels[idx];
     wxStaticLine *divider = idx < filament_nozzle_dividers.size() ? filament_nozzle_dividers[idx] : nullptr;
     if (label == nullptr || filament_idx < 0)
         return;
@@ -4894,11 +4917,64 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
         }
     }
 
-    const wxString text = diameter.empty() ? wxString() :
-        wxString::FromUTF8(diameter + " " + DevNozzle::ToNozzleVolumeShortString(type));
-    label->SetLabel(text);
+    // TPU285 is shown by its full name rather than the "TF" abbreviation every other flow type
+    // uses here (Std/HF/UHF/EHF): those all read fine at the diameter's own size, but "TPU285"
+    // does not, so it renders one size down (see NozzleChipButton::SetChipTexts).
+    const bool is_tpu285 = type == NozzleVolumeType::nvtTPU285;
+    const wxString diameter_text = wxString::FromUTF8(diameter);
+    const wxString type_text = diameter.empty() ? wxString() :
+        (is_tpu285 ? DevNozzle::GetNozzleVolumeTypeStr(type) : wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(type)));
+    label->SetChipTexts(diameter_text, type_text, is_tpu285);
     label->SetTextColorNormal(is_incompatible ? ThemeColor::Danger : ThemeColor::TextMuted);
     reposition_filament_nozzle_indicator(idx);
+}
+
+int Sidebar::priv::natural_divider_x(size_t idx)
+{
+    if (idx >= combos_filament.size() || idx >= filament_nozzle_labels.size() || idx >= filament_nozzle_dividers.size())
+        return -1;
+    PlaterPresetComboBox *combo   = combos_filament[idx];
+    NozzleChipButton     *label   = filament_nozzle_labels[idx];
+    wxStaticLine         *divider = filament_nozzle_dividers[idx];
+    wxStaticBitmap       *icon    = idx < filament_incompatible_icons.size() ? filament_incompatible_icons[idx] : nullptr;
+    if (combo == nullptr || label == nullptr || divider == nullptr || !label->IsShown())
+        return -1;
+
+    const int comboWidth = combo->GetSize().GetWidth();
+    if (comboWidth <= 0)
+        return -1;
+
+    // Same terms reposition_filament_nozzle_indicator() lays the row out with; see the commentary
+    // there for what each one is holding open.
+    const int right_reserve = std::max(FromDIP(10), combo->HasBadge() ? combo->GetBadgeWidth() : 0);
+    const int gap           = FromDIP(4);
+    const int chip_w        = label->GetMinSize().GetWidth();
+    const int icon_slot     = (icon != nullptr && icon->IsShown()) ? icon->GetBestSize().GetWidth() + gap : 0;
+    const int divider_width = divider->GetSize().GetWidth();
+
+    const int target_x  = static_cast<int>(comboWidth * 0.78);
+    const int max_fit_x = comboWidth - right_reserve - icon_slot - chip_w - gap - divider_width;
+    return std::max(0, std::min(target_x, max_fit_x));
+}
+
+int Sidebar::priv::aligned_divider_x(size_t idx)
+{
+    const int own = natural_divider_x(idx);
+    if (own < 0)
+        return own;
+
+    // relayout_filament_grid() fills one column in single-column mode and alternates rows between
+    // two otherwise, so a row's column is its index parity (or 0 when there is only one column).
+    const size_t stride = m_filament_single_column ? 1 : 2;
+    const size_t first  = m_filament_single_column ? 0 : (idx % 2);
+
+    int aligned = own;
+    for (size_t i = first; i < filament_nozzle_labels.size(); i += stride) {
+        const int peer = natural_divider_x(i);
+        if (peer >= 0)
+            aligned = std::min(aligned, peer);
+    }
+    return aligned;
 }
 
 void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
@@ -4906,7 +4982,7 @@ void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
     if (idx >= combos_filament.size() || idx >= filament_nozzle_labels.size() || idx >= filament_nozzle_dividers.size())
         return;
     PlaterPresetComboBox *combo   = combos_filament[idx];
-    Button                *label   = filament_nozzle_labels[idx];
+    NozzleChipButton      *label   = filament_nozzle_labels[idx];
     wxStaticLine          *divider = filament_nozzle_dividers[idx];
     wxStaticBitmap        *icon    = idx < filament_incompatible_icons.size() ? filament_incompatible_icons[idx] : nullptr;
     if (combo == nullptr || label == nullptr || divider == nullptr)
@@ -4917,16 +4993,17 @@ void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
     if (comboWidth <= 0 || comboHeight <= 0)
         return;
 
-    // The combo's own "synced" badge is drawn by StaticBox::doRender flush at the combo's true
-    // top-right corner (it must stay pinned there, not be pushed aside) and sits on top of this
-    // label whenever their rects overlap, since child windows always paint over their parent's
-    // own drawing. Reserve enough width on the label's side to keep clear of that corner instead.
+    // The combo's own "synced" badge is a small diagonal corner ribbon (resources/images/badge.svg,
+    // 18x18) meant to overlay the combo's top-right corner, not to be avoided -- reserving its full
+    // width here (as this used to do) shifted the whole diameter/flow chip left every time a row
+    // became synced, which read as the chip jumping for no reason the badge's own shape justified.
     // Small breathing room (FromDIP(10)) so the incompatibility icon below does not read as
     // jammed against combo's own right edge / rounded corner. (FromDIP(20) was only needed to
     // compensate for the icon's width being miscomputed as -1 before the GetBestSize() fix above;
     // now that the icon's real width is used, its right edge sits exactly at this margin.)
-    const int right_margin = combo->HasBadge() ? combo->GetBadgeWidth() + FromDIP(4) : FromDIP(10);
-    const int gap          = FromDIP(8);
+    const int right_margin = FromDIP(10);
+    // Per the design, every gap in this row (icon <-> chip, divider <-> chip) is 4px, not 8.
+    const int gap          = FromDIP(4);
     // Stretch the label/icon to (almost) the full row height instead of just its snug
     // text height -- otherwise the hover/pressed fill renders as a thin chip with
     // visible blank space above and below it rather than filling the area to the
@@ -4934,12 +5011,56 @@ void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
     const int vert_inset = FromDIP(3);
     const int label_h = std::max(0, comboHeight - vert_inset * 2);
 
-    // Right-to-left layout: [right_margin] [icon?] [gap] [divider+label?]. The incompatibility
-    // icon (Figma node 7808:13253) sits closest to the combo's right edge, ahead of the
-    // diameter/flow badge, since it must stay visible even on hardware where that badge is
-    // hidden (filament_nozzle_chip_supported() == false).
-    int cursor_x    = std::max(0, comboWidth - right_margin);
-    int leftmost_x  = cursor_x;
+    // Left-to-right layout: the divider sits at a share of the row and the chip is laid out after
+    // it. Laying out right-to-left instead (anchoring the far right and walking left) made the
+    // divider's x depend on the current row's own text width unconditionally, so even in a roomy
+    // row "0.6 TPU285" put its divider further left than "0.4 Std".
+    const wxSize icon_size = icon != nullptr ? icon->GetBestSize() : wxSize(0, 0);
+
+    const int divider_width  = divider->GetSize().GetWidth();
+    const int divider_height = divider->GetSize().GetHeight();
+    // The name column ahead of the divider takes ~78% of the row (design spec: divider at x=241.65
+    // in a 310-wide row) rather than an absolute width, so the split follows the row as the sidebar
+    // is resized.
+    //
+    // That share is a target, not a floor: the chip after it cannot compress past its own text, so
+    // once 22% no longer covers it the divider moves left far enough that it does, squeezing the
+    // preset name rather than clipping the chip. Sized against the rows' own chips, not the widest
+    // one any row could ever show -- reserving for the worst case left a visible hole after the
+    // short chips ("0.4 Std") that most rows actually carry.
+    //
+    // The right edge this overlay stops at also has to clear the combo's "synced with AMS" badge:
+    // that corner ribbon is drawn by the combo itself (StaticBox::doRender), and a child window
+    // always paints over its parent's own drawing, so a chip reaching into that corner hides it.
+    // wx offers no way to put the parent's drawing above a child, so the overlay keeps out instead.
+    //
+    // Finally, the whole column follows whichever of its rows had to give up the most ground: a
+    // divider that stayed at the target share while the row above it was dragged left would break
+    // the single vertical line the dividers read as. Columns align independently, matching how
+    // relayout_filament_grid() splits the rows between them.
+    const int right_reserve = std::max(right_margin, combo->HasBadge() ? combo->GetBadgeWidth() : 0);
+    const int chip_w     = label->GetMinSize().GetWidth();
+    const int aligned_x  = aligned_divider_x(idx);
+    const int divider_x  = aligned_x >= 0 ? aligned_x : std::max(0, static_cast<int>(comboWidth * 0.78));
+    int       leftmost_x = std::max(0, comboWidth - right_reserve);
+
+    const bool label_visible = label->IsShown();
+    if (label_visible) {
+        const int divider_y = (comboHeight - divider_height) / 2;
+        divider->SetSize(divider_x, divider_y, divider_width, divider_height);
+
+        // Chip keeps hugging its own text (the design sizes it to content, not as a filled
+        // column) -- it just starts right after the divider and grows rightward, instead of ending
+        // at a fixed x and growing leftward. divider_x already made room for chip_w, so it fits
+        // as-is; the cap only matters in a row too narrow to satisfy even that (divider_x
+        // clamped to 0).
+        const int label_x     = divider_x + divider_width + gap;
+        const int label_avail = std::max(0, comboWidth - right_reserve - label_x);
+        const int labelWidth  = std::min(chip_w, label_avail);
+        label->SetSize(label_x, vert_inset, labelWidth, label_h);
+
+        leftmost_x = divider_x;
+    }
 
     const bool icon_visible = icon != nullptr && icon->IsShown();
     if (icon_visible) {
@@ -4953,33 +5074,15 @@ void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
         // computed center, leaving the bitmap's real (unshrunk) height hanging below that point --
         // exactly the "icon sinks toward the bottom" symptom. GetBestSize() reports the bitmap's
         // actual natural size instead.
-        const wxSize icon_min = icon->GetBestSize();
-        const int icon_w = icon_min.GetWidth();
-        const int icon_h = icon_min.GetHeight();
-        const int icon_x = std::max(0, cursor_x - icon_w);
+        const int icon_w = icon_size.GetWidth();
+        const int icon_h = icon_size.GetHeight();
+        // Pinned to the row's right edge, the far end of the cluster -- short of the synced
+        // badge's corner for the same reason the chip is (see right_reserve).
+        const int icon_x = std::max(0, comboWidth - right_reserve - icon_w);
         const int icon_y = (comboHeight - icon_h) / 2;
         icon->SetSize(icon_x, icon_y, icon_w, icon_h);
-        leftmost_x = icon_x;
-        cursor_x   = icon_x - gap;
-    }
-
-    // Button's messureSize() computes its content-fit size via SetMinSize() rather than
-    // an overridden GetBestSize(), so read the width back from GetMinSize() here. Height
-    // is overridden above instead of using the measured height (isCenter still centers
-    // the text vertically inside whatever rect SetSize() below gives it).
-    const bool label_visible = label->IsShown();
-    if (label_visible) {
-        const int labelWidth = label->GetMinSize().GetWidth();
-        const int label_x = std::max(0, cursor_x - labelWidth);
-        label->SetSize(label_x, vert_inset, labelWidth, label_h);
-
-        const int divider_width  = divider->GetSize().GetWidth();
-        const int divider_height = divider->GetSize().GetHeight();
-        const int divider_x = std::max(0, label_x - gap - divider_width);
-        const int divider_y = (comboHeight - divider_height) / 2;
-        divider->SetSize(divider_x, divider_y, divider_width, divider_height);
-
-        leftmost_x = divider_x;
+        if (!label_visible)
+            leftmost_x = icon_x;
     }
 
     // Reserve the space occupied by whichever of the icon/divider+label overlay is actually
