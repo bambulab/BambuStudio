@@ -1551,7 +1551,12 @@ int GLVolumeCollection::load_wipe_tower_preview(
 int GLVolumeCollection::load_real_wipe_tower_preview(
     int obj_idx, float pos_x, float pos_y, const TriangleMesh& wt_mesh,const TriangleMesh &brim_mesh,bool render_brim, float rotation_angle, bool size_unknown,  bool opengl_initialized)
 {
-    int plate_idx = obj_idx - 1000;
+    return load_real_wipe_tower_preview(obj_idx, obj_idx - 1000, pos_x, pos_y, wt_mesh, brim_mesh, render_brim, rotation_angle, size_unknown, opengl_initialized);
+}
+
+int GLVolumeCollection::load_real_wipe_tower_preview(
+    int obj_idx, int plate_idx, float pos_x, float pos_y, const TriangleMesh& wt_mesh,const TriangleMesh &brim_mesh,bool render_brim, float rotation_angle, bool size_unknown,  bool opengl_initialized)
+{
     if (wt_mesh.its.vertices.empty()) return int(this->volumes.size() - 1);
 
     std::vector<std::array<float, 4>> extruder_colors = GUI::wxGetApp().plater()->get_extruders_colors();

@@ -1229,6 +1229,22 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     if (params.is_seq_print) {
         params.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
         params.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
+
+        // By-Object + prime tower: each multi-colour object gets its own prime
+        // tower placed next to it during slicing. Reserve a tower-sized gap
+        // around every object so auto-arrange leaves room for it.
+        const ConfigOption *ept_opt = print_config.option("enable_prime_tower");
+        const bool prime_tower_on = ept_opt && ept_opt->getBool();
+        PartPlate *cur_plate = p->get_partplate_list().get_curr_plate();
+        const int  plate_filaments = cur_plate ? (int) cur_plate->get_extruders(true).size() : 0;
+        if (prime_tower_on && plate_filaments > 1) {
+            const ConfigOption *ptw_opt = print_config.option("prime_tower_width");
+            double tw = ptw_opt ? ptw_opt->getFloat() : 60.0;
+            // One tower-width of gap between object hulls, so a tower fits beside
+            // any object. (The slicer does the exact per-object placement.)
+            double reserve = tw + 14.0;
+            params.min_obj_distance = std::max<coord_t>(params.min_obj_distance, scaled(reserve));
+        }
     }
     return params;
 }

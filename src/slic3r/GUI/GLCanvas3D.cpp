@@ -3450,6 +3450,26 @@ void GLCanvas3D::mirror_selection(Axis axis)
     //wxGetApp().obj_manipul()->set_dirty();
 }
 
+// Find the live ModelObject (owned by the GUI's Model, e.g. GLCanvas3D::m_model)
+// matching a PrintObject's own model_object() by identity. Print keeps its own
+// internal copy of the Model, so PrintObject::model_object() returns a pointer
+// into THAT shadow copy, not into the Model the GUI/undo-stack actually edits --
+// Print::apply() keeps ObjectIDs stable across the two, so this is how to get
+// from one to the other. Writing a per-object override straight into the shadow
+// copy (as an earlier version of this code did) gets silently discarded the next
+// time Print::apply() runs, because apply() overwrites its shadow copy's config
+// from the live Model whenever it sees the live Model has NOT changed that key.
+static ModelObject *find_live_model_object(Model *model, const PrintObject *po)
+{
+    if (model == nullptr || po == nullptr || po->model_object() == nullptr)
+        return nullptr;
+    const ObjectID target = po->model_object()->id();
+    for (ModelObject *o : model->objects)
+        if (o->id() == target)
+            return o;
+    return nullptr;
+}
+
 // Reload the 3D scene of
 // 1) Model / ModelObjects / ModelInstances / ModelVolumes
 // 2) Print bed
@@ -3526,6 +3546,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
     int n_plates = ppl.get_plate_count();
     std::vector<int> volume_idxs_wipe_tower_old(n_plates, -1);
+    // By-Object per-object prime tower preview volumes: keyed by their (unique,
+    // non-plate-encoding) composite id, so they can be reconciled across reloads.
+    // (WIPE_TOWER_PER_OBJECT_ID_BASE/STRIDE are declared in 3DScene.hpp, shared with
+    // wipe_tower_plate_id_from_object_id() so other code can decode these ids back to
+    // a plate index -- see e.g. Selection::translate().)
+    std::map<int, int> per_object_wipe_tower_old;
 
     // Snapshot each plate's "tower already placed" flag before reload, to detect
     // first-time tower materialization vs. an existing tower whose position stays untouched.
@@ -3637,11 +3663,15 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (mvs == nullptr || force_full_scene_refresh) {
             // This GLVolume will be released.
             if (volume->is_wipe_tower) {
-                // There is only one wipe tower.
-                //assert(volume_idx_wipe_tower_old == -1);
-                int plate_id = volume->composite_id.object_id - 1000;
-                if (plate_id < n_plates)
-                    volume_idxs_wipe_tower_old[plate_id] = (int)volume_id;
+                const int wt_obj_id = volume->composite_id.object_id;
+                if (wt_obj_id >= WIPE_TOWER_PER_OBJECT_ID_BASE) {
+                    per_object_wipe_tower_old[wt_obj_id] = (int) volume_id;
+                } else {
+                    // There is only one (by-layer / single-object) wipe tower per plate.
+                    int plate_id = wt_obj_id - 1000;
+                    if (plate_id < n_plates)
+                        volume_idxs_wipe_tower_old[plate_id] = (int) volume_id;
+                }
             }
             if (!m_reload_delayed) {
                 deleted_volumes.emplace_back(volume, volume_id);
@@ -3907,8 +3937,57 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 PartPlate* part_plate = ppl.get_plate(plate_id);
                 if (part_plate->get_print_seq() == PrintSequence::ByObject ||
                     (part_plate->get_print_seq() == PrintSequence::ByDefault && co != nullptr && co->value == PrintSequence::ByObject)) {
-                    if (ppl.get_plate(plate_id)->printable_instance_size() != 1)
+                    if (ppl.get_plate(plate_id)->printable_instance_size() != 1) {
+                        // By-Object with 2+ objects: one prime tower per object. The
+                        // per-object tower geometry only exists after slicing, so
+                        // render the previews from the sliced plan (they persist on
+                        // the plater until the plate/settings change). Deliberately
+                        // NOT gated on is_step_done(psWipeTower): like the classic
+                        // single tower's do_move() branch, dragging one of these
+                        // doesn't force a re-slice (see GLCanvas3D::do_move()) -- it
+                        // just repositions the already-computed mesh, so requiring the
+                        // step to still be "done" here would make every drag blank
+                        // both towers the instant it (or anything else) invalidates
+                        // psWipeTower.
+                        const Print *cp = part_plate->fff_print();
+                        if (cp && cp->sequential_print_data().has_value()) {
+                            const ByObjectPrintData &pod = cp->sequential_print_data().value();
+                            const Vec3d porig = ppl.get_plate(plate_id)->get_origin();
+                            int k = 0;
+                            for (const PrintObject *po : pod.print_object_order) {
+                                auto it = pod.object_wipe_tower_map.find(po);
+                                ++k;
+                                if (it == pod.object_wipe_tower_map.end() || !it->second.has_tower ||
+                                    it->second.preview_tower_mesh.its.vertices.empty())
+                                    continue;
+                                const ObjectWipeTowerPlan &plan = it->second;
+                                // A manual drag (GLCanvas3D::do_move()) writes the override
+                                // straight into the live Model, and this reload_scene call can
+                                // happen before the next real slice re-syncs Print's own shadow
+                                // copy -- so read the live Model's value here too (not
+                                // po->model_object(), which IS that shadow copy and would still
+                                // show the pre-drag position until the next slice actually
+                                // runs). Falls back to the last plan's position when there's no
+                                // override yet (nothing dragged) or the object isn't found.
+                                Vec2f pos = plan.position;
+                                if (ModelObject *live_mo = find_live_model_object(m_model, po)) {
+                                    const ModelConfig &obj_cfg = live_mo->config;
+                                    if (obj_cfg.has("sequential_wipe_tower_x") && obj_cfg.has("sequential_wipe_tower_y"))
+                                        pos = Vec2f(float(obj_cfg.opt_float("sequential_wipe_tower_x")),
+                                                   float(obj_cfg.opt_float("sequential_wipe_tower_y")));
+                                }
+                                const int oid = WIPE_TOWER_PER_OBJECT_ID_BASE + plate_id * WIPE_TOWER_PER_OBJECT_ID_STRIDE + (k - 1);
+                                int vnew = m_volumes.load_real_wipe_tower_preview(
+                                    oid, plate_id,
+                                    pos.x() + (float) porig.x(), pos.y() + (float) porig.y(),
+                                    plan.preview_tower_mesh, plan.preview_brim_mesh, true, 0.f, true, m_initialized);
+                                auto oldit = per_object_wipe_tower_old.find(oid);
+                                if (oldit != per_object_wipe_tower_old.end())
+                                    map_glvolume_old_to_new[oldit->second] = vnew;
+                            }
+                        }
                         continue;
+                    }
                 }
 
                 DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
@@ -6399,6 +6478,51 @@ void GLCanvas3D::do_move(const std::string &snapshot_type,bool force_volume_move
         else if (object_idx >= 1000 && object_idx < 1000 + n_plates) {
             // Move a wipe tower proxy.
             wipe_tower_origins[object_idx - 1000] = v->get_volume_offset();
+        }
+        else if (object_idx >= WIPE_TOWER_PER_OBJECT_ID_BASE) {
+            // Move a By-Object per-object prime tower preview: persist the drop as a
+            // per-object override (sequential_wipe_tower_x/y) so the next reload_scene
+            // or re-slice doesn't snap it back to the auto-placed spot. Decode which
+            // object this preview belongs to the same way reload_scene assigned the id:
+            // oid = BASE + plate_id * STRIDE + (index of the object within
+            // sequential_print_data().print_object_order).
+            const int rel           = object_idx - WIPE_TOWER_PER_OBJECT_ID_BASE;
+            const int plate_id      = rel / WIPE_TOWER_PER_OBJECT_ID_STRIDE;
+            const int idx_in_order  = rel % WIPE_TOWER_PER_OBJECT_ID_STRIDE;
+            PartPlateList &ppl_ref  = wxGetApp().plater()->get_partplate_list();
+            PartPlate     *plate    = (plate_id >= 0 && plate_id < ppl_ref.get_plate_count()) ? ppl_ref.get_plate(plate_id) : nullptr;
+            Print         *print    = plate ? plate->fff_print() : nullptr;
+            if (print && print->sequential_print_data().has_value()) {
+                const ByObjectPrintData &pod = print->sequential_print_data().value();
+                if (idx_in_order >= 0 && idx_in_order < (int) pod.print_object_order.size()) {
+                    const PrintObject *po = pod.print_object_order[idx_in_order];
+                    auto               it = pod.object_wipe_tower_map.find(po);
+                    if (it != pod.object_wipe_tower_map.end() && it->second.has_tower) {
+                        // v->get_volume_offset() is world/plate coordinates (reload_scene sets
+                        // it to plan.position + plate_origin); subtract the origin back out to
+                        // store the same plate-local value _make_sequential_wipe_towers() reads.
+                        const Vec3d plate_origin = plate->get_origin();
+                        // Write into the GUI's own live Model, not po->model_object() (Print's
+                        // internal shadow copy) -- a write there gets silently overwritten by
+                        // Print::apply() on the next slice, since apply() copies the *live*
+                        // Model's config over its shadow copy's whenever it thinks the live
+                        // Model hasn't changed that key (which, for a shadow-only edit, it
+                        // never has). See find_live_model_object()'s comment.
+                        ModelObject *mo = find_live_model_object(m_model, po);
+                        if (mo == nullptr) continue;
+                        mo->config.set("sequential_wipe_tower_x", v->get_volume_offset().x() - plate_origin.x());
+                        mo->config.set("sequential_wipe_tower_y", v->get_volume_offset().y() - plate_origin.y());
+                        // Print::apply() (PrintApply.cpp, per-object config-changed block)
+                        // explicitly checks these two keys and invalidates psWipeTower et al
+                        // itself when they change, so its own ApplyStatus return value comes
+                        // back CHANGED -- which is what un-greys the Slice button. Just poke
+                        // the plater to actually run apply() soon; no need to invalidate
+                        // anything on this Print object directly from here.
+                        wxGetApp().plater()->set_plater_dirty(true);
+                        wxGetApp().plater()->schedule_background_process();
+                    }
+                }
+            }
         }
     }
 
