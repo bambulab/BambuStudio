@@ -1276,6 +1276,42 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 max_bridge_length, break_bridge, &layer->loverhangs_with_type);
         }
 
+        // Wave overhangs: with support_remaining_areas_after_wave_overhangs on, do not seed tree
+        // support under what the waves already covered.
+        //
+        // Subtract the covered area rather than clearing the layer: waves often cover only part
+        // of a layer's overhangs, and the rest still need support.
+        //
+        // Enforcers are already merged into these lists by this point and carry no type of their
+        // own, so exempt their area explicitly: an area the user painted as an enforcer keeps its
+        // support even where a wave covers it. Both overhang lists must be trimmed, since contact
+        // points are seeded from loverhangs_with_type.
+        if (! layer->wave_overhang_covered_polygons.empty()) {
+            bool wave_support_gate = false;
+            for (size_t ri = 0; ri < m_object->num_printing_regions(); ++ri) {
+                const PrintRegionConfig &rc = m_object->printing_region(ri).config();
+                if (rc.wave_overhangs.value && rc.support_remaining_areas_after_wave_overhangs.value) {
+                    wave_support_gate = true;
+                    break;
+                }
+            }
+            if (wave_support_gate) {
+                Polygons wave_covered = layer->wave_overhang_covered_polygons;
+                if (size_t(layer_nr) < enforcers.size() && ! enforcers[layer_nr].empty())
+                    wave_covered = diff(wave_covered, enforcers[layer_nr]);
+                if (! wave_covered.empty()) {
+                    layer->loverhangs  = diff_ex(layer->loverhangs, wave_covered);
+                    layer->cantilevers = diff_ex(layer->cantilevers, wave_covered);
+                    std::vector<std::pair<ExPolygon, int>> typed;
+                    typed.reserve(layer->loverhangs_with_type.size());
+                    for (const auto &[expoly, type] : layer->loverhangs_with_type)
+                        for (ExPolygon &part : diff_ex(ExPolygons{ expoly }, wave_covered))
+                            typed.emplace_back(std::move(part), type);
+                    layer->loverhangs_with_type = std::move(typed);
+                }
+            }
+        }
+
 		int nDetected = layer->loverhangs.size();
 
         //// fill overhang_types

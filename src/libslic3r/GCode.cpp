@@ -2005,9 +2005,14 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
     print->set_done(psGCodeExport);
-    //BBS: set enable_label_object
-    result->label_object_enabled = m_enable_label_object;
-    result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    // result is optional: it is null-checked above before the processor output is moved
+    // into it, so these writes need the same guard. Without it, exporting with a null
+    // result wrote through a null pointer.
+    if (result != nullptr) {
+        //BBS: set enable_label_object
+        result->label_object_enabled = m_enable_label_object;
+        result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    }
     // Write the profiler measurements to file
     PROFILE_UPDATE();
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
@@ -5935,6 +5940,20 @@ GCode::LayerResult GCode::process_layer(
         has_insert_timelapse_gcode = true;
     }
 
+    // Wave overhangs: if this layer emitted wave paths and they took less than
+    // wave_overhang_min_layer_time in total, pad the layer so the wave bed has time to
+    // solidify before the next layer lands on it.
+    if (m_wave_layer_accumulated_time > 0.) {
+        const double min_layer_time = m_config.wave_overhang_min_layer_time.value;
+        if (min_layer_time > 0. && m_wave_layer_accumulated_time < min_layer_time) {
+            char buf[96];
+            snprintf(buf, sizeof(buf), "G4 P%d ; wave-overhang min_layer_time dwell\n",
+                     int((min_layer_time - m_wave_layer_accumulated_time) * 1000. + 0.5));
+            gcode += buf;
+        }
+        m_wave_layer_accumulated_time = 0.;
+    }
+
     result.gcode = std::move(gcode);
     result.cooling_buffer_flush = object_layer || raft_layer || last_layer;
     return result;
@@ -7127,6 +7146,48 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 {
     std::string gcode;
 
+    // Wave overhangs: optional markers so a wave region is identifiable in the output.
+    const bool emit_wave_overhang_markers = path.wave_overhang && m_config.wave_overhang_debug_gcode.value;
+    if (emit_wave_overhang_markers)
+        gcode += "; WAVE_OVERHANG_START\n";
+
+    // Wave overhangs: fan overrides. The percentages are encoded in the marker so the
+    // cooling post-processor does not need access to the region config. -1 on either side
+    // means "no override"; the auxiliary fan is opt-in so existing profiles are unaffected.
+    const int  wave_main_fan   = m_config.wave_overhang_fan_speed.value;
+    const int  wave_aux_fan    = m_config.wave_overhang_aux_fan_speed.value;
+    const bool wave_fan_active = path.wave_overhang && (wave_main_fan >= 0 || wave_aux_fan >= 0) && m_enable_cooling_markers;
+    // The Hilbert floor above a wave gets its own fan pair, and deliberately does not set
+    // m_inside_wave_overhang: floor paths travel at normal speeds.
+    const int  wave_floor_main_fan   = m_config.wave_overhang_floor_fan_speed.value;
+    const int  wave_floor_aux_fan    = m_config.wave_overhang_floor_aux_fan_speed.value;
+    const bool wave_floor_fan_active = path.wave_overhang_floor &&
+                                       (wave_floor_main_fan >= 0 || wave_floor_aux_fan >= 0) && m_enable_cooling_markers;
+
+    // Set before the leading travel below, so that travel uses the wave travel speed.
+    if (path.wave_overhang)
+        m_inside_wave_overhang = true;
+    if (wave_fan_active || wave_floor_fan_active) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), ";_WAVE_OVERHANG_FAN_START %d %d\n",
+                 wave_fan_active ? wave_main_fan : wave_floor_main_fan,
+                 wave_fan_active ? wave_aux_fan  : wave_floor_aux_fan);
+        gcode += buf;
+    }
+
+    // Wave overhangs: nozzle temperature override, applied without waiting. The first wave
+    // line prints at a mixed temperature; by the end of the region the hotend has settled.
+    const int wave_nozzle_temp  = m_config.wave_overhang_nozzle_temp.value;
+    const bool wave_temp_active = path.wave_overhang && wave_nozzle_temp > 0;
+    int restore_nozzle_temp = 0;
+    if (wave_temp_active) {
+        if (auto *ints = dynamic_cast<const ConfigOptionInts *>(m_config.option("nozzle_temperature")))
+            restore_nozzle_temp = ints->values.empty() ? 0 : ints->values[0];
+        char buf[64];
+        snprintf(buf, sizeof(buf), "M104 S%d ; wave-overhang temp override\n", wave_nozzle_temp);
+        gcode += buf;
+    }
+
     if (is_bridge(path.role()))
         description += " (bridge)";
 
@@ -7385,6 +7446,36 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (do_slowdown_by_height)
         speed = std::min(speed, desiredMaxSpeed);
+
+    // Wave overhangs: these override every earlier speed decision, including the dynamic
+    // overhang slowdown, because a wave line hangs in air and its speed is what the user
+    // tuned rather than anything derived from the geometry below it.
+    if (path.wave_overhang && m_config.wave_overhang_print_speed.value > 0) {
+        speed = m_config.wave_overhang_print_speed.value;
+    } else if (path.wave_overhang_floor && m_config.wave_overhang_floor_print_speed.value > 0) {
+        // The floor over a wave is printed slower so each line can shed heat before its
+        // neighbour lands, which is what keeps the cantilevered wave below from warping.
+        // With a ramp configured, interpolate back up to the normal speed over that many
+        // layers instead of stepping.
+        const double override_speed = m_config.wave_overhang_floor_print_speed.value;
+        const int    ramp           = m_config.wave_overhang_floor_speed_ramp.value;
+        const int    distance       = path.wave_overhang_floor_distance;
+        speed = (ramp > 0 && distance > 0)
+            ? override_speed + (speed - override_speed) * std::min(double(distance) / double(ramp), 1.0)
+            : override_speed;
+    } else if (path.wave_overhang_perimeter && m_config.wave_overhang_perimeter_speed.value > 0) {
+        // Walls on a wave layer anchor onto cantilevered traces; at full wall speed they
+        // can pull the wave loose.
+        speed = m_config.wave_overhang_perimeter_speed.value;
+    } else if (path.wave_overhang_floor_perimeter && m_config.wave_overhang_floor_perimeter_speed.value > 0) {
+        const double override_speed = m_config.wave_overhang_floor_perimeter_speed.value;
+        const int    ramp           = m_config.wave_overhang_floor_speed_ramp.value;
+        const int    distance       = path.wave_overhang_floor_distance;
+        speed = (ramp > 0 && distance > 0)
+            ? override_speed + (speed - override_speed) * std::min(double(distance) / double(ramp), 1.0)
+            : override_speed;
+    }
+
     double F = speed * 60;  // convert mm/sec to mm/min
 
     // extrude arc or line
@@ -7624,6 +7715,48 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     this->set_last_pos(path.last_point());
+
+    // Wave overhangs: close the fan scope and restore state opened at the top.
+    if (wave_fan_active || wave_floor_fan_active)
+        gcode += ";_WAVE_OVERHANG_FAN_END\n";
+    if (wave_temp_active && restore_nozzle_temp > 0) {
+        char buf[64];
+        snprintf(buf, sizeof(buf), "M104 S%d ; wave-overhang temp restore\n", restore_nozzle_temp);
+        gcode += buf;
+    }
+    if (path.wave_overhang)
+        m_inside_wave_overhang = false;
+
+    if (path.wave_overhang) {
+        // A wave line ends in mid-air, so leftover nozzle pressure oozes into the next
+        // travel. Force a retraction; the following lead-in travel unretracts through the
+        // writer's normal state tracking. 0 means "leave it to the usual travel-distance
+        // heuristics", which is the previous behaviour.
+        const double wave_end_retract = m_config.wave_overhang_end_retract_length.value;
+        if (wave_end_retract > 0.)
+            gcode += m_writer.retract(false, wave_end_retract);
+    }
+
+    if (emit_wave_overhang_markers)
+        gcode += "; WAVE_OVERHANG_END\n";
+
+    // Wave overhangs: hold each wave region on the bed for at least min_wave_time so it can
+    // solidify, and accumulate towards the per-layer total used by process_layer().
+    if (path.wave_overhang) {
+        const double wave_speed     = std::max(0.01, m_config.wave_overhang_print_speed.value);
+        const double path_length_mm = unscale<double>(path.length());
+        const double region_time_s  = path_length_mm / wave_speed;
+        m_wave_layer_accumulated_time += region_time_s;
+
+        const double min_wave_time = m_config.wave_overhang_min_wave_time.value;
+        if (min_wave_time > 0. && region_time_s < min_wave_time) {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "G4 P%d ; wave-overhang min_wave_time dwell\n",
+                     int((min_wave_time - region_time_s) * 1000. + 0.5));
+            gcode += buf;
+        }
+    }
+
     return gcode;
 }
 
@@ -7754,10 +7887,15 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         } else if (m_config.default_jerk.value > 0 && m_config.travel_jerk.value > 0 && !this->is_BBL_Printer())
                 gcode += m_writer.set_jerk_xy(m_config.travel_jerk.value);
 
+        // Wave overhangs: a travel into or within a wave path uses the wave travel speed.
+        // 0 disables the override, which is every other travel in the print.
+        const double wave_travel_speed = (m_inside_wave_overhang && m_config.wave_overhang_travel_speed.value > 0)
+                                         ? m_config.wave_overhang_travel_speed.value : 0.0;
+
         if (m_spiral_vase) {
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i)
-                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment, use_short_travel_accel);
+                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment, use_short_travel_accel, wave_travel_speed);
             const double target_z = z == DBL_MAX ? m_nominal_z : z;
             if (std::abs(m_writer.get_position().z() - target_z) > EPSILON)
                 gcode += m_writer.travel_to_z(target_z, "restore spiral vase layer Z");
@@ -7769,9 +7907,9 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
                 // BBS: lift to normal z, then to start z
                 if(m_scarf_seam_start){
                     Vec3d       first_dest(dest2d(0), dest2d(1), m_nominal_z);
-                    gcode += m_writer.travel_to_xyz(first_dest, comment, use_short_travel_accel);
+                    gcode += m_writer.travel_to_xyz(first_dest, comment, use_short_travel_accel, wave_travel_speed);
                 }
-                gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel);
+                gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel, wave_travel_speed);
             } else {
                 // Extra movements emitted by avoid_crossing_perimeters, lift the z to normal height at the beginning, then apply the z
                 // ratio at the last point
@@ -7780,19 +7918,19 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
                         // Lift to normal z at beginning
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                         Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
-                        gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel);
+                        gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel, wave_travel_speed);
                     } else if (z != DBL_MAX && i == travel.size() - 1) {
                         // Apply z_ratio for the very last point
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                         Vec3d dest3d(dest2d(0), dest2d(1), z);
                         // BBS: lift to normal z, then to start z
                         if(m_scarf_seam_start){
-                            gcode += m_writer.travel_to_xy(dest2d, comment, use_short_travel_accel);
+                            gcode += m_writer.travel_to_xy(dest2d, comment, use_short_travel_accel, wave_travel_speed);
                         }
-                        gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel);
+                        gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel, wave_travel_speed);
                     } else {
                         // For all points in between, no z change
-                        gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment, use_short_travel_accel);
+                        gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment, use_short_travel_accel, wave_travel_speed);
                     }
                 }
             }
