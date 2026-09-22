@@ -470,6 +470,14 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     ImGui::SameLine();
     if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
+    ImGui::SameLine();
+    if (imgui.button(_L("Copy")))
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_COPY_LAYER_HEIGHT_PROFILE));
+    ImGui::SameLine();
+    if (imgui.button(_L("Paste")) && has_copied_layer_height_profile())
+        wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_PASTE_LAYER_HEIGHT_PROFILE));
+    if (ImGui::IsItemHovered() && ! has_copied_layer_height_profile())
+        imgui.tooltip(_L("Copy a variable layer height profile from another object first."), ImGui::GetFontSize() * 20.0f);
 
     GLCanvas3D::LayersEditing::s_overlay_window_width = ImGui::GetWindowSize().x;
     imgui.end();
@@ -828,6 +836,109 @@ void GLCanvas3D::LayersEditing::smooth_layer_height_profile(GLCanvas3D & canvas,
 {
     this->update_slicing_parameters();
     m_layer_height_profile = smooth_height_profile(m_layer_height_profile, *m_slicing_parameters, smoothing_params);
+    const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
+    m_layers_texture.valid = false;
+    canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
+    wxGetApp().obj_list()->update_info_items(last_object_id);
+    m_profile_dirty = true;
+}
+
+void GLCanvas3D::LayersEditing::copy_layer_height_profile()
+{
+    // m_layer_height_profile is kept in sync with m_model_object's actual profile by
+    // generate_layer_height_texture()/update_layer_height_profile() - it's whatever's really on
+    // the object right now (painted, adaptive, or the flat default), not just a pending edit.
+    m_copied_layer_height_profile = m_layer_height_profile;
+}
+
+namespace {
+    // layer_height_profile is a flat [Z0,h0, Z1,h1, ...] list of control points (increasing Z),
+    // where the height at any Z is the linear interpolation between its bracketing points (held
+    // constant past the last one) - same rule Slic3r::generate_object_layers() uses to actually
+    // walk the profile into layers. Used here to synthesize a clean boundary point when grafting
+    // one object's profile onto another of a different height.
+    double interpolate_layer_height_profile(const std::vector<double> &profile, double z)
+    {
+        assert(! profile.empty());
+        size_t i = 0;
+        while (i + 2 < profile.size() && profile[i + 2] <= z)
+            i += 2;
+        if (i + 2 >= profile.size())
+            return profile[i + 1]; // past the last point: height held constant
+        double z1 = profile[i], h1 = profile[i + 1];
+        double z2 = profile[i + 2], h2 = profile[i + 3];
+        return z2 > z1 ? Slic3r::lerp(h1, h2, (z - z1) / (z2 - z1)) : h1;
+    }
+} // namespace
+
+void GLCanvas3D::LayersEditing::paste_layer_height_profile(GLCanvas3D & canvas)
+{
+    if (m_copied_layer_height_profile.empty())
+        return;
+    this->update_slicing_parameters();
+    // Make sure the destination's own (pre-paste) profile is valid before grafting onto it -
+    // needed below for the "destination is taller" branch, which keeps the top of it untouched.
+    bool nozzle_range_reset = false;
+    PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile, nozzle_range_reset);
+
+    const std::vector<double> &source     = m_copied_layer_height_profile;
+    const double                source_top = source[source.size() - 2];
+    const double                dest_top   = m_slicing_parameters->object_print_z_height();
+
+    std::vector<double> result;
+    if (source_top >= dest_top - EPSILON) {
+        // Destination is the same height or shorter: use the source's schedule up to the
+        // destination's own top - it wasn't printing above that anyway, so there's nothing to
+        // preserve up there. The object's own top Z must be the profile's last point (enforced
+        // by PrintObject::update_layer_height_profile()'s own validation), so synthesize one by
+        // interpolating the source's schedule at exactly dest_top.
+        for (size_t i = 0; i + 1 < source.size(); i += 2) {
+            if (source[i] >= dest_top - EPSILON)
+                break;
+            result.push_back(source[i]);
+            result.push_back(source[i + 1]);
+        }
+        result.push_back(dest_top);
+        result.push_back(interpolate_layer_height_profile(source, dest_top));
+    } else {
+        // Destination is taller: use the source's schedule up to its own top, then keep whatever
+        // the destination's own (pre-paste) profile already had above that, untouched. Left as a
+        // hard graft on purpose, not auto-smoothed - smoothing would mean the "kept unchanged"
+        // part isn't actually unchanged any more, and would drift this object's upper layers away
+        // from whatever other object its own profile is meant to still match.
+        result = source;
+        const double h_before_graft = source[source.size() - 1];
+        double       h_after_graft  = h_before_graft;
+        bool         kept_anything  = false;
+        for (size_t i = 0; i + 1 < m_layer_height_profile.size(); i += 2)
+            if (m_layer_height_profile[i] > source_top + EPSILON) {
+                if (! kept_anything) {
+                    h_after_graft = m_layer_height_profile[i + 1];
+                    kept_anything = true;
+                }
+                result.push_back(m_layer_height_profile[i]);
+                result.push_back(m_layer_height_profile[i + 1]);
+            }
+
+        std::string message = (boost::format(_u8L("Pasted layer heights only reach Z=%.2f mm (the top of the copied "
+                                                    "object) - this object's own layer heights above that were left "
+                                                    "unchanged."))
+                                % source_top).str();
+        if (kept_anything && std::abs(h_after_graft - h_before_graft) > EPSILON) {
+            // Same rule the slicer itself uses to turn a profile into real layers - find which
+            // one the graft actually lands on, rather than just quoting the Z height again.
+            std::vector<coordf_t> layers = Slic3r::generate_object_layers(*m_slicing_parameters, result, false);
+            size_t                jump_layer = 0;
+            for (size_t i = 0; i + 1 < layers.size(); i += 2)
+                if (layers[i + 1] >= source_top - EPSILON) { jump_layer = i / 2 + 1; break; }
+            message += (boost::format(_u8L(" Layer height jumps from %.3f mm to %.3f mm in a single layer at the "
+                                            "top of the pasted section (layer %d)."))
+                        % h_before_graft % h_after_graft % (int) jump_layer).str();
+        }
+        wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(message);
+    }
+
+    m_layer_height_profile = result;
     const_cast<ModelObject*>(m_model_object)->layer_height_profile.set(m_layer_height_profile);
     m_layers_texture.valid = false;
     canvas.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
@@ -1350,6 +1461,8 @@ wxDEFINE_EVENT(EVT_CUSTOMEVT_TICKSCHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_COPY_LAYER_HEIGHT_PROFILE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_PASTE_LAYER_HEIGHT_PROFILE, SimpleEvent);
 
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 const double GLCanvas3D::DefaultCameraZoomToBedMarginFactor = 2.00;
@@ -2436,6 +2549,20 @@ void GLCanvas3D::smooth_layer_height_profile(const HeightProfileSmoothingParams&
 {
     wxGetApp().plater()->take_snapshot("Variable layer height - Smooth all");
     m_layers_editing.smooth_layer_height_profile(*this, smoothing_params);
+    m_layers_editing.state = LayersEditing::Completed;
+    m_dirty = true;
+}
+
+void GLCanvas3D::copy_layer_height_profile()
+{
+    // Read-only, doesn't touch the model - no undo/redo snapshot needed.
+    m_layers_editing.copy_layer_height_profile();
+}
+
+void GLCanvas3D::paste_layer_height_profile()
+{
+    wxGetApp().plater()->take_snapshot("Variable layer height - Paste");
+    m_layers_editing.paste_layer_height_profile(*this);
     m_layers_editing.state = LayersEditing::Completed;
     m_dirty = true;
 }
