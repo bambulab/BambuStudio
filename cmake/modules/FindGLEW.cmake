@@ -134,6 +134,12 @@ endif()
 
 if("${CMAKE_GENERATOR_PLATFORM}" MATCHES "x64" OR "${CMAKE_GENERATOR}" MATCHES "Win64")
   set(_arch "x64")
+elseif("${CMAKE_GENERATOR_PLATFORM}" MATCHES "ARM64|arm64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$")
+  # GLEW's binary distribution ships one 64-bit import-library layout; ARM64
+  # reuses the x64 lib/Release path. (Bambu builds GLEW from source into the
+  # dep prefix, so this only affects the GLEW_ROOT binary-dist fallback.)
+  # Matched case-insensitively since build_win.bat passes -A arm64 (lowercase).
+  set(_arch "x64")
 else()
   set(_arch "Win32")
 endif()
