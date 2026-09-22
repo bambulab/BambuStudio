@@ -1130,12 +1130,10 @@ bool is_trusted_model_download_url(const std::string &download_str)
             struct TrustEntry { const char *host; bool suffix; bool https_only; };
             static const TrustEntry trusted_entries[] = {
                 {"or-cloud-makerlab-prod.s3-accelerate.amazonaws.com", false, true},
-                {"or-cloud-makerlab-test.s3-accelerate.amazonaws.com", false, true},
                 {"sh-makerlab-prod.oss-cn-shanghai.aliyuncs.com", false, true},
-                {"sh-makerlab-test.oss-cn-shanghai.aliyuncs.com", false, true},
                 {"public-cdn.bblmw.com", false, false},
-                {"makerworld.com", true, false},
-                {"makerworld.com.cn", true, false},
+                {"makerworld.bblmw.cn", false, false},
+                {"makerworld.bblmw.com", false, false},
             };
             for (const auto &e : trusted_entries) {
                 bool match = e.suffix ? host_in_domain(host, e.host) : (host == e.host);
