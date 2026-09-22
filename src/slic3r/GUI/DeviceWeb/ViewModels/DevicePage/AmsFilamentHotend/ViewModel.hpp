@@ -32,6 +32,7 @@ public:
                              const std::string& action,
                              const nlohmann::json& payload) override;
     void ReportState(const std::string& submod, const std::string& action) override;
+    void OnResponseSent(const nlohmann::json& response) override;
     void OnSysColorChanged() override;
     std::string ResolveFilamentCardText(const Slic3r::DevAmsTray* tray, const std::string& fallback_type) const;
     std::string ResolveFilamentCardText(const std::string& filament_id, const std::string& fallback_type) const;

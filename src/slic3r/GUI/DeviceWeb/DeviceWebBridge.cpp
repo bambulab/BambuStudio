@@ -1,5 +1,6 @@
 #include "DeviceWebBridge.hpp"
 #include "DeviceWebHealth.hpp"
+#include "IViewModel.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Widgets/WebViewTraceLogger.hpp"
 #include <wx/uri.h>
@@ -319,6 +320,9 @@ void DeviceWebBridge::DispatchWebCommand(const nlohmann::json& header, const nlo
             auto result = m_vm_mgr->Dispatch(body);
             if (result.has_value()) {
                 ResponseMsg(head, result.value());
+                if (IViewModel* vm = m_vm_mgr->Find(module)) {
+                    vm->OnResponseSent(result.value());
+                }
                 return;
             }
         } catch (const std::exception& e) {

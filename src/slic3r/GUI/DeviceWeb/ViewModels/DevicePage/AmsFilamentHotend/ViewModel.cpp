@@ -135,6 +135,18 @@ std::vector<AmsHotendSchema::format::BindAms> bind_ams_from_json(const nlohmann:
     return result;
 }
 
+// Reports and responses must hash identically for the de-dup to match. Device
+// strings may carry non-UTF-8 bytes, which a strict dump() would throw on.
+std::optional<std::string> DumpStateKey(const nlohmann::json& state)
+{
+    try {
+        return state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "DumpStateKey failed: " << e.what();
+        return std::nullopt;
+    }
+}
+
 } // namespace
 
 nlohmann::json DevicePageAmsFilamentHotendVM::OnCommand(const std::string& submod,
@@ -187,20 +199,35 @@ nlohmann::json DevicePageAmsFilamentHotendVM::OnCommand(const std::string& submo
     return MakeResponse(GetModule(), submod, action, 1, "unknown device page AMS filament hotend command", BuildState());
 }
 
+void DevicePageAmsFilamentHotendVM::OnResponseSent(const nlohmann::json& response)
+{
+    const auto payload_it = response.find("payload");
+    if (payload_it == response.end() || !payload_it->is_object()) return;
+    // Debug and other non-state payloads must not enter the report de-dup.
+    if (!payload_it->contains(AmsHotendSchema::keys::root::filament_page)) return;
+
+    std::optional<std::string> key;
+    if (payload_it->contains("theme")) {
+        // `theme` rides along on state/get responses but never on a report, so
+        // it must stay out of the hash.
+        nlohmann::json state = *payload_it;
+        state.erase("theme");
+        key = DumpStateKey(state);
+    } else {
+        key = DumpStateKey(*payload_it);
+    }
+
+    // An empty cache forces the next report through.
+    m_last_report_state = key.value_or(std::string());
+}
+
 void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const std::string& action)
 {
     if (!m_bridge) return;
     nlohmann::json state = BuildState();
-    // Device data may contain non-UTF-8 bytes; strict dump() throws
-    // type_error.316. Skip this report instead of letting it crash the page.
-    std::string state_key;
-    try {
-        state_key = state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
-    } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " state.dump() failed: " << e.what();
-        return;
-    }
-    if (state_key == m_last_report_state) {
+    const auto state_key = DumpStateKey(state);
+    if (!state_key.has_value()) return;
+    if (*state_key == m_last_report_state) {
         return;
     }
 
@@ -208,7 +235,7 @@ void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const
     // Caching first let a dropped report poison m_last_report_state so the
     // same snapshot was skipped once the device page became visible.
     if (m_bridge->ReportMsg(MakeResponse(GetModule(), submod, action, 0, "", state))) {
-        m_last_report_state = state_key;
+        m_last_report_state = *state_key;
     }
 }
 
