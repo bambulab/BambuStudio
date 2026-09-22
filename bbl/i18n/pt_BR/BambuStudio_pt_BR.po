@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-21 12:03+0800\n"
+"POT-Creation-Date: 2026-09-22 11:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3960,6 +3960,7 @@ msgstr "Ignorar o mapeamento de filamentos e importar como um modelo de cor úni
 msgid "Next"
 msgstr "Próximo"
 
+msgctxt "TextureImport"
 msgid "Previous"
 msgstr "Anterior"
 
@@ -19501,6 +19502,9 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Previous"
+#~ msgstr "Anterior"
 
 #~ msgid "One-click CMYW auto-mix"
 #~ msgstr "Mistura automática CMYW com um clique"

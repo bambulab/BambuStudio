@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-21 12:03+0800\n"
+"POT-Creation-Date: 2026-09-22 11:57+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -3955,6 +3955,7 @@ msgstr "Bỏ qua ánh xạ sợi nhựa và nhập dưới dạng mô hình mộ
 msgid "Next"
 msgstr "Tiếp"
 
+msgctxt "TextureImport"
 msgid "Previous"
 msgstr "Trước"
 
@@ -19480,6 +19481,9 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Previous"
+#~ msgstr "Trước"
 
 #~ msgid "One-click CMYW auto-mix"
 #~ msgstr "Tự động phối màu CMYW một lần nhấp"

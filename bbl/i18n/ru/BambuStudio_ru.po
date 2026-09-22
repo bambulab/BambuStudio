@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-21 12:03+0800\n"
+"POT-Creation-Date: 2026-09-22 11:57+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -4020,6 +4020,7 @@ msgstr "Пропустить сопоставление филаментов и 
 msgid "Next"
 msgstr "Далее"
 
+msgctxt "TextureImport"
 msgid "Previous"
 msgstr "Назад"
 
@@ -19766,6 +19767,9 @@ msgid ""
 msgstr ""
 "Надёжный результат с первой попытки\n"
 "Меньше постоянного контроля — более предсказуемый результат. Например, небольшая ферма, печатающая детали из PETG, избегает неожиданных сбоев на шестом часу печати и выпускает партии по графику."
+
+#~ msgid "Previous"
+#~ msgstr "Назад"
 
 #~ msgid "Show Labels"
 #~ msgstr "Показать имена файлов"

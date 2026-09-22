@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-21 12:03+0800\n"
+"POT-Creation-Date: 2026-09-22 11:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3942,6 +3942,7 @@ msgstr "フィラメントマッピングをスキップして、単色モデル
 msgid "Next"
 msgstr "次へ"
 
+msgctxt "TextureImport"
 msgid "Previous"
 msgstr "前へ"
 
@@ -19446,6 +19447,9 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Previous"
+#~ msgstr "前へ"
 
 #~ msgid "One-click CMYW auto-mix"
 #~ msgstr "ワンクリックCMYW自動ミックス"

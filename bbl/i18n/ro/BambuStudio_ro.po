@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-21 12:03+0800\n"
+"POT-Creation-Date: 2026-09-22 11:57+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -3967,6 +3967,7 @@ msgstr "Sari peste maparea filamentelor și importă ca model cu o singură culo
 msgid "Next"
 msgstr "Următorul"
 
+msgctxt "TextureImport"
 msgid "Previous"
 msgstr "Anterior"
 
@@ -19509,6 +19510,9 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Previous"
+#~ msgstr "Anterior"
 
 #, c-format, boost-format
 #~ msgid ""

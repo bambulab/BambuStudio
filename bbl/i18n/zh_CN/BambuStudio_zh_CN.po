@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-21 12:03+0800\n"
+"POT-Creation-Date: 2026-09-22 11:57+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3944,8 +3944,9 @@ msgstr "跳过耗材匹配，导入为单色模型"
 msgid "Next"
 msgstr "下一步"
 
+msgctxt "TextureImport"
 msgid "Previous"
-msgstr "上一条"
+msgstr "上一步"
 
 msgid "Discard newly added filaments and re-run automatic matching"
 msgstr "移除新增的耗材并重新自动匹配"
@@ -7851,7 +7852,7 @@ msgid "Please change the nozzle settings on the printer."
 msgstr "如需修改喷嘴信息，请去打印机操作。"
 
 msgid "View wiki"
-msgstr ""
+msgstr "查看 wiki"
 
 msgid "Brass"
 msgstr "黄铜"
@@ -8637,15 +8638,15 @@ msgstr "搜索盘、模型和零件。"
 
 #, c-format, boost-format
 msgid ", and %d more"
-msgstr ""
+msgstr "，和其他 %d"
 
 #, c-format, boost-format
 msgid "model \"%s\""
-msgstr ""
+msgstr "模型 \"%s\""
 
 #, c-format, boost-format
 msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
-msgstr ""
+msgstr "删除的耗材正被模型 %s 使用，删除后模型耗材将被重置为第一个耗材。"
 
 msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
 msgstr "注意：如果你想要使用其他耗材替换，请使用耗材列表右侧的“合并到”功能。"
@@ -10077,6 +10078,13 @@ msgid ""
 "- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- 清除加载文件后同步打印机预设的设置\n"
+"- 清除”加载3mf“对话框设置\n"
+"- 清除执行后处理脚本的设置\n"
+"- 清除禁用支撑参数推荐的设置\n"
+"- 清除对未保存的项目的选择\n"
+"- 带有可变层高的混合颜色子层警告\n"
+"- 删除模型使用的耗材警告"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "确定重置所有首选项设置吗?下次重新启动之后生效。"
@@ -10115,7 +10123,7 @@ msgid "Project-inside presets"
 msgstr "项目预设"
 
 msgid "System"
-msgstr "跟随系统"
+msgstr "系统"
 
 msgid "Unsupported presets"
 msgstr "不支持的预设"
@@ -16614,7 +16622,7 @@ msgid "The file contains invalid vertex index."
 msgstr "文件包含无效的顶点索引。"
 
 msgid "The file contains invalid texture coordinate index."
-msgstr ""
+msgstr "该文件包含无效的纹理坐标索引。"
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "无法读取此OBJ文件，因为它是空的。"
@@ -19415,6 +19423,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Previous"
+#~ msgstr "上一条"
 
 #~ msgid "One-click CMYW auto-mix"
 #~ msgstr "一键CMYW自动混色"
