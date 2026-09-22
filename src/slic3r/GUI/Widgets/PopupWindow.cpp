@@ -1,4 +1,7 @@
 #include "PopupWindow.hpp"
+#ifdef __WXOSX__
+#include "PopupWindowMac.hpp"
+#endif
 
 static wxWindow *GetTopParent(wxWindow *pWindow)
 {
@@ -25,6 +28,18 @@ bool PopupWindow::Create(wxWindow *parent, int style)
 #endif
     return true;
 }
+
+#ifdef __WXOSX__
+bool PopupWindow::Show(bool show)
+{
+    if (show)
+        Slic3r::GUI::mac_prepare_popup_show(GetHandle());
+    bool ret = wxPopupTransientWindow::Show(show);
+    if (ret && !show)
+        Slic3r::GUI::mac_reassert_popup_hidden_after_click(GetHandle());
+    return ret;
+}
+#endif
 
 PopupWindow::~PopupWindow()
 {

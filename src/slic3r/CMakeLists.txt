@@ -730,6 +730,8 @@ if (APPLE)
             GUI/wxMediaCtrl2.h
             GUI/wxMediaCtrl3.h
             GUI/WindowShadowMac.mm
+            GUI/Widgets/PopupWindowMac.mm
+            GUI/Widgets/PopupWindowMac.hpp
         )
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
 else ()
