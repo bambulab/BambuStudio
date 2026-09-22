@@ -72,6 +72,14 @@ struct SoftMatchPendingResponse {
 struct FilamentSpool {
     std::string spool_id;
     std::string filament_id;
+    // The exact BambuStudio filament preset (system or user, possibly with tweaks
+    // like a custom nozzle temp or scarf setting saved under a new name) last used
+    // when slicing with this spool. filament_id alone only identifies the generic
+    // filament *type* and always resolves to today's default preset for it, losing
+    // any such customization; this field lets a spool recall the specific preset it
+    // was actually last paired with. Empty until the spool is picked via the
+    // "Choose from Filament Manager" slicing-preset picker at least once.
+    std::string preset_name;
     std::string tag_uid;
     std::string tray_id_name;
 

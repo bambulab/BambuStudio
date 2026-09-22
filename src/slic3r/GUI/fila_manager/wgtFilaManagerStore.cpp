@@ -46,6 +46,7 @@ nlohmann::json FilamentSpool::to_json() const
     return nlohmann::json{
         {"spool_id",        spool_id},
         {"setting_id",      filament_id},
+        {"preset_name",     preset_name},
         {"tag_uid",         tag_uid},
         {"tray_id_name",    tray_id_name},
         {"brand",           brand},
@@ -152,6 +153,7 @@ FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
     };
     get("spool_id",        s.spool_id);
     get("setting_id",      s.filament_id);
+    get("preset_name",     s.preset_name);
     get("tag_uid",         s.tag_uid);
     get("tray_id_name",    s.tray_id_name);
     get("brand",           s.brand);
