@@ -5369,6 +5369,14 @@ void GCodeProcessor::process_M104(const GCodeReader::GCodeLine& line)
     if (!line.has_value('S', new_temp))
         return;
 
+    float filament_id_temp;
+    if (line.has_value('I', filament_id_temp)) {
+        int target_filament = std::round(filament_id_temp);
+        if (target_filament >= 0 && static_cast<size_t>(target_filament) < m_extruder_temps.size())
+            m_extruder_temps[target_filament] = new_temp;
+        return;
+    }
+
     float phy_extruder_id_temp;
     if (line.has_value('T', phy_extruder_id_temp)) {
         // Map physical extruder id to logical extruder index
