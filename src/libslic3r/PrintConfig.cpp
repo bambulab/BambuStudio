@@ -9442,7 +9442,16 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
                     int stride = 1;
                     if (key_set2.find(opt) != key_set2.end())
                         stride = 2;
-                    opt_vec_src->set_only_diff(opt, opt_vec_dest, variant_index, stride);
+                    // set_only_diff() requires the base vector to hold variant_index.size() * stride values,
+                    // where variant_index is sized from the base's printer_extruder_variant (1 when it has
+                    // none). A base whose stored length and variant list disagree, e.g. per-nozzle values
+                    // with no variant list, violates that and set_only_diff() throws. The exception reaches
+                    // PresetCollection::load_presets(), which then deletes the user's preset file. Take the
+                    // child's value instead: it is authoritative for its own extruder and variant layout.
+                    if (opt_vec_src->size() != variant_index.size() * size_t(stride))
+                        opt_src->set(opt_target);
+                    else
+                        opt_vec_src->set_only_diff(opt, opt_vec_dest, variant_index, stride);
                 }
             }
         } catch (const std::runtime_error &e) {
