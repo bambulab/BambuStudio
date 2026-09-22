@@ -325,14 +325,13 @@ wxString format_nozzle_spec_label(const NozzleSpec &spec, bool with_flow_type)
 int find_closest_nozzle(const NozzleSpec &want, const std::vector<NozzleSpec> &candidates, bool with_flow_type)
 {
     int best = -1;
-    // Lexicographic key: diameter distance first, then the coarser nozzle on a tie (hence the
-    // negated diameter), then how good a stand-in the flow type is.
+    // Closest diameter first, preferring the finer nozzle on a tie.
     std::tuple<float, float, int> best_key;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         const NozzleSpec &candidate = candidates[i];
         const int flow = with_flow_type ? volume_rank(want.volume, candidate.volume) : 0;
-        const std::tuple<float, float, int> key{std::abs(candidate.diameter - want.diameter), -candidate.diameter, flow};
+        const std::tuple<float, float, int> key{std::abs(candidate.diameter - want.diameter), candidate.diameter, flow};
         if (best < 0 || key < best_key) {
             best = (int) i;
             best_key = key;
