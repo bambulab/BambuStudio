@@ -7168,8 +7168,10 @@ bool GUI_App::load_language(wxString language, bool initial)
     m_wxLocale->AddCatalog(SLIC3R_APP_KEY);
     m_imgui->set_language(into_u8(language_info->CanonicalName));
 
-    //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
-    //wxSetlocale(LC_NUMERIC, "C");
+    // macOS 27 may crash while rendering NSStepper arrows when the numeric locale uses a comma.
+#ifdef __APPLE__
+    wxSetlocale(LC_NUMERIC, "C");
+#endif
     Preset::update_suffix_modified((_L("*") + " ").ToUTF8().data());
     HintDatabase::get_instance().reinit();
 	return true;
