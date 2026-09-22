@@ -801,7 +801,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.bed_type      = plate_type;
             calib_info.process_bar   = preset_page->get_sending_progress_bar();
             calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
-            calib_info.print_prest   = preset_page->get_print_preset();
+            calib_info.print_prest   = preset_page->get_print_preset(calib_info.extruder_id);
             calib_info.filament_prest = temp_filament_preset;
 
             std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
@@ -899,7 +899,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.bed_type       = plate_type;
             calib_info.process_bar    = preset_page->get_sending_progress_bar();
             calib_info.printer_prest  = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
-            calib_info.print_prest    = preset_page->get_print_preset();
+            calib_info.print_prest    = preset_page->get_print_preset(calib_info.extruder_id);
             calib_info.filament_prest = temp_filament_preset;
             std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();
             calib_info.filament_color = filament_list[item.tray_id].opt_string("filament_colour", 0u);
@@ -1357,7 +1357,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
 
             calib_info.bed_type = plate_type;
             calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
-            calib_info.print_prest = preset_page->get_print_preset();
+            calib_info.print_prest = preset_page->get_print_preset(calib_info.extruder_id);
             calib_info.params.mode = CalibMode::Calib_Flow_Rate;
 
             if (stage == CaliPresetStage::CALI_MANUAL_STAGE_1) {
@@ -1782,7 +1782,7 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     calib_info.bed_type      = plate_type;
     calib_info.process_bar   = preset_page->get_sending_progress_bar();
     calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
-    calib_info.print_prest   = preset_page->get_print_preset();
+    calib_info.print_prest   = preset_page->get_print_preset(calib_info.extruder_id);
 
     wxString wx_err_string;
     CalibUtils::calib_max_vol_speed(calib_info, wx_err_string);
