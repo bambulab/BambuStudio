@@ -609,8 +609,8 @@ if(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN)
         target_sources(libslic3r_cgal PRIVATE MeshBooleanOpenMeshCraft.cpp)
         target_link_libraries(libslic3r_cgal PRIVATE
             OpenMeshCraftBoolean
-            ${GMP_LIBRARIES}
             ${MPFR_LIBRARIES}
+            ${GMP_LIBRARIES}
         )
     elseif(SLIC3R_ALLOW_MCUT_BOOLEAN)
         set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "" FORCE)
