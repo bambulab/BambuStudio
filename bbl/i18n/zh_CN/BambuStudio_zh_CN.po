@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 11:57+0800\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3856,6 +3856,12 @@ msgstr "其他颜色"
 msgid "Official Filament"
 msgstr "官方材料"
 
+msgid "Filament matching color difference threshold"
+msgstr "耗材匹配色差阈值"
+
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr "耗材自动匹配允许的颜色差异范围。值越大，颜色差异容忍度越高，越容易匹配。"
+
 msgid "Decompose Color"
 msgstr "拆解颜色"
 
@@ -3910,9 +3916,6 @@ msgstr "间隙面积"
 
 msgid "Automatically determine the optimal color count"
 msgstr "自动计算最佳颜色数量"
-
-msgid "Adjust filament matching"
-msgstr "调整耗材匹配"
 
 msgid "Color mixing"
 msgstr "混色"
@@ -19423,6 +19426,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Adjust filament matching"
+#~ msgstr "调整耗材匹配"
 
 #~ msgid "Previous"
 #~ msgstr "上一条"

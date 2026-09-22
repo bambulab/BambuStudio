@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 11:57+0800\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3868,6 +3868,12 @@ msgstr "Daha Fazla Renk"
 msgid "Official Filament"
 msgstr "Resmi Filament"
 
+msgid "Filament matching color difference threshold"
+msgstr ""
+
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr ""
+
 msgid "Decompose Color"
 msgstr "Renkleri Ayrıştır"
 
@@ -3921,9 +3927,6 @@ msgid "Gap Area"
 msgstr ""
 
 msgid "Automatically determine the optimal color count"
-msgstr ""
-
-msgid "Adjust filament matching"
 msgstr ""
 
 msgid "Color mixing"

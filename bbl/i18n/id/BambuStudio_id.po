@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 11:57+0800\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -3867,6 +3867,12 @@ msgstr "Warna Lainnya"
 msgid "Official Filament"
 msgstr "Filamen Resmi"
 
+msgid "Filament matching color difference threshold"
+msgstr ""
+
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr ""
+
 msgid "Decompose Color"
 msgstr "Urai Warna"
 
@@ -3920,9 +3926,6 @@ msgid "Gap Area"
 msgstr ""
 
 msgid "Automatically determine the optimal color count"
-msgstr ""
-
-msgid "Adjust filament matching"
 msgstr ""
 
 msgid "Color mixing"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 11:57+0800\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3932,6 +3932,12 @@ msgstr "Больше цветов"
 msgid "Official Filament"
 msgstr "Официальный филамент"
 
+msgid "Filament matching color difference threshold"
+msgstr ""
+
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr ""
+
 msgid "Decompose Color"
 msgstr "Разложить цвет"
 
@@ -3985,9 +3991,6 @@ msgid "Gap Area"
 msgstr ""
 
 msgid "Automatically determine the optimal color count"
-msgstr ""
-
-msgid "Adjust filament matching"
 msgstr ""
 
 msgid "Color mixing"
