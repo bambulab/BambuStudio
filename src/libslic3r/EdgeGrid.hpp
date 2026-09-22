@@ -205,6 +205,10 @@ public:
                         iy += 1;
                         assert(iy <= iyb);
                     }
+                    // On corrupted input the walk can step outside the grid (and, past the end cell,
+                    // never meet the loop condition); stop rather than visit an invalid cell.
+                    if (ix < 0 || iy < 0 || ix >= (coord_t)m_cols || iy >= (coord_t)m_rows)
+                        return;
                     if (!visitor(iy, ix))
 						return;
                 } while (ix != ixb || iy != iyb);
@@ -224,6 +228,10 @@ public:
                         iy -= 1;
                         assert(iy >= iyb);
                     }
+                    // On corrupted input the walk can step outside the grid (and, past the end cell,
+                    // never meet the loop condition); stop rather than visit an invalid cell.
+                    if (ix < 0 || iy < 0 || ix >= (coord_t)m_cols || iy >= (coord_t)m_rows)
+                        return;
                     if (!visitor(iy, ix))
 						return;
                 } while (ix != ixb || iy != iyb);
@@ -247,6 +255,10 @@ public:
                         iy += 1;
                         assert(iy <= iyb);
                     }
+                    // On corrupted input the walk can step outside the grid (and, past the end cell,
+                    // never meet the loop condition); stop rather than visit an invalid cell.
+                    if (ix < 0 || iy < 0 || ix >= (coord_t)m_cols || iy >= (coord_t)m_rows)
+                        return;
                     if (!visitor(iy, ix))
 						return;
                 } while (ix != ixb || iy != iyb);
@@ -281,6 +293,10 @@ public:
                         iy -= 1;
                         assert(iy >= iyb);
                     }
+                    // On corrupted input the walk can step outside the grid (and, past the end cell,
+                    // never meet the loop condition); stop rather than visit an invalid cell.
+                    if (ix < 0 || iy < 0 || ix >= (coord_t)m_cols || iy >= (coord_t)m_rows)
+                        return;
                     if (!visitor(iy, ix))
 						return;
                 } while (ix != ixb || iy != iyb);

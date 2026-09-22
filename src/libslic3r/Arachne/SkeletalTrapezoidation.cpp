@@ -1730,6 +1730,12 @@ SkeletalTrapezoidation::Beading SkeletalTrapezoidation::interpolate(const Beadin
     { // We cant adjust to fit the next edge because there is no previous one?!
         return ret;
     }
+    // ret follows the thicker of left/right, which can hold fewer insets than left when bead
+    // count and thickness disagree; skip the adjustment rather than index ret past its end.
+    if (next_inset_idx >= coord_t(ret.toolpath_locations.size()))
+    {
+        return ret;
+    }
     assert(next_inset_idx < coord_t(left.toolpath_locations.size()));
     assert(left.toolpath_locations[next_inset_idx] <= switching_radius);
     assert(left.toolpath_locations[next_inset_idx + 1] >= switching_radius);
