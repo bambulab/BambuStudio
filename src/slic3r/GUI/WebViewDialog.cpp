@@ -66,6 +66,10 @@ namespace GUI {
 
     #define LOGIN_INFO_UPDATE_TIMER_ID 10002
 
+    // Poll interval for the login/print-task refresh. Only runs while the panel
+    // is on screen; see the wxEVT_SHOW handler in the constructor.
+    static constexpr int LOGIN_INFO_UPDATE_INTERVAL_MS = 2000;
+
     namespace {
     bool IsBlankWebUrl(const wxString &url)
     {
@@ -416,6 +420,31 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
         if (e.IsShown() && m_has_pending_staff_pick) {
             SendDesignStaffpick(true);
         }
+
+        // Suspend the login/print-task poll while this panel is off screen.
+        //
+        // RefreshLoginStatus() pushes JS into m_browser / m_browserMW on every
+        // tick (ShowUserPrintTask, and the Makerworld/Makerlab updates on a
+        // status change) and additionally calls get_login_info(). On macOS each
+        // evaluateJavaScript on a hidden WKWebView cancels that WebContent
+        // process's ProcessThrottler suspension, so a 2 s poll against a panel
+        // nobody is looking at keeps the WebContent, GPU and Networking helper
+        // processes awake for the whole life of the application, with the
+        // associated GPU priority churn. Nothing it computes is observable while
+        // hidden, so there is no reason to run it.
+        //
+        // Refresh once immediately on becoming visible, otherwise the panel
+        // could show login/task state up to one interval stale — previously the
+        // poll had already run while hidden, so the state was warm on show.
+        if (m_LoginUpdateTimer != nullptr) {
+            if (e.IsShown()) {
+                if (!m_LoginUpdateTimer->IsRunning())
+                    m_LoginUpdateTimer->Start(LOGIN_INFO_UPDATE_INTERVAL_MS);
+                RefreshLoginStatus();
+            } else {
+                m_LoginUpdateTimer->Stop();
+            }
+        }
     });
  }
 
@@ -711,6 +740,14 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
 }
 
 void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
+{
+    RefreshLoginStatus();
+}
+
+// Body of the former OnFreshLoginStatus, unchanged. Split out so the wxEVT_SHOW
+// handler can refresh once on becoming visible without synthesising a
+// wxTimerEvent; the timer event argument was never used.
+void WebViewPanel::RefreshLoginStatus()
 {
     //wxString mwnow = m_browserMW->GetCurrentURL();
 
@@ -1870,7 +1907,11 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
     if (m_LoginUpdateTimer == nullptr) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Create Timer";
         m_LoginUpdateTimer = new wxTimer(this, LOGIN_INFO_UPDATE_TIMER_ID);
-        m_LoginUpdateTimer->Start(2000);
+        // Only start polling if the panel is actually visible; if a script
+        // message arrives while it is hidden, the wxEVT_SHOW handler starts the
+        // timer when it next becomes visible.
+        if (IsShownOnScreen())
+            m_LoginUpdateTimer->Start(LOGIN_INFO_UPDATE_INTERVAL_MS);
     }
 
     if (wxGetApp().get_mode() == comDevelop)
