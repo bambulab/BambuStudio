@@ -249,7 +249,7 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type)
         "Polymaker", "OVERTURE", "Kexcelled", "HATCHBOX", "eSUN", "SUNLU", "Prusament",
         "Creality", "Protopasta", "Anycubic", "Basf", "ELEGOO", "INLAND", "FLASHFORGE",
         "FusRock", "AMOLEN", "MIKA3D", "3DXTECH", "Duramic", "Priline", "Eryone",
-        "3Dgenius", "Novamaker", "Justmaker", "Giantarm", "iProspect", "LDO"
+        "3Dgenius", "Novamaker", "Justmaker", "Giantarm", "iProspect", "LDO", "KINGROON"
     };
     json vendors = json::array();
     for (const auto &v : s_filament_vendors) vendors.push_back(v);
