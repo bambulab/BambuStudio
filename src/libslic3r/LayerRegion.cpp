@@ -177,6 +177,14 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
         g.process_arachne();
     else
         g.process_classic();
+
+    // Wave overhangs: hand this region's footprint to the layer, where detect_surfaces_type()
+    // and the support generator read it. Regions within a layer are processed sequentially,
+    // so appending here is safe under the parallel loop over layers.
+    if (! g.out_wave_overhang_floor_polygons.empty())
+        append(this->layer()->wave_overhang_floor_polygons, std::move(g.out_wave_overhang_floor_polygons));
+    if (! g.out_wave_overhang_covered_polygons.empty())
+        append(this->layer()->wave_overhang_covered_polygons, std::move(g.out_wave_overhang_covered_polygons));
 }
 
 
