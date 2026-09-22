@@ -1,15 +1,21 @@
 #!/bin/bash
 
-export ROOT=$(echo $ROOT | grep . || pwd)
+set -euo pipefail
+
+export ROOT=$(echo "${ROOT:-}" | grep . || pwd)
 export NCORES=`nproc --all`
 
-while getopts ":ih" opt; do
+while getopts ":irh" opt; do
   case ${opt} in
     i )
         export BUILD_IMAGE="1"
         ;;
-    h ) echo "Usage: ./BuildLinuxImage.sh [-i]"
+    r )
+        export BUILD_RPM="1"
+        ;;
+    h ) echo "Usage: ./BuildLinuxImage.sh [-i] [-r]"
         echo "   -i: Generate Appimage (optional)"
+        echo "   -r: Generate self-contained RPM package (optional)"
         exit 0
         ;;
   esac
@@ -31,6 +37,12 @@ echo -n "[9/9] Generating Linux app..."
     cp -Rf ../resources package/resources
     cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
     cp -f src/*.so* package/bin/
+    if command -v patchelf >/dev/null 2>&1; then
+        patchelf --set-rpath '$ORIGIN' package/bin/@SLIC3R_APP_CMD@
+    else
+        echo "ERROR: patchelf is required to remove build paths from Linux packages." >&2
+        exit 1
+    fi
     # remove unneeded po from resources
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
@@ -49,13 +61,20 @@ EOF
 
     chmod ug+x @SLIC3R_APP_CMD@
     cp -f @SLIC3R_APP_CMD@ package/@SLIC3R_APP_CMD@
+    chmod 755 package/@SLIC3R_APP_CMD@
     pushd package
     tar -cvf ../@SLIC3R_APP_KEY@.tar .  &>/dev/null
     popd
 #} &> $ROOT/Build.log # Capture all command output
 echo "done"
 
-if [[ -n "$BUILD_IMAGE" ]]
+if [[ -n "${BUILD_RPM:-}" ]]
+then
+chmod 755 "@CMAKE_CURRENT_BINARY_DIR@/build_rpm.sh"
+    "@CMAKE_CURRENT_BINARY_DIR@/build_rpm.sh" "$ROOT/build/package"
+fi
+
+if [[ -n "${BUILD_IMAGE:-}" ]]
 then
 echo -n "Creating Appimage for distribution..."
 #{

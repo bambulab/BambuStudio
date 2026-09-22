@@ -1,0 +1,88 @@
+#!/bin/bash
+
+set -euo pipefail
+
+PACKAGE_DIR="${1:-}"
+OUTPUT_DIR="@CMAKE_BINARY_DIR@"
+RPM_ROOT="${OUTPUT_DIR}/rpm"
+SPEC_FILE="${RPM_ROOT}/SPECS/bambu-studio.spec"
+VERSION="@SLIC3R_VERSION@"
+
+if [[ -z "${PACKAGE_DIR}" || ! -x "${PACKAGE_DIR}/bin/@SLIC3R_APP_CMD@" ]]; then
+    echo "ERROR: RPM payload is missing from '${PACKAGE_DIR}'." >&2
+    exit 1
+fi
+
+if ! command -v rpmbuild >/dev/null 2>&1; then
+    echo "ERROR: rpmbuild is required. On Fedora, run './BuildLinux.sh -u'." >&2
+    exit 1
+fi
+
+rm -rf "${RPM_ROOT}"
+mkdir -p "${RPM_ROOT}"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS,tmp}
+
+cat > "${SPEC_FILE}" <<EOF
+Name:           bambu-studio
+Version:        ${VERSION}
+Release:        1%{?dist}
+Summary:        Desktop application for Bambu Lab 3D printers
+License:        AGPL-3.0-or-later
+URL:            https://github.com/bambulab/BambuStudio
+
+%description
+Bambu Studio is a desktop slicing application for Bambu Lab 3D printers.
+This package keeps the application and its bundled libraries under
+/opt/BambuStudio and provides system desktop integration.
+
+%prep
+
+%build
+
+%install
+BUILDROOT_DIR="%{buildroot}"
+mkdir -p "\${BUILDROOT_DIR}/opt/BambuStudio"
+cp -a "%{_payloaddir}/." "\${BUILDROOT_DIR}/opt/BambuStudio/"
+chmod 755 "\${BUILDROOT_DIR}/opt/BambuStudio/@SLIC3R_APP_CMD@"
+
+mkdir -p "\${BUILDROOT_DIR}%{_bindir}"
+ln -s ../../opt/BambuStudio/@SLIC3R_APP_CMD@ "\${BUILDROOT_DIR}%{_bindir}/@SLIC3R_APP_CMD@"
+
+mkdir -p "\${BUILDROOT_DIR}%{_datadir}/applications"
+install -m 0644 "@CMAKE_SOURCE_DIR@/src/platform/unix/BambuStudio.desktop" \
+    "\${BUILDROOT_DIR}%{_datadir}/applications/BambuStudio.desktop"
+
+for size in 32 128 192; do
+    mkdir -p "\${BUILDROOT_DIR}%{_datadir}/icons/hicolor/\${size}x\${size}/apps"
+    install -m 0644 "@CMAKE_SOURCE_DIR@/resources/images/BambuStudio_\${size}px.png" \
+        "\${BUILDROOT_DIR}%{_datadir}/icons/hicolor/\${size}x\${size}/apps/BambuStudio.png"
+done
+
+mkdir -p "\${BUILDROOT_DIR}%{_licensedir}/%{name}"
+install -m 0644 "@CMAKE_SOURCE_DIR@/LICENSE" "\${BUILDROOT_DIR}%{_licensedir}/%{name}/LICENSE"
+
+%files
+/opt/BambuStudio
+%{_bindir}/@SLIC3R_APP_CMD@
+%{_datadir}/applications/BambuStudio.desktop
+%{_datadir}/icons/hicolor/*/apps/BambuStudio.png
+%license %{_licensedir}/%{name}/LICENSE
+
+%changelog
+* Tue Sep 22 2026 Bambu Studio contributors <support@bambulab.com> - ${VERSION}-1
+- Automated self-contained package build
+EOF
+
+rpmbuild -bb \
+    --define "_topdir ${RPM_ROOT}" \
+    --define "_tmppath ${RPM_ROOT}/tmp" \
+    --define "_payloaddir ${PACKAGE_DIR}" \
+    "${SPEC_FILE}"
+
+RPM_FILE="$(find "${RPM_ROOT}/RPMS" -type f -name '*.rpm' -print -quit)"
+if [[ -z "${RPM_FILE}" ]]; then
+    echo "ERROR: rpmbuild completed without producing an RPM." >&2
+    exit 1
+fi
+
+cp -f "${RPM_FILE}" "${OUTPUT_DIR}/"
+echo "RPM package: ${OUTPUT_DIR}/$(basename "${RPM_FILE}")"

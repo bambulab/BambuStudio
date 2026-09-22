@@ -890,6 +890,9 @@ endif()
 if (NOT WIN32 AND NOT APPLE)
     set(SLIC3R_APP_CMD "bambu-studio")
     configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh @ONLY)
+    # BuildLinuxImage.sh is generated in the src binary directory and invokes
+    # the RPM helper from there as well.
+    configure_file(${LIBDIR}/platform/unix/build_rpm.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/build_rpm.sh @ONLY)
 endif()
 
 option(BUILD_BBS_TEST_TOOLS          "Build bbs test tools" OFF)
