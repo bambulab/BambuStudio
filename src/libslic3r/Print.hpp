@@ -1209,6 +1209,11 @@ private:
 
     void                _make_skirt();
     void                _make_wipe_tower();
+    // By-layer printing without a shared prime tower, single-nozzle only: flush_into_objects/
+    // flush_into_infill/flush_into_support otherwise have no effect at all, since the only code
+    // that marks purge-eligible entities is normally reached from inside _make_wipe_tower(). This
+    // is that same allocation, run standalone against m_tool_ordering instead of a WipeTower.
+    void                _mark_flush_into_objects_without_tower();
     // Vertical clearance against the compacted wipe tower, see wipe_tower_no_sparse_layers.
     void                validate_compacted_wipe_tower_clearance() const;
     void                finalize_first_layer_convex_hull();

@@ -1123,8 +1123,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : {"prime_tower_extra_rib_length", "prime_tower_rib_width", "prime_tower_fillet_wall"})
         toggle_line(el, have_rib_wall);
     toggle_field("prime_tower_width", !have_rib_wall);
-    for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})
-        toggle_field(el, have_prime_tower);
+    // flush_into_infill/support/objects no longer require a prime tower: on a single-nozzle
+    // machine Print::_mark_flush_into_objects_without_tower() diverts purge volume into these
+    // objects regardless (multi-nozzle machines still need the tower for this, same as before).
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
