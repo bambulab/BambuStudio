@@ -18,15 +18,6 @@ namespace Slic3r { namespace GUI {
 
 namespace {
 
-wxColour parse_hex_color(const std::string& hex)
-{
-    if (hex.empty()) return wxColour(0x63, 0x63, 0x63);
-    wxString s = wxString::FromUTF8(hex);
-    if (!s.StartsWith("#")) s = "#" + s;
-    wxColour c(s);
-    return c.IsOk() ? c : wxColour(0x63, 0x63, 0x63);
-}
-
 std::vector<wxColour> spool_colors(const FilamentSpool& sp)
 {
     std::vector<wxColour> out;
