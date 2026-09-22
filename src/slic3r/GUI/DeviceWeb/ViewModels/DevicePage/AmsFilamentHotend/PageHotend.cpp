@@ -218,7 +218,6 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
     nlohmann::json bind_ams = nlohmann::json::array();
     nlohmann::json ams_operation_units = nlohmann::json::array();
-    int bind_ams_slot_count = 0;
     if (machine_obj && machine_obj->GetNozzleSystem() && machine_obj->GetFilaSystem()) {
         const auto& rack_nozzle = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
         if (rack_nozzle.has_value()) {
@@ -226,7 +225,6 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
                 const std::string bind_ams_id_str = std::to_string(bind_ams_id);
                 const DevAms* bind_ams_unit = machine_obj->GetFilaSystem()->GetAmsById(bind_ams_id_str);
                 const int slot_count = bind_ams_unit ? bind_ams_unit->GetSlotCount() : 0;
-                bind_ams_slot_count += slot_count;
                 bind_ams.push_back({
                     {SK::bind_ams::ams_id, bind_ams_id_str},
                     {SK::bind_ams::ams_type, bind_ams_unit ? std::to_string((int)bind_ams_unit->GetAmsType()) : ""},
@@ -236,6 +234,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
             }
         }
     }
+    // Number of AMS units bound to this nozzle, not their combined slot count.
+    const int bind_ams_count = static_cast<int>(bind_ams.size());
 
     std::string slot_filament_name;
     std::string slot_filament_type;
@@ -262,10 +262,15 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     nlohmann::json hotend = nlohmann::json::object();
     nlohmann::json hotend_detail_dialog;
     if (rack_nozzle_opt.has_value()) {
-        const bool has_tool = has_hotend_slot && rack_nozzle_opt->IsToolConnected();
-        const auto tool_defs = has_tool ? rack_nozzle_opt->GetToolDefs() : DevNozzleToolDefs();
-        const bool is_nozzle_tool = tool_defs.tool_type == DevNozzleToolType::Nozzle;
         const bool is_on_extruder = IsNozzleOnExtruder(machine_obj, addr_id);
+        // Holder connection clears once the nozzle is mounted on the extruder.
+        // Diameter and flow still live on that nozzle object, so a taken slot
+        // can show "0.4 mm" / "Std" instead of an empty tool.
+        const bool has_tool = has_hotend_slot && rack_nozzle_opt->IsToolConnected();
+        const auto tool_defs = (has_tool || is_on_extruder)
+            ? rack_nozzle_opt->GetToolDefs()
+            : DevNozzleToolDefs();
+        const bool is_nozzle_tool = tool_defs.tool_type == DevNozzleToolType::Nozzle;
         const bool has_read_detail = has_tool && !rack_nozzle_opt->IsUnknown();
         const std::string serial_number = has_read_detail ? wx_to_utf8(rack_nozzle_opt->GetSerialNumber()) : "";
         std::optional<DevFirmwareVersionInfo> firmware;
@@ -474,7 +479,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_slot::ams_id, ams_id},
         {SK::filament_slot::slot_id, tray_id},
         {SK::filament_slot::bind_ams, bind_ams},
-        {SK::filament_slot::bind_ams_slot_count, bind_ams_slot_count},
+        {SK::filament_slot::bind_ams_count, bind_ams_count},
         {SK::filament_slot::enabled, has_hotend_slot},
         {SK::filament_slot::is_on_extruder, is_on_extruder},
         {SK::filament_slot::is_external_spool, is_external_spool},
@@ -482,7 +487,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_slot::menu_actions, menu_actions},
         {SK::filament_slot::hotend_menu_actions, hotend_menu_actions},
         {SK::filament_slot::ams_operation, {
-            {SK::ams_operation::available, bind_ams_slot_count > 0},
+            {SK::ams_operation::available, bind_ams_count > 0},
             {SK::ams_ext_operation_slot::units, ams_operation_units}
         }},
         {SK::filament_slot::filament_card, card_section},

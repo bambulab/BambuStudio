@@ -3,12 +3,14 @@ import { useTranslation } from 'react-i18next';
 import type {
   AmsFilamentHotendSlotActionPayload,
   AmsFilamentHotendSlotViewModel,
+  FilamentNozzleInfo,
   HotendOpState,
   HotendSlotViewModel,
   HotendToolKind,
 } from '../types';
+import { STANDBY_COLOR, visibleFilamentColor } from '../visibleFilamentColor';
+import { useNozzleImage } from '../nozzleFilamentImage';
 
-import hotendNozzleUrl        from '../assets/hotend_nozzle.png';
 import hotendNozzleErrUrl     from '../assets/hotend_nozzle_err.png';
 import hotendNozzleLostUrl    from '../assets/hotend_nozzle_lost.png';
 import hotendNozzleUnknownUrl from '../assets/hotend_nozzle_unknow.png';
@@ -17,6 +19,23 @@ import hotendForbiddenUrl     from '../assets/hotend_forbidden.svg';
 import hotendPlacingArrowUrl  from '../assets/hotend_placing_arrow.svg';
 import hotendTakenUrl         from '../assets/hotend_taken.svg';
 import hotendReadingArcUrl    from '../assets/hotend_reading_arc.png';
+
+// `#D9D9D9` is the C++ sentinel for "colour unknown"; it renders as standby grey.
+const UNKNOWN_COLOR_SENTINEL = '#D9D9D9';
+
+// Colour of the filament sitting inside the nozzle, or standby grey when the
+// nozzle is empty or its colour has not been read yet. The swatch must stay
+// opaque: it paints over the green bar baked into the nozzle asset, which
+// would otherwise show through a translucent filament colour.
+function nozzleFilamentColor(nozzle?: FilamentNozzleInfo): string {
+  const color = nozzle?.filament_color?.trim();
+  if (!nozzle?.has_filament || !color) return STANDBY_COLOR;
+  const rgb = /^#?([0-9a-fA-F]{6})/.exec(color);
+  if (!rgb) return STANDBY_COLOR;
+  const opaque = `#${rgb[1]}`;
+  if (opaque.toLowerCase() === UNKNOWN_COLOR_SENTINEL.toLowerCase()) return STANDBY_COLOR;
+  return visibleFilamentColor(opaque);
+}
 
 export function HotendCard({
   slot,
@@ -177,7 +196,13 @@ export function HotendCard({
           <div className="hotend-readout hotend-readout-empty" aria-hidden="true" />
         )}
 
-        <ToolIcon kind={hot.tool_kind ?? 'empty'} op={op} withError={op === 'Error'} taken={isTaken} />
+        <ToolIcon
+          kind={hot.tool_kind ?? 'empty'}
+          op={op}
+          withError={op === 'Error'}
+          taken={isTaken}
+          filamentColor={nozzleFilamentColor(slot.filament_nozzle)}
+        />
 
         <ToolLabel
           kind={hot.tool_kind ?? 'empty'}
@@ -352,11 +377,13 @@ function ToolIcon({
   op,
   withError,
   taken,
+  filamentColor,
 }: {
   kind: HotendToolKind;
   op: HotendOpState;
   withError?: boolean;
   taken?: boolean;
+  filamentColor: string;
 }) {
   if (op === 'Reading') {
     return (
@@ -417,9 +444,15 @@ function ToolIcon({
       </div>
     );
   }
+  return <NozzleIcon op={op} filamentColor={filamentColor} />;
+}
+
+function NozzleIcon({ op, filamentColor }: { op: HotendOpState; filamentColor: string }) {
+  // The asset bakes in a green filament bar; swap it for the real colour.
+  const nozzleSrc = useNozzleImage(filamentColor);
   return (
     <div className="hotend-tool-icon-wrap hotend-icon-nozzle-wrap">
-      <img className="hotend-icon-nozzle" src={hotendNozzleUrl} width={36} height={42} alt="nozzle" />
+      <img className="hotend-icon-nozzle" src={nozzleSrc} width={36} height={42} alt="nozzle" />
       {(op === 'Placing' || op === 'Taking') && (
         <img className="hotend-placing-arrow" src={hotendPlacingArrowUrl} width={9} height={32} alt="placing" />
       )}
@@ -441,9 +474,9 @@ function ToolLabel({
   taken?: boolean;
 }) {
   const isMuted = taken || kind === 'empty' || kind === 'unknown' || op === 'Reading' || op === 'Unknown';
-  // Taken / Unknown: no reliable label — always show "--/--".
-  const primary = (taken || op === 'Unknown') ? '--' : (label ?? (isMuted ? '--' : ''));
-  const secondary = (taken || op === 'Unknown') ? '--' : (subtext ?? (isMuted ? '--' : ''));
+  // Unknown has no reliable spec. Taken slots still show diameter / flow when present.
+  const primary = op === 'Unknown' ? '--' : (label ?? (isMuted ? '--' : ''));
+  const secondary = op === 'Unknown' ? '--' : (subtext ?? (isMuted ? '--' : ''));
   return (
     <div className={`hotend-tool-label${isMuted ? ' muted' : ''}`}>
       <div className="hotend-tool-name">{primary || '\u00A0'}</div>

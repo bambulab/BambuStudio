@@ -17,7 +17,7 @@
   "AMS Settings": "AMS 设置",
   "Are you sure to permanently delete the selected filaments? This action cannot be undone.": "确认要永久删除所选耗材吗？此操作无法撤销。",
   "Are you sure to permanently delete this filament? This action cannot be undone.": "确认要永久删除该耗材吗？此操作无法撤销。",
-  "Associated AMS slots: {{count}}": "关联 AMS 槽位：{{count}}",
+  "Associated AMS: {{count}}": "关联 AMS：{{count}}",
   "Associated filament": "关联耗材",
   "Auto-refill": "自动续料管理",
   "Auto-refill management": "自动续料管理",

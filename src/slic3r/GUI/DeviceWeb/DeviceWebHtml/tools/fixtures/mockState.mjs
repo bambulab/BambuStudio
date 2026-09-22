@@ -34,17 +34,19 @@ const buildSlot = (seed) => {
     display_index: seed.display_index,
     ams_id: '0',
     slot_id: String(seed.display_index - 1),
-    bind_ams: seed.bind_ams_slot_count
-      ? [{ ams_id: '0', ams_type: 'ZMULTI_A', slot_count: seed.bind_ams_slot_count }]
-      : [],
-    bind_ams_slot_count: seed.bind_ams_slot_count ?? 0,
+    bind_ams: Array.from({ length: seed.bind_ams_count ?? 0 }, (_, i) => ({
+      ams_id: String(i),
+      ams_type: 'ZMULTI_A',
+      slot_count: 4,
+    })),
+    bind_ams_count: seed.bind_ams_count ?? 0,
     menu_actions: {
       can_edit: seed.card_state !== 'Empty',
       can_load: lineFor(seed.card_state) === 'no_filament' && seed.card_state !== 'Empty',
       can_unload: lineFor(seed.card_state) === 'loaded',
       can_read: seed.card_state !== 'Reading' && seed.card_state !== 'Empty',
       read_label: seed.card_state === 'Unknown' ? 'Read' : 'Reread',
-      can_ams_operation: (seed.bind_ams_slot_count ?? 0) > 0,
+      can_ams_operation: (seed.bind_ams_count ?? 0) > 0,
     },
     filament_card: {
       state: seed.card_state,
@@ -153,7 +155,7 @@ const slotSeeds = [
   { display_index: 2, card_state: 'Reading', status_text: 'Reading', hotend: mockHotend(2) },
   { display_index: 3, card_state: 'ReadyToLoad', filament_name: 'PLA Basic', status_text: 'Ready to load', color: '#00AE42', new_filament_hint: true, hotend: mockHotend(3) },
   { display_index: 4, card_state: 'Empty', status_text: '--', hotend: mockHotend(4) },
-  { display_index: 5, card_state: 'ReadyToUse', filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', bind_ams_slot_count: 4, filament_remain: 35, ams_operation: { available: true }, hotend: mockHotend(5) },
+  { display_index: 5, card_state: 'ReadyToUse', filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', bind_ams_count: 2, filament_remain: 35, ams_operation: { available: true }, hotend: mockHotend(5) },
   { display_index: 6, card_state: 'ReadyToUse', filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', filament_remain: 75, hotend: mockHotend(6) },
   { display_index: 7, card_state: 'ReadyToUse', filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', hotend: mockHotend(7) },
   { display_index: 8, card_state: 'ReadyToUse', filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', filament_remain: 10, hotend: mockHotend(8) },

@@ -942,7 +942,7 @@
       canLoad: pick(m && m.can_load, lineState === 'no_filament' && cardState !== 'Empty'),
       canUnload: pick(m && m.can_unload, lineState === 'loaded'),
       canRead: pick(m && m.can_read, cardState !== 'Reading' && cardState !== 'Empty'),
-      canAmsOperation: pick(m && m.can_ams_operation, pick(slot.bind_ams_slot_count, 0) > 0),
+      canAmsOperation: pick(m && m.can_ams_operation, pick(slot.bind_ams_count, 0) > 0),
       readLabel: pick(m && m.read_label, 'Read'),
     };
   }

@@ -361,9 +361,9 @@
     if (slot.selected || isTransporting) cls.push('selected');
     if (slot.is_running) cls.push('running');
     if (!slot.enabled) cls.push('disabled');
-    var bindCount = slot.bind_ams_slot_count === undefined || slot.bind_ams_slot_count === null
+    var bindCount = slot.bind_ams_count === undefined || slot.bind_ams_count === null
       ? 0
-      : slot.bind_ams_slot_count;
+      : slot.bind_ams_count;
 
     return el('span', { class: 'card-index-row' }, [
       el('span', {
@@ -382,7 +382,7 @@
       bindCount > 0
         ? el('span', {
             class: 'ams-bind-badge',
-            title: t('Associated AMS slots: {{count}}', { count: bindCount }),
+            title: t('Associated AMS: {{count}}', { count: bindCount }),
           }, [
             renderAmsBindIcon(),
             el('span', { text: '+' + bindCount }),

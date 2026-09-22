@@ -39,6 +39,7 @@ export function DryerChamberDecoration({
 }
 
 export function DryerInfo({ humidity, status }: { humidity: number; status: string }) {
+  const statusText = status || 'Idle';
   return (
     <div className="dryer-info" aria-label="dryer humidity and status">
       <div className="dryer-info-row">
@@ -50,7 +51,8 @@ export function DryerInfo({ humidity, status }: { humidity: number; status: stri
       </div>
       <div className="dryer-info-row">
         <DryingIcon />
-        <span className="dryer-text">{status || 'Idle'}</span>
+        {/* Long localized statuses are ellipsized; keep the full text on hover. */}
+        <span className="dryer-text" title={statusText}>{statusText}</span>
       </div>
     </div>
   );

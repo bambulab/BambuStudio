@@ -83,7 +83,7 @@ test.describe('AMS filament hotend page', () => {
                   ams_id: '',
                   slot_id: '',
                   bind_ams: [{ ams_id: '0', ams_type: 'ZMULTI_A', slot_count: 8 }],
-                  bind_ams_slot_count: 8,
+                  bind_ams_count: 1,
                   is_top_tier: false,
                   enabled: true,
                   filament_card: {
@@ -156,7 +156,7 @@ test.describe('AMS filament hotend page', () => {
                   ams_id: '0',
                   slot_id: '0',
                   bind_ams: [],
-                  bind_ams_slot_count: 0,
+                  bind_ams_count: 0,
                   is_top_tier: false,
                   enabled: true,
                   filament_card: {
@@ -423,7 +423,7 @@ test.describe('AMS filament hotend page', () => {
                     ams_id: '255',
                     slot_id: '0',
                     bind_ams: [],
-                    bind_ams_slot_count: 0,
+                    bind_ams_count: 0,
                     is_top_tier: false,
                     enabled: true,
                     is_external_spool: true,

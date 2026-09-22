@@ -131,7 +131,8 @@ export interface AmsFilamentHotendSlotViewModel {
     ams_type?: string;
     slot_count: number;
   }>;
-  bind_ams_slot_count?: number;
+  /** Number of AMS units bound to this nozzle (not their combined slot count). */
+  bind_ams_count?: number;
   is_top_tier: boolean;
   enabled: boolean;
   menu_actions?: {
@@ -212,6 +213,8 @@ export interface HotendSlotViewModel {
   };
   /** True when this rack nozzle is mounted on the extruder; Web shows Taken UX. */
   taken?: boolean;
+  /** Filament inside the nozzle; the card tints the nozzle filament with it. */
+  filament_nozzle?: FilamentNozzleInfo;
   hotend: HotendSlotInfo;
   hotend_detail_dialog?: HotendDetailDialogInfo;
 }
@@ -449,7 +452,7 @@ export interface AmsExtOperationSlotViewModel {
     ams_type?: string;
     slot_count: number;
   }>;
-  bind_ams_slot_count?: number;
+  bind_ams_count?: number;
   units: AmsUnitInfo[];
 }
 

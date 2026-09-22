@@ -17,7 +17,7 @@ export function resolveCardMenuFlags(slot: AmsFilamentHotendSlotViewModel) {
     canLoad: m?.can_load ?? (lineState === 'no_filament' && cardState !== 'Empty'),
     canUnload: m?.can_unload ?? lineState === 'loaded',
     canRead: m?.can_read ?? (cardState !== 'Reading' && cardState !== 'Empty'),
-    canAmsOperation: m?.can_ams_operation ?? (slot.bind_ams_slot_count ?? 0) > 0,
+    canAmsOperation: m?.can_ams_operation ?? (slot.bind_ams_count ?? 0) > 0,
     readLabel: m?.read_label ?? 'Read',
   };
 }

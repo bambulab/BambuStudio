@@ -313,6 +313,32 @@
   gap: 3px;
   font-size: 12px;
   line-height: 16px;
+  min-width: 0;
+}
+
+/* The readout sits in the chamber tail, which is a fixed 60px past the last
+   column (see DryerChamber.tsx: the chamber ends at `--chamber-right` + 56px
+   and the last card ends at `--chamber-right` - 4px). Anything wider slides
+   under the slot card, which is opaque and stacks above the chamber, so a long
+   localized status (e.g. Dutch "Inactief") would hide the icons. Cap the chip
+   at the tail minus the chamber's right padding and ellipsize the status. */
+.dryer-chamber-bg .dryer-info {
+  max-width: 54px;
+  margin-left: 0;
+  padding: 4px 0;
+  box-sizing: border-box;
+}
+
+/* Use the 16px icon variant here (same size as the ambient chip) so the narrow
+   tail leaves more room for the localized status. */
+.dryer-chamber-bg .dryer-info-row .ams-env-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Humidity is short and must stay readable; only the status may be clipped. */
+.dryer-chamber-bg .dryer-value {
+  flex: 0 0 auto;
 }
 
 .dryer-info-row svg {
@@ -332,6 +358,10 @@
 
 .dryer-text {
   font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Icons exported from the interaction design. The humidity droplet keeps its

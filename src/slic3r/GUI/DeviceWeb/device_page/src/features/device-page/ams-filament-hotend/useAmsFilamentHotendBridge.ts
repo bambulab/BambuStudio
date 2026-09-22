@@ -146,7 +146,7 @@ export function useAmsFilamentHotendBridge() {
         ams_id: slot.ams_id,
         slot_id: slot.slot_id,
         // Present only on filament-tab slots.
-        bind_ams_slot_count: 'bind_ams_slot_count' in slot ? (slot.bind_ams_slot_count ?? 0) : 0,
+        bind_ams_count: 'bind_ams_count' in slot ? (slot.bind_ams_count ?? 0) : 0,
         ...extraPayload,
       }
       : extraPayload;

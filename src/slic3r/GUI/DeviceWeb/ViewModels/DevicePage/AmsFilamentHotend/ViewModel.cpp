@@ -421,7 +421,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         SK::filament_slot::ams_id,
         SK::filament_slot::slot_id,
         SK::filament_slot::bind_ams,
-        SK::filament_slot::bind_ams_slot_count,
+        SK::filament_slot::bind_ams_count,
         SK::filament_slot::enabled,
         SK::filament_slot::is_external_spool,
         SK::filament_slot::is_top_tier,
@@ -496,6 +496,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             {SK::hotend_slot::enabled,       full_slot.value(SK::filament_slot::enabled,        false)},
             {SK::hotend_slot::taken,         full_slot.value(SK::filament_slot::is_on_extruder, false)},
             {SK::hotend_slot::menu_actions,  full_slot.value(SK::filament_slot::hotend_menu_actions, nlohmann::json::object())},
+            {SK::hotend_slot::filament_nozzle, full_slot.value(SK::filament_slot::filament_nozzle, nlohmann::json::object())},
             {SK::hotend_slot::hotend,        full_slot.value(SK::filament_slot::hotend,         nlohmann::json::object())},
             {SK::hotend_slot::hotend_detail_dialog, full_slot.value(SK::filament_slot::hotend_detail_dialog, nlohmann::json::object())}
         };
@@ -509,7 +510,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
                 full_slot.value(SK::filament_slot::ams_id, std::string()),
                 full_slot.value(SK::filament_slot::slot_id, std::string()),
                 bind_ams_from_json(full_slot.value(SK::filament_slot::bind_ams, nlohmann::json::array())),
-                full_slot.value(SK::filament_slot::bind_ams_slot_count, 0),
+                full_slot.value(SK::filament_slot::bind_ams_count, 0),
                 ams_operation.value(SK::ams_ext_operation_slot::units, nlohmann::json::array())
             });
         }

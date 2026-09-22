@@ -16,7 +16,7 @@ namespace filament_slot {
     inline constexpr const char* ams_id              = "ams_id";
     inline constexpr const char* slot_id             = "slot_id";
     inline constexpr const char* bind_ams            = "bind_ams";
-    inline constexpr const char* bind_ams_slot_count = "bind_ams_slot_count";
+    inline constexpr const char* bind_ams_count = "bind_ams_count";
     inline constexpr const char* enabled             = "enabled";
     inline constexpr const char* is_external_spool   = "is_external_spool";
     inline constexpr const char* is_top_tier         = "is_top_tier";

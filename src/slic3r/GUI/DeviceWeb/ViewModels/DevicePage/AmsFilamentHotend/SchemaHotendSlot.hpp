@@ -14,6 +14,9 @@ namespace hotend_slot {
     // Hotend tab card shows a "Taken" state instead of the live temperature.
     inline constexpr const char* taken         = "taken";
     inline constexpr const char* menu_actions  = "menu_actions";
+    // Same render group as the Filament tab; the Hotend card only reads
+    // has_filament / filament_color to tint the filament inside the nozzle.
+    inline constexpr const char* filament_nozzle = "filament_nozzle";
     inline constexpr const char* hotend        = "hotend";
     inline constexpr const char* hotend_detail_dialog = "hotend_detail_dialog";
 }

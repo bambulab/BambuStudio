@@ -276,7 +276,7 @@ console.log('business protocol');
   sent.length = 0;
 
   sandbox.BBL.store.runSlotAction('load', {
-    addr_id: 3, display_index: 4, ams_id: '0', slot_id: '3', bind_ams_slot_count: 4,
+    addr_id: 3, display_index: 4, ams_id: '0', slot_id: '3', bind_ams_count: 2,
   });
   await tick();
   const slotPkt = sent[sent.length - 1];
@@ -284,7 +284,7 @@ console.log('business protocol');
     slotPkt.body.submod === 'action' && slotPkt.body.action === 'load');
   check('slot action payload carries the slot identity',
     slotPkt.body.payload.ams_id === '0' && slotPkt.body.payload.slot_id === '3' &&
-    slotPkt.body.payload.display_index === 4 && slotPkt.body.payload.bind_ams_slot_count === 4);
+    slotPkt.body.payload.display_index === 4 && slotPkt.body.payload.bind_ams_count === 2);
 
   sent.length = 0;
   sandbox.BBL.store.runBatchAction('batch_unload',

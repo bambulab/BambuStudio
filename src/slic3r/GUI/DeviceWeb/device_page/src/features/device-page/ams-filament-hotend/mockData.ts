@@ -20,7 +20,7 @@ interface SlotSeed {
   is_external_spool?: boolean;
   line_state?: AmsFilamentHotendLineState;
   nozzle_state?: AmsFilamentHotendNozzleState;
-  bind_ams_slot_count?: number;
+  bind_ams_count?: number;
   filament_remain?: number;
   ams_operation?: AmsFilamentHotendSlotViewModel['ams_operation'];
   hotend?: HotendSlotInfo;
@@ -66,15 +66,19 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
     display_index: seed.display_index,
     ams_id: '0',
     slot_id: String(seed.display_index - 1),
-    bind_ams: seed.bind_ams_slot_count ? [{ ams_id: '0', ams_type: 'ZMULTI_A', slot_count: seed.bind_ams_slot_count }] : [],
-    bind_ams_slot_count: seed.bind_ams_slot_count ?? 0,
+    bind_ams: Array.from({ length: seed.bind_ams_count ?? 0 }, (_, i) => ({
+      ams_id: String(i),
+      ams_type: 'ZMULTI_A',
+      slot_count: 4,
+    })),
+    bind_ams_count: seed.bind_ams_count ?? 0,
     menu_actions: {
       can_edit: seed.card_state !== 'Empty',
       can_load: lineFor(seed.card_state) === 'no_filament' && seed.card_state !== 'Empty',
       can_unload: lineFor(seed.card_state) === 'loaded',
       can_read: seed.card_state !== 'Reading' && seed.card_state !== 'Empty',
       read_label: seed.card_state === 'Unknown' ? 'Read' : 'Reread',
-      can_ams_operation: (seed.bind_ams_slot_count ?? 0) > 0,
+      can_ams_operation: (seed.bind_ams_count ?? 0) > 0,
     },
     filament_card: {
       state: seed.card_state,
@@ -127,6 +131,7 @@ const buildHotendSlot = (display_index: number, seed: SlotSeed): HotendSlotViewM
   enabled: true,
   taken: seed.is_on_extruder ?? false,
   menu_actions: hotendMenuActions(seed.hotend),
+  filament_nozzle: buildSlot(seed).filament_nozzle,
   hotend: seed.hotend ?? { op_state: 'Idle', tool_kind: 'empty' },
   hotend_detail_dialog: buildHotendDetail(seed.hotend),
 });
@@ -186,7 +191,7 @@ const slotSeeds: SlotSeed[] = [
     filament_name: 'PLA Basic',
     status_text: 'Loaded',
     color: '#00AE42',
-    bind_ams_slot_count: 4,
+    bind_ams_count: 2,
     filament_remain: 35,
     ams_operation: {
       available: true,
@@ -291,7 +296,7 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
         display_index: 5,
         ams_id: '0',
         slot_id: '0',
-        bind_ams_slot_count: 8,
+        bind_ams_count: 2,
         bind_ams: [
           { ams_id: '32', ams_type: '1', slot_count: 4 },
           { ams_id: '33', ams_type: '1', slot_count: 4 },

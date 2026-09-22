@@ -24,7 +24,7 @@ struct AmsExtOperationSlot
     std::string          ams_id;
     std::string          slot_id;
     std::vector<BindAms> bind_ams;
-    int                  bind_ams_slot_count = 0;
+    int                  bind_ams_count = 0;
     nlohmann::json       units = nlohmann::json::array();
 };
 
@@ -52,7 +52,7 @@ inline void to_json(nlohmann::json& j, const AmsExtOperationSlot& v)
         {SK::ams_ext_operation_slot::ams_id,              v.ams_id},
         {SK::ams_ext_operation_slot::slot_id,             v.slot_id},
         {SK::ams_ext_operation_slot::bind_ams,            v.bind_ams},
-        {SK::ams_ext_operation_slot::bind_ams_slot_count, v.bind_ams_slot_count},
+        {SK::ams_ext_operation_slot::bind_ams_count,      v.bind_ams_count},
         {SK::ams_ext_operation_slot::units,               v.units}
     };
 }

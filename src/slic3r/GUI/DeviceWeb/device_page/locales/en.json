@@ -18,7 +18,7 @@
   "Are you sure to permanently delete the selected filaments? This action cannot be undone.": "Are you sure to permanently delete the selected filaments? This action cannot be undone.",
   "Are you sure to permanently delete this filament? This action cannot be undone.": "Are you sure to permanently delete this filament? This action cannot be undone.",
   "Already exists": "Already exists",
-  "Associated AMS slots: {{count}}": "Associated AMS slots: {{count}}",
+  "Associated AMS: {{count}}": "Associated AMS: {{count}}",
   "Associated filament": "",
   "Auto Load": "Auto Load",
   "Auto-refill": "",

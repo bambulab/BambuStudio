@@ -12,7 +12,7 @@ export function IndexPill({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   if (slot.selected || isTransporting) cls.push('selected');
   if (slot.is_running) cls.push('running');
   if (!slot.enabled) cls.push('disabled');
-  const bindCount = slot.bind_ams_slot_count ?? 0;
+  const bindCount = slot.bind_ams_count ?? 0;
   return (
     <span className="card-index-row">
       <span className={cls.join(' ')} data-testid={`ams-hotend-slot-index-${slot.display_index}`}>
@@ -28,7 +28,7 @@ export function IndexPill({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
         </span>
       )}
       {bindCount > 0 && (
-        <span className="ams-bind-badge" title={t('Associated AMS slots: {{count}}', { count: bindCount })}>
+        <span className="ams-bind-badge" title={t('Associated AMS: {{count}}', { count: bindCount })}>
           <AmsBindIcon />
           <span>+{bindCount}</span>
         </span>

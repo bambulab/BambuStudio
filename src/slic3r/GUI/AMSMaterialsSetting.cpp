@@ -254,7 +254,7 @@ void AMSMaterialsSetting::create()
     m_sizer_main->Add(m_panel_kn, 0, wxEXPAND, 0);
 
     wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_tip_readonly = new Label(this, _L(""));
+    m_tip_readonly = new Label(this, "");
     m_tip_readonly->SetForegroundColour(wxColour("#FF6F00"));
     m_tip_readonly->SetMinSize(wxSize(AMS_MATERIALS_SETTING_TIP_WIDTH, -1));
     m_tip_readonly->SetMaxSize(wxSize(AMS_MATERIALS_SETTING_TIP_WIDTH, -1));
