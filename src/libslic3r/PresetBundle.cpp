@@ -2841,14 +2841,27 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                         maps.erase(j);
                     }
                 }
-                ams_filament_presets.push_back("Generic PLA");//for unknow matieral
-                auto default_unknown_color = "#CECECE";
-                ams_filament_colors.push_back(default_unknown_color);
-                ams_filament_color_types.push_back("1");
-                if (filament_multi_color.size() == 0) {
-                    filament_multi_color.push_back(default_unknown_color);
+                // No RFID reported for this tray. Third-party spools never carry a
+                // filament_id at all, so an empty value here doesn't mean the
+                // physical filament changed -- it's simply unreadable, same as it
+                // was a moment ago. Keep whatever preset (including a manually
+                // customized one) was already assigned to this slot instead of
+                // blindly overwriting it with a hardcoded "Generic PLA" default.
+                if (ams_filament_presets.size() < this->filament_presets.size()) {
+                    ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
+                    ams_filament_colors.push_back(filament_color);
+                    ams_filament_color_types.push_back(filament_color_type);
+                    ams_multi_color_filment.push_back(filament_multi_color);
+                } else {
+                    ams_filament_presets.push_back("Generic PLA");//for unknow matieral
+                    auto default_unknown_color = "#CECECE";
+                    ams_filament_colors.push_back(default_unknown_color);
+                    ams_filament_color_types.push_back("1");
+                    if (filament_multi_color.size() == 0) {
+                        filament_multi_color.push_back(default_unknown_color);
+                    }
+                    ams_multi_color_filment.push_back(filament_multi_color);
                 }
-                ams_multi_color_filment.push_back(filament_multi_color);
             }
             continue;
         }
@@ -2892,6 +2905,23 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             // Every stand-in picked below is approximate by definition -- it is chosen by material type,
             // not by the tray's own id. Which slot a tray finally lands on is only known after the
             // append/overwrite merge, so the slot is flagged at the end of this function rather than here.
+            // Prefer old selection. An exact filament_id match failing doesn't mean
+            // the physical filament changed -- third-party spools routinely report a
+            // filament_id (or just a type) that isn't an exact hit against Bambu's
+            // own catalog even when it's the very same spool as before. Try this
+            // *before* falling back to a generic/random guess, so an existing
+            // (possibly customized) assignment for this slot isn't silently replaced
+            // by "Generic <type>" just because the exact ID didn't match.
+            if (ams_filament_presets.size() < this->filament_presets.size()) {
+                ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
+                ams_filament_colors.push_back(filament_color);
+                ams_filament_color_types.push_back(filament_color_type);
+                ams_multi_color_filment.push_back(filament_multi_color);
+                synced_ams_maps.push_back(temp);
+                unknowns.emplace_back(&ams, has_type ? L("The filament may not be compatible with the current machine settings. Still using the previous filament preset.") :
+                                                       L("The filament model is unknown. Still using the previous filament preset."));
+                continue;
+            }
             if (!filament_type.empty()) {
                 filament_type = "Generic " + filament_type;
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
@@ -2900,17 +2930,6 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 });
             }
             if (iter == filaments.end()) {
-                // Prefer old selection
-                if (ams_filament_presets.size() < this->filament_presets.size()) {
-                    ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
-                    ams_filament_colors.push_back(filament_color);
-                    ams_filament_color_types.push_back(filament_color_type);
-                    ams_multi_color_filment.push_back(filament_multi_color);
-                    synced_ams_maps.push_back(temp);
-                    unknowns.emplace_back(&ams, has_type ? L("The filament may not be compatible with the current machine settings. Generic filament presets will be used.") :
-                                                           L("The filament model is unknown. Still using the previous filament preset."));
-                    continue;
-                }
                 iter = std::find_if(filaments.begin(), filaments.end(), [](auto &f) {
                     return f.is_compatible && f.is_system;
                 });
@@ -2931,7 +2950,33 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         // drops was never synced, so installing its preset here would enable a filament
         // the user asked not to add.
         ams_infos.back().install_preset = &(*iter);
-        ams_filament_presets.push_back(iter->name);
+        // If the slot's currently-assigned preset already matches this exact
+        // filament_id, nothing has actually changed physically -- keep it as-is
+        // rather than reverting to iter's plain default preset. This preserves any
+        // customization (nozzle temp, scarf settings, etc.) the user saved for this
+        // spool instead of silently discarding it on every resync.
+        std::string preset_name_to_use = iter->name;
+        if (ams_filament_presets.size() < this->filament_presets.size()) {
+            if (const Preset *cur = filaments.find_preset(this->filament_presets[ams_filament_presets.size()], false); cur) {
+                if (cur->filament_id == filament_id) {
+                    preset_name_to_use = cur->name;
+                } else {
+                    // A spool with no Bambu RFID (e.g. third-party filament) still
+                    // gets matched here, but only against the printer/AMS's own
+                    // generic fallback ID for that filament type (e.g. "GFG99" /
+                    // Generic PETG) -- a real, valid match, just not a specific
+                    // brand. That's not evidence of an actual filament swap, so
+                    // don't let it downgrade an existing, more specific preset of
+                    // the very same filament type.
+                    auto *iter_vendor = iter->config.option<ConfigOptionStrings>("filament_vendor");
+                    bool  iter_is_generic = iter_vendor && !iter_vendor->values.empty() && iter_vendor->values[0] == "Generic";
+                    auto *cur_type = cur->config.option<ConfigOptionStrings>("filament_type");
+                    if (iter_is_generic && cur_type && !cur_type->values.empty() && cur_type->values[0] == filament_type)
+                        preset_name_to_use = cur->name;
+                }
+            }
+        }
+        ams_filament_presets.push_back(preset_name_to_use);
         ams_filament_colors.push_back(filament_color);
         ams_filament_color_types.push_back(filament_color_type);
         ams_multi_color_filment.push_back(filament_multi_color);
