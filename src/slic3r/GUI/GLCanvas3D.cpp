@@ -8174,7 +8174,7 @@ void GLCanvas3D::_update_select_plate_toolbar_stats_item(bool force_selected) {
     else
         m_sel_plate_toolbar.show_stats_item = false;
 
-    if (force_selected && m_sel_plate_toolbar.show_stats_item)
+    if (force_selected && m_sel_plate_toolbar.show_stats_item && m_sel_plate_toolbar.m_all_plates_stats_item)
         m_sel_plate_toolbar.m_all_plates_stats_item->selected = true;
 }
 
@@ -13712,6 +13712,9 @@ void GLCanvas3D::update_all_objects_unprintable_warning()
 
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
+    // Skip on shutdown: Plater's pImpl is already freed, so get_notification_manager() would use-after-free.
+    if (wxGetApp().is_closing())
+        return;
     using NotificationLevel = NotificationManager::NotificationLevel;
     enum ErrorType{
         PLATER_WARNING,
