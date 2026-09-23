@@ -69,10 +69,17 @@ bool font_has_any_glyph_in_ranges(const FontFile &font, const ImVector<ImWchar> 
     if (stbtt_InitFont(&font_info, font.data->data(), font_offset) == 0)
         return false;
 
+    // A mapped code point is not enough: bitmap emoji fonts map every emoji to an
+    // outline without a usable contour, which the atlas would rasterize as nothing.
+    const float flatness = 1.f;
     for (const ImWchar *range = ranges.Data; range[0] && range[1]; range += 2)
-        for (unsigned int codepoint = range[0]; codepoint <= range[1]; ++codepoint)
-            if (stbtt_FindGlyphIndex(&font_info, codepoint) != 0)
+        for (unsigned int codepoint = range[0]; codepoint <= range[1]; ++codepoint) {
+            if (stbtt_FindGlyphIndex(&font_info, codepoint) == 0)
+                continue;
+            std::optional<Glyph> glyph = letter2glyph(font, 0, static_cast<int>(codepoint), flatness);
+            if (glyph.has_value() && !glyph->shape.empty())
                 return true;
+        }
 
     return false;
 }
@@ -510,13 +517,22 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale, b
     ImFont *font{nullptr};
     const FontFile *base_font_file = &font_file;
     int base_backup_index = -1;
-    if (!font_has_any_glyph_in_ranges(font_file, m_style_cache.ranges) && support_backup_fonts) {
+    // judge the fonts by the text itself, the language range alone lets a bitmap emoji
+    // font pass on the few keycap digits it draws with an outline
+    ImVector<ImWchar> text_ranges;
+    if (!text.empty()) {
+        ImFontGlyphRangesBuilder text_builder;
+        text_builder.AddText(text.c_str());
+        text_builder.BuildRanges(&text_ranges);
+    }
+    const ImVector<ImWchar> &judged_ranges = text_ranges.empty() ? m_style_cache.ranges : text_ranges;
+    if (!font_has_any_glyph_in_ranges(font_file, judged_ranges) && support_backup_fonts) {
         for (int i = 0; i < Slic3r::GUI::BackupFonts::backup_fonts.size(); i++) {
             if (!Slic3r::GUI::BackupFonts::backup_fonts[i].has_value())
                 continue;
 
             const FontFile &temp_font_file = *Slic3r::GUI::BackupFonts::backup_fonts[i].font_file;
-            if (!font_has_any_glyph_in_ranges(temp_font_file, m_style_cache.ranges))
+            if (!font_has_any_glyph_in_ranges(temp_font_file, judged_ranges))
                 continue;
 
             base_font_file = &temp_font_file;
@@ -539,6 +555,14 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale, b
                 font = m_style_cache.atlas.AddFontFromMemoryTTF((void *) temp_buffer.data(), temp_buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
             }
         }
+    }
+
+    // zero width marks draw nothing instead of the missing glyph box
+    if (font != nullptr) {
+        for (ImWchar c = 0xFE00; c <= 0xFE0F; ++c)
+            m_style_cache.atlas.AddCustomRectFontGlyph(font, c, 1, 1, 0.f);
+        m_style_cache.atlas.AddCustomRectFontGlyph(font, 0x200C, 1, 1, 0.f);
+        m_style_cache.atlas.AddCustomRectFontGlyph(font, 0x200D, 1, 1, 0.f);
     }
 
     unsigned char *pixels;
