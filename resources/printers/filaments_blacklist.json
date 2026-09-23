@@ -186,6 +186,22 @@
       "description": "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
     },
     {
+      "type": "PPA-CF",
+      "model_id": ["N10"],
+      "action": "prohibition",
+      "slot": "ams",
+      "group": "cf_gf_ams",
+      "priority": 2,
+      "description": "PPA-CF does not support AMS feeding. Use an external spool instead."
+    },
+    {
+      "type": "PC",
+      "model_id": ["N10"],
+      "action": "warning",
+      "slot": "ams",
+      "description": "%s filament is brittle. Use AMS feeding with caution."
+    },
+    {
       "type": "PLA",
       "name_suffix": "PLA Silk",
       "action": "warning",
@@ -316,6 +332,16 @@
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PLA",
+      "name": "Bambu PLA Galaxy",
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [ 0.2 ],
+      "model_id": ["N10"],
+      "action": "warning",
+      "description": "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
     }
   ]
 }

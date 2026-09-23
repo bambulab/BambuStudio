@@ -347,6 +347,11 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
             } else if (description == "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
+            } else if (description == "%s filament is brittle. Use AMS feeding with caution.") {
+                const std::string& fila_desc = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
+                result_item.info_msg = wxString::Format(_L(description), fila_desc);
+            } else if (description == "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing.") {
+                result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else if (description == "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else {
@@ -365,6 +370,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("Auto dynamic flow calibration is not supported for TPU filament.");
             L("Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles.");
             L("When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material.");
+            L("PPA-CF does not support AMS feeding. Use an external spool instead.");
 
             // Warning in description
             L("How to feed TPU filament.");
@@ -375,6 +381,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("Damp PVA is flexible and may get stuck in extruder. Dry it before use.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
+            L("%s filament is brittle. Use AMS feeding with caution.");
+            L("%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing.");
             L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
             L("PLA Glow may wear the AMS first stage feeder. Use an external spool instead.");
             L("Default settings may affect print quality. Adjust as needed for best results.");
