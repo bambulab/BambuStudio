@@ -167,7 +167,12 @@ enum class NotificationType
     BBLMixUsePLAAndPETG,
     BBLBrittleFilament,
     BBLMixedFilamentBroken,
+    // A flagged filament slot is reported as one of these two, never both for the same slot: the
+    // machine carries a nozzle of the kind the slot asks for but this filament has no preset for
+    // it, versus the machine carrying no such nozzle at all. They are resolved in different
+    // places, so they are separate types and can be on screen at the same time.
     BBLFilamentNozzleDiameterMismatch,
+    BBLFilamentNozzleNotInstalled,
     BBLAmsSyncFilamentUnmatched,
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,
@@ -228,6 +233,13 @@ public:
 	// ErrorNotificationLevel are never faded out.
     void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
                            std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0);
+    // A corner notification in the ordinary layout -- white background, coloured left bar and
+    // border -- but painted in the error colour instead of the warning one, and never fading out.
+    // NotificationLevel picks the colour and the render path together, and ErrorNotificationLevel
+    // routes into the solid-red blocking notification (bbl_render_block_notification), which is not
+    // what these need: they stay in the corner next to the list the user is fixing.
+    void push_error_border_notification(NotificationType type, const std::string &text, const std::string &hypertext = "",
+                                        std::function<bool(wxEvtHandler *)> callback = std::function<bool(wxEvtHandler *)>());
 	// Pushes basic_notification with delay. See push_delayed_notification_data.
 	void push_delayed_notification(const NotificationType type, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval);
 	// Removes all notifications of type from m_waiting_notifications
@@ -425,6 +437,9 @@ private:
 		int                      sub_msg_id {-1};
 		std::string        ori_text;
         bool                use_warn_color { false };
+        // Paints the left bar and border in the error color while keeping the ordinary corner
+        // layout. See push_error_border_notification().
+        bool                use_error_color { false };
         //second_hypertext and second_callback
         std::string second_hypertext;
         std::function<bool(wxEvtHandler *)> second_callback;

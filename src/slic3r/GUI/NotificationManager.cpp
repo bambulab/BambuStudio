@@ -203,7 +203,9 @@ void NotificationManager::PopNotification::use_bbl_theme()
     OldStyle.WindowPadding             = ImVec2(0, 0);
     OldStyle.WindowRounding            = m_WindowRadius;
 
-	if (m_data.level == NotificationLevel::ErrorNotificationLevel)
+	if (m_data.use_error_color)
+        m_CurrentColor = m_ErrorColor;
+    else if (m_data.level == NotificationLevel::ErrorNotificationLevel)
         m_CurrentColor = m_ErrorColor;
     else if (m_data.level == NotificationLevel::WarningNotificationLevel)
         m_CurrentColor = m_WarnColor;
@@ -1048,8 +1050,9 @@ void NotificationManager::PopNotification::update(const NotificationData &n, boo
     const_cast<NotificationData&>(m_data).callback	 = n.callback;
     const_cast<NotificationData &>(m_data).second_callback = n.second_callback;
     if (change_level) {
-        const_cast<NotificationData &>(m_data).level          = n.level;
-        const_cast<NotificationData &>(m_data).use_warn_color = n.use_warn_color;
+        const_cast<NotificationData &>(m_data).level           = n.level;
+        const_cast<NotificationData &>(m_data).use_warn_color  = n.use_warn_color;
+        const_cast<NotificationData &>(m_data).use_error_color = n.use_error_color;
     }
 	init();
 }
@@ -1697,6 +1700,19 @@ void NotificationManager::push_notification(NotificationType type,
 {
 	int duration = get_standard_duration(level);
     push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
+}
+
+void NotificationManager::push_error_border_notification(NotificationType type,
+                                                         const std::string &text,
+                                                         const std::string &hypertext,
+                                                         std::function<bool(wxEvtHandler *)> callback)
+{
+    // Warning level for the layout and the render path (render_notifications() sends every
+    // error-level notification to bbl_render_block_notification() instead); use_error_color only
+    // swaps the colour the left bar and border are painted in.
+    NotificationData data{type, NotificationLevel::WarningNotificationLevel, 0, text, hypertext, callback};
+    data.use_error_color = true;
+    push_notification_data(data, 0);
 }
 
 void NotificationManager::push_delayed_notification(const NotificationType type, std::function<bool(void)> condition_callback, int64_t initial_delay, int64_t delay_interval)

@@ -299,6 +299,10 @@ public:
     // installed, or AMS sync found no preset for its tray), which must block slicing that plate.
     bool has_incompatible_filament() const;
     bool has_incompatible_filament(const PartPlate* plate) const;
+    // Pushes/closes the corner notifications describing the flagged slots the current plate prints
+    // with. Plate-scoped like has_incompatible_filament(), so it also has to run whenever the
+    // current plate or its contents change, not only on a sidebar refresh.
+    void update_incompatible_nozzle_notifications();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
     void                            set_is_gcode_file(bool flag);

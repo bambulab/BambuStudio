@@ -1027,12 +1027,14 @@ struct Sidebar::priv
     FilamentNozzlePopup* m_filament_nozzle_popup = nullptr;
     void refresh_filament_nozzle_label(size_t idx, int filament_idx);
 
-    // Last BBLFilamentNozzleDiameterMismatch message pushed to the notification manager, so
-    // refresh_filament_diameter_buttons only pushes/closes it when something the user would actually
-    // see changed rather than on every refresh (which fires far more often). Keyed on the rendered
-    // message, not just the flagged-slot set: switching the printer from one unsupported diameter to
-    // another keeps the same slot flagged, and a set-only key would leave the stale diameter on screen.
-    std::string m_notified_incompatible_nozzle_text;
+    // Last message pushed to the notification manager for each of the two reasons a filament slot
+    // gets flagged, so refresh_filament_diameter_buttons only pushes/closes when something the user
+    // would actually see changed rather than on every refresh (which fires far more often). Keyed on
+    // the rendered message, not just the flagged-slot set: switching the printer from one unsupported
+    // diameter to another keeps the same slot flagged, and a set-only key would leave the stale
+    // diameter on screen.
+    std::string m_notified_nozzle_unsupported_text; // printer has the nozzle, filament has no preset
+    std::string m_notified_nozzle_missing_text;     // printer carries no such nozzle at all
 
     // Session snapshot of per-slot diameter/flow selections captured when multi_nozzle_diameter_mode
     // is turned OFF -- validate_filament_nozzle_diameter_selections() unconditionally clears them
@@ -4563,7 +4565,11 @@ void Sidebar::priv::relayout_filament_grid(bool force)
     const int width = m_physical_scroll_area != nullptr
         ? m_physical_scroll_area->GetClientSize().GetWidth()
         : m_panel_filament_content->GetClientSize().GetWidth();
-    const bool single_column = width < FromDIP(492);
+    // Collapsing to one column is a multi-diameter concession: there each row also carries a
+    // divider and a nozzle chip, so two columns run out of width far sooner. Without that chip a
+    // row is just a name and fits two-up at any sidebar width -- and two columns is the layout
+    // this list had before the collapse was introduced, so it keeps it.
+    const bool single_column = filament_nozzle_chip_supported() && width < FromDIP(492);
     if (!force && single_column == m_filament_single_column)
         return;
     m_filament_single_column = single_column;
@@ -4599,7 +4605,10 @@ void Sidebar::priv::relayout_mixed_filament_grid(bool force)
     const int width = m_mixed_scroll_area != nullptr
         ? m_mixed_scroll_area->GetClientSize().GetWidth()
         : m_panel_mixed_content->GetClientSize().GetWidth();
-    const bool single_column = width < FromDIP(492);
+    // Gated the same way as the physical filament list above: only multi-diameter rows are wide
+    // enough (divider plus nozzle chip) to need the collapse, and without it two columns is the
+    // layout this list has always had.
+    const bool single_column = filament_nozzle_chip_supported() && width < FromDIP(492);
     if (!force && single_column == m_mixed_single_column)
         return;
     m_mixed_single_column = single_column;
@@ -4747,10 +4756,11 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     // a plain static bitmap instead -- it isn't clickable, only shown with a tooltip, and actually
     // honors SetBackgroundColour, matched here to combo's normal-state (white) background.
     incompatible_icon->SetBackgroundColour(*wxWHITE);
-    // Deliberately generic: this one icon marks several unrelated problems (a nozzle diameter the
-    // filament does not support, an AMS tray with no matching preset), and the tooltip is set once here
-    // rather than per state. The corner notification carries the specifics.
-    incompatible_icon->SetToolTip(_L("This filament cannot be used as currently configured. Please check and fix it."));
+    // Worded for the common case and set once here rather than per state: this one icon also marks
+    // an AMS tray with no matching preset, which is not a nozzle problem, but that only happens
+    // right after a sync and the corner notification spells it out. "Current nozzle" rather than a
+    // named one keeps the text true on machines that hide the per-row nozzle chip entirely.
+    incompatible_icon->SetToolTip(_L("This filament does not support printing with the current nozzle."));
     incompatible_icon->Hide();
     p->filament_incompatible_icons.push_back(incompatible_icon);
 
@@ -4902,6 +4912,17 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
         if (!options.empty())
             diameter = options.front();
     }
+    if (diameter.empty()) {
+        // No option at all: this filament has a preset for none of the nozzles the machine carries
+        // (e.g. a PVA added while the only installed nozzle is one it cannot print on), and a slot
+        // that was just added has nothing stored either. Leaving both texts blank collapses the chip
+        // to its padding, so the row loses the control that opens the picker -- which is the one
+        // place that shows what the machine has and greys out what this filament cannot use. Name
+        // the smallest installed nozzle instead, the same one the picker lists first.
+        for (const auto &nozzle : preset_bundle->get_installed_nozzle_variants())
+            if (diameter.empty() || atof(nozzle.first.c_str()) < atof(diameter.c_str()))
+                diameter = nozzle.first;
+    }
 
     NozzleVolumeType type = NozzleVolumeType::nvtStandard;
     // Guard against being called while this Sidebar's owning Plater is still under
@@ -4950,7 +4971,7 @@ int Sidebar::priv::natural_divider_x(size_t idx)
     const int gap           = FromDIP(4);
     const int chip_w        = label->GetMinSize().GetWidth();
     const int icon_slot     = (icon != nullptr && icon->IsShown()) ? icon->GetBestSize().GetWidth() + gap : 0;
-    const int divider_width = divider->GetSize().GetWidth();
+    const int divider_width = FromDIP(1);
 
     const int target_x  = static_cast<int>(comboWidth * 0.78);
     const int max_fit_x = comboWidth - right_reserve - icon_slot - chip_w - gap - divider_width;
@@ -5017,8 +5038,12 @@ void Sidebar::priv::reposition_filament_nozzle_indicator(size_t idx)
     // row "0.6 TPU285" put its divider further left than "0.4 Std".
     const wxSize icon_size = icon != nullptr ? icon->GetBestSize() : wxSize(0, 0);
 
-    const int divider_width  = divider->GetSize().GetWidth();
-    const int divider_height = divider->GetSize().GetHeight();
+    // The size asked for at construction, not whatever the control reports back: wxStaticLine is
+    // native (an NSBox on OSX) and need not have adopted a 1px width by the time this runs, and a
+    // zero read back here would size the line away to nothing -- it is laid out from these values,
+    // so it would simply never appear.
+    const int divider_width  = FromDIP(1);
+    const int divider_height = FromDIP(14);
     // The name column ahead of the divider takes ~78% of the row (design spec: divider at x=241.65
     // in a 310-wide row) rather than an absolute width, so the split follows the row as the sidebar
     // is resized.
@@ -5201,66 +5226,7 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
     if (p->m_panel_mixed_content != nullptr)
         update_mixed_filament_list(false);
 
-    // Push/close the right-bottom notification only when the rendered message actually changes --
-    // this is called far more often (any sidebar refresh) than the message itself changes.
-    {
-        const std::vector<size_t> &incompatible_vec = preset_bundle->incompatible_nozzle_diameter_slots;
-        std::set<size_t> incompatible_now(incompatible_vec.begin(), incompatible_vec.end());
-        std::string text;
-        if (!incompatible_now.empty()) {
-            // Slots can be missing different diameters at once (e.g. some were 0.2, others
-            // 0.4, and neither is installed any more), so collect each flagged slot's own
-            // stored diameter instead of describing every slot with the single current
-            // printer_variant -- that value is meaningless here in multi-diameter mode.
-            // ...but only while that mode is on. With it off, validate_filament_nozzle_
-            // diameter_selections() restores filament_diameter_map verbatim (retained_selections)
-            // so toggling back restores the project, leaving every slot holding an inactive
-            // value from the last multi-diameter session. Reporting that names a diameter the
-            // slot isn't using; here all slots run on the printer's single configured diameter.
-            const bool per_slot_diameters =
-                multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
-                is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config);
-            // Same source the per-row nozzle chip renders from (refresh_filament_nozzle_label),
-            // so this notification and the row it points at can never disagree on the flow.
-            std::vector<int> volume_maps;
-            if (PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate())
-                volume_maps = plate->get_real_filament_volume_maps(preset_bundle->project_config);
-            std::set<std::string> diameters;
-            wxString slot_list;
-            for (size_t idx : incompatible_now) {
-                std::string diameter = per_slot_diameters && selected != nullptr && idx < selected->values.size() ?
-                    selected->values[idx] : std::string();
-                if (diameter.empty())
-                    diameter = preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
-                const NozzleVolumeType type = idx < volume_maps.size() ?
-                    (NozzleVolumeType) volume_maps[idx] : NozzleVolumeType::nvtStandard;
-                diameters.insert(diameter + " " + DevNozzle::ToNozzleVolumeShortString(type));
-                if (!slot_list.empty())
-                    slot_list += ", ";
-                slot_list += wxString::Format("%d", (int) idx + 1);
-            }
-            wxString diameter_list;
-            for (const std::string &desc : diameters) {
-                if (!diameter_list.empty())
-                    diameter_list += ", ";
-                diameter_list += wxString::FromUTF8(desc);
-            }
-            text = into_u8(wxString::Format(
-                _L("The printer does not support the %s nozzle for filament slot %s. It has been flagged in the filament list -- please update the nozzle information before use."),
-                diameter_list, slot_list));
-        }
-        if (text != p->m_notified_incompatible_nozzle_text) {
-            auto *notify = wxGetApp().plater()->get_notification_manager();
-            if (notify) {
-                if (!text.empty())
-                    notify->push_notification(NotificationType::BBLFilamentNozzleDiameterMismatch,
-                        NotificationManager::NotificationLevel::ErrorNotificationLevel, text);
-                else
-                    notify->close_notification_of_type(NotificationType::BBLFilamentNozzleDiameterMismatch);
-            }
-            p->m_notified_incompatible_nozzle_text = text;
-        }
-    }
+    update_incompatible_nozzle_notifications();
 
     if (p->m_panel_filament_content != nullptr)
         p->m_panel_filament_content->Layout();
@@ -6786,8 +6752,7 @@ static void update_ams_sync_unmatched_notification()
     const wxString text = wxString::Format(
         _L("No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."),
         slot_list);
-    notify->push_notification(NotificationType::BBLAmsSyncFilamentUnmatched,
-        NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(text));
+    notify->push_error_border_notification(NotificationType::BBLAmsSyncFilamentUnmatched, into_u8(text));
 }
 
 void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
@@ -8150,6 +8115,142 @@ bool Sidebar::has_incompatible_filament(const PartPlate *plate) const
     for (size_t slot : preset_bundle->ams_sync_unmatched_slots)
         flagged_1based.insert(slot + 1);
     return plate_uses_filament_slots(plater, plate, flagged_1based);
+}
+
+// Reflects PresetBundle::incompatible_nozzle_diameter_slots in the two corner notifications.
+// Scoped to the current plate for the same reason has_incompatible_filament() is: a plate that
+// never prints with a flagged slot is unaffected by it, so nothing is reported while it is
+// selected. That makes the current plate an input, so this runs on a plate switch and on object
+// changes too, not only on the sidebar refresh that first discovers the flag.
+void Sidebar::update_incompatible_nozzle_notifications()
+{
+    Plater       *plater        = wxGetApp().plater();
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    // Sidebar is constructed from inside Plater's own constructor, so the first sidebar refresh
+    // runs before GUI_App knows about the plater. Everything below is reached through it, and
+    // there is nothing to report that early anyway.
+    if (plater == nullptr || preset_bundle == nullptr)
+        return;
+    PartPlate *plate = plater->get_partplate_list().get_curr_plate();
+
+    std::set<size_t> incompatible_now;
+    for (size_t slot : preset_bundle->incompatible_nozzle_diameter_slots)
+        if (plate_uses_filament_slots(plater, plate, {slot + 1}))
+            incompatible_now.insert(slot);
+
+    // The flagged-slot list records that a slot cannot be used, not why. There are two reasons,
+    // and the user resolves them in different places, so they are reported as two separate
+    // messages, both on screen at once when both kinds of slot exist.
+    //
+    // What separates them is not the nozzle the slot currently points at but whether pointing it
+    // somewhere else could ever help. A filament with a preset for one of the diameters the
+    // machine carries is simply parked on a nozzle that is not installed: the user re-points it
+    // in the list. A filament with a preset for none of them cannot be rescued by any row in
+    // that list -- every one of them would be greyed out -- so the filament itself, or a new
+    // preset for it, is what has to change.
+    const auto installed = preset_bundle->get_installed_nozzle_variants();
+    auto nozzle_desc = [](const std::string &diameter, NozzleVolumeType type) {
+        return diameter + " " + DevNozzle::ToNozzleVolumeShortString(type);
+    };
+    struct FlaggedSlots {
+        std::set<std::string> nozzles; // deduped "0.4 Std" descriptions, one per distinct nozzle
+        wxString              slots;   // 1-based slot numbers, comma separated
+    };
+    FlaggedSlots unsupported; // printer has the nozzle, this filament has no preset for it
+    FlaggedSlots missing;     // printer carries no nozzle of that kind
+    if (!incompatible_now.empty()) {
+        // Slots can be missing different diameters at once (e.g. some were 0.2, others
+        // 0.4, and neither is installed any more), so collect each flagged slot's own
+        // stored diameter instead of describing every slot with the single current
+        // printer_variant -- that value is meaningless here in multi-diameter mode.
+        // ...but only while that mode is on. With it off, validate_filament_nozzle_
+        // diameter_selections() restores filament_diameter_map verbatim (retained_selections)
+        // so toggling back restores the project, leaving every slot holding an inactive
+        // value from the last multi-diameter session. Reporting that names a diameter the
+        // slot is not using; here all slots run on the printer's single configured diameter.
+        const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+        const bool per_slot_diameters =
+            multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
+            is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config);
+        // Same source the per-row nozzle chip renders from (refresh_filament_nozzle_label),
+        // so this notification and the row it points at can never disagree on the flow.
+        std::vector<int> volume_maps;
+        if (plate != nullptr)
+            volume_maps = plate->get_real_filament_volume_maps(preset_bundle->project_config);
+        for (size_t idx : incompatible_now) {
+            std::string diameter = per_slot_diameters && selected != nullptr && idx < selected->values.size() ?
+                selected->values[idx] : std::string();
+            if (diameter.empty())
+                diameter = preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+            const NozzleVolumeType type = idx < volume_maps.size() ?
+                (NozzleVolumeType) volume_maps[idx] : NozzleVolumeType::nvtStandard;
+            // Empty means this filament has a preset for none of the diameters the machine
+            // carries, so no row in the picker would be selectable and re-pointing the slot
+            // cannot fix it.
+            const bool has_usable_nozzle = !preset_bundle->get_filament_nozzle_diameter_options(idx).empty();
+            const bool stored_installed  = installed.count(std::make_pair(diameter, type)) != 0;
+            const bool nozzle_is_missing = has_usable_nozzle && !stored_installed;
+
+            FlaggedSlots &bucket = nozzle_is_missing ? missing : unsupported;
+            if (nozzle_is_missing || stored_installed) {
+                bucket.nozzles.insert(nozzle_desc(diameter, type));
+            } else {
+                // The slot's own nozzle is not installed either, so saying the preset does not
+                // support it would name a nozzle that is not even there. Name what the machine
+                // does carry -- those are the ones the preset would have to cover. Hybrid is not
+                // a nozzle the user picks, so it stays out here as it does in the picker.
+                for (const auto &nozzle : installed)
+                    if (nozzle.second != NozzleVolumeType::nvtHybrid)
+                        bucket.nozzles.insert(nozzle_desc(nozzle.first, nozzle.second));
+            }
+            if (!bucket.slots.empty())
+                bucket.slots += ", ";
+            bucket.slots += wxString::Format("%d", (int) idx + 1);
+        }
+    }
+    auto nozzle_list = [](const FlaggedSlots &bucket) {
+        wxString out;
+        for (const std::string &desc : bucket.nozzles) {
+            if (!out.empty())
+                out += ", ";
+            out += wxString::FromUTF8(desc);
+        }
+        return out;
+    };
+    const std::string unsupported_text = unsupported.slots.empty() ? std::string() : into_u8(wxString::Format(
+        _L("Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."),
+        unsupported.slots, nozzle_list(unsupported)));
+    const std::string missing_text = missing.slots.empty() ? std::string() : into_u8(wxString::Format(
+        _L("Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."),
+        missing.slots, nozzle_list(missing)));
+
+    // Push/close only when the rendered message actually changes -- this runs far more often (any
+    // sidebar refresh, plate switch or object change) than the messages themselves change.
+    auto *notify = plater->get_notification_manager();
+    if (unsupported_text != p->m_notified_nozzle_unsupported_text) {
+        if (notify) {
+            if (!unsupported_text.empty())
+                // The hypertext lands on the custom filament list, the same page
+                // on_create_filament() returns to after creating one.
+                notify->push_error_border_notification(NotificationType::BBLFilamentNozzleDiameterMismatch,
+                    unsupported_text, _u8L("Add a new preset"), [](wxEvtHandler *) {
+                        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_CUSTOM);
+                        return false;
+                    });
+            else
+                notify->close_notification_of_type(NotificationType::BBLFilamentNozzleDiameterMismatch);
+        }
+        p->m_notified_nozzle_unsupported_text = unsupported_text;
+    }
+    if (missing_text != p->m_notified_nozzle_missing_text) {
+        if (notify) {
+            if (!missing_text.empty())
+                notify->push_error_border_notification(NotificationType::BBLFilamentNozzleNotInstalled, missing_text);
+            else
+                notify->close_notification_of_type(NotificationType::BBLFilamentNozzleNotInstalled);
+        }
+        p->m_notified_nozzle_missing_text = missing_text;
+    }
 }
 
 bool Sidebar::has_broken_mixed_filament(const PartPlate* plate) const
@@ -13128,6 +13229,10 @@ void Plater::priv::object_list_changed()
                      && !mixed_broken;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": can_slice %1%, model_fits= %2%, export_in_progress %3%, has_printable_instances %4%, mixed_broken %5% ")%can_slice %model_fits %export_in_progress %part_plate->has_printable_instances() %mixed_broken;
     main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
+
+    // Which slots the plate prints with just changed, and that is what decides whether a flagged
+    // slot is worth reporting -- the same input update_slice_print_status() re-reads above.
+    sidebar->update_incompatible_nozzle_notifications();
 
     wxGetApp().params_panel()->notify_object_config_changed();
 
@@ -18872,6 +18977,8 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
     if (view3D && view3D->get_canvas3d())
         view3D->get_canvas3d()->update_all_objects_unprintable_warning();
+    // The flagged-slot notifications describe the selected plate, so they follow it.
+    sidebar->update_incompatible_nozzle_notifications();
 }
 
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
