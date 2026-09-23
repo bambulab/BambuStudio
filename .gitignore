@@ -42,3 +42,5 @@ compile_commands.json
 resources/web/device_page/assets/
 resources/web/device_page/index.html
 
+/.investigation/
+

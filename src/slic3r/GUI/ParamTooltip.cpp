@@ -91,6 +91,7 @@ constexpr int ANCHOR_GAP       = 8; // horizontal gap between the option row and
 
 constexpr int SHOW_DELAY_MS = 200;
 constexpr int HIDE_DELAY_MS = 100;
+constexpr int WATCHDOG_MS   = 200; // OnWatchdog poll cadence while shown; see ParamTooltip.hpp
 
 // Bullet marker prefixed to every line of the details block. The trailing space is part of the
 // marker, not a sizer spacer, so the text column sits exactly one space after the bullet the way a
@@ -561,6 +562,8 @@ ParamTooltip::ParamTooltip() : wxPopupTransientWindow(wxGetApp().mainframe, wxBO
 
     m_timer = new wxTimer;
     m_timer->Bind(wxEVT_TIMER, &ParamTooltip::OnTimer, this);
+    m_watchdog_timer = new wxTimer;
+    m_watchdog_timer->Bind(wxEVT_TIMER, &ParamTooltip::OnWatchdog, this);
     m_copy_timer = new wxTimer;
     m_copy_timer->Bind(wxEVT_TIMER, &ParamTooltip::OnCopyAnim, this);
     Bind(wxEVT_PAINT, &ParamTooltip::OnPaint, this);
@@ -583,6 +586,7 @@ ParamTooltip::~ParamTooltip()
 {
     if (s_self == this) s_self = nullptr; // never leave the singleton pointer dangling if the frame destroys us as its child
     delete m_timer;
+    delete m_watchdog_timer;
     delete m_copy_timer;
 }
 
@@ -900,7 +904,7 @@ void ParamTooltip::place_card(const wxPoint &tip_pos)
 // Sync the drop shadow with the card via the shared WindowShadow component.
 void ParamTooltip::update_shadow(bool show) { m_shadow.Sync(this, show && IsShown()); }
 
-bool ParamTooltip::DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip)
+bool ParamTooltip::DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxRect &anchor_rect, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip)
 {
     if (opt_key.empty()) {
         DoHide(false);
@@ -916,6 +920,11 @@ bool ParamTooltip::DoShowFor(const std::string &opt_key, const std::string &wiki
         DoHide(false);
         return false;
     }
+
+    // Kept current every call (even an unchanged, already-shown one) so OnWatchdog always checks
+    // against the row the card is currently anchored to.
+    m_anchor_rect = anchor_rect;
+    if (!m_watchdog_timer->IsRunning()) m_watchdog_timer->Start(WATCHDOG_MS);
 
     const bool changed = (opt_key != m_last_key) || (dark != m_last_dark);
 
@@ -951,12 +960,18 @@ bool ParamTooltip::DoShowFor(const std::string &opt_key, const std::string &wiki
     return true;
 }
 
+void ParamTooltip::really_hide()
+{
+    wxPopupTransientWindow::Hide();
+    update_shadow(false);
+    m_watchdog_timer->Stop();
+}
+
 void ParamTooltip::DoHide(bool now)
 {
     if (now) {
         m_hide = true;
-        wxPopupTransientWindow::Hide();
-        update_shadow(false);
+        really_hide();
         return;
     }
     if (!m_hide) {
@@ -973,12 +988,27 @@ void ParamTooltip::OnTimer(wxTimerEvent &)
             m_timer->StartOnce(HIDE_DELAY_MS);
             return;
         }
-        wxPopupTransientWindow::Hide();
-        update_shadow(false);
+        really_hide();
     } else {
         Show();
         update_shadow(true);
     }
+}
+
+// Backstop for DoHide/OnTimer's normal, event-driven dismissal: see the doc comment in
+// ParamTooltip.hpp for why the row's leave/motion events alone cannot be trusted to always arrive.
+void ParamTooltip::OnWatchdog(wxTimerEvent &)
+{
+    // Not shown yet does NOT mean "stop watching": DoShowFor starts this timer before the
+    // SHOW_DELAY_MS one-shot m_timer has actually called Show(), and the two delays are close
+    // enough (both ~200ms) that a watchdog tick can legitimately land in that gap. Stopping here
+    // used to disarm the watchdog for good, before the popup — and its grab — had even appeared;
+    // really_hide() is the only place that should ever stop it once armed.
+    if (!IsShown()) return;
+    const wxPoint mp = wxGetMousePosition();
+    if (GetScreenRect().Contains(mp) || m_anchor_rect.Contains(mp)) return; // still relevant, keep polling
+    m_hide = true; // matches the state really_hide()'s callers otherwise leave behind
+    really_hide();
 }
 
 void ParamTooltip::OnPaint(wxPaintEvent &)
@@ -1009,9 +1039,9 @@ void ParamTooltip::OnPaint(wxPaintEvent &)
     gc->DrawRoundedRectangle(bw, bw, sz.GetWidth() - 2.0 * bw, sz.GetHeight() - 2.0 * bw, ir);
 }
 
-bool ParamTooltip::ShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip)
+bool ParamTooltip::ShowFor(const std::string &opt_key, const std::string &wiki_path, const wxRect &anchor_rect, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip)
 {
-    return instance().DoShowFor(opt_key, wiki_path, tip_pos, line_label, line_tooltip);
+    return instance().DoShowFor(opt_key, wiki_path, anchor_rect, tip_pos, line_label, line_tooltip);
 }
 
 wxString ParamTooltip::ItemTooltip(const std::string &opt_key, const std::string &value_key)

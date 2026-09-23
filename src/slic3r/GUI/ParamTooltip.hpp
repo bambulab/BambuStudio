@@ -22,13 +22,16 @@ class ParamTooltip : public wxPopupTransientWindow
 {
 public:
     // tip_pos is the screen anchor the card is placed beside (the row's right-center).
+    // anchor_rect is the anchoring row's own rect in screen coordinates; the card stays shown while
+    // the pointer is over either the card or this rect, polled independently of whether a
+    // leave/motion event actually reaches the row's control (see m_watchdog_timer).
     // wiki_path is the option's wiki slug (og_line.label_path) — the same one the
     // clickable label uses; it drives the "View Wiki" link, falling back to the store.
     // line_label / line_tooltip are the anchoring row's own label and tooltip (og_line.label /
     // og_line.label_tooltip). A composite or overridden line authors these independently of the
     // ConfigOptionDef, and they are what the old native hover showed, so the card prefers them over
     // the def (but below a curated store entry) to stay in sync with the row.
-    static bool ShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos, const wxString &line_label = {}, const wxString &line_tooltip = {});
+    static bool ShowFor(const std::string &opt_key, const std::string &wiki_path, const wxRect &anchor_rect, const wxPoint &tip_pos, const wxString &line_label = {}, const wxString &line_tooltip = {});
     static void Hide();
     // Destroy the singleton (its popup + shadow) and drop the localized store, so the next hover
     // rebuilds against the current MainFrame in the current language. Must run while the MainFrame
@@ -72,8 +75,13 @@ private:
     void      update_shadow(bool show); // sync the soft-shadow layered window behind the card (Win32)
     wxBitmap LoadImage(const std::string &image_id, bool dark);
 
-    bool DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip);
+    bool DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxRect &anchor_rect, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip);
     void DoHide(bool now);
+    /**
+     * \brief Actually hide the popup and its grab: the one place that calls
+     *        wxPopupTransientWindow::Hide(), so the watchdog always gets stopped alongside it.
+     */
+    void really_hide();
 
     /**
      * \brief Play the "copied!" confirmation on the copy icon: crossfade to a check mark, hold, fade back.
@@ -82,6 +90,18 @@ private:
 
     void OnPaint(wxPaintEvent &evt);
     void OnTimer(wxTimerEvent &evt);
+    /**
+     * \brief Self-contained dismissal fallback: while shown, periodically checks the live mouse
+     *        position against the card and the anchoring row, independent of any leave/motion event
+     *        actually reaching the row's control.
+     *
+     * The row's own OnLeaveWin/OnMotion handlers normally call Hide() promptly on a real crossing
+     * event, and still do — this is a backstop, not a replacement. wxPopupTransientWindow's grab can
+     * (rarely, depending on window-manager/X11 grab semantics) suppress delivery of that crossing
+     * event to the row's window for the rest of the grab's lifetime, which would otherwise leave the
+     * card, and the grab it holds, stuck open forever with no further trigger able to close it.
+     */
+    void OnWatchdog(wxTimerEvent &evt);
     /**
      * \brief Drive one frame of the copy-icon confirmation, then re-arm or finish the animation.
      *
@@ -123,6 +143,9 @@ private:
     wxTimer *m_timer = nullptr;
     bool     m_hide  = false;
     wxPoint  m_request_pos;
+
+    wxTimer *m_watchdog_timer = nullptr; // see OnWatchdog
+    wxRect   m_anchor_rect;              // anchoring row's rect, screen coords; set by DoShowFor
 
     // "Copied!" confirmation: the two crossfade endpoints, plus the frame counter that walks
     // copy -> check -> copy. The images are rasterized on first use and dropped on a theme change.
