@@ -61,7 +61,10 @@ export interface ConnectedSlotsUnitInfo {
   can_dry?: boolean;
   humidity_raw?: number;
   temp?: number | null;
+  /** Stable English enum ("Idle", "Drying", ...); compare against this. */
   dry_status?: string;
+  /** Translated dry_status for display; empty when the unit cannot dry. */
+  dry_status_text?: string;
   trays: ConnectedSlotsTrayInfo[];
 }
 

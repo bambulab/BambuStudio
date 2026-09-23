@@ -192,7 +192,6 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid rack status: " << m_status << ", reset";
     }
 
-    DevJsonValParser::ParseVal(rack_info, "pos", m_position, 0);
     DevJsonValParser::ParseVal(rack_info, "info", m_cali_status);
     DevJsonValParser::ParseVal(rack_info, "job", m_job, 0);
     m_steps.clear();
@@ -213,6 +212,10 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
         m_rack_cali_detail_bits = info2;
         m_cali_status = (RackCaliStatus)DevUtil::get_flag_bits(info2, 0, 1);
         m_rack_type = (RackType)DevUtil::get_flag_bits(info2, 1, 4);
+    }
+
+    if (!IsDirectConnectedRack()) {
+        DevJsonValParser::ParseVal(rack_info, "pos", m_position, 0);
     }
 }
 

@@ -102,6 +102,7 @@ namespace ams_unit {
     inline constexpr const char* humidity_raw = "humidity_raw";
     inline constexpr const char* temp         = "temp";         // celsius; omit or null when unknown
     inline constexpr const char* dry_status   = "dry_status";
+    inline constexpr const char* dry_status_text = "dry_status_text"; // translated dry_status; empty when !can_dry
     inline constexpr const char* trays        = "trays";
 }
 

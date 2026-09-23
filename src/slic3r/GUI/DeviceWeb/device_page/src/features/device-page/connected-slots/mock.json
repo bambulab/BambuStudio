@@ -22,6 +22,7 @@
             "humidity_raw": -1,
             "temp": null,
             "dry_status": "",
+            "dry_status_text": "",
             "trays": [
               {
                 "ams_id": "128",
@@ -95,6 +96,7 @@
             "humidity_raw": 24,
             "temp": null,
             "dry_status": "Drying",
+            "dry_status_text": "Drying",
             "trays": [
               {
                 "ams_id": "0",

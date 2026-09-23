@@ -11,8 +11,8 @@ export function AmsUnitBoard({
   onTrayAction,
 }: {
   column: ConnectedSlotsColumn;
-  // Which feed route anchors on this board; HotendFilamentPath measures the
-  // marked tray card to place the vertical stub.
+  // Which feed routes anchor on this board; HotendFilamentPath measures the
+  // marked board and tray cards to place the stubs and the hub.
   side: 'left' | 'right';
   onDry?: (amsId: string) => void;
   onTrayAction?: (action: ConnectedSlotsTrayAction, tray: ConnectedSlotsTrayInfo) => void;
@@ -25,10 +25,12 @@ export function AmsUnitBoard({
     <section
       className="cs-ams-unit-board"
       data-testid={`ams-unit-board-${unit.ams_id}`}
+      data-cs-board-anchor={side}
     >
       <div className="cs-ams-unit-board__head">
         <span className="cs-ams-unit-board__name">{unit.display_name || unit.ams_id}</span>
-        <AmsClimateStatus unit={unit} onDry={onDry} />
+        {/* The rack slot board is a single 80px card; the climate pill belongs to the external AMS only. */}
+        {side === 'right' && <AmsClimateStatus unit={unit} onDry={onDry} />}
       </div>
       <div className="cs-ams-unit-board__trays">
         {unit.trays.map((tray, i) => (
@@ -37,7 +39,7 @@ export function AmsUnitBoard({
             tray={tray}
             index={Number(tray.slot_id) + 1 || i + 1}
             showHead={showHead}
-            feedAnchor={tray.slot_id === feedSlotId ? side : undefined}
+            isFeed={tray.slot_id === feedSlotId}
             onAction={onTrayAction}
           />
         ))}

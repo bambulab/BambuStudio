@@ -58,13 +58,13 @@ export function AmsTrayCard({
   tray,
   index,
   showHead,
-  feedAnchor,
+  isFeed = false,
   onAction,
 }: {
   tray: ConnectedSlotsTrayInfo;
   index: number;
   showHead: boolean;
-  feedAnchor?: 'left' | 'right';
+  isFeed?: boolean;
   onAction?: (action: ConnectedSlotsTrayAction, tray: ConnectedSlotsTrayInfo) => void;
 }) {
   const slot = trayToSlot(tray, index);
@@ -78,7 +78,8 @@ export function AmsTrayCard({
     <div
       className={`cs-ams-tray-card${hasMenu ? ' cs-ams-tray-card--has-menu' : ''}`}
       data-testid={`ams-tray-card-${tray.ams_id}-${tray.slot_id}`}
-      data-cs-feed-anchor={feedAnchor}
+      data-cs-tray-anchor=""
+      data-cs-feed={isFeed ? 'true' : undefined}
       {...menu.bind}
     >
       {showHead && <TrayIndexBadge index={index} />}

@@ -242,6 +242,30 @@
   gap: 2px;
 }
 
+.cs-ams-climate-status__icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+.cs-ams-climate-status__icon--drying {
+  background-color: currentColor;
+  -webkit-mask: url('../ams-filament-hotend/assets/ams_drying.svg') center / contain no-repeat;
+  mask: url('../ams-filament-hotend/assets/ams_drying.svg') center / contain no-repeat;
+}
+
+/* Figma 8113:48393: only the sun turns red while drying; the text stays muted. */
+.cs-ams-climate-status__item--drying .cs-ams-climate-status__icon--drying {
+  color: var(--ams-danger, #d95047);
+}
+
+.cs-ams-climate-status__text {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .cs-ams-climate-status__split {
   width: 1px;
   height: 12px;

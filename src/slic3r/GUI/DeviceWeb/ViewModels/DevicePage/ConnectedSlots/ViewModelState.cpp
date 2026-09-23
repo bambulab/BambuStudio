@@ -76,6 +76,22 @@ const char* dry_status_short_name(DevAms::DryStatus status)
     return "Idle";
 }
 
+/// User-facing copy of dry_status_short_name (mirrors AmsFilamentHotend).
+std::string dry_status_display_label(DevAms::DryStatus status)
+{
+    switch (status) {
+    case DevAms::DryStatus::Off:                        return _u8L("Idle");
+    case DevAms::DryStatus::Checking:                   return _u8L("Checking");
+    case DevAms::DryStatus::Drying:                     return _u8L("Drying");
+    case DevAms::DryStatus::Cooling:                    return _u8L("Cooling");
+    case DevAms::DryStatus::Stopping:                   return _u8L("Stopping");
+    case DevAms::DryStatus::Error:                      return _u8L("Error");
+    case DevAms::DryStatus::CannotStopHeatOutofControl: return _u8L("Heat fault");
+    case DevAms::DryStatus::PrdTesting:                 return _u8L("Self test");
+    }
+    return _u8L("Idle");
+}
+
 bool is_nozzle_on_extruder(const MachineObject* obj, int addr_id)
 {
     if (!obj || !obj->GetExtderSystem()) return false;
@@ -291,6 +307,11 @@ nlohmann::json build_unit_json(MachineObject*         obj,
     }
 
     const float temp = ams->GetCurrentTemperature();
+    const auto dry_status = ams->GetDryStatus();
+    std::string dry_status_text;
+    if (ams->SupportDrying()) {
+        dry_status_text = dry_status.has_value() ? dry_status_display_label(*dry_status) : _u8L("Idle");
+    }
     return {
         {SK::ams_unit::ams_id,       ams->GetAmsId()},
         {SK::ams_unit::ams_type,     std::to_string((int) ams->GetAmsType())},
@@ -299,7 +320,8 @@ nlohmann::json build_unit_json(MachineObject*         obj,
         {SK::ams_unit::can_dry,      ams->SupportDrying()},
         {SK::ams_unit::humidity_raw, ams->SupportHumidityPercent() ? ams->GetHumidityPercent() : -1},
         {SK::ams_unit::temp,         temp != INVALID_AMS_TEMPERATURE ? nlohmann::json(temp) : nlohmann::json(nullptr)},
-        {SK::ams_unit::dry_status,   ams->GetDryStatus().has_value() ? dry_status_short_name(*ams->GetDryStatus()) : ""},
+        {SK::ams_unit::dry_status,   dry_status.has_value() ? dry_status_short_name(*dry_status) : ""},
+        {SK::ams_unit::dry_status_text, dry_status_text},
         {SK::ams_unit::trays,        trays}
     };
 }
@@ -320,6 +342,7 @@ nlohmann::json build_ext_unit_json(MachineObject* obj, const DevAmsTray& ext_tra
         {SK::ams_unit::humidity_raw, -1},
         {SK::ams_unit::temp,         nullptr},
         {SK::ams_unit::dry_status,   ""},
+        {SK::ams_unit::dry_status_text, ""},
         {SK::ams_unit::trays,        trays}
     };
 }
