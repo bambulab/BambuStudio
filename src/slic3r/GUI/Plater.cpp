@@ -1071,10 +1071,10 @@ struct Sidebar::priv
     wxStaticText* m_staticText_filament_settings;
     ScalableButton *  m_bpButton_add_filament;
     ScalableButton *  m_bpButton_del_filament;
-    ScalableButton *  m_bpButton_ams_filament;
-    ScalableButton *  m_bpButton_set_filament;
+    ScalableButton *  m_bpButton_ams_filament{nullptr};
+    ScalableButton *  m_bpButton_set_filament{nullptr};
     int m_menu_filament_id = -1;
-    wxPanel*          m_panel_filament_subtitle{nullptr};  // "Filament" subtitle row with +/-/AMS/set buttons
+    wxPanel*          m_panel_filament_subtitle{nullptr};  // "Filament" subtitle row with +/- buttons
     wxPanel*          m_filament_area_wrapper{nullptr};   // Wrapper panel for collapse/expand
     wxScrolledWindow* m_physical_scroll_area{nullptr};    // Scroll area for physical filaments (max 6 rows, scrolls when exceeded)
     wxScrolledWindow* m_mixed_scroll_area{nullptr};       // Scroll area for mixed filaments (max 6 rows, scrolls when exceeded)
@@ -1312,6 +1312,11 @@ void Sidebar::priv::adjust_filament_title_layout()
 
     wxSize panel_size      = m_panel_filament_title->GetSize();
     int    available_width = panel_size.GetWidth() - FromDIP(220);
+    // reserve room for the AMS sync / settings icon buttons on the right
+    if (m_bpButton_ams_filament && m_bpButton_ams_filament->IsShown())
+        available_width -= m_bpButton_ams_filament->GetSize().GetWidth();
+    if (m_bpButton_set_filament && m_bpButton_set_filament->IsShown())
+        available_width -= m_bpButton_set_filament->GetSize().GetWidth() + FromDIP(12);
 
     int button_count = 0;
     if (m_purge_mode_btn->IsShown()) button_count++;
@@ -4124,9 +4129,30 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Hide(p->m_flushing_volume_btn);
     bSizer39->Add(FromDIP(12), 0, 0, 0, 0 );
 
+    // AMS sync button
+    ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+                                 wxBU_EXACTFIT | wxNO_BORDER, false, 18);
+    ams_btn->SetToolTip(_L("Synchronize filament list from AMS"));
+    ams_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        sync_ams_list();
+    });
+    ams_btn->Bind(wxEVT_UPDATE_UI, &Sidebar::update_sync_ams_btn_enable, this);
+    p->m_bpButton_ams_filament = ams_btn;
+    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER_VERTICAL);
+
+    // Settings button
+    ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
+    set_btn->SetToolTip(_L("Set filaments to use"));
+    set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        p->editing_filament = -1;
+        wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
+    });
+    p->m_bpButton_set_filament = set_btn;
+    bSizer39->Add(set_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+
     bSizer39->Add(FromDIP(16), 0, 0, 0, 0);
 
-    // ---- "Filament" subtitle row with +/-/AMS/settings buttons ----
+    // ---- "Filament" subtitle row with +/- buttons ----
     {
         p->m_panel_filament_subtitle = new wxPanel(p->scrolled, wxID_ANY);
         p->m_panel_filament_subtitle->SetBackgroundColour(*wxWHITE);
@@ -4168,27 +4194,6 @@ Sidebar::Sidebar(Plater *parent)
         });
         p->m_bpButton_del_filament = del_btn;
         subtitle_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
-
-        // AMS sync button
-        ams_btn = new ScalableButton(p->m_panel_filament_subtitle, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
-                                     wxBU_EXACTFIT | wxNO_BORDER, false, 18);
-        ams_btn->SetToolTip(_L("Synchronize filament list from AMS"));
-        ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e) {
-            sync_ams_list();
-        });
-        ams_btn->Bind(wxEVT_UPDATE_UI, &Sidebar::update_sync_ams_btn_enable, this);
-        p->m_bpButton_ams_filament = ams_btn;
-        subtitle_sizer->Add(ams_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
-
-        // Settings button
-        ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_subtitle, wxID_ANY, "settings");
-        set_btn->SetToolTip(_L("Set filaments to use"));
-        set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-            p->editing_filament = -1;
-            wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
-        });
-        p->m_bpButton_set_filament = set_btn;
-        subtitle_sizer->Add(set_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
         subtitle_sizer->Add(FromDIP(16), 0, 0, 0, 0);
 
         subtitle_sizer->SetMinSize(-1, FromDIP(28));
@@ -5435,6 +5440,8 @@ void Sidebar::update_all_preset_comboboxes()
         p->combo_printer_bed->SelectAndNotify(btPEI - 1);
         p->combo_printer_bed->Disable();
     }
+    // AMS sync button visibility changed, relayout the filament title row
+    p->adjust_filament_title_layout();
 
     // Update plate tab's bed type combobox to match current printer's supported bed types
     if (auto *tab = dynamic_cast<TabPrintPlate *>(wxGetApp().plate_tab))
