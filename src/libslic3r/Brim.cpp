@@ -818,8 +818,12 @@ static ExPolygons make_brim_ears(const PrintObject* object, const double& flowWi
     model_trsf = model_trsf.pretranslate(Vec3d(- unscale<double>(center_offset.x()), - unscale<double>(center_offset.y()), 0));
     for (auto &pt : brim_ear_points) {
         Transform3d v_trsf = Transform3d::Identity();
-        if (pt.volume_idx > -1)
+        if (pt.volume_idx > -1) {
+            // volume_idx may be stale (e.g. volumes were removed or merged after the ear was placed).
+            if (pt.volume_idx >= (int) object->model_object()->volumes.size())
+                continue;
             v_trsf = object->model_object()->volumes[pt.volume_idx]->get_matrix();
+        }
         Vec3f world_pos = pt.transform(trsf.get_matrix() * v_trsf);
         if ( world_pos.z() > 0) continue;
         Polygon point_round;
