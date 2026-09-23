@@ -1985,6 +1985,8 @@ bool PartPlate::check_mixture_filament_compatible(const DynamicPrintConfig &conf
 
 bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig &config, const std::vector<std::string> &filament_presets, std::string &error_msg)
 {
+    error_msg.clear();
+
     auto volume_type_opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     if (volume_type_opt == nullptr || volume_type_opt->values.empty())
         return true;
@@ -2032,13 +2034,17 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
         return filament_str;
     };
 
-    error_msg.clear();
-
     const std::vector<int> filament_map        = get_real_filament_maps(config);
     const std::vector<int> filament_volume_map = get_real_filament_volume_maps(config);
     std::map<std::pair<float, NozzleVolumeType>, std::set<std::string>> incompatible_selected_map;
 
-    for (size_t filament_idx = 0; filament_idx < filament_presets.size(); ++filament_idx) {
+    for (int used_filament : get_extruders(true)) {
+        if (used_filament <= 0)
+            continue;
+        const size_t filament_idx = static_cast<size_t>(used_filament - 1);
+        if (filament_idx >= filament_presets.size())
+            continue;
+
         const float diameter = filament_nozzle_diameter(filament_idx);
         if (diameter <= 0.f)
             continue;
