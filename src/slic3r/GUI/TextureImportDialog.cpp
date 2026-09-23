@@ -2908,14 +2908,14 @@ public:
         m_decompose_label->SetFont(Label::Body_12);
         m_add_label->SetBackgroundColour(pop_bg);
         m_decompose_label->SetBackgroundColour(pop_bg);
-        m_decompose_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+        bind_click(m_decompose_label, [this]() {
             auto on_decompose_color = m_on_decompose_color;
             m_closing_from_action = true;
             Dismiss();
             if (on_decompose_color)
                 on_decompose_color();
         });
-        m_add_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+        bind_click(m_add_label, [this]() {
             auto on_add_filament = m_on_add_filament;
             m_closing_from_action = true;
             Dismiss();
@@ -3080,6 +3080,7 @@ private:
         m_hover_idx = -1;
         m_hover_row = nullptr;
         m_row_windows.clear();
+        m_pressed_target = nullptr;
         int scroll_x = 0;
         int scroll_y = 0;
         m_content->GetViewStart(&scroll_x, &scroll_y);
@@ -3401,21 +3402,41 @@ private:
         });
     }
 
-    bool handle_row_left_down(wxMouseEvent& evt, int idx)
+    // macOS 27: dismissing on mouseDown hides the NSPanel while its mouse
+    // tracking session is still open; the paired mouseUp then orders the panel
+    // front again and its background stays on screen. Act on mouseUp instead,
+    // and only when the press started on the same target and the pointer is
+    // still over it, so pressing and dragging out cancels the click.
+    void bind_click(wxWindow* target, std::function<void()> on_click)
     {
-        if (row_can_delete(idx) && delete_icon_rect(static_cast<wxWindow*>(evt.GetEventObject())).Contains(evt.GetPosition())) {
+        target->Bind(wxEVT_LEFT_DOWN, [this, target](wxMouseEvent&) {
+            m_pressed_target = target;
+        });
+        target->Bind(wxEVT_LEFT_UP, [this, target, on_click = std::move(on_click)](wxMouseEvent&) {
+            if (m_pressed_target != target)
+                return;
+            m_pressed_target = nullptr;
+            if (!target->GetScreenRect().Contains(wxGetMousePosition()))
+                return;
+            on_click();
+        });
+    }
+
+    void handle_row_click(wxWindow* row, int idx)
+    {
+        const wxPoint pos = row->ScreenToClient(wxGetMousePosition());
+        if (row_can_delete(idx) && delete_icon_rect(row).Contains(pos)) {
             // Keep the popup open and refresh the list in place. Dismiss+reopen
             // flashes the dropdown every time a new filament is removed.
             auto on_delete = m_on_delete;
             if (on_delete)
                 on_delete(idx);
-            return true;
+            return;
         }
         if (m_on_select)
             m_on_select(idx);
         m_closing_from_action = true;
         Dismiss();
-        return true;
     }
 
     wxPanel* create_item_row(size_t idx, int row_h)
@@ -3491,9 +3512,7 @@ private:
         });
 
         bind_row_hover(row, (int)idx, name_str);
-        row->Bind(wxEVT_LEFT_DOWN, [this, idx](wxMouseEvent& evt) {
-            handle_row_left_down(evt, (int)idx);
-        });
+        bind_click(row, [this, row, idx]() { handle_row_click(row, (int)idx); });
 
         return row;
     }
@@ -3575,9 +3594,7 @@ private:
         });
 
         bind_row_hover(row, idx, name_str);
-        row->Bind(wxEVT_LEFT_DOWN, [this, idx](wxMouseEvent& evt) {
-            handle_row_left_down(evt, idx);
-        });
+        bind_click(row, [this, row, idx]() { handle_row_click(row, idx); });
 
         return row;
     }
@@ -3617,6 +3634,8 @@ private:
     int                                        m_hover_idx = -1;
     wxWindow*                                  m_hover_row = nullptr;
     std::vector<std::pair<int, wxWindow*>>     m_row_windows;
+    // Compared by address only; never dereferenced.
+    wxWindow*                                  m_pressed_target = nullptr;
     bool                                       m_closing_from_action = false;
     bool                                       m_dismissed = false;
     bool                                       m_destroy_scheduled = false;
@@ -8051,49 +8070,57 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
     };
 
     auto on_add_filament = [this, row_index]() {
-        wxWindow* color_anchor = nullptr;
-        if (row_index < m_mapping_rows.size())
-            color_anchor = m_mapping_rows[row_index].target_panel;
-        if (!color_anchor)
-            color_anchor = this;
+        // Dismiss() already queued the popup's Destroy on this turn. Opening the
+        // modal here would start a nested loop before that Destroy (and the macOS
+        // orderOut) runs, so the filament list stays on screen until the dialog ends.
+        CallAfter([this, row_index]() {
+            if (IsBeingDeleted())
+                return;
 
-        int next_physical_display = 1;
-        for (const auto& entry : m_filament_entries) {
-            if (entry.kind == TextureFilamentKind::ExistingPhysical ||
-                entry.kind == TextureFilamentKind::NewPhysical)
-                ++next_physical_display;
-        }
+            wxWindow* color_anchor = nullptr;
+            if (row_index < m_mapping_rows.size())
+                color_anchor = m_mapping_rows[row_index].target_panel;
+            if (!color_anchor)
+                color_anchor = this;
 
-        TextureImportAddFilamentDialog dlg(this, m_default_virtual_filament_preset_name, next_physical_display);
-        auto move_dialog = [&dlg, color_anchor]() {
-            dlg.Move(constrained_dialog_position(color_anchor, dlg.GetBestSize()));
-        };
-        dlg.Bind(wxEVT_SHOW, [move_dialog](wxShowEvent& e) {
-            e.Skip();
-            if (e.IsShown())
-                move_dialog();
+            int next_physical_display = 1;
+            for (const auto& entry : m_filament_entries) {
+                if (entry.kind == TextureFilamentKind::ExistingPhysical ||
+                    entry.kind == TextureFilamentKind::NewPhysical)
+                    ++next_physical_display;
+            }
+
+            TextureImportAddFilamentDialog dlg(this, m_default_virtual_filament_preset_name, next_physical_display);
+            auto move_dialog = [&dlg, color_anchor]() {
+                dlg.Move(constrained_dialog_position(color_anchor, dlg.GetBestSize()));
+            };
+            dlg.Bind(wxEVT_SHOW, [move_dialog](wxShowEvent& e) {
+                e.Skip();
+                if (e.IsShown())
+                    move_dialog();
+            });
+            move_dialog();
+            if (dlg.ShowModal() != wxID_OK)
+                return;
+
+            wxColour clr = dlg.GetColour();
+            if (!clr.IsOk())
+                return;
+            std::array<float, 4> rgba = {clr.Red() / 255.f, clr.Green() / 255.f,
+                                         clr.Blue() / 255.f, 1.0f};
+            std::string hex = wxString::Format("#%02X%02X%02X",
+                clr.Red(), clr.Green(), clr.Blue()).ToStdString();
+            int new_idx = add_virtual_filament(rgba, hex, dlg.GetPresetName());
+            if (new_idx < 0)
+                return;
+
+            if (row_index < m_mapping_rows.size()) {
+                m_mapping_rows[row_index].target_filament_idx = new_idx;
+                if (row_index < m_current_matches.size())
+                    bind_match_inplace(m_current_matches[row_index], new_idx);
+            }
+            drop_unused_new_filaments_and_refresh();
         });
-        move_dialog();
-        if (dlg.ShowModal() != wxID_OK)
-            return;
-
-        wxColour clr = dlg.GetColour();
-        if (!clr.IsOk())
-            return;
-        std::array<float, 4> rgba = {clr.Red() / 255.f, clr.Green() / 255.f,
-                                     clr.Blue() / 255.f, 1.0f};
-        std::string hex = wxString::Format("#%02X%02X%02X",
-            clr.Red(), clr.Green(), clr.Blue()).ToStdString();
-        int new_idx = add_virtual_filament(rgba, hex, dlg.GetPresetName());
-        if (new_idx < 0)
-            return;
-
-        if (row_index < m_mapping_rows.size()) {
-            m_mapping_rows[row_index].target_filament_idx = new_idx;
-            if (row_index < m_current_matches.size())
-                bind_match_inplace(m_current_matches[row_index], new_idx);
-        }
-        drop_unused_new_filaments_and_refresh();
     };
 
     auto on_delete_filament = [this, row_index](int dialog_index) {
