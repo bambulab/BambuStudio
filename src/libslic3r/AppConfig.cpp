@@ -295,6 +295,9 @@ void AppConfig::set_defaults()
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
 
+    if (get("texture_import_color_tolerance").empty())
+        set("texture_import_color_tolerance", "5");
+
     if (get("enable_webview_devtools").empty())
         set_bool("enable_webview_devtools", false);
 

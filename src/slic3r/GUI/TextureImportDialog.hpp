@@ -279,6 +279,10 @@ private:
     void capture_compute_snapshot();
     void restore_compute_snapshot();
     void schedule_recompute(bool auto_color, int delay_ms);
+    void invalidate_inflight_computation();
+    void show_last_result_after_cancel();
+    bool params_match_last_result() const;
+    void update_gap_param_lock();
     void on_recompute_timer(wxTimerEvent& evt);
     void on_computation_complete(wxCommandEvent& evt);
     void on_computation_progress(wxCommandEvent& evt);
@@ -288,14 +292,23 @@ private:
     void rebuild_mapping_rows();
     void layout_mapping_rows();
     void do_auto_match();
+    // Among candidates that pass m_match_delta_threshold, filaments inside the
+    // Color Tolerance band are treated as equal and chosen by slot kind:
+    // ExistingPhysical, NewPhysical, ExistingMixed, NewMixed. Outside that band
+    // the smallest CIEDE2000 ΔE wins. Same rank keeps the smaller ΔE, then the
+    // smaller dialog index. Returns -1 when none pass the threshold.
+    int select_filament_for_color(const std::array<std::size_t, 3>& color,
+                                  const std::vector<int>& candidates) const;
     // Bind every cluster to a project physical filament of the voted family.
-    // Mixed slots are skipped. ΔE > m_match_delta_threshold stays unmatched.
+    // Mixed slots are skipped. Candidates outside m_match_delta_threshold stay
+    // unmatched. This pool is physical-only, so Color Tolerance does not change
+    // which slot wins.
     void match_clusters_to_physical_filaments();
-    // Rebind each color to the closest same-family filament within the current
-    // threshold. Mixed slots are compared by their display color. Auto merge
-    // on: project filaments and ones created in this dialog. Auto merge off:
-    // only filaments created in this dialog. drop_unused removes created
-    // filaments that no color references; live edits pass false. Keeps row order.
+    // Rebind each color with select_filament_for_color(). Mixed slots are
+    // compared by their display color. Auto merge on: project filaments and
+    // ones created in this dialog. Auto merge off: only filaments created in
+    // this dialog. drop_unused removes created filaments that no color
+    // references; live edits pass false. Keeps row order.
     void reapply_match_threshold(bool drop_unused);
     void show_match_threshold_popup();
     void hide_match_threshold_popup();
@@ -466,6 +479,9 @@ private:
 
     boost::thread                      m_worker;
     std::atomic<bool>                  m_cancel_flag{false};
+    // In-dialog recompute was dropped because parameters changed. Its completion
+    // must not be applied. Cleared when a new run starts or the last result is shown.
+    bool                               m_compute_superseded = false;
     std::atomic<int>                   m_compute_generation{0};
     std::atomic<int>                   m_patch_generation{0};
     std::mutex                         m_result_mutex;

@@ -25,7 +25,9 @@
 
 #include <wx/listimpl.cpp>
 #include <map>
+#include <memory>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include "Gizmos/GLGizmoBase.hpp"
 #include "OpenGLManager.hpp"
 #ifdef __WINDOWS__
@@ -687,6 +689,75 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
         app_config->set(param, std::string(value.mb_str()));
         app_config->save();
         onchange(value);
+        e.Skip();
+    });
+
+    return sizer_input;
+}
+
+wxBoxSizer *PreferencesDialog::create_item_int_slider(
+    wxString title, wxWindow *parent, wxString tooltip, std::string param, int range_min, int range_max, int default_value)
+{
+    wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
+    sizer_input->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
+    auto input_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
+
+    int value = default_value;
+    const std::string stored = app_config->get(param);
+    long parsed = 0;
+    if (!stored.empty() && wxString::FromUTF8(stored).ToLong(&parsed))
+        value = static_cast<int>(parsed);
+    value = std::clamp(value, range_min, range_max);
+    if (stored != std::to_string(value)) {
+        app_config->set(param, std::to_string(value));
+        app_config->save();
+    }
+
+    // 80 + 8 + 56 matches COMBOBOX_WIDTH so the row lines up with other controls.
+    auto *slider = new wxSlider(parent, wxID_ANY, value, range_min, range_max, wxDefaultPosition,
+                                wxSize(FromDIP(80), FromDIP(ITEM_MIN_HEIGHT)));
+    auto *input = new ::TextInput(parent, wxString::Format("%d", value), wxEmptyString, wxEmptyString, wxDefaultPosition,
+                                  wxSize(FromDIP(56), FromDIP(ITEM_MIN_HEIGHT)), wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(ThemeColor::Grey250, StateColor::Disabled), std::pair<wxColour, int>(ThemeColor::White, StateColor::Enabled));
+    input->SetBackgroundColor(input_bg);
+    wxTextValidator validator(wxFILTER_DIGITS);
+    input->GetTextCtrl()->SetValidator(validator);
+
+    sizer_input->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
+    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
+    sizer_input->Add(slider, wxSizerFlags().CenterVertical());
+    sizer_input->AddSpacer(FromDIP(8));
+    sizer_input->Add(input, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
+
+    auto updating = std::make_shared<bool>(false);
+    auto commit = [this, param, slider, input, range_min, range_max, updating](int next) {
+        if (*updating)
+            return;
+        next = std::clamp(next, range_min, range_max);
+        *updating = true;
+        if (slider->GetValue() != next)
+            slider->SetValue(next);
+        input->GetTextCtrl()->ChangeValue(wxString::Format("%d", next));
+        *updating = false;
+        app_config->set(param, std::to_string(next));
+        app_config->save();
+    };
+
+    slider->Bind(wxEVT_SLIDER, [commit, slider](wxCommandEvent &) { commit(slider->GetValue()); });
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [commit, input, slider](wxCommandEvent &e) {
+        long entered = 0;
+        if (!input->GetTextCtrl()->GetValue().ToLong(&entered))
+            commit(slider->GetValue());
+        else
+            commit(static_cast<int>(entered));
+        e.Skip();
+    });
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [commit, input, slider](wxFocusEvent &e) {
+        long entered = 0;
+        if (!input->GetTextCtrl()->GetValue().ToLong(&entered))
+            commit(slider->GetValue());
+        else
+            commit(static_cast<int>(entered));
         e.Skip();
     });
 
@@ -1766,6 +1837,12 @@ wxWindow *PreferencesDialog::create_developer_tab()
     auto item_ssl_mqtt     = create_item_checkbox(_L("Enable SSL(MQTT)"), scrolled, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_mqtt");
     auto item_ssl_ftp      = create_item_checkbox(_L("Enable SSL(FTP)"), scrolled, _L("Enable SSL(FTP)"), 50, "enable_ssl_for_ftp");
 
+    auto title_texture = create_item_title(_L("Import Texture Model"), scrolled, _L("Import Texture Model"));
+    auto item_color_tolerance = create_item_int_slider(
+        _L("Color Tolerance of Filament Matching"), scrolled,
+        _L("CIEDE2000 difference used when matching imported texture colors to filaments. Filaments within this band are treated as equally close. This does not merge colors and does not change the match threshold in the texture import dialog."),
+        "texture_import_color_tolerance", 1, 100, 5);
+
     auto title_host = create_item_title(_L("Host Setting"), scrolled, _L("Host Setting"));
     auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "dev_host");
     auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "qa_host");
@@ -1876,6 +1953,10 @@ wxWindow *PreferencesDialog::create_developer_tab()
     sizer->Add(item_internal_dev, flags);
     sizer->Add(item_ssl_mqtt, flags);
     sizer->Add(item_ssl_ftp, flags);
+
+    sizer->Add(title_texture, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
+    sizer->AddSpacer(FromDIP(8));
+    sizer->Add(item_color_tolerance, flags);
 
     sizer->Add(title_host, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
     sizer->Add(radio1, flags);
@@ -2091,6 +2172,7 @@ void PreferencesDialog::on_reset_preferences()
         "skip_ams_blacklist_check",
         "enable_webview_devtools",
         "severity_level",
+        "texture_import_color_tolerance",
     };
     for (const char *k : kPrefKeys) app_config->erase("app", k);
     app_config->set_defaults();

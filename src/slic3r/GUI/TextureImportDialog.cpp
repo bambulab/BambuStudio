@@ -94,6 +94,13 @@ static constexpr int kMatchDeltaThresholdDefault = 20;
 static_assert(kMatchDeltaThresholdDefault >= kMatchDeltaThresholdMin &&
               kMatchDeltaThresholdDefault <= kMatchDeltaThresholdMax, "");
 
+// CIEDE2000 band treated as no color difference. Preferences key
+// texture_import_color_tolerance. Integer, greater than 0.
+static constexpr int kColorToleranceMin = 1;
+static constexpr int kColorToleranceMax = 100;
+static constexpr int kColorToleranceDefault = 5;
+static constexpr const char* kColorToleranceConfigKey = "texture_import_color_tolerance";
+
 static bool match_delta_accepted(double delta, int threshold)
 {
     if (threshold >= kMatchDeltaThresholdMax)
@@ -277,6 +284,53 @@ static void set_color_spin_error_border(TextInput* input, bool error)
             std::pair<wxColour, int>(wxColour(0x00, 0xAE, 0x42), StateColor::Hovered),
             std::pair<wxColour, int>(bd, StateColor::Normal)));
     }
+    input->Refresh();
+}
+
+static wxString gap_locked_tooltip_text()
+{
+    return _L("No valid computation result. This parameter cannot be adjusted.");
+}
+
+static void set_window_tooltip(wxWindow* win, const wxString& tip)
+{
+    if (!win)
+        return;
+    if (tip.empty())
+        win->UnsetToolTip();
+    else
+        win->SetToolTip(tip);
+}
+
+// Keep the window enabled so Windows still delivers hover for the tooltip.
+static void set_gap_spin_locked(TextInput* input, bool locked)
+{
+    if (!input)
+        return;
+    wxTextCtrl* tc = input->GetTextCtrl();
+    if (tc && tc->IsEditable() != !locked)
+        tc->SetEditable(!locked);
+    if (locked) {
+        if (tc) {
+            tc->SetBackgroundColour(dark_or(wxColour(0xF0, 0xF0, 0xF1), wxColour(0x40, 0x40, 0x40)));
+            tc->SetForegroundColour(dark_or(wxColour(0x90, 0x90, 0x90), wxColour(0x5A, 0x5A, 0x5A)));
+        }
+        const wxColour bd = param_value_input_border();
+        input->SetBorderColor(StateColor(
+            std::pair<wxColour, int>(bd, StateColor::Disabled),
+            std::pair<wxColour, int>(bd, StateColor::Hovered),
+            std::pair<wxColour, int>(bd, StateColor::Normal)));
+    } else if (tc) {
+        tc->SetBackgroundColour(texture_import_dialog_bg());
+        tc->SetForegroundColour(texture_import_text_colour());
+        const wxColour bd = param_value_input_border();
+        input->SetBorderColor(StateColor(
+            std::pair<wxColour, int>(bd, StateColor::Disabled),
+            std::pair<wxColour, int>(wxColour(0x00, 0xAE, 0x42), StateColor::Hovered),
+            std::pair<wxColour, int>(bd, StateColor::Normal)));
+    }
+    if (tc)
+        tc->Refresh();
     input->Refresh();
 }
 
@@ -584,6 +638,8 @@ public:
     T    GetMax() const { return m_max; }
     void SetValue(T val);
     void SetRange(T minVal, T maxVal);
+    // Stay enabled so a hover tooltip can show, but ignore drags and paint grey.
+    void SetInteractive(bool interactive);
     bool Enable(bool enable = true) override;
 private:
     void OnPaint(wxPaintEvent&);
@@ -595,6 +651,7 @@ private:
     T    quantize(T val) const;
     T    m_value, m_min, m_max;
     bool m_dragging = false;
+    bool m_interactive = true;
 };
 
 template<typename T>
@@ -647,6 +704,17 @@ void GreenSliderT<T>::SetRange(T minVal, T maxVal)
     const T clamped = quantize(std::clamp(m_value, m_min, m_max));
     if (clamped != m_value)
         m_value = clamped;
+    Refresh();
+}
+
+template<typename T>
+void GreenSliderT<T>::SetInteractive(bool interactive)
+{
+    if (m_interactive == interactive)
+        return;
+    m_interactive = interactive;
+    if (!interactive)
+        release_drag();
     Refresh();
 }
 
@@ -717,10 +785,11 @@ void GreenSliderT<T>::OnPaint(wxPaintEvent&)
         int ts = FromDIP(8);
         int pen_w = FromDIP(2);
 
-        wxColour greenClr = IsEnabled() ? wxColour(0, 174, 66)
-                                        : dark_or(wxColour(180, 180, 180), wxColour(90, 90, 96));
-        wxColour grayClr  = IsEnabled() ? dark_or(wxColour(200, 200, 200), wxColour(90, 90, 96))
-                                        : dark_or(wxColour(220, 220, 220), wxColour(70, 70, 76));
+        const bool active = IsEnabled() && m_interactive;
+        wxColour greenClr = active ? wxColour(0, 174, 66)
+                                   : dark_or(wxColour(180, 180, 180), wxColour(90, 90, 96));
+        wxColour grayClr  = active ? dark_or(wxColour(200, 200, 200), wxColour(90, 90, 96))
+                                   : dark_or(wxColour(220, 220, 220), wxColour(70, 70, 76));
 
         int tx = xFromValue();
 
@@ -744,7 +813,7 @@ void GreenSliderT<T>::OnPaint(wxPaintEvent&)
 template<typename T>
 void GreenSliderT<T>::OnMouse(wxMouseEvent& evt)
 {
-    if (!IsEnabled()) return;
+    if (!IsEnabled() || !m_interactive) return;
 
     auto update = [&](int x) {
         T nv = valueFromX(x);
@@ -2290,23 +2359,29 @@ public:
         Bind(wxEVT_TIMER, &MatchThresholdPopup::on_hover_timer, this);
 
         const int pad = FromDIP(12);
-        m_pop_w = FromDIP(296);
-        const int hint_w = std::max(FromDIP(80), m_pop_w - 2 * pad);
+        // Grow with the title's single line. Cap so a long translation still wraps.
+        const int max_pop_w = FromDIP(360);
+        const int slider_row_min = FromDIP(80) + FromDIP(8) + FromDIP(64);
+        const int max_content_w = std::max(slider_row_min, max_pop_w - 2 * pad);
 
         auto* title = new Label(this, Label::Head_14,
-            _L("Filament matching color difference threshold"), wxST_NO_AUTORESIZE);
+            _L("Set filament match color difference threshold"), wxST_NO_AUTORESIZE);
         title->SetForegroundColour(texture_import_dialog_fg());
         title->SetBackgroundColour(pop_bg);
-        title->Wrap(hint_w);
-        title->SetMinSize(wxSize(hint_w, title->GetBestSize().y));
+        const int title_w = title->GetBestSize().x;
+        const int content_w = std::min(std::max(title_w, slider_row_min), max_content_w);
+        title->Wrap(content_w);
+        title->SetMinSize(wxSize(content_w, title->GetBestSize().y));
 
         auto* hint = new Label(this, Label::Body_10,
-            _L("Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."),
+            _L("Color tolerance for automatic filament matching. Higher value = easier to match."),
             wxST_NO_AUTORESIZE);
         hint->SetForegroundColour(texture_import_hint_text_colour());
         hint->SetBackgroundColour(pop_bg);
-        hint->Wrap(hint_w);
-        hint->SetMinSize(wxSize(hint_w, hint->GetBestSize().y));
+        hint->Wrap(content_w);
+        hint->SetMinSize(wxSize(content_w, hint->GetBestSize().y));
+
+        m_pop_w = content_w + 2 * pad;
 
         m_slider = new GreenSlider(this, std::clamp(value, kMatchDeltaThresholdMin, kMatchDeltaThresholdMax),
                                    kMatchDeltaThresholdMin, kMatchDeltaThresholdMax);
@@ -5650,6 +5725,7 @@ void TextureImportDialog::apply_theme()
     style_param_value_input(m_color_spin);
     style_param_value_input(m_smooth_spin);
     style_param_value_input(m_gap_spin);
+    update_gap_param_lock();
     set_color_spin_error_border(m_color_spin, m_color_count_exceeded
         && m_wizard_step == TextureImportWizardStep::SimplifyColors);
     style_primary_button(m_btn_next);
@@ -5996,6 +6072,54 @@ void TextureImportDialog::update_wizard_ui()
     Refresh();
 }
 
+void TextureImportDialog::invalidate_inflight_computation()
+{
+    m_cancel_flag = true;
+    m_compute_generation.fetch_add(1);
+    m_compute_superseded = true;
+}
+
+void TextureImportDialog::show_last_result_after_cancel()
+{
+    const bool in_dialog_compute = m_state == TextureImportState::Computing && !m_current_computation_initial;
+    if (!in_dialog_compute)
+        return;
+    invalidate_inflight_computation();
+    m_compute_superseded = false;
+    set_state(m_painted.face_colors.empty() ? TextureImportState::Idle : TextureImportState::Ready);
+}
+
+bool TextureImportDialog::params_match_last_result() const
+{
+    if (m_applied_color_count < 1 || m_applied_smooth < 0)
+        return false;
+    if (m_painted.face_colors.empty())
+        return false;
+    return m_param_color_count == m_applied_color_count && m_param_smooth == m_applied_smooth;
+}
+
+void TextureImportDialog::update_gap_param_lock()
+{
+    const bool computing = (m_state == TextureImportState::Computing);
+    const bool gap_enabled = !computing && !m_patch_building;
+    if (m_gap_slider) {
+        if (!m_gap_slider->IsEnabled())
+            m_gap_slider->Enable(true);
+        m_gap_slider->SetInteractive(gap_enabled);
+    }
+    if (m_gap_spin) {
+        if (!m_gap_spin->IsEnabled())
+            m_gap_spin->Enable(true);
+        set_gap_spin_locked(m_gap_spin, !gap_enabled);
+    }
+    const wxString tip = computing ? gap_locked_tooltip_text() : wxString();
+    set_window_tooltip(m_gap_slider, tip);
+    if (m_gap_spin) {
+        set_window_tooltip(m_gap_spin, tip);
+        set_window_tooltip(m_gap_spin->GetTextCtrl(), tip);
+    }
+}
+
 void TextureImportDialog::schedule_recompute(bool auto_color, int delay_ms)
 {
     if (m_updating_params)
@@ -6004,6 +6128,19 @@ void TextureImportDialog::schedule_recompute(bool auto_color, int delay_ms)
         return;
     m_advance_to_matching_when_ready = false;
     m_pending_auto_color = auto_color;
+
+    const bool in_dialog_compute = m_state == TextureImportState::Computing && !m_current_computation_initial;
+    if (!auto_color && params_match_last_result()) {
+        if (m_recompute_timer && m_recompute_timer->IsRunning())
+            m_recompute_timer->Stop();
+        if (in_dialog_compute)
+            show_last_result_after_cancel();
+        return;
+    }
+
+    if (in_dialog_compute)
+        invalidate_inflight_computation();
+
     if (!m_recompute_timer) {
         start_computation(auto_color);
         return;
@@ -6020,6 +6157,10 @@ void TextureImportDialog::on_recompute_timer(wxTimerEvent&)
 {
     if (m_color_count_exceeded)
         return;
+    if (!m_pending_auto_color && params_match_last_result()) {
+        show_last_result_after_cancel();
+        return;
+    }
     start_computation(m_pending_auto_color);
 }
 
@@ -6031,17 +6172,15 @@ void TextureImportDialog::update_ui_for_state()
     bool valid     = has_valid_result();
     const bool step1 = (m_wizard_step == TextureImportWizardStep::SimplifyColors);
 
-    const bool gap_enabled = !computing && !m_patch_building;
-    if (m_color_slider) m_color_slider->Enable(!computing);
-    if (m_color_spin) m_color_spin->Enable(!computing);
-    if (m_smooth_slider) m_smooth_slider->Enable(!computing);
-    if (m_smooth_spin) m_smooth_spin->Enable(!computing);
-    if (m_gap_slider) m_gap_slider->Enable(gap_enabled);
-    if (m_gap_spin) m_gap_spin->Enable(gap_enabled);
-    if (m_btn_color_4) m_btn_color_4->Enable(!computing);
-    if (m_btn_color_8) m_btn_color_8->Enable(!computing);
-    if (m_btn_color_16) m_btn_color_16->Enable(!computing);
-    if (m_btn_color_auto) m_btn_color_auto->Enable(!computing);
+    if (m_color_slider) m_color_slider->Enable(true);
+    if (m_color_spin) m_color_spin->Enable(true);
+    if (m_smooth_slider) m_smooth_slider->Enable(true);
+    if (m_smooth_spin) m_smooth_spin->Enable(true);
+    if (m_btn_color_4) m_btn_color_4->Enable(true);
+    if (m_btn_color_8) m_btn_color_8->Enable(true);
+    if (m_btn_color_16) m_btn_color_16->Enable(true);
+    if (m_btn_color_auto) m_btn_color_auto->Enable(true);
+    update_gap_param_lock();
     if (m_mix_cb)
         m_mix_cb->Enable(!computing);
     if (m_lbl_mix_help)
@@ -6091,6 +6230,7 @@ void TextureImportDialog::update_ui_for_state()
 void TextureImportDialog::start_computation(bool auto_color, bool initial)
 {
     cancel_computation();
+    m_compute_superseded = false;
 
     if (!initial)
         capture_compute_snapshot();
@@ -6330,7 +6470,13 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent& evt)
     }
 
     int actual_colors = (int)m_painted.cluster_colors.size();
-    if (actual_colors >= 1 && actual_colors <= (int)max_filament_count()) {
+    bool color_spin_dirty = false;
+    if (m_color_spin && m_color_spin->GetTextCtrl() && m_color_spin->GetTextCtrl()->HasFocus()) {
+        long parsed = 0;
+        const wxString text = m_color_spin->GetTextCtrl()->GetValue();
+        color_spin_dirty = !text.ToLong(&parsed) || (int)parsed != m_param_color_count;
+    }
+    if (!color_spin_dirty && actual_colors >= 1 && actual_colors <= (int)max_filament_count()) {
         m_updating_params = true;
         set_color_count_value(actual_colors, true);
         m_updating_params = false;
@@ -6515,6 +6661,10 @@ void TextureImportDialog::set_color_count_exceeded(bool exceeded)
         if (m_recompute_timer && m_recompute_timer->IsRunning())
             m_recompute_timer->Stop();
         m_advance_to_matching_when_ready = false;
+        if (m_compute_superseded && m_state == TextureImportState::Computing && !m_current_computation_initial) {
+            m_compute_superseded = false;
+            set_state(m_painted.face_colors.empty() ? TextureImportState::Idle : TextureImportState::Ready);
+        }
     }
     if (changed || exceeded)
         update_color_count_warning();
@@ -7045,6 +7195,77 @@ void TextureImportDialog::bind_match_inplace(Slic3r::FilamentMatch& match, int f
     }
 }
 
+static int texture_import_color_tolerance()
+{
+    auto* config = wxGetApp().app_config;
+    if (!config)
+        return kColorToleranceDefault;
+    const std::string stored = config->get(kColorToleranceConfigKey);
+    if (stored.empty())
+        return kColorToleranceDefault;
+    long parsed = 0;
+    if (!wxString::FromUTF8(stored).ToLong(&parsed))
+        return kColorToleranceDefault;
+    return std::clamp(static_cast<int>(parsed), kColorToleranceMin, kColorToleranceMax);
+}
+
+// Lower rank wins inside the equal-color band.
+static int filament_equal_color_rank(TextureFilamentKind kind)
+{
+    switch (kind) {
+    case TextureFilamentKind::ExistingPhysical: return 0;
+    case TextureFilamentKind::NewPhysical:      return 1;
+    case TextureFilamentKind::ExistingMixed:    return 2;
+    case TextureFilamentKind::NewMixed:         return 3;
+    }
+    return 4;
+}
+
+int TextureImportDialog::select_filament_for_color(const std::array<std::size_t, 3>& color,
+                                                   const std::vector<int>& candidates) const
+{
+    struct Candidate {
+        int    idx;
+        double delta;
+        int    rank;
+    };
+
+    const int tolerance = texture_import_color_tolerance();
+    std::vector<Candidate> accepted;
+    std::vector<Candidate> equal;
+    accepted.reserve(candidates.size());
+    for (int idx : candidates) {
+        if (idx < 0 || idx >= (int)m_filament_colors_rgba.size())
+            continue;
+        const double delta = Slic3r::compute_delta_e(color, m_filament_colors_rgba[idx]);
+        if (!match_delta_accepted(delta, m_match_delta_threshold))
+            continue;
+        const int rank = (idx < (int)m_filament_entries.size())
+            ? filament_equal_color_rank(m_filament_entries[idx].kind)
+            : 4;
+        const Candidate cand{idx, delta, rank};
+        accepted.push_back(cand);
+        if (delta <= static_cast<double>(tolerance))
+            equal.push_back(cand);
+    }
+    if (accepted.empty())
+        return -1;
+
+    const bool use_priority = !equal.empty();
+    const std::vector<Candidate>& pool = use_priority ? equal : accepted;
+    Candidate best = pool.front();
+    for (size_t i = 1; i < pool.size(); ++i) {
+        const Candidate& cand = pool[i];
+        const bool better_rank = use_priority && cand.rank < best.rank;
+        const bool same_rank = !use_priority || cand.rank == best.rank;
+        const bool better_delta = cand.delta < best.delta ||
+            (cand.delta == best.delta && cand.idx < best.idx);
+        if (better_rank || (same_rank && better_delta))
+            best = cand;
+    }
+    return best.idx;
+}
+
 void TextureImportDialog::reapply_match_threshold(bool drop_unused)
 {
     if (m_state != TextureImportState::Ready || m_mix_applying)
@@ -7085,16 +7306,7 @@ void TextureImportDialog::reapply_match_threshold(bool drop_unused)
         candidates = collect(false);
 
     for (auto& match : m_current_matches) {
-        int best = -1;
-        double best_delta = std::numeric_limits<double>::max();
-        for (int idx : candidates) {
-            const double delta = Slic3r::compute_delta_e(match.cluster_color, m_filament_colors_rgba[idx]);
-            if (delta < best_delta) {
-                best_delta = delta;
-                best = idx;
-            }
-        }
-        const int bind = (best >= 0 && match_delta_accepted(best_delta, m_match_delta_threshold)) ? best : -1;
+        const int bind = select_filament_for_color(match.cluster_color, candidates);
         if (match.filament_index != bind)
             bind_match_inplace(match, bind, false);
     }
@@ -7599,21 +7811,29 @@ void TextureImportDialog::reset_auto_mix()
     const std::string match_type = pick_auto_match_filament_type(m_filament_entries, m_existing_filament_count);
     const bool had_rows = !m_mapping_rows.empty();
 
+    std::vector<int> candidates;
+    std::vector<int> any_physical;
+    const size_t filament_count = std::min(m_filament_entries.size(), m_filament_colors_rgba.size());
+    candidates.reserve(filament_count);
+    any_physical.reserve(filament_count);
+    for (size_t i = 0; i < filament_count; ++i) {
+        if (!texture_entry_is_physical(m_filament_entries[i].kind))
+            continue;
+        any_physical.push_back((int)i);
+        const std::string ft = texture_entry_family_type(m_filament_entries[i], m_filament_entries);
+        if (ft == match_type)
+            candidates.push_back((int)i);
+    }
+    if (candidates.empty())
+        candidates = std::move(any_physical);
+
     for (size_t match_idx = 0; match_idx < m_current_matches.size(); ++match_idx) {
         Slic3r::FilamentMatch& m = m_current_matches[match_idx];
         if (m.filament_index < 0 || m.filament_index >= (int)m_filament_entries.size())
             continue;
         if (!texture_entry_is_mixed(m_filament_entries[m.filament_index].kind))
             continue;
-
-        int bind_idx = -1;
-        const int best = find_closest_filament_index(m.cluster_color, -1, true, match_type);
-        if (best >= 0 && best < (int)m_filament_colors_rgba.size()) {
-            const double delta = Slic3r::compute_delta_e(m.cluster_color, m_filament_colors_rgba[best]);
-            if (match_delta_accepted(delta, m_match_delta_threshold))
-                bind_idx = best;
-        }
-        bind_match_inplace(m, bind_idx);
+        bind_match_inplace(m, select_filament_for_color(m.cluster_color, candidates));
     }
 
     drop_unused_new_filaments_and_refresh();
@@ -7994,48 +8214,41 @@ void TextureImportDialog::match_clusters_to_physical_filaments()
 
     const std::string match_type = pick_auto_match_filament_type(m_filament_entries, m_existing_filament_count);
 
-    std::vector<std::string> names;
-    std::vector<std::array<float, 4>> existing_filament_colors;
-    std::vector<int> index_map;
-    const size_t existing_n = std::min(m_existing_filament_count, m_filament_colors_rgba.size());
-    names.reserve(existing_n);
-    existing_filament_colors.reserve(existing_n);
-    index_map.reserve(existing_n);
-    for (size_t i = 0; i < existing_n && i < m_filament_entries.size(); ++i) {
-        // Never auto-bind mixed slots; Reset / auto-match only pair physicals.
-        if (texture_entry_is_mixed(m_filament_entries[i].kind))
-            continue;
-        const std::string ft = texture_entry_family_type(m_filament_entries[i], m_filament_entries);
-        if (!ft.empty() && ft != match_type)
-            continue;
-        existing_filament_colors.push_back(m_filament_colors_rgba[i]);
-        names.push_back(m_filament_names.size() > i ? m_filament_names[i] : default_filament_stored_name((int)i + 1));
-        index_map.push_back((int)i);
-    }
-    if (existing_filament_colors.empty()) {
+    auto collect = [&](bool same_type_only) {
+        std::vector<int> indices;
+        const size_t existing_n = std::min(m_existing_filament_count, m_filament_colors_rgba.size());
+        indices.reserve(existing_n);
         for (size_t i = 0; i < existing_n && i < m_filament_entries.size(); ++i) {
+            // Never auto-bind mixed slots; Reset / auto-match only pair physicals.
             if (texture_entry_is_mixed(m_filament_entries[i].kind))
                 continue;
-            existing_filament_colors.push_back(m_filament_colors_rgba[i]);
-            names.push_back(m_filament_names.size() > i ? m_filament_names[i] : default_filament_stored_name((int)i + 1));
-            index_map.push_back((int)i);
+            if (same_type_only) {
+                const std::string ft = texture_entry_family_type(m_filament_entries[i], m_filament_entries);
+                if (!ft.empty() && ft != match_type)
+                    continue;
+            }
+            indices.push_back((int)i);
         }
-    }
+        return indices;
+    };
 
-    m_current_matches = Slic3r::match_clusters_to_filaments(
-        m_painted.cluster_colors, existing_filament_colors, names);
-    for (auto& m : m_current_matches) {
-        if (m.filament_index >= 0 && m.filament_index < (int)index_map.size())
-            m.filament_index = index_map[m.filament_index];
-    }
+    std::vector<int> candidates = collect(true);
+    if (candidates.empty())
+        candidates = collect(false);
 
-    // Poor match (CIEDE2000 ΔE above the threshold): leave unmatched
-    // so mix (if enabled) or the user can pick a slot. Do not auto-create
-    // or fall back to the closest slot. The slider's right end is unlimited.
-    for (auto& m : m_current_matches) {
-        if (m.filament_index >= 0 && match_delta_accepted(m.delta_e, m_match_delta_threshold))
-            continue;
-        m.filament_index = -1;
+    m_current_matches.clear();
+    m_current_matches.reserve(m_painted.cluster_colors.size());
+    for (size_t ci = 0; ci < m_painted.cluster_colors.size(); ++ci) {
+        Slic3r::FilamentMatch match;
+        match.cluster_index = (int)ci;
+        match.cluster_color = m_painted.cluster_colors[ci];
+        const int bind = select_filament_for_color(match.cluster_color, candidates);
+        if (bind >= 0 && bind < (int)m_filament_colors_rgba.size()) {
+            match.filament_index = bind;
+            match.filament_color = m_filament_colors_rgba[bind];
+            match.delta_e = Slic3r::compute_delta_e(match.cluster_color, match.filament_color);
+        }
+        m_current_matches.push_back(match);
     }
 }
 
@@ -8491,8 +8704,6 @@ bool TextureImportDialog::can_restore_applied_color_count(int count) const
         return false;
     if (m_painted.face_colors.empty())
         return false;
-    if (m_state == TextureImportState::Computing)
-        return false;
     return true;
 }
 
@@ -8501,10 +8712,13 @@ void TextureImportDialog::restore_applied_color_result()
     if (m_recompute_timer && m_recompute_timer->IsRunning())
         m_recompute_timer->Stop();
     m_advance_to_matching_when_ready = false;
+    const bool in_dialog_compute = m_state == TextureImportState::Computing && !m_current_computation_initial;
     m_updating_params = true;
     set_gap_value(0.0, true);
     m_updating_params = false;
     apply_gap_area();
+    if (in_dialog_compute)
+        show_last_result_after_cancel();
 }
 
 void TextureImportDialog::request_color_count(int count, int delay_ms)
@@ -8913,6 +9127,8 @@ void TextureImportDialog::on_smooth_spin_commit()
 
 void TextureImportDialog::on_gap_slider_changed(wxCommandEvent&)
 {
+    if (m_state == TextureImportState::Computing || m_patch_building)
+        return;
     if (!m_gap_slider)
         return;
     set_gap_value(m_gap_slider->GetValue(), true);
@@ -8921,6 +9137,8 @@ void TextureImportDialog::on_gap_slider_changed(wxCommandEvent&)
 
 void TextureImportDialog::on_gap_spin_commit()
 {
+    if (m_state == TextureImportState::Computing || m_patch_building)
+        return;
     if (m_updating_params || !m_gap_spin || !m_gap_spin->GetTextCtrl())
         return;
     const wxString text = m_gap_spin->GetTextCtrl()->GetValue();
@@ -9458,6 +9676,7 @@ void TextureImportDialog::on_dpi_changed(const wxRect&)
     style_param_value_input(m_color_spin);
     style_param_value_input(m_smooth_spin);
     style_param_value_input(m_gap_spin);
+    update_gap_param_lock();
 
     if (m_mapping_scroll) {
         const bool step1 = (m_wizard_step == TextureImportWizardStep::SimplifyColors);
