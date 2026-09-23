@@ -1571,6 +1571,15 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                 BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result, plater is nullptr";
             }
 
+            const int preset_count = (int) wxGetApp().preset_bundle->filament_presets.size();
+            for (const FilamentInfo &item : m_ams_mapping_result) {
+                if (item.id < 0 || item.id >= preset_count) {
+                    BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result: mapping entry id=" << item.id
+                                             << " is outside the project filament range [0," << preset_count
+                                             << "), that slot will ship as tray -1 with ams/slot 255/255";
+                }
+            }
+
             for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
                 int  tray_id = -1;
                 json mapping_item_v1;
