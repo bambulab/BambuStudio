@@ -97,7 +97,7 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
 {
     HotendEntry e;
     e.index            = nozzle_id(n);
-    e.filament_loaded  = n.HasFilamentInNozzle();
+    e.filament_loaded  = n.HasFilamentAtNozzleInlet();
     e.nozzle_diameter  = n.GetNozzleDiameterStr();
     e.nozzle_flow_type = (n.GetNozzleFlowType() == NozzleFlowType::H_FLOW) ? _L("High Flow") : _L("Standard");
     e.is_hotend        = n.IsHotend();

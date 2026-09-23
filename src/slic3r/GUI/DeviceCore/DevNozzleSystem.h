@@ -182,7 +182,7 @@ public:
     void SetRackNozzleTempStatus(int temp_status);
     std::optional<NozzleTempStatus> GetRackNozzleTempStatus() const { return m_temp_status; }
 
-    bool HasFilamentInNozzle() const { return m_has_filament_in_nozzle; }
+    bool HasFilamentAtNozzleInlet() const { return m_has_filament_in_nozzle; }
 
     FilamentEngagementStatus GetFilamentEngagementStatus() const;
 

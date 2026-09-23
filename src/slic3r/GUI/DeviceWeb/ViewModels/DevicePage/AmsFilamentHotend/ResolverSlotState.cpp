@@ -176,7 +176,7 @@ bool DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(MachineObject
     if (obj_ && tray) {
         if (auto nozzle_addr_opt = tray->get_nozzle_addr_id(obj_); nozzle_addr_opt.has_value()) {
             auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
-            if (nozzle_opt && nozzle_opt->GetSlotNowId().has_value() && nozzle_opt->HasFilamentInNozzle()) {
+            if (nozzle_opt && nozzle_opt->GetSlotNowId().has_value() && nozzle_opt->HasFilamentAtNozzleInlet()) {
                 auto slot_now = nozzle_opt->GetSlotNowId().value();
                 if (tray->ams_type != DevAmsType::EXT_SPOOL) {
                     if (std::to_string(slot_now.first) == tray->ams_id && std::to_string(slot_now.second) == tray->id) {

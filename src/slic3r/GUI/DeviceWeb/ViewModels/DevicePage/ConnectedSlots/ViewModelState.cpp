@@ -426,7 +426,7 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
     const bool filament_changing = DevicePageFilamentChangeStatusBuilder::IsActive(m_obj);
     const TrayMenuContext menu_ctx{
         is_normal_nozzle(nozzle),
-        nozzle.has_value() && nozzle->HasFilamentInNozzle()
+        nozzle.has_value() && nozzle->HasFilamentAtNozzleInlet()
             && feed.has_value() && fila_sys->IsVirtualTrayId(std::to_string(feed->first)),
         filament_changing
     };
@@ -524,7 +524,7 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
     }
 
     const bool has_tool            = nozzle.has_value() && nozzle->IsExist();
-    const bool nozzle_has_filament = nozzle.has_value() && nozzle->HasFilamentInNozzle();
+    const bool nozzle_has_filament = nozzle.has_value() && nozzle->HasFilamentAtNozzleInlet();
     const bool tray_reading        = feed_tray && feed_tray->is_reading(m_obj);
     const bool loaded_in_nozzle    = DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(m_obj, feed_tray);
     const bool current_filament_changing = feed.has_value() && fila_sys->IsCurrentFilamentChangingSlot(feed->first, feed->second);

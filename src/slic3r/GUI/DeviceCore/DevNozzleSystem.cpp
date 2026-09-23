@@ -1007,7 +1007,7 @@ void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNoz
         nozzle_obj.m_bind_ams_slots.clear();
 
         // using the slot now value
-        if (nozzle_obj.m_slot_now.has_value() && nozzle_obj.HasFilamentInNozzle()) {
+        if (nozzle_obj.m_slot_now.has_value()) {
             if (system->GetOwner()->get_tray(std::to_string(nozzle_obj.m_slot_now->first), std::to_string(nozzle_obj.m_slot_now->second))) {
                 nozzle_obj.m_bind_ams_slots = { nozzle_obj.m_slot_now.value() };
                 return;

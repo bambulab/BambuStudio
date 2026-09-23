@@ -64,7 +64,7 @@ namespace Slic3r
     // and only a sub AMS retracts its own. So the occupant decides for the rest.
     DevSlotFeedBlock DevMappingUtil::QueryNozzleOccupantBlock(const DevNozzle& nz)
     {
-        if (!nz.HasFilamentInNozzle())
+        if (!nz.HasFilamentAtNozzleInlet())
             return DevSlotFeedBlock::None;
 
         // Resolves AMS slots and external spools alike, so ams_type classifies both.
@@ -82,7 +82,7 @@ namespace Slic3r
     DevSlotFeedBlock DevMappingUtil::QuerySlotFeedBlock(const DevNozzle& nz, DevAmsType ams_type, const DevAmsSlotId& slot)
     {
         // The slot already in the feed path needs nothing to happen first.
-        if (nz.HasFilamentInNozzle()) {
+        if (nz.HasFilamentAtNozzleInlet()) {
             const auto slot_now = nz.GetSlotNowId();
             // An external spool has a single slot, so its ams id alone identifies it.
             const bool is_occupant = slot_now.has_value() && ((ams_type == DevAmsType::EXT_SPOOL) ? (slot_now->first == slot.first)

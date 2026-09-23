@@ -35,15 +35,6 @@
   var EXTRUDER_FOOT_RIGHT_PATH =
     'M14.4307 31.7207H20.8828C21.345 31.7205 21.7197 31.346 21.7197 30.8838V27.6924C21.7196 27.2302 21.3449 26.8557 20.8828 26.8555H14.4307C13.9684 26.8555 13.5938 27.2301 13.5938 27.6924V30.8838C13.5938 31.3461 13.9683 31.7207 14.4307 31.7207Z';
 
-  // Dashed filament path running through the nozzle (upper + lower halves of
-  // the Figma clip groups). Painted with the spool color when the nozzle is
-  // loaded; otherwise grey.
-  var FILAMENT_UPPER_PATH =
-    'M13.25 114H11.25V111.964H13.25V114ZM13.25 107.893H11.25V103.821H13.25V107.893ZM13.25 99.75H11.25V95.6787H13.25V99.75ZM13.25 91.6074H11.25V87.5361H13.25V91.6074ZM13.25 83.4639H11.25V79.3926H13.25V83.4639ZM13.25 75.3213H11.25V71.25H13.25V75.3213ZM13.25 67.1787H11.25V63.1074H13.25V67.1787ZM13.25 59.0361H11.25V54.9639H13.25V59.0361ZM13.25 50.8926H11.25V46.8213H13.25V50.8926ZM13.25 42.75H11.25V38.6787H13.25V42.75ZM13.25 34.6074H11.25V30.5361H13.25V34.6074ZM13.25 26.4639H11.25V22.3926H13.25V26.4639ZM13.25 18.3213H11.25V14.25H13.25V18.3213ZM13.25 10.1787H11.25V6.10742H13.25V10.1787ZM13.25 2.03613H11.25V0H13.25V2.03613Z';
-
-  var FILAMENT_LOWER_PATH =
-    'M13.25 136H11.25V133.964H13.25V136ZM13.25 129.893H11.25V125.821H13.25V129.893ZM13.25 121.75H11.25V117.679H13.25V121.75ZM13.25 113.607H11.25V109.536H13.25V113.607ZM13.25 105.464H11.25V101.393H13.25V105.464ZM13.25 97.3213H11.25V93.25H13.25V97.3213ZM13.25 89.1787H11.25V85.1074H13.25V89.1787ZM13.25 81.0361H11.25V76.9639H13.25V81.0361ZM13.25 72.8926H11.25V68.8213H13.25V72.8926ZM13.25 64.75H11.25V60.6787H13.25V64.75ZM13.25 56.6074H11.25V52.5361H13.25V56.6074ZM13.25 48.4639H11.25V44.3926H13.25V48.4639ZM13.25 40.3213H11.25V36.25H13.25V40.3213ZM13.25 32.1787H11.25V28.1074H13.25V32.1787ZM13.25 24.0361H11.25V22H13.25V24.0361Z';
-
   // "No hotend" silhouette (inline from hotend_null.svg, native viewBox 24x48).
   // A dashed rounded-rect frame plus a grey "prohibited" circle, shown when the
   // slot has no nozzle/tool inserted (nozzleState === 'None').
@@ -215,7 +206,6 @@
     var hasFilamentInNozzle = p.hasFilamentInNozzle;
     var onExtruder = p.onExtruder;
     var toolKind = p.toolKind;
-    var solid = p.solid;
 
     var uid = ++uidCounter;
     var upperClipId = 'nozzle-filament-upper-clip-' + uid;
@@ -236,27 +226,16 @@
     var filamentColor = hasFilament && hasRealColor && color ? visibleFilamentColor(color) : STANDBY_COLOR;
 
     // Shared filament overlay, parameterized on the upper/lower clip bounds so
-    // each render branch can reuse it with its own body geometry. Switches
-    // between the original dashed segments (motion / standby) and a single
-    // continuous bar (loaded) based on `solid`.
-    // Center the in-nozzle filament strictly on the column axis (x = 12) so
-    // it lines up with the FeedLine above. The dashed Figma paths sit at
-    // x=11.25..13.25 (~0.25px right of center); pull them back via a translate.
+    // each render branch can reuse it with its own body geometry. The in-nozzle
+    // filament is always a continuous bar, centered on the column axis (x = 12)
+    // so it lines up with the FeedLine above.
     function filamentOverlay() {
-      if (solid) {
-        return [
-          el('g', { 'clip-path': 'url(#' + upperClipId + ')' },
-            el('rect', { x: 11, y: 0, width: 2, height: 22, fill: filamentColor })),
-          el('g', { 'clip-path': 'url(#' + lowerClipId + ')' },
-            el('rect', { x: 11, y: 22, width: 2, height: 24, fill: filamentColor })),
-        ];
-      }
-      return el('g', { transform: 'translate(-0.25, 0)' }, [
+      return [
         el('g', { 'clip-path': 'url(#' + upperClipId + ')' },
-          el('path', { d: FILAMENT_UPPER_PATH, fill: filamentColor })),
+          el('rect', { x: 11, y: 0, width: 2, height: 22, fill: filamentColor })),
         el('g', { 'clip-path': 'url(#' + lowerClipId + ')' },
-          el('path', { d: FILAMENT_LOWER_PATH, fill: filamentColor })),
-      ]);
+          el('rect', { x: 11, y: 22, width: 2, height: 24, fill: filamentColor })),
+      ];
     }
 
     if (nozzleState === 'None') {

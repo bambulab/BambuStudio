@@ -277,7 +277,6 @@
         hasFilamentInNozzle: slot.filament_nozzle.has_filament,
         onExtruder: slot.filament_nozzle.on_extruder,
         toolKind: slot.filament_nozzle.tool_kind,
-        solid: slot.filament_line.state === 'loaded',
       }));
       return column;
     }

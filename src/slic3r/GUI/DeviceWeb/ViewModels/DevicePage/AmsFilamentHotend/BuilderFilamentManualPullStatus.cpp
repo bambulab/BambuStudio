@@ -63,7 +63,7 @@ nlohmann::json DevicePageFilamentManualPullStatusBuilder::Build(MachineObject* m
         if (auto it = slot_to_display_index.find({ s.first, s.second }); it != slot_to_display_index.end()) {
             display_idx = it->second;
             if (auto nozzle_opt = nozzle_sys->GetNozzleOptByAddrId(display_idx - 1); nozzle_opt.has_value()) {
-                item_state = nozzle_opt->HasFilamentInNozzle() ? SV::filament_manual_pull_item_state::pending : SV::filament_manual_pull_item_state::success;
+                item_state = nozzle_opt->HasFilamentAtNozzleInlet() ? SV::filament_manual_pull_item_state::pending : SV::filament_manual_pull_item_state::success;
             } else {
                 DEV_ASSERT_ONCE(warning, " Nozzle not found");
                 continue;

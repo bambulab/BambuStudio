@@ -447,7 +447,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     std::string filament_line_color;
     if (rack_nozzle_opt.has_value()) {
         auto slot_now_opt = rack_nozzle_opt->GetSlotNow();
-        if (slot_now_opt.has_value()) {
+        if (slot_now_opt.has_value() && rack_nozzle_opt->HasFilamentAtNozzleInlet()) {
             filament_line_color = normalize_hex_for_web(slot_now_opt->color);
             filament_line_has_filament = !filament_line_color.empty();
         }

@@ -279,7 +279,6 @@ export function HotendFilamentPath({
           color={nozzleColor}
           hasFilamentInNozzle={slot.bottom_hotend.nozzle.has_filament}
           onExtruder={slot.bottom_hotend.nozzle.on_extruder}
-          solid={slot.bottom_hotend.line.state === 'loaded'}
         />
       </div>
     </div>

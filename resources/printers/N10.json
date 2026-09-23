@@ -94,7 +94,7 @@
 		"printer_use_ams_image": "ams_icon",
 		"printer_ext_image": ["ext_image_n7"],
 		"rack_extruder_images": {
-			"empty": "dev_rack_toolhead_empty.png",
+			"empty": "dev_rack_toolhead_unclamped.png",
 			"clamped": "dev_rack_toolhead_clamped.png",
 			"clamped_retracting": "dev_rack_toolhead_clamped.png",
 			"clamped_extruding": "dev_rack_toolhead_clamped.png",

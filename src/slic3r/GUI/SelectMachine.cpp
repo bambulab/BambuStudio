@@ -4328,7 +4328,7 @@ static bool _is_picked_hotend_fila_known(MachineObject* obj, const DevExtder& ex
     if (!obj || !extder.HasNozzleInstalled()) { return false; }
 
     const auto& picked_hotend = obj->GetNozzleSystem()->GetExtNozzle(extder.GetExtId());
-    if (!picked_hotend.HasFilamentInNozzle()) { return false; }
+    if (!picked_hotend.HasFilamentAtNozzleInlet()) { return false; }
 
     const auto& hotend_slot = picked_hotend.GetSlotNowId();
     if (!hotend_slot.has_value()) { return false; }
