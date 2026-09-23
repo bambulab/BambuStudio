@@ -931,6 +931,9 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
 
             const auto& njon = it.value();
             nozzle_obj.m_nozzle_id = DevUtil::get_hex_bits(njon["id"].get<int>(), 0);
+            if (njon.contains("addr_id")) {
+                nozzle_obj.m_addr_id = njon["addr_id"].get<int>();
+            }
             nozzle_obj.m_diameter = njon["diameter"].get<float>();
             s_parse_nozzle_type(njon["type"].get<std::string>(), nozzle_obj);
 

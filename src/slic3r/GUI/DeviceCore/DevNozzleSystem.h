@@ -31,6 +31,7 @@ public:
 
 
     int             m_nozzle_id = -1;
+    std::optional<int> m_addr_id;
     NozzleFlowType  m_nozzle_flow = NozzleFlowType::S_FLOW;// 0-common 1-high flow
     NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
     float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
@@ -67,6 +68,7 @@ public:
     /**/
     int            GetNozzlePosId() const;
     int            GetNozzleId() const { return m_nozzle_id; }
+    std::optional<int> GetAddrId() const { return m_addr_id; };
     NozzleType     GetNozzleType() const { return m_nozzle_type; }
     NozzleFlowType GetNozzleFlowType() const { return m_nozzle_flow; }
     NozzleDiameterType GetNozzleDiameterType() const;
@@ -179,6 +181,7 @@ public:
     // nozzles
     DevNozzle                       GetNozzleByPosId(int pos_id) const { return pos_id < 0x10 ? GetExtNozzle(pos_id) : GetRackNozzle(pos_id - 0x10); };
     std::optional<DevNozzle>        GetNozzleOptByPosId(int pos_id) const;
+    std::optional<DevNozzle>        GetNozzleOptByAddrId(int addr_id) const;
 
     // nozzles on extruder
     bool                            ContainsExtNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
