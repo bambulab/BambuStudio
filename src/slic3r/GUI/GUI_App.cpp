@@ -8822,9 +8822,10 @@ bool has_filaments(const std::vector<string>& model_filaments) {
     Model::setExtruderParams(config, filament_presets.size());
 
     auto get_filament_name = [](int id) { return Model::extruderParamsMap.find(id) != Model::extruderParamsMap.end() ? Model::extruderParamsMap.at(id).materialName : "PLA"; };
+    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(config);
     for (const ModelObject *mo : model_objects) {
         for (auto vol : mo->volumes) {
-            auto ve = vol->get_extruders();
+            auto ve = vol->get_extruders(global_features);
             for (auto id : ve) {
                 auto name = get_filament_name(id);
                 if (find(model_filaments.begin(), model_filaments.end(), name) != model_filaments.end()) return true;

@@ -1209,11 +1209,9 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
 	int glb_support_extr = glb_config.opt_int("support_filament");
-	int glb_wall_extr = glb_config.opt_int("wall_filament");
-	int glb_sparse_infill_extr = glb_config.opt_int("sparse_infill_filament");
-	int glb_solid_infill_extr = glb_config.opt_int("solid_infill_filament");
 	bool glb_support = glb_config.opt_bool("enable_support");
 	int glb_raft_layers = glb_config.opt_int("raft_layers");
+	const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(glb_config, wxGetApp().filaments_cnt());
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -1221,57 +1219,19 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 
 		ModelObject* mo = m_model->objects[obj_idx];
 		for (ModelVolume* mv : mo->volumes) {
-			std::vector<int> volume_extruders = mv->get_extruders();
+			std::vector<int> volume_extruders = mv->get_extruders(global_features);
 			plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
 		}
 
 		// layer range
         for (auto layer_range : mo->layer_config_ranges) {
-            if (layer_range.second.has("extruder")) {
-                if (auto id = layer_range.second.option("extruder")->getInt(); id > 0)
-					plate_extruders.push_back(id);
-			}
+            for (const char *key : {"extruder", "wall_filament", "sparse_infill_filament", "solid_infill_filament"}) {
+                if (layer_range.second.has(key)) {
+                    if (auto id = layer_range.second.option(key)->getInt(); id > 0)
+                        plate_extruders.push_back(id);
+                }
+            }
 		}
-
-		// filaments for features
-        for (ModelVolume *mv : mo->volumes) { // go throught all volumes
-            ModelConfigObject &mv_config = mv->config;
-            int                 obj_wall_extr = 0, vol_wall_extr = 0;
-            const ConfigOption *wall_opt = mo->config.option("wall_filament");
-            if (wall_opt != nullptr) obj_wall_extr = wall_opt->getInt();
-            const ConfigOption *vol_wall_opt = mv_config.option("wall_filament");
-            if (vol_wall_opt != nullptr) vol_wall_extr = vol_wall_opt->getInt();
-            if (vol_wall_extr != 0)
-                plate_extruders.push_back(vol_wall_extr);
-            else if (obj_wall_extr != 0)
-                plate_extruders.push_back(obj_wall_extr);
-            else if (glb_wall_extr != 0)
-                plate_extruders.push_back(glb_wall_extr);
-
-            int                 obj_sparse_infill_extr = 0, vol_spare_infill_extr = 0;
-            const ConfigOption *sparse_infill_opt = mo->config.option("sparse_infill_filament");
-            if (sparse_infill_opt != nullptr) obj_sparse_infill_extr = sparse_infill_opt->getInt();
-            const ConfigOption *vol_infill_opt = mv_config.option("sparse_infill_filament");
-            if (vol_infill_opt != nullptr) vol_spare_infill_extr = vol_infill_opt->getInt();
-            if (vol_spare_infill_extr != 0)
-                plate_extruders.push_back(vol_spare_infill_extr);
-            else if (obj_sparse_infill_extr != 0)
-                plate_extruders.push_back(obj_sparse_infill_extr);
-            else if (glb_sparse_infill_extr != 0)
-                plate_extruders.push_back(glb_sparse_infill_extr);
-
-            int                 obj_solid_infill_extr = 0, vol_solid_infill_extr = 0;
-            const ConfigOption *solid_infill_opt = mo->config.option("solid_infill_filament");
-            if (solid_infill_opt != nullptr) obj_solid_infill_extr = solid_infill_opt->getInt();
-            const ConfigOption *vol_solid_infill_opt = mv_config.option("solid_infill_filament");
-            if (vol_solid_infill_opt != nullptr) vol_solid_infill_extr = vol_solid_infill_opt->getInt();
-            if (vol_solid_infill_extr != 0)
-                plate_extruders.push_back(vol_solid_infill_extr);
-            else if (obj_solid_infill_extr != 0)
-                plate_extruders.push_back(obj_solid_infill_extr);
-            else if (glb_solid_infill_extr != 0)
-                plate_extruders.push_back(glb_solid_infill_extr);
-        }
 
 		// enable_support and raft_layers each fall back to the global value on their own. An object
 		// that overrides raft_layers only must keep the global enable_support, otherwise its support
@@ -1350,11 +1310,9 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
     // if 3mf file
     int glb_support_intf_extr = full_config.opt_int("support_interface_filament");
     int  glb_support_extr       = full_config.opt_int("support_filament");
-    int  glb_wall_extr          = full_config.opt_int("wall_filament");
-    int  glb_sparse_infill_extr = full_config.opt_int("sparse_infill_filament");
-    int  glb_solid_infill_extr  = full_config.opt_int("solid_infill_filament");
     bool glb_support = full_config.opt_bool("enable_support");
     int  glb_raft_layers = full_config.opt_int("raft_layers");
+    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(full_config);
 
     for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
     {
@@ -1370,62 +1328,17 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
                 continue;
 
             for (ModelVolume* mv : object->volumes) {
-                std::vector<int> volume_extruders = mv->get_extruders();
+                std::vector<int> volume_extruders = mv->get_extruders(global_features);
                 plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
             }
 
             // layer range
             for (auto layer_range : object->layer_config_ranges) {
-                if (layer_range.second.has("extruder")) {
-                    if (auto id = layer_range.second.option("extruder")->getInt(); id > 0)
-                        plate_extruders.push_back(id);
-                }
-            }
-
-		// filaments for features
-            bool enabled_SFFF_mo = object->config.option("separate_filaments_for_features") && object->config.option("separate_filaments_for_features")->getBool(),
-                 mo_not_override = object->config.option("separate_filaments_for_features") == nullptr;
-            for (ModelVolume *mv : object->volumes) { // go throught all volumes
-                ModelConfigObject &mv_config = mv->config;
-                // volume not overrided,or overrided with enabled
-                bool enabled_SFFF_mv = mv_config.option("separate_filaments_for_features") && mv_config.option("separate_filaments_for_features")->getBool(),
-                     mv_not_override = mv_config.option("separate_filaments_for_features") == nullptr;
-                if (enabled_SFFF_mv || (mv_not_override && enabled_SFFF_mo)) {
-                    int                 obj_wall_extr = 0, vol_wall_extr = 0;
-                    const ConfigOption *wall_opt = object->config.option("wall_filament");
-                    if (wall_opt != nullptr) obj_wall_extr = wall_opt->getInt();
-                    const ConfigOption *vol_wall_opt = mv_config.option("wall_filament");
-                    if (vol_wall_opt != nullptr) vol_wall_extr = vol_wall_opt->getInt();
-                    if (vol_wall_extr != 0)
-                        plate_extruders.push_back(vol_wall_extr);
-                    else if (obj_wall_extr != 0 && (mv_not_override && enabled_SFFF_mo))
-                        plate_extruders.push_back(obj_wall_extr);
-                    else if (glb_wall_extr != 0 && (mv_not_override && mo_not_override && glb_sparse_infill_extr))
-                        plate_extruders.push_back(glb_wall_extr);
-
-                    int                 obj_sparse_infill_extr = 0, vol_spare_infill_extr = 0;
-                    const ConfigOption *sparse_infill_opt = object->config.option("sparse_infill_filament");
-                    if (sparse_infill_opt != nullptr) obj_sparse_infill_extr = sparse_infill_opt->getInt();
-                    const ConfigOption *vol_infill_opt = mv_config.option("sparse_infill_filament");
-                    if (vol_infill_opt != nullptr) vol_spare_infill_extr = vol_infill_opt->getInt();
-                    if (vol_spare_infill_extr != 0)
-                        plate_extruders.push_back(vol_spare_infill_extr);
-                    else if (obj_sparse_infill_extr != 0 && (mv_not_override && enabled_SFFF_mo))
-                        plate_extruders.push_back(obj_sparse_infill_extr);
-                    else if (glb_sparse_infill_extr != 0 && (mv_not_override && mo_not_override && glb_sparse_infill_extr))
-                        plate_extruders.push_back(glb_sparse_infill_extr);
-
-                    int                 obj_solid_infill_extr = 0, vol_solid_infill_extr = 0;
-                    const ConfigOption *solid_infill_opt = object->config.option("solid_infill_filament");
-                    if (solid_infill_opt != nullptr) obj_solid_infill_extr = solid_infill_opt->getInt();
-                    const ConfigOption *vol_solid_infill_opt = mv_config.option("solid_infill_filament");
-                    if (vol_solid_infill_opt != nullptr) vol_solid_infill_extr = vol_solid_infill_opt->getInt();
-                    if (vol_solid_infill_extr != 0)
-                        plate_extruders.push_back(vol_solid_infill_extr);
-                    else if (obj_solid_infill_extr != 0 && (mv_not_override && enabled_SFFF_mo))
-                        plate_extruders.push_back(obj_solid_infill_extr);
-                    else if (glb_solid_infill_extr != 0 && (mv_not_override && mo_not_override && glb_sparse_infill_extr))
-                        plate_extruders.push_back(glb_solid_infill_extr);
+                for (const char *key : {"extruder", "wall_filament", "sparse_infill_filament", "solid_infill_filament"}) {
+                    if (layer_range.second.has(key)) {
+                        if (auto id = layer_range.second.option(key)->getInt(); id > 0)
+                            plate_extruders.push_back(id);
+                    }
                 }
             }
 
@@ -1520,6 +1433,7 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
     }
 	// if 3mf file
 	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+	const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(glb_config, wxGetApp().filaments_cnt());
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -1527,7 +1441,7 @@ std::vector<int> PartPlate::get_extruders_without_support(bool conside_custom_gc
 
 		ModelObject* mo = m_model->objects[obj_idx];
 		for (ModelVolume* mv : mo->volumes) {
-			std::vector<int> volume_extruders = mv->get_extruders();
+			std::vector<int> volume_extruders = mv->get_extruders(global_features);
 			plate_extruders.insert(plate_extruders.end(), volume_extruders.begin(), volume_extruders.end());
 		}
 	}

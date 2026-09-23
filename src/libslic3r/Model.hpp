@@ -893,6 +893,19 @@ class OriginRenderInfo
        std::pair<TriangleMesh, std::vector<RGBA>> vertices_with_colors;
 };
 
+// 1-based feature filaments of the global print config, 0 = Default.
+struct GlobalFeatureFilaments
+{
+    int wall_filament          = 0;
+    int sparse_infill_filament = 0;
+    int solid_infill_filament  = 0;
+
+    // Ids above filament_count are treated as Default, matching the clamp applied when slicing.
+    static GlobalFeatureFilaments from_config(const ConfigBase &config, size_t filament_count);
+    // Same, taking the filament count from filament_diameter of a full config.
+    static GlobalFeatureFilaments from_full_config(const ConfigBase &full_config);
+};
+
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume final : public ObjectBase
@@ -1046,7 +1059,9 @@ public:
     void apply_tolerance();
 
     // BBS
-    std::vector<int>    get_extruders() const;
+    // A global feature filament is used when neither the volume nor the object stores that feature key.
+    // Pass {} only when the global print config is not relevant or not available yet.
+    std::vector<int>    get_extruders(const GlobalFeatureFilaments &global_features) const;
     void                update_extruder_count(size_t extruder_count);
     void                update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id = -1,
                                                                    const std::vector<unsigned char> &filament_is_mixed = {});

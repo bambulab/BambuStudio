@@ -1236,13 +1236,14 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     bool has_scarf_joint_seam = false;
     {
         std::vector<int> scarf_seam_type = new_full_config.option<ConfigOptionEnumsGeneric>("filament_scarf_seam_type")->values;
-        auto check_object_scarf_seam_type = [](const std::vector<int> scarf_seam_type, const ModelObject *mo) {
+        const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(new_full_config);
+        auto check_object_scarf_seam_type = [&global_features](const std::vector<int> scarf_seam_type, const ModelObject *mo) {
             //get filament scarf seam type
             if (!mo->printable)
                 return false;
             //check volumes
             for (ModelVolume *mv : mo->volumes) {
-               std::vector<int> volume_extruders = mv->get_extruders();
+               std::vector<int> volume_extruders = mv->get_extruders(global_features);
                for (int filament_id : volume_extruders) {
                    if( scarf_seam_type[filament_id - 1] != 0 ) {
                        return true;

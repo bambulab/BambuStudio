@@ -1234,7 +1234,8 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
             else {
                 assemble_object.filaments[0] = 0;
                 for (const ModelVolume* mv : object->volumes) {
-                    std::vector<int> volume_extruders = mv->get_extruders();
+                    // The process config is not loaded yet; global feature filaments are added before arranging.
+                    std::vector<int> volume_extruders = mv->get_extruders({});
                     used_filaments.insert(volume_extruders.begin(), volume_extruders.end());
                 }
             }
@@ -1374,6 +1375,7 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
         }
 
         assemble_plate_info.filaments_count = used_filaments.size();
+        assemble_plate_info.used_filaments  = used_filaments;
         assemble_plate_info.assemble_obj_list.clear();
         assemble_plate_info.assemble_obj_list.shrink_to_fit();
         assemble_plate_info.plate_params.clear();
@@ -5536,10 +5538,18 @@ int CLI::run(int argc, char **argv)
                 cur_plate->lock(true);
         }
 
+        const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(m_print_config);
         for (size_t i = 0; i < plate_count; i++)
         {
             assemble_plate_info_t& assemble_plate = assemble_plate_info_list[i];
             Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate*)partplate_list.get_plate(i);
+            std::set<int> plate_filaments = assemble_plate.used_filaments;
+            for (const ModelObject *mo : assemble_plate.loaded_obj_list)
+                for (const ModelVolume *mv : mo->volumes) {
+                    std::vector<int> volume_filaments = mv->get_extruders(global_features);
+                    plate_filaments.insert(volume_filaments.begin(), volume_filaments.end());
+                }
+            assemble_plate.filaments_count = plate_filaments.size();
             BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, need arrange %2%, filaments_count %3%") % (i+1) % assemble_plate.need_arrange % assemble_plate.filaments_count;
             if (assemble_plate.need_arrange)
             {
@@ -5812,6 +5822,20 @@ int CLI::run(int argc, char **argv)
 
                     //add the virtual object into unselect list if has
                     partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect);
+
+                    // used_filament_set only holds the object filaments from the input; global feature filaments add extra ones.
+                    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(m_print_config);
+                    if (global_features.wall_filament > 0 || global_features.sparse_infill_filament > 0 || global_features.solid_infill_filament > 0) {
+                        for (const ModelObject *mo : model.objects)
+                            for (const ModelVolume *mv : mo->volumes) {
+                                if (!mv->is_model_part())
+                                    continue;
+                                std::vector<int> volume_filaments = mv->get_extruders(global_features);
+                                used_filament_set.insert(volume_filaments.begin(), volume_filaments.end());
+                                if (mv->extruder_id() <= 0)
+                                    used_filament_set.insert(1);
+                            }
+                    }
 
                     if (used_filament_set.size() > 0)
                     {
@@ -6664,6 +6688,7 @@ int CLI::run(int argc, char **argv)
                             int printable_instances = 0;
                             int skipped_count = 0;
                             std::vector<std::set<int>> unprintable_filament_ids(new_extruder_count, std::set<int>());
+                            const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(m_print_config);
                             for (ModelObject* model_object : model.objects)
                                 for (ModelInstance *i : model_object->instances)
                                 {
@@ -6712,7 +6737,7 @@ int CLI::run(int argc, char **argv)
                                         //get object filaments
                                         std::set<int> object_filaments;
                                         for (const ModelVolume *vol : model_object->volumes) {
-                                            std::vector<int> filaments = vol->get_extruders();
+                                            std::vector<int> filaments = vol->get_extruders(global_features);
                                             object_filaments.insert(filaments.begin(), filaments.end());
                                         }
                                         for (const ModelVolume* vol : model_object->volumes)
@@ -6737,7 +6762,7 @@ int CLI::run(int argc, char **argv)
                                                             // Only check for single-color object
                                                             for (size_t j = 0; j < inside_extruders.size(); ++j) {
                                                                 if (!inside_extruders[j]) {
-                                                                    std::vector<int> filaments = vol->get_extruders();
+                                                                    std::vector<int> filaments = vol->get_extruders(global_features);
                                                                     unprintable_filament_ids[j].insert(filaments.begin(), filaments.end());
                                                                 }
                                                             }

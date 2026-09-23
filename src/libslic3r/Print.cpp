@@ -489,8 +489,9 @@ std::vector<unsigned int> Print::object_extruders() const
 #else
     for (const PrintObject* object : m_objects) {
         const ModelObject* mo = object->model_object();
+        const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(this->default_region_config(), m_config.filament_diameter.size());
         for (const ModelVolume* mv : mo->volumes) {
-            std::vector<int> volume_extruders = mv->get_extruders();
+            std::vector<int> volume_extruders = mv->get_extruders(global_features);
             for (int extruder : volume_extruders) {
                 assert(extruder > 0);
                 extruders.push_back(extruder - 1);
@@ -499,11 +500,13 @@ std::vector<unsigned int> Print::object_extruders() const
 
         // layer range
         for (auto layer_range : mo->layer_config_ranges) {
-            if (layer_range.second.has("extruder")) {
+            for (const char *key : {"extruder", "wall_filament", "sparse_infill_filament", "solid_infill_filament"}) {
+                if (!layer_range.second.has(key))
+                    continue;
                 //BBS: actually when user doesn't change filament by height range(value is default 0), height range should not save key "extruder".
                 //Don't know why height range always save key "extruder" because of no change(should only save difference)...
                 //Add protection here to avoid overflow
-                auto value = layer_range.second.option("extruder")->getInt();
+                auto value = layer_range.second.option(key)->getInt();
                 if (value > 0)
                     extruders.push_back(value - 1);
             }

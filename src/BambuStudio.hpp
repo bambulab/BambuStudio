@@ -71,6 +71,7 @@ typedef struct _assemble_plate_info {
     std::string         plate_name;
     bool                need_arrange {false};
     int                 filaments_count {0};
+    std::set<int>       used_filaments;
 
     std::map<std::string, std::string> plate_params;
     std::vector<assemble_object_info_t> assemble_obj_list;

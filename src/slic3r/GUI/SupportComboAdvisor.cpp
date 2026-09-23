@@ -293,11 +293,12 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
         // Both sets past one entry already decides same_type/same_name, and first_filament_* are
         // set by then, so the rest of the plate cannot change the outcome.
         bool mixed = false;
+        const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(config, slot_count);
         for (ModelObject *obj : model_objects) {
             if (!obj) continue;
             for (const auto *vol : obj->volumes) {
                 if (!vol) continue;
-                for (auto id : vol->get_extruders()) {
+                for (auto id : vol->get_extruders(global_features)) {
                     Slic3r::Preset *fp = preset_for_slot(static_cast<int>(id) - 1);
                     if (!fp) continue;
                     const std::string &ft = fp->config.option<ConfigOptionStrings>("filament_type")->values[0];

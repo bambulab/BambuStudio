@@ -3362,8 +3362,24 @@ void ModelVolume::apply_tolerance()
     set_offset(get_offset() + rot_norm * z_offset);
 }
 
+GlobalFeatureFilaments GlobalFeatureFilaments::from_config(const ConfigBase &config, size_t filament_count)
+{
+    auto filament = [&config, filament_count](const char *key) {
+        const ConfigOption *opt = config.option(key);
+        const int           id  = opt ? opt->getInt() : 0;
+        return (id > 0 && id <= (int) filament_count) ? id : 0;
+    };
+    return { filament("wall_filament"), filament("sparse_infill_filament"), filament("solid_infill_filament") };
+}
+
+GlobalFeatureFilaments GlobalFeatureFilaments::from_full_config(const ConfigBase &full_config)
+{
+    const auto *diameters = dynamic_cast<const ConfigOptionVectorBase *>(full_config.option("filament_diameter"));
+    return from_config(full_config, diameters ? diameters->size() : 0);
+}
+
 // BBS
-std::vector<int> ModelVolume::get_extruders() const
+std::vector<int> ModelVolume::get_extruders(const GlobalFeatureFilaments &global_features) const
 {
     if (m_type == ModelVolumeType::INVALID
         || m_type == ModelVolumeType::NEGATIVE_VOLUME
@@ -3399,33 +3415,26 @@ std::vector<int> ModelVolume::get_extruders() const
         volume_extruders.push_back(volume_extruder_id);
     }
 
-        // push back filaments for features
-    if (this->config.option("wall_filament") && this->config.option("wall_filament")->getInt() > 0) volume_extruders.push_back(this->config.option("wall_filament")->getInt());
-    // wall_filament of this volume not set, try use object options
-    else if (this->config.option("wall_filament") == nullptr && this->get_object()->config.option("wall_filament") &&
-             this->get_object()->config.option("wall_filament")->getInt() > 0)
-        volume_extruders.push_back(this->get_object()->config.option("wall_filament")->getInt());
-    //due to we cannot access the global config inside modelvolume,
-    // we have to limit the global preset of filament for features
-
-    if (this->config.option("solid_infill_filament") && this->config.option("solid_infill_filament")->getInt() > 0)
-        volume_extruders.push_back(this->config.option("solid_infill_filament")->getInt());
-    else if (this->config.option("solid_infill_filament") == nullptr && this->get_object()->config.option("solid_infill_filament") &&
-             this->get_object()->config.option("solid_infill_filament")->getInt() > 0)
-        volume_extruders.push_back(this->get_object()->config.option("solid_infill_filament")->getInt());
-
-    if (this->config.option("sparse_infill_filament") && this->config.option("sparse_infill_filament")->getInt() > 0)
-        volume_extruders.push_back(this->config.option("sparse_infill_filament")->getInt());
-    else if (this->config.option("sparse_infill_filament") == nullptr && this->get_object()->config.option("sparse_infill_filament") &&
-             this->get_object()->config.option("sparse_infill_filament")->getInt() > 0)
-        volume_extruders.push_back(this->get_object()->config.option("sparse_infill_filament")->getInt());
+    // push back filaments for features. The first level that stores the key wins, so an explicit
+    // Default (0) on the volume or object keeps the part filament and does not fall back further.
+    auto push_feature_filament = [this, &volume_extruders](const char *key, int global_filament) {
+        const ConfigOption *vol_opt  = this->config.option(key);
+        const ConfigOption *obj_opt  = this->get_object()->config.option(key);
+        const int           filament = vol_opt ? vol_opt->getInt() : obj_opt ? obj_opt->getInt() : global_filament;
+        if (filament > 0)
+            volume_extruders.push_back(filament);
+    };
+    push_feature_filament("wall_filament", global_features.wall_filament);
+    push_feature_filament("solid_infill_filament", global_features.solid_infill_filament);
+    push_feature_filament("sparse_infill_filament", global_features.sparse_infill_filament);
 
     return volume_extruders;
 }
 
 void ModelVolume::update_extruder_count(size_t extruder_count)
 {
-    std::vector<int> used_extruders = get_extruders();
+    // Only the volume's own paint and extruder are clamped here; global feature filaments are not stored on the volume.
+    std::vector<int> used_extruders = get_extruders({});
     for (int extruder_id : used_extruders) {
         if (extruder_id > extruder_count) {
             mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)extruder_count);
@@ -3440,7 +3449,8 @@ void ModelVolume::update_extruder_count(size_t extruder_count)
 void ModelVolume::update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id,
                                                              const std::vector<unsigned char> &filament_is_mixed)
 {
-    std::vector<int> used_extruders = get_extruders();
+    // Global feature filaments are remapped by Plater::on_filaments_delete, not here.
+    std::vector<int> used_extruders = get_extruders({});
     for (int extruder_id : used_extruders) {
         if (extruder_id >= filament_id) {
             mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)(extruder_count), (EnforcerBlockerType)(filament_id), (EnforcerBlockerType)(replace_filament_id));
@@ -4514,7 +4524,7 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
                 return;
             }
-            auto ve = object->volumes[i]->get_extruders();
+            auto ve = object->volumes[i]->get_extruders(GlobalFeatureFilaments::from_full_config(config_global));
             for (auto id : ve) {
                 ret.extrude_id_filament_types.insert({id, get_filament_name(id)});
             }

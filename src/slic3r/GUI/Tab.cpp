@@ -3206,6 +3206,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("ensure_vertical_shell_thickness","parameter/strength-advance-settings");
         optgroup->append_single_option_line("detect_floating_vertical_shell","parameter/strength-advance-settings");
         //optgroup->append_single_option_line("internal_bridge_support_thickness","parameter/strength-advance-settings");
+        optgroup->append_single_option_line("sparse_infill_filament");
+        optgroup->append_single_option_line("solid_infill_filament");
+        optgroup->append_single_option_line("wall_filament");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
@@ -3412,9 +3415,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("interlocking_beam_layer_count");
         optgroup->append_single_option_line("interlocking_depth");
         optgroup->append_single_option_line("interlocking_boundary_avoidance");
-        optgroup->append_single_option_line("sparse_infill_filament");
-        optgroup->append_single_option_line("solid_infill_filament");
-        optgroup->append_single_option_line("wall_filament");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction_mode");

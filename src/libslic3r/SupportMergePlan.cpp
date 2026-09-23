@@ -242,7 +242,7 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
         for (const ModelVolume *volume : model_object->volumes) {
             if (! volume->is_model_part())
                 continue;
-            for (int filament_id : volume->get_extruders())
+            for (int filament_id : volume->get_extruders(GlobalFeatureFilaments::from_config(object.print()->default_region_config(), object.print()->config().filament_diameter.size())))
                 add_candidate(object_filaments, filament_id, false);
         }
 

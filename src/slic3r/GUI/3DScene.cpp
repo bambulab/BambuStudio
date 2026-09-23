@@ -2009,6 +2009,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     BuildVolume plate_build_volume(pp_bed_shape, build_volume.printable_height(), build_volume.extruder_areas(), build_volume.extruder_heights());
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
+    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(GUI::wxGetApp().preset_bundle->prints.get_edited_preset().config, GUI::wxGetApp().filaments_cnt());
     std::map<ModelObject*, std::map<int, std::set<int>>> objects_unprintable_filaments;
     int extruder_count = build_volume.get_extruder_area_count();
     std::vector<std::set<int>> unprintable_filament_ids(extruder_count, std::set<int>());
@@ -2059,14 +2060,14 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     // Only check for single-color object
                     std::set<int> object_filaments;
                     for (ModelVolume *m_volume : model_object->volumes) {
-                        std::vector<int> filaments = m_volume->get_extruders();
+                        std::vector<int> filaments = m_volume->get_extruders(global_features);
                         object_filaments.insert(filaments.begin(), filaments.end());
                     }
                     if (object_filaments.size() == 1) {
                         ModelVolume *model_volume = model_object->volumes[volume->volume_idx()];
                         for (size_t i = 0; i < inside_extruders.size(); ++i) {
                             if (!inside_extruders[i]) {
-                                std::vector<int> filaments = model_volume->get_extruders();
+                                std::vector<int> filaments = model_volume->get_extruders(global_features);
                                 unprintable_filament_ids[i].insert(filaments.begin(), filaments.end());
                                 if (object_results) {
                                     std::map<int, std::set<int>> &obj_extruder_filament_maps = objects_unprintable_filaments[model_object];

@@ -11387,7 +11387,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             if (o->config.option("extruder")) extruderIds.insert(o->config.extruder());
                             for (auto volume : o->volumes) {
                                 if (volume->config.option("extruder")) extruderIds.insert(volume->config.extruder());
-                                for (int extruder : volume->get_extruders()) { extruderIds.insert(extruder); }
+                                // The current print preset already refers to existing filaments, only the model's own ids can exceed them.
+                                for (int extruder : volume->get_extruders({})) { extruderIds.insert(extruder); }
                             }
                         }
                         int size = extruderIds.size() == 0 ? 0 : *(extruderIds.rbegin());
@@ -28199,11 +28200,12 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int r
     // update_objects_list_filament_column() that clips extruders above total count.
     sidebar().obj_list()->update_objects_list_filament_column_when_delete_filament(filament_id, num_filaments, replace_filament_id);
 
-    // update global support filament: when the deleted filament was the support/interface filament it
+    // update global feature filaments: when the deleted filament was selected it
     // becomes "Default" (0) on a plain delete, or follows the target on a "Merge with"; otherwise the
     // stored index is shifted down. Apply to both the edited print preset (drives slicing and the Print
     // tab) and the Plater's cached subset so they stay consistent.
-    static const char *keys[] = {"support_filament", "support_interface_filament"};
+    static const char *keys[] = {"support_filament", "support_interface_filament",
+                                 "wall_filament", "sparse_infill_filament", "solid_infill_filament"};
     auto               remap_support_filament = [&](DynamicPrintConfig &cfg) {
         for (auto key : keys) {
             if (!cfg.has(key)) continue;

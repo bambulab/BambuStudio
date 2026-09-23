@@ -3747,22 +3747,30 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     {//over write the seprate filament for features config
         auto resolve_filament_value = [&](const std::string &key, int default_or_parent, int previous_value) -> int {
             int   filament_value_temp = 0;
+            bool  has_local_value     = false;
             auto *opt_vol             = volume.config.get().opt<ConfigOptionInt>(key);
             auto *opt_obj             = volume.get_object()->config.get().opt<ConfigOptionInt>(key);
             if (opt_vol) // deside use which value
                 filament_value_temp = opt_vol->value;
             else if (opt_obj)
                 filament_value_temp = opt_obj->value;
+            has_local_value = opt_vol || opt_obj;
 
             if (layer_range_config != nullptr && volume.is_model_part()) {
                 auto *opt = layer_range_config->opt<ConfigOptionInt>(key);
                 if (opt) filament_value_temp = opt->value;
+                has_local_value = has_local_value || opt;
+                // Filament-by-height selects the whole band, above the global feature filament.
+                if (auto *opt_extruder = layer_range_config->opt<ConfigOptionInt>("extruder"); opt_extruder && opt_extruder->value > 0)
+                    has_local_value = true;
             }
 
             if (filament_value_temp > 0)
                 return filament_value_temp;
-            else
-                return previous_value;
+            // Nothing set locally: a global feature filament overrides the part extruder.
+            if (!has_local_value && volume.is_model_part() && default_or_parent > 0)
+                return default_or_parent;
+            return previous_value;
         };
         config.wall_filament.value          = resolve_filament_value("wall_filament", default_or_parent_region_config.wall_filament.value, config.wall_filament.value);
         if (!ignore_infill) {
@@ -3868,8 +3876,9 @@ std::vector<unsigned int> PrintObject::object_extruders() const
         region.collect_object_printing_extruders(*this->print(), extruders);
 #else
     const ModelObject* mo = this->model_object();
+    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(this->print()->default_region_config(), this->print()->config().filament_diameter.size());
     for (const ModelVolume* mv : mo->volumes) {
-        std::vector<int> volume_extruders = mv->get_extruders();
+        std::vector<int> volume_extruders = mv->get_extruders(global_features);
         for (int extruder : volume_extruders) {
             assert(extruder > 0);
             extruders.push_back(extruder - 1);
