@@ -13,7 +13,7 @@ export type ConnectedSlotsLineState =
   | 'unloading'
   | 'no_hotend';
 
-export type ConnectedSlotsNozzleState = 'Normal' | 'Active' | 'None' | 'Error' | 'Lost';
+export type ConnectedSlotsNozzleState = 'Normal' | 'Active' | 'None' | 'Error' | 'Lost' | 'FeedSuspect' | 'Unknown';
 
 export type ConnectedSlotsTrayState =
   | 'empty'

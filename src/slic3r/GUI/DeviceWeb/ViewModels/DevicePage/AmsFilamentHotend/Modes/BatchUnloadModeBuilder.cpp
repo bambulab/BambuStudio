@@ -13,8 +13,8 @@ namespace {
 nlohmann::json make_select_action(const nlohmann::json& slot)
 {
     const auto& nozzle = slot.value(SK::filament_slot::filament_nozzle, nlohmann::json::object());
-    if (auto nozzle_reason = BatchModeCommon::nozzle_unavailable_reason(nozzle)) {
-        return BatchModeCommon::make_select_action(false, *nozzle_reason);
+    if (auto nozzle_status = BatchModeCommon::classify_nozzle(nozzle); nozzle_status.is_blocked()) {
+        return BatchModeCommon::make_select_action(false, *nozzle_status.block_reason);
     }
 
     const auto& line = slot.value(SK::filament_slot::filament_line, nlohmann::json::object());

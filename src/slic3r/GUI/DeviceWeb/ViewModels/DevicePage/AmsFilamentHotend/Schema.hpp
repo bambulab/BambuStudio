@@ -268,6 +268,8 @@ namespace nozzle_state {
     inline constexpr const char* none    = "None";
     inline constexpr const char* error   = "Error";
     inline constexpr const char* lost    = "Lost";
+    inline constexpr const char* feed_suspect = "FeedSuspect";
+    inline constexpr const char* unknown      = "Unknown";
 }
 
 namespace tray_state {
@@ -317,19 +319,32 @@ namespace tool_kind {
     inline constexpr const char* empty   = "empty";
 }
 
+// state.hotend_page.hotend_slots[].hotend.op_state
 namespace hotend_op_state {
-    inline constexpr const char* idle     = "Idle";
-    inline constexpr const char* heating  = "Heating";
-    inline constexpr const char* cooling  = "Cooling";
-    inline constexpr const char* reading  = "Reading";
-    inline constexpr const char* taking   = "Taking";
-    inline constexpr const char* placing  = "Placing";
-    inline constexpr const char* removing = "Removing";
-    inline constexpr const char* error    = "Error";
-    inline constexpr const char* lost_in_holder  = "Lost";
-    // Tool present but its nozzle type is unknown (not yet read): card shows a
-    // "?" badge, still displays temperature, and mutes the label to "--".
-    inline constexpr const char* unknown  = "Unknown";
+    // Health - mirrors values::nozzle_state.
+    inline constexpr const char* normal       = "Normal";
+    inline constexpr const char* active       = "Active";
+    inline constexpr const char* none         = "None";
+    inline constexpr const char* error        = "Error";
+    inline constexpr const char* lost_in_holder = "Lost";
+    inline constexpr const char* feed_suspect = "FeedSuspect";
+    inline constexpr const char* unknown      = "Unknown";
+
+    // Rack jobs - hotend only, override the health state.
+    inline constexpr const char* reading      = "Reading";
+    inline constexpr const char* taking       = "Taking";
+    inline constexpr const char* placing      = "Placing";
+
+    // Declared for the Web "Removing" readout; no backend signal drives it yet.
+    inline constexpr const char* removing     = "Removing";
+}
+
+// state.hotend_page.hotend_slots[].hotend.temp_trend - split out of op_state so
+// the heating / cooling arrows survive alongside a fault state.
+namespace hotend_temp_trend {
+    inline constexpr const char* steady  = "Steady";
+    inline constexpr const char* heating = "Heating";
+    inline constexpr const char* cooling = "Cooling";
 }
 
 } // namespace values

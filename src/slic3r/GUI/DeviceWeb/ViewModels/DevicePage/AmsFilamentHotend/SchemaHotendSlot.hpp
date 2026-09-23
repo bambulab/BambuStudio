@@ -27,6 +27,7 @@ namespace hotend_menu_actions {
     inline constexpr const char* can_detail          = "can_detail";
     inline constexpr const char* can_set_temperature = "can_set_temperature";
     inline constexpr const char* can_take_place      = "can_take_place";
+    inline constexpr const char* disabled_reason     = "disabled_reason";
 }
 
 // slot.hotend (the tool side; filament has_filament_in_nozzle lives under
@@ -35,10 +36,12 @@ namespace hotend {
     inline constexpr const char* current_temp   = "current_temp";
     inline constexpr const char* target_temp    = "target_temp";
     inline constexpr const char* op_state       = "op_state";   // values::hotend_op_state
+    inline constexpr const char* temp_trend     = "temp_trend"; // values::hotend_temp_trend
     inline constexpr const char* tool_kind      = "tool_kind";  // values::tool_kind
     inline constexpr const char* nozzle_label   = "nozzle_label";
     inline constexpr const char* nozzle_subtext = "nozzle_subtext";
     inline constexpr const char* selected       = "selected";
+    inline constexpr const char* tooltip        = "tooltip";    // card hover text; empty when none
 }
 
 // slot.hotend_detail_dialog - data used only by the hotend detail modal.

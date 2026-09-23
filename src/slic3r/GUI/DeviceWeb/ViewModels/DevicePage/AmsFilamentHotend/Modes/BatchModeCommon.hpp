@@ -15,10 +15,20 @@ namespace Slic3r { namespace GUI { namespace BatchModeCommon {
 nlohmann::json make_action_state(bool enabled, std::string reason = "");
 nlohmann::json make_select_action(bool can_select, std::string reason, bool ext_label = false);
 
-// Localized reason why the nozzle cannot take part in a batch operation, or
-// `nullopt` when the nozzle is usable. Takes a slot's `filament_nozzle` section
-// so both the nozzle state and the tool kind are covered.
-std::optional<std::string> nozzle_unavailable_reason(const nlohmann::json& nozzle_section);
+// Verdict on a slot's `filament_nozzle` for batch-mode purposes.
+// - `block_reason`      : non-empty when the user cannot check this slot.
+// - `has_visible_alert` : true when the slot carries an alert the user must
+//                         see. Batch builders that repaint the nozzle card
+//                         use this to keep the source badge and tooltip.
+struct BatchNozzleStatus
+{
+    std::optional<std::string> block_reason;
+    bool                       has_visible_alert = false;
+
+    bool is_blocked() const { return block_reason.has_value(); }
+};
+
+BatchNozzleStatus classify_nozzle(const nlohmann::json& nozzle_section);
 
 // Colors
 std::string normalize_hex_for_web(const std::string& raw);

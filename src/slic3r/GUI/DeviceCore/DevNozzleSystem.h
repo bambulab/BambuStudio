@@ -117,12 +117,12 @@ public:
     int            GetNozzleId() const { return m_nozzle_id; }
     std::optional<int> GetAddrId() const { return m_addr_id; };
 
-    bool     IsExist() const { return m_is_exist && m_nozzle_id > -1; }
+    bool     IsExist() const;
     bool     IsEmpty() const { return !IsExist(); }
 
     // for RackA/RackB
     bool     IsToolConnected() const { return m_hc_state; }
-    bool     IsToolLostInHolder() const { return m_hc_state && !m_is_exist && m_nozzle_id > -1;}
+    bool     IsToolLostInHolder() const;
     bool     GetHcState() const { return m_hc_state; };
 
     /**/

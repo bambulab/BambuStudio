@@ -338,7 +338,7 @@ function setMockHotendReading(displayIndex: number, total: number) {
         hotend: {
           ...slot.hotend,
           op_state: slot.display_index === displayIndex ? 'Reading' : (
-            slot.hotend?.op_state === 'Reading' || slot.hotend?.op_state === 'Taking' ? 'Idle' : slot.hotend?.op_state
+            slot.hotend?.op_state === 'Reading' || slot.hotend?.op_state === 'Taking' ? 'Normal' : slot.hotend?.op_state
           ),
         },
       })),
@@ -386,7 +386,7 @@ function setMockHotendTaking(displayIndex: number) {
         hotend: {
           ...slot.hotend,
           op_state: slot.display_index === displayIndex ? 'Taking' : (
-            slot.hotend?.op_state === 'Taking' || slot.hotend?.op_state === 'Reading' ? 'Idle' : slot.hotend?.op_state
+            slot.hotend?.op_state === 'Taking' || slot.hotend?.op_state === 'Reading' ? 'Normal' : slot.hotend?.op_state
           ),
         },
       })),
@@ -409,15 +409,15 @@ function setMockHotendTemperature(payload: Record<string, unknown>) {
         if (hotend.tool_kind === 'empty' || hotend.op_state === 'Error') return slot;
 
         const currentTemp = typeof hotend.current_temp === 'number' ? hotend.current_temp : null;
-        const opState = currentTemp === null || currentTemp === targetTemp
-          ? 'Idle'
+        const tempTrend = currentTemp === null || currentTemp === targetTemp
+          ? 'Steady'
           : (currentTemp < targetTemp ? 'Heating' : 'Cooling');
         return {
           ...slot,
           hotend: {
             ...hotend,
             target_temp: targetTemp,
-            op_state: opState,
+            temp_trend: tempTrend,
           },
         };
       }),

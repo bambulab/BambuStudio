@@ -23,22 +23,32 @@ export type AmsFilamentHotendNozzleState =
   | 'Active'    // 当前正在使用,绿色
   | 'None'      // 未插喷嘴/工具: 虚线框 + 禁止圆
   | 'Error'     // 红色
-  | 'Lost';
+  | 'Lost'
+  | 'FeedSuspect' // 进料怀疑: 橙色 ?
+  | 'Unknown';    // 未知热端: 灰色 ?
 
 export type AmsFilamentHotendTab = 'filament' | 'hotend';
 export type AmsFilamentHotendColorType = 'single' | 'multi' | 'gradient';
 
+// Health states mirror AmsFilamentHotendNozzleState (shared C++ resolver).
+// Rack jobs are hotend-only and override health while a job runs.
 export type HotendOpState =
-  | 'Idle'        // 普通 normal: 温度静止
-  | 'Heating'     // 加热中:    温度上升箭头
-  | 'Cooling'     // 降温中:    温度下降箭头
+  // 健康态, 与耗材页同源
+  | 'Normal'      // 普通 normal
+  | 'Active'      // 当前正在使用
+  | 'None'        // 未插喷嘴/工具
+  | 'Error'       // 错误态
+  | 'Lost'        // 工具有连接但已掉落: 喷嘴体叠加灰色 "!" 徽标
+  | 'FeedSuspect' // 进料可疑: 热端页不配图标, 按 Normal 渲染
+  | 'Unknown'     // 喷嘴类型未知: 喷嘴体叠加灰色 "?" 徽标, 标签显示 --
+  // 刀架作业态, 仅热端页
   | 'Reading'     // 读取中:    Reading 弧形
   | 'Taking'      // 取用中:    工具头正在取用
   | 'Placing'     // 放置中:    工具头正在装上
-  | 'Removing'    // 取下中:    工具头正在卸下
-  | 'Error'       // 错误态
-  | 'Lost'        // 工具有连接但已掉落: 喷嘴体叠加灰色 "!" 徽标
-  | 'Unknown';    // 喷嘴类型未知: 喷嘴体叠加灰色 "?" 徽标, 标签显示 --
+  | 'Removing';   // 取下中:    工具头正在卸下; 后端暂无信号驱动
+
+// Split from op_state so a fault does not hide the heating / cooling arrow.
+export type HotendTempTrend = 'Steady' | 'Heating' | 'Cooling';
 
 export type HotendToolKind =
   | 'nozzle'   // 普通喷嘴
@@ -52,11 +62,13 @@ export type HotendToolKind =
 export interface HotendSlotInfo {
   current_temp?: number | null; // 当前温度, deg C; null / undefined => "--"
   target_temp?: number;      // 目标温度, deg C; 0 / undefined => "0℃"
-  op_state?: HotendOpState;  // 操作态
+  op_state?: HotendOpState;  // 健康态 / 刀架作业态
+  temp_trend?: HotendTempTrend; // 温度趋势, 与 op_state 正交
   tool_kind?: HotendToolKind;
   nozzle_label?: string;     // 主标签, e.g. "0.4 mm Std" / "刀名?" / "荧光笔"
   nozzle_subtext?: string;   // 副标签, optional
   selected?: boolean;        // hotend tab 自己的选中态(可与 filament tab 独立)
+  tooltip?: string;          // 卡片 hover 提示(如 2D 工具); 空则不显示
 }
 
 export interface HotendDetailDialogInfo {
@@ -114,6 +126,12 @@ export interface FilamentNozzleInfo {
   on_extruder?: boolean;
   // Tool type in this slot; picks cutter/pen silhouette over the default nozzle.
   tool_kind?: HotendToolKind;
+  // Hover text for alert states; empty when the nozzle has nothing to report.
+  tooltip?: string;
+  // Caption under the nozzle. Same meaning as HotendSlotInfo.nozzle_label /
+  // nozzle_subtext, but the diameter is bare, e.g. "0.4" + "HF".
+  nozzle_label?: string;
+  nozzle_subtext?: string;
 }
 
 /**
@@ -210,6 +228,8 @@ export interface HotendSlotViewModel {
     can_detail?: boolean;
     can_set_temperature?: boolean;
     can_take_place?: boolean;
+    /** Why fault-disabled items are greyed out (Lost / Error); shown on hover. */
+    disabled_reason?: string;
   };
   /** True when this rack nozzle is mounted on the extruder; Web shows Taken UX. */
   taken?: boolean;

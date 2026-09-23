@@ -1,7 +1,9 @@
 #include "ResolverSlotState.hpp"
 #include "Schema.hpp"
+#include "BuilderHotendRackProgressStatus.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -68,8 +70,7 @@ std::string DevicePageFilamentSlotStateResolver::ResolveCardState(MachineObject*
                                                                   std::optional<DevNozzle> nozzle_opt,
                                                                   bool filament_changing,
                                                                   bool current_filament_changing,
-                                                                  bool tray_reading,
-                                                                  bool loaded_in_nozzle)
+                                                                  bool tray_reading)
 {
     namespace SV = AmsHotendSchema::values;
     if (!tray || !tray->is_exists) {
@@ -88,11 +89,12 @@ std::string DevicePageFilamentSlotStateResolver::ResolveCardState(MachineObject*
         return SV::card_state::unknown;
     }
 
+    bool filament_at_nozzle_inlet = nozzle_opt.has_value() && nozzle_opt->HasFilamentAtNozzleInlet();
     if (filament_changing && current_filament_changing) {
-        return loaded_in_nozzle ? SV::card_state::unloading : SV::card_state::loading;//TODO
+        return filament_at_nozzle_inlet ? SV::card_state::unloading : SV::card_state::loading;//TODO
     }
 
-    return loaded_in_nozzle ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;
+    return filament_at_nozzle_inlet ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;
 }
 
 std::string DevicePageFilamentSlotStateResolver::ResolveLineState(const std::string& card_state,
@@ -111,20 +113,86 @@ std::string DevicePageFilamentSlotStateResolver::ResolveLineState(const std::str
     return SV::line_state::no_filament;
 }
 
-std::string DevicePageFilamentSlotStateResolver::ResolveNozzleState(const std::string& card_state,
-                                                                    const std::string& line_state,
-                                                                    bool has_tool,
-                                                                    bool is_abnormal,
-                                                                    bool is_lost)
+std::string DevicePageFilamentSlotStateResolver::ResolveNozzleState(MachineObject* obj_,
+                                                                    const std::optional<DevNozzle>& nozzle_opt,
+                                                                    const std::string& line_state)
 {
     namespace SV = AmsHotendSchema::values;
-    if (is_lost) return SV::nozzle_state::lost;
-    if (!has_tool) return SV::nozzle_state::none;
-    if (is_abnormal || card_state == SV::card_state::error) return SV::nozzle_state::error;
+    // Lost implies !IsExist(), so it must be checked before the empty-slot case.
+    if (nozzle_opt && nozzle_opt->IsToolLostInHolder()) {
+        return SV::nozzle_state::lost;
+    }
+
+    if (!nozzle_opt || !nozzle_opt->IsExist()) {
+        return SV::nozzle_state::none;
+    }
+
+    if (nozzle_opt->IsAbnormal()) {
+        return SV::nozzle_state::error;
+    }
+
+    if (nozzle_opt->IsUnknown()) {
+        return SV::nozzle_state::unknown;
+    }
+
+    if (nozzle_opt->GetFilamentEngagementStatus() == DevNozzle::FilamentEngagementStatus::Suspect) {
+        return SV::nozzle_state::feed_suspect;
+    }
+
     if (line_state == SV::line_state::loaded || line_state == SV::line_state::loading || line_state == SV::line_state::unloading) {
         return SV::nozzle_state::active;
     }
+
     return SV::nozzle_state::normal;
+}
+
+std::string DevicePageHotendSlotStateResolver::ResolveOpState(MachineObject* obj_,
+                                                              const std::optional<DevNozzle>& nozzle_opt,
+                                                              const std::string& line_state,
+                                                              int display_idx)
+{
+    namespace SV = AmsHotendSchema::values;
+
+    // Rack jobs outrank health.
+    if (obj_ && obj_->GetNozzleSystem()) {
+        auto* nozzle_sys = obj_->GetNozzleSystem();
+        const int reading_flag = nozzle_sys->GetReadingNozzleIdFlag();
+        const bool reading_all = reading_flag == 0xff;
+        const bool reading_this = nozzle_opt && reading_flag == nozzle_opt->GetNozzlePosId();
+        if (reading_all || reading_this) return SV::hotend_op_state::reading;
+
+        if (auto rack = nozzle_sys->GetNozzleRack(); rack && rack->GetJob() != 0) {
+            const int target_display_index = DevicePageHotendRackProgressStatusBuilder::TargetDisplayIndex(
+                obj_, rack->GetJob(), rack->GetReadingIdx());
+            if (target_display_index == display_idx) {
+                if (rack->GetJob() == 1 || rack->GetJob() == 3) return SV::hotend_op_state::taking;
+                if (rack->GetJob() == 2) return SV::hotend_op_state::placing;
+            }
+        }
+    }
+
+    // Health is shared with the Filament tab; hotend_op_state strings mirror nozzle_state.
+    return DevicePageFilamentSlotStateResolver::ResolveNozzleState(obj_, nozzle_opt, line_state);
+}
+
+std::string DevicePageHotendSlotStateResolver::ResolveTempTrend(const std::optional<DevNozzle>& nozzle_opt)
+{
+    namespace SV = AmsHotendSchema::values;
+    if (!nozzle_opt) return SV::hotend_temp_trend::steady;
+
+    if (auto temp_status = nozzle_opt->GetRackNozzleTempStatus()) {
+        switch (*temp_status) {
+        case DevNozzle::NozzleTempStatus::Heating: return SV::hotend_temp_trend::heating;
+        case DevNozzle::NozzleTempStatus::Cooling: return SV::hotend_temp_trend::cooling;
+        default: return SV::hotend_temp_trend::steady;
+        }
+    }
+
+    const int target = nozzle_opt->GetTargetTemp();
+    const int current = nozzle_opt->GetCurrentTemp();
+    if (target > current) return SV::hotend_temp_trend::heating;
+    if (current > target && target > 0) return SV::hotend_temp_trend::cooling;
+    return SV::hotend_temp_trend::steady;
 }
 
 std::string DevicePageFilamentSlotStateResolver::ResolveFilamentCardText(

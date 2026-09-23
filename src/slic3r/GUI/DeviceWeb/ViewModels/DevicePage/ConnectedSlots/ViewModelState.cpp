@@ -523,7 +523,6 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
         }
     }
 
-    const bool has_tool            = nozzle.has_value() && nozzle->IsExist();
     const bool nozzle_has_filament = nozzle.has_value() && nozzle->HasFilamentAtNozzleInlet();
     const bool tray_reading        = feed_tray && feed_tray->is_reading(m_obj);
     const bool loaded_in_nozzle    = DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(m_obj, feed_tray);
@@ -531,7 +530,7 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
 
     const std::string card_state = DevicePageFilamentSlotStateResolver::ResolveCardState(
         m_obj, feed_tray, nozzle, filament_changing, current_filament_changing,
-        tray_reading, loaded_in_nozzle);
+        tray_reading);
     const std::string line_state = DevicePageFilamentSlotStateResolver::ResolveLineState(
         card_state, /*has_hotend_slot=*/true, filament_changing,
         current_filament_changing, loaded_in_nozzle);
@@ -543,9 +542,7 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
     }
 
     // Nozzle state
-    slot.bottom_hotend.nozzle.state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(card_state, line_state, has_tool, 
-                                                                                              has_tool && nozzle->IsAbnormal(),
-                                                                                              has_tool && nozzle->IsToolLostInHolder());
+    slot.bottom_hotend.nozzle.state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(m_obj, nozzle, line_state);
     slot.bottom_hotend.nozzle.has_filament = nozzle_has_filament;
     if (nozzle_has_filament) {
         slot.bottom_hotend.nozzle.filament_color = normalize_hex_for_web(nozzle->GetFilamentColor());

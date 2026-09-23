@@ -85,6 +85,11 @@ namespace filament_nozzle {
     // cutter/pen silhouette instead of the default nozzle; combined with
     // on_extruder it selects the "racked" (gripped by the tool changer) variant.
     inline constexpr const char* tool_kind       = "tool_kind";
+    inline constexpr const char* tooltip         = "tooltip";
+
+    // Two-line caption under the nozzle silhouette. eg. 0.4 HF
+    inline constexpr const char* nozzle_label    = "nozzle_label";
+    inline constexpr const char* nozzle_subtext  = "nozzle_subtext";
 }
 
 // slot.select_action - per-mode selection eligibility (batch modes only).

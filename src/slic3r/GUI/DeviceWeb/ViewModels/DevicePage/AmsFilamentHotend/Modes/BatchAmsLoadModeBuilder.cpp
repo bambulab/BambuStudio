@@ -62,8 +62,8 @@ nlohmann::json make_select_action(const std::string& card_state, const nlohmann:
     bool can_select = false;
     std::string reason;
 
-    if (auto nozzle_reason = BatchModeCommon::nozzle_unavailable_reason(nozzle_section)) {
-        reason = *nozzle_reason;
+    if (auto nozzle_status = BatchModeCommon::classify_nozzle(nozzle_section); nozzle_status.is_blocked()) {
+        reason = *nozzle_status.block_reason;
     } else if (is_empty) {
         reason = _u8L("Empty slot");
     } else if (is_reading) {

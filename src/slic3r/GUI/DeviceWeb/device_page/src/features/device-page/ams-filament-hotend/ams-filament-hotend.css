@@ -269,6 +269,16 @@
   z-index: 2;
 }
 
+/* The bottom row spans the full width above the top row's nozzles; let the
+   gaps between its columns pass pointer events through to them. */
+.bottom-tier-row {
+  pointer-events: none;
+}
+
+.bottom-tier-row .slot-column {
+  pointer-events: auto;
+}
+
 .top-tier-row .slot-column + .slot-column,
 .bottom-tier-row .slot-column + .slot-column {
   margin-left: calc(2 * var(--slot-pitch) - 80px);
@@ -1404,6 +1414,37 @@
   display: block;
 }
 
+.slot-nozzle[data-hint='dialog'] {
+  cursor: pointer;
+}
+
+.slot-nozzle[data-hint='blocked'] {
+  cursor: not-allowed;
+}
+
+.slot-nozzle-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ams-text-strong);
+  width: 100%;
+}
+
+.slot-nozzle-caption.muted {
+  color: var(--ams-text-disabled);
+}
+
+.slot-nozzle-caption-name,
+.slot-nozzle-caption-sub {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
 .dryer-info {
   display: flex;
   flex-direction: column;
@@ -2104,13 +2145,19 @@
   cursor: pointer;
 }
 
-.hotend-menu-popover button:hover:not(:disabled) {
+.hotend-menu-popover button:hover:not([aria-disabled='true']) {
   background: var(--ams-popover-hover-bg);
 }
 
-.hotend-menu-popover button:disabled {
+.hotend-menu-popover button[aria-disabled='true'] {
   color: var(--ams-text-disabled);
   cursor: default;
+}
+
+/* Fault-disabled items and unsupported 2D tools explain themselves via title. */
+.hotend-menu-popover button[aria-disabled='true'][title],
+.hotend-card.unsupported-tool {
+  cursor: not-allowed;
 }
 
 .hotend-card-body {
@@ -2274,10 +2321,22 @@
   line-height: 1;
 }
 
+/* Establish a stacking context so the Placing sleeve (rendered before) sits behind. */
+.hotend-icon-nozzle {
+  position: relative;
+}
+
 .hotend-placing-arrow {
   position: absolute;
-  left: 0;
   top: 5px;
+}
+
+.hotend-placing-arrow-placing {
+  left: 0;
+}
+
+.hotend-placing-arrow-taking {
+  left: -4px;
 }
 
 /* Status badge overlaid near the top of the hotend body: red "!" for the
@@ -2289,6 +2348,14 @@
   top: 11px;
   left: 50%;
   transform: translateX(-50%);
+}
+
+/* "Not configurable" marker centred on a 2D tool (cutter / pen). */
+.hotend-icon-2d-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .hotend-tool-label {

@@ -44,16 +44,21 @@ export function FilamentCard({
   if (inBatchMode) cls.push('batch-mode');
   if (notAllowed) cls.push('not-allowed');
 
-  // Right-click is normal-mode-only. Item visibility comes from Schema
+  // Context menu is normal-mode-only. Item visibility comes from Schema
   // menu_actions; skip opening when no item would render.
   const ctx = useCardContextMenu({
     disabled: inBatchMode || !slot.enabled || !hasCardContextMenuItems(slot),
   });
 
-  const handleBodyClick = () => {
-    if (!inBatchMode) return;
-    if (!canSelect) return;
-    onToggleSelect(slot);
+  // Batch mode -> toggle checkbox. Normal mode -> open menu at pointer.
+  // The "new filament" hint badge stops its own propagation, so clicking it
+  // does not reach here.
+  const handleBodyClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (inBatchMode) {
+      if (canSelect) onToggleSelect(slot);
+      return;
+    }
+    ctx.openAt(event.clientX, event.clientY);
   };
 
   return (
@@ -63,7 +68,7 @@ export function FilamentCard({
       data-card-state={slot.filament_card.state}
       data-line-state={slot.filament_line.state}
       data-batch-mode={inBatchMode ? mode : undefined}
-      onClick={inBatchMode ? handleBodyClick : undefined}
+      onClick={handleBodyClick}
       onContextMenu={ctx.bind.onContextMenu}
       onTouchStart={ctx.bind.onTouchStart}
       onTouchMove={ctx.bind.onTouchMove}

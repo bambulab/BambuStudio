@@ -1,6 +1,17 @@
 import type { AmsFilamentHotendNozzleState, HotendToolKind } from '../types';
 import { visibleFilamentColor } from '../visibleFilamentColor';
-import hotendLostBadgeUrl from '../assets/hotend_lost_badge.svg';
+import nozzleAlertErrorUrl from '../assets/nozzle_alert_error.svg';
+import nozzleAlertLostUrl from '../assets/nozzle_alert_lost.svg';
+import nozzleAlertFeedSuspectUrl from '../assets/nozzle_alert_feed_suspect.svg';
+import nozzleAlertUnknownUrl from '../assets/nozzle_alert_unknown.svg';
+
+// Alert badges share one 20x20 slot centered on the 24x48 nozzle (per Figma).
+const ALERT_BADGE_URL: Partial<Record<AmsFilamentHotendNozzleState, string>> = {
+  Error: nozzleAlertErrorUrl,
+  Lost: nozzleAlertLostUrl,
+  FeedSuspect: nozzleAlertFeedSuspectUrl,
+  Unknown: nozzleAlertUnknownUrl,
+};
 
 // Inline nozzle from the Figma export (viewBox 24x48). Rendered as SVG so
 // the dashed filament path through the assembly can take the spool color
@@ -28,20 +39,15 @@ const EXTRUDER_FOOT_RIGHT_PATH =
 const NULL_PROHIBIT_PATH =
   'M12.0005 17.3323C13.7684 17.3324 15.4642 18.0344 16.7144 19.2844C17.9646 20.5347 18.6665 22.2312 18.6665 23.9993C18.6664 25.7673 17.9645 27.463 16.7144 28.7131C15.4642 29.9633 13.7685 30.6652 12.0005 30.6653C10.2324 30.6653 8.53589 29.9634 7.28564 28.7131C6.03558 27.463 5.33358 25.7672 5.3335 23.9993C5.3335 22.2312 6.0354 20.5347 7.28564 19.2844C8.53589 18.0342 10.2324 17.3323 12.0005 17.3323ZM8.67139 28.2698C9.61789 29.0075 10.7878 29.4153 12.0005 29.4153C13.437 29.4152 14.8148 28.8451 15.8306 27.8293C16.8463 26.8136 17.4164 25.4357 17.4165 23.9993C17.4165 22.7866 17.0088 21.6167 16.271 20.6702L8.67139 28.2698ZM12.0005 18.5823C10.5639 18.5823 9.18623 19.1534 8.17041 20.1692C7.15459 21.185 6.5835 22.5627 6.5835 23.9993C6.58357 25.2115 6.99074 26.3811 7.72803 27.3274L15.3286 19.7268C14.3823 18.9895 13.2127 18.5823 12.0005 18.5823Z';
 
-// "Error" silhouette (inline from hotend_error.svg, native viewBox 24x48).
+// Alert silhouette (inline from hotend_error.svg, native viewBox 24x48).
 // Reuses the standard BODY_PATH outline (lighter grey) with a metal nozzle
-// body and a red error badge, shown when nozzleState === 'Error'.
+// body; the per-state badge comes from ALERT_BADGE_URL.
 const ERROR_FILAMENT_PATH =
   'M13 114H11V111.964H13V114ZM13 107.893H11V103.821H13V107.893ZM13 99.75H11V95.6787H13V99.75ZM13 91.6074H11V87.5361H13V91.6074ZM13 83.4639H11V79.3926H13V83.4639ZM13 75.3213H11V71.25H13V75.3213ZM13 67.1787H11V63.1074H13V67.1787ZM13 59.0361H11V54.9639H13V59.0361ZM13 50.8926H11V46.8213H13V50.8926ZM13 42.75H11V38.6787H13V42.75ZM13 34.6074H11V30.5361H13V34.6074ZM13 26.4639H11V22.3926H13V26.4639ZM13 18.3213H11V14.25H13V18.3213ZM13 10.1787H11V6.10742H13V10.1787ZM13 2.03613H11V0H13V2.03613Z';
 const ERROR_NOZZLE_BODY_PATH =
   'M12.2568 47.5554H11.7744L11.3887 46.3337H10.874L8.94434 45.1111L9.58789 42.6667H9.55566V32.8894H5.77734V26.1667H18V32.8894H14.4443V42.6667H14.4121L15.0557 45.1111L13.2861 46.3337H12.6113L12.2568 47.5554Z';
 const ERROR_NOZZLE_DETAIL_PATH =
   'M18.1113 32.8889H5.88867V32.2776H18.1113V32.8889ZM18.1113 31.6663H5.88867V31.0559H18.1113V31.6663ZM18.1113 30.4446H5.88867V29.8333H18.1113V30.4446ZM10.1826 28.4827H8.86133V27.3245H10.1826V28.4827ZM15.1377 28.4827H13.8164V27.3245H15.1377V28.4827Z';
-const ERROR_BADGE_CIRCLE_PATH =
-  'M7.11133 37C7.11133 34.2999 9.30016 32.1111 12.0002 32.1111C14.7003 32.1111 16.8891 34.2999 16.8891 37C16.8891 39.7 14.7003 41.8889 12.0002 41.8889C9.30016 41.8889 7.11133 39.7 7.11133 37Z';
-const ERROR_BADGE_MARK_PATH =
-  'M12 38.2217C12.4219 38.2217 12.7637 38.5644 12.7637 38.9863C12.7635 39.4081 12.4218 39.75 12 39.75C11.5783 39.7499 11.2365 39.408 11.2363 38.9863C11.2363 38.5645 11.5782 38.2218 12 38.2217ZM12 33.9443C12.3375 33.9443 12.6113 34.2182 12.6113 34.5557V37C12.6113 37.3375 12.3375 37.6113 12 37.6113C11.6626 37.6112 11.3887 37.3374 11.3887 37V34.5557C11.3887 34.2182 11.6626 33.9445 12 33.9443Z';
-
 // Cutter / pen tool silhouettes (inline from hotend_blade.svg /
 // hotend_filament_pen.svg, viewBox 24x48). All share the BODY_PATH outline
 // (#DBDBDB) plus the dashed filament; only the tool body below differs.
@@ -78,6 +84,8 @@ export function Nozzle({
   displayIndex,
   color,
   hasFilamentInNozzle,
+  lineColor,
+  hasFilamentInLine,
   onExtruder,
   toolKind,
 }: {
@@ -85,6 +93,12 @@ export function Nozzle({
   displayIndex: number;
   color?: string;
   hasFilamentInNozzle?: boolean;
+  // Feed-line side of the filament bar. The bar is split at the extruder
+  // midpoint: above it continues the tube coming down from the card, below it
+  // shows what is actually sitting in the nozzle. Defaults to the nozzle
+  // values so callers that only know about the nozzle keep a single-tone bar.
+  lineColor?: string;
+  hasFilamentInLine?: boolean;
   // True when this rack nozzle is currently mounted on the extruder. Swaps
   // the visual to the "extruder gripping the nozzle" silhouette.
   onExtruder?: boolean;
@@ -102,14 +116,22 @@ export function Nozzle({
   // the light background, matching the FeedLine treatment above.
   const filamentColor = hasFilament && hasRealColor && color ? visibleFilamentColor(color) : STANDBY_COLOR;
 
+  const lineHasFilament = hasFilamentInLine ?? hasFilament;
+  const lineSource = lineColor ?? color;
+  const lineHasRealColor = !!lineSource && lineSource.toLowerCase() !== FALLBACK_SPOOL_COLOR.toLowerCase();
+  const feedColor = lineHasFilament && lineHasRealColor && lineSource
+    ? visibleFilamentColor(lineSource)
+    : STANDBY_COLOR;
+
   // Shared filament overlay, parameterized on the upper/lower clip bounds so
-  // each render branch can reuse it with its own body geometry. The in-nozzle
-  // filament is always a continuous bar, centered on the column axis (x = 12)
-  // so it lines up with the FeedLine above.
+  // each render branch can reuse it with its own body geometry. The bar is
+  // continuous and centered on the column axis (x = 12) so it lines up with
+  // the FeedLine above; the two halves can differ in colour when the tube and
+  // the nozzle hold different filament.
   const filamentOverlay = (
     <>
       <g clipPath="url(#nozzle-filament-upper-clip)">
-        <rect x={11} y={0} width={2} height={22} fill={filamentColor} />
+        <rect x={11} y={0} width={2} height={22} fill={feedColor} />
       </g>
       <g clipPath="url(#nozzle-filament-lower-clip)">
         <rect x={11} y={22} width={2} height={24} fill={filamentColor} />
@@ -134,7 +156,8 @@ export function Nozzle({
     );
   }
 
-  if (nozzleState === 'Error' || nozzleState === 'Lost') {
+  const alertBadgeUrl = ALERT_BADGE_URL[nozzleState];
+  if (alertBadgeUrl) {
     return (
       <svg
         className={`nozzle nozzle-${nozzleState.toLowerCase()}`}
@@ -157,20 +180,7 @@ export function Nozzle({
         </g>
         <path d={ERROR_NOZZLE_BODY_PATH} fill="#A3A3A3" />
         <path d={ERROR_NOZZLE_DETAIL_PATH} fill="black" />
-        {nozzleState === 'Lost' ? (
-          <image
-            href={hotendLostBadgeUrl}
-            x={4}
-            y={29}
-            width={16}
-            height={16}
-          />
-        ) : (
-          <>
-            <path d={ERROR_BADGE_CIRCLE_PATH} fill="#E14747" />
-            <path d={ERROR_BADGE_MARK_PATH} fill="#EBEBEB" />
-          </>
-        )}
+        <image href={alertBadgeUrl} x={2} y={14} width={20} height={20} />
       </svg>
     );
   }
@@ -251,10 +261,8 @@ export function Nozzle({
           </clipPath>
         </defs>
 
-        {/* Keep the mounted-nozzle silhouette on the same visual baseline as the
-            regular nozzle branch; otherwise toggling `onExtruder` makes the row
-            look like it jumps vertically. */}
-        <g transform="translate(1, 15)">
+        {/* Top-align with the regular nozzle body (y=4). */}
+        <g transform="translate(1, 4)">
           <path d={EXTRUDER_BODY_PATH}       fill="#C2C2C2" stroke="#858585" strokeWidth={0.55814} />
           <path d={EXTRUDER_FOOT_LEFT_PATH}  fill="#EBEBEB" stroke="#858585" strokeWidth={0.55814} />
           <path d={EXTRUDER_FOOT_RIGHT_PATH} fill="#EBEBEB" stroke="#858585" strokeWidth={0.55814} />

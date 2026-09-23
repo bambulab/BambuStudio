@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from 'react';
 import { useConnectedSlotsBridge } from './useConnectedSlotsBridge';
 import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
 import useStore from '../../../store/AppStore';
@@ -19,6 +19,44 @@ function parseAddrIdFromHash(): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+// Boards are sized by their content, so their centres move. Shift each schematic
+// horizontally onto its board's centre; transform keeps the stage geometry (and
+// the routes measured against it) untouched.
+function useAlignSchematicsToBoards(
+  barRef: RefObject<HTMLDivElement | null>,
+  stageRef: RefObject<HTMLDivElement | null>,
+  revision: unknown,
+) {
+  const align = useCallback(() => {
+    const bar = barRef.current;
+    const stage = stageRef.current;
+    if (!bar || !stage) return;
+    const barLeft = bar.getBoundingClientRect().left;
+    const sides = ['left', 'right'] as const;
+    sides.forEach((side, i) => {
+      const schematic = bar.children[i] as HTMLElement | undefined;
+      const board = stage.querySelector<HTMLElement>(`[data-cs-board-anchor="${side}"]`);
+      if (!schematic || !board) return;
+      const boardRect = board.getBoundingClientRect();
+      const boardCenter = boardRect.left + boardRect.width / 2 - barLeft;
+      const schematicCenter = schematic.offsetLeft + schematic.offsetWidth / 2;
+      schematic.style.transform = `translateX(${boardCenter - schematicCenter}px)`;
+    });
+  }, [barRef, stageRef]);
+
+  useLayoutEffect(() => {
+    align();
+  }, [align, revision]);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage || typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(() => align());
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [align, stageRef]);
+}
+
 function SlotView({
   slot,
   onSelectSource,
@@ -31,9 +69,11 @@ function SlotView({
   onTrayAction: (action: ConnectedSlotsTrayAction, tray: ConnectedSlotsTrayInfo) => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  useAlignSchematicsToBoards(barRef, stageRef, slot);
   return (
     <>
-      <div className="cs-schematic-bar">
+      <div className="cs-schematic-bar" ref={barRef}>
         <HotendSlotSchematic schematic={slot.top_slots_area.left_slot.schematic} />
         <ConnectedSourceSchematic
           schematic={slot.top_slots_area.right_slots.schematic}

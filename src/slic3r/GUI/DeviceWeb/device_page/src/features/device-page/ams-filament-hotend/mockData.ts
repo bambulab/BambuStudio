@@ -101,6 +101,10 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
       has_filament: nozzleState === 'Active',
       filament_color: nozzleState === 'Active' ? (seed.color ?? '#00AE42') : '',
       on_extruder: seed.is_on_extruder ?? false,
+      tool_kind: seed.hotend?.tool_kind,
+      // The Filament tab caption drops the unit the Hotend tab labels carry.
+      nozzle_label: seed.hotend?.nozzle_label?.replace(/\s*mm$/, ''),
+      nozzle_subtext: seed.hotend?.nozzle_subtext,
     },
     ams_operation: seed.ams_operation,
     enabled: true,
@@ -112,7 +116,7 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
 
 const hotendMenuActions = (hotend?: HotendSlotInfo) => {
   const kind = hotend?.tool_kind ?? 'empty';
-  const op = hotend?.op_state ?? 'Idle';
+  const op = hotend?.op_state ?? 'None';
   const busy = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing';
   const canOperate = !busy;
   return {
@@ -132,7 +136,7 @@ const buildHotendSlot = (display_index: number, seed: SlotSeed): HotendSlotViewM
   taken: seed.is_on_extruder ?? false,
   menu_actions: hotendMenuActions(seed.hotend),
   filament_nozzle: buildSlot(seed).filament_nozzle,
-  hotend: seed.hotend ?? { op_state: 'Idle', tool_kind: 'empty' },
+  hotend: seed.hotend ?? { op_state: 'None', tool_kind: 'empty' },
   hotend_detail_dialog: buildHotendDetail(seed.hotend),
 });
 
@@ -167,16 +171,16 @@ const buildHotendDetail = (hotend?: HotendSlotInfo) => {
 
 const mockHotend = (display_index: number): HotendSlotInfo => {
   switch (display_index) {
-    case 1: return { current_temp: 220, target_temp: 0,   op_state: 'Idle',     tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std',  selected: true };
-    case 2: return { current_temp: 64,  target_temp: 0,   op_state: 'Heating',  tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std' };
-    case 3: return { current_temp: 23,  target_temp: 0,   op_state: 'Idle',     tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std' };
-    case 4: return {                                                        op_state: 'Idle',     tool_kind: 'cutter',  nozzle_label: 'Cutter' };
+    case 1: return { current_temp: 220, target_temp: 0,   op_state: 'Active',   tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std',  selected: true };
+    case 2: return { current_temp: 64,  target_temp: 260, op_state: 'Normal',   temp_trend: 'Heating', tool_kind: 'nozzle', nozzle_label: '0.4 mm', nozzle_subtext: 'Std' };
+    case 3: return { current_temp: 23,  target_temp: 0,   op_state: 'Normal',   tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std' };
+    case 4: return {                                                        op_state: 'Normal',   tool_kind: 'cutter',  nozzle_label: 'Cutter' };
     case 5: return { current_temp: 23,  target_temp: 0,   op_state: 'Error',    tool_kind: 'pen',     nozzle_label: 'Highlighter' };
-    case 6: return {                                                        op_state: 'Idle',     tool_kind: 'laser',   nozzle_label: 'Laser' };
-    case 7: return {                                                        op_state: 'Idle',     tool_kind: 'fan',     nozzle_label: 'Fan' };
+    case 6: return {                                                        op_state: 'Normal',   tool_kind: 'laser',   nozzle_label: 'Laser' };
+    case 7: return {                                                        op_state: 'Normal',   tool_kind: 'fan',     nozzle_label: 'Fan' };
     case 8: return {                                                        op_state: 'Placing',  tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std' };
     case 9: return {                                                        op_state: 'Reading',  tool_kind: 'nozzle' };
-    default: return { op_state: 'Idle', tool_kind: 'empty' };
+    default: return { op_state: 'None', tool_kind: 'empty' };
   }
 };
 

@@ -14,6 +14,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerSync.h"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 
 #include <algorithm>
@@ -52,9 +53,15 @@ std::string nozzle_flow_short_name(NozzleFlowType flow_type)
     case NozzleFlowType::S_FLOW: return "Std";
     case NozzleFlowType::H_FLOW: return "HF";
     case NozzleFlowType::U_FLOW: return "UHF";
-    case NozzleFlowType::T_FLOW: return "TF";
+    case NozzleFlowType::T_FLOW: return "TPU 285";
     default: return "";
     }
+}
+
+// Bare diameter for the Filament tab caption
+std::string nozzle_diameter_short_str(float diameter)
+{
+    return (boost::format("%.1f") % diameter).str();
 }
 
 std::string format_nozzle_used_time(int print_time_seconds)
@@ -152,6 +159,105 @@ void open_hotend_detail_dialog(const nlohmann::json& payload)
     dlg.ShowModal();
 }
 
+// Wiki target of the "View details" button; while empty the button falls back to a plain OK.
+constexpr const char* kNozzleHintWikiUrl = "";
+
+// Filament load / unload needs a healthy, idle tool.
+bool is_hotend_ready_for_filament(const std::string& op_state)
+{
+    namespace SV = AmsHotendSchema::values;
+    return op_state != SV::hotend_op_state::reading &&
+           op_state != SV::hotend_op_state::taking &&
+           op_state != SV::hotend_op_state::placing &&
+           op_state != SV::hotend_op_state::removing &&
+           op_state != SV::hotend_op_state::error &&
+           op_state != SV::hotend_op_state::lost_in_holder &&
+           op_state != SV::hotend_op_state::unknown;
+}
+
+nlohmann::json build_hotend_menu_actions(const std::string& op_state,
+                                         const std::string& tool_kind,
+                                         bool has_hotend_slot)
+{
+    namespace SK = AmsHotendSchema::keys;
+    namespace SV = AmsHotendSchema::values;
+
+    const bool busy = op_state == SV::hotend_op_state::reading ||
+                      op_state == SV::hotend_op_state::taking ||
+                      op_state == SV::hotend_op_state::placing ||
+                      op_state == SV::hotend_op_state::removing;
+    const bool error = op_state == SV::hotend_op_state::error;
+    const bool lost = op_state == SV::hotend_op_state::lost_in_holder;
+    const bool is_nozzle = tool_kind == SV::tool_kind::nozzle;
+
+    // Lost keeps temperature control only; a comm error blocks every action.
+    const bool can_operate = has_hotend_slot && !busy && !error;
+    const bool can_move = can_operate && !lost;
+
+    const bool can_read = can_move && is_nozzle;
+    const bool can_detail = has_hotend_slot && !error;
+    const bool can_set_temp = can_operate && is_nozzle;
+    const bool can_take_place = can_move;
+
+    std::string disabled_reason;
+    if (error) {
+        disabled_reason = _u8L("PrintTool communication error. Please check the PrintTool cable and try again.");
+    } else if (lost) {
+        disabled_reason = _u8L("PrintTool detached. Cannot load.");
+    }
+
+    return {
+        {SK::hotend_menu_actions::can_read, can_read},
+        {SK::hotend_menu_actions::can_detail, can_detail},
+        {SK::hotend_menu_actions::can_set_temperature, can_set_temp},
+        {SK::hotend_menu_actions::can_take_place, can_take_place},
+        {SK::hotend_menu_actions::disabled_reason, disabled_reason}
+    };
+}
+
+std::string nozzle_state_tooltip(const std::string& nozzle_state)
+{
+    namespace SV = AmsHotendSchema::values;
+    if (nozzle_state == SV::nozzle_state::lost) return _u8L("PrintTool detached. Cannot load.");
+    if (nozzle_state == SV::nozzle_state::error) return _u8L("PrintTool communication error. Cannot operate.");
+    if (nozzle_state == SV::nozzle_state::feed_suspect) return _u8L("The current filament may not be fully loaded into the PrintTool");
+    if (nozzle_state == SV::nozzle_state::unknown) return _u8L("Hotend type unknown");
+    return std::string();
+}
+
+void show_nozzle_hint_dialog(int addr_id)
+{
+    namespace SV = AmsHotendSchema::values;
+    auto* dev_mgr = wxGetApp().getDeviceManager();
+    MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    if (!machine_obj || !machine_obj->GetNozzleSystem()) return;
+
+    // Re-resolve from live data: the state the web side clicked on may be stale.
+    // Card / line inputs are left empty so only nozzle-owned faults pick a dialog.
+    const std::string nozzle_state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(
+        machine_obj, machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id), std::string());
+
+    wxString message;
+    bool with_wiki = false;
+    if (nozzle_state == SV::nozzle_state::error) {
+        message = _L("PrintTool communication error. Please check the PrintTool cable and try again.");
+        with_wiki = true;
+    } else if (nozzle_state == SV::nozzle_state::feed_suspect) {
+        message = _L("The current filament may not be fully loaded into the PrintTool, which may cause printing issues. Please pull the filament out of the PrintTool, then click \"Load\" to complete loading.");
+        with_wiki = true;
+    } else if (nozzle_state == SV::nozzle_state::unknown) {
+        message = _L("Hotend type unknown. Please edit the hotend type on the printer and try again.");
+    } else {
+        // Lost only shows a hover tooltip on the web side; other states have nothing to report.
+        return;
+    }
+
+    with_wiki = with_wiki && kNozzleHintWikiUrl[0] != '\0';
+    MessageDialog dlg(wxGetApp().mainframe, message, _L("Tip"), wxOK);
+    if (with_wiki) dlg.SetButtonLabel(wxID_OK, _L("View details"));
+    if (dlg.ShowModal() == wxID_OK && with_wiki) wxLaunchDefaultBrowser(kNozzleHintWikiUrl);
+}
+
 } // namespace
 
 void DevicePageAmsFilamentHotendVM::BuildHotendRackStatus(MachineObject* machine_obj, nlohmann::json& hotend_page) const
@@ -205,16 +311,14 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     // An empty hotend slot (no nozzle/tool inserted) drives the "None" nozzle
     // visual; an inserted-but-abnormal tool drives the "Error" visual.
     const bool has_tool = rack_nozzle_opt.has_value() && rack_nozzle_opt->IsExist();
-    const bool nozzle_abnormal = has_tool && rack_nozzle_opt->IsAbnormal();
-    const bool nozzle_lost = rack_nozzle_opt && rack_nozzle_opt->IsToolLostInHolder();
     const std::string nozzle_tool_kind = has_tool ? tool_kind_for_web(rack_nozzle_opt->GetToolDefs()) : std::string(SV::tool_kind::empty);
     const bool current_filament_changing = IsCurrentFilamentChangingSlot(machine_obj, ams_id, tray_id);
     const bool filament_changing = IsFilamentChangeActive(machine_obj);
     const bool loaded_in_nozzle = DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(machine_obj, tray);
     const bool tray_reading = tray && tray->is_reading(machine_obj);
-    const std::string card_state = DevicePageFilamentSlotStateResolver::ResolveCardState(machine_obj, tray, rack_nozzle_opt, filament_changing, current_filament_changing, tray_reading, loaded_in_nozzle);
+    const std::string card_state = DevicePageFilamentSlotStateResolver::ResolveCardState(machine_obj, tray, rack_nozzle_opt, filament_changing, current_filament_changing, tray_reading);
     const std::string line_state = DevicePageFilamentSlotStateResolver::ResolveLineState(card_state, has_hotend_slot, filament_changing, current_filament_changing, loaded_in_nozzle);
-    const std::string nozzle_state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(card_state, line_state, has_tool, nozzle_abnormal, nozzle_lost);
+    const std::string nozzle_state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(machine_obj, rack_nozzle_opt, line_state);
 
     nlohmann::json bind_ams = nlohmann::json::array();
     nlohmann::json ams_operation_units = nlohmann::json::array();
@@ -261,6 +365,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
     nlohmann::json hotend = nlohmann::json::object();
     nlohmann::json hotend_detail_dialog;
+    std::string filament_nozzle_label;
+    std::string filament_nozzle_subtext;
     if (rack_nozzle_opt.has_value()) {
         const bool is_on_extruder = IsNozzleOnExtruder(machine_obj, addr_id);
         // Holder connection clears once the nozzle is mounted on the extruder.
@@ -278,38 +384,27 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
             if (auto rack = machine_obj->GetNozzleSystem()->GetNozzleRack()) firmware = rack->GetNozzleFirmwareInfo(addr_id);
         }
 
-        std::string op_state = SV::hotend_op_state::idle;
-        if (has_tool && rack_nozzle_opt->IsAbnormal()) {
-            op_state = SV::hotend_op_state::error;
-        } else if (has_tool && rack_nozzle_opt->IsToolLostInHolder()) {
-            op_state = SV::hotend_op_state::lost_in_holder;
-        } else if (has_tool && rack_nozzle_opt->IsUnknown()) {
-            op_state = SV::hotend_op_state::unknown;
-        } else if (auto temp_status = rack_nozzle_opt->GetRackNozzleTempStatus()) {
-            switch (*temp_status) {
-                case DevNozzle::NozzleTempStatus::Heating: op_state = SV::hotend_op_state::heating; break;
-                case DevNozzle::NozzleTempStatus::Cooling: op_state = SV::hotend_op_state::cooling; break;
-                default: op_state = SV::hotend_op_state::idle; break;
-            }
-        } else if (rack_nozzle_opt->GetTargetTemp() > rack_nozzle_opt->GetCurrentTemp()) {
-            op_state = SV::hotend_op_state::heating;
-        } else if (rack_nozzle_opt->GetCurrentTemp() > rack_nozzle_opt->GetTargetTemp() && rack_nozzle_opt->GetTargetTemp() > 0) {
-            op_state = SV::hotend_op_state::cooling;
-        }
-        if (machine_obj && (machine_obj->GetNozzleSystem()->GetReadingNozzleIdFlag() == 0xff || machine_obj->GetNozzleSystem()->GetReadingNozzleIdFlag() == rack_nozzle_opt->GetNozzlePosId())) {
-            op_state = SV::hotend_op_state::reading;
-        } else if (auto rack = machine_obj->GetNozzleSystem()->GetNozzleRack(); rack && rack->GetJob() != 0) {
-            const int target_display_index = DevicePageHotendRackProgressStatusBuilder::TargetDisplayIndex(machine_obj, rack->GetJob(), rack->GetReadingIdx());
-            if (target_display_index == display_idx) {
-                if (rack->GetJob() == 1 || rack->GetJob() == 3) op_state = SV::hotend_op_state::taking;
-                else if (rack->GetJob() == 2) op_state = SV::hotend_op_state::placing;
-            }
-        }
+        const std::string op_state = DevicePageHotendSlotStateResolver::ResolveOpState(machine_obj, rack_nozzle_opt, line_state, display_idx);
 
-        hotend[SK::hotend::op_state] = has_tool ? op_state : std::string(SV::hotend_op_state::idle);
+        hotend[SK::hotend::op_state] = op_state;
+        hotend[SK::hotend::temp_trend] = DevicePageHotendSlotStateResolver::ResolveTempTrend(rack_nozzle_opt);
         hotend[SK::hotend::tool_kind] = has_tool ? tool_kind_for_web(tool_defs) : SV::tool_kind::empty;
+        std::string hotend_tooltip;
+        if (op_state == SV::hotend_op_state::error) {
+            hotend_tooltip = _u8L("PrintTool communication error. Please check the PrintTool cable and try again.");
+        } else if (op_state == SV::hotend_op_state::lost_in_holder) {
+            hotend_tooltip = _u8L("PrintTool detached. Cannot load.");
+        } else if (has_tool && tool_defs.tool_type == DevNozzleToolType::Cut) {
+            hotend_tooltip = _u8L("Settings for CutTool and DrawTool are not supported yet.");
+        }
+        hotend[SK::hotend::tooltip] = hotend_tooltip;
         hotend[SK::hotend::nozzle_label] = is_nozzle_tool ? wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr()) : tool_label_for_web(tool_defs);
         hotend[SK::hotend::nozzle_subtext] = is_nozzle_tool ? nozzle_flow_short_name(rack_nozzle_opt->GetNozzleFlowType()) : "";
+        if (has_tool || is_on_extruder) {
+            filament_nozzle_label = is_nozzle_tool ? nozzle_diameter_short_str(rack_nozzle_opt->GetNozzleDiameter())
+                                                   : tool_label_for_web(tool_defs);
+            filament_nozzle_subtext = is_nozzle_tool ? nozzle_flow_short_name(rack_nozzle_opt->GetNozzleFlowType()) : "";
+        }
         hotend_detail_dialog[SK::hotend_detail_dialog::filament_name] = ResolveFilamentCardText(rack_nozzle_opt->GetFilamentId(), std::string());
         hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = normalize_hex_for_web(rack_nozzle_opt->GetFilamentColor());
         hotend_detail_dialog[SK::hotend_detail_dialog::show_filament] = is_nozzle_tool;
@@ -378,18 +473,9 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
     const bool is_on_extruder = machine_obj && IsNozzleOnExtruder(machine_obj, addr_id);
     const auto hotend_tool_kind = hotend.value(SK::hotend::tool_kind, std::string(SV::tool_kind::empty));
-    const auto hotend_op_state = hotend.value(SK::hotend::op_state, std::string(SV::hotend_op_state::idle));
-    const bool hotend_busy = hotend_op_state == SV::hotend_op_state::reading ||
-        hotend_op_state == SV::hotend_op_state::taking ||
-        hotend_op_state == SV::hotend_op_state::placing ||
-        hotend_op_state == SV::hotend_op_state::removing;
-    const bool hotend_can_operate = has_hotend_slot && !hotend_busy && hotend_op_state != SV::hotend_op_state::error;
-    const nlohmann::json hotend_menu_actions = {
-        {SK::hotend_menu_actions::can_read, hotend_can_operate && hotend_tool_kind == SV::tool_kind::nozzle},
-        {SK::hotend_menu_actions::can_detail, has_hotend_slot},
-        {SK::hotend_menu_actions::can_set_temperature, hotend_can_operate && hotend_tool_kind == SV::tool_kind::nozzle && hotend_op_state != SV::hotend_op_state::error},
-        {SK::hotend_menu_actions::can_take_place, hotend_can_operate}
-    };
+    const auto hotend_op_state = hotend.value(SK::hotend::op_state, std::string(SV::hotend_op_state::none));
+    const bool hotend_ready_for_filament = is_hotend_ready_for_filament(hotend_op_state);
+    const nlohmann::json hotend_menu_actions = build_hotend_menu_actions(hotend_op_state, hotend_tool_kind, has_hotend_slot);
 
     bool can_edit_filament = card_state != SV::card_state::empty;
     if (filament_changing && slot_id.has_value() && fila_sys->IsFilamentChangingSlot(slot_id->first, slot_id->second)) {
@@ -411,8 +497,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
     bool can_load_filament = !filament_changing && line_state == SV::line_state::no_filament &&
                              card_state != SV::card_state::empty && card_state != SV::card_state::awaiting_tpu_read &&
-                             (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
-    bool can_unload_filament = !filament_changing && line_state == SV::line_state::loaded && (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
+                             hotend_ready_for_filament;
+    bool can_unload_filament = !filament_changing && line_state == SV::line_state::loaded && hotend_ready_for_filament;
     bool can_ams_operation = card_state != SV::card_state::empty && hotend_tool_kind == SV::tool_kind::nozzle && machine_obj->GetFilaSystem()->GetAmsList().size() > 0;
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, can_edit_filament},
@@ -470,7 +556,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_nozzle::has_filament, !nozzle_filament_color.empty()},
         {SK::filament_nozzle::filament_color, nozzle_filament_color},
         {SK::filament_nozzle::on_extruder, is_on_extruder},
-        {SK::filament_nozzle::tool_kind, nozzle_tool_kind}
+        {SK::filament_nozzle::tool_kind, nozzle_tool_kind},
+        {SK::filament_nozzle::tooltip, nozzle_state_tooltip(nozzle_state)},
+        {SK::filament_nozzle::nozzle_label, filament_nozzle_label},
+        {SK::filament_nozzle::nozzle_subtext, filament_nozzle_subtext}
     };
 
     return {
@@ -587,6 +676,12 @@ std::optional<nlohmann::json> DevicePageHotendActionHandler::TryHandle(DevicePag
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Hotend cannot set temperature"), vm.BuildState());
         }
         nozzle_rack->SetNozzleTargetTemp(rack_pos_id, target_temp);
+    } else if (action == "nozzle_hint") {
+        const int addr_id = payload.value("addr_id", -1);
+        if (addr_id < 0) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Invalid hotend addr_id"), vm.BuildState());
+        }
+        wxGetApp().CallAfter([addr_id]() { show_nozzle_hint_dialog(addr_id); });
     } else {
         return std::nullopt;
     }

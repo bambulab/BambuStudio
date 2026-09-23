@@ -102,13 +102,12 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
 
         const auto& src_nozzle = slot.value(SK::filament_slot::filament_nozzle, nlohmann::json::object());
         const std::string src_nozzle_state = src_nozzle.value(SK::filament_nozzle::state, std::string());
-        const auto nozzle_reason = BatchModeCommon::nozzle_unavailable_reason(src_nozzle);
-        const bool nozzle_unavailable = nozzle_reason.has_value();
+        const auto nozzle_status = BatchModeCommon::classify_nozzle(src_nozzle);
 
         bool can_select = false;
         std::string reason;
-        if (nozzle_unavailable) {
-            reason = *nozzle_reason;
+        if (nozzle_status.is_blocked()) {
+            reason = *nozzle_status.block_reason;
         } else if (is_loaded) {
             reason = _u8L("External filament already loaded into hotend");
         } else {
@@ -133,10 +132,10 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
             {SK::filament_line::filament_color, is_loaded ? color : std::string()}
         };
 
-        const std::string nozzle_state = nozzle_unavailable
+        const std::string nozzle_state = nozzle_status.has_visible_alert
             ? src_nozzle_state
             : (is_loaded ? SV::nozzle_state::active : SV::nozzle_state::normal);
-        const bool nozzle_has_filament = is_loaded && !nozzle_unavailable;
+        const bool nozzle_has_filament = is_loaded && !nozzle_status.is_blocked();
         const nlohmann::json nozzle_section = {
             {SK::filament_nozzle::state,          nozzle_state},
             {SK::filament_nozzle::has_filament,   nozzle_has_filament},
@@ -144,7 +143,8 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
             {SK::filament_nozzle::on_extruder,    src_nozzle.value(SK::filament_nozzle::on_extruder, false)},
             // Keep the tool kind so a non-nozzle tool still renders its own
             // silhouette instead of a plain nozzle while being unselectable.
-            {SK::filament_nozzle::tool_kind,      src_nozzle.value(SK::filament_nozzle::tool_kind, std::string(SV::tool_kind::empty))}
+            {SK::filament_nozzle::tool_kind,      src_nozzle.value(SK::filament_nozzle::tool_kind, std::string(SV::tool_kind::empty))},
+            {SK::filament_nozzle::tooltip,        nozzle_status.has_visible_alert ? src_nozzle.value(SK::filament_nozzle::tooltip, std::string()) : std::string()}
         };
 
         slots.push_back({

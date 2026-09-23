@@ -57,15 +57,26 @@ bool is_filament_capable_tool(const std::string& tool_kind)
 
 } // namespace
 
-std::optional<std::string> nozzle_unavailable_reason(const nlohmann::json& nozzle_section)
+BatchNozzleStatus classify_nozzle(const nlohmann::json& nozzle_section)
 {
     const std::string nozzle_state = nozzle_section.value(SK::filament_nozzle::state, std::string());
     const std::string tool_kind    = nozzle_section.value(SK::filament_nozzle::tool_kind, std::string());
-    if (!is_filament_capable_tool(tool_kind)) return _u8L("The current tool is not a nozzle");
-    if (is_nozzle_none(nozzle_state))  return _u8L("There are no nozzle installed");
-    if (is_nozzle_error(nozzle_state)) return _u8L("Nozzle is in error state");
-    if (is_nozzle_lost(nozzle_state))  return _u8L("Nozzle has been detached");
-    return std::nullopt;
+
+    BatchNozzleStatus status;
+    if (!is_filament_capable_tool(tool_kind)) {
+        status.block_reason = _u8L("The current tool is not a nozzle");
+    } else if (is_nozzle_none(nozzle_state)) {
+        status.block_reason = _u8L("There are no nozzle installed");
+    } else if (is_nozzle_error(nozzle_state)) {
+        status.block_reason = _u8L("Nozzle is in error state");
+    } else if (is_nozzle_lost(nozzle_state)) {
+        status.block_reason = _u8L("Nozzle has been detached");
+    } else if (nozzle_state == SV::nozzle_state::unknown) {
+        status.block_reason = _u8L("Nozzle type is unknown");
+    }
+
+    status.has_visible_alert = status.is_blocked();
+    return status;
 }
 
 std::string normalize_hex_for_web(const std::string& raw)

@@ -13,6 +13,16 @@
 namespace Slic3r
 {
 
+bool DevNozzle::IsExist() const
+{
+    return m_is_exist && m_nozzle_id > -1;
+}
+
+bool DevNozzle::IsToolLostInHolder() const
+{
+    return m_hc_state && !m_is_exist && m_nozzle_id > -1;
+}
+
 wxString DevNozzle::GetNozzleFlowTypeStr() const
 {
     return GetNozzleFlowTypeStr(m_nozzle_flow);

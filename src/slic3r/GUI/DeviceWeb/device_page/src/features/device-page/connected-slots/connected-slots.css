@@ -49,11 +49,20 @@
   background: var(--ams-soft-border, #ebebeb);
 }
 
+/* Two equal columns mirror `.cs-boards`, so each schematic sits centred
+   over its corresponding board column instead of hugging the edge. Grid
+   over flex here so children keep their intrinsic width. */
 .cs-schematic-bar {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
   align-items: center;
-  justify-content: space-between;
   width: 484px;
+}
+
+.cs-schematic-bar > * {
+  justify-self: center;
 }
 
 .cs-hotend-slot-schematic {

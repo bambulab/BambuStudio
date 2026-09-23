@@ -784,7 +784,7 @@ body.refill-slot-dragging * {
   width: min(420px, calc(100vw - 32px));
   border: 1px solid var(--ams-border);
   border-radius: 8px;
-  background: var(--ams-card-text-bg);
+  background: var(--ams-popover-bg);
   color: var(--ams-text-strong);
   box-shadow: var(--ams-popover-shadow);
   overflow: hidden;

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { Nozzle } from '../../ams-filament-hotend/components/Nozzle';
-import { visibleFilamentColor } from '../../ams-filament-hotend/visibleFilamentColor';
+import { visibleFeedLineColor } from '../../ams-filament-hotend/visibleFilamentColor';
 import type { ConnectedSlotsLineInfo, ConnectedSlotsSlotViewModel } from '../types';
 
 const EMPTY_LINE_COLOR = '#cecece';
@@ -38,9 +38,11 @@ type Stroke = { key: string; d: string; color: string; dashed: boolean; dash: st
 
 const EMPTY_GEOMETRY: RouteGeometry = { left: null, right: null, hotend: null };
 
+// Fully transparent tray colours (e.g. an unset Ext spool reports `00000000`)
+// would otherwise paint an invisible route.
 function strokeOf(line: ConnectedSlotsLineInfo, fallback: string) {
   if (!line.has_filament) return EMPTY_LINE_COLOR;
-  return visibleFilamentColor(line.filament_color || fallback);
+  return visibleFeedLineColor(line.filament_color || fallback);
 }
 
 // Rounded to half a pixel so sub-pixel layout noise does not re-render.

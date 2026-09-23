@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import type {
   AmsFilamentHotendSlotActionPayload,
@@ -6,6 +6,7 @@ import type {
   FilamentNozzleInfo,
   HotendOpState,
   HotendSlotViewModel,
+  HotendTempTrend,
   HotendToolKind,
 } from '../types';
 import { STANDBY_COLOR, visibleFilamentColor } from '../visibleFilamentColor';
@@ -18,6 +19,7 @@ import hotendNozzleDisableUrl from '../assets/hotend_nozzle_disable.png';
 import hotendForbiddenUrl     from '../assets/hotend_forbidden.svg';
 import hotendPlacingArrowUrl  from '../assets/hotend_placing_arrow.svg';
 import hotendTakenUrl         from '../assets/hotend_taken.svg';
+import hotend2dBadgeUrl       from '../assets/hotend_2d_badge.svg';
 import hotendReadingArcUrl    from '../assets/hotend_reading_arc.png';
 
 // `#D9D9D9` is the C++ sentinel for "colour unknown"; it renders as standby grey.
@@ -53,15 +55,19 @@ export function HotendCard({
 }) {
   const { t } = useTranslation();
   const hot = slot.hotend ?? {};
-  const op: HotendOpState = hot.op_state ?? 'Idle';
+  const op: HotendOpState = hot.op_state ?? 'None';
+  const tempTrend: HotendTempTrend = hot.temp_trend ?? 'Steady';
   const isTaken = !!slot.taken;
   // Taken (on-extruder) uses its own muted UX; do not paint the green selected chrome.
   const isSelected = !isTaken && !!hot.selected;
-  const isEmpty = (hot.tool_kind ?? 'empty') === 'empty';
-  const isStatusReplaced = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing' || op === 'Error' || op === 'Unknown';
+  // `None` is authoritative for "no tool"; tool_kind may still say "nozzle".
+  const isEmpty = op === 'None' || (hot.tool_kind ?? 'empty') === 'empty';
+  // Fault states (Error / Lost / Unknown) keep the temperature readout; only the icon changes.
+  const isStatusReplaced = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing';
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingTemp, setEditingTemp] = useState(false);
   const [draftTemp, setDraftTemp] = useState('');
+  const cardRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLSpanElement>(null);
   const tempInputRef = useRef<HTMLInputElement>(null);
   const skipBlurCommitRef = useRef(false);
@@ -73,13 +79,17 @@ export function HotendCard({
   const canDetail = menuActions?.can_detail ?? slot.enabled;
   const canSetTemperature = menuActions?.can_set_temperature ?? (canOperate && isNozzleTool && op !== 'Error');
   const canTakePlace = menuActions?.can_take_place ?? canOperate;
+  const disabledReason = menuActions?.disabled_reason || undefined;
   const hotendMoveAction = isTaken ? 'place_hotend' : 'take_hotend';
   const hotendMoveLabel = isTaken ? t('Place') : t('Take');
 
   useEffect(() => {
     if (!menuOpen) return;
+    // The whole card is now a menu trigger, so outside-close must exclude the
+    // card itself (not just the three-dot span) or the card's own left-click
+    // would fight this handler.
     const onPointerDown = (event: PointerEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+      if (!cardRef.current?.contains(event.target as Node)) setMenuOpen(false);
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
@@ -129,16 +139,27 @@ export function HotendCard({
   if (isSelected) cardCls.push('selected');
   if (!slot.enabled) cardCls.push('disabled');
   if (isTaken) cardCls.push('taken');
+  if (hot.tool_kind === 'cutter' || hot.tool_kind === 'pen') cardCls.push('unsupported-tool');
 
   const indexCls = ['hotend-card-index'];
   if (isSelected) indexCls.push('selected');
 
+  const handleCardClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // Interactive descendants (three-dot button, menu items, temperature input)
+    // manage their own click semantics; skip them so left-click on the card
+    // body opens the menu without hijacking those controls.
+    if ((event.target as HTMLElement).closest('input, button, [role="menuitem"]')) return;
+    setMenuOpen((value) => !value);
+  };
+
   return (
     <div
+      ref={cardRef}
       className={cardCls.join(' ')}
       data-testid={`ams-hotend-hotend-card-${slot.display_index}`}
       data-op-state={op}
-      onClick={() => slot.enabled && onAction('select_hotend', slot)}
+      title={hot.tooltip || undefined}
+      onClick={handleCardClick}
     >
       <div className="hotend-card-head">
         <span className={indexCls.join(' ')} data-testid={`ams-hotend-hotend-index-${slot.display_index}`}>
@@ -160,10 +181,10 @@ export function HotendCard({
           </button>
           {menuOpen && (
             <div className="hotend-menu-popover" role="menu">
-              <button type="button" role="menuitem" disabled={!canSetTemperature} onClick={() => runMenuAction('adjust_temperature')}>{t('Set Temperature')}</button>
-              <button type="button" role="menuitem" disabled={!canTakePlace} onClick={() => runMenuAction(hotendMoveAction)}>{hotendMoveLabel}</button>
-              <button type="button" role="menuitem" disabled={!canRead} onClick={() => runMenuAction('read_hotend')}>{t('Refresh')}</button>
-              <button type="button" role="menuitem" disabled={!canDetail} onClick={() => runMenuAction('hotend_detail')}>{t('Details')}</button>
+              <HotendMenuItem enabled={canSetTemperature} disabledReason={disabledReason} onSelect={() => runMenuAction('adjust_temperature')}>{t('Set Temperature')}</HotendMenuItem>
+              <HotendMenuItem enabled={canTakePlace} disabledReason={disabledReason} onSelect={() => runMenuAction(hotendMoveAction)}>{hotendMoveLabel}</HotendMenuItem>
+              <HotendMenuItem enabled={canRead} disabledReason={disabledReason} onSelect={() => runMenuAction('read_hotend')}>{t('Refresh')}</HotendMenuItem>
+              <HotendMenuItem enabled={canDetail} disabledReason={disabledReason} onSelect={() => runMenuAction('hotend_detail')}>{t('Details')}</HotendMenuItem>
             </div>
           )}
         </span>
@@ -174,9 +195,11 @@ export function HotendCard({
           <StatusReadout op={op} />
         ) : isTaken ? (
           <TakenReadout />
+        ) : isEmpty ? (
+          <EmptyReadout />
         ) : isNozzleTool ? (
           <TempReadout
-            op={op}
+            trend={tempTrend}
             current={hot.current_temp}
             target={hot.target_temp}
             editable={canSetTemperature}
@@ -190,8 +213,6 @@ export function HotendCard({
             onSkipBlurCommit={(skip) => { skipBlurCommitRef.current = skip; }}
             shouldSkipBlurCommit={() => skipBlurCommitRef.current}
           />
-        ) : isEmpty ? (
-          <EmptyReadout />
         ) : (
           <div className="hotend-readout hotend-readout-empty" aria-hidden="true" />
         )}
@@ -217,7 +238,7 @@ export function HotendCard({
 }
 
 function TempReadout({
-  op,
+  trend,
   current,
   target,
   editable,
@@ -231,7 +252,7 @@ function TempReadout({
   onSkipBlurCommit,
   shouldSkipBlurCommit,
 }: {
-  op: HotendOpState;
+  trend: HotendTempTrend;
   current?: number | null;
   target?: number | null;
   editable: boolean;
@@ -248,14 +269,14 @@ function TempReadout({
   const cur = typeof current === 'number' ? current : null;
   const tgt = typeof target === 'number' ? target : 0;
   const cls = ['hotend-readout', 'temp'];
-  if (op === 'Heating') cls.push('heating');
-  if (op === 'Cooling') cls.push('cooling');
+  if (trend === 'Heating') cls.push('heating');
+  if (trend === 'Cooling') cls.push('cooling');
   return (
     <div className={cls.join(' ')}>
       <div className="hotend-readout-line">
         <span className="hotend-temp-current">{cur === null ? '--' : cur}</span>
-        {op === 'Heating' && <ArrowIcon dir="up" />}
-        {op === 'Cooling' && <ArrowIcon dir="down" />}
+        {trend === 'Heating' && <ArrowIcon dir="up" />}
+        {trend === 'Cooling' && <ArrowIcon dir="down" />}
       </div>
       <div className="hotend-readout-line">
         {editing ? (
@@ -334,13 +355,43 @@ function StatusReadout({ op }: { op: HotendOpState }) {
     op === 'Reading'  ? t('Reading') :
     op === 'Taking'   ? t('Taking') :
     op === 'Placing'  ? t('Placing') :
-    op === 'Removing' ? t('Removing') :
-    op === 'Error'    ? t('Error') :
-    op === 'Unknown'  ? t('Unknown') : '';
+    op === 'Removing' ? t('Removing') : '';
   return (
     <div className={`hotend-readout status status-${op.toLowerCase()}`}>
       <span className="hotend-readout-text">{text}</span>
     </div>
+  );
+}
+
+// Uses aria-disabled instead of `disabled`: Chromium drops mouse events on
+// disabled buttons, which would suppress the reason tooltip.
+function HotendMenuItem({
+  enabled,
+  disabledReason,
+  onSelect,
+  children,
+}: {
+  enabled: boolean;
+  disabledReason?: string;
+  onSelect: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      aria-disabled={!enabled}
+      title={!enabled ? disabledReason : undefined}
+      onClick={(event) => {
+        if (!enabled) {
+          event.stopPropagation();
+          return;
+        }
+        onSelect();
+      }}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -388,7 +439,7 @@ function ToolIcon({
   if (op === 'Reading') {
     return (
       <div className="hotend-tool-icon-wrap">
-        <img className="hotend-icon-loading" src={hotendReadingArcUrl} width={28} height={28} alt="reading" />
+        <img className="hotend-icon-loading" src={hotendReadingArcUrl} width={24} height={24} alt="reading" />
       </div>
     );
   }
@@ -421,7 +472,7 @@ function ToolIcon({
       </div>
     );
   }
-  if (kind === 'empty') {
+  if (op === 'None' || kind === 'empty') {
     return (
       <div className="hotend-tool-icon-wrap">
         <img className="hotend-icon-forbidden" src={hotendForbiddenUrl} width={20} height={20} alt="empty" />
@@ -429,9 +480,11 @@ function ToolIcon({
     );
   }
   if (kind === 'cutter' || kind === 'pen') {
+    // 2D tools: badge marks "not configurable"; reason rides on the card tooltip.
     return (
-      <div className="hotend-tool-icon-wrap">
+      <div className="hotend-tool-icon-wrap hotend-icon-nozzle-wrap">
         <img className="hotend-icon-nozzle" src={hotendNozzleDisableUrl} width={36} height={42} alt={kind} />
+        <img className="hotend-icon-2d-badge" src={hotend2dBadgeUrl} width={24} height={24} alt="" />
       </div>
     );
   }
@@ -450,12 +503,21 @@ function ToolIcon({
 function NozzleIcon({ op, filamentColor }: { op: HotendOpState; filamentColor: string }) {
   // The asset bakes in a green filament bar; swap it for the real colour.
   const nozzleSrc = useNozzleImage(filamentColor);
+  // Taking overlays the sleeve on the nozzle; Placing tucks it behind (Figma 1882:112011 / 1882:112034).
+  const sleeve = (op === 'Taking' || op === 'Placing') ? (
+    <img
+      className={`hotend-placing-arrow hotend-placing-arrow-${op.toLowerCase()}`}
+      src={hotendPlacingArrowUrl}
+      width={9}
+      height={32}
+      alt={op.toLowerCase()}
+    />
+  ) : null;
   return (
     <div className="hotend-tool-icon-wrap hotend-icon-nozzle-wrap">
+      {op === 'Placing' && sleeve}
       <img className="hotend-icon-nozzle" src={nozzleSrc} width={36} height={42} alt="nozzle" />
-      {(op === 'Placing' || op === 'Taking') && (
-        <img className="hotend-placing-arrow" src={hotendPlacingArrowUrl} width={9} height={32} alt="placing" />
-      )}
+      {op === 'Taking' && sleeve}
     </div>
   );
 }
@@ -473,10 +535,12 @@ function ToolLabel({
   op: HotendOpState;
   taken?: boolean;
 }) {
-  const isMuted = taken || kind === 'empty' || kind === 'unknown' || op === 'Reading' || op === 'Unknown';
-  // Unknown has no reliable spec. Taken slots still show diameter / flow when present.
-  const primary = op === 'Unknown' ? '--' : (label ?? (isMuted ? '--' : ''));
-  const secondary = op === 'Unknown' ? '--' : (subtext ?? (isMuted ? '--' : ''));
+  const isMuted = taken || kind === 'empty' || kind === 'unknown' || op === 'Reading' || op === 'Unknown' || op === 'None';
+  // Unknown and None have no spec to show. Taken slots still show diameter /
+  // flow when present.
+  const blanked = op === 'Unknown' || op === 'None';
+  const primary = blanked ? '--' : (label ?? (isMuted ? '--' : ''));
+  const secondary = blanked ? '--' : (subtext ?? (isMuted ? '--' : ''));
   return (
     <div className={`hotend-tool-label${isMuted ? ' muted' : ''}`}>
       <div className="hotend-tool-name">{primary || '\u00A0'}</div>
