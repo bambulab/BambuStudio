@@ -15,6 +15,22 @@ DevNozzleRack::DevNozzleRack(DevNozzleSystem* nozzle_system)
 
 }
 
+bool DevNozzleRack::IsPicking() const
+{
+    return m_job == 1 ||
+           (m_job == 3 && (m_status == RACK_STATUS_PICK_HOTEND || m_status == RACK_STATUS_LOCK_HOTEND)) ||
+           (m_job == 0 && m_status == RACK_STATUS_PICK_HOTEND);
+}
+
+bool DevNozzleRack::IsPlacing() const
+{
+    return m_job == 2 ||
+           (m_job == 3 && (m_status == RACK_STATUS_WAIT_HOTEND_HEATING ||
+                           m_status == RACK_STATUS_UNLOCK_HOTEND ||
+                           m_status == RACK_STATUS_PLACE_HOTEND)) ||
+           (m_job == 0 && m_status == RACK_STATUS_PLACE_HOTEND);
+}
+
 
 void DevNozzleRack::Reset()
 {

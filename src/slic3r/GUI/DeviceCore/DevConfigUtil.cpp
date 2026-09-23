@@ -1,4 +1,5 @@
 #include "DevConfigUtil.h"
+#include "DevExtruderSystem.h"
 
 #include <mutex>
 #include <unordered_map>
@@ -276,6 +277,37 @@ std::string DevPrinterConfigUtil::get_printer_ext_img(const std::string& type_st
     const auto& vec = get_value_from_config<std::vector<std::string>>(type_str, "printer_ext_image");
     return (vec.size() > pos) ? vec[pos] : std::string();
 };
+
+std::string DevPrinterConfigUtil::get_rack_extruder_img(const std::string& type_str, DevRackExtruderVisualState state)
+{
+    static std::mutex s_mutex;
+    static std::string s_cached_resource_path;
+    static std::map<std::pair<std::string, int>, std::string> s_cache;
+
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_cached_resource_path != m_resource_file_path) {
+        s_cached_resource_path = m_resource_file_path;
+        s_cache.clear();
+    }
+
+    const auto cache_key = std::make_pair(type_str, static_cast<int>(state));
+    const auto cached = s_cache.find(cache_key);
+    if (cached != s_cache.end()) {
+        return cached->second;
+    }
+
+    const auto images = get_value_from_config<json>(type_str, "rack_extruder_images");
+    const std::string key(rack_extruder_visual_state_key(state));
+    std::string image = "dev_rack_toolhead.png";
+    if (images.is_object()) {
+        const auto item = images.find(key);
+        if (item != images.end() && item->is_string()) {
+            image = item->get<std::string>();
+        }
+    }
+    s_cache.emplace(cache_key, image);
+    return image;
+}
 
 std::string DevPrinterConfigUtil::get_filament_load_img(const std::string &type_str, int ext_id, bool has_nozzle_rack)
 {

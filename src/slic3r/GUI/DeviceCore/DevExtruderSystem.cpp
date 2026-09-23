@@ -1,5 +1,6 @@
 #include <nlohmann/json.hpp>
 #include "DevExtruderSystem.h"
+#include "DevNozzleRack.h"
 #include "DevNozzleSystem.h"
 #include "DevConfigUtil.h"
 
@@ -15,6 +16,73 @@ using namespace nlohmann;
 
 namespace Slic3r
 {
+    DevExtrusionDirection decode_extrusion_direction(unsigned int info)
+    {
+        switch ((info >> 11) & 0x3u) {
+        case 0: return DevExtrusionDirection::Idle;
+        case 1: return DevExtrusionDirection::Extruding;
+        case 2: return DevExtrusionDirection::Retracting;
+        default: return DevExtrusionDirection::Unknown;
+        }
+    }
+
+    DevRackExtruderVisualState resolve_rack_extruder_visual_state(MachineObject* obj, const DevExtder& extruder)
+    {
+        if (!obj || !obj->GetNozzleSystem()) {
+            return DevRackExtruderVisualState::Empty;
+        }
+
+        auto* nozzle_system = obj->GetNozzleSystem();
+        const auto rack = nozzle_system->GetNozzleRack();
+
+        if (rack && rack->IsPicking() && obj->GetExtderSystem() && obj->GetExtderSystem()->GetTotalExtderCount() == 1) {
+            const auto src_id = nozzle_system->GetReplaceNozzleSrc();
+            if (src_id && *src_id >= 0x10) {
+                const auto source = nozzle_system->GetNozzleOptByAddrId(*src_id - 0x10);
+                if (source && source->IsOnRack() && source->GetNozzlePosId() == *src_id) {
+                    return DevRackExtruderVisualState::Picking;
+                }
+            }
+        }
+
+        if (rack && rack->IsPlacing()) {
+            const auto tar_id = nozzle_system->GetReplaceNozzleTar();
+            if (tar_id && *tar_id >= 0x10) {
+                const auto target = nozzle_system->GetNozzleOptByAddrId(*tar_id - 0x10);
+                if (target && !target->IsOnRack() &&
+                    target->GetNozzlePosId() == *tar_id &&
+                    target->GetNozzleId() == extruder.GetExtId()) {
+                    return DevRackExtruderVisualState::Placing;
+                }
+            }
+        }
+
+        const bool has_nozzle = extruder.HasNozzleInstalled() && !nozzle_system->GetExtNozzle(extruder.GetExtId()).IsEmpty();
+        if (!has_nozzle) {
+            return DevRackExtruderVisualState::Empty;
+        }
+
+        const auto direction = extruder.GetExtrusionDirection();
+        if (direction == DevExtrusionDirection::Extruding) return DevRackExtruderVisualState::ClampedExtruding;
+        if (direction == DevExtrusionDirection::Retracting) return DevRackExtruderVisualState::ClampedRetracting;
+        if (!extruder.HasFilamentInExt()) return DevRackExtruderVisualState::ClampedNoFilament;
+        return DevRackExtruderVisualState::Clamped;
+    }
+
+    std::string_view rack_extruder_visual_state_key(DevRackExtruderVisualState state)
+    {
+        switch (state) {
+        case DevRackExtruderVisualState::Empty:              return "empty";
+        case DevRackExtruderVisualState::Clamped:            return "clamped";
+        case DevRackExtruderVisualState::ClampedRetracting:  return "clamped_retracting";
+        case DevRackExtruderVisualState::ClampedExtruding:   return "clamped_extruding";
+        case DevRackExtruderVisualState::Picking:            return "picking";
+        case DevRackExtruderVisualState::Placing:            return "placing";
+        case DevRackExtruderVisualState::ClampedNoFilament:  return "clamped_no_filament";
+        }
+        return "clamped";
+    }
+
     int DevExtder::to_physical_extruder_id(int total_ext_count, int logical_extruder_id)
     {
         if (total_ext_count == 2) {
@@ -381,9 +449,11 @@ namespace Slic3r
                 }
             }
 
-            extder_obj.m_ext_has_filament = (DevUtil::get_flag_bits(njon["info"].get<int>(), 1) != 0);
-            extder_obj.m_buffer_has_filament = (DevUtil::get_flag_bits(njon["info"].get<int>(), 2) != 0);
-            extder_obj.m_has_nozzle = (DevUtil::get_flag_bits(njon["info"].get<int>(), 3) != 0);
+            const int extder_info = njon["info"].get<int>();
+            extder_obj.m_ext_has_filament = (DevUtil::get_flag_bits(extder_info, 1) != 0);
+            extder_obj.m_buffer_has_filament = (DevUtil::get_flag_bits(extder_info, 2) != 0);
+            extder_obj.m_has_nozzle = (DevUtil::get_flag_bits(extder_info, 3) != 0);
+            extder_obj.m_extrusion_direction = decode_extrusion_direction(static_cast<unsigned int>(extder_info));
             extder_obj.m_cur_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 0, 16);
             extder_obj.m_target_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 16, 16);
 

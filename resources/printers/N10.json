@@ -93,6 +93,15 @@
 		"printer_connect_help_image": "input_access_code_x1",
 		"printer_use_ams_image": "ams_icon",
 		"printer_ext_image": ["ext_image_n7"],
+		"rack_extruder_images": {
+			"empty": "dev_rack_toolhead_empty.png",
+			"clamped": "dev_rack_toolhead_clamped.png",
+			"clamped_retracting": "dev_rack_toolhead_clamped.png",
+			"clamped_extruding": "dev_rack_toolhead_clamped.png",
+			"picking": "dev_rack_toolhead_picking.png",
+			"placing": "dev_rack_toolhead_placing.png",
+			"clamped_no_filament": "dev_rack_toolhead_clamped_no_filament.png"
+		},
 		"hotend_rack_image": "nozzle_rack_a",
 		"hotend_ams_image": "monitor_upgrade_rack_a_ams_png",
 		"use_ams_type": "generic",

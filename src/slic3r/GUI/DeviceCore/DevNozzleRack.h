@@ -97,6 +97,8 @@ public:
     bool IsHotendDockingCalibrated(int addr_id) const;
     bool HasHotendSlotDockingCalibrated() const;
     int GetJob() const { return m_job; }
+    bool IsPicking() const;
+    bool IsPlacing() const;
     const std::vector<int>& GetSteps() const { return m_steps; }
 
     DevNozzle GetNozzle(int idx) const;
