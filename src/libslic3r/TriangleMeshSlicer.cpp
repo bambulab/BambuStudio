@@ -519,14 +519,17 @@ static inline std::vector<IntersectionLines> slice_make_lines(
 {
     std::vector<IntersectionLines>  lines(zs.size(), IntersectionLines());
     std::array<std::mutex, 64>      lines_mutex;
+    auto slice_range = [&](int face_begin, int face_end) {
+        for (int face_idx = face_begin; face_idx < face_end; ++ face_idx) {
+            if ((face_idx & 0x0ffff) == 0)
+                throw_on_cancel_fn();
+            slice_facet_at_zs(vertices, transform_vertex_fn, indices[face_idx], face_edge_ids[face_idx], zs, lines, lines_mutex);
+        }
+    };
     tbb::parallel_for(
         tbb::blocked_range<int>(0, int(indices.size())),
-        [&vertices, &transform_vertex_fn, &indices, &face_edge_ids, &zs, &lines, &lines_mutex, throw_on_cancel_fn](const tbb::blocked_range<int> &range) {
-            for (int face_idx = range.begin(); face_idx < range.end(); ++ face_idx) {
-                if ((face_idx & 0x0ffff) == 0)
-                    throw_on_cancel_fn();
-                slice_facet_at_zs(vertices, transform_vertex_fn, indices[face_idx], face_edge_ids[face_idx], zs, lines, lines_mutex);
-            }
+        [&](const tbb::blocked_range<int> &range) {
+            slice_range(range.begin(), range.end());
         }
     );
     return lines;
@@ -1537,17 +1540,14 @@ static std::vector<Polygons> make_loops(
 {
     std::vector<Polygons> layers;
     layers.resize(lines.size());
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, lines.size()),
-        [&lines, &layers, &params, throw_on_cancel](const tbb::blocked_range<size_t> &range) {
-            for (size_t line_idx = range.begin(); line_idx < range.end(); ++ line_idx) {
-                if ((line_idx & 0x0ffff) == 0)
-                    throw_on_cancel();
+    auto slice_one = [&](size_t line_idx) {
+        if ((line_idx & 0x0ffff) == 0)
+            throw_on_cancel();
 
-                Polygons &polygons = layers[line_idx];
-                polygons = make_loops(lines[line_idx]);
+        Polygons &polygons = layers[line_idx];
+        polygons = make_loops(lines[line_idx]);
 
-                auto this_mode = line_idx < params.slicing_mode_normal_below_layer ? params.mode_below : params.mode;
+        auto this_mode = line_idx < params.slicing_mode_normal_below_layer ? params.mode_below : params.mode;
                 if (! polygons.empty()) {
                     if (this_mode == MeshSlicingParams::SlicingMode::Positive) {
                         // Reorient all loops to be CCW.
@@ -1573,7 +1573,12 @@ static std::vector<Polygons> make_loops(
                         polygons.emplace_back(std::move(p));
                     }
                 }
-            }
+    };
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, lines.size()),
+        [&](const tbb::blocked_range<size_t> &range) {
+            for (size_t line_idx = range.begin(); line_idx < range.end(); ++ line_idx)
+                slice_one(line_idx);
         }
     );
 
@@ -2132,31 +2137,32 @@ std::vector<ExPolygons> slice_mesh_ex(
     
 //    BOOST_LOG_TRIVIAL(debug) << "slice_mesh make_expolygons in parallel - start";
     std::vector<ExPolygons> layers(layers_p.size(), ExPolygons{});
+    auto finish_layer = [&](size_t layer_id) {
+        throw_on_cancel();
+        ExPolygons &expolygons = layers[layer_id];
+        const auto this_mode = layer_id < params.slicing_mode_normal_below_layer ? params.mode_below : params.mode;
+        Slic3r::make_expolygons(
+            layers_p[layer_id], params.closing_radius, params.extra_offset,
+            this_mode == MeshSlicingParams::SlicingMode::EvenOdd ? ClipperLib::pftEvenOdd :
+            this_mode == MeshSlicingParams::SlicingMode::PositiveLargestContour ? ClipperLib::pftPositive : ClipperLib::pftNonZero,
+            &expolygons);
+        //FIXME simplify
+        if (this_mode == MeshSlicingParams::SlicingMode::PositiveLargestContour)
+            keep_largest_contour_only(expolygons);
+        auto resolution = scaled<float>(params.resolution);
+        if (resolution != 0.) {
+            ExPolygons simplified;
+            simplified.reserve(expolygons.size());
+            for (const ExPolygon &ex : expolygons)
+                append(simplified, ex.simplify(resolution));
+            expolygons = std::move(simplified);
+        }
+    };
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, layers_p.size()),
-        [&layers_p, &params, &layers, throw_on_cancel]
-        (const tbb::blocked_range<size_t>& range) {
-            auto resolution = scaled<float>(params.resolution);
-            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
-                throw_on_cancel();
-                ExPolygons &expolygons = layers[layer_id];
-                const auto this_mode = layer_id < params.slicing_mode_normal_below_layer ? params.mode_below : params.mode;
-                Slic3r::make_expolygons(
-                    layers_p[layer_id], params.closing_radius, params.extra_offset,
-                    this_mode == MeshSlicingParams::SlicingMode::EvenOdd ? ClipperLib::pftEvenOdd : 
-                    this_mode == MeshSlicingParams::SlicingMode::PositiveLargestContour ? ClipperLib::pftPositive : ClipperLib::pftNonZero,
-                    &expolygons);
-                //FIXME simplify
-                if (this_mode == MeshSlicingParams::SlicingMode::PositiveLargestContour)
-                    keep_largest_contour_only(expolygons);
-                if (resolution != 0.) {
-                    ExPolygons simplified;
-                    simplified.reserve(expolygons.size());
-                    for (const ExPolygon &ex : expolygons)
-                        append(simplified, ex.simplify(resolution));
-                    expolygons = std::move(simplified);
-                }
-            }
+        [&](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id)
+                finish_layer(layer_id);
         });
 //    BOOST_LOG_TRIVIAL(debug) << "slice_mesh make_expolygons in parallel - end";
 

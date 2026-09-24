@@ -15,6 +15,18 @@
 
 #include <tbb/parallel_for.h>
 
+#include <atomic>
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <limits>
+#include <mutex>
+#include <numeric>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+
 //! macro used to mark string used at localization, return same string
 #define L(s) Slic3r::I18N::translate(s)
 
@@ -57,13 +69,60 @@ static std::vector<ExPolygons> slice_volume(
 {
     std::vector<ExPolygons> layers;
     if (! zs.empty()) {
-        indexed_triangle_set its = volume.mesh().its;
-        if (its.indices.size() > 0) {
+        const indexed_triangle_set *its = &volume.mesh().its;
+        indexed_triangle_set its_flipped;
+        if (its->indices.size() > 0) {
             MeshSlicingParamsEx params2 { params };
             params2.trafo = params2.trafo * volume.get_matrix();
-            if (params2.trafo.rotation().determinant() < 0.)
-                its_flip_triangles(its);
-            layers = slice_mesh_ex(its, zs, params2, throw_on_cancel_callback);
+            if (params2.trafo.rotation().determinant() < 0.) {
+                // 仅当模型存在镜像时才复制its并进行翻转
+                its_flipped = volume.mesh().its;
+                its_flip_triangles(its_flipped);
+                its = &its_flipped;
+            }
+            // Only slice Z planes that hit this volume. Lightbox-style parts are ~1mm tall
+            // while the object may have many empty layers above them.
+            // zs是整个object的高度范围，可以比当前volume的高度范围更大，只对当前volume高度范围内的zs进行切片可以加速
+            const auto tm = params2.trafo.matrix();
+            float zmin = std::numeric_limits<float>::max();
+            float zmax = std::numeric_limits<float>::lowest();
+            for (const stl_vertex &v : its->vertices) {
+                const float z = float(tm(2, 0) * double(v.x()) + tm(2, 1) * double(v.y()) + tm(2, 2) * double(v.z()) + tm(2, 3));
+                zmin = (std::min)(zmin, z);
+                zmax = (std::max)(zmax, z);
+            }
+            std::vector<float> zs_hit;
+            std::vector<size_t> zs_idx;
+            zs_hit.reserve(zs.size());
+            zs_idx.reserve(zs.size());
+            for (size_t i = 0; i < zs.size(); ++ i)
+                if (zs[i] >= zmin - float(EPSILON) && zs[i] <= zmax + float(EPSILON)) {
+                    zs_hit.push_back(zs[i]);
+                    zs_idx.push_back(i);
+                }
+
+            auto scatter_slices = [&](std::vector<ExPolygons> &&sliced) {
+                layers.assign(zs.size(), ExPolygons());
+                const size_t n = (std::min)(zs_idx.size(), sliced.size());
+                for (size_t i = 0; i < n; ++ i)
+                    layers[zs_idx[i]] = std::move(sliced[i]);
+            };
+            if (zs_hit.empty()) {
+                layers.assign(zs.size(), ExPolygons());
+            } else if (zs_hit.size() == zs.size()) {
+                layers = slice_mesh_ex(*its, zs, params2, throw_on_cancel_callback);
+            } else {
+                // slicing_mode_normal_below_layer is an index into the full zs array (vase mode).
+                // Remap it onto the zs_hit subset so the bottom-shell mode does not shift.
+                MeshSlicingParamsEx params_hit { params2 };
+                if (params_hit.slicing_mode_normal_below_layer > 0) {
+                    size_t below_cnt = 0;
+                    while (below_cnt < zs_idx.size() && zs_idx[below_cnt] < params2.slicing_mode_normal_below_layer)
+                        ++ below_cnt;
+                    params_hit.slicing_mode_normal_below_layer = below_cnt;
+                }
+                scatter_slices(slice_mesh_ex(*its, zs_hit, params_hit, throw_on_cancel_callback));
+            }
             throw_on_cancel_callback();
         }
     }
@@ -127,7 +186,8 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     ModelVolumePtrs                                           model_volumes,
     const std::vector<PrintObjectRegions::LayerRangeRegions> &layer_ranges,
     const std::vector<float>                                 &zs,
-    const std::function<void()>                              &throw_on_cancel_callback)
+    const std::function<void()>                              &throw_on_cancel_callback,
+    const Print                                              *print = nullptr)
 {
     model_volumes_sort_by_id(model_volumes);
 
@@ -161,6 +221,15 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     //const auto   extra_offset  = is_mm_painted ? 0.f : std::max(0.f, float(print_object_config.xy_contour_compensation.value));
     const auto   extra_offset = 0.f;
 
+    struct SliceVolumeJob {
+        const ModelVolume                 *model_volume { nullptr };
+        MeshSlicingParamsEx                params;
+        std::vector<t_layer_height_range>  slicing_ranges;
+        bool                               use_ranges { false };
+    };
+    std::vector<SliceVolumeJob> jobs;
+    jobs.reserve(model_volumes.size());
+
     for (const ModelVolume *model_volume : model_volumes)
         if (model_volume_needs_slicing(*model_volume)) {
             MeshSlicingParamsEx params { params_base };
@@ -179,10 +248,7 @@ static std::vector<VolumeSlices> slice_volumes_inner(
                         for (; params.slicing_mode_normal_below_layer < zs.size() && zs[params.slicing_mode_normal_below_layer] < region_config.bottom_shell_thickness - EPSILON;
                             ++ params.slicing_mode_normal_below_layer);
                     }
-                    out.push_back({
-                        model_volume->id(),
-                        slice_volume(*model_volume, zs, params, throw_on_cancel_callback)
-                    });
+                    jobs.push_back({ model_volume, params, {}, false });
                 }
             } else {
                 assert(! print_config.spiral_mode);
@@ -191,14 +257,35 @@ static std::vector<VolumeSlices> slice_volumes_inner(
                     if (layer_range.has_volume(model_volume->id()))
                         slicing_ranges.emplace_back(layer_range.layer_height_range);
                 if (! slicing_ranges.empty())
-                    out.push_back({
-                        model_volume->id(),
-                        slice_volume(*model_volume, zs, slicing_ranges, params, throw_on_cancel_callback)
-                    });
+                    jobs.push_back({ model_volume, params, slicing_ranges, true });
             }
-            if (! out.empty() && out.back().slices.empty())
-                out.pop_back();
         }
+
+    BOOST_LOG_TRIVIAL(info) << "slice_volumes_inner: " << jobs.size() << " volumes, " << zs.size() << " layers";
+    std::vector<VolumeSlices> results(jobs.size());
+    std::atomic<int> done_count { 0 };
+    std::mutex progress_mutex;
+    auto run_job = [&](size_t i) {
+        const SliceVolumeJob &job = jobs[i];
+        std::vector<ExPolygons> slices = job.use_ranges ?
+            slice_volume(*job.model_volume, zs, job.slicing_ranges, job.params, throw_on_cancel_callback) :
+            slice_volume(*job.model_volume, zs, job.params, throw_on_cancel_callback);
+        results[i] = { job.model_volume->id(), std::move(slices) };
+        const int done = ++ done_count;
+        if (print != nullptr && (done == int(jobs.size()) || (done & 31) == 0)) {
+            const int pct = 5 + 5 * done / std::max(int(jobs.size()), 1);
+            std::lock_guard<std::mutex> lock(progress_mutex);
+            print->set_status(std::min(pct, 10), L("Slicing mesh"));
+        }
+    };
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, jobs.size()),
+        [&](const tbb::blocked_range<size_t> &range) {
+            for (size_t i = range.begin(); i != range.end(); ++ i)
+                run_job(i);
+        });
+    for (VolumeSlices &vs : results)
+        if (! vs.slices.empty())
+            out.emplace_back(std::move(vs));
 
     return out;
 }
@@ -372,13 +459,14 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                 };
 
                 std::vector<RegionSlice> temp_slices;
+                std::vector<BoundingBox> slice_bboxes;
                 for (size_t zs_complex_idx = range.begin(); zs_complex_idx < range.end(); ++ zs_complex_idx) {
                     auto [z_idx, z] = zs_complex[zs_complex_idx];
                     it_layer_range = layer_range_next(print_object_regions.layer_ranges, it_layer_range, z);
                     const PrintObjectRegions::LayerRangeRegions &layer_range = *it_layer_range;
                     {
                         std::vector<VolumeSlices*> &layer_range_regions_to_slices = layer_ranges_regions_to_slices[it_layer_range - print_object_regions.layer_ranges.begin()];
-                        // Per volume_regions slices at thiz Z height.
+                        // Per volume_regions slices at this Z height.
                         temp_slices.clear();
                         temp_slices.reserve(layer_range.volume_regions.size());
                         for (VolumeSlices* &slices : layer_range_regions_to_slices) {
@@ -386,6 +474,75 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                             temp_slices.push_back({ std::move(slices->slices[z_idx]), volume_region.region ? volume_region.region->print_object_region_id() : -1, volume_region.model_volume->id() });
                         }
                     }
+                    bool has_modifier    = false;
+                    int  n_model_parts   = 0;
+                    int  single_region_id = -1;
+                    bool single_region   = true;
+                    for (int idx_region = 0; idx_region < int(layer_range.volume_regions.size()); ++ idx_region) {
+                        if (temp_slices[idx_region].expolygons.empty())
+                            continue;
+                        const ModelVolume *mv = layer_range.volume_regions[idx_region].model_volume;
+                        if (mv->is_modifier())
+                            has_modifier = true;
+                        else if (mv->is_model_part()) {
+                            ++ n_model_parts;
+                            const int region_id = temp_slices[idx_region].region_id;
+                            if (single_region_id == -1)
+                                single_region_id = region_id;
+                            else if (single_region_id != region_id)
+                                single_region = false;
+                        }
+                    }
+
+                    auto bbox_volume = [](const PrintObjectRegions::BoundingBox &b) {
+                        const auto sz = b.sizes();
+                        return double(sz.x()) * double(sz.y()) * double(sz.z());
+                    };
+
+                    // Fast path for lithophane / lightbox style models: thousands of same-material
+                    // islands. All parts share a single PrintRegion here, so clipping them against
+                    // each other is a no-op once they get unioned; only the negative volumes still
+                    // have to be subtracted. Restricted to one region on purpose: across regions a
+                    // later volume carves the earlier ones, and merging by region would replace that
+                    // per-volume order with the order the regions happen to appear in.
+                    if (! has_modifier && clip_multipart_objects && n_model_parts >= 2 && single_region && single_region_id >= 0) {
+                        ExPolygons parts;
+                        int        n_appended = 0;
+                        for (int idx_region = 0; idx_region < int(layer_range.volume_regions.size()); ++ idx_region) {
+                            if (temp_slices[idx_region].expolygons.empty())
+                                continue;
+                            const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_region];
+                            if (region.model_volume->is_negative_volume()) {
+                                // A negative volume only subtracts from the volumes preceding it,
+                                // matching the generic path below.
+                                if (! parts.empty())
+                                    parts = diff_ex(parts, temp_slices[idx_region].expolygons);
+                                continue;
+                            }
+                            if (! region.model_volume->is_model_part())
+                                continue;
+                            if (parts.empty())
+                                parts = std::move(temp_slices[idx_region].expolygons);
+                            else
+                                append(parts, std::move(temp_slices[idx_region].expolygons));
+                            ++ n_appended;
+                        }
+                        if (n_appended > 1)
+                            parts = closing_ex(parts, float(scale_(EPSILON)));
+                        slices_by_region[single_region_id][z_idx] = std::move(parts);
+                        throw_on_cancel_callback();
+                        continue;
+                    }
+
+                    // Bounding box of what each volume actually contributes to this layer. The volume
+                    // bbox spans its whole 3D extent, so it lets through many pairs whose slices at
+                    // this Z cannot possibly intersect. Computed once, before any clipping shrinks the
+                    // slices, so it stays a conservative filter.
+                    slice_bboxes.assign(temp_slices.size(), BoundingBox());
+                    for (size_t i = 0; i < temp_slices.size(); ++ i)
+                        if (! temp_slices[i].expolygons.empty())
+                            slice_bboxes[i] = get_extents(temp_slices[i].expolygons);
+
                     for (int idx_region = 0; idx_region < int(layer_range.volume_regions.size()); ++ idx_region)
                         if (! temp_slices[idx_region].expolygons.empty()) {
                             const PrintObjectRegions::VolumeRegion &region = layer_range.volume_regions[idx_region];
@@ -409,18 +566,28 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                     temp_slices[idx_region + 1].expolygons = std::move(source);
                             } else if ((region.model_volume->is_model_part() && clip_multipart_objects) || region.model_volume->is_negative_volume()) {
                                 // Clip every non-zero region preceding it.
-                                auto bbox_volume = [](const PrintObjectRegions::BoundingBox &b) {
-                                    const auto sz = b.sizes();
-                                    return double(sz.x()) * double(sz.y()) * double(sz.z());
-                                };
                                 const bool current_is_negative = region.model_volume->is_negative_volume();
                                 const double current_vol = current_is_negative ? 0.0 : bbox_volume(*region.bbox);
                                 for (int idx_region2 = 0; idx_region2 < idx_region; ++ idx_region2)
                                     if (! temp_slices[idx_region2].expolygons.empty()) {
+                                        // Nothing left to carve with, and an empty subtrahend would be a no-op anyway.
+                                        if (temp_slices[idx_region].expolygons.empty())
+                                            break;
                                         // Skip trim_overlap for now, because it slow down the performace so much for some special cases
 #if 1
                                         if (const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
                                             !region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox)) {
+                                            // Two model parts sharing a PrintRegion are unioned by the merge step below,
+                                            // so whichever way they carve each other the union is the same. Skipping the
+                                            // clip is exact, and on multi-material lithophane style models it removes the
+                                            // bulk of the Boolean operations.
+                                            // Disabled when a modifier is present: the modifier reads the parent slice
+                                            // before the union, so it must observe the carved parent.
+                                            if (! has_modifier && ! current_is_negative && region2.model_volume->is_model_part() &&
+                                                temp_slices[idx_region].region_id == temp_slices[idx_region2].region_id)
+                                                continue;
+                                            if (! slice_bboxes[idx_region].overlap(slice_bboxes[idx_region2]))
+                                                continue;
                                             const bool current_carves = !order_independent_overlap_carving || current_is_negative ||
                                                 current_vol <= bbox_volume(*region2.bbox);
                                             if (current_carves)
@@ -475,129 +642,239 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
     return slices_by_region;
 }
 
-//BBS: justify whether a volume is connected to another one
-bool doesVolumeIntersect(VolumeSlices& vs1, VolumeSlices& vs2)
-{
-    if (vs1.volume_id == vs2.volume_id) return true;
-    // two volumes in the same object should have same number of layers, otherwise the slicing is incorrect.
-    if (vs1.slices.size() != vs2.slices.size()) return false;
-
-    auto& vs1s = vs1.slices;
-    auto& vs2s = vs2.slices;
-    bool is_intersect = false;
-
-    tbb::parallel_for(tbb::blocked_range<int>(0, vs1s.size()),
-        [&vs1s, &vs2s, &is_intersect](const tbb::blocked_range<int>& range) {
-            for (auto i = range.begin(); i != range.end(); ++i) {
-                if (vs1s[i].empty()) continue;
-
-                if (overlaps(vs1s[i], vs2s[i])) {
-                    is_intersect = true;
-                    break;
-                }
-                if (i + 1 != vs2s.size() && overlaps(vs1s[i], vs2s[i + 1])) {
-                    is_intersect = true;
-                    break;
-                }
-                if (i - 1 >= 0 && overlaps(vs1s[i], vs2s[i - 1])) {
-                    is_intersect = true;
-                    break;
-                }
-            }
-        });
-    return is_intersect;
-}
-
-//BBS: grouping the volumes of an object according to their connection relationship
+//BBS: grouping the volumes of an object according to their connection relationship.
+// Connectivity is evaluated across ALL layers (two volumes are connected when their grown
+// slices overlap on any shared layer, with a +/-1 layer tolerance), which restores the
+// original full-layer semantics after the first-layer-only optimization. A spatial hash grid
+// built on the full (all-layer) bounding boxes keeps the broad phase near-linear so thousands
+// of islands stay fast; the exact per-layer overlap test only runs for spatially near pairs.
+// The grouped slices that feed brim generation are still taken from the first printed layer.
 bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<groupedVolumeSlices>& groups, double resolution, int firstLayerReplacedBy)
 {
-    std::vector<int> groupIndex(objSliceByVolume.size(), -1);
-    double offsetValue = 0.05 / SCALING_FACTOR;
+    const int n = int(objSliceByVolume.size());
+    groups.clear();
+    if (n == 0)
+        return true;
 
-    std::vector<std::vector<int>> osvIndex;
-    for (int i = 0; i != objSliceByVolume.size(); ++i) {
-        for (int j = 0; j != objSliceByVolume[i].slices.size(); ++j) {
-            osvIndex.push_back({ i,j });
+    const double offsetValue = 0.05 / SCALING_FACTOR;
+    const int layer_idx = std::min(firstLayerReplacedBy, std::max(0, int(objSliceByVolume.front().slices.size()) - 1));
+
+    // Grow every layer of every volume (Douglas-Peucker + 0.05mm offset) and record the full XY
+    // bounding box plus the occupied layer range. Growing all layers is what preserves cross-layer
+    // connectivity; historically the bottleneck was the O(n^2) pairwise test below, not this step.
+    std::vector<std::vector<ExPolygons>> grown(n);
+    std::vector<std::vector<BoundingBox>> lbbox(n);
+    std::vector<BoundingBox> bboxes(n);
+    std::vector<int> layer_lo(n, 0);
+    std::vector<int> layer_hi(n, -1);
+    std::vector<char> alive(n, 0);
+    tbb::parallel_for(tbb::blocked_range<int>(0, n), [&](const tbb::blocked_range<int> &range) {
+        for (int i = range.begin(); i != range.end(); ++ i) {
+            const std::vector<ExPolygons> &src = objSliceByVolume[i].slices;
+            const int nl = int(src.size());
+            grown[i].resize(nl);
+            lbbox[i].resize(nl);
+            BoundingBox bb;
+            bool bb_valid = false;
+            int lo = nl, hi = -1;
+            for (int k = 0; k < nl; ++ k) {
+                if (src[k].empty())
+                    continue;
+                ExPolygons simplified = src[k];
+                if (resolution > 0.) {
+                    for (ExPolygon &poly_ex : simplified)
+                        poly_ex.douglas_peucker(resolution);
+                }
+                grown[i][k] = offset_ex(simplified, offsetValue);
+                if (grown[i][k].empty())
+                    continue;
+                const BoundingBox lbb = get_extents(grown[i][k]);
+                lbbox[i][k] = lbb;
+                if (! bb_valid) { bb = lbb; bb_valid = true; }
+                else            { bb.merge(lbb); }
+                if (k < lo) lo = k;
+                if (k > hi) hi = k;
+            }
+            if (bb_valid) {
+                bboxes[i]   = bb;
+                layer_lo[i] = lo;
+                layer_hi[i] = hi;
+                alive[i]    = 1;
+            }
         }
+    });
+
+    std::vector<int> parent(n);
+    std::iota(parent.begin(), parent.end(), 0);
+    auto find_root = [&](int x) {
+        while (parent[x] != x) {
+            parent[x] = parent[parent[x]];
+            x = parent[x];
+        }
+        return x;
+    };
+    auto unite = [&](int a, int b) {
+        a = find_root(a);
+        b = find_root(b);
+        if (a != b)
+            parent[b] = a;
+    };
+
+    // Narrow phase: exact all-layer overlap test with +/-1 layer tolerance (the original per-layer
+    // overlap semantics). Restricted to the first volume's occupied layer range.
+    auto volumes_connected = [&](int i, int j) -> bool {
+        const std::vector<ExPolygons> &a  = grown[i];
+        const std::vector<ExPolygons> &b  = grown[j];
+        const std::vector<BoundingBox> &ba = lbbox[i];
+        const std::vector<BoundingBox> &bb = lbbox[j];
+        const int nlb = int(b.size());
+        if (int(a.size()) != nlb)
+            return false;
+        const int lo = std::max(0, layer_lo[i]);
+        const int hi = std::min(layer_hi[i], nlb - 1);
+        for (int k = lo; k <= hi; ++ k) {
+            if (a[k].empty())
+                continue;
+            const BoundingBox &bak = ba[k];
+            // Per-layer bbox pre-check avoids the expensive Clipper overlaps() for the common case
+            // where two volumes share an XY column but not this particular layer.
+            if (! b[k].empty()     && bak.overlap(bb[k])     && overlaps(a[k], b[k]))
+                return true;
+            if (k + 1 < nlb && ! b[k + 1].empty() && bak.overlap(bb[k + 1]) && overlaps(a[k], b[k + 1]))
+                return true;
+            if (k - 1 >= 0  && ! b[k - 1].empty() && bak.overlap(bb[k - 1]) && overlaps(a[k], b[k - 1]))
+                return true;
+        }
+        return false;
+    };
+
+    // Broad phase: spatial hash on full (all-layer) bboxes so we only narrow-test near pairs.
+    const coord_t cell_size = (std::max)(coord_t(1), coord_t(scale_(5.)));
+    std::unordered_map<uint64_t, std::vector<int>> grid;
+    grid.reserve(size_t(n) * 2);
+    auto cell_key = [](int cx, int cy) {
+        return (uint64_t(uint32_t(cx)) << 32) | uint32_t(cy);
+    };
+    for (int i = 0; i < n; ++ i) {
+        if (! alive[i])
+            continue;
+        const BoundingBox &bb = bboxes[i];
+        const int x0 = int(bb.min.x() / cell_size);
+        const int y0 = int(bb.min.y() / cell_size);
+        const int x1 = int(bb.max.x() / cell_size);
+        const int y1 = int(bb.max.y() / cell_size);
+        for (int cx = x0; cx <= x1; ++ cx)
+            for (int cy = y0; cy <= y1; ++ cy)
+                grid[cell_key(cx, cy)].push_back(i);
     }
 
-    tbb::parallel_for(tbb::blocked_range<int>(0, osvIndex.size()),
-        [&osvIndex, &objSliceByVolume, &offsetValue, &resolution](const tbb::blocked_range<int>& range) {
-            for (auto k = range.begin(); k != range.end(); ++k) {
-                for (ExPolygon& poly_ex : objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]])
-                    poly_ex.douglas_peucker(resolution);
-            }
-        });
+    auto pair_key = [](int a, int b) {
+        if (a > b)
+            std::swap(a, b);
+        return (uint64_t(uint32_t(a)) << 32) | uint32_t(b);
+    };
 
-    tbb::parallel_for(tbb::blocked_range<int>(0, osvIndex.size()),
-        [&osvIndex, &objSliceByVolume,&offsetValue, &resolution](const tbb::blocked_range<int>& range) {
-            for (auto k = range.begin(); k != range.end(); ++k) {
-                objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]] = offset_ex(objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]], offsetValue);
-            }
-        });
-
-    for (int i = 0; i != objSliceByVolume.size(); ++i) {
-        if (groupIndex[i] < 0) {
-            groupIndex[i] = i;
-        }
-        for (int j = i + 1; j != objSliceByVolume.size(); ++j) {
-            if (doesVolumeIntersect(objSliceByVolume[i], objSliceByVolume[j])) {
-                if (groupIndex[j] < 0) groupIndex[j] = groupIndex[i];
-                if (groupIndex[j] != groupIndex[i]) {
-                    int retain = std::min(groupIndex[i], groupIndex[j]);
-                    int cover = std::max(groupIndex[i], groupIndex[j]);
-                    for (int k = 0; k != objSliceByVolume.size(); ++k) {
-                        if (groupIndex[k] == cover) groupIndex[k] = retain;
-                    }
+    // Collect the unique near candidate pairs (cheap bbox / layer-range filters only). The expensive
+    // per-layer overlap test is deferred so it can run in parallel below.
+    std::vector<std::pair<int, int>> candidates;
+    {
+        std::unordered_set<uint64_t> seen;
+        seen.reserve(size_t(n) * 4);
+        for (const auto &cell : grid) {
+            const std::vector<int> &ids = cell.second;
+            for (size_t a = 0; a < ids.size(); ++ a) {
+                for (size_t b = a + 1; b < ids.size(); ++ b) {
+                    const int i = ids[a];
+                    const int j = ids[b];
+                    if (! bboxes[i].overlap(bboxes[j]))
+                        continue;
+                    // Layer ranges must be within +/-1 to have any chance of touching.
+                    if (layer_hi[i] < layer_lo[j] - 1 || layer_hi[j] < layer_lo[i] - 1)
+                        continue;
+                    if (seen.insert(pair_key(i, j)).second)
+                        candidates.emplace_back(i, j);
                 }
             }
-
         }
     }
 
-    std::vector<int> groupVector{};
-    for (int gi : groupIndex) {
-        bool exist = false;
-        for (int gv : groupVector) {
-            if (gv == gi) {
-                exist = true;
-                break;
+    // Narrow phase: the connectivity test is read-only and independent per pair, so evaluate all
+    // candidates in parallel. Candidates are sorted for deterministic union order (grid iteration
+    // order is not stable); connectivity itself is order independent.
+    for (auto &p : candidates)
+        if (p.first > p.second)
+            std::swap(p.first, p.second);
+    std::sort(candidates.begin(), candidates.end());
+    std::vector<char> connected(candidates.size(), 0);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, candidates.size()), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t c = range.begin(); c != range.end(); ++ c)
+            connected[c] = volumes_connected(candidates[c].first, candidates[c].second) ? 1 : 0;
+    });
+    for (size_t c = 0; c < candidates.size(); ++ c)
+        if (connected[c])
+            unite(candidates[c].first, candidates[c].second);
+
+    // Assign every geometry-bearing volume to its group (slices are collected below only when needed).
+    // groupId is the minimum volume index in the group for stable slice-cache JSON output.
+    std::unordered_map<int, int> root_to_group;
+    std::vector<int> group_min;
+    groups.reserve(n);
+    for (int i = 0; i < n; ++ i) {
+        if (! alive[i])
+            continue;
+        const int root = find_root(i);
+        auto it = root_to_group.find(root);
+        int gidx = -1;
+        if (it == root_to_group.end()) {
+            gidx = int(groups.size());
+            root_to_group[root] = gidx;
+            groupedVolumeSlices gvs;
+            gvs.groupId = i;
+            groups.emplace_back(std::move(gvs));
+            group_min.push_back(i);
+        } else {
+            gidx = it->second;
+            if (i < group_min[gidx]) {
+                group_min[gidx] = i;
+                groups[gidx].groupId = i;
             }
         }
-        if (!exist) groupVector.push_back(gi);
+        groups[gidx].volume_ids.push_back(objSliceByVolume[i].volume_id);
     }
 
-    // group volumes and their slices according to the grouping Vector
-    groups.clear();
-
-    for (int gv : groupVector) {
-        groupedVolumeSlices gvs;
-        gvs.groupId = gv;
-        for (int i = 0; i != objSliceByVolume.size(); ++i) {
-            if (groupIndex[i] == gv) {
-                gvs.volume_ids.push_back(objSliceByVolume[i].volume_id);
-                append(gvs.slices, objSliceByVolume[i].slices[firstLayerReplacedBy]);
-            }
+    // Collect the grown first-layer slices, union them and shrink back to the real outline. Using
+    // grown[.] here (then shrinking by offsetValue) reproduces the original morphological closing
+    // between volumes.
+    for (int i = 0; i < n; ++ i) {
+        if (! alive[i])
+            continue;
+        const int gidx = root_to_group[find_root(i)];
+        if (layer_idx < int(grown[i].size()))
+            append(groups[gidx].slices, grown[i][layer_idx]);
+    }
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, groups.size()), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t gi = range.begin(); gi != range.end(); ++ gi) {
+            groups[gi].slices = offset_ex(union_ex(groups[gi].slices), -offsetValue);
+            for (ExPolygon &poly_ex : groups[gi].slices)
+                poly_ex.douglas_peucker(resolution);
         }
-
-        // the slices of a group should be unioned
-        gvs.slices = offset_ex(union_ex(gvs.slices), -offsetValue);
-        for (ExPolygon& poly_ex : gvs.slices)
-            poly_ex.douglas_peucker(resolution);
-
-        groups.push_back(gvs);
-    }
+    });
     return true;
 }
 
 //BBS: filter the members of "objSliceByVolume" such that only "model_part" are included
+// 哈希集合的查找是 O(n)，比双重循环更快。
 std::vector<VolumeSlices> findPartVolumes(const std::vector<VolumeSlices>& objSliceByVolume, ModelVolumePtrs model_volumes) {
+    std::unordered_set<size_t> part_ids;
+    part_ids.reserve(model_volumes.size());
+    for (const auto& mv : model_volumes)
+        if (mv->is_model_part())
+            part_ids.insert(mv->id().id);
     std::vector<VolumeSlices> outPut;
-    for (const auto& vs : objSliceByVolume) {
-        for (const auto& mv : model_volumes) {
-            if (vs.volume_id == mv->id() && mv->is_model_part()) outPut.push_back(vs);
-        }
-    }
+    outPut.reserve(objSliceByVolume.size());
+    for (const auto& vs : objSliceByVolume)
+        if (part_ids.count(vs.volume_id.id))
+            outPut.push_back(vs);
     return outPut;
 }
 
@@ -849,7 +1126,9 @@ void PrintObject::slice()
 #endif
 
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
+    m_print->set_status(12, L("Slicing mesh"));
     groupingVolumesForBrim(this, m_layers, firstLayerReplacedBy);
+    m_print->set_status(14, L("Slicing mesh"));
 
     // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(
@@ -865,6 +1144,7 @@ void PrintObject::slice()
                 layer.backup_untyped_slices();
             }
         });
+
     if (m_layers.empty())
         throw Slic3r::SlicingError(L("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"));
 
@@ -1652,7 +1932,7 @@ void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_se
     if (!slice_zs.empty()) {
         objSliceByVolume = slice_volumes_inner(
             print->config(), this->config(), this->trafo_centered(),
-            this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs, throw_on_cancel_callback);
+            this->model_object()->volumes, m_shared_regions->layer_ranges, slice_zs, throw_on_cancel_callback, print);
     }
 
     //BBS: "model_part" volumes are grouded according to their connections
@@ -1662,6 +1942,7 @@ void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_se
     //applyNegtiveVolumes(this->model_object()->volumes, objSliceByVolume, firstLayerObjSliceByGroups, scaled_resolution);
     firstLayerObjSliceByVolume = objSliceByVolume;
 
+    print->set_status(10, L("Slicing mesh"));
     const long long region_split_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
         std::move(objSliceByVolume),
@@ -1762,9 +2043,14 @@ void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_se
             for (size_t i = 0; i < layer->region_count(); ++i) {
                 LayerRegion *region = layer->get_region(i);
                 ExPolygons ex_polys = to_expolygons(region->slices.surfaces);
-                int       filament_id = region->region().extruder(FlowRole::frPerimeter) - 1;
-                double       scale       = print->config().filament_shrink.values[filament_id] * 0.01;
-                if (scale != 1) {
+                // extruder() returns 0 for a region that inherits the object's filament, and the
+                // per-filament vector can be shorter than the number of filaments the object uses,
+                // so both ends have to be range checked (same guard as support_shrinkage_scale()).
+                const std::vector<double> &shrink      = print->config().filament_shrink.values;
+                const int                  filament_id = region->region().extruder(FlowRole::frPerimeter) - 1;
+                double                     scale       = (filament_id < 0 || filament_id >= int(shrink.size())) ?
+                                                             1. : shrink[filament_id] * 0.01;
+                if (scale != 1 && scale != 0) {
                     scale = 1 / scale;
                     for (ExPolygon &poly : ex_polys)
                         poly.scale(scale);
