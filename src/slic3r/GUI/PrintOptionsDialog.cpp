@@ -1294,7 +1294,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     //Printed Part Displacement Detection
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_displacement_detection = new CheckBox(ai_refine_panel);
-    text_displacement_detection = new Label(ai_refine_panel, _L("Printed Part Displacement Detection"));
+    text_displacement_detection = new Label(ai_refine_panel, _L("Print Loosening Detection"));
     text_displacement_detection->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_displacement_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
