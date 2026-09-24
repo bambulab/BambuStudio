@@ -1,3 +1,4 @@
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { LoadingArcIcon } from '../../ams-filament-hotend/components/LoadingArcIcon';
 import { SpoolDisc } from '../../ams-filament-hotend/components/SpoolDisc';
 import { useCardContextMenu } from '../../ams-filament-hotend/useCardContextMenu';
@@ -74,12 +75,19 @@ export function AmsTrayCard({
   // the card corner is what conveys the motion (mirrors FilamentCard).
   const isTransporting = tray.tray_state === 'loading' || tray.tray_state === 'unloading';
 
+  // Left-click opens the same menu as right-click and long-press, mirroring
+  // FilamentCard in normal mode. openAt is a no-op while the menu is disabled.
+  const handleBodyClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    menu.openAt(event.clientX, event.clientY);
+  };
+
   return (
     <div
       className={`cs-ams-tray-card${hasMenu ? ' cs-ams-tray-card--has-menu' : ''}`}
       data-testid={`ams-tray-card-${tray.ams_id}-${tray.slot_id}`}
       data-cs-tray-anchor=""
       data-cs-feed={isFeed ? 'true' : undefined}
+      onClick={handleBodyClick}
       {...menu.bind}
     >
       {showHead && <TrayIndexBadge index={index} />}

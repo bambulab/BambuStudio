@@ -121,9 +121,9 @@ nlohmann::json AutoRefillRefillInfoBuilder::Build(MachineObject* obj, std::uint3
     auto             fila_sys = obj->GetFilaSystem();
     const DevFilaAutoRefillMgr& refill = fila_sys->GetAutoRefillMgr();
     if (refill.IsSupportManualEdit()) {
-        state.description = _u8L("The system has created auto-refill groups based on material type, color, and brand.")
-            + "\n"
-            + _u8L("When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one.")
+        // One i18n key per line: the web page translates each line as a whole,
+        // so the two sentences below have to stay in a single message.
+        state.description = _u8L("When the current spool runs out, the printer automatically continues with a spool of the same brand, type, and color. Refill relations can also be edited manually, so spools of the same type in a different color can be used for refilling.")
             + "\n"
             + _u8L("Drag spools to adjust their priority.");
     } else if (refill.GetGroups().groups.size() > 0) {

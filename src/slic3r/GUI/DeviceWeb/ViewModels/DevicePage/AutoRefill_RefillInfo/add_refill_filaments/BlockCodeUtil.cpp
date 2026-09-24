@@ -33,15 +33,6 @@ RefillBlockCodeUx blocked_tooltip(const char* tooltip) // Blocked, dimmed, hover
     return ux;
 }
 
-RefillBlockCodeUx blocked_toast(const char* toast) // Blocked, not dimmed, toast on click.
-{
-    RefillBlockCodeUx ux;
-    ux.policy       = SelectPolicy::Blocked;
-    ux.feedback     = FeedbackKind::Toast;
-    ux.tooltip      = toast;
-    return ux;
-}
-
 /**
  * \brief Blocked, explained by a dialog on click.
  *
@@ -158,30 +149,22 @@ RefillBlockCodeUx Create(DevFilaRefillBlockCode block_code)
     case DevFilaRefillBlockCode::DuplicateTargetPosition:
         return selectable();
 
-    // ---- Hotend faults: the click is rejected, the card is not dimmed ----
+    // ---- Hotend faults ----
 
-    // Design row 2: never docking-calibrated. Studio cannot start docking
-    // calibration, so the label points the user at the printer instead.
+    // Design row 2: never docking-calibrated.
     case DevFilaRefillBlockCode::ToolRackSlotNotCalibrated:
-        return blocked_dialog("PrintTool Rack Not Calibrated",
-                              "Please complete Docking Calibration and try again.",
-                              "Go to Calibration on printer", FollowUp::GoToCalibration);
+        return blocked_tooltip("PrintTool rack position is not calibrated, cannot select.");
 
-    case DevFilaRefillBlockCode::ToolheadDisconnected: // Design row 3: cable is down, follow-up opens HMS.
-        return blocked_dialog("PrintTool Communication Error",
-                              "Please check the PrintTool cable and try again.",
-                              "View Detail", FollowUp::ViewHmsDetail);
+    case DevFilaRefillBlockCode::ToolheadDisconnected: // Design row 3: cable is down.
+        return blocked_tooltip("Hotend communication error, cannot select.");
 
     case DevFilaRefillBlockCode::ToolheadIsNotNozzle: // Design row 4: not a nozzle on the toolhead.
-        return blocked_toast("Tool type don't match, can't select.");
+        return blocked_tooltip("Tool type doesn't match, cannot select.");
 
     // Design row 30: the tool is mounted but its identity was never read, so
-    // the group cannot be matched against it. The only follow-up Studio can
-    // still perform itself - re-reading the tool may resolve the code outright.
+    // the group cannot be matched against it.
     case DevFilaRefillBlockCode::NozzleInfoUnknown:
-        return blocked_dialog("Hotend information unknown, cannot select.",
-                              "Please read the hotend information first, then try again.",
-                              "Refresh hotend info", FollowUp::GoToRefreshHotend);
+        return blocked_tooltip("Hotend type unknown, cannot select.");
 
     // ---- Hotend mismatch: one dialog for both diameter and flow ----
 
@@ -194,51 +177,38 @@ RefillBlockCodeUx Create(DevFilaRefillBlockCode block_code)
                               "Go to Edit on printer", FollowUp::GoToEditHotend,
                               DetailFields::HotendComparison);
 
-    // ---- Filament mismatch: one dialog for all three category codes ----
+    // ---- Filament mismatch: one bubble for all three category codes ----
 
     // Design row 7. `CustomFilamentNotFound` lands here because the design
     // groups third-party / external spools with the category mismatch case.
     case DevFilaRefillBlockCode::FilamentCategoryMismatch:
     case DevFilaRefillBlockCode::SupportPropertyMismatch:
     case DevFilaRefillBlockCode::CustomFilamentNotFound:
-        return blocked_dialog("Filament type mismatch, cannot select.",
-                              "Please confirm whether the filament type in the current slot matches the refill group.",
-                              "Go to Edit", FollowUp::GoToEditFilament,
-                              DetailFields::FilamentComparison);
+        return blocked_tooltip("Filament type mismatch, cannot select.");
 
     // ---- Already grouped ----
 
-    case DevFilaRefillBlockCode::AlreadyInAnotherChain: // Design row 12: a user-made group can be unbound.
-        return blocked_dialog("Filament is in another refill group, cannot select.",
-                              "If you want to add it to the current group, first remove its previous refill relationship.",
-                              "Go to Unbind", FollowUp::GoToUnbind);
-
-    // Design row 12, auto-generated variant: same copy, but there is nothing
-    // for the user to unbind, so the dialog only offers Cancel.
+    // Design row 12. The auto-generated variant reads the same; neither
+    // offers an unbind entry any more.
+    case DevFilaRefillBlockCode::AlreadyInAnotherChain:
     case DevFilaRefillBlockCode::AutoAssignedToAnotherChain:
-        return blocked_dialog("Filament is in another refill group, cannot select.",
-                              "If you want to add it to the current group, first remove its previous refill relationship.",
-                              nullptr, FollowUp::None);
+        return blocked_tooltip("Filament is in another refill group, cannot select.");
 
     // ---- Filament state ----
 
     case DevFilaRefillBlockCode::FilamentNotLoadedToExtruder: // Design row 14.
     // Reported when the nozzle currently excludes the slot, which the user
     // resolves the same way as row 14 - by loading the filament - so it
-    // shares that row's copy and follow-up.
+    // shares that row's copy.
     case DevFilaRefillBlockCode::HiddenByNozzleExclusion:
-        return blocked_dialog("Filament not loaded, cannot select.",
-                              "Please load the filament first, then try again.",
-                              "Go to Load", FollowUp::GoToLoad);
+        return blocked_tooltip("Filament not loaded, cannot select.");
 
     // Design row 15: the slot's filament cannot be identified. The design
     // also lists a printing-state variant that only warns; that one is not
     // distinguishable by `block` code alone and is left to the caller.
     case DevFilaRefillBlockCode::FilamentIdentityUnavailable:
     case DevFilaRefillBlockCode::SourceFilamentTagUnknown:
-        return blocked_dialog("Filament type unknown, cannot select.",
-                              "Please edit or read the filament information first, then try again.",
-                              "Go to Edit", FollowUp::GoToEditFilament);
+        return blocked_tooltip("Filament type unknown, cannot select.");
 
     // ---- Warnings: selectable behind a confirmation ----
 

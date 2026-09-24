@@ -2,28 +2,23 @@ import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MODULE, useAutoRefillRefillInfoBridge } from './useAutoRefillRefillInfoBridge';
+import type { AutoRefillPickerConfig } from './useAutoRefillRefillInfoBridge';
 import { useSendToCpp } from '../../../hooks/Bridge';
 import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
 import { GroupColumn } from './components/GroupColumn';
 import { RefillToastStack } from './components/RefillToastStack';
 import { SchemaDebugOverlay } from './components/SchemaDebugOverlay';
 import { AddRefillFilamentsPage } from './add-refill-filaments/AddRefillFilamentsPage';
-import type {
-  AutoRefillAddRefillFilamentsMode,
-  AutoRefillAddRefillFilamentsSlotRef,
-} from './add-refill-filaments/types';
+import type { AutoRefillAddRefillFilamentsSlotRef } from './add-refill-filaments/types';
 import { resolveHostContentSize } from './hostContentSize';
 import emptyRefillGroupImage from './assets/empty_refill_group.png';
 import './auto-refill-refill-info.css';
 
 const HOST_LAYOUT_MODULE = 'device_host';
 
-interface StandalonePickerConfig {
-  mode: AutoRefillAddRefillFilamentsMode;
-  to?: AutoRefillAddRefillFilamentsSlotRef;
-}
-
-function readStandalonePickerConfig(): StandalonePickerConfig | null {
+// The picker normally lives in this page, but the route still accepts
+// `?picker=1` so a host that loads it standalone opens straight into it.
+function readStandalonePickerConfig(): AutoRefillPickerConfig | null {
   const query = window.location.hash.split('?')[1];
   const params = new URLSearchParams(query ?? '');
   if (params.get('picker') !== '1') return null;
@@ -113,7 +108,8 @@ export function AutoRefillRefillInfoPage() {
   const {
     state,
     error,
-    openAddRefillDialog,
+    pickerConfig,
+    openPicker,
     addRefillFilaments,
     queryingAddRefillFilaments,
     confirmingAddRefillFilaments,
@@ -133,7 +129,7 @@ export function AutoRefillRefillInfoPage() {
     pushToast,
     dismissToast,
   } = useAutoRefillRefillInfoBridge();
-  const [pickerConfig] = useState(readStandalonePickerConfig);
+  const [standaloneConfig] = useState(readStandalonePickerConfig);
   const [pickerBusy, setPickerBusy] = useState(false);
   // Kept separate from pickerBusy: the management page must stay usable no
   // matter what the picker is doing.
@@ -192,21 +188,24 @@ export function AutoRefillRefillInfoPage() {
   };
 
 
-  const pickerStartedRef = useRef(false);
-  const invalidPickerTarget = pickerConfig?.mode === 'add_to_group' && !pickerConfig.to;
+  const standaloneStartedRef = useRef(false);
+  const invalidPickerTarget = standaloneConfig?.mode === 'add_to_group' && !standaloneConfig.to;
   useEffect(() => {
-    if (!pickerConfig || invalidPickerTarget || pickerStartedRef.current) return;
-    pickerStartedRef.current = true;
-    if (pickerConfig.mode === 'add_to_group' && pickerConfig.to) {
-      void queryNextAddRefillFilaments([pickerConfig.to], pickerConfig.to, pickerConfig.mode);
-    } else {
-      void queryAddRefillFilaments();
-    }
-  }, [invalidPickerTarget, pickerConfig, queryAddRefillFilaments, queryNextAddRefillFilaments]);
+    if (!standaloneConfig || invalidPickerTarget || standaloneStartedRef.current) return;
+    standaloneStartedRef.current = true;
+    openPicker(standaloneConfig);
+  }, [invalidPickerTarget, openPicker, standaloneConfig]);
 
-  if (pickerConfig) {
+  // The standalone route must not flash the group list between mount and the
+  // effect above entering the picker.
+  const standalonePending = !!standaloneConfig && !standaloneStartedRef.current;
+
+  if (pickerConfig || standalonePending || invalidPickerTarget) {
     return (
-      <div ref={pageRef} className="refill-page" data-testid="auto-refill-filaments-dialog-page">
+      <div ref={pageRef} className="refill-page refill-page--picker" data-testid="auto-refill-filaments-dialog-page">
+        {addRefillFilaments?.mode_title && (
+          <div className="refill-page__title">{t(addRefillFilaments.mode_title)}</div>
+        )}
         {invalidPickerTarget ? (
           <div className="refill-picker-error">
             <div className="refill-page__error">{t('Invalid refill group target.')}</div>
@@ -214,11 +213,12 @@ export function AutoRefillRefillInfoPage() {
               {t('Cancel')}
             </button>
           </div>
-        ) : queryingAddRefillFilaments || !pickerStartedRef.current ? (
+        ) : queryingAddRefillFilaments || standalonePending ? (
           <AddRefillFilamentsLoading />
         ) : addRefillFilaments ? (
           <AddRefillFilamentsPage
             state={addRefillFilaments}
+            anchor={pickerConfig?.to}
             error={error}
             busy={pickerBusy || confirmingAddRefillFilaments}
             onSelectionChange={updatePicker}
@@ -226,11 +226,16 @@ export function AutoRefillRefillInfoPage() {
             onQuery={queryAddRefillFilaments}
             onCancel={closeAddRefillFilaments}
             onConfirm={confirmPicker}
-            onFollowUp={(slot) => followUpAddRefillBlock(
-              slot.block_code,
-              { ams_id: slot.ams_id, slot_id: slot.slot_id },
-              slot.display_index,
-            )}
+            onFollowUp={(slot) => {
+              // Unbinding is performed on the management page, so leave the
+              // picker before the host raises its removal prompt.
+              if (slot.interaction?.follow_up === 'go_to_unbind') closeAddRefillFilaments();
+              return followUpAddRefillBlock(
+                slot.block_code,
+                { ams_id: slot.ams_id, slot_id: slot.slot_id },
+                slot.display_index,
+              );
+            }}
             onDismissWarning={dismissAddRefillWarning}
             onToast={pushToast}
           />
@@ -278,7 +283,7 @@ export function AutoRefillRefillInfoPage() {
           <button
             type="button"
             className="refill-page__add-group"
-            onClick={() => void openAddRefillDialog('open_add_group')}
+            onClick={() => openPicker({ mode: 'create_group' })}
           >
             {t('Add material group')}
           </button>
@@ -302,7 +307,9 @@ export function AutoRefillRefillInfoPage() {
                 // Anchor on the last slot of the group so the new filament is
                 // appended to the tail of the refill chain.
                 const anchor = group.slots[group.slots.length - 1];
-                if (anchor) void openAddRefillDialog('open_add_filament', anchor);
+                if (anchor) {
+                  openPicker({ mode: 'add_to_group', to: { ams_id: anchor.ams_id, slot_id: anchor.slot_id } });
+                }
               }}
               onReset={(groupTag) => void runGroupCommand(() => resetGroup(groupTag))}
               onRemove={(slot) => void runGroupCommand(() => removeSlot(slot))}

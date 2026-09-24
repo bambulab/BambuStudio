@@ -72,9 +72,12 @@ export function SlotRow({
         </div>
         {slot.has_filament && (
           <div className="refill-slot__meta-row">
-            <span className="refill-slot__pill">{slotLabel(slot.tray_name)}</span>
+            <span>{slotLabel(slot.tray_name)}</span>
             {slot.weight_gram != null && (
-              <span className="refill-slot__weight">{slot.weight_gram}g</span>
+              <>
+                <span>｜</span>
+                <span>{slot.weight_gram}g</span>
+              </>
             )}
           </div>
         )}

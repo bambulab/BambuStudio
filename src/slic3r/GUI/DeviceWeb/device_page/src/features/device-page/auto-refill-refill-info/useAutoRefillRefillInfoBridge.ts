@@ -11,6 +11,14 @@ import type {
 
 export const MODULE = 'device_page_auto_refill_refill_info';
 
+// Which picker the page is showing in place of the group list, or null for the
+// management view. The picker shares the dialog (and the view-model) with the
+// management page, so it is plain state rather than a separate host window.
+export interface AutoRefillPickerConfig {
+  mode: AutoRefillAddRefillFilamentsMode;
+  to?: AutoRefillAddRefillFilamentsSlotRef;
+}
+
 // The picker slot list comes from an MQTT round-trip, so C++ answers the
 // `query` request immediately and pushes the outcome as a report later. This
 // watchdog only covers a lost report (e.g. a closed host page); the device
@@ -66,6 +74,7 @@ export function useAutoRefillRefillInfoBridge() {
   const [error, setError] = useState('');
   const stateKeyRef = useRef(JSON.stringify(mockAutoRefillRefillInfoState));
   const [addRefillFilaments, setAddRefillFilaments] = useState<AutoRefillAddRefillFilamentsViewModel | null>(null);
+  const [pickerConfig, setPickerConfig] = useState<AutoRefillPickerConfig | null>(null);
   const [queryingAddRefillFilaments, setQueryingAddRefillFilaments] = useState(false);
   const [confirmingAddRefillFilaments, setConfirmingAddRefillFilaments] = useState(false);
   const queryWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -220,6 +229,8 @@ export function useAutoRefillRefillInfoBridge() {
           setQueryingAddRefillFilaments(false);
           setConfirmingAddRefillFilaments(false);
           setAddRefillFilaments(null);
+          // Leaves the picker: the dialog goes back to the group list.
+          setPickerConfig(null);
           setError('');
           if (isStatePayload(body.payload)) {
             applyState(body.payload);
@@ -363,11 +374,24 @@ export function useAutoRefillRefillInfoBridge() {
     setAddRefillFilaments(resp.value.payload);
   }, [request, setTheme]);
 
+  // Enters the picker in place of the group list. `create_group` starts from
+  // the unconstrained Query; `add_to_group` anchors the QueryNext on the slot
+  // the group is grown from.
+  const openPicker = useCallback((config: AutoRefillPickerConfig) => {
+    setPickerConfig(config);
+    if (config.mode === 'add_to_group' && config.to) {
+      void queryNextAddRefillFilaments([config.to], config.to, config.mode);
+    } else {
+      void queryAddRefillFilaments();
+    }
+  }, [queryAddRefillFilaments, queryNextAddRefillFilaments]);
+
   const closeAddRefillFilaments = useCallback(() => {
     stopQueryWatchdog();
     setQueryingAddRefillFilaments(false);
     setConfirmingAddRefillFilaments(false);
     setAddRefillFilaments(null);
+    setPickerConfig(null);
     void request(makeBody('add_refill_filaments', 'cancel'), 2000);
   }, [request, stopQueryWatchdog]);
 
@@ -526,6 +550,8 @@ export function useAutoRefillRefillInfoBridge() {
     error,
     refresh,
     openAddRefillDialog,
+    pickerConfig,
+    openPicker,
     addRefillFilaments,
     queryingAddRefillFilaments,
     confirmingAddRefillFilaments,

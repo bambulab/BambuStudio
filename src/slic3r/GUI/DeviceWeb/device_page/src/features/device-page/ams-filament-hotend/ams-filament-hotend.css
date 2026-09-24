@@ -502,6 +502,9 @@
  * between .card-spool-wrap and .card-text. Disabled cards stay un-hovered. */
 .filament-card:hover:not(.disabled) {
   box-shadow: 0 0 0 1px var(--ams-brand);
+  /* Figma 1867:98422 hover cursor: the card is clickable (context menu in
+   * normal mode, selection in batch mode), so show the pointing hand. */
+  cursor: pointer;
 }
 
 .filament-card:hover:not(.disabled) .card-spool-wrap,

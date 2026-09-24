@@ -10,6 +10,13 @@
   color: var(--ams-text-strong);
 }
 
+/* Picker view: half the group list's padding above the title and half its gap
+   below it, so the title band stays compact in the narrow dialog. */
+.refill-page--picker {
+  padding-top: 8px;
+  gap: 6px;
+}
+
 .refill-page__intro {
   display: flex;
   flex-direction: column;
@@ -284,22 +291,10 @@ body.refill-slot-dragging * {
   background: var(--ams-brand-tint);
 }
 
-.refill-slot__pill {
-  min-width: 28px;
-  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
-  padding: 0 8px;
-  border-radius: 20px;
-  background: var(--ams-divider);
-  color: var(--ams-text-primary);
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 20px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.refill-slot__weight {
-  color: var(--ams-text-primary);
+/* "A1 ｜ 1000g": plain secondary text, not a pill (Figma 8015:39144). */
+.refill-slot__meta-row {
+  gap: 2px;
+  color: var(--ams-text-secondary);
   font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
   font-size: 12px;
   font-weight: 400;
@@ -565,10 +560,11 @@ body.refill-slot-dragging * {
   gap: 12px;
 }
 
+/* No bottom padding: the slot rows sit flush against the unit's bottom edge. */
 .add-refill-unit {
   box-sizing: border-box;
   min-width: 0;
-  padding: 12px;
+  padding: 6px 12px 0;
   border-radius: 4px;
   background: var(--ams-surface-subtle);
 }
@@ -578,7 +574,7 @@ body.refill-slot-dragging * {
 }
 
 .add-refill-unit__title {
-  margin: 0 0 4px;
+  margin: 0;
   color: var(--ams-text-strong);
   font-size: 14px;
   font-weight: 500;

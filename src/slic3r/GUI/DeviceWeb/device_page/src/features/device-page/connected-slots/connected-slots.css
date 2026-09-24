@@ -288,10 +288,10 @@
   box-sizing: border-box;
 }
 
-/* Right-click is the only affordance on a tray, so the cursor advertises it and
-   the ring is drawn as a box-shadow to avoid shifting the 80x105 card box. */
+/* Figma 1867:98422 hover cursor: an interactive tray shows the pointing hand,
+   and the ring is drawn as a box-shadow to avoid shifting the 80x105 card box. */
 .cs-ams-tray-card--has-menu {
-  cursor: context-menu;
+  cursor: pointer;
 }
 
 .cs-ams-tray-card--has-menu:hover {

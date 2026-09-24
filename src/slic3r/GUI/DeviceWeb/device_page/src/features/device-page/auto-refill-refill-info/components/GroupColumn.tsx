@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SpoolGraphic } from '../../ams-filament-hotend/components/SpoolGraphic';
 import nozzleIcon from '../../ams-mapping-hotend/assets/nozzle_icon.svg';
-import resetIcon from '../../ams-mapping-hotend/assets/reset.svg';
+import resetIcon from '../assets/reset_clockwise.svg';
 import { SlotRow } from './SlotRow';
 import type { RefillGroupViewModel, RefillSlotViewModel } from '../types';
 import { formatAutoRefillNozzle } from '../nozzleDisplay';

@@ -22,6 +22,9 @@ import { formatAutoRefillNozzle } from '../nozzleDisplay';
 
 interface AddRefillFilamentsPageProps {
   state: AutoRefillAddRefillFilamentsViewModel;
+  // `add_to_group` only: the group member the picker was opened from. It comes
+  // back pre-selected, so it must not count towards the new picks.
+  anchor?: AutoRefillAddRefillFilamentsSlotRef;
   error: string;
   busy: boolean;
   onSelectionChange: (slots: AutoRefillAddRefillFilamentsSlotRef[]) => Promise<void>;
@@ -128,6 +131,7 @@ function SlotCard({
 
 export function AddRefillFilamentsPage({
   state,
+  anchor,
   error,
   busy,
   onSelectionChange,
@@ -149,6 +153,13 @@ export function AddRefillFilamentsPage({
       .map(({ ams_id, slot_id }) => ({ ams_id, slot_id })),
   );
   const pending = busy || localBusy;
+  // Growing an existing group only asks for the spool being added; a brand-new
+  // group is a chain, so it needs two members before it means anything.
+  const anchorKey = anchor ? slotKey(anchor) : null;
+  const picked = anchorKey === null
+    ? selected.length
+    : selected.filter((item) => slotKey(item) !== anchorKey).length;
+  const minPicked = state.mode === 'add_to_group' ? 1 : 2;
 
   const commitSelection = async (slot: AutoRefillAddRefillFilamentsSlot, isSelected: boolean) => {
     const key = slotKey(slot);
@@ -272,7 +283,7 @@ export function AddRefillFilamentsPage({
         <button
           type="button"
           className="add-refill-page__button add-refill-page__button--primary"
-          disabled={pending || selected.length < 2}
+          disabled={pending || picked < minPicked}
           onClick={() => void onConfirm(selected)}
         >
           {t('OK')}
