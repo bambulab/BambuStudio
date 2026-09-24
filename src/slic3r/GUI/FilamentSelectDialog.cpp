@@ -1,6 +1,7 @@
 #include "FilamentSelectDialog.hpp"
 #include "AMSMaterialsSetting.hpp"  // AMS_MATERIALS_SETTING_GREY* colour constants
 #include "FilamentBitmapUtils.hpp"
+#include "DeviceCore/DevFilaSystem.h"  // DevFilaSystem::GetTrayNameByAmsSlotId
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "wxExtensions.hpp"
@@ -162,8 +163,9 @@ wxString slot_label(const FilamentSpool& sp)
 {
     if (!sp.in_printer || sp.slot_id.empty() || sp.ams_id < 0) return wxString();
     try {
-        const wxString s = wxGetApp().transition_tridid(sp.ams_id * 4 + std::stoi(sp.slot_id));
-        if (!s.empty()) return s;
+        const std::string s = DevFilaSystem::GetTrayNameByAmsSlotId(
+            sp.dev_id, sp.ams_id, std::stoi(sp.slot_id), (DevAmsType)sp.ams_type);
+        if (!s.empty()) return wxString::FromUTF8(s);
     } catch (...) {}
     return wxString::FromUTF8(sp.slot_id);
 }

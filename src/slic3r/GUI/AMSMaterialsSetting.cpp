@@ -965,6 +965,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         }
     }
     trigger_select_filament(std::string(), /*from_printer=*/true, wxEmptyString);
+    Close();
 }
 
 
