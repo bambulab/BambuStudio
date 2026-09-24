@@ -5707,7 +5707,6 @@ void PrintConfigDef::init_fff_params()
     def->label = "Filament selected nozzle diameters";
     def->tooltip = "Per-filament explicitly selected nozzle diameter. Empty means not selected.";
     def->set_default_value(new ConfigOptionStrings {});
-    def->cli = ConfigOptionDef::nocli;
 
     def = this->add("multi_nozzle_diameter_mode", coBool);
     def->label = "Multi nozzle diameter mode";
@@ -8838,7 +8837,27 @@ std::map<std::string, std::string> DynamicPrintConfig::validate(bool under_cli)
         FullPrintConfig fpc;
         fpc.apply(*this, true);
         // Verify this print options through the FullPrintConfig.
-        return Slic3r::validate(fpc, under_cli);
+        std::map<std::string, std::string> error_message = Slic3r::validate(fpc, under_cli);
+
+        // multi_nozzle_diameter_mode is project-only and not part of FullPrintConfig, so check
+        // it on *this*. GUI keeps soft "broken mix" marking; CLI must hard-reject.
+        if (under_cli && multi_nozzle_diameter_mode_enabled(*this)) {
+            const auto *is_mixed = option<ConfigOptionBools>("filament_is_mixed");
+            const auto *comps    = option<ConfigOptionStrings>("filament_mixed_components");
+            const auto *dia_map  = option<ConfigOptionStrings>("filament_diameter_map");
+            if (is_mixed != nullptr && comps != nullptr && dia_map != nullptr) {
+                const auto mismatch = check_mixed_filament_diameter_consistency(
+                    is_mixed->values, comps->values, dia_map->values);
+                if (!mismatch.empty() && error_message.find("filament_mixed_components") == error_message.end()) {
+                    error_message.emplace(
+                        "filament_mixed_components",
+                        L("Mixed filament components must use the same nozzle diameter in multi-nozzle-diameter mode. "
+                          "Invalid slot: ") +
+                            std::to_string(mismatch.front() + 1));
+                }
+            }
+        }
+        return error_message;
     }
     default:
         //FIXME no validation on SLA data?

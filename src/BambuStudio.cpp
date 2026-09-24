@@ -1396,6 +1396,38 @@ static bool is_preset_compatible_with_printer(const std::vector<std::string> &co
     return std::find(compatible_printers.begin(), compatible_printers.end(), printer_system_name) != compatible_printers.end();
 }
 
+// Extract nozzle diameter from a compatible_printers entry like "Bambu Lab A1 0.4 nozzle".
+static std::string diameter_from_compatible_printer_name(const std::string &printer_name)
+{
+    static const std::string nozzle_suffix = " nozzle";
+    if (printer_name.size() <= nozzle_suffix.size() ||
+        !boost::algorithm::ends_with(printer_name, nozzle_suffix))
+        return {};
+
+    const size_t nozzle_pos = printer_name.size() - nozzle_suffix.size();
+    const size_t prev = printer_name.rfind(' ', nozzle_pos > 0 ? nozzle_pos - 1 : 0);
+    if (prev == std::string::npos || prev + 1 >= nozzle_pos)
+        return {};
+
+    const double diameter = std::atof(printer_name.substr(prev + 1, nozzle_pos - prev - 1).c_str());
+    if (diameter <= 0.)
+        return {};
+    return format_diameter_to_str(diameter);
+}
+
+// Collect supported nozzle diameters from filament compatible_printers names
+// (e.g. "Bambu Lab H2C 0.4 nozzle" -> "0.4").
+static std::set<std::string> filament_supported_diameters(const std::vector<std::string> &compatible_printers)
+{
+    std::set<std::string> result;
+    for (const std::string &printer_name : compatible_printers) {
+        const std::string diameter = diameter_from_compatible_printer_name(printer_name);
+        if (!diameter.empty())
+            result.insert(diameter);
+    }
+    return result;
+}
+
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -3056,6 +3088,120 @@ int CLI::run(int argc, char **argv)
         BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(" %1%: process not compatible with printer.")%__LINE__;
         record_exit_reson(outfile_dir, CLI_PROCESS_NOT_COMPATIBLE, 0, cli_errors[CLI_PROCESS_NOT_COMPATIBLE], sliced_info);
         flush_and_exit(CLI_PROCESS_NOT_COMPATIBLE);
+    }
+
+    // CLI parses filament_diameter_map for multi_nozzle_diameter_mode.
+    {
+        std::set<std::string> selected_diameters;
+        if (const ConfigOptionStrings *dia_map = m_print_config.option<ConfigOptionStrings>("filament_diameter_map")) {
+            for (const std::string &value : dia_map->values) {
+                if (value.empty())
+                    continue;
+                std::stringstream stream(value);
+                std::string token;
+                while (std::getline(stream, token, ';')) {
+                    const double diameter = std::atof(token.c_str());
+                    if (diameter > 0.)
+                        selected_diameters.insert(format_diameter_to_str(diameter));
+                }
+            }
+        }
+
+        const bool multi_diameter = selected_diameters.size() >= 2;
+        m_print_config.option<ConfigOptionBool>("multi_nozzle_diameter_mode", true)->value = multi_diameter;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                << boost::format(" %1%: filament_diameter_map has %2% distinct diameter(s), multi_nozzle_diameter_mode=%3%")
+                                       % __LINE__ % selected_diameters.size() % (multi_diameter ? 1 : 0);
+        if (multi_diameter && check_preset) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                    << boost::format(" %1%: multi-diameter mode, skip check_preset") % __LINE__;
+            check_preset = false;
+        }
+
+        // Multi-diameter: each filament_diameter_map slot must be a single selected diameter that
+        // appears in the filament preset's compatible_printers names (e.g. "XX 0.4 nozzle").
+        if (multi_diameter) {
+            const ConfigOptionStrings *dia_map =
+                m_print_config.option<ConfigOptionStrings>("filament_diameter_map");
+            if (dia_map != nullptr) {
+                if (dia_map->values.size() != load_filaments_config.size()) {
+                    BOOST_LOG_TRIVIAL(error)
+                        << __FUNCTION__
+                        << boost::format(
+                               " %1%: filament_diameter_map size %2% not equal to load_filaments "
+                               "size %3%") %
+                               __LINE__ % dia_map->values.size() % load_filaments_config.size();
+                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0,
+                                      cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                }
+                for (size_t index = 0; index < dia_map->values.size(); ++index) {
+                    const std::string &filament_name =
+                        (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
+                    const std::string &raw = dia_map->values[index];
+                    if (raw.empty()) {
+                        BOOST_LOG_TRIVIAL(error)
+                            << __FUNCTION__
+                            << boost::format(
+                                   " %1%: filament_diameter_map slot %2% (%3%) is empty in "
+                                   "multi-diameter mode") %
+                                   __LINE__ % (index + 1) % filament_name;
+                        record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0,
+                                          cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+
+                    const auto *compatible_opt =
+                        load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
+                    if (compatible_opt == nullptr || compatible_opt->values.empty()) {
+                        BOOST_LOG_TRIVIAL(error)
+                            << __FUNCTION__
+                            << boost::format(
+                                   " %1%: filament preset %2% (slot %3%) has empty "
+                                   "compatible_printers; cannot validate selected diameter '%4%'") %
+                                   __LINE__ % filament_name % (index + 1) % raw;
+                        record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0,
+                                          cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+
+                    const std::set<std::string> supported =
+                        filament_supported_diameters(compatible_opt->values);
+                    if (supported.empty()) {
+                        BOOST_LOG_TRIVIAL(error)
+                            << __FUNCTION__
+                            << boost::format(
+                                   " %1%: filament preset %2% (slot %3%) compatible_printers has no "
+                                   "parseable nozzle diameters; cannot validate selected diameter "
+                                   "'%4%'") %
+                                   __LINE__ % filament_name % (index + 1) % raw;
+                        record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0,
+                                          cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+
+                    const std::string selected = format_diameter_to_str(std::atof(raw.c_str()));
+                    if (supported.count(selected) != 0)
+                        continue;
+
+                    std::string supported_str;
+                    for (const std::string &d : supported) {
+                        if (!supported_str.empty())
+                            supported_str += ',';
+                        supported_str += d;
+                    }
+                    BOOST_LOG_TRIVIAL(error)
+                        << __FUNCTION__
+                        << boost::format(
+                               " %1%: filament preset %2% (slot %3%) selected diameter %4% is not "
+                               "compatible; supported diameters from compatible_printers: [%5%]") %
+                               __LINE__ % filament_name % (index + 1) % selected % supported_str;
+                    record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR],
+                                      sliced_info);
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                }
+            }
+        }
     }
 
     // Validate compatible_printers for externally loaded filament presets.
