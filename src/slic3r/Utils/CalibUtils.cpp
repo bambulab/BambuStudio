@@ -1305,10 +1305,12 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
     set_for_auto_pa_model_and_config(sorted_calib_infos, full_config, model);
 
     auto rack = obj_->GetNozzleSystem()->GetNozzleRack();
+
+    sync_calib_per_slot_nozzle_options(full_config, sorted_calib_infos, filament_map, f_nozzle_map);
+
     if (rack->IsSupported()) {
         full_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmNozzleManual;
         full_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = f_nozzle_map;
-        sync_calib_per_slot_nozzle_options(full_config, sorted_calib_infos, filament_map, f_nozzle_map);
 
         auto str_values = save_extruder_nozzle_stats_to_string(nozzle_stat.get_raw_stat());
         full_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = str_values;
