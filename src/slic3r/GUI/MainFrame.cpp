@@ -3529,9 +3529,13 @@ void MainFrame::init_menubar_as_editor()
     wxMenu* parent_menu = m_menubar->OSXGetAppleMenu();
     //auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 
+        // The apple menu is built by wxWidgets (wxMenuBar::CreateAppleMenu), 
+        // so each msgid here must match wx's own literal string. wx looks up 
+        // "Hide %s" and formats the app name into it at runtime, so the rendered 
+        // "Hide BambuStudio" would never be looked up.
         std::string app_items[] = {
             L("Services"),
-            L("Hide BambuStudio"),
+            L("Hide %s"),
             L("Hide Others"),
             L("Show All"),
             L("Quit BambuStudio")
