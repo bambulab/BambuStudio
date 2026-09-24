@@ -2313,7 +2313,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(const DynamicPrintConfig &config)
         auto  iter      = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
             if (!f.is_system) // Only match system preset
                 return false;
-            bool is_compatible = m_preset_bundle->calibrate_filaments.find(&f) != m_preset_bundle->calibrate_filaments.end();
+            bool is_compatible = m_calibrate_filaments.find(f.name) != m_calibrate_filaments.end();
             return is_compatible && f.filament_id == m_filament_id;
             });
 
@@ -2322,7 +2322,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(const DynamicPrintConfig &config)
             iter = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
                 if (f.is_system) // Only match system preset
                     return false;
-                bool is_compatible = m_preset_bundle->calibrate_filaments.find(&f) != m_preset_bundle->calibrate_filaments.end();
+                bool is_compatible = m_calibrate_filaments.find(f.name) != m_calibrate_filaments.end();
                 return is_compatible && f.filament_id == m_filament_id;
             });
         }
@@ -2372,11 +2372,11 @@ void GUI::CalibrateFilamentComboBox::update()
         const Preset& preset = presets[i];
         auto display_name = get_preset_name(preset);
         bool          is_selected   = m_selected_preset == &preset;
-        if (m_preset_bundle->calibrate_filaments.empty()) {
+        if (m_calibrate_filaments.empty()) {
             Thaw();
             return;
         }
-        bool          is_compatible = m_preset_bundle->calibrate_filaments.find(&preset) != m_preset_bundle->calibrate_filaments.end();
+        bool          is_compatible = m_calibrate_filaments.find(preset.name) != m_calibrate_filaments.end();
         ;
         if (!preset.is_visible || (!is_compatible && !is_selected))
             continue;

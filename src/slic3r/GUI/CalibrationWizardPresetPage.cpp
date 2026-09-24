@@ -616,7 +616,6 @@ CalibrationPresetPage::CalibrationPresetPage(
     m_page_type = CaliPageType::CALI_PAGE_PRESET;
     m_cali_filament_mode = CalibrationFilamentMode::CALI_MODEL_SINGLE;
     m_top_sizer = new wxBoxSizer(wxVERTICAL);
-    m_extrder_types.resize(2, ExtruderType::etDirectDrive);
     m_extruder_nozzle_types.resize(2, NozzleVolumeType::nvtHighFlow);
 
     create_page(this);
@@ -1114,17 +1113,25 @@ NozzleVolumeType CalibrationPresetPage::get_nozzle_volume_type(int nozzle_pos_id
 
 ExtruderType CalibrationPresetPage::get_extruder_type(int extruder_id) const
 {
-    if (curr_obj) {
-        int extruder_idx = 0;
-        if (curr_obj->is_multi_extruders()) {
-            if (extruder_id == RIGHT_EXTRUDER_ID) {
-                extruder_idx = 1;
-            }
-        }
-        if (m_extrder_types.size() > extruder_idx)
-            return m_extrder_types[extruder_idx];
-    }
+    if (curr_obj)
+        return CalibUtils::get_extruder_type(curr_obj, extruder_id);
     return ExtruderType::etDirectDrive;
+}
+
+const std::set<std::string>& CalibrationPresetPage::get_calibrate_filament_names(const std::string& printer_preset_name)
+{
+    auto it = m_calibrate_filament_names.find(printer_preset_name);
+    if (it != m_calibrate_filament_names.end())
+        return it->second;
+
+    std::set<std::string> names;
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle && !printer_preset_name.empty()) {
+        preset_bundle->set_calibrate_printer(printer_preset_name);
+        for (const Preset* preset : preset_bundle->calibrate_filaments)
+            names.insert(preset->name);
+    }
+    return m_calibrate_filament_names.emplace(printer_preset_name, std::move(names)).first->second;
 }
 
 wxSizer* CalibrationPresetPage::create_ams_items_sizer(wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, ExtruderRole role){
@@ -1928,7 +1935,7 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
         return;
 
     //step 1: update combobox filament list
-    float nozzle_value = get_nozzle_value();
+    float nozzle_value = obj->is_multi_extruders() ? get_nozzle_diameter(MAIN_EXTRUDER_ID) : get_nozzle_value();
     obj->GetCalib()->SetSelectedNozzleDiameter(DevNozzle::ToNozzleDiameterType(nozzle_value));
     if (nozzle_value < 1e-3) {
         return;
@@ -1937,20 +1944,6 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
     Preset* printer_preset = get_printer_preset(obj, nozzle_value);
     if (!printer_preset)
         return;
-
-    auto opt_extruder_type = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    if (opt_extruder_type) {
-        assert(opt_extruder_type->values.size() <= 2);
-        for (size_t i = 0; i < opt_extruder_type->values.size(); ++i) {
-            m_extrder_types[i] = (ExtruderType)(opt_extruder_type->values[i]);
-        }
-    }
-
-    // sync ams filaments list info
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    if (preset_bundle && printer_preset) {
-        preset_bundle->set_calibrate_printer(printer_preset->name);
-    }
 
     //step 2: sync ams info from object by default
     sync_ams_info(obj);
@@ -2355,15 +2348,15 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
 
                 wxArrayString values;
                 ExtruderType extruder_type  = ExtruderType::etDirectDrive;
-                Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
                 auto selected_filament = get_selected_filament_combobox();
+                int extruder_id = !selected_filament.empty() && selected_filament[0].extruder_role == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+                Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_diameter(extruder_id));
                 if (!selected_filament.empty() && printer_preset) {
                     int tray_id     = selected_filament[0].tray_id;
                     int out_tray_id = tray_id;
                     int ams_id      = 0;
                     int slot_id     = 0;
                     get_tray_ams_and_slot_id(curr_obj, tray_id, ams_id, slot_id, out_tray_id);
-                    int              extruder_id            = selected_filament[0].extruder_role == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
                     std::vector<int> physical_extruder_maps = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"))->values;
                     int              extruder_count         = dynamic_cast<ConfigOptionFloatsNullable *>(printer_preset->config.option("nozzle_diameter"))->values.size();
                     int              extruder_idx           = extruder_id;
@@ -3198,12 +3191,7 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
         auto* fcb = dynamic_cast<FilamentExtendComboBox*>(m_rack_filament_comboBox_list[i]);
         if (!fcb) continue;
 
-        // Populate the dropdown like non-rack machines so both inline and popup comboboxes stay selectable.
-        fcb->update_from_preset();
-
         if (i < rack->GetTotalRackNozzleCount()) {
-            fcb->set_select_mode(m_cali_filament_mode);
-
             DevNozzle nozzle;
             if (auto opt_nozzle = obj->GetNozzleSystem()->GetNozzleOptByAddrId(i); opt_nozzle.has_value()) {
                 nozzle = opt_nozzle.value();
@@ -3211,6 +3199,12 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " rack nozzle addr_id:" << i << " not found in nozzle system";
             }
 
+            // Per-slot nozzle: rack slots can hold different diameters than the machine default.
+            if (Preset* printer_preset = get_printer_preset(obj, nozzle.GetNozzleDiameter()))
+                fcb->GetComboBox()->set_calibrate_filaments(get_calibrate_filament_names(printer_preset->name));
+
+            fcb->update_from_preset();
+            fcb->set_select_mode(m_cali_filament_mode);
             fcb->SetNozzleInfo(nozzle, obj);
 
             /* use nozzole first ams_slot if multiple ams_slot binded, as they share the same filament config */
@@ -3307,6 +3301,9 @@ void CalibrationPresetPage::assign_rack_model_indices()
 
 void CalibrationPresetPage::update_extruder_filament_combobox(ExtruderRole role, const std::string &ams_id)
 {
+    if (!curr_obj)
+        return;
+
     std::map<ExtruderRole, FilamentComboBoxList*> filament_combox_map{
         {ExtruderRole::SINGLE_EXTRUDER, &m_filament_comboBox_list},
         {ExtruderRole::MAIN_EXTRUDER,   &m_main_filament_comboBox_list},
@@ -3318,6 +3315,16 @@ void CalibrationPresetPage::update_extruder_filament_combobox(ExtruderRole role,
         {ExtruderRole::MAIN_EXTRUDER,   &m_main_ams_preview_list},
         {ExtruderRole::DEPUTY_EXTRUDER, &m_deputy_ams_preview_list}
     };
+
+    // Must precede update_from_preset(): CalibrateFilamentComboBox::update() filters by these names.
+    {
+        int extruder_id = role == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+        Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_diameter(extruder_id));
+        const std::set<std::string>& names = get_calibrate_filament_names(printer_preset ? printer_preset->name : "");
+        for (auto* fcb : *filament_combox_map[role]) {
+            if (fcb) fcb->GetComboBox()->set_calibrate_filaments(names);
+        }
+    }
 
     for (auto &fcb : *filament_combox_map[role]) {
         fcb->update_from_preset();
@@ -3373,9 +3380,9 @@ Preset* CalibrationPresetPage::get_printer_preset(MachineObject* obj, float nozz
     return printer_preset;
 }
 
-Preset* CalibrationPresetPage::get_print_preset()
+Preset* CalibrationPresetPage::get_print_preset(float nozzle_value)
 {
-    Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
+    Preset* printer_preset = get_printer_preset(curr_obj, nozzle_value);
 
     Preset* print_preset = nullptr;
     wxArrayString print_items;
@@ -3404,9 +3411,9 @@ Preset* CalibrationPresetPage::get_print_preset()
     return print_preset;
 }
 
-std::string CalibrationPresetPage::get_print_preset_name()
+std::string CalibrationPresetPage::get_print_preset_name(float nozzle_value)
 {
-    Preset* print_preset = get_print_preset();
+    Preset* print_preset = get_print_preset(nozzle_value);
     if (print_preset)
         return print_preset->name;
     return "";

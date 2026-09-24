@@ -7,6 +7,8 @@
 #include <wx/clrpicker.h>
 
 #include <map>
+#include <set>
+#include <string>
 
 #include "libslic3r/Preset.hpp"
 #include "wxExtensions.hpp"
@@ -287,6 +289,7 @@ public:
     ~CalibrateFilamentComboBox();
 
     void load_tray(const DynamicPrintConfig & config);
+    void set_calibrate_filaments(std::set<std::string> names) { m_calibrate_filaments = std::move(names); }
 
     void update() override;
     void msw_rescale() override;
@@ -299,6 +302,7 @@ public:
     bool is_compatible_with_printer() { return m_is_compatible; }
 
 private:
+    std::set<std::string> m_calibrate_filaments;
     wxSize      m_chip_size{0, 0};
     std::string m_tray_name;
     std::string m_filament_id;

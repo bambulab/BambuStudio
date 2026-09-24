@@ -285,8 +285,8 @@ public:
     }
 
     Preset* get_printer_preset(MachineObject* obj, float nozzle_value);
-    Preset* get_print_preset();
-    std::string get_print_preset_name();
+    Preset* get_print_preset(float nozzle_value);
+    std::string get_print_preset_name(float nozzle_value);
 
     wxArrayString get_custom_range_values();
     CalibMode     get_pa_cali_method();
@@ -301,6 +301,10 @@ public:
     float get_nozzle_diameter(int nozzle_pos_id) const;
     NozzleVolumeType get_nozzle_volume_type(int extruder_id) const;
     ExtruderType get_extruder_type(int extruder_id) const;
+
+    // Cached per printer preset name for the page's lifetime: set_calibrate_printer rescans all
+    // filament presets on every call.
+    const std::set<std::string>& get_calibrate_filament_names(const std::string& printer_preset_name);
 
 protected:
     void create_selection_panel(wxWindow* parent);
@@ -422,8 +426,9 @@ protected:
     FilamentComboBoxList      m_deputy_filament_comboBox_list;
 
     std::unordered_map<int, int> m_ams_id_to_extruder_id_map;
-    std::vector<ExtruderType>     m_extrder_types;
     std::vector<NozzleVolumeType> m_extruder_nozzle_types;
+    // printer preset name -> compatible filament preset names (see get_calibrate_filament_names)
+    std::map<std::string, std::set<std::string>> m_calibrate_filament_names;
     bool                          m_main_extruder_on_left{true};
 
     wxBoxSizer* m_multi_extruder_ams_panel_sizer;
