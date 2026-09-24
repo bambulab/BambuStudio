@@ -4,10 +4,10 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
 
-#include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
 
-#include "test_data.hpp"
+#include "test_helpers.hpp"
+#include "test_utils.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::Test;
@@ -42,19 +42,22 @@ SCENARIO("Model construction", "[Model]") {
 				}
             }
             model_object->add_instance();
-            arrange_objects(model, InfiniteBed{scaled(Vec2d(100, 100))}, ArrangeParams{scaled(min_object_distance(config))});
+            // Arrange on a finite bed, not InfiniteBed: the latter places items near
+            // INT64_MIN/4, outside ClipperLib's coordinate range (see test_helpers.cpp's init_print()).
+            const BoundingBox bed{Point::new_scale(0., 0.), Point::new_scale(500., 500.)};
+            arrange_objects(model, bed, ArrangeParams{scaled(min_object_distance(config))},
+                [](arrangement::ArrangePolygon &) {});
 			model_object->ensure_on_bed();
 			print.auto_assign_extruders(model_object);
 			THEN("Print works?") {
 				print.set_status_silent();
 				print.apply(model, config);
 				print.process();
-				boost::filesystem::path temp = boost::filesystem::unique_path();
+				ScopedTemporaryFile temp(".gcode");
                 print.export_gcode(temp.string(), nullptr, nullptr);
-                REQUIRE(boost::filesystem::exists(temp));
-				REQUIRE(boost::filesystem::is_regular_file(temp));
-				REQUIRE(boost::filesystem::file_size(temp) > 0);
-				boost::nowide::remove(temp.string().c_str());
+                REQUIRE(boost::filesystem::exists(temp.path()));
+				REQUIRE(boost::filesystem::is_regular_file(temp.path()));
+				REQUIRE(boost::filesystem::file_size(temp.path()) > 0);
 			}
         }
     }

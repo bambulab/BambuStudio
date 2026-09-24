@@ -3,6 +3,8 @@
 
 set(TEST_DATA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/data)
 file(TO_NATIVE_PATH "${TEST_DATA_DIR}" TEST_DATA_DIR)
+set(PROFILES_DIR ${PROJECT_SOURCE_DIR}/resources/profiles)
+file(TO_NATIVE_PATH "${PROFILES_DIR}" PROFILES_DIR)
 
 add_library(Catch2 INTERFACE)
 list (APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/Catch2)
@@ -18,12 +20,29 @@ include(Catch)
 set(CATCH_EXTRA_ARGS "" CACHE STRING "Extra arguments for catch2 test suites.")
 
 add_library(test_common INTERFACE)
-target_compile_definitions(test_common INTERFACE TEST_DATA_DIR=R"\(${TEST_DATA_DIR}\)" CATCH_CONFIG_FAST_COMPILE)
+target_compile_definitions(test_common INTERFACE TEST_DATA_DIR=R"\(${TEST_DATA_DIR}\)" PROFILES_DIR=R"\(${PROFILES_DIR}\)" CATCH_CONFIG_FAST_COMPILE)
 target_link_libraries(test_common INTERFACE Catch2::Catch2)
 
 if (APPLE)
     target_link_libraries(test_common INTERFACE "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 endif()
+
+# libslic3r calls a few functions that are only compiled into the GUI library: Http and BBL_Encrypt
+# (LogSink.cpp) and nanosvg (NSVGUtils.cpp). The tests link libslic3r without the GUI, so they
+# compile those sources here. None of them depend on wxWidgets.
+add_library(test_libslic3r_support STATIC
+    ${PROJECT_SOURCE_DIR}/src/slic3r/Utils/Http.cpp
+    ${PROJECT_SOURCE_DIR}/src/slic3r/Utils/BBLUtil.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/support/nanosvg_impl.cpp
+)
+target_include_directories(test_libslic3r_support PRIVATE ${PROJECT_SOURCE_DIR}/src ${PROJECT_SOURCE_DIR}/src/slic3r/Utils)
+target_link_libraries(test_libslic3r_support PUBLIC libslic3r libcurl OpenSSL::SSL OpenSSL::Crypto)
+if (WIN32)
+    # boost::uuids' random generator uses BCryptGenRandom.
+    target_link_libraries(test_libslic3r_support PUBLIC bcrypt)
+endif()
+set_property(TARGET test_libslic3r_support PROPERTY FOLDER "tests")
+target_link_libraries(test_common INTERFACE test_libslic3r_support)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

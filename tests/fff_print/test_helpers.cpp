@@ -1,4 +1,4 @@
-#include "test_data.hpp"
+#include "test_helpers.hpp"
 
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/GCodeReader.hpp"
@@ -10,21 +10,20 @@
 #include <cstdlib>
 #include <string>
 
-#include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
 #include <libslic3r/ModelArrange.hpp>
+
+#include "test_utils.hpp"
 
 using namespace std;
 
 namespace Slic3r { namespace Test {
 
-// Mesh enumeration to name mapping
 const std::unordered_map<TestMesh, const char*, TestMeshHash> mesh_names {
     std::pair<TestMesh, const char*>(TestMesh::A,						"A"),
     std::pair<TestMesh, const char*>(TestMesh::L,						"L"), 
     std::pair<TestMesh, const char*>(TestMesh::V,						"V"), 
     std::pair<TestMesh, const char*>(TestMesh::_40x10,					"40x10"), 
-    std::pair<TestMesh, const char*>(TestMesh::cube_20x20x20,			"cube_20x20x20"), 
     std::pair<TestMesh, const char*>(TestMesh::sphere_50mm,				"sphere_50mm"), 
     std::pair<TestMesh, const char*>(TestMesh::bridge,					"bridge"), 
     std::pair<TestMesh, const char*>(TestMesh::bridge_with_hole,		"bridge_with_hole"), 
@@ -45,9 +44,6 @@ TriangleMesh mesh(TestMesh m)
 {
     TriangleMesh mesh;
     switch(m) {
-        case TestMesh::cube_20x20x20:
-            mesh = Slic3r::make_cube(20, 20, 20);
-            break;
         case TestMesh::sphere_50mm:
             mesh = Slic3r::make_sphere(50, PI / 243.0);
             break;
@@ -186,112 +182,6 @@ TriangleMesh mesh(TestMesh m)
     return mesh;
 }
 
-static bool verbose_gcode() 
-{
-    const char *v = std::getenv("SLIC3R_TESTS_GCODE");
-    if (v == nullptr)
-    	return false;
-    std::string s(v);
-    return s == "1" || s == "on" || s == "yes";
-}
-
-void init_print(std::vector<TriangleMesh> &&meshes, Slic3r::Print &print, Slic3r::Model &model, const DynamicPrintConfig &config_in, bool comments)
-{
-	DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-    config.apply(config_in);
-
-    if (verbose_gcode())
-        config.set_key_value("gcode_comments", new ConfigOptionBool(true));
-
-    for (const TriangleMesh &t : meshes) {
-		ModelObject *object = model.add_object();
-		object->name += "object.stl";
-		object->add_volume(std::move(t));
-		object->add_instance();
-	}
-    arrange_objects(model, InfiniteBed{}, ArrangeParams{ scaled(min_object_distance(config))});
-	for (ModelObject *mo : model.objects) {
-        mo->ensure_on_bed();
-		print.auto_assign_extruders(mo);
-    }
-
-	print.apply(model, config);
-    print.validate();
-    print.set_status_silent();
-}
-
-void init_print(std::initializer_list<TestMesh> test_meshes, Slic3r::Print &print, Slic3r::Model &model, const Slic3r::DynamicPrintConfig &config_in, bool comments)
-{
-	std::vector<TriangleMesh> triangle_meshes;
-	triangle_meshes.reserve(test_meshes.size());
-	for (const TestMesh test_mesh : test_meshes)
-		triangle_meshes.emplace_back(mesh(test_mesh));
-	init_print(std::move(triangle_meshes), print, model, config_in, comments);
-}
-
-void init_print(std::initializer_list<TriangleMesh> input_meshes, Slic3r::Print &print, Slic3r::Model &model, const DynamicPrintConfig &config_in, bool comments)
-{
-	std::vector<TriangleMesh> triangle_meshes;
-	triangle_meshes.reserve(input_meshes.size());
-	for (const TriangleMesh &input_mesh : input_meshes)
-		triangle_meshes.emplace_back(input_mesh);
-	init_print(std::move(triangle_meshes), print, model, config_in, comments);
-}
-
-void init_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments)
-{
-	Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-	config.set_deserialize_strict(config_items);
-	init_print(meshes, print, model, config, comments);
-}
-
-void init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments)
-{
-	Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-	config.set_deserialize_strict(config_items);
-	init_print(meshes, print, model, config, comments);
-}
-
-void init_and_process_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, const DynamicPrintConfig &config, bool comments)
-{
-	Slic3r::Model model;
-	init_print(meshes, print, model, config, comments);
-	print.process();
-}
-
-void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, const DynamicPrintConfig &config, bool comments)
-{
-	Slic3r::Model model;
-	init_print(meshes, print, model, config, comments);
-	print.process();
-}
-
-void init_and_process_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments)
-{
-	Slic3r::Model model;
-	init_print(meshes, print, model, config_items, comments);
-	print.process();
-}
-
-void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments)
-{
-	Slic3r::Model model;
-	init_print(meshes, print, model, config_items, comments);
-	print.process();
-}
-
-std::string gcode(Print & print)
-{
-	boost::filesystem::path temp = boost::filesystem::unique_path();
-    print.set_status_silent();
-    print.process();
-    print.export_gcode(temp.string(), nullptr, nullptr);
-    std::ifstream t(temp.string());
-	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-	boost::nowide::remove(temp.string().c_str());
-	return str;
-}
-
 Slic3r::Model model(const std::string &model_name, TriangleMesh &&_mesh)
 {
     Slic3r::Model result;
@@ -302,49 +192,341 @@ Slic3r::Model model(const std::string &model_name, TriangleMesh &&_mesh)
     return result;
 }
 
-std::string slice(std::initializer_list<TestMesh> meshes, const DynamicPrintConfig &config, bool comments)
+DynamicPrintConfig multifilament_config(unsigned int filaments, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> extra)
+{
+	// Single nozzle, `filaments` filaments. Colours must be DISTINCT: filament grouping
+	// treats same-colour filaments as one and the tool-order path then drops/segfaults.
+	static const char *palette[] = { "#FF0000", "#00FF00", "#0000FF", "#FFFF00",
+	                                 "#FF00FF", "#00FFFF", "#FF8000", "#8000FF" };
+	std::string diameters, colours, flush;
+	for (unsigned int i = 0; i < filaments; ++i) {
+		diameters += (i ? "," : "") + std::string("1.75");
+		colours   += (i ? ";" : "") + std::string(palette[i % (sizeof(palette) / sizeof(palette[0]))]);
+		for (unsigned int j = 0; j < filaments; ++j)
+			flush += ((i || j) ? "," : "") + std::string(i == j ? "0" : "280");
+	}
+
+	DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+	config.set_deserialize_strict({ { "nozzle_diameter", "0.4" }, { "filament_diameter", diameters } });
+	config.set_num_filaments(filaments);
+
+	// These are read by filament id during export but absent from filament_option_keys(),
+	// so set_num_filaments leaves them size 1; size them too, else out-of-range access.
+	const auto &defaults = FullPrintConfig::defaults();
+	for (const char *key : { "filament_type", "filament_vendor", "filament_start_gcode" })
+		static_cast<ConfigOptionVectorBase *>(config.option(key, true))->resize(filaments, defaults.option(key));
+
+	// flush_volumes_matrix must be sized filaments*filaments or export rejects it.
+	config.set_deserialize_strict({ { "filament_colour", colours }, { "flush_volumes_matrix", flush } });
+
+	if (extra.size() > 0)
+		config.set_deserialize_strict(extra);
+	return config;
+}
+
+void init_print(std::vector<TriangleMesh> &&meshes, Slic3r::Print &print, Slic3r::Model &model, const DynamicPrintConfig &config_in,
+                const std::vector<std::vector<ConfigBase::SetDeserializeItem>> *per_object_overrides, bool arrange)
+{
+	DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.apply(config_in);
+    config.set_key_value("gcode_comments", new ConfigOptionBool(true));
+
+    size_t object_idx = 0;
+    for (const TriangleMesh &t : meshes) {
+		ModelObject *object = model.add_object();
+		object->name += "object.stl";
+		object->add_volume(std::move(t));
+		object->add_instance();
+
+		if (per_object_overrides && object_idx < per_object_overrides->size() && !(*per_object_overrides)[object_idx].empty()) {
+			DynamicPrintConfig oc;
+			for (const auto &item : (*per_object_overrides)[object_idx])
+				oc.set_deserialize_strict(item.opt_key, item.opt_value);
+			object->config.apply(oc);
+		}
+		++object_idx;
+	}
+    if (arrange)
+    {
+        // Arrange on a finite bed. An InfiniteBed places items near INT64_MIN / 4, which is outside the range
+        // ClipperLib accepts, so arrangement failed with "Objects could not fit on the bed". A 500 x 500 mm
+        // bed keeps coordinates small while still fitting every test model.
+        const BoundingBox bed{ Point::new_scale(0., 0.), Point::new_scale(500., 500.) };
+        bool ok = arrange_objects(model, bed, ArrangeParams{ scaled(min_object_distance(config))},
+            [](arrangement::ArrangePolygon &) {});
+        if (!ok) {
+            // BambuStudio's arrangement can leave an item's bed_idx at UNARRANGED (translation
+            // untouched) even for a single small object on a spacious bed; not yet root-caused
+            // (see bambustudio-upstream-bugs.md #4). Fall back to a simple non-overlapping row
+            // layout, which is all a unit test needs.
+            double x = 0.;
+            for (ModelObject *mo : model.objects) {
+                const BoundingBoxf3 bb = mo->raw_bounding_box();
+                const double        w  = bb.size().x();
+                mo->instances.front()->set_offset(Vec3d(x + w / 2. - bb.center().x(), -bb.center().y(), 0.));
+                x += w + min_object_distance(config) + 5.;
+            }
+        }
+    }
+	for (ModelObject *mo : model.objects) {
+        mo->ensure_on_bed();
+		print.auto_assign_extruders(mo);
+    }
+
+	print.apply(model, config);
+    print.validate();
+    print.set_status_silent();
+}
+
+void init_print(std::initializer_list<TestMesh> test_meshes, Slic3r::Print &print, Slic3r::Model &model, const Slic3r::DynamicPrintConfig &config_in)
+{
+	std::vector<TriangleMesh> triangle_meshes;
+	triangle_meshes.reserve(test_meshes.size());
+	for (const TestMesh test_mesh : test_meshes)
+		triangle_meshes.emplace_back(mesh(test_mesh));
+	init_print(std::move(triangle_meshes), print, model, config_in);
+}
+
+void init_print(std::initializer_list<TriangleMesh> input_meshes, Slic3r::Print &print, Slic3r::Model &model, const DynamicPrintConfig &config_in)
+{
+	std::vector<TriangleMesh> triangle_meshes;
+	triangle_meshes.reserve(input_meshes.size());
+	for (const TriangleMesh &input_mesh : input_meshes)
+		triangle_meshes.emplace_back(input_mesh);
+	init_print(std::move(triangle_meshes), print, model, config_in);
+}
+
+void init_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
+{
+	Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
+	config.set_deserialize_strict(config_items);
+	init_print(meshes, print, model, config);
+}
+
+void init_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, Slic3r::Model &model, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
+{
+	Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
+	config.set_deserialize_strict(config_items);
+	init_print(meshes, print, model, config);
+}
+
+void init_and_process_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, const DynamicPrintConfig &config)
+{
+	Slic3r::Model model;
+	init_print(meshes, print, model, config);
+	print.process();
+}
+
+void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, const DynamicPrintConfig &config)
+{
+	Slic3r::Model model;
+	init_print(meshes, print, model, config);
+	print.process();
+}
+
+void init_and_process_print(std::initializer_list<TestMesh> meshes, Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
+{
+	Slic3r::Model model;
+	init_print(meshes, print, model, config_items);
+	print.process();
+}
+
+void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
+{
+	Slic3r::Model model;
+	init_print(meshes, print, model, config_items);
+	print.process();
+}
+
+std::string gcode(Print & print)
+{
+    ScopedTemporaryFile temp(".gcode");
+    print.set_status_silent();
+    print.process();
+    print.export_gcode(temp.string(), nullptr, nullptr);
+    std::ifstream t(temp.string());
+	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+	return str;
+}
+
+std::string slice(std::initializer_list<TestMesh> meshes, const DynamicPrintConfig &config)
 {
 	Slic3r::Print print;
 	Slic3r::Model model;
-	init_print(meshes, print, model, config, comments);
+	init_print(meshes, print, model, config);
 	return gcode(print);
 }
 
-std::string slice(std::initializer_list<TriangleMesh> meshes, const DynamicPrintConfig &config, bool comments)
+std::string slice(std::initializer_list<TriangleMesh> meshes, const DynamicPrintConfig &config)
 {
 	Slic3r::Print print;
 	Slic3r::Model model;
-	init_print(meshes, print, model, config, comments);
+	init_print(meshes, print, model, config);
 	return gcode(print);
 }
 
-std::string slice(std::initializer_list<TestMesh> meshes, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments)
+std::string slice(std::initializer_list<TestMesh> meshes, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
 {
 	Slic3r::Print print;
 	Slic3r::Model model;
-	init_print(meshes, print, model, config_items, comments);
+	init_print(meshes, print, model, config_items);
 	return gcode(print);
 }
 
-std::string slice(std::initializer_list<TriangleMesh> meshes, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items, bool comments)
+std::string slice(std::initializer_list<TriangleMesh> meshes, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
 {
 	Slic3r::Print print;
 	Slic3r::Model model;
-	init_print(meshes, print, model, config_items, comments);
+	init_print(meshes, print, model, config_items);
 	return gcode(print);
+}
+
+std::string slice_with_object_overrides(std::initializer_list<TriangleMesh> meshes, const DynamicPrintConfig &config,
+	const std::vector<std::vector<ConfigBase::SetDeserializeItem>> &per_object_overrides)
+{
+	Slic3r::Print print;
+	Slic3r::Model model;
+	init_print(std::vector<TriangleMesh>(meshes), print, model, config, &per_object_overrides);
+	return gcode(print);
+}
+
+std::string slice_two_cubes_arranged(std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
+{
+	return slice({ cube(20), cube(20) }, config_items);
+}
+
+void place_two_cubes_apart(double gap, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items,
+	Print &print, Model &model)
+{
+	TriangleMesh a = cube(20);
+	a.translate(80, 80, 0);
+	TriangleMesh b = cube(20);
+	b.translate(80 + 20 + gap, 80, 0);
+	std::vector<TriangleMesh> meshes;
+	meshes.push_back(std::move(a));
+	meshes.push_back(std::move(b));
+
+	DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+	config.set_deserialize_strict(config_items);
+	init_print(std::move(meshes), print, model, config, nullptr, /*arrange=*/false);
+}
+
+std::string slice_two_cubes_apart(double gap, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
+{
+	Print print;
+	Model model;
+	place_two_cubes_apart(gap, config_items, print, model);
+	return gcode(print);
+}
+
+void place_two_cube_instances_apart(double gap, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items,
+	Print &print, Model &model)
+{
+	DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+	config.set_deserialize_strict(config_items);
+	config.set_key_value("gcode_comments", new ConfigOptionBool(true));
+
+	ModelObject *object = model.add_object();
+	object->name += "object.stl";
+	object->add_volume(cube(20));
+	object->add_instance()->set_offset(Vec3d(80, 80, 0));
+	object->add_instance()->set_offset(Vec3d(80 + 20 + gap, 80, 0));
+	object->ensure_on_bed();
+	print.auto_assign_extruders(object);
+
+	print.apply(model, config);
+	print.validate();
+	print.set_status_silent();
+}
+
+// BambuStudio (GCode.cpp, GCodeWriter::full_gcode_comment is hard-coded false) does not echo the
+// extrusion role as a trailing comment on each move like OrcaSlicer/PrusaSlicer do. Instead it
+// writes a standalone "; FEATURE: <role>" line (GCodeProcessor::ETags::Role, always emitted,
+// since the GCodeProcessor needs it for time estimation) whenever the role changes, followed by
+// plain, uncommented extrusion moves. So role detection has to track the last-announced FEATURE
+// line as state while scanning, rather than looking for a comment on the extruding line itself.
+static constexpr std::string_view FEATURE_TAG = " FEATURE: ";
+
+std::set<double> layers_with_role(const std::string &gcode, const std::string &role)
+{
+    std::set<double> layers;
+    std::string current_role;
+    GCodeReader parser;
+    parser.parse_buffer(gcode, [&](GCodeReader &self, const GCodeReader::GCodeLine &line) {
+        const std::string_view comment = line.comment();
+        if (comment.rfind(FEATURE_TAG, 0) == 0) {
+            current_role.assign(comment.substr(FEATURE_TAG.size()));
+            return;
+        }
+        if (line.extruding(self) && current_role.find(role) != std::string::npos)
+            layers.insert(self.z());
+    });
+    return layers;
+}
+
+double max_z(const std::string &gcode)
+{
+    double z = 0.0;
+    GCodeReader parser;
+    parser.parse_buffer(gcode, [&z](GCodeReader &self, const GCodeReader::GCodeLine &) {
+        z = std::max(z, static_cast<double>(self.z()));
+    });
+    return z;
+}
+
+int role_passes(const std::string &gcode, const std::string &role)
+{
+    int passes = 0;
+    bool in_role = false;
+    std::string current_role;
+    GCodeReader reader;
+    reader.parse_buffer(gcode, [&](GCodeReader &self, const GCodeReader::GCodeLine &line) {
+        const std::string_view comment = line.comment();
+        if (comment.rfind(FEATURE_TAG, 0) == 0) {
+            current_role.assign(comment.substr(FEATURE_TAG.size()));
+            return;
+        }
+        if (! line.extruding(self)) return;
+        const bool is_role = current_role.find(role) != std::string::npos;
+        if (is_role && ! in_role) ++passes;
+        in_role = is_role;
+    });
+    return passes;
+}
+
+std::vector<std::string> role_sequence(const std::string &gcode, const std::vector<std::string> &roles)
+{
+    std::vector<std::string> seq;
+    std::string current;
+    std::string current_role;
+    GCodeReader reader;
+    reader.parse_buffer(gcode, [&](GCodeReader &self, const GCodeReader::GCodeLine &line) {
+        const std::string_view comment = line.comment();
+        if (comment.rfind(FEATURE_TAG, 0) == 0) {
+            current_role.assign(comment.substr(FEATURE_TAG.size()));
+            return;
+        }
+        if (! line.extruding(self)) return;
+        for (const std::string &role : roles)
+            if (current_role.find(role) != std::string::npos) {
+                if (current != role) { seq.push_back(role); current = role; }
+                break;
+            }
+    });
+    return seq;
 }
 
 } } // namespace Slic3r::Test
 
 #include <catch2/catch.hpp>
 
-SCENARIO("init_print functionality", "[test_data]") {
+SCENARIO("init_print functionality", "[test_helpers]") {
 	GIVEN("A default config") {
 		Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
 		WHEN("init_print is called with a single mesh.") {
 			Slic3r::Model model;
 			Slic3r::Print print;
-			Slic3r::Test::init_print({ Slic3r::Test::TestMesh::cube_20x20x20 }, print, model, config, true);
+			Slic3r::Test::init_print({ Slic3r::Test::cube(20) }, print, model, config);
 			THEN("One mesh/printobject is in the resulting Print object.") {
 				REQUIRE(print.objects().size() == 1);
 			}
@@ -354,17 +536,6 @@ SCENARIO("init_print functionality", "[test_data]") {
 			THEN("Export gcode functions outputs text.") {
 				REQUIRE(! Slic3r::Test::gcode(print).empty());
 			}
-#if 0
-			THEN("Embedded meshes exported") {
-				std::string path = "C:\\data\\temp\\embedded_meshes\\";
-				for (auto kvp : Slic3r::Test::mesh_names) {
-					Slic3r::TriangleMesh m = mesh(kvp.first);
-					std::string name = kvp.second;
-					REQUIRE(Slic3r::store_stl((path + name + ".stl").c_str(), &m, true) == true);
-					REQUIRE(Slic3r::store_obj((path + name + ".obj").c_str(), &m) == true);
-				}
-			}
-#endif
 		}
 	}
 }

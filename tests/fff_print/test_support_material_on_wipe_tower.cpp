@@ -2,7 +2,7 @@
 
 #include "libslic3r/Print.hpp"
 
-#include "test_data.hpp"
+#include "test_helpers.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::Test;
@@ -37,7 +37,7 @@ DynamicPrintConfig make_wipe_tower_support_config(unsigned num_filaments)
 void add_cube_object(Model &model, double offset_x = 0.0)
 {
     ModelObject *object = model.add_object();
-    object->add_volume(mesh(TestMesh::cube_20x20x20));
+    object->add_volume(cube(20));
     object->add_instance();
     object->instances.front()->set_offset(Vec3d(offset_x, 0.0, 0.0));
 }
