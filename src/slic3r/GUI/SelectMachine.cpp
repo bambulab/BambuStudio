@@ -1379,6 +1379,41 @@ void print_ams_mapping_result(std::vector<FilamentInfo>& result)
     BOOST_LOG_TRIVIAL(info) << "ams_mapping_result: count=" << result.size() << line;
 }
 
+static bool s_is_ams_mapping_result_valid(const std::string& mapping_array_str, const std::string& mapping_array_str2)
+{
+    if (mapping_array_str.empty() || mapping_array_str2.empty()) {
+        return false;
+    }
+
+    try {
+        const json v0 = json::parse(mapping_array_str);
+        const json v1 = json::parse(mapping_array_str2);
+        if (!v0.is_array() || !v1.is_array() || v0.empty() || v1.empty()) {
+            return false;
+        }
+
+        // A job fed only from external spools also reports -1 in the legacy array,
+        // but keeps the real ams id in the new one, so the mapping only counts as
+        // invalid when both halves are empty.
+        for (const auto& item : v0) {
+            if (!item.is_number_integer() || item.get<int>() != -1) {
+                return true;
+            }
+        }
+
+        for (const auto& item : v1) {
+            if (item.value("ams_id", -1) != VIRTUAL_TRAY_MAIN_ID || item.value("slot_id", -1) != VIRTUAL_TRAY_MAIN_ID) {
+                return true;
+            }
+        }
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to parse the ams mapping payload, " << e.what();
+        return true;
+    }
+
+    return false;
+}
+
 bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
 {
     if (!obj_) return false;
@@ -3356,6 +3391,28 @@ void SelectMachineDialog::on_send_print()
 
     if (!DevMappingUtil::is_valid_mapping_result(obj_, m_ams_mapping_result)) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "print_job: invalid mapping";
+        Enable_Send_Button(true);
+        return;
+    }
+
+    std::string ams_mapping_array;
+    std::string ams_mapping_array2;
+    std::string ams_mapping_info;
+    get_ams_mapping_result(ams_mapping_array, ams_mapping_array2, ams_mapping_info);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result begin";
+    print_ams_mapping_result(m_ams_mapping_result);
+    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_array = " << ams_mapping_array;
+    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_array2 = " << ams_mapping_array2;
+    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_info = " << ams_mapping_info;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result end";
+
+    if (!s_is_ams_mapping_result_valid(ams_mapping_array, ams_mapping_array2)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "print_job: invalid ams mapping result, the send is aborted";
+        MessageDialog dlg(this, _L("The current filament mapping is invalid and the print would fail. Please select the filaments manually again."),
+                          _L("Warning"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+        Enable_Send_Button(true);
         return;
     }
 
@@ -3388,19 +3445,6 @@ void SelectMachineDialog::on_send_print()
     sending_mode();
     if (m_print_job) { m_print_job->reset_print_stage(); }
     m_status_bar->enable_cancel_button();
-
-    // get ams_mapping_result
-    std::string ams_mapping_array;
-    std::string ams_mapping_array2;
-    std::string ams_mapping_info;
-    get_ams_mapping_result(ams_mapping_array,ams_mapping_array2, ams_mapping_info);
-
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result begin";
-    print_ams_mapping_result(m_ams_mapping_result);
-    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_array = " << ams_mapping_array;
-    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_array2 = " << ams_mapping_array2;
-    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_info = " << ams_mapping_info;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result end";
 
     const bool is_imported_3mf = m_print_type == PrintFromType::FROM_NORMAL && m_plater->using_exported_file();
     if (is_imported_3mf) {
