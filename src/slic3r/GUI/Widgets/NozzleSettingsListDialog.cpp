@@ -24,7 +24,6 @@
 #include "slic3r/GUI/FilamentBitmapUtils.hpp"
 #include "slic3r/GUI/Widgets/NozzleAmsRow.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
-#include "slic3r/GUI/Widgets/CheckBox.hpp"
 #include "slic3r/GUI/Widgets/ComboBox.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include "slic3r/GUI/Widgets/StateColor.hpp"
@@ -705,7 +704,6 @@ void NozzleSettingsListDialog::create_layout(const wxString &selected_diameter, 
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
     build_diameter_selector(main_sizer, selected_diameter);
     build_columns(main_sizer, left_seeds, right_seeds);
-    build_multi_diameter_option(main_sizer);
     build_warning_panels(main_sizer);
     build_button_bar(main_sizer);
 
@@ -770,26 +768,6 @@ void NozzleSettingsListDialog::build_columns(wxBoxSizer *main_sizer, const std::
         layout_badge();
         e.Skip();
     });
-}
-
-// The project-level multi-diameter gate. Seeded from the project config and read back by the caller on
-// Confirm, so it is saved with the project like the rest of project_config.
-void NozzleSettingsListDialog::build_multi_diameter_option(wxBoxSizer *main_sizer)
-{
-    m_multi_diameter_check = new CheckBox(this);
-    m_multi_diameter_check->SetValue(multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
-    m_multi_diameter_check->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
-        update_dialog_state();
-        e.Skip();
-    });
-
-    auto *label = new Label(this, _L("Print with multiple nozzle diameters on one plate"));
-    label->SetFont(Label::Body_13);
-
-    auto *row = new wxBoxSizer(wxHORIZONTAL);
-    row->Add(m_multi_diameter_check, 0, wxALIGN_CENTER_VERTICAL);
-    row->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
-    main_sizer->Add(row, 0, wxALIGN_LEFT | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
 }
 
 // The two notices below the columns; both start hidden and are toggled by
@@ -899,7 +877,7 @@ void NozzleSettingsListDialog::update_dialog_state()
 
     auto scan = [&](NozzleColumn *col, int extruder_idx) {
         if (!col) return;
-        col->UpdateWarnings(selected, !GetMultiDiameterMode());
+        col->UpdateWarnings(selected, true);
         if (all_synced && !extruder_configs_match(col->GetConfigs(), m_machine_baseline.configs[extruder_idx])) all_synced = false;
         for (const auto &cfg : col->GetConfigs()) {
             if (cfg.diameter.IsEmpty())
@@ -910,9 +888,6 @@ void NozzleSettingsListDialog::update_dialog_state()
     };
     scan(m_left_column, 0);
     scan(m_right_column, 1);
-
-    // Nozzles off the selected diameter are only unusable while the multi-diameter mode is off.
-    if (GetMultiDiameterMode()) has_warning = false;
 
     if (m_warning_panel) m_warning_panel->Show(has_warning);
     if (m_warning_serious_panel) m_warning_serious_panel->Show(has_empty);
@@ -970,14 +945,11 @@ std::vector<NozzleConfig> NozzleSettingsListDialog::GetExtruderConfigs(int index
     return {};
 }
 
-bool NozzleSettingsListDialog::GetMultiDiameterMode() const { return m_multi_diameter_check && m_multi_diameter_check->GetValue(); }
-
 void NozzleSettingsListDialog::on_dpi_changed(const wxRect & /*suggested_rect*/)
 {
     if (m_diameter_panel) m_diameter_panel->Rescale();
     if (m_left_column) m_left_column->Rescale();
     if (m_right_column) m_right_column->Rescale();
-    if (m_multi_diameter_check) m_multi_diameter_check->Rescale();
 
     auto rescale_btn = [this](Button *btn) {
         if (!btn) return;

@@ -2323,7 +2323,7 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
     bool                      accepted = false;
     wxString                  selected_diameter;
     std::vector<NozzleConfig> new_left, new_right, new_single;
-    std::optional<bool>       new_multi_diameter_mode; // set by the list dialog, which owns the mode toggle, or by the auto-exit below
+    std::optional<bool>       new_multi_diameter_mode; // set only by the card dialog's auto-exit below
     bool                      auto_left_multi_diameter = false;
 
     if (use_card_dialog) {
@@ -2348,8 +2348,7 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), is_dual, diameter, is_dual ? l_ext_cfg : s_ext_cfg, r_ext_cfg, fila_state);
         accepted = dlg.ShowModal() == wxID_OK;
         if (accepted) {
-            selected_diameter       = dlg.GetSelectedDiameter();
-            new_multi_diameter_mode = dlg.GetMultiDiameterMode();
+            selected_diameter = dlg.GetSelectedDiameter();
             if (is_dual) {
                 new_left  = dlg.GetExtruderConfigs(0);
                 new_right = dlg.GetExtruderConfigs(1);
@@ -2360,13 +2359,10 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
     }
 
     if (accepted) {
-        // The multi-diameter gate decides how the per-slot nozzle setup below is read, so it is applied
-        // first. Everything the two branches further down do - validating the per-filament diameters,
-        // recomputing compatibility, refreshing the filament rows - then already sees the new mode.
-        // The card dialog defers the mode to the sidebar selector, so the gate is only touched for the list dialog.
         DynamicPrintConfig &project_config = wxGetApp().preset_bundle->project_config;
-        const bool previous_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
-        bool target_multi_diameter_mode = previous_multi_diameter_mode;
+        // The list dialog is single-diameter only, so the multi-diameter gate is only meaningful for the card dialog.
+        const bool previous_multi_diameter_mode =
+            use_card_dialog && multi_nozzle_diameter_mode_enabled(project_config);
         if (new_multi_diameter_mode.has_value()) {
             // apply_multi_nozzle_diameter_mode() switches the printer preset internally
             // (Tab::select_preset() -> PresetBundle::update_compatible(Always)), same as the sidebar's
@@ -2378,10 +2374,12 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             wxGetApp().preset_bundle->block_filament_fallback_substitution = true;
             apply_multi_nozzle_diameter_mode(*new_multi_diameter_mode);
             is_switching_diameter = false;
-            target_multi_diameter_mode = multi_nozzle_diameter_mode_enabled(project_config);
-            diameter_btns->SetMultiDiameterMode(target_multi_diameter_mode);
         }
+        const bool target_multi_diameter_mode =
+            use_card_dialog && multi_nozzle_diameter_mode_enabled(project_config);
         const bool multi_diameter_mode_changed = previous_multi_diameter_mode != target_multi_diameter_mode;
+        if (new_multi_diameter_mode.has_value() || !use_card_dialog)
+            diameter_btns->SetMultiDiameterMode(target_multi_diameter_mode);
 
         if (is_dual) {
             l_ext_cfg = new_left;
@@ -2398,11 +2396,12 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         // authoritative dialog snapshot says TPU285.
         sync_per_slot_nozzle_options_from_full_stat(project_config, wxGetApp().preset_bundle->extruder_full_stat);
 
-        // Mode on/off already selected the 0.2 or 0.4 printer above. switch_diameter()
-        // is only for changing the slicing diameter while staying in single-diameter mode.
+        // The list dialog is single-diameter only. Confirming a different diameter switches
+        // the printer preset to the selected diameter; N1X multi-diameter mode stays anchored
+        // on its canonical preset and therefore skips this path.
         //
-        // The auto-exit is the exception: leaving the mode restores the printer the project used
-        // before it entered multi-diameter mode, and that printer's diameter need not be the one
+        // The card dialog's auto-exit is the exception: leaving the mode restores the printer the project
+        // used before it entered multi-diameter mode, and that printer's diameter need not be the one
         // the slots have since settled on, so the diameter still has to follow.
         if ((!multi_diameter_mode_changed || auto_left_multi_diameter) && !target_multi_diameter_mode &&
             !selected_diameter.IsEmpty() && selected_diameter != diameter) {
