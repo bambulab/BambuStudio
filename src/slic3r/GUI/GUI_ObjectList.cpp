@@ -4689,10 +4689,12 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
             }
         }
         else {
+            // sub_obj_idx of a volume is the index in ModelObject::volumes, while the list skips cut connectors
+            const int ui_vol_idx = (item->type & itVolume) ? m_objects_model->get_real_volume_index_in_ui(item->obj_idx, item->sub_obj_idx) : -1;
             if (!del_subobject_from_object(item->obj_idx, item->sub_obj_idx, item->type))
                 return; //continue;
             if (item->type&itVolume) {
-                m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, item->sub_obj_idx));
+                m_objects_model->Delete(m_objects_model->GetItemByVolumeId(item->obj_idx, ui_vol_idx));
                 // BBS
 #if 0
                 ModelObject* obj = object(item->obj_idx);
@@ -4726,6 +4728,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
     }
 
     for (size_t id : modified_objects_ids) {
+        update_ui_and_3d_volume_map(int(id));
         update_info_items(id);
     }
 
@@ -4740,6 +4743,22 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
 
     m_prevent_list_events = true;
     part_selection_changed();
+}
+
+void ObjectList::update_ui_and_3d_volume_map(const int obj_idx)
+{
+    auto &volume_maps = m_objects_model->get_ui_and_3d_volume_map();
+    volume_maps.erase(obj_idx);
+    if (obj_idx < 0 || obj_idx >= int(m_objects->size()))
+        return;
+
+    const ModelObject *object = (*m_objects)[obj_idx];
+    int ui_volume_idx = 0;
+    for (int volume_idx = 0; volume_idx < int(object->volumes.size()); ++volume_idx) {
+        if (object->is_cut() && object->volumes[volume_idx]->is_cut_connector())
+            continue;
+        volume_maps[obj_idx][ui_volume_idx++] = volume_idx;
+    }
 }
 
 void ObjectList::update_lock_icons_for_model()

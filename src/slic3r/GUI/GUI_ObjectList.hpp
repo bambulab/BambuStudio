@@ -385,6 +385,8 @@ public:
     void delete_instance_from_list(const size_t obj_idx, const size_t inst_idx);
     void delete_from_model_and_list(const ItemType type, const int obj_idx, const int sub_obj_idx);
     void delete_from_model_and_list(const std::vector<ItemForDelete>& items_for_delete);
+    // Rebuild the UI -> 3D volume index map of the object from its current ModelObject::volumes
+    void update_ui_and_3d_volume_map(const int obj_idx);
     void update_lock_icons_for_model();
     // Delete all objects from the list
     void delete_all_objects_from_list();
