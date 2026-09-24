@@ -334,10 +334,6 @@ void AppConfig::set_defaults()
         set("auto_calculate_flush","all");
     }
 
-    if (get("enable_high_low_temp_mixed_printing").empty()){
-        set_bool("enable_high_low_temp_mixed_printing", false);
-    }
-
     if (get("auto_optimize_wipe_tower_placement").empty()) {
         set_bool("auto_optimize_wipe_tower_placement", true);
     }

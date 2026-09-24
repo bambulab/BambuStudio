@@ -7008,7 +7008,6 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
                         StringObjectException warning;
-                        print_fff->set_check_multi_filaments_compatibility(!allow_mix_temp);
                         const long long validate_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                         auto err = print->validate(&warning);
                         add_plate_other(validate_begin_time);

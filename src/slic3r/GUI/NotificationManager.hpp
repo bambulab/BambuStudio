@@ -232,7 +232,8 @@ public:
 	// Push a NotificationType::CustomNotification with provided notification level and 10s for RegularNotificationLevel.
 	// ErrorNotificationLevel are never faded out.
     void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
-                           std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0);
+                           std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0,
+                           const std::string& second_hypertext = "", std::function<bool(wxEvtHandler*)> second_callback = nullptr);
     // A corner notification in the ordinary layout -- white background, coloured left bar and
     // border -- but painted in the error colour instead of the warning one, and never fading out.
     // NotificationLevel picks the colour and the render path together, and ErrorNotificationLevel

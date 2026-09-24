@@ -265,6 +265,7 @@ public:
     /// ignores the nozzle; a subclass raises this to prefer or require a matching nozzle.
     virtual NozzleMatchWeight nozzle_match_weight() const { return NozzleMatchWeight::Ignore; }
     void deal_only_exist_ext_spool(MachineObject *obj_);
+    void update_high_temp_tip(MachineObject *obj_);
     void show_thumbnail_page();
     bool get_ams_mapping_result(std::string &mapping_array_str, std::string &mapping_array_str2, std::string &ams_mapping_info);
     bool build_nozzles_info(std::string &nozzles_info);
@@ -348,6 +349,8 @@ private:
     wxString m_tip_attention_color_map;
     wxString m_tip_attention_override;
     Label* m_tip_text{nullptr};
+    Label* m_high_temp_tip_text{nullptr};
+    bool   m_has_high_temp_fila{false};
     //wxStaticText *m_specify_color_cluster_title = nullptr;
     //wxStaticText*  m_used_colors_tip_text{nullptr};
     wxStaticText* m_warning_text{nullptr};

@@ -929,7 +929,15 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info, long extr
         m_tip_text->SetMinSize(wxSize(SyncAttentionTipWidth, -1));
         m_tip_text->SetMaxSize(wxSize(SyncAttentionTipWidth, -1));
         m_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-        tip_sizer->Add(m_tip_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+        m_high_temp_tip_text = new Label(m_scrolledWindow, _L("High-temperature filament detected in AMS. Do not mix it with low-temperature filaments such as PLA."), LB_AUTO_WRAP);
+        m_high_temp_tip_text->SetMinSize(wxSize(SyncAttentionTipWidth, -1));
+        m_high_temp_tip_text->SetMaxSize(wxSize(SyncAttentionTipWidth, -1));
+        m_high_temp_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));
+        m_high_temp_tip_text->Hide();
+        wxBoxSizer *tip_text_sizer = new wxBoxSizer(wxVERTICAL);
+        tip_text_sizer->Add(m_tip_text, 0, wxALIGN_LEFT, 0);
+        tip_text_sizer->Add(m_high_temp_tip_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+        tip_sizer->Add(tip_text_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
         tip_sizer->AddSpacer(FromDIP(20));
         bSizer->Add(tip_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
 
@@ -1306,6 +1314,7 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_info=" << mapping_info;
         }
         deal_only_exist_ext_spool(obj_);
+        update_high_temp_tip(obj_);
         show_thumbnail_page();
         return DevMappingUtil::is_valid_mapping_result(obj_, m_ams_mapping_result);
     } else {
@@ -1321,6 +1330,7 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
         }
         sync_ams_mapping_result(m_ams_mapping_result);
         deal_only_exist_ext_spool(obj_);
+        update_high_temp_tip(obj_);
         show_thumbnail_page();
         return is_valid;
     }
@@ -1348,6 +1358,37 @@ void SyncAmsInfoDialog::deal_only_exist_ext_spool(MachineObject *obj_) {
     if (m_ams_or_ext_text_in_override) {
         m_ams_or_ext_text_in_override->SetLabel((only_exist_ext_spool_flag ? _L("Ext spool") : _L("AMS")) + ":");
     }
+}
+
+void SyncAmsInfoDialog::update_high_temp_tip(MachineObject *obj_)
+{
+    if (!obj_ || !m_high_temp_tip_text)
+        return;
+    auto is_high_temp = [](const DevAmsTray &tray) {
+        return tray.is_exists && Print::get_filament_temp_type(tray.m_fila_type) == FilamentTempType::HighTemp;
+    };
+    bool has_high_temp = false;
+    for (const auto &[ams_id, ams] : obj_->GetFilaSystem()->GetAmsList()) {
+        for (const auto &[slot_id, tray] : ams->GetTrays()) {
+            if (tray && is_high_temp(*tray)) {
+                has_high_temp = true;
+                break;
+            }
+        }
+        if (has_high_temp) break;
+    }
+    // ext spools take part in the sync only when supported and not replaced by a selector, see Sidebar::build_filament_ams_list and has_selector()
+    if (!has_high_temp && obj_->ams_support_virtual_tray && !has_selector(obj_)) {
+        for (const auto &tray : obj_->vt_slot) {
+            if (is_high_temp(tray)) {
+                has_high_temp = true;
+                break;
+            }
+        }
+    }
+    m_has_high_temp_fila = has_high_temp;
+    // keep in sync with m_tip_text, which is toggled by show_ams_controls()
+    m_high_temp_tip_text->Show(m_tip_text->IsShown() && m_has_high_temp_fila);
 }
 
 void SyncAmsInfoDialog::show_thumbnail_page()
@@ -3129,6 +3170,7 @@ void SyncAmsInfoDialog::show_ams_controls(bool flag)
     if (flag) { m_filament_panel->Fit(); }
     m_attention_text->Show(flag && !m_hide_hint_labels);
     m_tip_text->Show(flag && !m_hide_hint_labels);
+    m_high_temp_tip_text->Show(flag && !m_hide_hint_labels && m_has_high_temp_fila);
 }
 
 void SyncAmsInfoDialog::apply_scroll_height(int height)

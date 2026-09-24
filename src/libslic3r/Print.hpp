@@ -1136,8 +1136,8 @@ public:
     Vec2f               get_rib_offset() const { return m_wipe_tower_data.rib_offset; }
     const FakeWipeTower& get_fake_wipe_tower() const { return m_fake_wipe_tower; }
 
-    void set_check_multi_filaments_compatibility(bool check) { m_need_check_multi_filaments_compatibility = check; }
-    bool need_check_multi_filaments_compatibility() const { return m_need_check_multi_filaments_compatibility; }
+    void set_show_high_temp_filament_warning(bool show) { m_show_high_temp_filament_warning = show; }
+    bool need_show_high_temp_filament_warning() const { return m_show_high_temp_filament_warning; }
 
     // BBS: pass the Preferences toggle through to G-code as placeholder disable_fins_extrude_safe_temp.
     void set_disable_fins_extrude_safe_temp(bool disable) { m_disable_fins_extrude_safe_temp = disable; }
@@ -1307,7 +1307,7 @@ private:
     // OrcaSlicer: calibration
     Calib_Params m_calib_params;
 
-    bool m_need_check_multi_filaments_compatibility{true};
+    bool m_show_high_temp_filament_warning{true};
     bool m_disable_fins_extrude_safe_temp{false};
 
     // To allow GCode to set the Print's GCodeExport step status.

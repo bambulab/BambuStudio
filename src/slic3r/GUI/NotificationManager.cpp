@@ -1696,10 +1696,15 @@ void NotificationManager::push_notification(NotificationType type,
                                             const std::string& text,
                                             const std::string& hypertext,
                                             std::function<bool(wxEvtHandler*)> callback,
-                                            int timestamp)
+                                            int timestamp,
+                                            const std::string& second_hypertext,
+                                            std::function<bool(wxEvtHandler*)> second_callback)
 {
 	int duration = get_standard_duration(level);
-    push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
+    NotificationData data{ type, level, duration, text, hypertext, callback };
+    data.second_hypertext = second_hypertext;
+    data.second_callback  = second_callback;
+    push_notification_data(data, timestamp);
 }
 
 void NotificationManager::push_error_border_notification(NotificationType type,

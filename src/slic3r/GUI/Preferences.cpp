@@ -1138,42 +1138,6 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             wxPostEvent(wxGetApp().plater(), evt);
         }
 
-        if (param == "enable_high_low_temp_mixed_printing") {
-            if (checkbox->GetValue()) {
-                const wxString warning_title = _L("Bed Temperature Difference Warning");
-                const wxString warning_message =
-                    _L("Using filaments with significantly different temperatures may cause:\n"
-                        "• Extruder clogging\n"
-                        "• Nozzle damage\n"
-                        "• Layer adhesion issues\n\n"
-                        "Continue with enabling this feature?");
-                std::function<void(const wxString&)> link_callback = [](const wxString&) {
-                            const std::string lang_code = wxGetApp().app_config->get("language");
-                            const wxString region = (lang_code.find("zh") != std::string::npos) ? L"zh" : L"en";
-                            const wxString wiki_url = wxString::Format(
-                                L"https://wiki.bambulab.com/%s/filament-acc/filament/h2d-filament-config-limit",
-                                region
-                            );
-                            wxGetApp().open_browser_with_warning_dialog(wiki_url);
-                            };
-
-                MessageDialog msg_dialog(
-                    nullptr,
-                    warning_message,
-                    warning_title,
-                    wxICON_WARNING | wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE,
-                    wxEmptyString,
-                    _L("Click Wiki for help."),
-                    link_callback
-                );
-
-                if (msg_dialog.ShowModal() != wxID_YES) {
-                    checkbox->SetValue(false);
-                    app_config->set_bool(param, false);
-                    app_config->save();
-                }
-            }
-        }
         e.Skip();
     });
 
@@ -1561,10 +1525,6 @@ wxWindow *PreferencesDialog::create_user_tab()
     auto item_auto_transfer = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), scrolled,
                                                    _L("After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
 
-    auto item_mix_print_high_low_temp = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), scrolled,
-                                                             _L("With this option enabled, you can print materials with a large temperature difference together."), 50,
-                                                             "enable_high_low_temp_mixed_printing");
-
     auto item_auto_arrange_wipe_tower_on_switch_printer = create_item_checkbox(_L("Automatically optimize wipe tower placement"), scrolled,
                                                              _L("With this option enabled, the wipe tower will be placed at its optimal position."), 50,
                                                              "auto_optimize_wipe_tower_placement");
@@ -1587,7 +1547,6 @@ wxWindow *PreferencesDialog::create_user_tab()
     sizer->Add(wrap_option_row(scrolled, item_bed_type_follow_preset), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_stop_liveview), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_transfer), flags);
-    sizer->Add(wrap_option_row(scrolled, item_mix_print_high_low_temp), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_arrange_wipe_tower_on_switch_printer), flags);
     sizer->Add(wrap_option_row(scrolled, item_user_sync), flags);
     sizer->Add(wrap_option_row(scrolled, item_system_sync), flags);
@@ -2109,6 +2068,7 @@ void PreferencesDialog::on_reset_all_warnings()
     app_config->erase("app", "post_process_script_choice");
     app_config->erase("app", "no_warn_mixed_sublayer_variable_layer");
     app_config->erase("app", "no_warn_delete_used_filament");
+    app_config->erase("app", "no_warn_high_temp_filament");
     app_config->set("show_support_recommend_dialog", "true");
     app_config->set("save_project_choise", "");
     if (wxGetApp().plater()) wxGetApp().plater()->reset_post_process_script_choice();
@@ -2142,7 +2102,6 @@ void PreferencesDialog::on_reset_preferences()
         "use_12h_time_format",
         "auto_stop_liveview",
         "auto_transfer_when_switch_preset",
-        "enable_high_low_temp_mixed_printing",
         "sync_user_preset",
         "sync_system_preset",
         "disable_fins_extrude_safe_temp",

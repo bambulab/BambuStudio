@@ -13823,8 +13823,16 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
 	    };
         auto        action_fn = (mo || !warning.opt_key.empty()) ? obj_call_fn : std::function<bool(wxEvtHandler *)>();
         std::string hypertext;
+        std::string second_hypertext;
+        std::function<bool(wxEvtHandler *)> second_action_fn;
         // hack code
         if (warning.hypetext == "filament_mix_print") {
+            second_hypertext = _u8L("Don't show again");
+            second_action_fn = [](wxEvtHandler *) -> bool {
+                wxGetApp().app_config->set("no_warn_high_temp_filament", "true");
+                wxGetApp().app_config->save();
+                return true;
+            };
             hypertext = _u8L("Click Wiki for help.");
             action_fn = [](wxEvtHandler *)->bool {
                 bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
@@ -13864,7 +13872,7 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
         notification_manager->push_notification(
             NotificationType::ValidateWarning,
             NotificationManager::NotificationLevel::WarningNotificationLevel,
-            _u8L("WARNING:") + "\n" + text, hypertext, action_fn
+            _u8L("WARNING:") + "\n" + text, hypertext, action_fn, 0, second_hypertext, second_action_fn
         );
     }
 }
@@ -13948,7 +13956,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
     }
 
-    background_process.fff_print()->set_check_multi_filaments_compatibility(wxGetApp().app_config->get("enable_high_low_temp_mixed_printing") == "false");
+    background_process.fff_print()->set_show_high_temp_filament_warning(wxGetApp().app_config->get("no_warn_high_temp_filament") != "true");
     background_process.fff_print()->set_disable_fins_extrude_safe_temp(wxGetApp().app_config->get("disable_fins_extrude_safe_temp") == "true");
 
     Print::ApplyStatus invalidated;
@@ -29435,7 +29443,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
         StringObjectException warning;
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
-        p->background_process.fff_print()->set_check_multi_filaments_compatibility(wxGetApp().app_config->get("enable_high_low_temp_mixed_printing") == "false");
+        p->background_process.fff_print()->set_show_high_temp_filament_warning(wxGetApp().app_config->get("no_warn_high_temp_filament") != "true");
         p->background_process.fff_print()->set_disable_fins_extrude_safe_temp(wxGetApp().app_config->get("disable_fins_extrude_safe_temp") == "true");
         StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
         // update string by type

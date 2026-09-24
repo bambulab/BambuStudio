@@ -1119,6 +1119,9 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     }
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
+            // the high-temp filament warning may already be in the slot, keep the two on separate lines
+            if (!warning->string.empty() && warning->string.back() != '\n')
+                warning->string += "\n";
             warning->string += L("Prime Tower") + L(" is too close to others, and collisions may be caused.\n");
         }
     }
@@ -1302,92 +1305,23 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
     }
 }
 
-//BBS: this function is used to check whether multi filament can be printed
+//BBS: remind the user when high-temp filaments are used on the current plate
 StringObjectException Print::check_multi_filament_valid(const Print& print)
 {
-    auto print_config = print.config();
-    if(print_config.print_sequence == PrintSequence::ByObject) {// use ByObject valid under ByObject print sequence
-        std::set<FilamentCompatibilityType> Compatibility_each_obj;
-        bool enable_mix_printing = !print.need_check_multi_filaments_compatibility();
-
-        for (const auto &objectID_t : print.print_object_ids()) {
-            std::set<unsigned int> obj_used_extruder_ids;
-            auto                     print_object = print.get_object(objectID_t);// current object
-            if (print_object){
-                auto object_extruders_t = print_object->object_extruders(); // object used extruder
-                for (unsigned int extruder : object_extruders_t) {
-                    // object_extruders() returns 0-based filament indexes; 0 is the first filament.
-                    obj_used_extruder_ids.insert(extruder);
-                }
-            }
-
-            if (print_object->has_support_material()) { // extruder used by supports
-                auto num_extruders                 = (unsigned int) print_config.filament_diameter.size();
-                assert(print_object->config().support_filament >= 0);
-                if (print_object->config().support_filament >= 1 && (unsigned int)print_object->config().support_filament < num_extruders + 1)
-                    obj_used_extruder_ids.insert((unsigned int) print_object->config().support_filament - 1);//0-based extruder id
-                assert(print_object->config().support_interface_filament >= 0);
-                if (print_object->config().support_interface_filament >= 1 && (unsigned int)print_object->config().support_interface_filament < num_extruders + 1)
-                    obj_used_extruder_ids.insert((unsigned int) print_object->config().support_interface_filament - 1);
-            }
-            std::vector<std::string> filament_types;
-            filament_types.reserve(obj_used_extruder_ids.size());
-            for (const auto &extruder_idx : obj_used_extruder_ids) filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
-
-            auto                  compatibility       = check_multi_filaments_compatibility(filament_types);// check for each object
-            Compatibility_each_obj.insert(compatibility);
-        }
-        StringObjectException ret;
-        std::string           hypertext = "filament_mix_print";
-        if (Compatibility_each_obj.count(FilamentCompatibilityType::HighLowMixed)){// at least one object has HighLowMixed
-            if (enable_mix_printing) {
-                ret.string     = L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage.");
-                ret.is_warning = true;
-                ret.hypetext   = hypertext;
-            } else
-                ret.string = L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences.");
-        }else if (Compatibility_each_obj.count(FilamentCompatibilityType::LowMidMixed) || Compatibility_each_obj.count(FilamentCompatibilityType::HighMidMixed)){// at least one object has other Mixed
-            ret.is_warning = true;
-            ret.hypetext   = hypertext;
-            ret.string     = L("Printing different-temp filaments together may cause nozzle clogging or printer damage.");
-        }
-        return ret;
-    }
-    std::vector<unsigned int> extruders = print.extruders();
-    std::vector<std::string> filament_types;
-    filament_types.reserve(extruders.size());
-    for (const auto& extruder_idx : extruders)
-        filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
-
-    auto compatibility = check_multi_filaments_compatibility(filament_types);
-    bool enable_mix_printing = !print.need_check_multi_filaments_compatibility();
-
     StringObjectException ret;
+    if (!print.need_show_high_temp_filament_warning())
+        return ret;
 
-    std::string hypertext = "filament_mix_print";
-
-    if(compatibility == FilamentCompatibilityType::HighLowMixed){
-        if(enable_mix_printing){
-            ret.string =L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage.");
+    auto print_config = print.config();
+    // extruders() includes the filaments used by every object and by supports, in both print sequences.
+    for (unsigned int extruder_idx : print.extruders()) {
+        if (get_filament_temp_type(print_config.filament_type.get_at(extruder_idx)) == FilamentTempType::HighTemp) {
+            ret.string     = L("High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments such as PLA.");
             ret.is_warning = true;
-            ret.hypetext   = hypertext;
-        }
-        else{
-            ret.string =L("Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences.");
+            ret.hypetext   = "filament_mix_print";
+            break;
         }
     }
-    else if (compatibility == FilamentCompatibilityType::HighMidMixed) {
-        ret.is_warning = true;
-        ret.hypetext = hypertext;
-        ret.string =L("Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage.");
-
-    }
-    else if (compatibility == FilamentCompatibilityType::LowMidMixed) {
-        ret.is_warning = true;
-        ret.hypetext = hypertext;
-        ret.string = L("Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage.");
-    }
-
     return ret;
 }
 
@@ -1403,16 +1337,11 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
 
-    if (extruders.size() > 1) {
+    if (warning != nullptr) {
         auto ret = check_multi_filament_valid(*this);
-        if (!ret.string.empty())
-        {
+        if (!ret.string.empty()) {
             ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
-            if (ret.is_warning && warning != nullptr) {
-                *warning = ret;
-                //return {};
-            }else
-                return ret;
+            *warning = ret;
         }
     }
 
@@ -1820,9 +1749,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
 		// check wall sequence and precise outer wall
 		if (m_default_region_config.precise_outer_wall && m_default_region_config.wall_sequence != WallSequence::InnerOuter)
+		if (warning != nullptr)
 		{
-			warning->string = L("Precise outer wall will be ignored unless the order of walls is set to inner/outer");
-			warning->opt_key = "precise_outer_wall";
+			// assign the whole object, otherwise the hypetext of an earlier warning (e.g. the high-temp filament one) would be kept
+			StringObjectException warningtemp;
+			warningtemp.string  = L("Precise outer wall will be ignored unless the order of walls is set to inner/outer");
+			warningtemp.opt_key = "precise_outer_wall";
+			*warning            = warningtemp;
 		}
     }
 
