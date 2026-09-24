@@ -1579,6 +1579,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             // Some of the objects has variable layer height applied by painting or by a table.
             bool has_custom_layering = std::any_of(m_objects.begin(), m_objects.end(),
                 [](const PrintObject* object) { return object->model_object()->has_custom_layering(); });
+            bool has_precise_z_height = std::any_of(m_objects.begin(), m_objects.end(),
+                [](const PrintObject* object) { return object->config().precise_z_height.value; });
 
             const SlicingParameters &slicing_params0 = m_objects.front()->slicing_parameters();
             size_t            tallest_object_idx = 0;
@@ -1598,7 +1600,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 #endif
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
-                if (has_custom_layering) {
+                if (has_custom_layering || has_precise_z_height) {
                     auto &lh         = layer_height_profile(i);
                     auto &lh_tallest = layer_height_profile(tallest_object_idx);
                     if (*(lh.end()-2) > *(lh_tallest.end()-2))

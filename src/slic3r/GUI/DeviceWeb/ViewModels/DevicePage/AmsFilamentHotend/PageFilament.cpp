@@ -7,7 +7,6 @@
 
 #include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
-#include "slic3r/GUI/AMSRFIDMaterialView.hpp"
 #include "slic3r/GUI/AMSSetting.hpp"
 #include "slic3r/GUI/EncodedFilament.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
@@ -143,41 +142,21 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
         }
     }
 
-    if (DevFilaSystem::IsBBL_Filament(tray.tag_uid)) {
-        // Official BBL filament with an RFID tag: show the read-only RFID view
-        // instead of the editable materials-setting dialog (mirrors StatusPanel::open_rfid_view).
-        wxString color_name;
-        if (!tray.setting_id.empty()) {
-            if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
-                FilamentColor fila_color;
-                if (!cols.empty()) {
-                    for (const auto& c : cols) fila_color.AddColor(c);
-                } else {
-                    fila_color.AddColor(color);
-                }
-                fila_color.EndSet(static_cast<int>(tray.ctype));
-                color_name = clr_query->GetFilaColorName(wxString::FromUTF8(tray.setting_id), fila_color);
-            }
-        }
-
-        AMSRFIDMaterialView dlg(parent, wxID_ANY);
-        dlg.Popup(machine_obj, ams_id_int, slot_id_int,
-                  tray.sub_brands, color_name, color, cols,
-                  static_cast<int>(tray.ctype),
-                  tray.nozzle_temp_min, tray.nozzle_temp_max,
-                  sn_number, k_val, total_weight, remain_weight);
-        return;
-    }
-
     AMSMaterialsSetting dlg(parent, wxID_ANY);
     dlg.obj = machine_obj;
     dlg.ams_id = ams_id_int;
     dlg.slot_id = slot_id_int;
-    dlg.m_is_third = true; // reaching here means non-official (RFID path returns above)
+    dlg.m_is_third = !DevFilaSystem::IsBBL_Filament(tray.tag_uid);
 
     std::string filament;
     std::string temp_max;
     std::string temp_min;
+    if (!dlg.m_is_third) {
+        // Official RFID filament: identity fields come from the tray for the read-only card.
+        filament = tray.sub_brands;
+        temp_max = tray.nozzle_temp_max;
+        temp_min = tray.nozzle_temp_min;
+    }
 
     dlg.set_ctype(tray.ctype);
     dlg.ams_filament_id = tray.setting_id;
@@ -344,8 +323,8 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         // Rack-B "read all": refresh every slot's RFID on each connected
         // ZMULTI_B AMS. mode=1 (active, all slots); no slot_bits.
         if (machine_obj->is_in_printing() || machine_obj->is_in_upgrading()) {
-            return MakeResponse(GetModule(), "action", action, 3,
-                _u8L("Cannot read all while printing or upgrading"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 3,
+                _u8L("Cannot read all while printing or upgrading"), vm.BuildState());
         }
         if (fila_system) {
             for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
@@ -475,7 +454,7 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         const auto& slots_array = payload.value("slots", nlohmann::json::array());
         // `committed` is set by the edit dialog's Auto Load: the user already
         // resolved every unknown slot there, so we must NOT bounce back into the
-        // edit dialog on the still-lagging device tray identity — run directly.
+        // edit dialog while the device tray identity is still lagging; run directly.
         const bool committed = payload.value("committed", false);
         if (slots_array.empty()) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("No slots selected for batch run"), vm.BuildState());

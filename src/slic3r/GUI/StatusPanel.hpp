@@ -13,7 +13,6 @@
 #include <wx/image.h>
 #include <wx/sizer.h>
 #include <wx/gbsizer.h>
-#include <wx/weakref.h>
 #include <wx/webrequest.h>
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
@@ -23,7 +22,6 @@
 #include "SafetyOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
 #include "AMSNewFilamentDialogs.hpp"
-#include "AMSRFIDMaterialView.hpp"
 #include "ExtrusionCalibration.hpp"
 #include "ReleaseNote.hpp"
 #include "Widgets/SwitchButton.hpp"
@@ -37,7 +35,6 @@
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/FilamentLoad.hpp"
 #include "Widgets/FanControl.hpp"
-#include "DeviceTab/AmsControl/AmsControlWebEnable.hpp"
 #include "HMS.hpp"
 #include "PartSkipDialog.hpp"
 #include "DeviceErrorDialog.hpp"
@@ -59,9 +56,6 @@ class MessageDialog;
 class wgtDeviceFilamentHotendWebDialog;
 class wgtDeviceFilamentHotendHtmlDialog;
 class wgtDeviceNozzleRack;
-#if BBL_ENABLE_AMS_CONTROL_WEB
-class wgtAmsControlWebPanel;
-#endif
 class wgtDeviceFilamentHotendWebPanel;
 class wgtHotendRackControl;
 class wgtRackExtruder;
@@ -581,11 +575,6 @@ protected:
 
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    SwitchBoard*    m_ams_control_web_switch{ nullptr };
-    wgtAmsControlWebPanel* m_ams_control_web_panel{ nullptr };
-    bool            m_ams_control_web_active{ ams_control_use_web() };
-#endif
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
 
@@ -685,9 +674,6 @@ public:
 
 private:
     void on_ams_rack_switch(wxCommandEvent& event);
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    void on_ams_control_web_switch(wxCommandEvent& event);
-#endif
     void show_camera_fullscreen();
 };
 
@@ -715,11 +701,10 @@ protected:
     std::string          m_task_lock_setup_handled_dev_id;
     std::string          m_task_lock_verify_handled_dev_id;
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
-    AMSRFIDMaterialView *m_rfid_view_dlg{nullptr};
     AMSNewOfficialFilamentDlg *m_new_official_filament_dlg{nullptr};
     SoftMatchPendingResponse   m_soft_match_pending;
 
-    wxWeakRef<DeviceErrorDialog> m_print_error_dlg;
+    DeviceErrorDialog* m_print_error_dlg = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* con_load_dlg = nullptr;
     MessageDialog *       ctrl_e_hint_dlg             = nullptr;
@@ -814,15 +799,6 @@ protected:
     void show_new_official_filament_dlg(const std::string& dev_id, const std::string& ams_id, const std::string& slot_id);
     void dismiss_filament_hint_ui(const std::string& dev_id, const std::string& ams_id, const std::string& slot_id);
     void on_ext_spool_edit(wxCommandEvent &event);
-    void open_rfid_view(int ams_id, int slot_id,
-                        const std::string& setting_id, int ctype,
-                        const wxString& filament, const wxColour& color,
-                        const std::vector<wxColour>& cols,
-                        const std::string& temp_min, const std::string& temp_max,
-                        const std::string& sn_number, const wxString& k_val,
-                        wxPoint pos,
-                        const wxString& total_weight = wxEmptyString,
-                        const wxString& remain_weight = wxEmptyString);
     void on_filament_extrusion_cali(wxCommandEvent &event);
     void on_ams_refresh_rfid(wxCommandEvent &event);
     void on_ams_selected(wxCommandEvent &event);

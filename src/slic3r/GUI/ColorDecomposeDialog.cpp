@@ -284,6 +284,13 @@ static wxString family_display_label(const std::string& family)
     return wxString::FromUTF8(std::string(kDecomposeBambuPresetPrefix) + family);
 }
 
+// Standard-mode cards are bound to a series, not to the selected family: CMYW and
+// RYBW recipes are measured on PLA Basic, CMYKW on PLA Palette. The result carries
+// this series so the write-back creates base colors from the matching preset.
+static const char* standard_card_basic_type(DecomposeMode mode)
+{
+    return mode == DecomposeMode::CMYKW ? kDecomposePlaPaletteType : kDecomposePlaBasicType;
+}
 
 ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
                                            int filament_idx,
@@ -293,8 +300,7 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
                                            const std::vector<std::string>& filament_types,
                                            size_t current_filament_count,
                                            size_t max_filament_count,
-                                           std::vector<size_t> physical_config_indices,
-                                           bool enforce_filament_limit)
+                                           std::vector<size_t> physical_config_indices)
     : DPIDialog(parent, wxID_ANY, _L("Decompose Color"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_filament_idx(filament_idx)
@@ -304,7 +310,6 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
     , m_filament_types(filament_types)
     , m_current_filament_count(current_filament_count)
     , m_max_filament_count(max_filament_count)
-    , m_enforce_filament_limit(enforce_filament_limit)
     , m_physical_config_indices(std::move(physical_config_indices))
 {
     if (m_filament_idx >= 0 && static_cast<size_t>(m_filament_idx) < m_filament_types.size())
@@ -994,7 +999,8 @@ bool ColorDecomposeDialog::has_usable_card() const
 {
     return (m_card_material_list && m_card_material_list->IsShown())
         || (m_card_cmyw && m_card_cmyw->IsShown())
-        || (m_card_rybw && m_card_rybw->IsShown());
+        || (m_card_rybw && m_card_rybw->IsShown())
+        || (m_card_cmykw && m_card_cmykw->IsShown());
 }
 
 void ColorDecomposeDialog::update_basic_support_warning()
@@ -1003,7 +1009,7 @@ void ColorDecomposeDialog::update_basic_support_warning()
         return;
 
     const bool show = (m_preferred_family == kDecomposePlaShortType)
-        && (m_selected_mode == DecomposeMode::CMYW || m_selected_mode == DecomposeMode::RYBW);
+        && (m_selected_mode == DecomposeMode::CMYW || m_selected_mode == DecomposeMode::RYBW || m_selected_mode == DecomposeMode::CMYKW);
     const bool was_shown = m_basic_warning_panel->IsShown();
     if (!show) {
         if (was_shown) {
@@ -1013,9 +1019,13 @@ void ColorDecomposeDialog::update_basic_support_warning()
         return;
     }
 
-    const wxString text = (m_selected_mode == DecomposeMode::CMYW)
-        ? _L("A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically.")
-        : _L("A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically.");
+    wxString text;
+    if (m_selected_mode == DecomposeMode::CMYW)
+        text = _L("A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically.");
+    else if (m_selected_mode == DecomposeMode::CMYKW)
+        text = _L("A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically.");
+    else
+        text = _L("A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically.");
     m_basic_warning_text->SetLabel(text);
     if (was_shown) {
         const int avail = m_basic_warning_text->GetClientSize().x;
@@ -1053,7 +1063,7 @@ void ColorDecomposeDialog::update_filament_limit_warning()
     const bool creates_mixed = m_result.components.size() >= 2;
     // +1 for the mixed filament slot that will be created after decomposition.
     const size_t needed = m_current_filament_count + missing_new + 1;
-    const bool blocked = m_enforce_filament_limit && creates_mixed && needed > m_max_filament_count;
+    const bool blocked = creates_mixed && needed > m_max_filament_count;
 
     const bool was_shown = m_limit_warning_panel->IsShown();
 
@@ -1452,7 +1462,8 @@ void ColorDecomposeDialog::compute_decomposition()
     if (try_build_single_base_result(DecomposeMode::CMYW, single_base)) {
         m_mode_results[mode_index(DecomposeMode::CMYW)] = single_base;
     } else {
-        auto cmyw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYW, kDecomposePlaBasicType);
+        auto cmyw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYW,
+                                                  standard_card_basic_type(DecomposeMode::CMYW));
         m_mode_results[mode_index(DecomposeMode::CMYW)] = cmyw_recipe.valid
             ? to_dialog_result(cmyw_recipe, m_target_color)
             : fallback_result(DecomposeMode::CMYW, {
@@ -1464,7 +1475,8 @@ void ColorDecomposeDialog::compute_decomposition()
     if (try_build_single_base_result(DecomposeMode::RYBW, single_base)) {
         m_mode_results[mode_index(DecomposeMode::RYBW)] = single_base;
     } else {
-        auto rybw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::RYBW, kDecomposePlaBasicType);
+        auto rybw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::RYBW,
+                                                  standard_card_basic_type(DecomposeMode::RYBW));
         m_mode_results[mode_index(DecomposeMode::RYBW)] = rybw_recipe.valid
             ? to_dialog_result(rybw_recipe, m_target_color)
             : fallback_result(DecomposeMode::RYBW, {
@@ -1476,7 +1488,8 @@ void ColorDecomposeDialog::compute_decomposition()
     if (try_build_single_base_result(DecomposeMode::CMYKW, single_base)) {
         m_mode_results[mode_index(DecomposeMode::CMYKW)] = single_base;
     } else {
-        auto cmykw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYKW, m_preferred_type);
+        auto cmykw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYKW,
+                                                   standard_card_basic_type(DecomposeMode::CMYKW));
         m_mode_results[mode_index(DecomposeMode::CMYKW)] = cmykw_recipe.valid
             ? to_dialog_result(cmykw_recipe, m_target_color)
             : fallback_result(DecomposeMode::CMYKW, {
@@ -1485,10 +1498,12 @@ void ColorDecomposeDialog::compute_decomposition()
             });
     }
 
-    // Recipes above were all looked up for the selected material, so tag every
-    // result with it: downstream component creation must use the same series.
-    for (ColorDecomposeResult& mode_result : m_mode_results)
-        mode_result.material_type = m_preferred_type;
+    // Tag each standard result with the series its recipe was looked up for, so
+    // downstream component creation uses the same series. Material List mixes
+    // project filaments, which already carry their own presets.
+    m_mode_results[mode_index(DecomposeMode::MaterialList)].material_type.clear();
+    for (const DecomposeMode standard_mode : {DecomposeMode::CMYW, DecomposeMode::RYBW, DecomposeMode::CMYKW})
+        m_mode_results[mode_index(standard_mode)].material_type = standard_card_basic_type(standard_mode);
 
     m_result = m_mode_results[mode_index(m_selected_mode)];
     update_mode_card_contents();

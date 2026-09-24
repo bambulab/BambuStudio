@@ -6333,7 +6333,8 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
     const std::string first_color = items.front().first.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
     wxGetApp().preset_bundle->set_num_filaments((unsigned int)(total + k), first_color);
 
-    // Maintain physical-first ordering: rotate the new slots from the end to insert_pos.    if (insert_pos < total) {
+    // Maintain physical-first ordering: rotate the new slots from the end to insert_pos.
+    if (insert_pos < total) {
         auto& presets = wxGetApp().preset_bundle->filament_presets;
         std::rotate(presets.begin() + insert_pos, presets.begin() + total, presets.end());
 

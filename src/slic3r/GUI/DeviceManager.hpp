@@ -76,6 +76,7 @@ enum class CalibSendStatus {
 
 // Previous definitions
 class DevAms;
+class DevAirPurifier;
 class DevAmsTray;
 class DevAxis;
 class DevBed;
@@ -150,6 +151,7 @@ private:
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;
+    std::shared_ptr<DevAirPurifier> m_air_purifier;
     DevCalib*         m_calib;
 
     /*Ctrl*/
@@ -389,6 +391,7 @@ public:
     DevFan*         GetFan()    const { return m_fan; }
     DevBed *        GetBed()    const { return m_bed; };
     DevStorage*     GetStorage()const { return m_storage; }
+    std::shared_ptr<DevAirPurifier> GetAirPurifier() const { return m_air_purifier; }
     DevCalib*       GetCalib()  const { return m_calib; }
 
     bool            supports_full_pa_calib_table() const;

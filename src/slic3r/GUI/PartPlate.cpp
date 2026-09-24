@@ -1660,8 +1660,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
                 return;
             for (int v : opt->values) {
                 auto nvt = static_cast<NozzleVolumeType>(v);
-                // nvtMaxNozzleVolumeType is the sentinel end of NozzleVolumeType; keep this filter in sync if the enum changes.
-                if (nvt != nvtHybrid && nvt <= nvtMaxNozzleVolumeType)
+                if (nvt != nvtHybrid && nvt >= nvtStandard && nvt < nvtCount)
                     machine_volume_types.insert(nvt);
             }
         };

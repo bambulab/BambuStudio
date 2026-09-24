@@ -45,6 +45,7 @@
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevMappingNozzle.h"
 #include "DeviceCore/DevBed.h"
+#include "DeviceCore/DevAirPurifier.hpp"
 #include "DeviceCore/DevLamp.h"
 #include "DeviceCore/DevFan.h"
 #include "DeviceCore/DevStatus.h"
@@ -649,6 +650,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
         m_lamp = new DevLamp(this);
         m_fan = new DevFan(this);
         m_bed = new DevBed(this);
+        m_air_purifier = DevAirPurifier::Create(this);
 
         m_storage       = new DevStorage(this);
         m_extder_system = new DevExtderSystem(this);

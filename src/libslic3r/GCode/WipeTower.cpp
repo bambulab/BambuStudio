@@ -1736,8 +1736,10 @@ float WipeTower::get_limit_depth_by_height(float max_height)
     return min_wipe_tower_depth;
 }
 
-float WipeTower::get_auto_brim_by_height(float max_height) {
-    if (max_height < 100) return max_height/100.f * 8.f;
+float WipeTower::get_auto_brim_by_height(float max_height)
+{
+    if (max_height < 100)
+        return max_height / 100.f * 8.f;
     return 8.f;
 }
 

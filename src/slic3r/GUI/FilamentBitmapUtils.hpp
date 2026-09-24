@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "libslic3r/PrintConfig.hpp"
-
 namespace Slic3r { namespace GUI {
 
 // "RRGGBB" / "#RRGGBB" -> wxColour. Falls back to grey (0x636363) on empty / invalid.

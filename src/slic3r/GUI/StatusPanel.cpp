@@ -52,7 +52,6 @@
 #include "DeviceCore/DevStatus.h"
 
 #include "DeviceWeb/DeviceWebPage.hpp"
-#include "DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.hpp"
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevInfo.h"
@@ -66,12 +65,6 @@
 #include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
 #include "DeviceTab/wgtDeviceAutoRefillWebDialog.h"
 #include "DeviceTab/wgtRackExtruder.h"
-#if BBL_ENABLE_AMS_CONTROL_WEB
-#include "DeviceTab/AmsControl/wgtAmsControlWebPanel.h"
-#endif
-
-
-
 #include "PrintOptionsDialog.hpp"
 #include "SafetyOptionsDialog.hpp"
 
@@ -1000,7 +993,6 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     wxPanel    *task_name_panel      = new wxPanel(parent);
 
     m_staticText_title = new wxStaticText(task_name_panel, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
-    m_staticText_title->SetMinSize(wxSize(0, -1));
     m_staticText_title->SetMaxSize(wxSize(FromDIP(600), -1));
     m_staticText_title->Wrap(-1);
 #ifdef __WXOSX_MAC__
@@ -1039,8 +1031,6 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     bSizer_task_name->Add(task_name_panel, 0, wxEXPAND, FromDIP(5));
 
     m_staticText_subtitle = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
-    m_staticText_subtitle->SetMinSize(wxSize(0, -1));
-    m_staticText_subtitle->SetMaxSize(wxSize(FromDIP(600), -1));
     m_staticText_subtitle->Wrap(-1);
 #ifdef __WXOSX_MAC__
     m_staticText_subtitle->SetFont(::Label::Body_11);
@@ -1693,7 +1683,6 @@ void PrintingTaskPanel::update_title(const wxString &title)
 
     if (m_staticText_title->GetLabelText() != title) { BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << title; }
     m_staticText_title->SetLabelText(title);
-    m_staticText_title->SetToolTip(title);
 }
 
 void PrintingTaskPanel::update_stage_value(wxString stage, int val)
@@ -1819,13 +1808,6 @@ void PrintingTaskPanel::update_left_time(int mc_left_time, bool is_printing_fini
     update_left_time(left_time_text);
 
     update_finish_state(mc_left_time, is_printing_finished, finish_time);
-
-    static int s_mc_left_time = 0;
-    if (s_mc_left_time != mc_left_time) {
-        BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_left_time: " << mc_left_time << ", " << left_time_text
-                                << ": " << finish_time.time << ", day offset: " << finish_time.day_offset;
-        s_mc_left_time = mc_left_time;
-    }
 }
 
 void PrintingTaskPanel::update_layers_num(bool show, wxString num)
@@ -1929,10 +1911,8 @@ void PrintingTaskPanel::show_subtitle(bool show, const wxString &subtitle)
     if (show) {
         if (!m_staticText_subtitle->IsShown()) { m_staticText_subtitle->Show(); }
         m_staticText_subtitle->SetLabelText(subtitle);
-        m_staticText_subtitle->SetToolTip(subtitle);
     } else {
         m_staticText_subtitle->SetLabelText(wxEmptyString);
-        m_staticText_subtitle->UnsetToolTip();
         m_staticText_subtitle->Hide();
     }
 }
@@ -2365,26 +2345,11 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_ams_rack_switch->Hide();
     m_ams_rack_switch->Bind(wxCUSTOMEVT_SWITCH_POS, &StatusBasePanel::on_ams_rack_switch, this);
 
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    m_ams_control_web_switch = new SwitchBoard(parent, "AMS C++", "AMS Web", wxSize(FromDIP(160), FromDIP(26)));
-    m_ams_control_web_switch->updateState("left");
-    m_ams_control_web_switch->Hide();
-    m_ams_control_web_switch->Bind(wxCUSTOMEVT_SWITCH_POS, &StatusBasePanel::on_ams_control_web_switch, this);
-#endif
-
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(8));
     bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer_control->Add(m_ams_rack_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    bSizer_control->Add(m_ams_control_web_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
-#endif
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
     bSizer_control->Add(ams_rack_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    m_ams_control_web_panel = new wgtAmsControlWebPanel(parent);
-    m_ams_control_web_panel->Hide();
-    bSizer_control->Add(m_ams_control_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
-#endif
     m_filament_hotend_web_panel = new wgtDeviceFilamentHotendWebPanel(parent);
     m_filament_hotend_web_panel->Hide();
     bSizer_control->Add(m_filament_hotend_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
@@ -2999,11 +2964,8 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
 
 void StatusBasePanel::show_ams_group(bool show)
 {
-    // AMSControl is always constructed and updated; the gate only hides it.
-    const bool show_cpp = show && !ams_control_use_web();
-
-    if (m_ams_control->IsShown() != show_cpp) {
-        m_ams_control->Show(show_cpp);
+    if (m_ams_control->IsShown() != show) {
+        m_ams_control->Show(show);
         m_ams_control->Layout();
         m_ams_control->Fit();
         Layout();
@@ -3013,39 +2975,8 @@ void StatusBasePanel::show_ams_group(bool show)
 
     if (show && m_ams_rack_switch->IsShown() && (m_ams_rack_switch->switch_left != true)) { return; }
 
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    // The "AMS C++ / AMS Web" switch board only makes sense once the wx panel is in play.
-    if (m_ams_control_web_switch && m_ams_control_web_switch->IsShown() != show_cpp) {
-        m_ams_control_web_switch->Show(show_cpp);
-    }
-    if (!show) {
-        if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
-            m_ams_control_web_panel->HideAndSuspend();
-        }
-    } else if (m_ams_control_web_active) {
-        bool refresh_layout = false;
-        if (m_ams_control_box->IsShown()) {
-            m_ams_control_box->Show(false);
-            refresh_layout = true;
-        }
-        if (m_ams_control_web_panel && !m_ams_control_web_panel->IsShown()) {
-            m_ams_control_web_panel->ShowAndLoad();
-            m_ams_control_web_panel->UpdateByMachine(obj);
-            refresh_layout = true;
-        }
-        if (refresh_layout) {
-            Layout();
-            Fit();
-            wxGetApp().mainframe->m_monitor->Layout();
-        }
-        return;
-    } else if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
-        m_ams_control_web_panel->HideAndSuspend();
-    }
-#endif
-
-    if (m_ams_control_box->IsShown() != show_cpp) {
-        m_ams_control_box->Show(show_cpp);
+    if (m_ams_control_box->IsShown() != show) {
+        m_ams_control_box->Show(show);
         m_ams_control->Layout();
         m_ams_control->Fit();
         Layout();
@@ -3082,14 +3013,6 @@ void StatusBasePanel::jump_to_Rack()
     if (obj && obj->GetNozzleRack()->IsSupported()) {
         m_ams_rack_switch->updateState("right");
         m_ams_control_box->Show(false);
-#if BBL_ENABLE_AMS_CONTROL_WEB
-        if (m_ams_control_web_switch) {
-            m_ams_control_web_switch->Show(false);
-        }
-        if (m_ams_control_web_panel) {
-            m_ams_control_web_panel->HideAndSuspend();
-        }
-#endif
         m_panel_nozzle_rack->Show(true);
         Layout();
     }
@@ -3098,71 +3021,17 @@ void StatusBasePanel::jump_to_Rack()
 void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
 {
     if (!m_ams_control_box->IsShown() && e.GetInt() == 1) {
-#if BBL_ENABLE_AMS_CONTROL_WEB
-        if (m_ams_control_web_switch) {
-            m_ams_control_web_switch->Show(!ams_control_use_web());
-        }
-        if (m_ams_control_web_active) {
-            m_ams_control_box->Show(false);
-            m_panel_nozzle_rack->Show(false);
-            if (m_ams_control_web_panel) {
-                m_ams_control_web_panel->ShowAndLoad();
-                m_ams_control_web_panel->UpdateByMachine(obj);
-            }
-            Layout();
-            e.Skip();
-            return;
-        }
-        if (m_ams_control_web_panel) {
-            m_ams_control_web_panel->HideAndSuspend();
-        }
-#endif
-        m_ams_control_box->Show(e.GetInt() == 1 && !ams_control_use_web());
+        m_ams_control_box->Show(e.GetInt() == 1);
         m_panel_nozzle_rack->Show(e.GetInt() == 0);
         Layout();
     } else if (!m_panel_nozzle_rack->IsShown() && e.GetInt() == 0) {
-#if BBL_ENABLE_AMS_CONTROL_WEB
-        if (m_ams_control_web_switch) {
-            m_ams_control_web_switch->Show(false);
-        }
-        if (m_ams_control_web_panel) {
-            m_ams_control_web_panel->HideAndSuspend();
-        }
-#endif
-        m_ams_control_box->Show(e.GetInt() == 1 && !ams_control_use_web());
+        m_ams_control_box->Show(e.GetInt() == 1);
         m_panel_nozzle_rack->Show(e.GetInt() == 0);
         Layout();
     }
 
     e.Skip();
 }
-
-#if BBL_ENABLE_AMS_CONTROL_WEB
-void StatusBasePanel::on_ams_control_web_switch(wxCommandEvent &e)
-{
-    m_ams_control_web_active = (e.GetInt() == 0) || ams_control_use_web();
-    if (m_ams_control_web_active) {
-        if (m_ams_control_box) {
-            m_ams_control_box->Show(false);
-        }
-        if (m_ams_control_web_panel) {
-            m_ams_control_web_panel->ShowAndLoad();
-            m_ams_control_web_panel->UpdateByMachine(obj);
-        }
-    } else {
-        if (m_ams_control_web_panel) {
-            m_ams_control_web_panel->HideAndSuspend();
-        }
-        if (m_ams_control_box) {
-            m_ams_control_box->Show(!ams_control_use_web());
-        }
-    }
-    Layout();
-    Fit();
-    wxGetApp().mainframe->m_monitor->Layout();
-    e.Skip();
-}
-#endif
 
 void StatusPanel::update_camera_state(MachineObject *obj)
 {
@@ -3869,40 +3738,24 @@ void StatusPanel::update_error_message()
     if (!obj) return;
 
     static int last_error = -1;
-    const int current_error = obj->print_error;
 
-    if (current_error <= 0) {
+    if (obj->print_error <= 0) {
         error_info_reset();
         if (m_print_error_dlg) {
-            if (m_print_error_dlg->IsModal()) {
-                m_print_error_dlg->EndModal(wxID_CANCEL);
-                last_error = current_error;
-                return;
-            }
-            m_print_error_dlg->Destroy();
+            delete m_print_error_dlg;
             m_print_error_dlg = nullptr;
         }
-    } else if (current_error != last_error) {
+    } else if (obj->print_error != last_error) {
         /* clear old dialog */
         if (m_print_error_dlg) {
-            if (m_print_error_dlg->IsModal()) {
-                m_print_error_dlg->EndModal(wxID_CANCEL);
-                return;
-            }
-            m_print_error_dlg->Destroy();
+            delete m_print_error_dlg;
             m_print_error_dlg = nullptr;
         }
 
         /* show device error message*/
-        last_error = current_error;
         m_print_error_dlg  = new DeviceErrorDialog(obj, this);
-        wxString error_msg = m_print_error_dlg->show_error_code(current_error);
-        BOOST_LOG_TRIVIAL(info) << "print error: device error code = " << current_error;
-
-        if (!m_print_error_dlg->IsShown() && !m_print_error_dlg->IsModal()) {
-            m_print_error_dlg->Destroy();
-            m_print_error_dlg = nullptr;
-        }
+        wxString error_msg = m_print_error_dlg->show_error_code(obj->print_error);
+        BOOST_LOG_TRIVIAL(info) << "print error: device error code = " << obj->print_error;
 
         /* show error message on task panel */
         if (!error_msg.IsEmpty()) {
@@ -3911,7 +3764,7 @@ void StatusPanel::update_error_message()
         }
     }
 
-    last_error = current_error;
+    last_error = obj->print_error;
 }
 
 void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
@@ -4296,12 +4149,6 @@ void StatusPanel::update_ams(MachineObject *obj)
             m_filament_setting_dlg->TryRefreshPAProfiles();
         }
     }
-    if (m_rfid_view_dlg) {
-        m_rfid_view_dlg->obj = obj;
-        if (m_rfid_view_dlg->IsShown()) {
-            m_rfid_view_dlg->TryRefreshPAProfiles();
-        }
-    }
 
     if (obj && obj->is_security_control_ready()) { obj->check_ams_filament_valid(); }
 
@@ -4369,12 +4216,6 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (auto* sync = wxGetApp().fila_manager_sync())
         sync->drain_filament_hints(obj->get_dev_id());
-
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
-        m_ams_control_web_panel->UpdateByMachine(obj);
-    }
-#endif
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -4627,12 +4468,7 @@ StatusPanel::TaskDisplayInfo StatusPanel::resolve_task_display_info(const std::s
 
     if (!model_task->design_title.empty()) {
         display_info.title = GUI::from_u8(model_task->design_title);
-        std::string subtitle;
-        if (model_task->create_client == "app") {
-            subtitle = model_task->instance_title;
-        } else {
-            subtitle = model_task->title.empty() ? model_task->instance_title : model_task->title;
-        }
+        const std::string &subtitle = model_task->title.empty() ? model_task->instance_title : model_task->title;
         display_info.subtitle = GUI::from_u8(subtitle);
     } else if (!model_task->title.empty()) {
         display_info.title = GUI::from_u8(model_task->title);
@@ -5485,37 +5321,6 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
     }
 }
 
-void StatusPanel::open_rfid_view(int ams_id, int slot_id,
-                                 const std::string& setting_id, int ctype,
-                                 const wxString& filament, const wxColour& color,
-                                 const std::vector<wxColour>& cols,
-                                 const std::string& temp_min, const std::string& temp_max,
-                                 const std::string& sn_number, const wxString& k_val,
-                                 wxPoint pos,
-                                 const wxString& total_weight, const wxString& remain_weight)
-{
-    if (!m_rfid_view_dlg)
-        m_rfid_view_dlg = new AMSRFIDMaterialView((wxWindow*)this, wxID_ANY);
-    wxString color_name;
-    if (!setting_id.empty()) {
-        if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
-            FilamentColor fila_color;
-            if (!cols.empty()) {
-                for (const auto& c : cols) fila_color.AddColor(c);
-            } else {
-                fila_color.AddColor(color);
-            }
-            fila_color.EndSet(ctype);
-            color_name = clr_query->GetFilaColorName(wxString::FromUTF8(setting_id), fila_color);
-        }
-    }
-    m_rfid_view_dlg->Move(pos);
-    m_rfid_view_dlg->Popup(obj, ams_id, slot_id,
-                            filament, color_name, color, cols, ctype,
-                            temp_min, temp_max, sn_number, k_val,
-                            total_weight, remain_weight);
-}
-
 void StatusPanel::on_filament_edit(wxCommandEvent &event)
 {
     int  current_position_x = m_ams_control->GetScreenPosition().x;
@@ -5534,10 +5339,10 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             std::string filament;
             std::string temp_max;
             std::string temp_min;
-            wxString    k_val;
-            wxString    n_val;
             wxString    total_weight;
             wxString    remain_weight;
+            wxString    k_val;
+            wxString    n_val;
 
             auto tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
             if (tray) {
@@ -5566,17 +5371,6 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                     if (auto weight = tray->get_filament_remain_weight(); weight.has_value() && weight.value() >= 0) {
                         remain_weight = wxString::Format("%d", *weight);
                     }
-                }
-
-                // RFID filament: open the view-only dialog instead of the editable one.
-                if (!is_third) {
-                    open_rfid_view(ams_id, slot_id, tray->setting_id,
-                                   static_cast<int>(tray->ctype),
-                                   filament, color, cols,
-                                   temp_min, temp_max, sn_number, k_val,
-                                   wxPoint(current_position_x, current_position_y),
-                                   total_weight, remain_weight);
-                    return;
                 }
 
                 if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
@@ -5655,13 +5449,9 @@ void StatusPanel::dismiss_filament_hint_ui(const std::string& dev_id, const std:
 {
     if (auto* sync = wxGetApp().fila_manager_sync())
         sync->dismiss_pending_badge(dev_id, ams_id, slot_id);
+    // 只在当前仍显示的就是这台设备时才动控件，避免清到切换后的新设备同名槽位。
     if (m_ams_control && obj && obj->get_dev_id() == dev_id)
         m_ams_control->dismiss_filament_hint(ams_id, slot_id);
-    DevicePageAmsControlWebVM::DismissFilamentMgrHint(ams_id, slot_id);
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown())
-        m_ams_control_web_panel->UpdateByMachine(obj);
-#endif
     if (m_filament_hotend_web_panel && obj && obj->get_dev_id() == dev_id)
         m_filament_hotend_web_panel->UpdateByMachine(obj);
     if (m_filament_hotend_web_dlg && obj && obj->get_dev_id() == dev_id)
@@ -5840,10 +5630,10 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             std::string filament;
             std::string temp_max;
             std::string temp_min;
-            wxString    k_val;
-            wxString    n_val;
             wxString    total_weight;
             wxString    remain_weight;
+            wxString    k_val;
+            wxString    n_val;
             k_val         = wxString::Format("%.3f", vt_tray->k);
             n_val         = wxString::Format("%.3f", vt_tray->n);
             wxColor color = DevAmsTray::decode_color(vt_tray->color);
@@ -5865,17 +5655,6 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
                 remain_weight = wxString::Format("%d", *weight);
             }
 
-            // RFID filament: open the view-only dialog instead of the editable one.
-            if (!is_third) {
-                open_rfid_view(ams_id, slot_id, vt_tray->setting_id,
-                               static_cast<int>(vt_tray->ctype),
-                               filament, color, cols,
-                               temp_min, temp_max, sn_number, k_val,
-                               wxPoint(current_position_x, current_position_y),
-                               total_weight, remain_weight);
-                return;
-            }
-
             if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
             m_filament_setting_dlg->obj        = obj;
             m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
@@ -5890,6 +5669,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
                 m_filament_setting_dlg->set_color(color);
                 m_filament_setting_dlg->set_colors(cols);
             }
+
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
             m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
         } catch (...) {

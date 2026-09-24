@@ -192,9 +192,9 @@ void DeviceWebBridge::DispatchWebCommand(const nlohmann::json& header, const nlo
     if (!ValidateHeader(head)) return;
     AppendTrace("web_request", head, body);
 
-    const std::string module = body.value("module", std::string());
-    const std::string submod = body.value("submod", std::string());
-    const std::string action = body.value("action", std::string());
+    const std::string module = WebMessageStringField(body, "module");
+    const std::string submod = WebMessageStringField(body, "submod");
+    const std::string action = WebMessageStringField(body, "action");
     if (module == "device_host" && submod == "layout" && action == "content_size") {
         if (m_host_content_size_handler && body.contains("payload") && body["payload"].is_object()) {
             const auto& payload = body["payload"];
@@ -207,9 +207,6 @@ void DeviceWebBridge::DispatchWebCommand(const nlohmann::json& header, const nlo
         return;
     }
 
-    const std::string module = WebMessageStringField(body, "module");
-    const std::string submod = WebMessageStringField(body, "submod");
-    const std::string action = WebMessageStringField(body, "action");
     if (module == "device_host" && submod == "health") {
         const wxString view = m_web ? m_web->GetName() : wxString();
         const auto emit = [&view](WebViewTraceLogger::Stage stage, const char *event,

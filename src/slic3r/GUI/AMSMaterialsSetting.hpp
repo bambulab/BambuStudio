@@ -185,11 +185,6 @@ protected:
 
     void update_filament_editing(bool is_printing);
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
-    bool support_filament_remain_edit() const;
-    bool can_edit_filament_weight() const;
-    bool validate_filament_weight_inputs(bool is_target_bbl, int& total_weight, int& remain_weight) const;
-    bool filament_weight_changed(int total_weight, int remain_weight) const;
-    void update_filament_weight_editing();
     std::vector<ColorPickerPopup::ColorItem> get_preset_color_items(const std::string& filament_id) const;
 
     void get_filaments_info(const MachineObject*                     obj,
@@ -201,7 +196,7 @@ protected:
 
     Preset* get_filament_by_id(const std::string& filament_id, bool is_system);
 
-    // ---- PA calibration primitives (was AMSTraySettingBase) ----
+    // ---- PA calibration + filament weight primitives (was AMSTraySettingBase) ----
     void update_pa_profile_items();
     void on_select_cali_result(wxCommandEvent& evt);
     bool save_pa_profile_selection();
@@ -226,6 +221,12 @@ protected:
     void on_pa_history_ready();
 
     void reset_calibration(const std::string& selected_filament_id);
+
+    bool support_filament_remain_edit() const;
+    bool can_edit_filament_weight() const;
+    bool validate_filament_weight_inputs(bool is_target_bbl, int& total_weight, int& remain_weight) const;
+    bool filament_weight_changed(int total_weight, int remain_weight) const;
+    void update_filament_weight_editing();
 
     std::vector<PACalibResult> m_pa_profile_items;
     int  m_pa_cali_select_id{0};

@@ -94,7 +94,7 @@ SchemaFormat::Tray build_tray(MachineObject* machine_obj,
     out.slot_id    = slot_id;
     out.tray_label = tray_label;
     out.is_exists  = is_exists;
-    out.reading    = machine_obj && tray && tray->is_reading(machine_obj->tray_reading_bits);
+    out.reading    = machine_obj && tray && tray->is_reading(machine_obj);
     out.info_ready = tray && tray->is_tray_info_ready();
     if (!tray) return out;
 

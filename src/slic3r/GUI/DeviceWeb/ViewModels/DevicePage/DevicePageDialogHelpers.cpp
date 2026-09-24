@@ -6,7 +6,6 @@
 #include "slic3r/GUI/AmsMappingPopup.hpp"
 #include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
-#include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/Monitor.hpp"
@@ -23,9 +22,41 @@ namespace {
 
 // Same cadence as the monitor page refresh (Monitor.cpp REFRESH_INTERVAL).
 constexpr int AMS_DRY_CTR_REFRESH_INTERVAL_MS = 1000;
+constexpr int kAutoRefillPickerWidthDip        = 756;
+constexpr int kAutoRefillPickerHeightDip       = 623;
 
-constexpr int kAutoRefillPickerWidthDip  = 756;
-constexpr int kAutoRefillPickerHeightDip = 623;
+wxDialog*& active_auto_refill_filaments_dialog()
+{
+    static wxDialog* dialog = nullptr;
+    return dialog;
+}
+
+wxWindow* resolve_auto_refill_dialog_parent()
+{
+    if (auto* active = wxDynamicCast(wxGetActiveWindow(), wxDialog); active && active->IsModal())
+        return active;
+    for (auto node = wxTopLevelWindows.GetLast(); node; node = node->GetPrevious()) {
+        if (auto* dialog = wxDynamicCast(node->GetData(), wxDialog);
+            dialog && dialog->IsShown() && dialog->IsModal())
+            return dialog;
+    }
+    return wxGetApp().mainframe;
+}
+
+class AutoRefillFilamentsDialog : public DPIDialog
+{
+public:
+    AutoRefillFilamentsDialog(wxWindow* parent, const wxString& title)
+        : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize,
+                    wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+    {
+        SetClientSize(wxSize(FromDIP(kAutoRefillPickerWidthDip), FromDIP(kAutoRefillPickerHeightDip)));
+        SetMinClientSize(wxSize(FromDIP(kAutoRefillPickerWidthDip), FromDIP(kAutoRefillPickerHeightDip)));
+    }
+
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override { SetSize(suggested_rect.GetSize()); }
+};
 
 // Feeds the ownerless drying dialog with the state of the selected machine,
 // which is what AMSControl::UpdateAmsDryControl does for the AMSControl-owned
@@ -52,41 +83,6 @@ public:
 
 private:
     AMSDryCtrWin* m_dlg;
-};
-
-wxDialog*& active_auto_refill_filaments_dialog()
-{
-    static wxDialog* dialog = nullptr;
-    return dialog;
-}
-
-wxWindow* resolve_auto_refill_dialog_parent()
-{
-    if (auto* active = wxDynamicCast(wxGetActiveWindow(), wxDialog); active && active->IsModal()) {
-        return active;
-    }
-    for (auto node = wxTopLevelWindows.GetLast(); node; node = node->GetPrevious()) {
-        if (auto* dialog = wxDynamicCast(node->GetData(), wxDialog);
-            dialog && dialog->IsShown() && dialog->IsModal()) {
-            return dialog;
-        }
-    }
-    return wxGetApp().mainframe;
-}
-
-class AutoRefillFilamentsDialog : public DPIDialog
-{
-public:
-    AutoRefillFilamentsDialog(wxWindow* parent, const wxString& title)
-        : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize,
-                    wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
-    {
-        SetClientSize(wxSize(FromDIP(kAutoRefillPickerWidthDip), FromDIP(kAutoRefillPickerHeightDip)));
-        SetMinClientSize(wxSize(FromDIP(kAutoRefillPickerWidthDip), FromDIP(kAutoRefillPickerHeightDip)));
-    }
-
-protected:
-    void on_dpi_changed(const wxRect& suggested_rect) override { SetSize(suggested_rect.GetSize()); }
 };
 
 } // namespace
@@ -154,11 +150,12 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
         temp_max = tray.nozzle_temp_max;
         temp_min = tray.nozzle_temp_min;
     }
-    total_weight = wxString::FromUTF8(tray.weight.c_str());
+    if (tray.weight != "-1" && tray.weight != "0") {
+        total_weight = wxString::FromUTF8(tray.weight.c_str());
+    }
     if (auto weight = tray.get_filament_remain_weight()) {
         remain_weight = wxString::Format("%d", *weight);
     }
-
     dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
 
     if (!dlg.m_confirmed) return std::nullopt;
@@ -211,12 +208,10 @@ void OpenAutoRefillFilamentsDialog(MachineObject*                     machine_ob
                                    AutoRefillFilamentsDialogMode      mode,
                                    const std::optional<DevAmsSlotId>& group_head)
 {
-    if (!machine_obj || (mode == AutoRefillFilamentsDialogMode::AddToGroup && !group_head.has_value())) {
+    if (!machine_obj || (mode == AutoRefillFilamentsDialogMode::AddToGroup && !group_head.has_value()))
         return;
-    }
-    if (active_auto_refill_filaments_dialog()) {
+    if (active_auto_refill_filaments_dialog())
         return;
-    }
 
     wxWindow* parent = resolve_auto_refill_dialog_parent();
     std::string route = "/device_page/auto_refill_refill_info?picker=1&mode=";
@@ -235,9 +230,8 @@ void OpenAutoRefillFilamentsDialog(MachineObject*                     machine_ob
     auto* host = new DeviceWebHost(&dialog, DeviceWebHostMode::DevicePageAutoRefillRefillInfo, route);
     host->SetMinSize(wxSize(dialog.FromDIP(kAutoRefillPickerWidthDip),
                             dialog.FromDIP(kAutoRefillPickerHeightDip)));
-    if (auto* vm = host->GetAutoRefillRefillInfoVM()) {
+    if (auto* vm = host->GetAutoRefillRefillInfoVM())
         vm->Refresh(machine_obj);
-    }
 
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(host, 1, wxEXPAND);
@@ -246,35 +240,29 @@ void OpenAutoRefillFilamentsDialog(MachineObject*                     machine_ob
     dialog.CentreOnParent();
     dialog.ShowModal();
 
-    if (active_auto_refill_filaments_dialog() == &dialog) {
+    if (active_auto_refill_filaments_dialog() == &dialog)
         active_auto_refill_filaments_dialog() = nullptr;
-    }
 }
 
 void CloseAutoRefillFilamentsDialog(int result)
 {
     wxDialog* dialog = active_auto_refill_filaments_dialog();
-    if (!dialog) {
+    if (!dialog)
         return;
-    }
-
-    if (dialog->IsModal()) {
+    if (dialog->IsModal())
         dialog->EndModal(result);
-    } else {
+    else
         dialog->Close();
-    }
 }
 
 void OpenHmsPanel()
 {
     auto* main_frame = wxGetApp().mainframe;
-    if (!main_frame) {
+    if (!main_frame)
         return;
-    }
     main_frame->jump_to_monitor();
-    if (main_frame->m_monitor) {
+    if (main_frame->m_monitor)
         main_frame->m_monitor->jump_to_HMS();
-    }
 }
 
 }} // namespace Slic3r::GUI
