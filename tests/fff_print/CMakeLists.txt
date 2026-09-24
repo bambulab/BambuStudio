@@ -42,8 +42,8 @@ add_test(support_material_on_wipe_tower_tests support_material_on_wipe_tower_tes
 
 add_executable(periodic_modifier_tests
 	fff_print_tests.cpp
-	test_data.cpp
-	test_data.hpp
+	test_helpers.cpp
+	test_helpers.hpp
 	test_periodic_modifier.cpp
 	)
 target_link_libraries(periodic_modifier_tests test_common libslic3r
