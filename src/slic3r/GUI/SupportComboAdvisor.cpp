@@ -215,13 +215,15 @@ bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigM
 
     wxString msg_text = _L("When using support material for the support interface, We recommend the following settings:");
     msg_text += "\n\n";
+    // The bullet must be a wide literal: under /utf-8 a narrow U+2022 escape is UTF-8 bytes,
+    // which wxString then re-decodes with wxConvLibc (system ANSI code page) and garbles.
     for (const auto &key : filtered_conf.keys()) {
         const ConfigOption *opt = filtered_conf.option(key);
         if (!opt)
             continue;
         wxString desc = generate_support_param_description(key, opt);
         if (!desc.empty())
-            msg_text += "  \u2022 " + desc + "\n";
+            msg_text += L"  \u2022 " + desc + "\n";
     }
     msg_text += "\n" + _L("Do you want to apply these settings?");
 
@@ -631,7 +633,7 @@ wxString build_support_revert_dialog_text(SupportRevertLead lead, const DynamicP
             continue;
         wxString desc = generate_support_param_description(key, opt);
         if (!desc.empty())
-            msg_text += "  \u2022 " + desc + "\n";
+            msg_text += L"  \u2022 " + desc + "\n";
     }
 
     // The delete dialog covers both scopes at once, so say so rather than let the global half
@@ -652,10 +654,10 @@ wxString build_support_revert_dialog_text(SupportRevertLead lead, const DynamicP
     size_t shown = 0;
     for (const ModelObject *obj : listed_objects) {
         if (shown++ >= 8) {
-            msg_text += "  \u2022 ...\n";
+            msg_text += L"  \u2022 ...\n";
             break;
         }
-        msg_text += "  \u2022 " + shorten_object_name(obj->name) + "\n";
+        msg_text += L"  \u2022 " + shorten_object_name(obj->name) + "\n";
     }
     // "all of them" needs more than one object to be about.
     msg_text += "\n" + (offer_choice               ? _L("Restore the current selection only, or all of them?") :

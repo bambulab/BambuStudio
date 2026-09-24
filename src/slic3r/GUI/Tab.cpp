@@ -2419,7 +2419,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                         if (!opt) continue;
                         wxString desc = generate_support_param_description(key, opt);
                         if (!desc.empty()) {
-                            msg_text += "  \u2022 " + desc + "\n";
+                            // Wide literal: a narrow U+2022 escape would be UTF-8 bytes under
+                            // /utf-8, then re-decoded by wxConvLibc with the system ANSI code page.
+                            msg_text += L"  \u2022 " + desc + "\n";
                         }
                     }
                     msg_text += "\n" + _L("Do you want to apply these settings?");
