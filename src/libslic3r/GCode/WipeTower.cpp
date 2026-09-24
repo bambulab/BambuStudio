@@ -6847,7 +6847,9 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             // bands are all reserved still writes a travel and a deretract, so it looks like valid gcode while
             // laying down nothing. Extrusions are only recorded for real material, so they tell the two apart:
             // drop the visit and leave this layer without a tower visit at all.
-            if (is_valid_gcode(finish_layer_tcr.gcode) && !finish_layer_tcr.extrusions.empty())
+            // With only_generate_wall the timelapse wall is inserted in front below, and the G-code side takes it
+            // before asking for the finish_layer visit, so that visit has to stay even when it lays down nothing.
+            if (only_generate_wall || (is_valid_gcode(finish_layer_tcr.gcode) && !finish_layer_tcr.extrusions.empty()))
                 layer_result.emplace_back(std::move(finish_layer_tcr));
         }
         else if (is_valid_gcode(finish_layer_tcr.gcode)) {
