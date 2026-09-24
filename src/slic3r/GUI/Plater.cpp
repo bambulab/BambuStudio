@@ -6006,7 +6006,6 @@ void Sidebar::sys_color_changed()
         wxGetApp().UpdateDarkUIWin(item);
     for (DiameterButtonPanel *panel : p->filament_diameter_btns)
         wxGetApp().UpdateDarkUIWin(panel);
-    refresh_filament_diameter_buttons();
 
     // BBS
     obj_list()->sys_color_changed();
