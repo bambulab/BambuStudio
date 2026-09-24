@@ -28116,17 +28116,6 @@ msgstr ""
 msgid "TPU285"
 msgstr "TPU285"
 
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
-msgstr "拖动切割平面可移动；在零件上单击鼠标右键以将其指定给另一侧"
-
-msgid "Show Labels"
-msgstr "显示标签"
-
-msgid "Deleting the last solid part is not allowed."
-msgstr "不允许删除对象的最后一个实体零件。"
-
 msgid "Air Purifier"
 msgstr "空气净化器"
 
@@ -28134,85 +28123,8 @@ msgctxt "AirPurifier"
 msgid "Max"
 msgstr "最大"
 
-msgid "One-click RYBW auto-mix"
-msgstr "一键RYBW自动混色"
-
 msgid "One-click CMYKW auto-mix"
 msgstr "一键 CMYKW 自动混色"
-
-msgid "One-click CMYW auto-mix"
-msgstr "一键CMYW自动混色"
-
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "项目最多支持 %d 个耗材，多余的耗材将被丢弃。"
-
-msgid "Import Model"
-msgstr "导入模型"
-
-msgid "Multi-Color"
-msgstr "多色"
-
-msgid "Your input texture model"
-msgstr "您输入的纹理模型"
-
-msgid "Processed multi-color model"
-msgstr "处理后的多色模型"
-
-msgid "Smooth Level"
-msgstr "光滑程度"
-
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr "自动确定最佳颜色数量并重新计算耗材映射"
-
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr "使用指定的颜色数目和光滑程度将纹理转换为涂色"
-
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr "提醒：参数已更改，请点击应用生效"
-
-msgid "Filament Mapping"
-msgstr "耗材映射"
-
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "重置耗材映射至一键混色前的状态"
-
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "选择纹理颜色导入的一键自动混色模式"
-
-msgid "Auto-merge same filament"
-msgstr "自动合并相同的耗材"
-
-msgid "Skip Matching"
-msgstr "跳过匹配"
-
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "网格具有非流形几何或开放边界。您可以直接导入，或在导入前使用 Windows 3D 修复服务进行修复。"
-
-msgid "Mesh repair"
-msgstr "网状修复"
-
-msgid "Import without repair"
-msgstr "不修复并导入"
-
-msgid "Repair and import"
-msgstr "修复并导入"
-
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "请注意，网格具有非流形或开放边界。"
-
-msgid "Mesh issue"
-msgstr "网格故障"
-
-msgid "max"
-msgstr "最大"
-
-msgid "min"
-msgstr "最小"
-
-#, boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr "输入的范围在 %1% 和 %2% 之间"
 
 msgid "Weight"
 msgstr "重量"
@@ -28223,50 +28135,11 @@ msgstr "总重量"
 msgid "Remain Weight"
 msgstr "剩余重量"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "不支持在打印时设置AMS槽位信息"
-
-msgid "Setting Virtual slot information while printing is not supported"
-msgstr "不支持在打印时设置虚拟槽位信息"
-
 msgid "Please enter valid filament weights."
 msgstr "请输入有效的耗材重量。"
 
-msgid "In printer"
-msgstr "机内耗材"
-
-#, c-format, boost-format
-msgid "In printer: %s"
-msgstr "机内耗材：%s"
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr "提示"
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr "提示"
-
 msgid "No unsupported filaments"
 msgstr "无不受支持的耗材"
-
-msgid "Other Color"
-msgstr "其他颜色"
-
-msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"
-
-msgid "Link to existing filament"
-msgstr "关联已录入的耗材"
-
-msgid "Not now"
-msgstr "暂不录入"
-
-msgid "Please select"
-msgstr "请选择"
-
-msgid "No matching filament"
-msgstr "暂无匹配的耗材"
 
 msgid "Please select the filament to match."
 msgstr "请选择要匹配的耗材。"
@@ -28280,42 +28153,8 @@ msgstr "自动刷新未装载的耗材"
 msgid "For official filaments, the filament type is automatically refreshed when entering the Device page. To avoid frequent refreshes, automatic refreshes occur no more than once per minute."
 msgstr "对于官方耗材，进入设备页时会自动刷新耗材类型。为避免频繁刷新，自动刷新最多每分钟一次。"
 
-#, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
-msgstr "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温度为 %d。"
-
-#, c-format, boost-format
-msgid ""
-"lock depth should smaller than skin depth.\n"
-"Reset to 50%% of skin depth"
-msgstr ""
-"互锁深度应该比表皮深度小,\n"
-"重设为表皮深度的一半"
-
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为传统，Z方向墙速度平滑不启用且交替额外墙层关闭。"
-
-msgid "parameter name"
-msgstr "参数名称"
-
 msgid "AMS nozzle"
 msgstr "AMS 喷嘴"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "装配体的边界框过大（最大尺寸 >= %1% 英寸），这可能会导致渲染问题。\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "装配体的边界框过大（最大尺寸 >= %1% mm），这可能会导致渲染问题。\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% 英寸）：\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% mm）：\n"
 
 msgid "Your printer does not support a prime tower with different support material. The slicing has automatically switched to the heat preservation wall solution."
 msgstr "当前打印机不支持不同支撑材料的擦料塔。切片已自动切换为保温墙方案。"
@@ -28325,9 +28164,6 @@ msgstr "实时摄像头录像"
 
 msgid "Visual Enhancement Camera Recording"
 msgstr "视觉增强摄像头录像"
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "在 3D 场景中显示按逐件打印的标签"
 
 msgid "Switch to the auxiliary live camera view"
 msgstr "切换到辅助实时摄像头画面"
@@ -28357,58 +28193,15 @@ msgstr "配置喷嘴直径"
 msgid "Modify Nozzle Type"
 msgstr "修改喷嘴类型"
 
-msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
-msgstr "当前热床温度相对较高。在封闭式外壳中打印这种丝可能会导致喷嘴堵塞。请打开前门和/或取下上部玻璃。"
-
-msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr "开启传统模式延时摄影可能导致表面瑕疵，建议修改为平滑模式。"
-
-#, c-format, boost-format
-msgid ""
-"The object from file %s is too small, and maybe in meters or inches.\n"
-" Do you want to scale to millimeters?"
-msgstr ""
-"文件 %s 中对象的尺寸似乎是以米或者英寸为单位定义的。\n"
-"BambuStudio的内部单位为毫米。是否要转换成毫米？"
-
-msgid "Object too small"
-msgstr "对象尺寸过小"
-
-#, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr "正在计算纹理颜色：%s"
-
-#, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "原因：零件\"%1%\"有自相交。"
-
 #, c-format, boost-format
 msgid "The currently connected printer is not available, please check the status of %s before syncing."
 msgstr "当前连接的打印机不可用，请在同步前检查 %s 的状态。"
-
-msgid "Auto Flush"
-msgstr "自动冲刷计算"
 
 msgid "Show heat-soak area"
 msgstr "显示热床保温区域"
 
 msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
 msgstr "当模型超出热床保温区域时发出警告。仅支持此功能的打印机可用。"
-
-msgid ""
-"- Sync printer presets after loading a file\n"
-"- \"Load 3MF\" dialog settings\n"
-"- Executing post-processing scripts\n"
-"- Support structure recommendation prompt\n"
-"- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
-msgstr ""
-"- 清除加载文件后同步打印机预设的设置\n"
-"- 清除”加载3mf“对话框设置\n"
-"- 清除执行后处理脚本的设置\n"
-"- 清除禁用支撑参数推荐的设置\n"
-"- 清除对未保存的项目的选择\n"
-"- 带有可变层高的混合颜色子层警告"
 
 msgid "Unavailable Nozzles"
 msgstr "不可用喷嘴"
@@ -28431,14 +28224,8 @@ msgstr "当前工具均未完成对接校准。请完成校准后重试。"
 msgid "Add to queue"
 msgstr "加入队列"
 
-msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
-msgstr "当前打印机在逐件打印时不支持传统模式下的延时摄影。"
-
 msgid "Only the current sliced plate can be added to the print queue."
 msgstr "仅当前已切片的盘可加入打印队列。"
-
-msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr "开启延时摄影后，无论选择传统或平滑模式，打印机都会在每层拍照前移动热床和工具头，可能增加打印时间。"
 
 msgid "PrintToolRack moving, please wait."
 msgstr "PrintTool 挂架移动中，请稍候。"
@@ -28451,9 +28238,6 @@ msgstr "刀具"
 
 msgid "Laser"
 msgstr "激光"
-
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr "AMS 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
 
 #, c-format, boost-format
 msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
@@ -28477,9 +28261,6 @@ msgstr "“无稀疏层”与需要每层擦料塔的平滑延时摄影不兼容
 
 msgid "Support ring"
 msgstr "支撑环"
-
-msgid "Select presets to compare"
-msgstr "选择要比较的预设"
 
 #, c-format, boost-format
 msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
@@ -28552,21 +28333,6 @@ msgstr "鳍片挤出安全温度"
 msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
 msgstr "鳍片挤出时的安全热端温度。0 表示未设置。可在自定义 G-code 中通过 fins_extrude_safe_temp 访问。"
 
-msgid "Nozzle type"
-msgstr "喷嘴类型"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "喷嘴的金属材料。这将决定喷嘴的耐磨性，以及可打印材料的种类"
-
-msgid "Hardened steel"
-msgstr "硬化钢"
-
-msgid "Stainless steel"
-msgstr "不锈钢"
-
-msgid "Tungsten carbide"
-msgstr "碳化钨"
-
 msgid "Default wipe tower position"
 msgstr "默认擦料塔位置"
 
@@ -28578,12 +28344,6 @@ msgstr "辅助风扇同步到第二风扇"
 
 msgid "Enable this if the printer has a second auxiliary part cooling fan that should use the same speed as the auxiliary fan"
 msgstr "若打印机有第二路辅助部件冷却风扇，且应与辅助风扇同速，请启用此项"
-
-msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "如果启用平滑模式或者传统模式，将在每次打印时生成延时摄影视频。打印完每层后，将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦料塔进行喷嘴擦拭。"
-
-msgid "Traditional"
-msgstr "传统模式"
 
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
 msgstr "启用后，延时摄影快照会在距相机最远点拍摄，而不是移动到擦料塔或废料槽。仅在非 I3 机型的传统延时摄影模式下生效。"
@@ -28723,10 +28483,6 @@ msgstr "侧面刮料沿墙长度"
 msgid "Upper bound for the empty travel along the side wall performed right after the diagonal scrape, before the nozzle moves to the wipe line start. It smears the ooze stub further along the wall. The travel never leaves the straight part of the side wall, so the actual length is only the room left between the scrape start and the end of that straight part. On a rib prime tower the straight part can be just a few millimetres, in which case the travel is much shorter than the value set here."
 msgstr "斜向刮料后、移向擦拭线起点前，沿侧壁空驶的上限长度，用于把渗料头继续抹开。空驶不离开侧壁直线段，实际长度仅为刮料起点到该直线段末端的剩余距离。肋形擦料塔直线段可能仅数毫米，此时实际空驶会远短于设定值。"
 
-#, c-format, boost-format
-msgid " doesn't work at 100%% density "
-msgstr " 填充图案不支持 100%% 密度"
-
 msgid "Nozzle Type and Diameter"
 msgstr "喷嘴类型与直径"
 
@@ -28735,14 +28491,6 @@ msgstr "未选择"
 
 msgid "PrintTool"
 msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
-msgstr ""
-"您创建的耗材丝名字%s已经存在。\n"
-"如果您继续创建，您创建的预设将以全名显示。您想继续吗？"
 
 msgid "Set filament placement"
 msgstr "设置耗材放置"
@@ -28767,18 +28515,3 @@ msgstr "喷嘴（%d） - %s"
 
 msgid "TPU"
 msgstr "TPU"
-
-msgid "Project Filament List"
-msgstr "项目耗材列表"
-
-msgid "Standard Mode Recommendations"
-msgstr "标准模式推荐"
-
-msgid "Target Color"
-msgstr "目标色"
-
-msgid "Arbitrary Mode"
-msgstr "任意模式"
-
-msgid "Standard Mode"
-msgstr "标准模式"
