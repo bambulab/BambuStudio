@@ -2006,8 +2006,13 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
     print->set_done(psGCodeExport);
     //BBS: set enable_label_object
-    result->label_object_enabled = m_enable_label_object;
-    result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    // do_export() accepts result == nullptr by design (checked above); these two writes were
+    // added afterwards without the same guard, so any caller exporting without a result pointer
+    // (the test suite's Slic3r::Test::gcode() among them) crashed here.
+    if (result != nullptr) {
+        result->label_object_enabled = m_enable_label_object;
+        result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    }
     // Write the profiler measurements to file
     PROFILE_UPDATE();
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());

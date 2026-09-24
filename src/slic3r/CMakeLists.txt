@@ -778,6 +778,10 @@ endif()
 
 target_include_directories(libslic3r_gui PRIVATE Utils)
 target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../)
+# include(${wxWidgets_USE_FILE}) applies wxWidgets' include paths and definitions only inside src/.
+# Publish them, so that targets outside src/ that include GUI headers (the tests) build too.
+target_include_directories(libslic3r_gui SYSTEM INTERFACE ${wxWidgets_INCLUDE_DIRS})
+target_compile_definitions(libslic3r_gui INTERFACE ${wxWidgets_DEFINITIONS})
 
 if (WIN32)
     target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/WebView2/include)

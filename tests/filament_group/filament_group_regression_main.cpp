@@ -229,7 +229,16 @@ TEST_CASE("FilamentGroup golden regression", "[filament_group][golden]") {
 
         int tolerance = std::max(50, (int)(base.full_score * 0.03));
 
-        REQUIRE(result.constraints_ok);
+        // Per REGRESSION_TEST_PLAN.md: only require constraints_ok when the golden itself
+        // recorded a feasible case; some golden cases are deliberately infeasible (e.g. more
+        // colors than AMS slots), and constraints_ok there is a soft warning, not a hard gate.
+        if (base.constraints_ok) {
+            REQUIRE(result.constraints_ok);
+        } else if (!result.constraints_ok) {
+            for (auto& v : result.violations)
+                WARN("Violation: " << v);
+            WARN("Constraint violation (infeasible case, soft): " << tc.metadata.id);
+        }
         REQUIRE(eval.full_score <= base.full_score + tolerance);
         REQUIRE(result.elapsed_ms < 20000.0);
     }

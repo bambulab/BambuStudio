@@ -1,6 +1,9 @@
 #include <catch2/catch.hpp>
 
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Flow.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Polygon.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 
 #include <cereal/types/polymorphic.hpp>
@@ -13,21 +16,21 @@ using namespace Slic3r;
 SCENARIO("Generic config validation performs as expected.", "[Config]") {
     GIVEN("A config generated from default options") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-        WHEN( "perimeter_extrusion_width is set to 250%, a valid value") {
-            config.set_deserialize_strict("perimeter_extrusion_width", "250%");
+        WHEN( "inner_wall_line_width is set to 0.8, a valid value") {
+            config.set_deserialize_strict("inner_wall_line_width", "0.8");
             THEN( "The config is read as valid.") {
                 REQUIRE(config.validate().empty());
             }
         }
-        WHEN( "perimeter_extrusion_width is set to -10, an invalid value") {
-            config.set("perimeter_extrusion_width", -10);
+        WHEN( "inner_wall_line_width is set to -10, an invalid value") {
+            config.set("inner_wall_line_width", -10);
             THEN( "Validate returns error") {
                 REQUIRE(! config.validate().empty());
             }
         }
 
-        WHEN( "perimeters is set to -10, an invalid value") {
-            config.set("perimeters", -10);
+        WHEN( "wall_loops is set to -10, an invalid value") {
+            config.set("wall_loops", -10);
             THEN( "Validate returns error") {
                 REQUIRE(! config.validate().empty());
             }
@@ -39,116 +42,118 @@ SCENARIO("Config accessor functions perform as expected.", "[Config]") {
     GIVEN("A config generated from default options") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
         WHEN("A boolean option is set to a boolean value") {
-            REQUIRE_NOTHROW(config.set("gcode_comments", true));
+            REQUIRE_NOTHROW(config.set("gcode_add_line_number", true));
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionBool>("gcode_comments")->getBool() == true);
+                REQUIRE(config.opt<ConfigOptionBool>("gcode_add_line_number")->getBool() == true);
             }
         }
         WHEN("A boolean option is set to a string value representing a 0 or 1") {
-            CHECK_NOTHROW(config.set_deserialize_strict("gcode_comments", "1"));
+            CHECK_NOTHROW(config.set_deserialize_strict("gcode_add_line_number", "1"));
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionBool>("gcode_comments")->getBool() == true);
+                REQUIRE(config.opt<ConfigOptionBool>("gcode_add_line_number")->getBool() == true);
             }
         }
         WHEN("A boolean option is set to a string value representing something other than 0 or 1") {
             THEN("A BadOptionTypeException exception is thrown.") {
-                REQUIRE_THROWS_AS(config.set("gcode_comments", "Z"), BadOptionTypeException);
+                REQUIRE_THROWS_AS(config.set("gcode_add_line_number", "Z"), BadOptionTypeException);
             }
             AND_THEN("Value is unchanged.") {
-                REQUIRE(config.opt<ConfigOptionBool>("gcode_comments")->getBool() == false);
+                REQUIRE(config.opt<ConfigOptionBool>("gcode_add_line_number")->getBool() == false);
             }
         }
         WHEN("A boolean option is set to an int value") {
             THEN("A BadOptionTypeException exception is thrown.") {
-                REQUIRE_THROWS_AS(config.set("gcode_comments", 1), BadOptionTypeException);
+                REQUIRE_THROWS_AS(config.set("gcode_add_line_number", 1), BadOptionTypeException);
             }
         }
         WHEN("A numeric option is set from serialized string") {
-            config.set_deserialize_strict("bed_temperature", "100");
+            config.set_deserialize_strict("hot_plate_temp", "100");
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionInts>("bed_temperature")->get_at(0) == 100);
+                REQUIRE(config.opt<ConfigOptionInts>("hot_plate_temp")->get_at(0) == 100);
             }
         }
 #if 0
 		//FIXME better design accessors for vector elements.
 		WHEN("An integer-based option is set through the integer interface") {
-            config.set("bed_temperature", 100);
+            config.set("hot_plate_temp", 100);
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionInts>("bed_temperature")->get_at(0) == 100);
+                REQUIRE(config.opt<ConfigOptionInts>("hot_plate_temp")->get_at(0) == 100);
             }
         }
 #endif
         WHEN("An floating-point option is set through the integer interface") {
-            config.set("perimeter_speed", 10);
+            config.set("layer_height", 10);
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionFloat>("perimeter_speed")->getFloat() == 10.0);
+                REQUIRE(config.opt<ConfigOptionFloat>("layer_height")->getFloat() == 10.0);
             }
         }
         WHEN("A floating-point option is set through the double interface") {
-            config.set("perimeter_speed", 5.5);
+            config.set("layer_height", 5.5);
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionFloat>("perimeter_speed")->getFloat() == 5.5);
+                REQUIRE(config.opt<ConfigOptionFloat>("layer_height")->getFloat() == 5.5);
             }
         }
         WHEN("An integer-based option is set through the double interface") {
             THEN("A BadOptionTypeException exception is thrown.") {
-                REQUIRE_THROWS_AS(config.set("bed_temperature", 5.5), BadOptionTypeException);
+                REQUIRE_THROWS_AS(config.set("hot_plate_temp", 5.5), BadOptionTypeException);
             }
         }
         WHEN("A numeric option is set to a non-numeric value.") {
             THEN("A BadOptionTypeException exception is thown.") {
-                REQUIRE_THROWS_AS(config.set_deserialize_strict("perimeter_speed", "zzzz"), BadOptionValueException);
+                REQUIRE_THROWS_AS(config.set_deserialize_strict("layer_height", "zzzz"), BadOptionValueException);
             }
             THEN("The value does not change.") {
-                REQUIRE(config.opt<ConfigOptionFloat>("perimeter_speed")->getFloat() == 60.0);
+                const double before = config.opt<ConfigOptionFloat>("layer_height")->getFloat();
+                CHECK_THROWS(config.set_deserialize_strict("layer_height", "zzzz"));
+                REQUIRE(config.opt<ConfigOptionFloat>("layer_height")->getFloat() == before);
             }
         }
         WHEN("A string option is set through the string interface") {
-            config.set("end_gcode", "100");
+            config.set("machine_end_gcode", "100");
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionString>("end_gcode")->value == "100");
+                REQUIRE(config.opt<ConfigOptionString>("machine_end_gcode")->value == "100");
             }
         }
         WHEN("A string option is set through the integer interface") {
-            config.set("end_gcode", 100);
+            config.set("machine_end_gcode", 100);
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionString>("end_gcode")->value == "100");
+                REQUIRE(config.opt<ConfigOptionString>("machine_end_gcode")->value == "100");
             }
         }
         WHEN("A string option is set through the double interface") {
-            config.set("end_gcode", 100.5);
+            config.set("machine_end_gcode", 100.5);
             THEN("The underlying value is set correctly.") {
-                REQUIRE(config.opt<ConfigOptionString>("end_gcode")->value == float_to_string_decimal_point(100.5));
+                REQUIRE(config.opt<ConfigOptionString>("machine_end_gcode")->value == float_to_string_decimal_point(100.5));
             }
         }
         WHEN("A float or percent is set as a percent through the string interface.") {
-            config.set_deserialize_strict("first_layer_extrusion_width", "100%");
+            config.set_deserialize_strict("sparse_infill_anchor", "100%");
             THEN("Value and percent flag are 100/true") {
-                auto tmp = config.opt<ConfigOptionFloatOrPercent>("first_layer_extrusion_width");
+                auto tmp = config.opt<ConfigOptionFloatOrPercent>("sparse_infill_anchor");
                 REQUIRE(tmp->percent == true);
                 REQUIRE(tmp->value == 100);
             }
         }
         WHEN("A float or percent is set as a float through the string interface.") {
-            config.set_deserialize_strict("first_layer_extrusion_width", "100");
+            config.set_deserialize_strict("sparse_infill_anchor", "100");
             THEN("Value and percent flag are 100/false") {
-                auto tmp = config.opt<ConfigOptionFloatOrPercent>("first_layer_extrusion_width");
+                auto tmp = config.opt<ConfigOptionFloatOrPercent>("sparse_infill_anchor");
                 REQUIRE(tmp->percent == false);
                 REQUIRE(tmp->value == 100);
             }
         }
         WHEN("A float or percent is set as a float through the int interface.") {
-            config.set("first_layer_extrusion_width", 100);
+            config.set("sparse_infill_anchor", 100);
             THEN("Value and percent flag are 100/false") {
-                auto tmp = config.opt<ConfigOptionFloatOrPercent>("first_layer_extrusion_width");
+                auto tmp = config.opt<ConfigOptionFloatOrPercent>("sparse_infill_anchor");
                 REQUIRE(tmp->percent == false);
                 REQUIRE(tmp->value == 100);
             }
         }
         WHEN("A float or percent is set as a float through the double interface.") {
-            config.set("first_layer_extrusion_width", 100.5);
+            config.set("sparse_infill_anchor", 100.5);
             THEN("Value and percent flag are 100.5/false") {
-                auto tmp = config.opt<ConfigOptionFloatOrPercent>("first_layer_extrusion_width");
+                auto tmp = config.opt<ConfigOptionFloatOrPercent>("sparse_infill_anchor");
                 REQUIRE(tmp->percent == false);
                 REQUIRE(tmp->value == 100.5);
             }
@@ -181,9 +186,9 @@ SCENARIO("Config accessor functions perform as expected.", "[Config]") {
 
         WHEN("getX called on an unset option.") {
             THEN("The default is returned.") {
-                REQUIRE(config.opt_float("layer_height") == 0.3);
+                REQUIRE(config.opt_float("layer_height") == 0.2);
                 REQUIRE(config.opt_int("raft_layers") == 0);
-                REQUIRE(config.opt_bool("support_material") == false);
+                REQUIRE(config.opt_bool("enable_support") == false);
             }
         }
 
@@ -220,8 +225,8 @@ SCENARIO("DynamicPrintConfig serialization", "[Config]") {
             cereal::BinaryOutputArchive oarchive(ss);
             oarchive(cfg);
             serialized = ss.str();
-        } catch (const std::runtime_error & /* e */) {
-            // e.what();
+        } catch (const std::runtime_error &e) {
+            FAIL("cereal serialization threw: " << e.what());
         }
 
         THEN("Config object contains ini file options.") {
@@ -230,8 +235,8 @@ SCENARIO("DynamicPrintConfig serialization", "[Config]") {
                 std::stringstream ss(serialized);
                 cereal::BinaryInputArchive iarchive(ss);
                 iarchive(cfg2);
-            } catch (const std::runtime_error & /* e */) {
-                // e.what();
+            } catch (const std::runtime_error &e) {
+                FAIL("cereal deserialization threw: " << e.what());
             }
             REQUIRE(cfg == cfg2);
         }
@@ -245,15 +250,19 @@ SCENARIO("get_real_skirt_dist calculates the correct boundary including loop wid
         config.set("skirt_distance", 2.0);
         config.set("skirt_loops", 3);
         config.set("initial_layer_line_width", 0.4);
-        config.set("draft_shield", "disabled"); // Just to be safe, dsDisabled is 0 usually
+        config.set_deserialize_strict("draft_shield", "disabled"); // an enum is set by name; set() cannot convert a string to it
         config.set("skirt_per_object", true);
 
         WHEN("get_real_skirt_dist is called") {
             float dist = Slic3r::get_real_skirt_dist(config);
 
             THEN("The distance includes the width of the skirt loops") {
-                // 2.0 + 3 * 0.4 = 3.2
-                REQUIRE(dist == Approx(3.2));
+                // The outermost loop's centreline is skirt_distance + (loops - 0.5) * spacing, plus half a line
+                // width for its outer edge. Spacing is narrower than the width because the extrusion is rounded.
+                const Flow flow = Flow::new_from_config_width(frPerimeter, ConfigOptionFloat(0.4),
+                    float(config.opt<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0)), float(config.opt_float("initial_layer_print_height")));
+                REQUIRE(flow.spacing() < flow.width());
+                REQUIRE(dist == Approx(2.0 + 2.5 * flow.spacing() + 0.5 * flow.width()));
             }
         }
 

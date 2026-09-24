@@ -843,8 +843,13 @@ public:
     {
         UNUSED(append);
         std::istringstream iss(str);
-        iss >> this->value;
-        return !iss.fail();
+        // Parse into a local: a failed extraction stores 0, and the option must keep its value then.
+        double parsed;
+        iss >> parsed;
+        if (iss.fail())
+            return false;
+        this->value = parsed;
+        return true;
     }
 
     ConfigOptionFloat& operator=(const ConfigOption *opt)
@@ -1014,8 +1019,13 @@ public:
     {
         UNUSED(append);
         std::istringstream iss(str);
-        iss >> this->value;
-        return !iss.fail();
+        // Parse into a local: a failed extraction stores 0, and the option must keep its value then.
+        int parsed;
+        iss >> parsed;
+        if (iss.fail())
+            return false;
+        this->value = parsed;
+        return true;
     }
 
     ConfigOptionInt& operator=(const ConfigOption *opt)
@@ -1229,8 +1239,13 @@ public:
         UNUSED(append);
         // don't try to parse the trailing % since it's optional
         std::istringstream iss(str);
-        iss >> this->value;
-        return !iss.fail();
+        // Parse into a local: a failed extraction stores 0, and the option must keep its value then.
+        double parsed;
+        iss >> parsed;
+        if (iss.fail())
+            return false;
+        this->value = parsed;
+        return true;
     }
 
 private:
@@ -1341,10 +1356,16 @@ public:
     bool deserialize(const std::string &str, bool append = false) override
     {
         UNUSED(append);
-        this->percent = str.find_first_of("%") != std::string::npos;
         std::istringstream iss(str);
-        iss >> this->value;
-        return !iss.fail();
+        // Parse into a local: a failed extraction stores 0, and the option must keep its value and
+        // percent flag then.
+        double parsed;
+        iss >> parsed;
+        if (iss.fail())
+            return false;
+        this->value   = parsed;
+        this->percent = str.find_first_of("%") != std::string::npos;
+        return true;
     }
 
 private:
@@ -2132,7 +2153,7 @@ class ConfigOptionEnumsGenericTempl : public ConfigOptionInts
 public:
     ConfigOptionEnumsGenericTempl(const t_config_enum_values *keys_map = nullptr) : keys_map(keys_map) {}
     explicit ConfigOptionEnumsGenericTempl(const t_config_enum_values *keys_map, size_t size, int value) : ConfigOptionInts(size, value), keys_map(keys_map) {}
-    explicit ConfigOptionEnumsGenericTempl(std::initializer_list<int> il) : ConfigOptionInts(std::move(il)), keys_map(keys_map) {}
+    explicit ConfigOptionEnumsGenericTempl(std::initializer_list<int> il) : ConfigOptionInts(std::move(il)) {}
     explicit ConfigOptionEnumsGenericTempl(const std::vector<int> &vec) : ConfigOptionInts(vec) {}
     explicit ConfigOptionEnumsGenericTempl(std::vector<int> &&vec) : ConfigOptionInts(std::move(vec)) {}
 
@@ -2197,6 +2218,8 @@ public:
                     throw ConfigurationError("Deserializing nil into a non-nullable object");
             }
             else {
+                if (this->keys_map == nullptr)
+                    return false;
                 auto it = this->keys_map->find(item_str);
                 if (it == this->keys_map->end())
                     return false;
@@ -2215,7 +2238,7 @@ private:
             else
                 throw ConfigurationError("Serializing NaN");
         }
-        else {
+        else if (this->keys_map != nullptr) {
             for (const auto& kvp : *this->keys_map)
                 if (kvp.second == v)
                     ss << kvp.first;
@@ -2276,6 +2299,7 @@ public:
 		    case coPercents:        { auto opt = new ConfigOptionPercentsNullable();archive(*opt); return opt; }
 		    case coBools:           { auto opt = new ConfigOptionBoolsNullable();	archive(*opt); return opt; }
 		    case coFloatsOrPercents:{ auto opt = new ConfigOptionFloatsOrPercentsNullable();archive(*opt); return opt; }
+            case coEnums:           { auto opt = new ConfigOptionEnumsGenericNullable(this->enum_keys_map); archive(*opt); return opt; }
             default: throw ConfigurationError(std::string("ConfigOptionDef::load_option_from_archive(): Unknown nullable option type for option ") + this->opt_key);
 		    }
     	} else {
@@ -2299,6 +2323,7 @@ public:
             // BBS
             case coEnums:           { auto opt = new ConfigOptionEnumsGeneric(this->enum_keys_map); archive(*opt); return opt; }
             case coIntsGroups:      { auto opt = new ConfigOptionIntsGroups();      archive(*opt); return opt; }
+            case coPointsGroups:    { auto opt = new ConfigOptionPointsGroups();    archive(*opt); return opt; }
 		    default:                throw ConfigurationError(std::string("ConfigOptionDef::load_option_from_archive(): Unknown option type for option ") + this->opt_key);
 		    }
 		}
@@ -2312,6 +2337,7 @@ public:
 		    case coPercents:        archive(*static_cast<const ConfigOptionPercentsNullable*>(opt));break;
 		    case coBools:           archive(*static_cast<const ConfigOptionBoolsNullable*>(opt)); 	break;
             case coFloatsOrPercents: archive(*static_cast<const ConfigOptionFloatsOrPercentsNullable*>(opt)); break;
+            case coEnums:           archive(*static_cast<const ConfigOptionEnumsGenericNullable*>(opt)); break;
             default: throw ConfigurationError(std::string("ConfigOptionDef::save_option_to_archive(): Unknown nullable option type for option ") + this->opt_key);
 		    }
 		} else {
@@ -2335,6 +2361,7 @@ public:
             // BBS
             case coEnums:           archive(*static_cast<const ConfigOptionEnumsGeneric*>(opt));    break;
             case coIntsGroups:      archive(*static_cast<const ConfigOptionIntsGroups *>(opt));     break;
+            case coPointsGroups:    archive(*static_cast<const ConfigOptionPointsGroups *>(opt));   break;
 		    default:                throw ConfigurationError(std::string("ConfigOptionDef::save_option_to_archive(): Unknown option type for option ") + this->opt_key);
 		    }
 		}
