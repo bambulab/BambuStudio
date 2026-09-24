@@ -4172,7 +4172,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             ppl.get_curr_plate()->update_slice_ready_status(model_fits);
 
             bool filament_flow_compatible = cur_plate->check_flow_compatible_of_nozzle_and_filament(full_config_temp, wxGetApp().preset_bundle->filament_presets, get_filament_flow_warning_text());
-            _set_warning_notification(EWarning::FilamentNozzleFlowIncompatible, !filament_flow_compatible && !tpu285_missing);
+            _set_warning_notification(EWarning::FilamentNozzleFlowIncompatible, !filament_flow_compatible && filament_printable && !tpu285_missing);
 
             bool tpu_nozzle_has_multi_filaments = cur_plate->check_tpu_nozzle_has_multiple_filaments(full_config_temp, get_tpu_nozzle_multi_filaments_warning_text());
             _set_warning_notification(EWarning::TpuNozzleMultipleFilaments, tpu_nozzle_has_multi_filaments);
