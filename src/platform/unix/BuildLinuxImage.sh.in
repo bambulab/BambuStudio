@@ -4,6 +4,7 @@ set -euo pipefail
 
 export ROOT=$(echo "${ROOT:-}" | grep . || pwd)
 export NCORES=`nproc --all`
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 while getopts ":irh" opt; do
   case ${opt} in
@@ -70,8 +71,9 @@ echo "done"
 
 if [[ -n "${BUILD_RPM:-}" ]]
 then
-chmod 755 "@CMAKE_CURRENT_BINARY_DIR@/build_rpm.sh"
-    "@CMAKE_CURRENT_BINARY_DIR@/build_rpm.sh" "$ROOT/build/package"
+    RPM_HELPER="${SCRIPT_DIR}/build_rpm.sh"
+    chmod 755 "${RPM_HELPER}"
+    "${RPM_HELPER}" "@CMAKE_BINARY_DIR@/package"
 fi
 
 if [[ -n "${BUILD_IMAGE:-}" ]]

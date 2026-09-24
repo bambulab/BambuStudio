@@ -57,15 +57,15 @@ for size in 32 128 192; do
         "\${BUILDROOT_DIR}%{_datadir}/icons/hicolor/\${size}x\${size}/apps/BambuStudio.png"
 done
 
-mkdir -p "\${BUILDROOT_DIR}%{_licensedir}/%{name}"
-install -m 0644 "@CMAKE_SOURCE_DIR@/LICENSE" "\${BUILDROOT_DIR}%{_licensedir}/%{name}/LICENSE"
+mkdir -p "\${BUILDROOT_DIR}%{_datadir}/licenses/%{name}"
+install -m 0644 "@CMAKE_SOURCE_DIR@/LICENSE" "\${BUILDROOT_DIR}%{_datadir}/licenses/%{name}/LICENSE"
 
 %files
 /opt/BambuStudio
 %{_bindir}/@SLIC3R_APP_CMD@
 %{_datadir}/applications/BambuStudio.desktop
 %{_datadir}/icons/hicolor/*/apps/BambuStudio.png
-%license %{_licensedir}/%{name}/LICENSE
+%license %{_datadir}/licenses/%{name}/LICENSE
 
 %changelog
 * Tue Sep 22 2026 Bambu Studio contributors <support@bambulab.com> - ${VERSION}-1
