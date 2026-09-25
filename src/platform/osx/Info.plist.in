@@ -43,6 +43,21 @@
     <dict>
       <key>CFBundleTypeExtensions</key>
       <array>
+        <string>sldprt</string>
+        <string>SLDPRT</string>
+      </array>
+      <key>CFBundleTypeIconFile</key>
+      <string>images/BambuStudio.icns</string>
+      <key>CFBundleTypeName</key>
+      <string>SolidWorks Part</string>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>LSHandlerRank</key>
+      <string>Alternate</string>
+    </dict>
+    <dict>
+      <key>CFBundleTypeExtensions</key>
+      <array>
         <string>stl</string>
         <string>STL</string>
       </array>

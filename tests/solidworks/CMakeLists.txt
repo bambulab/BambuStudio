@@ -1,0 +1,12 @@
+# Independently runnable binary-reader tests, without the GUI dependency build.
+cmake_minimum_required(VERSION 3.13)
+project(sldprt_reader_tests LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(ZLIB REQUIRED)
+enable_testing()
+add_executable(sldprt_reader_tests test_sldprt_reader.cpp ../../src/libslic3r/Format/SLDPRTReader.cpp)
+target_include_directories(sldprt_reader_tests PRIVATE ../../src/libslic3r/Format)
+target_compile_definitions(sldprt_reader_tests PRIVATE SLDPRT_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../data/test_sldprt")
+target_link_libraries(sldprt_reader_tests PRIVATE ZLIB::ZLIB)
+add_test(NAME sldprt_reader COMMAND sldprt_reader_tests)
