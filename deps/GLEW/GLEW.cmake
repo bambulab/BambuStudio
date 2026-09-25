@@ -2,10 +2,20 @@
 set(OpenGL_GL_PREFERENCE "LEGACY") # to prevent a nasty warning by cmake
 find_package(OpenGL QUIET REQUIRED)
 
+if (GLEW_USE_STATIC_LIBS)
+    set(glew_shared_libs "-DBUILD_SHARED_LIBS=OFF")
+else()
+    set(glew_shared_libs "-DBUILD_SHARED_LIBS=ON")
+endif()
+
 bambustudio_add_cmake_project(
   GLEW
-  SOURCE_DIR  ${CMAKE_CURRENT_LIST_DIR}/glew
+  URL https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0.zip
+  URL_HASH SHA256=a9046a913774395a095edcc0b0ac2d81c3aacca61787b39839b941e9be14e0d4
+  SOURCE_SUBDIR build/cmake
   CMAKE_ARGS
+    ${glew_shared_libs}
+    -DBUILD_UTILS=OFF
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 )
 
