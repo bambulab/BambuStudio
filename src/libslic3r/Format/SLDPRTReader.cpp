@@ -152,34 +152,36 @@ Mesh tessellate(const Bytes &data, const ProgressFn &progress)
         const size_t start = size_t(marker - data.begin());
         pos = start + sizeof(tess_marker);
         const size_t strips = u32(data, start + 12);
-        if (strips == 0 || strips > 20000 || strips > (data.size() - start - 16) / 4)
+        if (strips > (data.size() - start - 16) / 4)
+            invalid("a saved display array is truncated.");
+        if (strips == 0)
             continue;
+        const size_t tail = start + 16 + strips * 4;
+        // Edge/index arrays also use 4,8,2. Identify geometry by the next
+        // descriptor before interpreting values as strip lengths. Once a
+        // geometry record is identified, invalid lengths must fail the import
+        // rather than silently omit a face from an otherwise valid mesh.
+        if (data.size() - tail < 12 || u32(data, tail) != 12 ||
+            u32(data, tail + 4) != 100 || u32(data, tail + 8) != 2)
+            continue;
+        const size_t position_count = u32(data, tail + 12);
+        if (strips > max_vertices / 3)
+            invalid("the saved mesh has too many vertices.");
         std::vector<uint32_t> sizes;
+        sizes.reserve(strips);
         size_t total = 0;
         for (size_t i = 0; i < strips; ++i) {
             const uint32_t size = u32(data, start + 16 + i * 4);
-            if (size < 3 || size > 100000 || total > max_vertices - size) {
-                sizes.clear();
-                break;
-            }
+            if (size < 3 || size > max_vertices || total > max_vertices - size)
+                invalid("a saved triangle strip is invalid or too large.");
             total += size;
             sizes.push_back(size);
         }
-        // The display stream also uses 4,8,2 for edge/index records, whose
-        // values are not strip lengths. Identify geometry by the full header.
-        if (sizes.empty())
-            continue;
-        const size_t tail = start + 16 + strips * 4;
-        size_t positions = 0;
         // 12-byte float3 positions use descriptor 12,100,2,TOTAL. Integer
         // index arrays use 1,8,2,TOTAL and must not be read as coordinates.
-        // Match the descriptor, not TOTAL alone (TOTAL may itself be 12).
-        if (data.size() - tail >= 16 && u32(data, tail) == 12 &&
-            u32(data, tail + 4) == 100 && u32(data, tail + 8) == 2 &&
-            u32(data, tail + 12) == total)
-            positions = tail + 16;
-        if (positions == 0)
-            continue;
+        if (position_count != total)
+            invalid("the saved position count does not match the mesh.");
+        const size_t positions = tail + 16;
         if (total > (data.size() - positions) / 12)
             invalid("a tessellation record is incomplete.");
         if (mesh.vertices.size() > max_vertices - total)

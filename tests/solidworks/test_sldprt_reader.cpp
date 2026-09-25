@@ -59,6 +59,16 @@ TEST_CASE("Empty, unsupported and damaged documents fail clearly", "[sldprt]") {
 TEST_CASE("Validate geometry channels without returning partial geometry", "[sldprt]") {
     Bytes b = face(); b.resize(36 + 48 + 8); // incomplete normal descriptor
     REQUIRE_THROWS_AS(decode(document(b)), std::runtime_error);
+    b = face(); set_word(b, 32, 5); // position count != strip lengths
+    REQUIRE_THROWS_WITH(decode(document(b)), Catch::Contains("position count"));
+    Bytes mixed = face(); mixed.insert(mixed.end(), b.begin(), b.end());
+    REQUIRE_THROWS_WITH(decode(document(mixed)), Catch::Contains("position count"));
+    b = face(); set_word(b, 16, 2); // an invalid strip must not omit a face
+    mixed = face(); mixed.insert(mixed.end(), b.begin(), b.end());
+    REQUIRE_THROWS_WITH(decode(document(mixed)), Catch::Contains("triangle strip"));
+    b = face(); b.resize(18); // truncated strip array after a valid face
+    mixed = face(); mixed.insert(mixed.end(), b.begin(), b.end());
+    REQUIRE_THROWS_WITH(decode(document(mixed)), Catch::Contains("display array"));
     b = face(); set_word(b, 84 + 12, 5); // normal count != position count
     REQUIRE_THROWS_WITH(decode(document(b)), Catch::Contains("normal count"));
     b = face(); set_word(b, 36, 0x7fc00000); // NaN position
