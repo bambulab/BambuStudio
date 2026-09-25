@@ -14,6 +14,7 @@ add_executable(${_TEST_NAME}_tests
 	test_mutable_polygon.cpp
 	test_mutable_priority_queue.cpp
 	test_stl.cpp
+	test_sldprt.cpp
 	test_meshboolean.cpp
 	test_marchingsquares.cpp
 	test_timeutils.cpp
@@ -46,3 +47,14 @@ endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
+
+# Keep the native-import integration check independently runnable even when
+# unrelated suites lag changes to Model's API.
+add_executable(sldprt_model_tests
+    sldprt_model_tests.cpp test_sldprt.cpp sldprt_test_svg.cpp
+    ../../src/slic3r/Utils/Http.cpp ../../src/slic3r/Utils/BBLUtil.cpp)
+# Model's other format loaders and logging also need these implementations.
+# Keep the integration test independent of the GUI application entry point.
+target_link_libraries(sldprt_model_tests test_common libslic3r libcurl OpenSSL::SSL OpenSSL::Crypto)
+set_target_properties(sldprt_model_tests PROPERTIES MACOSX_BUNDLE OFF)
+add_test(NAME sldprt_model COMMAND sldprt_model_tests)
