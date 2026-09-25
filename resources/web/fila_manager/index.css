@@ -215,6 +215,66 @@ body {
 .btn-delete:not(:disabled):hover { color: var(--danger); }
 .btn:disabled { opacity: 0.4; cursor: default; }
 
+.saved-view-menu {
+    position: relative;
+    display: inline-flex;
+}
+.saved-views-dropdown {
+    position: absolute;
+    right: 0;
+    top: 36px;
+    z-index: 120;
+    min-width: 220px;
+    max-width: 280px;
+    max-height: 280px;
+    overflow-y: auto;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.saved-view-empty {
+    padding: 10px 12px;
+    color: var(--text-detail);
+    font-size: 12px;
+}
+.saved-view-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--radius-md);
+}
+.saved-view-row:hover { background: var(--bg-hover); }
+.saved-view-apply {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 8px;
+    border: 0;
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.saved-view-delete {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    background: transparent;
+    color: var(--text-detail);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+}
+.saved-view-delete:hover {
+    color: var(--danger);
+    background: var(--bg-inner);
+}
+
 /* Filter dropdown */
 .filter-dropdown {
     position: absolute;
