@@ -104,6 +104,7 @@ class OpenGLManager;
 enum FileType
 {
     FT_STEP,
+    FT_SLDPRT,
     FT_STL,
     FT_OBJ,
     FT_AMF,

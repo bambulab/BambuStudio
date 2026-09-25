@@ -3069,7 +3069,7 @@ void MainFrame::init_menubar_as_editor()
 
         // BBS
         wxMenu *import_menu = new wxMenu();
-        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SVG/OBJ/AMF") + dots + "\t" + ctrl + "I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/SLDPRT/SVG/OBJ/AMF") + dots + "\t" + ctrl + "I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) {
             m_plater->add_file();
         } }, "menu_import", nullptr,
