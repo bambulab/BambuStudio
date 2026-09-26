@@ -5600,7 +5600,7 @@ msgid "Tips:"
 msgstr "提示："
 
 msgid "Current grouping of slice result is not optimal."
-msgstr "目前的切片耗材分組並非最佳結果。"
+msgstr "目前的切片線材分組並非最佳結果。"
 
 #, boost-format
 msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
@@ -10986,7 +10986,7 @@ msgstr ""
 "設定更高的熱床溫度可能損壞印表機。"
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "平滑延時攝影需要在每一層都產生擦料塔，這與「無稀疏層」不相容。「無稀疏層」已關閉。"
+msgstr "平滑縮時攝影需要在每一層都產生擦料塔，這與「無稀疏層」不相容。「無稀疏層」已關閉。"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延時攝影需要擦料塔，否則列印件上可能會有瑕疵。您想開啟擦料塔嗎？"
@@ -14270,7 +14270,7 @@ msgid "AMS Lite filament load time"
 msgstr "AMS Lite 線材進料時間"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "使用 AMS Lite 列印時的耗材進料時間。僅用於統計"
+msgstr "使用 AMS Lite 列印時的線材進料時間。僅用於統計"
 
 msgid "N3F/N3S filament load time"
 msgstr "N3F/N3S 線材進料時間"
@@ -14300,7 +14300,7 @@ msgid "Default AMS type"
 msgstr "預設 AMS 類型"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "用於估算耗材進料／退料時間的預設 AMS 類型，並儲存為 AMS 計時類型列舉值。此設定來自印表機預設，不代表目前連接至機器的 AMS。"
+msgstr "用於估算線材進料／退料時間的預設 AMS 類型，並儲存為 AMS 計時類型列舉值。此設定來自印表機預設，不代表目前連接至機器的 AMS。"
 
 msgid "Extruder switch time"
 msgstr "擠出機切換時間"
