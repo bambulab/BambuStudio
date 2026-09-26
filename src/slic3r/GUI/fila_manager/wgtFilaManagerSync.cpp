@@ -4,6 +4,7 @@
 #include "wgtFilaManagerCloudClient.h"
 #include "wgtFilaManagerCloudDispatcher.h"
 #include "AmsAutoPushThrottle.h"
+#include "wgtFilaManagerUsageTracker.h"
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
@@ -40,12 +41,16 @@ AmsAutoPushThrottle::DeviceState compute_device_state(MachineObject* obj)
 
 wgtFilaManagerSync::wgtFilaManagerSync(wgtFilaManagerStore* store)
     : m_store(store)
+    , m_usage_tracker(std::make_unique<wgtFilaManagerUsageTracker>())
 {}
+
+wgtFilaManagerSync::~wgtFilaManagerSync() = default;
 
 bool wgtFilaManagerSync::on_device_update(MachineObject* obj)
 {
     if (!obj || !m_store) return false;
     if (!obj->is_online()) return false;
+    if (m_usage_tracker) m_usage_tracker->on_device_update(obj);
     calibrate_pending_badges(obj);
     check_and_register_new_rfid_spools(obj);
     return sync_all_trays(obj);
