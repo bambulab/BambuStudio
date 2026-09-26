@@ -336,6 +336,10 @@ extern void set_backup_interval(long interval);
 
 extern void set_backup_callback(std::function<void(int)> callback);
 
+// Quiesce the backup worker (stop timer, drop UI callback + pending Backup posts) before the
+// owning frame is destroyed. Safe to call repeatedly; the worker is re-armed by a new frame.
+extern void stop_backup();
+
 extern void run_backup_ui_tasks();
 
 extern bool has_restore_data(std::string & path, std::string & origin);

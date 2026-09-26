@@ -2838,23 +2838,30 @@ void TreeSupport::draw_circles()
     }
 }
 
-// Fraction of a region that the carrier below holds up. The bounding boxes come from get_extents_vector(carrier)
+// Area of a region that the carrier below holds up. The bounding boxes come from get_extents_vector(carrier)
 // and spare the clipper boolean the candidates that are nowhere near the region. Those that are near are trimmed
 // to the region's own box before the boolean: the carrier covers the whole layer below and takes its outline from
 // the model slices, so feeding it whole would drag thousands of vertices through every one of the layer's regions.
-static double carried_area_ratio(const ExPolygons &carrier, const std::vector<BoundingBox> &carrier_bboxes, const ExPolygon &region)
+static double carried_area(const ExPolygons &carrier, const std::vector<BoundingBox> &carrier_bboxes, const ExPolygon &region)
 {
-    const double region_area = region.area();
-    if (region_area <= 0.) return 0.;
+    if (carrier.empty()) return 0.;
     const BoundingBox region_bbox = get_extents(region);
     Polygons          near_carrier;
     for (size_t i = 0; i < carrier.size(); i++)
         if (carrier_bboxes[i].overlap(region_bbox))
             append(near_carrier, ClipperUtils::clip_clipper_polygons_with_subject_bbox(carrier[i], region_bbox));
     if (near_carrier.empty()) return 0.;
-    double carried_area = 0.;
-    for (const ExPolygon &part : intersection_ex(region, near_carrier)) carried_area += part.area();
-    return carried_area / region_area;
+    double area = 0.;
+    for (const ExPolygon &part : intersection_ex(region, near_carrier)) area += part.area();
+    return area;
+}
+
+// Fraction of a region that the carrier below holds up.
+static double carried_area_ratio(const ExPolygons &carrier, const std::vector<BoundingBox> &carrier_bboxes, const ExPolygon &region)
+{
+    const double region_area = region.area();
+    if (region_area <= 0.) return 0.;
+    return carried_area(carrier, carrier_bboxes, region) / region_area;
 }
 
 void TreeSupport::prune_floating_supports()
@@ -2883,6 +2890,9 @@ void TreeSupport::prune_floating_supports()
     const double   tan_branch_angle        = tan(branch_angle);
     const coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const int      wall_count              = std::max(1, config.tree_support_wall_count.value);
+    // Footprint of the thinnest branch the tree will ever print, and hence the least support that can still be
+    // standing under a region rather than touching it by accident.
+    const double   min_anchor_area         = M_PI * SQ(scaled<double>(MIN_BRANCH_RADIUS));
 
     std::vector<coordf_t> obj_print_z;
     obj_print_z.reserve(m_object->layers().size());
@@ -2910,7 +2920,11 @@ void TreeSupport::prune_floating_supports()
         const coordf_t bottom_z = ts_layer->print_z - ts_layer->height;
         const bool     grounded = bottom_z <= grounded_z + EPSILON;
 
+        // The support printed below and the model are both carriers, but they are not interchangeable, so the
+        // support one is kept apart: an interface may rest on nothing but the tip of the branch that spawned it,
+        // and that concession must not extend to a model wall the interface merely brushes past.
         ExPolygons carrier;
+        ExPolygons support_carrier;
         if (!grounded) {
             // A region may stick out past whatever carries it, but only by so much. Grow the carrier by that
             // much so legitimate growth is not counted as floating. drop_nodes() caps a step two different
@@ -2936,12 +2950,15 @@ void TreeSupport::prune_floating_supports()
             // than the real gap and the model actually carrying this region would be missed, pruning it away.
             // One local layer of slack on top of the gap, the support bottom need not line up with an object layer.
             const coordf_t lowest_z = top_obj_layer_nr >= 0 ? bottom_z - gap_object_support - m_object->get_layer(top_obj_layer_nr)->height : 0.;
-            Polygons candidates = ClipperUtils::clip_clipper_polygons_with_subject_bbox(support_below, layer_bbox);
+            Polygons support_candidates = ClipperUtils::clip_clipper_polygons_with_subject_bbox(support_below, layer_bbox);
+            Polygons candidates         = support_candidates;
             for (int obj_layer_nr = top_obj_layer_nr; obj_layer_nr >= 0 && obj_print_z[obj_layer_nr] >= lowest_z - EPSILON; obj_layer_nr--)
                 append(candidates, ClipperUtils::clip_clipper_polygons_with_subject_bbox(m_object->get_layer(obj_layer_nr)->lslices, layer_bbox));
-            carrier = offset_ex(union_ex(candidates), scale_(carry_slack));
+            carrier         = offset_ex(union_ex(candidates), scale_(carry_slack));
+            support_carrier = offset_ex(union_ex(support_candidates), scale_(carry_slack));
         }
-        const std::vector<BoundingBox> carrier_bboxes = get_extents_vector(carrier);
+        const std::vector<BoundingBox> carrier_bboxes         = get_extents_vector(carrier);
+        const std::vector<BoundingBox> support_carrier_bboxes = get_extents_vector(support_carrier);
 
         ExPolygons *regions_by_type[num_area_types] = {&ts_layer->base_areas, &ts_layer->roof_areas, &ts_layer->floor_areas, &ts_layer->roof_1st_layer};
         ExPolygons  kept_regions[num_area_types];
@@ -2966,8 +2983,34 @@ void TreeSupport::prune_floating_supports()
             // hundred layers. A branch landing on the edge of its carrier still prints, so only drop the ones
             // mostly out in the air.
             const bool   is_interface = type == SupportLayer::RoofType || type == SupportLayer::Roof1stLayer;
-            const double ratio        = grounded ? 1. : carried_area_ratio(carrier, carrier_bboxes, region);
-            if (ratio < (is_interface ? MIN_CARRIED_RATIO_INTERFACE : MIN_CARRIED_RATIO)) {
+            const double region_area  = region.area();
+            bool         carried      = grounded;
+            if (!grounded && region_area > 0.) {
+                if (is_interface) {
+                    // An interface spans the whole overhang that spawned it, so it cannot be held to a fraction
+                    // of its own area: it routinely rests on nothing but a branch tip a fraction that wide. That
+                    // concession is what MIN_CARRIED_RATIO_INTERFACE buys, and it only makes sense measured
+                    // against the support below. Measured against the model too, an interface passing a wall on
+                    // its way up clears the bar on a few percent of incidental overlap, and once kept it becomes
+                    // the carrier for the layer above, so a single such region grows a floating stack. The model
+                    // still carries an interface that comes to rest on it, but then it has to do so as squarely
+                    // as a base standing on the same ledge would.
+                    carried = carried_area(support_carrier, support_carrier_bboxes, region) >= MIN_CARRIED_RATIO_INTERFACE * region_area ||
+                              carried_area(carrier, carrier_bboxes, region) >= MIN_CARRIED_RATIO * region_area;
+                } else {
+                    // A region is the union of everything the layer grew, so a branch standing on its own can end
+                    // up merged with an overhang area many times its size that a node spawned this layer. Judged
+                    // by fraction alone the union comes out mostly floating and the healthy branch is deleted
+                    // along with it, which orphans every layer above it for the rest of the object. A carried
+                    // patch as wide as the thinnest branch that can be printed is an anchor on its own, however
+                    // much unsupported area happens to share the region with it. Only the support below counts
+                    // as such an anchor: a region merely brushing a model wall meets it over an area that small
+                    // as well, and keeping it would grow the floating stack the interface rule guards against.
+                    carried = carried_area(carrier, carrier_bboxes, region) >= MIN_CARRIED_RATIO * region_area ||
+                              carried_area(support_carrier, support_carrier_bboxes, region) >= min_anchor_area;
+                }
+            }
+            if (!carried) {
                 num_pruned++;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
                 pruned_regions.emplace_back(region);

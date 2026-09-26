@@ -1,5 +1,6 @@
 #include "BindDialog.hpp"
 #include "GUI_App.hpp"
+#include "DeviceCore/DevHMSQuery.h"
 
 #include <wx/wx.h>
 #include <wx/mstream.h>
@@ -759,7 +760,8 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          json j = json::parse(str.utf8_string());
          if (j.contains("err_code")) {
              int error_code = j["err_code"].get<int>();
-             extra = wxGetApp().get_hms_query()->query_print_error_msg(m_machine_info, error_code);
+              if (m_machine_info)
+                  extra = wxGetApp().get_hms_query_mgr()->query_error(m_machine_info->get_dev_id(), error_code).text;
          }
      }
      catch (...) {

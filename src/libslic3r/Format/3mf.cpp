@@ -990,7 +990,7 @@ ModelVolumeType type_from_string(const std::string &s)
                 CallbackData* data = (CallbackData*)pOpaque;
                 if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0) || data->importer.parse_error()) {
                     char error_buf[1024];
-                    ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", data->importer.parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
+                    ::snprintf(error_buf, sizeof(error_buf), "Error (%s) while parsing '%s' at line %d", data->importer.parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
                     throw Slic3r::FileIOError(error_buf);
                 }
 
@@ -1357,7 +1357,7 @@ ModelVolumeType type_from_string(const std::string &s)
 
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1)) {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
+            ::snprintf(error_buf, sizeof(error_buf), "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }

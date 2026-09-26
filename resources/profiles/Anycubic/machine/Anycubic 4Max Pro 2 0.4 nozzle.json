@@ -23,7 +23,6 @@
 	"retract_lift_below":[
 		"189"
 	],
-	"nozzle_type": "undefine",
 	"auxiliary_fan": "0",
 	"machine_max_acceleration_extruding": [
 		"1250",

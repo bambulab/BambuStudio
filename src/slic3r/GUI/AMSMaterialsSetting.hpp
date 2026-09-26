@@ -2,6 +2,8 @@
 #define slic3r_AMSMaterialsSetting_hpp_
 
 #include "libslic3r/Preset.hpp"
+#include <optional>
+#include <set>
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
 #include "DeviceManager.hpp"
@@ -30,7 +32,7 @@
 #define AMS_MATERIALS_SETTING_COMBOX_WIDTH wxSize(FromDIP(250), FromDIP(30))
 #define AMS_MATERIALS_SETTING_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
 #define AMS_MATERIALS_SETTING_INPUT_SIZE wxSize(FromDIP(90), FromDIP(24))
-#define AMS_MATERIALS_SETTING_DIALOG_SIZE wxSize(FromDIP(526), FromDIP(503))
+#define AMS_MATERIALS_SETTING_DIALOG_SIZE wxSize(FromDIP(370), FromDIP(503))
 // Interior width available for the read-only tip: dialog width minus the 20px left + 20px right margins.
 #define AMS_MATERIALS_SETTING_TIP_WIDTH (AMS_MATERIALS_SETTING_DIALOG_SIZE.GetWidth() - FromDIP(40))
 
@@ -137,15 +139,20 @@ protected:
 
     void update_kval_editability();
 
-    // Nozzle Type combo (shared by both dialogs). The combo drives PA-profile
-    // filtering via get_nozzle_type_override(); a subclass creates the widget
-    // in its own layout and this base owns the behavior.
+    struct EffectiveNozzle {
+        NozzleDiameterType diameter{NozzleDiameterType::NONE_DIAMETER_TYPE};
+        NozzleFlowType     flow_type{NozzleFlowType::NONE_FLOWTYPE};
+    };
+
+    std::set<int>                   slot_bound_extruder_ids() const;
+    bool                            is_nozzle_combo_selector() const;
+    std::optional<EffectiveNozzle>  get_combo_nozzle() const;
+    std::optional<EffectiveNozzle>  get_effective_nozzle() const;
+    std::optional<DevNozzle>        get_slot_nozzle() const;
+
     void update_nozzle_combo(MachineObject* obj);
     bool switch_nozzle_combo_to_target(NozzleVolumeType volume_type, float nozzle_diameter);
     void on_select_nozzle_pos_id(wxCommandEvent& evt);
-    bool get_nozzle_type_override(int extruder_id,
-                                  float& nozzle_diameter,
-                                  NozzleFlowType& nozzle_flow_type);
 
     virtual void on_pa_history_ready() = 0;
 

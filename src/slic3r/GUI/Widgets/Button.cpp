@@ -228,7 +228,7 @@ void Button::render(wxDC& dc)
             textSize = dc.GetMultiLineTextExtent(text);
         }
     }
-    auto szContent = textSize;
+    auto szContent = text.IsEmpty() ? wxSize(0, 0) : textSize;
     if (icon.bmp().IsOk()) {
         if (szContent.y > 0) {
             //BBS norrow size between text and icon

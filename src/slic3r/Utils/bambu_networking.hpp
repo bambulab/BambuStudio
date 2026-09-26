@@ -72,6 +72,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PRINT_QUEUE_PATCH_PROJECT_FAILED        -57
 #define BAMBU_NETWORK_ERR_DOWNLOAD_PRINT_QUEUE_CONFIG_FAILED      -58
 #define BAMBU_NETWORK_ERR_START_PRINT_QUEUE_TASK_FAILED           -59
+#define BAMBU_NETWORK_ERR_POST_DEVICE_REGION_FAILED               -60
 
 
 //bind error
@@ -133,7 +134,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.08.03.52"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.08.04.57"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -448,6 +449,13 @@ struct SoftMatchPendingActionParams {
     std::string action;
     int         spoolId       = 0;
     int         targetSpoolId = 0;
+};
+
+struct DeviceRegionParams {
+    std::string DeviceId;
+    std::string ClientType;
+    std::string country;
+    std::string XClientCountry;
 };
 
 struct PublishParams {

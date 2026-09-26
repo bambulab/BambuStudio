@@ -977,11 +977,19 @@ void wgtDeviceNozzleRackNozzleItem::EnableSelect()
     };
 
     m_enable_select = true;
-    m_nozzle_icon->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
-    m_nozzle_label_id->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
-    m_nozzle_label_1->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
-    m_nozzle_label_2->Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
-    Bind(wxEVT_LEFT_DOWN, [this](auto& evt) { OnItemSelected(evt); });
+    // 用 LEFT_UP 而非 LEFT_DOWN 触发选中：本控件承载在 AmsMapingPopup(wxPopupTransientWindow)
+    // 内部，OnItemSelected 会级联到 Dismiss()。若在 LEFT_DOWN 里同步 Dismiss，此时 macOS
+    // 的鼠标 tracking session 刚开始，配对的 LEFT_UP 仍需投递给已 Hide 但未销毁的 NSPanel；
+    // macOS 27 beta 会为此把 panel 重新 orderFront，导致弹窗消失后在鼠标抬起瞬间又闪一下。
+    // 改到 LEFT_UP 触发，让 tracking session 先自然结束再 Dismiss，也就不会产生重排问题。
+    // 之前 mouseDown 就选中，用户按下后即使移动到窗口外部也无法取消，本身也是个小缺陷；
+    // 大部分UI框架可点击控件的clicked事件都是在mouseRelease事件里发出来的，不是在mousePress
+    // 事件里，所以这里一并处理掉，不区分win、mac还是linux了
+    m_nozzle_icon->Bind(wxEVT_LEFT_UP, [this](auto &evt) { OnItemSelected(evt); });
+    m_nozzle_label_id->Bind(wxEVT_LEFT_UP, [this](auto &evt) { OnItemSelected(evt); });
+    m_nozzle_label_1->Bind(wxEVT_LEFT_UP, [this](auto &evt) { OnItemSelected(evt); });
+    m_nozzle_label_2->Bind(wxEVT_LEFT_UP, [this](auto &evt) { OnItemSelected(evt); });
+    Bind(wxEVT_LEFT_UP, [this](auto &evt) { OnItemSelected(evt); });
 }
 
 void wgtDeviceNozzleRackNozzleItem::OnItemSelected(wxMouseEvent& evt)

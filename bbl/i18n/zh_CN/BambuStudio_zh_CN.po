@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -215,6 +215,9 @@ msgstr "PPS-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "夜光耗材可能磨损 AMS 进料口，建议使用外挂料盘打印。"
@@ -1541,6 +1544,9 @@ msgstr "内嵌深度"
 msgid "Text Gap"
 msgstr "文字间距"
 
+msgid "Line Gap"
+msgstr "行间距"
+
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "警告：文本矩阵中存在镜像，拖动它将完全重新生成。"
 
@@ -1604,6 +1610,14 @@ msgstr "粗细"
 msgid "Skew"
 msgstr "偏斜"
 
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "对齐"
+
+msgid "Align center horizontally"
+msgstr "水平居中对齐"
+
 msgid "No symbol"
 msgstr "没有符号"
 
@@ -1624,11 +1638,6 @@ msgstr "使用表面"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "按字符"
-
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "对齐"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -2437,11 +2446,11 @@ msgstr "解除切割关系"
 msgid "Add Primitive"
 msgstr "添加标准模型"
 
-msgid "Show Labels by Layer"
-msgstr "按逐层显示标签"
+msgid "Add New Plate"
+msgstr "添加新盘"
 
-msgid "Show Labels by Object"
-msgstr "按逐件显示标签"
+msgid "Add a new plate"
+msgstr "添加新盘"
 
 msgid "To objects"
 msgstr "拆分到对象"
@@ -2581,11 +2590,14 @@ msgstr "铺满打印板"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "用选定对象的副本填充床的剩余区域"
 
+msgid "Show Labels by Layer"
+msgstr "按逐层显示标签"
+
+msgid "Show Labels by Object"
+msgstr "按逐件显示标签"
+
 msgid "Edit Plate Name"
 msgstr "编辑盘名"
-
-msgid "Show Labels"
-msgstr "显示标签"
 
 msgid "Name"
 msgstr "名称"
@@ -3829,11 +3841,32 @@ msgstr "保温热床可以优化首层打印质量，保温完成后将发起打
 msgid "Remaining time: %dmin%ds"
 msgstr "剩余时间：%d分%d秒"
 
-msgid "One-click CMYW auto-mix"
-msgstr "一键CMYW自动混色"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
+msgstr "调整色块间的过渡平滑程度，值越高越平滑。"
 
-msgid "One-click RYBW auto-mix"
-msgstr "一键RYBW自动混色"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr "自动合并模型上的小碎块到相邻色块，值越高合并越多"
+
+msgid "Add Filament"
+msgstr "添加耗材"
+
+msgid "More Colors"
+msgstr "其他颜色"
+
+msgid "Official Filament"
+msgstr "官方材料"
+
+msgid "Filament matching color difference threshold"
+msgstr "耗材匹配色差阈值"
+
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr "耗材自动匹配允许的颜色差异范围。值越大，颜色差异容忍度越高，越容易匹配。"
+
+msgid "Decompose Color"
+msgstr "拆解颜色"
+
+msgid "+ Add Filament"
+msgstr "+ 添加耗材"
 
 msgid "Project Physical Filaments"
 msgstr "项目耗材列表"
@@ -3847,66 +3880,96 @@ msgstr "项目混色列表"
 msgid "New Mixed Filaments"
 msgstr "新增混色耗材"
 
-msgid "Decompose Color"
-msgstr "拆解颜色"
+#, boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgstr "项目最多支持%1%种耗材，超出的耗材需在导入前被合并。"
 
-msgid "+ Add Material"
-msgstr "添加耗材"
+msgid "Updating"
+msgstr "更新中"
 
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "项目最多支持 %d 个耗材，多余的耗材将被丢弃。"
+msgid "Simplify Colors"
+msgstr "简化颜色"
 
-msgid "Import Model"
-msgstr "导入模型"
+msgid "Filament Matching"
+msgstr "耗材匹配"
+
+msgid "Import Model: Simplify Colors"
+msgstr "导入模型：简化颜色"
 
 msgid "Original"
 msgstr "原项目"
 
-msgid "Multi-Color"
-msgstr "多色"
-
-msgid "Your input texture model"
-msgstr "您输入的纹理模型"
-
-msgid "Processed multi-color model"
-msgstr "处理后的多色模型"
+msgid "Simplified"
+msgstr "简化后"
 
 msgid "Color Count"
 msgstr "颜色数目"
 
-msgid "Smooth Level"
-msgstr "光滑程度"
+msgid "Advanced settings"
+msgstr "高级设置"
 
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr "自动确定最佳颜色数量并重新计算耗材映射"
+msgid "Boundary Smoothness"
+msgstr "边缘平滑度"
 
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr "使用指定的颜色数目和光滑程度将纹理转换为涂色"
+msgid "Gap Area"
+msgstr "间隙面积"
 
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr "提醒：参数已更改，请点击应用生效"
+msgid "Automatically determine the optimal color count"
+msgstr "自动计算最佳颜色数量"
 
-msgid "Filament Mapping"
-msgstr "耗材映射"
+msgid "Color mixing"
+msgstr "混色"
 
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "重置耗材映射至一键混色前的状态"
+msgid "Use official mixing kits →"
+msgstr "使用官方混色套装 →"
 
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "选择纹理颜色导入的一键自动混色模式"
+msgid "Some colors have no matching filament. Please match them before importing."
+msgstr "有颜色未匹配对应耗材，请匹配完成后，再导入。"
 
-msgid "Auto-merge same filament"
-msgstr "自动合并相同的耗材"
+msgid "Auto-Add All Filaments"
+msgstr "自动添加所有耗材"
+
+msgid "Fix now"
+msgstr "立即处理"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "自动将新耗材合并到项目中现有的相同耗材"
 
-msgid "Skip Matching"
-msgstr "跳过匹配"
+msgid "Automatically merge filaments of the same color and type"
+msgstr "自动合并相同颜色与材质的耗材"
+
+msgid "Skip"
+msgstr "跳过"
 
 msgid "Skip filament mapping and import as a single-color model"
 msgstr "跳过耗材匹配，导入为单色模型"
+
+msgid "Next"
+msgstr "下一步"
+
+msgctxt "TextureImport"
+msgid "Previous"
+msgstr "上一步"
+
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr "移除新增的耗材并重新自动匹配"
+
+msgid "Before matching"
+msgstr "匹配前"
+
+msgid "After matching"
+msgstr "匹配后"
+
+#, c-format, boost-format
+msgid "Before simplification: %d colors"
+msgstr "简化前：%d 颜色"
+
+#, c-format, boost-format
+msgid "After simplification: %d colors"
+msgstr "简化后：%d 颜色"
+
+msgid "Import Model: Filament Matching"
+msgstr "导入模型：耗材匹配"
 
 msgid "Processing"
 msgstr "处理中"
@@ -3917,23 +3980,73 @@ msgstr "正在计算纹理颜色..."
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr "计算失败。请调整参数后重试。"
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "网格具有非流形几何或开放边界。您可以直接导入，或在导入前使用 Windows 3D 修复服务进行修复。"
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
+msgstr "颜色数量超过了原模型颜色数量（%d）"
 
-msgid "Mesh repair"
-msgstr "网状修复"
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
+msgstr "颜色数量超过了项目最大耗材数量（%d）"
 
-msgid "Import without repair"
-msgstr "不修复并导入"
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr "当前打印机没有兼容的 PLA Basic耗材。"
 
-msgid "Repair and import"
-msgstr "修复并导入"
+msgid "Click to select a matching filament"
+msgstr "点击选择匹配耗材"
 
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "请注意，网格具有非流形或开放边界。"
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr "项目最多支持%1%个耗材，当前%2%个耗材，超出限制。"
 
-msgid "Mesh issue"
-msgstr "网格故障"
+msgid "Error Prompt"
+msgstr "错误提示"
+
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr "本方案无法合并任意耗材，存在不同材质的耗材。"
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr "本方案减少到%1%种耗材（限制%2%），剩余耗材因材质不同而不能被合并。"
+
+msgid "Kept filaments"
+msgstr "保留耗材"
+
+msgid "Deleted filaments"
+msgstr "被删除的耗材"
+
+msgid "After merging"
+msgstr "合并后"
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr "项目最多支持 %1% 种耗材，当前有 %2% 种，超出了限制。请选择如何处理。"
+
+msgid "Prioritize merging similar-color filaments"
+msgstr "优先合并近似色耗材"
+
+msgid "Prioritize merging small-area filaments"
+msgstr "优先合并小面积耗材"
+
+msgid "How to use standard mixing kits"
+msgstr "如何使用标准混色套装"
+
+msgid "What is the CMYW mixing kit?"
+msgstr "什么是 CMYW 混色套装？"
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr "经过官方打印测试，只需一套标准 CMYW 混色套装即可混合出数百种颜色效果。"
+
+msgid "4-color CMYW"
+msgstr "四色 CMYW"
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr "青 · 品红 · 黄 · 白"
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr "因此，导入模型时可以使用这些套装耗材及其混色进行颜色匹配。"
+
+msgid "Add to project filament list"
+msgstr "添加到项目耗材列表"
 
 msgid "Choose SLA archive:"
 msgstr "选择SLA存档："
@@ -4171,9 +4284,6 @@ msgstr "床温"
 
 msgid "Start calibration"
 msgstr "开始"
-
-msgid "Next"
-msgstr "下一步"
 
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "校准完成。请在您的热床上找到如下图所示的最均匀的挤出线，并将其左侧的数值填入因子K的输入框。"
@@ -4827,6 +4937,18 @@ msgstr ""
 "是 - 应用修改并保持交替额外墙层启用\n"
 "否 - 不使用交替额外墙层"
 
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr "周期性修改器与旋转花瓶模式不兼容。若要启用周期性修改器，建议进行以下调整："
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+"自动更改这些设置吗？\n"
+"是 - 应用并保持周期性修改器启用\n"
+"否 - 不使用周期性修改器"
+
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "为使交替额外墙层正常工作，建议进行以下调整："
 
@@ -4839,8 +4961,8 @@ msgstr ""
 "是 - 应用修改并保持交替额外墙层启用\n"
 "否 - 保持当前设置并启用交替额外墙层"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即拍，Z方向墙速度平滑不启用且交替额外墙层关闭。"
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
+msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为即拍模式，Z方向墙速度平滑不启用且周期性修改器关闭。"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "但是I3结构的机器将不会生成延时视频。"
@@ -5200,6 +5322,12 @@ msgstr "重试"
 
 msgid "Resume"
 msgstr "继续"
+
+msgid "Loading error details ..."
+msgstr "正在加载错误详情 ..."
+
+msgid "Unable to load error details."
+msgstr "无法加载错误详情。"
 
 msgid "Unknown error."
 msgstr "未知错误。"
@@ -5889,8 +6017,8 @@ msgstr "擦料塔可提升多色打印质量，建议启用。"
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "料塔超出了打印版边界。"
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-msgstr "当前盘上的所有对象都无法打印。切片将生成空结果。请检查。"
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
+msgstr "盘子上的所有对象都不可打印，请检查对象列表中的打印设置。"
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，请重新调整冲刷值。"
@@ -6000,6 +6128,12 @@ msgstr ""
 msgid "Invalid input."
 msgstr "非法输入"
 
+msgid "Network error"
+msgstr "网络错误"
+
+msgid "Unknown error"
+msgstr "未知错误。"
+
 msgid "New Window"
 msgstr "新窗口"
 
@@ -6020,9 +6154,6 @@ msgstr "准备"
 
 msgid "Preview"
 msgstr "预览"
-
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "当前页面有未保存的更改。您可以继续编辑，或选择保存/放弃后离开。"
 
 msgid "Home"
 msgstr "首页"
@@ -6047,6 +6178,9 @@ msgstr "否"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "当前页面有未保存的更改。您可以继续编辑，或选择保存/放弃后离开。"
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "使用 Helio Additive 解锁更快、更可靠、更不易翘曲的打印。"
@@ -6345,9 +6479,6 @@ msgstr "重置为默认窗口布局"
 
 msgid "Show Labels of printing by layer in 3D scene"
 msgstr "在3D场景中显示按逐层打印的标签"
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "在 3D 场景中显示按逐件打印的标签"
 
 msgid "Show &Overhang"
 msgstr "显示悬空高亮"
@@ -7343,9 +7474,6 @@ msgstr "%s 信息"
 msgid "%s information"
 msgstr "%s 信息"
 
-msgid "Skip"
-msgstr "跳过"
-
 msgid "Newer 3mf version"
 msgstr "较新的3mf版本"
 
@@ -7727,7 +7855,7 @@ msgid "Please change the nozzle settings on the printer."
 msgstr "如需修改喷嘴信息，请去打印机操作。"
 
 msgid "View wiki"
-msgstr ""
+msgstr "查看 wiki"
 
 msgid "Brass"
 msgstr "黄铜"
@@ -7789,8 +7917,7 @@ msgid ""
 "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
 msgstr ""
 "启用后，使用混色耗材的层会按比例拆分为更薄的子层，以实现更均匀的混色效果\n"
-"关闭时按整层换色，混色相对不细腻不均匀\n"
-"提示：建议仅在使用混色耗材时开启，获得更好的叠色效果"
+"关闭时按整层换色，混色相对不细腻不均匀"
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 msgstr "建议仅在使用混色耗材时开启，获得更好的叠色效果"
@@ -8066,7 +8193,7 @@ msgid "A larger width improves bed adhesion and resists warping but uses more ma
 msgstr "宽度越大，粘床越好、越不易翘边，但更费料、更难清理；"
 
 msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr "在换色/换料后，会单独起擦料塔，，再继续打印模型"
+msgstr "在换色/换料后，会单独起擦料塔，再继续打印模型"
 
 msgid ""
 "Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
@@ -8512,6 +8639,24 @@ msgstr "不支持不同类型的耗材进行混色打印，请到软件左侧的
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr "，和其他 %d"
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr "模型 \"%s\""
+
+#, c-format, boost-format
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
+msgstr "删除的耗材正被模型 %s 使用，删除后模型耗材将被重置为第一个耗材。"
+
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgstr "注意：如果你想要使用其他耗材替换，请使用耗材列表右侧的“合并到”功能。"
+
+msgid "Delete Filament"
+msgstr "删除材料"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "该物理耗材已被混色耗材引用。合并后该物理耗材将被移除，可能导致相关混色耗材失效。是否继续？"
 
@@ -8658,12 +8803,6 @@ msgstr "体积为零的对象已被移除"
 msgid "The volume of the object is zero"
 msgstr "对象的体积为零"
 
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr "文件中对象尺寸过小，是否默认转换成毫米单位导入？"
-
-msgid "Object too small"
-msgstr "对象尺寸过小"
-
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
 "Instead of considering them as multiple objects, should \n"
@@ -8676,8 +8815,8 @@ msgid "Multi-part object detected"
 msgstr "检测到多部分对象"
 
 #, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr "正在计算纹理颜色：%s"
+msgid "Computing model colors: %s"
+msgstr "计算模型颜色：%s"
 
 msgid "Texture Import Warning"
 msgstr "导入纹理警告"
@@ -9082,6 +9221,18 @@ msgstr "Helio 数据加载失败"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
 
+msgid "Send G-code file"
+msgstr "发送 G-code 文件"
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr "Bambu Studio不支持直接发送并打印.gcode文件，你可以发送至机器后，从机器开启打印。"
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr "注意：直接使用gcode打印可能导致打印异常，建议使用3mf打印。"
+
+msgid "Send now"
+msgstr "立即发送"
+
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "启动Bambu农场管理客户端失败。"
 
@@ -9268,12 +9419,11 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "原因：零件\"%1%\"没有封闭一个体积。"
 
 #, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "原因：零件\"%1%\"有自相交。"
-
-#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "原因：零件\"%1%\"与另一个零件没有交集。"
+
+msgid "Reason: the meshes have face issues."
+msgstr "原因：网格存在面片问题。"
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "检测到负零件。在导出前，您是否想执行网格布尔运算？"
@@ -9928,14 +10078,16 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 "- 清除加载文件后同步打印机预设的设置\n"
 "- 清除”加载3mf“对话框设置\n"
 "- 清除执行后处理脚本的设置\n"
 "- 清除禁用支撑参数推荐的设置\n"
 "- 清除对未保存的项目的选择\n"
-"- 带有可变层高的混合颜色子层警告"
+"- 带有可变层高的混合颜色子层警告\n"
+"- 删除模型使用的耗材警告"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "确定重置所有首选项设置吗?下次重新启动之后生效。"
@@ -9974,7 +10126,7 @@ msgid "Project-inside presets"
 msgstr "项目预设"
 
 msgid "System"
-msgstr "跟随系统"
+msgstr "系统"
 
 msgid "Unsupported presets"
 msgstr "不支持的预设"
@@ -10337,7 +10489,7 @@ msgid "This process determines the dynamic flow values to improve overall print 
 msgstr "此过程确定动态流量校准的最佳系数，从而提升打印质量。"
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr "开启延时摄影后，无论选择即拍或平滑模式，打印机都会在每层拍照前移动热床和工具头，可能增加打印时间。"
+msgstr "开启延时摄影后，无论选择即拍模式或平滑模式，打印机都会在每层拍照前移动热床和工具头，可能增加打印时间。"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10485,14 +10637,23 @@ msgstr "当前材料（%s）的硬度高于 %s（%s）的硬度，可能导致�
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "若动态流量校准设置为自动/打开，系统将使用您的手动校准值或默认值，并跳过流量校准过程。可以在'校准'页面对TPU耗材进行手动流量校准。"
 
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr "AMS 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "某些耗材在打印过程中可能会在挤出机之间切换。手动 K 值校准无法在整个打印过程中应用，这可能会影响打印质量。建议启用动态校准。"
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr "该文件存在易拉丝耗材，为获得最佳打印质量，建议裹头检测切换至“自动模式”"
+
+#, c-format, boost-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr "%s 中的耗材可能不足以完成本次打印。请补充或更换耗材。"
+
+#, c-format, boost-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr "自动续料组 %s 中的耗材可能不足以完成本次打印。请重新装载或更换。"
+
+#, c-format, boost-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr "自动补给组 %s 中的耗材可能不足以完成本次打印。请补充或更换耗材。"
 
 msgid "Cool"
 msgstr ""
@@ -10977,6 +11138,9 @@ msgstr "注释"
 
 msgid "Frequent"
 msgstr "常用"
+
+msgid "Modifier cycle"
+msgstr "修改器循环"
 
 #, c-format, boost-format
 msgid ""
@@ -11683,9 +11847,6 @@ msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
 
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "使用打印机内的耗材，依次替换项目耗材列表。未使用的打印机耗材将自动添加至列表末尾。"
-
-msgid "Advanced settings"
-msgstr "高级设置"
 
 msgid "Add unused AMS filaments to filaments list."
 msgstr "将未使用的 AMS 耗材添加到耗材列表中。"
@@ -12745,6 +12906,9 @@ msgstr "更新固件"
 msgid "Hotends on Rack"
 msgstr "热端&挂架"
 
+msgid "Copy Device Info"
+msgstr "复制设备信息"
+
 msgid "Beta version"
 msgstr "Beta版本"
 
@@ -12753,9 +12917,6 @@ msgstr "刷新热端信息中..."
 
 msgid "Checking version..."
 msgstr "版本检查中..."
-
-msgid "Updating"
-msgstr "更新中"
 
 msgid "Updating failed"
 msgstr "更新失败"
@@ -13178,14 +13339,14 @@ msgstr "擦料塔要求各个对象使用同样的筏层数量"
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "擦料塔要求各个对象拥有同样的层高。"
 
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "各个对象的层高存在差异，无法启用擦料塔"
+
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "精准Z高度会导致对象有不同的层高，这会极大增加擦拭塔尺寸。"
 
 msgid "Jump to: Precise Z height"
 msgstr "跳转到：精准Z高度"
-
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "各个对象的层高存在差异，无法启用擦料塔"
 
 msgid "Too small line width"
 msgstr "线宽太小"
@@ -13832,6 +13993,9 @@ msgstr "单调"
 
 msgid "Monotonic line"
 msgstr "单调线"
+
+msgid "Global monotonic line"
+msgstr "全局单调线"
 
 msgid "Aligned Rectilinear"
 msgstr "直线排列"
@@ -14745,29 +14909,14 @@ msgstr "缩略图大小"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "决定存储在Gcode文件中的缩略图大小"
 
-msgid "Nozzle type"
-msgstr "喷嘴类型"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "喷嘴的金属材料。这将决定喷嘴的耐磨性，以及可打印材料的种类"
-
-msgid "Undefine"
-msgstr "未定义"
-
-msgid "Hardened steel"
-msgstr "硬化钢"
-
-msgid "Stainless steel"
-msgstr "不锈钢"
-
-msgid "Tungsten carbide"
-msgstr "碳化钨"
-
 msgid "Printer structure"
 msgstr "打印机结构"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "打印设备的物理排列和组件"
+
+msgid "Undefine"
+msgstr "未定义"
 
 msgid "Best object position"
 msgstr "最佳对象位置"
@@ -14870,6 +15019,66 @@ msgstr "骨架线宽"
 
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "为选择的骨架走线设置线宽"
+
+msgid "Conformal infill"
+msgstr "随形填充"
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr "使稀疏填充遵循每层的轮廓，而非使用一组平行线。在拉长或弯曲的形状中，线条会从中心辐射。适用于之字形、交叉之字形、直线形、对齐直线形和锁定之字形等填充图案。"
+
+msgid "Layer stagger"
+msgstr "层交错"
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr "相邻层如何偏移。关闭模式下，层堆叠布局相同。交替模式下，保持相同的线条方向，但将每条线条连接到相邻层的对侧，从而改善层间粘合。"
+
+msgid "Alternate"
+msgstr "交替"
+
+msgid "Forward layers"
+msgstr "正向层"
+
+msgid "Conformal forward layers"
+msgstr "随形正向层"
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr "保持正向Z字形的连续层数。与反向层配合，重复：N层正向，然后M层反向。0表示从第一层开始反向。"
+
+msgid "Reverse layers"
+msgstr "反向层"
+
+msgid "Conformal reverse layers"
+msgstr "随形反向层"
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr "连续反向之字形填充的层数（从对侧边缘开始）。0 禁用反向。设置为“正向 1”或“反向 1”时，将每隔一层反向。"
+
+msgid "Radial center"
+msgstr "随形中心点"
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr "径向中心的生成方式。每个层都会在该切片上选择一个中心点。轴线模式通过这些中心点拟合一条三维直线。平滑曲线模式则拟合一条曲线，确保中心点在层与层之间平稳过渡，不会跳动。"
+
+msgid "Each layer"
+msgstr "每层"
+
+msgid "Axis"
+msgstr "轴"
+
+msgid "Smooth curve"
+msgstr "平滑曲线"
+
+msgid "Radial line count"
+msgstr "径向线条数"
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr "围绕中心的径向线条数量。0表示使用稀疏填充密度中的数量。正值表示径向线条的数量，并向上取整为至少4的偶数。"
+
+msgid "Center region radius"
+msgstr "中心区域半径"
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr "使用普通直线填充的中心区域半径；在此圆外，填充保持径向。设为0将自动选择半径。正值以毫米为单位。"
 
 msgid "Symmetric infill y axis"
 msgstr "填充关于y轴对称"
@@ -15288,6 +15497,39 @@ msgstr "交替额外墙层"
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "在奇数层额外增加一圈墙，以增强层间结合与零件强度，同时避免全程使用额外墙层所带来的耗材与时间成本。"
 
+msgid "Periodic modifier"
+msgstr "周期性修改器"
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr "将此修改器应用于重复层循环。对于跳过的层，它将被忽略，如同此修改器不存在一样。"
+
+msgid "Skip for"
+msgstr "跳过"
+
+msgid "Periodic modifier skip layers"
+msgstr "周期性修改器跳过层数"
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr "此修改器不应用的连续层数。0表示修改器应用于每一层。"
+
+msgid "Apply for"
+msgstr "应用到"
+
+msgid "Periodic modifier apply layers"
+msgstr "周期修改器应用层数"
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr "此修改器每个周期内完全应用的连续层数。周期从第0层开始：先应用，后跳过。"
+
+msgid "Ignore infill settings"
+msgstr "忽略填充设置"
+
+msgid "Modifier ignore infill settings"
+msgstr "修改器忽略填充设置"
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
+msgstr "不应用此修改器的填充设置（填充模式、密度、随形填充及相关选项）。墙和其它覆盖设置仍会生效。填充将沿用父区域的设置。"
+
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"
 
@@ -15591,7 +15833,7 @@ msgid "If smooth or instant mode is selected, a timelapse video will be generate
 msgstr "如果启用平滑模式或者即拍模式，将在每次打印时生成延时摄影视频。打印完每层后，将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦料塔进行喷嘴擦拭。"
 
 msgid "Instant"
-msgstr "即拍"
+msgstr "即拍模式"
 
 msgid "Farthest point timelapse"
 msgstr "最远点延时摄影"
@@ -16317,6 +16559,9 @@ msgstr "正在切片网格"
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "没有检测到层。您可能需要修复STL文件，或检查模型尺寸、厚度等，之后再重试。\n"
 
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr "收缩率补偿功能在涂色模型上不会生效"
+
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
 "XY Size compensation can not be combined with color-painting."
@@ -16378,6 +16623,9 @@ msgstr "该文件包含顶点少于 3 个的多边形。"
 
 msgid "The file contains invalid vertex index."
 msgstr "文件包含无效的顶点索引。"
+
+msgid "The file contains invalid texture coordinate index."
+msgstr "该文件包含无效的纹理坐标索引。"
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "无法读取此OBJ文件，因为它是空的。"
@@ -17605,9 +17853,6 @@ msgstr "删除预设"
 msgid "+ Add Preset"
 msgstr "+ 添加预设"
 
-msgid "Delete Filament"
-msgstr "删除材料"
-
 msgid "Add Preset"
 msgstr "添加预设"
 
@@ -18410,12 +18655,6 @@ msgstr ""
 msgid "Multiple Color"
 msgstr "多色"
 
-msgid "Official Filament"
-msgstr "官方材料"
-
-msgid "More Colors"
-msgstr "其他颜色"
-
 msgid "Search filament"
 msgstr "搜索耗材"
 
@@ -18430,6 +18669,9 @@ msgstr "槽"
 
 msgid "Recently used"
 msgstr "最近使用"
+
+msgid "Set nozzle count"
+msgstr "设置喷嘴数量"
 
 msgid "Please set nozzle count"
 msgstr "请设置喷嘴数量"
@@ -18755,6 +18997,9 @@ msgstr "效果预览"
 
 msgid "Select Mixed Materials"
 msgstr "选择混色材料"
+
+msgid "+ Add Material"
+msgstr "添加耗材"
 
 msgid "- Delete Material"
 msgstr "删除耗材"
@@ -19181,6 +19426,138 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Adjust filament matching"
+#~ msgstr "调整耗材匹配"
+
+#~ msgid "Previous"
+#~ msgstr "上一条"
+
+#~ msgid "One-click CMYW auto-mix"
+#~ msgstr "一键CMYW自动混色"
+
+#~ msgid "One-click RYBW auto-mix"
+#~ msgstr "一键RYBW自动混色"
+
+#, c-format, boost-format
+#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#~ msgstr "项目最多支持 %d 个耗材，多余的耗材将被丢弃。"
+
+#~ msgid "Original Model"
+#~ msgstr "原模型"
+
+#~ msgid "Reset filament mapping to the state before one-click mixing"
+#~ msgstr "重置耗材映射至一键混色前的状态"
+
+#~ msgid "Choose the one-click auto-mix mode for texture color import"
+#~ msgstr "选择纹理颜色导入的一键自动混色模式"
+
+#, c-format, boost-format
+#~ msgid "Computing texture colors: %s"
+#~ msgstr "正在计算纹理颜色：%s"
+
+#~ msgid "Show Labels"
+#~ msgstr "显示标签"
+
+#~ msgid "Import Model"
+#~ msgstr "导入模型"
+
+#~ msgid "Multi-Color"
+#~ msgstr "多色"
+
+#~ msgid "Your input texture model"
+#~ msgstr "您输入的纹理模型"
+
+#~ msgid "Processed multi-color model"
+#~ msgstr "处理后的多色模型"
+
+#~ msgid "Smooth Level"
+#~ msgstr "光滑程度"
+
+#~ msgid "Automatically determine the optimal color count only and recompute filament mapping"
+#~ msgstr "自动确定最佳颜色数量并重新计算耗材映射"
+
+#~ msgid "Convert texture to painting using the specified color count and smooth level"
+#~ msgstr "使用指定的颜色数目和光滑程度将纹理转换为涂色"
+
+#~ msgid "Reminder: parameters changed, click Apply to take effect"
+#~ msgstr "提醒：参数已更改，请点击应用生效"
+
+#~ msgid "Filament Mapping"
+#~ msgstr "耗材映射"
+
+#~ msgid "Auto-merge same filament"
+#~ msgstr "自动合并相同的耗材"
+
+#~ msgid "Skip Matching"
+#~ msgstr "跳过匹配"
+
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "网格具有非流形几何或开放边界。您可以直接导入，或在导入前使用 Windows 3D 修复服务进行修复。"
+
+#~ msgid "Mesh repair"
+#~ msgstr "网状修复"
+
+#~ msgid "Import without repair"
+#~ msgstr "不修复并导入"
+
+#~ msgid "Repair and import"
+#~ msgstr "修复并导入"
+
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "请注意，网格具有非流形或开放边界。"
+
+#~ msgid "Mesh issue"
+#~ msgstr "网格故障"
+
+#~ msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+#~ msgstr "当前盘上的所有对象都无法打印。切片将生成空结果。请检查。"
+
+#~ msgid "Show Labels of printing by object in 3D scene"
+#~ msgstr "在 3D 场景中显示按逐件打印的标签"
+
+#~ msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
+#~ msgstr "文件中对象尺寸过小，是否默认转换成毫米单位导入？"
+
+#~ msgid "Object too small"
+#~ msgstr "对象尺寸过小"
+
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "原因：零件\"%1%\"有自相交。"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning"
+#~ msgstr ""
+#~ "- 清除加载文件后同步打印机预设的设置\n"
+#~ "- 清除”加载3mf“对话框设置\n"
+#~ "- 清除执行后处理脚本的设置\n"
+#~ "- 清除禁用支撑参数推荐的设置\n"
+#~ "- 清除对未保存的项目的选择\n"
+#~ "- 带有可变层高的混合颜色子层警告"
+
+#~ msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+#~ msgstr "AMS 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
+
+#~ msgid "Nozzle type"
+#~ msgstr "喷嘴类型"
+
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "喷嘴的金属材料。这将决定喷嘴的耐磨性，以及可打印材料的种类"
+
+#~ msgid "Hardened steel"
+#~ msgstr "硬化钢"
+
+#~ msgid "Stainless steel"
+#~ msgstr "不锈钢"
+
+#~ msgid "Tungsten carbide"
+#~ msgstr "碳化钨"
 
 #~ msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
 #~ msgstr "可见顶面正下方那层内部实心填充的走线图案。单调填充能减少透过顶面表层显现的挤出纹路。"
@@ -20434,9 +20811,6 @@ msgstr ""
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "了解更多冲刷模式信息"
-
-#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-#~ msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "当前直径下无喷嘴。继续切换将自动更改所有喷嘴的直径。"

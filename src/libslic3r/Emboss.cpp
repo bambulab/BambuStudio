@@ -1475,7 +1475,8 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
             text_scales.emplace_back(real_scale);
         }
         cur_x = cursor.x() * standard_scale;
-        text_cursors.emplace_back(cur_x - last_x);
+        // '\n' resets cursor to line start, it is not an advance
+        text_cursors.emplace_back(letter == '\n' ? 0.f : cur_x - last_x);
         text_absolute_cursors.emplace_back(cur_x);
         last_x = cur_x;
     }
@@ -1508,6 +1509,12 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
     }
     emboss_shape.shapes_with_ids = result;
     emboss_shape.align_type      = std::pair<int, int>((int) font_prop.align.first, (int) font_prop.align.second);
+    // line layout of multi line text (line Y offsets are already baked in shapes)
+    unsigned count_lines             = get_count_lines(text);
+    emboss_shape.line_height         = static_cast<float>(get_line_height(font, font_prop) * standard_scale);
+    emboss_shape.first_line_offset_y = (count_lines > 1) ?
+        static_cast<float>(get_align_y_offset_in_mm(font_prop.align.second, count_lines, font, font_prop) -
+                           get_align_y_offset_in_mm(font_prop.align.second, 1, font, font_prop)) : 0.f;
 }
 
 #include <boost/range/adaptor/reversed.hpp>
@@ -1551,6 +1558,20 @@ unsigned Emboss::get_count_lines(const ExPolygonsWithIds &shapes) {
     for (const ExPolygonsWithId &shape_id : shapes)
         if (shape_id.id == ENTER_UNICODE)
             ++result;
+    return result;
+}
+
+Emboss::LineRanges Emboss::get_line_ranges(const ExPolygonsWithIds &shapes)
+{
+    LineRanges result;
+    size_t     first = 0;
+    for (size_t i = 0; i < shapes.size(); ++i) {
+        if (shapes[i].id != ENTER_UNICODE)
+            continue;
+        result.emplace_back(first, i);
+        first = i + 1;
+    }
+    result.emplace_back(first, shapes.size());
     return result;
 }
 
@@ -1622,6 +1643,8 @@ std::string Slic3r::Emboss::create_range_text(std::string &text, std::vector<std
     *exist_unknown                              = false;
     bool                     temp_exist_unknown = false;
     std::wstring             not_dup_text       = remove_duplicates(boost::nowide::widen(text));
+    // white spaces are no glyphs, the single font range skips them too
+    not_dup_text.erase(std::remove_if(not_dup_text.begin(), not_dup_text.end(), [](wchar_t wc) { return wc == L'\n' || wc == L'\r' || wc == L'\t'; }), not_dup_text.end());
     std::sort(not_dup_text.begin(), not_dup_text.end());
     std::vector<std::string> results;
     results.reserve(fonts.size());
@@ -2194,7 +2217,7 @@ void align_shape(ExPolygonsWithIds &shapes, std::vector<Point> &offset_xy, const
     // Speed up for left aligned text
     if (prop.align.first == FontProp::HorizontalAlign::left){
         // already horizontaly aligned
-        offset_xy.emplace_back(Point(0, y_offset));
+        offset_xy.assign(shapes.size(), Point(0, y_offset));
         for (ExPolygonsWithId& shape : shapes)
             for (ExPolygon &s : shape.expoly)
                 s.translate(Point(0, y_offset));
@@ -2219,6 +2242,8 @@ void align_shape(ExPolygonsWithIds &shapes, std::vector<Point> &offset_xy, const
     for (size_t i = 0; i < shapes.size(); ++i) {
         wchar_t letter = text[i];
         if (letter == '\n'){
+            // keep offsets aligned with shapes
+            offset_xy.emplace_back(offset);
             offset.x() = get_align_x_offset(prop.align.first, shape_bb, get_line_bb(i + 1));
             continue;
         }
@@ -2240,22 +2265,29 @@ void align_shape(ExPolygonsWithIds &            shapes,
 
     unsigned count_lines = get_count_lines(text);
     int      main_y_offset    = get_align_y_offset(prop.align.second, count_lines, font, prop);
+    const float main_single_line_y_offset = get_align_y_offset(prop.align.second, 1, font, prop);
+    auto glyph_y_offset = [&](size_t index) {
+        if (!real_fonts[index].has_value() || text_scales[index] <= 0.f)
+            return main_y_offset;
+
+        const FontFile &fallback_font = *real_fonts[index].font_file;
+        const float fallback_scale = text_scales[index] / standard_scale;
+        const float fallback_single_line_y_offset =
+            get_align_y_offset(prop.align.second, 1, fallback_font, prop) * fallback_scale;
+        return static_cast<int>(std::lround(main_y_offset +
+            fallback_single_line_y_offset - main_single_line_y_offset));
+    };
 
     // Speed up for left aligned text
     if (prop.align.first == FontProp::HorizontalAlign::left) {
         // already horizontaly aligned
-        int index = 0;
-        for (ExPolygonsWithId &shape : shapes) {
-            int temp_y_offset = main_y_offset;
-            if (real_fonts[index].has_value()) {
-                const FontFile &temp_font = *real_fonts[index].font_file;
-                temp_y_offset             = get_align_y_offset(prop.align.second, count_lines, temp_font, prop);
-            }
+        for (size_t index = 0; index < shapes.size(); ++index) {
+            ExPolygonsWithId &shape = shapes[index];
+            const int temp_y_offset = glyph_y_offset(index);
             offset_xy.emplace_back(Point(0, temp_y_offset));
             for (ExPolygon &s : shape.expoly) {
                 s.translate(Point(0, temp_y_offset));
             }
-            index++;
         }
         return;
     }
@@ -2275,17 +2307,14 @@ void align_shape(ExPolygonsWithIds &            shapes,
     for (size_t i = 0; i < shapes.size(); ++i) {
         wchar_t letter = text[i];
         if (letter == '\n') {//Enter the next line of text
+            offset_xy.emplace_back(main_offset); // keep offsets aligned with shapes
             main_offset.x() = get_align_x_offset(prop.align.first, shape_bb, get_line_bb(i + 1));
             continue;
         }
         ExPolygons &shape = shapes[i].expoly;
         auto       temp_offset = main_offset;
         if (real_fonts[i].has_value()) {
-            const FontFile &temp_font = *real_fonts[i].font_file;
-            int temp_y_offset         = get_align_y_offset(prop.align.second, count_lines, temp_font, prop);
-            int ratio = int(text_scales[i] / standard_scale);
-            Point           new_offset(main_offset.x(), temp_y_offset * ratio);
-            temp_offset = new_offset;
+            temp_offset.y() = glyph_y_offset(i);
         }
         offset_xy.emplace_back(temp_offset);
         for (ExPolygon &s : shape) {

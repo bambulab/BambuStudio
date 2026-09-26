@@ -347,6 +347,12 @@ public:
     void save_project();
     bool save_project_as(const wxString& filename = wxString());
 
+    // Gate for leaving the project page while it is being edited. Returns true when
+    // the caller may proceed. Returns false when the caller must abort (veto) either
+    // because the user cancelled, or because the answer is still pending - in the
+    // latter case `retry` is invoked once the page reports back.
+    bool confirm_project_page_can_leave(std::function<void()> retry);
+
     void        add_to_recent_projects(const wxString& filename);
     void        get_recent_projects(boost::property_tree::wptree &tree, int images);
     void        open_recent_project(size_t file_id, wxString const & filename);
@@ -383,6 +389,12 @@ public:
     //AuxiliaryPanel*       m_auxiliary{ nullptr };
     MultiMachinePage*     m_multi_machine{ nullptr };
     ProjectPanel*         m_project{ nullptr };
+    // State for confirm_project_page_can_leave(): the page answers the
+    // unsaved-changes query asynchronously, so the verdict is cached for the
+    // replayed attempt and the query timestamp guards against a mute page.
+    bool                  m_project_leave_checked{ false };
+    bool                  m_project_leave_dirty{ false };
+    long long             m_project_leave_query_ms{ 0 };
 
     CalibrationPanel*     m_calibration{ nullptr };
     DeviceWebPage*        m_web_device{ nullptr };

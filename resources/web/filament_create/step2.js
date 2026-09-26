@@ -150,6 +150,13 @@ function handleDeviceInfo(data) {
         return;
     }
     deviceInfo = data;
+    // Guard against malformed nozzle entries from the C++ side (e.g. a printer preset
+    // whose name doesn't end in "<number> nozzle" gets mis-parsed into a non-numeric
+    // placeholder like "-") — anything that isn't a plain number is dropped here instead
+    // of being rendered as a bogus checkbox/tab.
+    deviceInfo.nozzles = (deviceInfo.nozzles || []).filter(function (n) {
+        return /^\d+(\.\d+)?$/.test(n);
+    });
     $('#device-name').text(data.device_name || data.printer_model_id || '');
 
     // 渲染基准预设下拉

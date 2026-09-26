@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -216,6 +216,9 @@ msgstr "PPS-CF giòn và có thể gãy trong ống PTFE bị uốn cong phía t
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF giòn và có thể gãy trong ống PTFE bị uốn cong phía trên đầu in."
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr ""
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "PLA Glow có thể làm mài mòn bộ nạp sợi nhựa giai đoạn đầu của AMS. Thay vào đó, hãy sử dụng cuộn nhựa ngoài."
@@ -904,7 +907,7 @@ msgid "Object"
 msgstr "Vật thể"
 
 msgid "Right-click a part to assign it to the other side"
-msgstr ""
+msgstr "Nhấp chuột phải vào một bộ phận để gán bộ phận đó cho phía bên kia"
 
 msgid "Drag to move the cut plane"
 msgstr "Kéo để di chuyển mặt cắt"
@@ -979,13 +982,13 @@ msgid "Groove Angle"
 msgstr "Góc rãnh"
 
 msgid "Pick face"
-msgstr ""
+msgstr "Chọn mặt"
 
 msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
-msgstr ""
+msgstr "Nhấp chuột vào một mặt của mô hình để thiết lập mặt phẳng cắt. Mặt phẳng nằm phẳng khít với mặt đó; hãy sử dụng Di chuyển để dịch chuyển nó."
 
 msgid "Click a face of the model."
-msgstr ""
+msgstr "Nhấp chuột vào một mặt của mô hình."
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -1286,6 +1289,8 @@ msgid ""
 "Feature 1 has been reset, \n"
 "feature 2 has been feature 1"
 msgstr ""
+"Đặc trưng 1 đã được đặt lại,\n"
+"Đặc trưng 2 đã trở thành đặc trưng 1"
 
 msgid "Warning: Please select a Plane feature."
 msgstr "Cảnh báo: Vui lòng chọn một yếu tố Mặt phẳng."
@@ -1545,6 +1550,9 @@ msgstr "Độ sâu nhúng"
 msgid "Text Gap"
 msgstr "Khoảng cách văn bản"
 
+msgid "Line Gap"
+msgstr ""
+
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Cảnh báo: Văn bản đang ở trạng thái lật đối xứng, thao tác kéo sẽ khiến hệ thống tạo lại toàn bộ văn bản."
 
@@ -1608,6 +1616,14 @@ msgstr "Độ đậm"
 msgid "Skew"
 msgstr "Độ nghiêng"
 
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "Căn chỉnh"
+
+msgid "Align center horizontally"
+msgstr ""
+
 msgid "No symbol"
 msgstr "Không có ký hiệu"
 
@@ -1628,11 +1644,6 @@ msgstr "Dùng bề mặt"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "Theo từng ký tự"
-
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "Căn chỉnh"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -2443,11 +2454,11 @@ msgstr "Vô hiệu hóa thông tin cắt"
 msgid "Add Primitive"
 msgstr "Thêm khối cơ bản"
 
-msgid "Show Labels by Layer"
-msgstr "Hiển thị nhãn theo lớp"
+msgid "Add New Plate"
+msgstr ""
 
-msgid "Show Labels by Object"
-msgstr "Hiển thị nhãn theo vật thể"
+msgid "Add a new plate"
+msgstr ""
 
 msgid "To objects"
 msgstr "Thành các vật thể"
@@ -2587,11 +2598,14 @@ msgstr "Lấp đầy bàn in bằng bản sao"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "Lấp đầy khu vực còn lại của bàn in bằng các bản sao của vật thể đã chọn"
 
+msgid "Show Labels by Layer"
+msgstr "Hiển thị nhãn theo lớp"
+
+msgid "Show Labels by Object"
+msgstr "Hiển thị nhãn theo vật thể"
+
 msgid "Edit Plate Name"
 msgstr "Chỉnh sửa Tên tấm in"
-
-msgid "Show Labels"
-msgstr "Hiển thị nhãn"
 
 msgid "Name"
 msgstr "Tên"
@@ -2619,7 +2633,7 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 
 msgid "Error: reversed faces detected, which may affect rendering"
-msgstr ""
+msgstr "Lỗi: phát hiện mặt bị đảo ngược, có thể ảnh hưởng đến quá trình kết xuất"
 
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
@@ -2636,7 +2650,7 @@ msgid "Click the icon to reset all settings of the object"
 msgstr "Nhấp vào biểu tượng để đặt lại tất cả cài đặt của vật thể"
 
 msgid "Unprintable object"
-msgstr ""
+msgstr "Đối tượng không thể in"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Nhấp chuột phải vào biểu tượng để loại bỏ thuộc tính có thể in của vật thể"
@@ -3838,11 +3852,32 @@ msgstr "Việc gia nhiệt sơ bộ bàn nhiệt giúp tối ưu hóa chất lư
 msgid "Remaining time: %dmin%ds"
 msgstr "Thời gian còn lại: %d phút %d giây"
 
-msgid "One-click CMYW auto-mix"
-msgstr "Tự động phối màu CMYW một lần nhấp"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
+msgstr ""
 
-msgid "One-click RYBW auto-mix"
-msgstr "Tự động phối màu RYBW một lần nhấp"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr ""
+
+msgid "Add Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr "Thêm màu"
+
+msgid "Official Filament"
+msgstr "Sợi nhựa chính hãng"
+
+msgid "Filament matching color difference threshold"
+msgstr ""
+
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr ""
+
+msgid "Decompose Color"
+msgstr "Tách màu"
+
+msgid "+ Add Filament"
+msgstr ""
 
 msgid "Project Physical Filaments"
 msgstr "Sợi nhựa vật lý của dự án"
@@ -3856,66 +3891,96 @@ msgstr "Sợi nhựa phối trộn của dự án"
 msgid "New Mixed Filaments"
 msgstr "Sợi nhựa phối trộn mới"
 
-msgid "Decompose Color"
-msgstr "Tách màu"
+#, boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgstr ""
 
-msgid "+ Add Material"
-msgstr "+ Thêm vật liệu"
+msgid "Updating"
+msgstr "Đang cập nhật"
 
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "Dự án hỗ trợ tối đa %d sợi nhựa. Các sợi nhựa thừa sẽ bị loại bỏ."
+msgid "Simplify Colors"
+msgstr ""
 
-msgid "Import Model"
-msgstr "Nhập mô hình"
+msgid "Filament Matching"
+msgstr ""
+
+msgid "Import Model: Simplify Colors"
+msgstr ""
 
 msgid "Original"
 msgstr "Gốc"
 
-msgid "Multi-Color"
-msgstr "Nhiều màu"
-
-msgid "Your input texture model"
-msgstr "Mô hình có họa tiết đầu vào của bạn"
-
-msgid "Processed multi-color model"
-msgstr "Mô hình nhiều màu đã xử lý"
+msgid "Simplified"
+msgstr ""
 
 msgid "Color Count"
 msgstr "Số lượng màu"
 
-msgid "Smooth Level"
-msgstr "Mức làm mịn"
+msgid "Advanced settings"
+msgstr "Cài đặt nâng cao"
 
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr "Chỉ tự động xác định số lượng màu tối ưu và tính toán lại ánh xạ sợi nhựa"
+msgid "Boundary Smoothness"
+msgstr ""
 
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr "Chuyển đổi họa tiết thành tô bằng số lượng màu và mức làm mịn đã chỉ định"
+msgid "Gap Area"
+msgstr ""
 
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr "Nhắc nhở: các tham số đã thay đổi, nhấp Áp dụng để có hiệu lực"
+msgid "Automatically determine the optimal color count"
+msgstr ""
 
-msgid "Filament Mapping"
-msgstr "Ánh xạ sợi nhựa"
+msgid "Color mixing"
+msgstr ""
 
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "Đặt lại ánh xạ sợi nhựa về trạng thái trước khi phối màu một lần nhấp"
+msgid "Use official mixing kits →"
+msgstr ""
 
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "Chọn chế độ tự động phối màu một lần nhấp để nhập màu họa tiết"
+msgid "Some colors have no matching filament. Please match them before importing."
+msgstr ""
 
-msgid "Auto-merge same filament"
-msgstr "Tự động sáp nhập sợi nhựa giống nhau"
+msgid "Auto-Add All Filaments"
+msgstr ""
+
+msgid "Fix now"
+msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "Tự động sáp nhập các sợi nhựa giống hệt nhau vào các sợi nhựa hiện có trong dự án"
 
-msgid "Skip Matching"
-msgstr "Bỏ qua khớp"
+msgid "Automatically merge filaments of the same color and type"
+msgstr ""
+
+msgid "Skip"
+msgstr "Bỏ qua"
 
 msgid "Skip filament mapping and import as a single-color model"
 msgstr "Bỏ qua ánh xạ sợi nhựa và nhập dưới dạng mô hình một màu"
+
+msgid "Next"
+msgstr "Tiếp"
+
+msgctxt "TextureImport"
+msgid "Previous"
+msgstr "Trước"
+
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr ""
+
+msgid "Before matching"
+msgstr ""
+
+msgid "After matching"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Before simplification: %d colors"
+msgstr ""
+
+#, c-format, boost-format
+msgid "After simplification: %d colors"
+msgstr ""
+
+msgid "Import Model: Filament Matching"
+msgstr ""
 
 msgid "Processing"
 msgstr "Đang xử lý"
@@ -3926,23 +3991,73 @@ msgstr "Đang tính toán màu họa tiết..."
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Tính toán thất bại. Vui lòng điều chỉnh tham số và thử lại."
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "Lưới có hình học không đa tạp hoặc các đường thành hở. Bạn có thể nhập như hiện có hoặc sửa chữa bằng dịch vụ sửa chữa 3D của Windows trước khi nhập."
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
+msgstr ""
 
-msgid "Mesh repair"
-msgstr "Sửa chữa lưới"
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
+msgstr ""
 
-msgid "Import without repair"
-msgstr "Nhập mà không sửa chữa"
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr ""
 
-msgid "Repair and import"
-msgstr "Sửa chữa và nhập"
+msgid "Click to select a matching filament"
+msgstr ""
 
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Xin lưu ý rằng lưới có hình học không đa tạp hoặc các đường thành hở."
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr ""
 
-msgid "Mesh issue"
-msgstr "Sự cố lưới"
+msgid "Error Prompt"
+msgstr ""
+
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr ""
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Kept filaments"
+msgstr ""
+
+msgid "Deleted filaments"
+msgstr ""
+
+msgid "After merging"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr ""
+
+msgid "Prioritize merging similar-color filaments"
+msgstr ""
+
+msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr ""
+
+msgid "What is the CMYW mixing kit?"
+msgstr ""
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr ""
+
+msgid "4-color CMYW"
+msgstr ""
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr ""
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "Add to project filament list"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Chọn tệp lưu trữ SLA:"
@@ -4063,7 +4178,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr "Các yếu tố của Hiệu chuẩn động cho lưu lượng"
 
 msgid "View Wiki for details"
-msgstr ""
+msgstr "Xem Wiki để biết thêm chi tiết"
 
 msgid "Nozzle Type"
 msgstr "Loại vòi phun"
@@ -4085,25 +4200,25 @@ msgstr ""
 "vòi phun"
 
 msgid "Tip: Setting AMS slot information while printing is not supported"
-msgstr ""
+msgstr "Mẹo: Không hỗ trợ thiết lập thông tin khe AMS trong khi in"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "Mẹo: Không hỗ trợ thiết lập thông tin khe cắm ảo trong khi in"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Bạn có chắc chắn muốn xóa thông tin sợi nhựa không?"
 
 msgid "Add to Filament Library?"
-msgstr ""
+msgstr "Thêm vào Thư viện sợi nhựa?"
 
 msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
-msgstr ""
+msgstr "Việc thay đổi loại hoặc màu sắc sợi nhựa sẽ loại bỏ liên kết với Thư viện sợi nhựa. Bạn có muốn thêm sợi nhựa này làm cuộn mới không?"
 
 msgid "Add to Filament Library"
-msgstr ""
+msgstr "Thêm vào Thư viện sợi nhựa"
 
 msgid "Save Only"
-msgstr ""
+msgstr "Chỉ lưu"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU cần đường dẫn cấp nhựa và quy trình nạp khác. Nếu không, có thể xảy ra tắc nghẽn hoặc kẹt nhựa. Vui lòng đọc hướng dẫn trước khi sử dụng TPU."
@@ -4115,7 +4230,7 @@ msgid "You need to select the material type and color first."
 msgstr "Bạn cần chọn loại vật liệu và màu sắc trước."
 
 msgid "Please select a color"
-msgstr ""
+msgstr "Vui lòng chọn màu"
 
 msgid "Remark"
 msgstr "Ghi chú"
@@ -4136,25 +4251,25 @@ msgstr ""
 " 'Thiết bị -> Bộ phận in'"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "Sợi nhựa đã khớp"
 
 msgid "Add as new filament"
 msgstr "Thêm làm sợi nhựa mới"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS đã phát hiện một sợi nhựa mới. Thêm nó vào Trình quản lý sợi nhựa?"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "Một loại sợi nhựa tương tự đã được tìm thấy trong Trình quản lý sợi nhựa và được tự động ghép nối."
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "Nhiều sợi nhựa tương tự nhau đã được tìm thấy trong Trình quản lý sợi nhựa. Vui lòng xác nhận sự trùng khớp."
 
 msgid "New Filament"
-msgstr ""
+msgstr "Sợi nhựa mới"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "Thông tin về sợi nhựa mới đã được ghi nhận."
 
 msgid "Dynamic flow calibration"
 msgstr "Hiệu chuẩn động cho lưu lượng"
@@ -4182,9 +4297,6 @@ msgstr "Nhiệt độ bàn in"
 
 msgid "Start calibration"
 msgstr "Bắt đầu hiệu chuẩn"
-
-msgid "Next"
-msgstr "Tiếp"
 
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "Hiệu chuẩn hoàn tất. Vui lòng tìm đường đùn vật liệu đồng nhất nhất trên bàn nhiệt của bạn như hình bên dưới và điền giá trị ở phía bên trái của nó vào ô nhập liệu hệ số K."
@@ -4459,10 +4571,10 @@ msgid "Reset AMS Sequence"
 msgstr "Đặt lại trình tự AMS"
 
 msgid "View wiki for details"
-msgstr ""
+msgstr "Xem wiki để biết thêm chi tiết"
 
 msgid "Nozzle Temperature"
-msgstr ""
+msgstr "Nhiệt độ vòi phun"
 
 msgid "File"
 msgstr "Tệp"
@@ -4661,7 +4773,7 @@ msgstr "Giá trị nằm ngoài phạm vi."
 
 #, boost-format
 msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
-msgstr ""
+msgstr "%1% không thể vượt quá các lớp vỏ (%2%), nếu không màu sơn sẽ lan đến phần điền thưa."
 
 msgid ""
 "Too small layer height.\n"
@@ -4822,6 +4934,8 @@ msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
 msgstr ""
+"độ sâu của khóa phải nhỏ hơn độ sâu của da.\n"
+"Đặt lại thành 50% độ sâu da"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "Thành bổ sung xen kẽ không tương thích với chế độ in xoắn ốc kiểu bình. Để bật thành bổ sung xen kẽ, các điều chỉnh sau đây được khuyến nghị:"
@@ -4849,6 +4963,15 @@ msgstr ""
 "Có - Áp dụng và giữ bật thành bổ sung xen kẽ\n"
 "Không  - Không sử dụng thành bổ sung xen kẽ"
 
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "Để thành bổ sung xen kẽ hoạt động đúng cách, các điều chỉnh sau đây được khuyến nghị:"
 
@@ -4861,7 +4984,7 @@ msgstr ""
 "Có - Áp dụng và giữ bật thành bổ sung xen kẽ\n"
 "Không  - Giữ cài đặt hiện tại và vẫn bật thành bổ sung xen kẽ"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5222,6 +5345,12 @@ msgstr "Thử lại"
 
 msgid "Resume"
 msgstr "Tiếp tục"
+
+msgid "Loading error details ..."
+msgstr ""
+
+msgid "Unable to load error details."
+msgstr ""
 
 msgid "Unknown error."
 msgstr "Lỗi không xác định."
@@ -5910,7 +6039,7 @@ msgstr "Tháp mồi giúp cải thiện chất lượng in nhiều màu và đư
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Tháp mồi vượt quá ranh giới tấm in."
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
 msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
@@ -6021,6 +6150,12 @@ msgstr ""
 msgid "Invalid input."
 msgstr "Đầu vào không hợp lệ."
 
+msgid "Network error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
 msgid "New Window"
 msgstr "Cửa sổ mới"
 
@@ -6041,9 +6176,6 @@ msgstr "Chuẩn bị"
 
 msgid "Preview"
 msgstr "Xem trước"
-
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "Trang hiện tại có những thay đổi chưa lưu. Bạn có thể tiếp tục chỉnh sửa hoặc chọn lưu/hủy bỏ trước khi rời đi."
 
 msgid "Home"
 msgstr "Trang chủ"
@@ -6068,6 +6200,9 @@ msgstr "Không"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "sẽ được đóng trước khi tạo một mô hình mới. Bạn có muốn tiếp tục không?"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "Trang hiện tại có những thay đổi chưa lưu. Bạn có thể tiếp tục chỉnh sửa hoặc chọn lưu/hủy bỏ trước khi rời đi."
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Mở khóa các bản in nhanh hơn, đáng tin cậy hơn, không bị cong vênh với Helio Additive."
@@ -6366,9 +6501,6 @@ msgstr "Đặt lại về bố cục cửa sổ mặc định"
 
 msgid "Show Labels of printing by layer in 3D scene"
 msgstr "Hiển thị nhãn in theo lớp trong cảnh 3D"
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "Hiển thị nhãn in theo vật thể trong cảnh 3D"
 
 msgid "Show &Overhang"
 msgstr "Hiển thị &Phần nhô ra"
@@ -6882,7 +7014,7 @@ msgid "Swap Y/Z axes"
 msgstr "Hoán đổi các trục Y/Z"
 
 msgid "Lock horizon"
-msgstr ""
+msgstr "Khóa đường chân trời"
 
 msgid "(LAN)"
 msgstr ""
@@ -7034,7 +7166,7 @@ msgid "Finished"
 msgstr "Đã hoàn tất"
 
 msgid "Almost complete"
-msgstr ""
+msgstr "Gần hoàn thành"
 
 msgid "Camera"
 msgstr ""
@@ -7373,9 +7505,6 @@ msgstr "%s thông tin"
 msgid "%s information"
 msgstr "%s thông tin"
 
-msgid "Skip"
-msgstr "Bỏ qua"
-
 msgid "Newer 3mf version"
 msgstr "Phiên bản 3mf mới hơn"
 
@@ -7518,10 +7647,10 @@ msgid "Open link for more info"
 msgstr "Mở liên kết để biết thêm thông tin"
 
 msgid "Jump to: Support on build plate only"
-msgstr ""
+msgstr "Chuyển đến: Chỉ hỗ trợ trên bàn in"
 
 msgid "Jump to: Support"
-msgstr ""
+msgstr "Chuyển đến: Hỗ trợ"
 
 msgid "Warning:"
 msgstr "Cảnh báo:"
@@ -7783,478 +7912,537 @@ msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Tự động dừng làm nóng sau 5 phút ở trạng thái nghỉ để đảm bảo an toàn."
 
 msgid "Note: "
-msgstr ""
+msgstr "Ghi chú: "
 
 msgid "Controls the printed height of each layer."
-msgstr ""
+msgstr "Điều khiển chiều cao in của mỗi lớp."
 
 msgid ""
 "A larger layer height prints faster but shows more obvious layer lines.\n"
 "A smaller layer height gives finer curved surfaces but takes longer to print.\n"
 "If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
 msgstr ""
+"Chiều cao lớp in lớn hơn sẽ in nhanh hơn nhưng các đường lớp sẽ hiện rõ hơn.\n"
+"Chiều cao lớp in nhỏ hơn cho phép tạo ra các bề mặt cong mịn hơn nhưng thời gian in sẽ lâu hơn.\n"
+"Nếu chiều cao lớp quá nhỏ trong khi tốc độ quá cao, quá trình đùn vật liệu không thể đáp ứng kịp, bề mặt sẽ bị thiếu vật liệu và sần sùi."
 
 msgid "Recommended layer height is 20%-70% of the nozzle diameter."
-msgstr ""
+msgstr "Chiều cao lớp in được khuyến nghị là từ 20% đến 70% đường kính vòi phun."
 
 msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
-msgstr ""
+msgstr "Tham số này điều khiển độ dày của lớp đầu tiên được đùn lên bàn nhiệt của mô hình, ảnh hưởng đến độ bám dính của lớp đầu tiên với mặt phẳng."
 
 msgid ""
 "Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
 "Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
 msgstr ""
+"Nếu quá nhỏ, lớp đầu tiên rất nhạy với độ phẳng của bàn in và dễ bị lỗi in.\n"
+"Nếu quá lớn, tỷ lệ chiều rộng trên chiều cao của lớp đầu tiên quá nhỏ, làm giảm độ bám dính của vật liệu."
 
 msgid "Usually set to half the nozzle diameter."
-msgstr ""
+msgstr "Thường được đặt bằng một nửa đường kính vòi phun."
 
 msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
-msgstr ""
+msgstr "Dành cho tính năng sợi nhựa pha màu. Khi được kích hoạt, các lớp sử dụng sợi nhựa pha màu sẽ được chia thành các lớp phụ mỏng hơn theo tỷ lệ để tạo ra sự pha trộn màu sắc đồng đều hơn."
 
 msgid ""
 "When off, colors change per full layer, so the blend is coarser and less even.\n"
 "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
 msgstr ""
+"Khi tắt chế độ này, màu sắc sẽ thay đổi theo từng lớp hoàn chỉnh, màu pha trộn sẽ thô hơn và không đều hơn.\n"
+"Khi bật chế độ này, các lớp phụ sẽ xen kẽ nhau dày đặc hơn để tạo ra sự pha trộn đồng đều hơn, nhưng quá trình in sẽ mất nhiều thời gian hơn."
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr ""
+msgstr "Chỉ nên sử dụng khi dùng sợi nhựa pha màu để có hiệu ứng màu phân tầng tốt hơn."
 
 msgid "Controls where each layer's outer wall starts and ends."
-msgstr ""
+msgstr "Kiểm soát vị trí bắt đầu và kết thúc bức tường ngoài trên mỗi lớp."
 
 msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr ""
+msgstr "Điểm đó có thể để lại một vết nhỏ hoặc đường nối, vì vậy việc chọn vị trí phù hợp sẽ giảm thiểu tác động của đường nối lên ngoại quan của mô hình."
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr ""
+msgstr "Chỉ in một vòng trên bề mặt trên cùng để phần trên được lấp đầy tối đa bằng họa tiết điền đầy, tạo nên vẻ ngoài đồng nhất hơn."
 
 msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
-msgstr ""
+msgstr "Trên các bề mặt dốc hoặc dạng vòm, tuỳ chọn này sẽ làm tình trạng bậc thang trầm trọng hơn, vì vậy không nên áp dụng cho những trường hợp đó."
 
 msgid "Recommended only for flat top surfaces."
-msgstr ""
+msgstr "Chỉ nên sử dụng trên bề mặt phẳng trên cùng."
 
 msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr ""
+msgstr "Chỉ sử dụng một lớp tường duy nhất ở lớp đầu tiên của mô hình (lớp tiếp xúc với mặt bàn) để diện tích lớn nhất có thể được lấp đầy bởi họa tiết lấp đầy lớp đầu tiên, tạo nên vẻ ngoài đồng nhất hơn."
 
 msgid ""
 "When off, the first layer uses multiple wall loops.\n"
 "When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
 msgstr ""
+"Khi tắt, lớp đầu tiên sử dụng nhiều vòng tường.\n"
+"Khi bật, phần lấp đầy liền mạch hơn và đáy phẳng hơn, nhưng đường viền cạnh lớp đầu tiên sẽ hơi yếu hơn."
 
 msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
-msgstr ""
+msgstr "Kiểm soát số lượng vòng tường trong lớp vỏ của mỗi tầng, một yếu tố quan trọng ảnh hưởng đến độ bền của mô hình."
 
 msgid ""
 "More walls give higher strength but use more material and time;\n"
 "fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
 msgstr ""
+"Càng nhiều tường thì độ bền càng cao nhưng tốn nhiều vật liệu và thời gian hơn;\n"
+"càng ít tường càng in nhanh hơn và tiết kiệm vật liệu hơn nhưng lại làm giảm độ bền và có thể làm lộ hoa văn lấp đầy bên trong bề mặt."
 
 msgid "2-3 loops is recommended for typical models; increase it for functional parts."
-msgstr ""
+msgstr "Nên sử dụng 2-3 vòng cho các mẫu thông thường; tăng số vòng lên đối với các bộ phận chức năng."
 
 msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
-msgstr ""
+msgstr "Tại ranh giới giữa khu vực có tường và khu vực không có tường, tuỳ chọn này giúp gắn tường vào vùng vật liệu lấp đầy không có tường ngoài theo các lớp xen kẽ, nhờ đó tường và vật liệu lấp đầy kết nối chắc chắn hơn."
 
 msgid ""
 "It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
 "Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
 msgstr ""
+"Tuỳ chọn này chỉ xử lý các ranh giới nơi một phía có tường và phía kia không có tường; các ranh giới giữa tường với vật liệu lấp đầy thông thường bên trong chi tiết sẽ không bị ảnh hưởng.\n"
+"Việc nhúng từng lớp xen kẽ tạo ra một liên kết so le chắc chắn hơn so với liên kết phẳng."
 
 msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
-msgstr ""
+msgstr "Hãy sử dụng nó khi một công cụ chỉnh sửa biến một vùng thành không gian lấp đầy không có tường nhưng vẫn cần liên kết chắc chắn với lớp vỏ xung quanh. Không cần thiết khi cả hai mặt đều in tường bình thường."
 
 msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
-msgstr ""
+msgstr "Thêm một vòng tường phụ vào các lớp lẻ trong khi vẫn giữ nguyên các lớp chẵn."
 
 msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
-msgstr ""
+msgstr "Việc thêm một bức tường cách một lớp giúp tăng cường liên kết giữa các lớp mà không cần phải xây thêm tường cho toàn bộ lớp, cải thiện độ bám dính giữa các lớp và độ bền của chi tiết, đồng thời giảm chi phí vật liệu và thời gian cho việc xây thêm một bức tường hoàn chỉnh."
 
 msgid "Requires sparse infill; not applicable in vase mode."
-msgstr ""
+msgstr "Yêu cầu điền thưa; không áp dụng ở chế độ bình hoa (vase mode)."
 
 msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
-msgstr ""
+msgstr "Kiểu đường chạy dao cho lớp điền đặc trên cùng; chủ yếu ảnh hưởng đến độ phẳng và vẻ ngoài của bề mặt trên cùng."
 
 msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
-msgstr ""
+msgstr "Điều khiển đường chạy dao bề mặt đáy của mô hình, ảnh hưởng đến kết cấu và độ phẳng của đáy."
 
 msgid "Bridging areas are not affected by this parameter."
-msgstr ""
+msgstr "Các khu vực bắc cầu không bị ảnh hưởng bởi tham số này."
 
 msgid "Controls the number of solid top shell layers, including the top surface."
-msgstr ""
+msgstr "Điều khiển số lượng lớp vỏ rắn phía trên, bao gồm cả bề mặt trên cùng."
 
 msgid ""
 "More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
 "If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
 msgstr ""
+"Càng nhiều lớp thì lớp vỏ ngoài càng dày và càng ít có khả năng để lộ lớp vật liệu bên trong.\n"
+"Nếu số lớp x chiều cao lớp nhỏ hơn độ dày lớp trên cùng, phần mềm cắt lát sẽ tự động thêm các lớp."
 
 msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "Thiết lập độ dày tối thiểu cho lớp vỏ trên cùng đặc, ngăn không cho lớp vỏ trở nên quá mỏng ở các lớp in có chiều cao nhỏ."
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
 msgstr ""
+"Đặt thành 0 để tắt chức năng này và để số lượng lớp tự quyết định.\n"
+"Nếu độ dày từ các lớp x chiều cao lớp không đủ, phần mềm cắt lát sẽ tự động thêm các lớp vỏ trên cùng."
 
 msgid "Controls the number of solid bottom shell layers, including the bottom surface."
-msgstr ""
+msgstr "Điều khiển số lượng lớp vỏ đáy đặc, bao gồm cả bề mặt đáy."
 
 msgid ""
 "More layers make the bottom more solid but take longer.\n"
 "If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
 msgstr ""
+"Càng nhiều lớp thì phần đáy càng chắc chắn nhưng sẽ mất nhiều thời gian hơn.\n"
+"Nếu chiều cao lớp x số lớp nhỏ hơn độ dày lớp vỏ đáy, phần mềm cắt lát sẽ tự động thêm lớp."
 
 msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "Thiết lập độ dày tối thiểu cho lớp vỏ đáy đặc, ngăn không cho nó trở nên quá mỏng ở các lớp in có chiều cao nhỏ."
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
 msgstr ""
+"Đặt thành 0 để tắt chức năng này và để số lượng lớp tự quyết định.\n"
+"Nếu độ dày từ số lớp không đủ, phần mềm cắt lát sẽ tự động thêm các lớp vỏ đáy."
 
 msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "Chức năng này kiểm soát số lớp mà màu sắc bề mặt trên cùng thấm xuống, ngăn không cho các màu sợi nhựa khác bên trong lộ ra."
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"Càng ít lớp in thì khả năng màu bị lem càng cao.\n"
+"Việc tăng số lớp in giúp giảm hiện tượng lem màu nhưng lại làm tăng số lần thay sợi nhựa.\n"
+"Để tránh hiện tượng xuyên thấu xuống dưới ảnh hưởng đến màu sắc các cạnh của mô hình, vùng bị tác động sẽ thu nhỏ dần từng lớp."
 
 msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "Chức năng này kiểm soát số lớp màu ở bề mặt dưới thấm lên trên, ngăn không cho các màu sợi khác bên trong lộ ra."
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"Càng ít lớp in thì khả năng màu bị lem càng cao.\n"
+"Việc tăng số lớp in giúp giảm hiện tượng lem màu nhưng lại làm tăng số lần thay sợi nhựa.\n"
+"Để tránh hiện tượng xuyên thấu từ dưới lên ảnh hưởng đến màu sắc các cạnh của mô hình, vùng bị xuyên thấu sẽ thu nhỏ dần từng lớp."
 
 msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
-msgstr ""
+msgstr "Điều khiển kiểu đường chạy dao của việc điền đầy khối đặc bên trong, được áp dụng cho các lớp rắn giữa lớp vỏ trên và lớp vỏ dưới cũng như cho các vùng rắn bên trong."
 
 msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
-msgstr ""
+msgstr "Nếu tính năng phát hiện các vùng đặc hẹp bên trong được bật, các vùng nhỏ sẽ tự động sử dụng kiểu đồng tâm."
 
 msgid "Controls how dense the model's internal sparse infill is."
-msgstr ""
+msgstr "Kiểm soát độ dày đặc của lớp điền thưa bên trong mô hình."
 
 #, no-c-format, no-boost-format
 msgid ""
 "10-15% is recommended for typical models; raise it for functional parts.\n"
 "100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
 msgstr ""
+"Khuyến nghị mức 10-15% cho các mô hình thông thường; tăng mức này đối với các chi tiết chức năng.\n"
+"100% có nghĩa là hoàn toàn đặc, trong đó chỉ có các mẫu Đồng tâm, Hình chữ nhật, Đơn điệu, Đường đơn điệu, đường thẳng căn chỉnh, Đường cong Hilbert, Dây cung Archimedes và Hình xoắn ốc bát giác là khả dụng."
 
 msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
-msgstr ""
+msgstr "Cho phép điền nhiều đường, in mỗi đường dẫn điền thành nhiều đường song song cạnh nhau."
 
 msgid ""
 "Higher values make the infill beams thicker and stronger but use more material and time;\n"
 "1 is ordinary single-line infill."
 msgstr ""
+"Giá trị càng cao thì dầm phụ càng dày và chắc chắn hơn nhưng lại tốn nhiều vật liệu và thời gian hơn;\n"
+"1 là kiểu điền đầy bằng một đường thẳng thông thường."
 
 msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
-msgstr ""
+msgstr "Được hỗ trợ bởi các kiểu như Đường thẳng, Lưới, Hình xoắn ốc, Tổ ong, Hình khối và Tia chớp."
 
 msgid "Controls the toolpath structure of the internal sparse infill."
-msgstr ""
+msgstr "Kiểm soát cấu trúc đường chạy dao của phần điền thưa bên trong."
 
 msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
-msgstr ""
+msgstr "Các thanh đỡ là những cấu trúc có thể tháo rời được in dưới các phần nhô ra và các góc dốc để nâng đỡ các lớp in sau và ngăn ngừa hiện tượng võng lõm."
 
 msgid ""
 "When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
 "Recommended when the model has obvious overhangs."
 msgstr ""
+"Khi được bật, các giá đỡ sẽ được tạo ra cho các phần nhô ra và các góc dốc, giúp bản in ổn định hơn, nhưng chúng phải được loại bỏ và có thể để lại dấu vết.\n"
+"Nên sử dụng khi mô hình có các phần nhô ra rõ rệt."
 
 msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
-msgstr ""
+msgstr "Chọn hình dạng giá đỡ và cách tạo; Hình dạng thông thường (tự động) và hình dạng cây (tự động) được tạo tự động dựa trên các phần nhô ra."
 
 msgid ""
 "Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
 "Choose a manual mode when you need precise control."
 msgstr ""
+"Các loại giá đỡ thông thường đều đặn và ổn định hơn; giá đỡ dạng cây tiếp xúc với mô hình ít hơn và dễ tháo gỡ hơn.\n"
+"Chọn chế độ thủ công khi bạn cần điều khiển chính xác."
 
 msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
-msgstr ""
+msgstr "Chế độ thủ công được sử dụng cùng với công cụ vẽ hỗ trợ trong thanh công cụ gizmo."
 
 msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
-msgstr ""
+msgstr "Tạo hỗ trợ cho các bề mặt có góc nhô ra nhỏ hơn ngưỡng; có thể tùy chỉnh trong các chế độ tự động."
 
 msgid ""
 "A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
 "A larger threshold also supports more slopes, giving more support."
 msgstr ""
+"Ngưỡng nhỏ hơn chỉ hỗ trợ các phần nhô ra lớn gần như nằm ngang, cung cấp ít sự hỗ trợ hơn nhưng có thể khiến các sườn dốc thoai thoải không được hỗ trợ.\n"
+"Ngưỡng lớn hơn cũng hỗ trợ nhiều độ dốc hơn, mang lại nhiều hỗ trợ tốt hơn."
 
 msgid "A common default of 30 degrees balances print stability against the amount of support used."
-msgstr ""
+msgstr "Góc mặc định phổ biến là 30 độ, giúp cân bằng độ ổn định khi in với lượng vật liệu hỗ trợ được sử dụng."
 
 msgid "Generates support only from the build plate, not on the model's surfaces."
-msgstr ""
+msgstr "Chỉ tạo giá đỡ từ bàn in, không phải trên bề mặt của mô hình."
 
 msgid ""
 "When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
 "When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
 msgstr ""
+"Khi tắt, lớp hỗ trợ có thể phát triển trên bề mặt mô hình để bao phủ toàn diện hơn nhưng dễ để lại dấu vết hơn.\n"
+"Khi bật, tất cả giá đỡ bắt đầu từ bàn in, giúp bề mặt mô hình sạch hơn, nhưng một số phần nhô ra có thể không đỡ được."
 
 msgid "Recommended when appearance matters."
-msgstr ""
+msgstr "Được khuyên dùng khi quan trọng ngoại hình."
 
 msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
-msgstr ""
+msgstr "Giao diện hỗ trợ là một lớp tiếp xúc dày đặc hơn tại nơi phần hỗ trợ tiếp xúc với mô hình; giữ cho mô hình ổn định, giúp dễ dàng tháo gỡ và giảm thiểu các vết hằn trên bề mặt. Thao tác này xác định loại sợi nhựa được sử dụng cho bề mặt tiếp xúc đó."
 
 msgid ""
 "By default the interface uses the same filament as the model, which can make removal harder.\n"
 "Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
 msgstr ""
+"Theo mặc định, lớp tiếp xúc sử dụng cùng loại sợi nhựa với mô hình, điều này có thể khiến việc tháo gỡ trở nên khó khăn hơn.\n"
+"Việc sử dụng sợi nhựa dễ tháo giúp bề mặt tiếp xúc dễ tháo ra và sạch hơn, nhưng lại làm tăng số lần thay sợi."
 
 msgid "The filament used to print the support body and the raft."
-msgstr ""
+msgstr "Sợi nhựa được sử dụng để in phần thân đỡ và đế in."
 
 msgid ""
 "By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
 "Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
 msgstr ""
+"Theo mặc định, giá đỡ sử dụng cùng loại sợi nhựa với mô hình, khớp với sợi nhựa của từng lớp trong các bản in đa sợi.\n"
+"Việc sử dụng loại sợi nhựa khác có thể giúp việc tháo gỡ dễ dàng hơn hoặc giảm chi phí, nhưng lại làm tăng thời gian thay sợi nhựa."
 
 msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
-msgstr ""
+msgstr "In các vòng viền tách rời (một lớp viền) xung quanh mô hình để làm sạch vòi phun và ổn định quá trình đùn trước khi bắt đầu in."
 
 msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
-msgstr ""
+msgstr "Nhiều vòng viền hơn sẽ đùn nhựa kỹ hơn nhưng tốn nhiều nguyên liệu hơn; đặt thành 0 để tắt viền."
 
 msgid "Controls how many layers the skirt is printed."
-msgstr ""
+msgstr "Điều chỉnh số lớp in trên viền."
 
 msgid ""
 "During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
 "The default is 1 layer."
 msgstr ""
+"Trong vài lớp đầu tiên, phần viền cao hơn có thể chắn một phần luồng không khí lạnh xung quanh mô hình, giữ cho vi khí hậu ấm áp ở phần đáy mô hình và giảm nguy cơ biến dạng sớm do co rút.\n"
+"Mặc định là 1 lớp."
 
 msgid "Requires the skirt loop count to be greater than 0."
-msgstr ""
+msgstr "Yêu cầu số lượng vòng viền đế phải lớn hơn 0."
 
 msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
-msgstr ""
+msgstr "Vành đế là một dải vật liệu một lớp được thêm vào xung quanh đế mô hình và được nối với lớp đầu tiên, một đường viền gia cố giúp chống biến dạng và giữ độ bám dính."
 
 msgid ""
 "This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
 "The default is Auto."
 msgstr ""
+"Giúp kiểm soát loại vành (một dải được nối với lớp đầu tiên của mô hình) được sử dụng để cải thiện độ bám dính vào bàn in và giảm hiện tượng cong vênh.\n"
+"Mặc định là Tự động."
 
 msgid "The distance from the model to the outermost brim line."
-msgstr ""
+msgstr "Khoảng cách từ mô hình đến đường vành ngoài cùng."
 
 msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
-msgstr ""
+msgstr "Chiều rộng lớn hơn giúp cải thiện độ bám dính của vật liệu và chống cong vênh, nhưng lại tốn nhiều vật liệu hơn và khó vệ sinh hơn."
 
 msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr ""
+msgstr "Sau khi thay đổi màu sắc hoặc loại sợi nhựa, máy in sẽ loại bỏ sợi nhựa dư thừa và ổn định áp suất vòi phun trên một tháp mồi riêng biệt trước khi tiếp tục in mô hình, giúp giảm thiểu hiện tượng trộn màu, thiếu hụt sợi nhựa và các khuyết điểm bề mặt."
 
 msgid ""
 "Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
 "On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
 msgstr ""
+"Chế độ Tắt: tiết kiệm vật liệu và chiếm ít không gian trên bàn in, nhưng sợi nhựa thừa trong quá trình thay đổi màu có thể rơi xuống mô hình và gây ra hiện tượng trộn màu, kéo sợi hoặc thiếu nhựa cục bộ.\n"
+"Chế độ Mở: chuyển màu mượt mà hơn và bản in nhiều màu nhất quán hơn, nhưng tốn thêm vật liệu, thời gian và chiếm diện tích trên bàn in."
 
 msgid "Mutually exclusive with by-object printing and independent support layer height."
-msgstr ""
+msgstr "Loại trừ lẫn nhau với việc in từng đối tượng và chiều cao lớp hỗ trợ độc lập."
 
 msgid "Controls the horizontal size of the prime tower."
-msgstr ""
+msgstr "Điều khiển kích thước chiều ngang của tháp mồi."
 
 msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
-msgstr ""
+msgstr "Chiều rộng lớn hơn tạo ra nhiều khoảng trống để đùn nhựa xả khí và giúp tháp ổn định hơn, nhưng lại tốn nhiều vật liệu và không gian hơn."
 
 msgid "The width cannot be customized when the rib outer wall is enabled."
-msgstr ""
+msgstr "Chiều rộng không thể tùy chỉnh khi bật tính năng tường ngoài gân."
 
 msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
-msgstr ""
+msgstr "Bổ sung bốn thanh gia cố ở bốn góc tường ngoài của tháp mồi để tăng cường độ ổn định."
 
 msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
-msgstr ""
+msgstr "Khuyến nghị sử dụng cho các tháp mồi cao, vật liệu có độ bám dính cao như PETG, hoặc khi thay đổi màu sắc thường xuyên; hãy tắt chức năng này khi không gian in hạn chế và tháp in thấp để có thể thu hẹp chiều rộng."
 
 msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
-msgstr ""
+msgstr "Sử dụng một phần sợi chuyển tiếp sau khi thay đổi để in phần điền bên trong của vật thể, giảm lãng phí và thời gian in."
 
 msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
-msgstr ""
+msgstr "Hãy bật chức năng này cho các bộ phận không trong suốt để tiết kiệm vật liệu; tắt đi đối với các bộ phận trong suốt hoặc có thành mỏng, hoặc khi màu sắc bên trong quan trọng."
 
 msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
-msgstr ""
+msgstr "Sử dụng sợi nhựa chuyển tiếp sau khi thay đổi để in các giá đỡ của mô hình, giảm thiểu lãng phí và tiết kiệm thời gian."
 
 msgid "Enabling it saves material, but the supports may show mixed colors."
-msgstr ""
+msgstr "Việc kích hoạt tính năng này giúp tiết kiệm vật liệu, nhưng các giá đỡ có thể hiển thị màu sắc không đồng đều."
 
 msgid "Takes effect when printing multiple filaments through the same nozzle."
-msgstr ""
+msgstr "Chế độ này có hiệu lực khi in nhiều sợi nhựa qua cùng một vòi phun."
 
 msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
-msgstr ""
+msgstr "Chọn cách in toàn bộ bàn in từng lớp một, hoặc in xong một đối tượng mới bắt đầu đối tượng tiếp theo."
 
 msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
-msgstr ""
+msgstr "Sử dụng chế độ In theo lớp (By Layer) cho các bản in nhiều chi tiết hoặc nhiều màu thông thường; cân nhắc sử dụng chế độ In theo đối tượng (By Object) cho nhiều chi tiết nhỏ hoặc để hạn chế ảnh hưởng của lỗi in giữa chừng, và kiểm tra khoảng cách an toàn cũng như các hạn chế của tháp mồi."
 
 msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
-msgstr ""
+msgstr "In theo hình xoắn ốc liên tục dọc theo đường viền ngoài, tạo nên toàn bộ mô hình chỉ trong một đường thẳng, thường không có đường nối ở các cạnh."
 
 msgid ""
 "When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
 "It is best for single, thin-walled, open-top models."
 msgstr ""
+"Khi bật chế độ này, mô hình không có lớp vỏ trên cùng, không có lớp điền và thường chỉ có một bức tường duy nhất, nên nó khá yếu và xung đột với lớp hỗ trợ, các lớp vỏ trên cùng và một số thiết lập khác.\n"
+"Phù hợp nhất với các mẫu đơn, thành mỏng, không có nắp đậy."
 
 msgid "Requires top shell layers to be 0 and is not compatible with support."
-msgstr ""
+msgstr "Yêu cầu các lớp vỏ trên cùng phải bằng 0 và không tương thích với giá đỡ."
 
 msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
-msgstr ""
+msgstr "Chụp một ảnh cho mỗi lớp trong quá trình in và biên tập video tua nhanh khi quá trình in hoàn tất."
 
 msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
-msgstr ""
+msgstr "Chọn chế độ quay phim tua nhanh tại đây; việc tính năng này có thực sự chạy hay không được bật/tắt trên trang gửi để in."
 
 msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
-msgstr ""
+msgstr "Tự động điều chỉnh đường chạy dao của tường ngẫu nhiên để bề mặt ngoài có kết cấu thô ráp, mờ và sần sùi."
 
 msgid ""
 "It affects only walls; the top and bottom surfaces are unchanged.\n"
 "Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
 msgstr ""
+"Nó chỉ ảnh hưởng đến các bức tường; bề mặt trên và dưới vẫn không thay đổi.\n"
+"Hữu ích cho các chi tiết trang trí và vỏ tượng; hãy tắt chức năng này khi kích thước cần chính xác hoặc cần bề mặt nhẵn."
 
 msgid "Selects how the fuzzy texture is generated."
-msgstr ""
+msgstr "Chọn cách tạo ra hiệu ứng vân mờ."
 
 msgid "There are three generator modes; pick the one that suits your needs."
-msgstr ""
+msgstr "Có ba chế độ tạo; hãy chọn chế độ phù hợp với nhu cầu của bạn."
 
 msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
-msgstr ""
+msgstr "Yếu tố này quyết định tính ngẫu nhiên của vân mờ, từ đó ảnh hưởng đến kiểu dáng của kết cấu bề mặt."
 
 msgid "Several noise types are available; pick the one that suits your needs."
-msgstr ""
+msgstr "Có nhiều loại nhiễu khác nhau; hãy chọn loại phù hợp với nhu cầu của bạn."
 
 msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
-msgstr ""
+msgstr "Điều khiển khoảng cách trung bình giữa các điểm ngẫu nhiên được chèn dọc theo đường tường khi tạo hiệu ứng da mờ."
 
 msgid ""
 "A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
 "A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
 msgstr ""
+"Giá trị lớn hơn sẽ làm cho các điểm ngẫu nhiên cách nhau xa hơn, tạo ra độ hạt thô hơn, nhưng lại sử dụng ít điểm đường dẫn hơn, do đó quá trình cắt lát và in ấn vẫn nhanh hơn và tệp mã G vẫn nhỏ hơn.\n"
+"Giá trị nhỏ hơn sẽ làm cho các điểm nằm sát nhau hơn, tạo ra hạt mịn và đều hơn, nhưng lại làm tăng số điểm trên đường dẫn, do đó quá trình cắt lát và in ấn sẽ chậm lại và kích thước tệp mã G cũng lớn hơn."
 
 msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
-msgstr ""
+msgstr "Nếu kích thước quá nhỏ, phần mềm sẽ vô hiệu hóa hiệu ứng da mờ vì khoảng cách giữa các điểm quá nhỏ (để tránh các đường dẫn bất thường)."
 
 msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
-msgstr ""
+msgstr "Điều khiển độ rộng của hiện tượng rung lắc đường đi trên tường khi tạo hiệu ứng bề mặt mờ, tức là độ sâu của kết cấu."
 
 msgid ""
 "A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
 "The default is about 0.3 mm; keep it below the outer wall's line width."
 msgstr ""
+"Giá trị lớn hơn làm cho kết cấu sâu hơn và rõ nét hơn với các đường vân mạnh hơn, nhưng đường viền sẽ mở rộng, độ chính xác về kích thước giảm xuống, và tường có thể xuất hiện các khe hở và mất đi độ bền.\n"
+"Giá trị mặc định là khoảng 0,3 mm; hãy giữ nó nhỏ hơn chiều rộng đường viền của thành ngoài."
 
 msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
-msgstr ""
+msgstr "Khi vượt quá chiều rộng đường, các chế độ Đùn và Kết hợp của bộ tạo sẽ ngừng hoạt động và chỉ sử dụng chế độ Dịch chuyển."
 
 msgid "Determines whether the fuzzy effect is also applied to the first layer."
-msgstr ""
+msgstr "Xác định xem hiệu ứng làm mờ có được áp dụng cho lớp đầu tiên hay không."
 
 msgid ""
 "When on, the first-layer side walls also get the fuzzy texture.\n"
 "Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
 msgstr ""
+"Khi bật lên, các bức tường bên của lớp đầu tiên cũng có được kết cấu sần/mờ.\n"
+"Thường thì nên tắt chức năng này; chỉ bật khi cần có bề mặt đáy đồng nhất và độ bám dính tốt."
 
 msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
-msgstr ""
+msgstr "Đặt mối nối ưu tiên ở các góc lõm hoặc lồi và rút ngắn các bước di chuyển; phù hợp với các mô hình có các cạnh sắc nét."
 
 msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
-msgstr ""
+msgstr "Xếp chồng các mối nối của từng lớp thành một đường thẳng đứng, giúp các vết may tập trung lại và dễ che giấu."
 
 msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
-msgstr ""
+msgstr "Đặt mối nối ở phía sau mô hình, phù hợp để trưng bày các mô hình có hướng cố định."
 
 msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
-msgstr ""
+msgstr "Phân bố mối nối trên nhiều lớp để tránh tạo thành đường thẳng đứng, tuy nhiên, có thể xuất hiện các vết lồi nhỏ trên bề mặt."
 
 msgid "All top surfaces print with the normal number of wall loops."
-msgstr ""
+msgstr "Tất cả các bề mặt trên cùng đều được in với số vòng tường thông thường."
 
 msgid "Applies to every flat upward-facing top surface, for the widest coverage."
-msgstr ""
+msgstr "Áp dụng cho mọi bề mặt phẳng hướng lên trên, cho phạm vi bao phủ rộng nhất."
 
 msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
-msgstr ""
+msgstr "Chỉ áp dụng cho bề mặt trên cùng của mô hình; các bề mặt trên cùng của lớp giữa vẫn được xử lý bình thường."
 
 msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
-msgstr ""
+msgstr "Phân tích mô hình và tính toán chiều rộng và vị trí vành cần thiết; được khuyến nghị cho hầu hết các mô hình."
 
 msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
-msgstr ""
+msgstr "Chỉ tạo vành xung quanh mép ngoài để tăng cường độ bám dính bên ngoài."
 
 msgid "Generates a brim in inner holes only."
-msgstr ""
+msgstr "Chỉ tạo vành ở các lỗ bên trong."
 
 msgid "Generates a brim on both the outer contour and inner holes."
-msgstr ""
+msgstr "Tạo vành xung quanh cả đường viền ngoài và các lỗ bên trong."
 
 msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
-msgstr ""
+msgstr "Tạo vành bằng cách sơn hoặc gia cố cục bộ, thích hợp cho các góc nhọn dễ bị cong vênh."
 
 msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
-msgstr ""
+msgstr "Nếu không tạo vành; đáy sạch hơn nhưng độ bám dính của bàn in yếu hơn."
 
 msgid "All objects rise together, layer by layer."
-msgstr ""
+msgstr "Mọi đối tượng cùng cao lên, từng lớp một."
 
 msgid "Finishes one object before starting the next; has placement clearance requirements."
-msgstr ""
+msgstr "Hoàn thành một đối tượng trước khi bắt đầu công việc tiếp theo; có yêu cầu về khoảng trống để đặt vật phẩm."
 
 msgid "A snapshot is taken directly after each layer."
-msgstr ""
+msgstr "Ảnh chụp nhanh được thực hiện ngay sau mỗi lớp."
 
 msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
-msgstr ""
+msgstr "Sau mỗi lớp, đầu in di chuyển đến rãnh chứa vật liệu thừa trước khi chụp ảnh để có được bức ảnh sạch hơn; sợi nhựa có thể bị rò rỉ trong quá trình chụp ảnh, vì vậy cần có tháp mồi để làm sạch vòi phun và tháp này được tạo ra ngay cả đối với việc in một màu."
 
 msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
-msgstr ""
+msgstr "Lớp da nhám không được thêm tự động, nhưng bạn vẫn có thể vẽ nó lên cục bộ."
 
 msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
-msgstr ""
+msgstr "Chỉ tạo hiệu ứng da nhám ở viền ngoài cùng; các lỗ bên trong vẫn mịn màng."
 
 msgid "Adds fuzzy skin to both the outer contour and inner holes."
-msgstr ""
+msgstr "Tạo hiệu ứng da nhám cho cả đường viền ngoài và các lỗ bên trong."
 
 msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
-msgstr ""
+msgstr "Mọi đường viền trên tường đều rung nhẹ, tạo hiệu ứng mạnh nhất nhưng có thể dẫn đến sai lệch kích thước lớn hơn."
 
 msgid "Turns fuzzy skin fully off; even painting has no effect."
-msgstr ""
+msgstr "Tắt hoàn toàn bề mặt nhám; ngay cả việc tô vẽ cũng không có tác dụng."
 
 msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
-msgstr ""
+msgstr "Đầu phun dịch chuyển sang ngang để tạo hoạ tiết, mang lại cảm giác 3D mạnh mẽ nhưng có thể có khoảng trống giữa các vòng xoắn."
 
 msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
-msgstr ""
+msgstr "Đường đi vẫn thẳng và chỉ có lượng vật liệu đùn ra là thay đổi, giúp cho các bức tường dày đặc hơn."
 
 msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
-msgstr ""
+msgstr "Dịch chuyển kết hợp đùn; trông gần giống dịch chuyển khi điền các khoảng trống giữa các vòng."
 
 msgid "Uniform random noise with a fine, grainy texture and no clear direction."
-msgstr ""
+msgstr "Nhiễu ngẫu nhiên đồng nhất với kết cấu mịn, dạng hạt và không có hướng rõ ràng."
 
 msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
-msgstr ""
+msgstr "Các lớp chuyển tiếp mượt mà tạo nên kết cấu đồng đều, liền mạch hơn với độ gợn sóng mềm mại, đều đặn."
 
 msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
-msgstr ""
+msgstr "Tương tự như mô hình Perlin nhưng có cấu trúc lộn xộn hơn, với các cụm gờ nổi và các vùng phẳng, giống như những đám mây."
 
 msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
-msgstr ""
+msgstr "Những đường gờ sắc nhọn, lởm chởm với các đỉnh và rãnh nhỏ, tạo nên chất liệu giống như đá cẩm thạch."
 
 msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
-msgstr ""
+msgstr "Chia bề mặt thành các ô và dịch chuyển từng ô một, tạo thành chất liệu bậc thang dạng chắp vá."
 
 msgid "View details on Wiki"
-msgstr ""
+msgstr "Xem chi tiết trên Wiki"
 
 msgid "Global"
 msgstr "Chung"
@@ -8488,6 +8676,24 @@ msgstr "Sợi nhựa phối trộn có các thành phần không hợp lệ ho�
 msgid "Search plate, object and part."
 msgstr "Tìm kiếm tấm in, vật thể và bộ phận."
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
+msgstr ""
+
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgstr ""
+
+msgid "Delete Filament"
+msgstr "Xóa sợi nhựa"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Sợi nhựa phối trộn đích sử dụng sợi nhựa vật lý này làm thành phần. Việc sáp nhập sẽ loại bỏ sợi nhựa vật lý này và có thể làm vô hiệu hóa sợi nhựa phối trộn. Tiếp tục?"
 
@@ -8543,7 +8749,7 @@ msgid "The nozzle hardness required by the filament is higher than the default n
 msgstr "Độ cứng vòi phun mà sợi nhựa yêu cầu cao hơn độ cứng vòi phun mặc định của máy in. Vui lòng thay bằng vòi phun tôi cứng hoặc sợi nhựa khác, nếu không, vòi phun sẽ bị mài mòn hoặc hư hỏng."
 
 msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr ""
+msgstr "Việc bật chế độ chụp ảnh tua nhanh tức thời có thể gây ra các khuyết điểm trên bề mặt. Bạn nên chuyển sang chế độ mượt mà."
 
 msgid "\n"
 msgstr ""
@@ -8634,12 +8840,6 @@ msgstr "Các vật thể có thể tích bằng 0 đã bị xóa"
 msgid "The volume of the object is zero"
 msgstr "Thể tích của vật thể bằng 0"
 
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
-
-msgid "Object too small"
-msgstr "Vật thể quá nhỏ"
-
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
 "Instead of considering them as multiple objects, should \n"
@@ -8653,8 +8853,8 @@ msgid "Multi-part object detected"
 msgstr "Đã phát hiện vật thể nhiều bộ phận"
 
 #, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr "Đang tính toán màu họa tiết: %s"
+msgid "Computing model colors: %s"
+msgstr ""
 
 msgid "Texture Import Warning"
 msgstr "Cảnh báo nhập họa tiết"
@@ -9062,6 +9262,18 @@ msgstr "Tải dữ liệu Helio thất bại"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Vui lòng khắc phục lỗi cắt lớp và đăng tải lại."
 
+msgid "Send G-code file"
+msgstr ""
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr ""
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr ""
+
+msgid "Send now"
+msgstr ""
+
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "Không thể khởi động Bambu Farm Manager Client."
 
@@ -9251,12 +9463,11 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Lý do: bộ phận \"%1%\" không tạo thành một thể tích."
 
 #, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "Lý do: bộ phận \"%1%\" bị tự giao cắt."
-
-#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "Lý do: \"%1%\" và bộ phận khác không có giao cắt."
+
+msgid "Reason: the meshes have face issues."
+msgstr ""
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Đã phát hiện các bộ phận âm. Bạn có muốn thực hiện boolean lưới trước khi xuất không?"
@@ -9523,25 +9734,25 @@ msgid "Enable dark mode"
 msgstr "Bật chế độ tối"
 
 msgid "All related changes"
-msgstr ""
+msgstr "Tất cả các thay đổi liên quan"
 
 msgid "When color changes"
-msgstr ""
+msgstr "Khi màu sắc thay đổi"
 
 msgid "Turn off auto calculate"
-msgstr ""
+msgstr "Tắt tính toán tự động"
 
 msgid "Auto calculate when color changes, type or configuration changes"
-msgstr ""
+msgstr "Tự động tính toán khi màu sắc, loại hoặc cấu hình thay đổi"
 
 msgid "Auto calculate when sync or modify filament colors"
-msgstr ""
+msgstr "Tự động tính toán khi đồng bộ hoặc chỉnh sửa màu sợi in"
 
 msgid "Keep current flush volumes, trigger manually when needed"
-msgstr ""
+msgstr "Giữ nguyên lượng xả hiện tại, kích hoạt thủ công khi cần thiết"
 
 msgid "Auto Calculate Flush Volume"
-msgstr ""
+msgstr "Tự động tính lượng xả"
 
 msgid "Auto calculate flush volumes"
 msgstr "Tự động tính toán lượng xả"
@@ -9620,10 +9831,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "Với tùy chọn này được bật, bạn có thể in cùng lúc các vật liệu có sự chênh lệch nhiệt độ lớn."
 
 msgid "Automatically optimize wipe tower placement"
-msgstr ""
+msgstr "Tự động tối ưu hóa vị trí đặt tháp gạt"
 
 msgid "With this option enabled, the wipe tower will be placed at its optimal position."
-msgstr ""
+msgstr "Khi tùy chọn này được kích hoạt, tháp gạt sẽ được đặt ở vị trí tối ưu."
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Tự động đồng bộ cài đặt sẵn của người dùng (Máy in/Sợi nhựa/Quy trình)"
@@ -9644,10 +9855,10 @@ msgid "3D Settings"
 msgstr "Cài đặt 3D"
 
 msgid "Mouse Settings"
-msgstr ""
+msgstr "Cài đặt chuột"
 
 msgid "Import Settings"
-msgstr ""
+msgstr "Nhập cài đặt"
 
 msgid "Zoom to mouse position"
 msgstr "Thu phóng theo vị trí chuột"
@@ -9656,16 +9867,16 @@ msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than 
 msgstr "Phóng to về phía vị trí con trỏ chuột trong chế độ xem 3D, thay vì tâm cửa sổ 2D."
 
 msgid "Reverse direction of zoom with mouse wheel"
-msgstr ""
+msgstr "Đảo chiều thu phóng bằng con lăn chuột"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "Nếu được bật, chức năng này sẽ đảo ngược hướng thu phóng khi sử dụng con lăn chuột."
 
 msgid "Drag with left mouse button to move"
-msgstr ""
+msgstr "Kéo bằng nút chuột trái để di chuyển"
 
 msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
-msgstr ""
+msgstr "Nếu được bật, nút chuột trái có thể di chuyển các mô hình bằng cách kéo; nếu tắt, nút chuột trái chỉ dùng để chọn hoặc nhấp chuột."
 
 msgid "Display overview"
 msgstr "Hiển thị tổng quan"
@@ -9701,10 +9912,10 @@ msgid "Always show shells or not in preview view tab. If you change this value, 
 msgstr "Luôn hiển thị vỏ ngoài hay không trong tab xem trước. Nếu bạn thay đổi giá trị này, bạn nên cắt lớp lại."
 
 msgid "Show Thermal Preconditioning Area"
-msgstr ""
+msgstr "Hiển thị khu vực tiền xử lý nhiệt"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr ""
+msgstr "Cảnh báo nếu mô hình vượt ra ngoài khu vực tiền xử lý nhiệt. Tính năng này chỉ khả dụng trên các máy in hỗ trợ tính năng này."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Hiển thị hộp thoại cài đặt tham số lưới STEP."
@@ -9815,7 +10026,7 @@ msgid "Skip AMS blacklist check"
 msgstr "Bỏ qua kiểm tra danh sách đen AMS"
 
 msgid "Enable DevTools For Webview"
-msgstr ""
+msgstr "Kích hoạt DevTools cho Webview"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Liên kết tệp với Bambu Studio"
@@ -9913,7 +10124,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
@@ -10277,7 +10489,7 @@ msgid "When enabling spiral vase mode, machines with I3 structure will not gener
 msgstr "Khi bật chế độ in xoắn ốc kiểu bình, các máy có cấu trúc I3 sẽ không tạo video Timelapse."
 
 msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
-msgstr ""
+msgstr "Máy in hiện tại không hỗ trợ chế độ chụp ảnh tua nhanh (timelapse) ở chế độ In tức thời khi in theo đối tượng."
 
 msgid "Errors"
 msgstr "Lỗi"
@@ -10316,7 +10528,7 @@ msgid "This process determines the dynamic flow values to improve overall print 
 msgstr "Quy trình này xác định các giá trị lưu lượng động để cải thiện chất lượng in tổng thể."
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr ""
+msgstr "Sau khi bật chế độ Timelapse, bất kể bạn chọn Instant hay Smooth, máy in sẽ di chuyển bàn in và đầu in trước mỗi lần chụp, điều này có thể làm tăng thời gian in tổng thể."
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10464,14 +10676,23 @@ msgstr "Độ cứng của vật liệu hiện tại (%s) vượt quá độ c�
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "Nếu 'Hiệu chuẩn động cho lưu lượng' được đặt thành Tự động/Bật, hệ thống sẽ sử dụng giá trị hiệu chuẩn thủ công hoặc giá trị mặc định và bỏ qua quá trình hiệu chuẩn lưu lượng. Bạn có thể thực hiện hiệu chuẩn lưu lượng thủ công cho sợi nhựa TPU trên trang 'Hiệu chuẩn'."
 
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr "Sợi nhựa trong AMS có thể không đủ cho lần in này. Vui lòng nạp thêm hoặc thay thế."
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Một số sợi nhựa có thể chuyển đổi giữa các vòi đùn nhựa trong quá trình in. Hiệu chuẩn giá trị K thủ công không thể áp dụng trong toàn bộ quá trình in, điều này có thể ảnh hưởng đến chất lượng in. Nên bật Hiệu chuẩn động cho lưu lượng."
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr "Có sợi nhựa dễ bị kéo sợi trong tệp này. Để có chất lượng in tốt nhất, chúng tôi khuyên bạn nên chuyển tính năng phát hiện vón cục vòi phun sang chế độ tự động."
+
+#, c-format, boost-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
 
 msgid "Cool"
 msgstr "Làm mát"
@@ -10815,7 +11036,7 @@ msgid "Prime tower is required for smooth timelapse. There may be flaws on the m
 msgstr "Tháp mồi sẽ cần thiết để quay phim Timelapse mượt mà. Có thể có lỗi trên mô hình nếu không có tháp mồi. Bạn có muốn bật tháp mồi không?"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
-msgstr ""
+msgstr "\"Không có lớp thưa\" không tương thích với kỹ thuật quay timelapse mượt mà, vốn cần một tháp mồi trên mỗi lớp. Timelapse đã được chuyển sang chế độ tức thời."
 
 msgid "Still print by object?"
 msgstr "Vẫn in theo vật thể?"
@@ -10961,6 +11182,9 @@ msgstr "Ghi chú"
 
 msgid "Frequent"
 msgstr "Thường dùng"
+
+msgid "Modifier cycle"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11424,34 +11648,34 @@ msgid "Right: "
 msgstr "Phải: "
 
 msgid "Preset A"
-msgstr ""
+msgstr "Cài đặt sẵn A"
 
 msgid "Preset B"
-msgstr ""
+msgstr "Cài đặt sẵn B"
 
 msgid "Show all presets (including incompatible)"
 msgstr "Hiển thị tất cả cài đặt sẵn (bao gồm không tương thích)"
 
 msgid "Parameters"
-msgstr ""
+msgstr "Thông số"
 
 msgid "Process Preset"
-msgstr ""
+msgstr "Cài đặt sẵn quy trình"
 
 msgid "Filament Preset"
 msgstr "Cài đặt sẵn sợi nhựa"
 
 msgid "Material Preset"
-msgstr ""
+msgstr "Cài đặt sẵn vật liệu"
 
 msgid "Machine Preset"
-msgstr ""
+msgstr "Cài đặt sẵn máy"
 
 msgid "These two presets have no visible differences"
-msgstr ""
+msgstr "Hai cài đặt sẵn này không có sự khác biệt rõ rệt."
 
 msgid "Please select two different presets A and B to compare"
-msgstr ""
+msgstr "Vui lòng chọn hai cài đặt sẵn khác nhau A và B để so sánh."
 
 msgid "Add File"
 msgstr "Thêm tệp"
@@ -11667,9 +11891,6 @@ msgstr "Chỉ đồng bộ loại và màu sợi nhựa, không bao gồm thông
 
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "Thay thế danh sách sợi nhựa của dự án tuần tự dựa trên sợi nhựa của máy in. Và các sợi nhựa máy in không sử dụng sẽ tự động được thêm vào cuối danh sách."
-
-msgid "Advanced settings"
-msgstr "Cài đặt nâng cao"
 
 msgid "Add unused AMS filaments to filaments list."
 msgstr "Thêm sợi nhựa AMS không sử dụng vào danh sách sợi nhựa."
@@ -12732,6 +12953,9 @@ msgstr "Cập nhật firmware"
 msgid "Hotends on Rack"
 msgstr "Đầu nung trên giá đỡ"
 
+msgid "Copy Device Info"
+msgstr ""
+
 msgid "Beta version"
 msgstr "Phiên bản Beta"
 
@@ -12740,9 +12964,6 @@ msgstr "Đang làm mới thông tin đầu nung..."
 
 msgid "Checking version..."
 msgstr "Đang kiểm tra phiên bản..."
-
-msgid "Updating"
-msgstr "Đang cập nhật"
 
 msgid "Updating failed"
 msgstr "Cập nhật thất bại"
@@ -13165,14 +13386,14 @@ msgstr "Tháp mồi yêu cầu tất cả các vật thể được in trên cù
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Tháp mồi yêu cầu tất cả các vật thể phải được cắt lớp với cùng chiều cao lớp."
 
-msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
-msgstr ""
-
-msgid "Jump to: Precise Z height"
-msgstr ""
-
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "Tháp mồi chỉ được hỗ trợ nếu tất cả các vật thể có cùng chiều cao lớp biến thiên"
+
+msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
+msgstr "Độ cao Z chính xác cho phép các đối tượng có chiều cao lớp khác nhau, điều này có thể làm tăng đáng kể kích thước của tháp mồi."
+
+msgid "Jump to: Precise Z height"
+msgstr "Chuyển đến: Chiều cao Z chính xác"
 
 msgid "Too small line width"
 msgstr "Chiều rộng đường quá nhỏ"
@@ -13203,7 +13424,7 @@ msgid "Generating G-code"
 msgstr "Đang tạo Mã G"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr ""
+msgstr "Vị trí tương đối của mô hình và tháp mồi không đáp ứng yêu cầu của tính năng \"Không có lớp thưa\". Vui lòng điều chỉnh vị trí tương đối của chúng, giảm chiều cao mô hình hoặc tắt tùy chọn \"Không có lớp thưa\"."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Xử lý mẫu định_dạng_tên_tệp không thành công."
@@ -13517,7 +13738,7 @@ msgstr ""
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "Tốc độ của bức tường nhô ra 100% không có sự chồng lấn với lớp bên dưới."
 
 msgid "Slow down by height"
 msgstr "Giảm tốc độ theo chiều cao"
@@ -13819,6 +14040,9 @@ msgstr "Đơn điệu"
 msgid "Monotonic line"
 msgstr "Đường in đơn điệu"
 
+msgid "Global monotonic line"
+msgstr ""
+
 msgid "Aligned Rectilinear"
 msgstr "Đường thẳng căn chỉnh"
 
@@ -13863,7 +14087,7 @@ msgid "Line pattern of internal solid infill. if the detect narrow internal soli
 msgstr "Kiểu đường của phần lấp đầy đặc bên trong. Nếu tính năng phát hiện phần lấp đầy đặc bên trong hẹp được bật, kiểu đồng tâm sẽ được sử dụng cho khu vực nhỏ."
 
 msgid "Sub-top surface pattern"
-msgstr ""
+msgstr "Hoa văn bề mặt dưới lớp trên cùng"
 
 msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
 msgstr ""
@@ -14547,7 +14771,7 @@ msgid "Initial layer infill"
 msgstr "Lấp đầy lớp ban đầu"
 
 msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
-msgstr ""
+msgstr "Độ rộng đường kẻ của lớp điền ban đầu, bao gồm điền thưa, điền đặc và bề mặt trên cùng. Các bức tường, giá đỡ và mọi thứ khác của lớp ban đầu không bị ảnh hưởng và vẫn sử dụng độ rộng đường kẻ của lớp ban đầu. Số 0 có nghĩa là sử dụng độ rộng đường kẻ của lớp đầu tiên."
 
 msgid "Initial layer height"
 msgstr "Chiều cao lớp ban đầu"
@@ -14728,29 +14952,14 @@ msgstr "Kích thước hình thu nhỏ"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "Quyết định kích thước hình thu nhỏ được lưu trữ trong các tệp Mã G"
 
-msgid "Nozzle type"
-msgstr "Loại vòi phun"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "Vật liệu kim loại của vòi phun. Điều này quyết định khả năng chống mài mòn của vòi phun, và loại sợi nhựa nào có thể được in"
-
-msgid "Undefine"
-msgstr "Chưa xác định"
-
-msgid "Hardened steel"
-msgstr "Thép tăng cường"
-
-msgid "Stainless steel"
-msgstr "Thép không gỉ"
-
-msgid "Tungsten carbide"
-msgstr "Cacbua vonfram"
-
 msgid "Printer structure"
 msgstr "Cấu trúc máy in"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "Bố cục vật lý và các thành phần của một thiết bị in"
+
+msgid "Undefine"
+msgstr "Chưa xác định"
 
 msgid "Best object position"
 msgstr "Vị trí vật thể tốt nhất"
@@ -14853,6 +15062,66 @@ msgstr "Chiều rộng đường phần khung"
 
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "Điều chỉnh chiều rộng đường của các đường phần khung đã chọn."
+
+msgid "Conformal infill"
+msgstr ""
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr ""
+
+msgid "Layer stagger"
+msgstr ""
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr ""
+
+msgid "Alternate"
+msgstr ""
+
+msgid "Forward layers"
+msgstr ""
+
+msgid "Conformal forward layers"
+msgstr ""
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr ""
+
+msgid "Reverse layers"
+msgstr ""
+
+msgid "Conformal reverse layers"
+msgstr ""
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr ""
+
+msgid "Radial center"
+msgstr ""
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr ""
+
+msgid "Each layer"
+msgstr ""
+
+msgid "Axis"
+msgstr ""
+
+msgid "Smooth curve"
+msgstr ""
+
+msgid "Radial line count"
+msgstr ""
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr ""
+
+msgid "Center region radius"
+msgstr ""
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "Lấp đầy đối xứng theo trục y"
@@ -15271,6 +15540,39 @@ msgstr "Thành bổ sung xen kẽ"
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "Thêm lớp thành bổ sung trên các lớp xen kẽ để cải thiện độ bám dính giữa các lớp và độ bền của bộ phận mà không tốn toàn bộ chi phí như khi thêm lớp thành bổ sung vĩnh viễn."
 
+msgid "Periodic modifier"
+msgstr ""
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr ""
+
+msgid "Skip for"
+msgstr ""
+
+msgid "Periodic modifier skip layers"
+msgstr ""
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr ""
+
+msgid "Apply for"
+msgstr ""
+
+msgid "Periodic modifier apply layers"
+msgstr ""
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr ""
+
+msgid "Ignore infill settings"
+msgstr ""
+
+msgid "Modifier ignore infill settings"
+msgstr ""
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "Tập lệnh hậu xử lý"
 
@@ -15571,16 +15873,16 @@ msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf
 msgstr "Khoảng cách tối đa để di chuyển các điểm trong XY nhằm đạt được đường xoắn ốc mượt. Nếu biểu thị bằng %, nó sẽ được tính theo đường kính vòi phun"
 
 msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr ""
+msgstr "Nếu chọn chế độ mượt mà hoặc tức thì, một video tua nhanh thời gian sẽ được tạo ra cho mỗi lần in. Sau khi mỗi lớp được in xong, một bức ảnh sẽ được chụp bằng camera trong buồng in. Tất cả những bức ảnh này sẽ được ghép lại thành một video tua nhanh thời gian khi quá trình in hoàn tất. Nếu chọn chế độ mượt mà, đầu in sẽ di chuyển đến khay chứa nhựa thừa sau mỗi lớp in xong và chụp ảnh lại. Vì sợi nhựa nóng chảy có thể rò rỉ ra khỏi vòi phun trong quá trình chụp ảnh, nên cần có tháp xả để chế độ làm sạch mượt mà và lau sạch vòi phun."
 
 msgid "Instant"
-msgstr ""
+msgstr "Tức thì"
 
 msgid "Farthest point timelapse"
 msgstr "Quay phim Timelapse tại điểm xa nhất"
 
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
-msgstr ""
+msgstr "Khi được kích hoạt, ảnh chụp timelapse sẽ được chụp tại điểm xa nhất so với máy ảnh thay vì di chuyển đến tháp gạt hoặc máng dẫn vật liệu thừa. Chỉ có hiệu quả ở chế độ quay phim timelapse tức thì trên các máy in không phải I3."
 
 msgid "Temperature variation"
 msgstr "Biến thiên nhiệt độ"
@@ -16218,7 +16520,7 @@ msgstr "--use-firmware-retraction không tương thích với --wipe"
 
 #, no-c-format, no-boost-format
 msgid " doesn't work at 100% density "
-msgstr ""
+msgstr " không hoạt động ở mật độ 100%. "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Giá trị không hợp lệ khi chế độ in xoắn ốc kiểu bình được bật: "
@@ -16277,12 +16579,16 @@ msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
 msgstr ""
+"Đã phát hiện các phần nhô ra không được hỗ trợ.\n"
+"Mô hình \"%1%\" có %2% vùng nhô ra. Vì \"Chỉ hỗ trợ trên mặt bàn in\" được bật, nên các giá đỡ không thể kéo dài xuống tận mặt bàn in. Hãy thử tắt tùy chọn này đi."
 
 #, boost-format
 msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
 msgstr ""
+"Đã phát hiện các phần nhô ra không được hỗ trợ.\n"
+"Mô hình \"%1%\" có %2% vùng nhô ra không nhận được sự hỗ trợ. Hãy thử điều chỉnh cài đặt hỗ trợ hoặc xoay lại đối tượng."
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Các lớp trống quanh đáy được thay thế bằng các lớp bình thường gần nhất."
@@ -16295,6 +16601,9 @@ msgstr "Đang cắt lớp lưới"
 
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "Không phát hiện lớp nào. Bạn có thể muốn sửa chữa tệp STL hoặc kiểm tra kích thước, độ dày rồi thử lại.\n"
+
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr ""
 
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
@@ -16357,6 +16666,9 @@ msgstr "Tệp chứa các đa giác có ít hơn 3 đỉnh."
 
 msgid "The file contains invalid vertex index."
 msgstr "Tệp chứa chỉ mục đỉnh không hợp lệ."
+
+msgid "The file contains invalid texture coordinate index."
+msgstr ""
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Không thể đọc tệp OBJ này vì tệp trống."
@@ -17269,6 +17581,8 @@ msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
+"Tên sợi nhựa %s mà bạn đã tạo ra nhưng nó đã tồn tại rồi. \n"
+"Nếu bạn tiếp tục, thiết lập mới sẽ được lưu cùng với các thiết lập sợi tùy chỉnh hiện có và hiển thị với tên đầy đủ để phân biệt. Bạn có muốn tiếp tục không?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Một số cài đặt sẵn hiện có không thể tạo được, như sau:\n"
@@ -17585,9 +17899,6 @@ msgstr "Xóa cài đặt sẵn"
 
 msgid "+ Add Preset"
 msgstr "+ Thêm cài đặt sẵn"
-
-msgid "Delete Filament"
-msgstr "Xóa sợi nhựa"
 
 msgid "Add Preset"
 msgstr "Thêm cài đặt sẵn"
@@ -18402,25 +18713,22 @@ msgstr "Không màu"
 msgid "Multiple Color"
 msgstr "Nhiều màu"
 
-msgid "Official Filament"
-msgstr "Sợi nhựa chính hãng"
-
-msgid "More Colors"
-msgstr "Thêm màu"
-
 msgid "Search filament"
-msgstr ""
+msgstr "Tìm sợi nhựa"
 
 msgid "Unsupported Filaments"
-msgstr ""
+msgstr "Sợi nhựa không được hỗ trợ"
 
 msgid "No filaments"
-msgstr ""
+msgstr "Không có sợi"
 
 msgid "slot"
-msgstr ""
+msgstr "khe"
 
 msgid "Recently used"
+msgstr "Mới sử dụng"
+
+msgid "Set nozzle count"
 msgstr ""
 
 msgid "Please set nozzle count"
@@ -18748,6 +19056,9 @@ msgstr "Xem trước hiệu ứng"
 msgid "Select Mixed Materials"
 msgstr "Chọn vật liệu trộn"
 
+msgid "+ Add Material"
+msgstr "+ Thêm vật liệu"
+
 msgid "- Delete Material"
 msgstr "- Xóa vật liệu"
 
@@ -18767,10 +19078,10 @@ msgid "-- Select --"
 msgstr "-- Chọn --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "Hiệu ứng chuyển màu yêu cầu bật tùy chọn 'Lớp phụ pha màu'. Kích hoạt ngay bây giờ?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Lớp phụ pha màu"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
@@ -18799,47 +19110,47 @@ msgid "RGB(%d, %d, %d)"
 msgstr ""
 
 msgid "Decomposition result for this combination"
-msgstr ""
+msgstr "Kết quả phân tách cho tổ hợp này"
 
 msgid "Filament Color"
-msgstr ""
+msgstr "Màu sợi"
 
 msgid "Decomposed Colors"
-msgstr ""
+msgstr "Màu đã phân tách"
 
 msgid "Select Color Decomposition"
 msgstr "Chọn phân tách màu"
 
 msgid "Project Filament"
-msgstr ""
+msgstr "Sợi nhựa dự án"
 
 msgid "Material List"
 msgstr "Danh sách vật liệu"
 
 msgid "Standard Palette"
-msgstr ""
+msgstr "Bảng màu tiêu chuẩn"
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "Cần ít nhất hai sợi nhựa cùng loại vật liệu để phân tách"
 
 msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "Màu pha chuẩn hơn được tính toán từ bốn màu cơ bản: lục lam, đỏ tươi, vàng và trắng. Hiện tại chỉ hỗ trợ PLA Basic. Nếu các loại sợi nhựa phù hợp chưa có trong dự án, chúng sẽ được thêm tự động."
 
 msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "Màu pha chuẩn hơn được tính toán từ bốn màu cơ bản: đỏ, vàng, xanh lam và trắng. Hiện tại chỉ hỗ trợ PLA Basic. Nếu các loại sợi nhựa phù hợp chưa có trong dự án, chúng sẽ được thêm tự động."
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "Danh sách vật liệu hỗ trợ tối đa %1% màu. Sau khi phân tách %2%, số lượng vật liệu sẽ vượt quá %1%. Vui lòng xóa các sợi nhựa không sử dụng trên màn hình chính trước khi phân tách."
 
 msgid "Decompose Color (gradient not supported)"
-msgstr ""
+msgstr "Phân tách màu (không hỗ trợ hiệu ứng chuyển màu)"
 
 msgid "Decompose Color (transparent not supported)"
-msgstr ""
+msgstr "Phân tách màu (không hỗ trợ màu trong suốt)"
 
 msgid "Decompose Color (multi-color not supported)"
-msgstr ""
+msgstr "Phân tách màu (không hỗ trợ pha màu)"
 
 msgid "Cyan"
 msgstr "Xanh lơ"
@@ -18872,11 +19183,11 @@ msgid "An unexpected error occurred"
 msgstr "Đã xảy ra lỗi không mong muốn"
 
 msgid "Create Custom Filament"
-msgstr ""
+msgstr "Tạo sợi nhựa tùy chỉnh"
 
 #, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
-msgstr ""
+msgstr "Cài đặt sẵn \"%s\"đã tồn tại rồi. Ghi đè?"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -19173,3 +19484,108 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Previous"
+#~ msgstr "Trước"
+
+#~ msgid "One-click CMYW auto-mix"
+#~ msgstr "Tự động phối màu CMYW một lần nhấp"
+
+#~ msgid "One-click RYBW auto-mix"
+#~ msgstr "Tự động phối màu RYBW một lần nhấp"
+
+#, c-format, boost-format
+#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#~ msgstr "Dự án hỗ trợ tối đa %d sợi nhựa. Các sợi nhựa thừa sẽ bị loại bỏ."
+
+#~ msgid "Reset filament mapping to the state before one-click mixing"
+#~ msgstr "Đặt lại ánh xạ sợi nhựa về trạng thái trước khi phối màu một lần nhấp"
+
+#~ msgid "Choose the one-click auto-mix mode for texture color import"
+#~ msgstr "Chọn chế độ tự động phối màu một lần nhấp để nhập màu họa tiết"
+
+#, c-format, boost-format
+#~ msgid "Computing texture colors: %s"
+#~ msgstr "Đang tính toán màu họa tiết: %s"
+
+#~ msgid "Show Labels"
+#~ msgstr "Hiển thị nhãn"
+
+#~ msgid "Import Model"
+#~ msgstr "Nhập mô hình"
+
+#~ msgid "Multi-Color"
+#~ msgstr "Nhiều màu"
+
+#~ msgid "Your input texture model"
+#~ msgstr "Mô hình có họa tiết đầu vào của bạn"
+
+#~ msgid "Processed multi-color model"
+#~ msgstr "Mô hình nhiều màu đã xử lý"
+
+#~ msgid "Smooth Level"
+#~ msgstr "Mức làm mịn"
+
+#~ msgid "Automatically determine the optimal color count only and recompute filament mapping"
+#~ msgstr "Chỉ tự động xác định số lượng màu tối ưu và tính toán lại ánh xạ sợi nhựa"
+
+#~ msgid "Convert texture to painting using the specified color count and smooth level"
+#~ msgstr "Chuyển đổi họa tiết thành tô bằng số lượng màu và mức làm mịn đã chỉ định"
+
+#~ msgid "Reminder: parameters changed, click Apply to take effect"
+#~ msgstr "Nhắc nhở: các tham số đã thay đổi, nhấp Áp dụng để có hiệu lực"
+
+#~ msgid "Filament Mapping"
+#~ msgstr "Ánh xạ sợi nhựa"
+
+#~ msgid "Auto-merge same filament"
+#~ msgstr "Tự động sáp nhập sợi nhựa giống nhau"
+
+#~ msgid "Skip Matching"
+#~ msgstr "Bỏ qua khớp"
+
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "Lưới có hình học không đa tạp hoặc các đường thành hở. Bạn có thể nhập như hiện có hoặc sửa chữa bằng dịch vụ sửa chữa 3D của Windows trước khi nhập."
+
+#~ msgid "Mesh repair"
+#~ msgstr "Sửa chữa lưới"
+
+#~ msgid "Import without repair"
+#~ msgstr "Nhập mà không sửa chữa"
+
+#~ msgid "Repair and import"
+#~ msgstr "Sửa chữa và nhập"
+
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Xin lưu ý rằng lưới có hình học không đa tạp hoặc các đường thành hở."
+
+#~ msgid "Mesh issue"
+#~ msgstr "Sự cố lưới"
+
+#~ msgid "Show Labels of printing by object in 3D scene"
+#~ msgstr "Hiển thị nhãn in theo vật thể trong cảnh 3D"
+
+#~ msgid "Object too small"
+#~ msgstr "Vật thể quá nhỏ"
+
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "Lý do: bộ phận \"%1%\" bị tự giao cắt."
+
+#~ msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+#~ msgstr "Sợi nhựa trong AMS có thể không đủ cho lần in này. Vui lòng nạp thêm hoặc thay thế."
+
+#~ msgid "Nozzle type"
+#~ msgstr "Loại vòi phun"
+
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "Vật liệu kim loại của vòi phun. Điều này quyết định khả năng chống mài mòn của vòi phun, và loại sợi nhựa nào có thể được in"
+
+#~ msgid "Hardened steel"
+#~ msgstr "Thép tăng cường"
+
+#~ msgid "Stainless steel"
+#~ msgstr "Thép không gỉ"
+
+#~ msgid "Tungsten carbide"
+#~ msgstr "Cacbua vonfram"

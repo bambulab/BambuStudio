@@ -39,6 +39,8 @@ public:
         std::string action;// warning/prohibition
         wxString    info_msg;
         wxString    wiki_url;
+        std::string group;
+        int         priority = 0;
     };
 
     struct CheckResult

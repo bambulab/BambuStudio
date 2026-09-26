@@ -352,7 +352,6 @@ static constexpr const char* PLATE_IDX_ATTR = "index";
 static constexpr const char* PRINTER_MODEL_ID_ATTR = "printer_model_id";
 static constexpr const char* EXTRUDER_TYPE_ATTR = "extruder_type";
 static constexpr const char* NOZZLE_VOLUME_TYPE_ATTR = "nozzle_volume_type";
-static constexpr const char* NOZZLE_TYPE_ATTR          = "nozzle_types";
 static constexpr const char* NOZZLE_DIAMETERS_ATTR = "nozzle_diameters";
 static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
 static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
@@ -688,6 +687,82 @@ static std::string bbs_join_path_within_dir(const std::string& base_dir, const s
     return inside ? joined : std::string();
 }
 
+// encode_path() calls WideCharToMultiByte without WC_NO_BEST_FIT_CHARS, so on
+// systems with a best-fit code page (e.g. CP1252) U+FF0E/U+FF0F map to '.'/'/'.
+// A member such as "Auxiliaries/．．／evil" therefore passes the UTF-8 ".."
+// checks and only becomes a real "../" at encoding time — which is what fopen()
+// sees. Reject that. Do not reject a filename that merely contains ".." as
+// bytes inside one component (e.g. "foo..bar.png", or fullwidth dots that
+// best-fit to dots but do not form a ".." path segment or a new separator).
+static bool bbs_encoded_has_dotdot_component(const std::string& encoded)
+{
+    if (encoded.empty())
+        return true;
+    if (encoded[0] == '/' || encoded[0] == '\\')
+        return true;
+    for (size_t i = 0; i <= encoded.size();) {
+        const size_t j = std::min(encoded.find_first_of("/\\", i), encoded.size());
+        if (j - i == 2 && encoded[i] == '.' && encoded[i + 1] == '.')
+            return true;
+        if (j == encoded.size())
+            break;
+        i = j + 1;
+    }
+    return false;
+}
+
+static bool bbs_auxiliary_subpath_safe_for_encoding(const std::string& subpath)
+{
+    if (subpath.empty())
+        return false;
+    return !bbs_encoded_has_dotdot_component(Slic3r::encode_path(subpath.c_str()));
+}
+
+// Drop encoded "." / ".." components (e.g. fullwidth U+FF0E/U+FF0F best-fit to "../")
+// and keep the remaining relative path so the file still lands under the auxiliary
+// dir instead of being discarded. Result is UTF-8 (decode_path of the encoded rest)
+// so the later encode_path(final_path) is not a double encode.
+static std::string bbs_auxiliary_sanitize_after_encoding(const std::string& subpath)
+{
+    if (subpath.empty())
+        return std::string();
+    const std::string encoded = Slic3r::encode_path(subpath.c_str());
+    if (encoded.empty() || encoded[0] == '/' || encoded[0] == '\\')
+        return std::string();
+
+    std::vector<std::string> parts;
+    boost::split(parts, encoded, boost::is_any_of("/\\"), boost::token_compress_on);
+
+    std::string out;
+    for (const std::string& part : parts) {
+        if (part.empty() || part == "." || part == "..")
+            continue;
+        if (!out.empty())
+            out += '/';
+        out += part;
+    }
+    if (out.empty() || bbs_encoded_has_dotdot_component(out))
+        return std::string();
+    return Slic3r::decode_path(out.c_str());
+}
+
+// Backstop for the check above: the encoded destination must remain inside the equally
+// encoded extraction root directory, so no matter what the local code page best-fit
+// mapping turns the member name into, the extracted file can never be written outside
+// of the auxiliary files temp directory.
+static bool bbs_encoded_path_within_dir(const std::string& encoded_dir, const std::string& encoded_path)
+{
+    if (encoded_path.size() <= encoded_dir.size())
+        return false;
+    if (encoded_path.compare(0, encoded_dir.size(), encoded_dir) != 0)
+        return false;
+    const char sep = encoded_path[encoded_dir.size()];
+    if (sep != '/' && sep != '\\')
+        return false;
+    const std::string rest = encoded_path.substr(encoded_dir.size() + 1);
+    return !rest.empty() && !bbs_encoded_has_dotdot_component(rest);
+}
+
 namespace Slic3r {
 
 void PlateData::parse_filament_info(GCodeProcessorResult *result)
@@ -1008,7 +1083,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string object_path;
             std::string zip_path;
             _BBS_3MF_Importer *top_importer{nullptr};
-            XML_Parser object_xml_parser;
+            XML_Parser object_xml_parser { nullptr };
             bool obj_parse_error { false };
             std::string obj_parse_error_message;
 
@@ -2945,6 +3020,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return;
             }
 
+            if (!bbs_auxiliary_subpath_safe_for_encoding(dest_file)) {
+                std::string safe_dest = bbs_auxiliary_sanitize_after_encoding(dest_file);
+                if (safe_dest.empty() || !bbs_auxiliary_subpath_safe_for_encoding(safe_dest)) {
+                    BOOST_LOG_TRIVIAL(error) << "Invalid sub path: unsafe after local path encoding";
+                    return;
+                }
+                BOOST_LOG_TRIVIAL(warning) << "Auxiliary sub path rewritten for local encoding safety: "
+                    << PathSanitizer::sanitize(dest_file) << " -> " << PathSanitizer::sanitize(safe_dest);
+                dest_file = std::move(safe_dest);
+            }
+
             if (dest_file.find('/') != std::string::npos || dest_file.find('\\') != std::string::npos) {
                 boost::filesystem::path src_path = boost::filesystem::path(dest_file);
                 boost::filesystem::path parent_path = src_path.parent_path();
@@ -2957,6 +3043,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             boost::filesystem::path final_path = dir / dest_file;
             std::string dest_zip_file = encode_path(final_path.string().c_str());
+
+            if (!bbs_encoded_path_within_dir(encode_path(temp_path.c_str()), dest_zip_file)) {
+                BOOST_LOG_TRIVIAL(error) << "Invalid sub path: escapes extraction dir after local path encoding";
+                return;
+            }
 
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_file) % stat.m_filename % res;
@@ -5070,7 +5161,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     m_pending_volume_assemble.push_back({object_id, volume_id, transform});
             } else {
                 ModelObject *mo = m_model->objects[object_id];
-                if (instance_id < (int) mo->instances.size()) {
+                if (instance_id < 0 || instance_id >= (int) mo->instances.size()) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid instance id %1%\n") % instance_id;
+                } else {
                     mo->instances[instance_id]->set_assemble_from_transform(transform);
                     mo->instances[instance_id]->set_offset_to_assembly(ofs2ass);
                 }
@@ -5114,6 +5207,31 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         text_info.m_embeded_depth = bbs_get_attribute_value_float(attributes, num_attributes, EMBEDED_DEPTH_ATTR);
         text_info.m_rotate_angle  = bbs_get_attribute_value_float(attributes, num_attributes, ROTATE_ANGLE_ATTR);
         text_info.m_text_gap      = bbs_get_attribute_value_float(attributes, num_attributes, TEXT_GAP_ATTR);
+        // Persist FontProp::line_gap (font points), same as face_name on text_configuration.
+        // Missing attribute must not become an explicit 0 that later overwrites a loaded style.
+        if (bbs_has_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR)) {
+            const int line_gap = bbs_get_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR);
+            if (line_gap != 0)
+                text_info.text_configuration.style.prop.line_gap = line_gap;
+        }
+        // FontProp::align, same names as EmbossStyleManager. Missing attribute keeps the default center.
+        {
+            const std::string h = bbs_get_attribute_value_string(attributes, num_attributes, HORIZONTAL_ALIGN_ATTR);
+            if (h == "left" || h == "0")
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::left;
+            else if (h == "right" || h == "2")
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::right;
+            else if (!h.empty())
+                text_info.text_configuration.style.prop.align.first = FontProp::HorizontalAlign::center;
+
+            const std::string v = bbs_get_attribute_value_string(attributes, num_attributes, VERTICAL_ALIGN_ATTR);
+            if (v == "top" || v == "0")
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::top;
+            else if (v == "bottom" || v == "2")
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::bottom;
+            else if (!v.empty())
+                text_info.text_configuration.style.prop.align.second = FontProp::VerticalAlign::center;
+        }
 
         text_info.m_bold      = bbs_get_attribute_value_int(attributes, num_attributes, BOLD_ATTR);
         text_info.m_italic    = bbs_get_attribute_value_int(attributes, num_attributes, ITALIC_ATTR);
@@ -8145,7 +8263,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     void _add_text_info_to_archive(std::stringstream& stream, const TextInfo& text_info) {
         stream << "      <" << TEXT_INFO_TAG << " ";
 
-        stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
+        stream << TEXT_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.m_text) << "\" ";
         stream << FONT_NAME_ATTR << "=\"" << xml_escape(text_info.m_font_name) << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
@@ -8159,6 +8277,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << EMBEDED_DEPTH_ATTR << "=\"" << text_info.m_embeded_depth << "\" ";
         stream << ROTATE_ANGLE_ATTR << "=\"" << text_info.m_rotate_angle << "\" ";
         stream << TEXT_GAP_ATTR << "=\"" << text_info.m_text_gap << "\" ";
+        if (text_info.text_configuration.style.prop.line_gap.has_value())
+            stream << LINE_GAP_ATTR << "=\"" << *text_info.text_configuration.style.prop.line_gap << "\" ";
+        {
+            const auto h = text_info.text_configuration.style.prop.align.first;
+            const char *h_name = "center";
+            if (h == FontProp::HorizontalAlign::left)
+                h_name = "left";
+            else if (h == FontProp::HorizontalAlign::right)
+                h_name = "right";
+            stream << HORIZONTAL_ALIGN_ATTR << "=\"" << h_name << "\" ";
+            const auto v = text_info.text_configuration.style.prop.align.second;
+            const char *v_name = "middle";
+            if (v == FontProp::VerticalAlign::top)
+                v_name = "top";
+            else if (v == FontProp::VerticalAlign::bottom)
+                v_name = "bottom";
+            stream << VERTICAL_ALIGN_ATTR << "=\"" << v_name << "\" ";
+        }
 
         stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
         stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";
@@ -9179,6 +9315,30 @@ public:
         m_post_callback = c;
     }
 
+    // Quiesce the backup worker before the owning MainFrame is torn down (app close, or the
+    // language-switch GUI rebuild). Stops the periodic timer, drops the UI callback and any
+    // queued Backup UI posts, so the worker thread cannot post to / export through a frame that
+    // is about to be destroyed. The worker thread itself keeps running; a freshly created
+    // MainFrame re-arms it via set_backup_interval()/set_backup_callback(). On-disk file tasks
+    // (AddObject/RemoveObject/RemoveBackup) are left intact so the backup stays consistent.
+    void stop() {
+        boost::unique_lock lock(m_mutex);
+        if (m_interval > 0) {
+            m_next_backup -= boost::posix_time::seconds(m_interval);
+            m_interval = 0;
+        }
+        m_post_callback = nullptr;
+        for (auto it = m_ui_tasks.begin(); it != m_ui_tasks.end();) {
+            if (it->type == Backup) it = m_ui_tasks.erase(it);
+            else ++it;
+        }
+        for (auto it = m_tasks.begin(); it != m_tasks.end();) {
+            if (it->type == Backup) it = m_tasks.erase(it);
+            else ++it;
+        }
+        m_cond.notify_all();
+    }
+
     void run_ui_tasks() {
         std::deque<Task> tasks;
         {
@@ -9470,14 +9630,20 @@ public:
                     continue;
             }
             m_tasks.pop_front();
-            auto callback = m_post_callback;
             lock.unlock();
             process_task(t);
             lock.lock();
             if (t.type > None) {
                 m_ui_tasks.push_back(t);
-                if (m_ui_tasks.size() == 1 && callback)
-                    callback(0);
+                // Read and invoke the UI post-callback under the re-acquired lock, not a
+                // copy captured before process_task(). This serializes with set_post_callback()
+                // and stop(): once the callback is cleared under m_mutex no new invocation can
+                // begin, and this call returning proves none is in flight -- so the MainFrame it
+                // targets cannot be used after free during shutdown. action==0 only does
+                // wxPostEvent (it never re-enters this manager), so holding the lock across the
+                // call cannot deadlock.
+                if (m_ui_tasks.size() == 1 && m_post_callback)
+                    m_post_callback(0);
             }
         }
     }
@@ -9637,6 +9803,11 @@ void set_backup_interval(long interval)
 void set_backup_callback(std::function<void(int)> callback)
 {
     _BBS_Backup_Manager::get().set_post_callback(callback);
+}
+
+void stop_backup()
+{
+    _BBS_Backup_Manager::get().stop();
 }
 
 void run_backup_ui_tasks()

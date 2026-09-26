@@ -17,7 +17,7 @@ static const int RightExtruderIdx = 1;
 
 ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int e3d_count, int max_nozzle_count, bool force_no_zero,
                                                  const std::set<NozzleVolumeType> &supported_types)
-    : GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX), m_volume_type(volume_type)
+    : GUI::DPIDialog(parent, wxID_ANY, _L("Set nozzle count"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX), m_volume_type(volume_type)
 {
     this->SetBackgroundColour(*wxWHITE);
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();

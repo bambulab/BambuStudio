@@ -89,8 +89,23 @@ enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
     ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,ipFloatingConcentric, ipLockedZag, ip2DLattice,
-    ipIroningArchimedeanSpiral,
+    ipIroningArchimedeanSpiral, ipGlobalMonotonicLine,
     ipCount,
+};
+
+enum class ConformalStagger {
+    None,
+    HalfStep,
+    Orthogonal,
+    Alternate,
+    Count,
+};
+
+enum class ConformalPole {
+    Layer,
+    Axis,
+    Bezier,
+    Count,
 };
 
 enum EnsureVerticalThicknessLevel{
@@ -406,6 +421,10 @@ extern std::string get_extruder_variant_string(ExtruderType extruder_type, Nozzl
 // 最基础的参数idx查找方法，遍历varint list寻找对应的idx
 extern int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id_1based, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids_1based);
 
+// Map a filament_extruder_variant string onto printer_extruder_variant.
+// Returns -1 when the printer preset has no matching variant.
+extern int find_printer_variant_index(const DynamicPrintConfig &printer_config, const std::string &filament_variant);
+
 static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
     std::set<NozzleVolumeType> type;
     for (int i = 0; i <= nvtMaxNozzleVolumeType; ++i) {
@@ -534,6 +553,8 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NoiseType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ConformalStagger)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ConformalPole)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SupportMaterialStyle)
@@ -1100,6 +1121,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, infill_lock_depth))
     ((ConfigOptionFloat, skin_infill_depth))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
+    ((ConfigOptionBool, conformal_infill))
+    ((ConfigOptionEnum<ConformalStagger>, conformal_stagger))
+    ((ConfigOptionInt, conformal_link_keep_layers))
+    ((ConfigOptionInt, conformal_link_flip_layers))
+    ((ConfigOptionEnum<ConformalPole>, conformal_pole))
+    ((ConfigOptionInt, conformal_ray_count))
+    ((ConfigOptionFloat, conformal_hub_radius))
     ((ConfigOptionEnum<InfillPattern>, locked_skin_infill_pattern))
     ((ConfigOptionEnum<InfillPattern>, locked_skeleton_infill_pattern))
     ((ConfigOptionEnum<FuzzySkinType>, fuzzy_skin))
@@ -1137,6 +1165,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, inner_wall_speed))
     // Total number of perimeters.
     ((ConfigOptionInt, wall_loops))
+    // Modifier-only: apply this modifier for m layers, then skip it for n layers.
+    ((ConfigOptionBool, periodic_modifier))
+    ((ConfigOptionInt, periodic_modifier_skip_layers))
+    ((ConfigOptionInt, periodic_modifier_apply_layers))
+    // Modifier-only: do not apply this volume's internal infill overrides.
+    ((ConfigOptionBool, modifier_ignore_infill))
     ((ConfigOptionFloat, minimum_sparse_infill_area))
     ((ConfigOptionInt, solid_infill_filament))
     ((ConfigOptionFloat, internal_solid_infill_line_width))
@@ -1189,6 +1223,28 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 embedding_wall_into_infill))
     ((ConfigOptionBool,                 alternate_extra_wall))
 )
+
+// Effective wall loop count for a layer. Spiral vase ignores alternate_extra_wall.
+inline int effective_wall_loops(const PrintRegionConfig &cfg, int layer_id, bool spiral_vase)
+{
+    int loops = cfg.wall_loops.value;
+    if (cfg.alternate_extra_wall.value && (layer_id % 2 == 1) && !spiral_vase)
+        ++loops;
+    return loops;
+}
+
+// Whether a periodic modifier should overlay this layer. Disabled modifiers are always "active"
+// so callers can write: cfg.periodic_modifier && !periodic_modifier_active(cfg, layer_id).
+inline bool periodic_modifier_active(const PrintRegionConfig &cfg, int layer_id)
+{
+    if (!cfg.periodic_modifier.value || cfg.periodic_modifier_apply_layers.value < 1 || layer_id < 0)
+        return true;
+    const int m = cfg.periodic_modifier_apply_layers.value;
+    int n = cfg.periodic_modifier_skip_layers.value;
+    if (n < 0)
+        n = 0;
+    return (layer_id % (m + n)) < m;
+}
 
 PRINT_CONFIG_CLASS_DEFINE(
     MachineEnvelopeConfig,
@@ -1364,7 +1420,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              machine_pause_gcode))
     ((ConfigOptionString,              template_custom_gcode))
     //BBS
-    ((ConfigOptionEnumsGenericNullable,nozzle_type))
     ((ConfigOptionEnum<PrinterStructure>,printer_structure))
     ((ConfigOptionBool,                auxiliary_fan))
     ((ConfigOptionEnum<FanDirection>,fan_direction))
