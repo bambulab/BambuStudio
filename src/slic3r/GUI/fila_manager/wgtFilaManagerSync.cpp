@@ -281,7 +281,11 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
 
         FilamentSpool updated  = *matched;
         const int64_t net_weight_g = tray.get_filament_remain_weight().value_or(0);
-        const bool has_valid_remain = (tray.remain >= 0 || tray.remain_g >= 0);
+        // The external holder cannot measure a spool, so a 0 there is "unknown"
+        // and must not wipe the weight the user entered.
+        const bool is_ext = ams_type_int == static_cast<int>(DevAmsType::EXT_SPOOL);
+        const bool has_valid_remain = is_ext ? (tray.remain > 0 || tray.remain_g > 0)
+                                             : (tray.remain >= 0 || tray.remain_g >= 0);
         if (has_valid_remain) {
             updated.net_weight     = static_cast<double>(net_weight_g);
             updated.remain_percent = tray.remain;

@@ -101,6 +101,14 @@ std::string norm_color(std::string c)
 
 bool is_external_slot(int ams_id) { return ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID; }
 
+// Whether the printer tracks this tray's remaining amount itself. The external
+// holder cannot measure a spool, so a 0 there means "unknown", not "empty".
+bool printer_reports_remaining(const DevAmsTray& tray, bool external)
+{
+    if (external) return tray.remain > 0 || tray.remain_g > 0;
+    return tray.remain >= 0 || tray.remain_g >= 0;
+}
+
 // Resolve an amsDetailMapping entry to the physical (ams_id, slot_id). The
 // entry's own amsId / slotId fields are unreliable (always 0 in practice); its
 // "ams" value is the per-filament slot value from amsMapping, whose sibling
@@ -397,11 +405,15 @@ void wgtFilaManagerUsageTracker::on_tasks_fetched(const std::string& dev_id, boo
             };
 
             if (u.grams <= 0.0) { skip("no usage recorded"); continue; }
-            if (!is_external_slot(u.ams_id) && !ams_ready) { defer = true; break; }
+            const bool external = is_external_slot(u.ams_id);
+            if (!external && !ams_ready) { defer = true; break; }
 
             const DevAmsTray* tray = find_tray(obj, u.ams_id, u.slot_id);
+            // Until the first full status arrives the external tray is a
+            // placeholder with is_exists = false; a parsed one is always true.
+            if (external && obj->ams_support_virtual_tray && (!tray || !tray->is_exists)) { defer = true; break; }
             if (!tray || !tray->is_exists) { skip("slot is empty now"); continue; }
-            if (tray->remain >= 0 || tray->remain_g >= 0) { skip("printer reports remaining for this spool"); continue; }
+            if (printer_reports_remaining(*tray, external)) { skip("printer reports remaining for this spool"); continue; }
             if (!u.filament_id.empty() && !tray->setting_id.empty() && u.filament_id != tray->setting_id) {
                 skip("slot filament changed since the print (" + u.filament_id + " -> " + tray->setting_id + ")");
                 continue;
