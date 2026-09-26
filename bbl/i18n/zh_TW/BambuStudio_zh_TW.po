@@ -2264,7 +2264,7 @@ msgid "Cylinder"
 msgstr "圓柱體"
 
 msgid "Hexagonal Prism"
-msgstr "六角棱柱"
+msgstr "六稜柱"
 
 msgid "Cone"
 msgstr "錐體"
@@ -2282,7 +2282,7 @@ msgid "Rounded Rectangle"
 msgstr "圓角矩形"
 
 msgid "TearDrop"
-msgstr ""
+msgstr "水滴形"
 
 msgid "Bambu Cube"
 msgstr "Bambu方塊"
@@ -2618,12 +2618,12 @@ msgstr "錯誤：%1$d 非流形邊、%2$d 非流形頂點"
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge"
 msgid_plural "Error: %1$d non-manifold edges"
-msgstr[0] ""
+msgstr[0] "錯誤：%1$d 非流形邊"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
-msgstr[0] ""
+msgstr[0] "錯誤：%1$d 非流形頂點"
 
 msgid "Error: reversed faces detected, which may affect rendering"
 msgstr "錯誤：偵測到反向面，這可能會影響渲染"
@@ -2631,7 +2631,7 @@ msgstr "錯誤：偵測到反向面，這可能會影響渲染"
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
-msgstr[0] ""
+msgstr[0] "資訊：發現 %1$d 個開放邊"
 
 msgid "Right click the icon to fix model object"
 msgstr "右鍵點選此圖示可修復模型物件"
@@ -3301,7 +3301,7 @@ msgid "Click to add objects to the current step"
 msgstr "按一下以將物件新增至目前步驟"
 
 msgid "_copy"
-msgstr ""
+msgstr "_複製"
 
 msgid "Are you sure you want to delete the current step?"
 msgstr "確定要刪除目前步驟嗎？"
@@ -3373,7 +3373,7 @@ msgid "Show explosion state column"
 msgstr "顯示爆炸狀態欄"
 
 msgid "Allow modify text note foreground"
-msgstr "允許修改文字備註前景"
+msgstr "允許修改文字註記前景"
 
 msgid "Allow modify text note background"
 msgstr "允許修改文字註解背景"
@@ -3449,7 +3449,7 @@ msgid "Not"
 msgstr "否"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "請先點擊確認。在畫布上生成標籤後，才能使用此標籤控制項。"
+msgstr "請先點選確認。在畫布上生成標籤後，就可以使用此標籤控制元件。"
 
 msgid "Click to add Cyber Brick"
 msgstr "按一下以新增 Cyber Brick"
@@ -5600,7 +5600,7 @@ msgid "Tips:"
 msgstr "提示："
 
 msgid "Current grouping of slice result is not optimal."
-msgstr "當前材料分組不是最優結果。"
+msgstr "目前的切片線材分組並非最佳結果。"
 
 #, boost-format
 msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
@@ -5624,10 +5624,10 @@ msgstr "相較於單噴嘴印表機，會節省 %1%g 線材並增加 %2% 次噴�
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相較於單噴嘴印表機，會節省 %1%g 線材並節省 %2% 次噴嘴清除。"
+msgstr "相較於單噴嘴印表機，會增加 %1%g 線材並節省 %2% 次噴嘴清除。"
 
 msgid "Set to Optimal"
-msgstr "設定為最優"
+msgstr "設為最佳分組"
 
 msgid "Regroup filament"
 msgstr "重新分組"
@@ -9643,15 +9643,15 @@ msgstr "選擇下載資料夾"
 
 msgctxt "Preference"
 msgid "General"
-msgstr "常規"
+msgstr "一般"
 
 msgctxt "Preference"
 msgid "User"
-msgstr "使用者名稱"
+msgstr "使用者"
 
 msgctxt "Preference"
 msgid "3D"
-msgstr ""
+msgstr "3D"
 
 msgctxt "Preference"
 msgid "Other"
@@ -10986,7 +10986,7 @@ msgstr ""
 "設定更高的熱床溫度可能損壞印表機。"
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "平滑縮時攝影需要在每個圖層上建立擦料塔，這與「無稀疏圖層」不相容。「無稀疏圖層」已關閉。"
+msgstr "平滑縮時攝影需要在每一層都產生擦料塔，這與「無稀疏層」不相容。「無稀疏層」已關閉。"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延時攝影需要擦料塔，否則列印件上可能會有瑕疵。您想開啟擦料塔嗎？"
@@ -13376,7 +13376,7 @@ msgid "Generating G-code"
 msgstr "正在生成G-code"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "模型和擦料塔的相對位置不符合「無稀疏圖層」功能的要求。請調整它們的相對位置、降低模型高度，或關閉「無稀疏圖層」。"
+msgstr "模型與擦料塔的相對位置不符合「無稀疏層」功能的要求。請調整兩者的相對位置、降低模型高度，或關閉「無稀疏層」。"
 
 msgid "Failed processing of the filename_format template."
 msgstr "處理檔名格式模板失敗。"
@@ -14042,7 +14042,7 @@ msgid "Sub-top surface pattern"
 msgstr "次頂層表面圖案"
 
 msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
-msgstr ""
+msgstr "承托可見頂面的實心層所使用的線條圖案。其線條可能透出並在頂面留下痕跡，因此單調圖案可獲得最平整的效果。頂面所延伸覆蓋的整塊實心區域都會使用此圖案，而不僅限於頂面正下方的部分。"
 
 msgid "Line width of outer wall"
 msgstr "外牆的線寬"
@@ -14270,7 +14270,7 @@ msgid "AMS Lite filament load time"
 msgstr "AMS Lite 線材進料時間"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "使用AMS lite列印時的線材進料時間。僅用於統計。"
+msgstr "使用 AMS Lite 列印時的線材進料時間。僅用於統計"
 
 msgid "N3F/N3S filament load time"
 msgstr "N3F/N3S 線材進料時間"
@@ -14300,7 +14300,7 @@ msgid "Default AMS type"
 msgstr "預設 AMS 類型"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "用於估計線材進料/退料時間的預設AMS類型，儲存為AMS計時類型列舉值。它來自印表機預設值，並不反映目前連接到機器的AMS。"
+msgstr "用於估算線材進料／退料時間的預設 AMS 類型，並儲存為 AMS 計時類型列舉值。此設定來自印表機預設，不代表目前連接至機器的 AMS。"
 
 msgid "Extruder switch time"
 msgstr "擠出機切換時間"
@@ -15340,7 +15340,7 @@ msgid "The allowed maximum output force of Y axis"
 msgstr "Y 軸允許的最大輸出力量"
 
 msgid "N"
-msgstr ""
+msgstr "N"
 
 msgid "Bed mass of the Y axis"
 msgstr "Y 軸熱床質量"
@@ -15349,13 +15349,13 @@ msgid "The machine bed mass load of Y axis"
 msgstr "Y 軸的機器熱床質量負載"
 
 msgid "g"
-msgstr ""
+msgstr "克"
 
 msgid "The allowed max printed mass"
 msgstr "允許的最大列印質量"
 
 msgid "The allowed max printed mass on a plate"
-msgstr ""
+msgstr "列印板上允許的最大列印質量"
 
 msgid "Minimum speed for extruding"
 msgstr "最小擠出速度"
@@ -19046,7 +19046,7 @@ msgstr "移除第三種材料"
 
 #, c-format, boost-format
 msgid "RGB(%d, %d, %d)"
-msgstr ""
+msgstr "RGB(%d, %d, %d)"
 
 msgid "Decomposition result for this combination"
 msgstr "此組合的分解結果"
