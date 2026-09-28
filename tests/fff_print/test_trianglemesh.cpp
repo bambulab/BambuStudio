@@ -12,17 +12,17 @@
 #include <chrono>
 
 //#include "test_options.hpp"
-#include "test_data.hpp"
+#include "test_helpers.hpp"
 
 using namespace Slic3r;
 using namespace std;
 
 static inline TriangleMesh make_cube() { return make_cube(20., 20, 20); }
 
-SCENARIO( "TriangleMesh: Basic mesh statistics") {
+SCENARIO("Basic mesh statistics", "[TriangleMesh]") {
     GIVEN( "A 20mm cube, built from constexpr std::array" ) {
         std::vector<Vec3f> vertices { {20,20,0}, {20,0,0}, {0,0,0}, {0,20,0}, {20,20,20}, {0,20,20}, {0,0,20}, {20,0,20} };
-        std::vector<Vec3i> facets { {0,1,2}, {0,2,3}, {4,5,6}, {4,6,7}, {0,4,7}, {0,7,1}, {1,7,6}, {1,6,2}, {2,6,5}, {2,5,3}, {4,0,3}, {4,3,5} };
+        std::vector<Vec3i32> facets { {0,1,2}, {0,2,3}, {4,5,6}, {4,6,7}, {0,4,7}, {0,7,1}, {1,7,6}, {1,6,2}, {2,6,5}, {2,5,3}, {4,0,3}, {4,3,5} };
         TriangleMesh cube(vertices, facets);
         
         THEN( "Volume is appropriate for 20mm square cube.") {
@@ -71,7 +71,7 @@ SCENARIO( "TriangleMesh: Basic mesh statistics") {
     }
 }
 
-SCENARIO( "TriangleMesh: Transformation functions affect mesh as expected.") {
+SCENARIO("Transformation functions affect the mesh as expected", "[TriangleMesh]") {
     GIVEN( "A 20mm cube with one corner on the origin") {
         auto cube = make_cube();
 
@@ -134,7 +134,7 @@ SCENARIO( "TriangleMesh: Transformation functions affect mesh as expected.") {
     }
 }
 
-SCENARIO( "TriangleMesh: slice behavior.") {
+SCENARIO("Slice behavior", "[TriangleMesh]") {
     GIVEN( "A 20mm cube with one corner on the origin") {
         auto cube = make_cube();
         
@@ -148,14 +148,17 @@ SCENARIO( "TriangleMesh: slice behavior.") {
             }
             THEN( "The area of the returned polygons is correct.") {
                 for (size_t i = 0U; i < z.size(); i++) {
-                    REQUIRE(result.at(i).at(0).area() == 20.0*20/(std::pow(SCALING_FACTOR,2)));
+                    // Exact == is too strict here: scaling to integer coordinates and back
+                    // accumulates a relative error at the limit of double precision.
+                    REQUIRE_THAT(double(result.at(i).at(0).area()),
+                        Catch::Matchers::WithinRel(20.0*20/(std::pow(SCALING_FACTOR,2)), 1e-9));
                 }
             }
         }
     }
     GIVEN( "A STL with an irregular shape.") {
         const std::vector<Vec3f> vertices {{0,0,0},{0,0,20},{0,5,0},{0,5,20},{50,0,0},{50,0,20},{15,5,0},{35,5,0},{15,20,0},{50,5,0},{35,20,0},{15,5,10},{50,5,20},{35,5,10},{35,20,10},{15,20,10}};
-        const std::vector<Vec3i> facets {{0,1,2},{2,1,3},{1,0,4},{5,1,4},{0,2,4},{4,2,6},{7,6,8},{4,6,7},{9,4,7},{7,8,10},{2,3,6},{11,3,12},{7,12,9},{13,12,7},{6,3,11},{11,12,13},{3,1,5},{12,3,5},{5,4,9},{12,5,9},{13,7,10},{14,13,10},{8,15,10},{10,15,14},{6,11,8},{8,11,15},{15,11,13},{14,15,13}};
+        const std::vector<Vec3i32> facets {{0,1,2},{2,1,3},{1,0,4},{5,1,4},{0,2,4},{4,2,6},{7,6,8},{4,6,7},{9,4,7},{7,8,10},{2,3,6},{11,3,12},{7,12,9},{13,12,7},{6,3,11},{11,12,13},{3,1,5},{12,3,5},{5,4,9},{12,5,9},{13,7,10},{14,13,10},{8,15,10},{10,15,14},{6,11,8},{8,11,15},{15,11,13},{14,15,13}};
 
 		auto cube = make_cube();
         WHEN(" a top tangent plane is sliced") {
@@ -177,7 +180,7 @@ SCENARIO( "TriangleMesh: slice behavior.") {
     }
 }
 
-SCENARIO( "make_xxx functions produce meshes.") {
+SCENARIO("make_xxx functions produce meshes", "[TriangleMesh]") {
     GIVEN("make_cube() function") {
         WHEN("make_cube() is called with arguments 20,20,20") {
 			TriangleMesh cube = make_cube(20,20,20);
@@ -232,7 +235,7 @@ SCENARIO( "make_xxx functions produce meshes.") {
     }
 }
 
-SCENARIO( "TriangleMesh: split functionality.") {
+SCENARIO("Split functionality", "[TriangleMesh]") {
     GIVEN( "A 20mm cube with one corner on the origin") {
 		auto cube = make_cube();
         WHEN( "The mesh is split into its component parts.") {
@@ -260,7 +263,7 @@ SCENARIO( "TriangleMesh: split functionality.") {
     }
 }
 
-SCENARIO( "TriangleMesh: Mesh merge functions") {
+SCENARIO("Mesh merge functions", "[TriangleMesh]") {
     GIVEN( "Two 20mm cubes, each with one corner on the origin") {
 		auto cube = make_cube();
 		TriangleMesh cube2(cube);
@@ -274,7 +277,7 @@ SCENARIO( "TriangleMesh: Mesh merge functions") {
     }
 }
 
-SCENARIO( "TriangleMeshSlicer: Cut behavior.") {
+SCENARIO("Cut behavior", "[TriangleMesh]") {
     GIVEN( "A 20mm cube with one corner on the origin") {
 		auto cube = make_cube();
         WHEN( "Object is cut at the bottom") {
@@ -302,13 +305,13 @@ SCENARIO( "TriangleMeshSlicer: Cut behavior.") {
     }
 }
 #ifdef TEST_PERFORMANCE
-TEST_CASE("Regression test for issue #4486 - files take forever to slice") {
+TEST_CASE("Large mesh slices within the time budget (#4486)", "[TriangleMesh][Regression]") {
     TriangleMesh mesh;
     DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
     mesh.ReadSTLFile(std::string(testfile_dir) + "test_trianglemesh/4486/100_000.stl");
 
     config.set("layer_height", 500);
-    config.set("first_layer_height", 250);
+    config.set("initial_layer_print_height", 250);
     config.set("nozzle_diameter", 500);
 
     Slic3r::Print print;
@@ -329,15 +332,15 @@ TEST_CASE("Regression test for issue #4486 - files take forever to slice") {
 #endif // TEST_PERFORMANCE
 
 #ifdef BUILD_PROFILE
-TEST_CASE("Profile test for issue #4486 - files take forever to slice") {
+TEST_CASE("Large mesh slicing profile (#4486)", "[TriangleMesh][Profile]") {
     TriangleMesh mesh;
     DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
     mesh.ReadSTLFile(std::string(testfile_dir) + "test_trianglemesh/4486/10_000.stl");
 
     config.set("layer_height", 500);
-    config.set("first_layer_height", 250);
+    config.set("initial_layer_print_height", 250);
     config.set("nozzle_diameter", 500);
-    config.set("fill_density", "5%");
+    config.set("sparse_infill_density", "5%");
 
     Slic3r::Print print;
     Slic3r::Model model;

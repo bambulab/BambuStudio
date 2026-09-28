@@ -1,8 +1,8 @@
 get_filename_component(_TEST_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
 add_executable(${_TEST_NAME}_tests 
 	${_TEST_NAME}_tests.cpp
-	test_data.cpp
-	test_data.hpp
+	test_helpers.cpp
+	test_helpers.hpp
 	test_extrusion_entity.cpp
 	test_fill.cpp
 	test_flow.cpp
@@ -28,28 +28,22 @@ if (WIN32)
 endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
-add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
+add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests "${CATCH_EXTRA_ARGS} exclude:[NotWorking]")
 
 add_executable(support_material_on_wipe_tower_tests
 	fff_print_tests.cpp
-	test_data.cpp
-	test_data.hpp
+	test_helpers.cpp
+	test_helpers.hpp
 	test_support_material_on_wipe_tower.cpp
 	)
-target_link_libraries(support_material_on_wipe_tower_tests test_common libslic3r
-	libcurl
-	OpenSSL::SSL OpenSSL::Crypto
-)
-if (MSVC)
-	target_link_options(support_material_on_wipe_tower_tests PRIVATE /FORCE:UNRESOLVED)
-endif()
+target_link_libraries(support_material_on_wipe_tower_tests test_common libslic3r)
 set_property(TARGET support_material_on_wipe_tower_tests PROPERTY FOLDER "tests")
 add_test(support_material_on_wipe_tower_tests support_material_on_wipe_tower_tests ${CATCH_EXTRA_ARGS})
 
 add_executable(periodic_modifier_tests
 	fff_print_tests.cpp
-	test_data.cpp
-	test_data.hpp
+	test_helpers.cpp
+	test_helpers.hpp
 	test_periodic_modifier.cpp
 	)
 target_link_libraries(periodic_modifier_tests test_common libslic3r

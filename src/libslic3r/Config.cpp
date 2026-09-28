@@ -1799,8 +1799,18 @@ void StaticConfig::set_defaults()
         for (const std::string &key : this->keys()) {
             const ConfigOptionDef   *def = defs->get(key);
             ConfigOption            *opt = this->option(key);
-            if (def != nullptr && opt != nullptr && def->default_value)
+            if (def != nullptr && opt != nullptr && def->default_value) {
                 opt->set(def->default_value.get());
+                // set() copies values but not keys_map for enum-list options; attach it from the
+                // definition, the same way create_default_option() does, or serialize() later
+                // dereferences a null keys_map (see ConfigOptionEnumsGenericTempl::serialize_single_value).
+                if (opt->type() == coEnums) {
+                    if (opt->nullable())
+                        static_cast<ConfigOptionEnumsGenericNullable*>(opt)->keys_map = def->enum_keys_map;
+                    else
+                        static_cast<ConfigOptionEnumsGeneric*>(opt)->keys_map = def->enum_keys_map;
+                }
+            }
         }
     }
 }
