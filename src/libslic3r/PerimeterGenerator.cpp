@@ -485,6 +485,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             out.entities.reserve(out.entities.size() + children.entities.size() + 1);
             ExtrusionLoop *eloop = static_cast<ExtrusionLoop*>(coll.entities[idx.first]);
             coll.entities[idx.first] = nullptr;
+            // Record which wall this loop is, counted outwards-in, so later stages can
+            // tell outer walls from inner ones.
+            eloop->inset_idx = loop.depth;
             if (loop.is_contour) {
                 eloop->make_counter_clockwise();
                 out.append(std::move(children.entities));
@@ -767,6 +770,9 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         if (!paths.empty()) {
             if (extrusion->is_closed) {
                 ExtrusionLoop extrusion_loop(std::move(paths), extrusion->is_contour()? elrDefault : elrPerimeterHole);
+                // Carry Arachne's wall index onto the wrapping loop: downstream stages see
+                // the ExtrusionLoop, not the ExtrusionLine it came from.
+                extrusion_loop.inset_idx = extrusion->inset_idx;
                 // Restore the orientation of the extrusion loop.
                 if (pg_extrusion.is_contour)
                     extrusion_loop.make_counter_clockwise();
@@ -796,12 +802,14 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     return true;
                 }());
                 ExtrusionMultiPath multi_path;
+                multi_path.inset_idx = extrusion->inset_idx;
                 multi_path.paths.emplace_back(std::move(paths.front()));
 
                 for (auto it_path = std::next(paths.begin()); it_path != paths.end(); ++it_path) {
                     if (multi_path.paths.back().last_point() != it_path->first_point()) {
                         extrusion_coll.append(ExtrusionMultiPath(std::move(multi_path)));
                         multi_path = ExtrusionMultiPath();
+                        multi_path.inset_idx = extrusion->inset_idx;
                     }
                     multi_path.paths.emplace_back(std::move(*it_path));
                 }
