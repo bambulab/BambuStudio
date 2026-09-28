@@ -140,21 +140,6 @@
   border: 3px solid var(--ams-web-brand);
 }
 
-/* wx SetToolTip: pin at the cursor's top-right on enter, do not track moves. */
-.ams-control-web-page .ams-slot-cursor-tip {
-  position: fixed;
-  z-index: 30;
-  padding: 2px 8px;
-  border-radius: 2px;
-  background: var(--ams-web-tip-bg);
-  color: var(--ams-web-tip-text);
-  font-size: 12px;
-  line-height: 18px;
-  white-space: pre;
-  box-shadow: var(--ams-web-tip-shadow);
-  pointer-events: none;
-}
-
 .ams-control-web-page .ams-img-dark {
   display: none;
 }

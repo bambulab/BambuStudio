@@ -1,4 +1,3 @@
-import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { COLORS, SLOT_LIB, SLOT_LIB_LITE, SLOT_REMAIN_LINE, TRAY_ICON, px } from '../dip';
 import { LITE_COLOR_INSET, LITE_EXT_COLOR_INSET } from '../geometry';
@@ -54,37 +53,6 @@ function splitFilamentName(name: string): [string, string] | null {
   }
   if (at < 0) return null;
   return [name.slice(0, at), name.slice(at)];
-}
-
-const CURSOR_TIP_OFFSET = { x: 16, y: 8 } as const;
-
-function CursorTip({ text, origin }: { text: string; origin: { x: number; y: number } }) {
-  const ref = useRef<HTMLSpanElement>(null);
-
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    let left = origin.x + CURSOR_TIP_OFFSET.x;
-    let top = origin.y - rect.height - CURSOR_TIP_OFFSET.y;
-    const maxLeft = window.innerWidth - rect.width - 4;
-    if (left > maxLeft) left = Math.max(4, maxLeft);
-    if (left < 4) left = 4;
-    if (top < 4) top = origin.y + CURSOR_TIP_OFFSET.y;
-    el.style.left = `${left}px`;
-    el.style.top = `${top}px`;
-    el.style.visibility = 'visible';
-  }, [origin.x, origin.y, text]);
-
-  return (
-    <span
-      ref={ref}
-      className="ams-slot-cursor-tip"
-      style={{ left: origin.x + CURSOR_TIP_OFFSET.x, top: origin.y, visibility: 'hidden' }}
-    >
-      {text}
-    </span>
-  );
 }
 
 function TrayMark({
@@ -315,18 +283,12 @@ export function SlotCard({
   const tip = !empty && !slot.show_unknown && slot.fila_type
     ? (showK && kTip ? `${slot.fila_type}\n${kTip}` : slot.fila_type)
     : undefined;
-  const [tipOrigin, setTipOrigin] = useState<{ x: number; y: number } | null>(null);
 
   return (
     <div
       className="relative shrink-0"
       style={{ width: px(size.width), height: px(size.height) }}
-      onMouseEnter={(event) => {
-        if (tip) setTipOrigin({ x: event.clientX, y: event.clientY });
-      }}
-      onMouseLeave={() => setTipOrigin(null)}
     >
-      {tip && tipOrigin ? <CursorTip text={tip} origin={tipOrigin} /> : null}
       {slot.slot_remain_line.show_line && !lite ? (
         <SlotRemainLineBar
           slot={slot}

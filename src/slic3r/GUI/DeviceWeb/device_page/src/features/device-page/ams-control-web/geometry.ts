@@ -356,12 +356,9 @@ export const LITE_CELLS: Array<{ slotId: string; row: 0 | 1; col: 0 | 1 }> = [
   { slotId: '2', row: 1, col: 1 },
 ];
 
-// Shift both columns toward the pillar so tray axle holes sit on the pegs.
-const LITE_TOWARD_PILLAR = 7;
-
 export function liteCardLeft(col: 0 | 1) {
-  if (col === 0) return SLOT_REFRESH.size + LITE_TOWARD_PILLAR;
-  return LITE_INNER.cellWidth + LITE_GRID_GAP.col - LITE_TOWARD_PILLAR;
+  if (col === 0) return SLOT_REFRESH.size;
+  return LITE_INNER.cellWidth + LITE_GRID_GAP.col;
 }
 
 export function liteColorCenterX(col: 0 | 1) {

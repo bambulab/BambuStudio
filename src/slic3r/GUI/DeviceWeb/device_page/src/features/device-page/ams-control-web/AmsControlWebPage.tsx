@@ -7,7 +7,7 @@ import { COLORS, CONTENT_WIDTH, DOWN_ROAD, MIXED_EXT_WIDTH, MIXED_LITE_WIDTH, PR
 import { extruderIconName, extrudersLeftToRight, unitSlotLayout } from './displayAdapters';
 import { SINGLE_EXT_ELBOW, amsControlWebContentHeight, extPanelWidth, isFilamentRoadActive, nozzleIconLefts, nozzleInletX, overlayStageHeight, roadExtruderId, snapRoadX, unitWidth } from './geometry';
 import type { PanelView, PreviewItem, SlotLink, SlotView, UnitView } from './types';
-import { columnExtSlots, columnPreviewItems, columnShowsPreviewStrip, columnUnits, isLiteMixedBodyRow, isLiteMixedMachine, panelColumns, splitMixedPreview } from './layout';
+import { columnExtSlots, columnPreviewItems, columnUnits, computePreviewStripVisibility, isLiteMixedBodyRow, isLiteMixedMachine, panelColumns, splitMixedPreview } from './layout';
 import { buildRoadOverlay, type RoadBlock, type RoadBlockDraft } from './roadPaths';
 import { AmsFooter } from './components/AmsFooter';
 import { AmsPreviewBar } from './components/AmsPreviewBar';
@@ -110,11 +110,11 @@ export function AmsControlWebPage() {
   };
 
   const dualNozzle = extruders.length >= 2;
+  const previewStripEntries = columns.map((column) => ({ column, previewItems: columnPreviewItems(column, preview.items) }));
+  const showsPreviewStrip = computePreviewStripVisibility(previewStripEntries, dualNozzle);
   const hasPreview = preview.visible && (
     mixedMachine
-    || columns.some((column) =>
-      columnShowsPreviewStrip(column, columnPreviewItems(column, preview.items), dualNozzle),
-    )
+    || previewStripEntries.some((entry) => showsPreviewStrip(entry.column))
   );
   useReportAmsControlWebHostSize(
     display.visible
@@ -222,6 +222,10 @@ export function AmsControlWebPage() {
 
   const splitColumns = columnBlocks.length > 1;
   const columnWidth = splitColumns ? CONTENT_WIDTH / columnBlocks.length : CONTENT_WIDTH;
+  // Split layout gives each column the same full-width plate below (see the
+  // plate comment further down), so the strip above it matches that width
+  // instead of AmsPreviewBar's single-AMS default.
+  const columnPlateWidth = columnWidth - COLUMN_GAP;
 
   const laidOut: ColumnLayout[] = columnBlocks.map((entry, index) => {
     const innerWidth =
@@ -256,11 +260,7 @@ export function AmsControlWebPage() {
     nozzleXOf,
   });
 
-  const previewEntries = laidOut.filter(
-    (entry) =>
-      preview.visible &&
-      columnShowsPreviewStrip(entry.column, entry.previewItems, extruders.length >= 2),
-  );
+  const previewEntries = laidOut.filter((entry) => preview.visible && showsPreviewStrip(entry.column));
   const mixedPreview = mixedMachine ? splitMixedPreview(preview.items, extAmsIds) : null;
 
   return (
@@ -292,14 +292,13 @@ export function AmsControlWebPage() {
               }
             >
               {(splitColumns ? laidOut : previewEntries).map((entry) => {
-                const showStrip =
-                  preview.visible &&
-                  columnShowsPreviewStrip(entry.column, entry.previewItems, extruders.length >= 2);
+                const showStrip = preview.visible && showsPreviewStrip(entry.column);
                 const bar = showStrip ? (
                   <AmsPreviewBar
                     items={entry.previewItems}
                     extAmsIds={extAmsIds}
                     onSelect={onPreview}
+                    width={splitColumns ? columnPlateWidth : undefined}
                   />
                 ) : null;
                 if (!splitColumns) {
@@ -348,7 +347,7 @@ export function AmsControlWebPage() {
                       background: COLORS.unitBg,
                       ...(splitColumns
                         ? {
-                            width: px(columnWidth - COLUMN_GAP),
+                            width: px(columnPlateWidth),
                             marginLeft: px(COLUMN_GAP / 2),
                             // Half the seam comes off each side, so the pad has
                             // to shed the same amount or the blocks would slide

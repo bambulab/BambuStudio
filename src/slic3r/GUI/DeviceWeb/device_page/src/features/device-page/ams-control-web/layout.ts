@@ -73,12 +73,29 @@ export function splitMixedPreview(items: PreviewItem[], extAmsIds: Set<string>) 
   return { ams, lite, ext };
 }
 
-// AMSControl::CreateAmsSingleNozzle hides the right strip unless that side has
-// more than one chip. Dual-nozzle shows both strips whenever any AMS exists.
-export function columnShowsPreviewStrip(panel: PanelView, items: PreviewItem[], dualNozzle: boolean) {
-  // Dual-nozzle always shows both strips so an empty side still occupies its half.
+// The right (spool) strip mirrors the left/single side: once that side shows
+// its strip, the right shows too as long as it has its own content, even with
+// just one chip, so the two columns stay visually symmetric. Dual-nozzle shows
+// both strips unconditionally so an empty side still occupies its half.
+export function columnShowsPreviewStrip(panel: PanelView, items: PreviewItem[], dualNozzle: boolean, leftShowsStrip: boolean) {
   if (dualNozzle) return true;
   if (items.length === 0) return false;
-  if (panel.pos === 'right') return items.length > 1;
+  if (panel.pos === 'right') return leftShowsStrip;
   return true;
+}
+
+// Resolves strip visibility for every column in one pass: the left/single
+// column's result is computed first and fed into the right column's check.
+export function computePreviewStripVisibility(
+  entries: { column: PanelView; previewItems: PreviewItem[] }[],
+  dualNozzle: boolean,
+): (panel: PanelView) => boolean {
+  const leftEntry = entries.find((entry) => entry.column.pos !== 'right');
+  const leftShows = leftEntry
+    ? columnShowsPreviewStrip(leftEntry.column, leftEntry.previewItems, dualNozzle, false)
+    : false;
+  const results = new Map(
+    entries.map((entry) => [entry.column, columnShowsPreviewStrip(entry.column, entry.previewItems, dualNozzle, leftShows)]),
+  );
+  return (panel: PanelView) => results.get(panel) ?? false;
 }
