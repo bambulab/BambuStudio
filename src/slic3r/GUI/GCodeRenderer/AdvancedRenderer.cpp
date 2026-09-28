@@ -691,7 +691,7 @@ namespace Slic3r
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 //BBS: always render shells in preview window
                 glsafe(::glEnable(GL_DEPTH_TEST));
-                render_shells();
+                render_shells(m_roles.empty());
                 m_legend_height = 0.0f;
                 if (m_roles.empty())
                     return;

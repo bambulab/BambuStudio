@@ -1419,7 +1419,7 @@ namespace Slic3r
                 }
             }
 
-            void BaseRenderer::render_shells()
+            void BaseRenderer::render_shells(bool skip_wipe_tower)
             {
                 //BBS: add shell previewing logic
                 if ((!m_shells.previewing && !m_shells.visible) || m_shells.volumes.empty())
@@ -1440,7 +1440,8 @@ namespace Slic3r
                 //BBS: reopen cul faces
                 auto& camera = wxGetApp().plater()->get_camera();
                 std::vector<std::array<float, 4>> colors = wxGetApp().plater()->get_extruders_colors();
-                m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, camera, colors, wxGetApp().plater()->model());
+                m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, camera, colors, wxGetApp().plater()->model(),
+                    [skip_wipe_tower](const GLVolume& volume) { return !skip_wipe_tower || !volume.is_wipe_tower; });
                 wxGetApp().unbind_shader();
                 glsafe(::glDepthMask(GL_TRUE));
             }
