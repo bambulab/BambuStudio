@@ -22,6 +22,7 @@
 #include "slic3r/GUI/DeviceCore/DevMapping.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
+#include "slic3r/GUI/DeviceCore/DevSliceContext.hpp"
 
 #include "libslic3r/libslic3r.h"  // for is_approx (nozzle dia comparison)
 
@@ -302,11 +303,11 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
 
     data[SK::root::selected_dev_id] = obj->get_dev_id();
 
-    // Slicing nozzle requirement for the current filament from NozzleGroupResult
-    // (per-filament slice assignment). When unavailable, nozzle_match is skipped.
+    // Slicing nozzle requirement for the current filament. The slice context handed over
+    // by the send-to-print dialog is the only source; without it nozzle_match is skipped.
     ExpectedNozzleSpec expected_nozzle;
-    if (obj->GetNozzleRack()->IsSupported()) {
-        expected_nozzle = ResolveExpectedNozzleSpec(m_current_filament_id, wxGetApp().plater());
+    if (m_slice_context && obj->GetNozzleRack()->IsSupported()) {
+        expected_nozzle = ResolveExpectedNozzleSpecFromSliceContext(m_current_filament_id, *m_slice_context);
     }
 
     // Determine whether a ZMULTI (internal AMS) is present.

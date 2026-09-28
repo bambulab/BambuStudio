@@ -21,19 +21,18 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevNozzleRack.h"
 #include "DeviceCore/DevNozzleSystem.h"
+#include "DeviceCore/DevSliceContext.hpp"
 #include "DeviceCore/DevUtilBackend.h"
 
 namespace Slic3r { namespace GUI {
 
-ExpectedNozzleSpec ResolveExpectedNozzleSpecFromGroupResult(
-    int filament_id,
-    const MultiNozzleUtils::NozzleGroupResultBase* group_result)
+namespace {
+
+// Collapse the logical nozzles a filament was sliced with into the single
+// (diameter, flow) pair the slot check compares against.
+ExpectedNozzleSpec sCollapseNozzlesToSpec(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzles)
 {
     ExpectedNozzleSpec spec;
-    if (!group_result)
-        return spec;
-
-    const auto nozzles = group_result->get_nozzles_for_filament(filament_id);
     if (nozzles.empty())
         return spec;
 
@@ -63,6 +62,28 @@ ExpectedNozzleSpec ResolveExpectedNozzleSpecFromGroupResult(
     return spec;
 }
 
+} // namespace
+
+ExpectedNozzleSpec ResolveExpectedNozzleSpecFromSliceContext(int filament_id, const DevSliceContext& slice_context)
+{
+    const auto iter = slice_context.nozzles_by_filament.find(filament_id);
+    if (iter == slice_context.nozzles_by_filament.end())
+        return {};
+
+    return sCollapseNozzlesToSpec(iter->second);
+}
+
+#if 0
+// Superseded by ResolveExpectedNozzleSpecFromSliceContext, see the header for the reason.
+
+ExpectedNozzleSpec ResolveExpectedNozzleSpecFromGroupResult(int filament_id, const MultiNozzleUtils::NozzleGroupResultBase* group_result)
+{
+    if (!group_result)
+        return {};
+
+    return sCollapseNozzlesToSpec(group_result->get_nozzles_for_filament(filament_id));
+}
+
 ExpectedNozzleSpec ResolveExpectedNozzleSpec(int filament_id, Plater* plater)
 {
     if (!plater)
@@ -74,6 +95,7 @@ ExpectedNozzleSpec ResolveExpectedNozzleSpec(int filament_id, Plater* plater)
 
     return ResolveExpectedNozzleSpecFromGroupResult(filament_id, group_result.get());
 }
+#endif
 
 std::optional<DevNozzle> QueryRackNozzleAt(MachineObject*  obj,
                                            const TrayData& td)

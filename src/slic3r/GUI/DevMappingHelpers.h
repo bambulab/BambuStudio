@@ -26,6 +26,7 @@ namespace Slic3r {
 class MachineObject;
 class DevAms;
 class DevAmsTray;
+struct DevSliceContext;
 namespace MultiNozzleUtils { class NozzleGroupResultBase; }
 namespace GUI {
 
@@ -89,6 +90,16 @@ struct SubAmsGroup
     bool                  is_preload = false;
 };
 
+// Resolve per-filament expected nozzle from the slice snapshot
+ExpectedNozzleSpec ResolveExpectedNozzleSpecFromSliceContext(
+    int filament_id,
+    const DevSliceContext& slice_context);
+
+#if 0
+// Superseded by ResolveExpectedNozzleSpecFromSliceContext: the Plater only holds the last
+// local slice, which is absent or belongs to another project when printing from SD card
+// or from the print queue. Kept for reference until the new source is validated on device.
+
 // Resolve per-filament expected nozzle from slice group result only.
 // Returns spec.valid=false when group_result is null or filament has no nozzles.
 ExpectedNozzleSpec ResolveExpectedNozzleSpecFromGroupResult(
@@ -97,6 +108,7 @@ ExpectedNozzleSpec ResolveExpectedNozzleSpecFromGroupResult(
 
 // Unified entry: resolve from slice group result when available.
 ExpectedNozzleSpec ResolveExpectedNozzleSpec(int filament_id, Plater* plater = nullptr);
+#endif
 
 // Resolve the rack nozzle bound to this tray's slot. Returns std::nullopt
 // when the nozzle cannot be located (no rack, slot not bound to a rack

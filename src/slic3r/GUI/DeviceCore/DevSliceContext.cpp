@@ -82,8 +82,7 @@ bool DevSliceContext::Valid() const
     return !used_logic_nozzles.empty() || !nozzles_by_filament.empty();
 }
 
-std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromPlater(GUI::PrintFromType print_type,
-                                                                   Slic3r::GUI::Plater* plater)
+std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromNormal(GUI::PrintFromType print_type, Slic3r::GUI::Plater* plater)
 {
     auto ctx = std::make_shared<DevSliceContext>();
     ctx->print_type = print_type;
@@ -127,9 +126,9 @@ std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromPlater(GUI::PrintFro
     return ctx;
 }
 
-std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromPlate(GUI::PrintFromType print_type,
-                                                                  const PlateData& plate_data,
-                                                                  const DynamicPrintConfig& print_config)
+std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromSDCard(GUI::PrintFromType print_type,
+                                                                   const PlateData& plate_data,
+                                                                   const DynamicPrintConfig& print_config)
 {
     auto ctx = std::make_shared<DevSliceContext>();
     ctx->print_type = print_type;
@@ -180,7 +179,7 @@ std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromQueue(GUI::PrintFrom
         return ctx;
     }
 
-    return CreateFromPlate(print_type, *queue_ctx.plate_data, queue_ctx.config);
+    return CreateFromSDCard(print_type, *queue_ctx.plate_data, queue_ctx.config);
 }
 
 }

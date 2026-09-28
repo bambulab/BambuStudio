@@ -521,6 +521,7 @@ void PrinterFileSystem::FetchModel(size_t index, std::function<void(int, std::st
     arr.push_back(file.path + "#Metadata/model_settings.config");
     arr.push_back(file.path + "#Metadata/slice_info.config");
     arr.push_back(file.path + "#Metadata/project_settings.config");
+    arr.push_back(file.path + "#Metadata/filament_sequence.json");// Optional part: only written by newer Studio versions
     for (auto & meta : file.metadata) {
         if (boost::algorithm::starts_with(meta.first, "plate_thumbnail_"))
             arr.push_back(file.path + "#" + meta.second);

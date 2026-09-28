@@ -25,6 +25,7 @@
 
 #include <wx/timer.h>
 #include <cstdint>
+#include <memory>
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
@@ -49,6 +50,7 @@
 namespace Slic3r
 {
 class DevNozzleRack;
+struct DevSliceContext;
 namespace GUI
 {
 class wgtDeviceNozzleRackSelect;
@@ -377,6 +379,11 @@ public:
     void         set_parent_item(MaterialItem* item) {m_parent_item = item;};
     void         set_show_type(ShowType type) { m_show_type = type; };
 
+    // Slice snapshot of the job about to be sent. Forwarded to the hotend mapping VM
+    // on every refresh so the per-filament nozzle requirement follows the job instead
+    // of the Plater's last local slice. Call it before update() when opening the popup.
+    void         set_slice_context(std::shared_ptr<DevSliceContext> slice_context) { m_slice_context = std::move(slice_context); }
+
 #ifdef __APPLE__
     void on_mouse_move(wxMouseEvent &evt);
     // Keeps the hotend-rack WebView clickable, see the implementation comment.
@@ -435,6 +442,9 @@ private:
     // created. nullptr until the popup is first opened on a hotend-rack machine.
     DeviceWebHost*         m_hotend_web_host{nullptr};
     wxBoxSizer*            m_hotend_web_sizer{nullptr};
+
+    // Set by the send-to-print dialog, see set_slice_context().
+    std::shared_ptr<DevSliceContext> m_slice_context;
 
     // Anti-flicker deferred-show state for the hotend-rack WebView. Set by
     // update_hotend_web() on reopen so Popup() waits for the web "rendered"

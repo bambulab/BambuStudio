@@ -42,9 +42,9 @@ struct DevSliceContext
 
 public:
     DevSliceContext() = default;
-    static std::shared_ptr<DevSliceContext> CreateFromPlater(GUI::PrintFromType print_type,
+    static std::shared_ptr<DevSliceContext> CreateFromNormal(GUI::PrintFromType print_type,
                                                             Slic3r::GUI::Plater* plater);
-    static std::shared_ptr<DevSliceContext> CreateFromPlate(GUI::PrintFromType print_type,
+    static std::shared_ptr<DevSliceContext> CreateFromSDCard(GUI::PrintFromType print_type,
                                                             const PlateData& plate_data,
                                                             const DynamicPrintConfig& print_config);
     static std::shared_ptr<DevSliceContext> CreateFromQueue(GUI::PrintFromType print_type,

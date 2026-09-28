@@ -34,6 +34,7 @@ namespace Slic3r {
 class MachineObject;
 class DevAms;
 class DevAmsTray;
+struct DevSliceContext;
 namespace GUI {
 
 struct EditedFilamentInfo;
@@ -64,6 +65,9 @@ public:
                  wxWindow*                            send_win,
                  AmsMapingPopup*                      popup,
                  std::optional<PrintFromType>         print_from_type);
+
+    // Hand over the slice snapshot of the job being sent
+    void SetSliceContext(std::shared_ptr<DevSliceContext> slice_context) { m_slice_context = std::move(slice_context); }
 
     // Monotonic session counter, bumped on every Refresh(). The popup uses it
     // to wait for the web side to acknowledge it has rendered the freshly
@@ -173,6 +177,9 @@ private:
     wxWindow*                    m_send_win{nullptr};
     AmsMapingPopup*              m_popup{nullptr};
     std::optional<PrintFromType> m_print_from_type;
+
+    // Slice snapshot of the job being sent; see SetSliceContext().
+    std::shared_ptr<DevSliceContext> m_slice_context;
 
     // Last published state JSON, used to suppress duplicate reports.
     std::string m_last_report_state;

@@ -131,6 +131,91 @@ std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_t
     }
 }
 
+static bool is_fila_switch_scenario(MachineObject* obj)
+{
+    return obj && obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled();
+}
+
+static bool fill_nozzle_info_from_nozzles(FilamentInfo &info, const std::vector<MultiNozzleUtils::NozzleInfo> &nozzles)
+{
+    if (nozzles.empty())
+        return false;
+
+    std::set<double>           diameters;
+    std::set<NozzleVolumeType> volume_types;
+    for (const auto &nozzle : nozzles) {
+        try {
+            diameters.insert(boost::lexical_cast<double>(nozzle.diameter));
+        } catch (const std::exception &) {
+            diameters.insert(atof(nozzle.diameter.c_str()));
+        }
+        volume_types.insert(nozzle.volume_type);
+    }
+
+    if (diameters.empty())
+        return false;
+
+    info.nozzle_diameter = *diameters.begin();
+    if (volume_types.size() > 1)
+        info.nozzle_volume_type = get_nozzle_volume_type_string(nvtHybrid);
+    else if (!volume_types.empty())
+        info.nozzle_volume_type = get_nozzle_volume_type_string(*volume_types.begin());
+
+    return true;
+}
+
+bool check_nozzle_type_for_ams_mapping(const MachineObject *obj, PrintFromType print_type)
+{
+    return obj && obj->GetNozzleRack()->IsDirectConnectedRack();
+}
+
+void fill_slicing_nozzle_info(FilamentInfo &info,
+                              const std::vector<int> &filament_map,
+                              const std::shared_ptr<DevSliceContext> &slice_context)
+{
+    if (slice_context) {
+        const auto iter = slice_context->nozzles_by_filament.find(info.id);
+        if (iter != slice_context->nozzles_by_filament.end() &&
+            fill_nozzle_info_from_nozzles(info, iter->second)) {
+            return;
+        }
+    }
+
+    if (auto *dev = wxGetApp().getDeviceManager()) {
+        if (auto *obj = dev->get_selected_machine()) {
+            const auto& mapping = obj->get_nozzle_mapping_result();
+            if (mapping && mapping->HasSliceContext() &&
+                fill_nozzle_info_from_nozzles(info, mapping->GetNozzlesForFilament(info.id))) {
+                return;
+            }
+        }
+    }
+
+    auto *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle)
+        return;
+
+    const auto &full_config    = preset_bundle->full_config();
+    const auto &project_config = preset_bundle->project_config;
+
+    const auto *opt_dia = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!opt_dia || opt_dia->values.empty())
+        return;
+
+    // filament_map: 1-based extruder index per filament; fall back to extruder 0.
+    int extruder_idx = 0;
+    if (info.id >= 0 && info.id < (int) filament_map.size() && filament_map[info.id] >= 1)
+        extruder_idx = filament_map[info.id] - 1;
+    if (extruder_idx < 0 || extruder_idx >= (int) opt_dia->values.size())
+        extruder_idx = 0;
+
+    info.nozzle_diameter = opt_dia->get_at(extruder_idx);
+
+    const auto *opt_vol = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    if (opt_vol && extruder_idx < (int) opt_vol->size())
+        info.nozzle_volume_type = get_nozzle_volume_type_string((NozzleVolumeType) opt_vol->get_at(extruder_idx));
+}
+
 // Map device AMS types to AMS timing-vector indices.
 //  0  = reserved external-spool slot (use values[0], typically 0s)
 // >0 = AmsTimeType enum value
@@ -184,78 +269,6 @@ static std::vector<int> build_actual_ams_type_per_filament(const std::vector<Fil
         }
     }
     return types;
-}
-
-static bool fill_nozzle_info_from_group_result(FilamentInfo &info, const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> &nozzle_group_result)
-{
-    if (!nozzle_group_result)
-        return false;
-
-    const auto nozzles = nozzle_group_result->get_nozzles_for_filament(info.id);
-    if (nozzles.empty())
-        return false;
-
-    std::set<double>           diameters;
-    std::set<NozzleVolumeType> volume_types;
-    for (const auto &nozzle : nozzles) {
-        try {
-            diameters.insert(boost::lexical_cast<double>(nozzle.diameter));
-        } catch (const std::exception &) {
-            diameters.insert(atof(nozzle.diameter.c_str()));
-        }
-        volume_types.insert(nozzle.volume_type);
-    }
-
-    if (diameters.empty())
-        return false;
-
-    info.nozzle_diameter = *diameters.begin();
-    if (volume_types.size() > 1)
-        info.nozzle_volume_type = get_nozzle_volume_type_string(nvtHybrid);
-    else if (!volume_types.empty())
-        info.nozzle_volume_type = get_nozzle_volume_type_string(*volume_types.begin());
-
-    return true;
-}
-
-bool check_nozzle_type_for_ams_mapping(const MachineObject *obj, PrintFromType print_type)
-{
-    if (print_type != PrintFromType::FROM_NORMAL || !obj)
-        return false;
-
-    return obj->GetNozzleRack()->IsDirectConnectedRack();
-}
-
-void fill_slicing_nozzle_info(FilamentInfo &info, const std::vector<int> &filament_map)
-{
-    if (auto *plater = wxGetApp().plater()) {
-        if (fill_nozzle_info_from_group_result(info, DevUtilBackend::GetNozzleGroupResult(plater)))
-            return;
-    }
-
-    auto *preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle)
-        return;
-
-    const auto &full_config    = preset_bundle->full_config();
-    const auto &project_config = preset_bundle->project_config;
-
-    const auto *opt_dia = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    if (!opt_dia || opt_dia->values.empty())
-        return;
-
-    // filament_map: 1-based extruder index per filament; fall back to extruder 0.
-    int extruder_idx = 0;
-    if (info.id >= 0 && info.id < (int) filament_map.size() && filament_map[info.id] >= 1)
-        extruder_idx = filament_map[info.id] - 1;
-    if (extruder_idx < 0 || extruder_idx >= (int) opt_dia->values.size())
-        extruder_idx = 0;
-
-    info.nozzle_diameter = opt_dia->get_at(extruder_idx);
-
-    const auto *opt_vol = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    if (opt_vol && extruder_idx < (int) opt_vol->size())
-        info.nozzle_volume_type = get_nozzle_volume_type_string((NozzleVolumeType) opt_vol->get_at(extruder_idx));
 }
 
 std::vector<wxString> SelectMachineDialog::MACHINE_BED_TYPE_STRING;
@@ -4605,9 +4618,9 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         return;
     }
 
-    if (!CheckErrorMultiNozzleDiameterFromSdcard()) {
-        return;
-    }
+    //if (!CheckErrorMultiNozzleDiameterFromSdcard()) {
+    //    return;
+    //}
 
     if (!m_check_flag && obj_->is_info_ready()) {
         update_select_layout(obj_);
@@ -5099,6 +5112,9 @@ void SelectMachineDialog::set_default()
     m_statictext_ams_msg->Clear();
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
+        m_slice_context = DevSliceContext::CreateFromNormal(m_print_type, m_plater);
+        set_default_normal(m_plater->get_partplate_list().get_curr_plate()->thumbnail_data);
+
         try{
             reset_and_sync_ams_list();
         } catch (std::exception& e) {
@@ -5245,6 +5261,7 @@ void SelectMachineDialog::on_material_item_clicked(MaterialItem* item,
             m_mapping_popup.set_tag_texture(preset_fila_infos[used_filament_idx].filament_type);
             m_mapping_popup.set_send_win(this);//fix bug:fisrt click is not valid
             m_mapping_popup.set_show_type(get_filament_mapping_show_type(obj_, used_filament_idx));
+            m_mapping_popup.set_slice_context(m_slice_context);
             m_mapping_popup.update(obj_, m_ams_mapping_result, use_dynamic_nozzle_map(), m_print_type);
             m_mapping_popup.Popup();
         }
@@ -5385,8 +5402,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         info.filament_id = preset_filament.filament_id;
         info.setting_id = preset_filament.setting_id;
         info.color = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
-        // FROM_NORMAL: slicing nozzle from preset (FROM_SDCARD uses the 3mf's).
-        fill_slicing_nozzle_info(info, m_filaments_map);
+        fill_slicing_nozzle_info(info, m_filaments_map, m_slice_context);
         m_filaments.push_back(info);
     }
 
@@ -5736,12 +5752,6 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
 
 void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
 {
-    m_slice_context = DevSliceContext::CreateFromPlater(m_print_type, m_plater);
-    if (MachineObject* cur = get_current_machine()) {
-        if (auto mapping = cur->get_nozzle_mapping_result())
-            mapping->SetSliceContext(m_slice_context);
-    }
-
     update_page_turn_state(false);
     if (data.is_valid()) {
         wxImage image(data.width, data.height);
@@ -5832,7 +5842,7 @@ void SelectMachineDialog::set_default_from_sdcard()
                m_print_plate_idx >= 0 &&
                m_print_plate_idx < static_cast<int>(m_required_data_plate_data_list.size()) &&
                m_required_data_plate_data_list[m_print_plate_idx]) {
-        m_slice_context = DevSliceContext::CreateFromPlate(m_print_type,
+        m_slice_context = DevSliceContext::CreateFromSDCard(m_print_type,
                                                            *m_required_data_plate_data_list[m_print_plate_idx],
                                                            m_required_data_config);
     } else {
@@ -6031,6 +6041,7 @@ void SelectMachineDialog::set_default_from_sdcard()
                 m_mapping_popup.set_current_filament_id(fo.id);
                 m_mapping_popup.set_tag_texture(fo.type);
                 m_mapping_popup.set_send_win(this);
+                m_mapping_popup.set_slice_context(m_slice_context);
                 m_mapping_popup.update(obj_, m_ams_mapping_result, use_dynamic_nozzle_map(), m_print_type);
                 m_mapping_popup.Popup();
             }
@@ -6040,8 +6051,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         material_item->id = fo.id;
         material_item->item = item;
         m_materialList[i] = material_item;
-
-        // build for ams mapping
+        fill_slicing_nozzle_info(fo, m_filaments_map, m_slice_context);
         m_filaments.push_back(fo);
     }
 
@@ -7677,7 +7687,7 @@ bool SelectMachineDialog::CheckWarningFilamentCrossExtruder(MachineObject* obj_,
 {
     cross_extruder_filament_ids.clear();
 
-    if (!obj_ || m_print_type != PrintFromType::FROM_NORMAL) return true;
+    if (!obj_) return true;
     if (obj_->GetExtderSystem()->GetTotalExtderCount() != 2) return true;
 
     for (const auto& fila : m_ams_mapping_result) {
@@ -7765,7 +7775,7 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
 {
     warning_msg.clear();
 
-    if (!obj_ || m_print_type != PrintFromType::FROM_NORMAL) {
+    if (!obj_) {
         return true;
     }
 
@@ -8093,11 +8103,7 @@ bool SelectMachineDialog::use_dynamic_nozzle_map() const
         return false;
     }
 
-    if (m_print_type == FROM_NORMAL || m_print_type == FROM_PRINT_QUEUE || m_print_type == FROM_SDCARD_VIEW) {
-        return m_slice_context->support_dynamic_nozzle_map;
-    }
-
-    return false;
+    return m_slice_context->support_dynamic_nozzle_map;
 }
 
 

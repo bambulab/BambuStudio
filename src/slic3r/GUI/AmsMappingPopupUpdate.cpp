@@ -766,6 +766,7 @@ void AmsMapingPopup::update_hotend_web(MachineObject* obj,
     // (bypassing the visibility gate) so the still-hidden but alive WebView can
     // pre-render the new machine's data before the popup is shown.
     if (auto* vm = m_hotend_web_host->GetAmsMappingHotendVM()) {
+        vm->SetSliceContext(m_slice_context);
         vm->Refresh(obj,
                     ams_mapping_result,
                     m_current_filament_id,

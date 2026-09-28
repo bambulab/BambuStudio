@@ -1735,6 +1735,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // we then loop again the entries to read other files stored in the archive
         mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
         mz_zip_archive_file_stat stat;
+        bool has_filament_sequence = false;
+        mz_zip_archive_file_stat filament_sequence_stat{};
         for (mz_uint i = 0; i < num_entries; ++i) {
             if (mz_zip_reader_file_stat(&archive, i, &stat)) {
                 std::string name(stat.m_filename);
@@ -1763,10 +1765,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     m_parsing_slice_info = false;
                 }
                 else if (boost::algorithm::iequals(name, FILAMENT_SEQUENCE_FILE)) {
-                    _extract_filament_sequence_from_archive(archive, stat);
+                    has_filament_sequence = true;
+                    filament_sequence_stat = stat;
                 }
             }
         }
+
+        // The sequences are attached to plates created by BBS_MODEL_CONFIG_FILE, so they can only
+        // be applied once the loop above is done. Entry order is not guaranteed here: this stream
+        // may come from an archive repacked by the printer when printing from storage.
+        if (has_filament_sequence)
+            _extract_filament_sequence_from_archive(archive, filament_sequence_stat);
 
         //BBS: load the plate info into plate_data_list
         std::map<int, PlateData*>::iterator it = m_plater_data.begin();
