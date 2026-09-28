@@ -117,6 +117,8 @@ public:
         const std::vector<std::array<int, 3>>&   indices);
     void set_face_colors(const std::vector<std::array<std::size_t, 3>>& face_colors);
     void set_original_face_colors(const std::vector<std::array<std::size_t, 3>>& face_colors);
+    // Per-vertex RGB in 0..1. Original mode interpolates these across each triangle.
+    void set_original_vertex_colors(const std::vector<std::array<float, 3>>& vertex_colors);
     void set_filament_color_map(const std::map<std::array<std::size_t, 3>, std::array<float, 3>>& color_map);
 
     void set_render_mode(RenderMode mode);
@@ -184,6 +186,7 @@ private:
     std::vector<std::array<int, 3>>   m_painted_indices;
     std::vector<std::array<float, 3>> m_face_colors_rgb;
     std::vector<std::array<float, 3>> m_original_face_colors_rgb;
+    std::vector<std::array<float, 3>> m_original_vertex_colors_rgb;
     std::vector<std::array<float, 3>> m_filament_colors_rgb;
     std::map<std::array<std::size_t, 3>, std::array<float, 3>> m_color_map;
 
@@ -220,7 +223,8 @@ public:
                         const std::vector<TextureFilamentEntry>& filament_entries,
                         std::function<bool()>            initial_cancel_callback = {},
                         std::function<bool(int)>         initial_progress_callback = {},
-                        std::function<void(bool)>        initial_progress_visibility_callback = {});
+                        std::function<void(bool)>        initial_progress_visibility_callback = {},
+                        const wxString&                  hint = {});
     ~TextureImportDialog();
 
     int ShowModal() override;
@@ -497,6 +501,9 @@ private:
     Slic3r::PaintedMesh               m_painted;
     Slic3r::PaintedMesh               m_original_preview;
     bool                              m_original_preview_ready = false;
+    // Vertex-colored imports keep the source mesh on the left. The repair cache
+    // only has flat face colors and would wipe the gradient.
+    bool                              m_lock_original_vertex_preview = false;
     std::vector<Slic3r::FilamentMatch> m_current_matches;
 
     boost::thread                      m_worker;
@@ -518,6 +525,8 @@ private:
     std::function<bool()>              m_initial_cancel_callback;
     std::function<bool(int)>           m_initial_progress_callback;
     std::function<void(bool)>          m_initial_progress_visibility_callback;
+    // Shown above the color settings in the first step; empty for no hint.
+    wxString                           m_hint;
     bool                               m_current_computation_initial = false;
     bool                               m_initial_computation_pending = false;
     bool                               m_initial_computation_cancelled = false;
@@ -546,6 +555,8 @@ private:
     TextInput*         m_gap_spin   = nullptr;
     Label*                m_lbl_smooth_hint = nullptr;
     Label*                m_lbl_gap_hint    = nullptr;
+    Label*                m_lbl_hint        = nullptr;
+    wxStaticBitmap*       m_hint_icon       = nullptr;
     wxPanel*              m_advanced_header = nullptr;
     StaticBox*            m_advanced_body   = nullptr;
     bool                  m_advanced_expanded = false;

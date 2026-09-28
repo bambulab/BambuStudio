@@ -195,8 +195,6 @@
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
-#include "ObjColorDialog.hpp"
-
 #include "libslic3r/CustomGCode.hpp"
 #include "libslic3r/Platform.hpp"
 #include "nlohmann/json.hpp"
@@ -9718,10 +9716,16 @@ public:
     bool run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, TextureImportResult& result,
                                          std::function<bool()> cancel_callback = {},
                                          std::function<bool(int)> progress_callback = {},
-                                         std::function<void(bool)> progress_visibility_callback = {});
+                                         std::function<void(bool)> progress_visibility_callback = {},
+                                         const wxString& hint = {});
+    // standard_3mf_color_groups / standard_3mf_volume_colors switch the apply step to
+    // painting the model's own volumes from the 3MF color bindings, which keeps the file's
+    // objects and parts instead of replacing them with the dialog's preview mesh.
     void apply_textured_mesh_import_result(Slic3r::Model& loaded_model, const std::vector<size_t>& obj_idxs,
                                            const TextureImportResult& result,
-                                           LoadProgressCallback progress_callback = {}, bool update_scene = true);
+                                           LoadProgressCallback progress_callback = {}, bool update_scene = true,
+                                           const std::map<int, std::vector<std::string>>* standard_3mf_color_groups = nullptr,
+                                           const VolumeColorInfoMap* standard_3mf_volume_colors = nullptr);
     void handle_textured_mesh_import(Slic3r::Model& model, const std::vector<size_t>& obj_idxs,
                                      std::function<bool()> cancel_callback = {});
 
@@ -11320,6 +11324,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const float load_model_ratio = may_have_texture ? 0.20f : LOAD_MODEL_RATIO;
 
         Slic3r::Model model;
+        // Standard 3MF colors for the single texture-import dialog. The painting is applied
+        // from these bindings after the dialog, so they must outlive the 3mf reader scope.
+        std::shared_ptr<Slic3r::TexturedMesh> standard_3mf_color_mesh;
+        wxString standard_3mf_hint;
+        std::map<int, std::vector<std::string>> color_group_map;
+        VolumeColorInfoMap volume_color_data;
+        bool has_3mf_textures = false;
         // BBS: add auxiliary files related logic
         bool load_aux = strategy & LoadStrategy::LoadAuxiliary, load_old_project = false;
         if (load_model && load_config && type_3mf) {
@@ -11344,9 +11355,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
                     q->skip_thumbnail_invalid = true;
-                    // Used to store color group mapping information in standard 3MF files
-                    std::map<int, std::vector<std::string>> color_group_map;
-                    VolumeColorInfoMap volume_color_data;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
                                                              [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, input_files_ratio, total_files, i,
@@ -11360,7 +11368,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  cancel        = !cont;
                                                                  if (cancel)
                                                                      is_user_cancel = cancel;
-                                                             }, nullptr, &color_group_map, &volume_color_data);
+                                                             }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures);
                     if (const auto *mode = config_loaded.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
                         loaded_multi_nozzle_diameter_mode = mode->value;
                     const ConfigOption *selected_diameters =
@@ -11499,7 +11507,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     }
                     else if (load_config && config_loaded.empty()) {
                         load_config = false;
-                        if (wxGetApp().app_config->get_bool("skip_non_bambu_3mf_warning") != true) {
+                        // Other non-Bambu 3MF models get their source warning with the color handling below.
+                        if (wxGetApp().app_config->get_bool("skip_non_bambu_3mf_warning") != true &&
+                            !(load_model && en_3mf_file_type == En3mfType::From_Other)) {
                             wxString warn_text = file_version.maj() == 0 && file_version.min() == 0 && file_version.patch() == 0
                                 ? _L("The 3mf is not from Bambu Lab, load geometry data and color data only.")
                                 : _L("The 3mf is generated by old Bambu Studio, load geometry data only.");
@@ -11626,25 +11636,41 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         this->model.model_info = model.model_info;
                     }
 
-                    // Process color information in standard 3MF files(similar to color processing in OBJ files).
-                    if (load_model && !color_group_map.empty() && !volume_color_data.empty() && en_3mf_file_type != En3mfType::From_BBS) {
-                        // Only process external standard 3MF files; the BBS's own 3MF files already have complete color processing logic
-                        ObjDialogInOut color_dialog_in_out;
-                        if (extract_colors_to_obj_dialog(&model, color_group_map, volume_color_data, color_dialog_in_out)) {
-                            std::vector<std::string> extruder_colours;
-                            {
-                                const auto& all_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-                                size_t num_physical = sidebar->combos_filament().size();
-                                for (size_t i = 0; i < num_physical && i < all_colours.size(); ++i)
-                                    extruder_colours.push_back(all_colours[i]);
-                            }
-                            color_dialog_in_out.model = &model;
-                            color_dialog_in_out.input_type = ObjDialogInOut::FormatType::Standard3mf;
-                            color_dialog_in_out.volume_colors = volume_color_data;
-                            ObjColorDialog color_dlg(nullptr, color_dialog_in_out, extruder_colours);
-                            if (color_dlg.ShowModal() == wxID_OK) {
-                                color_dialog_in_out.filament_ids.clear();
-                            }
+                    // Preview mesh for the single import dialog. It covers every part of the file,
+                    // uncolored ones in grey, so the dialog opens once; the model itself is left
+                    // untouched and the painting is applied per volume afterwards. Textures are
+                    // ignored, which the dialog points out. A file without any usable color is
+                    // imported as is, with a notification instead of the dialog.
+                    // BBS's own 3MF files keep their existing logic, Prusa ones keep their painting.
+                    // Files of slicers derived from BBS (e.g. OrcaSlicer) carry their own painting,
+                    // which the dialog would overwrite, so they are loaded as painted.
+                    auto has_painting = [&model]() {
+                        for (const ModelObject* object : model.objects)
+                            for (const ModelVolume* volume : object->volumes)
+                                if (volume->is_model_part() && !volume->mmu_segmentation_facets.empty())
+                                    return true;
+                        return false;
+                    };
+                    if (load_model && en_3mf_file_type == En3mfType::From_Other && !model.objects.empty()) {
+                        const bool show_source_warning = wxGetApp().app_config->get_bool("skip_non_bambu_3mf_warning") != true;
+                        const wxString source_warning = _L("The 3mf is not from Bambu Lab, load geometry data and color data only.");
+                        auto tex_mesh = std::make_shared<TexturedMesh>();
+                        bool has_uncolored = false;
+                        if (!has_painting() && standard_3mf_to_textured_meshes(model, color_group_map, volume_color_data, *tex_mesh, has_uncolored)) {
+                            // Shown by the import dialog instead of a notification.
+                            auto append = [&](const wxString& text) {
+                                standard_3mf_hint += (standard_3mf_hint.empty() ? "" : " ") + text;
+                            };
+                            if (show_source_warning)
+                                append(source_warning);
+                            if (has_3mf_textures)
+                                append(_L("3MF textures are unsupported and have been discarded."));
+                            if (has_uncolored)
+                                append(_L("Parts without color will default to gray."));
+                            standard_3mf_color_mesh = std::move(tex_mesh);
+                        } else if (show_source_warning) {
+                            q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
+                                NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(source_warning));
                         }
                     }
                 }
@@ -12024,26 +12050,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 bool                  is_xxx;
                 Semver                file_version;
 
-                //ObjImportColorFn obj_color_fun=nullptr;
-                auto obj_color_fun = [this, &path, &makerlab_region, &makerlab_name, &makerlab_id](ObjDialogInOut &in_out) {
-
-                    makerlab_region = in_out.ml_region;
-                    makerlab_name   = in_out.ml_name;
-                    makerlab_id     = in_out.ml_id;
-
-                    if (!boost::iends_with(path.string(), ".obj")) { return; }
-                    std::vector<std::string> extruder_colours;
-                    {
-                        const auto& all_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-                        size_t num_physical = sidebar->combos_filament().size();
-                        for (size_t i = 0; i < num_physical && i < all_colours.size(); ++i)
-                            extruder_colours.push_back(all_colours[i]);
-                    }
-                    ObjColorDialog                 color_dlg(nullptr, in_out, extruder_colours);
-                    if (color_dlg.ShowModal() != wxID_OK) {
-                        in_out.filament_ids.clear();
-                    }
-                };
                 if (type_step) {
                         double linear = string_to_double_decimal_point(wxGetApp().app_config->get("linear_defletion"));
                         if (linear <= 0) linear = 0.003;
@@ -12114,7 +12120,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             cont          = dlg.Update(progress_percent, msg);
                             cancel        = !cont;
                     },
-                    nullptr, 0, obj_color_fun);
+                    nullptr, 0);
                 }
 
                 if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {
@@ -12214,16 +12220,16 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 // convert_model_if(model, answer_convert_from_imperial_units == wxID_YES);
             }
 
-             if (!is_project_file && model.looks_like_multipart_object()) {
-               MessageDialog msg_dlg(q, _L(
-                    "This file contains several objects positioned at multiple heights.\n"
-                    "Instead of considering them as multiple objects, should \n"
-                    "the file be loaded as a single object having multiple parts?") + "\n",
-                    _L("Multi-part object detected"), wxICON_WARNING | wxYES | wxNO);
-                if (msg_dlg.ShowModal() == wxID_YES) {
-                    model.convert_multipart_object(filaments_cnt);
-                }
+            if (!is_project_file && model.looks_like_multipart_object()) {
+                // Load as one object with multiple parts, without asking.
+                // convert_multipart_object() clears the model, including texture_mesh.
+                model.convert_multipart_object(filaments_cnt);
             }
+
+            // Assign after the merge. Volume ids are copied, so the color bindings
+            // captured earlier still match the merged parts.
+            if (standard_3mf_color_mesh)
+                model.texture_mesh = standard_3mf_color_mesh;
         }
         // else if ((wxGetApp().get_mode() == comSimple) && (type_3mf || type_any_amf) && model_has_advanced_features(model)) {
         //    MessageDialog msg_dlg(q, _L("This file cannot be loaded in a simple mode. Do you want to switch to an advanced mode?")+"\n",
@@ -12401,7 +12407,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (visible)
                         dlg.Raise();
                 };
-                if (!run_textured_mesh_import_dialog(model, texture_import_result, cancel_cb, progress_cb, progress_visibility_cb)) {
+                if (!run_textured_mesh_import_dialog(model, texture_import_result, cancel_cb, progress_cb, progress_visibility_cb, standard_3mf_hint)) {
                     q->skip_thumbnail_invalid = false;
                     return empty_result;
                 }
@@ -12426,7 +12432,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         + (texture_progress_object_end - texture_progress_compute_end) * std::clamp(percent, 0, 100) / 100;
                     return update_import_progress(mapped_percent, msg);
                 };
-                apply_textured_mesh_import_result(model, texture_object_idxs, texture_import_result, apply_progress_cb, false);
+                apply_textured_mesh_import_result(model, texture_object_idxs, texture_import_result, apply_progress_cb, false,
+                                                  standard_3mf_color_mesh ? &color_group_map : nullptr,
+                                                  standard_3mf_color_mesh ? &volume_color_data : nullptr);
                 model.add_default_instances();
                 model.center_instances_around_point(this->bed.build_volume().bed_center());
                 if (!dlg_cont) {
@@ -12900,7 +12908,8 @@ void Plater::priv::load_auxiliary_files()
 bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, TextureImportResult& result,
                                                    std::function<bool()> cancel_callback,
                                                    std::function<bool(int)> progress_callback,
-                                                   std::function<void(bool)> progress_visibility_callback)
+                                                   std::function<void(bool)> progress_visibility_callback,
+                                                   const wxString& hint)
 {
     if (!loaded_model.texture_mesh || !has_importable_texture(*loaded_model.texture_mesh)) return false;
 
@@ -12998,7 +13007,7 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
 
     TextureImportDialog dlg(q, *loaded_model.texture_mesh, filament_entries,
                             std::move(cancel_callback), std::move(progress_callback),
-                            std::move(progress_visibility_callback));
+                            std::move(progress_visibility_callback), hint);
     if (dlg.ShowModal() != wxID_OK) {
         if (dlg.was_skipped()) {
             BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: user skipped texture matching";
@@ -13051,9 +13060,141 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
     return true;
 }
 
+// A standard 3MF stores an exact color per triangle corner, so the volumes can be painted
+// where they are instead of being replaced by the dialog's preview mesh. Objects and parts
+// keep the structure the file described; only mmu_segmentation_facets and the part filament
+// change. Returns false when nothing could be painted.
+static bool paint_standard_3mf_volumes(
+    Slic3r::Model&                                 model,
+    const std::map<int, std::vector<std::string>>& color_group_map,
+    const VolumeColorInfoMap&                      volume_color_data,
+    const Slic3r::PaintedMesh&                     painted,
+    const std::vector<Slic3r::FilamentMatch>&      matches)
+{
+    if (painted.cluster_colors.empty() || matches.empty())
+        return false;
+
+    std::vector<int> cluster_filaments(painted.cluster_colors.size(), 0);
+    for (const auto& match : matches)
+        if (match.cluster_index >= 0 && match.cluster_index < (int) cluster_filaments.size() && match.filament_index >= 0)
+            cluster_filaments[match.cluster_index] = match.filament_index + 1;
+
+    // The dialog clustered the source palette in color space, so map each source color back
+    // to the cluster it landed in and reuse the filament the user picked for that cluster.
+    auto source_filament = [&](const std::array<std::size_t, 3>& rgb) {
+        auto source = painted.original_color_to_cluster.find(rgb);
+        return source != painted.original_color_to_cluster.end() && source->second >= 0 ? cluster_filaments[source->second] : 0;
+    };
+    // Triangles without usable colors were previewed in the uncolored grey, so they take the
+    // filament picked for that grey.
+    const int uncolored_filament = source_filament(Slic3r::STANDARD_3MF_UNCOLORED_RGB);
+
+    std::map<std::string, int> color_filament_cache;
+    auto filament_for_color = [&](const std::string& color_str) {
+        auto cached = color_filament_cache.find(color_str);
+        if (cached != color_filament_cache.end())
+            return cached->second;
+        const RGBA rgba = convert_color_string_to_rgba(color_str);
+        std::array<std::size_t, 3> rgb;
+        for (int c = 0; c < 3; ++c)
+            rgb[c] = static_cast<std::size_t>(std::lround(std::clamp(rgba[c], 0.0f, 1.0f) * 255.0f));
+        const int best = source_filament(rgb);
+        color_filament_cache.emplace(color_str, best);
+        return best;
+    };
+
+    auto has_vertex_colors = [&volume_color_data](int volume_id) {
+        auto color_info = volume_color_data.find(volume_id);
+        if (color_info == volume_color_data.end())
+            return false;
+        for (const TriangleColor& binding : color_info->second.triangle_colors)
+            if (binding.indices[0] != binding.indices[1] || binding.indices[1] != binding.indices[2] ||
+                binding.indices[0] != binding.indices[2])
+                return true;
+        return false;
+    };
+
+    auto filament_id_at = [&](int volume_id, int triangle_idx, int corner) {
+        int filament_id = uncolored_filament;
+        auto color_info = volume_color_data.find(volume_id);
+        if (color_info != volume_color_data.end() && triangle_idx >= 0 &&
+            triangle_idx < (int) color_info->second.triangle_colors.size()) {
+            if (const std::string* color_str = standard_3mf_corner_color(color_group_map, color_info->second,
+                                                                         color_info->second.triangle_colors[triangle_idx], corner))
+                filament_id = filament_for_color(*color_str);
+        }
+        return filament_id > 0 ? filament_id : 1;
+    };
+
+    // obj_import_color_deal() only checks that this is non-empty when a per-face callback
+    // supplies the ids, so pass the filaments the clusters resolved to.
+    std::vector<unsigned char> used_filament_ids;
+    for (int filament_id : cluster_filaments)
+        if (filament_id > 0)
+            used_filament_ids.push_back(static_cast<unsigned char>(filament_id));
+    if (used_filament_ids.empty())
+        return false;
+
+    const bool painted_any = Slic3r::Model::obj_import_color_deal(used_filament_ids, std::nullopt, &model,
+                                                                  has_vertex_colors, filament_id_at);
+
+    // Match the textured import: the base filament of a painted part is the lowest filament
+    // its paint uses, so the object list agrees with what is painted on the part. A part whose
+    // every corner resolves to one filament is solid: it takes that filament and keeps no paint.
+    struct PartFilament {
+        int  min_filament = -1;
+        bool solid        = false;
+    };
+    auto part_filament = [&](const ModelVolume& volume) {
+        PartFilament info;
+        const int volume_id = volume.id().id;
+        const int face_count = (int) volume.mesh().its.indices.size();
+        bool single_filament = true;
+        for (int face_idx = 0; face_idx < face_count; ++face_idx)
+            for (int corner = 0; corner < 3; ++corner) {
+                const int filament_id = filament_id_at(volume_id, face_idx, corner);
+                if (info.min_filament > 0 && filament_id != info.min_filament)
+                    single_filament = false;
+                if (info.min_filament < 0 || filament_id < info.min_filament)
+                    info.min_filament = filament_id;
+            }
+        info.solid = single_filament && info.min_filament > 0;
+        return info;
+    };
+
+    size_t solid_parts = 0;
+    for (ModelObject* object : model.objects) {
+        if (object == nullptr)
+            continue;
+        int object_filament = -1;
+        for (ModelVolume* volume : object->volumes) {
+            if (volume == nullptr || !volume->is_model_part())
+                continue;
+            const PartFilament info = part_filament(*volume);
+            if (info.min_filament <= 0)
+                continue;
+            if (info.solid) {
+                volume->mmu_segmentation_facets.reset();
+                ++solid_parts;
+            }
+            volume->config.set("extruder", info.min_filament);
+            if (object_filament < 0 || info.min_filament < object_filament)
+                object_filament = info.min_filament;
+        }
+        if (object_filament > 0)
+            object->config.set("extruder", object_filament);
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": painted standard 3mf volumes, solid parts="
+                            << solid_parts << ", painted=" << painted_any;
+    return painted_any || solid_parts > 0;
+}
+
 void Plater::priv::apply_textured_mesh_import_result(Slic3r::Model& loaded_model, const std::vector<size_t>& obj_idxs,
                                                      const TextureImportResult& result,
-                                                     LoadProgressCallback progress_callback, bool update_scene)
+                                                     LoadProgressCallback progress_callback, bool update_scene,
+                                                     const std::map<int, std::vector<std::string>>* standard_3mf_color_groups,
+                                                     const VolumeColorInfoMap* standard_3mf_volume_colors)
 {
     auto update_apply_progress = [&progress_callback](int percent, const wxString& message) {
         return !progress_callback || progress_callback(std::clamp(percent, 0, 100), message);
@@ -13213,6 +13354,36 @@ void Plater::priv::apply_textured_mesh_import_result(Slic3r::Model& loaded_model
 
     if (!update_apply_progress(25, _L("Applying texture colors...")))
         return;
+
+    // A standard 3MF carries exact per-triangle colors, so its volumes are painted in place
+    // rather than replaced by the preview mesh. The filament creation and index remapping
+    // above still apply; only the way the paint reaches the model differs.
+    if (standard_3mf_color_groups != nullptr && standard_3mf_volume_colors != nullptr) {
+        paint_standard_3mf_volumes(loaded_model, *standard_3mf_color_groups, *standard_3mf_volume_colors,
+                                   painted, remapped_matches);
+        for (size_t idx : obj_idxs) {
+            if (idx >= loaded_model.objects.size() || loaded_model.objects[idx] == nullptr)
+                continue;
+            loaded_model.objects[idx]->invalidate_bounding_box();
+            loaded_model.objects[idx]->ensure_on_bed();
+            if (update_scene) {
+                if (auto* obj_list = wxGetApp().obj_list())
+                    obj_list->update_info_items(idx);
+            }
+        }
+        if (update_scene) {
+            if (auto* obj_list = wxGetApp().obj_list())
+                obj_list->update_objects_list_filament_column(wxGetApp().filaments_cnt());
+        }
+        loaded_model.texture_mesh.reset();
+        if (update_scene) {
+            if (!update_apply_progress(90, _L("Updating 3D view...")))
+                return;
+            update();
+        }
+        update_apply_progress(100, _L("Texture colors applied."));
+        return;
+    }
 
     for (size_t obj_order = 0; obj_order < obj_idxs.size(); ++obj_order) {
         size_t idx = obj_idxs[obj_order];
@@ -14970,20 +15141,6 @@ void Plater::priv::reload_from_disk()
     // load one file at a time
     for (size_t i = 0; i < input_paths.size(); ++i) {
         const auto& path = input_paths[i].string();
-        auto        obj_color_fun = [this, &path](ObjDialogInOut &in_out) {
-            if (!boost::iends_with(path, ".obj")) { return; }
-            std::vector<std::string> extruder_colours;
-            {
-                const auto& all_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-                size_t num_physical = sidebar->combos_filament().size();
-                for (size_t i = 0; i < num_physical && i < all_colours.size(); ++i)
-                    extruder_colours.push_back(all_colours[i]);
-            }
-            ObjColorDialog                 color_dlg(nullptr, in_out, extruder_colours);
-            if (color_dlg.ShowModal() != wxID_OK) {
-                in_out.filament_ids.clear();
-            }
-        };
         wxBusyCursor wait;
         if (!boost::iends_with(path, ".obj")) {
             wxBusyInfo info(_L("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
@@ -15004,7 +15161,7 @@ void Plater::priv::reload_from_disk()
                 bool   is_split = wxGetApp().app_config->get_bool("is_split_compound");
                 new_model       = Model::read_from_step(path, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel, nullptr, nullptr, nullptr, linear, angle, is_split);
             }else {
-                new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel, &plate_data, &project_presets, nullptr, nullptr, nullptr, nullptr, nullptr, 0, obj_color_fun);
+                new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel, &plate_data, &project_presets, nullptr, nullptr, nullptr, nullptr, nullptr, 0);
             }
 
 
@@ -23525,6 +23682,10 @@ int Plater::load_project(wxString const &filename2,
         strategy = strategy | LoadStrategy::Restore;
     }
     bool load_restore = strategy & LoadStrategy::Restore;
+    // A non-Bambu 3MF has no project to open: start an empty project and import it as a model.
+    const bool import_as_model = !load_restore && boost::algorithm::iends_with(path.string(), ".3mf") && !is_bbs_project_3mf(path.string());
+    if (import_as_model)
+        strategy = LoadStrategy::LoadModel;
 
     // Take the Undo / Redo snapshot.
     reset();
@@ -23543,7 +23704,10 @@ int Plater::load_project(wxString const &filename2,
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
     // if res is empty no data has been loaded
-    if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
+    if (import_as_model) {
+        // Name only, no project path: saving must not overwrite the source 3MF.
+        p->set_project_name(res.empty() ? _L("Untitled") : from_u8(path.stem().string()));
+    } else if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << load_restore ? originfile : filename;
         p->set_project_filename(load_restore ? originfile : filename);
         if (load_restore && originfile.IsEmpty()) {
@@ -23593,7 +23757,7 @@ int Plater::load_project(wxString const &filename2,
     m_loading_project = false;
 
     // only pop up in 3mf
-    if (!this->m_exported_file && !this->m_only_gcode){
+    if (!import_as_model && !this->m_exported_file && !this->m_only_gcode){
         int nozzle_diameter = 1;
         auto ok = try_sync_preset_with_connected_printer(nozzle_diameter);
         if (ok && nozzle_diameter > 1) {
@@ -23602,7 +23766,8 @@ int Plater::load_project(wxString const &filename2,
     }
     statistics_burial_data(filename.utf8_string());
 
-    show_wrapping_detect_dialog_if_necessary();
+    if (!import_as_model)
+        show_wrapping_detect_dialog_if_necessary();
     return wx_dlg_id;
 }
 
@@ -25591,7 +25756,10 @@ bool Plater::open_3mf_file(const fs::path &file_path)
     }
 
     LoadType load_type = LoadType::Unknown;
-    if (!model().objects.empty()) {
+    // Standard 3mf: import geometry only, skip the project dialog.
+    if (!is_bbs_project_3mf(file_path.string())) {
+        load_type = LoadType::LoadGeometry;
+    } else if (!model().objects.empty()) {
         bool show_drop_project_dialog = true;
         if (show_drop_project_dialog) {
             ProjectDropDialog dlg(filename);

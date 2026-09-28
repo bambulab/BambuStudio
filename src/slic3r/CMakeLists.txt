@@ -423,8 +423,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
-    GUI/ObjColorDialog.cpp
-    GUI/ObjColorDialog.hpp
     GUI/TextureImportDialog.hpp
     GUI/TextureImportDialog.cpp
     GUI/MixingKitsHelpDialog.hpp

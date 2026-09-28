@@ -311,8 +311,7 @@ Model Model::read_from_file(const std::string&                                  
                             Import3mfProgressFn                                 proFn,
                             ImportstlProgressFn                                 stlFn,
                             BBLProject *                                        project,
-                            int                                                 plate_id,
-                            ObjImportColorFn                                    objFn)
+                            int                                                 plate_id)
 {
     Model model;
 
@@ -476,7 +475,8 @@ Model Model::read_from_file(const std::string&                                  
 // Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
 Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type, LoadStrategy options,
         PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project,
-        std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
+        std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data,
+        bool* has_textures)
 {
     PERF_TRACE(std::string("read archive ") + input_file);
     assert(config != nullptr);
@@ -495,7 +495,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
         } else {
             // BBS: add part plate related logic
             // BBS: backup & restore
-            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project, 0, color_group_map, volume_color_data);
+            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project, 0, color_group_map, volume_color_data, has_textures);
         }
     }
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
@@ -4230,7 +4230,7 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
         auto filament_id0 = use_vertex_filament_ids ? vertex_filament_ids[face[0]] : filament_id_callback(vol_idx, i, 0);
         auto filament_id1 = use_vertex_filament_ids ? vertex_filament_ids[face[1]] : filament_id_callback(vol_idx, i, 1);
         auto filament_id2 = use_vertex_filament_ids ? vertex_filament_ids[face[2]] : filament_id_callback(vol_idx, i, 2);
-        if (filament_id0 <= 1 && filament_id1 <= 1 && filament_id2 <= 2) {
+        if (filament_id0 <= 1 && filament_id1 <= 1 && filament_id2 <= 1) {
             continue;
         }
         VertexColorCase vertex_color_case;

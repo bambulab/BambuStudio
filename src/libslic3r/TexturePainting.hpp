@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstddef>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -63,6 +64,12 @@ struct TexturedMesh {
     // split along the resulting cluster boundaries, so color borders stay sharp
     // instead of being averaged away into a single color per face.
     std::vector<std::array<float,4>> precomputed_vertex_colors;
+
+    // The source already stores a small palette of exact colors (standard 3MF color groups)
+    // rather than sampled texture pixels. Such a mesh is only a preview for the import
+    // dialog: the colors are clustered in color space, the geometry is never rebuilt, and
+    // the painting is applied to the original volumes from their own color bindings.
+    bool is_standard_3mf = false;
 };
 
 struct PaintedMesh {
@@ -70,6 +77,9 @@ struct PaintedMesh {
     std::vector<std::array<int,3>>              indices;
     std::vector<std::array<std::size_t,3>>      face_colors;   // per-face RGB [0..255]
     std::vector<std::array<std::size_t,3>>      cluster_colors;
+    // Only filled by standard_3mf_colors_to_painting(): source RGB -> index into cluster_colors
+    // (-1 if unused), so the caller paints each source color with the cluster the preview shows.
+    std::map<std::array<std::size_t,3>, int>    original_color_to_cluster;
 };
 
 using PaintProgressCallback = std::function<void(int percent, const char* message)>;
@@ -134,6 +144,17 @@ bool texture_to_painting(
 // and UV sampling. A low-poly mesh that also carries precomputed_vertex_colors is
 // split along quantized color boundaries, which replaces its geometry.
 bool face_colors_to_painting(
+    const TexturedMesh& mesh,
+    PaintedMesh& painted,
+    const TexturePaintingSettings& settings = {},
+    PaintProgressCallback progress = nullptr,
+    PaintCancelCallback cancel = nullptr);
+
+// Cluster an exact source palette (TexturedMesh::is_standard_3mf) in color space.
+// Mesh repair, oversampling and smoothing are skipped: the result is a preview for the
+// import dialog, and the caller paints the original volumes itself. Only the vertex-color
+// preview splits triangles, so color borders stay sharp on screen.
+bool standard_3mf_colors_to_painting(
     const TexturedMesh& mesh,
     PaintedMesh& painted,
     const TexturePaintingSettings& settings = {},

@@ -9,6 +9,7 @@
 #include "../GCode/ThumbnailData.hpp"
 #include "../Semver.hpp"
 #include "../Time.hpp"
+#include "../Color.hpp"
 
 #include "../I18N.hpp"
 #include "../FilamentMixer.hpp"
@@ -198,6 +199,19 @@ static constexpr const char* MODEL_TAG = "model";
 static constexpr const char* RESOURCES_TAG = "resources";
 static constexpr const char* COLOR_GROUP_TAG = "m:colorgroup";
 static constexpr const char* COLOR_TAG = "m:color";
+// Material resources are compared by local name: files bind the materials namespace to
+// different prefixes, and basematerials belongs to the core namespace.
+static const char* local_tag_name(const char* name)
+{
+    const char* local_name = ::strrchr(name, ':');
+    return local_name ? local_name + 1 : name;
+}
+// The standard 3MF color import does not read texture images, so textures are ignored.
+static bool is_texture_resource_tag(const char* name)
+{
+    const char* local_name = local_tag_name(name);
+    return ::strcmp(local_name, "texture2d") == 0 || ::strcmp(local_name, "texture2dgroup") == 0;
+}
 static constexpr const char* OBJECT_TAG = "object";
 static constexpr const char* MESH_TAG = "mesh";
 static constexpr const char* MESH_STAT_TAG = "mesh_stat";
@@ -861,6 +875,140 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
 
+    // basematerials, compositematerials and multiproperties of a standard 3MF, read into the
+    // color group map as one color per entry, so triangles bound to them resolve like the ones
+    // bound to an m:colorgroup. An empty string marks an entry without color. Composites and
+    // multiproperties may reference resources of another model file, so they are resolved
+    // once every file is parsed.
+    class MaterialColorResources
+    {
+    public:
+        bool has_textures() const { return m_has_textures; }
+
+        void start_element(const char* name, const char** attributes, unsigned int num_attributes,
+                           std::map<int, std::vector<std::string>>& group_colors)
+        {
+            const char* local_name = local_tag_name(name);
+            if (::strcmp(local_name, "basematerials") == 0) {
+                m_parent    = Parent::BaseMaterials;
+                m_parent_id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+            } else if (::strcmp(local_name, "base") == 0 && m_parent == Parent::BaseMaterials) {
+                group_colors[m_parent_id].push_back(bbs_get_attribute_value_string(attributes, num_attributes, "displaycolor"));
+            } else if (::strcmp(local_name, "compositematerials") == 0) {
+                m_parent    = Parent::CompositeMaterials;
+                m_parent_id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+                Composite& composite = m_composites[m_parent_id];
+                composite.matid      = bbs_get_attribute_value_int(attributes, num_attributes, "matid");
+                composite.matindices = parse_numbers<int>(bbs_get_attribute_value_string(attributes, num_attributes, "matindices"));
+            } else if (::strcmp(local_name, "composite") == 0 && m_parent == Parent::CompositeMaterials) {
+                m_composites[m_parent_id].values.push_back(
+                    parse_numbers<float>(bbs_get_attribute_value_string(attributes, num_attributes, "values")));
+            } else if (::strcmp(local_name, "multiproperties") == 0) {
+                m_parent    = Parent::MultiProperties;
+                m_parent_id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+                m_multis[m_parent_id].pids = parse_numbers<int>(bbs_get_attribute_value_string(attributes, num_attributes, "pids"));
+            } else if (::strcmp(local_name, "multi") == 0 && m_parent == Parent::MultiProperties) {
+                m_multis[m_parent_id].pindices.push_back(
+                    parse_numbers<int>(bbs_get_attribute_value_string(attributes, num_attributes, "pindices")));
+            } else if (is_texture_resource_tag(name)) {
+                m_has_textures = true;
+            }
+        }
+
+        void end_element(const char* name)
+        {
+            const char* local_name = local_tag_name(name);
+            if (::strcmp(local_name, "basematerials") == 0 || ::strcmp(local_name, "compositematerials") == 0 ||
+                ::strcmp(local_name, "multiproperties") == 0)
+                m_parent = Parent::None;
+        }
+
+        void merge(const MaterialColorResources& other)
+        {
+            m_composites.insert(other.m_composites.begin(), other.m_composites.end());
+            m_multis.insert(other.m_multis.begin(), other.m_multis.end());
+            m_has_textures |= other.m_has_textures;
+        }
+
+        void resolve(std::map<int, std::vector<std::string>>& group_colors) const
+        {
+            // An out-of-range index takes the first entry, as it does for triangles.
+            auto color_at = [&group_colors](int pid, int index) -> const std::string* {
+                auto group = group_colors.find(pid);
+                if (group == group_colors.end() || group->second.empty())
+                    return nullptr;
+                const std::string& color = group->second[index >= 0 && index < int(group->second.size()) ? index : 0];
+                return color.empty() ? nullptr : &color;
+            };
+            // A composite mixes the display colors of its base materials by their ratios.
+            for (const auto& [id, composite] : m_composites) {
+                std::vector<std::string> colors;
+                for (const std::vector<float>& values : composite.values) {
+                    float mixed[3] = {0.f, 0.f, 0.f};
+                    float total    = 0.f;
+                    for (size_t i = 0; i < values.size() && i < composite.matindices.size(); ++i) {
+                        const std::string* color = color_at(composite.matid, composite.matindices[i]);
+                        if (color == nullptr || values[i] <= 0.f)
+                            continue;
+                        const RGBA rgba = convert_color_string_to_rgba(*color);
+                        for (int c = 0; c < 3; ++c)
+                            mixed[c] += rgba[c] * values[i];
+                        total += values[i];
+                    }
+                    colors.push_back(total > 0.f ? encode_color(ColorRGB(mixed[0] / total, mixed[1] / total, mixed[2] / total)) :
+                                                   std::string());
+                }
+                group_colors[id] = std::move(colors);
+            }
+            // Each layer of a multiproperties entry holds one property. Texture layers have no
+            // color and are dropped; an upper color layer covers the lower ones.
+            for (const auto& [id, multi] : m_multis) {
+                std::vector<std::string> colors;
+                for (const std::vector<int>& pindices : multi.pindices) {
+                    const std::string* top_color = nullptr;
+                    for (size_t layer = 0; layer < multi.pids.size(); ++layer)
+                        if (const std::string* color = color_at(multi.pids[layer], layer < pindices.size() ? pindices[layer] : 0))
+                            top_color = color;
+                    colors.push_back(top_color != nullptr ? *top_color : std::string());
+                }
+                group_colors[id] = std::move(colors);
+            }
+        }
+
+    private:
+        struct Composite
+        {
+            int                             matid{-1};
+            std::vector<int>                matindices;
+            std::vector<std::vector<float>> values;
+        };
+        struct Multi
+        {
+            std::vector<int>              pids;
+            std::vector<std::vector<int>> pindices;
+        };
+        enum class Parent { None, BaseMaterials, CompositeMaterials, MultiProperties };
+
+        // Space separated numbers, as in matindices, values, pids and pindices.
+        template<typename T> static std::vector<T> parse_numbers(const std::string& str)
+        {
+            std::vector<T> numbers;
+            const char*    begin = str.c_str();
+            char*          end   = nullptr;
+            for (double number = std::strtod(begin, &end); end != begin; number = std::strtod(begin, &end)) {
+                numbers.push_back(static_cast<T>(number));
+                begin = end;
+            }
+            return numbers;
+        }
+
+        std::map<int, Composite> m_composites;
+        std::map<int, Multi>     m_multis;
+        bool                     m_has_textures{false};
+        Parent                   m_parent{Parent::None};
+        int                      m_parent_id{-1};
+    };
+
     // Base class with error messages management
     class _BBS_3MF_Base
     {
@@ -1099,6 +1247,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             float object_unit_factor;
             int object_current_color_group{-1};
             std::map<int, std::vector<std::string>> object_group_id_to_color;
+            MaterialColorResources object_material_colors;
             bool is_bbl_3mf { false };
 
             ObjectImporter(_BBS_3MF_Importer *importer, std::string file_path, std::string obj_path)
@@ -1300,6 +1449,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         int m_current_color_group{-1};
         std::map<int, std::vector<std::string>> m_group_id_to_color;
+        MaterialColorResources m_material_colors;
 
         // Store the color data for each volume(volume object id->VolumeColorInfo).
         // Note: This mapping is populated in _generate_volumes_new.
@@ -1328,6 +1478,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         // Get the color group mapping information (color group ID -> color string) after parsing a standard 3MF file.
         const std::map<int, std::vector<std::string>>& get_color_group_map() const { return m_group_id_to_color; }
+
+        // True when the file declares textures, which the color import ignores.
+        bool has_texture_resources() const { return m_material_colors.has_textures(); }
 
         // Get volume color data
         const std::unordered_map<int, VolumeColorInfo>& get_volume_color_data() const { return m_volume_color_data; }
@@ -2003,6 +2156,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     auto &src = group_color.second;
                     dst.insert(dst.end(), src.begin(), src.end());
                 }
+                m_material_colors.merge(obj_importer->object_material_colors);
 
                 delete obj_importer;
             }
@@ -2226,6 +2380,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                     // select as volumes
                     volumes_ptr = &volumes;
+
+                    // A single-object file is temporarily named after the filename. Put the
+                    // 3MF object name back before cloning, so every split instance keeps it.
+                    // The volume name is taken from the object name while the mesh is built.
+                    if (!current_object->second.name.empty())
+                        model_object->name = current_object->second.name;
 
                     // for each instance after the 1st, create a new model object containing only that instance
                     // and copy into it the geometry
@@ -3689,6 +3849,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool res = true;
         unsigned int num_attributes = (unsigned int)XML_GetSpecifiedAttributeCount(m_xml_parser);
 
+        m_material_colors.start_element(name, attributes, num_attributes, m_group_id_to_color);
+
         if (::strcmp(MODEL_TAG, name) == 0)
             res = _handle_start_model(attributes, num_attributes);
         else if (::strcmp(RESOURCES_TAG, name) == 0)
@@ -3730,6 +3892,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return;
 
         bool res = true;
+
+        m_material_colors.end_element(name);
 
         if (::strcmp(MODEL_TAG, name) == 0)
             res = _handle_end_model();
@@ -3869,6 +4033,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // BBS: Production Extension
         if (!m_sub_model_path.empty())
             return true;
+
+        // The sub-model files are merged before the root model is read, so every material
+        // resource is known now.
+        m_material_colors.resolve(m_group_id_to_color);
 
         // deletes all non-built or non-instanced objects
         for (const IdToModelObjectMap::value_type& object : m_objects) {
@@ -5467,6 +5635,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 add_error("found no trianges in the object " + std::to_string(sub_object->id));
                 return false;
             }
+            bool flipped = false;
             if (!shared_volume){
                 // splits volume out of imported geometry
                 indexed_triangle_set its;
@@ -5507,8 +5676,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //        //FIXME do the mesh fixing?
                 //    }
                 //}
-                if (triangle_mesh.volume() < 0)
+                if (triangle_mesh.volume() < 0) {
                     triangle_mesh.flip_triangles();
+                    flipped = true;
+                }
 
                 bool is_text = !volume_data->text_info.m_text.empty();
                 bool modify_to_center_geometry = is_text ? false : true;//text do not modify_to_center_geometry
@@ -5538,6 +5709,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 vol_color_info.pid = sub_object->pid;
                 vol_color_info.pindex = sub_object->pindex;
                 vol_color_info.triangle_colors = sub_object->geometry.triangle_colors;
+                // flip_triangles() swapped the second and third corner of every face.
+                if (flipped)
+                    for (TriangleColor& color : vol_color_info.triangle_colors)
+                        std::swap(color.indices[1], color.indices[2]);
                 m_volume_color_data[volume->id().id] = std::move(vol_color_info);
             }
 
@@ -6164,6 +6339,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool res = true;
         unsigned int num_attributes = (unsigned int)XML_GetSpecifiedAttributeCount(object_xml_parser);
 
+        object_material_colors.start_element(name, attributes, num_attributes, object_group_id_to_color);
+
         if (::strcmp(MODEL_TAG, name) == 0)
             res = _handle_object_start_model(attributes, num_attributes);
         else if (::strcmp(RESOURCES_TAG, name) == 0)
@@ -6201,6 +6378,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return;
 
         bool res = true;
+
+        object_material_colors.end_element(name);
 
         if (::strcmp(MODEL_TAG, name) == 0)
             res = _handle_object_end_model();
@@ -9732,7 +9911,8 @@ private:
 //BBS: add plate data list related logic
 bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
                     bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project, int plate_id,
-                    std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
+                    std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data,
+                    bool* has_textures)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -9753,6 +9933,10 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
         *volume_color_data = importer.get_volume_color_data();
     }
 
+    if (has_textures != nullptr) {
+        *has_textures = importer.has_texture_resources() && !(is_bbl_3mf && *is_bbl_3mf);
+    }
+
     //BBS: remove legacy project logic currently
     //handle_legacy_project_loaded(importer.version(), *config);
     return res;
@@ -9765,6 +9949,20 @@ std::string bbs_3mf_get_thumbnail(const char *path)
     bool res = importer.get_thumbnail(path, data);
     if (!res) importer.log_errors();
     return data;
+}
+
+bool is_bbs_project_3mf(const std::string &path)
+{
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+    if (!open_zip_reader(&archive, path))
+        return false;
+
+    bool is_project = mz_zip_reader_locate_file(&archive, BBS_MODEL_CONFIG_FILE.c_str(), nullptr, 0) != -1
+                   || mz_zip_reader_locate_file(&archive, BBS_PROJECT_CONFIG_FILE.c_str(), nullptr, 0) != -1;
+
+    close_zip_reader(&archive);
+    return is_project;
 }
 
 bool load_gcode_3mf_from_stream(std::istream &data, DynamicPrintConfig *config, Model *model, PlateDataPtrs *plate_data_list, Semver *file_version)

@@ -404,30 +404,45 @@ static bool quantize_vertex_colors(
         }
     }
 
+    return quantize_colors(vertex_rgb, settings, cancel_callback, out_centers, out_vertex_cluster_ids);
+}
+
+bool quantize_colors(
+    const std::vector<std::array<std::size_t, 3>>& colors,
+    const TextureToColorSettings& settings,
+    AlgoCancelCallback cancel_callback,
+    std::vector<std::array<std::size_t, 3>>& out_centers,
+    std::vector<std::size_t>& out_cluster_ids)
+{
+    out_centers.clear();
+    out_cluster_ids.clear();
+    if (colors.empty())
+        return false;
+
     ClusterParameters para;
     para.cancel_callback = cancel_callback ? [&]() { return cancel_callback(); } : std::function<bool()>{};
     if (settings.target_colors_num == 0) {
         para.max_color_distance = settings.max_color_distance;
         para.max_cluster_k      = settings.max_cluster_k;
-        out_centers = cluster_adaptive(vertex_rgb, para);
+        out_centers = cluster_adaptive(colors, para);
     } else {
         para.cluster_k = settings.target_colors_num;
-        out_centers = cluster_k_means(vertex_rgb, para);
+        out_centers = cluster_k_means(colors, para);
     }
     if (out_centers.empty()) {
-        BOOST_LOG_TRIVIAL(debug) << "quantize_vertex_colors: no cluster center generated.";
+        BOOST_LOG_TRIVIAL(debug) << "quantize_colors: no cluster center generated.";
         return false;
     }
 
-    out_vertex_cluster_ids.resize(vertex_rgb.size());
-    for (std::size_t i = 0; i < vertex_rgb.size(); ++i) {
+    out_cluster_ids.resize(colors.size());
+    for (std::size_t i = 0; i < colors.size(); ++i) {
         std::size_t nearest_id = 0;
-        if (!calc_nearest_color_id(out_centers, vertex_rgb[i], nearest_id))
+        if (!calc_nearest_color_id(out_centers, colors[i], nearest_id))
             nearest_id = 0;
-        out_vertex_cluster_ids[i] = nearest_id;
+        out_cluster_ids[i] = nearest_id;
     }
-    BOOST_LOG_TRIVIAL(debug) << "quantize_vertex_colors: quantized " << vertex_rgb.size()
-                             << " vertex colors into " << out_centers.size() << " clusters.";
+    BOOST_LOG_TRIVIAL(debug) << "quantize_colors: quantized " << colors.size()
+                             << " colors into " << out_centers.size() << " clusters.";
     return true;
 }
 
@@ -439,7 +454,7 @@ static bool quantize_vertex_colors(
 // if its two endpoints belong to different clusters. Because that predicate reads
 // only the shared endpoints, adjacent faces always reach the same conclusion and
 // no T-junctions can appear.
-static bool adaptive_split_by_vertex_clusters(
+bool adaptive_split_by_vertex_clusters(
     TriMesh& mesh,
     const std::vector<std::size_t>& vertex_cluster_ids,
     const std::vector<RGB>& cluster_centers,

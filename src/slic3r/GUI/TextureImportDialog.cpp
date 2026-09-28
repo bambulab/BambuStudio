@@ -4071,6 +4071,12 @@ void TexturePreviewCanvas::set_original_face_colors(const std::vector<std::array
     Refresh();
 }
 
+void TexturePreviewCanvas::set_original_vertex_colors(const std::vector<std::array<float, 3>>& vertex_colors)
+{
+    m_original_vertex_colors_rgb = vertex_colors;
+    Refresh();
+}
+
 void TexturePreviewCanvas::set_filament_color_map(
     const std::map<std::array<std::size_t, 3>, std::array<float, 3>>& color_map)
 {
@@ -4710,8 +4716,15 @@ void TexturePreviewCanvas::render_mesh()
     const auto& verts   = use_painted ? m_painted_vertices : m_vertices;
     const auto& faces   = use_painted ? m_painted_indices  : m_indices;
 
+    const bool use_vertex_colors = m_mode == RenderMode::Original
+        && !use_painted
+        && m_original_vertex_colors_rgb.size() == verts.size()
+        && !m_original_vertex_colors_rgb.empty();
+
     const std::vector<std::array<float, 3>>* colors_ptr = nullptr;
-    if (m_mode == RenderMode::Original && !m_original_face_colors_rgb.empty()
+    if (use_vertex_colors) {
+        glShadeModel(GL_SMOOTH);
+    } else if (m_mode == RenderMode::Original && !m_original_face_colors_rgb.empty()
         && m_original_face_colors_rgb.size() == m_indices.size()) {
         colors_ptr = &m_original_face_colors_rgb;
     } else if (m_mode == RenderMode::FilamentMap && !m_filament_colors_rgb.empty()
@@ -4747,8 +4760,18 @@ void TexturePreviewCanvas::render_mesh()
         if (len > 1e-8f) { nx /= len; ny /= len; nz /= len; }
         glNormal3f(nx, ny, nz);
 
+        const std::array<float, 3>* corner_colors[3] = {nullptr, nullptr, nullptr};
+        if (use_vertex_colors) {
+            corner_colors[0] = &m_original_vertex_colors_rgb[face[0]];
+            corner_colors[1] = &m_original_vertex_colors_rgb[face[1]];
+            corner_colors[2] = &m_original_vertex_colors_rgb[face[2]];
+        }
+
+        if (corner_colors[0]) glColor3fv(corner_colors[0]->data());
         glVertex3fv(v0.data());
+        if (corner_colors[1]) glColor3fv(corner_colors[1]->data());
         glVertex3fv(v1.data());
+        if (corner_colors[2]) glColor3fv(corner_colors[2]->data());
         glVertex3fv(v2.data());
     }
     glEnd();
@@ -4777,7 +4800,8 @@ TextureImportDialog::TextureImportDialog(
     const std::vector<TextureFilamentEntry>& filament_entries,
     std::function<bool()>            initial_cancel_callback,
     std::function<bool(int)>         initial_progress_callback,
-    std::function<void(bool)>        initial_progress_visibility_callback)
+    std::function<void(bool)>        initial_progress_visibility_callback,
+    const wxString&                  hint)
     : DPIDialog(parent, wxID_ANY, _L("Import Model: Simplify Colors"),
                 wxDefaultPosition, wxDefaultSize,
                 (wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) & ~(wxMINIMIZE_BOX | wxMAXIMIZE_BOX))
@@ -4786,6 +4810,7 @@ TextureImportDialog::TextureImportDialog(
     , m_initial_cancel_callback(std::move(initial_cancel_callback))
     , m_initial_progress_callback(std::move(initial_progress_callback))
     , m_initial_progress_visibility_callback(std::move(initial_progress_visibility_callback))
+    , m_hint(hint)
     , m_gap_preview(std::make_unique<GapPreviewState>())
 {
     m_bmp_unmatched = ScalableBitmap(this, "error", 16);
@@ -4853,6 +4878,27 @@ TextureImportDialog::TextureImportDialog(
         m_original_color_count = unique_face_color_count(m_textured_mesh.precomputed_face_colors);
         for_each_preview([&](TexturePreviewCanvas* canvas) {
             canvas->set_original_face_colors(m_textured_mesh.precomputed_face_colors);
+        });
+    }
+    // Vertex colors are drawn on the source mesh so the left view stays a gradient.
+    if (m_textured_mesh.precomputed_vertex_colors.size() == m_textured_mesh.vertices.size()
+        && !m_textured_mesh.precomputed_vertex_colors.empty()) {
+        std::vector<std::array<float, 3>> vertex_rgb(m_textured_mesh.precomputed_vertex_colors.size());
+        std::set<std::array<int, 3>> unique_vertices;
+        for (size_t i = 0; i < vertex_rgb.size(); ++i) {
+            const auto& c = m_textured_mesh.precomputed_vertex_colors[i];
+            vertex_rgb[i] = {c[0], c[1], c[2]};
+            unique_vertices.insert({
+                (int)std::lround(std::clamp(c[0], 0.f, 1.f) * 255.f),
+                (int)std::lround(std::clamp(c[1], 0.f, 1.f) * 255.f),
+                (int)std::lround(std::clamp(c[2], 0.f, 1.f) * 255.f)
+            });
+        }
+        if (!unique_vertices.empty())
+            m_original_color_count = (int)unique_vertices.size();
+        m_lock_original_vertex_preview = true;
+        for_each_preview([&](TexturePreviewCanvas* canvas) {
+            canvas->set_original_vertex_colors(vertex_rgb);
         });
     }
 
@@ -5107,7 +5153,33 @@ void TextureImportDialog::build_preview_panel(wxWindow* parent, wxSizer* sizer)
     m_lbl_caption_right->SetFont(Label::Body_14);
     caption_sizer->Add(m_lbl_caption_left, 1, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
     caption_sizer->Add(m_lbl_caption_right, 1, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
-    m_caption_row->SetSizer(caption_sizer);
+    if (m_hint.empty()) {
+        m_caption_row->SetSizer(caption_sizer);
+    } else {
+        // Part of the caption row, so it is only shown in the first step as well.
+        m_hint_icon = new wxStaticBitmap(m_caption_row, wxID_ANY, create_scaled_bitmap("warning", this, 16),
+                                         wxDefaultPosition, FromDIP(wxSize(16, 16)), 0);
+        m_hint_icon->SetBackgroundColour(m_caption_row->GetBackgroundColour());
+        m_lbl_hint = new Label(m_caption_row, Label::Body_13, m_hint);
+        m_lbl_hint->SetForegroundColour(wxColour("#FF6F00"));
+        m_lbl_hint->SetBackgroundColour(m_caption_row->GetBackgroundColour());
+        // The dialog client is 800 DIP wide (see the step size setup) with a 12 DIP content margin;
+        // the indent, the icon and its gap take 3 + 16 + 3 DIP.
+        m_lbl_hint->Wrap(FromDIP(800 - 2 * 12 - 3 - 16 - 3));
+        wxBoxSizer* hint_sizer = new wxBoxSizer(wxHORIZONTAL);
+        // Keep the icon centered on the first text line when the hint wraps.
+        const int icon_offset = std::max(0, (m_lbl_hint->GetTextExtent("A").y - FromDIP(16)) / 2);
+        wxBoxSizer* icon_sizer = new wxBoxSizer(wxVERTICAL);
+        icon_sizer->AddSpacer(icon_offset);
+        icon_sizer->Add(m_hint_icon, 0);
+        hint_sizer->Add(icon_sizer, 0, wxALIGN_TOP | wxRIGHT, FromDIP(3));
+        hint_sizer->Add(m_lbl_hint, 0, wxALIGN_TOP);
+        wxBoxSizer* caption_column = new wxBoxSizer(wxVERTICAL);
+        caption_column->Add(caption_sizer, 0, wxEXPAND);
+        caption_column->AddSpacer(FromDIP(16));
+        caption_column->Add(hint_sizer, 0, wxALIGN_LEFT | wxLEFT, FromDIP(3));
+        m_caption_row->SetSizer(caption_column);
+    }
     sizer->Add(m_caption_row, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
 }
 
@@ -5186,6 +5258,12 @@ void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
     m_advanced_header = advanced_header;
     advanced_header->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { toggle_advanced_design(); });
     panel_sizer->Add(advanced_header, 0, wxALIGN_LEFT | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
+    // Boundary smoothness and gap area both clean up texture sampling artifacts. An exact
+    // source palette has none, and neither setting reaches its clustering path.
+    if (m_textured_mesh.is_standard_3mf) {
+        advanced_header->Show(false);
+        panel_sizer->Show(advanced_header, false);
+    }
 
     // wxTAB_TRAVERSAL is implicit for wxPanel but not for StaticBox, which derives
     // straight from wxWindow; without it MSW breaks the Tab chain between the two
@@ -5623,6 +5701,10 @@ void TextureImportDialog::apply_theme()
         m_lbl_caption_right->SetForegroundColour(caption_fg);
         m_lbl_caption_right->SetBackgroundColour(dialog_bg);
     }
+    if (m_hint_icon)
+        m_hint_icon->SetBackgroundColour(dialog_bg);
+    if (m_lbl_hint)
+        m_lbl_hint->SetBackgroundColour(dialog_bg);
 
     if (m_params_panel)
         m_params_panel->SetBackgroundColour(dialog_bg);
@@ -6270,6 +6352,9 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
         bool ok;
         if (cache_hit) {
             ok = Slic3r::cluster_from_repair_cache(result, worker_settings, progress_cb, cancel_cb);
+        } else if (mesh_copy.is_standard_3mf) {
+            ok = Slic3r::standard_3mf_colors_to_painting(
+                mesh_copy, result, worker_settings, progress_cb, cancel_cb);
         } else if (!mesh_copy.precomputed_face_colors.empty()) {
             ok = Slic3r::face_colors_to_painting(
                 mesh_copy, result, worker_settings, progress_cb, cancel_cb);
@@ -6463,7 +6548,7 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent& evt)
         canvas->set_face_colors(m_painted.face_colors);
     });
 
-    if (!m_original_preview_ready &&
+    if (!m_lock_original_vertex_preview && !m_original_preview_ready &&
         Slic3r::copy_prepared_mesh_from_cache(m_mesh_repair_cache, m_original_preview)) {
         m_original_preview_ready = true;
         m_original_color_count = (int)m_original_preview.cluster_colors.size();
