@@ -1349,7 +1349,8 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         }
 
         if (the_tray) {
-            the_tray->setting_id  = ams_setting_id;
+            the_tray->setting_id          = ams_filament_id;
+            the_tray->filament_setting_id = ams_setting_id;
             the_tray->m_fila_type = m_filament_type;
             the_tray->color       = tray_color;
             the_tray->cols        = tray_colors;

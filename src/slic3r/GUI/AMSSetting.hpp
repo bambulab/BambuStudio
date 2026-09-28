@@ -11,6 +11,8 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/CheckBox.hpp"
 
+#include <wx/timer.h>
+
 #include "slic3r/GUI/DeviceCore/DevFilaAmsSetting.h"
 
 #define AMS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
@@ -35,6 +37,7 @@ public:
 
 public:
     void UpdateByObj(MachineObject* obj);
+    bool Show(bool show = true) override;
 
 protected:
     void create();
@@ -60,8 +63,13 @@ protected:
     void on_filament_tab_auto_read_rfid(wxCommandEvent& event);
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
+    // Keeps the dialog's checkboxes in sync while it is open and the setting is
+    // changed on the printer (or another client) rather than in this dialog.
+    void OnRefreshTimer(wxTimerEvent& event);
+
 protected:
     MachineObject *m_obj{nullptr};
+    wxTimer*       m_refresh_timer{nullptr};
 
     wxStaticText* m_static_ams_settings = nullptr;
 

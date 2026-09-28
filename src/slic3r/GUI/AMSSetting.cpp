@@ -23,8 +23,41 @@ AMSSetting::AMSSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 {
     create();
     wxGetApp().UpdateDlgDarkUI(this);
+
+    m_refresh_timer = new wxTimer(this, wxID_ANY);
+    Bind(wxEVT_TIMER, &AMSSetting::OnRefreshTimer, this, m_refresh_timer->GetId());
 }
-AMSSetting::~AMSSetting() {}
+AMSSetting::~AMSSetting()
+{
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+        delete m_refresh_timer;
+        m_refresh_timer = nullptr;
+    }
+}
+
+bool AMSSetting::Show(bool show)
+{
+    if (m_refresh_timer) {
+        if (show) {
+            m_refresh_timer->Start(1000);
+        } else {
+            m_refresh_timer->Stop();
+        }
+    }
+    return DPIDialog::Show(show);
+}
+
+void AMSSetting::OnRefreshTimer(wxTimerEvent&)
+{
+    if (!IsShown()) return;
+
+    auto*          dev_mgr = wxGetApp().getDeviceManager();
+    MachineObject* obj     = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    if (obj == m_obj) {
+        UpdateByObj(obj);
+    }
+}
 
 void AMSSetting::create()
 {
@@ -442,7 +475,11 @@ void AMSSetting::update_insert_material_read_mode(MachineObject* obj)
 
 void AMSSetting::update_insert_material_read_mode(bool selected, std::string version)
 {
-    if (!version.empty() && version >= AMS_F1_SUPPORT_INSERTION_UPDATE_DEFAULT) {
+    bool hide_for_version = !version.empty() && version >= AMS_F1_SUPPORT_INSERTION_UPDATE_DEFAULT;
+    bool state_changed;
+
+    if (hide_for_version) {
+        state_changed = m_panel_Insert_material->IsShown();
         m_checkbox_Insert_material_auto_read->SetValue(true);
         m_checkbox_Insert_material_auto_read->Hide();
         m_title_Insert_material_auto_read->Hide();
@@ -452,6 +489,8 @@ void AMSSetting::update_insert_material_read_mode(bool selected, std::string ver
         m_panel_Insert_material->Hide();
     }
     else {
+        state_changed = !m_panel_Insert_material->IsShown() ||
+                         m_checkbox_Insert_material_auto_read->GetValue() != selected;
         m_panel_Insert_material->Show();
         m_checkbox_Insert_material_auto_read->SetValue(selected);
         m_checkbox_Insert_material_auto_read->Show();
@@ -467,6 +506,10 @@ void AMSSetting::update_insert_material_read_mode(bool selected, std::string ver
             m_tip_Insert_material_line3->Show();
         }
     }
+
+    if (!state_changed)
+        return;
+
     m_panel_Insert_material->Layout();
     m_sizer_Insert_material_tip_inline->Layout();
     Layout();
@@ -483,10 +526,12 @@ void AMSSetting::update_ams_img(MachineObject* obj_)
     if (print_jj.contains("support_ams_settings_hide_image") && DevJsonValParser::GetVal<bool>(print_jj, "support_ams_settings_hide_image", false)) {
         // Hide the whole image panel; hiding only m_am_img leaves an empty grey
         // panel that still fills the remaining space (added with proportion 1).
-        m_am_img->Hide();
-        m_panel_img->Hide();
-        Layout();
-        Fit();
+        if (m_panel_img->IsShown()) {
+            m_am_img->Hide();
+            m_panel_img->Hide();
+            Layout();
+            Fit();
+        }
         return;
     }
 
@@ -514,11 +559,16 @@ void AMSSetting::update_ams_img(MachineObject* obj_)
 void AMSSetting::update_starting_read_mode(bool selected)
 {
     if (should_hide_insert_power_settings(m_obj)) {
-        m_panel_starting->Show(false);
-        Layout();
-        Fit();
+        if (m_panel_starting->IsShown()) {
+            m_panel_starting->Show(false);
+            Layout();
+            Fit();
+        }
         return;
     }
+
+    bool state_changed = !m_panel_starting->IsShown() ||
+                          m_checkbox_starting_auto_read->GetValue() != selected;
 
     m_panel_starting->Show(true);
 
@@ -530,6 +580,10 @@ void AMSSetting::update_starting_read_mode(bool selected)
         m_tip_starting_line1->Hide();
         m_tip_starting_line2->Show();
     }
+
+    if (!state_changed)
+        return;
+
     m_sizer_starting_tip_inline->Layout();
     Layout();
     Fit();

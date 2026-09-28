@@ -90,7 +90,8 @@ void wgtFilaManagerSync::calibrate_pending_badges(MachineObject* obj)
 void wgtFilaManagerSync::check_and_register_new_rfid_spools(MachineObject* obj)
 {
     if (!obj || !m_store) return;
-
+    // automatic filament record is disabled temporarily in LAN mode because the cloud is not supported
+    if (obj->is_lan_mode_printer()) return;
     auto* disp = wxGetApp().fila_manager_cloud_disp();
     const bool pull_ready = !disp || (!disp->last_synced_at().empty() && !disp->is_pulling());
     if (!pull_ready) return;
