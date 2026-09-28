@@ -80,6 +80,7 @@ class UserManager;
 class DeviceManager;
 class NetworkAgent;
 class TaskManager;
+class DiscordPresence;
 
 namespace GUI{
 
@@ -331,6 +332,7 @@ private:
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
 	std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
     std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
+    std::unique_ptr<Slic3r::DiscordPresence> m_discord_presence;
     std::string m_instance_hash_string;
 	size_t m_instance_hash_int;
 
@@ -403,6 +405,10 @@ public:
     bool confirm_mesh_paint_warning();
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
+    // Discord Rich Presence. apply_* reads the preference and starts or stops
+    // the publisher; update_* pushes the current state and is driven from idle.
+    void                   apply_discord_presence_setting();
+    void                   update_discord_presence();
     bool                   is_blocking_printing(MachineObject *obj_ = nullptr);
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     wgtFilaManagerStore*            fila_manager_store()        { return m_fila_manager_store; }
