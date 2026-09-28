@@ -6112,6 +6112,34 @@ void Sidebar::delete_mixed_filament_at(size_t panel_idx)
     delete_filament(cfg_idx, -1);
 }
 
+// Show CMYK+W decomposition result and AMS setup instructions.
+static void show_cmykw_ams_setup(wxWindow* parent, const ColorDecomposeResult& result,
+                                  const wxColour& target_color)
+{
+    static const struct { const char* label; } SLOTS[5] = {
+        {"Cyan    (AMS slot 1)"},
+        {"Magenta (AMS slot 2)"},
+        {"Yellow  (AMS slot 3)"},
+        {"Black   (AMS slot 4)"},
+        {"White   (AMS slot 5)"},
+    };
+
+    wxString info;
+    info += wxString::Format(_L("Target color: %s\n\n"), target_color.GetAsString(wxC2S_HTML_SYNTAX));
+    info += _L("CMYK+W channel mix (layer dithering ratios):\n\n");
+    for (size_t i = 0; i < result.components.size() && i < 5; ++i) {
+        const int pct = result.components[i].ratio;
+        if (pct > 0)
+            info += wxString::Format("  %s : %d%%\n", SLOTS[i].label, pct);
+    }
+    info += _L("\nLoad these 5 filaments into your AMS in the order above, then\n"
+               "generate the layer-dithered print file with the Real 3D Print CLI:\n\n");
+    info += wxString::Format("  python real3dprint/main.py %s --3mf swatch.3mf",
+                             target_color.GetAsString(wxC2S_HTML_SYNTAX));
+
+    wxMessageBox(info, _L("CMYK+W Print Setup"), wxOK | wxICON_INFORMATION, parent);
+}
+
 void Sidebar::decompose_filament_color(int filament_idx)
 {
     if (filament_idx == kSidebarContextMenuFilamentId)
@@ -6166,8 +6194,11 @@ void Sidebar::decompose_filament_color(int filament_idx)
         MixedFilamentResult mixed_result;
         std::vector<DecomposeMissingComponent> missing_components;
         if (!prepare_decompose_mixed_result(dialog_result, static_cast<size_t>(filament_idx), source_physical_idx,
-                                            color_strs, decompose_types, physical_config_indices, mixed_result, missing_components))
+                                            color_strs, decompose_types, physical_config_indices, mixed_result, missing_components)) {
+            if (dialog_result.mode == DecomposeMode::CMYKW)
+                show_cmykw_ams_setup(this, dialog_result, target_color);
             return;
+        }
 
         if (!confirm_create_decompose_missing_components(this, missing_components))
             return;
