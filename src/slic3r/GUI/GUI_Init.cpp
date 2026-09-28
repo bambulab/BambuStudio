@@ -1,6 +1,7 @@
 #include "GUI_Init.hpp"
 
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/PerfTrace.hpp"
 
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -39,8 +40,12 @@ int GUI_Run(GUI_InitParams &params)
 
     //BBS: remove the try-catch and let exception goto above
     try {
-        //GUI::GUI_App* gui = new GUI::GUI_App(params.start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
-        GUI::GUI_App* gui = new GUI::GUI_App();
+        GUI::GUI_App* gui = nullptr;
+        {
+            PERF_TRACE("startup.create_gui_app");
+            //GUI::GUI_App* gui = new GUI::GUI_App(params.start_as_gcodeviewer ? GUI::GUI_App::EAppMode::GCodeViewer : GUI::GUI_App::EAppMode::Editor);
+            gui = new GUI::GUI_App();
+        }
         //if (gui->get_app_mode() != GUI::GUI_App::EAppMode::GCodeViewer) {
             // G-code viewer is currently not performing instance check, a new G-code viewer is started every time.
             bool gui_single_instance_setting = gui->app_config->get("app", "single_instance") == "true";
@@ -54,6 +59,9 @@ int GUI_Run(GUI_InitParams &params)
         GUI::GUI_App::SetInstance(gui);
         gui->init_params = &params;
 
+        // wxEntry blocks until the app exits; its cost covers OnInit + main loop lifetime.
+        // Stage breakdown inside OnInit is logged separately under startup.* names.
+        perf_mark("startup.wxEntry enter");
         if (params.argc > 1) {
             // STUDIO-273 wxWidgets report error when opening some files with specific names
             // wxWidgets does not handle parameters, so intercept parameters here, only keep the app name

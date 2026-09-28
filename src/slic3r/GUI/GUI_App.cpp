@@ -1182,6 +1182,7 @@ std::string extract_model_download_url_from_mac(const std::string &protocol_url)
 
 void GUI_App::post_init()
 {
+    PERF_TRACE("startup.post_init");
     assert(initialized());
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
@@ -1281,7 +1282,8 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << "slow bootup, won't render gl here.";
     }
     if (!switch_to_3d) {
-        BOOST_LOG_TRIVIAL(info) << "begin load_gl_resources";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", begin load_gl_resources";
+        PERF_TRACE("startup.load_gl_resources");
         mainframe->Freeze();
         plater_->canvas3D()->enable_render(false);
         mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -1292,11 +1294,17 @@ void GUI_App::post_init()
 //#endif
             Size canvas_size = plater_->canvas3D()->get_canvas_size();
             wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
-            BOOST_LOG_TRIVIAL(info) << "start to init opengl";
-            wxGetApp().init_opengl();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
+            {
+                PERF_TRACE("startup.init_opengl");
+                wxGetApp().init_opengl();
+            }
 
-            BOOST_LOG_TRIVIAL(info) << "finished init opengl";
-            plater_->canvas3D()->init();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init opengl";
+            {
+                PERF_TRACE("startup.init_canvas3D");
+                plater_->canvas3D()->init();
+            }
 
             BOOST_LOG_TRIVIAL(info) << "finished init canvas3D";
             wxGetApp().imgui()->new_frame();
@@ -1305,9 +1313,12 @@ void GUI_App::post_init()
             plater_->canvas3D()->enable_render(true);
 
             if (!slow_bootup) {
-                BOOST_LOG_TRIVIAL(info) << "start to render a first frame for test";
-                plater_->canvas3D()->render(false);
-                BOOST_LOG_TRIVIAL(info) << "finished rendering a first frame for test";
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
+                {
+                    PERF_TRACE("startup.first_frame_render");
+                    plater_->canvas3D()->render(false);
+                }
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
             }
 //#ifdef __linux__
         }
@@ -1502,6 +1513,7 @@ void GUI_App::post_init()
         }
     }
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
+    perf_mark("startup.post_init done");
 #ifdef _WIN32
     // Sets window property to mainframe so other instances can indentify it.
     OtherInstanceMessageHandler::init_windows_properties(mainframe, m_instance_hash_int);
@@ -1528,8 +1540,11 @@ GUI_App::GUI_App()
 {
     perf_mark("Application started");
 
+    {
+        PERF_TRACE("startup.init_app_config");
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
+    }
     this->init_download_path();
 
 #if defined(__WXOSX__)
@@ -3187,7 +3202,7 @@ std::string get_system_info()
 
 bool GUI_App::on_init_inner()
 {
-    PERF_TRACE("Initializing application");
+    PERF_TRACE("startup.on_init_inner");
     wxLog::SetActiveTarget(new wxBoostLog());
     set_severity_level(app_config->get("severity_level"));
 
@@ -3339,7 +3354,10 @@ bool GUI_App::on_init_inner()
     // Like here, before the show InfoDialog in check_older_app_config()
 
     // If load_language() fails, the application closes.
-    load_language(wxString(), true);
+    {
+        PERF_TRACE("startup.load_language_and_theme");
+        load_language(wxString(), true);
+    }
 #ifdef _MSW_DARK_MODE
 
 #ifndef __WINDOWS__
@@ -3371,10 +3389,11 @@ bool GUI_App::on_init_inner()
         //update_label_colours_from_appconfig();
     }
     if (bool new_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
-        init_sys_menu_enabled != new_sys_menu_enabled)
+        init_sys_menu_enabled != new_sys_menu_enabled) {
 #ifdef __WINDOWS__
         NppDarkMode::SetSystemMenuForApp(new_sys_menu_enabled);
 #endif
+    }
 #endif
 
     if (m_last_config_version) {
@@ -3422,6 +3441,7 @@ bool GUI_App::on_init_inner()
     });
     const bool show_splash_screen = true;
     if (show_splash_screen) {
+        PERF_TRACE("startup.show_splash");
         // make a bitmap with dark grey banner on the left side
         //BBS make BBL splash screen bitmap
         wxBitmap bmp = BBLSplashScreen::MakeBitmap();
@@ -3452,11 +3472,14 @@ bool GUI_App::on_init_inner()
     }
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
-    preset_bundle = new PresetBundle();
+    {
+        PERF_TRACE("startup.create_preset_bundle");
+        preset_bundle = new PresetBundle();
 
-    // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
-    // supplied as argument to --datadir; in that case we should still run the wizard
-    preset_bundle->setup_directories();
+        // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
+        // supplied as argument to --datadir; in that case we should still run the wizard
+        preset_bundle->setup_directories();
+    }
 
 
     if (m_init_app_config_from_older)
@@ -3587,8 +3610,11 @@ bool GUI_App::on_init_inner()
     std::map<std::string, std::string> extra_headers = get_extra_header();
     Slic3r::Http::set_extra_headers(extra_headers);
 
-    copy_network_if_available();
-    on_init_network();
+    {
+        PERF_TRACE("startup.init_network");
+        copy_network_if_available();
+        on_init_network();
+    }
 
     if (m_agent && m_agent->is_user_login()) {
         enable_user_preset_folder(true);
@@ -3603,7 +3629,10 @@ bool GUI_App::on_init_inner()
             // If there are substitutions in system profiles, then a "reconfigure" event shall be triggered, which will force
             // installation of a compatible system preset, thus nullifying the system preset substitutions.
             std::string errors_cummulative;
-            std::tie(init_params->preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
+            {
+                PERF_TRACE("startup.load_presets");
+                std::tie(init_params->preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
+            }
             if (!errors_cummulative.empty())
                 show_error(nullptr, errors_cummulative);
             // AppConfig-restored filament colors may predate the JSON primary-color alignment
@@ -3636,6 +3665,7 @@ bool GUI_App::on_init_inner()
     if (m_disable_fila_manager) {
         BOOST_LOG_TRIVIAL(info) << "Filament Manager disabled by " << FilaManagerEnabledConfigKey;
     } else {
+        PERF_TRACE("startup.init_filament_manager");
         // Initialize Filament Manager store & sync
         if (!m_fila_manager_store) {
             m_fila_manager_store = new wgtFilaManagerStore();
@@ -3663,7 +3693,10 @@ bool GUI_App::on_init_inner()
     }
 
     BOOST_LOG_TRIVIAL(info) << "create the main window";
-    mainframe = new MainFrame();
+    {
+        PERF_TRACE("startup.create_mainframe");
+        mainframe = new MainFrame();
+    }
     // hide settings tabs after first Layout
     if (is_editor()) {
         mainframe->select_tab(size_t(0));
@@ -3802,6 +3835,7 @@ bool GUI_App::on_init_inner()
     flush_logs();
 
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
+    perf_mark("startup.on_init_inner done");
     return true;
 }
 
@@ -8178,7 +8212,7 @@ bool GUI_App::checked_tab(Tab* tab)
 //BBS: add preset combo box re-activate logic
 void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool check_printer_presets_ /*= true*/)
 {
-    PERF_TRACE("Loading presets");
+    PERF_TRACE("startup.load_current_presets");
 
     // check printer_presets for the containing information about "Print Host upload"
     // and create physical printer from it, if any exists

@@ -230,7 +230,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     , m_settings_dialog(this)
     , diff_dialog(this)
 {
-    PERF_TRACE("Creating main window");
+    PERF_TRACE("startup.creating_main_window");
 
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
@@ -325,11 +325,17 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     SetIcon(main_frame_icon(wxGetApp().get_app_mode()));
 
     // initialize tabpanel and menubar
-    init_tabpanel();
-    if (wxGetApp().is_gcode_viewer())
-        init_menubar_as_gcodeviewer();
-    else
-        init_menubar_as_editor();
+    {
+        PERF_TRACE("startup.mainframe.init_tabpanel");
+        init_tabpanel();
+    }
+    {
+        PERF_TRACE("startup.mainframe.menubar");
+        if (wxGetApp().is_gcode_viewer())
+            init_menubar_as_gcodeviewer();
+        else
+            init_menubar_as_editor();
+    }
 
     // BBS
 #if 0
@@ -1354,15 +1360,18 @@ void MainFrame::init_tabpanel()
     // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
     // with multiple high resolution displays connected.
    // BBS
-    wxBoxSizer* side_tools = create_side_tools();
-    m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
-    m_tabpanel->SetBackgroundColour(*wxWHITE);
+    {
+        PERF_TRACE("startup.mainframe.notebook");
+        wxBoxSizer* side_tools = create_side_tools();
+        m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+        m_tabpanel->SetBackgroundColour(*wxWHITE);
 
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
-    m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+        m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 #endif
-    m_tabpanel->Hide();
-    m_settings_dialog.set_tabpanel(m_tabpanel);
+        m_tabpanel->Hide();
+        m_settings_dialog.set_tabpanel(m_tabpanel);
+    }
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
         int old_sel = e.GetOldSelection();
@@ -1546,59 +1555,86 @@ void MainFrame::init_tabpanel()
     });
 
     if (wxGetApp().is_editor()) {
-        m_webview = new WebViewPanel(m_tabpanel);
-        Bind(EVT_LOAD_URL, [this](wxCommandEvent &evt) {
-            wxString url = evt.GetString();
-            select_tab(MainFrame::tpHome);
-            m_webview->load_url(url);
-        });
-        m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_active", false);
-        m_tabpanel->SetPageToolTip(tpHome, _L("Home"));
-        m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+        {
+            PERF_TRACE("startup.mainframe.webview_home");
+            m_webview = new WebViewPanel(m_tabpanel);
+            Bind(EVT_LOAD_URL, [this](wxCommandEvent &evt) {
+                wxString url = evt.GetString();
+                select_tab(MainFrame::tpHome);
+                m_webview->load_url(url);
+            });
+            m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_active", false);
+            m_tabpanel->SetPageToolTip(tpHome, _L("Home"));
+        }
+        {
+            PERF_TRACE("startup.mainframe.params_panel");
+            m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+        }
     }
 
-    m_plater = new Plater(this, this);
-    m_plater->SetBackgroundColour(*wxWHITE);
-    m_plater->Hide();
+    {
+        PERF_TRACE("startup.mainframe.plater");
+        m_plater = new Plater(this, this);
+        m_plater->SetBackgroundColour(*wxWHITE);
+        m_plater->Hide();
 
-    wxGetApp().plater_ = m_plater;
+        wxGetApp().plater_ = m_plater;
+    }
 
-    create_preset_tabs();
+    {
+        PERF_TRACE("startup.mainframe.preset_tabs");
+        create_preset_tabs();
+    }
 
         //BBS add pages
-    m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_monitor->SetBackgroundColour(*wxWHITE);
-    m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
+    {
+        PERF_TRACE("startup.mainframe.monitor");
+        m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_monitor->SetBackgroundColour(*wxWHITE);
+        m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
+    }
 
-    m_printer_view = new PrinterWebView(m_tabpanel);
-    Bind(EVT_LOAD_PRINTER_URL, [this](wxCommandEvent &evt) {
-        wxString url = evt.GetString();
-        //select_tab(MainFrame::tpMonitor);
-        m_printer_view->load_url(url);
-    });
-    m_printer_view->Hide();
+    {
+        PERF_TRACE("startup.mainframe.printer_view");
+        m_printer_view = new PrinterWebView(m_tabpanel);
+        Bind(EVT_LOAD_PRINTER_URL, [this](wxCommandEvent &evt) {
+            wxString url = evt.GetString();
+            //select_tab(MainFrame::tpMonitor);
+            m_printer_view->load_url(url);
+        });
+        m_printer_view->Hide();
+    }
 
     if (wxGetApp().is_enable_multi_machine()) {
+        PERF_TRACE("startup.mainframe.multi_machine");
         m_multi_machine = new MultiMachinePage(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         m_multi_machine->SetBackgroundColour(*wxWHITE);
         // TODO: change the bitmap
         m_tabpanel->AddPage(m_multi_machine, _L("Multi-device"), std::string("tab_multi_active"), std::string("tab_multi_active"), false);
     }
 
-    m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_project->SetBackgroundColour(*wxWHITE);
-    m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"), false);
+    {
+        PERF_TRACE("startup.mainframe.project_panel");
+        m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_project->SetBackgroundColour(*wxWHITE);
+        m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"), false);
+    }
 
-    m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_calibration->SetBackgroundColour(*wxWHITE);
-    m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
+    {
+        PERF_TRACE("startup.mainframe.calibration_panel");
+        m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        m_calibration->SetBackgroundColour(*wxWHITE);
+        m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
+    }
 
     if (!wxGetApp().is_fila_manager_disabled()) {
+        PERF_TRACE("startup.mainframe.filament_manager_page");
         m_web_device = new DeviceWebPage(m_tabpanel);
         m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
     }
 
     if (m_plater) {
+        PERF_TRACE("startup.mainframe.plater_on_config_change");
         // load initial config
         auto full_config = wxGetApp().preset_bundle->full_config();
         m_plater->on_config_change(full_config);
@@ -4999,6 +5035,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
 //        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX, "settings_dialog"),
     m_main_frame(mainframe)
 {
+    PERF_TRACE("startup.settings_dialog.ctor");
     if (wxGetApp().is_gcode_viewer())
         return;
 

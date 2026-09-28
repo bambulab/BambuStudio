@@ -1,6 +1,7 @@
 #include "Tab.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/PerfTrace.hpp"
 
 #include <wx/app.h>
 #include <wx/button.h>
@@ -105,9 +106,13 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     : wxPanel(parent, id, pos, size, style),
     m_select_machine(SelectMachinePopup(this))
 {
+    PERF_TRACE("startup.monitor.ctor");
     init_bitmap();
 
-    init_tabpanel();
+    {
+        PERF_TRACE("startup.monitor.init_tabpanel");
+        init_tabpanel();
+    }
 
     m_main_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxLEFT, 0);
@@ -198,24 +203,33 @@ void MonitorPanel::init_tabpanel()
         }, m_tabpanel->GetId());
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
-    m_status_info_panel        = new StatusPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
+    {
+        PERF_TRACE("startup.monitor.status_panel");
+        m_status_info_panel        = new StatusPanel(m_tabpanel);
+        m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
+    }
 
 #if STUDIO_ENABLE_PRINT_QUENE
-    m_print_queue_panel = new DeviceWebHost(m_tabpanel, DeviceWebHostMode::PrintQueue,
-                                            "/device_page/print_queue", true);
-    m_tabpanel->AddPage(m_print_queue_panel, _L("Print queue"), "", false);
+    {
+        PERF_TRACE("startup.monitor.print_queue");
+        m_print_queue_panel = new DeviceWebHost(m_tabpanel, DeviceWebHostMode::PrintQueue,
+                                                "/device_page/print_queue", true);
+        m_tabpanel->AddPage(m_print_queue_panel, _L("Print queue"), "", false);
+    }
 #endif
 
-    m_media_file_panel = new MediaFilePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), "", false);
-    //m_tabpanel->AddPage(m_media_file_panel, _L("Internal Storage"), "", false);
+    {
+        PERF_TRACE("startup.monitor.media_upgrade_hms");
+        m_media_file_panel = new MediaFilePanel(m_tabpanel);
+        m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), "", false);
+        //m_tabpanel->AddPage(m_media_file_panel, _L("Internal Storage"), "", false);
 
-    m_upgrade_panel = new UpgradePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_upgrade_panel, _CTX(L_CONTEXT("Update", "Firmware"), "Firmware"), "", false);
+        m_upgrade_panel = new UpgradePanel(m_tabpanel);
+        m_tabpanel->AddPage(m_upgrade_panel, _CTX(L_CONTEXT("Update", "Firmware"), "Firmware"), "", false);
 
-    m_hms_panel = new HMSPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    "", false);
+        m_hms_panel = new HMSPanel(m_tabpanel);
+        m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    "", false);
+    }
 
     m_initialized = true;
     show_status((int)MonitorStatus::MONITOR_NO_PRINTER);

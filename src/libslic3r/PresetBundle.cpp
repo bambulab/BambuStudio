@@ -12,6 +12,8 @@
 #include "SupportRecommendedParams.hpp"
 #include "format.hpp"
 
+#include "PerfTrace.hpp"
+
 #include <algorithm>
 #include <atomic>
 #include <set>
@@ -556,6 +558,7 @@ void PresetBundle::copy_files(const std::string& from)
 std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule substitution_rule,
                                                       const PresetPreferences& preferred_selection/* = PresetPreferences()*/)
 {
+    PERF_TRACE("startup.preset_bundle.load_presets");
     // First load the vendor specific system presets.
     PresetsConfigSubstitutions substitutions;
     std::string errors_cummulative;
@@ -563,26 +566,35 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_presets(Ap
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << boost::format("enter, substitution_rule %1%, preferred printer_model_id %2%")%substitution_rule%preferred_selection.printer_model_id;
     //BBS: change system config to json
-    std::tie(substitutions, errors_cummulative) = this->load_system_presets_from_json(substitution_rule);
+    {
+        PERF_TRACE("startup.preset_bundle.load_system");
+        std::tie(substitutions, errors_cummulative) = this->load_system_presets_from_json(substitution_rule);
+    }
 
     // BBS load preset from user's folder, load system default if
     // BBS: change directories by design
-    std::string dir_user_presets = config.get("preset_folder");
-    if (dir_user_presets.empty()) {
-        load_user_presets(DEFAULT_USER_FOLDER_NAME, substitution_rule);
-    } else {
-        load_user_presets(dir_user_presets, substitution_rule);
+    {
+        PERF_TRACE("startup.preset_bundle.load_user");
+        std::string dir_user_presets = config.get("preset_folder");
+        if (dir_user_presets.empty()) {
+            load_user_presets(DEFAULT_USER_FOLDER_NAME, substitution_rule);
+        } else {
+            load_user_presets(dir_user_presets, substitution_rule);
+        }
     }
 
-    this->update_multi_material_filament_presets();
-    this->update_compatible(PresetSelectCompatibleType::Never);
+    {
+        PERF_TRACE("startup.preset_bundle.update_and_select");
+        this->update_multi_material_filament_presets();
+        this->update_compatible(PresetSelectCompatibleType::Never);
 
-    this->load_selections(config, preferred_selection);
+        this->load_selections(config, preferred_selection);
 
-    set_calibrate_printer("");
+        set_calibrate_printer("");
 
-    // Load support recommended params from JSON
-    load_support_recommended_params();
+        // Load support recommended params from JSON
+        load_support_recommended_params();
+    }
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << boost::format("finished, returned substitutions %1%")%substitutions.size();

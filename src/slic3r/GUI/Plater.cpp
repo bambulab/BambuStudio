@@ -10592,6 +10592,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
 {
+    PERF_TRACE("startup.plater.priv");
     m_is_dark = wxGetApp().app_config->get_bool("dark_color_mode");
     m_aui_mgr.SetManagedWindow(q);
     m_aui_mgr.SetDockSizeConstraint(1, 1);
@@ -10667,13 +10668,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     main_frame->m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, &priv::on_tab_selection_changing, this);
 
-    auto *panel_3d = new wxPanel(q);
-    view3D         = new View3D(panel_3d, bed, &model, config, &background_process);
-    partplate_list.set_bed3d(&bed);
-    //BBS: use partplater's gcode
-    preview = new Preview(panel_3d, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
+    {
+        PERF_TRACE("startup.plater.views");
+        auto *panel_3d = new wxPanel(q);
+        view3D         = new View3D(panel_3d, bed, &model, config, &background_process);
+        partplate_list.set_bed3d(&bed);
+        //BBS: use partplater's gcode
+        preview = new Preview(panel_3d, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
 
-    assemble_view = new AssembleView(panel_3d, bed, &model, config, &background_process);
+        assemble_view = new AssembleView(panel_3d, bed, &model, config, &background_process);
 
 #ifdef __APPLE__
     // BBS
@@ -10681,36 +10684,37 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //view_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size);
 #endif // __APPLE__
 
-    panels.push_back(view3D);
-    panels.push_back(preview);
-    panels.push_back(assemble_view);
+        panels.push_back(view3D);
+        panels.push_back(preview);
+        panels.push_back(assemble_view);
 
-    this->background_process_timer.SetOwner(this->q, 0);
-    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt)
-    {
-        if (!this->suppressed_backround_processing_update)
-            this->update_restart_background_process(false, false);
-    });
+        this->background_process_timer.SetOwner(this->q, 0);
+        this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt)
+        {
+            if (!this->suppressed_backround_processing_update)
+                this->update_restart_background_process(false, false);
+        });
 
-    update();
-    // Orca: Make sidebar dockable
-    m_aui_mgr.AddPane(sidebar, wxAuiPaneInfo()
-                                   .Name("sidebar")
-                                   .Left()
-                                   .CloseButton(false)
-                                   .TopDockable(false)
-                                   .BottomDockable(false)
-                                   .Floatable(wxGetApp().app_config->get_bool("enable_sidebar_floatable"))
-                                   .Resizable(true)
-                                   .MinSize(wxSize(sidebar->min_width(), 90 * wxGetApp().em_unit()))
-                                   .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));
+        update();
+        // Orca: Make sidebar dockable
+        m_aui_mgr.AddPane(sidebar, wxAuiPaneInfo()
+                                       .Name("sidebar")
+                                       .Left()
+                                       .CloseButton(false)
+                                       .TopDockable(false)
+                                       .BottomDockable(false)
+                                       .Floatable(wxGetApp().app_config->get_bool("enable_sidebar_floatable"))
+                                       .Resizable(true)
+                                       .MinSize(wxSize(sidebar->min_width(), 90 * wxGetApp().em_unit()))
+                                       .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));
 
-    auto *panel_sizer = new wxBoxSizer(wxHORIZONTAL);
-    panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
-    panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
-    panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
-    panel_3d->SetSizer(panel_sizer);
-    m_aui_mgr.AddPane(panel_3d, wxAuiPaneInfo().Name("main").CenterPane().PaneBorder(false));
+        auto *panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+        panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
+        panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
+        panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
+        panel_3d->SetSizer(panel_sizer);
+        m_aui_mgr.AddPane(panel_3d, wxAuiPaneInfo().Name("main").CenterPane().PaneBorder(false));
+    }
 
     m_default_window_layout = m_aui_mgr.SavePerspective();
     {
@@ -10999,7 +11003,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     apply_color_mode();
 
-    set_current_panel(wxGetApp().is_editor() ? static_cast<wxPanel*>(view3D) : static_cast<wxPanel*>(preview));
+    {
+        PERF_TRACE("startup.plater.set_current_panel");
+        set_current_panel(wxGetApp().is_editor() ? static_cast<wxPanel*>(view3D) : static_cast<wxPanel*>(preview));
+    }
 
     // updates camera type from .ini file
     camera.enable_update_config_on_type_change(true);

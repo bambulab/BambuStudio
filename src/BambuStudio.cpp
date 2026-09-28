@@ -62,6 +62,7 @@ using namespace nlohmann;
 #include "libslic3r/Format/OBJ.hpp"
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/PerfTrace.hpp"
 #include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
@@ -1666,6 +1667,9 @@ int CLI::run(int argc, char **argv)
     // Save the thread ID of the main thread.
     save_main_thread_id();
 
+    // Epoch for [perf] startup stage timing (filter logs with "[perf]").
+    perf_startup_begin("startup.cli_run");
+
 #ifdef __WXGTK__
     // On Linux, wxGTK has no support for Wayland, and the app crashes on
     // startup if gtk3 is used. This env var has to be set explicitly to
@@ -1722,7 +1726,12 @@ int CLI::run(int argc, char **argv)
     int debug_argc = sizeof(debug_argv) / sizeof(debug_argv[0]);
     if (!this->setup(debug_argc, debug_argv))
 #else
-    if (!this->setup(argc, argv))
+    bool cli_setup_ok = false;
+    {
+        PERF_TRACE("startup.cli_setup");
+        cli_setup_ok = this->setup(argc, argv);
+    }
+    if (!cli_setup_ok)
 #endif
     {
         boost::nowide::cerr << "setup params error" << std::endl;
@@ -1823,6 +1832,7 @@ int CLI::run(int argc, char **argv)
         //params.start_as_gcodeviewer = start_as_gcodeviewer;
 
         BOOST_LOG_TRIVIAL(info) << "begin to launch BambuStudio GUI soon";
+        perf_mark("startup.gui_run enter");
         return Slic3r::GUI::GUI_Run(params);
 #else // SLIC3R_GUI
         // No GUI support. Just print out a help.

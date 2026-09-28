@@ -6,14 +6,23 @@
 namespace Slic3r {
 
 // Lightweight performance tracing for startup / UI flows.
+//
+// Log format:
+//   [perf] +<ms since startup>ms <label>
+//   [perf] +<ms since startup>ms <name> begin
+//   [perf] +<ms since startup>ms <name> cost <N> ms
+//
+// Filter logs with: [perf]
+
+// Reset the startup epoch (call once near process entry, e.g. CLI::run).
+void perf_startup_begin(const std::string &label = "startup");
 
 // Log a one-shot marker for the current moment:
-//   [perf] <label>
+//   [perf] +Xms <label>
 // For timing a scope, use the PERF_TRACE macro instead.
 void perf_mark(const std::string &label);
 
-// RAII scope timer. Logs the elapsed time when the scope exits:
-//   [perf] <name> cost <N> ms
+// RAII scope timer. Logs begin on construct and elapsed time on scope exit.
 // Pass enabled == false to make the timer a no-op, so a call path that also runs
 // on a hot/periodic flow (e.g. the 10 s auto-backup save) does not spam the log.
 // Prefer the PERF_TRACE / PERF_TRACE_IF macros over constructing this directly.
