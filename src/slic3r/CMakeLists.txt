@@ -695,6 +695,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Process.hpp
     Utils/RaycastManager.cpp
     Utils/RaycastManager.hpp
+    Utils/OBB.cpp
+    Utils/OBB.hpp
     Utils/Profile.hpp
     Utils/UndoRedo.cpp
     Utils/UndoRedo.hpp
