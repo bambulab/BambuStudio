@@ -3152,6 +3152,8 @@ bool GUI_App::on_init_inner()
     wxLog::SetActiveTarget(new wxBoostLog());
     set_severity_level(app_config->get("severity_level"));
 
+    hms_query_mgr->start_bundle_sync();
+
     //set preset text
     auto preset_path = fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR;
     m_install_preset_fail_text = wxString::Format(_L("Failed to install preset files to %s.\nPlease make sure Bambu Studio has permission to delete and write in this directory,\nand it is not being occupied by the system or other applications."), preset_path.string());
