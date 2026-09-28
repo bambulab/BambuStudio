@@ -16,6 +16,8 @@ if (MSVC)
             COMMAND ${CMAKE_COMMAND} -E copy_directory  "${_source_dir}/bin" "${_dstdir}/bin"
             COMMAND ${CMAKE_COMMAND} -E copy_directory  "${_source_dir}/lib" "${_dstdir}/lib"
             COMMAND ${CMAKE_COMMAND} -E copy_directory  "${_source_dir}/include" "${_dstdir}/include"
+            # The archive's .pc files point at ./dist; see fix_pkgconfig_prefix.cmake.
+            COMMAND ${CMAKE_COMMAND} -D "PC_DIR=${_dstdir}/lib/pkgconfig" -D "PREFIX=${_dstdir}" -P "${CMAKE_CURRENT_LIST_DIR}/fix_pkgconfig_prefix.cmake"
     )
 
 else ()
