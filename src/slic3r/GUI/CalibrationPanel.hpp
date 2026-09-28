@@ -97,7 +97,7 @@ class CalibrationPanel : public wxPanel
 public:
     CalibrationPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~CalibrationPanel();
-    Tabbook* get_tabpanel() { return m_tabpanel; };
+    Tabbook* get_tabpanel();
     void update_print_error_info(int code, std::string msg, std::string extra);
     void update_all();
     void show_status(int status);
@@ -107,8 +107,13 @@ public:
     void msw_rescale();
     void on_sys_color_changed();
 protected:
+    // Build tabbook + wizards on first use (empty shell is cheap at MainFrame init).
+    void ensure_content();
     void init_tabpanel();
     void init_timer();
+    // Start the refresh timer and select the current machine.
+    // shown == false stops the timer (deferred Show arrived after the page was hidden).
+    void resume_on_show(bool shown);
     void on_timer(wxTimerEvent& event);
 
 
@@ -120,7 +125,7 @@ protected:
     SideTools*              m_side_tools{ nullptr };
     Tabbook*                m_tabpanel{ nullptr };
     SelectMObjectPopup      m_mobjectlist_popup;
-    CalibrationWizard*      m_cali_panels[CALI_MODE_COUNT];
+    CalibrationWizard*      m_cali_panels[CALI_MODE_COUNT]{ nullptr };
     wxTimer*                m_refresh_timer = nullptr;
 };
 }} // namespace Slic3r::GUI

@@ -1,6 +1,8 @@
 #ifndef slic3r_GUI_CalibrationWizard_hpp_
 #define slic3r_GUI_CalibrationWizard_hpp_
 
+#include <functional>
+
 #include "../slic3r/Utils/CalibUtils.hpp"
 
 #include "DeviceManager.hpp"
@@ -16,10 +18,13 @@ namespace Slic3r { namespace GUI {
 class CalibrationWizardPageStep
 {
 public:
-    CalibrationWizardPageStep(CalibrationWizardPage* data) {
-        page = data;
-    }
+    using PageFactory = std::function<CalibrationWizardPage*()>;
 
+    CalibrationWizardPageStep() = default;
+    explicit CalibrationWizardPageStep(CalibrationWizardPage* data) : page(data) {}
+    explicit CalibrationWizardPageStep(PageFactory factory) : m_factory(std::move(factory)) {}
+
+    PageFactory                m_factory;
     CalibrationWizardPageStep* prev { nullptr };
     CalibrationWizardPageStep* next { nullptr };
     CalibrationWizardPage*     page { nullptr };
@@ -79,6 +84,11 @@ public:
 protected:
     void on_cali_go_home();
 
+    // Lazily construct the page for a step (factory-backed). Safe to call repeatedly.
+    CalibrationWizardPage* ensure_page(CalibrationWizardPageStep* step);
+    // Subclasses bind EVT_CALI_ACTION (and similar) when a page is first created.
+    virtual void bind_page_events(CalibrationWizardPage* page) {}
+
 protected:
     /* wx widgets*/
     wxScrolledWindow* m_scrolledWindow;
@@ -124,6 +134,8 @@ protected:
 
     void on_cali_action(wxCommandEvent& evt);
 
+    void bind_page_events(CalibrationWizardPage* page) override;
+
     void update(MachineObject* obj) override;
 
     void on_device_connected(MachineObject* obj) override;
@@ -157,6 +169,8 @@ protected:
 
     bool check_cached_cali_info();
 
+    void bind_page_events(CalibrationWizardPage* page) override;
+
     void update(MachineObject* obj) override;
 
     void on_device_connected(MachineObject* obj) override;
@@ -179,6 +193,8 @@ protected:
     void on_cali_start();
 
     void on_cali_save();
+
+    void bind_page_events(CalibrationWizardPage* page) override;
 
     void on_device_connected(MachineObject *obj) override;
 };

@@ -140,6 +140,9 @@ void CalibrationWizard::show_step(CalibrationWizardPageStep* step)
     if (!step)
         return;
 
+    if (!ensure_page(step))
+        return;
+
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (dev) {
         MachineObject *obj = dev->get_selected_machine();
@@ -151,17 +154,46 @@ void CalibrationWizard::show_step(CalibrationWizardPageStep* step)
         }
     }
 
-    if (m_curr_step) {
+    if (m_curr_step && m_curr_step->page) {
         m_curr_step->page->Hide();
     }
 
     m_curr_step = step;
 
-    if (m_curr_step) {
+    if (m_curr_step && m_curr_step->page) {
         m_curr_step->page->Show();
     }
 
     Layout();
+}
+
+CalibrationWizardPage* CalibrationWizard::ensure_page(CalibrationWizardPageStep* step)
+{
+    if (!step)
+        return nullptr;
+    if (step->page)
+        return step->page;
+    if (!step->m_factory)
+        return nullptr;
+
+    step->page = step->m_factory();
+    if (!step->page)
+        return nullptr;
+
+    m_all_pages_sizer->Add(step->page, 1, wxEXPAND | wxALL, FromDIP(25));
+    step->page->Hide();
+    bind_page_events(step->page);
+    step->page->set_cali_method(m_cali_method);
+    if (curr_obj) {
+        step->page->on_device_connected(curr_obj);
+        step->page->update(curr_obj);
+    }
+    // Pages used to exist before MainFrame's dark-mode pass. Apply it now.
+    if (wxGetApp().dark_mode()) {
+        step->page->on_sys_color_changed();
+        wxGetApp().UpdateDarkUIWin(step->page);
+    }
+    return step->page;
 }
 
 void CalibrationWizard::update(MachineObject* obj)
@@ -383,7 +415,8 @@ void CalibrationWizard::cache_preset_info(MachineObject *obj, float nozzle_dia, 
 {
     if (!obj) return;
 
-    CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
+    auto* preset_page = static_cast<CalibrationPresetPage*>(ensure_page(preset_step));
+    if (!preset_page) return;
 
     std::vector<CaliFilamentInfo> selected_filaments = preset_page->get_selected_filaments();
 
@@ -487,13 +520,15 @@ void CalibrationWizard::on_cali_go_home()
     CalibMode obj_cali_mode = get_obj_calibration_mode(curr_obj, method, cali_stage);
 
     bool double_confirm = false;
-    CaliPageType page_type = get_curr_step()->page->get_page_type();
-    if (page_type == CaliPageType::CALI_PAGE_COARSE_SAVE ||
-        page_type == CaliPageType::CALI_PAGE_FINE_SAVE ||
-        page_type == CaliPageType::CALI_PAGE_COMMON_SAVE ||
-        page_type == CaliPageType::CALI_PAGE_FLOW_SAVE ||
-        page_type == CaliPageType::CALI_PAGE_PA_SAVE) {
-        double_confirm = true;
+    if (get_curr_step() && get_curr_step()->page) {
+        CaliPageType page_type = get_curr_step()->page->get_page_type();
+        if (page_type == CaliPageType::CALI_PAGE_COARSE_SAVE ||
+            page_type == CaliPageType::CALI_PAGE_FINE_SAVE ||
+            page_type == CaliPageType::CALI_PAGE_COMMON_SAVE ||
+            page_type == CaliPageType::CALI_PAGE_FLOW_SAVE ||
+            page_type == CaliPageType::CALI_PAGE_PA_SAVE) {
+            double_confirm = true;
+        }
     }
     if (obj_cali_mode == m_mode && curr_obj && (curr_obj->is_in_printing() || double_confirm)) {
         if (go_home_dialog == nullptr)
@@ -527,6 +562,11 @@ PressureAdvanceWizard::PressureAdvanceWizard(wxWindow* parent, wxWindowID id, co
     create_pages();
 }
 
+void PressureAdvanceWizard::bind_page_events(CalibrationWizardPage* page)
+{
+    page->Bind(EVT_CALI_ACTION, &PressureAdvanceWizard::on_cali_action, this);
+}
+
 void PressureAdvanceWizard::on_cali_job_finished(wxString evt_data)
 {
     int       cali_stage    = 0;
@@ -536,21 +576,25 @@ void PressureAdvanceWizard::on_cali_job_finished(wxString evt_data)
         show_step(cali_step);
     }
     // change ui, hide
-    static_cast<CalibrationPresetPage *>(preset_step->page)->on_cali_finished_job();
+    if (CalibrationWizardPage* p = ensure_page(preset_step))
+        static_cast<CalibrationPresetPage *>(p)->on_cali_finished_job();
 }
 
 void PressureAdvanceWizard::create_pages()
 {
-    start_step  = new CalibrationWizardPageStep(new CalibrationPAStartPage(m_scrolledWindow));
-    preset_step = new CalibrationWizardPageStep(new CalibrationPresetPage(m_scrolledWindow, m_mode, false));
-    cali_step   = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode));
-    save_step   = new CalibrationWizardPageStep(new CalibrationPASavePage(m_scrolledWindow));
-
-    m_all_pages_sizer->Add(start_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(preset_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(cali_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(save_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-
+    // Only register factories here; pages are constructed on first show_step / ensure_page.
+    start_step  = new CalibrationWizardPageStep([this]() {
+        return new CalibrationPAStartPage(m_scrolledWindow);
+    });
+    preset_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationPresetPage(m_scrolledWindow, m_mode, false);
+    });
+    cali_step   = new CalibrationWizardPageStep([this]() {
+        return new CalibrationCaliPage(m_scrolledWindow, m_mode);
+    });
+    save_step   = new CalibrationWizardPageStep([this]() {
+        return new CalibrationPASavePage(m_scrolledWindow);
+    });
 
     m_page_steps.push_back(start_step);
     m_page_steps.push_back(preset_step);
@@ -559,11 +603,6 @@ void PressureAdvanceWizard::create_pages()
 
     for (int i = 0; i < m_page_steps.size() -1; i++) {
         m_page_steps[i]->chain(m_page_steps[i+1]);
-    }
-
-    for (int i = 0; i < m_page_steps.size(); i++) {
-        m_page_steps[i]->page->Hide();
-        m_page_steps[i]->page->Bind(EVT_CALI_ACTION, &PressureAdvanceWizard::on_cali_action, this);
     }
 
     if (!m_page_steps.empty())
@@ -579,9 +618,11 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
         history_dialog.ShowModal();
     }
     else if (action == CaliPageActionType::CALI_ACTION_MANUAL_CALI) {
-        preset_step->page->set_cali_filament_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
-        set_cali_method(CalibrationMethod::CALI_METHOD_MANUAL);
-        preset_step->page->on_device_connected(curr_obj);
+        if (CalibrationWizardPage* p = ensure_page(preset_step)) {
+            p->set_cali_filament_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
+            set_cali_method(CalibrationMethod::CALI_METHOD_MANUAL);
+            p->on_device_connected(curr_obj);
+        }
         show_step(m_curr_step->next);
     }
     else if (action == CaliPageActionType::CALI_ACTION_AUTO_CALI) {
@@ -592,8 +633,10 @@ void PressureAdvanceWizard::on_cali_action(wxCommandEvent& evt)
             set_cali_method(CalibrationMethod::CALI_METHOD_AUTO);
         }
         CalibrationFilamentMode fila_mode = get_cali_filament_mode(curr_obj, m_mode);
-        preset_step->page->set_cali_filament_mode(fila_mode);
-        preset_step->page->on_device_connected(curr_obj);
+        if (CalibrationWizardPage* p = ensure_page(preset_step)) {
+            p->set_cali_filament_mode(fila_mode);
+            p->on_device_connected(curr_obj);
+        }
         show_step(m_curr_step->next);
     }
     else if (action == CaliPageActionType::CALI_ACTION_NEXT) {
@@ -649,8 +692,9 @@ void PressureAdvanceWizard::on_device_connected(MachineObject* obj)
             if (obj_cali_mode == m_mode) {
                 if (!obj->GetCalib()->GetStashCalibFinished() && (obj->is_in_printing() || obj->is_printing_finished())) {
                     CalibrationWizard::set_cali_method(method);
-                    CalibrationCaliPage *cali_page = (static_cast<CalibrationCaliPage *>(cali_step->page));
-                    cali_page->set_pa_cali_image(cali_stage);
+                    CalibrationCaliPage *cali_page = static_cast<CalibrationCaliPage *>(ensure_page(cali_step));
+                    if (cali_page)
+                        cali_page->set_pa_cali_image(cali_stage);
                     show_step(cali_step);
                 }
             }
@@ -718,7 +762,9 @@ void PressureAdvanceWizard::on_cali_start()
     BedType plate_type = BedType::btDefault;
 
     // save preset info to machine object
-    CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
+    CalibrationPresetPage* preset_page = static_cast<CalibrationPresetPage*>(ensure_page(preset_step));
+    if (!preset_page)
+        return;
     std::vector<CaliFilamentInfo> selected_filaments = preset_page->get_selected_filaments();
     if (selected_filaments.empty()) {
         MessageDialog msg_dlg(nullptr, _L("Please select filament to calibrate."), wxEmptyString, wxICON_WARNING | wxOK);
@@ -828,7 +874,9 @@ void PressureAdvanceWizard::on_cali_start()
                 return;
 
             ManualPaCaliMethod   pa_cali_method = ManualPaCaliMethod::PA_LINE;
-            CalibrationCaliPage *cali_page = (static_cast<CalibrationCaliPage *>(cali_step->page));
+            CalibrationCaliPage *cali_page = (static_cast<CalibrationCaliPage *>(ensure_page(cali_step)));
+            if (!cali_page)
+                return;
             if (calib_info.params.mode == CalibMode::Calib_PA_Line)
                 pa_cali_method = ManualPaCaliMethod::PA_LINE;
             else if (calib_info.params.mode == CalibMode::Calib_PA_Pattern)
@@ -925,8 +973,9 @@ void PressureAdvanceWizard::on_cali_start()
         return;
     }
 
-    CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(cali_step->page));
-    cali_page->clear_last_job_status();
+    CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(ensure_page(cali_step)));
+    if (cali_page)
+        cali_page->clear_last_job_status();
 
     if (curr_obj) { curr_obj->calib_send_status = CalibSendStatus::SENDING; }
 }
@@ -1014,8 +1063,8 @@ void PressureAdvanceWizard::on_cali_save()
         if (curr_obj->get_printer_series() == PrinterSeries::SERIES_X1 || curr_obj->get_printer_arch() == PrinterArch::ARCH_I3) {
             if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) {
                 std::vector<PACalibResult> new_pa_cali_results;
-                auto save_page = static_cast<CalibrationPASavePage*>(save_step->page);
-                if (!save_page->get_auto_result(new_pa_cali_results)) {
+                auto save_page = static_cast<CalibrationPASavePage*>(ensure_page(save_step));
+                if (!save_page || !save_page->get_auto_result(new_pa_cali_results)) {
                     return;
                 }
                 if (save_page->is_all_failed()) {
@@ -1031,8 +1080,8 @@ void PressureAdvanceWizard::on_cali_save()
             }
             else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
                 PACalibResult new_pa_cali_result;
-                auto save_page = static_cast<CalibrationPASavePage*>(save_step->page);
-                if (!save_page->get_manual_result(new_pa_cali_result)) {
+                auto save_page = static_cast<CalibrationPASavePage*>(ensure_page(save_step));
+                if (!save_page || !save_page->get_manual_result(new_pa_cali_result)) {
                     return;
                 }
                 if (!can_save_cali_result({new_pa_cali_result}))
@@ -1046,8 +1095,8 @@ void PressureAdvanceWizard::on_cali_save()
         else if (curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
             if (curr_obj->GetCalib()->IsVersionInited()) {
                 PACalibResult new_pa_cali_result;
-                auto          save_page = static_cast<CalibrationPASavePage *>(save_step->page);
-                if (!save_page->get_manual_result(new_pa_cali_result)) {
+                auto          save_page = static_cast<CalibrationPASavePage *>(ensure_page(save_step));
+                if (!save_page || !save_page->get_manual_result(new_pa_cali_result)) {
                     return;
                 }
 
@@ -1056,16 +1105,18 @@ void PressureAdvanceWizard::on_cali_save()
 
                 CalibUtils::set_PA_calib_result({new_pa_cali_result}, false);
             } else {
-                auto  save_page   = static_cast<CalibrationPASavePage *>(save_step->page);
+                auto  save_page   = static_cast<CalibrationPASavePage *>(ensure_page(save_step));
                 float new_k_value = 0.0f;
                 float new_n_value = 0.0f;
-                if (!save_page->get_p1p_result(&new_k_value, &new_n_value)) {
+                if (!save_page || !save_page->get_p1p_result(&new_k_value, &new_n_value)) {
                     return;
                 }
 
                 float                  nozzle_dia  = 0.4;
                 BedType                plate_type  = BedType::btDefault;
-                CalibrationPresetPage *preset_page = (static_cast<CalibrationPresetPage *>(preset_step->page));
+                CalibrationPresetPage *preset_page = (static_cast<CalibrationPresetPage *>(ensure_page(preset_step)));
+                if (!preset_page)
+                    return;
                 preset_page->get_preset_info(nozzle_dia, plate_type);
                 std::vector<CaliFilamentInfo> selected_filaments = get_cached_selected_filament(curr_obj);
                 if (selected_filaments.empty()) {
@@ -1104,30 +1155,42 @@ FlowRateWizard::FlowRateWizard(wxWindow* parent, wxWindowID id, const wxPoint& p
     create_pages();
 }
 
+void FlowRateWizard::bind_page_events(CalibrationWizardPage* page)
+{
+    page->Bind(EVT_CALI_ACTION, &FlowRateWizard::on_cali_action, this);
+}
+
 void FlowRateWizard::create_pages()
 {
-    start_step = new CalibrationWizardPageStep(new CalibrationFlowRateStartPage(m_scrolledWindow));
-    preset_step = new CalibrationWizardPageStep(new CalibrationPresetPage(m_scrolledWindow, m_mode, false));
+    // Factories only; pages are created on first ensure_page / show_step.
+    start_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationFlowRateStartPage(m_scrolledWindow);
+    });
+    preset_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationPresetPage(m_scrolledWindow, m_mode, false);
+    });
 
     // manual
-    cali_coarse_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode, CaliPageType::CALI_PAGE_CALI));
-    coarse_save_step = new CalibrationWizardPageStep(new CalibrationFlowCoarseSavePage(m_scrolledWindow));
-    cali_fine_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode, CaliPageType::CALI_PAGE_FINE_CALI));
-    fine_save_step = new CalibrationWizardPageStep(new CalibrationFlowFineSavePage(m_scrolledWindow));
+    cali_coarse_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationCaliPage(m_scrolledWindow, m_mode, CaliPageType::CALI_PAGE_CALI);
+    });
+    coarse_save_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationFlowCoarseSavePage(m_scrolledWindow);
+    });
+    cali_fine_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationCaliPage(m_scrolledWindow, m_mode, CaliPageType::CALI_PAGE_FINE_CALI);
+    });
+    fine_save_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationFlowFineSavePage(m_scrolledWindow);
+    });
 
     // auto
-    cali_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode));
-    save_step = new CalibrationWizardPageStep(new CalibrationFlowX1SavePage(m_scrolledWindow));
-
-    m_all_pages_sizer->Add(start_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(preset_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(cali_coarse_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(coarse_save_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(cali_fine_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(fine_save_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-
-    m_all_pages_sizer->Add(cali_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(save_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
+    cali_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationCaliPage(m_scrolledWindow, m_mode);
+    });
+    save_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationFlowX1SavePage(m_scrolledWindow);
+    });
 
     m_page_steps.push_back(start_step);
     m_page_steps.push_back(preset_step);
@@ -1136,24 +1199,9 @@ void FlowRateWizard::create_pages()
     m_page_steps.push_back(cali_fine_step);
     m_page_steps.push_back(fine_save_step);
 
-    //m_page_steps.push_back(cali_step);
-    //m_page_steps.push_back(save_step);
-
     for (int i = 0; i < m_page_steps.size() - 1; i++) {
         m_page_steps[i]->chain(m_page_steps[i + 1]);
     }
-
-    // hide all pages
-    cali_step->page->Hide();
-    save_step->page->Hide();
-    for (int i = 0; i < m_page_steps.size(); i++) {
-        m_page_steps[i]->page->Hide();
-        m_page_steps[i]->page->Bind(EVT_CALI_ACTION, &FlowRateWizard::on_cali_action, this);
-    }
-
-
-    cali_step->page->Bind(EVT_CALI_ACTION, &FlowRateWizard::on_cali_action, this);
-    save_step->page->Bind(EVT_CALI_ACTION, &FlowRateWizard::on_cali_action, this);
 
     if (!m_page_steps.empty())
         show_step(m_page_steps.front());
@@ -1168,16 +1216,20 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
         ;
     }
     else if (action == CaliPageActionType::CALI_ACTION_MANUAL_CALI) {
-        preset_step->page->set_cali_filament_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
-        this->set_cali_method(CalibrationMethod::CALI_METHOD_MANUAL);
-        preset_step->page->on_device_connected(curr_obj);
+        if (CalibrationWizardPage* p = ensure_page(preset_step)) {
+            p->set_cali_filament_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
+            this->set_cali_method(CalibrationMethod::CALI_METHOD_MANUAL);
+            p->on_device_connected(curr_obj);
+        }
         show_step(m_curr_step->next);
     }
     else if (action == CaliPageActionType::CALI_ACTION_AUTO_CALI) {
         CalibrationFilamentMode fila_mode = get_cali_filament_mode(curr_obj, m_mode);
-        preset_step->page->set_cali_filament_mode(fila_mode);
-        this->set_cali_method(CalibrationMethod::CALI_METHOD_AUTO);
-        preset_step->page->on_device_connected(curr_obj);
+        if (CalibrationWizardPage* p = ensure_page(preset_step)) {
+            p->set_cali_filament_mode(fila_mode);
+            this->set_cali_method(CalibrationMethod::CALI_METHOD_AUTO);
+            p->on_device_connected(curr_obj);
+        }
         show_step(m_curr_step->next);
     }
     else if (action == CaliPageActionType::CALI_ACTION_NEXT) {
@@ -1196,7 +1248,10 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
         else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             CaliPresetStage stage = CaliPresetStage::CALI_MANULA_STAGE_NONE;
             float cali_value = 0.0f;
-            static_cast<CalibrationPresetPage*>(preset_step->page)->get_cali_stage(stage, cali_value);
+            auto* preset_page = static_cast<CalibrationPresetPage*>(ensure_page(preset_step));
+            if (!preset_page)
+                return;
+            preset_page->get_cali_stage(stage, cali_value);
             on_cali_start(stage, cali_value, FlowRatioCaliSource::FROM_PRESET_PAGE);
             if (stage == CaliPresetStage::CALI_MANUAL_STAGE_2) {
                 // set next step page
@@ -1212,10 +1267,10 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
         if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             float new_flow_ratio = 0.0f;
             wxString temp_name = ""; // unused
-            auto coarse_save_page = static_cast<CalibrationFlowCoarseSavePage*>(m_curr_step->page);
+            auto coarse_save_page = static_cast<CalibrationFlowCoarseSavePage*>(ensure_page(m_curr_step));
             if (!check_cached_cali_info())
                 return;
-            if (!coarse_save_page->get_result(&new_flow_ratio, &temp_name)) {
+            if (!coarse_save_page || !coarse_save_page->get_result(&new_flow_ratio, &temp_name)) {
                 return;
             }
             on_cali_start(CaliPresetStage::CALI_MANUAL_STAGE_2, new_flow_ratio, FlowRatioCaliSource::FROM_COARSE_PAGE);
@@ -1226,8 +1281,8 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
         on_cali_save();
     }
     else if (action == CaliPageActionType::CALI_ACTION_FLOW_COARSE_SAVE) {
-        auto coarse_save_page = static_cast<CalibrationFlowCoarseSavePage*>(coarse_save_step->page);
-        if (coarse_save_page->is_skip_fine_calibration()) {
+        auto coarse_save_page = static_cast<CalibrationFlowCoarseSavePage*>(ensure_page(coarse_save_step));
+        if (coarse_save_page && coarse_save_page->is_skip_fine_calibration()) {
             on_cali_save();
         }
     }
@@ -1251,7 +1306,9 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     std::string setting_id;
     BedType plate_type = BedType::btDefault;
 
-    CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(preset_step->page));
+    CalibrationPresetPage* preset_page = (static_cast<CalibrationPresetPage*>(ensure_page(preset_step)));
+    if (!preset_page)
+        return;
 
     preset_page->get_preset_info(nozzle_dia, plate_type);
 
@@ -1314,11 +1371,14 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         }
         show_step(m_curr_step->next);
 
-        CalibrationCaliPage *cali_page = (static_cast<CalibrationCaliPage *>(cali_step->page));
-        cali_page->clear_last_job_status();
+        CalibrationCaliPage *cali_page = (static_cast<CalibrationCaliPage *>(ensure_page(cali_step)));
+        if (cali_page)
+            cali_page->clear_last_job_status();
     }
     else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
-        CalibrationFlowCoarseSavePage* coarse_page = (static_cast<CalibrationFlowCoarseSavePage*>(coarse_save_step->page));
+        CalibrationFlowCoarseSavePage* coarse_page = (static_cast<CalibrationFlowCoarseSavePage*>(ensure_page(coarse_save_step)));
+        if (!coarse_page)
+            return;
         CalibInfo calib_info;
         calib_info.dev_id            = curr_obj->get_dev_id();
         Preset* temp_filament_preset = nullptr;
@@ -1414,13 +1474,15 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             delete temp_filament_preset;
 
         if (cali_stage == 1) {
-            CalibrationCaliPage *cali_coarse_page = (static_cast<CalibrationCaliPage *>(cali_coarse_step->page));
-            cali_coarse_page->clear_last_job_status();
+            CalibrationCaliPage *cali_coarse_page = (static_cast<CalibrationCaliPage *>(ensure_page(cali_coarse_step)));
+            if (cali_coarse_page)
+                cali_coarse_page->clear_last_job_status();
             preset_page->on_cali_start_job();
         }
         else if (cali_stage == 2) {
-            CalibrationCaliPage *cali_fine_page = (static_cast<CalibrationCaliPage *>(cali_fine_step->page));
-            cali_fine_page->clear_last_job_status();
+            CalibrationCaliPage *cali_fine_page = (static_cast<CalibrationCaliPage *>(ensure_page(cali_fine_step)));
+            if (cali_fine_page)
+                cali_fine_page->clear_last_job_status();
             if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE) {
                 preset_page->on_cali_start_job();
             }
@@ -1439,8 +1501,8 @@ void FlowRateWizard::on_cali_save()
     if (curr_obj) {
         if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO) {
             std::vector<std::pair<wxString, float>> new_results;
-            auto save_page = static_cast<CalibrationFlowX1SavePage*>(save_step->page);
-            if (!save_page->get_result(new_results)) {
+            auto save_page = static_cast<CalibrationFlowX1SavePage*>(ensure_page(save_step));
+            if (!save_page || !save_page->get_result(new_results)) {
                 return;
             }
             if (save_page->is_all_failed()) {
@@ -1477,17 +1539,17 @@ void FlowRateWizard::on_cali_save()
 
             float new_flow_ratio = 0.0f;
             wxString new_preset_name = "";
-            if(m_curr_step->page->get_page_type() == CaliPageType::CALI_PAGE_COARSE_SAVE)
+            if(m_curr_step && m_curr_step->page && m_curr_step->page->get_page_type() == CaliPageType::CALI_PAGE_COARSE_SAVE)
             {
-                auto coarse_save_page = static_cast<CalibrationFlowCoarseSavePage*>(m_curr_step->page);
+                auto coarse_save_page = static_cast<CalibrationFlowCoarseSavePage*>(ensure_page(m_curr_step));
                 if (!coarse_save_page->get_result(&new_flow_ratio, &new_preset_name)) {
                     BOOST_LOG_TRIVIAL(info) << "flow_rate_cali: get coarse result failed";
                     return;
                 }
             }
-            else if (m_curr_step->page->get_page_type() == CaliPageType::CALI_PAGE_FINE_SAVE)
+            else if (m_curr_step && m_curr_step->page && m_curr_step->page->get_page_type() == CaliPageType::CALI_PAGE_FINE_SAVE)
             {
-                auto fine_save_page = static_cast<CalibrationFlowFineSavePage*>(m_curr_step->page);
+                auto fine_save_page = static_cast<CalibrationFlowFineSavePage*>(ensure_page(m_curr_step));
                 if (!fine_save_page->get_result(&new_flow_ratio, &new_preset_name)) {
                     BOOST_LOG_TRIVIAL(info) << "flow_rate_cali: get fine result failed";
                     return;
@@ -1654,15 +1716,18 @@ void FlowRateWizard::on_cali_job_finished(wxString evt_data)
             if (m_curr_step != cali_coarse_step)
                 show_step(cali_coarse_step);
             // change ui, hide
-            static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
+            if (auto* p = static_cast<CalibrationPresetPage*>(ensure_page(preset_step)))
+                p->on_cali_finished_job();
         }
         else if (cali_stage == 2) {
             if (m_curr_step != cali_fine_step) {
                 show_step(cali_fine_step);
             }
             // change ui, hide
-            static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
-            static_cast<CalibrationFlowCoarseSavePage*>(coarse_save_step->page)->on_cali_finished_job();
+            if (auto* p = static_cast<CalibrationPresetPage*>(ensure_page(preset_step)))
+                p->on_cali_finished_job();
+            if (auto* p = static_cast<CalibrationFlowCoarseSavePage*>(ensure_page(coarse_save_step)))
+                p->on_cali_finished_job();
         }
         else
             show_step(cali_coarse_step);
@@ -1673,7 +1738,7 @@ void FlowRateWizard::cache_coarse_info(MachineObject *obj)
 {
     if (!obj) return;
 
-    CalibrationFlowCoarseSavePage *coarse_page = (static_cast<CalibrationFlowCoarseSavePage *>(coarse_save_step->page));
+    CalibrationFlowCoarseSavePage *coarse_page = (static_cast<CalibrationFlowCoarseSavePage *>(ensure_page(coarse_save_step)));
     if (!coarse_page)
         return;
 
@@ -1697,19 +1762,27 @@ MaxVolumetricSpeedWizard::MaxVolumetricSpeedWizard(wxWindow* parent, wxWindowID 
     create_pages();
 }
 
+void MaxVolumetricSpeedWizard::bind_page_events(CalibrationWizardPage* page)
+{
+    page->Bind(EVT_CALI_ACTION, &MaxVolumetricSpeedWizard::on_cali_action, this);
+}
+
 void MaxVolumetricSpeedWizard::create_pages()
 {
-    start_step  = new CalibrationWizardPageStep(new CalibrationMaxVolumetricSpeedStartPage(m_scrolledWindow));
-    preset_step = new CalibrationWizardPageStep(new MaxVolumetricSpeedPresetPage(m_scrolledWindow, m_mode, true));
+    start_step  = new CalibrationWizardPageStep([this]() {
+        return new CalibrationMaxVolumetricSpeedStartPage(m_scrolledWindow);
+    });
+    preset_step = new CalibrationWizardPageStep([this]() {
+        return new MaxVolumetricSpeedPresetPage(m_scrolledWindow, m_mode, true);
+    });
 
     // manual
-    cali_step = new CalibrationWizardPageStep(new CalibrationCaliPage(m_scrolledWindow, m_mode));
-    save_step = new CalibrationWizardPageStep(new CalibrationMaxVolumetricSpeedSavePage(m_scrolledWindow));
-
-    m_all_pages_sizer->Add(start_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(preset_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(cali_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
-    m_all_pages_sizer->Add(save_step->page, 1, wxEXPAND | wxALL, FromDIP(25));
+    cali_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationCaliPage(m_scrolledWindow, m_mode);
+    });
+    save_step = new CalibrationWizardPageStep([this]() {
+        return new CalibrationMaxVolumetricSpeedSavePage(m_scrolledWindow);
+    });
 
     m_page_steps.push_back(start_step);
     m_page_steps.push_back(preset_step);
@@ -1720,18 +1793,8 @@ void MaxVolumetricSpeedWizard::create_pages()
         m_page_steps[i]->chain(m_page_steps[i + 1]);
     }
 
-    for (int i = 0; i < m_page_steps.size(); i++) {
-        m_page_steps[i]->page->Hide();
-        m_page_steps[i]->page->Bind(EVT_CALI_ACTION, &MaxVolumetricSpeedWizard::on_cali_action, this);
-    }
-
-    for (auto page_step : m_page_steps) {
-        page_step->page->Hide();
-    }
-
     if (!m_page_steps.empty())
         show_step(m_page_steps.front());
-    return;
 }
 
 void MaxVolumetricSpeedWizard::on_cali_action(wxCommandEvent& evt)
@@ -1764,7 +1827,9 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     std::string setting_id;
     BedType     plate_type = BedType::btDefault;
 
-    CalibrationPresetPage *preset_page = (static_cast<CalibrationPresetPage *>(preset_step->page));
+    CalibrationPresetPage *preset_page = (static_cast<CalibrationPresetPage *>(ensure_page(preset_step)));
+    if (!preset_page)
+        return;
 
     preset_page->get_preset_info(nozzle_dia, plate_type);
 
@@ -1823,8 +1888,9 @@ void MaxVolumetricSpeedWizard::on_cali_start()
 
     preset_page->on_cali_start_job();
 
-    CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(cali_step->page));
-    cali_page->clear_last_job_status();
+    CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(ensure_page(cali_step)));
+    if (cali_page)
+        cali_page->clear_last_job_status();
 
     if (curr_obj) { curr_obj->calib_send_status = CalibSendStatus::SENDING; }
 }
@@ -1834,15 +1900,15 @@ void MaxVolumetricSpeedWizard::on_cali_save()
     std::string old_preset_name;
     std::string new_preset_name;
 
-    // CalibrationPresetPage *preset_page = (static_cast<CalibrationPresetPage *>(preset_step->page));
+    // CalibrationPresetPage *preset_page = (static_cast<CalibrationPresetPage *>(ensure_page(preset_step)));
     std::vector<CaliFilamentInfo> selected_filaments = get_cached_selected_filament(curr_obj);
     if (!selected_filaments.empty()) {
         old_preset_name = selected_filaments.begin()->filament_preset->name;
     }
 
     double value = 0;
-    CalibrationMaxVolumetricSpeedSavePage *save_page = (static_cast<CalibrationMaxVolumetricSpeedSavePage *>(save_step->page));
-    if (!save_page->get_save_result(value, new_preset_name)) {
+    CalibrationMaxVolumetricSpeedSavePage *save_page = (static_cast<CalibrationMaxVolumetricSpeedSavePage *>(ensure_page(save_step)));
+    if (!save_page || !save_page->get_save_result(value, new_preset_name)) {
         BOOST_LOG_TRIVIAL(info) << "max_volumetric_speed_cali: get result failed";
         return;
     }
@@ -1877,7 +1943,8 @@ void MaxVolumetricSpeedWizard::on_cali_job_finished(wxString evt_data)
         }
     }
     // change ui, hide
-    static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
+    if (auto* p = static_cast<CalibrationPresetPage*>(ensure_page(preset_step)))
+        p->on_cali_finished_job();
 }
 
 void MaxVolumetricSpeedWizard::on_device_connected(MachineObject *obj)

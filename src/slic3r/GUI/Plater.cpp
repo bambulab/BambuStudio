@@ -28667,11 +28667,14 @@ void Plater::send_calibration_job_finished(wxCommandEvent & evt)
     p->main_frame->select_tab(p->main_frame->m_calibration);
     auto calibration_panel = p->main_frame->m_calibration;
     if (calibration_panel) {
-        auto curr_wizard = static_cast<CalibrationWizard*>(calibration_panel->get_tabpanel()->GetPage(evt.GetInt()));
-        wxCommandEvent event(EVT_CALIBRATION_JOB_FINISHED);
-        event.SetString(evt.GetString());
-        event.SetEventObject(curr_wizard);
-        wxPostEvent(curr_wizard, event);
+        auto* tabpanel = calibration_panel->get_tabpanel();
+        auto* curr_wizard = tabpanel ? static_cast<CalibrationWizard*>(tabpanel->GetPage(evt.GetInt())) : nullptr;
+        if (curr_wizard) {
+            wxCommandEvent event(EVT_CALIBRATION_JOB_FINISHED);
+            event.SetString(evt.GetString());
+            event.SetEventObject(curr_wizard);
+            wxPostEvent(curr_wizard, event);
+        }
     }
     evt.Skip();
 }

@@ -4505,9 +4505,14 @@ void MainFrame::request_select_tab(TabPosition pos)
 }
 
 int MainFrame::get_calibration_curr_tab() {
-    if (m_calibration)
-        return m_calibration->get_tabpanel()->GetSelection();
-    return -1;
+    if (!m_calibration)
+        return -1;
+    // May run on the PrintJob worker. get_tabpanel() does not create widgets;
+    // before the first Show there is no tabbook to query.
+    auto* tabpanel = m_calibration->get_tabpanel();
+    if (!tabpanel)
+        return -1;
+    return tabpanel->GetSelection();
 }
 
 // Set a camera direction, zoom to all objects.
