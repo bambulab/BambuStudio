@@ -99,6 +99,9 @@ public:
 
     wxTimer * m_LoginUpdateTimer{nullptr};
     void OnFreshLoginStatus(wxTimerEvent &event);
+    // Same work as OnFreshLoginStatus, callable without a timer event so the
+    // wxEVT_SHOW handler can refresh once when the panel becomes visible.
+    void RefreshLoginStatus();
 
 public:
     void ResetWholePage();
