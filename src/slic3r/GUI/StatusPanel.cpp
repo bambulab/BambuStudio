@@ -52,6 +52,7 @@
 #include "DeviceCore/DevStatus.h"
 
 #include "DeviceWeb/DeviceWebPage.hpp"
+#include "DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.hpp"
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevInfo.h"
@@ -65,6 +66,9 @@
 #include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
 #include "DeviceTab/wgtDeviceAutoRefillWebDialog.h"
 #include "DeviceTab/wgtRackExtruder.h"
+#if BBL_ENABLE_AMS_CONTROL_WEB
+#include "DeviceTab/AmsControl/wgtAmsControlWebPanel.h"
+#endif
 #include "PrintOptionsDialog.hpp"
 #include "SafetyOptionsDialog.hpp"
 
@@ -2345,11 +2349,26 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_ams_rack_switch->Hide();
     m_ams_rack_switch->Bind(wxCUSTOMEVT_SWITCH_POS, &StatusBasePanel::on_ams_rack_switch, this);
 
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    m_ams_control_web_switch = new SwitchBoard(parent, "AMS C++", "AMS Web", wxSize(FromDIP(160), FromDIP(26)));
+    m_ams_control_web_switch->updateState("left");
+    m_ams_control_web_switch->Hide();
+    m_ams_control_web_switch->Bind(wxCUSTOMEVT_SWITCH_POS, &StatusBasePanel::on_ams_control_web_switch, this);
+#endif
+
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(8));
     bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer_control->Add(m_ams_rack_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    bSizer_control->Add(m_ams_control_web_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
+#endif
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
     bSizer_control->Add(ams_rack_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    m_ams_control_web_panel = new wgtAmsControlWebPanel(parent);
+    m_ams_control_web_panel->Hide();
+    bSizer_control->Add(m_ams_control_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+#endif
     m_filament_hotend_web_panel = new wgtDeviceFilamentHotendWebPanel(parent);
     m_filament_hotend_web_panel->Hide();
     bSizer_control->Add(m_filament_hotend_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
@@ -2964,8 +2983,11 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
 
 void StatusBasePanel::show_ams_group(bool show)
 {
-    if (m_ams_control->IsShown() != show) {
-        m_ams_control->Show(show);
+    // AMSControl is always constructed and updated; the gate only hides it.
+    const bool show_cpp = show && !ams_control_use_web();
+
+    if (m_ams_control->IsShown() != show_cpp) {
+        m_ams_control->Show(show_cpp);
         m_ams_control->Layout();
         m_ams_control->Fit();
         Layout();
@@ -2975,8 +2997,39 @@ void StatusBasePanel::show_ams_group(bool show)
 
     if (show && m_ams_rack_switch->IsShown() && (m_ams_rack_switch->switch_left != true)) { return; }
 
-    if (m_ams_control_box->IsShown() != show) {
-        m_ams_control_box->Show(show);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    // The "AMS C++ / AMS Web" switch board only makes sense once the wx panel is in play.
+    if (m_ams_control_web_switch && m_ams_control_web_switch->IsShown() != show_cpp) {
+        m_ams_control_web_switch->Show(show_cpp);
+    }
+    if (!show) {
+        if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+    } else if (m_ams_control_web_active) {
+        bool refresh_layout = false;
+        if (m_ams_control_box->IsShown()) {
+            m_ams_control_box->Show(false);
+            refresh_layout = true;
+        }
+        if (m_ams_control_web_panel && !m_ams_control_web_panel->IsShown()) {
+            m_ams_control_web_panel->ShowAndLoad();
+            m_ams_control_web_panel->UpdateByMachine(obj);
+            refresh_layout = true;
+        }
+        if (refresh_layout) {
+            Layout();
+            Fit();
+            wxGetApp().mainframe->m_monitor->Layout();
+        }
+        return;
+    } else if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
+        m_ams_control_web_panel->HideAndSuspend();
+    }
+#endif
+
+    if (m_ams_control_box->IsShown() != show_cpp) {
+        m_ams_control_box->Show(show_cpp);
         m_ams_control->Layout();
         m_ams_control->Fit();
         Layout();
@@ -3013,6 +3066,14 @@ void StatusBasePanel::jump_to_Rack()
     if (obj && obj->GetNozzleRack()->IsSupported()) {
         m_ams_rack_switch->updateState("right");
         m_ams_control_box->Show(false);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+        if (m_ams_control_web_switch) {
+            m_ams_control_web_switch->Show(false);
+        }
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+#endif
         m_panel_nozzle_rack->Show(true);
         Layout();
     }
@@ -3021,17 +3082,71 @@ void StatusBasePanel::jump_to_Rack()
 void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
 {
     if (!m_ams_control_box->IsShown() && e.GetInt() == 1) {
-        m_ams_control_box->Show(e.GetInt() == 1);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+        if (m_ams_control_web_switch) {
+            m_ams_control_web_switch->Show(!ams_control_use_web());
+        }
+        if (m_ams_control_web_active) {
+            m_ams_control_box->Show(false);
+            m_panel_nozzle_rack->Show(false);
+            if (m_ams_control_web_panel) {
+                m_ams_control_web_panel->ShowAndLoad();
+                m_ams_control_web_panel->UpdateByMachine(obj);
+            }
+            Layout();
+            e.Skip();
+            return;
+        }
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+#endif
+        m_ams_control_box->Show(e.GetInt() == 1 && !ams_control_use_web());
         m_panel_nozzle_rack->Show(e.GetInt() == 0);
         Layout();
     } else if (!m_panel_nozzle_rack->IsShown() && e.GetInt() == 0) {
-        m_ams_control_box->Show(e.GetInt() == 1);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+        if (m_ams_control_web_switch) {
+            m_ams_control_web_switch->Show(false);
+        }
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+#endif
+        m_ams_control_box->Show(e.GetInt() == 1 && !ams_control_use_web());
         m_panel_nozzle_rack->Show(e.GetInt() == 0);
         Layout();
     }
 
     e.Skip();
 }
+
+#if BBL_ENABLE_AMS_CONTROL_WEB
+void StatusBasePanel::on_ams_control_web_switch(wxCommandEvent &e)
+{
+    m_ams_control_web_active = (e.GetInt() == 0) || ams_control_use_web();
+    if (m_ams_control_web_active) {
+        if (m_ams_control_box) {
+            m_ams_control_box->Show(false);
+        }
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->ShowAndLoad();
+            m_ams_control_web_panel->UpdateByMachine(obj);
+        }
+    } else {
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+        if (m_ams_control_box) {
+            m_ams_control_box->Show(!ams_control_use_web());
+        }
+    }
+    Layout();
+    Fit();
+    wxGetApp().mainframe->m_monitor->Layout();
+    e.Skip();
+}
+#endif
 
 void StatusPanel::update_camera_state(MachineObject *obj)
 {
@@ -4216,6 +4331,12 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (auto* sync = wxGetApp().fila_manager_sync())
         sync->drain_filament_hints(obj->get_dev_id());
+
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
+        m_ams_control_web_panel->UpdateByMachine(obj);
+    }
+#endif
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -5452,6 +5573,11 @@ void StatusPanel::dismiss_filament_hint_ui(const std::string& dev_id, const std:
     // 只在当前仍显示的就是这台设备时才动控件，避免清到切换后的新设备同名槽位。
     if (m_ams_control && obj && obj->get_dev_id() == dev_id)
         m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+    DevicePageAmsControlWebVM::DismissFilamentMgrHint(ams_id, slot_id);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown())
+        m_ams_control_web_panel->UpdateByMachine(obj);
+#endif
     if (m_filament_hotend_web_panel && obj && obj->get_dev_id() == dev_id)
         m_filament_hotend_web_panel->UpdateByMachine(obj);
     if (m_filament_hotend_web_dlg && obj && obj->get_dev_id() == dev_id)

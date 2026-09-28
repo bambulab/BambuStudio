@@ -35,6 +35,7 @@
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/FilamentLoad.hpp"
 #include "Widgets/FanControl.hpp"
+#include "DeviceTab/AmsControl/AmsControlWebEnable.hpp"
 #include "HMS.hpp"
 #include "PartSkipDialog.hpp"
 #include "DeviceErrorDialog.hpp"
@@ -56,6 +57,9 @@ class MessageDialog;
 class wgtDeviceFilamentHotendWebDialog;
 class wgtDeviceFilamentHotendHtmlDialog;
 class wgtDeviceNozzleRack;
+#if BBL_ENABLE_AMS_CONTROL_WEB
+class wgtAmsControlWebPanel;
+#endif
 class wgtDeviceFilamentHotendWebPanel;
 class wgtHotendRackControl;
 class wgtRackExtruder;
@@ -575,6 +579,11 @@ protected:
 
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    SwitchBoard*    m_ams_control_web_switch{ nullptr };
+    wgtAmsControlWebPanel* m_ams_control_web_panel{ nullptr };
+    bool            m_ams_control_web_active{ ams_control_use_web() };
+#endif
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
 
@@ -674,6 +683,9 @@ public:
 
 private:
     void on_ams_rack_switch(wxCommandEvent& event);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    void on_ams_control_web_switch(wxCommandEvent& event);
+#endif
     void show_camera_fullscreen();
 };
 
