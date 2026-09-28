@@ -613,6 +613,14 @@ private:
     bool                                m_last_pos_defined;
     bool                                m_last_scarf_seam_flag;
     bool                                m_scarf_seam_start;
+
+    // Wave overhangs: true while _extrude() is emitting a wave path. Set before the
+    // leading travel so that travel picks up the wave travel-speed override too.
+    bool                                m_inside_wave_overhang = false;
+    // Wave overhangs: wave extrusion time accumulated on the current layer, in seconds.
+    // Consumed and reset by process_layer() for wave_overhang_min_layer_time.
+    double                              m_wave_layer_accumulated_time = 0.;
+
     std::unique_ptr<GCodeEditor>        m_gcode_editer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
 #ifdef HAS_PRESSURE_EQUALIZER

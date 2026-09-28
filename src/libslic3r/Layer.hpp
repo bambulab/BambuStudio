@@ -169,6 +169,22 @@ public:
     std::vector<std::pair<ExPolygon, int>> loverhangs_with_type;
     BoundingBox             loverhangs_bbox;
     std::vector<LoopNode>   loop_nodes;
+
+    // Footprint of the wave-overhang extrusions emitted on this layer. Filled in by the
+    // perimeter generator; read by detect_surfaces_type() to promote the surfaces on the
+    // floor layers above, so they get solid fill rather than sparse infill over air.
+    Polygons                wave_overhang_floor_polygons;
+
+    // Footprint of wave-overhang coverage on this layer, filled in whenever wave paths
+    // were generated at all. The support pipeline subtracts it from detected overhangs so
+    // supports only fill what the waves did not cover.
+    Polygons                wave_overhang_covered_polygons;
+
+    // The wave "shadow": the part of this layer whose surface types the wave-overhang
+    // floor-layer pass owns. The shell-discovery passes skip it, which is what makes
+    // wave_overhang_floor_layers authoritative rather than additive with the shell counts.
+    Polygons                wave_overhang_shadow_polygons;
+
     size_t                  region_count() const { return m_regions.size(); }
     const LayerRegion*      get_region(int idx) const { return m_regions[idx]; }
     LayerRegion*            get_region(int idx) { return m_regions[idx]; }

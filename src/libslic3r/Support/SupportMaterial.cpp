@@ -1666,6 +1666,23 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
             polygons_append(contact_polygons, diff_polygons);
         } // for each layer.region
 
+        // Wave overhangs: with support_remaining_areas_after_wave_overhangs on, do not support
+        // what the waves already covered. Runs before enforcers are appended below, so an area
+        // the user painted as an enforcer keeps its support even where a wave covers it.
+        if (! layer.wave_overhang_covered_polygons.empty()) {
+            bool wave_support_gate = false;
+            for (const LayerRegion *layerm : layer.regions())
+                if (layerm->region().config().wave_overhangs.value &&
+                    layerm->region().config().support_remaining_areas_after_wave_overhangs.value) {
+                    wave_support_gate = true;
+                    break;
+                }
+            if (wave_support_gate) {
+                overhang_polygons = diff(overhang_polygons, layer.wave_overhang_covered_polygons);
+                contact_polygons  = diff(contact_polygons, layer.wave_overhang_covered_polygons);
+            }
+        }
+
         if (has_enforcer)
             if (const Polygons& enforcer_polygons_src = annotations.enforcers_layers[layer_id]; !enforcer_polygons_src.empty()) {
                 // Enforce supports (as if with 90 degrees of slope) for the regions covered by the enforcer meshes.

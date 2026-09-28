@@ -635,6 +635,7 @@ std::string ExtrusionEntity::role_to_string(ExtrusionRole role)
         case erCustom                       : return L("Custom");
         case erMixed                        : return L("Multiple");
         case erFlush                        : return L("Flush");
+        case erWaveOverhang                 : return L("Wave overhang");
         default                             : assert(false);
     }
     return "";
@@ -648,6 +649,8 @@ ExtrusionRole ExtrusionEntity::string_to_role(const std::string_view role)
         return erExternalPerimeter;
     else if (role == L("Overhang wall"))
         return erOverhangPerimeter;
+    else if (role == L("Wave overhang"))
+        return erWaveOverhang;
     else if (role == L("Sparse infill"))
         return erInternalInfill;
     else if (role == L("Floating vertical shell"))
