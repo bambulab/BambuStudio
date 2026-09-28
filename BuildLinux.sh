@@ -2,19 +2,34 @@
 
 export ROOT=$(dirname $(readlink -f ${0}))
 
+# Prefer the distribution toolchain over SDK-provided CMake/Ninja binaries
+# prepended to PATH by products such as STM32CubeCLT.
+if [[ -d /usr/bin ]]; then
+    export PATH="/usr/bin:${PATH}"
+fi
+
 set -e # exit on first error
 
 function check_available_memory_and_disk() {
-    FREE_MEM_GB=$(free -g -t | grep 'Mem' | rev | cut -d" " -f1 | rev)
-    MIN_MEM_GB=10
+    FREE_MEM_KB=$(free -k | awk '/^Mem:/ {print $7}')
+    FREE_SWAP_KB=$(free -k | awk '/^Swap:/ {print $4}')
+    FREE_MEM_GB=$((FREE_MEM_KB / 1024 / 1024))
+    USABLE_MEM_GB=$(((FREE_MEM_KB + FREE_SWAP_KB) / 1024 / 1024))
+    RECOMMENDED_MEM_GB=10
+    MIN_USABLE_MEM_GB=4
 
     FREE_DISK_KB=$(df -k . | tail -1 | awk '{print $4}')
     MIN_DISK_KB=$((10 * 1024 * 1024))
 
-    if [ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]; then
-        echo -e "\nERROR: Bambu Studio Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
+    if [ ${USABLE_MEM_GB} -lt ${MIN_USABLE_MEM_GB} ]; then
+        echo -e "\nERROR: Bambu Studio Builder requires at least ${MIN_USABLE_MEM_GB}G of available memory and swap (system has ${USABLE_MEM_GB}G usable)"
         echo && free -h && echo
         exit 2
+    fi
+
+    if [ ${FREE_MEM_GB} -lt ${RECOMMENDED_MEM_GB} ]; then
+        echo -e "\nWARNING: Less than ${RECOMMENDED_MEM_GB}G RAM is available (${FREE_MEM_GB}G available, ${USABLE_MEM_GB}G including swap)."
+        echo "The build will continue with memory-based parallelism. Use -1 if it is killed by the OOM manager."
     fi
 
     if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]]; then 
@@ -30,7 +45,7 @@ function check_available_memory_and_disk() {
 #   -b                -> CMAKE_BUILD_TYPE=Debug，且会忽略 -y
 #   -b 和 -y 同时存在 -> 以 -b 为准，走 Debug 模式（-y 无效）
 function usage() {
-    echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-r][-s][-u]"
+    echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-p][-r][-s][-u]"
     echo "   -1: limit builds to 1 core (where possible)"
     echo "   -f: disable safe parallel number limit(By default, the maximum number of parallels is set to free memory/2.5)"
     echo "   -b: build in debug mode"
@@ -38,6 +53,7 @@ function usage() {
     echo "   -d: build deps (optional)"
     echo "   -h: this help output"
     echo "   -i: Generate appimage (optional)"
+    echo "   -p: Generate a self-contained RPM package (optional)"
     echo "   -r: skip ram and disk checks (low ram compiling)"
     echo "   -s: build bambu-studio (optional)"
     echo "   -u: update and build dependencies (optional and need sudo)"
@@ -48,10 +64,11 @@ function usage() {
 }
 
 unset name
-while getopts ":1fbcdhirsut:y:" opt; do
+while getopts ":1fbcdhiprsut:y:" opt; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
+        PARALLEL_LIMIT_SET=1
         ;;
     f )
         DISABLE_PARALLEL_LIMIT=1
@@ -70,6 +87,9 @@ while getopts ":1fbcdhirsut:y:" opt; do
         ;;
     i )
         BUILD_IMAGE="1"
+        ;;
+    p )
+        BUILD_RPM="1"
         ;;
     r )
 	    SKIP_RAM_CHECK="1"
@@ -145,7 +165,7 @@ then
     check_available_memory_and_disk
 fi
 
-if ! [[ -n "${DISABLE_PARALLEL_LIMIT}" ]]
+if [[ -z "${DISABLE_PARALLEL_LIMIT}" && -z "${PARALLEL_LIMIT_SET}" ]]
 then
     FREE_MEM_GB=$(free -g -t | grep 'Mem' | rev | cut -d" " -f1 | rev)
     MAX_THREADS=$((FREE_MEM_GB * 10 / 25))
@@ -236,12 +256,36 @@ if [[ -e ${ROOT}/build/src/BuildLinuxImage.sh ]]; then
 # Give proper permissions to script
 chmod 755 ${ROOT}/build/src/BuildLinuxImage.sh
 
+if [[ -n "${BUILD_RPM}" && ! -e ${ROOT}/build/src/build_rpm.sh ]]; then
+    echo "Error: RPM helper is missing. Reconfigure the build with './BuildLinux.sh -s' first." >&2
+    exit 1
+fi
+if [[ -n "${BUILD_RPM}" ]]; then
+    chmod 755 ${ROOT}/build/src/build_rpm.sh
+fi
+
 echo "[9/9] Generating Linux app..."
     pushd build
+        PACKAGE_ARGS=""
+        if [[ -n "${BUILD_RPM}" ]]
+        then
+            PACKAGE_ARGS="${PACKAGE_ARGS} -r"
+        fi
         if [[ -n "${BUILD_IMAGE}" ]]
         then
-            ${ROOT}/build/src/BuildLinuxImage.sh -i
+            PACKAGE_ARGS="${PACKAGE_ARGS} -i"
+        fi
+        if [[ -n "${PACKAGE_ARGS}" ]]
+        then
+            if ! ${ROOT}/build/src/BuildLinuxImage.sh ${PACKAGE_ARGS}; then
+                echo "Error: Linux packaging failed." >&2
+                popd
+                exit 1
+            fi
         fi
     popd
 echo "done"
+elif [[ -n "${BUILD_IMAGE}" || -n "${BUILD_RPM}" ]]; then
+    echo "Error: packaging requires a configured Bambu Studio build. Run './BuildLinux.sh -s' first." >&2
+    exit 1
 fi

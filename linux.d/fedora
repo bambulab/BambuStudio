@@ -1,5 +1,12 @@
 FOUND_GTK3=$(rpm -qa | grep -P '^gtk3' || true)
 
+FEDORA_VERSION=$(rpm -E %fedora)
+if (( FEDORA_VERSION >= 44 )); then
+    OSMESA_DEVEL_PACKAGE=mesa-compat-libOSMesa-devel
+else
+    OSMESA_DEVEL_PACKAGE=mesa-libOSMesa-devel
+fi
+
 REQUIRED_DEV_PACKAGES=(
     autoconf
     automake
@@ -23,10 +30,11 @@ REQUIRED_DEV_PACKAGES=(
     libtool
     m4
     mesa-libGLU-devel
-    mesa-libOSMesa-devel
+    ${OSMESA_DEVEL_PACKAGE}
     mesa-libGL-devel
     ninja-build
     openssl-devel
+    patchelf
     perl-FindBin
     texinfo
     wayland-devel
@@ -36,6 +44,7 @@ REQUIRED_DEV_PACKAGES=(
     libcurl-devel
     libquadmath-devel
     nasm
+    rpm-build
     yasm
     x264-devel
     bzip2-devel
@@ -50,9 +59,10 @@ then
     done
 
     if [ -n "${NEEDED_PKGS}" ]; then
-        sudo dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-        sudo dnf -y update
-        sudo dnf install -y ${NEEDED_PKGS}
+        if ! rpm -q rpmfusion-free-release > /dev/null 2>&1; then
+            sudo dnf install -y "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VERSION}.noarch.rpm"
+        fi
+        sudo dnf install -y --refresh ${NEEDED_PKGS}
     fi
     echo -e "done\n"
     exit 0
