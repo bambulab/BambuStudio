@@ -211,7 +211,7 @@ void MixingKitsHelpDialog::build_ui()
     auto* cards = new wxBoxSizer(wxHORIZONTAL);
     cards->AddStretchSpacer();
     cards->Add(create_kit_card(this,
-                               {CMYKW_WHITE, CMYKW_CYAN, CMYKW_MAGENTA, CMYKW_YELLOW, CMYKW_BLACK},
+                               {CMYKW_CYAN, CMYKW_MAGENTA, CMYKW_YELLOW, CMYKW_BLACK, CMYKW_WHITE},
                                _L("5-color CMYKW"),
                                _L("Cyan · Magenta · Yellow · Black · White")),
                0);

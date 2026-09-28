@@ -85,6 +85,10 @@
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE = "PLA Basic";
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_SHORT_TYPE = "PLA";
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_NAME       = "Bambu PLA Basic";
+// CMYKW recipes are measured on the PLA Palette series, whose base colors differ
+// from PLA Basic's, so its base filaments must not be created as PLA Basic.
+static constexpr const char* PALETTE_VIRTUAL_FILAMENT_BASIC_TYPE = "PLA Palette";
+static constexpr const char* PALETTE_VIRTUAL_FILAMENT_NAME       = "Bambu PLA Palette";
 // CIEDE2000 cutoff for automatic filament matching. The matching step
 // exposes this as a slider; 0 rejects every non-zero difference. The right
 // end is unlimited, so every color binds to the closest candidate.
@@ -1276,11 +1280,20 @@ static wxString texture_filament_label_wx(const std::vector<TextureFilamentEntry
     return default_filament_display_name(display_number);
 }
 
+// Reuse a slot as a base color only when it belongs to the requested series.
+// Callers already matched the color exactly, but PLA Basic and PLA Palette both
+// report entry.type == "PLA", so without this check one series' slot could be
+// reused as the other's base.
 static bool texture_entry_matches_series(const TextureFilamentEntry& entry, const std::string& basic_type)
 {
     const std::string series = texture_entry_official_series(entry);
     if (!series.empty())
         return series == basic_type;
+    // No official marker: for PLA Palette, only officially marked slots are accepted
+    // because common colors like White (#FFFFFF) exist in many PLA series.
+    if (basic_type == PALETTE_VIRTUAL_FILAMENT_BASIC_TYPE)
+        return false;
+    // For PLA Basic and other series, keep today's behaviour for plain family slots.
     return entry.type == DEFAULT_VIRTUAL_FILAMENT_SHORT_TYPE || entry.type == basic_type;
 }
 
@@ -1356,18 +1369,20 @@ static std::vector<TextureFilamentEntry> collect_project_filament_entries()
     return filament_entries;
 }
 
-static const DecomposeBaseColor kPlaBasicCmywBases[] = {
+static const DecomposeBaseColor kPaletteCmykwBases[] = {
     DecomposeBaseColor::White,
     DecomposeBaseColor::Cyan,
     DecomposeBaseColor::Magenta,
-    DecomposeBaseColor::Yellow
+    DecomposeBaseColor::Yellow,
+    DecomposeBaseColor::Black
 };
 
-static const wxColour kPlaBasicCmywFallbacks[] = {
+static const wxColour kPaletteCmykwFallbacks[] = {
     wxColour(255, 255, 255),
-    wxColour(0, 255, 255),
-    wxColour(255, 0, 255),
-    wxColour(255, 255, 0)
+    wxColour(0, 144, 218),
+    wxColour(226, 69, 133),
+    wxColour(252, 227, 0),
+    wxColour(0, 0, 0)
 };
 
 static int find_texture_decompose_reuse_by_color(const std::vector<TextureFilamentEntry>& entries,
@@ -1384,12 +1399,6 @@ static int find_texture_decompose_reuse_by_color(const std::vector<TextureFilame
             return entry.dialog_index;
     }
     return -1;
-}
-
-static int find_texture_decompose_reuse_by_color(const std::vector<TextureFilamentEntry>& entries,
-                                                 const std::string& color_hex)
-{
-    return find_texture_decompose_reuse_by_color(entries, color_hex, kDecomposePlaBasicType);
 }
 
 static bool starts_with_preset_name(const std::string& name, const char* prefix)
@@ -4851,6 +4860,7 @@ TextureImportDialog::TextureImportDialog(
 
     m_existing_filament_count = m_filament_colors_rgba.size();
     m_default_virtual_filament_preset_name = resolve_default_virtual_filament_preset_name();
+    m_palette_virtual_filament_preset_name = resolve_series_virtual_filament_preset_name(PALETTE_VIRTUAL_FILAMENT_NAME);
 
     Bind(EVT_TEXTURE_COMPUTE_DONE,     &TextureImportDialog::on_computation_complete, this);
     Bind(EVT_TEXTURE_COMPUTE_PROGRESS, &TextureImportDialog::on_computation_progress, this);
@@ -6773,7 +6783,8 @@ int TextureImportDialog::find_closest_filament_index(const std::array<std::size_
 }
 
 int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
-                                              const std::string& preset_name)
+                                              const std::string& preset_name,
+                                              const std::string& display_name)
 {
     if (m_filament_color_strs.size() != m_filament_colors_rgba.size() ||
         m_filament_names.size() != m_filament_colors_rgba.size() ||
@@ -6781,10 +6792,13 @@ int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, 
         return -1;
     }
 
-    // Resolve the display name from the preset so compact_used_virtual_filaments()
-    // can restore entry.name from m_filament_names without falling back to a generic series name.
+    // Prefer the caller-supplied display name (series decompose path); otherwise
+    // resolve it from the preset so compact_used_virtual_filaments() can restore
+    // entry.name from m_filament_names without falling back to a generic series name.
     const std::string resolved_preset = preset_name.empty() ? m_default_virtual_filament_preset_name : preset_name;
-    const std::string resolved_name = texture_filament_display_name_from_preset(resolved_preset);
+    const std::string resolved_name = !display_name.empty()
+        ? display_name
+        : texture_filament_display_name_from_preset(resolved_preset);
 
     const int new_idx = (int)m_filament_colors_rgba.size();
     m_filament_colors_rgba.push_back(rgba);
@@ -7493,7 +7507,7 @@ void TextureImportDialog::show_mixing_kits_help()
 {
     MixingKitsHelpDialog dlg(this);
     if (dlg.ShowModal() == wxID_APPLY)
-        add_pla_basic_cmyw_to_project();
+        add_pla_palette_cmykw_to_project();
 }
 
 void TextureImportDialog::on_mix_toggled(wxCommandEvent& evt)
@@ -7550,16 +7564,16 @@ void TextureImportDialog::rematch_after_project_filament_change()
     Refresh();
 }
 
-void TextureImportDialog::add_pla_basic_cmyw_to_project()
+void TextureImportDialog::add_pla_palette_cmykw_to_project()
 {
     if (!wxGetApp().plater() || !wxGetApp().preset_bundle)
         return;
 
-    ensure_official_series_installed(kDecomposePlaBasicType);
-    const std::string preset_name = find_decompose_standard_preset_name(0, kDecomposePlaBasicType);
+    ensure_official_series_installed(kDecomposePlaPaletteType);
+    const std::string preset_name = find_decompose_standard_preset_name(0, kDecomposePlaPaletteType);
     if (preset_name.empty()) {
         MessageDialog dlg(this,
-            _L("The current printer has no compatible PLA Basic filament."),
+            _L("The current printer has no compatible PLA Palette filament."),
             _L("Error"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
@@ -7586,13 +7600,13 @@ void TextureImportDialog::add_pla_basic_cmyw_to_project()
     Sidebar& sidebar = wxGetApp().plater()->sidebar();
     std::vector<std::pair<wxColour, std::string>> to_add;
     std::vector<DecomposeOfficialComponent> officials;
-    to_add.reserve(4);
-    officials.reserve(4);
+    to_add.reserve(5);
+    officials.reserve(5);
     bool hit_cap = false;
     const size_t current_count = wxGetApp().preset_bundle->filament_presets.size();
-    for (size_t i = 0; i < 4; ++i) {
+    for (size_t i = 0; i < 5; ++i) {
         const DecomposeOfficialComponent official = lookup_decompose_official_component(
-            kDecomposePlaBasicType, kPlaBasicCmywBases[i], kPlaBasicCmywFallbacks[i]);
+            kDecomposePlaPaletteType, kPaletteCmykwBases[i], kPaletteCmykwFallbacks[i]);
         if (find_existing_decompose_component(official, physical_colors, physical_indices) >= 0)
             continue;
         if (current_count + to_add.size() >= max_filament_count()) {
@@ -7601,7 +7615,7 @@ void TextureImportDialog::add_pla_basic_cmyw_to_project()
         }
         wxColour col(official.color_hex);
         if (!col.IsOk())
-            col = kPlaBasicCmywFallbacks[i];
+            col = kPaletteCmykwFallbacks[i];
         to_add.emplace_back(col, preset_name);
         officials.push_back(official);
     }
@@ -7640,13 +7654,13 @@ std::string TextureImportDialog::preferred_mix_family() const
     return kDecomposePlaShortType;
 }
 
-bool TextureImportDialog::has_complete_pla_basic_cmyw() const
+bool TextureImportDialog::has_complete_pla_palette_cmykw() const
 {
-    for (size_t i = 0; i < 4; ++i) {
+    for (size_t i = 0; i < 5; ++i) {
         const DecomposeOfficialComponent official = lookup_decompose_official_component(
-            kDecomposePlaBasicType, kPlaBasicCmywBases[i], kPlaBasicCmywFallbacks[i]);
+            kDecomposePlaPaletteType, kPaletteCmykwBases[i], kPaletteCmykwFallbacks[i]);
         if (find_texture_decompose_reuse_by_color(m_filament_entries, official.color_hex,
-                                                  kDecomposePlaBasicType) < 0)
+                                                  kDecomposePlaPaletteType) < 0)
             return false;
     }
     return true;
@@ -7678,7 +7692,7 @@ void TextureImportDialog::apply_mix_from_existing_filaments()
         rebuilt_matches = true;
     }
 
-    const bool kit_complete = has_complete_pla_basic_cmyw();
+    const bool kit_complete = has_complete_pla_palette_cmykw();
     const std::string family = kit_complete ? std::string(kDecomposePlaShortType) : preferred_mix_family();
 
     std::vector<int> allowed_dialog_indices;
@@ -7687,7 +7701,7 @@ void TextureImportDialog::apply_mix_from_existing_filaments()
         if (entry.kind != TextureFilamentKind::ExistingPhysical)
             continue;
         if (kit_complete) {
-            if (texture_entry_official_series(entry) != kDecomposePlaBasicType)
+            if (texture_entry_official_series(entry) != kDecomposePlaPaletteType)
                 continue;
         } else if (texture_filament_family(texture_entry_material_type(entry)) != family) {
             continue;
@@ -7750,8 +7764,8 @@ void TextureImportDialog::apply_mix_from_existing_filaments()
 
         Slic3r::ColorDecomposeRecipeResult recipe;
         if (kit_complete)
-            recipe = Slic3r::lookup_standard_recipe(target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYW,
-                                                    kDecomposePlaBasicType);
+            recipe = Slic3r::lookup_standard_recipe(target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYKW,
+                                                    kDecomposePlaPaletteType);
         else
             recipe = Slic3r::recommend_from_physical_filaments(target_rgb, family_filaments, family);
 
@@ -7762,7 +7776,7 @@ void TextureImportDialog::apply_mix_from_existing_filaments()
                 int dialog_idx = -1;
                 if (kit_complete) {
                     dialog_idx = find_texture_decompose_reuse_by_color(
-                        m_filament_entries, comp.color_hex, kDecomposePlaBasicType);
+                        m_filament_entries, comp.color_hex, kDecomposePlaPaletteType);
                 } else if (comp.filament_index >= 1) {
                     dialog_idx = (int)comp.filament_index - 1;
                     if (dialog_idx < 0 || dialog_idx >= (int)m_filament_entries.size() ||
@@ -7898,19 +7912,23 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
     // will actually create, so already-present virtual base colors are not
     // double counted (which previously could wrongly disable OK).
     dlg.set_missing_physical_calculator([this](const ColorDecomposeResult& result) -> size_t {
+        const std::string mat_type = result.material_type.empty()
+            ? std::string(DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE) : result.material_type;
         size_t missing = 0;
         for (const DecomposeComponent& comp : result.components) {
             if (comp.filament_index > 0)
                 continue; // reuses a physical slot passed to the dialog, no new filament
             const std::string comp_hex = texture_normalize_color_hex(
                 comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
-            if (find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex) < 0)
+            if (find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex, mat_type) < 0)
                 ++missing;
         }
         return missing;
     });
     dlg.set_preview_id_calculator([this, physical_dialog_indices](const ColorDecomposeResult& result) -> DecomposePreviewIds {
         DecomposePreviewIds out;
+        const std::string mat_type = result.material_type.empty()
+            ? std::string(DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE) : result.material_type;
         const auto display = compute_display_numbers();
         auto display_of = [&](int dialog_idx) -> int {
             return (dialog_idx >= 0 && dialog_idx < (int)display.size() && display[dialog_idx] > 0)
@@ -7940,7 +7958,7 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
 
             const std::string comp_hex = texture_normalize_color_hex(
                 comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
-            const int existing_idx = find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex);
+            const int existing_idx = find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex, mat_type);
             if (existing_idx >= 0) {
                 out.component_ids.push_back(display_of(existing_idx));
                 continue;
@@ -7962,6 +7980,20 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
         return false;
 
     ColorDecomposeResult result = dlg.get_result();
+
+    // Resolve series preset/display_name from the dialog's selected material type.
+    const std::string series_type = result.material_type.empty()
+        ? std::string(DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE) : result.material_type;
+    std::string decompose_preset_name;
+    std::string decompose_display_name;
+    if (series_type == kDecomposePlaPaletteType) {
+        decompose_preset_name = m_palette_virtual_filament_preset_name;
+        decompose_display_name = PALETTE_VIRTUAL_FILAMENT_NAME;
+    } else {
+        decompose_preset_name = m_default_virtual_filament_preset_name;
+        decompose_display_name = DEFAULT_VIRTUAL_FILAMENT_NAME;
+    }
+
     std::vector<int> component_dialog_indices;
     std::vector<int> ratios;
     for (const DecomposeComponent& comp : result.components) {
@@ -7977,14 +8009,16 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
         }
 
         const std::string comp_hex = texture_normalize_color_hex(comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
-        int existing_idx = find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex);
+        int existing_idx = find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex, series_type);
         if (existing_idx < 0) {
             std::array<float, 4> rgba = parse_color_string(comp_hex);
-            existing_idx = add_virtual_filament(rgba, comp_hex);
+            existing_idx = add_virtual_filament(rgba, comp_hex, decompose_preset_name, decompose_display_name);
             if (existing_idx < 0) {
                 drop_unused_new_filaments_and_refresh();
                 return false;
             }
+            if (existing_idx < (int)m_filament_entries.size())
+                m_filament_entries[existing_idx].type = series_type;
         }
         component_dialog_indices.push_back(existing_idx);
     }

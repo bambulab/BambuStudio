@@ -528,8 +528,13 @@ DecomposePreviewIds preview_decompose_filament_ids(
     if (source_physical_idx >= 0)
         out.source_id = physical_to_sidebar_id(source_physical_idx + 1, *indices);
 
-    const bool standard_mode = result.mode == DecomposeMode::CMYW || result.mode == DecomposeMode::RYBW;
-    (void)physical_types;
+    const size_t source_physical = source_physical_idx >= 0 ? static_cast<size_t>(source_physical_idx) : size_t(-1);
+    size_t source_config_idx = size_t(-1);
+    if (source_physical < indices->size())
+        source_config_idx = (*indices)[source_physical];
+
+    const bool standard_mode = result.mode == DecomposeMode::CMYW || result.mode == DecomposeMode::RYBW
+                            || result.mode == DecomposeMode::CMYKW;
 
     size_t missing_count = 0;
     out.component_ids.reserve(result.components.size());
@@ -538,7 +543,8 @@ DecomposePreviewIds preview_decompose_filament_ids(
         for (const DecomposeComponent& comp : result.components)
             out.component_ids.push_back(physical_to_sidebar_id(comp.filament_index, *indices));
     } else {
-        const std::string basic_type = kDecomposePlaBasicType;
+        const std::string basic_type = resolve_decompose_basic_type(result.material_type, source_config_idx,
+                                                                    source_physical, physical_types);
         int next_new_id = static_cast<int>(physical_colors.size()) + 1;
         for (const DecomposeComponent& comp : result.components) {
             if (comp.base_color == DecomposeBaseColor::None) {

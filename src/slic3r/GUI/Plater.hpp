@@ -303,6 +303,9 @@ public:
     // with. Plate-scoped like has_incompatible_filament(), so it also has to run whenever the
     // current plate or its contents change, not only on a sidebar refresh.
     void update_incompatible_nozzle_notifications();
+    // Pushes/closes the corner card for broken mixed filaments the current plate actually prints
+    // with. The row marker stays either way; only the corner card and the slice gate are plate-scoped.
+    void update_broken_mixed_filament_notification();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
     void                            set_is_gcode_file(bool flag);

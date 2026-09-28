@@ -1036,6 +1036,7 @@ struct Sidebar::priv
     // diameter on screen.
     std::string m_notified_nozzle_unsupported_text; // printer has the nozzle, filament has no preset
     std::string m_notified_nozzle_missing_text;     // printer carries no such nozzle at all
+    std::string m_notified_mixed_broken_text;       // broken mixed slots the current plate prints with
 
     // Session snapshot of per-slot diameter/flow selections captured when multi_nozzle_diameter_mode
     // is turned OFF -- validate_filament_nozzle_diameter_selections() unconditionally clears them
@@ -4757,10 +4758,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     // a plain static bitmap instead -- it isn't clickable, only shown with a tooltip, and actually
     // honors SetBackgroundColour, matched here to combo's normal-state (white) background.
     incompatible_icon->SetBackgroundColour(*wxWHITE);
-    // Worded for the common case and set once here rather than per state: this one icon also marks
-    // an AMS tray with no matching preset, which is not a nozzle problem, but that only happens
-    // right after a sync and the corner notification spells it out. "Current nozzle" rather than a
-    // named one keeps the text true on machines that hide the per-row nozzle chip entirely.
+    // Fallback until refresh_filament_nozzle_label() writes the slot's own reason (no preset,
+    // nozzle not installed, or AMS tray unmatched).
     incompatible_icon->SetToolTip(_L("This filament does not support printing with the current nozzle."));
     incompatible_icon->Hide();
     p->filament_incompatible_icons.push_back(incompatible_icon);
@@ -4843,6 +4842,50 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     p->relayout_filament_grid(true);
 }
 
+// Why a flagged slot cannot print. missing means the filament still has a preset for some nozzle
+// the machine carries, so the user can re-point the row. Otherwise no row in the picker would help.
+struct FilamentNozzleSlotState {
+    std::string      diameter;
+    NozzleVolumeType type = NozzleVolumeType::nvtStandard;
+    bool             has_usable_nozzle = false;
+    bool             stored_installed = false;
+    bool             missing = false;
+};
+
+static FilamentNozzleSlotState filament_nozzle_slot_state(PresetBundle *preset_bundle, PartPlate *plate, size_t idx)
+{
+    FilamentNozzleSlotState state;
+    if (preset_bundle == nullptr)
+        return state;
+
+    // Slots can be missing different diameters at once, so use each slot's own stored diameter
+    // instead of the single printer_variant -- that value is meaningless in multi-diameter mode.
+    // With the mode off, filament_diameter_map holds inactive values from the last session.
+    // Reporting those would name a diameter the slot is not using; every slot then runs on the
+    // printer's single configured diameter.
+    const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    const bool per_slot_diameters =
+        multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
+        is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config);
+    state.diameter = per_slot_diameters && selected != nullptr && idx < selected->values.size() ?
+        selected->values[idx] : std::string();
+    if (state.diameter.empty())
+        state.diameter = preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+
+    // Same source the per-row nozzle chip renders from, so the corner card and the row agree on the flow.
+    if (plate != nullptr) {
+        const std::vector<int> volume_maps = plate->get_real_filament_volume_maps(preset_bundle->project_config);
+        if (idx < volume_maps.size())
+            state.type = (NozzleVolumeType) volume_maps[idx];
+    }
+
+    state.has_usable_nozzle = !preset_bundle->get_filament_nozzle_diameter_options(idx).empty();
+    state.stored_installed = preset_bundle->get_installed_nozzle_variants().count(
+        std::make_pair(state.diameter, state.type)) != 0;
+    state.missing = state.has_usable_nozzle && !state.stored_installed;
+    return state;
+}
+
 void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
 {
     if (idx >= filament_nozzle_labels.size())
@@ -4864,8 +4907,37 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
     // Figma node 7808:13253: an incompatible slot is marked by (1) an exclamation icon inline inside
     // combo, on its right side, and (2) combo's own outline turning red -- not by swapping the "..."
     // edit button's own icon out at the row's edge, so leave that button alone.
-    if (idx < filament_incompatible_icons.size() && filament_incompatible_icons[idx] != nullptr)
-        filament_incompatible_icons[idx]->Show(is_incompatible);
+    if (idx < filament_incompatible_icons.size() && filament_incompatible_icons[idx] != nullptr) {
+        wxStaticBitmap *icon = filament_incompatible_icons[idx];
+        icon->Show(is_incompatible);
+        if (is_incompatible) {
+            const bool ams_unmatched = std::find(unmatched_slots.begin(), unmatched_slots.end(),
+                static_cast<size_t>(filament_idx)) != unmatched_slots.end();
+            const bool nozzle_flagged = std::find(incompatible_slots.begin(), incompatible_slots.end(),
+                static_cast<size_t>(filament_idx)) != incompatible_slots.end();
+            PartPlate *flag_plate = nullptr;
+            if (wxGetApp().plater() == plater)
+                flag_plate = plater->get_partplate_list().get_curr_plate();
+            wxString tip;
+            auto append_tip = [&](const wxString &line) {
+                if (!tip.empty())
+                    tip += "\n";
+                tip += line;
+            };
+            if (ams_unmatched)
+                append_tip(_L("No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."));
+            if (nozzle_flagged) {
+                const FilamentNozzleSlotState state = filament_nozzle_slot_state(preset_bundle, flag_plate, (size_t) filament_idx);
+                if (state.missing)
+                    append_tip(_L("This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."));
+                else
+                    append_tip(_L("This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."));
+            }
+            if (tip.empty())
+                tip = _L("This filament does not support printing with the current nozzle.");
+            icon->SetToolTip(tip);
+        }
+    }
 
     if (idx < combos_filament.size() && combos_filament[idx] != nullptr) {
         PlaterPresetComboBox *combo = combos_filament[idx];
@@ -6737,9 +6809,11 @@ void Sidebar::load_ams_list(MachineObject* obj)
     p->combo_printer->update();
 }
 
+static bool plate_uses_filament_slots(Plater *plater, const PartPlate *plate, const std::set<size_t> &slots_1based);
+
 // Reflects PresetBundle::ams_sync_unmatched_slots in the corner notification. Called after a sync fills
 // the list and again whenever a slot drops out of it, so the message never names a slot the user has
-// already dealt with.
+// already dealt with. Only slots the current plate prints with are named.
 static void update_ams_sync_unmatched_notification()
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -6750,21 +6824,27 @@ static void update_ams_sync_unmatched_notification()
     if (notify == nullptr)
         return;
 
+    static std::string notified_text;
+    const PartPlate *plate = plater->get_partplate_list().get_curr_plate();
     const std::vector<size_t> &unmatched = preset_bundle->ams_sync_unmatched_slots;
-    if (unmatched.empty()) {
-        notify->close_notification_of_type(NotificationType::BBLAmsSyncFilamentUnmatched);
-        return;
-    }
     wxString slot_list;
     for (size_t idx : unmatched) {
+        if (!plate_uses_filament_slots(plater, plate, {idx + 1}))
+            continue;
         if (!slot_list.empty())
             slot_list += ", ";
         slot_list += wxString::Format("%d", (int) idx + 1);
     }
-    const wxString text = wxString::Format(
+    const std::string text_u8 = slot_list.empty() ? std::string() : into_u8(wxString::Format(
         _L("No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."),
-        slot_list);
-    notify->push_error_border_notification(NotificationType::BBLAmsSyncFilamentUnmatched, into_u8(text));
+        slot_list));
+    if (text_u8 == notified_text)
+        return;
+    if (text_u8.empty())
+        notify->close_notification_of_type(NotificationType::BBLAmsSyncFilamentUnmatched);
+    else
+        notify->push_error_border_notification(NotificationType::BBLAmsSyncFilamentUnmatched, text_u8);
+    notified_text = text_u8;
 }
 
 void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
@@ -7441,6 +7521,79 @@ static std::string mixed_slot_nozzle_label(
     return diameter;
 }
 
+enum MixedBreakReason : unsigned {
+    MixedBreakIntegrity = 1u << 0,
+    MixedBreakType      = 1u << 1,
+    MixedBreakDiameter  = 1u << 2,
+};
+
+// 0-based config index -> MixedBreakReason bits. One slot can carry more than one reason.
+struct MixedSlotBreaks {
+    std::map<size_t, unsigned> by_slot;
+};
+
+static MixedSlotBreaks collect_mixed_slot_breaks(size_t num_physical)
+{
+    MixedSlotBreaks out;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr)
+        return out;
+
+    auto &project_config = preset_bundle->project_config;
+    auto *is_mixed_opt = project_config.option<ConfigOptionBools>("filament_is_mixed");
+    auto *components_opt = project_config.option<ConfigOptionStrings>("filament_mixed_components");
+    if (!is_mixed_opt || !components_opt)
+        return out;
+
+    for (size_t slot : check_mixed_filament_integrity(is_mixed_opt->values, components_opt->values, num_physical))
+        out.by_slot[slot] |= MixedBreakIntegrity;
+
+    std::vector<std::string> physical_types;
+    for (size_t i = 0; i < num_physical; ++i) {
+        std::string ft;
+        if (i < preset_bundle->filament_presets.size()) {
+            auto *preset = preset_bundle->filaments.find_preset(preset_bundle->filament_presets[i]);
+            if (preset) {
+                std::string display_type;
+                ft = preset->config.get_filament_type(display_type);
+            }
+        }
+        if (ft.empty())
+            ft = "PLA";
+        physical_types.push_back(ft);
+    }
+    for (size_t slot : check_mixed_filament_type_consistency(is_mixed_opt->values, components_opt->values, physical_types))
+        out.by_slot[slot] |= MixedBreakType;
+
+    // filament_diameter_map is retained after leaving multi-diameter mode. Those leftover values
+    // are not authoritative while the chip is hidden, so do not flag mixed slots for them.
+    if (filament_nozzle_chip_supported()) {
+        if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
+            for (size_t slot : check_mixed_filament_diameter_consistency(
+                     is_mixed_opt->values, components_opt->values, selected->values))
+                out.by_slot[slot] |= MixedBreakDiameter;
+        }
+    }
+    return out;
+}
+
+static wxString mixed_slot_break_tooltip(unsigned reasons)
+{
+    wxString tip;
+    auto append = [&](const wxString &line) {
+        if (!tip.empty())
+            tip += "\n";
+        tip += line;
+    };
+    if (reasons & MixedBreakIntegrity)
+        append(_L("Mixed filament has broken component references"));
+    if (reasons & MixedBreakType)
+        append(_L("Cannot mix different filament types"));
+    if (reasons & MixedBreakDiameter)
+        append(_L("Cannot mix filaments using different nozzle diameters"));
+    return tip;
+}
+
 void Sidebar::update_mixed_filament_list(bool reload_3d)
 {
     auto* plater = dynamic_cast<Plater*>(GetParent());
@@ -7469,46 +7622,12 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
     bool can_mix = (num_physical >= 2);
     bool has_mixed = can_mix && !mixed_indices.empty();
 
-    // Check integrity of mixed filament component references
+    const MixedSlotBreaks mixed_breaks = collect_mixed_slot_breaks(num_physical);
+    std::set<size_t> broken_set;
     std::vector<size_t> broken_slots;
-    if (is_mixed_opt && components_opt)
-        broken_slots = check_mixed_filament_integrity(is_mixed_opt->values, components_opt->values, num_physical);
-    std::set<size_t> broken_set(broken_slots.begin(), broken_slots.end());
-
-    // Type consistency check
-    if (is_mixed_opt && components_opt) {
-        std::vector<std::string> physical_types;
-        auto& preset_bundle = *wxGetApp().preset_bundle;
-        for (size_t i = 0; i < num_physical; ++i) {
-            std::string ft;
-            if (i < preset_bundle.filament_presets.size()) {
-                auto* preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[i]);
-                if (preset) {
-                    std::string display_type;
-                    ft = preset->config.get_filament_type(display_type);
-                }
-            }
-            if (ft.empty()) ft = "PLA";
-            physical_types.push_back(ft);
-        }
-        auto type_mismatch_slots = check_mixed_filament_type_consistency(
-            is_mixed_opt->values, components_opt->values, physical_types);
-        for (size_t s : type_mismatch_slots)
-            broken_set.insert(s);
-        broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
-
-        // filament_diameter_map is retained after leaving multi-diameter mode so the
-        // next toggle-on can restore it. Those leftover values are not authoritative
-        // while the chip is hidden, so do not flag mixed slots as broken for them.
-        if (filament_nozzle_chip_supported()) {
-            if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
-                auto diameter_mismatch_slots = check_mixed_filament_diameter_consistency(
-                    is_mixed_opt->values, components_opt->values, selected->values);
-                for (size_t s : diameter_mismatch_slots)
-                    broken_set.insert(s);
-                broken_slots.insert(broken_slots.end(), diameter_mismatch_slots.begin(), diameter_mismatch_slots.end());
-            }
-        }
+    for (const auto &entry : mixed_breaks.by_slot) {
+        broken_set.insert(entry.first);
+        broken_slots.push_back(entry.first);
     }
 
     bool at_limit = (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax));
@@ -7519,19 +7638,6 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
     if (p->m_btn_mixed_add)
         p->m_btn_mixed_add->Enable(!at_limit);
     p->m_panel_mixed_warning->Show(false);
-
-    // Show/dismiss 3D canvas notification for broken mixed filaments
-    if (has_mixed && !broken_set.empty()) {
-        auto* notify = wxGetApp().plater()->get_notification_manager();
-        if (notify)
-            notify->push_notification(NotificationType::BBLMixedFilamentBroken,
-                NotificationManager::NotificationLevel::ErrorNotificationLevel,
-                _u8L("Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."));
-    } else {
-        auto* notify = wxGetApp().plater()->get_notification_manager();
-        if (notify)
-            notify->close_notification_of_type(NotificationType::BBLMixedFilamentBroken);
-    }
 
     if (has_mixed) {
         auto* left_col  = p->m_sizer_mixed_filaments->GetItem(size_t(0))->GetSizer();
@@ -7917,7 +8023,8 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
 
             auto* menu_btn = new ScalableButton(p->m_panel_mixed_content, wxID_ANY,
                 is_broken ? "error" : "menu_filament");
-            menu_btn->SetToolTip(is_broken ? _L("Mixed filament has broken component references") : _L("Edit / Delete / Merge"));
+            const unsigned break_reasons = mixed_breaks.by_slot.count(cfg_idx) ? mixed_breaks.by_slot.at(cfg_idx) : 0;
+            menu_btn->SetToolTip(is_broken ? mixed_slot_break_tooltip(break_reasons) : _L("Edit / Delete / Merge"));
             menu_btn->Bind(wxEVT_BUTTON, [this, panel_idx, cfg_idx](wxCommandEvent&) {
                 wxMenu menu;
 
@@ -8056,6 +8163,8 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
             mf->update_slice_print_status(MainFrame::eEventObjectUpdate, false);
     }
 
+    update_broken_mixed_filament_notification();
+
     if (auto *tab = dynamic_cast<TabPrintPlate *>(wxGetApp().plate_tab))
         tab->update_mixed_filament_seq_state();
 
@@ -8095,6 +8204,67 @@ static bool plate_uses_filament_slots(Plater *plater, const PartPlate *plate, co
         }
     }
     return false;
+}
+
+void Sidebar::update_broken_mixed_filament_notification()
+{
+    Plater *plater = wxGetApp().plater();
+    if (plater == nullptr || wxGetApp().preset_bundle == nullptr)
+        return;
+    // Sidebar can refresh while Plater is still under construction.
+    if (dynamic_cast<Plater *>(GetParent()) != plater)
+        return;
+
+    PartPlate *plate = plater->get_partplate_list().get_curr_plate();
+    const MixedSlotBreaks breaks = collect_mixed_slot_breaks(p->combos_filament.size());
+
+    auto used_slots = [&](unsigned reason) {
+        wxString slots;
+        for (const auto &entry : breaks.by_slot) {
+            if ((entry.second & reason) == 0)
+                continue;
+            if (!plate_uses_filament_slots(plater, plate, {entry.first + 1}))
+                continue;
+            if (!slots.empty())
+                slots += ", ";
+            slots += wxString::Format("%d", (int) entry.first + 1);
+        }
+        return slots;
+    };
+
+    wxString text;
+    auto append = [&](const wxString &line) {
+        if (line.empty())
+            return;
+        if (!text.empty())
+            text += " ";
+        text += line;
+    };
+    const wxString integrity = used_slots(MixedBreakIntegrity);
+    const wxString type_mismatch = used_slots(MixedBreakType);
+    const wxString diameter_mismatch = used_slots(MixedBreakDiameter);
+    if (!integrity.empty())
+        append(wxString::Format(_L("Mixed filament %s has broken component references."), integrity));
+    if (!type_mismatch.empty())
+        append(wxString::Format(_L("Mixed filament %s mixes different filament types, which is not supported."), type_mismatch));
+    if (!diameter_mismatch.empty())
+        append(wxString::Format(_L("Mixed filament %s mixes different nozzle diameters, which is not supported."), diameter_mismatch));
+    if (!text.empty())
+        append(_L("Please fix the marked mixed filaments in the left filament list."));
+
+    const std::string text_u8 = text.empty() ? std::string() : into_u8(text);
+    if (text_u8 == p->m_notified_mixed_broken_text)
+        return;
+
+    auto *notify = plater->get_notification_manager();
+    if (notify) {
+        // Close first. update() does not change notification level, so a card previously pushed
+        // at ErrorNotificationLevel would stay the solid-red block instead of the error-border style.
+        notify->close_notification_of_type(NotificationType::BBLMixedFilamentBroken);
+        if (!text_u8.empty())
+            notify->push_error_border_notification(NotificationType::BBLMixedFilamentBroken, text_u8);
+    }
+    p->m_notified_mixed_broken_text = text_u8;
 }
 
 bool Sidebar::has_broken_mixed_filament() const
@@ -8171,37 +8341,13 @@ void Sidebar::update_incompatible_nozzle_notifications()
     FlaggedSlots unsupported; // printer has the nozzle, this filament has no preset for it
     FlaggedSlots missing;     // printer carries no nozzle of that kind
     if (!incompatible_now.empty()) {
-        // Slots can be missing different diameters at once (e.g. some were 0.2, others
-        // 0.4, and neither is installed any more), so collect each flagged slot's own
-        // stored diameter instead of describing every slot with the single current
-        // printer_variant -- that value is meaningless here in multi-diameter mode.
-        // ...but only while that mode is on. With it off, validate_filament_nozzle_
-        // diameter_selections() restores filament_diameter_map verbatim (retained_selections)
-        // so toggling back restores the project, leaving every slot holding an inactive
-        // value from the last multi-diameter session. Reporting that names a diameter the
-        // slot is not using; here all slots run on the printer's single configured diameter.
-        const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-        const bool per_slot_diameters =
-            multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
-            is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config);
-        // Same source the per-row nozzle chip renders from (refresh_filament_nozzle_label),
-        // so this notification and the row it points at can never disagree on the flow.
-        std::vector<int> volume_maps;
-        if (plate != nullptr)
-            volume_maps = plate->get_real_filament_volume_maps(preset_bundle->project_config);
+        // Same classification as the row tooltip (filament_nozzle_slot_state).
         for (size_t idx : incompatible_now) {
-            std::string diameter = per_slot_diameters && selected != nullptr && idx < selected->values.size() ?
-                selected->values[idx] : std::string();
-            if (diameter.empty())
-                diameter = preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
-            const NozzleVolumeType type = idx < volume_maps.size() ?
-                (NozzleVolumeType) volume_maps[idx] : NozzleVolumeType::nvtStandard;
-            // Empty means this filament has a preset for none of the diameters the machine
-            // carries, so no row in the picker would be selectable and re-pointing the slot
-            // cannot fix it.
-            const bool has_usable_nozzle = !preset_bundle->get_filament_nozzle_diameter_options(idx).empty();
-            const bool stored_installed  = installed.count(std::make_pair(diameter, type)) != 0;
-            const bool nozzle_is_missing = has_usable_nozzle && !stored_installed;
+            const FilamentNozzleSlotState state = filament_nozzle_slot_state(preset_bundle, plate, idx);
+            const std::string &diameter = state.diameter;
+            const NozzleVolumeType type = state.type;
+            const bool stored_installed = state.stored_installed;
+            const bool nozzle_is_missing = state.missing;
 
             FlaggedSlots &bucket = nozzle_is_missing ? missing : unsupported;
             if (nozzle_is_missing || stored_installed) {
@@ -8263,6 +8409,12 @@ void Sidebar::update_incompatible_nozzle_notifications()
         }
         p->m_notified_nozzle_missing_text = missing_text;
     }
+
+    // The row tooltip uses the same plate-dependent nozzle classification as the cards above.
+    for (size_t i = 0; i < p->combos_filament.size(); ++i) {
+        const int filament_idx = p->combos_filament[i] != nullptr ? p->combos_filament[i]->get_filament_idx() : -1;
+        p->refresh_filament_nozzle_label(i, filament_idx);
+    }
 }
 
 bool Sidebar::has_broken_mixed_filament(const PartPlate* plate) const
@@ -8271,47 +8423,12 @@ bool Sidebar::has_broken_mixed_filament(const PartPlate* plate) const
     auto* plater = dynamic_cast<Plater*>(GetParent());
     if (!plater) return false;
 
-    auto& project_config = wxGetApp().preset_bundle->project_config;
-    auto* is_mixed_opt = project_config.option<ConfigOptionBools>("filament_is_mixed");
-    auto* comp_strs_opt = project_config.option<ConfigOptionStrings>("filament_mixed_components");
-    if (!is_mixed_opt || !comp_strs_opt) return false;
-
-    size_t num_physical = p->combos_filament.size();
-    auto broken_slots = check_mixed_filament_integrity(is_mixed_opt->values, comp_strs_opt->values, num_physical);
-
-    // Type consistency check
-    {
-        std::vector<std::string> physical_types;
-        auto& preset_bundle = *wxGetApp().preset_bundle;
-        for (size_t i = 0; i < num_physical; ++i) {
-            std::string ft;
-            if (i < preset_bundle.filament_presets.size()) {
-                auto* preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[i]);
-                if (preset) {
-                    std::string display_type;
-                    ft = preset->config.get_filament_type(display_type);
-                }
-            }
-            if (ft.empty()) ft = "PLA";
-            physical_types.push_back(ft);
-        }
-        auto type_mismatch_slots = check_mixed_filament_type_consistency(
-            is_mixed_opt->values, comp_strs_opt->values, physical_types);
-        broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
-
-        if (filament_nozzle_chip_supported()) {
-            if (const auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map")) {
-                auto diameter_mismatch_slots = check_mixed_filament_diameter_consistency(
-                    is_mixed_opt->values, comp_strs_opt->values, selected->values);
-                broken_slots.insert(broken_slots.end(), diameter_mismatch_slots.begin(), diameter_mismatch_slots.end());
-            }
-        }
-    }
-
-    if (broken_slots.empty()) return false;
+    const MixedSlotBreaks breaks = collect_mixed_slot_breaks(p->combos_filament.size());
+    if (breaks.by_slot.empty()) return false;
 
     std::set<size_t> broken_1based;
-    for (size_t s : broken_slots) broken_1based.insert(s + 1);
+    for (const auto &entry : breaks.by_slot)
+        broken_1based.insert(entry.first + 1);
 
     return plate_uses_filament_slots(plater, plate, broken_1based);
 }
@@ -13245,6 +13362,8 @@ void Plater::priv::object_list_changed()
     // Which slots the plate prints with just changed, and that is what decides whether a flagged
     // slot is worth reporting -- the same input update_slice_print_status() re-reads above.
     sidebar->update_incompatible_nozzle_notifications();
+    update_ams_sync_unmatched_notification();
+    sidebar->update_broken_mixed_filament_notification();
 
     wxGetApp().params_panel()->notify_object_config_changed();
 
@@ -19006,6 +19125,8 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
 
     // The flagged-slot notifications describe the selected plate, so they follow it.
     sidebar->update_incompatible_nozzle_notifications();
+    update_ams_sync_unmatched_notification();
+    sidebar->update_broken_mixed_filament_notification();
 }
 
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
