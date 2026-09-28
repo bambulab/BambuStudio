@@ -2556,6 +2556,7 @@ void priv::create_face_types(FaceTypeMap           &map,
 
 #include <CGAL/Polygon_mesh_processing/clip.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
+#include <boost/log/trivial.hpp>
 bool priv::clip_cut(SurfacePatch &cut, CutMesh clipper)
 {
     CutMesh& tm = cut.mesh;
@@ -2584,7 +2585,16 @@ bool priv::clip_cut(SurfacePatch &cut, CutMesh clipper)
     // .throw_on_self_intersection(false); is set automaticaly by param 'do_not_modify'
     // .clip_volume(false); is set automaticaly by param 'do_not_modify'
 
-    bool suc = CGAL::Polygon_mesh_processing::clip(tm, clipper, np_tm, np_c);
+    bool suc = false;
+    try {
+        suc = CGAL::Polygon_mesh_processing::clip(tm, clipper, np_tm, np_c);
+    } catch (const std::exception &e) {
+        // Degenerated input (e.g. intersecting constraints inside CDT) makes CGAL throw.
+        // Keep the patch unclipped instead of crashing the whole job.
+        BOOST_LOG_TRIVIAL(warning) << "clip_cut: CGAL clip failed: " << e.what();
+        cut.mesh = backup_copy;
+        return false;
+    }
 
     // true if the output surface mesh is manifold.
     // If false is returned tm and clipper are only corefined.

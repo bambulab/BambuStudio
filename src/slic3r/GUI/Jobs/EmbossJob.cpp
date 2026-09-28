@@ -342,7 +342,16 @@ void UpdateSurfaceVolumeJob::process(Ctl &ctl)
 {
     if (!check(m_input))
         throw JobException("Bad input data for UseSurfaceJob.");
-    m_result = cut_surface(*m_input.base, m_input); //, was_canceled(ctl, *m_input.base)
+    try {
+        m_result = cut_surface(*m_input.base, m_input); //, was_canceled(ctl, *m_input.base)
+    } catch (const JobException &) {
+        throw;
+    } catch (const std::exception &e) {
+        // Geometry kernel (CGAL) may throw on degenerated input; only JobException is handled in finalize.
+        BOOST_LOG_TRIVIAL(error) << "UpdateSurfaceVolumeJob: cut surface failed: " << e.what();
+        is_use_surfae_error = true;
+        throw JobException(_u8L("There is no valid surface for text projection.").c_str());
+    }
 }
 bool UpdateSurfaceVolumeJob::is_use_surfae_error =false;
 
@@ -529,7 +538,14 @@ void CreateSurfaceVolumeJob::process(Ctl &ctl)
 {
     if (!check(m_input))
         throw JobException("Bad input data for CreateSurfaceVolumeJob.");
-    m_result = cut_surface(*m_input.base, m_input); // was_canceled(ctl, *m_input.base)
+    try {
+        m_result = cut_surface(*m_input.base, m_input); // was_canceled(ctl, *m_input.base)
+    } catch (const JobException &) {
+        throw;
+    } catch (const std::exception &e) {
+        BOOST_LOG_TRIVIAL(error) << "CreateSurfaceVolumeJob: cut surface failed: " << e.what();
+        throw JobException(_u8L("There is no valid surface for text projection.").c_str());
+    }
 }
 void CreateSurfaceVolumeJob::finalize(bool canceled, std::exception_ptr &eptr)
 {
