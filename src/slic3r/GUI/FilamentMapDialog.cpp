@@ -188,10 +188,23 @@ static std::vector<int> get_applied_volume_map(DynamicConfig& proj_config, const
 extern std::string& get_left_extruder_unprintable_text();
 extern std::string& get_right_extruder_unprintable_text();
 
+// TPU 摆放错误时用户从错误通知点"重新分组"，改对后点切片本该直接切；但自定义模式默认每次切片
+// 都弹摆放对话框。这里记下那次确认，只放行紧接着的那一次切片。
+struct TpuRegroupConfirmation
+{
+    ObjectID plate_id;
+    size_t slice_invalid_epoch {0}; // 确认那一刻盘的失效计数快照，不相等就说明中间发生过改动
+};
+static TpuRegroupConfirmation s_tpu_regroup_confirmation;
 
 bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up)
 {
     auto full_config = wxGetApp().preset_bundle->full_config();
+
+    // 取出上一次记下的确认并立刻清空，放在所有提前返回之前，避免残留到下一次
+    const TpuRegroupConfirmation pending_confirmation = s_tpu_regroup_confirmation;
+    s_tpu_regroup_confirmation = {};
+
     const auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     const auto extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     bool support_multi_nozzle = extruder_max_nozzle_count
@@ -234,7 +247,11 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     if (applied_mode == fmmNozzleManual)
         applied_mode = fmmManual;
 
-    if (!force_pop_up && applied_mode != fmmManual)
+    // 跳过这一次弹窗的条件：待放行的确认就是这张盘的，且确认之后这张盘没再发生过切片失效
+    const bool tpu_regroup_confirmed = !is_slice_all
+        && pending_confirmation.plate_id == partplate_ref->id()
+        && pending_confirmation.slice_invalid_epoch == partplate_ref->get_slice_invalid_epoch();
+    if (!force_pop_up && (applied_mode != fmmManual || tpu_regroup_confirmed))
         return true;
 
     std::vector<int> filament_lists;
@@ -328,9 +345,30 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
                 }
             }
         }
+
+        // 只收敛 TPU：单盘、自定义模式、单挤出机多喷嘴机型，且走的是强制弹窗入口
+        //（错误通知里的"重新分组"；注意 Linux 下切片按钮也走这个入口）
+        bool tpu_regroup_flow = force_pop_up && !is_slice_all && new_mode == fmmManual && is_single_ext_multi_nozzle(full_config);
+        if (tpu_regroup_flow)
+            tpu_regroup_flow = !wxGetApp().preset_bundle->get_used_tpu_filaments(partplate_ref->get_extruders(true)).empty();
+
+        // update() 会先按 can_slice() 决定是否清掉 process_completed_with_error，而此刻
+        // m_ready_for_slice 还是旧摆放留下的 false，不先刷新就会留下错误态、吞掉随后那次切片。
+        if (tpu_regroup_flow) {
+            bool model_fits = false, validate_error = false;
+            plater_ref->validate_current_plate(model_fits, validate_error);
+        }
         plater_ref->update(false, true);
         if (!get_left_extruder_unprintable_text().empty() || !get_right_extruder_unprintable_text().empty()){
             return false;
+        }
+
+        // 没放对就不记确认，下次照常弹窗；这两项和 validate_current_plate 判 model_fits 时一致，
+        // 保证"放行"和"错误通知消失"同一口径。失效计数必须在 update() 之后取，否则会漏掉本次改动引起的那次失效。
+        if (tpu_regroup_flow) {
+            wxString printable_error;
+            if (partplate_ref->check_filament_printable(full_config, printable_error) && !partplate_ref->check_missing_tpu285_nozzle(full_config))
+                s_tpu_regroup_confirmation = {partplate_ref->id(), partplate_ref->get_slice_invalid_epoch()};
         }
         return true;
     }

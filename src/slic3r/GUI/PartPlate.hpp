@@ -111,6 +111,9 @@ private:
     bool m_locked;
     bool m_ready_for_slice;
     bool m_slice_result_valid;
+    // 切片结果被置为无效的次数。故意不参与下面 load()/save()：它只能往前走，
+    // undo/redo 恢复了 m_slice_result_valid 也不该让它倒回去
+    size_t m_slice_invalid_epoch {0};
     bool m_apply_invalid {false};
     bool m_helio_apply_invalid {false};
     // BBS: whether this plate's wipe tower has already been placed once. Survives
@@ -512,6 +515,12 @@ public:
     bool is_slice_result_valid() const
     {
         return m_slice_result_valid;
+    }
+
+    // 用来判断两个时刻之间有没有发生过"切片结果被置无效"
+    size_t get_slice_invalid_epoch() const
+    {
+        return m_slice_invalid_epoch;
     }
 
     //is slice result ready for print
