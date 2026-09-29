@@ -299,6 +299,7 @@
 }
 
 .dryer-info {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -430,6 +431,25 @@
 
 .ambient-info-row svg {
   display: block;
+}
+
+/* Clickable dryer chamber readout: it opens the drying dialog for its AMS
+   unit. A transparent button fills the readout as the hit layer; hover gets
+   a theme-safe wash. The ambient humidity/temperature chip is a read-only
+   non-drying zone and stays non-interactive. */
+.dryer-info-hit {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.dryer-info-hit:hover {
+  background: var(--ams-hover-bg);
 }
 
 .ambient-value {

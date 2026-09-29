@@ -260,6 +260,10 @@ export function AmsFilamentHotendPage() {
     payload?: AmsFilamentHotendSlotActionPayload,
   ) => runSlotAction(action, slot, payload);
 
+  const handleDryZoneClick = useCallback((amsId: string) => {
+    runSlotAction('dry', undefined, { ams_id: amsId });
+  }, [runSlotAction]);
+
   const onToggleSelect = useCallback((slot: AmsFilamentHotendSlotViewModel) => {
     const key = selectionKey(slot);
     setSelectedKeys((prev) => {
@@ -322,6 +326,7 @@ export function AmsFilamentHotendPage() {
             selectedKeys={selectedKeys}
             onToggleSelect={onToggleSelect}
             onAction={handleSlotAction}
+            onDry={handleDryZoneClick}
           />
           <FilamentChangeProgressPanel
             status={fp.filament_change_status}

@@ -46,6 +46,7 @@ export function Stage({
   selectedKeys,
   onToggleSelect,
   onAction,
+  onDry,
 }: {
   topSlots: AmsFilamentHotendSlotViewModel[];
   bottomSlots: AmsFilamentHotendSlotViewModel[];
@@ -56,11 +57,13 @@ export function Stage({
   selectedKeys: ReadonlySet<string>;
   onToggleSelect: (slot: AmsFilamentHotendSlotViewModel) => void;
   onAction: (action: string, slot: AmsFilamentHotendSlotViewModel) => void;
+  onDry: (amsId: string) => void;
 }) {
   // Dryer chambers are physically attached to the top tier in the current
   // hardware layout; only top slots can fall under a chamber decoration.
   const dryerRuns = findDryerRuns(topSlots, amsDryZones);
   const ambientAnchors = findAmbientAnchors(topSlots, amsEnvUnits);
+  const dryClickable = mode === 'normal';
 
   return (
     <section
@@ -77,6 +80,8 @@ export function Stage({
             humidity={run.humidity}
             status={run.status}
             isDrying={run.isDrying}
+            amsId={run.amsId}
+            onDry={dryClickable ? onDry : undefined}
           />
         ))}
         {ambientAnchors.map((anchor) => (

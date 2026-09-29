@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AmsFilamentHotendDryerZone, AmsFilamentHotendSlotViewModel } from '../types';
 import { DryingIcon, HumidityIcon } from './AmsEnvIcons';
 
@@ -11,6 +12,8 @@ export function DryerChamberDecoration({
   humidity,
   status,
   isDrying,
+  amsId,
+  onDry,
 }: {
   startIndex: number;
   endIndex: number;
@@ -18,6 +21,8 @@ export function DryerChamberDecoration({
   humidity: number;
   status: string;
   isDrying?: boolean;
+  amsId: string;
+  onDry?: (amsId: string) => void;
 }) {
   if (totalSlots !== 4) return null;
   // Top columns sit at odd multiples of `--slot-pitch` (see Stage.tsx).
@@ -33,12 +38,23 @@ export function DryerChamberDecoration({
         ['--chamber-right' as never]: endStr,
       } as CSSProperties}
     >
-      <DryerInfo humidity={humidity} status={status} />
+      <DryerInfo humidity={humidity} status={status} amsId={amsId} onDry={onDry} />
     </div>
   );
 }
 
-export function DryerInfo({ humidity, status }: { humidity: number; status: string }) {
+export function DryerInfo({
+  humidity,
+  status,
+  amsId,
+  onDry,
+}: {
+  humidity: number;
+  status: string;
+  amsId: string;
+  onDry?: (amsId: string) => void;
+}) {
+  const { t } = useTranslation();
   const statusText = status || 'Idle';
   return (
     <div className="dryer-info" aria-label="dryer humidity and status">
@@ -54,6 +70,18 @@ export function DryerInfo({ humidity, status }: { humidity: number; status: stri
         {/* Long localized statuses are ellipsized; keep the full text on hover. */}
         <span className="dryer-text" title={statusText}>{statusText}</span>
       </div>
+      {onDry && (
+        // A dryer chamber always supports drying, so its readout opens the
+        // drying dialog for the owning AMS unit.
+        <button
+          type="button"
+          className="dryer-info-hit"
+          data-testid="ams-hotend-dryer-dry"
+          title={t('Dry')}
+          aria-label={t('Dry')}
+          onClick={() => onDry(amsId)}
+        />
+      )}
     </div>
   );
 }
@@ -73,9 +101,10 @@ export function findDryerRuns(
   humidity: number;
   status: string;
   isDrying: boolean;
+  amsId: string;
 }> {
   if (!zones?.length) return [];
-  const runs: Array<{ start: number; end: number; humidity: number; status: string; isDrying: boolean }> = [];
+  const runs: Array<{ start: number; end: number; humidity: number; status: string; isDrying: boolean; amsId: string }> = [];
 
   for (const zone of zones) {
     const ids = (zone.zone_slots ?? []).map((v) => Number(v)).filter((n) => !Number.isNaN(n));
@@ -101,7 +130,7 @@ export function findDryerRuns(
         prev = cur;
         continue;
       }
-      runs.push({ start: runStart, end: prev, humidity, status, isDrying });
+      runs.push({ start: runStart, end: prev, humidity, status, isDrying, amsId: zone.ams_id ?? '' });
       if (cur === undefined) break;
       runStart = cur;
       prev = cur;

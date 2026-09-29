@@ -35,6 +35,27 @@ test.describe('AMS filament hotend page', () => {
     expect(ambientBox!.x + ambientBox!.width).toBeLessThanOrEqual(chamberBox!.x);
   });
 
+  test('clicking the dryer chamber readout opens drying for that unit', async ({ page }) => {
+    const dryRequests = async () => {
+      const trace = await page.evaluate(() =>
+        (window as unknown as {
+          __deviceWebTrace?: Array<{ direction: string; body: { action: string; payload: Record<string, unknown> } }>;
+        }).__deviceWebTrace ?? []
+      );
+      return [...trace].reverse().filter((e) => e.direction === 'web_request' && e.body?.action === 'dry');
+    };
+
+    await expect(page.getByTestId('ams-hotend-ambient-dry')).toHaveCount(0);
+    const ambientBox = (await page.getByTestId('ams-hotend-ambient-info').boundingBox())!;
+    await page.mouse.click(ambientBox.x + ambientBox.width / 2, ambientBox.y + ambientBox.height / 2);
+    expect(await dryRequests()).toHaveLength(0);
+
+    await page.getByTestId('ams-hotend-dryer-dry').click();
+    const requests = await dryRequests();
+    expect(requests.length).toBeGreaterThan(0);
+    expect(requests[0]!.body.payload).toEqual({ ams_id: '0' });
+  });
+
   test('renders the icon toolbar and More dropdown wired through mock bridge', async ({ page }) => {
     // New N1x toolbar: Read All (Rack-B only) + AMS Settings + More icons.
     await expect(page.getByTestId('ams-hotend-action-read-all')).toBeVisible();
