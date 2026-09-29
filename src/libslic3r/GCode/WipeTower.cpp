@@ -6,6 +6,7 @@
 #include <numeric>
 #include <sstream>
 #include <iomanip>
+#include <stdexcept>
 #include "GCodeProcessor.hpp"
 #include "../AdaptiveLayerMerge.hpp"
 #include "BoundingBox.hpp"
@@ -70,13 +71,21 @@ static std::vector<double> parseDoubles(const std::string &str)
 {
     std::vector<double> result;
     if (str.empty()) return result;
+    // std::stod follows the C locale: under a comma-decimal locale (French, German, ...) it reads "0.5" as 0.
+    auto to_double = [](const std::string &token) {
+        const size_t first = token.find_first_not_of(" \t");
+        size_t       pos   = 0;
+        const double value = first == std::string::npos ? 0. : string_to_double_decimal_point(std::string_view(token).substr(first), &pos);
+        if (pos == 0) throw std::invalid_argument(token);
+        return value;
+    };
     try {
         size_t start = 0, end;
         while ((end = str.find(',', start)) != std::string::npos) {
-            result.push_back(std::stod(str.substr(start, end - start)));
+            result.push_back(to_double(str.substr(start, end - start)));
             start = end + 1;
         }
-        result.push_back(std::stod(str.substr(start)));
+        result.push_back(to_double(str.substr(start)));
     } catch (...) {
         BOOST_LOG_TRIVIAL(warning) << "Failed to parse prime_tower_speed_factor_curve: \"" << str << "\", using built-in default";
         return {};
@@ -3325,7 +3334,7 @@ WipeTower::ToolChangeResult WipeTower::merge_tcr(ToolChangeResult &first, ToolCh
     WipeTower::ToolChangeResult out = first;
     if ((first.end_pos - second.start_pos).norm() > (float)EPSILON) {
         std::string travel_gcode = "G1 X" + Slic3r::float_to_string_decimal_point(second.start_pos.x(), 3) + " Y" +
-                                   Slic3r::float_to_string_decimal_point(second.start_pos.y(), 3) + " F" + std::to_string(m_max_speed) + "\n";
+                                   Slic3r::float_to_string_decimal_point(second.start_pos.y(), 3) + " F" + Slic3r::float_to_string_decimal_point(m_max_speed, 0) + "\n";
         bool need_insert_travel = true;
         if (second.is_tool_change
             && is_approx(second.start_pos.x(), second.tool_change_start_pos.x())
