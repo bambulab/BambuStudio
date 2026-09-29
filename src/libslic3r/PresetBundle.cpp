@@ -1929,7 +1929,26 @@ static std::set<std::string> collect_printer_model_nozzle_diameters(const Preset
     return result;
 }
 
-void PresetBundle::update_extruder_full_stats_from_config()
+// A per-slot snapshot records only the installed slots, so it keeps its meaning only on a printer model
+// with the same nozzle capacity: one installed slot is a full single-nozzle machine but a mostly empty rack.
+static bool snapshot_fits_nozzle_capacity(const PresetBundle &bundle, const std::string &snapshot_printer_model)
+{
+    const auto max_nozzle_count_of = [&bundle](const std::string &printer_model) {
+        for (auto it = bundle.printers.begin(); it != bundle.printers.end(); ++it) {
+            if (it->config.opt_string("printer_model") != printer_model)
+                continue;
+            const auto *opt = it->config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+            return opt ? opt->values : std::vector<int>{};
+        }
+        return std::vector<int>{};
+    };
+    const std::string current_printer_model = bundle.printers.get_edited_preset().config.opt_string("printer_model");
+    if (snapshot_printer_model.empty() || snapshot_printer_model == current_printer_model)
+        return true;
+    return max_nozzle_count_of(snapshot_printer_model) == max_nozzle_count_of(current_printer_model);
+}
+
+void PresetBundle::update_extruder_full_stats_from_config(const std::string &snapshot_printer_model)
 {
     // Rebuild the per-slot snapshot from the per-slot nozzle params instead of a dedicated
     // extruder_full_stats string. The four params already persist with the project; the snapshot is
@@ -1977,7 +1996,8 @@ void PresetBundle::update_extruder_full_stats_from_config()
     // per-slot values are perfectly consistent and already match the newly selected printer.
     if (!per_slot_nozzle_options_consistent(project_config) ||
         static_cast<int>(counts.size()) != get_printer_extruder_count() ||
-        !diameters_match_model) {
+        !diameters_match_model ||
+        !snapshot_fits_nozzle_capacity(*this, snapshot_printer_model)) {
         // Rebuild legacy projects that lack a complete per-slot nozzle snapshot.
         generate_extruder_full_stats_from_nozzle_stats();
         sync_per_slot_nozzle_options_from_full_stat(project_config, extruder_full_stat);

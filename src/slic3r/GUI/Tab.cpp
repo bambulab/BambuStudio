@@ -6124,7 +6124,7 @@ void TabPrinter::refresh_extruder_full_stat_for_model_change()
     // chance to reopen the dialog and see it was already configured correctly.
     // update_extruder_full_stats_from_config() still falls back to generate_extruder_full_stats_from_nozzle_stats()
     // when the persisted snapshot is missing/inconsistent, so a genuinely new model keeps today's behavior.
-    m_preset_bundle->update_extruder_full_stats_from_config();
+    m_preset_bundle->update_extruder_full_stats_from_config(m_base_preset_model);
     m_full_stat_prebuilt_for_model_change = true;
 }
 

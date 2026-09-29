@@ -533,7 +533,14 @@ public:
     std::pair<PresetsConfigSubstitutions, std::string> load_system_filaments_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
     VendorProfile                                      get_custom_vendor_models() const;
 
-    void update_extruder_full_stats_from_config();
+    /**
+     * \brief Rebuild extruder_full_stat from the per-slot nozzle options in project_config
+     *
+     * \param snapshot_printer_model  printer model the per-slot options were written for; empty means the
+     *                                current printer. A snapshot from a model with a different nozzle
+     *                                capacity is discarded and rebuilt from the current printer's defaults.
+     */
+    void update_extruder_full_stats_from_config(const std::string &snapshot_printer_model = std::string());
     void generate_extruder_full_stats_from_nozzle_stats();
 
     // Call with raw 3mf config before FullPrintConfig defaults are merged in.
