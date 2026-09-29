@@ -335,9 +335,20 @@ void Layer::make_perimeters()
                     if (core_slices.surfaces.empty())
                         continue;
 
-                    // Each local piece rests immediately above its own obstruction.
-                    const ExPolygons *lower_slices = patch.bottom_idx > 0 ?
-                        &this->object()->get_layer(int(patch.bottom_idx - 1))->lslices : nullptr;
+                    // Each local piece rests immediately above its own obstruction. A suppressed orphan there is
+                    // sliced but not extruded, so the walls over it overhang.
+                    const ExPolygons *lower_slices = nullptr;
+                    ExPolygons        lower_storage;
+                    if (patch.bottom_idx > 0) {
+                        const Layer     *lower   = this->object()->get_layer(int(patch.bottom_idx - 1));
+                        const ExPolygons dropped = adaptive_suppressed_orphan_area(*lower);
+                        if (dropped.empty())
+                            lower_slices = &lower->lslices;
+                        else {
+                            lower_storage = diff_ex(lower->lslices, dropped);
+                            lower_slices  = &lower_storage;
+                        }
+                    }
                     lm->make_perimeters(core_slices, perimeter_regions, out_fill, out_no_overlap,
                                         this->loop_nodes, patch.merged_height, ! generated,
                                         lower_slices, upper_slices, false, patch.bottom_idx == 0);

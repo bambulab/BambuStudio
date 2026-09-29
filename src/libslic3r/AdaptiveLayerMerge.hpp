@@ -11,6 +11,7 @@
 
 namespace Slic3r {
 
+class Layer;
 class PrintConfig;
 
 struct AdaptiveLayerHeightRange
@@ -83,6 +84,10 @@ AdaptiveLayerHeightRange adaptive_layer_height_range(double nozzle_diameter);
 // the area test comes first and the erosion is read as a yes/no answer only: the returned pieces are always
 // the originals, never the output of the offset.
 ExPolygons adaptive_printable_pieces(ExPolygons pieces, double nozzle_diameter);
+
+// The footprint of a layer whose orphans were suppressed: sliced, but extruded by no region. What rests on it
+// is not supported there.
+ExPolygons adaptive_suppressed_orphan_area(const Layer &layer);
 
 // True when the filaments handed in do not all share one nozzle diameter. Print::uses_multiple_nozzle_diameters()
 // additionally enables adaptive merging for a single used coarse diameter when it is larger than the

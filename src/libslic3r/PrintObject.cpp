@@ -860,6 +860,46 @@ void refine_fill_surfaces_for_zero_gap_contact(LayerRegion &layerm, const ExPoly
 
 } // namespace
 
+// BBS multi-diameter: a suppressed orphan is sliced but never extruded, so the step above it rests on nothing
+// there, while detect_surfaces_type() compared against the sliced step and typed it internal. Type it as the
+// bridge it really is, in the outline of the face that was dropped, so bridge detection, the bottom shells over
+// it and the slab merged onto that step all see the real bottom.
+static void type_bridges_over_suppressed_orphans(const LayerPtrs &layers)
+{
+    for (size_t layer_idx = 1; layer_idx < layers.size(); ++ layer_idx) {
+        const ExPolygons dropped = adaptive_suppressed_orphan_area(*layers[layer_idx - 1]);
+        if (dropped.empty())
+            continue;
+        auto retype = [&dropped](SurfaceCollection &surfaces) {
+            Surfaces out;
+            bool     changed = false;
+            for (const Surface &surface : surfaces.surfaces) {
+                ExPolygons bridge;
+                if (surface.surface_type == stInternal || surface.surface_type == stInternalSolid)
+                    bridge = intersection_ex(ExPolygons{ surface.expolygon }, dropped);
+                if (bridge.empty()) {
+                    out.emplace_back(surface);
+                    continue;
+                }
+                changed = true;
+                for (ExPolygon &expolygon : diff_ex(ExPolygons{ surface.expolygon }, dropped))
+                    out.emplace_back(surface, std::move(expolygon));
+                for (ExPolygon &expolygon : bridge) {
+                    out.emplace_back(surface, std::move(expolygon));
+                    out.back().surface_type = stBottomBridge;
+                    out.back().bridge_angle = -1;
+                }
+            }
+            if (changed)
+                surfaces.surfaces = std::move(out);
+        };
+        for (LayerRegion *layerm : layers[layer_idx]->regions()) {
+            retype(layerm->slices);
+            retype(layerm->fill_surfaces);
+        }
+    }
+}
+
 void PrintObject::prepare_infill()
 {
     if (! this->set_started(posPrepareInfill))
@@ -886,6 +926,8 @@ void PrintObject::prepare_infill()
     std::vector<std::vector<SurfaceCollection>> slice_surfaces_cpy;
     this->detect_surfaces_type(slice_surfaces_cpy);
     m_print->throw_if_canceled();
+    if (this->print()->uses_multiple_nozzle_diameters())
+        type_bridges_over_suppressed_orphans(m_layers);
 
     // Zero-gap Normal support: reclassify fill_surfaces that will be carried by the
     // support interface as stBottom, keep true overhangs as stBottomBridge (GitHub #11540).
@@ -4278,6 +4320,9 @@ void PrintObject::compute_adaptive_merge_groups()
         const char              *source;
         // What was lost. Used to pick the slab that can take it back, never to cut that slab into pieces.
         ExPolygons               area;
+        // A too-thin bottom face resting on nothing. It is dropped rather than absorbed: the slab above keeps
+        // its own floor, and the step above the face is typed as the bridge over it instead.
+        bool                     floating { false };
     };
     std::vector<PendingOrphan> pending_orphans;
     for (size_t region_id = 0; region_id < region_count; ++ region_id) {
@@ -4519,6 +4564,13 @@ void PrintObject::compute_adaptive_merge_groups()
         }
 
         std::vector<AdaptiveMergePatch> patches;
+        // Too-thin orphans recorded for this band, kept to decide whether the empty marker is still needed.
+        struct BandOrphan {
+            size_t     bottom_idx;
+            size_t     top_idx;
+            ExPolygons area;
+        };
+        std::vector<BandOrphan> band_orphans;
         for (const Slab &slab : slabs) {
             ExPolygons area = occupied[slab.top_idx].empty() ?
                 slab.area : diff_ex(slab.area, occupied[slab.top_idx]);
@@ -4530,6 +4582,29 @@ void PrintObject::compute_adaptive_merge_groups()
             // The first step whose clear span is too thin to extrude. From there up this slab can place
             // nothing, so whatever footprint is still unassigned has lost its owner.
             size_t     thin_bottom_idx = slab.top_idx + 1;
+            // A merged extrusion is laid onto whatever is below its floor, so it cannot reach down into a step
+            // that holds no object material under its footprint: a colour starting on a bridge in the middle
+            // of a band would otherwise hang below the real bottom face. The first band rests on the bed.
+            // Fringes too narrow to hold a bead of this nozzle are the usual underfill of a sloped wall.
+            //
+            // Only a face too thin for this nozzle is held off, and then dropped as an orphan. A face that could be
+            // extruded on its own is not cut out of the slab: a patch of its own would wall it off from the
+            // material it rests against, so it hangs from the band floor with the rest of the contour.
+            std::vector<ExPolygons> unsupported(slab.top_idx + 1);
+            if (! first_band && ! area.empty()) {
+                Polygons thin_faces;
+                for (size_t layer_idx = live.bottom_idx; layer_idx < slab.top_idx; ++ layer_idx) {
+                    unsupported[layer_idx] = adaptive_printable_pieces(
+                        diff_ex(area, m_layers[layer_idx]->lslices), event.nozzle);
+                    // Missing on this step, so it starts on the step above at the earliest.
+                    if (span_height(layer_idx + 1, slab.top_idx) < event.range.min_height - EPSILON)
+                        polygons_append(thin_faces, to_polygons(unsupported[layer_idx]));
+                }
+                const ExPolygons thin_area = union_ex(thin_faces);
+                for (size_t layer_idx = live.bottom_idx; layer_idx < slab.top_idx; ++ layer_idx)
+                    unsupported[layer_idx] = thin_area.empty() ? ExPolygons{} : adaptive_printable_pieces(
+                        intersection_ex(unsupported[layer_idx], thin_area), event.nozzle);
+            }
             for (size_t bottom_idx = live.bottom_idx; bottom_idx <= slab.top_idx && ! area.empty(); ++ bottom_idx) {
                 const double height = span_height(bottom_idx, slab.top_idx);
                 // A band that absorbed an orphan may exceed the preferred 0.7D ceiling. Keep the same 1.0D
@@ -4542,8 +4617,10 @@ void PrintObject::compute_adaptive_merge_groups()
                 }
 
                 Polygons blockers;
-                for (size_t layer_idx = bottom_idx; layer_idx < slab.top_idx; ++ layer_idx)
+                for (size_t layer_idx = bottom_idx; layer_idx < slab.top_idx; ++ layer_idx) {
                     polygons_append(blockers, to_polygons(occupied[layer_idx]));
+                    polygons_append(blockers, to_polygons(unsupported[layer_idx]));
+                }
                 ExPolygons clear = blockers.empty() ? area : diff_ex(area, union_ex(blockers));
                 if (! assigned.empty())
                     clear = diff_ex(clear, assigned);
@@ -4566,9 +4643,13 @@ void PrintObject::compute_adaptive_merge_groups()
             // nozzle's minimum. Recorded for the same reason as a step no band could take - the alternative
             // is rediscovering it later from the raw slices, where it cannot be told from a fringe.
             const ExPolygons unassigned = diff_ex(area, assigned);
-            if (thin_bottom_idx <= slab.top_idx && ! unassigned.empty())
+            if (thin_bottom_idx <= slab.top_idx && ! unassigned.empty()) {
+                const bool floating = thin_bottom_idx > 0 && ! adaptive_printable_pieces(
+                    diff_ex(unassigned, m_layers[thin_bottom_idx - 1]->lslices), event.nozzle).empty();
                 pending_orphans.push_back({ region_id, event.range, event.nozzle,
-                                            thin_bottom_idx, slab.top_idx, "too-thin", unassigned });
+                                            thin_bottom_idx, slab.top_idx, "too-thin", unassigned, floating });
+                band_orphans.push_back({ thin_bottom_idx, slab.top_idx, unassigned });
+            }
 
             BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] region=" << region_id
                                      << " band=[" << band.bottom_idx << "," << band.top_idx << "]"
@@ -4585,7 +4666,25 @@ void PrintObject::compute_adaptive_merge_groups()
                                      << (area.empty() ? " DROPPED" : " KEPT");
         }
 
-        if (patches.empty()) {
+        // The empty marker suppresses the whole region over the band. It can be left out only when every piece
+        // of material the region holds inside the band belongs to one of its too-thin orphans: orphan resolution
+        // then absorbs or suppresses all of it, while the marker would void the orphan's own fill (a bridge,
+        // say) before the slab absorbing it could lift it. Anything else - material under another nozzle's
+        // occupancy, a fringe no slab took - would otherwise fall back to the base layer height.
+        bool orphans_own_band = ! band_orphans.empty();
+        for (size_t layer_idx = live.bottom_idx; layer_idx <= live.top_idx && orphans_own_band; ++ layer_idx) {
+            const ExPolygons &raw = m_layers[layer_idx]->get_region(region_id)->raw_slices;
+            if (raw.empty())
+                continue;
+            Polygons owned;
+            for (const BandOrphan &orphan : band_orphans)
+                if (orphan.bottom_idx <= layer_idx && layer_idx <= orphan.top_idx)
+                    polygons_append(owned, to_polygons(orphan.area));
+            // Only numerical slivers between the two polygonisations may be left over.
+            orphans_own_band = ! owned.empty() &&
+                opening_ex(diff_ex(raw, union_ex(owned)), float(scale_(0.01))).empty();
+        }
+        if (patches.empty() && ! orphans_own_band) {
             AdaptiveMergePatch patch;
             patch.bottom_idx    = live.bottom_idx;
             patch.top_idx       = live.top_idx;
@@ -4624,6 +4723,8 @@ void PrintObject::compute_adaptive_merge_groups()
         const double  run_height = span_height(orphan.bottom_idx, orphan.top_idx);
         PlannedPatch *absorber   = nullptr;
         for (PlannedPatch &planned_patch : planned) {
+            if (orphan.floating)
+                break;
             AdaptiveMergePatch &patch = planned_patch.patch;
             if (planned_patch.region_id != orphan.region_id || patch.area().empty())
                 continue;
@@ -4676,7 +4777,7 @@ void PrintObject::compute_adaptive_merge_groups()
         }
         BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] orphan region=" << orphan.region_id
                                  << " [" << orphan.bottom_idx << "," << orphan.top_idx << "]"
-                                 << " " << orphan.source << " suppressed";
+                                 << " " << orphan.source << (orphan.floating ? " floating" : "") << " suppressed";
     }
 
     for (const PlannedPatch &planned_patch : planned) {
