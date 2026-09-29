@@ -4967,10 +4967,13 @@ void SelectMachineDialog::set_default()
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         m_printer_box->SetDefault(false);
         m_rename_normal_panel->Show(true);
-    }
-    else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW || m_print_type == PrintFromType::FROM_PRINT_QUEUE) {
+    } else if (m_print_type == PrintFromType::FROM_PRINT_QUEUE) {
+        m_printer_box->SetDefault(true);       // keep refresh button hidden
+        m_rename_normal_panel->Show(true);     // show model name
+        m_rename_button->Show(false);          // read-only for now, no rename
+    } else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         m_printer_box->SetDefault(true);
-        m_rename_normal_panel->Show(false);
+        m_rename_normal_panel->Show(false);    // keep SD card behavior
     }
 
     //project name
@@ -6330,18 +6333,23 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
 }
 
 static bool s_get_queue_slicing_extruder_nozzles(const QueuePrintContext& context,
+                                                  int total_ext_count,
                                                   std::unordered_multimap<int, NozzleDef>& used_nozzles)
 {
     used_nozzles.clear();
+    if (total_ext_count != 1 && total_ext_count != 2) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unexpected extruder count " << total_ext_count;
+        return false;
+    }
+
     for (const auto& nozzle : context.plate_data->nozzles_info) {
-        if (nozzle.extruder_id < 0 || nozzle.extruder_id > 1)
+        if (nozzle.extruder_id < 0 || nozzle.extruder_id >= total_ext_count)
             return false;
         try {
             NozzleDef nozzle_data;
             nozzle_data.nozzle_diameter = s_get_diameter(nozzle.diameter);
             nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(nozzle.volume_type);
-            const int physical_extruder = nozzle.extruder_id == LOGIC_L_EXTRUDER_ID
-                ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+            const int physical_extruder = DevExtder::to_physical_extruder_id(total_ext_count, nozzle.extruder_id);
             used_nozzles.insert({physical_extruder, nozzle_data});
         }
         catch (const std::exception&) {
@@ -6454,7 +6462,10 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
     if (m_print_type == FROM_NORMAL || m_print_type == FROM_PRINT_QUEUE) {
         std::unordered_multimap<int, NozzleDef> slicing_ext_nozzles;
         if (m_print_type == FROM_PRINT_QUEUE) {
-            if (!m_queue_print_context || !s_get_queue_slicing_extruder_nozzles(*m_queue_print_context, slicing_ext_nozzles)) {
+            if (!m_queue_print_context ||
+                !s_get_queue_slicing_extruder_nozzles(*m_queue_print_context,
+                                                      obj_->GetExtderSystem()->GetTotalExtderCount(),
+                                                      slicing_ext_nozzles)) {
                 show_status(PrintDialogStatus::PrintStatusNozzleDataInvalid);
                 return false;
             }
@@ -6680,8 +6691,9 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
             for (const auto& nozzle : m_queue_print_context->plate_data->nozzles_info) {
                 if (std::find(filament_it->group_id.begin(), filament_it->group_id.end(), nozzle.group_id) == filament_it->group_id.end())
                     continue;
-                const int physical_extruder = nozzle.extruder_id == LOGIC_L_EXTRUDER_ID
-                    ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+                if (nozzle.extruder_id < 0 || nozzle.extruder_id >= total_ext_count)
+                    continue;
+                const int physical_extruder = DevExtder::to_physical_extruder_id(total_ext_count, nozzle.extruder_id);
                 nozzle_map[physical_extruder] = obj_->GetNozzleSystem()->GetNozzleByPosId(physical_extruder);
             }
         }
