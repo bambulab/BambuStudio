@@ -746,14 +746,11 @@ void PrintJob::process()
         return normalized_status == "IDLE" || normalized_status == "FINISH" || normalized_status == "FAILED";
     };
 
- #if !BBL_RELEASE_TO_PUBLIC
     if (m_add_to_print_queue) {
         this->update_status(curr_percent, _L("Adding print job to queue"));
         std::string queue_response;
         result = PrintQueueManager::Get().add_current_plate(params, update_fn, cancel_fn, queue_response);
-    } else
- #endif
-    if (m_print_type == "from_sdcard_view") {
+    } else if (m_print_type == "from_sdcard_view") {
         BOOST_LOG_TRIVIAL(info) << "print_job: try to send with cloud, model is sdcard view";
         attempt_route = SendAttemptRoute::Default;
         this->update_status(curr_percent, _L("Sending print job through cloud service"));
@@ -904,7 +901,6 @@ void PrintJob::process()
 
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
- #if !BBL_RELEASE_TO_PUBLIC
         if (m_add_to_print_queue) {
             this->countdown_before_jump(ADDED_TO_PRINT_QUEUE_STR);
             m_job_finished = true;
@@ -916,7 +912,6 @@ void PrintJob::process()
             wxQueueEvent(m_plater, queue_evt);
             return;
         }
- #endif
         // wait for printer mqtt ready the same job id
 
         wxGetApp().plater()->record_slice_preset("print");

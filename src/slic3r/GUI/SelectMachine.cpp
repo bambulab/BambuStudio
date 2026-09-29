@@ -924,13 +924,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok_btn, this);
 
     auto* action_sizer = new wxBoxSizer(wxHORIZONTAL);
-#if !BBL_RELEASE_TO_PUBLIC
     m_button_add_to_queue = new Button(m_panel_prepare, _L("Add to queue"));
     m_button_add_to_queue->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE2);
     m_button_add_to_queue->SetCornerRadius(FromDIP(4));
     m_button_add_to_queue->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_add_to_queue_btn, this);
     action_sizer->Add(m_button_add_to_queue, 0, wxRIGHT, FromDIP(8));
-#endif
     action_sizer->Add(m_button_ensure, 0);
 
     m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
@@ -1249,10 +1247,8 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
     if (refresh_button) {
         EnableEditing(true);
         Enable_Send_Button(true);
-#if !BBL_RELEASE_TO_PUBLIC
         if (m_button_add_to_queue)
             m_button_add_to_queue->Enable();
-#endif
     }
 
     m_status_bar->reset();
@@ -1275,10 +1271,6 @@ void SelectMachineDialog::sending_mode()
     // disable combobox
     Enable_Auto_Refill(false);
     EnableEditing(false);
-#if !BBL_RELEASE_TO_PUBLIC
-    if (m_button_add_to_queue)
-        m_button_add_to_queue->Disable();
-#endif
 
     m_is_in_sending_mode = true;
     if (m_simplebook->GetSelection() != 1){
@@ -1299,10 +1291,8 @@ void SelectMachineDialog::sending_mode()
 void SelectMachineDialog::finish_mode()
 {
     EnableEditing(true);
-#if !BBL_RELEASE_TO_PUBLIC
     if (m_button_add_to_queue)
         m_button_add_to_queue->Enable();
-#endif
 
     m_print_page_mode = PrintPageModeFinish;
     m_is_in_sending_mode = false;
@@ -2452,10 +2442,8 @@ void SelectMachineDialog::on_reselect_dialog_btn_clicked(wxMouseEvent&)
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
-#if !BBL_RELEASE_TO_PUBLIC
     if (event.GetEventObject() == m_button_ensure)
         m_add_to_queue = false;
-#endif
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_ok_btn";
 
     bool has_slice_warnings = false;
@@ -2710,7 +2698,6 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     }
 }
 
-#if !BBL_RELEASE_TO_PUBLIC
 void SelectMachineDialog::on_add_to_queue_btn(wxCommandEvent& event)
 {
     if (m_print_type != PrintFromType::FROM_NORMAL) {
@@ -2722,7 +2709,6 @@ void SelectMachineDialog::on_add_to_queue_btn(wxCommandEvent& event)
     m_add_to_queue = true;
     on_ok_btn(event);
 }
-#endif
 
 wxString SelectMachineDialog::format_steel_name(NozzleType type)
 {
@@ -3565,11 +3551,7 @@ void SelectMachineDialog::on_send_print()
         }
 
         // export config 3mf if needed
-        if (!obj_->is_lan_mode_printer()
-#if !BBL_RELEASE_TO_PUBLIC
-            || m_add_to_queue
-#endif
-            ) {
+        if (!obj_->is_lan_mode_printer() || m_add_to_queue) {
             result = m_plater->export_config_3mf(m_print_plate_idx);
             if (result < 0) {
                 BOOST_LOG_TRIVIAL(info) << "export_config_3mf failed, result = " << result;
@@ -3586,9 +3568,7 @@ void SelectMachineDialog::on_send_print()
     m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
     if (is_imported_3mf)
         m_print_job->set_imported_3mf_path(m_plater->get_3mf_filename());
-#if !BBL_RELEASE_TO_PUBLIC
     m_print_job->set_add_to_print_queue(m_add_to_queue);
-#endif
     if (m_print_type != PrintFromType::FROM_PRINT_QUEUE) {
         m_print_job->m_dev_ip = obj_->get_dev_ip();
         m_print_job->m_ftp_folder = obj_->get_ftp_folder();
@@ -6086,10 +6066,8 @@ bool SelectMachineDialog::Show(bool show)
         EnableEditing(true);
         m_options_other->Show();
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
-#if !BBL_RELEASE_TO_PUBLIC
         if (m_button_add_to_queue)
             m_button_add_to_queue->Show(m_print_type == PrintFromType::FROM_NORMAL);
-#endif
 
         //set a default machine when obj is null
         if (DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager()) {

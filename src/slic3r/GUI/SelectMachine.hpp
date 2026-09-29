@@ -394,10 +394,8 @@ protected:
     wxBoxSizer*                         m_change_filament_times_sizer{ nullptr };
     wxBoxSizer*                         m_warn_when_drying_sizer{ nullptr };
     Button*                             m_button_ensure{ nullptr };
-#if !BBL_RELEASE_TO_PUBLIC
     Button*                             m_button_add_to_queue{ nullptr };
     bool                                m_add_to_queue{ false };
-#endif
     wxStaticBitmap *                    m_rename_button{nullptr};
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
     wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
@@ -557,9 +555,7 @@ public:
     void on_cancel(wxCloseEvent& event);
     void show_errors(wxString& info);
     void on_ok_btn(wxCommandEvent& event);
-#if !BBL_RELEASE_TO_PUBLIC
     void on_add_to_queue_btn(wxCommandEvent& event);
-#endif
     void on_reselect_dialog_btn_clicked(wxMouseEvent&);
     void Enable_Auto_Refill(bool enable);
     void on_send_print();

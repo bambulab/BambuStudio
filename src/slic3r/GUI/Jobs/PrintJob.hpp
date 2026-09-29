@@ -96,9 +96,7 @@ public:
     bool        task_use_ams { true };
     bool        task_ext_change_assist { false };
     bool        task_timelapse_use_internal { false };
-#if !BBL_RELEASE_TO_PUBLIC
     bool        m_add_to_print_queue { false };
-#endif
 
     int         auto_bed_leveling{0};
     int         auto_flow_cali{0};
@@ -151,9 +149,7 @@ public:
     wxString get_http_error_msg(unsigned int status, std::string body);
     std::string truncate_string(const std::string& str, size_t maxLength);
     void set_calibration_task(bool is_calibration);
-#if !BBL_RELEASE_TO_PUBLIC
     void set_add_to_print_queue(bool add_to_queue) { m_add_to_print_queue = add_to_queue; }
-#endif
 
 };
 
