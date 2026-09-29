@@ -21,9 +21,8 @@ MultiMachineItem::MultiMachineItem(wxWindow* parent, MachineObject* obj)
     Bind(wxEVT_MOTION, &MultiMachineItem::OnMove, this);
     Bind(EVT_MULTI_DEVICE_VIEW, [this, obj](auto& e) {
         wxGetApp().mainframe->jump_to_monitor(obj->get_dev_id());
-        if (wxGetApp().mainframe->m_monitor->get_status_panel()->get_media_play_ctrl()) {
-            wxGetApp().mainframe->m_monitor->get_status_panel()->get_media_play_ctrl()->jump_to_play();
-        }
+        if (auto* monitor = wxGetApp().mainframe->m_monitor)
+            monitor->jump_to_LiveView();
     });
     wxGetApp().UpdateDarkUIWin(this);
 }
@@ -271,7 +270,7 @@ MultiMachineManagerPage::MultiMachineManagerPage(wxWindow* parent)
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-    SetBackgroundColour(wxColour(0xEEEEEE));
+    SetBackgroundColour(wxColour("#EEEEEE"));
     m_main_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_main_panel->SetBackgroundColour(*wxWHITE);
     m_main_sizer = new wxBoxSizer(wxVERTICAL);

@@ -194,8 +194,10 @@ void CalibrationCaliPage::update(MachineObject* obj)
         }
 
         StatusPanel* status_panel = Slic3r::GUI::wxGetApp().mainframe->m_monitor->get_status_panel();
-        status_panel->sync_current_dev(obj);
-        status_panel->update_error_message();
+        if (status_panel) {
+            status_panel->sync_current_dev(obj);
+            status_panel->update_error_message();
+        }
 
         if (obj->print_status == "RUNNING")
             m_is_between_start_and_running = false;

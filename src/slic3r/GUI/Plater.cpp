@@ -28729,10 +28729,15 @@ void Plater::print_job_finished(wxCommandEvent &evt)
     if (!dev) return;
 
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
-    //jump to monitor and select device status panel
+    // This handler runs inside SelectMachineDialog::ShowModal(). EndModal() does not
+    // return from ShowModal() until this function returns, so the status-page switch
+    // stays here. get_tabpanel() does not create widgets; the first Show() builds them
+    // with Status already selected.
     MonitorPanel* curr_monitor = p->main_frame->m_monitor;
-    if(curr_monitor)
-       curr_monitor->get_tabpanel()->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
+    if (curr_monitor) {
+        if (Tabbook* tabpanel = curr_monitor->get_tabpanel())
+            tabpanel->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
+    }
 }
 
 void Plater::add_to_print_queue_finished(wxCommandEvent &evt)

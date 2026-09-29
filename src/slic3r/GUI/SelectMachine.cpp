@@ -3289,9 +3289,11 @@ void SelectMachineDialog::navigate_to_timelapse_page()
         // use existing jump_to_monitor to switch to Monitor tab
         main_frame->jump_to_monitor();
 
-        // then switch to Storage (Media) tab inside Monitor
+        // then switch to Storage (Media) tab inside Monitor.
+        // get_tabpanel() does not create widgets.
         auto* monitor = dynamic_cast<MonitorPanel*>(main_frame->m_monitor);
         if (monitor) {
+            monitor->ensure_content();
             auto* tabpanel = monitor->get_tabpanel();
             if (tabpanel) {
                 tabpanel->SetSelection(MonitorPanel::PT_MEDIA);
