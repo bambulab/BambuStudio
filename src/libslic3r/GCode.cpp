@@ -4430,6 +4430,63 @@ namespace Skirt {
         }
     }
 
+    // BBS multi-diameter: the skirt layer height is the Z step since the previous skirt layer, so only a filament
+    // whose nozzle can extrude that step may print it. The filament of the previous skirt layer is kept when it
+    // qualifies, otherwise every layer would switch to whatever filament happens to open it.
+    // All loops go to that one filament: splitting them per filament for Print::min_skirt_length > 0 is not
+    // supported here, because each nozzle would need its own printable step height.
+    static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_multi_diameter(
+        const Print             				&print,
+        const LayerTools                		&layer_tools,
+        std::vector<coordf_t>  			    	&skirt_done,
+        unsigned int                            &last_filament)
+    {
+        std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
+        if (! print.has_skirt() || print.skirt().entities.empty() || ! layer_tools.has_skirt || layer_tools.extruders.empty())
+            return skirt_loops_per_extruder_out;
+        if (skirt_done.size() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt())
+            return skirt_loops_per_extruder_out;
+        const coordf_t last_z = skirt_done.empty() ? 0. : skirt_done.back();
+        if (layer_tools.print_z < last_z + EPSILON)
+            return skirt_loops_per_extruder_out;
+
+        const double height         = layer_tools.print_z - last_z;
+        unsigned int chosen         = (unsigned int)-1;
+        // Tallest among the nozzles the step is too tall for.
+        unsigned int tallest        = (unsigned int)-1;
+        double       tallest_height = 0.;
+        for (unsigned int filament : layer_tools.extruders) {
+            const double nozzle = nozzle_diameter_for_filament(print.config(), filament + 1);
+            if (nozzle < EPSILON)
+                continue;
+            const AdaptiveLayerHeightRange range = adaptive_layer_height_range(nozzle);
+            if (height < range.min_height - EPSILON)
+                continue;
+            if (height > range.max_height + EPSILON) {
+                if (range.max_height > tallest_height) {
+                    tallest_height = range.max_height;
+                    tallest        = filament;
+                }
+                continue;
+            }
+            if (chosen == (unsigned int)-1 || filament == last_filament)
+                chosen = filament;
+        }
+        if (chosen == (unsigned int)-1) {
+            // The step is too thin for every nozzle here: wait for a later layer, the step only grows.
+            // Otherwise it is too tall for some of them, and waiting would only widen that gap, so the tallest
+            // of those prints it now, clamped to its max height at extrusion time.
+            if (tallest == (unsigned int)-1)
+                return skirt_loops_per_extruder_out;
+            chosen = tallest;
+        }
+
+        skirt_loops_per_extruder_out[chosen] = std::pair<size_t, size_t>(0, print.skirt().entities.size());
+        skirt_done.emplace_back(layer_tools.print_z);
+        last_filament = chosen;
+        return skirt_loops_per_extruder_out;
+    }
+
     static std::map<unsigned int, std::pair<size_t, size_t>> make_skirt_loops_per_extruder_1st_layer(
         const Print             				&print,
         const LayerTools                		&layer_tools,
@@ -5106,6 +5163,20 @@ GCode::LayerResult GCode::process_layer(
     // Map from extruder ID to <begin, end> index of skirt loops to be extruded with that extruder.
     std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder;
 
+    // BBS multi-diameter: a coarse brim filament extrudes the object's bed band only at the band top, so the brim is
+    // laid on that layer by that filament, whose nozzle and merged height the brim flow was generated for.
+    const bool multi_diameter = print.uses_multiple_nozzle_diameters();
+    auto is_object_brim_layer = [multi_diameter, &layer_tools, first_layer, print_z](const PrintObject &object, unsigned int extruder_id) {
+        if (! multi_diameter || object.object_brim_filament <= 0 || object.object_brim_print_z < EPSILON)
+            return first_layer;
+        if (std::abs(print_z - object.object_brim_print_z) > EPSILON)
+            return false;
+        unsigned int brim_filament = (unsigned int)object.object_brim_filament - 1;
+        if (auto it = layer_tools.mixed_filament_resolution.find(brim_filament); it != layer_tools.mixed_filament_resolution.end())
+            brim_filament = it->second;
+        return extruder_id == brim_filament;
+    };
+
     if (single_object_instance_idx == size_t(-1)) {
         // Normal (non-sequential) print.
         gcode += ProcessLayer::emit_custom_gcode_per_print_z(*this, layer_tools.custom_gcode, m_writer.filament()->id(), first_extruder_id, print.config(),
@@ -5113,9 +5184,12 @@ GCode::LayerResult GCode::process_layer(
     }
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.
-    skirt_loops_per_extruder = first_layer ?
-        Skirt::make_skirt_loops_per_extruder_1st_layer(print, layer_tools, m_skirt_done) :
-        Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
+    if (multi_diameter && ! (print.is_sequential_print() && print.config().skirt_per_object.value))
+        skirt_loops_per_extruder = Skirt::make_skirt_loops_multi_diameter(print, layer_tools, m_skirt_done, m_skirt_last_filament);
+    else
+        skirt_loops_per_extruder = first_layer ?
+            Skirt::make_skirt_loops_per_extruder_1st_layer(print, layer_tools, m_skirt_done) :
+            Skirt::make_skirt_loops_per_extruder_other_layers(print, layer_tools, m_skirt_done);
 
     // BBS: get next extruder according to flush and soluble
     auto get_next_extruder = [&](int current_extruder,const std::vector<unsigned int>&extruders) {
@@ -5539,11 +5613,13 @@ GCode::LayerResult GCode::process_layer(
     // BBS: In sequential (ByObject + multi-object) mode, per-object skirt is drawn by the object's first extruder on this layer.
     // Only when skirt_per_object is enabled; otherwise global skirt is used.
     std::map<const PrintObject*, unsigned int> object_first_extruder;
-    if (print.has_skirt() && print.is_sequential_print() && first_layer && print.config().skirt_per_object.value) {
+    // Multi-diameter: drawn with the brim, on the object's bed band top by the brim filament.
+    if (print.has_skirt() && print.is_sequential_print() && (first_layer || multi_diameter) && print.config().skirt_per_object.value) {
         for (unsigned int eid : layer_tools.extruders) {
             for (const InstanceToPrint& inst : filament_to_print_instances[eid]) {
                 const PrintObject* obj = &inst.print_object;
-                object_first_extruder.emplace(obj, eid);
+                if (is_object_brim_layer(*obj, eid))
+                    object_first_extruder.emplace(obj, eid);
             }
         }
     }
@@ -5643,7 +5719,12 @@ GCode::LayerResult GCode::process_layer(
             const std::pair<size_t, size_t> loops = loops_it->second;
             this->set_origin(0., 0.);
             m_avoid_crossing_perimeters.use_external_mp();
-            Flow layer_skirt_flow = print.skirt_flow(extruder_id + 1).with_height(float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2])));
+            float skirt_height = float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2]));
+            // A step taller than every nozzle on this layer is printed at the nozzle's max height, leaving a gap below.
+            if (multi_diameter)
+                if (const double nozzle = nozzle_diameter_for_filament(print.config(), extruder_id + 1); nozzle > EPSILON)
+                    skirt_height = std::min(skirt_height, float(adaptive_layer_height_range(nozzle).max_height));
+            Flow layer_skirt_flow = print.skirt_flow(extruder_id + 1).with_height(skirt_height);
             double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
             for (size_t i = loops.first; i < loops.second; ++i) {
                 // Adjust flow according to this layer's layer height.
@@ -5668,7 +5749,7 @@ GCode::LayerResult GCode::process_layer(
         // Do not require prime_extruder: the first object has prime_extruder==false but still needs skirt.
         // If object has brim (object brim or support brim), skip skirt and keep brim.
         // Only when skirt_per_object is enabled; otherwise global skirt is used.
-        if (print.has_skirt() && print.is_sequential_print() && first_layer && print.config().skirt_per_object.value) {
+        if (! object_first_extruder.empty()) {
             for (InstanceToPrint& instance_to_print : instances_to_print) {
                 const PrintObject* obj = &instance_to_print.print_object;
                 auto it = object_first_extruder.find(obj);
@@ -5684,7 +5765,7 @@ GCode::LayerResult GCode::process_layer(
 
                 const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 set_origin(unscaled(offset));
-                const Flow object_skirt_flow = print.skirt_flow(*obj, extruder_id + 1);
+                const Flow object_skirt_flow = print.multi_diameter_skirt_flow_on_brim_layer(*obj, extruder_id + 1);
                 for (ExtrusionEntity* ee : instance_to_print.print_object.object_skirt().entities) {
                     ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(ee);
                     for (ExtrusionPath &path : loop.paths) {
@@ -5799,7 +5880,7 @@ GCode::LayerResult GCode::process_layer(
                 for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
                     const auto& by_region_specific = is_anything_overridden ? island.by_region_per_copy(by_region_per_copy_cache, static_cast<unsigned int>(instance_to_print.instance_id), extruder_id, print_wipe_extrusions != 0) : island.by_region;
                     //BBS: add brim by obj by extruder
-                    if (first_layer) {
+                    if (is_object_brim_layer(instance_to_print.print_object, extruder_id)) {
                         if (this->m_objsWithBrim.find(instance_to_print.print_object.id()) != this->m_objsWithBrim.end() && !print_wipe_extrusions) {
                             this->set_origin(0., 0.);
                             m_avoid_crossing_perimeters.use_external_mp();

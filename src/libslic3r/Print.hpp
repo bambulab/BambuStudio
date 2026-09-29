@@ -566,6 +566,10 @@ public:
 
     // BBS: returns 1-based indices of extruders used to print the first layer wall of objects
     std::vector<int>            object_first_layer_wall_extruders;
+    // BBS multi-diameter: 1-based wall filament whose extrusion reaches the bed first, and the print_z it is
+    // extruded at. A coarse nozzle prints its bed band only at the band top, so its brim belongs to that layer.
+    int                         object_brim_filament = 0;
+    double                      object_brim_print_z  = 0.;
     bool             has_variable_layer_heights = false;
 
     // OrcaSlicer
@@ -938,11 +942,20 @@ public:
     StringObjectException validate(StringObjectException *warning = nullptr, Polygons* collison_polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr) const override;
     double              skirt_first_layer_height() const;
     Flow                brim_flow() const;
+    // Brim flow of one object. In multi-diameter prints it follows the 1-based physical filament printing the
+    // brim (mixed slots already resolved) and the merged height of the brim layer, otherwise it equals brim_flow().
+    Flow                multi_diameter_brim_flow(const PrintObject &object, unsigned int filament_id) const;
+    // Support brim flow of one object. In multi-diameter prints it follows the nozzle and merged height of the
+    // first support layer the object extrudes on the bed, otherwise it equals brim_flow().
+    Flow                multi_diameter_support_brim_flow(const PrintObject &object) const;
     // The no-argument overload returns the widest flow needed by any used filament for shared skirt geometry.
     // Explicit filament IDs are 1-based and resolve per-filament nozzle selections.
     Flow                skirt_flow() const;
     Flow                skirt_flow(unsigned int filament_id) const;
     Flow                skirt_flow(const PrintObject &object, unsigned int filament_id) const;
+    // skirt_flow(object, filament_id) with the height of the object's brim layer in multi-diameter prints,
+    // where the per-object skirt is laid with the brim. Otherwise it equals skirt_flow(object, filament_id).
+    Flow                multi_diameter_skirt_flow_on_brim_layer(const PrintObject &object, unsigned int filament_id) const;
 
     std::vector<unsigned int> object_extruders() const;
     std::vector<unsigned int> support_material_extruders() const;

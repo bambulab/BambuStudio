@@ -626,6 +626,8 @@ private:
 
     // Heights (print_z) at which the skirt has already been extruded.
     std::vector<coordf_t>               m_skirt_done;
+    // Zero based filament of the last skirt layer, preferred again on the next one in multi-diameter prints.
+    unsigned int                        m_skirt_last_filament = (unsigned int)-1;
     // Has the brim been extruded already? Brim is being extruded only for the first object of a multi-object print.
     bool                                m_brim_done;
     // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.

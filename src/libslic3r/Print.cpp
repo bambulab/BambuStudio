@@ -1819,7 +1819,9 @@ BoundingBox Print::total_bounding_box() const
 
 double Print::skirt_first_layer_height() const
 {
-    return m_config.initial_layer_print_height.value;
+    // Same first grid step as SlicingParameters: multi-diameter slicing subdivides the initial layer too, and
+    // the brim is laid on that step, not on the authored initial layer height.
+    return m_config.initial_layer_print_height.value / double(std::max(1, layer_grid_subdivision(m_full_print_config)));
 }
 
 Flow Print::brim_flow() const
@@ -1842,6 +1844,62 @@ Flow Print::brim_flow() const
         nozzle_diameter_for_filament(m_config, m_print_regions.front()->config().wall_filament),
 		(float)this->skirt_first_layer_height(),
         multi_nozzle_diameter_mode_enabled(this->full_print_config()));
+}
+
+// Brim flow on a given nozzle and height, with the line width brim_flow() takes from the config.
+static Flow multi_diameter_brim_flow_on_nozzle(const Print &print, const PrintRegionConfig &first_region_config,
+    const PrintObject &object, float nozzle_diameter, float height)
+{
+    ConfigOptionFloat width = print.config().initial_layer_line_width;
+    if (width.value == 0)
+        width = first_region_config.inner_wall_line_width;
+    if (width.value == 0)
+        width = object.config().line_width;
+    // A band taller than the nozzle can print would end up with a negative spacing.
+    if (nozzle_diameter > 0.f)
+        height = std::min(height, float(adaptive_layer_height_range(nozzle_diameter).max_height));
+
+    return Flow::new_from_config_width(
+        frPerimeter,
+        width,
+        float(primary_nozzle_diameter(print.full_print_config())),
+        nozzle_diameter,
+        height,
+        multi_nozzle_diameter_mode_enabled(print.full_print_config()));
+}
+
+Flow Print::multi_diameter_brim_flow(const PrintObject &object, unsigned int filament_id) const
+{
+    if (! this->uses_multiple_nozzle_diameters() || filament_id == 0 || object.object_brim_filament <= 0 ||
+        object.object_brim_print_z < EPSILON)
+        return this->brim_flow();
+
+    // The brim lies on the bed, so a brim printed at a merged band top is as tall as that band.
+    return multi_diameter_brim_flow_on_nozzle(*this, m_print_regions.front()->config(), object,
+        nozzle_diameter_for_filament(m_config, filament_id), float(object.object_brim_print_z));
+}
+
+Flow Print::multi_diameter_support_brim_flow(const PrintObject &object) const
+{
+    const Flow flow = this->brim_flow();
+    if (! this->uses_multiple_nozzle_diameters())
+        return flow;
+
+    // A merged support base extrudes its bed band only at the band top, on the nozzle the merge plan pinned.
+    for (const SupportLayer *support_layer : object.support_layers()) {
+        if (! support_layer->has_extrusions())
+            continue;
+        const double height = support_layer->effective_print_height();
+        if (support_layer->print_z - height > EPSILON || height < EPSILON)
+            return flow;
+        float nozzle = float(support_layer->planned_nozzle_diameter);
+        if (nozzle <= 0.f && object.config().support_filament.value > 0)
+            nozzle = nozzle_diameter_for_filament(m_config, (unsigned int)object.config().support_filament.value);
+        if (nozzle <= 0.f)
+            nozzle = flow.nozzle_diameter();
+        return multi_diameter_brim_flow_on_nozzle(*this, m_print_regions.front()->config(), object, nozzle, float(support_layer->print_z));
+    }
+    return flow;
 }
 
 Flow Print::skirt_flow() const
@@ -1873,6 +1931,17 @@ Flow Print::skirt_flow(const PrintObject &object, unsigned int filament_id) cons
 		nozzle_diameter_for_filament(m_config, filament_id),
 		(float)this->skirt_first_layer_height(),
         multi_nozzle_diameter_mode_enabled(this->full_print_config()));
+}
+
+Flow Print::multi_diameter_skirt_flow_on_brim_layer(const PrintObject &object, unsigned int filament_id) const
+{
+    const Flow flow = this->skirt_flow(object, filament_id);
+    if (! this->uses_multiple_nozzle_diameters() || object.object_brim_filament <= 0 || object.object_brim_print_z < EPSILON)
+        return flow;
+    float height = float(object.object_brim_print_z);
+    if (flow.nozzle_diameter() > 0.f)
+        height = std::min(height, float(adaptive_layer_height_range(flow.nozzle_diameter()).max_height));
+    return flow.with_height(height);
 }
 
 bool Print::has_support_material() const
@@ -1992,6 +2061,10 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
                 }
             }
             objectExtruderMap.insert(std::make_pair(object->id(), objectFirstLayerFirstExtruder));
+        }
+        else if (print.uses_multiple_nozzle_diameters() && object->object_brim_filament > 0) {
+            // A coarse wall filament with the smallest id may print its bed band only above the first layer.
+            objectExtruderMap.insert(std::make_pair(object->id(), (unsigned int)object->object_brim_filament));
         }
         else {
             objectExtruderMap.insert(std::make_pair(object->id(), object->object_first_layer_wall_extruders.front()));
@@ -2516,33 +2589,43 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         // extruder matching works correctly (mixed slot IDs are not present
         // in printExtruders after ToolOrdering::resolve_mixed_filaments).
         {
-            const LayerTools *first_lt = nullptr;
+            const ToolOrdering *global_ordering = nullptr;
             if (!is_sequential_print() && !tool_ordering.layer_tools().empty())
-                first_lt = &tool_ordering.layer_tools().front();
+                global_ordering = &tool_ordering;
 
             std::map<ObjectID, const PrintObject*> obj_by_id;
-            if (m_sequential_print_data) {
-                for (const PrintObject *obj : m_objects)
-                    obj_by_id[obj->id()] = obj;
-            }
+            for (const PrintObject *obj : m_objects)
+                obj_by_id[obj->id()] = obj;
 
             for (auto &[obj_id, ext_1based] : objectExtruderMap) {
                 if (ext_1based == 0)
                     continue;
-                const LayerTools *lt = first_lt;
-                if (!lt && m_sequential_print_data) {
-                    auto oid_it = obj_by_id.find(obj_id);
-                    if (oid_it != obj_by_id.end()) {
-                        auto it = m_sequential_print_data->object_tool_ordering_map.find(oid_it->second);
-                        if (it != m_sequential_print_data->object_tool_ordering_map.end()
-                            && !it->second.layer_tools().empty())
-                            lt = &it->second.layer_tools().front();
-                    }
+                auto obj_it = obj_by_id.find(obj_id);
+                const PrintObject *obj = obj_it != obj_by_id.end() ? obj_it->second : nullptr;
+                const ToolOrdering *ordering = global_ordering;
+                if (!ordering && m_sequential_print_data && obj) {
+                    auto ordering_it = m_sequential_print_data->object_tool_ordering_map.find(obj);
+                    if (ordering_it != m_sequential_print_data->object_tool_ordering_map.end()
+                        && !ordering_it->second.layer_tools().empty())
+                        ordering = &ordering_it->second;
+                }
+                const LayerTools *lt = nullptr;
+                if (ordering) {
+                    // Multi-diameter brims may be printed above the first layer, resolve the slot where it is printed.
+                    // No matching layer leaves the slot unresolved rather than borrowing another layer's resolution.
+                    if (uses_multiple_nozzle_diameters() && obj && obj->object_brim_filament > 0 && obj->object_brim_print_z > EPSILON) {
+                        const coordf_t brim_z = obj->object_brim_print_z;
+                        auto brim_lt = std::find_if(ordering->layer_tools().begin(), ordering->layer_tools().end(),
+                            [brim_z](const LayerTools &layer_tools) { return std::abs(layer_tools.print_z - brim_z) < EPSILON; });
+                        if (brim_lt != ordering->layer_tools().end())
+                            lt = &*brim_lt;
+                    } else
+                        lt = &ordering->layer_tools().front();
                 }
                 if (lt) {
-                    auto it = lt->mixed_filament_resolution.find(ext_1based - 1);
-                    if (it != lt->mixed_filament_resolution.end())
-                        ext_1based = it->second + 1;
+                    auto resolved_it = lt->mixed_filament_resolution.find(ext_1based - 1);
+                    if (resolved_it != lt->mixed_filament_resolution.end())
+                        ext_1based = resolved_it->second + 1;
                 }
             }
         }
@@ -2555,6 +2638,14 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             }
             if (!existObject && objectExtruderMap.find(print_object_ID) != objectExtruderMap.end())
                 objPrintVec.push_back(std::make_pair(print_object_ID, objectExtruderMap.at(print_object_ID)));
+        }
+        // BBS multi-diameter: the brim generator only visits objects whose brim filament is listed here, but a
+        // coarse brim filament is not printed on the first grid layer. Append it behind the first-layer ones.
+        if (uses_multiple_nozzle_diameters()) {
+            for (const auto &[obj_id, filament_1based] : objPrintVec)
+                if (filament_1based > 0 &&
+                    std::find(printExtruders.begin(), printExtruders.end(), filament_1based - 1) == printExtruders.end())
+                    printExtruders.emplace_back(filament_1based - 1);
         }
         // BBS: m_brimMap and m_supportBrimMap are used instead of m_brim to generate brim of objs and supports seperately
         m_brimMap.clear();
@@ -2830,9 +2921,11 @@ void Print::_make_skirt()
     for (auto obj_cvx_hull : object_convex_hulls) {
         PrintObject* object = obj_cvx_hull.first;
         const std::vector<unsigned int> object_extruders = object->object_extruders();
-        const unsigned int filament_id = object_extruders.empty() ?
+        unsigned int filament_id = object_extruders.empty() ?
             (unsigned int)object->config().support_filament.value : object_extruders.front() + 1;
-        const Flow object_skirt_flow = this->skirt_flow(*object, filament_id);
+        if (by_object && this->uses_multiple_nozzle_diameters() && object->object_brim_filament > 0)
+            filament_id = (unsigned int)object->object_brim_filament;
+        const Flow object_skirt_flow = by_object ? this->multi_diameter_skirt_flow_on_brim_layer(*object, filament_id) : this->skirt_flow(*object, filament_id);
         const float object_spacing = object_skirt_flow.spacing();
         const float object_skirt_initial_offset = by_object
             ? float(scale_(m_config.skirt_distance.value - object_spacing / 2.f))

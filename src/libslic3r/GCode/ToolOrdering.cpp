@@ -471,15 +471,22 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     // BBS
     // Reorder the extruders to minimize tool switches.
     const ConfigOptionInts *first_layer_print_sequence_op = object.print()->full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
+    // BBS multi-diameter: never force a filament into the first grid layer just for the skirt,
+    // a coarse nozzle has nothing to print there and would lay the skirt below its printable height.
+    const bool multi_diameter = object.print()->uses_multiple_nozzle_diameters();
+    auto can_add_skirt_filament_to_first_layer = [this, multi_diameter](unsigned int filament) {
+        return ! multi_diameter || m_layer_tools.front().has_extruder(filament);
+    };
     if (first_extruder == (unsigned int) -1 || (first_layer_print_sequence_op && first_layer_print_sequence_op->size()>1)) {
         const std::vector<unsigned int> first_layer_tool_order = generate_first_layer_tool_order(object);
-        if (object.print()->has_skirt() && ! first_layer_tool_order.empty()) {
+        if (object.print()->has_skirt() && ! first_layer_tool_order.empty() &&
+            can_add_skirt_filament_to_first_layer(first_layer_tool_order.front())) {
             m_layer_tools.front().extruders.emplace_back(first_layer_tool_order.front());
             sort_remove_duplicates(m_layer_tools.front().extruders);
         }
         this->handle_dontcare_extruder(first_layer_tool_order);
     } else {
-        if (object.print()->has_skirt()) {
+        if (object.print()->has_skirt() && can_add_skirt_filament_to_first_layer(first_extruder)) {
             m_layer_tools.front().extruders.emplace_back(first_extruder);
             sort_remove_duplicates(m_layer_tools.front().extruders);
         }
@@ -550,6 +557,19 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
                 skirt_extruders.emplace_back(first_layer_tool_order.front());
         } else if (first_extruder != (unsigned int)-1) {
             skirt_extruders.emplace_back(first_extruder);
+        }
+        // BBS multi-diameter: a coarse filament whose first band is extruded above the first grid layer has
+        // nothing to print there, so forcing it in for the skirt costs a tool change and lays the skirt below
+        // that nozzle's printable height. Keep the skirt on a filament the first layer already prints.
+        if (print.uses_multiple_nozzle_diameters() && ! skirt_extruders.empty()) {
+            const LayerTools                &first_layer = m_layer_tools.front();
+            const std::vector<unsigned int> &candidates  = first_layer_tool_order.empty() ? skirt_extruders : first_layer_tool_order;
+            auto it = std::find_if(candidates.begin(), candidates.end(),
+                                   [&first_layer](unsigned int filament) { return first_layer.has_extruder(filament); });
+            std::vector<unsigned int> kept;
+            if (it != candidates.end())
+                kept.emplace_back(*it);
+            skirt_extruders = std::move(kept);
         }
         m_layer_tools.front().extruders.insert(
             m_layer_tools.front().extruders.end(), skirt_extruders.begin(), skirt_extruders.end());
@@ -798,6 +818,9 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     int layerCount = 0;
     std::vector<int> firstLayerExtruders;
     firstLayerExtruders.clear();
+    // The lowest of them, the one whose print_z the brim is printed at.
+    int    brim_filament = 0;
+    double brim_print_z  = 0.;
     // A merged first band may reach the bed while being emitted above the physical first print layer.
     // Only filaments actually emitted on the first print layer may schedule a brim-layer tower visit.
     std::vector<unsigned int> bed_contact_extruders;
@@ -867,6 +890,13 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     record_mixed_height(wall_filament, *layerm);
                     if (layerCount == 0 || starts_at_object_base) {
                         firstLayerExtruders.emplace_back(wall_filament);
+                        // Only a band starting on the bed is as tall as its print_z, e.g. not the first layer above a raft.
+                        if (std::abs(object.layers().front()->bottom_z()) <= EPSILON &&
+                            (brim_filament == 0 || layer->print_z < brim_print_z - EPSILON ||
+                             (layer->print_z < brim_print_z + EPSILON && int(wall_filament) < brim_filament))) {
+                            brim_filament = int(wall_filament);
+                            brim_print_z  = layer->print_z;
+                        }
                     }
                     if ((layerCount == 0 || starts_at_object_base) &&
                         ! object.layers().empty() &&
@@ -1000,6 +1030,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         sort_remove_duplicates(adhesion_layer.extruders);
     }
     const_cast<PrintObject&>(object).object_first_layer_wall_extruders = firstLayerExtruders;
+    const_cast<PrintObject&>(object).object_brim_filament = brim_filament;
+    const_cast<PrintObject&>(object).object_brim_print_z  = brim_print_z;
 
     // Collect the support extruders.
     for (auto support_layer : object.support_layers()) {
@@ -3495,13 +3527,21 @@ void ToolOrdering::mark_skirt_layers(const PrintConfig &config, coordf_t max_lay
     if (m_layer_tools.empty())
         return;
 
+    size_t i = 0;
     if (m_layer_tools.front().extruders.empty()) {
-        // Empty first layer, no skirt will be printed.
-        //FIXME throw an exception?
-        return;
+        // BBS multi-diameter: when every bed band is merged, the first grid layers print nothing and the skirt
+        // starts with the first band top instead.
+        if (m_print != nullptr && m_print->uses_multiple_nozzle_diameters()) {
+            while (i < m_layer_tools.size() && m_layer_tools[i].extruders.empty())
+                ++ i;
+        }
+        if (i == 0 || i == m_layer_tools.size()) {
+            // Empty first layer, no skirt will be printed.
+            //FIXME throw an exception?
+            return;
+        }
     }
 
-    size_t i = 0;
     for (;;) {
         m_layer_tools[i].has_skirt = true;
         size_t j = i + 1;
