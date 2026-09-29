@@ -1255,8 +1255,14 @@ NozzleVolumeType convert_to_nvt_type(const std::string &variant_str) {
 
 bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::vector<std::string> &filament_variants, bool variants_are_complete)
 {
-    if (!variants_are_complete)
-        return true;
+    if (!variants_are_complete) {
+        // A custom / third-party filament's variant list may be partial, so ordinary nozzles stay
+        // allowed. TPU285 is the dedicated 2.85mm path though: a filament declaring it (copied from a
+        // TPU285 base filament) prints only there, and no other filament may use it.
+        const bool declares_tpu285 = std::any_of(filament_variants.begin(), filament_variants.end(),
+            [](const std::string &variant) { return convert_to_nvt_type(variant) == nvtTPU285; });
+        return declares_tpu285 == (machine_nvt == nvtTPU285);
+    }
 
     for (const std::string &variant : filament_variants) {
         if (convert_to_nvt_type(variant) == machine_nvt)
