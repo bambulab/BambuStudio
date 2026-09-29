@@ -281,6 +281,17 @@ public:
 private:
     bool            m_initialized { false };
     bool            m_post_initialized { false };
+    // Home shell paint is signaled from JS. GL init waits on that callback or a
+    // one-shot timer so post_init() does not pump the event loop from idle.
+    enum class HomeGlWait : unsigned char { Idle, WaitPaint, WaitPresent, Done };
+    HomeGlWait      m_home_gl_wait{ HomeGlWait::Idle };
+    bool            m_home_gl_slow_bootup{ false };
+    bool            m_home_gl_init_ran{ false };
+    wxTimer         m_home_gl_timer;
+    void            begin_home_gl_wait(bool slow_bootup);
+    void            on_home_shell_painted();
+    void            on_home_gl_timer(wxTimerEvent& evt);
+    void            run_deferred_gl_init();
     bool            m_app_conf_exists{ false };
     EAppMode        m_app_mode{ EAppMode::Editor };
     bool            m_is_recreating_gui{ false };

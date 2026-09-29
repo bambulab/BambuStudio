@@ -1873,6 +1873,14 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
     UpdateState();
 }
 
+void WebViewPanel::mark_home_shell_painted()
+{
+    if (m_home_shell_painted)
+        return;
+    m_home_shell_painted = true;
+    perf_mark("startup.webview.home.shell_painted");
+}
+
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
 {
     BOOST_LOG_TRIVIAL(trace) << evt.GetString().ToUTF8().data();

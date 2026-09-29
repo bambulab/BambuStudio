@@ -118,6 +118,9 @@ public:
     //LeftMenu
     std::string m_contentname; // CurrentMenu
     bool        m_leftfirst;   // Left First Loaded
+    bool        m_home_shell_painted{ false }; // JS reported shell chrome after first paint
+    bool        is_home_shell_painted() const { return m_home_shell_painted; }
+    void        mark_home_shell_painted();
     void CheckMenuNewTag();
     void ShowMenuNewTag(std::string menuname, std::string show);
     void SetLeftMenuShow(std::string menuname, int show);

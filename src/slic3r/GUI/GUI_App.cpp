@@ -1191,6 +1191,138 @@ std::string extract_model_download_url_from_mac(const std::string &protocol_url)
 }
 } // namespace
 
+namespace {
+constexpr int kHomeShellPaintTimeoutMs = 2000;
+constexpr int kHomeShellPresentDelayMs = 120;
+} // namespace
+
+void GUI_App::begin_home_gl_wait(bool slow_bootup)
+{
+    if (m_home_gl_wait != HomeGlWait::Idle)
+        return;
+    m_home_gl_slow_bootup = slow_bootup;
+
+    WebViewPanel* web = (mainframe && mainframe->m_webview) ? mainframe->m_webview : nullptr;
+    if (!web) {
+        // No Home shell to wait for. Queue GL init and return to the idle handler.
+        perf_mark("startup.post_init.home_painted_skip");
+        perf_mark("startup.post_init.home_shell_shown");
+        m_home_gl_wait = HomeGlWait::Done;
+        CallAfter([this] { run_deferred_gl_init(); });
+        return;
+    }
+    if (web->is_home_shell_painted()) {
+        perf_mark("startup.post_init.home_painted");
+        m_home_gl_wait = HomeGlWait::WaitPresent;
+        m_home_gl_timer.StartOnce(kHomeShellPresentDelayMs);
+        return;
+    }
+    m_home_gl_wait = HomeGlWait::WaitPaint;
+    m_home_gl_timer.StartOnce(kHomeShellPaintTimeoutMs);
+}
+
+void GUI_App::on_home_shell_painted()
+{
+    if (m_home_gl_wait != HomeGlWait::WaitPaint)
+        return;
+    if (m_home_gl_timer.IsRunning())
+        m_home_gl_timer.Stop();
+    perf_mark("startup.post_init.home_painted");
+    m_home_gl_wait = HomeGlWait::WaitPresent;
+    m_home_gl_timer.StartOnce(kHomeShellPresentDelayMs);
+}
+
+void GUI_App::on_home_gl_timer(wxTimerEvent&)
+{
+    if (is_closing())
+        return;
+    if (m_home_gl_wait == HomeGlWait::WaitPaint)
+        perf_mark("startup.post_init.home_painted_timeout");
+    else if (m_home_gl_wait != HomeGlWait::WaitPresent)
+        return;
+    perf_mark("startup.post_init.home_shell_shown");
+    m_home_gl_wait = HomeGlWait::Done;
+    run_deferred_gl_init();
+}
+
+void GUI_App::run_deferred_gl_init()
+{
+    if (m_home_gl_init_ran || is_closing())
+        return;
+    m_home_gl_init_ran = true;
+    if (m_home_gl_timer.IsRunning())
+        m_home_gl_timer.Stop();
+    m_home_gl_wait = HomeGlWait::Done;
+    if (!mainframe || !plater_)
+        return;
+
+    PERF_TRACE("startup.load_gl_resources.deferred");
+    if (is_editor())
+        mainframe->select_tab(size_t(0));
+    plater_->canvas3D()->enable_render(false);
+    plater_->select_view_3D("3D");
+
+    auto *gl   = plater_->canvas3D();
+    auto *wxgl = gl->get_wxglcanvas();
+    bool  shown   = wxgl && wxgl->IsShownOnScreen();
+    bool  current = gl->make_current_for_postinit();
+    bool  used_tab_fallback = false;
+    if (!current) {
+        // Fallback: show Prepare so the GL context can activate (Linux / rare Win).
+        // Freeze to avoid flashing Home <-> Prepare during the switch.
+        perf_mark("startup.post_init.gl_need_show");
+        used_tab_fallback = true;
+        mainframe->Freeze();
+        perf_mark("startup.post_init.freeze");
+        mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+        perf_mark("startup.post_init.switch_3d");
+        shown   = wxgl && wxgl->IsShownOnScreen();
+        current = gl->make_current_for_postinit();
+    } else {
+        perf_mark(shown ? "startup.post_init.gl_on_shown" : "startup.post_init.gl_on_hidden");
+    }
+
+    if (current) {
+        Size canvas_size = gl->get_canvas_size();
+        if (canvas_size.get_width() <= 0 || canvas_size.get_height() <= 0) {
+            const wxSize cs = plater_->GetClientSize();
+            canvas_size = Size(std::max(cs.GetWidth(), 1), std::max(cs.GetHeight(), 1));
+        }
+        wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()),
+                                             static_cast<float>(canvas_size.get_height()));
+        {
+            PERF_TRACE("startup.init_opengl");
+            wxGetApp().init_opengl();
+        }
+        {
+            PERF_TRACE("startup.init_canvas3D");
+            gl->init();
+        }
+        wxGetApp().imgui()->new_frame();
+        gl->enable_render(true);
+        if (!m_home_gl_slow_bootup && shown) {
+            PERF_TRACE("startup.first_frame_render");
+            gl->render(false);
+        }
+        perf_mark("startup.post_init.gl_done");
+    } else {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Found glcontext not ready, postpone the init";
+        perf_mark("startup.post_init.gl_postpone");
+    }
+
+    if (is_editor()) {
+        mainframe->select_tab(size_t(0));
+        perf_mark("startup.post_init.switch_home");
+    }
+    if (used_tab_fallback) {
+        mainframe->Thaw();
+        perf_mark("startup.post_init.thaw");
+    }
+    mainframe->Update();
+    plater_->trigger_restore_project(1);
+    perf_mark("startup.post_init.gl_deferred_done");
+}
+
 void GUI_App::post_init()
 {
     PERF_TRACE("startup.post_init");
@@ -1296,54 +1428,20 @@ void GUI_App::post_init()
     if (!switch_to_3d) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", begin load_gl_resources";
         PERF_TRACE("startup.load_gl_resources");
-        mainframe->Freeze();
-        plater_->canvas3D()->enable_render(false);
-        mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-        plater_->select_view_3D("3D");
-        //BBS init the opengl resource here
-//#ifdef __linux__
-        if (plater_->canvas3D()->get_wxglcanvas()->IsShownOnScreen()&&plater_->canvas3D()->make_current_for_postinit()) {
-//#endif
-            Size canvas_size = plater_->canvas3D()->get_canvas_size();
-            wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
-            {
-                PERF_TRACE("startup.init_opengl");
-                wxGetApp().init_opengl();
-            }
-
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init opengl";
-            {
-                PERF_TRACE("startup.init_canvas3D");
-                plater_->canvas3D()->init();
-            }
-
-            BOOST_LOG_TRIVIAL(info) << "finished init canvas3D";
-            wxGetApp().imgui()->new_frame();
-
-            BOOST_LOG_TRIVIAL(info) << "finished init imgui frame";
-            plater_->canvas3D()->enable_render(true);
-
-            if (!slow_bootup) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
-                {
-                    PERF_TRACE("startup.first_frame_render");
-                    plater_->canvas3D()->render(false);
-                }
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
-            }
-//#ifdef __linux__
-        }
-        else {
-            BOOST_LOG_TRIVIAL(warning) << "Found glcontext not ready, postpone the init";
-        }
-//#endif
+        // Home first-paint sequencing (do not Freeze / switch tab up front, and do not
+        // pump the event loop from this idle handler):
+        // 1) stay on Home without Freeze so WebView can paint
+        // 2) one-shot homepage_shell_painted, or skip when there is no Home WebView
+        // 3) after a short present delay, init GL on a hidden canvas
         if (is_editor())
             mainframe->select_tab(size_t(0));
-        mainframe->Thaw();
-        BOOST_LOG_TRIVIAL(info) << "end load_gl_resources";
+        mainframe->Update();
+        perf_mark("startup.post_init.pre_gl");
+        begin_home_gl_wait(slow_bootup);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", end load_gl_resources (GL deferred)";
+    } else {
+        plater_->trigger_restore_project(1);
     }
-    plater_->trigger_restore_project(1);
     //#endif
 
     //BBS: remove GCodeViewer as seperate APP logic
@@ -1562,6 +1660,8 @@ GUI_App::GUI_App()
 #if defined(__WXOSX__)
     m_macos_pending_pump_timer.Bind(wxEVT_TIMER, &GUI_App::on_macos_pending_pump, this);
 #endif
+    m_home_gl_timer.SetOwner(this);
+    Bind(wxEVT_TIMER, &GUI_App::on_home_gl_timer, this, m_home_gl_timer.GetId());
 
     reset_to_active();
 }
@@ -1596,6 +1696,8 @@ void GUI_App::shutdown()
 
     if (m_is_recreating_gui) return;
     set_closing(true);
+    if (m_home_gl_timer.IsRunning())
+        m_home_gl_timer.Stop();
     BOOST_LOG_TRIVIAL(info) << "exit";
 }
 
@@ -5636,6 +5738,12 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         BOOST_LOG_TRIVIAL(warning) << "common_openurl: refused non-http(s) url";
                     }
                 }
+            }
+            else if (command_str.compare("homepage_shell_painted") == 0) {
+                // Home JS: TranslatePage + double-rAF — shell chrome is ready to present.
+                if (mainframe && mainframe->m_webview)
+                    mainframe->m_webview->mark_home_shell_painted();
+                on_home_shell_painted();
             }
             else if (command_str.compare("homepage_leftmenu_clicked") == 0) {
                 if (root.get_child_optional("menu") != boost::none) {

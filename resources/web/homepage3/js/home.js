@@ -6,10 +6,29 @@ var m_ForUModelList=null;
 var m_MakerlabList=null;
 var m_PrintHistoryList=null;
 
+function NotifyHomeShellPainted()
+{
+	var tSend = {};
+	tSend['sequence_id'] = Math.round(new Date() / 1000);
+	tSend['command'] = "homepage_shell_painted";
+	SendWXMessage(JSON.stringify(tSend));
+}
+
 function OnHomeInit()
 {
 	//-----Official-----
     TranslatePage();
+
+	// Tell native side the shell chrome is ready (after first compositor frame)
+	// so post_init can start GL without covering an unpainted Home.
+	var notifyPainted = function () { NotifyHomeShellPainted(); };
+	if (typeof window.requestAnimationFrame === 'function') {
+		window.requestAnimationFrame(function () {
+			window.requestAnimationFrame(notifyPainted);
+		});
+	} else {
+		setTimeout(notifyPainted, 0);
+	}
 
 	SendMsg_GetRecentFile();
 	SendMsg_GetStaffPick();
