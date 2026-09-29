@@ -3251,12 +3251,15 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
 
     apply_synced_tray_side_effects(ams_infos, unsynced_trays, unknowns);
 
-    // Give back the material of every already-configured slot whose tray had no matching preset: the pass
-    // above could only seed it with a "Generic <type>" stand-in or an arbitrary compatible preset, and
-    // losing a material the user deliberately set is worse than admitting the tray is unrecognised. Done
-    // only here because the slot a tray lands on is decided by the append/overwrite merge (trays get
-    // reordered, dropped, or appended past the end), and `maps` is that finished slot -> tray binding.
-    // `unknowns` has already had the trays that never reached the filament list removed.
+    // Flag every already-configured slot whose tray had no matching preset, and give its material back.
+    // The pass above could only seed such a slot with a "Generic <type>" stand-in, an arbitrary
+    // compatible preset, or -- when not even those existed -- the slot's own preset left untouched.
+    // All three mean the same thing to the user: the machine is feeding that slot from a tray the
+    // filament list does not represent. Losing a material they deliberately set is worse than admitting
+    // the tray is unrecognised, and saying nothing at all is worse still. Done only here because the
+    // slot a tray lands on is decided by the append/overwrite merge (trays get reordered, dropped, or
+    // appended past the end), and `maps` is that finished slot -> tray binding. `unknowns` has already
+    // had the trays that never reached the filament list removed.
     for (const auto &unknown : unknowns) {
         const std::string ams_id  = unknown.first->opt_string("ams_id", 0u);
         const std::string slot_id = unknown.first->opt_string("slot_id", 0u);
@@ -3268,11 +3271,13 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             // there is nothing for the user to restore -- leave it alone and stay quiet about it.
             if (slot >= presets_before_sync.size() || slot >= this->filament_presets.size())
                 continue;
-            // The stand-in can land on the material the slot already had (a slot seeded by an earlier
-            // sync of this same unrecognised tray, most often). Nothing was taken away, so there is
-            // nothing to warn about either.
-            if (this->filament_presets[slot] == presets_before_sync[slot])
-                continue;
+            // Deliberately reached even when the stand-in already equals what the slot had. That
+            // happens when nothing at all could be found for the tray and the pass above simply kept
+            // the slot's own preset (a filament with no profile for the diameter in use, say). Nothing
+            // was taken away there, but nothing was applied either: the tray never made it into the
+            // list, and the slot goes on naming a material the machine is not feeding from it. It is
+            // the same mismatch as the substituted case below and the more dangerous of the two,
+            // because without this nothing on screen would hint that a tray had been skipped.
             this->filament_presets[slot] = presets_before_sync[slot];
             if (std::find(ams_sync_unmatched_slots.begin(), ams_sync_unmatched_slots.end(), slot) ==
                 ams_sync_unmatched_slots.end())
@@ -4316,28 +4321,18 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                     *this, i, normalized_device, nullptr, printer_name_to_diameter, options))
                 continue;
 
-            // Match the existing single-diameter printer-switch behavior: replace an incompatible material
-            // with the target nozzle variant's default filament while preserving the project slot color.
-            if (const Preset *fallback = find_default_filament_for_nozzle_diameter(
-                    *this, normalized_device, printer_name_to_diameter)) {
-                filament_presets[i] = fallback->name;
-                if (i == 0)
-                    filaments.select_preset_by_name(fallback->name, false, true);
-                const auto fallback_options = ::Slic3r::get_filament_nozzle_diameter_options(
-                    *this, i, printer_name_to_diameter, configured);
-                if (::Slic3r::set_filament_nozzle_diameter(
-                        *this, i, normalized_device, nullptr, printer_name_to_diameter, fallback_options)) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": replaced incompatible filament " << i
-                                            << " with " << fallback->name
-                                            << " for mapped nozzle diameter " << normalized_device;
-                    continue;
-                }
-            }
-
-            // Keep the physical state available for validation if no compatible default preset exists.
+            // Reaching here means the machine says this tray feeds a nozzle the slot's filament has
+            // no preset for. Swapping the material out for that nozzle's default -- what this used to
+            // do -- is the silent substitution the rest of this function stopped doing: the material
+            // came from the tray the user asked to sync, and quietly turning it into a generic PLA
+            // hides that the two do not fit. Keep it, and record the diameter the machine actually
+            // reports so the row's nozzle chip and the notification both name the right nozzle; the
+            // slot is flagged below and the user decides.
             selected->values[i] = normalized_device;
+            incompatible_nozzle_diameter_slots.push_back(i);
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
-                                       << " has no default filament for mapped nozzle diameter " << normalized_device;
+                                       << " has no preset for mapped nozzle diameter " << normalized_device
+                                       << ", keeping the filament and flagging the slot";
             continue;
         }
 

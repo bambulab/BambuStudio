@@ -7106,6 +7106,16 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
             }
         }
     }
+    // The loops above assert "this sync filled that slot", but the badge means something narrower:
+    // that the slot's material corresponds to a tray the machine is carrying right now. Those two
+    // part ways -- a tray whose preset could not be matched hands the slot its old material back, a
+    // slot whose diameter had to be adjusted no longer matches the tray it came from -- and it is
+    // PlaterPresetComboBox::update() that decides the narrower question. It has already answered it
+    // for these slots (the update() loop near the top of this function) and will answer it again on
+    // the next refresh no matter what is set here, so settle on that answer before returning.
+    // Otherwise the sync leaves a badge on slots update() is about to clear, and the user watches it
+    // appear and blink out a frame later.
+    udpate_combos_filament_badge();
     Layout();
 
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0]);
