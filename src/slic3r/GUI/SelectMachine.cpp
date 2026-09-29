@@ -925,6 +925,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     auto* action_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_button_add_to_queue = new Button(m_panel_prepare, _L("Add to queue"));
+    m_button_add_to_queue->SetCanFocus(false);
     m_button_add_to_queue->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE2);
     m_button_add_to_queue->SetCornerRadius(FromDIP(4));
     m_button_add_to_queue->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_add_to_queue_btn, this);
