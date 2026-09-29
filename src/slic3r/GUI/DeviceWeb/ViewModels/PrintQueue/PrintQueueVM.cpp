@@ -183,6 +183,16 @@ nlohmann::json PrintQueueVM::HandlePlate(const std::string& action, const nlohma
         });
         return MakeResp("plate", action, 0);
     }
+    if (action == "extract") {
+        // prev_project_id == 0 means "put it at the top of the queue".
+        const int64_t prev_project_id = ReadId(payload, "prev_project_id");
+        const std::string title = ReadString(payload, "title");
+        const std::string cover = ReadString(payload, "cover");
+        RunAsync([plate_id, title, cover, prev_project_id](std::string& body) {
+            return PrintQueueManager::Get().extract_plate(plate_id, title, cover, prev_project_id, body);
+        });
+        return MakeResp("plate", action, 0);
+    }
 
     return MakeResp("plate", action, BAMBU_NETWORK_ERR_INVALID_HANDLE, "Unsupported plate command.");
 }

@@ -102,6 +102,11 @@
   padding-bottom: 8px;
 }
 
+/* Anchors the between-projects drop indicator. */
+.queue-project {
+  position: relative;
+}
+
 .queue-project__header,
 .queue-plate-row {
   position: relative;
@@ -132,12 +137,12 @@
 }
 
 .queue-plate-row.is-draggable,
-.queue-project__header--single.is-draggable {
+.queue-project__header.is-draggable {
   cursor: grab;
 }
 
 .queue-plate-row.is-dragging,
-.queue-project__header--single.is-dragging {
+.queue-project__header.is-dragging {
   cursor: grabbing;
   background: var(--queue-row-dragging);
 }
@@ -388,14 +393,21 @@
   cursor: default;
 }
 
+/* Any plate that is no longer waiting its turn is dimmed. The row itself is
+   deliberately not listed: dimming it would take the actions down with it, and
+   those must keep signalling what is clickable through their own states. */
 .queue-plate-row--printing > .queue-index-badge,
 .queue-plate-row--printing > .queue-row-main,
 .queue-plate-row--completed > .queue-index-badge,
 .queue-plate-row--completed > .queue-row-main,
+.queue-plate-row--failed > .queue-index-badge,
+.queue-plate-row--failed > .queue-row-main,
 .queue-project__header--single[data-status="printing"] > .queue-index-badge,
 .queue-project__header--single[data-status="printing"] > .queue-row-main,
 .queue-project__header--single[data-status="completed"] > .queue-index-badge,
-.queue-project__header--single[data-status="completed"] > .queue-row-main {
+.queue-project__header--single[data-status="completed"] > .queue-row-main,
+.queue-project__header--single[data-status="failed"] > .queue-index-badge,
+.queue-project__header--single[data-status="failed"] > .queue-row-main {
   opacity: 0.35;
 }
 
@@ -448,6 +460,20 @@
 
 .queue-drop-indicator--after {
   bottom: -1px;
+}
+
+/* Reordering whole projects spans the full row, so the line is not indented to
+   the plate column the way an in-project drop is. */
+.queue-drop-indicator--project {
+  left: 16px;
+}
+
+/* A plate joining a collapsed or single-plate project has no slot to point at,
+   so the project itself is outlined as the target. */
+.queue-project.is-drop-into {
+  outline: 2px solid var(--queue-brand);
+  outline-offset: -2px;
+  border-radius: 4px;
 }
 
 .print-queue-state {

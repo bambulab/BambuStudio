@@ -16,10 +16,6 @@ import { setPrintQueueService, usePrintQueueStore } from './usePrintQueueStore';
 
 const MODULE = 'print_queue';
 
-// Ordering on the wire is expressed as "put me after this sibling", where 0
-// means "move to the top" (see PUT .../sort in the queue API).
-const SORT_TO_TOP = '0';
-
 interface BridgeResponseBody {
   error_code: number;
   message: string;
@@ -97,23 +93,6 @@ export function toSnapshot(payload: unknown, version: number): PrintQueueSnapsho
   };
 }
 
-// Translate a UI drop index into the "previous sibling" the sort API expects.
-// The dragged plate is removed from the list first so the index refers to the
-// gap the user is actually aiming at.
-function resolvePrevPlateId(
-  snapshot: PrintQueueSnapshot,
-  plateId: string,
-  targetProjectId: string,
-  targetIndex: number,
-): string {
-  const target = snapshot.projects.find((project) => project.id === targetProjectId);
-  if (!target) return SORT_TO_TOP;
-  const remaining = target.plates.filter((plate) => plate.id !== plateId);
-  const index = Math.max(0, Math.min(targetIndex, remaining.length));
-  if (index === 0) return SORT_TO_TOP;
-  return remaining[index - 1]?.id ?? SORT_TO_TOP;
-}
-
 export function usePrintQueueBridge(): void {
   const request = useDeviceBridge();
   const applySnapshot = usePrintQueueStore((state) => state.applySnapshot);
@@ -146,24 +125,20 @@ export function usePrintQueueBridge(): void {
       }),
       deleteProject: (projectId) => send('project', 'delete', { project_id: projectId }),
       deletePlate: (_projectId, plateId) => send('plate', 'delete', { plate_id: plateId }),
-      pinProject: (projectId) =>
-        send('project', 'sort', { project_id: projectId, prev_project_id: SORT_TO_TOP }),
-      pinPlate: (projectId, plateId) =>
-        send('plate', 'sort', {
-          plate_id: plateId,
-          project_id: projectId,
-          prev_plate_id: SORT_TO_TOP,
-        }),
-      movePlate: (plateId, _sourceProjectId, targetProjectId, targetIndex) =>
+      moveProject: (projectId, prevProjectId) =>
+        send('project', 'sort', { project_id: projectId, prev_project_id: prevProjectId }),
+      movePlate: (plateId, targetProjectId, prevPlateId) =>
         send('plate', 'sort', {
           plate_id: plateId,
           project_id: targetProjectId,
-          prev_plate_id: resolvePrevPlateId(
-            usePrintQueueStore.getState().snapshot,
-            plateId,
-            targetProjectId,
-            targetIndex,
-          ),
+          prev_plate_id: prevPlateId,
+        }),
+      extractPlate: (plateId, title, cover, prevProjectId) =>
+        send('plate', 'extract', {
+          plate_id: plateId,
+          title,
+          cover,
+          prev_project_id: prevProjectId,
         }),
     };
   }, [request]);

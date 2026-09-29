@@ -41,10 +41,19 @@ export type DeleteTarget =
   | { kind: 'project'; projectId: string; label: string }
   | { kind: 'plate'; projectId: string; plateId: string; label: string };
 
-export interface PlateDropTarget {
-  projectId: string;
-  index: number;
-}
+// What the pointer picked up. Dragging a whole project reorders the queue,
+// dragging a plate out of a multi-plate project moves that plate; a
+// single-plate project is both, so it carries the plate id as well.
+export type QueueDragSource =
+  | { kind: 'project'; projectId: string; single: boolean; plateId: string | null }
+  | { kind: 'plate'; projectId: string; plateId: string };
+
+// Where it would land. `index` is a slot in the rendered list, which still
+// counts the dragged row; queueOrder.ts compensates for that when it builds
+// the wire params.
+export type QueueDropTarget =
+  | { kind: 'project'; index: number }
+  | { kind: 'plate'; projectId: string; index: number };
 
 // Every call resolves once the host has accepted the command, not once the
 // cloud round-trip is done; the UI redraws from a pushed snapshot report.
@@ -53,13 +62,14 @@ export interface PrintQueueService {
   printPlate(plate: QueuePlate): Promise<void>;
   deleteProject(projectId: string): Promise<void>;
   deletePlate(projectId: string, plateId: string): Promise<void>;
-  pinProject(projectId: string): Promise<void>;
-  pinPlate(projectId: string, plateId: string): Promise<void>;
-  movePlate(
+  // Ordering is expressed as "put me after this sibling"; see PREV_SIBLING_TOP.
+  moveProject(projectId: string, prevProjectId: string): Promise<void>;
+  movePlate(plateId: string, targetProjectId: string, prevPlateId: string): Promise<void>;
+  extractPlate(
     plateId: string,
-    sourceProjectId: string,
-    targetProjectId: string,
-    targetIndex: number,
+    title: string,
+    cover: string,
+    prevProjectId: string,
   ): Promise<void>;
 }
 

@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import type {
   DeleteTarget,
-  PlateDropTarget,
   PrintQueueService,
   PrintQueueSnapshot,
+  QueueDragSource,
+  QueueDropTarget,
   QueuePlate,
   QueueProject,
 } from './types';
+import { PREV_SIBLING_TOP, resolveMoveCommand } from './queueOrder';
 
 const EMPTY_SNAPSHOT: PrintQueueSnapshot = { version: 0, projects: [] };
 
@@ -47,9 +49,8 @@ interface PrintQueueState {
   error: string | null;
   expandedProjects: Record<string, boolean>;
   deleteTarget: DeleteTarget | null;
-  draggingPlateId: string | null;
-  dragSourceProjectId: string | null;
-  dropTarget: PlateDropTarget | null;
+  dragSource: QueueDragSource | null;
+  dropTarget: QueueDropTarget | null;
   applySnapshot: (snapshot: PrintQueueSnapshot) => void;
   initialize: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -60,8 +61,8 @@ interface PrintQueueState {
   confirmDelete: () => Promise<void>;
   pinProject: (projectId: string) => Promise<void>;
   pinPlate: (projectId: string, plateId: string) => Promise<void>;
-  beginDrag: (projectId: string, plateId: string) => void;
-  setDropTarget: (target: PlateDropTarget | null) => void;
+  beginDrag: (source: QueueDragSource) => void;
+  setDropTarget: (target: QueueDropTarget | null) => void;
   cancelDrag: () => void;
   commitDrag: () => Promise<void>;
   clearError: () => void;
@@ -91,8 +92,7 @@ export const usePrintQueueStore = create<PrintQueueState>((set, get) => ({
   error: null,
   expandedProjects: {},
   deleteTarget: null,
-  draggingPlateId: null,
-  dragSourceProjectId: null,
+  dragSource: null,
   dropTarget: null,
 
   applySnapshot: (snapshot) => {
@@ -104,6 +104,11 @@ export const usePrintQueueStore = create<PrintQueueState>((set, get) => ({
       refreshing: false,
       mutationPending: false,
       expandedProjects: mergeExpandedState(snapshot, get().expandedProjects),
+      // A pushed snapshot reorders the rows under the pointer, so the slot the
+      // user was aiming at stops meaning anything: drop the drag instead of
+      // committing it against a list that has already changed.
+      dragSource: null,
+      dropTarget: null,
     });
   },
 
@@ -158,43 +163,49 @@ export const usePrintQueueStore = create<PrintQueueState>((set, get) => ({
   },
 
   pinProject: async (projectId) => {
-    await runMutation(set, get, (service) => service.pinProject(projectId));
+    await runMutation(set, get, (service) => service.moveProject(projectId, PREV_SIBLING_TOP));
   },
 
   pinPlate: async (projectId, plateId) => {
-    await runMutation(set, get, (service) => service.pinPlate(projectId, plateId));
+    await runMutation(set, get, (service) => service.movePlate(plateId, projectId, PREV_SIBLING_TOP));
   },
 
-  beginDrag: (projectId, plateId) => {
+  beginDrag: (source) => {
     if (get().mutationPending) return;
-    set({
-      draggingPlateId: plateId,
-      dragSourceProjectId: projectId,
-      dropTarget: null,
-    });
+    set({ dragSource: source, dropTarget: null });
   },
 
   setDropTarget: (dropTarget) => set({ dropTarget }),
 
   cancelDrag: () => {
-    set({ draggingPlateId: null, dragSourceProjectId: null, dropTarget: null });
+    set({ dragSource: null, dropTarget: null });
   },
 
   commitDrag: async () => {
-    const { draggingPlateId, dragSourceProjectId, dropTarget } = get();
-    if (!draggingPlateId || !dragSourceProjectId || !dropTarget) {
-      get().cancelDrag();
-      return;
-    }
-    await runMutation(set, get, (service) =>
-      service.movePlate(
-        draggingPlateId,
-        dragSourceProjectId,
-        dropTarget.projectId,
-        dropTarget.index,
-      ),
-    );
+    const { snapshot, dragSource, dropTarget } = get();
+    const command = dragSource && dropTarget
+      ? resolveMoveCommand(snapshot, dragSource, dropTarget)
+      : null;
+    // Clear the drag highlight before awaiting: the request only resolves once
+    // the host accepted it, and the row must not stay lit until then.
     get().cancelDrag();
+    if (!command) return;
+
+    await runMutation(set, get, (service) => {
+      switch (command.kind) {
+        case 'moveProject':
+          return service.moveProject(command.projectId, command.prevProjectId);
+        case 'movePlate':
+          return service.movePlate(command.plateId, command.targetProjectId, command.prevPlateId);
+        case 'extractPlate':
+          return service.extractPlate(
+            command.plateId,
+            command.title,
+            command.cover,
+            command.prevProjectId,
+          );
+      }
+    });
   },
 
   clearError: () => set({ error: null }),
@@ -257,4 +268,10 @@ export function canPinProject(project: QueueProject): boolean {
 
 export function canDragPlate(plate: QueuePlate): boolean {
   return plate.status === 'pending';
+}
+
+// Reordering a project moves every plate it holds, so it follows the same rule
+// as Pin to top: nothing in it may have started yet.
+export function canDragProject(project: QueueProject): boolean {
+  return canPinProject(project);
 }

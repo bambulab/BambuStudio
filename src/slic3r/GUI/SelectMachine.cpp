@@ -1256,6 +1256,13 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
         Layout();
         Fit();
     }
+    // Nothing else ever repaints this button. Enable_Send_Button() reassigns the
+    // send button's colors on every status change, and SetBackgroundColor()
+    // refreshes it as a side effect; this one is only ever Enable()d, so when the
+    // prepare page is swapped back in it can still show the hover colors it was
+    // painted with at the moment it was swapped out from under the cursor.
+    if (m_button_add_to_queue)
+        m_button_add_to_queue->Refresh();
 
     if (m_print_page_mode != PrintPageModePrepare) {
         m_print_page_mode = PrintPageModePrepare;
@@ -3974,10 +3981,26 @@ bool SelectMachineDialog::set_queue_print_context(std::shared_ptr<QueuePrintCont
         return false;
     device_manager->set_selected_machine(context->device_id);
     m_queue_print_context = std::move(context);
-    m_print_type = PrintFromType::FROM_PRINT_QUEUE;
+    set_print_type(PrintFromType::FROM_PRINT_QUEUE);
     m_print_plate_total = 1;
     prepare(0);
     return true;
+}
+
+void SelectMachineDialog::set_print_type(PrintFromType type)
+{
+    m_print_type = type;
+    apply_print_type_wording();
+}
+
+// One dialog instance serves every entry point, so the queue wording has to be
+// applied and reverted on each mode switch rather than set up once.
+void SelectMachineDialog::apply_print_type_wording()
+{
+    const bool from_queue = m_print_type == PrintFromType::FROM_PRINT_QUEUE;
+    SetTitle(from_queue ? _L("Print immediately") : _L("Send print job"));
+    if (m_button_ensure)
+        m_button_ensure->SetLabel(from_queue ? _L("Print") : _L("Send"));
 }
 
 void  SelectMachineDialog::reset_timeout()
@@ -6111,6 +6134,7 @@ bool SelectMachineDialog::Show(bool show)
             m_button_add_to_queue->Show(m_print_type == PrintFromType::FROM_NORMAL);
             // Always light up when the dialog opens; clicks are masked for 1s and while status is undetermined
             m_button_add_to_queue->Enable();
+            m_button_add_to_queue->Refresh();
             m_queue_btn_clickable_after = wxGetUTCTimeMillis() + 1000;
         }
 

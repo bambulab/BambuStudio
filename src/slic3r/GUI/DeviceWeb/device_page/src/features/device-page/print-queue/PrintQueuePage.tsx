@@ -13,12 +13,19 @@ import {
   PinIcon,
   PrintIcon,
 } from './icons';
-import type { DeleteTarget, PlateDropTarget, QueuePlate, QueueProject } from './types';
+import type {
+  DeleteTarget,
+  QueueDragSource,
+  QueueDropTarget,
+  QueuePlate,
+  QueueProject,
+} from './types';
 import { canPrintQueuePlate, formatCostTime, formatWeight, isSinglePlateProject, projectCover } from './types';
 import {
   canDeletePlate,
   canDeleteProject,
   canDragPlate,
+  canDragProject,
   canPinPlate,
   canPinProject,
   usePrintQueueStore,
@@ -144,17 +151,18 @@ const DRAG_START_THRESHOLD_PX = 4;
 const DRAG_AUTO_SCROLL_EDGE_PX = 48;
 const DRAG_AUTO_SCROLL_MAX_STEP_PX = 18;
 const DRAG_EXPAND_DELAY_MS = 450;
+// Band along the top and bottom of a project where the drop lands between
+// projects instead of inside one.
+const DROP_PROJECT_EDGE_PX = 10;
 
 type BeginPointerDrag = (
   event: ReactPointerEvent<HTMLElement>,
-  projectId: string,
-  plateId: string,
+  source: QueueDragSource,
 ) => void;
 
 interface ActiveDrag {
   pointerId: number;
-  projectId: string;
-  plateId: string;
+  source: QueueDragSource;
   originY: number;
   pointerY: number;
   started: boolean;
@@ -162,33 +170,68 @@ interface ActiveDrag {
   hoverSince: number;
 }
 
-// Hit-test the rendered rows instead of relying on per-row dragover events: the
-// pointer may sit still while the list auto-scrolls underneath it, and only a
-// geometry query stays correct in that case.
-function resolveDropTarget(container: HTMLElement, clientY: number): PlateDropTarget | null {
-  const rows = Array.from(container.querySelectorAll<HTMLElement>('[data-queue-row]'));
-  let last: PlateDropTarget | null = null;
+// A whole multi-plate project can only be reordered between projects. A plate,
+// or the single plate a one-plate project consists of, can also land inside
+// another project - but not inside the project it already belongs to.
+function acceptsPlateDrop(source: QueueDragSource, projectId: string): boolean {
+  if (source.kind === 'plate') return true;
+  return source.single && source.projectId !== projectId;
+}
+
+function resolvePlateSlot(
+  section: HTMLElement,
+  clientY: number,
+  projectId: string,
+): QueueDropTarget {
+  const rows = Array.from(section.querySelectorAll<HTMLElement>('[data-queue-row="plate"]'));
 
   for (const row of rows) {
     const rect = row.getBoundingClientRect();
-    const projectId = row.dataset.projectId;
-    if (rect.height === 0 || !projectId) continue;
-
-    if (row.dataset.queueRow === 'project') {
-      // Dropping onto a header appends to that project: when it is collapsed
-      // there is no visible position to aim at.
-      const plateCount = Number(row.dataset.plateCount ?? '0');
-      if (clientY <= rect.bottom) return { projectId, index: plateCount };
-      last = { projectId, index: plateCount };
-      continue;
-    }
-
+    if (rect.height === 0) continue;
     const plateIndex = Number(row.dataset.plateIndex ?? '0');
     if (clientY <= rect.bottom) {
       const insertAfter = clientY >= rect.top + rect.height / 2;
-      return { projectId, index: plateIndex + (insertAfter ? 1 : 0) };
+      return { kind: 'plate', projectId, index: plateIndex + (insertAfter ? 1 : 0) };
     }
-    last = { projectId, index: plateIndex + 1 };
+  }
+
+  // Collapsed and single-plate projects draw no plate rows, so there is no
+  // visible slot to aim at and the plate joins the project at the end.
+  return { kind: 'plate', projectId, index: Number(section.dataset.plateCount ?? '0') };
+}
+
+// Hit-test the rendered rows instead of relying on per-row dragover events: the
+// pointer may sit still while the list auto-scrolls underneath it, and only a
+// geometry query stays correct in that case.
+function resolveDropTarget(
+  container: HTMLElement,
+  clientY: number,
+  source: QueueDragSource,
+): QueueDropTarget | null {
+  const sections = Array.from(container.querySelectorAll<HTMLElement>('[data-queue-section]'));
+  let last: QueueDropTarget | null = null;
+
+  for (const section of sections) {
+    const rect = section.getBoundingClientRect();
+    const projectId = section.dataset.projectId;
+    if (rect.height === 0 || !projectId) continue;
+
+    const projectIndex = Number(section.dataset.projectIndex ?? '0');
+    const before: QueueDropTarget = { kind: 'project', index: projectIndex };
+    const after: QueueDropTarget = { kind: 'project', index: projectIndex + 1 };
+
+    if (clientY > rect.bottom) {
+      last = after;
+      continue;
+    }
+    // Without an inner drop the row splits in half, so every pixel of it aims
+    // at one of the two gaps around it.
+    if (!acceptsPlateDrop(source, projectId)) {
+      return clientY < rect.top + rect.height / 2 ? before : after;
+    }
+    if (clientY < rect.top + DROP_PROJECT_EDGE_PX) return before;
+    if (clientY > rect.bottom - DROP_PROJECT_EDGE_PX) return after;
+    return resolvePlateSlot(section, clientY, projectId);
   }
 
   return last;
@@ -198,7 +241,7 @@ function autoScrollStep(distanceIntoEdge: number): number {
   return Math.min(DRAG_AUTO_SCROLL_MAX_STEP_PX, 2 + distanceIntoEdge / 4);
 }
 
-function usePlateDrag(scrollRef: RefObject<HTMLDivElement | null>): BeginPointerDrag {
+function useQueueDrag(scrollRef: RefObject<HTMLDivElement | null>): BeginPointerDrag {
   const beginDrag = usePrintQueueStore((state) => state.beginDrag);
   const setDropTarget = usePrintQueueStore((state) => state.setDropTarget);
   const cancelDrag = usePrintQueueStore((state) => state.cancelDrag);
@@ -216,30 +259,30 @@ function usePlateDrag(scrollRef: RefObject<HTMLDivElement | null>): BeginPointer
     const drag = dragRef.current;
     if (!container || !drag) return;
 
-    const target = resolveDropTarget(container, clientY);
+    const target = resolveDropTarget(container, clientY, drag.source);
     setDropTarget(target);
 
-    // Hovering a collapsed project long enough opens it, so the plate can be
-    // aimed at a precise slot instead of only being appended.
-    if (!target || target.projectId !== drag.hoverProjectId) {
-      drag.hoverProjectId = target?.projectId ?? null;
+    // Hovering inside a collapsed project long enough opens it, so the plate can
+    // be aimed at a precise slot instead of only joining at the end.
+    const hovered = target?.kind === 'plate' ? target.projectId : null;
+    if (hovered !== drag.hoverProjectId) {
+      drag.hoverProjectId = hovered;
       drag.hoverSince = performance.now();
       return;
     }
-    if (performance.now() - drag.hoverSince >= DRAG_EXPAND_DELAY_MS) {
-      expandProject(target.projectId);
+    if (hovered && performance.now() - drag.hoverSince >= DRAG_EXPAND_DELAY_MS) {
+      expandProject(hovered);
     }
   }, [expandProject, scrollRef, setDropTarget]);
 
-  return useCallback<BeginPointerDrag>((event, projectId, plateId) => {
+  return useCallback<BeginPointerDrag>((event, source) => {
     if (event.button !== 0 || dragRef.current) return;
     const container = scrollRef.current;
     if (!container) return;
 
     dragRef.current = {
       pointerId: event.pointerId,
-      projectId,
-      plateId,
+      source,
       originY: event.clientY,
       pointerY: event.clientY,
       started: false,
@@ -275,7 +318,7 @@ function usePlateDrag(scrollRef: RefObject<HTMLDivElement | null>): BeginPointer
       if (!drag.started) {
         if (Math.abs(moveEvent.clientY - drag.originY) < DRAG_START_THRESHOLD_PX) return;
         drag.started = true;
-        beginDrag(drag.projectId, drag.plateId);
+        beginDrag(drag.source);
       }
       moveEvent.preventDefault();
       applyDropTarget(moveEvent.clientY);
@@ -336,7 +379,7 @@ function PlateRow({
 }: PlateRowProps) {
   const { t } = useTranslation();
   const mutationPending = usePrintQueueStore((state) => state.mutationPending);
-  const draggingPlateId = usePrintQueueStore((state) => state.draggingPlateId);
+  const dragSource = usePrintQueueStore((state) => state.dragSource);
   const dropTarget = usePrintQueueStore((state) => state.dropTarget);
   const requestDelete = usePrintQueueStore((state) => state.requestDelete);
   const pinPlate = usePrintQueueStore((state) => state.pinPlate);
@@ -344,9 +387,12 @@ function PlateRow({
   const printingPlateId = usePrintQueueStore((state) => state.printingPlateId);
 
   const draggable = canDragPlate(plate) && !mutationPending;
-  const isDragging = draggingPlateId === plate.id;
-  const showDropBefore = dropTarget?.projectId === projectId && dropTarget.index === plateIndex;
-  const showDropAfter = dropTarget?.projectId === projectId && dropTarget.index === plateIndex + 1;
+  const isDragging = dragSource?.kind === 'plate' && dragSource.plateId === plate.id;
+  const plateSlot = dropTarget?.kind === 'plate' && dropTarget.projectId === projectId
+    ? dropTarget.index
+    : null;
+  const showDropBefore = plateSlot === plateIndex;
+  const showDropAfter = plateSlot === plateIndex + 1;
 
   return (
     <div
@@ -359,7 +405,7 @@ function PlateRow({
       onPointerDown={(event) => {
         if (!draggable) return;
         if (event.target instanceof Element && event.target.closest('button')) return;
-        beginPointerDrag(event, projectId, plate.id);
+        beginPointerDrag(event, { kind: 'plate', projectId, plateId: plate.id });
       }}
     >
       {showDropBefore && <span className="queue-drop-indicator queue-drop-indicator--before" />}
@@ -371,7 +417,7 @@ function PlateRow({
               plate number stays readable, as in the design. It comes from
               plateIndex rather than being parsed back out of the label. */}
           <span className="queue-row-copy__name queue-plate-name">
-            <span className="queue-plate-name__base">{plate.name}</span>
+            <span className="queue-plate-name__base" title={plate.name}>{plate.name}</span>
             {plate.plateIndex > 0 && (
               <span className="queue-plate-name__suffix">
                 {t('-Plate {{index}}', { index: plate.plateIndex })}
@@ -379,7 +425,7 @@ function PlateRow({
             )}
           </span>
           {plate.profileName && (
-            <span className="queue-row-copy__profile">{plate.profileName}</span>
+            <span className="queue-row-copy__profile" title={plate.profileName}>{plate.profileName}</span>
           )}
           <PlateMeta plate={plate} />
         </div>
@@ -407,43 +453,74 @@ function PlateRow({
   );
 }
 
-function SinglePlateProjectRow({ project, projectIndex, beginPointerDrag }: ProjectGroupProps) {
+// The slot between two projects is drawn by the project that follows it, so only
+// the trailing slot after the last project needs a line of its own.
+function ProjectDropIndicator({
+  projectIndex,
+  projectCount,
+}: {
+  projectIndex: number;
+  projectCount: number;
+}) {
+  const dropTarget = usePrintQueueStore((state) => state.dropTarget);
+  if (dropTarget?.kind !== 'project') return null;
+  if (dropTarget.index === projectIndex) {
+    return <span className="queue-drop-indicator queue-drop-indicator--project queue-drop-indicator--before" />;
+  }
+  if (dropTarget.index === projectIndex + 1 && projectIndex === projectCount - 1) {
+    return <span className="queue-drop-indicator queue-drop-indicator--project queue-drop-indicator--after" />;
+  }
+  return null;
+}
+
+function SinglePlateProjectRow({ project, projectIndex, projectCount, beginPointerDrag }: ProjectRowProps) {
   const plate = project.plates[0];
   const mutationPending = usePrintQueueStore((state) => state.mutationPending);
-  const draggingPlateId = usePrintQueueStore((state) => state.draggingPlateId);
+  const dragSource = usePrintQueueStore((state) => state.dragSource);
   const dropTarget = usePrintQueueStore((state) => state.dropTarget);
   const requestDelete = usePrintQueueStore((state) => state.requestDelete);
   const pinProject = usePrintQueueStore((state) => state.pinProject);
   const printPlate = usePrintQueueStore((state) => state.printPlate);
   const printingPlateId = usePrintQueueStore((state) => state.printingPlateId);
 
-  const draggable = canDragPlate(plate) && !mutationPending;
-  const isDragging = draggingPlateId === plate.id;
-  const showDropBefore = dropTarget?.projectId === project.id && dropTarget.index === 0;
+  const draggable = canDragProject(project) && !mutationPending;
+  const isDragging = dragSource?.kind === 'project' && dragSource.projectId === project.id;
+  // A plate aimed at this row joins the project. There is no plate row to draw a
+  // line against, so the row as a whole marks itself as the target.
+  const isDropInto = dropTarget?.kind === 'plate' && dropTarget.projectId === project.id;
 
   return (
-    <section className="queue-project" data-testid={`queue-project-${project.id}`}>
+    <section
+      className={`queue-project${isDropInto ? ' is-drop-into' : ''}`}
+      data-testid={`queue-project-${project.id}`}
+      data-queue-section=""
+      data-project-id={project.id}
+      data-project-index={projectIndex}
+      data-plate-count={project.plates.length}
+    >
+      <ProjectDropIndicator projectIndex={projectIndex} projectCount={projectCount} />
       <div
         className={`queue-project__header queue-project__header--single${isDragging ? ' is-dragging' : ''}${draggable ? ' is-draggable' : ''}`}
         data-testid={`queue-plate-${plate.id}`}
-        data-queue-row="project"
-        data-project-id={project.id}
-        data-plate-count={project.plates.length}
         data-status={plate.status}
         onPointerDown={(event) => {
           if (!draggable) return;
           if (event.target instanceof Element && event.target.closest('button')) return;
-          beginPointerDrag(event, project.id, plate.id);
+          beginPointerDrag(event, {
+            kind: 'project',
+            projectId: project.id,
+            single: true,
+            plateId: plate.id,
+          });
         }}
       >
-        {showDropBefore && <span className="queue-drop-indicator queue-drop-indicator--before" />}
         <QueueIndexBadge>{`${projectIndex + 1}`}</QueueIndexBadge>
         <div className="queue-row-main queue-row-main--project">
           <QueueThumbnail cover={projectCover(project)} status={plate.status} />
           <div className="queue-row-copy">
-            <span className="queue-row-copy__name">{project.name}</span>
+            <span className="queue-row-copy__name" title={project.name}>{project.name}</span>
             {plate.profileName && (
-              <span className="queue-row-copy__profile">{plate.profileName}</span>
+              <span className="queue-row-copy__profile" title={plate.profileName}>{plate.profileName}</span>
             )}
             <PlateMeta plate={plate} />
           </div>
@@ -471,18 +548,19 @@ function SinglePlateProjectRow({ project, projectIndex, beginPointerDrag }: Proj
   );
 }
 
-interface ProjectGroupProps {
+interface ProjectRowProps {
   project: QueueProject;
   projectIndex: number;
+  projectCount: number;
   beginPointerDrag: BeginPointerDrag;
 }
 
-function ProjectGroup({ project, projectIndex, beginPointerDrag }: ProjectGroupProps) {
+function ProjectGroup({ project, projectIndex, projectCount, beginPointerDrag }: ProjectRowProps) {
   const { t } = useTranslation();
   const expanded = usePrintQueueStore(
     (state) => state.expandedProjects[project.id] ?? true,
   );
-  const draggingPlateId = usePrintQueueStore((state) => state.draggingPlateId);
+  const dragSource = usePrintQueueStore((state) => state.dragSource);
   const mutationPending = usePrintQueueStore((state) => state.mutationPending);
   const dropTarget = usePrintQueueStore((state) => state.dropTarget);
   const toggleProject = usePrintQueueStore((state) => state.toggleProject);
@@ -493,13 +571,34 @@ function ProjectGroup({ project, projectIndex, beginPointerDrag }: ProjectGroupP
     (plate) => plate.status === 'pending' || plate.status === 'printing' || plate.status === 'failed',
   ).length;
 
+  const draggable = canDragProject(project) && !mutationPending;
+  const isDragging = dragSource?.kind === 'project' && dragSource.projectId === project.id;
+  // While collapsed the project has no plate rows to draw a line against, so it
+  // marks itself as the target of an incoming plate.
+  const isDropInto = !expanded && dropTarget?.kind === 'plate' && dropTarget.projectId === project.id;
+
   return (
-    <section className="queue-project" data-testid={`queue-project-${project.id}`}>
+    <section
+      className={`queue-project${isDropInto ? ' is-drop-into' : ''}`}
+      data-testid={`queue-project-${project.id}`}
+      data-queue-section=""
+      data-project-id={project.id}
+      data-project-index={projectIndex}
+      data-plate-count={project.plates.length}
+    >
+      <ProjectDropIndicator projectIndex={projectIndex} projectCount={projectCount} />
       <div
-        className="queue-project__header"
-        data-queue-row="project"
-        data-project-id={project.id}
-        data-plate-count={project.plates.length}
+        className={`queue-project__header${isDragging ? ' is-dragging' : ''}${draggable ? ' is-draggable' : ''}`}
+        onPointerDown={(event) => {
+          if (!draggable) return;
+          if (event.target instanceof Element && event.target.closest('button')) return;
+          beginPointerDrag(event, {
+            kind: 'project',
+            projectId: project.id,
+            single: false,
+            plateId: null,
+          });
+        }}
       >
         <QueueIndexBadge>{`${projectIndex + 1}`}</QueueIndexBadge>
         <button
@@ -514,7 +613,7 @@ function ProjectGroup({ project, projectIndex, beginPointerDrag }: ProjectGroupP
         <div className="queue-row-main queue-row-main--project">
           <QueueThumbnail cover={projectCover(project)} />
           <div className="queue-row-copy queue-row-copy--project">
-            <span className="queue-row-copy__name">{project.name}</span>
+            <span className="queue-row-copy__name" title={project.name}>{project.name}</span>
             <span className="queue-row-copy__summary">
               {/* Two segments split by a slash, mirroring 剩N盘/共M盘 in the
                   design rather than folding both counts into one clause. */}
@@ -552,10 +651,11 @@ function ProjectGroup({ project, projectIndex, beginPointerDrag }: ProjectGroupP
               beginPointerDrag={beginPointerDrag}
             />
           ))}
-          {draggingPlateId && (
+          {dragSource && (
             <div
               className={`queue-project__drop-end${
-                dropTarget?.projectId === project.id &&
+                dropTarget?.kind === 'plate' &&
+                dropTarget.projectId === project.id &&
                 dropTarget.index === project.plates.length
                   ? ' is-active'
                   : ''
@@ -670,6 +770,20 @@ function DeleteConfirmDialog({
   );
 }
 
+// Exposed on the page root so the WebView E2E suite can assert on drag state
+// without reaching into React internals.
+function describeDragSource(source: QueueDragSource | null): string {
+  if (!source) return '';
+  return source.kind === 'plate' ? `plate:${source.plateId}` : `project:${source.projectId}`;
+}
+
+function describeDropTarget(target: QueueDropTarget | null): string {
+  if (!target) return '';
+  return target.kind === 'project'
+    ? `project:${target.index}`
+    : `plate:${target.projectId}:${target.index}`;
+}
+
 export function PrintQueuePage() {
   const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -681,13 +795,13 @@ export function PrintQueuePage() {
   const printingPlateId = usePrintQueueStore((state) => state.printingPlateId);
   const error = usePrintQueueStore((state) => state.error);
   const deleteTarget = usePrintQueueStore((state) => state.deleteTarget);
-  const draggingPlateId = usePrintQueueStore((state) => state.draggingPlateId);
+  const dragSource = usePrintQueueStore((state) => state.dragSource);
   const dropTarget = usePrintQueueStore((state) => state.dropTarget);
   const initialize = usePrintQueueStore((state) => state.initialize);
   const cancelDelete = usePrintQueueStore((state) => state.cancelDelete);
   const confirmDelete = usePrintQueueStore((state) => state.confirmDelete);
   const clearError = usePrintQueueStore((state) => state.clearError);
-  const beginPointerDrag = usePlateDrag(scrollRef);
+  const beginPointerDrag = useQueueDrag(scrollRef);
 
   usePrintQueueBridge();
 
@@ -699,8 +813,8 @@ export function PrintQueuePage() {
     <main
       className="print-queue-preview"
       data-testid="print-queue-page"
-      data-dragging-plate={draggingPlateId ?? ''}
-      data-drop-target={dropTarget ? `${dropTarget.projectId}:${dropTarget.index}` : ''}
+      data-drag-source={describeDragSource(dragSource)}
+      data-drop-target={describeDropTarget(dropTarget)}
       onContextMenu={(event) => event.preventDefault()}
     >
       <section className="print-queue-panel" aria-label={t('Task list')}>
@@ -723,6 +837,7 @@ export function PrintQueuePage() {
                       key={project.id}
                       project={project}
                       projectIndex={projectIndex}
+                      projectCount={snapshot.projects.length}
                       beginPointerDrag={beginPointerDrag}
                     />
                   );

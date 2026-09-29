@@ -613,7 +613,7 @@ public:
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     bool set_queue_print_context(std::shared_ptr<QueuePrintContext> context);
-    void set_print_type(PrintFromType type) {m_print_type = type;};
+    void set_print_type(PrintFromType type);
     bool Show(bool show);
     bool do_ams_mapping(MachineObject *obj_,bool use_ams);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info) const;
@@ -633,6 +633,7 @@ public:
 
 private:
     void EnableEditing(bool enable);
+    void apply_print_type_wording();
 
     // printing
     bool is_at_suggested_pos(MachineObject* obj_, int fila_logic_id) const;
