@@ -74,6 +74,18 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/AMSControl.hpp
     GUI/Widgets/AMSItem.cpp
     GUI/Widgets/AMSItem.hpp
+    GUI/Widgets/FilamentView.cpp
+    GUI/Widgets/FilamentView.hpp
+    GUI/Widgets/AmsSlotPopup.cpp
+    GUI/Widgets/AmsSlotPopup.hpp
+    GUI/Widgets/MappingRow.cpp
+    GUI/Widgets/MappingRow.hpp
+    GUI/Widgets/PillView.cpp
+    GUI/Widgets/PillView.hpp
+    GUI/SyncAmsDialog.cpp
+    GUI/SyncAmsDialog.hpp
+    GUI/ModelPreview.cpp
+    GUI/ModelPreview.hpp
     GUI/Widgets/FilamentLoad.cpp
     GUI/Widgets/FilamentLoad.hpp
     GUI/Widgets/FanControl.cpp
@@ -430,8 +442,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/BaseTransparentDPIFrame.hpp
     GUI/SyncAmsInfoDialog.cpp
     GUI/SyncAmsInfoDialog.hpp
-    GUI/MultiDiameterSyncAmsDialog.cpp
-    GUI/MultiDiameterSyncAmsDialog.hpp
     GUI/SurfaceDrag.cpp
     GUI/SurfaceDrag.hpp
     GUI/TextLines.cpp

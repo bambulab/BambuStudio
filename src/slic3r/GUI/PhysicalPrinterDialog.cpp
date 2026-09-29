@@ -6,6 +6,7 @@
 #include <string>
 #include <boost/algorithm/string.hpp>
 
+#include <wx/colour.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -13,6 +14,7 @@
 #include <wx/statbox.h>
 #include <wx/wupdlock.h>
 
+#include "Widgets/StateColor.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -59,9 +61,9 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
 
     wxStaticText *label_top = new wxStaticText(this, wxID_ANY, from_u8((boost::format(_utf8(L("Save %s as"))) % into_u8(tab->title())).str()));
     label_top->SetFont(::Label::Body_13);
-    label_top->SetForegroundColour(wxColour(38,46,48));
+    label_top->SetForegroundColour(ThemeColor::TextPrimary);
 
-    m_input_area = new RoundedRectangle(this, wxColour(172, 172, 172), wxDefaultPosition, wxSize(-1, -1), 3, 1);
+    m_input_area = new RoundedRectangle(this, wxColor{}, ThemeColor::Grey450, 4);
     m_input_area->SetMinSize(wxSize(FromDIP(360), FromDIP(32)));
 
     wxBoxSizer *input_sizer_h = new wxBoxSizer(wxHORIZONTAL);

@@ -143,7 +143,7 @@
 #include "ModelMall.hpp"
 #include "ConfigWizard.hpp"
 #include "SyncAmsInfoDialog.hpp"
-#include "MultiDiameterSyncAmsDialog.hpp"
+#include "SyncAmsDialog.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
 #include "../Utils/UndoRedo.hpp"
@@ -460,6 +460,20 @@ static DynamicPrintConfig build_tray_config(DevAmsTray const &tray, std::string 
 
 namespace {
 
+/**
+ * \brief Whether a machine has a filament selector installed and ready.
+ *
+ * \param obj  the machine; null uses the selected machine
+ */
+bool machine_has_selector(MachineObject *obj)
+{
+    if (!obj) {
+        auto *dm = wxGetApp().getDeviceManager();
+        obj      = dm ? dm->get_selected_machine() : nullptr;
+    }
+    return obj && obj->GetFilaSwitch()->IsInstalled() && obj->GetFilaSwitch()->IsReady();
+}
+
 // filaments should be in nozzle index order
 class N1xTrayCollector
 {
@@ -497,8 +511,7 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
     for (const auto &[_, n] : nozzle_system->GetRackNozzles()) nozzles_by_id[nozzle_id(n)] = &n;
     for (const auto &[_, n] : nozzle_system->GetExtNozzles()) nozzles_by_id.emplace(nozzle_id(n), &n);
 
-    N1xTrayCollector                        trays;
-    const static std::array<std::string, 4> bind_ams_name{"A", "B", "C", "D"}; // at most 4 ams can be connected at present
+    N1xTrayCollector trays;
 
     const auto &ams_list = fila_system->GetAmsList();
     for (const auto &[idx, nozzle] : nozzles_by_id) {
@@ -521,8 +534,7 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
 
             DevAmsTray *tray = ams_it->second->GetTray(std::to_string(slot_id));
             if (!tray) continue;
-            std::string display = std::to_string(idx + 1);
-            trays.Add(ams_id, slot_id, build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
+            trays.Add(ams_id, slot_id, build_tray_config(*tray, slot_name(obj, ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
         }
 
         // Preload AMS trays — the second filament available on this nozzle.
@@ -541,21 +553,13 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
             if (ams_it == ams_list.end()) continue; // rack-matching internal AMS only, no Ext fallback
             DevAmsTray *tray = ams_it->second->GetTray(std::to_string(slot_id));
             if (!tray) continue;
-            std::string display = std::to_string(idx + 1);
-            trays.Add(ams_id, slot_id, build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
+            trays.Add(ams_id, slot_id, build_tray_config(*tray, slot_name(obj, ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
         }
-
-        // ams name is A, B, C, D in order
-        size_t ams_4_idx{0}; // for 4 slots ams
-        size_t ams_1_idx{0}; // for 1 slots ams
 
         // External AMS units bound to this nozzle (whole AMS at a time).
         for (int ams_id : nozzle->GetBindAms()) {
             auto ams_it = ams_list.find(std::to_string(ams_id));
             if (ams_it == ams_list.end()) continue;
-            const bool ams_is_single_slot = (ams_it->second->GetTrays().size() == 1);
-
-            size_t *ams_idx = ams_is_single_slot ? &ams_1_idx : &ams_4_idx;
 
             for (auto &[slot_str, tray] : ams_it->second->GetTrays()) {
                 if (!tray) continue;
@@ -565,15 +569,8 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
                 } catch (...) {
                     continue;
                 }
-                std::string name;
-                if (ams_is_single_slot) {
-                    name = fmt::format("{}-HT-{}", idx + 1, bind_ams_name[*ams_idx]);
-                } else {
-                    name = fmt::format("{}-{}{}", idx + 1, bind_ams_name[*ams_idx], slot_id + 1);
-                }
-                trays.Add(ams_id, slot_id, build_tray_config(*tray, name, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
+                trays.Add(ams_id, slot_id, build_tray_config(*tray, slot_name(obj, ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id), nozzle_dia, nozzle_volume_type));
             }
-            ++(*ams_idx);
         }
     }
 
@@ -6854,6 +6851,45 @@ static void update_ams_sync_unmatched_notification()
     notified_text = text_u8;
 }
 
+SyncResult Sidebar::run_legacy_sync_dialog(MachineObject *obj, bool is_from_big_sync_btn)
+{
+    // The legacy dialog draws a static plate bitmap and recolours it per mapping, so refresh the plate
+    // thumbnails first. The new dialog renders live GL instead and needs no pre-render (see below).
+    wxGetApp().plater()->update_all_plate_thumbnails(true);
+
+    SyncAmsInfoDialog::SyncInfo info;
+    info.use_dialog_pos       = false;
+    info.cancel_text_to_later = is_from_big_sync_btn;
+    SyncAmsInfoDialog dlg(this, info);
+
+    int dlg_res = (int) wxID_CANCEL;
+    if (dlg.is_need_show()) {
+        dlg.deal_only_exist_ext_spool(obj);
+        if (dlg.is_dirty_filament()) {
+            wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", false, true);
+            wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+            dynamic_filament_list.update();
+        }
+        dlg.set_check_dirty_fialment(false);
+        dlg_res = dlg.ShowModal();
+    } else {
+        dlg_res = (int) wxID_YES; // nothing to confirm: apply the current mapping as-is
+    }
+
+    SyncResult out = dlg.get_result();
+    out.dlg_res    = dlg_res;
+    return out;
+}
+
+SyncResult Sidebar::run_multi_nozzle_sync_dialog()
+{
+    SyncAmsDialog dlg(this);
+    const int     dlg_res = dlg.ShowModal();
+    SyncResult    out     = dlg.get_result();
+    out.dlg_res           = (dlg_res == wxID_CANCEL) ? (int) wxID_CANCEL : (int) wxID_YES;
+    return out;
+}
+
 void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
 {
     wxBusyCursor cursor;
@@ -6895,48 +6931,26 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     }
     std::string ams_filament_ids = wxGetApp().app_config->get("ams_filament_ids", p->ams_list_device);
     std::vector<std::string> list2;
-    if (!ams_filament_ids.empty()) {
-        boost::algorithm::split(list2, ams_filament_ids, boost::algorithm::is_any_of(","));
-    }
-    wxGetApp().plater()->update_all_plate_thumbnails(true);//preview thumbnail for sync_dlg
-    SyncAmsInfoDialog::SyncInfo temp_info;
-    temp_info.use_dialog_pos = false;
-    temp_info.cancel_text_to_later = is_from_big_sync_btn;
-    // Multi-diameter-capable projects/printers open the diameter-aware fork; everything else keeps
-    // the legacy dialog. Recreate the cached instance when the required variant changes.
-    const auto &printer_cfg  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    bool        use_multi    = is_single_ext_multi_nozzle(printer_cfg) || multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->full_config());
-    const bool  dlg_is_multi = dynamic_cast<MultiDiameterSyncAmsDialog *>(m_sync_dlg) != nullptr;
-    if (m_sync_dlg && dlg_is_multi != use_multi) {
-        m_sync_dlg->Destroy();
-        m_sync_dlg = nullptr;
-    }
-    if (m_sync_dlg == nullptr) {
-        m_sync_dlg = use_multi ? new MultiDiameterSyncAmsDialog(this, temp_info) : new SyncAmsInfoDialog(this, temp_info);
-    } else {
-        m_sync_dlg->set_info(temp_info);
-    }
-    int dlg_res{(int) wxID_CANCEL};
-    if (m_sync_dlg->is_need_show()) {
-        m_sync_dlg->deal_only_exist_ext_spool(obj);
-        if (m_sync_dlg->is_dirty_filament()) {
-            wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", false, true);
-            wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-            dynamic_filament_list.update();
-        }
-        m_sync_dlg->set_check_dirty_fialment(false);
-        dlg_res = m_sync_dlg->ShowModal();
-    } else {
-        dlg_res =(int) wxID_YES;
-    }
-    if (dlg_res == wxID_CANCEL)
+    if (!ams_filament_ids.empty()) { boost::algorithm::split(list2, ams_filament_ids, boost::algorithm::is_any_of(",")); }
+    // Single-extruder multi-nozzle printers and multi-diameter mode open the new native dialog; everything
+    // else keeps the legacy one. Each helper owns its dialog locally (the legacy one pre-renders plate
+    // thumbnails; the new one renders live GL) and returns the result with dlg_res embedded.
+    const auto &printer_cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    const bool  use_multi   = is_single_ext_multi_nozzle(printer_cfg) || multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->full_config());
+    // Both sync dialogs are interactive, so release the busy cursor this function set at the top for the
+    // modal dialog's lifetime — otherwise the wait cursor spins over it — then restore it for the heavy
+    // apply phase below. The top-level wxBusyCursor still balances the count on return.
+    wxEndBusyCursor();
+    SyncResult sync_result = use_multi ? run_multi_nozzle_sync_dialog() : run_legacy_sync_dialog(obj, is_from_big_sync_btn);
+    wxBeginBusyCursor();
+    if (sync_result.dlg_res == wxID_CANCEL)
         return;
-    auto sync_result = m_sync_dlg->get_result();
     if (!sync_result.is_same_printer) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error: sync_result.is_same_printer value is false";
         return;
     }
-    auto skip_ext = m_sync_dlg->has_selector(nullptr);
+    const int  dlg_res  = sync_result.dlg_res;
+    const bool skip_ext = machine_has_selector(obj);
     if (skip_ext) {
         list2.clear();
     } else {

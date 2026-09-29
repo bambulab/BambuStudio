@@ -1,0 +1,244 @@
+#include <GL/glew.h> // must precede any gl.h
+
+#include <array>
+#include <set>
+#include <utility>
+#include <vector>
+
+#include <wx/dcclient.h>
+#include <wx/glcanvas.h>
+#include <wx/sizer.h>
+
+// The heavy engine headers have a fragile include order (GLCanvas3D.hpp uses GLVolumeCollection, and
+// Model.hpp pulls SLA/Hollowing.hpp which uses indexed_triangle_set — both by value). Include them in
+// this proven order first, then our own light header last, so the chain parses against a clean prologue.
+// clang-format off
+#include "GUI_App.hpp"
+#include "Plater.hpp"
+#include "PartPlate.hpp"
+#include "GLCanvas3D.hpp"
+#include "OpenGLManager.hpp"
+#include "Camera.hpp"
+#include "GLShader.hpp"
+#include "3DScene.hpp"
+#include "libslic3r/Model.hpp"
+// clang-format on
+
+#include "Widgets/StateColor.hpp"
+#include "ModelPreview.hpp"
+
+namespace Slic3r::GUI {
+
+namespace {
+
+// A scene over the plate's live GLVolumes, coloured per extruder — reuses the plate's uploaded VBOs.
+class PlateScene : public PreviewScene
+{
+public:
+    PlateScene(const GLVolumeCollection &volumes, ModelObjectPtrs &objects,
+               std::vector<std::array<float, 4>> extruder_colors, std::set<std::pair<int, int>> filter)
+        : m_volumes(volumes), m_objects(objects), m_extruder_colors(std::move(extruder_colors)), m_filter(std::move(filter))
+    {}
+
+    BoundingBoxf3 bounds() const override
+    {
+        BoundingBoxf3 box;
+        for (const GLVolume *v : m_volumes.volumes)
+            if (included(v)) box.merge(v->transformed_bounding_box());
+        return box;
+    }
+
+    void render(const Camera &camera) override
+    {
+        // gouraud_light, not thumbnail: same lighting/uniforms without the thumbnail shader's discard of
+        // fragments below z=0 (which flickers along an object's z=0 base as a dashed edge).
+        const std::shared_ptr<GLShaderProgram> &shader = wxGetApp().get_shader("gouraud_light");
+        const auto                              ogl    = wxGetApp().get_opengl_manager();
+        if (!shader || !ogl) return;
+
+        ogl->bind_vao();
+        ogl->bind_shader(shader);
+        const Transform3d view = camera.get_view_matrix();
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("emission_factor", 0.1f);
+        for (GLVolume *v : m_volumes.volumes) {
+            if (!included(v)) continue;
+            const Transform3d vm = view * v->world_matrix();
+            shader->set_uniform("view_model_matrix", vm);
+            shader->set_uniform("normal_matrix", (Matrix3d) vm.matrix().block(0, 0, 3, 3).inverse().transpose());
+            // A plain (non-mmu) volume ignores extruder_colors and draws with whatever uniform_color is
+            // seeded, so seed it from the extruder colour for this volume's extruder — this is the only
+            // hook a recoloured (mapped) preview has on single-colour objects. simple_render still
+            // recolours mmu-painted regions from the same vector. Fall back to the volume's own colour.
+            int ext = v->extruder_id; // 1-based
+            if (m_extruder_colors.empty() || ext <= 0 || ext > (int) m_extruder_colors.size()) ext = 0;
+            shader->set_uniform("uniform_color", ext > 0 ? m_extruder_colors[ext - 1] : v->color);
+            v->simple_render(shader, m_objects, m_extruder_colors);
+        }
+        ogl->unbind_shader();
+        ogl->unbind_vao();
+    }
+
+private:
+    /**
+     * \brief True for a printable model volume in this scene's scope: active, not the wipe tower, and on
+     *        the filtered plate when a filter is set.
+     *
+     * \param v  the volume to test; null is excluded
+     */
+    bool included(const GLVolume *v) const
+    {
+        return v && v->is_active && !v->is_wipe_tower &&
+               (m_filter.empty() || m_filter.count({v->object_idx(), v->instance_idx()}) > 0);
+    }
+
+    const GLVolumeCollection         &m_volumes;
+    ModelObjectPtrs                  &m_objects;
+    std::vector<std::array<float, 4>> m_extruder_colors;
+    std::set<std::pair<int, int>>     m_filter; // empty = every plate
+};
+
+} // namespace
+
+// -------------------------------------------------------------------------------------------------
+// ModelPreview — the canvas: owns the camera, the full per-frame GL state, and the orbit interaction.
+// -------------------------------------------------------------------------------------------------
+ModelPreview::ModelPreview(wxWindow *parent) : wxWindow(parent, wxID_ANY), m_camera(std::make_unique<Camera>())
+{
+    // The viewport clears to this widget's own background, so it blends into its container in either
+    // theme. A themed neutral by default; a caller sets its own to match a specific card surface.
+    SetBackgroundColour(StateColor::darkModeColorFor(ThemeColor::Grey200));
+
+    // One context can serve many canvases only if their pixel formats match, so build this canvas with
+    // the same MSAA the editor used, then reuse the app's single context (its VBOs are visible here).
+    const auto      ogl  = wxGetApp().get_opengl_manager();
+    const EMSAAType msaa = ogl->is_fxaa_enabled() ? EMSAAType::Disabled : ogl->get_msaa_type();
+    m_canvas             = OpenGLManager::create_wxglcanvas(*this, msaa);
+    m_ctx                = ogl->init_glcontext(*m_canvas);
+
+    auto *s = new wxBoxSizer(wxVERTICAL);
+    s->Add(m_canvas, 1, wxEXPAND);
+    SetSizer(s);
+
+    m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent &) { on_paint(); });
+    m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent &) { m_canvas->Refresh(); });
+    m_canvas->Bind(wxEVT_LEFT_DOWN, &ModelPreview::on_mouse, this);
+    m_canvas->Bind(wxEVT_LEFT_UP, &ModelPreview::on_mouse, this);
+    m_canvas->Bind(wxEVT_MOTION, &ModelPreview::on_mouse, this);
+    m_canvas->Bind(wxEVT_MOUSEWHEEL, &ModelPreview::on_wheel, this);
+}
+
+ModelPreview::~ModelPreview() = default; // m_ctx is the app's shared context — not owned
+
+void ModelPreview::set_scene(std::shared_ptr<PreviewScene> scene, bool reframe)
+{
+    m_scene = std::move(scene);
+    // A colour-only swap keeps the current camera; a first scene still frames (m_framed starts false).
+    if (reframe) m_framed = false;
+    m_canvas->Refresh();
+}
+
+Camera &ModelPreview::camera() { return *m_camera; }
+
+void ModelPreview::set_camera_changed(std::function<void(const Camera &)> cb) { m_camera_changed = std::move(cb); }
+
+void ModelPreview::sync_camera(const Camera &src)
+{
+    // Whole-pose copy: keeps m_view_rotation consistent with m_view_matrix, so a later drag on this card
+    // continues smoothly instead of jumping. Viewport/projection are re-derived on the next paint.
+    *m_camera = src;
+    if (m_canvas) m_canvas->Refresh();
+}
+
+void ModelPreview::on_paint()
+{
+    if (!m_canvas || !m_canvas->IsShownOnScreen()) return;
+    wxPaintDC dc(m_canvas);
+    m_canvas->SetCurrent(*m_ctx);
+
+    // Clear any error already queued in the borrowed context so the glsafe checks flag only our calls.
+    for (int i = 0; i < 64 && ::glGetError() != GL_NO_ERROR; ++i) {}
+
+    // The shared context may still have an offscreen FBO bound by a prior pass (e.g. plate-thumbnail
+    // rendering), which would swallow this frame; bind the window framebuffer so the draw reaches the canvas.
+    glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+    const wxSize sz = m_canvas->GetClientSize();
+    glsafe(::glViewport(0, 0, sz.x, sz.y));
+    const wxColour bg = GetBackgroundColour(); // themed viewport background, tracks light/dark
+    glsafe(::glClearColor(bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f, 1.f));
+    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glEnable(GL_CULL_FACE));
+
+    if (m_scene) {
+        const BoundingBoxf3 box = m_scene->bounds();
+        if (box.defined) {
+            if (!m_framed) {
+                m_camera->set_type(Camera::EType::Perspective);
+                m_camera->set_scene_box(box);
+                m_camera->apply_viewport(0, 0, sz.x, sz.y);
+                m_camera->select_view("iso");
+                m_camera->zoom_to_box(box);
+                m_framed = true;
+            }
+            m_camera->apply_viewport(0, 0, sz.x, sz.y);
+            m_camera->apply_projection(box);
+            m_scene->render(*m_camera);
+        }
+    }
+
+    glsafe(::glDisable(GL_CULL_FACE));
+    glsafe(::glDisable(GL_DEPTH_TEST));
+    m_canvas->SwapBuffers();
+}
+
+void ModelPreview::on_mouse(wxMouseEvent &e)
+{
+    if (e.LeftDown()) {
+        m_dragging = true;
+        m_last     = e.GetPosition();
+        if (!m_canvas->HasCapture()) m_canvas->CaptureMouse();
+    } else if (e.LeftUp()) {
+        m_dragging = false;
+        if (m_canvas->HasCapture()) m_canvas->ReleaseMouse();
+    } else if (e.Dragging() && m_dragging) {
+        const wxPoint p = e.GetPosition();
+        m_camera->rotate_on_sphere((p.x - m_last.x) * 0.01, (p.y - m_last.y) * 0.01, true);
+        m_last = p;
+        if (m_camera_changed) m_camera_changed(*m_camera);
+        m_canvas->Refresh();
+    }
+}
+
+void ModelPreview::on_wheel(wxMouseEvent &e)
+{
+    m_camera->update_zoom(e.GetWheelRotation() > 0 ? 1.0 : -1.0);
+    if (m_camera_changed) m_camera_changed(*m_camera);
+    m_canvas->Refresh();
+}
+
+std::shared_ptr<PreviewScene> make_current_plate_scene(int plate_idx, const std::map<int, std::array<float, 4>> &extruder_color_overrides)
+{
+    Plater *plater = wxGetApp().plater();
+    if (!plater) return nullptr;
+    GLCanvas3D *c3d = plater->get_view3D_canvas3D();
+    if (!c3d) return nullptr;
+
+    std::set<std::pair<int, int>> filter; // empty = every plate
+    if (plate_idx >= 0) {
+        PartPlateList &ppl = plater->get_partplate_list();
+        if (plate_idx < ppl.get_plate_count())
+            if (PartPlate *pp = ppl.get_plate(plate_idx)) filter = pp->get_obj_and_inst_set();
+    }
+
+    // colours[i] is project filament i's colour (the extruder_id the volumes carry); recolour the mapped
+    // ones in place so the scene draws the after-mapping result through the same per-extruder path.
+    std::vector<std::array<float, 4>> colors = plater->get_extruders_colors();
+    for (const auto &[extruder, rgba] : extruder_color_overrides)
+        if (extruder >= 0 && extruder < (int) colors.size()) colors[extruder] = rgba;
+
+    return std::make_shared<PlateScene>(c3d->get_volumes(), plater->model().objects, std::move(colors), std::move(filter));
+}
+
+} // namespace Slic3r::GUI

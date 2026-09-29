@@ -69,6 +69,16 @@ inline wxString parse_diameter_value(const wxString &label)
 inline void *encode_volume(int volume_index) { return reinterpret_cast<void *>(static_cast<intptr_t>(volume_index) + 1); }
 inline int   decode_volume(void *data) { return static_cast<int>(reinterpret_cast<intptr_t>(data) - 1); }
 
+/**
+ * \brief A slot's name for filament mapping: "A1" (four-slot unit), "HT-A" (single-slot unit), "Ext" (no
+ * AMS unit), or the nozzle number "1" for an internal slot (one slot per nozzle).
+ *
+ * \param obj      the machine holding the slot
+ * \param ams_id   the slot's AMS id
+ * \param slot_id  0-based slot within the unit
+ */
+std::string slot_name(MachineObject *obj, int ams_id, int slot_id);
+
 std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj);
 
 // True when the selected printer preset's type matches the connected machine and the nozzle

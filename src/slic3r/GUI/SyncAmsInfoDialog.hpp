@@ -11,6 +11,7 @@
 #include "DeviceManager.hpp"
 #include "DeviceCore/DevMapping.h"
 #include "BaseTransparentDPIFrame.hpp"
+#include "ISyncAmsDialog.hpp" // GUI::SyncResult (shared with the new SyncAmsDialog)
 class Button;
 class CheckBox;
 class Label;
@@ -287,12 +288,6 @@ public:
         bool use_dialog_pos = false;
         bool first_sync = false;
         bool cancel_text_to_later = false;
-    };
-    struct SyncResult
-    {
-        bool direct_sync = true;
-        bool is_same_printer = true;
-        std::map<int, AMSMapInfo> sync_maps;
     };
     /// \param extra_style  extra top-level window style ORed into the frame (e.g. wxRESIZE_BORDER for a
     ///                     resizable fork); must be set at construction since MSW bakes the frame then.

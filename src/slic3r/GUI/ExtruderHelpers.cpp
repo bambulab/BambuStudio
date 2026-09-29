@@ -42,6 +42,21 @@ wxString format_nozzle_spec(const NozzleConfig &cfg)
     return cfg.diameter + "mm " + flow_label;
 }
 
+std::string slot_name(MachineObject *obj, int ams_id, int slot_id)
+{
+    const auto &units = obj->GetFilaSystem()->GetAmsList();
+    const auto  unit  = units.find(std::to_string(ams_id));
+    if (unit == units.end()) return "Ext";
+
+    const std::string slot_no = std::to_string(slot_id + 1);
+    switch (unit->second->GetAmsType()) {
+    case DevAmsType::ZMULTI_A:
+    case DevAmsType::ZMULTI_B: return slot_no; // the slot id is its nozzle's address
+    case DevAmsType::N3S: return "HT-" + std::string(1, char('A' + ams_id - 128));
+    default: return std::string(1, char('A' + ams_id)) + slot_no;
+    }
+}
+
 // Count bound AMS units per (logical_extruder_id, slot_kind) for the given machine.
 // Keys use the *logical* extruder id
 std::map<std::pair<int, int>, int> collect_ams_counts(MachineObject *obj)
