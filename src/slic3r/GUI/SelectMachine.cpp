@@ -1117,7 +1117,6 @@ void SelectMachineDialog::init_bind()
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
     Bind(EVT_HOTEND_SLOT_EDITED, &SelectMachineDialog::on_hotend_slot_edited, this);
     Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
-    Bind(wxEVT_SHOW, &SelectMachineDialog::on_show_changed, this);
     Bind(wxEVT_REFRESH_DATA, &SelectMachineDialog::update_best_pos_dialog, this);
     m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
     m_basic_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
@@ -4956,21 +4955,6 @@ void SelectMachineDialog::update_add_to_queue_button_state(PrintDialogStatus sta
 
     // The default Button StateColor already renders a gray appearance when disabled
     m_button_add_to_queue->Enable(!should_gray);
-}
-
-void SelectMachineDialog::on_show_changed(wxShowEvent& event)
-{
-    event.Skip();
-    if (event.IsShown() || !m_pending_jump_to_print_queue) { return; }
-    m_pending_jump_to_print_queue = false;
-
-    // Deferred to a later event loop iteration: building the print queue webview while this
-    // dialog is still tearing down its modal session hangs the main thread on macOS.
-    wxGetApp().CallAfter([]() {
-        MainFrame* main_frame = wxGetApp().mainframe;
-        if (!main_frame || !main_frame->m_monitor) { return; }
-        main_frame->m_monitor->jump_to_print_queue();
-    });
 }
 
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)

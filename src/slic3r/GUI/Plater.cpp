@@ -27937,9 +27937,6 @@ void Plater::print_job_finished(wxCommandEvent &evt)
 void Plater::add_to_print_queue_finished(wxCommandEvent &evt)
 {
     if (p) {
-        // Arm before hiding: the dialog performs the jump from its own hide event.
-        if (p->m_select_machine_dlg)
-            p->m_select_machine_dlg->request_jump_to_print_queue_on_close();
         // sending_mode() left the dialog buttons disabled; only prepare_mode() restores them.
         p->enter_prepare_mode();
 #ifdef __APPLE__
@@ -27953,6 +27950,21 @@ void Plater::add_to_print_queue_finished(wxCommandEvent &evt)
 
     // request_select_tab() only queues the tab switch, so defer the sub tab switch.
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
+    // One-shot timer rather than CallAfter: hide_select_machine_dlg() only asks the modal
+    // loop to exit, so ShowModal() is still on the stack and would dispatch a CallAfter
+    // itself. Building the print queue webview from there hangs the main thread on macOS:
+    // AddScriptMessageHandler() busy-waits in RunScriptSync(), and an already stopped
+    // modal session never services the run loop, so the JS completion handler never
+    // fires. The timer runs once ShowModal() has returned.
+    auto *jump_timer = new wxTimer();
+    jump_timer->Bind(wxEVT_TIMER, [jump_timer](wxTimerEvent &) {
+        jump_timer->Stop();
+        MainFrame *main_frame = wxGetApp().mainframe;
+        if (main_frame && main_frame->m_monitor)
+            main_frame->m_monitor->jump_to_print_queue();
+        delete jump_timer;
+    });
+    jump_timer->StartOnce(200);
 }
 
 void Plater::send_job_finished(wxCommandEvent& evt)

@@ -396,7 +396,6 @@ protected:
     Button*                             m_button_ensure{ nullptr };
     Button*                             m_button_add_to_queue{ nullptr };
     bool                                m_add_to_queue{ false };
-    bool                                m_pending_jump_to_print_queue{ false };
     wxLongLong                          m_queue_btn_clickable_after{ 0 };
     wxStaticBitmap *                    m_rename_button{nullptr};
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
@@ -587,9 +586,6 @@ public:
     void Enable_Send_Button(bool en);
     void update_add_to_queue_button_state(PrintDialogStatus status);
     bool is_add_to_queue_click_masked() const;
-    // Must be armed before the dialog is hidden: the jump is driven by its hide event.
-    void request_jump_to_print_queue_on_close() { m_pending_jump_to_print_queue = true; }
-    void on_show_changed(wxShowEvent& event);
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_user_machine_list();
     void update_print_status_msg();
