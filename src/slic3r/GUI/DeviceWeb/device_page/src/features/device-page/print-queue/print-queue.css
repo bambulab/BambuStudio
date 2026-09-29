@@ -9,6 +9,7 @@
   --queue-text-secondary: rgba(255, 255, 255, 0.6);
   --queue-text-disabled: rgba(255, 255, 255, 0.25);
   --queue-row-hover: rgba(255, 255, 255, 0.06);
+  --queue-filter-border: rgba(255, 255, 255, 0.24);
   --queue-brand: #00ae42;
   --queue-brand-hover: #34c400;
   --queue-printing: #1f8eea;
@@ -19,6 +20,8 @@
   --queue-row-dragging: rgba(0, 174, 66, 0.16);
   --queue-action-hover: rgba(255, 255, 255, 0.1);
   --queue-action-active: rgba(255, 255, 255, 0.16);
+  --queue-tip-bg: #3f3f3f;
+  --queue-tip-text: rgba(255, 255, 255, 0.9);
   --queue-busy-track: rgba(255, 255, 255, 0.2);
   --queue-overlay: rgba(0, 0, 0, 0.6);
   --queue-dialog-bg: #242424;
@@ -69,7 +72,8 @@
   min-height: 33px;
   padding: 0 0 12px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  gap: 10px;
 }
 
 .print-queue-header__title {
@@ -79,6 +83,55 @@
   font-weight: 700;
   line-height: 21px;
   text-align: left;
+}
+
+/* A native select, as in the filament manager, but the closed control is drawn
+   by the wrapper so the border and the caret follow the panel theme instead of
+   the OS one. Box, caret offset and label offset are the Figma ones so the header
+   does not shift as the label changes. */
+.print-queue-filter {
+  position: relative;
+  width: 115px;
+  height: 24px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--queue-filter-border);
+  border-radius: 6px;
+  color: var(--queue-text-strong);
+}
+
+.print-queue-filter:focus-within {
+  border-color: var(--queue-brand);
+}
+
+.print-queue-filter__select {
+  width: 100%;
+  height: 100%;
+  /* Figma puts the caret at 6px and the label at 22px (node 6183:12025). */
+  padding: 0 8px 0 22px;
+  appearance: none;
+  border: 0;
+  border-radius: inherit;
+  outline: none;
+  color: inherit;
+  /* Chromium paints the dropdown list from these two, so a transparent control
+     would leave the open list unreadable on a dark panel. */
+  background: var(--queue-panel-bg);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+/* Rotated to point right, matching the arrow the design places ahead of the
+   label; same rotation the collapsed project chevron uses. */
+.print-queue-filter__caret {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  transform: rotate(-90deg);
+  pointer-events: none;
 }
 
 .print-queue-body {
@@ -346,11 +399,68 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
 .queue-project__header--single .queue-actions {
   margin-left: 0;
+}
+
+/* Carries the hover hint; sizing stays on the button. The spacing between the
+   icons is padding here rather than a gap on the row, so the hoverable areas
+   touch and a sweep across the group never drops out of one. */
+.queue-action-slot {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  padding: 0 4px;
+}
+
+.queue-action-slot:first-child {
+  padding-left: 0;
+}
+
+.queue-action-slot:last-child {
+  padding-right: 0;
+}
+
+/* Drawn in the page rather than through the title attribute: a native tooltip is
+   only requested off a mouse move, so a cursor that comes to rest inside an icon
+   without moving again never gets one, while :hover is always up to date. The
+   icons sit 36px below the top of a 96px row, so the bubble stays inside the row
+   and the scrolling list cannot clip it. */
+.queue-action-slot::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  z-index: 5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--queue-tip-text);
+  background: var(--queue-tip-bg);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 80ms ease;
+  pointer-events: none;
+}
+
+/* The print icon is the closest one to the panel edge, so its bubble grows
+   inwards instead of being centred, which a long translation would push out of
+   view. */
+.queue-action-slot:last-child::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+/* Delayed on the way in so a sweep across the group does not flash three
+   bubbles, immediate on the way out. */
+.queue-action-slot:hover::after {
+  opacity: 1;
+  transition-delay: 150ms;
 }
 
 .queue-action {
@@ -660,6 +770,7 @@
   --queue-text-secondary: #6b6b6b;
   --queue-text-disabled: #c5c8c9;
   --queue-row-hover: #f8f8f8;
+  --queue-filter-border: #cecece;
   --queue-brand-hover: #07933c;
   --queue-title-color: #000000;
   --queue-profile-text: #707070;
@@ -667,6 +778,8 @@
   --queue-row-dragging: #f2f7f4;
   --queue-action-hover: #eeeeee;
   --queue-action-active: #e4e4e4;
+  --queue-tip-bg: #262e30;
+  --queue-tip-text: #ffffff;
   --queue-busy-track: #d8d8d8;
   --queue-overlay: rgba(38, 46, 48, 0.35);
   --queue-dialog-bg: #ffffff;

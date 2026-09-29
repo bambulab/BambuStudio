@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type {
   PointerEvent as ReactPointerEvent,
   RefObject,
@@ -19,8 +19,16 @@ import type {
   QueueDropTarget,
   QueuePlate,
   QueueProject,
+  QueueProjectStatus,
 } from './types';
-import { canPrintQueuePlate, formatCostTime, formatWeight, isSinglePlateProject, projectCover } from './types';
+import {
+  canPrintQueuePlate,
+  formatCostTime,
+  formatWeight,
+  isSinglePlateProject,
+  projectCover,
+  projectStatus,
+} from './types';
 import {
   canDeletePlate,
   canDeleteProject,
@@ -102,47 +110,60 @@ function QueueActions({
   onPrint,
 }: QueueActionsProps) {
   const { t } = useTranslation();
+  const deleteLabel = t('Delete');
+  const pinLabel = t('Pin to top');
+  const printLabel = printPending ? t('Preparing...') : t('Print');
+  // The hint is drawn from data-tip by the wrapper instead of being a title on the
+  // button. A native tooltip is only requested off a mouse move, so a cursor that
+  // comes to rest inside an icon without moving again never gets one, and a
+  // disabled button is skipped outright; :hover depends on neither.
   return (
     <div className="queue-actions" data-testid={`${testIdPrefix}-actions`}>
-      <button
-        type="button"
-        className="queue-action queue-action--delete"
-        data-testid={`${testIdPrefix}-delete`}
-        aria-label={t('Delete')}
-        disabled={!deleteEnabled || pending}
-        onClick={(event) => {
-          event.stopPropagation();
-          onDelete();
-        }}
-      >
-        <DeleteIcon />
-      </button>
-      <button
-        type="button"
-        className="queue-action queue-action--pin"
-        data-testid={`${testIdPrefix}-pin`}
-        aria-label={t('Pin to top')}
-        disabled={!pinEnabled || pending}
-        onClick={(event) => {
-          event.stopPropagation();
-          onPin();
-        }}
-      >
-        <PinIcon />
-      </button>
-      <button
-        type="button"
-        className="queue-action queue-action--print"
-        data-testid={`${testIdPrefix}-print`}
-        aria-label={printPending ? t('Preparing...') : t('Print')}
-        disabled={!onPrint || !printEnabled || pending || printPending}
-        onClick={(event) => {
-          event.stopPropagation();
-          onPrint?.();
-        }}
-      >
-        <PrintIcon />
-      </button>
+      <span className="queue-action-slot" data-tip={deleteLabel}>
+        <button
+          type="button"
+          className="queue-action queue-action--delete"
+          data-testid={`${testIdPrefix}-delete`}
+          aria-label={deleteLabel}
+          disabled={!deleteEnabled || pending}
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete();
+          }}
+        >
+          <DeleteIcon />
+        </button>
+      </span>
+      <span className="queue-action-slot" data-tip={pinLabel}>
+        <button
+          type="button"
+          className="queue-action queue-action--pin"
+          data-testid={`${testIdPrefix}-pin`}
+          aria-label={pinLabel}
+          disabled={!pinEnabled || pending}
+          onClick={(event) => {
+            event.stopPropagation();
+            onPin();
+          }}
+        >
+          <PinIcon />
+        </button>
+      </span>
+      <span className="queue-action-slot" data-tip={printLabel}>
+        <button
+          type="button"
+          className="queue-action queue-action--print"
+          data-testid={`${testIdPrefix}-print`}
+          aria-label={printLabel}
+          disabled={!onPrint || !printEnabled || pending || printPending}
+          onClick={(event) => {
+            event.stopPropagation();
+            onPrint?.();
+          }}
+        >
+          <PrintIcon />
+        </button>
+      </span>
     </div>
   );
 }
@@ -433,7 +454,7 @@ function PlateRow({
       <QueueActions
         testIdPrefix={`plate-${plate.id}`}
         deleteEnabled={canDeletePlate(plate)}
-        pinEnabled={canPinPlate(plate)}
+        pinEnabled={canPinPlate(plate, plateIndex)}
         pending={mutationPending}
         onDelete={() =>
           requestDelete({
@@ -528,7 +549,7 @@ function SinglePlateProjectRow({ project, projectIndex, projectCount, beginPoint
         <QueueActions
           testIdPrefix={`project-${project.id}`}
           deleteEnabled={canDeleteProject(project)}
-          pinEnabled={canPinProject(project)}
+          pinEnabled={canPinProject(project, projectIndex)}
           pending={mutationPending}
           onDelete={() =>
             requestDelete({
@@ -627,7 +648,7 @@ function ProjectGroup({ project, projectIndex, projectCount, beginPointerDrag }:
         <QueueActions
           testIdPrefix={`project-${project.id}`}
           deleteEnabled={canDeleteProject(project)}
-          pinEnabled={canPinProject(project)}
+          pinEnabled={canPinProject(project, projectIndex)}
           pending={mutationPending}
           onDelete={() =>
             requestDelete({
@@ -770,6 +791,30 @@ function DeleteConfirmDialog({
   );
 }
 
+function StatusFilter() {
+  const { t } = useTranslation();
+  const statusFilter = usePrintQueueStore((state) => state.statusFilter);
+  const setStatusFilter = usePrintQueueStore((state) => state.setStatusFilter);
+
+  return (
+    <span className="print-queue-filter">
+      <select
+        className="print-queue-filter__select"
+        data-testid="print-queue-filter"
+        aria-label={t('Filter by status')}
+        value={statusFilter}
+        onChange={(event) => setStatusFilter(event.target.value as QueueProjectStatus)}
+      >
+        {/* Labels are spelled out per option for the same reason as the plate
+            status ribbon: i18next-parser only extracts literal t() arguments. */}
+        <option value="in-progress">{t('In progress')}</option>
+        <option value="completed">{t('Completed')}</option>
+      </select>
+      <ChevronIcon className="print-queue-filter__caret" />
+    </span>
+  );
+}
+
 // Exposed on the page root so the WebView E2E suite can assert on drag state
 // without reaching into React internals.
 function describeDragSource(source: QueueDragSource | null): string {
@@ -793,6 +838,7 @@ export function PrintQueuePage() {
   const refreshing = usePrintQueueStore((state) => state.refreshing);
   const mutationPending = usePrintQueueStore((state) => state.mutationPending);
   const printingPlateId = usePrintQueueStore((state) => state.printingPlateId);
+  const statusFilter = usePrintQueueStore((state) => state.statusFilter);
   const error = usePrintQueueStore((state) => state.error);
   const deleteTarget = usePrintQueueStore((state) => state.deleteTarget);
   const dragSource = usePrintQueueStore((state) => state.dragSource);
@@ -802,6 +848,16 @@ export function PrintQueuePage() {
   const confirmDelete = usePrintQueueStore((state) => state.confirmDelete);
   const clearError = usePrintQueueStore((state) => state.clearError);
   const beginPointerDrag = useQueueDrag(scrollRef);
+
+  // Each row keeps the position it holds in the queue, not in the filtered view:
+  // the index badge, Pin to top and every drop slot are all expressed against the
+  // full snapshot, and renumbering them per view would move the wrong rows.
+  const visibleProjects = useMemo(
+    () => snapshot.projects
+      .map((project, projectIndex) => ({ project, projectIndex }))
+      .filter(({ project }) => projectStatus(project) === statusFilter),
+    [snapshot.projects, statusFilter],
+  );
 
   usePrintQueueBridge();
 
@@ -820,6 +876,7 @@ export function PrintQueuePage() {
       <section className="print-queue-panel" aria-label={t('Task list')}>
         <header className="print-queue-header">
           <span className="print-queue-header__title">{t('Task list')}</span>
+          <StatusFilter />
         </header>
 
         <div className="print-queue-body">
@@ -829,8 +886,10 @@ export function PrintQueuePage() {
                 <div className="print-queue-state">{t('Loading the task list…')}</div>
               ) : snapshot.projects.length === 0 ? (
                 <div className="print-queue-state">{t('No print tasks')}</div>
+              ) : visibleProjects.length === 0 ? (
+                <div className="print-queue-state">{t('No tasks match this filter')}</div>
               ) : (
-                snapshot.projects.map((project, projectIndex) => {
+                visibleProjects.map(({ project, projectIndex }) => {
                   const Row = isSinglePlateProject(project) ? SinglePlateProjectRow : ProjectGroup;
                   return (
                     <Row

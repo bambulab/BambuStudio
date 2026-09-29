@@ -7,6 +7,7 @@ import type {
   QueueDropTarget,
   QueuePlate,
   QueueProject,
+  QueueProjectStatus,
 } from './types';
 import { PREV_SIBLING_TOP, resolveMoveCommand } from './queueOrder';
 
@@ -47,6 +48,7 @@ interface PrintQueueState {
   mutationPending: boolean;
   printingPlateId: string | null;
   error: string | null;
+  statusFilter: QueueProjectStatus;
   expandedProjects: Record<string, boolean>;
   deleteTarget: DeleteTarget | null;
   dragSource: QueueDragSource | null;
@@ -54,6 +56,7 @@ interface PrintQueueState {
   applySnapshot: (snapshot: PrintQueueSnapshot) => void;
   initialize: () => Promise<void>;
   refresh: () => Promise<void>;
+  setStatusFilter: (statusFilter: QueueProjectStatus) => void;
   toggleProject: (projectId: string) => void;
   expandProject: (projectId: string) => void;
   requestDelete: (target: DeleteTarget) => void;
@@ -90,6 +93,9 @@ export const usePrintQueueStore = create<PrintQueueState>((set, get) => ({
   mutationPending: false,
   printingPlateId: null,
   error: null,
+  // Finished work is rarely what the user came for, so the queue opens on the
+  // projects that still have something left to run.
+  statusFilter: 'in-progress',
   expandedProjects: {},
   deleteTarget: null,
   dragSource: null,
@@ -132,6 +138,10 @@ export const usePrintQueueStore = create<PrintQueueState>((set, get) => ({
       set({ refreshing: false, error: toMessage(error, 'Unable to refresh the queue.') });
     }
   },
+
+  // Switching the view mid-drag would pull the row out from under the pointer,
+  // so the drag is dropped rather than committed against a list that changed.
+  setStatusFilter: (statusFilter) => set({ statusFilter, dragSource: null, dropTarget: null }),
 
   toggleProject: (projectId) => {
     set((state) => ({
@@ -258,20 +268,23 @@ export function canDeleteProject(project: QueueProject): boolean {
   return project.plates.every((plate) => plate.status !== 'printing');
 }
 
-export function canPinPlate(plate: QueuePlate): boolean {
-  return plate.status === 'pending';
+// Pinning a row that already leads its siblings is a no-op, so the button is
+// only offered while there is somewhere left to move to: the head of the queue
+// for a project, the head of its own project for a plate.
+export function canPinPlate(plate: QueuePlate, plateIndex: number): boolean {
+  return canDragPlate(plate) && plateIndex > 0;
 }
 
-export function canPinProject(project: QueueProject): boolean {
-  return project.plates.length > 0 && project.plates.every((plate) => plate.status === 'pending');
+export function canPinProject(project: QueueProject, projectIndex: number): boolean {
+  return canDragProject(project) && projectIndex > 0;
 }
 
 export function canDragPlate(plate: QueuePlate): boolean {
   return plate.status === 'pending';
 }
 
-// Reordering a project moves every plate it holds, so it follows the same rule
-// as Pin to top: nothing in it may have started yet.
+// Reordering a project moves every plate it holds, so nothing in it may have
+// started yet.
 export function canDragProject(project: QueueProject): boolean {
-  return canPinProject(project);
+  return project.plates.length > 0 && project.plates.every((plate) => plate.status === 'pending');
 }
