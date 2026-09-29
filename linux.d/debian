@@ -1,4 +1,4 @@
-FOUND_GTK3=$(dpkg -l libgtk* | grep gtk-3)
+FOUND_GTK3=$(dpkg -l libgtk* 2>/dev/null | grep gtk-3 || true)
 
 REQUIRED_DEV_PACKAGES=(
     autoconf
@@ -50,4 +50,4 @@ then
     exit 0
 fi
 
-FOUND_GTK3_DEV=$(dpkg -l libgtk* | grep gtk-3-dev || echo '')
+FOUND_GTK3_DEV=$(dpkg -l libgtk* 2>/dev/null | grep gtk-3-dev || echo '')
