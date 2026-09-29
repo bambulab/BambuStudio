@@ -658,6 +658,7 @@ private:
     void update_option_dynamic_state(MachineObject* obj); // update dynamic state (timelapse, tooltips), call in timer
     void save_option_vals();
     void save_option_vals(MachineObject *obj);
+    bool use_timelapse_memory_logic() const;
     void check_tpu_aero_flow_cali(MachineObject* obj);
 
     // material items

@@ -501,6 +501,7 @@ public:
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
+    bool timelapse_last_enabled { false };
     time_t  camera_recording_ctl_start = 0;
     int  camera_timelapse_hold_count = 0;
     int  camera_resolution_hold_count = 0;
@@ -604,6 +605,7 @@ public:
     bool is_support_liveview_preview{false};
     bool is_support_check_track_switch_match_slice_printer{ false };
     bool is_support_model_internal_storage{false};
+    bool is_support_timelapse_memory{false};
     int  ams_preload_version{0};
 
     bool installed_upgrade_kit{false};

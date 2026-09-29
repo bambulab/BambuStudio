@@ -180,6 +180,11 @@ void AppConfig::set_defaults()
     if (get("enable_sidebar_floatable").empty())
         set_bool("enable_sidebar_floatable", false);
 
+#if !BBL_RELEASE_TO_PUBLIC
+    if (get("timelapse_memory_test").empty())
+        set_bool("timelapse_memory_test", false);
+#endif
+
     if (get("export_sources_full_pathnames").empty())
         set_bool("export_sources_full_pathnames", false);
 

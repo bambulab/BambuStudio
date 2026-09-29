@@ -1214,7 +1214,7 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     update_option_opts(obj);
 
     load_option_vals(obj);
-    if (obj && obj->get_printer_arch() == PrinterArch::ARCH_I3) { m_checkbox_list["timelapse"]->setValue("off"); } /*off timelapse on selected for n series by zhimin.zeng*/
+    if (obj && obj->get_printer_arch() == PrinterArch::ARCH_I3 && !(use_timelapse_memory_logic() && obj->is_support_timelapse_memory)) { m_checkbox_list["timelapse"]->setValue("off"); }
     save_option_vals(obj);
 
     Layout();
@@ -3171,6 +3171,16 @@ void SelectMachineDialog::navigate_to_timelapse_page()
     this->EndModal(wxID_CANCEL);
 }
 
+bool SelectMachineDialog::use_timelapse_memory_logic() const
+{
+#if BBL_RELEASE_TO_PUBLIC
+    return true;
+#else
+    AppConfig* config = wxGetApp().app_config;
+    return config && config->get_bool("timelapse_memory_test");
+#endif
+}
+
 void SelectMachineDialog::load_option_vals(MachineObject *obj)
 {
     if (m_is_in_sending_mode) { return;}
@@ -3184,23 +3194,32 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         PrintOption       *opt = item.second;
         const std::string &val = config->get(obj->printer_type, item.first);
 
-        // Default to auto or on, when reopen the software in !BBL_RELEASE_TO_PUBLIC
-#if !BBL_RELEASE_TO_PUBLIC
-        static bool s_time_lapse_option_init = false;
-        if (!s_time_lapse_option_init && item.first == "timelapse") {
-            wxString error_messgae;
-            if (obj->canEnableTimelapse(error_messgae) && !has_timelapse_warning(error_messgae)) {
-                if (opt->contain_opt("auto")) {
-                    opt->setValue("auto");
-                } else if (opt->contain_opt("on")) {
-                    opt->setValue("on");
+        if (item.first == "timelapse") {
+            if (use_timelapse_memory_logic()) {
+                if (obj->is_support_timelapse_memory) {
+                    opt->setValue(obj->timelapse_last_enabled ? "on" : "off");
+                    continue;
                 }
-
-                s_time_lapse_option_init = true;
-                continue;
             }
-        }
+#if !BBL_RELEASE_TO_PUBLIC
+            else {
+                static bool s_time_lapse_option_init = false;
+                if (!s_time_lapse_option_init) {
+                    wxString error_messgae;
+                    if (obj->canEnableTimelapse(error_messgae) && !has_timelapse_warning(error_messgae)) {
+                        if (opt->contain_opt("auto")) {
+                            opt->setValue("auto");
+                        } else if (opt->contain_opt("on")) {
+                            opt->setValue("on");
+                        }
+
+                        s_time_lapse_option_init = true;
+                        continue;
+                    }
+                }
+            }
 #endif
+        }
 
         if (opt->contain_opt(val)) {
             opt->setValue(val);

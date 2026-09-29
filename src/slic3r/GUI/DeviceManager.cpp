@@ -3605,6 +3605,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                         }
                                     }
                                 }
+                                if (ipcam.contains("cfg")) {
+                                    timelapse_last_enabled = get_flag_bits_no_border(ipcam["cfg"].get<std::string>(), 0) == 1;
+                                }
                                 if (ipcam.contains("ipcam_dev")) {
                                     if (ipcam["ipcam_dev"].get<std::string>() == "1") {
                                         has_ipcam = true;
@@ -4755,6 +4758,7 @@ void MachineObject::parse_new_info(json print)
         m_fila_system->GetAutoRefillMgr().SetVersion(get_flag_bits_no_border(fun2, 25) == 1 ? DevFilaAutoRefillMgr::RefillVersion::RefillInfo : DevFilaAutoRefillMgr::RefillVersion::FilaBackup);
         m_fila_system->GetAutoRefillMgr().SetSupportManualEdit(get_flag_bits_no_border(fun2, 26) == 1);
         is_support_door_open_check_slow_down = (get_flag_bits_no_border(fun2, 27) == 1);
+        is_support_timelapse_memory = (get_flag_bits_no_border(fun2, 36) == 1);
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = DevUtil::get_flag_bits_no_border(fun2, 7) == 1;
