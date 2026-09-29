@@ -60,8 +60,16 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_release_note(wxString release_note, std::string version);
 
+private:
+    void show_release_note();
+
+public:
     Label *    m_text_up_info{nullptr};
-    wxScrolledWindow *m_vebview_release_note {nullptr};
+    wxWebView *m_vebview_release_note {nullptr};
+
+private:
+    std::string m_mkdown_text;
+    bool        m_page_loaded{false};
 };
 
 class UpdatePluginDialog : public DPIDialog

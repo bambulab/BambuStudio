@@ -54,6 +54,27 @@ wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ERROR_DIALOG_BTN_CLICKED, wxCommandEvent);
 
+static std::string url_encode(const std::string& value) {
+	std::ostringstream escaped;
+	escaped.fill('0');
+	escaped << std::hex;
+	for (std::string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
+		std::string::value_type c = (*i);
+
+		// Keep alphanumeric and other accepted characters intact
+		if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+			escaped << c;
+			continue;
+		}
+
+		// Any other characters are percent-encoded
+		escaped << std::uppercase;
+		escaped << '%' << std::setw(2) << int((unsigned char)c);
+		escaped << std::nouppercase;
+	}
+	return escaped.str();
+}
+
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
@@ -86,10 +107,33 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
 
     m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
 
-    m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)), wxVSCROLL);
-    m_vebview_release_note->SetScrollRate(5, 5);
-    m_vebview_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    // firmware release notes from cloud are markdown, render them in webview like UpdateVersionDialog
+    m_vebview_release_note = WebView::CreateWebView(this, "");
+    m_vebview_release_note->SetBackgroundColour(wxGetApp().dark_mode() ? wxColour(0x36, 0x36, 0x3C) : wxColour(0xF8, 0xF8, 0xF8));
+    m_vebview_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_vebview_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
     m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
+
+#ifndef __WINDOWS__
+    m_vebview_release_note->Bind(wxEVT_WEBVIEW_LOADED, [this](auto &e) {
+#else
+    m_vebview_release_note->Bind(wxEVT_WEBVIEW_NAVIGATED, [this](auto &e) {
+#endif
+        m_page_loaded = true;
+        show_release_note();
+        e.Skip();
+    });
+
+    fs::path ph(data_dir());
+    ph /= "resources/tooltip/releasenote.html";
+    if (!fs::exists(ph)) {
+        ph = resources_dir();
+        ph /= "tooltip/releasenote.html";
+    }
+    auto url = ph.string();
+    std::replace(url.begin(), url.end(), '\\', '/');
+    url = "file:///" + url;
+    m_vebview_release_note->LoadURL(from_u8(url));
 
     m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
     m_sizer_body->Add(m_sizer_right, 1, wxBOTTOM | wxEXPAND, FromDIP(30));
@@ -113,15 +157,22 @@ void ReleaseNoteDialog::on_dpi_changed(const wxRect &suggested_rect)
 void ReleaseNoteDialog::update_release_note(wxString release_note, std::string version)
 {
     m_text_up_info->SetLabel(wxString::Format(_L("version %s update information :"), version));
-    wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new ::Label(m_vebview_release_note, release_note, LB_AUTO_WRAP);
-    m_staticText_release_note->SetMinSize(wxSize(FromDIP(530), -1));
-    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(530), -1));
-    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
-    m_vebview_release_note->SetSizer(sizer_text_release_note);
-    m_vebview_release_note->Layout();
-    m_vebview_release_note->Fit();
+    m_mkdown_text = release_note.ToUTF8().data();
+    // page may not be loaded yet, the loaded handler will render it then
+    show_release_note();
     wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void ReleaseNoteDialog::show_release_note()
+{
+    if (!m_page_loaded || m_mkdown_text.empty()) return;
+
+    WebView::RunScript(m_vebview_release_note, "window.showMarkdown('" + url_encode(m_mkdown_text) + "', true);");
+    // tooltip/main.css defaults body text to white, set colors explicitly to follow app theme
+    bool is_dark = wxGetApp().dark_mode();
+    std::string theme_script = std::string("document.body.style.backgroundColor='") + (is_dark ? "#36363C" : "#F8F8F8") + "';"
+                             + "document.body.style.color='" + (is_dark ? "#FFFFFF" : "#000000") + "';";
+    WebView::RunScript(m_vebview_release_note, theme_script);
 }
 
 UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
@@ -422,6 +473,15 @@ wxWebView* UpdateVersionDialog::CreateTipView(wxWindow* parent)
 
 void UpdateVersionDialog::OnLoaded(wxWebViewEvent& event)
 {
+    // GitHub prefixes user-written ids with "user-content-" but keeps the hrefs as-is,
+    // so in-page anchors in release notes (e.g. "English | 中文") never resolve.
+    WebView::RunScript(m_vebview_release_note,
+        "if(!window.__bblAnchorFix){window.__bblAnchorFix=1;document.addEventListener('click',function(e){"
+        "var a=e.target.closest&&e.target.closest('a[href^=\"#\"]');if(!a)return;"
+        "var id=decodeURIComponent(a.getAttribute('href').slice(1));"
+        "if(!id||document.getElementById(id))return;"
+        "var t=document.getElementById('user-content-'+id);"
+        "if(t){e.preventDefault();t.scrollIntoView();}},true);}");
     event.Skip();
 }
 
@@ -433,27 +493,6 @@ void UpdateVersionDialog::OnTitleChanged(wxWebViewEvent& event)
 void UpdateVersionDialog::OnError(wxWebViewEvent& event)
 {
     event.Skip();
-}
-
-static std::string url_encode(const std::string& value) {
-	std::ostringstream escaped;
-	escaped.fill('0');
-	escaped << std::hex;
-	for (std::string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
-		std::string::value_type c = (*i);
-
-		// Keep alphanumeric and other accepted characters intact
-		if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
-			escaped << c;
-			continue;
-		}
-
-		// Any other characters are percent-encoded
-		escaped << std::uppercase;
-		escaped << '%' << std::setw(2) << int((unsigned char)c);
-		escaped << std::nouppercase;
-	}
-	return escaped.str();
 }
 
 bool UpdateVersionDialog::ShowReleaseNote(std::string content)
