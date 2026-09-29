@@ -100,6 +100,8 @@ namespace ams_unit {
     inline constexpr const char* slot_count   = "slot_count";
     inline constexpr const char* can_dry      = "can_dry";
     inline constexpr const char* humidity_raw = "humidity_raw";
+    inline constexpr const char* humidity_level        = "humidity_level";
+    inline constexpr const char* humidity_display_type = "humidity_display_type";
     inline constexpr const char* temp         = "temp";         // celsius; omit or null when unknown
     inline constexpr const char* dry_status   = "dry_status";
     inline constexpr const char* dry_status_text = "dry_status_text"; // translated dry_status; empty when !can_dry
@@ -196,6 +198,13 @@ namespace color_type {
     inline constexpr const char* gradient = "gradient";
     inline constexpr const char* multi    = "multi";
     inline constexpr const char* single   = "single";
+}
+
+/// mirrors AmsControlWeb: classic-AMS level droplet or N3 percent.
+namespace humidity_display_type {
+    inline constexpr const char* none    = "none";
+    inline constexpr const char* level   = "level";
+    inline constexpr const char* percent = "percent";
 }
 
 /// i18n keys for tray_actions::read_label: unknown filament -> Read, known -> Reread.

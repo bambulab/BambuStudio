@@ -258,6 +258,12 @@
   height: 14px;
 }
 
+/* Numbered classic-AMS droplet: needs more room than the 14px plain droplet. */
+.cs-ams-climate-status__icon--level {
+  width: 20px;
+  height: 20px;
+}
+
 .cs-ams-climate-status__icon--drying {
   background-color: currentColor;
   -webkit-mask: url('../ams-filament-hotend/assets/ams_drying.svg') center / contain no-repeat;

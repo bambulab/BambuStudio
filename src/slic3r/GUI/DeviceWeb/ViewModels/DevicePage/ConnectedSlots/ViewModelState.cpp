@@ -312,6 +312,14 @@ nlohmann::json build_unit_json(MachineObject*         obj,
     if (ams->SupportDrying()) {
         dry_status_text = dry_status.has_value() ? dry_status_display_label(*dry_status) : _u8L("Idle");
     }
+
+    int humidity_level = ams->SupportHumidityLevel() ? ams->GetHumidityLevel() : -1;
+    std::string humidity_display_type = SV::humidity_display_type::none;
+    if (ams->SupportHumidityPercent())
+        humidity_display_type = SV::humidity_display_type::percent;
+    else if (ams->SupportHumidityLevel())
+        humidity_display_type = SV::humidity_display_type::level;
+
     return {
         {SK::ams_unit::ams_id,       ams->GetAmsId()},
         {SK::ams_unit::ams_type,     std::to_string((int) ams->GetAmsType())},
@@ -319,6 +327,8 @@ nlohmann::json build_unit_json(MachineObject*         obj,
         {SK::ams_unit::slot_count,   only_slot.has_value() ? (int) trays.size() : ams->GetSlotCount()},
         {SK::ams_unit::can_dry,      ams->SupportDrying()},
         {SK::ams_unit::humidity_raw, ams->SupportHumidityPercent() ? ams->GetHumidityPercent() : -1},
+        {SK::ams_unit::humidity_level,        humidity_level},
+        {SK::ams_unit::humidity_display_type, humidity_display_type},
         {SK::ams_unit::temp,         temp != INVALID_AMS_TEMPERATURE ? nlohmann::json(temp) : nlohmann::json(nullptr)},
         {SK::ams_unit::dry_status,   dry_status.has_value() ? dry_status_short_name(*dry_status) : ""},
         {SK::ams_unit::dry_status_text, dry_status_text},
@@ -340,6 +350,8 @@ nlohmann::json build_ext_unit_json(MachineObject* obj, const DevAmsTray& ext_tra
         {SK::ams_unit::slot_count,   1},
         {SK::ams_unit::can_dry,      false},
         {SK::ams_unit::humidity_raw, -1},
+        {SK::ams_unit::humidity_level,        -1},
+        {SK::ams_unit::humidity_display_type, SV::humidity_display_type::none},
         {SK::ams_unit::temp,         nullptr},
         {SK::ams_unit::dry_status,   ""},
         {SK::ams_unit::dry_status_text, ""},

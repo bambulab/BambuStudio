@@ -60,6 +60,10 @@ export interface ConnectedSlotsUnitInfo {
   slot_count?: number;
   can_dry?: boolean;
   humidity_raw?: number;
+  /** Classic-AMS droplet level (1..5); -1/absent when the unit has none. */
+  humidity_level?: number;
+  /** Which humidity figure the unit exposes; mirrors AmsControlWeb. */
+  humidity_display_type?: 'none' | 'level' | 'percent';
   temp?: number | null;
   /** Stable English enum ("Idle", "Drying", ...); compare against this. */
   dry_status?: string;
