@@ -83,3 +83,16 @@ SCENARIO("ExtrusionEntityCollection: Polygon flattening", "[ExtrusionEntity]") {
         }
     }
 }
+
+TEST_CASE("Travel-only extrusion paths do not report deposited coverage", "[ExtrusionEntity]")
+{
+    const Polyline line(Point(scale_(0.), scale_(0.)), Point(scale_(10.), scale_(0.)));
+
+    ExtrusionPath extrusion(erTopSolidInfill, 0.08, 0.42f, 0.20f);
+    extrusion.polyline = line;
+    CHECK_FALSE(extrusion.polygons_covered_by_spacing().empty());
+
+    ExtrusionPath travel(erTopSolidInfill, 0.08, 0.42f, 0.20f, true);
+    travel.polyline = line;
+    CHECK(travel.polygons_covered_by_spacing().empty());
+}
