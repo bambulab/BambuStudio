@@ -1170,6 +1170,8 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
         auto           filament_comboBox_sizer = new wxBoxSizer(wxHORIZONTAL);
 
         RadioBox *     radio_btn               = new RadioBox(slot_items_panel);
+        radio_btn->SetBackgroundColour(*wxWHITE);
+
         CheckBox *     check_box               = new CheckBox(slot_items_panel);
         check_box->SetBackgroundColour(*wxWHITE);
 
@@ -1181,7 +1183,7 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
         fcb->SetExtuderRole(extuder_role);
         fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
 
-        filament_comboBox_sizer->Add(radio_btn, 0, wxALIGN_CENTER);
+        filament_comboBox_sizer->Add(radio_btn, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(2));
         filament_comboBox_sizer->Add(check_box, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
         filament_comboBox_sizer->Add(fcb, 0, wxALIGN_CENTER);
         slot_ams_items_sizer->Add(filament_comboBox_sizer, 0);
@@ -1221,6 +1223,8 @@ wxSizer* CalibrationPresetPage::create_rack_items_sizer(wxPanel* rack_items_pane
         auto row_sizer = new wxBoxSizer(wxHORIZONTAL);
 
         RadioBox* radio_btn = new RadioBox(rack_items_panel);
+        radio_btn->SetBackgroundColour(*wxWHITE);
+
         CheckBox* check_box = new CheckBox(rack_items_panel);
         check_box->SetBackgroundColour(*wxWHITE);
 
@@ -3487,6 +3491,8 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
     for (int i = 0; i < POOL_SIZE; ++i) {
         auto* row       = new wxBoxSizer(wxHORIZONTAL);
         auto* radio_btn = new RadioBox(m_scroll);
+        radio_btn->SetBackgroundColour(*wxWHITE);
+
         auto* check_box = new CheckBox(m_scroll);
         check_box->SetBackgroundColour(*wxWHITE);
 
