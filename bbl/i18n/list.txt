@@ -73,7 +73,6 @@ src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchAmsL
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchExtLoadModeBuilder.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchModeCommon.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchUnloadModeBuilder.cpp
-src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageExtAms.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageFilament.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageHotend.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverDeviceState.cpp
@@ -155,7 +154,6 @@ src/slic3r/GUI/ExtrusionCalibration.cpp
 src/slic3r/GUI/AMSMappingPopup.cpp
 src/slic3r/GUI/AMSMappingPopupUpdate.cpp
 src/slic3r/GUI/AMSSetting.cpp
-src/slic3r/GUI/AMSRFIDMaterialView.cpp
 src/slic3r/GUI/BBLTopbar.cpp
 src/slic3r/GUI/DownloadProgressDialog.cpp
 src/slic3r/GUI/RecenterDialog.cpp
@@ -326,7 +324,5 @@ src/slic3r/GUI/GradientCurveEditor.hpp
 src/slic3r/GUI/AuxiliaryDialog.cpp
 src/slic3r/GUI/Jobs/PlaterWorker.hpp
 src/slic3r/GUI/CreateFilamentWebDialog.cpp
-src/slic3r/GUI/Widgets/ExtruderSettingsDialog.cpp
-src/slic3r/GUI/Widgets/ExtruderSettingsDialog.hpp
 src/slic3r/GUI/ExtruderPanel.cpp
 src/slic3r/GUI/ExtruderPanel.hpp
