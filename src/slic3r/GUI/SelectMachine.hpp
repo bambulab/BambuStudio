@@ -56,6 +56,7 @@
 // Previous definitions
 namespace Slic3r{
     class DevExtder;
+    struct DevSliceContext;
     struct GCodeProcessorResult;
 }
 
@@ -359,6 +360,7 @@ private:
     std::string                         m_required_data_file_name;
     std::string                         m_required_data_file_path;
     std::shared_ptr<QueuePrintContext>  m_queue_print_context;
+    std::shared_ptr<DevSliceContext>    m_slice_context;
 
     std::vector<POItem> ops_auto;
     std::vector<POItem> ops_no_auto;

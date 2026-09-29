@@ -27,6 +27,7 @@
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceCore/DevMappingNozzle.h"
+#include "DeviceCore/DevSliceContext.hpp"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevExtensionTool.h"
 #include "DeviceCore/DevExtruderSystem.h"
@@ -4324,7 +4325,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     if (obj) {
         obj->command_get_version();
         obj->command_request_push_all();
-        obj->get_nozzle_mapping_result()->SetPlater(m_plater);
+        if (auto mapping = obj->get_nozzle_mapping_result())
+            mapping->SetSliceContext(m_slice_context);
+
         if (!dev->get_selected_machine()) {
             dev->set_selected_machine(m_printer_last_select);
         }else if (dev->get_selected_machine()->get_dev_id() != m_printer_last_select) {
@@ -5691,6 +5694,12 @@ void SelectMachineDialog::change_default_normal(int old_filament_id, wxColour te
 
 void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
 {
+    m_slice_context = DevSliceContext::CreateFromPlater(m_print_type, m_plater);
+    if (MachineObject* cur = get_current_machine()) {
+        if (auto mapping = cur->get_nozzle_mapping_result())
+            mapping->SetSliceContext(m_slice_context);
+    }
+
     update_page_turn_state(false);
     if (data.is_valid()) {
         wxImage image(data.width, data.height);
@@ -5775,6 +5784,23 @@ static wxSize s_get_full_resolution()
 
 void SelectMachineDialog::set_default_from_sdcard()
 {
+    if (m_print_type == PrintFromType::FROM_PRINT_QUEUE && m_queue_print_context) {
+        m_slice_context = DevSliceContext::CreateFromQueue(m_print_type, *m_queue_print_context);
+    } else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW &&
+               m_print_plate_idx >= 0 &&
+               m_print_plate_idx < static_cast<int>(m_required_data_plate_data_list.size()) &&
+               m_required_data_plate_data_list[m_print_plate_idx]) {
+        m_slice_context = DevSliceContext::CreateFromPlate(m_print_type,
+                                                           *m_required_data_plate_data_list[m_print_plate_idx],
+                                                           m_required_data_config);
+    } else {
+        m_slice_context.reset();
+    }
+    if (MachineObject* cur = get_current_machine()) {
+        if (auto mapping = cur->get_nozzle_mapping_result())
+            mapping->SetSliceContext(m_slice_context);
+    }
+
     DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev_manager) return;
     MachineObject *obj_ = dev_manager->get_selected_machine();
@@ -5963,7 +5989,7 @@ void SelectMachineDialog::set_default_from_sdcard()
                 m_mapping_popup.set_current_filament_id(fo.id);
                 m_mapping_popup.set_tag_texture(fo.type);
                 m_mapping_popup.set_send_win(this);
-                m_mapping_popup.update(obj_, m_ams_mapping_result);
+                m_mapping_popup.update(obj_, m_ams_mapping_result, use_dynamic_nozzle_map(), m_print_type);
                 m_mapping_popup.Popup();
             }
         });
@@ -6259,17 +6285,10 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
     }
 
     std::vector<Slic3r::MultiNozzleUtils::NozzleInfo> nozzle_vec;
-    if (m_print_type == FROM_PRINT_QUEUE && m_queue_print_context) {
-        for (const auto& nozzle : m_queue_print_context->plate_data->nozzles_info) {
-            if (nozzle.extruder_id == LOGIC_R_EXTRUDER_ID)
-                nozzle_vec.push_back(nozzle);
-        }
-    } else {
-        auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-        if (!nozzle_group_res || m_print_type != FROM_NORMAL)
-            return;
-        nozzle_vec = nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID);
-    }
+    const auto& mapping = obj_->get_nozzle_mapping_result();
+    if (!mapping || !mapping->HasSliceContext())
+        return;
+    nozzle_vec = mapping->GetUsedNozzlesInExtruder(LOGIC_R_EXTRUDER_ID);
     if (nozzle_vec.empty()) {
         return;// no need to check if no right nozzles used in slicing
     }
@@ -6363,7 +6382,7 @@ static bool s_get_queue_slicing_extruder_nozzles(const QueuePrintContext& contex
 // for example:
 // {0, {0.4, S_FLOW}}, {1, {0.8, H_FLOW}}
 // {0, {0.4, S_FLOW}}, {0, {0.4, H_FLOW}} // hybrid
-static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
+static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles(MachineObject* obj)
 {
     std::unordered_multimap<int, NozzleDef> used_extuder_nozzles;
 
@@ -6387,10 +6406,12 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
         return used_extuder_nozzles;
     }
 
+    const auto mapping = obj ? obj->get_nozzle_mapping_result() : nullptr;
+
     try {
-        auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
-        if (nozzle_group_res && nozzle_group_res->is_support_dynamic_nozzle_map() && nozzle_volume_type_opt->values.size() == 2) {
-            const auto& used_nozzles = nozzle_group_res->get_used_nozzles_in_extruder();
+        if (mapping && mapping->HasSliceContext() && mapping->IsSupportDynamicNozzleMap() &&
+            nozzle_volume_type_opt->values.size() == 2) {
+            const auto& used_nozzles = mapping->GetUsedNozzlesInExtruder();
             for (const auto& used_nozzle : used_nozzles) {
                 NozzleDef nozzle_data;
                 nozzle_data.nozzle_diameter = s_get_diameter(used_nozzle.diameter);
@@ -6421,20 +6442,20 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
                     continue;// already collected
                 }
 
-                auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
-                assert(nozzle_group_res);
-                if (nozzle_group_res) {
-                    const auto &nozzle_infos = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), logic_extruder_idx);
-                    for (const auto& nozzle_info : nozzle_infos) {
-                        // A hotend rack prints one logical extruder with several diameters, so the
-                        // diameter has to come from the sliced nozzle as well. The preset value read
-                        // above only describes the extruder, and using it here would ask the printer
-                        // for hotends the slice never needed.
-                        nozzle_data.nozzle_diameter  = nozzle_info.first.nozzle_diameter;
-                        nozzle_data.nozzle_flow_type = nozzle_info.first.nozzle_flow_type;
-                        used_extuder_nozzles.insert({ physical_idx, nozzle_data });
+                if (mapping && mapping->HasSliceContext()) {
+                    for (const auto& slicing_nozzle : mapping->GetUsedNozzlesInExtruder(logic_extruder_idx)) {
+                        try {
+                            // A hotend rack prints one logical extruder with several diameters, so the
+                            // diameter has to come from the sliced nozzle as well. The preset value read
+                            // above only describes the extruder, and using it here would ask the printer
+                            // for hotends the slice never needed.
+                            nozzle_data.nozzle_diameter  = s_get_diameter(slicing_nozzle.diameter);
+                            nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(slicing_nozzle.volume_type);
+                            used_extuder_nozzles.insert({ physical_idx, nozzle_data });
+                        } catch (const std::exception& e) {
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "exception: " << e.what();
+                        }
                     }
-
                     continue;
                 }
             } else {
@@ -6470,7 +6491,7 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
                 return false;
             }
         } else {
-            slicing_ext_nozzles = s_get_slicing_extuder_nozzles();
+            slicing_ext_nozzles = s_get_slicing_extuder_nozzles(obj_);
         }
         for (auto slicing_ext_nozzle : slicing_ext_nozzles)  {
             int slicing_ext_idx = slicing_ext_nozzle.first;
@@ -6552,8 +6573,9 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
             return;
         }
 
-        auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-        if (nozzle_group_res && !nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID).empty()) {
+        const auto& mapping = obj_->get_nozzle_mapping_result();
+        if (mapping && mapping->HasSliceContext() &&
+            !mapping->GetUsedNozzlesInExtruder(LOGIC_R_EXTRUDER_ID).empty()) {
 
             if (event.GetString() == "off") {
                 MessageDialog dlg(this, S_RACK_FLOW_DYNAMICS_CALI_WARNING, _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
@@ -6570,9 +6592,9 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
                 // STUDIO-15239
                 // request nozzle mapping result if right extruder nozzles used in slicing
                 clear_nozzle_mapping();
-                obj_->get_nozzle_mapping_result()->CtrlGetAutoNozzleMappingV0(m_plater, m_ams_mapping_result,
-                                                                            m_checkbox_list["flow_cali"]->getValueInt(),
-                                                                            m_pa_value_switch->GetValue() ? 0 : 1);
+                mapping->CtrlGetAutoNozzleMappingV0(m_ams_mapping_result,
+                                                    m_checkbox_list["flow_cali"]->getValueInt(),
+                                                    m_pa_value_switch->GetValue() ? 0 : 1);
             }
         }
     }
@@ -6616,7 +6638,7 @@ void SelectMachineDialog::on_pa_value_switch_changed(wxCommandEvent &event)
     event.Skip();
 
     clear_nozzle_mapping();
-    obj_->get_nozzle_mapping_result()->CtrlGetAutoNozzleMappingV0(m_plater, m_ams_mapping_result,
+    obj_->get_nozzle_mapping_result()->CtrlGetAutoNozzleMappingV0(m_ams_mapping_result,
                                                                 m_checkbox_list["flow_cali"]->getValueInt(),
                                                                 m_pa_value_switch->GetValue() ? 0 : 1);
 }
@@ -6658,46 +6680,14 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
         return nozzle_map;
     }
 
-    int total_ext_count = 0;
-    if (m_print_type == FROM_NORMAL) {
-        const auto& full_config = wxGetApp().preset_bundle->full_config();
-        const auto opt = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-        total_ext_count = opt ? opt->values.size() : 0;
-    } else {
-        const auto opt = m_required_data_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-        total_ext_count = opt ? opt->values.size() : 0;
-    }
+    int total_ext_count = get_print_task_total_extruder_count();
 
     if (total_ext_count != obj_->GetExtderSystem()->GetTotalExtderCount()) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": total_ext_count not match";
         return nozzle_map;
     }
 
-    if (m_print_type == FROM_PRINT_QUEUE && m_queue_print_context) {
-        const auto filament_it = std::find_if(m_queue_print_context->plate_data->slice_filaments_info.begin(),
-                                              m_queue_print_context->plate_data->slice_filaments_info.end(),
-                                              [fila_id](const FilamentInfo& filament) { return filament.id == fila_id; });
-        if (filament_it == m_queue_print_context->plate_data->slice_filaments_info.end())
-            return nozzle_map;
-
-        if (obj_->GetNozzleRack()->IsSupported()) {
-            const auto physical_mapping = obj_->get_nozzle_mapping_result()->GetNozzleMappingMap();
-            for (int group_id : filament_it->group_id) {
-                const auto mapped = physical_mapping.find(group_id);
-                if (mapped != physical_mapping.end())
-                    nozzle_map[mapped->second] = obj_->GetNozzleSystem()->GetNozzleByPosId(mapped->second);
-            }
-        } else {
-            for (const auto& nozzle : m_queue_print_context->plate_data->nozzles_info) {
-                if (std::find(filament_it->group_id.begin(), filament_it->group_id.end(), nozzle.group_id) == filament_it->group_id.end())
-                    continue;
-                if (nozzle.extruder_id < 0 || nozzle.extruder_id >= total_ext_count)
-                    continue;
-                const int physical_extruder = DevExtder::to_physical_extruder_id(total_ext_count, nozzle.extruder_id);
-                nozzle_map[physical_extruder] = obj_->GetNozzleSystem()->GetNozzleByPosId(physical_extruder);
-            }
-        }
-    } else if (!obj_->GetNozzleRack()->IsSupported() && !use_dynamic_nozzle_map()) {
+    if (!obj_->GetNozzleRack()->IsSupported() && !use_dynamic_nozzle_map()) {
         if (total_ext_count == 1) {
             nozzle_map[MAIN_EXTRUDER_ID] = obj_->GetNozzleSystem()->GetNozzleByPosId(MAIN_EXTRUDER_ID);
         } else if (total_ext_count == 2) {
@@ -6710,7 +6700,7 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
             }
         };
     } else {
-        if (m_print_type == FROM_NORMAL) {
+        if (m_print_type == FROM_NORMAL || m_print_type == FROM_PRINT_QUEUE) {
             if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
                 const auto& nozzle_pos_vec = obj_->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(fila_id);
                 for (const auto& nozzle_pos : nozzle_pos_vec) {
@@ -6733,10 +6723,9 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
                     }
                 }
             } else {
-                auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-                if (nozzle_group_res) {
-                    const auto& nozzles = nozzle_group_res->get_nozzles_for_filament(fila_id);
-                    for (const auto& item : nozzles) {
+                const auto& mapping = obj_->get_nozzle_mapping_result();
+                if (mapping && mapping->HasSliceContext()) {
+                    for (const auto& item : mapping->GetNozzlesForFilament(fila_id)) {
                         if (item.extruder_id == 0) {
                             nozzle_map[DEPUTY_EXTRUDER_ID] = obj_->GetNozzleSystem()->GetNozzleByPosId(DEPUTY_EXTRUDER_ID);
                         } else if (item.extruder_id == 1) {
@@ -6806,7 +6795,7 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
 
     int total_extruder_count = obj_->GetExtderSystem()->GetTotalExtderCount();
     if (total_extruder_count == 2 && (obj_->GetFilaSwitch()->IsInstalled() || obj_->GetNozzleRack()->IsSupported())) {
-        if (obj_->GetNozzleRack()->IsSupported() && m_print_type != FROM_PRINT_QUEUE) {
+        if (obj_->GetNozzleRack()->IsSupported()) {
             return obj_->get_nozzle_mapping_result()->GetMappedNozzlePosStrByFilaId(fila_id);
         } else {
             const auto& nozzle_map = get_mapped_nozzles(fila_id);
@@ -6996,18 +6985,14 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV1(MachineObject* obj
         return true;// no need to check if not support nozzle rack
     }
 
-    const bool queue_needs_nozzle_mapping = m_print_type == FROM_PRINT_QUEUE && m_queue_print_context &&
-        !m_queue_print_context->plate_data->nozzles_info.empty();
-    if (!use_dynamic_nozzle_map() && !queue_needs_nozzle_mapping) {
+    if (!use_dynamic_nozzle_map()) {
         return true;
     }
 
     const auto& obj_nozzle_mapping_ptr = obj_->get_nozzle_mapping_result();
     if (!obj_nozzle_mapping_ptr->HasResult()) {
         if (time(nullptr) - s_nozzle_mapping_last_request_time > 10) { // avoid too many requests
-            int rtn = m_print_type == FROM_PRINT_QUEUE && m_queue_print_context
-                ? obj_nozzle_mapping_ptr->CtrlGetAutoNozzleMappingV1(m_queue_print_context->plate_data->nozzles_info)
-                : obj_nozzle_mapping_ptr->CtrlGetAutoNozzleMappingV1(m_plater);
+            int rtn = obj_nozzle_mapping_ptr->CtrlGetAutoNozzleMappingV1();
             if (rtn == 0) {
                 s_nozzle_mapping_last_request_time = time(nullptr);
             } else {
@@ -7071,7 +7056,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV0(MachineObject* obj
         return true;// no need to check if not support nozzle rack
     }
 
-    if (m_print_type != FROM_NORMAL) {
+    if (m_print_type != FROM_NORMAL && m_print_type != FROM_PRINT_QUEUE) {
         return true;// there are no slicing data when print from sdcard
     }
 
@@ -7080,8 +7065,8 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV0(MachineObject* obj
     }
 
     const auto& obj_nozzle_mapping_ptr = obj_->get_nozzle_mapping_result();
-    auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-    if (nozzle_group_res && nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID).empty()) {
+    if (obj_nozzle_mapping_ptr->HasSliceContext() &&
+        obj_nozzle_mapping_ptr->GetUsedNozzlesInExtruder(LOGIC_R_EXTRUDER_ID).empty()) {
         if (obj_nozzle_mapping_ptr->HasResult()) {
             clear_nozzle_mapping();
         }
@@ -7090,7 +7075,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV0(MachineObject* obj
 
     if (!obj_nozzle_mapping_ptr->HasResult()) {
         if (time(nullptr) - s_nozzle_mapping_last_request_time > 10) { // avoid too many requests
-            int rtn = obj_nozzle_mapping_ptr->CtrlGetAutoNozzleMappingV0(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt(), m_pa_value_switch->GetValue() ? 0 : 1);
+            int rtn = obj_nozzle_mapping_ptr->CtrlGetAutoNozzleMappingV0(m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt(), m_pa_value_switch->GetValue() ? 0 : 1);
             if (rtn == 0) {
                 s_nozzle_mapping_last_request_time = time(nullptr);
             } else {
@@ -8059,23 +8044,12 @@ bool SelectMachineDialog::slicing_with_fila_switch() const
 
 bool SelectMachineDialog::use_dynamic_nozzle_map() const
 {
-    if (m_print_type == FROM_NORMAL) {
-        auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-        if (nozzle_group_res && nozzle_group_res->is_support_dynamic_nozzle_map()) {
-            return true;
-        }
-    } else if (m_print_type == FROM_SDCARD_VIEW || m_print_type == FROM_PRINT_QUEUE) {
-        if (m_required_data_plate_data_list.size() > m_print_plate_idx) {
-            auto dynamic_nozzle_map = m_required_data_plate_data_list[m_print_plate_idx]->config.option<ConfigOptionBool>("enable_filament_dynamic_map");
-            if (dynamic_nozzle_map) {
-                return dynamic_nozzle_map->value;
-            }
-        }
+    if (!m_slice_context) {
+        return false;
+    }
 
-        auto dynamic_nozzle_map = m_required_data_config.option<ConfigOptionBool>("enable_filament_dynamic_map");
-        if (dynamic_nozzle_map) {
-            return dynamic_nozzle_map->value;
-        }
+    if (m_print_type == FROM_NORMAL || m_print_type == FROM_PRINT_QUEUE || m_print_type == FROM_SDCARD_VIEW) {
+        return m_slice_context->support_dynamic_nozzle_map;
     }
 
     return false;
@@ -8094,18 +8068,17 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
         return std::nullopt;
     }
 
-    if (!m_plater || !obj_ || !obj_->GetFilaSwitch() || !obj_->GetFilaSwitch()->IsInstalled()) {
+    if (!obj_ || !obj_->GetFilaSwitch() || !obj_->GetFilaSwitch()->IsInstalled()) {
         return std::nullopt;
     }
 
-    GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result();
-    auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-    if (!nozzle_group_res || !gcode_result) {
+    const auto& mapping = obj_->get_nozzle_mapping_result();
+    if (!mapping || !mapping->HasSliceContext()) {
         return std::nullopt;
     }
 
     std::vector<int> group_of_filaments;
-    const auto& logic_filaments = cast<int>(nozzle_group_res->get_used_filaments());
+    const auto logic_filaments = cast<int>(mapping->GetUsedFilaments());
     for (const auto& fila_idx : logic_filaments) {
         bool found = false;
         for (const auto& item : m_ams_mapping_result) {
@@ -8134,9 +8107,9 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
         }
     }
 
-    const auto& nozzle_list = nozzle_group_res->get_used_nozzles_in_extruder();
-    const auto& fila_change_seq = cast<int>(gcode_result->filament_change_sequence);
-    const auto& nozzle_change_seq = cast<int>(gcode_result->nozzle_change_sequence);
+    const auto nozzle_list = mapping->GetUsedNozzlesInExtruder();
+    const auto fila_change_seq = cast<int>(mapping->GetFilamentChangeSequence());
+    const auto nozzle_change_seq = cast<int>(mapping->GetNozzleChangeSequence());
 
     MultiNozzleUtils::FilamentChangeTimeParams params;
     const auto& full_config = wxGetApp().preset_bundle->full_config();
@@ -9433,16 +9406,30 @@ void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
         m_check_nozzle_count = DevPrinterConfigUtil::support_nozzle_count_check(m_printer_type);
 
         if (m_has_rack) {
-            auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(plater);
-            if (nozzle_group_res) {
+            const auto& mapping = obj->get_nozzle_mapping_result();
+            if (mapping && mapping->HasSliceContext()) {
                 ExtruderNozzleInfos slicing_nozzle_infos;
+                auto collect_defs = [](const std::vector<MultiNozzleUtils::NozzleInfo>& nozzles) {
+                    std::unordered_map<NozzleDef, int> need_nozzle_map;
+                    for (const auto& slicing_nozzle : nozzles) {
+                        try {
+                            NozzleDef data;
+                            data.nozzle_diameter = boost::lexical_cast<float>(slicing_nozzle.diameter);
+                            data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(slicing_nozzle.volume_type);
+                            need_nozzle_map[data]++;
+                        } catch (const std::exception& e) {
+                            BOOST_LOG_TRIVIAL(error) << "NozzleStatePanel::UpdateInfoBy exception: " << e.what();
+                        }
+                    }
+                    return need_nozzle_map;
+                };
                 // A single-toolhead machine reports logic id 0, which maps to the main
                 // extruder, not to the deputy one as it does on a dual-extruder machine.
                 // Keying the rows by the wrong extruder makes every lookup in
                 // m_installed_nozzles miss and paints all of them red.
                 for (const int logic_ext_id : { LOGIC_L_EXTRUDER_ID, LOGIC_R_EXTRUDER_ID }) {
                     const int physical_ext_id = DevExtder::to_physical_extruder_id(m_total_ext_count, logic_ext_id);
-                    for (const auto& item : DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), logic_ext_id)) {
+                    for (const auto& item : collect_defs(mapping->GetUsedNozzlesInExtruder(logic_ext_id))) {
                         slicing_nozzle_infos[physical_ext_id][item.first] += item.second;
                     }
                 }
@@ -9452,7 +9439,7 @@ void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
         } else {
             // Keyed by physical extruder id like GetExtruderNozzleInfo(), CollectNozzleInfo() uses logic ids
             ExtruderNozzleInfos slicing_nozzle_infos;
-            for (const auto& slicing_ext_nozzle : s_get_slicing_extuder_nozzles()) {
+            for (const auto& slicing_ext_nozzle : s_get_slicing_extuder_nozzles(obj)) {
                 slicing_nozzle_infos[slicing_ext_nozzle.first][slicing_ext_nozzle.second]++;
             }
 

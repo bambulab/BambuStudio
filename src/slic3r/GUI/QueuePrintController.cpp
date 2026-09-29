@@ -36,6 +36,7 @@ namespace {
 constexpr size_t kMaxQueueConfigBytes = 20 * 1024 * 1024;
 constexpr size_t kMaxLogicalFilaments = 64;
 constexpr size_t kMaxFilamentIdLength = 512;
+constexpr size_t kMaxFilamentChangeSequence = 100000;
 
 // Metadata and child elements may appear in any order inside <plate>, and some
 // producers emit printer_model_id before index. Every plate is staged while it is
@@ -116,7 +117,7 @@ bool is_decimal_id(const std::string& value)
     });
 }
 
-bool parse_ints(const std::string& value, int minimum, int maximum, std::vector<int>& output)
+bool parse_ints(const std::string& value, int minimum, int maximum, std::vector<int>& output, size_t max_count = kMaxLogicalFilaments)
 {
     output.clear();
     size_t begin = 0;
@@ -129,7 +130,7 @@ bool parse_ints(const std::string& value, int minimum, int maximum, std::vector<
         if (token.empty() || !parse_int(token, minimum, maximum, number))
             return false;
         output.push_back(number);
-        if (output.size() > kMaxLogicalFilaments)
+        if (output.size() > max_count)
             return false;
         if (end == std::string::npos)
             return true;
@@ -562,8 +563,87 @@ std::shared_ptr<QueuePrintContext> parse_context(const QueuePrintRequest& reques
                             << context->queue_plate_index
                             << ", cloud_plate_index=" << context->cloud_plate_index
                             << ", filaments=" << context->plate_data->slice_filaments_info.size()
-                            << ", nozzles=" << context->plate_data->nozzles_info.size();
+                            << ", nozzles=" << context->plate_data->nozzles_info.size()
+                            << ", filament_change_seq=" << context->plate_data->filament_change_sequence.size()
+                            << ", nozzle_change_seq=" << context->plate_data->nozzle_change_sequence.size();
     return context;
+}
+
+// Same layout as Metadata/filament_sequence.json in 3mf:
+//   { "plate_N": { "filament_sequence"|"sequence": [1-based...], "nozzle_sequence": [...], ... } }
+bool apply_filament_sequence_json(PlateData& plate, int plate_index_1based, const std::string& json_text)
+{
+    if (json_text.empty() || plate_index_1based < 1)
+        return false;
+
+    const nlohmann::json root = nlohmann::json::parse(json_text, nullptr, false);
+    if (root.is_discarded() || !root.is_object()) {
+        BOOST_LOG_TRIVIAL(warning) << "QueuePrintController: filament_sequence.json is invalid";
+        return false;
+    }
+
+    const std::string plate_key = "plate_" + std::to_string(plate_index_1based);
+    const auto plate_it = root.find(plate_key);
+    if (plate_it == root.end() || !plate_it->is_object()) {
+        BOOST_LOG_TRIVIAL(warning) << "QueuePrintController: filament_sequence.json missing " << plate_key;
+        return false;
+    }
+
+    const char* filament_key = plate_it->contains("filament_sequence") ? "filament_sequence" : "sequence";
+    const auto filament_it = plate_it->find(filament_key);
+    const auto nozzle_it = plate_it->find("nozzle_sequence");
+    if (filament_it == plate_it->end() || !filament_it->is_array() ||
+        nozzle_it == plate_it->end() || !nozzle_it->is_array()) {
+        BOOST_LOG_TRIVIAL(warning) << "QueuePrintController: filament_sequence.json sequences missing for " << plate_key;
+        return false;
+    }
+    if (filament_it->size() > kMaxFilamentChangeSequence || nozzle_it->size() > kMaxFilamentChangeSequence) {
+        BOOST_LOG_TRIVIAL(warning) << "QueuePrintController: filament_sequence.json sequences too large for " << plate_key;
+        return false;
+    }
+
+    std::vector<unsigned int> filament_sequence;
+    filament_sequence.reserve(filament_it->size());
+    for (const auto& item : *filament_it) {
+        if (!item.is_number_unsigned() && !item.is_number_integer())
+            return false;
+        const int id = item.get<int>();
+        if (id < 1 || id > static_cast<int>(kMaxLogicalFilaments))
+            return false;
+        filament_sequence.push_back(static_cast<unsigned int>(id - 1));
+    }
+
+    std::vector<unsigned int> nozzle_sequence;
+    nozzle_sequence.reserve(nozzle_it->size());
+    for (const auto& item : *nozzle_it) {
+        if (!item.is_number_unsigned() && !item.is_number_integer())
+            return false;
+        const int id = item.get<int>();
+        if (id < 0 || id > 255)
+            return false;
+        nozzle_sequence.push_back(static_cast<unsigned int>(id));
+    }
+
+    plate.filament_change_sequence = std::move(filament_sequence);
+    plate.nozzle_change_sequence = std::move(nozzle_sequence);
+
+    const auto optimal_it = plate_it->find("optimal_assignment");
+    if (optimal_it != plate_it->end() && optimal_it->is_array()) {
+        std::vector<int> optimal_assignment;
+        optimal_assignment.reserve(optimal_it->size());
+        for (const auto& item : *optimal_it) {
+            if (!item.is_number_integer() && !item.is_number_unsigned())
+                break;
+            optimal_assignment.push_back(item.get<int>());
+        }
+        if (optimal_assignment.size() == optimal_it->size())
+            plate.optimal_assignment = std::move(optimal_assignment);
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "QueuePrintController: applied filament_sequence.json for " << plate_key
+                            << ", filament_change_seq=" << plate.filament_change_sequence.size()
+                            << ", nozzle_change_seq=" << plate.nozzle_change_sequence.size();
+    return true;
 }
 
 std::string json_string(const nlohmann::json& value, const char* key)
@@ -575,7 +655,8 @@ std::string json_string(const nlohmann::json& value, const char* key)
 }
 
 bool find_profile_data(const nlohmann::json& root, const QueuePrintRequest& request,
-                       std::string& slice_url, std::string& settings_url, std::string& title)
+                       std::string& slice_url, std::string& settings_url,
+                       std::string& sequence_url, std::string& title)
 {
     auto extension = root.find("extension");
     if (extension == root.end())
@@ -596,11 +677,17 @@ bool find_profile_data(const nlohmann::json& root, const QueuePrintRequest& requ
             if (!settings_url.empty()) return false;
             settings_url = json_string(config, "url");
         }
+        // Optional: same file as 3mf Metadata/filament_sequence.json. Name may be bare or path-like.
+        if (name == "filament_sequence.json" || name == "Metadata/filament_sequence.json") {
+            if (sequence_url.empty())
+                sequence_url = json_string(config, "url");
+        }
     }
     BOOST_LOG_TRIVIAL(info) << "QueuePrintController: profile configs resolved, queue_plate_index="
                             << request.plate_index
                             << ", slice_url_present=" << !slice_url.empty()
-                            << ", settings_url_present=" << !settings_url.empty();
+                            << ", settings_url_present=" << !settings_url.empty()
+                            << ", sequence_url_present=" << !sequence_url.empty();
     const auto plates = model_info->find("plates");
     if (plates == model_info->end() || !plates->is_array()) return false;
     const int64_t queue_plate_index = request.plate_index;
@@ -673,8 +760,9 @@ void QueuePrintController::PrepareAndShow(QueuePrintRequest request, Completion 
             const nlohmann::json profile = nlohmann::json::parse(response, nullptr, false);
             std::string slice_url;
             std::string settings_url;
+            std::string sequence_url;
             std::string title;
-            if (!profile.is_discarded() && find_profile_data(profile, request, slice_url, settings_url, title)) {
+            if (!profile.is_discarded() && find_profile_data(profile, request, slice_url, settings_url, sequence_url, title)) {
                 NetworkAgent* agent = wxGetApp().getAgent();
                 std::string slice_info;
                 std::string project_settings;
@@ -690,6 +778,20 @@ void QueuePrintController::PrepareAndShow(QueuePrintRequest request, Completion 
                 if (slice_result == BAMBU_NETWORK_SUCCESS && settings_result == BAMBU_NETWORK_SUCCESS) {
                     if (!title.empty()) request.title = title;
                     context = parse_context(request, slice_info, project_settings, error);
+                    if (context && !sequence_url.empty() && agent) {
+                        std::string sequence_json;
+                        const int sequence_result = agent->download_print_queue_config({sequence_url}, &sequence_json);
+                        BOOST_LOG_TRIVIAL(info) << "QueuePrintController: filament_sequence download finished, result="
+                                                << sequence_result << ", size=" << sequence_json.size();
+                        if (sequence_result == BAMBU_NETWORK_SUCCESS) {
+                            if (!apply_filament_sequence_json(*context->plate_data, context->cloud_plate_index, sequence_json)) {
+                                BOOST_LOG_TRIVIAL(warning) << "QueuePrintController: failed to apply filament_sequence.json";
+                            }
+                        }
+                    } else if (context) {
+                        BOOST_LOG_TRIVIAL(warning) << "QueuePrintController: filament_sequence.json not listed in profile configs; "
+                                                   << "change sequences remain empty";
+                    }
                     if (context && !context->cover_url.empty()) {
                         std::string thumbnail;
                         const int thumbnail_result = agent->download_print_queue_config({context->cover_url}, &thumbnail);
