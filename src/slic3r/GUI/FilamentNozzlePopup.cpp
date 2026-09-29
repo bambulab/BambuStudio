@@ -369,10 +369,9 @@ void apply_nozzle_manual_maps_to_plates()
     // filament_map_mode the user set via FilamentMapDialog for that (non-multi-diameter) state.
     if (!is_single_ext_multi_nozzle(preset_bundle->full_config())) return;
     if (!multi_nozzle_diameter_mode_enabled(preset_bundle->project_config)) return;
-
-    auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
-    if (mode_opt && mode_opt->value != fmmNozzleManual) mode_opt->value = fmmNozzleManual;
-
+    
+    //auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
+    //if (mode_opt && mode_opt->value != fmmNozzleManual) mode_opt->value = fmmNozzleManual;
     const auto     full_config = preset_bundle->full_config();
     const size_t   n_slots     = preset_bundle->filament_presets.size();
     const auto    *g_vol_map   = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
@@ -449,10 +448,43 @@ void apply_nozzle_manual_maps_to_plates()
 
     for (PartPlate *plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
         if (plate == nullptr) continue;
-        plate->set_filament_map_mode(fmmNozzleManual);
+        // 只写停在自定义模式的盘。自动模式下这三个 map 是切片器算完写回来的结果
+        // （见 BackgroundSlicingProcess），每次侧边栏刷新都重推一遍会和那个回写来回覆盖。
+        if (plate->get_filament_map_mode() != fmmNozzleManual) continue;
         plate->set_filament_maps(filament_map_all_slots);
         plate->set_filament_volume_maps(volume_map_all_slots);
         if (built) plate->set_filament_nozzle_maps(nozzle_map_all_slots);
+    }
+}
+
+void sync_custom_map_mode_with_diameter_mode()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    Plater       *plater        = wxGetApp().plater();
+    if (preset_bundle == nullptr || plater == nullptr) return;
+
+    // 「机型是单挤出机多喷嘴」和「多口径模式开关打开」都满足，才把自定义写成 fmmNozzleManual；
+    // 任意一个不满足就走反方向。注意「换到了别的机型」也算不满足，所以从这类机型换走时，
+    // 盘上残留的 fmmNozzleManual 会被翻译回 fmmManual，不会跟着 3mf 传到不支持它的机型上。
+
+    if (!is_single_ext_multi_nozzle(preset_bundle->full_config()))
+        return;
+
+    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
+                                is_single_ext_multi_nozzle(preset_bundle->full_config());
+    const FilamentMapMode from = multi_diameter ? fmmManual : fmmNozzleManual;
+    const FilamentMapMode to   = multi_diameter ? fmmNozzleManual : fmmManual;
+
+    if (auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
+        mode_opt != nullptr && mode_opt->value == from)
+        mode_opt->value = to;
+
+    for (PartPlate *plate : plater->get_partplate_list().get_plate_list()) {
+        if (plate == nullptr) continue;
+        auto *mode_opt = plate->config()->option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
+        if (mode_opt == nullptr || mode_opt->value != from) continue;
+        // 不走 set_filament_map_mode()：它发现模式变了会清空三个 map，而这里只是换个写法。
+        mode_opt->value = to;
     }
 }
 

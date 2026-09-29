@@ -3789,21 +3789,7 @@ Sidebar::Sidebar(Plater *parent)
             preset_bundle->validate_filament_nozzle_diameter_selections();
             preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
 
-            // Turning on multi_nozzle_diameter_mode on a single-extruder multi-nozzle printer makes
-            // the per-slot diameter/flow selector authoritative -- the resulting assignment is
-            // conceptually a manual one, so pin filament_map_mode to fmmNozzleManual (global + all
-            // per-plate overrides) so it persists into the 3mf. Turning the toggle off deliberately
-            // does NOT touch filament_map_mode: with the selector hidden the user is expected to
-            // pick a mode via the (now-available) FilamentMapDialog, and silently coercing to auto
-            // here would clobber a manual choice they made in that dialog either before or after.
-            if (enabled && is_single_ext_multi_nozzle(preset_bundle->full_config())) {
-                auto *mode_opt = preset_bundle->project_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode");
-                if (mode_opt && mode_opt->value != fmmNozzleManual) mode_opt->value = fmmNozzleManual;
-                for (PartPlate *plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
-                    if (plate == nullptr) continue;
-                    if (plate->get_filament_map_mode() != fmmNozzleManual) plate->set_filament_map_mode(fmmNozzleManual);
-                }
-            }
+            sync_custom_map_mode_with_diameter_mode();
 
             // On toggle-ON, restore the per-slot snapshot captured at the previous toggle-OFF (if any).
             // Truncate/pad to current filament_presets size in case the user added/removed slots while
@@ -5230,6 +5216,8 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
     // gate so every refresh (including non-validating ones that fire after project load / plate ops)
     // gets a chance to normalize any short/stale project vs per-plate map arrays before a save.
     // No-op if not (is_single_ext_multi_nozzle && multi_nozzle_diameter_mode_enabled).
+    // sync 必须在前：apply_nozzle_manual_maps_to_plates() 要按盘的模式决定写不写 map。
+    sync_custom_map_mode_with_diameter_mode();
     apply_nozzle_manual_maps_to_plates();
     if (validate_selections) {
         const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
@@ -5239,6 +5227,8 @@ void Sidebar::refresh_filament_diameter_buttons(bool validate_selections)
         // Validation can repair filament_diameter_map / filament_volume_map, and the apply above ran
         // before it -- re-push so the per-plate copies carry the corrected pair into the 3mf and into
         // the on_config_change below, instead of the pre-validation values.
+        // 校验本身可能因为机型不支持而把多口径开关强制关掉，所以要先重新转换一次写法。
+        sync_custom_map_mode_with_diameter_mode();
         apply_nozzle_manual_maps_to_plates();
         for (PlaterPresetComboBox *combo : p->combos_filament)
             combo->update();

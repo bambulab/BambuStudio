@@ -69,13 +69,14 @@ private:
     CascadeMenuPopup *m_sub_menu = nullptr;
 };
 
-// Re-derive per-plate filament_map / filament_volume_map / filament_nozzle_map for every plate from
-// the current project-config state (filament_diameter_map + filament_volume_map) and
-// pin filament_map_mode to fmmNozzleManual. Mirrors what FilamentMapDialog's fmmManual apply_to_plate
-// path writes so the manual assignment gets persisted into the 3mf metadata. No-op unless the current
-// printer is single-extruder multi-nozzle. Call after any user-driven per-slot diameter/flow/preset
-// change on such machines.
+// 按 project_config 里的逐槽口径 / 流量，重新推导三个 map 写回全局和各个盘。
+// 用户改了逐槽口径 / 流量 / 预设后调用，且必须紧跟 sync_custom_map_mode_with_diameter_mode()：
+// 它要按盘的模式决定写不写。
 void apply_nozzle_manual_maps_to_plates();
+
+// 「自定义」在多口径模式下写作 fmmNozzleManual，其余情况写作 fmmManual，本函数在两者间双向转换。
+// 幂等，只看当前状态、不依赖开关翻转事件：打开 3mf 时开关状态是直接读进来的，没有事件可挂。
+void sync_custom_map_mode_with_diameter_mode();
 
 }} // namespace Slic3r::GUI
 
