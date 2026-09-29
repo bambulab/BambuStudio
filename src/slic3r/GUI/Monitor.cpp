@@ -26,6 +26,7 @@
 #include "format.hpp"
 #include "MediaPlayCtrl.h"
 #include "MediaFilePanel.h"
+#include "DeviceWeb/DeviceWebHost.hpp"
 #include "Plater.hpp"
 #include "BindDialog.hpp"
 
@@ -178,6 +179,10 @@ void MonitorPanel::init_tabpanel()
         }
         page->SetFocus();
         update_all();
+        if (page == m_print_queue_panel) {
+            m_print_queue_panel->NavigateTo("/device_page/print_queue", true);
+            update_print_queue_device(obj);
+        }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " select :" << get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()))
             << " wxString:" << m_tabpanel->GetPageText(m_tabpanel->GetSelection()).ToStdString();
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
@@ -204,6 +209,10 @@ void MonitorPanel::init_tabpanel()
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
     m_status_info_panel        = new StatusPanel(m_tabpanel);
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
+
+    m_print_queue_panel = new DeviceWebHost(m_tabpanel, DeviceWebHostMode::PrintQueue,
+                                            "/device_page/print_queue", true);
+    m_tabpanel->AddPage(m_print_queue_panel, _L("Print queue"), "", false);
 
     m_media_file_panel = new MediaFilePanel(m_tabpanel);
     m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), "", false);
@@ -324,6 +333,9 @@ void MonitorPanel::on_select_printer(wxCommandEvent& event)
     update_all();
 
     MachineObject *obj_ = dev->get_selected_machine();
+    if (m_tabpanel->GetCurrentPage() == m_print_queue_panel) {
+        update_print_queue_device(obj_);
+    }
     if (obj_) {
         obj_->GetCalib()->ResetCalibVersion();
         obj_->GetCalib()->ResetPAHistory();
@@ -380,13 +392,20 @@ void MonitorPanel::update_all()
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
         m_hms_panel->clear_hms_tag();
-        m_tabpanel->GetBtnsListCtrl()->showNewTag(3, false);
+        m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, false);
         m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
         m_status_info_panel->update(obj);
+        update_print_queue_device(nullptr);
         return;
     }
 
-    if (obj->connection_type() != last_conn_type) { last_conn_type = obj->connection_type(); }
+    if (m_tabpanel->GetCurrentPage() == m_print_queue_panel) {
+        update_print_queue_device(obj);
+    }
+
+    if (obj->connection_type() != last_conn_type) {
+        last_conn_type = obj->connection_type();
+    }
 
     m_side_tools->update_status(obj);
 
@@ -408,6 +427,7 @@ void MonitorPanel::update_all()
     show_status(MONITOR_NORMAL);
 
     auto current_page = m_tabpanel->GetCurrentPage();
+
     if (current_page == m_status_info_panel) {
         if (m_status_info_panel->IsShown()) {
             m_status_info_panel->obj = obj;
@@ -425,6 +445,14 @@ void MonitorPanel::update_all()
     }
 
     update_hms_tag();
+}
+
+void MonitorPanel::update_print_queue_device(MachineObject* obj)
+{
+    if (!m_print_queue_panel) return;
+    auto* vm = m_print_queue_panel->GetPrintQueueVM();
+    if (!vm) return;
+    vm->SetDeviceId(obj ? obj->get_dev_id() : std::string());
 }
 
 void MonitorPanel::update_hms_tag()
@@ -447,7 +475,7 @@ void MonitorPanel::update_hms_tag()
         }
     }
 
-    m_tabpanel->GetBtnsListCtrl()->showNewTag(3, false);
+    m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, false);
     m_last_hms_list = m_hms_panel->temp_hms_list;
 }
 
@@ -569,6 +597,8 @@ std::string MonitorPanel::get_string_from_tab(PrinterTab tab)
         return "update";
     case PT_HMS:
         return "HMS";
+    case PT_PRINT_QUEUE:
+        return "print_queue";
     case PT_DEBUG:
         return "debug";
     default:
@@ -621,6 +651,19 @@ void MonitorPanel::jump_to_Rack()
     }
 
     m_status_info_panel->jump_to_Rack();
+}
+
+void MonitorPanel::jump_to_print_queue()
+{
+    if (!m_print_queue_panel) { return; }
+
+    // Re-selecting the current page is a no-op, so refresh it explicitly.
+    if (m_tabpanel->GetCurrentPage() == m_print_queue_panel) {
+        m_print_queue_panel->NavigateTo("/device_page/print_queue", true);
+        update_print_queue_device(obj);
+    } else {
+        m_tabpanel->SetSelection(PT_PRINT_QUEUE);
+    }
 }
 
 } // GUI

@@ -137,6 +137,7 @@
 #include "Jobs/BoostThreadWorker.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "SelectMachine.hpp"
+#include "QueuePrintContext.hpp"
 #include "SendMultiMachinePage.hpp"
 #include "SendToPrinter.hpp"
 #include "PublishDialog.hpp"
@@ -297,6 +298,7 @@ wxDEFINE_EVENT(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG, wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
+wxDEFINE_EVENT(EVT_ADD_TO_PRINT_QUEUE_FINISHED,     wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEND_CALIBRATION_FINISHED,       wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEND_FINISHED,                   wxCommandEvent);
 wxDEFINE_EVENT(EVT_PUBLISH_FINISHED,                wxCommandEvent);
@@ -10584,6 +10586,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
         q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent& evt) { q->print_job_finished(evt); });
+        q->Bind(EVT_ADD_TO_PRINT_QUEUE_FINISHED, [q](wxCommandEvent& evt) { q->add_to_print_queue_finished(evt); });
         q->Bind(EVT_SEND_CALIBRATION_FINISHED, [q](wxCommandEvent& evt) { q->send_calibration_job_finished(evt); });
         q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent& evt) { q->send_job_finished(evt); });
         q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent& evt) { q->publish_job_finished(evt);});
@@ -19110,6 +19113,17 @@ void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
     m_select_machine_dlg->ShowModal();
 }
 
+bool Plater::show_print_queue_dialog(std::shared_ptr<QueuePrintContext> context, std::function<void()> on_opened)
+{
+    if (!context || !p) return false;
+    if (!wxGetApp().check_send_print_version_policy()) return false;
+    if (!p->m_select_machine_dlg) p->m_select_machine_dlg = new SelectMachineDialog(p->q);
+    if (!p->m_select_machine_dlg->set_queue_print_context(std::move(context))) return false;
+    if (on_opened) on_opened();
+    p->m_select_machine_dlg->ShowModal();
+    return true;
+}
+
 void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent &e)
 {
     const int new_sel   = e.GetSelection();
@@ -20699,6 +20713,11 @@ int Plater::get_send_calibration_finished_event()
 int Plater::get_print_finished_event()
 {
     return EVT_PRINT_FINISHED;
+}
+
+int Plater::get_add_to_print_queue_finished_event()
+{
+    return EVT_ADD_TO_PRINT_QUEUE_FINISHED;
 }
 
 int Plater::get_send_finished_event()
@@ -27893,13 +27912,13 @@ void Plater::print_job_finished(wxCommandEvent &evt)
 {
     //start print failed
     if (p) {
+        // sending_mode() left the dialog buttons disabled; only prepare_mode() restores them.
+        p->enter_prepare_mode();
 #ifdef __APPLE__
         p->hide_select_machine_dlg();
 #else
         if (Slic3r::GUI::wxGetApp().get_inf_dialog_contect().empty()) {
             p->hide_select_machine_dlg();
-        } else {
-            p->enter_prepare_mode();
         }
 #endif // __APPLE__
     }
@@ -27913,6 +27932,29 @@ void Plater::print_job_finished(wxCommandEvent &evt)
     MonitorPanel* curr_monitor = p->main_frame->m_monitor;
     if(curr_monitor)
        curr_monitor->get_tabpanel()->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
+}
+
+void Plater::add_to_print_queue_finished(wxCommandEvent &evt)
+{
+    if (p) {
+        // sending_mode() left the dialog buttons disabled; only prepare_mode() restores them.
+        p->enter_prepare_mode();
+#ifdef __APPLE__
+        p->hide_select_machine_dlg();
+#else
+        if (Slic3r::GUI::wxGetApp().get_inf_dialog_contect().empty()) {
+            p->hide_select_machine_dlg();
+        }
+#endif // __APPLE__
+    }
+
+    // request_select_tab() only queues the tab switch, so defer the sub tab switch.
+    p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
+    wxGetApp().CallAfter([]() {
+        MainFrame *main_frame = wxGetApp().mainframe;
+        if (!main_frame || !main_frame->m_monitor) return;
+        main_frame->m_monitor->jump_to_print_queue();
+    });
 }
 
 void Plater::send_job_finished(wxCommandEvent& evt)

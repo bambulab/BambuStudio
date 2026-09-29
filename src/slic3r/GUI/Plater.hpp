@@ -73,6 +73,7 @@ namespace UndoRedo {
 
 namespace GUI {
 struct PendingNozzleMigration;
+struct QueuePrintContext;
 class SyncAmsInfoDialog;
 struct SyncResult; // ISyncAmsDialog.hpp; returned by the sync-dialog helpers, defined for Plater.cpp
 class MainFrame;
@@ -606,6 +607,7 @@ public:
     //BBS jump to nonitor after print job finished
     void send_calibration_job_finished(wxCommandEvent &evt);
     void print_job_finished(wxCommandEvent &evt);
+    void add_to_print_queue_finished(wxCommandEvent &evt);
     void send_job_finished(wxCommandEvent& evt);
     void publish_job_finished(wxCommandEvent& evt);
     void open_platesettings_dialog(wxCommandEvent& evt);
@@ -709,6 +711,7 @@ public:
     GLCanvas3D* get_preview_canvas3D();
     GLCanvas3D* get_assmeble_canvas3D();
     wxWindow* get_select_machine_dialog();
+    bool show_print_queue_dialog(std::shared_ptr<QueuePrintContext> context, std::function<void()> on_opened = {});
 
     void arrange();
     void orient();
@@ -722,6 +725,7 @@ public:
 
     int get_send_calibration_finished_event();
     int get_print_finished_event();
+    int get_add_to_print_queue_finished_event();
     int get_send_finished_event();
     int get_publish_finished_event();
 

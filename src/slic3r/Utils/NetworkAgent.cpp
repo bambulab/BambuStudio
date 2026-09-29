@@ -85,6 +85,8 @@ func_get_bambulab_host              NetworkAgent::get_bambulab_host_ptr = nullpt
 func_get_user_selected_machine      NetworkAgent::get_user_selected_machine_ptr = nullptr;
 func_set_user_selected_machine      NetworkAgent::set_user_selected_machine_ptr = nullptr;
 func_start_print                    NetworkAgent::start_print_ptr = nullptr;
+func_start_print_queue_task         NetworkAgent::start_print_queue_task_ptr = nullptr;
+func_upload_print_queue_content     NetworkAgent::upload_print_queue_content_ptr = nullptr;
 func_start_local_print_with_record  NetworkAgent::start_local_print_with_record_ptr = nullptr;
 func_start_send_gcode_to_sdcard     NetworkAgent::start_send_gcode_to_sdcard_ptr = nullptr;
 func_start_local_print              NetworkAgent::start_local_print_ptr = nullptr;
@@ -101,6 +103,18 @@ func_get_my_message                 NetworkAgent::get_my_message_ptr = nullptr;
 func_check_user_task_report         NetworkAgent::check_user_task_report_ptr = nullptr;
 func_get_user_print_info            NetworkAgent::get_user_print_info_ptr = nullptr;
 func_get_user_tasks                 NetworkAgent::get_user_tasks_ptr = nullptr;
+func_create_print_queue_project     NetworkAgent::create_print_queue_project_ptr = nullptr;
+func_get_print_queue_projects       NetworkAgent::get_print_queue_projects_ptr = nullptr;
+func_update_print_queue_project     NetworkAgent::update_print_queue_project_ptr = nullptr;
+func_sort_print_queue_project       NetworkAgent::sort_print_queue_project_ptr = nullptr;
+func_delete_print_queue_project     NetworkAgent::delete_print_queue_project_ptr = nullptr;
+func_update_print_queue_plate       NetworkAgent::update_print_queue_plate_ptr = nullptr;
+func_sort_print_queue_plate         NetworkAgent::sort_print_queue_plate_ptr = nullptr;
+func_delete_print_queue_plate       NetworkAgent::delete_print_queue_plate_ptr = nullptr;
+func_extract_print_queue_plate      NetworkAgent::extract_print_queue_plate_ptr = nullptr;
+func_delete_unavailable_print_queue_plates NetworkAgent::delete_unavailable_print_queue_plates_ptr = nullptr;
+func_get_print_queue_model_profile  NetworkAgent::get_print_queue_model_profile_ptr = nullptr;
+func_download_print_queue_config    NetworkAgent::download_print_queue_config_ptr = nullptr;
 func_get_filament_spools            NetworkAgent::get_filament_spools_ptr = nullptr;
 func_create_filament_spool          NetworkAgent::create_filament_spool_ptr = nullptr;
 func_update_filament_spool          NetworkAgent::update_filament_spool_ptr = nullptr;
@@ -342,6 +356,8 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     get_user_selected_machine_ptr     =  reinterpret_cast<func_get_user_selected_machine>(get_network_function("bambu_network_get_user_selected_machine"));
     set_user_selected_machine_ptr     =  reinterpret_cast<func_set_user_selected_machine>(get_network_function("bambu_network_set_user_selected_machine"));
     start_print_ptr                   =  reinterpret_cast<func_start_print>(get_network_function("bambu_network_start_print"));
+    start_print_queue_task_ptr        =  reinterpret_cast<func_start_print_queue_task>(get_network_function("bambu_network_start_print_queue_task"));
+    upload_print_queue_content_ptr    =  reinterpret_cast<func_upload_print_queue_content>(get_network_function("bambu_network_upload_print_queue_content"));
     start_local_print_with_record_ptr =  reinterpret_cast<func_start_local_print_with_record>(get_network_function("bambu_network_start_local_print_with_record"));
     start_send_gcode_to_sdcard_ptr    =  reinterpret_cast<func_start_send_gcode_to_sdcard>(get_network_function("bambu_network_start_send_gcode_to_sdcard"));
     start_local_print_ptr             =  reinterpret_cast<func_start_local_print>(get_network_function("bambu_network_start_local_print"));
@@ -358,6 +374,18 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     check_user_task_report_ptr        =  reinterpret_cast<func_check_user_task_report>(get_network_function("bambu_network_check_user_task_report"));
     get_user_print_info_ptr           =  reinterpret_cast<func_get_user_print_info>(get_network_function("bambu_network_get_user_print_info"));
     get_user_tasks_ptr                =  reinterpret_cast<func_get_user_tasks>(get_network_function("bambu_network_get_user_tasks"));
+    create_print_queue_project_ptr    =  reinterpret_cast<func_create_print_queue_project>(get_network_function("bambu_network_create_print_queue_project"));
+    get_print_queue_projects_ptr      =  reinterpret_cast<func_get_print_queue_projects>(get_network_function("bambu_network_get_print_queue_projects"));
+    update_print_queue_project_ptr    =  reinterpret_cast<func_update_print_queue_project>(get_network_function("bambu_network_update_print_queue_project"));
+    sort_print_queue_project_ptr      =  reinterpret_cast<func_sort_print_queue_project>(get_network_function("bambu_network_sort_print_queue_project"));
+    delete_print_queue_project_ptr    =  reinterpret_cast<func_delete_print_queue_project>(get_network_function("bambu_network_delete_print_queue_project"));
+    update_print_queue_plate_ptr      =  reinterpret_cast<func_update_print_queue_plate>(get_network_function("bambu_network_update_print_queue_plate"));
+    sort_print_queue_plate_ptr        =  reinterpret_cast<func_sort_print_queue_plate>(get_network_function("bambu_network_sort_print_queue_plate"));
+    delete_print_queue_plate_ptr      =  reinterpret_cast<func_delete_print_queue_plate>(get_network_function("bambu_network_delete_print_queue_plate"));
+    extract_print_queue_plate_ptr     =  reinterpret_cast<func_extract_print_queue_plate>(get_network_function("bambu_network_extract_print_queue_plate"));
+    delete_unavailable_print_queue_plates_ptr = reinterpret_cast<func_delete_unavailable_print_queue_plates>(get_network_function("bambu_network_delete_unavailable_print_queue_plates"));
+    get_print_queue_model_profile_ptr =  reinterpret_cast<func_get_print_queue_model_profile>(get_network_function("bambu_network_get_print_queue_model_profile"));
+    download_print_queue_config_ptr   =  reinterpret_cast<func_download_print_queue_config>(get_network_function("bambu_network_download_print_queue_config"));
     get_filament_spools_ptr           =  reinterpret_cast<func_get_filament_spools>(get_network_function("bambu_network_get_filament_spools"));
     create_filament_spool_ptr         =  reinterpret_cast<func_create_filament_spool>(get_network_function("bambu_network_create_filament_spool"));
     update_filament_spool_ptr         =  reinterpret_cast<func_update_filament_spool>(get_network_function("bambu_network_update_filament_spool"));
@@ -477,6 +505,8 @@ int NetworkAgent::unload_network_module()
     get_user_selected_machine_ptr     =  nullptr;
     set_user_selected_machine_ptr     =  nullptr;
     start_print_ptr                   =  nullptr;
+    start_print_queue_task_ptr        =  nullptr;
+    upload_print_queue_content_ptr    =  nullptr;
     start_local_print_with_record_ptr =  nullptr;
     start_send_gcode_to_sdcard_ptr    =  nullptr;
     start_local_print_ptr             =  nullptr;
@@ -493,6 +523,18 @@ int NetworkAgent::unload_network_module()
     check_user_task_report_ptr        =  nullptr;
     get_user_print_info_ptr           =  nullptr;
     get_user_tasks_ptr                =  nullptr;
+    create_print_queue_project_ptr    =  nullptr;
+    get_print_queue_projects_ptr      =  nullptr;
+    update_print_queue_project_ptr    =  nullptr;
+    sort_print_queue_project_ptr      =  nullptr;
+    delete_print_queue_project_ptr    =  nullptr;
+    update_print_queue_plate_ptr      =  nullptr;
+    sort_print_queue_plate_ptr        =  nullptr;
+    delete_print_queue_plate_ptr      =  nullptr;
+    extract_print_queue_plate_ptr     =  nullptr;
+    delete_unavailable_print_queue_plates_ptr = nullptr;
+    get_print_queue_model_profile_ptr =  nullptr;
+    download_print_queue_config_ptr   =  nullptr;
     get_filament_spools_ptr           =  nullptr;
     create_filament_spool_ptr         =  nullptr;
     update_filament_spool_ptr         =  nullptr;
@@ -1178,6 +1220,20 @@ int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, Wa
     return ret;
 }
 
+int NetworkAgent::start_print_queue_task(PrintQueueTaskParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
+{
+    if (!network_agent || !start_print_queue_task_ptr)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return start_print_queue_task_ptr(network_agent, std::move(params), update_fn, cancel_fn, wait_fn);
+}
+
+int NetworkAgent::upload_print_queue_content(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* response_body)
+{
+    if (!network_agent || !upload_print_queue_content_ptr || !response_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return upload_print_queue_content_ptr(network_agent, params, update_fn, cancel_fn, response_body);
+}
+
 int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
 {
     int ret = 0;
@@ -1344,6 +1400,90 @@ int NetworkAgent::get_user_tasks(TaskQueryParams params, std::string* http_body)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
     return ret;
+}
+
+int NetworkAgent::create_print_queue_project(PrintQueueProjectCreateParams params, std::string* http_body)
+{
+    if (!network_agent || !create_print_queue_project_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return create_print_queue_project_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::get_print_queue_projects(PrintQueueProjectsQueryParams params, std::string* http_body)
+{
+    if (!network_agent || !get_print_queue_projects_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return get_print_queue_projects_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::update_print_queue_project(PrintQueueProjectUpdateParams params, std::string* http_body)
+{
+    if (!network_agent || !update_print_queue_project_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return update_print_queue_project_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::sort_print_queue_project(PrintQueueProjectSortParams params, std::string* http_body)
+{
+    if (!network_agent || !sort_print_queue_project_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return sort_print_queue_project_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::delete_print_queue_project(PrintQueueProjectDeleteParams params, std::string* http_body)
+{
+    if (!network_agent || !delete_print_queue_project_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return delete_print_queue_project_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::update_print_queue_plate(PrintQueuePlateUpdateParams params, std::string* http_body)
+{
+    if (!network_agent || !update_print_queue_plate_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return update_print_queue_plate_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::sort_print_queue_plate(PrintQueuePlateSortParams params, std::string* http_body)
+{
+    if (!network_agent || !sort_print_queue_plate_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return sort_print_queue_plate_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::delete_print_queue_plate(PrintQueuePlateDeleteParams params, std::string* http_body)
+{
+    if (!network_agent || !delete_print_queue_plate_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return delete_print_queue_plate_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::extract_print_queue_plate(PrintQueuePlateExtractParams params, std::string* http_body)
+{
+    if (!network_agent || !extract_print_queue_plate_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return extract_print_queue_plate_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::delete_unavailable_print_queue_plates(PrintQueueUnavailablePlatesDeleteParams params, std::string* http_body)
+{
+    if (!network_agent || !delete_unavailable_print_queue_plates_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return delete_unavailable_print_queue_plates_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::get_print_queue_model_profile(PrintQueueModelProfileQueryParams params, std::string* http_body)
+{
+    if (!network_agent || !get_print_queue_model_profile_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return get_print_queue_model_profile_ptr(network_agent, params, http_body);
+}
+
+int NetworkAgent::download_print_queue_config(PrintQueueConfigDownloadParams params, std::string* http_body)
+{
+    if (!network_agent || !download_print_queue_config_ptr || !http_body)
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    return download_print_queue_config_ptr(network_agent, std::move(params), http_body);
 }
 
 int NetworkAgent::get_filament_spools(FilamentQueryParams params, std::string* http_body)

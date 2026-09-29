@@ -366,5 +366,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/Schema.hpp
+    GUI/DeviceWeb/ViewModels/PrintQueue/PrintQueueVM.cpp
+    GUI/DeviceWeb/ViewModels/PrintQueue/PrintQueueVM.hpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

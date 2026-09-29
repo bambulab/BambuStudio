@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <nlohmann/json.hpp>
 
+#include "libslic3r/MultiNozzleUtils.hpp"
+
 #include <wx/string.h>
 
 namespace Slic3r
@@ -75,6 +77,7 @@ public:
     void ParseAutoNozzleMapping(const nlohmann::json& print_jj);
     int CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
     int CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater);
+    int CtrlGetAutoNozzleMappingV1(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzles);
 
 private:
     float  GetFlushWeight(Slic3r::MachineObject* obj) const;

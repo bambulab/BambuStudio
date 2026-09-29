@@ -188,6 +188,11 @@ void DeviceWebHost::EnsureBuilt()
     if (m_mode == DeviceWebHostMode::DevicePageConnectedSlots || m_mode == DeviceWebHostMode::AllForDebug) {
         m_device_web_mgr->Register(std::make_unique<ConnectedSlotsVM>());
     }
+    if (m_mode == DeviceWebHostMode::PrintQueue || m_mode == DeviceWebHostMode::AllForDebug) {
+        auto print_queue_vm = std::make_unique<PrintQueueVM>();
+        m_print_queue_vm = print_queue_vm.get();
+        m_device_web_mgr->Register(std::move(print_queue_vm));
+    }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
     m_device_web_bridge->SetManager(m_device_web_mgr.get());
     m_host_hidden = !IsShownOnScreen();

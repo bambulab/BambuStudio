@@ -348,6 +348,11 @@ set(SLIC3R_GUI_SOURCES
     GUI/HintNotification.cpp
     GUI/HMSPanel.hpp
     GUI/HMSPanel.cpp
+    GUI/PrintQueueManager.hpp
+    GUI/PrintQueueManager.cpp
+    GUI/QueuePrintContext.hpp
+    GUI/QueuePrintController.hpp
+    GUI/QueuePrintController.cpp
     GUI/MonitorPage.cpp
     GUI/MonitorPage.hpp
     GUI/StatusPanel.cpp

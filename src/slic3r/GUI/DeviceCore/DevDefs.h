@@ -222,6 +222,7 @@ enum PrintFromType
 {
     FROM_NORMAL,
     FROM_SDCARD_VIEW,
+    FROM_PRINT_QUEUE,
 };
 }
 

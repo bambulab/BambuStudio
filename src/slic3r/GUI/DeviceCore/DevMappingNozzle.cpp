@@ -180,7 +180,6 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater
 
 int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater)
 {
-    Clear();
     m_plater = plater;
     if (!m_plater) {
         return -1;
@@ -192,6 +191,16 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater
         return -1;
     }
 
+    const auto& used_logic_nozzles = nozzle_group_res->get_used_nozzles_in_extruder();
+    return CtrlGetAutoNozzleMappingV1(used_logic_nozzles);
+}
+
+int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzles)
+{
+    Clear();
+    if (nozzles.empty())
+        return -1;
+
     json command_jj;
     command_jj["print"]["command"] = "get_auto_nozzle_mapping";
     m_sequence_id = std::to_string(MachineObject::m_sequence_id++);
@@ -199,8 +208,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater
 
     json nozzle_group_info_jj;
     std::unordered_set<int> used_logic_groups;
-    const auto& used_logic_nozzles = nozzle_group_res->get_used_nozzles_in_extruder();
-    for (const auto& used_logic_nozzle : used_logic_nozzles) {
+    for (const auto& used_logic_nozzle : nozzles) {
         if (used_logic_groups.count(used_logic_nozzle.group_id) != 0) {
             continue;
         }
@@ -225,6 +233,8 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater
             nozzle_info["vol"] = "Standard";
         } else if(used_logic_nozzle.volume_type == NozzleVolumeType::nvtTPUHighFlow){
             nozzle_info["vol"] = "TPU Flow";
+        } else if(used_logic_nozzle.volume_type == NozzleVolumeType::nvtE3DHighFlow){
+            nozzle_info["vol"] = DevNozzle::ToNozzleVolumeString(used_logic_nozzle.volume_type);
         } else {
             assert(0);
             continue;

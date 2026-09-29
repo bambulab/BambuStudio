@@ -20,6 +20,7 @@
 #include "ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
 #include "ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.hpp"
 #include "ViewModels/DevicePage/ConnectedSlots/ViewModel.hpp"
+#include "ViewModels/PrintQueue/PrintQueueVM.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
 
@@ -33,6 +34,7 @@ enum class DeviceWebHostMode {
     DevicePageAmsMappingHotend,
     DevicePageAutoRefillRefillInfo,
     DevicePageConnectedSlots,
+    PrintQueue,
     AllForDebug
 };
 
@@ -84,6 +86,9 @@ public:
     // Access the registered Connected Slots VM so the host dialog can push a
     // fresh snapshot before the Web side requests state/get.
     ConnectedSlotsVM* GetConnectedSlotsVM() const;
+    // Non-owning; null unless this host was built in PrintQueue mode.
+    PrintQueueVM* GetPrintQueueVM() const { return m_print_queue_vm; }
+
 
     void on_sys_color_changed();
     void msw_rescale();
@@ -140,6 +145,7 @@ private:
     std::unique_ptr<DeviceHttpServer> m_device_http_server;
     std::unique_ptr<DeviceWebBridge>  m_device_web_bridge;
     std::unique_ptr<DeviceWebManager> m_device_web_mgr;
+    PrintQueueVM*                     m_print_queue_vm{ nullptr }; // owned by m_device_web_mgr
     ContentSizeChangedHandler         m_content_size_changed_handler;
     wxSize                            m_last_reported_content_size{ wxDefaultSize };
     // Last web-reported size in DPI-independent CSS pixels (before FromDIP()).

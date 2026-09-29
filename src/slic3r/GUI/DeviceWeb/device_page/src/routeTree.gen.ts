@@ -15,6 +15,7 @@ import { Route as FilamentmanagerImport } from './routes/filament_manager'
 import { Route as AppImport } from './routes/app'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
+import { Route as DevicepagePrintqueueImport } from './routes/device_page/print_queue'
 import { Route as DevicepageHotenddetailImport } from './routes/device_page/hotend_detail'
 import { Route as DevicepageFilamentmanualpullImport } from './routes/device_page/filament_manual_pull'
 import { Route as DevicepageConnectedslotsImport } from './routes/device_page/connected_slots'
@@ -50,6 +51,12 @@ const AboutRoute = AboutImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepagePrintqueueRoute = DevicepagePrintqueueImport.update({
+  id: '/device_page/print_queue',
+  path: '/device_page/print_queue',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -235,6 +242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevicepageHotenddetailImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/print_queue': {
+      id: '/device_page/print_queue'
+      path: '/device_page/print_queue'
+      fullPath: '/device_page/print_queue'
+      preLoaderRoute: typeof DevicepagePrintqueueImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -256,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
+  '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
 export interface FileRoutesByTo {
@@ -274,6 +289,7 @@ export interface FileRoutesByTo {
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
+  '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
 export interface FileRoutesById {
@@ -293,6 +309,7 @@ export interface FileRoutesById {
   '/device_page/connected_slots': typeof DevicepageConnectedslotsRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
+  '/device_page/print_queue': typeof DevicepagePrintqueueRoute
 }
 
 export interface FileRouteTypes {
@@ -313,6 +330,7 @@ export interface FileRouteTypes {
     | '/device_page/connected_slots'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
+    | '/device_page/print_queue'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -330,6 +348,7 @@ export interface FileRouteTypes {
     | '/device_page/connected_slots'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
+    | '/device_page/print_queue'
   id:
     | '__root__'
     | '/'
@@ -347,6 +366,7 @@ export interface FileRouteTypes {
     | '/device_page/connected_slots'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
+    | '/device_page/print_queue'
   fileRoutesById: FileRoutesById
 }
 
@@ -366,6 +386,7 @@ export interface RootRouteChildren {
   DevicepageConnectedslotsRoute: typeof DevicepageConnectedslotsRoute
   DevicepageFilamentmanualpullRoute: typeof DevicepageFilamentmanualpullRoute
   DevicepageHotenddetailRoute: typeof DevicepageHotenddetailRoute
+  DevicepagePrintqueueRoute: typeof DevicepagePrintqueueRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -384,6 +405,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevicepageConnectedslotsRoute: DevicepageConnectedslotsRoute,
   DevicepageFilamentmanualpullRoute: DevicepageFilamentmanualpullRoute,
   DevicepageHotenddetailRoute: DevicepageHotenddetailRoute,
+  DevicepagePrintqueueRoute: DevicepagePrintqueueRoute,
 }
 
 export const routeTree = rootRoute
@@ -410,7 +432,8 @@ export const routeTree = rootRoute
         "/device_page/auto_refill_refill_info",
         "/device_page/connected_slots",
         "/device_page/filament_manual_pull",
-        "/device_page/hotend_detail"
+        "/device_page/hotend_detail",
+        "/device_page/print_queue"
       ]
     },
     "/": {
@@ -457,6 +480,9 @@ export const routeTree = rootRoute
     },
     "/device_page/hotend_detail": {
       "filePath": "device_page/hotend_detail.tsx"
+    },
+    "/device_page/print_queue": {
+      "filePath": "device_page/print_queue.tsx"
     }
   }
 }

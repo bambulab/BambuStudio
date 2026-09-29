@@ -13,6 +13,7 @@ const embeddedRoutes = new Set([
   '/device_page/ams_mapping_hotend',
   '/device_page/auto_refill_refill_info',
   '/device_page/connected_slots',
+  '/device_page/print_queue',
 ])
 
 function RootComponent() {

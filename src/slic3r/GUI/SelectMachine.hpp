@@ -25,6 +25,7 @@
 #include <wx/srchctrl.h>
 
 #include <unordered_map>
+#include <memory>
 
 #include "GUI_ObjectLayers.hpp"
 #include "boost/bimap/bimap.hpp"
@@ -304,6 +305,7 @@ struct pPresetFilaInfo
 };
 
 class PrinterInfoBox;
+struct QueuePrintContext;
 class SelectMachineDialog : public DPIDialog
 {
 private:
@@ -356,6 +358,7 @@ private:
     Slic3r::PlateDataPtrs               m_required_data_plate_data_list;
     std::string                         m_required_data_file_name;
     std::string                         m_required_data_file_path;
+    std::shared_ptr<QueuePrintContext>  m_queue_print_context;
 
     std::vector<POItem> ops_auto;
     std::vector<POItem> ops_no_auto;
@@ -389,6 +392,10 @@ protected:
     wxBoxSizer*                         m_change_filament_times_sizer{ nullptr };
     wxBoxSizer*                         m_warn_when_drying_sizer{ nullptr };
     Button*                             m_button_ensure{ nullptr };
+#if !BBL_RELEASE_TO_PUBLIC
+    Button*                             m_button_add_to_queue{ nullptr };
+    bool                                m_add_to_queue{ false };
+#endif
     wxStaticBitmap *                    m_rename_button{nullptr};
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
     wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
@@ -548,6 +555,9 @@ public:
     void on_cancel(wxCloseEvent& event);
     void show_errors(wxString& info);
     void on_ok_btn(wxCommandEvent& event);
+#if !BBL_RELEASE_TO_PUBLIC
+    void on_add_to_queue_btn(wxCommandEvent& event);
+#endif
     void on_reselect_dialog_btn_clicked(wxMouseEvent&);
     void Enable_Auto_Refill(bool enable);
     void on_send_print();
@@ -597,6 +607,7 @@ public:
     void navigate_to_timelapse_page();
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
+    bool set_queue_print_context(std::shared_ptr<QueuePrintContext> context);
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
     bool do_ams_mapping(MachineObject *obj_,bool use_ams);
