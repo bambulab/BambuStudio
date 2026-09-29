@@ -928,6 +928,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_add_to_queue->SetCanFocus(false);
     m_button_add_to_queue->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE2);
     m_button_add_to_queue->SetCornerRadius(FromDIP(4));
+    m_button_add_to_queue->EnableTooltipEvenDisabled();
     m_button_add_to_queue->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_add_to_queue_btn, this);
     action_sizer->Add(m_button_add_to_queue, 0, wxRIGHT, FromDIP(8));
     action_sizer->Add(m_button_ensure, 0);
@@ -4948,11 +4949,23 @@ void SelectMachineDialog::update_add_to_queue_button_state(PrintDialogStatus sta
 
     MachineObject* obj           = get_current_machine();
     const bool     lan_mode      = obj && obj->is_lan_mode_printer();
+    // The print queue does not work with a Filament Track Switch yet, either from the printer or from the slicing result
+    const bool     fila_switch   = (obj && obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled()) || slicing_with_fila_switch();
     // Only "printer is busy printing" keeps the button lit; any other reason that disables Send grays it
     const bool     busy_only     = (status == PrintDialogStatus::PrintStatusInPrinting);
     const bool     send_disabled = !m_button_ensure->IsEnabled();
 
-    const bool should_gray = lan_mode || (send_disabled && !busy_only && !is_add_to_queue_click_masked());
+    const bool should_gray = lan_mode || fila_switch || (send_disabled && !busy_only && !is_add_to_queue_click_masked());
+
+    // Explain the gray state only for the filament switch case, other reasons are already shown in the status area
+    const wxString queue_tip = fila_switch ? _L("The print queue does not support the Filament Track Switch yet.") : wxString();
+    if (m_button_add_to_queue->GetToolTipText() != queue_tip) {
+        if (queue_tip.IsEmpty()) {
+            m_button_add_to_queue->UnsetToolTip();
+        } else {
+            m_button_add_to_queue->SetToolTip(queue_tip);
+        }
+    }
 
     // The default Button StateColor already renders a gray appearance when disabled
     m_button_add_to_queue->Enable(!should_gray);
