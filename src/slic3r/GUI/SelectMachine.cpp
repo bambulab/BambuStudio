@@ -1117,6 +1117,7 @@ void SelectMachineDialog::init_bind()
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
     Bind(EVT_HOTEND_SLOT_EDITED, &SelectMachineDialog::on_hotend_slot_edited, this);
     Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
+    Bind(wxEVT_SHOW, &SelectMachineDialog::on_show_changed, this);
     Bind(wxEVT_REFRESH_DATA, &SelectMachineDialog::update_best_pos_dialog, this);
     m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
     m_basic_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
@@ -1247,8 +1248,6 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
     if (refresh_button) {
         EnableEditing(true);
         Enable_Send_Button(true);
-        if (m_button_add_to_queue)
-            m_button_add_to_queue->Enable();
     }
 
     m_status_bar->reset();
@@ -1291,8 +1290,6 @@ void SelectMachineDialog::sending_mode()
 void SelectMachineDialog::finish_mode()
 {
     EnableEditing(true);
-    if (m_button_add_to_queue)
-        m_button_add_to_queue->Enable();
 
     m_print_page_mode = PrintPageModeFinish;
     m_is_in_sending_mode = false;
@@ -2281,6 +2278,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     prepare_mode(false);
     m_pre_print_checker.add(status, msg, tips, wiki_url, style);
 
+    update_add_to_queue_button_state(status);
 }
 
 void SelectMachineDialog::init_timer()
@@ -2700,6 +2698,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
 void SelectMachineDialog::on_add_to_queue_btn(wxCommandEvent& event)
 {
+    if (is_add_to_queue_click_masked()) { return; }
+
     if (m_print_type != PrintFromType::FROM_NORMAL) {
         MessageDialog dlg(this, _L("Only the current sliced plate can be added to the print queue."), "", wxAPPLY | wxOK);
         dlg.ShowModal();
@@ -4909,6 +4909,47 @@ void SelectMachineDialog::Enable_Send_Button(bool en)
     }
 }
 
+bool SelectMachineDialog::is_add_to_queue_click_masked() const
+{
+    // Masked for 1s after the dialog opens, and while the print status is still undetermined
+    if (wxGetUTCTimeMillis() < m_queue_btn_clickable_after) { return true; }
+    return m_print_status == PrintDialogStatus::PrintStatusInit ||
+           m_print_status == PrintDialogStatus::PrintStatusReading ||
+           m_print_status == PrintDialogStatus::PrintStatusRefreshingMachineList ||
+           m_print_status == PrintDialogStatus::PrintStatusSending;
+}
+
+void SelectMachineDialog::update_add_to_queue_button_state(PrintDialogStatus status)
+{
+    if (!m_button_add_to_queue || m_print_type != PrintFromType::FROM_NORMAL) { return; }
+
+    MachineObject* obj           = get_current_machine();
+    const bool     lan_mode      = obj && obj->is_lan_mode_printer();
+    // Only "printer is busy printing" keeps the button lit; any other reason that disables Send grays it
+    const bool     busy_only     = (status == PrintDialogStatus::PrintStatusInPrinting);
+    const bool     send_disabled = !m_button_ensure->IsEnabled();
+
+    const bool should_gray = lan_mode || (send_disabled && !busy_only && !is_add_to_queue_click_masked());
+
+    // The default Button StateColor already renders a gray appearance when disabled
+    m_button_add_to_queue->Enable(!should_gray);
+}
+
+void SelectMachineDialog::on_show_changed(wxShowEvent& event)
+{
+    event.Skip();
+    if (event.IsShown() || !m_pending_jump_to_print_queue) { return; }
+    m_pending_jump_to_print_queue = false;
+
+    // Deferred to a later event loop iteration: building the print queue webview while this
+    // dialog is still tearing down its modal session hangs the main thread on macOS.
+    wxGetApp().CallAfter([]() {
+        MainFrame* main_frame = wxGetApp().mainframe;
+        if (!main_frame || !main_frame->m_monitor) { return; }
+        main_frame->m_monitor->jump_to_print_queue();
+    });
+}
+
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     print_time->msw_rescale();
@@ -6066,8 +6107,12 @@ bool SelectMachineDialog::Show(bool show)
         EnableEditing(true);
         m_options_other->Show();
         m_refresh_timer->Start(LIST_REFRESH_INTERVAL);
-        if (m_button_add_to_queue)
+        if (m_button_add_to_queue) {
             m_button_add_to_queue->Show(m_print_type == PrintFromType::FROM_NORMAL);
+            // Always light up when the dialog opens; clicks are masked for 1s and while status is undetermined
+            m_button_add_to_queue->Enable();
+            m_queue_btn_clickable_after = wxGetUTCTimeMillis() + 1000;
+        }
 
         //set a default machine when obj is null
         if (DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager()) {
