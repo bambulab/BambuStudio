@@ -63,7 +63,8 @@ arrangement::ArrangePolygon init_clamped_wipe_tower_pos(
     int plate_width,
     int plate_depth,
     int extruder_count,
-    int plate_extruder_count);
+    int plate_extruder_count,
+    bool legacy_behavior = false);
 
 class Model;
 class ModelObject;

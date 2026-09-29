@@ -113,7 +113,8 @@ arrangement::ArrangePolygon init_clamped_wipe_tower_pos(
     int plate_width,
     int plate_depth,
     int extruder_count,
-    int plate_extruder_count)
+    int plate_extruder_count,
+    bool legacy_behavior)
 {
     auto [x, y] = get_wipe_tower_default_pos(config, plate_width, plate_depth);
 
@@ -127,7 +128,7 @@ arrangement::ArrangePolygon init_clamped_wipe_tower_pos(
     Vec3d wipe_tower_size, wipe_tower_pos;
     auto ap = plate->estimate_wipe_tower_polygon(
         config, plate_index, wipe_tower_pos, wipe_tower_size,
-        extruder_count, plate_extruder_count, true);
+        extruder_count, plate_extruder_count, true, legacy_behavior);
 
     wt_x_opt.value = wipe_tower_pos(0);
     wt_y_opt.value = wipe_tower_pos(1);

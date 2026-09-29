@@ -5588,7 +5588,7 @@ int CLI::run(int argc, char **argv)
 
                     ArrangePolygon wipe_tower_ap = Slic3r::init_clamped_wipe_tower_pos(
                         m_print_config, cur_plate, i, plate_w, plate_d,
-                        new_extruder_count, assemble_plate.filaments_count);
+                        new_extruder_count, assemble_plate.filaments_count, true);
                     wipe_tower_ap.bed_idx = i;
                     unselected.emplace_back(wipe_tower_ap);
                 }
@@ -5689,7 +5689,7 @@ int CLI::run(int argc, char **argv)
                     partplate_list.get_plate_size(plate_w, plate_d, plate_h);
                     Slic3r::init_clamped_wipe_tower_pos(
                         m_print_config, cur_plate, i, plate_w, plate_d,
-                        new_extruder_count, assemble_plate.filaments_count);
+                        new_extruder_count, assemble_plate.filaments_count, true);
                 }
             }
         }
@@ -5838,7 +5838,7 @@ int CLI::run(int argc, char **argv)
                                 wipe_tower_ap = Slic3r::init_clamped_wipe_tower_pos(
                                     m_print_config, partplate_list.get_plate(plate_index_valid),
                                     plate_index_valid, plate_w, plate_d,
-                                    new_extruder_count, extruder_size);
+                                    new_extruder_count, extruder_size, true);
                             } else {
                                 Vec3d wipe_tower_size, wipe_tower_pos;
                                 wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(
