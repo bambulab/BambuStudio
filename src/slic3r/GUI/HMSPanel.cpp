@@ -15,8 +15,6 @@ namespace GUI {
 #define HMS_NOTIFY_ITEM_TEXT_SIZE wxSize(FromDIP(730), -1)
 #define HMS_NOTIFY_ITEM_SIZE wxSize(-1, FromDIP(80))
 
-wxDEFINE_EVENT(EVT_ALREADY_READ_HMS, wxCommandEvent);
-
 static wxString hms_row_text(const std::string& dev_id, DevHMSItem& item)
 {
     const std::string long_code = item.get_long_error_code();
@@ -36,7 +34,6 @@ HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, DevHMS
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL)
     , m_hms_item(item)
     , dev_id(dev_id)
-    , long_error_code(item.get_long_error_code())
     , m_url(get_hms_wiki_url(item.get_long_error_code()))
 {
     init_bitmaps();
@@ -135,10 +132,6 @@ HMSNotifyItem::HMSNotifyItem(const std::string& dev_id, wxWindow *parent, DevHMS
         }
         });
     m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
-            wxCommandEvent evt(EVT_ALREADY_READ_HMS);
-            evt.SetString(long_error_code);
-            wxPostEvent(wxGetApp().mainframe->m_monitor, evt);
-
             if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
         });
 #endif

@@ -113,14 +113,14 @@ void TabButtonsListCtrl::SetSelection(int sel)
     Refresh();
 }
 
-void TabButtonsListCtrl::showNewTag(int sel, bool tag)
+void TabButtonsListCtrl::showNewTag(int sel, int count)
 {
-    if (m_pageButtons[sel]->GetShowNewTag() == tag)
+    if (m_pageButtons[sel]->GetNewTagCount() == count)
     {
         return;
     }
 
-    m_pageButtons[sel]->ShowNewTag(tag);
+    m_pageButtons[sel]->ShowNewTag(count);
     Refresh();
 }
 

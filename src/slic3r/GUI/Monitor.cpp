@@ -124,16 +124,6 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
         m_side_tools->start_interval();
         });
 
-    Bind(EVT_ALREADY_READ_HMS, [this](wxCommandEvent& e) {
-        auto key = e.GetString().ToStdString();
-        auto iter = m_hms_panel->temp_hms_list.find(key);
-        if (iter != m_hms_panel->temp_hms_list.end()) {
-            m_hms_panel->temp_hms_list[key].set_read();
-        }
-
-        update_hms_tag();
-        e.Skip();
-        });
 }
 
 MonitorPanel::~MonitorPanel()
@@ -296,7 +286,7 @@ void MonitorPanel::on_activate()
     if (!rfid_refresh_ctrl) {
         return;
     }
-    
+
     return;// reset story-7043553223
     rfid_refresh_ctrl->TriggerRefresh();
 }
@@ -394,7 +384,7 @@ void MonitorPanel::update_all()
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
         m_hms_panel->clear_hms_tag();
-        m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, false);
+        m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, 0);
         m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
         m_status_info_panel->update(obj);
         update_print_queue_device(nullptr);
@@ -459,47 +449,7 @@ void MonitorPanel::update_print_queue_device(MachineObject* obj)
 
 void MonitorPanel::update_hms_tag()
 {
-    if (is_hms_list_equal(m_hms_panel->temp_hms_list, m_last_hms_list)) {
-        return;
-    }
-
-    for (auto& hmsitem : m_hms_panel->temp_hms_list) {
-        if (!obj) { break; }
-
-        if (!hmsitem.second.has_read()) {
-            HMSResult r = wxGetApp().get_hms_query_mgr()->query_hms(obj->get_dev_id(), hmsitem.second.get_long_error_code());
-            const bool light = (r.status == HMSStatus::Ready && !r.text.IsEmpty()) || r.status == HMSStatus::Failed;
-            if (light) {
-                m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, true);
-                m_last_hms_list = m_hms_panel->temp_hms_list;
-                return;
-            }
-        }
-    }
-
-    m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, false);
-    m_last_hms_list = m_hms_panel->temp_hms_list;
-}
-
-bool MonitorPanel::is_hms_list_equal(const std::map<std::string, DevHMSItem> &map1, const std::map<std::string, DevHMSItem> &map2) {
-    if (map1.size() != map2.size()) {
-        return false;
-    }
-    auto it1 = map1.begin();
-    auto it2 = map2.begin();
-    while (it1 != map1.end()) {
-        if (it1->first != it2->first) {
-            return false;
-        }
-
-        if (it1->second.has_read() != it2->second.has_read()) {
-            return false;
-        }
-
-        ++it1;
-        ++it2;
-    }
-    return true;
+    m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, (int)m_hms_panel->temp_hms_list.size());
 }
 
 bool MonitorPanel::Show(bool show)
