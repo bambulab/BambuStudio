@@ -2468,6 +2468,278 @@ void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
     wxPostEvent(m_parent, e);
 }
 
+GUI::VirtualFilamentComboBox::VirtualFilamentComboBox(wxWindow *parent, const std::string &preset_name, const std::string &color_hex)
+    : PlaterPresetComboBox(parent, Preset::TYPE_FILAMENT)
+    , m_preset_name(preset_name)
+    , m_color_hex(color_hex)
+{
+    clr_picker->SetToolTip(_L("Click to pick filament color"));
+    // Bound after the base handler, so it runs first and stops the event: the base handler
+    // edits project_config through m_filament_idx, which this combo does not own.
+    clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { pick_color(); });
+    update_color_chip();
+    update();
+}
+
+void GUI::VirtualFilamentComboBox::set_color(const std::string &color_hex)
+{
+    m_color_hex = color_hex;
+    update_color_chip();
+}
+
+void GUI::VirtualFilamentComboBox::update_color_chip()
+{
+    if (!clr_picker)
+        return;
+    const int   em     = wxGetApp().em_unit();
+    const int   width  = lround(2 * em);
+    const int   height = lround(2 * em);
+    wxBitmap   *bmp    = get_extruder_color_icon(m_color_hex, "", width, height);
+    if (bmp) {
+        clr_picker->SetBitmap(*bmp);
+        clr_picker->SetBitmapDisabled(*bmp);
+    }
+#ifdef __WXOSX__
+    clr_picker->SetLabel(clr_picker->GetLabel()); // Let setBezelStyle: be called
+#endif
+    clr_picker->Refresh();
+}
+
+void GUI::VirtualFilamentComboBox::pick_color()
+{
+    const std::string fila_type   = Preset::remove_suffix_modified(GetValue().ToUTF8().data());
+    const bool        is_official = boost::algorithm::starts_with(fila_type, "Bambu");
+    std::string       new_color;
+
+    auto pick_from_system_dialog = [this, &new_color]() {
+        wxColour current_clr(m_color_hex);
+        if (!current_clr.IsOk())
+            current_clr = wxColour(0, 0, 0);
+        m_clrData.SetColour(current_clr);
+        wxColourData data = show_sys_picker_dialog(this, m_clrData);
+        if (data.GetColour() != current_clr) {
+            m_clrData.SetColour(data.GetColour());
+            new_color = data.GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        }
+    };
+
+    if (is_official) {
+        const Preset *preset  = m_collection->find_preset(m_preset_name);
+        wxString      fila_id = preset ? wxString::FromUTF8(preset->filament_id) : "GFA00";
+        FilamentColor fila_color;
+        wxColour      current_clr(m_color_hex);
+        if (current_clr.IsOk())
+            fila_color.AddColor(current_clr);
+        fila_color.EndSet(1);
+
+        FilamentPickerDialog dialog(this, fila_id, fila_color, fila_type);
+        if (!dialog.IsDataLoaded()) {
+            pick_from_system_dialog();
+        } else if (dialog.ShowModal() == wxID_OK) {
+            const FilamentColor &picked = dialog.GetSelectedFilamentColor();
+            if (picked.GetColors().size() > 1 || picked.m_color_type == FilamentColor::ColorType::GRADIENT_CLR) {
+                MessageDialog msg(this, _L("Color mixing only supports single-color filaments."), _L("Warning"), wxOK | wxICON_WARNING);
+                msg.ShowModal();
+                return;
+            }
+            if (!picked.GetColors().empty()) {
+                new_color = picked.GetColors().front().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+            } else {
+                wxColour selected_color = dialog.GetSelectedColour();
+                if (selected_color.IsOk())
+                    new_color = selected_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+            }
+        }
+    } else {
+        pick_from_system_dialog();
+    }
+
+    if (new_color.empty() || new_color == m_color_hex)
+        return;
+    set_color(new_color);
+    if (m_on_changed)
+        m_on_changed();
+}
+
+// Same presets as the sidebar filament combo (visible and compatible, the chosen one always
+// listed), without the AMS block and without any per-slot project state.
+void GUI::VirtualFilamentComboBox::update()
+{
+    if (m_preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA)
+        return;
+
+    this->Freeze();
+    this->Clear();
+    invalidate_selection();
+    m_item_presets.clear();
+
+    struct Entry
+    {
+        wxBitmap   *bmp = nullptr;
+        std::string vendor;
+        std::string type;
+        std::string preset_name;
+    };
+    std::map<wxString, Entry> user_presets;
+    std::map<wxString, Entry> system_presets;
+    wxString                  selected_name;
+    wxString                  tooltip;
+
+    auto first_string = [](const Preset &preset, const char *key) -> std::string {
+        auto *opt = preset.config.option<ConfigOptionStrings>(key);
+        return (opt && !opt->values.empty()) ? opt->values.front() : std::string();
+    };
+
+    const std::deque<Preset> &presets = m_collection->get_presets();
+    for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i) {
+        const Preset &preset      = presets[i];
+        const bool    is_selected = preset.name == m_preset_name;
+        if (!is_selected && (!preset.is_visible || !preset.is_compatible))
+            continue;
+
+        const wxString name  = get_preset_name(preset);
+        auto          &group = (preset.is_default || preset.is_system) ? system_presets : user_presets;
+        // Diameter variants share one alias; keep the first one unless this is the chosen preset.
+        if (group.count(name) > 0 && !is_selected)
+            continue;
+
+        Entry entry;
+        entry.bmp = get_bmp(preset);
+        if (preset.is_system) {
+            entry.vendor = first_string(preset, "filament_vendor");
+            if (entry.vendor == "Bambu Lab")
+                entry.vendor = "Bambu";
+            entry.type = first_string(preset, "filament_type");
+        }
+        entry.preset_name = preset.name;
+        group[name]       = entry;
+        if (is_selected) {
+            selected_name = name;
+            tooltip       = get_tooltip(preset);
+        }
+    }
+
+    set_replace_text("Bambu", "BambuStudioBlack");
+
+    auto record_item = [this](int item, bool is_system, const std::string &preset_name) {
+        if (item < 0)
+            return;
+        if (m_item_presets.size() <= size_t(item))
+            m_item_presets.resize(size_t(item) + 1);
+        m_item_presets[item] = {is_system, preset_name};
+    };
+    const bool selected_is_system = [this]() {
+        const Preset *preset = m_collection->find_preset(m_preset_name);
+        return preset && (preset->is_default || preset->is_system);
+    }();
+
+    if (!user_presets.empty()) {
+        set_label_marker(Append(_L("User presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        for (const auto &[name, entry] : user_presets) {
+            record_item(Append(name, entry.bmp ? *entry.bmp : wxNullBitmap, _L("Custom") + " ", nullptr), false, entry.preset_name);
+            validate_selection(!selected_is_system && name == selected_name);
+        }
+    }
+
+    if (!system_presets.empty()) {
+        std::vector<const std::pair<const wxString, Entry> *> list;
+        list.reserve(system_presets.size());
+        for (const auto &item : system_presets)
+            list.push_back(&item);
+        const std::vector<std::string> first_vendors = {"Bambu", "Generic"};
+        const std::vector<std::string> first_types   = {"PLA", "PETG", "ABS", "TPU"};
+        const auto                    &orders        = get_filament_orders();
+        auto rank = [](const std::vector<std::string> &order, const std::string &value) {
+            return size_t(std::find(order.begin(), order.end(), value) - order.begin());
+        };
+        std::sort(list.begin(), list.end(), [&](auto *l, auto *r) {
+            const size_t lo = rank(orders, into_u8(l->first)), ro = rank(orders, into_u8(r->first));
+            if (lo != ro)
+                return lo < ro;
+            const size_t lv = rank(first_vendors, l->second.vendor), rv = rank(first_vendors, r->second.vendor);
+            if (lv != rv)
+                return lv < rv;
+            const size_t lt = rank(first_types, l->second.type), rt = rank(first_types, r->second.type);
+            if (lt != rt)
+                return lt < rt;
+            return l->first < r->first;
+        });
+
+        set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        for (auto *item : list) {
+            record_item(Append(item->first, item->second.bmp ? *item->second.bmp : wxNullBitmap, from_u8(item->second.vendor), nullptr),
+                        true, item->second.preset_name);
+            validate_selection(selected_is_system && item->first == selected_name);
+        }
+    }
+
+    update_selection();
+    Thaw();
+
+    // The initial preset is not in the list (e.g. incompatible and hidden): keep the stored name in
+    // sync with the item update_selection() fell back to, so the dialog adds what it shows.
+    if (selected_name.IsEmpty() && m_last_selected >= 0 && size_t(m_last_selected) < m_item_presets.size() &&
+        !m_item_presets[m_last_selected].name.empty()) {
+        m_preset_name = m_item_presets[m_last_selected].name;
+        if (const Preset *preset = m_collection->find_preset(m_preset_name))
+            tooltip = get_tooltip(*preset);
+    }
+
+    if (!tooltip.IsEmpty()) {
+#ifdef __WXMSW__
+        SetToolTip(NULL);
+#endif
+        SetToolTip(tooltip);
+    }
+}
+
+void GUI::VirtualFilamentComboBox::OnSelect(wxCommandEvent &evt)
+{
+    const int selected_item = evt.GetSelection();
+    auto      marker        = reinterpret_cast<Marker>(this->GetClientData(selected_item));
+    if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
+        this->SetSelection(m_last_selected);
+        return;
+    }
+    if (selected_item < 0 || size_t(selected_item) >= m_item_presets.size() || m_item_presets[selected_item].name.empty()) {
+        this->SetSelection(m_last_selected);
+        return;
+    }
+    const ItemPreset &item        = m_item_presets[selected_item];
+    std::string       preset_name = item.name;
+    if (item.is_system) {
+        // Diameter variants share one alias; resolve it the way the sidebar does, so the
+        // variant matching the current nozzle is picked.
+        const std::string &resolved = m_preset_bundle->get_preset_name_by_alias(Preset::TYPE_FILAMENT,
+            Preset::remove_suffix_modified(into_u8(GetString(selected_item))));
+        if (m_collection->find_preset(resolved))
+            preset_name = resolved;
+    }
+    m_last_selected = selected_item;
+    if (preset_name == m_preset_name)
+        return;
+    m_preset_name = preset_name;
+    if (const Preset *preset = m_collection->find_preset(m_preset_name))
+        SetToolTip(get_tooltip(*preset));
+    if (m_on_changed)
+        m_on_changed();
+}
+
+void GUI::VirtualFilamentComboBox::msw_rescale()
+{
+    PresetComboBox::msw_rescale();
+    SetMinSize({-1, 30 * m_em_unit / 10});
+    if (clr_picker)
+        clr_picker->SetSize(20 * m_em_unit / 10, 20 * m_em_unit / 10);
+    update_color_chip();
+}
+
+void GUI::VirtualFilamentComboBox::sys_color_changed()
+{
+    PlaterPresetComboBox::sys_color_changed();
+    update_color_chip();
+}
+
 void PlaterPresetComboBox::sys_color_changed()
 {
     PresetComboBox::sys_color_changed();

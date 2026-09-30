@@ -130,6 +130,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ColorDecomposeDialog.hpp
     GUI/MixingKitsHelpDialog.cpp
     GUI/MixingKitsHelpDialog.hpp
+    GUI/MixSupplementFilamentDialog.cpp
+    GUI/MixSupplementFilamentDialog.hpp
     GUI/ColorDecomposeSupport.cpp
     GUI/ColorDecomposeSupport.hpp
     GUI/GradientCurveEditor.cpp

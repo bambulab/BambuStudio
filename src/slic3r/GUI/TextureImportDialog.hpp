@@ -334,6 +334,12 @@ private:
     void on_mix_toggled(wxCommandEvent& evt);
     void apply_mix_from_existing_filaments();
     void add_pla_palette_cmykw_to_project();
+    // True when the mixing family has fewer than two distinct physical colors,
+    // no complete CMYKW kit exists, and the project still has free filament slots.
+    bool mix_needs_supplement_filaments() const;
+    // Let the user stage the filaments mixing needs (red / yellow / blue of the mixing
+    // family by default) and add them to the project on OK. Returns false when cancelled.
+    bool prompt_supplement_filaments_for_mix();
     void reload_existing_filaments_from_project();
     void rematch_after_project_filament_change();
     bool has_complete_pla_palette_cmykw() const;

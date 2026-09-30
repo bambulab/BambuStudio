@@ -5,6 +5,7 @@
 #include "TextureImportPopupDismiss.hpp"
 #include "TextureImportUi.hpp"
 #include "MixingKitsHelpDialog.hpp"
+#include "MixSupplementFilamentDialog.hpp"
 #include "I18N.hpp"
 #include "format.hpp"
 #include "GUI_App.hpp"
@@ -1295,16 +1296,6 @@ static bool texture_entry_matches_series(const TextureFilamentEntry& entry, cons
         return false;
     // For PLA Basic and other series, keep today's behaviour for plain family slots.
     return entry.type == DEFAULT_VIRTUAL_FILAMENT_SHORT_TYPE || entry.type == basic_type;
-}
-
-static std::string texture_filament_family(const std::string& type)
-{
-    if (type.empty())
-        return {};
-    const auto space = type.find(' ');
-    if (space == std::string::npos)
-        return type;
-    return type.substr(0, space);
 }
 
 static std::string texture_entry_material_type(const TextureFilamentEntry& entry)
@@ -7515,6 +7506,18 @@ void TextureImportDialog::on_mix_toggled(wxCommandEvent& evt)
     evt.Skip();
     if (m_mix_cb)
         m_mix_enabled = m_mix_cb->GetValue();
+    // With a single color every cluster would bind to that one filament, so ask for
+    // more filaments first. Only on this user toggle: rematches must not prompt again.
+    if (m_mix_enabled && mix_needs_supplement_filaments()) {
+        if (!prompt_supplement_filaments_for_mix()) {
+            m_mix_enabled = false;
+            if (m_mix_cb)
+                m_mix_cb->SetValue(false);
+            return;
+        }
+        rematch_after_project_filament_change();
+        return;
+    }
     if (m_mix_enabled)
         apply_mix_from_existing_filaments();
     else
@@ -7636,22 +7639,135 @@ void TextureImportDialog::add_pla_palette_cmykw_to_project()
     rematch_after_project_filament_change();
 }
 
-std::string TextureImportDialog::preferred_mix_family() const
+bool TextureImportDialog::mix_needs_supplement_filaments() const
 {
-    int pla = 0;
-    int petg = 0;
+    if (!wxGetApp().preset_bundle || wxGetApp().preset_bundle->filament_presets.size() >= max_filament_count())
+        return false;
+    if (has_complete_pla_palette_cmykw())
+        return false;
+    // Same pool apply_mix_from_existing_filaments() mixes from.
+    const std::string family = preferred_mix_family();
+    std::set<std::string> colors;
     for (const auto& entry : m_filament_entries) {
         if (entry.kind != TextureFilamentKind::ExistingPhysical)
             continue;
-        const std::string family = texture_filament_family(texture_entry_material_type(entry));
-        if (family == kDecomposePetgShortType)
-            ++petg;
-        else if (family == kDecomposePlaShortType || family.empty())
-            ++pla;
+        if (texture_entry_family_type(entry, m_filament_entries) != family)
+            continue;
+        colors.insert(texture_normalize_color_hex(entry.color_hex));
+        if (colors.size() >= 2)
+            return false;
     }
-    if (petg > pla)
-        return kDecomposePetgShortType;
-    return kDecomposePlaShortType;
+    return true;
+}
+
+bool TextureImportDialog::prompt_supplement_filaments_for_mix()
+{
+    if (!wxGetApp().plater() || !wxGetApp().preset_bundle)
+        return false;
+    auto& pb = *wxGetApp().preset_bundle;
+
+    // Suggest filaments of the family apply_mix_from_existing_filaments() mixes from,
+    // so adding them never moves the mixing pool to another family.
+    const std::string family = preferred_mix_family();
+    int family_src_idx = -1;
+    int physical_src_idx = -1;
+    std::set<std::string> family_colors;
+    std::vector<std::string> used_colors;
+    for (const auto& entry : m_filament_entries) {
+        if (entry.kind != TextureFilamentKind::ExistingPhysical || entry.project_config_index >= pb.filament_presets.size())
+            continue;
+        const std::string color = texture_normalize_color_hex(entry.color_hex);
+        used_colors.push_back(color);
+        physical_src_idx = (int)entry.project_config_index;
+        if (texture_entry_family_type(entry, m_filament_entries) != family)
+            continue;
+        family_colors.insert(color);
+        family_src_idx = (int)entry.project_config_index;
+    }
+    // New slots copy the nozzle diameter / flow and, without an official preset, the
+    // preset of the last filament of the family.
+    const int inherit_idx = family_src_idx >= 0 ? family_src_idx : physical_src_idx;
+    const std::string fallback_preset = inherit_idx >= 0 ? pb.filament_presets[inherit_idx] : std::string();
+
+    std::string basic_type;
+    if (family == kDecomposePlaShortType)
+        basic_type = kDecomposePlaBasicType;
+    else if (family == kDecomposePetgShortType)
+        basic_type = kDecomposePetgBasicType;
+    std::string basic_preset;
+    if (!basic_type.empty()) {
+        ensure_official_series_installed(basic_type);
+        basic_preset = find_decompose_standard_preset_name(inherit_idx >= 0 ? (size_t)inherit_idx : 0, basic_type);
+    }
+    // Other families have no official series; their color codes are still looked up by type.
+    const std::string lookup_type = basic_type.empty() ? family : basic_type;
+
+    // Red / yellow / blue exist for most materials in the color-code table, cyan and magenta only for PLA.
+    static const DecomposeBaseColor kRybBases[] = {
+        DecomposeBaseColor::Red,
+        DecomposeBaseColor::Yellow,
+        DecomposeBaseColor::Blue
+    };
+    static const wxColour kRybFallbacks[] = {
+        wxColour(255, 0, 0),
+        wxColour(255, 255, 0),
+        wxColour(0, 0, 255)
+    };
+
+    std::vector<DecomposeOfficialComponent> officials;
+    std::vector<MixSupplementFilamentDialog::Row> rows;
+    for (size_t i = 0; i < 3; ++i) {
+        const DecomposeOfficialComponent official = lookup_decompose_official_component(
+            lookup_type, kRybBases[i], kRybFallbacks[i]);
+        if (family_colors.count(texture_normalize_color_hex(official.color_hex)) > 0)
+            continue;
+        MixSupplementFilamentDialog::Row row;
+        row.preset_name = basic_preset.empty() ? fallback_preset : basic_preset;
+        row.color_hex = official.color_hex;
+        // Without an official Basic preset the row is not an official component.
+        row.tag = basic_preset.empty() ? -1 : (int)officials.size();
+        officials.push_back(official);
+        rows.push_back(std::move(row));
+    }
+
+    const size_t capacity = max_filament_count() - pb.filament_presets.size();
+    MixSupplementFilamentDialog dlg(this, rows, capacity, fallback_preset, used_colors, !family_colors.empty());
+    if (dlg.ShowModal() != wxID_OK)
+        return false;
+    const std::vector<MixSupplementFilamentDialog::Row> result = dlg.get_rows();
+    if (result.empty())
+        return false;
+
+    std::vector<std::pair<wxColour, std::string>> to_add;
+    to_add.reserve(result.size());
+    for (const auto& row : result) {
+        wxColour col(row.color_hex);
+        if (!col.IsOk())
+            col = *wxWHITE;
+        to_add.emplace_back(col, row.preset_name);
+    }
+
+    wxBusyCursor wait;
+    Sidebar& sidebar = wxGetApp().plater()->sidebar();
+    const size_t insert_pos = sidebar.add_custom_filaments(to_add, inherit_idx);
+    if (insert_pos == size_t(-1))
+        return false;
+    const size_t added = std::min(to_add.size(), sidebar.combos_filament().size() - insert_pos);
+    for (size_t i = 0; i < added; ++i) {
+        const int tag = result[i].tag;
+        if (tag >= 0 && tag < (int)officials.size())
+            set_created_standard_component_metadata(insert_pos + i, officials[tag]);
+    }
+
+    reload_existing_filaments_from_project();
+    return true;
+}
+
+std::string TextureImportDialog::preferred_mix_family() const
+{
+    // Same family vote as auto-match, so enabling mixing never switches to a family
+    // the project has no filaments of.
+    return pick_auto_match_filament_type(m_filament_entries, m_existing_filament_count);
 }
 
 bool TextureImportDialog::has_complete_pla_palette_cmykw() const
@@ -7703,7 +7819,7 @@ void TextureImportDialog::apply_mix_from_existing_filaments()
         if (kit_complete) {
             if (texture_entry_official_series(entry) != kDecomposePlaPaletteType)
                 continue;
-        } else if (texture_filament_family(texture_entry_material_type(entry)) != family) {
+        } else if (texture_entry_family_type(entry, m_filament_entries) != family) {
             continue;
         }
         allowed_dialog_indices.push_back(entry.dialog_index);

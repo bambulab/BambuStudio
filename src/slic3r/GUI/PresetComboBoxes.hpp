@@ -316,6 +316,46 @@ private:
     std::map<wxString, std::pair<std::string, wxBitmap*>> m_system_presets;
 };
 
+// ---------------------------------
+// ***  VirtualFilamentComboBox  ***
+// ---------------------------------
+
+// Filament preset list + color chip that is not bound to a project filament slot.
+// Dialogs use it to stage filaments before they are really added to the project,
+// so it never reads or writes filament_presets / project_config.
+class VirtualFilamentComboBox : public PlaterPresetComboBox
+{
+public:
+    VirtualFilamentComboBox(wxWindow *parent, const std::string &preset_name, const std::string &color_hex);
+
+    const std::string &get_selected_preset_name() const { return m_preset_name; }
+    const std::string &get_color_hex() const { return m_color_hex; }
+    void set_color(const std::string &color_hex);
+    // Fired after the user picks another preset or color.
+    void set_changed_callback(std::function<void()> cb) { m_on_changed = std::move(cb); }
+
+    void update() override;
+    void msw_rescale() override;
+    void sys_color_changed() override;
+    void OnSelect(wxCommandEvent &evt) override;
+
+private:
+    void update_color_chip();
+    void pick_color();
+
+    struct ItemPreset
+    {
+        bool        is_system = false;
+        std::string name;
+    };
+
+    std::string             m_preset_name;
+    std::string             m_color_hex;
+    // Indexed by list item; user and system presets may share a display name.
+    std::vector<ItemPreset> m_item_presets;
+    std::function<void()>   m_on_changed;
+};
+
 } // namespace GUI
 } // namespace Slic3r
 
