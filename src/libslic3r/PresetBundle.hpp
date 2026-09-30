@@ -197,7 +197,6 @@ ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleS
                                                            const std::string        &diameter_str);
 void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat);
 bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config);
-bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config, const ExtruderNozzleStat &nozzle_stat);
 std::vector<double> derive_nozzle_diameter_from_full_stat(const ExtruderFullStat   &full_stat,
                                                           const std::vector<double> &fallback);
 

@@ -1841,28 +1841,6 @@ bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config)
         && static_cast<int>(slots.size()) == total;
 }
 
-bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config, const ExtruderNozzleStat &nozzle_stat)
-{
-    const ConfigOptionInts*         count_opt = config.option<ConfigOptionInts>("extruder_nozzle_count");
-    const ConfigOptionEnumsGeneric* vtype_opt = config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type");
-    const std::vector<int> counts = count_opt ? count_opt->values : std::vector<int>{};
-    const std::vector<int> vtypes = vtype_opt ? vtype_opt->values : std::vector<int>{};
-
-    int total = 0;
-    for (int count : counts)
-        total += count;
-    if (total <= 0 || static_cast<int>(vtypes.size()) != total)
-        return false;
-
-    const auto &raw_stats = nozzle_stat.get_raw_stat();
-    if (raw_stats.empty() || counts.size() != raw_stats.size())
-        return false;
-    for (size_t extruder_id = 0; extruder_id < counts.size(); ++extruder_id)
-        if (counts[extruder_id] != nozzle_stat.get_extruder_nozzle_count(static_cast<int>(extruder_id)))
-            return false;
-    return true;
-}
-
 void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat)
 {
     const auto raw = full_stat.get_raw_stat();
