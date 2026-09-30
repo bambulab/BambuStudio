@@ -23,6 +23,9 @@
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/PerfTrace.hpp"
+
+#include <memory>
 #include "DeviceErrorDialog.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include "WindowShadow.hpp"
@@ -4267,8 +4270,17 @@ void StatusPanel::update(MachineObject *obj)
 {
     m_devid = obj ? obj->get_dev_id() : std::string();
     update_ctrl_area_masks();
+    // Cap traces to updates whose machine info is ready. This is also called
+    // every 1s before info arrives; those returns must not use up the samples.
+    static int s_perf_update_traces_left = 5;
+    const bool machine_ready = obj && obj->is_info_ready();
+    std::unique_ptr<PerfTimer> update_timer;
+    if (machine_ready && s_perf_update_traces_left > 0) {
+        --s_perf_update_traces_left;
+        update_timer = std::make_unique<PerfTimer>("startup.status_panel.update");
+    }
 
-    if (!obj || !obj->is_info_ready()) {
+    if (!machine_ready) {
         m_nozzle_btn_panel->Disable();
 #if BBL_ENABLE_CONTROL_PANEL_WEB
         if (m_control_panel_web_panel && control_panel_use_web()) {

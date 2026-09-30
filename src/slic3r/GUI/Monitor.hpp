@@ -109,11 +109,17 @@ private:
     int last_status{ 0 };
     bool m_initialized { false };
     bool update_flag{false};
+    // Remaining traced update_all samples after ensure_content (avoid 1Hz log spam).
+    int  m_perf_update_all_traces_left{ 0 };
     wxTimer* m_refresh_timer = nullptr;
+    // One-shot. Fires the first load_last_machine/update_all after the shell paints.
+    wxTimer* m_first_update_timer = nullptr;
 
     // Start or stop the refresh timer. `shown` is the visibility after this Show(),
     // which IsShown() does not reflect until wxPanel::Show returns.
-    void resume_on_show(bool shown);
+    // `first` arms the one-shot machine bind instead of running it synchronously.
+    void resume_on_show(bool shown, bool first = false);
+    void on_deferred_first_update();
 
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
@@ -133,6 +139,7 @@ public:
     };
 
 	void init_bitmap();
+    // Allocate the refresh timer only. Show()/resume_on_show() starts it when the page is visible.
     void init_timer();
     void init_tabpanel();
     // Build tabbook / StatusPanel / etc. on first Show (empty shell is cheap at MainFrame init).

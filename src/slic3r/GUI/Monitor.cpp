@@ -3,6 +3,8 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PerfTrace.hpp"
 
+#include <memory>
+
 #include <wx/app.h>
 #include <wx/button.h>
 #include <wx/scrolwin.h>
@@ -133,6 +135,7 @@ void MonitorPanel::ensure_content()
     SetSizer(m_main_sizer);
     Layout();
 
+    // Allocate only. Starting it here keeps a 1s timer alive if the page is hidden.
     init_timer();
 
     if (m_side_tools)
@@ -153,7 +156,17 @@ void MonitorPanel::ensure_content()
         wxGetApp().UpdateDarkUIWin(this);
     }
 
+    // Allow a few traced update_all samples after first paint.
+    m_perf_update_all_traces_left = 3;
+
+    // Relayout after tabbook/StatusPanel/show_status so the already-visible
+    // Monitor page gets correct child sizes before Thaw paints.
+    if (m_tabpanel)
+        m_tabpanel->Layout();
+    Layout();
+
     Thaw();
+    perf_mark("startup.monitor.ui_ready");
 }
 
 Tabbook* MonitorPanel::get_tabpanel()
@@ -171,6 +184,10 @@ MonitorPanel::~MonitorPanel()
     if (m_refresh_timer)
         m_refresh_timer->Stop();
     delete m_refresh_timer;
+
+    if (m_first_update_timer)
+        m_first_update_timer->Stop();
+    delete m_first_update_timer;
 }
 
 void MonitorPanel::init_bitmap()
@@ -187,13 +204,36 @@ void MonitorPanel::init_timer()
 {
     if (m_refresh_timer)
         return;
-    // Allocate only. Show(false) can arrive before the deferred Show(true) runs,
-    // and a timer started here would keep firing after the page is hidden.
+    // Allocate only. Show(false) can arrive before the deferred Show(true)
+    // callback, and a timer started here would keep firing while the page is hidden.
     m_refresh_timer = new wxTimer();
     m_refresh_timer->SetOwner(this);
 }
 
-void MonitorPanel::resume_on_show(bool shown)
+void MonitorPanel::on_deferred_first_update()
+{
+    if (IsBeingDeleted() || !m_initialized)
+        return;
+    // Show(false) won the race. The next Show(true) binds through resume_on_show().
+    if (!IsShown())
+        return;
+
+    DeviceManager *device_mgr = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (device_mgr) {
+        obj = device_mgr->get_selected_machine();
+        if (obj == nullptr) {
+            PERF_TRACE("startup.monitor.load_last_machine");
+            device_mgr->load_last_machine();
+        } else {
+            obj->reset_update_time();
+        }
+    }
+    if (update_flag)
+        update_all();
+    perf_mark("startup.monitor.first_update_deferred");
+}
+
+void MonitorPanel::resume_on_show(bool shown, bool first)
 {
     if (m_refresh_timer) {
         m_refresh_timer->Stop();
@@ -202,8 +242,22 @@ void MonitorPanel::resume_on_show(bool shown)
             m_refresh_timer->Start(REFRESH_INTERVAL);
         }
     }
-    if (!shown)
+    if (!shown) {
+        if (m_first_update_timer)
+            m_first_update_timer->Stop();
         return;
+    }
+    // Nested CallAfter is drained before WM_PAINT on wx 3.1.5, so a synchronous
+    // update_all here would still block the shell. A one-shot native timer runs
+    // after that paint.
+    if (first) {
+        if (!m_first_update_timer) {
+            m_first_update_timer = new wxTimer();
+            m_first_update_timer->SetOwner(this);
+        }
+        m_first_update_timer->StartOnce(1);
+        return;
+    }
 
     if (update_flag)
         update_all();
@@ -291,7 +345,11 @@ void MonitorPanel::init_tabpanel()
     }
 
     m_initialized = true;
-    show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
+    // The deferred first update applies a machine that is already selected.
+    // Painting MONITOR_NO_PRINTER first flashes an empty device page.
+    DeviceManager* device_mgr = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!device_mgr || device_mgr->get_selected_machine() == nullptr)
+        show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
 }
 
 void MonitorPanel::set_default()
@@ -394,6 +452,11 @@ void MonitorPanel::select_machine(std::string machine_sn)
 
 void MonitorPanel::on_timer(wxTimerEvent& event)
 {
+    if (m_first_update_timer && &event.GetTimer() == m_first_update_timer) {
+        on_deferred_first_update();
+        return;
+    }
+
     if (update_flag) {
         update_all();
         //Layout();
@@ -469,6 +532,13 @@ void MonitorPanel::update_all()
 {
     if (!m_initialized || !m_tabpanel)
         return;
+
+    // Cap traces: timer fires every 1s; only need first-entry samples.
+    std::unique_ptr<PerfTimer> update_all_timer;
+    if (m_perf_update_all_traces_left > 0) {
+        --m_perf_update_all_traces_left;
+        update_all_timer = std::make_unique<PerfTimer>("startup.monitor.update_all");
+    }
 
     NetworkAgent* m_agent = wxGetApp().getAgent();
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -572,11 +642,12 @@ bool MonitorPanel::Show(bool show)
             CallAfter([this]() {
                 if (this->IsBeingDeleted())
                     return;
+                // Builds the shell. resume_on_show(..., true) only arms the
+                // one-shot bind, so this callback does not run update_all.
                 ensure_content();
                 if (IsBeingDeleted())
                     return;
-                // Base Show(true) has already returned, so IsShown() is meaningful here.
-                resume_on_show(IsShown());
+                resume_on_show(IsShown(), true);
             });
             return wxPanel::Show(show);
         }
@@ -587,6 +658,8 @@ bool MonitorPanel::Show(bool show)
         stop_update();
         if (m_refresh_timer)
             m_refresh_timer->Stop();
+        if (m_first_update_timer)
+            m_first_update_timer->Stop();
         if (StatusPanel* sp = get_status_panel())
             sp->hide_ctrl_area_overlays();
     }
