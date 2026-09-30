@@ -1124,6 +1124,12 @@ void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool
 bool MultiNozzleSyncDialog::UpdateUi(std::weak_ptr<DevNozzleRack> rack, bool ignore_unknown, bool ignore_unreliable)
 {
     m_nozzle_table->UpdateRackInfo(rack);
+    if (m_resolve_only) {
+        const auto nozzle_rack = rack.lock();
+        if (!nozzle_rack || !((nozzle_rack->HasUnknownNozzles() && !ignore_unknown) ||
+                              (nozzle_rack->HasUnreliableNozzles() && !ignore_unreliable)))
+            return false;
+    }
     bool res = UpdateOptionList(rack, ignore_unknown, ignore_unreliable);
     if (!res)
         return false;
@@ -1143,56 +1149,16 @@ bool MultiNozzleSyncDialog::UpdateUi(std::weak_ptr<DevNozzleRack> rack, bool ign
 }
 
 
-std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj)
+void tryResolveRackNozzleStatus(MachineObject* obj)
 {
     if (!obj)
-        return std::nullopt;
+        return;
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
     if (!rack || !rack->IsSupported())
-        return std::nullopt;
-    MultiNozzleSyncDialog dialog(wxGetApp().plater_,rack);
-
-    bool has_unreliable = rack->HasUnreliableNozzles();
-    bool has_unknown = rack->HasUnknownNozzles();
-
-    auto config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-
-    if (dialog.ShowModal() == wxID_OK) {
-        auto selected_option = dialog.GetSelectedOption();
-        if (!selected_option)
-            return std::nullopt;
-        auto& preset_bundle = GUI::wxGetApp().preset_bundle;
-        auto& project_config = preset_bundle->project_config;
-
-        ConfigOptionEnumsGeneric* nozzle_volume_type_opt = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-
-        // write to preset bundle config
-        for (int extruder_id = 0; extruder_id < 2; ++extruder_id) {
-            NozzleVolumeType volume_type;
-            int nozzle_count;
-            bool clear_all = true;
-            if (!selected_option->extruder_nozzle_stats.count(extruder_id)) {
-                nozzle_count = 0;
-                for(size_t idx = 0 ; idx < nvtHybrid; ++idx){
-                    volume_type = static_cast<NozzleVolumeType>(idx);
-                    setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
-                    clear_all = false;
-                }
-            }
-            else {
-                for (auto& stat : selected_option->extruder_nozzle_stats[extruder_id]) {
-                    volume_type = stat.first;
-                    nozzle_count = stat.second;
-                    setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
-                    clear_all = false;
-                }
-            }
-        }
-        preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfMachine);
-        return selected_option;
-    }
-
-    return std::nullopt;
+        return;
+    MultiNozzleSyncDialog dialog(wxGetApp().plater_, rack);
+    dialog.SetResolveOnly(true);
+    dialog.ShowModal();
 }
 
 void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType volume_type, int nozzle_count, bool clear_all)

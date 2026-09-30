@@ -147,6 +147,9 @@ public:
     virtual void on_dpi_changed(const wxRect& suggested_rect) {};
     std::vector<NozzleOption> GetNozzleOptions(const std::vector<MultiNozzleUtils::NozzleGroupInfo>& group_infos);
 
+    // Only settle unknown / unreliable nozzles, then close instead of offering the nozzle list.
+    void SetResolveOnly(bool resolve_only) { m_resolve_only = resolve_only; }
+
     std::optional<NozzleOption> GetSelectedOption() {
         if (m_nozzle_option_idx < 0 || m_nozzle_option_idx >= m_nozzle_option_values.size())
             return std::nullopt;
@@ -175,6 +178,7 @@ private:
     std::vector<NozzleOption> m_nozzle_option_values;
     int m_nozzle_option_idx{ -1 };
     bool m_refreshing{ false };
+    bool m_resolve_only{ false };
 
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
     Label* m_tips;
@@ -187,7 +191,9 @@ private:
 };
 
 
-std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj);
+// Shows only the refresh / confirm / ignore step when the rack has unknown or unreliable nozzles.
+// Closing it just skips the refresh; unknown nozzles then stay out of the sync.
+void tryResolveRackNozzleStatus(MachineObject* obj);
 
 void setExtruderNozzleCount(PresetBundle* preset_bundle, int extruder_id, NozzleVolumeType type, int nozzle_count, bool clear_before_set);
 

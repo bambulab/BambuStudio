@@ -99,7 +99,8 @@ std::vector<NozzleSpec> collect_printer_nozzles(MachineObject *obj, bool with_fl
     auto *nozzle_system = obj->GetNozzleSystem();
     for (const std::map<int, DevNozzle> *nozzles : {&nozzle_system->GetRackNozzles(), &nozzle_system->GetExtNozzles()}) {
         for (const auto &[_, nozzle] : *nozzles) {
-            if (nozzle.IsEmpty() || nozzle.IsAbnormal() || !nozzle.IsHotend())
+            // An unknown nozzle has no reliable diameter, so it cannot be offered as a target.
+            if (nozzle.IsEmpty() || nozzle.IsUnknown() || nozzle.IsAbnormal() || !nozzle.IsHotend())
                 continue;
             const NozzleFlowType flow = nozzle.GetNozzleFlowType();
             if (with_flow_type && flow == NozzleFlowType::NONE_FLOWTYPE)

@@ -1161,9 +1161,8 @@ struct Sidebar::priv
     void can_search();
 
     bool sync_extruder_list(bool &only_external_material, bool is_manual = false);
-    void sync_extruder_volume_type(MachineObject *obj, const std::optional<NozzleOption> &nozzle_option, int extruder_nums);
+    void sync_extruder_volume_type(MachineObject *obj, std::optional<float> synced_diameter, int extruder_nums);
 
-    std::optional<NozzleOption> get_nozzle_options(MachineObject *obj, int extruder_count, bool support_multi_nozzle, bool is_manual);
     bool switch_diameter(bool single);
     void update_right_extruder_group_color();
     void update_sync_status(const MachineObject* obj);
@@ -2871,30 +2870,30 @@ bool Sidebar::priv::switch_diameter(bool single)
     return result;
 }
 
-// Write nozzle_volume_type into project_config for every extruder. Caller passes the
-// MachineObject and the (already resolved) NozzleOption so this function never re-runs
-// the multi-nozzle popup or refreshes the AppConfig cache.
-//
-// Volume type precedence: popup user choice > extruder_full_stat-derived value.
-void Sidebar::priv::sync_extruder_volume_type(MachineObject *obj, const std::optional<NozzleOption> &nozzle_option, int extruder_nums)
+// Write nozzle_volume_type into project_config for every extruder, derived from extruder_full_stat
+// for the diameter being synced. Without one, the nozzle mounted on the extruder decides.
+void Sidebar::priv::sync_extruder_volume_type(MachineObject *obj, std::optional<float> synced_diameter, int extruder_nums)
 {
     if (!obj) return;
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
     if (!printer_tab) return;
 
     for (size_t index = 0; index < static_cast<size_t>(extruder_nums); ++index) {
-        float            diameter    = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(index);
+        float diameter = synced_diameter ? *synced_diameter : obj->GetExtderSystem()->GetNozzleDiameter(index);
         NozzleVolumeType target_type = derive_volume_type_from_full_stat(static_cast<int>(index), wxString::FromUTF8(get_diameter_string(diameter)));
-
-        if (nozzle_option && nozzle_option->extruder_nozzle_stats.count(index)) {
-            if (nozzle_option->extruder_nozzle_stats.at(index).size() > 1)
-                target_type = NozzleVolumeType::nvtHybrid;
-            else
-                target_type = nozzle_option->extruder_nozzle_stats.at(index).begin()->first;
-        }
 
         printer_tab->set_extruder_volume_type(index, target_type);
     }
+}
+
+// A dual-extruder machine carrying a nozzle rack (H2C), the only kind whose rack nozzles need settling
+// before syncing.
+static bool is_dual_extruder_rack(const DynamicPrintConfig &config)
+{
+    const auto *diameters   = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const auto *max_nozzles = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    return diameters && diameters->size() > 1 && max_nozzles &&
+           std::any_of(max_nozzles->values.begin(), max_nozzles->values.end(), [](int val) { return val > 1; });
 }
 
 bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_manual)
@@ -2933,6 +2932,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         return false;
     }
     const bool model_mismatch = machine_print_name != target_model_id;
+    // Offer to settle unknown / unreliable rack nozzles first so everything below reads what the printer
+    // really holds. A 3MF load skips this; its unknown nozzles just stay out of the sync.
+    if (!migration && is_dual_extruder_rack(machine_preset->config))
+        tryResolveRackNozzleStatus(obj);
     std::optional<PrinterMigrationInfo> migration_info;
     if (!migration)
         migration_info = collect_printer_migration_info(obj, /* offer_skip_future_checks */ false);
@@ -2941,9 +2944,9 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     const bool nozzle_mismatch = !migration && migration_info && !migration_info->printer_nozzles.empty() &&
                                  !migration_info->nozzles_fully_covered;
     if (model_mismatch || nozzle_mismatch) {
-        // Reuse a 3MF-armed answer instead of asking twice.
+        // Reuse a 3MF-armed answer; an empty project has nothing to migrate, so skip the dialog.
         if (!migration) {
-            if (migration_info) {
+            if (migration_info && !this->plater->is_empty_project()) {
                 SyncPresetWithPrinterDialog dlg(this->plater, *migration_info);
                 if (dlg.ShowModal() != wxID_OK)
                     return false;
@@ -2989,6 +2992,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         clear_multi_nozzle_diameter_mode();
         refresh_after_multi_nozzle_diameter_mode_cleared();
     }
+    // A confirmed migration without any target diameter means the printer had no usable nozzle to
+    // offer, so the preset switch is all this sync does.
+    if (migration && migration_target_diameters(*migration).empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " printer reported no usable nozzle, only the printer preset is switched";
+        return false;
+    }
     // Settle the gate before extruder_full_stat is rebuilt. Outside the block above so the 3MF
     // path, which already selected the printer preset, still runs it.
     if (migration) {
@@ -3009,30 +3018,28 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     }
     assert(obj->GetExtderSystem()->GetTotalExtderCount() == extruder_nums);
     auto extruder_max_nozzle_count = cur_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count")->values;
-    bool support_multi_nozzle = std::any_of(extruder_max_nozzle_count.begin(),extruder_max_nozzle_count.end(),[](int val){return val>1;});
-    auto nozzle_option = get_nozzle_options(obj, extruder_nums, support_multi_nozzle, is_manual);
-    if (!nozzle_option && support_multi_nozzle && extruder_nums > 1) 
-        return false;
 
     // Syncing brings over the nozzle inventory and the AMS state; the slicing diameter stays the
-    // user's choice. A rack machine serves several diameters at once, so keep the project's diameter
-    // whenever the machine still carries a nozzle of it and only fall back to the machine's dominant
-    // diameter when it cannot.
+    // user's choice: the one the sync printer information dialog settled on, or else the project's,
+    // as long as the machine still carries a nozzle of it. Only otherwise fall back to the machine's
+    // dominant diameter. Multi-diameter mode keeps the project's, since there the gate owns the variant.
+    const bool  multi_diameter_mode     = multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
     const auto *preset_nozzle_diameters = cur_preset.config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    const bool  keep_project_diameter   = is_single_ext_multi_nozzle(cur_preset.config) && preset_nozzle_diameters != nullptr;
+    const std::set<std::string> target_diameters = migration ? migration_target_diameters(*migration) : std::set<std::string>{};
+    float wanted_diameter = 0.f;
+    if (target_diameters.size() == 1 && !multi_diameter_mode)
+        wanted_diameter = (float) string_to_double_decimal_point(*target_diameters.begin());
+    else if (preset_nozzle_diameters != nullptr && !preset_nozzle_diameters->values.empty())
+        wanted_diameter = (float) preset_nozzle_diameters->values[0];
+    std::optional<float> synced_diameter;
+    for (int index = 0; index < extruder_nums && !synced_diameter; ++index)
+        if (machine_has_nozzle_diameter(obj, index, wanted_diameter))
+            synced_diameter = wanted_diameter;
 
     std::vector<float> nozzle_diameters;
     nozzle_diameters.resize(extruder_nums);
     for (size_t index = 0; index < extruder_nums; ++index) {
-        if (nozzle_option) {
-            nozzle_diameters[index] = string_to_double_decimal_point(nozzle_option->diameter);
-            continue;
-        }
-
-        const float project_diameter = (keep_project_diameter && index < preset_nozzle_diameters->size()) ?
-                                           (float) preset_nozzle_diameters->values[index] : 0.f;
-        nozzle_diameters[index]      = machine_has_nozzle_diameter(obj, (int) index, project_diameter) ? project_diameter :
-                                                                                                        get_best_diameter(obj, (int) index);
+        nozzle_diameters[index] = synced_diameter ? *synced_diameter : get_best_diameter(obj, (int) index);
     }
 
     // key:(logical_extruder_id, slot_num) val: count
@@ -3116,7 +3123,9 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, s_extruder_panel);
     }
 
-    sync_extruder_volume_type(obj, nozzle_option, extruder_nums);
+    // Multi-diameter mode keeps reading the flow off the mounted nozzle; each filament's own flow is
+    // in filament_volume_map there.
+    sync_extruder_volume_type(obj, multi_diameter_mode ? std::optional<float>() : synced_diameter, extruder_nums);
 
     if (extruder_nums > 1) {
         auto fila_switch = obj->GetFilaSwitch();
@@ -3399,97 +3408,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
                 cb->update();
         }
     }
-}
-
-std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj, int extruder_count, bool support_multi_nozzle, bool is_manual)
-{
-    if (extruder_count < 2 || !support_multi_nozzle) {
-        return std::nullopt;
-    }
-    if (!obj || !obj->GetNozzleSystem()) return std::nullopt;
-    auto nozzle_system = obj->GetNozzleSystem();
-
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle) return std::nullopt;
-
-    std::string curr_dev_id = obj->get_dev_id();
-    std::map<int, std::vector<DevNozzle>> curr_nozzle_cfg;
-
-    for (const auto& ext_nozzle : nozzle_system->GetExtNozzles()) {
-        int extruder_id = ext_nozzle.first;
-        curr_nozzle_cfg[extruder_id].emplace_back(ext_nozzle.second);
-    }
-
-    for (const auto& rack_nozzle : nozzle_system->GetRackNozzles()) {
-        curr_nozzle_cfg[MAIN_EXTRUDER_ID].emplace_back(rack_nozzle.second);
-    }
-
-    AppConfig *app_config = wxGetApp().app_config;
-    std::string saved_dev_id = app_config->get("sync_extruder", "dev_id");
-    std::string saved_nozzle_config_str = app_config->get("sync_extruder", "nozzle_config");
-    std::string saved_nozzle_option_str = app_config->get("sync_extruder", "nozzle_option");
-    std::optional<NozzleOption> nozzle_option;
-
-    if (is_manual) {
-        nozzle_option = tryPopUpMultiNozzleDialog(obj);
-    } else {
-        bool can_reuse_saved_option = false;
-        if (!saved_dev_id.empty() && !saved_nozzle_config_str.empty() && !saved_nozzle_option_str.empty() && saved_dev_id == curr_dev_id) {
-            auto saved_nozzle_config = deserialize_nozzle_config(saved_nozzle_config_str);
-            if (is_same_nozzle_config(saved_nozzle_config, curr_nozzle_cfg)) {
-                nozzle_option = deserialize_nozzle_option(saved_nozzle_option_str);
-                can_reuse_saved_option = nozzle_option.has_value();
-            }
-            if (can_reuse_saved_option) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Reusing saved nozzle option for dev_id: " << curr_dev_id;
-
-                // Write to preset bundle config
-                for (int extruder_id = 0; extruder_id < extruder_count; ++extruder_id) {
-                    NozzleVolumeType volume_type;
-                    int              nozzle_count;
-                    bool             clear_all = true;
-
-                    if (!nozzle_option->extruder_nozzle_stats.count(extruder_id)) {
-                        nozzle_count = 0;
-                        for (size_t idx = 0; idx < nvtHybrid; ++idx) {
-                            volume_type = static_cast<NozzleVolumeType>(idx);
-                            setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
-                            clear_all = false;
-                        }
-                    } else {
-                        for (auto &stat : nozzle_option->extruder_nozzle_stats[extruder_id]) {
-                            volume_type  = stat.first;
-                            nozzle_count = stat.second;
-                            setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
-                            clear_all = false;
-                        }
-                    }
-                }
-                preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfMachine);
-            }
-        }
-
-        if (!can_reuse_saved_option) {
-            nozzle_option = tryPopUpMultiNozzleDialog(obj);
-        }
-    }
-    if (nozzle_option) {
-        std::string current_nozzle_config = serialize_nozzle_config(curr_nozzle_cfg);
-        std::string current_nozzle_option = serialize_nozzle_option(*nozzle_option);
-        if (app_config->has_section("sync_extruder")) {
-            app_config->set("sync_extruder", "dev_id", curr_dev_id);
-            app_config->set("sync_extruder", "nozzle_config", current_nozzle_config);
-            app_config->set("sync_extruder", "nozzle_option", current_nozzle_option);
-        } else {
-            std::map<std::string, std::string> data;
-            data["dev_id"]        = curr_dev_id;
-            data["nozzle_config"] = current_nozzle_config;
-            data["nozzle_option"] = current_nozzle_option;
-            app_config->set_section("sync_extruder", data);
-        }
-    }
-
-    return nozzle_option;
 }
 
 void Sidebar::update_sync_ams_btn_enable(wxUpdateUIEvent &e)
@@ -23469,6 +23387,7 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
         info = collect_printer_migration_info(obj, /* offer_skip_future_checks */ true);
 
     // Compare every filament slot. If the comparison cannot be assembled, leave the import untouched.
+    // Unknown rack nozzles are left out of the comparison, so no refresh is offered on import.
     if (info && (model_mismatch || (!info->printer_nozzles.empty() && !info->nozzles_fully_covered))) {
         SyncPresetWithPrinterDialog dlg(wxGetApp().mainframe, *info);
         sync_printer_preset = dlg.ShowModal() == wxID_OK;
@@ -23476,6 +23395,15 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
             app_config->set_bool("skip_printer_check_on_3mf_load", true);
         if (sync_printer_preset)
             wxGetApp().sidebar().arm_nozzle_migration(dlg.GetConfirmedMigration());
+    } else if (info && !info->printer_nozzles.empty()) {
+        // Nothing to ask: apply what the dialog would on confirm, keeping every slot on the project's
+        // own diameter and the current preset.
+        PendingNozzleMigration migration;
+        migration.per_slot = info->slot_nozzles;
+        migration.apply_flow_type = info->compare_flow_type;
+        wxGetApp().sidebar().arm_nozzle_migration(migration);
+        target_preset = &printer_preset;
+        sync_printer_preset = true;
     }
     if (!sync_printer_preset)
         return false;
