@@ -93,9 +93,6 @@
     "slow_down_layer_time": [
         "12"
     ],
-    "temperature_vitrification": [
-        "90"
-    ],
     "textured_plate_temp": [
         "70"
     ],

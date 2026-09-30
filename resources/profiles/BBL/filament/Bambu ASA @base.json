@@ -53,5 +53,8 @@
     ],
     "textured_plate_temp_initial_layer": [
         "100"
+    ],
+    "temperature_vitrification": [
+        "85"
     ]
 }

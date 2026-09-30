@@ -22,5 +22,8 @@
     ],
     "impact_strength_z": [
         "8"
+    ],
+    "temperature_vitrification": [
+        "90"
     ]
 }

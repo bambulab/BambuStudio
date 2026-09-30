@@ -59,5 +59,8 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n\n"
+    ],
+    "temperature_vitrification": [
+        "40"
     ]
 }

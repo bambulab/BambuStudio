@@ -44,5 +44,8 @@
     ],
     "slow_down_layer_time": [
         "4"
+    ],
+    "temperature_vitrification": [
+        "75"
     ]
 }
