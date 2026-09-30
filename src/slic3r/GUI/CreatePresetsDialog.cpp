@@ -198,7 +198,7 @@ static std::string get_curr_time()
     std::ostringstream time_stream;
     if (local_time == nullptr)
     {
-        bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+        bool use_12h_format = wxGetApp().app_config->get_bool("use_12h_time_format");
 
         std::string hm_formatted = Slic3r::format_time_hm(local_time, use_12h_format);
         // Replace colons with underscores for filename compatibility
