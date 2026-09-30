@@ -21,6 +21,7 @@
         "3",
         "3"
     ],
+    "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
         "2",
         "2"
