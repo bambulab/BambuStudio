@@ -2683,7 +2683,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Importer::_extract_xml_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler)
     {
-        if (stat.m_uncomp_size == 0) {
+        // XML_GetBuffer() takes an int; reject sizes that would be truncated, otherwise the buffer
+        // is allocated from the truncated size while the extraction writes the full 64-bit size.
+        if (stat.m_uncomp_size == 0 || stat.m_uncomp_size > (mz_uint64)std::numeric_limits<int>::max()) {
             add_error("Found invalid size");
             return false;
         }

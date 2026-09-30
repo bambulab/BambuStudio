@@ -307,6 +307,9 @@ bool PrusaFileParser::check_3mf_from_prusa(const std::string filename)
             mz_zip_archive_file_stat stat;
             if (!mz_zip_reader_file_stat(&archive, model_file_index, &stat)) goto EXIT;
 
+            // XML_GetBuffer() takes an int; reject sizes that would be truncated.
+            if (stat.m_uncomp_size == 0 || stat.m_uncomp_size > (mz_uint64) std::numeric_limits<int>::max()) goto EXIT;
+
             void *parser_buffer = XML_GetBuffer(m_parser, (int) stat.m_uncomp_size);
             if (parser_buffer == nullptr) goto EXIT;
 
@@ -1327,7 +1330,9 @@ ModelVolumeType type_from_string(const std::string &s)
 
     bool _3MF_Importer::_extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
     {
-        if (stat.m_uncomp_size == 0) {
+        // XML_GetBuffer() takes an int; reject sizes that would be truncated, otherwise the buffer
+        // is allocated from the truncated size while the extraction writes the full 64-bit size.
+        if (stat.m_uncomp_size == 0 || stat.m_uncomp_size > (mz_uint64)std::numeric_limits<int>::max()) {
             add_error("Found invalid size");
             return false;
         }
