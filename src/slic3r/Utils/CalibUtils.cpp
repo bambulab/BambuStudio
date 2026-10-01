@@ -1458,7 +1458,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     assert(nozzle_diameter_config->values.size() > 0);
     double nozzle_diameter = nozzle_diameter_config->values[0];
     double line_width      = nozzle_diameter * 1.75;
-    double layer_height    = nozzle_diameter * 0.8;
+    double layer_height    = max_volumetric_speed_calibration_layer_height(nozzle_diameter);
 
     auto max_lh = printer_config.option<ConfigOptionFloatsNullable>("max_layer_height");
     if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
