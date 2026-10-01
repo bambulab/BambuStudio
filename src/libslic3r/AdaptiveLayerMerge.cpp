@@ -290,39 +290,44 @@ bool pull_adaptive_band_top_to_material(
     return true;
 }
 
-// Cut a span of layers into as few consecutive groups as possible, every one of them inside the printable
-// height window. Returns false when no split works, which means the span cannot be extruded by this nozzle.
+// Cut a span of layers into consecutive printable groups that stay as close as possible to the nozzle's
+// fixed band size. Returns false when no split works, which means the span cannot be extruded by this nozzle.
 bool split_adaptive_layer_span(
     const std::vector<double>              &layer_heights,
     size_t                                  bottom_idx,
     size_t                                  top_idx,
+    size_t                                  preferred_band_size,
     const AdaptiveLayerHeightRange         &height_range,
     std::vector<std::pair<size_t, size_t>> &groups)
 {
     groups.clear();
-    if (bottom_idx > top_idx || top_idx >= layer_heights.size())
+    if (bottom_idx > top_idx || top_idx >= layer_heights.size() || preferred_band_size == 0)
         return false;
     const size_t layer_count = top_idx - bottom_idx + 1;
-    // best[i] is the minimum number of legal groups covering the first i layers.
+    // cost[i] is the total distance from the preferred band size over the first i layers.
     const size_t unreachable = std::numeric_limits<size_t>::max();
-    std::vector<size_t> best(layer_count + 1, unreachable);
+    std::vector<size_t> cost(layer_count + 1, unreachable);
     std::vector<size_t> prev(layer_count + 1, 0);
-    best[0] = 0;
+    cost[0] = 0;
     for (size_t end = 1; end <= layer_count; ++end) {
         double height = 0.;
         for (size_t begin = end; begin-- > 0;) {
             height += layer_heights[bottom_idx + begin];
             if (height > height_range.max_height + EPSILON)
                 break;
-            if (best[begin] == unreachable || ! height_range.contains(height))
+            if (cost[begin] == unreachable || ! height_range.contains(height))
                 continue;
-            if (best[begin] + 1 < best[end]) {
-                best[end] = best[begin] + 1;
+            const size_t size    = end - begin;
+            const size_t penalty = size > preferred_band_size ? size - preferred_band_size :
+                                                                  preferred_band_size - size;
+            // Prefer the thicker final band when two covers deviate equally from the fixed grid.
+            if (cost[begin] + penalty <= cost[end]) {
+                cost[end] = cost[begin] + penalty;
                 prev[end] = begin;
             }
         }
     }
-    if (best[layer_count] == unreachable)
+    if (cost[layer_count] == unreachable)
         return false;
 
     for (size_t end = layer_count; end > 0; end = prev[end])

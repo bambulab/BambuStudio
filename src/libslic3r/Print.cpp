@@ -4105,6 +4105,8 @@ void Print::_make_wipe_tower()
     wipe_tower.set_first_layer_flow_ratio(m_default_region_config.initial_layer_flow_ratio);
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_multi_diameter_print(this->uses_multiple_nozzle_diameters());
+    wipe_tower.set_tower_grid_reference_nozzle(float(layer_grid_nozzle_diameter(m_full_print_config)));
+    wipe_tower.set_tower_grid_layer_height(float(m_objects.front()->slicing_parameters().layer_height));
     wipe_tower.set_nozzle_group_result(*group_result);
     wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());
     // Set the extruder & material properties at the wipe tower object.

@@ -135,12 +135,13 @@ bool pull_adaptive_band_top_to_material(
     const AdaptiveLayerHeightRange   &height_range,
     const std::vector<unsigned char> &has_material);
 
-// Cut a continuous Z span into the fewest printable groups. Used by the wipe tower, which merges whole
-// slabs and has no per-region geometry to decimate.
+// Cut a continuous Z span into printable groups as close as possible to preferred_band_size. Used by the
+// wipe tower, which merges whole slabs and has no per-region geometry to decimate.
 bool split_adaptive_layer_span(
     const std::vector<double>              &layer_heights,
     size_t                                  bottom_idx,
     size_t                                  top_idx,
+    size_t                                  preferred_band_size,
     const AdaptiveLayerHeightRange         &height_range,
     std::vector<std::pair<size_t, size_t>> &groups);
 

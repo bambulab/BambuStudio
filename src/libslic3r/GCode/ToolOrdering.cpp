@@ -281,7 +281,7 @@ static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintCon
 
 void ToolOrdering::handle_dontcare_extruder(const std::vector<unsigned int>& tool_order_layer0)
 {
-    if(m_layer_tools.empty() || tool_order_layer0.empty())
+    if(m_layer_tools.empty())
         return;
 
     // Reorder the extruders of first layer
@@ -297,21 +297,45 @@ void ToolOrdering::handle_dontcare_extruder(const std::vector<unsigned int>& too
             }
         }
 
+        bool had_dontcare = false;
         for (unsigned int extruder_id : layer0_extruders) {
-            if (extruder_id == 0)
+            if (extruder_id == 0) {
+                // Something is printed here, but its filament was left unspecified.
+                had_dontcare = true;
                 continue;
+            }
 
             if (extruder_id != (unsigned int)-1)
                 lt.extruders.push_back(extruder_id);
         }
 
-        // all extruders are zero
-        if (lt.extruders.empty()) {
+        // A printed first layer whose filaments were all "don't care" still needs one concrete tool.
+        // A layer with no extrusion at all must stay empty: its slices can still name a wall filament
+        // (adaptive merging emits that band later, and the largest nozzle wins the slice test), and
+        // writing that filament in here makes first_extruder() a tool the object never loaded.
+        if (lt.extruders.empty() && had_dontcare && !tool_order_layer0.empty())
             lt.extruders.push_back(tool_order_layer0[0]);
-        }
     }
 
-    int last_extruder_id = m_layer_tools[0].extruders.back();
+    int last_extruder_id = 0;
+    // BBS: fist layer may be empty or only has defult extrude id
+    if (m_layer_tools[0].extruders.empty()) {
+        // search for first extrude filament id
+        for (size_t layer_id = 1; layer_id < m_layer_tools.size(); layer_id++) {
+            for (auto const &extrude : m_layer_tools[layer_id].extruders) {
+                if (extrude != 0) {
+                    last_extruder_id = extrude;
+                    break;
+                }
+            }
+
+            if (last_extruder_id != 0)
+                break;
+        }
+    } else {
+        //use first layer last extruder
+        last_extruder_id = m_layer_tools[0].extruders.back();
+    }
     for (int i = 1; i < m_layer_tools.size(); i++) {
         LayerTools& lt = m_layer_tools[i];
 

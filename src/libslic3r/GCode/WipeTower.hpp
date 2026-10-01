@@ -390,6 +390,8 @@ public:
     // Print::uses_multiple_nozzle_diameters(), handed in so the tower gates its multi-diameter ladder on the
     // same fact the model and the support merges use instead of deriving one of its own.
     void set_multi_diameter_print(bool multi_diameter) { m_multi_diameter_print = multi_diameter; }
+    void set_tower_grid_reference_nozzle(float nozzle_diameter) { m_tower_grid_reference_nozzle = nozzle_diameter; }
+    void set_tower_grid_layer_height(float layer_height) { m_tower_grid_layer_height = layer_height; }
     void set_filament_categories(const std::vector<int> & filament_categories) { m_filament_categories = filament_categories;};
     void set_nozzle_group_result(const MultiNozzleUtils::LayeredNozzleGroupResult &multi_nozzle_group_result) { m_multi_nozzle_group_result = &multi_nozzle_group_result; };
     std::vector<int> m_used_filament_ids;
@@ -411,6 +413,9 @@ public:
         std::vector<WipeTowerLayerType> layers_type;     // type of the layer, normal, Contact or Solid
         std::vector<float>      layer_heights;
         std::vector<char>       layer_reserved;
+        // Filament that fills this band on that layer, or -1 to choose one while generating.
+        // The support under an extra TPU lane records it so a whole run stays on one material.
+        std::vector<int>        layer_fill_filament;
         float            depth{0};
         float            start_depth{0};
         float            cur_depth{0};
@@ -535,6 +540,32 @@ public:
     float min_layer_height_for_filament(int filament_id) const;
     float max_layer_height_for_filament(int filament_id) const;
     bool  filament_can_print_height(int filament_id, float height) const;
+    // Merge ladder scored against a fixed nozzle band instead of the base cadence. preferred_height
+    // overrides the visiting filament's grid when the geometry belongs to one fixed nozzle band; zero keeps
+    // the visitor-specific behavior used by the shared outer wall. prefer_max_height scores each slab
+    // against the extruding nozzle's maximum layer height and charges one unit per slab, so the span is
+    // covered in as few layers as that nozzle can lay down. height_ceiling, when positive, is the block
+    // nozzle's printable maximum: a merged slab may not grow past it, even when the filament actually
+    // extruding could. False when no partition exists.
+    bool plan_band_merge_ladder(const std::vector<int> &printed, int first_step, int last_step, double bottom_z,
+                                const std::vector<std::vector<int>> &visitors, const std::vector<char> &reservable,
+                                const std::vector<char> &can_merge_top, std::vector<MergeLadderGroup> &groups,
+                                float preferred_height = 0.f, bool prefer_max_height = false,
+                                float height_ceiling = 0.f) const;
+    // Fold groups thinner than the extruding nozzle's band into a neighbor, but only while the result stays
+    // inside that nozzle's printable window. height_ceiling, when set, is a tighter cap from the block nozzle.
+    void fold_thin_ladder_groups(const std::vector<std::vector<int>> &visitors, const std::vector<char> &reservable,
+                                 const std::vector<char> &can_merge_top, std::vector<MergeLadderGroup> &groups,
+                                 float height_ceiling = 0.f) const;
+    // Number of base grid layers this filament's nozzle should merge into one band.
+    size_t preferred_band_size_for_filament(int filament_id) const;
+    // Band height this nozzle should extrude on the tower grid.
+    float preferred_height_for_filament(int filament_id) const;
+    // Whether the tower is planned in merged slabs: it has several nozzle diameters and nothing needs it on
+    // every layer as the ladder left it.
+    bool merged_fill_active() const;
+    // The filament still loaded when the tower reaches this layer, or -1.
+    int loaded_filament(int layer_id) const;
     // Height of the slab this filament lays down on that layer: its band's trench if it digs one, otherwise
     // whatever the whole tower lays down there.
     float slab_height_for(int filament_id, int layer_id, float fallback) const
@@ -617,7 +648,7 @@ private:
 	};
 
     const float Width_To_Nozzle_Ratio = 1.25f; // desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
-    const float WT_EPSILON            = 1e-3f;
+    static constexpr float WT_EPSILON = 1e-3f;
     // How far the brim chamfer may flare out beyond the tower wall.
     static constexpr float WT_MAX_CHAMFER_WIDTH = 3.f;
     float filament_area() const {
@@ -714,6 +745,8 @@ private:
 	float m_perimeter_width = 0.4f * Width_To_Nozzle_Ratio; // Width of an extrusion line, also a perimeter spacing for 100% infill.
     float m_nozzle_change_perimeter_width = 0.4f * Width_To_Nozzle_Ratio;
     float m_tower_grid_nozzle_diameter = 0.f;
+    float m_tower_grid_reference_nozzle = 0.f;
+    float m_tower_grid_layer_height = 0.f;
 	float m_extrusion_flow = 0.038f; //0.029f;// Extrusion flow is derived from m_perimeter_width, layer height and filament diameter.
     std::unordered_map<int, std::pair<float,float>> m_block_infill_gap_width; // categories to infill_gap: toolchange gap, nozzlechange gap
 	// Extruder specific parameters.
@@ -743,7 +776,10 @@ private:
     std::vector<std::vector<Vec2f>> m_wall_skip_points;
     std::map<float,Polylines> m_outer_wall;
     std::vector<double>        m_printable_height;
-    bool is_first_layer() const
+    bool is_first_layer() const { return is_first_layer_for_slab(m_layer_height); }
+    // Whether an extrusion of slab_height topping out at the current Z sits on the bed. A merged slab
+    // printed above the tower's first layer still lands on the bed when it spans down to it.
+    bool is_first_layer_for_slab(float slab_height) const
     {
         if (m_plan.empty() || m_layer_info == m_plan.end())
             return false;
@@ -754,10 +790,13 @@ private:
         if (first >= m_plan.size())
             return false;
         const float bed = m_plan[first].z - m_plan[first].height;
-        return m_z_pos - m_layer_height <= bed + WT_EPSILON;
+        return m_z_pos - slab_height <= bed + WT_EPSILON;
     }
     float calc_tower_feedrate(int filament_id, float extrusion_flow) const {
-        if (is_first_layer())
+        return calc_tower_feedrate(filament_id, extrusion_flow, is_first_layer());
+    }
+    float calc_tower_feedrate(int filament_id, float extrusion_flow, bool first_layer) const {
+        if (first_layer)
             return std::min(m_first_layer_speed * 60.f, m_max_speed);
         if (m_handle_hotend_as_extruder) {
             float feedrate = 60.0f * m_filpar[filament_id].max_e_speed / extrusion_flow;
@@ -865,8 +904,15 @@ private:
             const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const;
 
     int get_wall_filament_for_layer(const WipeTowerInfo &layer, int layer_id, int wall_filament) const;
+    // A filament this layer has on hand that may top the band up, or -1: the band's own group first, then any
+    // filament of its category. A band must only rest on material it bonds to.
+    int same_category_filler(const WipeTowerInfo &layer, int block_key) const;
     // Filament that tops a band up on a layer, chosen without regard to the slab height. The Z ladder is
     // planned against it, so that the height and the nozzle that has to extrude it are decided together.
+    // Y depth this band must fill on a layer. Several bands keep fixed slots sized by their deepest
+    // layer and the outer wall stays at that full depth, so a shallower layer still fills the rest of
+    // the slot. A single band whose wall shrinks with the layer only fills its own footprint.
+    float band_fill_depth(const WipeTowerBlock &block, int layer_id) const;
     int block_fill_filament_base(const WipeTowerInfo &layer, int layer_id, const WipeTowerBlock &block, int wall_filament) const;
     int get_block_fill_filament(const WipeTowerInfo &layer, int layer_id, const WipeTowerBlock &block, int wall_filament) const;
     WipeTowerInfo::ToolChange set_toolchange(int old_tool, int new_tool, float layer_height, float wipe_volume, float purge_volume,int layer_id);
