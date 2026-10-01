@@ -6408,6 +6408,21 @@ void PrintConfigDef::init_fff_params()
     // BBS: change data type to floats to add partplate logic
     def->set_default_value(new ConfigOptionFloats{ 220. });
 
+    // By-Object per-object prime tower: a manual override of that object's tower
+    // position, in plate-local coordinates (same frame as wipe_tower_x/y above).
+    // Object-level only (stored in ModelObject::config, never a project/global
+    // default) -- read directly from there by Print::_make_sequential_wipe_towers(),
+    // written by GLCanvas3D::do_move() when the user drags the tower preview in the
+    // Prepare view. Presence of the key (ModelConfig::has()) means "overridden";
+    // absence means "auto-place beside the object" (place_one_wipe_tower()).
+    def = this->add("sequential_wipe_tower_x", coFloat);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("sequential_wipe_tower_y", coFloat);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("prime_tower_width", coFloat);
     def->label = L("Width");
     def->tooltip = L("Width of prime tower");
@@ -6688,7 +6703,15 @@ void PrintConfigDef::init_fff_params()
         case coFloats: def->set_default_value(new ConfigOptionFloatsNullable(static_cast<const ConfigOptionFloatsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coPercents: def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercentsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coBools: def->set_default_value(new ConfigOptionBoolsNullable(static_cast<const ConfigOptionBools*>(it_opt->second.default_value.get())->values)); break;
-        case coEnums: def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values)); break;
+        case coEnums: {
+            // Keep the enum key map so the option can serialize/deserialize by
+            // name (append_full_config serializes every key; a null keys_map
+            // here dereferences null).
+            auto *enums_opt = new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values);
+            enums_opt->keys_map = it_opt->second.enum_keys_map;
+            def->set_default_value(enums_opt);
+            break;
+        }
         default: assert(false);
         }
     }
@@ -6716,7 +6739,15 @@ void PrintConfigDef::init_fff_params()
         case coFloats: def->set_default_value(new ConfigOptionFloatsNullable(static_cast<const ConfigOptionFloatsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coPercents: def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercentsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coBools: def->set_default_value(new ConfigOptionBoolsNullable(static_cast<const ConfigOptionBools*>(it_opt->second.default_value.get())->values)); break;
-        case coEnums: def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values)); break;
+        case coEnums: {
+            // Keep the enum key map so the option can serialize/deserialize by
+            // name (append_full_config serializes every key; a null keys_map
+            // here dereferences null).
+            auto *enums_opt = new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values);
+            enums_opt->keys_map = it_opt->second.enum_keys_map;
+            def->set_default_value(enums_opt);
+            break;
+        }
         default: assert(false);
         }
     }
@@ -7941,9 +7972,14 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
             if (mixed_opt)
                 has_mixed_filament = has_any_mixed_filament(mixed_opt->values);
         }
+        // NOTE: this previously also force-disabled the prime tower whenever
+        // (print_sequence == ByObject && num_objects > 1). That blanket
+        // suppression is the root cause of issues #1876 / #9399 (no prime tower
+        // for multi-object multi-material sequential prints). Per-object prime
+        // towers now cover that case, so only a genuine single-filament print
+        // (which needs no tower at all) disables it here.
         if (!is_smooth_timelapse && !enable_wrapping
-            && (  (used_filaments == 1 && !has_mixed_filament)
-                || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
+            && (used_filaments == 1 && !has_mixed_filament)) {
             if (ept_opt->value) {
                 if (ori_values)
                     ori_values->set_key_value("enable_prime_tower", ept_opt->clone());

@@ -2132,7 +2132,11 @@ class ConfigOptionEnumsGenericTempl : public ConfigOptionInts
 public:
     ConfigOptionEnumsGenericTempl(const t_config_enum_values *keys_map = nullptr) : keys_map(keys_map) {}
     explicit ConfigOptionEnumsGenericTempl(const t_config_enum_values *keys_map, size_t size, int value) : ConfigOptionInts(size, value), keys_map(keys_map) {}
-    explicit ConfigOptionEnumsGenericTempl(std::initializer_list<int> il) : ConfigOptionInts(std::move(il)), keys_map(keys_map) {}
+    // NOTE: this used to read `keys_map(keys_map)`, self-initialising from an
+    // uninitialised member. All ConfigOptionEnumsGeneric{...} brace-initialised
+    // defaults in PrintConfig.cpp therefore had a garbage keys_map. serialize()
+    // and deserialize() below now tolerate a null keys_map.
+    explicit ConfigOptionEnumsGenericTempl(std::initializer_list<int> il) : ConfigOptionInts(std::move(il)) {}
     explicit ConfigOptionEnumsGenericTempl(const std::vector<int> &vec) : ConfigOptionInts(vec) {}
     explicit ConfigOptionEnumsGenericTempl(std::vector<int> &&vec) : ConfigOptionInts(std::move(vec)) {}
 
@@ -2196,11 +2200,16 @@ public:
                 else
                     throw ConfigurationError("Deserializing nil into a non-nullable object");
             }
-            else {
+            else if (this->keys_map != nullptr) {
                 auto it = this->keys_map->find(item_str);
                 if (it == this->keys_map->end())
                     return false;
                 this->values.push_back(it->second);
+            }
+            else {
+                // No enum key map attached: accept a raw integer.
+                try { this->values.push_back(std::stoi(item_str)); }
+                catch (...) { return false; }
             }
         }
         return true;
@@ -2215,10 +2224,15 @@ private:
             else
                 throw ConfigurationError("Serializing NaN");
         }
-        else {
+        else if (this->keys_map != nullptr) {
             for (const auto& kvp : *this->keys_map)
                 if (kvp.second == v)
                     ss << kvp.first;
+        }
+        else {
+            // No enum key map attached (e.g. a brace-initialised default);
+            // fall back to the raw integer rather than dereferencing null.
+            ss << v;
         }
     }
 
