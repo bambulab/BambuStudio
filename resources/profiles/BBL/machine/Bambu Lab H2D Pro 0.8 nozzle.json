@@ -21,6 +21,12 @@
         "30",
         "30"
     ],
+    "deretract_speed_extruder_change": [
+        "15",
+        "15",
+        "15",
+        "15"
+    ],
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow",
         "Direct Drive Standard,Direct Drive High Flow"
@@ -206,12 +212,6 @@
         "2",
         "1",
         "2"
-    ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel",
-        "hardened_steel"
     ],
     "nozzle_volume": [
         "130",

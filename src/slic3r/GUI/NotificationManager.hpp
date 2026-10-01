@@ -2,8 +2,7 @@
 #define slic3r_GUI_NotificationManager_hpp_
 
 #include "GUI_App.hpp"
-#include "Plater.hpp"
-#include "GLCanvas3D.hpp"
+#include "GLCanvasType.hpp"
 #include "Event.hpp"
 #include "I18N.hpp"
 #include "Jobs/ProgressIndicator.hpp"
@@ -17,8 +16,14 @@
 #include <vector>
 #include <deque>
 #include <unordered_set>
+#include <functional>
 
 namespace Slic3r {
+
+// Formerly pulled in via Plater.hpp; keep a light forward decl so this hub
+// header does not need PrintBase.hpp / Plater.hpp.
+struct StringObjectException;
+
 namespace GUI {
 
 using EjectDriveNotificationClickedEvent = SimpleEvent;
@@ -29,6 +34,8 @@ using PresetUpdateAvailableClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 using PrinterConfigUpdateAvailableClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_PRINTER_CONFIG_UPDATE_AVAILABLE_CLICKED, PrinterConfigUpdateAvailableClickedEvent);
+// Declared here so NotificationManager.hpp does not need Plater.hpp; defined in Plater.cpp.
+wxDECLARE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH, wxCommandEvent);
 
 using CancelFn = std::function<void()>;
 
@@ -157,11 +164,22 @@ enum class NotificationType
     BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
     BBLMixUsePLAAndPETG,
+    BBLBrittleFilament,
+    BBLMixedFilamentBroken,
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,
 	BBLTpuNozzleHasMultiFilament,
+    BBLHighTempNeedWrappingDetection,
+    BBLPrintedWeightOverLimitWarn,
+    BBLBedHeatSoakInfo,
+    BBLSingleExtruderMixedFilamentRisk,
     AssemblyWarning,
     AssemblyInfo,
+    BBLIsolatedVolumeInfo,
+    BBLAssemblyFarFromOrigin,
+    BBLIntersectsVolumeInfo,
+	BBLArcFittingInfo,
+    BBLCalibExtruderMismatch,
     NotificationTypeCount
 
 };
@@ -246,12 +264,18 @@ public:
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
+	// Soft prompt when models leave nested heated-bed heat soak zones (A2L).
+	void push_bed_heat_soak_notification(const std::string& text);
+	void close_bed_heat_soak_notification();
 	//The flushing volume matrix has zero values in its off-diagonal elements
     void push_flushing_volume_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext = "", std::function<bool(wxEvtHandler *)> callback  = std::function<bool(wxEvtHandler *)>());
     void close_flushing_volume_error_notification(NotificationType type, NotificationLevel level);
 	// GCode exceeds the printing range of the extruder
     void push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext = "", std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void close_slicing_customize_error_notification(NotificationType type, NotificationLevel level);
+    // Brittle-filament (PPS-CF / PPA-CF) warning
+    void show_brittle_filament_notification(const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback);
+    void close_brittle_filament_notification();
 
     void push_assembly_warning_notification(const std::string& text);
     void close_assembly_warning_notification(const std::string& text);
@@ -310,10 +334,11 @@ public:
     void render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
-    void remove_notification_of_type(const NotificationType type);
+    void remove_notification_of_type(const NotificationType type, bool remove_all = false);
+    bool has_notification_of_type(const NotificationType type);
     void clear_all();
 	// Hides warnings in G-code preview. Should be called from plater only when 3d view/ preview is changed
-    void set_canvas_type(GLCanvas3D::ECanvasType t_canvas_type);
+    void set_canvas_type(ECanvasType t_canvas_type);
 	// Calls set_in_preview to apply appearing or disappearing of some notificatons;
 	void apply_canvas_type() { set_canvas_type(m_canvas_type); }
 	// Move to left to avoid colision with variable layer height gizmo.
@@ -322,6 +347,8 @@ public:
 	bool update_notifications(GLCanvas3D& canvas);
 	// returns number of all notifications shown
 	size_t get_notification_count() const;
+    // returns true if the given screen-space point is inside any notification
+    bool is_point_over_any_notification(const ImVec2 &point) const;
 
 
 	//BBS Notice
@@ -347,7 +374,7 @@ public:
 		const std::string hypertext = "", std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void bbl_close_objectsinfo_notification();
 
-    void bbl_show_seqprintinfo_notification(const std::string &text);
+    void bbl_show_seqprintinfo_notification(const std::string &text, const std::string &link_text = "", std::function<bool(wxEvtHandler*)> callback = nullptr, const std::string &second_link_text = "", std::function<bool(wxEvtHandler*)> second_callback = nullptr,bool has_error = false);
     void bbl_close_seqprintinfo_notification();
 
 	//BBS--EmptyLayer
@@ -395,6 +422,9 @@ private:
 		int                      sub_msg_id {-1};
 		std::string        ori_text;
         bool                use_warn_color { false };
+        //second_hypertext and second_callback
+        std::string second_hypertext;
+        std::function<bool(wxEvtHandler *)> second_callback;
 	};
 
 	// Cache of IDs to identify and reuse ImGUI windows.
@@ -436,7 +466,7 @@ private:
 		// close will dissapear notification on next render
         virtual void close();
 		// data from newer notification of same type
-		void                   update(const NotificationData& n);
+        void                   update(const NotificationData& n,bool change_level = false);
 		void                   append(const std::string& append_str);
 		bool                   is_finished() const { return m_state == EState::ClosePending || m_state == EState::Finished; }
         void                   reinit() { m_state = EState::Unknown; }
@@ -458,9 +488,18 @@ private:
 		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
 		EState                 get_state()  const { return m_state; }
 		bool				   is_hovered() const { return m_state == EState::Hovered; }
+        // True when the given screen-space point is inside the window rendered last
+        bool                   contains_point(const ImVec2 &p) const {
+            return m_rendered_this_frame &&
+                   p.x >= m_rendered_win_min.x && p.x <= m_rendered_win_max.x &&
+                   p.y >= m_rendered_win_min.y && p.y <= m_rendered_win_max.y;
+        }
+        // Cleared by the manager for notifications it skips so their stale rect
+        // does not keep blocking input.
+        void                   set_not_rendered() { m_rendered_this_frame = false; }
 		void				   set_hovered() { if (m_state != EState::Finished && m_state != EState::ClosePending && m_state != EState::Hidden && m_state != EState::Unknown) m_state = EState::Hovered; }
 		// set start of notification to now. Used by delayed notifications
-		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
+		void                   reset_timer() { m_notification_start = canvas_timestamp_now(); m_state = EState::Shown; }
         void set_Multiline(bool Multi) { m_multiline = Multi; }
 		virtual void on_change_color_mode(bool is_dark);
 		void set_scale(float scale) { m_scale = scale; }
@@ -482,7 +521,7 @@ private:
 		virtual void render_hypertext(ImGuiWrapper& imgui,
 			                          const float text_x, const float text_y,
 		                              const std::string text,
-		                              bool more = false);
+		                              bool more = false,bool use_second_callback = false);
 		virtual void bbl_render_block_notif_text(ImGuiWrapper& imgui,
 			const float win_size_x, const float win_size_y,
 			const float win_pos_x, const float win_pos_y);
@@ -499,6 +538,7 @@ private:
 		// Hypertext action, returns true if notification should close.
 		// Action is stored in NotificationData::callback as std::function<bool(wxEvtHandler*)>
 		virtual bool on_text_click();
+        virtual bool on_second_text_click();
 
 		// Part of init(), counts horizontal spacing like left indentation
 		virtual void count_spaces();
@@ -564,6 +604,7 @@ private:
 		std::string      m_hypertext;
 		// Aditional text after hypertext - currently not used
 		std::string      m_text2;
+        std::string      m_second_hypertext;
 		// mark for render operation
 		size_t           pos_start = string::npos;
 		size_t	         pos_end = string::npos;
@@ -584,6 +625,13 @@ private:
 		float            m_top_y                { 0.0f };
 		//Distance from top of block notifications to bottom of this notification
 		float            m_bottom_y				{ 0.0f };
+        // Screen-space rect of the window as rendered in the last frame. Only valid
+        // when m_rendered_this_frame is true (reset when the notification is skipped
+        // or hidden). Used to keep overlapping ImGui widgets (e.g. assembly part
+        // number labels) from stealing clicks meant for the notification.
+        ImVec2           m_rendered_win_min     { 0.0f, 0.0f };
+        ImVec2           m_rendered_win_max     { 0.0f, 0.0f };
+        bool             m_rendered_this_frame  { false };
 		// Height of text - Used as basic scaling unit!
 		float            m_line_height;
 		// endlines for text1, hypertext excluded
@@ -620,8 +668,8 @@ private:
 	public:
 		PlaterWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
         void close() override;
-		void		 real_close()      { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
-		void         show()            { m_state = EState::Unknown; }
+        void         real_close();
+        void         show()            { m_state = EState::Unknown; }
 	};
 
 
@@ -797,7 +845,7 @@ private:
     public:
         AssemblyWarningNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) {}
         void close() override;
-        void		 real_close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0); }
+        void         real_close();
         void         show() { m_state = EState::Unknown; }
     };
 
@@ -869,9 +917,9 @@ private:
 	std::vector<DelayedNotification> m_waiting_notifications;
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
-	GLCanvas3D::ECanvasType m_canvas_type { GLCanvas3D::ECanvasType::CanvasView3D };
-	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
-	bool                         m_move_from_overlay { false };
+    ECanvasType m_canvas_type { ECanvasType::CanvasView3D };
+    // True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
+    bool                         m_move_from_overlay { false };
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
 	// Notification types that can be shown multiple types at once (compared by text)
@@ -909,9 +957,12 @@ private:
 			_u8L("Details"),
                          [](wxEvtHandler* evnthndlr) {
                 //BBS set feishu release page by default
-                 wxCommandEvent* evt = new wxCommandEvent(EVT_UPDATE_PLUGINS_WHEN_LAUNCH);
-				 wxQueueEvent(wxGetApp().plater(), evt);
-				 return true;
+                // m_evt_handler is the Plater (same target as the former wxGetApp().plater() call).
+                if (evnthndlr == nullptr)
+                    return true;
+                wxCommandEvent* evt = new wxCommandEvent(EVT_UPDATE_PLUGINS_WHEN_LAUNCH);
+                wxQueueEvent(evnthndlr, evt);
+                return true;
              }},
 
         NotificationData{NotificationType::BBLPrinterConfigUpdateAvailable, NotificationLevel::ImportantNotificationLevel, BBL_NOTICE_MAX_INTERVAL,

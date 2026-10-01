@@ -131,6 +131,36 @@ public:
 	virtual ~WarningDialog() = default;
 };
 
+class MsgNoteDialog : public MsgDialog
+{
+public:
+    MsgNoteDialog(wxWindow *parent, const wxString &title, long style = wxICON_WARNING);
+    ~MsgNoteDialog() override = default;
+
+    void AddMessage(const wxString &message);
+    void AddNote(const wxString &note);
+    void Finalize();
+
+private:
+    Label *create_wrapped_label(const wxString &text, const wxFont &font, const wxColour &color);
+};
+
+// Post-processing script confirmation before slicing (3MF with post_process scripts)
+class PostProcessScriptDialog : public MsgDialog
+{
+	::wxTextCtrl* m_script_text{ nullptr };
+	Button*     m_toggle_details{ nullptr };
+	bool        m_details_expanded{ false };
+
+public:
+	PostProcessScriptDialog(wxWindow* parent, const wxString& message, const wxString& script_content);
+	PostProcessScriptDialog(PostProcessScriptDialog&&)                 = delete;
+	PostProcessScriptDialog(const PostProcessScriptDialog&)            = delete;
+	PostProcessScriptDialog& operator=(PostProcessScriptDialog&&)      = delete;
+	PostProcessScriptDialog& operator=(const PostProcessScriptDialog&) = delete;
+	~PostProcessScriptDialog() override = default;
+};
+
 #if 1
 // Generic static line, used intead of wxStaticLine
 //class StaticLine: public wxTextCtrl
@@ -161,6 +191,15 @@ public:
                   const wxString &forward_str = "",
                   const wxString &link_text   = "",
                   std::function<void(const wxString &)> link_callback = nullptr);
+    MessageDialog(wxWindow                             *parent,
+                  const wxString                       &message,
+                  const wxString                       &caption,
+                  long                                  style,
+                  const wxString                       &forward_str,
+                  const wxString                       &link_text,
+                  std::function<void(const wxString &)> link_callback,
+                  bool                                  is_marked_msg);
+
 	MessageDialog(MessageDialog&&) = delete;
 	MessageDialog(const MessageDialog&) = delete;
 	MessageDialog &operator=(MessageDialog&&) = delete;

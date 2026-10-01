@@ -2,6 +2,7 @@
 #define slic3r_Emboss_hpp_
 
 #include <vector>
+#include <utility>
 #include <set>
 #include <optional>
 #include <memory>
@@ -98,6 +99,10 @@ namespace Emboss
     unsigned get_count_lines(const std::wstring &ws);
     unsigned get_count_lines(const std::string &text);
     unsigned get_count_lines(const ExPolygonsWithIds &shape);
+
+    /// Glyph index ranges [first, last) of each text line, '\n' glyphs are not part of any range
+    using LineRanges = std::vector<std::pair<size_t, size_t>>;
+    LineRanges get_line_ranges(const ExPolygonsWithIds &shapes);
 
     /// <summary>
     /// Fix duplicit points and self intersections in polygons.

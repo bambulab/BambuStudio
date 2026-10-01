@@ -62,7 +62,7 @@ class OG_CustomCtrl;
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
-class Page// : public wxScrolledWindow
+class Page : public std::enable_shared_from_this<Page>// : public wxScrolledWindow
 {
 	//BBS: GUI refactor
 	wxPanel*		m_tab_owner;
@@ -283,7 +283,7 @@ protected:
     std::vector<std::string> m_cache_options;
 
 
-	bool				m_page_switch_running = false;
+    bool				m_page_switch_running = false;
 	bool				m_page_switch_planned = false;
 
     bool				m_is_timelapse_wipe_tower_already_prompted = false;
@@ -373,8 +373,9 @@ public:
     void        update_extruder_switch_colors();
     void        update_all_extruder_options_status();
     void        check_extruder_options_status(int index, bool &sys_extruder, bool &modified_extruder, const std::vector<PageShp>& pages_to_check);
+    bool        disable_arc_fitting();
 
-	void		on_roll_back_value(const bool to_sys = false);
+    void		on_roll_back_value(const bool to_sys = false);
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 	static wxString translate_category(const wxString& title, Preset::Type preset_type);
@@ -419,6 +420,12 @@ public:
     void			apply_searcher();
 	void			cache_config_diff(const std::vector<std::string>& selected_options);
 	void			apply_config_from_cache();
+
+private:
+    // when transfer modified options to a new printer, we may need do some work here
+    void remap_variant_cache();
+
+public:
     void            show_timelapse_warning_dialog();
 
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
@@ -504,6 +511,9 @@ public:
 
 	bool has_model_config() const { return !m_object_configs.empty(); }
 
+	// 获取对象配置映射，用于支撑参数推荐等场景
+	const std::map<ObjectBase *, ModelConfig *>& get_object_configs() const { return m_object_configs; }
+
 	void update_model_config();
 
 	virtual void reset_model_config();
@@ -540,6 +550,8 @@ public:
 	~TabPrintPlate() {}
 	void build() override;
 	void reset_model_config() override;
+	void update_bed_type_list();
+    void update_mixed_filament_seq_state();
 	int show_spiral_mode_settings_dialog(bool is_object_config) { return m_config_manipulation.show_spiral_mode_settings_dialog(is_object_config); }
 
 protected:
@@ -564,6 +576,8 @@ public:
 	//BBS: GUI refactor
 	TabPrintPart(ParamsPanel* parent);
 	~TabPrintPart() {}
+	void build() override;
+	void toggle_options() override;
 protected:
 	virtual void    notify_changed(ObjectBase * object) override;
 };
@@ -584,12 +598,24 @@ class TabFilament : public Tab
 private:
 	ogStaticText*	m_volumetric_speed_description_line {nullptr};
 	ogStaticText*	m_cooling_description_line {nullptr};
+	MultiSwitchButton* m_flush_mode_switch {nullptr};
+	wxWindow*          m_flush_mode_panel {nullptr};
+	int                m_flush_mode_selection {0};
 
     void            add_filament_overrides_page();
     void            update_filament_overrides_page();
+    int             get_override_variant_index(const std::string &opt_key);
+    void            discard_override_last_values_on_preset_change();
+    void            remember_filament_override_value(ConfigOptionsGroupShp optgroup, const std::string &opt_key);
+    bool            restore_filament_override_value(Field *field, const std::string &opt_key);
+    bool            seed_filament_override_from_printer(ConfigOptionsGroupShp optgroup, Field *field, const std::string &opt_key);
 	void 			update_volumetric_flow_preset_hints();
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
+    // Value each override held before it was unchecked, kept per extruder variant so that
+    // re-checking restores the user value instead of re-seeding from the printer preset.
+    std::map<std::pair<std::string, int>, boost::any> m_override_last_values;
+    std::string                                       m_override_last_values_preset;
 
 public:
 	//BBS: GUI refactor
@@ -613,13 +639,18 @@ private:
 	bool		m_has_single_extruder_MM_page = false;
 	bool		m_use_silent_mode = false;
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
+	void		build_ams_filament_time_options(ConfigOptionsGroupShp optgroup);
+	void		toggle_ams_filament_time_options();
 	bool		m_rebuild_kinematics_page = false;
 
 	ogStaticText*	m_fff_print_host_upload_description_line {nullptr};
 	ogStaticText*	m_sla_print_host_upload_description_line {nullptr};
 
-    std::vector<PageShp>			m_pages_fff;
-    std::vector<PageShp>			m_pages_sla;
+    std::vector<PageShp> m_pages_fff;
+    std::vector<PageShp> m_pages_sla;
+    std::vector<int> 	 m_extruder_type;
+    std::string          m_base_preset_name;
+    std::string          m_base_preset_model;
 
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
@@ -630,8 +661,6 @@ public:
 	size_t		m_sys_extruders_count;
 	size_t		m_cache_extruder_count = 0;
 	std::vector<std::string> m_extruder_variant_list;
-	std::string m_base_preset_name;
-	std::string m_base_preset_model;
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
@@ -663,7 +692,7 @@ public:
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
-	bool		apply_extruder_cnt_from_cache();
+    bool        apply_extruder_cnt_from_cache();
 };
 
 class TabSLAMaterial : public Tab

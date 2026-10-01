@@ -37,6 +37,7 @@ public:
     const ExPolygons            *lower_slices;
     double                       layer_height;
     int                          layer_id;
+    coordf_t                     slice_z;
     Flow                         perimeter_flow;
     Flow                         ext_perimeter_flow;
     Flow                         overhang_flow;
@@ -82,7 +83,7 @@ public:
         ExPolygons*                 fill_no_overlap,
         std::vector<LoopNode>       *loop_nodes)
         : slices(slices), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
-            layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
+            layer_id(-1), slice_z(0), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
             m_spiral_vase(spiral_mode),
@@ -96,6 +97,8 @@ public:
 
     void        process_classic();
     void        process_arachne();
+
+    void        process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width);
 
     // to save memory, directly modify top
     bool        should_enable_top_one_wall(const ExPolygons& original_expolys, ExPolygons& top);

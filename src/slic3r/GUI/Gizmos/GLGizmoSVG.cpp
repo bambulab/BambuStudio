@@ -1355,7 +1355,7 @@ void GLGizmoSVG::draw_window()
         draw_model_type();
     }
     if (!m_can_use_surface) {
-        m_imgui->text_wrapped(_L("Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."),
+        m_imgui->text_wrapped(_L("Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."),
                               m_gui_cfg->input_offset + m_gui_cfg->input_width + m_gui_cfg->icon_width);
     }
 }
@@ -2168,6 +2168,10 @@ void GLGizmoSVG::register_single_mesh_pick()
         }
         auto world_tran = v->get_instance_transformation() * v->get_volume_transformation();
         auto mesh       = const_cast<TriangleMesh *>(v->ori_mesh);
+        // PickRaycaster dereferences mesh unconditionally (MeshRaycaster(*mesh)); a
+        // volume without an original mesh would crash the raycaster setup.
+        if (mesh == nullptr)
+            continue;
         if (m_mesh_raycaster_map.find(v) != m_mesh_raycaster_map.end()) {
             m_mesh_raycaster_map[v]->world_tran.set_from_transform(world_tran.get_matrix());
         } else {

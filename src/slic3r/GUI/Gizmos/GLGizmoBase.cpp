@@ -1,9 +1,12 @@
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosManager.hpp"
 
 #include <GL/glew.h>
+#include <algorithm>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 
@@ -281,21 +284,29 @@ void GLGizmoBase::render_cross_mark(const Transform3d &matrix, const Vec3f &targ
     wxGetApp().unbind_shader();
 }
 
-void GLGizmoBase::render_lines(const std::vector<Vec3d> &points)
+void GLGizmoBase::render_lines(const std::vector<std::vector<Vec3d>> &polylines)
 {
-    if (!m_lines_mark.is_initialized()) {
+    render_lines(m_lines_mark, polylines, {1.0f, 1.0f, 0.0f, 1.0f});
+}
+
+void GLGizmoBase::render_lines(GLModel &model, const std::vector<std::vector<Vec3d>> &polylines, const ColorRGBA &color)
+{
+    if (!model.is_initialized()) {
         GLModel::Geometry geo;
         geo.format.type          = GLModel::PrimitiveType::Lines;
         geo.format.vertex_layout = GLModel::Geometry::EVertexLayout::P3;
 
-        for (int i = 1; i < points.size(); i++) {
-            Vec3f p0 = points[i - 1].cast<float>();
-            Vec3f p1 = points[i].cast<float>();
-            geo.add_vertex(p0);
-            geo.add_vertex(p1);
-            geo.add_line(i - 1, i);
+        unsigned int first = 0;
+        for (const std::vector<Vec3d> &points : polylines) {
+            for (const Vec3d &point : points)
+                geo.add_vertex(Vec3f(point.cast<float>()));
+            for (unsigned int i = 1; i < points.size(); ++i)
+                geo.add_line(first + i - 1, first + i);
+            first += static_cast<unsigned int>(points.size());
         }
-        m_lines_mark.init_from(std::move(geo));
+        if (geo.is_empty())
+            return;
+        model.init_from(std::move(geo));
     }
     const auto &p_flat_shader = wxGetApp().get_shader("flat");
     if (!p_flat_shader) return;
@@ -316,8 +327,8 @@ void GLGizmoBase::render_lines(const std::vector<Vec3d> &points)
 
     p_flat_shader->set_uniform("view_model_matrix", view_model_matrix);
     p_flat_shader->set_uniform("projection_matrix", proj_matrix);
-    m_lines_mark.set_color({1.0f, 1.0f, 0.0f, 1.0f});
-    m_lines_mark.render_geometry();
+    model.set_color(color);
+    model.render_geometry();
     glsafe(::glEnable(GL_DEPTH_TEST));
     wxGetApp().unbind_shader();
 }
@@ -803,6 +814,20 @@ unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char gr
 	return b;
 }
 
+
+bool GLGizmoBase::is_activable() const
+{
+    return can_activable_in_current_canvas() && on_is_activable();
+}
+
+bool GLGizmoBase::can_activable_in_current_canvas() const
+{
+    if (!m_parent.is_allow_use_gizmo_in_different_view())
+        return false;
+    const auto &mng = m_parent.get_gizmos_manager();
+    const auto selectable = mng.get_selectable_idxs(true);
+    return std::find(selectable.begin(), selectable.end(), (size_t) get_sprite_id()) != selectable.end();
+}
 
 } // namespace GUI
 } // namespace Slic3r

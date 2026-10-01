@@ -12,18 +12,23 @@ function check_available_memory_and_disk() {
     MIN_DISK_KB=$((10 * 1024 * 1024))
 
     if [ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]; then
-        echo -e "\nERROR: Bambu Studio Builder requires at least ${MIN_MEM_GB}G of 'available' mem (system has only ${FREE_MEM_GB}G available)"
+        echo -e "\nERROR: Bambu Studio Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
         echo && free -h && echo
         exit 2
     fi
 
     if [[ ${FREE_DISK_KB} -le ${MIN_DISK_KB} ]]; then 
-        echo -e "\nERROR: Bambu Studio Builder requires at least $(echo $MIN_DISK_KB |awk '{ printf "%.1fG\n", $1/1024/1024; }') (system has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
+        echo -e "\nERROR: Bambu Studio Builder requires at least $(echo $MIN_DISK_KB |awk '{ printf "%.1fG\n", $1/1024/1024; }') (systen has only $(echo ${FREE_DISK_KB} | awk '{ printf "%.1fG\n", $1/1024/1024; }') disk free)"
         echo && df -h . && echo
         exit 1
     fi
 }
 
+# 构建类型说明：
+#   -b 和 -y 都不加   -> 默认走 release 模式，CMAKE_BUILD_TYPE=Release
+#   -y RelWithDebInfo -> CMAKE_BUILD_TYPE=RelWithDebInfo（优化 + 调试信息）
+#   -b                -> CMAKE_BUILD_TYPE=Debug，且会忽略 -y
+#   -b 和 -y 同时存在 -> 以 -b 为准，走 Debug 模式（-y 无效）
 function usage() {
     echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-r][-s][-u]"
     echo "   -1: limit builds to 1 core (where possible)"
@@ -36,12 +41,14 @@ function usage() {
     echo "   -r: skip ram and disk checks (low ram compiling)"
     echo "   -s: build bambu-studio (optional)"
     echo "   -u: update and build dependencies (optional and need sudo)"
+    echo "   -t: set internal testing level (default=0, 1=debug, 2=beta)"
+    echo "   -y: set release build type (Release|RelWithDebInfo, default=Release; ignored with -b)"
     echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
     echo "   and then './BuildLinux.sh -dsi'"
 }
 
 unset name
-while getopts ":1fbcdghirsu" opt; do
+while getopts ":1fbcdhirsut:y:" opt; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -73,8 +80,21 @@ while getopts ":1fbcdghirsu" opt; do
     u )
         UPDATE_LIB="1"
         ;;
+    t )
+        INTERNAL_TESTING="$OPTARG"
+        ;;
+    y )
+        SLIC3R_BUILD_TYPE="$OPTARG"
+        ;;
   esac
 done
+
+if [ "${BUILD_DEBUG}" = "1" ]; then
+    if [ -z "${INTERNAL_TESTING}" ]; then
+        INTERNAL_TESTING=1
+    fi
+fi
+INTERNAL_TESTING=${INTERNAL_TESTING:-0}
 
 if [ ${OPTIND} -eq 1 ]
 then
@@ -154,13 +174,13 @@ then
     then
         # have to build deps with debug & release or the cmake won't find everything it needs
         mkdir deps/build/release
-        cmake -S deps -B deps/build/release -G Ninja -DDESTDIR="../destdir" ${BUILD_ARGS}
+        cmake -S deps -B deps/build/release -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DDESTDIR="../destdir" ${BUILD_ARGS}
         cmake --build deps/build/release
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
     fi
 
     echo "cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}"
-    cmake -S deps -B deps/build -G Ninja ${BUILD_ARGS}
+    cmake -S deps -B deps/build -G Ninja -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ${BUILD_ARGS}
     cmake --build deps/build
 fi
 
@@ -181,9 +201,9 @@ then
     fi
     if [[ -n "${BUILD_DEBUG}" ]]
     then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
+        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=${INTERNAL_TESTING}"
     else
-        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
+        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=${SLIC3R_BUILD_TYPE:-Release} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=${INTERNAL_TESTING}"
     fi
     echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
     cmake -S . -B build -G Ninja \
@@ -195,6 +215,25 @@ then
     cmake --build build --target BambuStudio
     echo "done"
 fi
+
+
+
+# 当构建类型为 RelWithDebInfo 时，分离出独立的调试符号文件并打包
+if [ "${SLIC3R_BUILD_TYPE}" = "RelWithDebInfo" ]; then
+    echo "Extracting debug symbols (RelWithDebInfo) ..."
+    pushd ${ROOT}/build/src
+        if [[ -e bambu-studio ]]; then
+            objcopy --only-keep-debug bambu-studio bambu-studio.debug
+            tar -czvf ${ROOT}/build/bambu-studio.debug.tar.gz bambu-studio.debug
+            rm -f bambu-studio.debug
+            echo "done"
+        else
+            echo "WARNING: build/src/bambu-studio not found, skip debug symbol extraction"
+        fi
+    popd
+fi
+
+
 
 if [[ -e ${ROOT}/build/src/BuildLinuxImage.sh ]]; then
 # Give proper permissions to script

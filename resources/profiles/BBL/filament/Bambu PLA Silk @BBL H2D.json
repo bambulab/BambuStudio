@@ -9,16 +9,16 @@
         "75"
     ],
     "counter_coef_2": [
-        "0.02"
+        "0.0036"
     ],
     "counter_coef_3": [
-        "-0.01"
+        "-0.0218"
     ],
     "counter_limit_min": [
-        "-0.05"
+        "-0.0218"
     ],
     "counter_limit_max": [
-        "0.05"
+        "0.0682"
     ],
     "eng_plate_temp": [
         "55"
@@ -28,50 +28,66 @@
     ],
     "filament_cooling_before_tower": [
         "10",
+        "10",
         "10"
     ],
     "filament_flow_ratio": [
+        "0.98",
         "0.98",
         "0.98"
     ],
     "filament_max_volumetric_speed": [
         "12",
+        "12",
         "12"
     ],
     "filament_retraction_length": [
+        "0.4",
         "0.4",
         "0.4"
     ],
     "filament_wipe": [
         "1",
+        "1",
         "1"
     ],
     "filament_wipe_distance": [
+        "1",
         "1",
         "1"
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
+        "Spiral Lift",
         "Spiral Lift"
     ],
     "filament_ramming_travel_time": [
         "0",
+        "0",
         "0"
     ],
     "hole_coef_2": [
-        "-0.0081"
+        "-0.0037"
     ],
     "hole_coef_3": [
-        "0.2"
+        "0.1261"
+    ],
+    "hole_limit_max": [
+        "0.1261"
+    ],
+    "hole_limit_min": [
+        "0.0336"
     ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "nozzle_temperature": [
+        "230",
         "230",
         "230"
     ],
     "nozzle_temperature_initial_layer": [
+        "230",
         "230",
         "230"
     ],
@@ -82,6 +98,7 @@
         "6"
     ],
     "slow_down_min_speed": [
+        "20",
         "20",
         "20"
     ],

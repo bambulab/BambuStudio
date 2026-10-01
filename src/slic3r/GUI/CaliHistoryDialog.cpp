@@ -7,6 +7,7 @@
 #include "format.hpp"
 #include "MsgDialog.hpp"
 #include "slic3r/Utils/CalibUtils.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevManager.h"
@@ -139,9 +140,12 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
 
     m_extruder_switch_btn = new SwitchButton(scroll_window);
     m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 174, 66));
-    m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
-    m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(120), FromDIP(24)));
-    m_extruder_switch_btn->SetLabels(_L("Left Nozzle"), _L("Right Nozzle"));
+    m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(200), FromDIP(24)));
+    m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(200), FromDIP(24)));
+    std::string chd_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    m_extruder_switch_btn->SetLabels(
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)),
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     m_extruder_switch_btn->Bind(wxEVT_TOGGLEBUTTON, &HistoryWindow::on_switch_extruder, this);
     m_extruder_switch_btn->SetValue(false);
     scroll_sizer->Add(m_extruder_switch_btn, 0, wxCENTER | wxALL, FromDIP(10));
@@ -210,32 +214,25 @@ HistoryWindow::~HistoryWindow()
 
 void HistoryWindow::sync_history_result(MachineObject* obj)
 {
-    BOOST_LOG_TRIVIAL(info) << "sync_history_result";
-
     m_calib_results_history.clear();
     if (obj) {
-        auto pa_calib_tab = obj->GetCalib()->GetPAHistory();
-        if (obj->is_multi_extruders()) {
-            for (const PACalibResult &pa_result : pa_calib_tab) {
-                if (pa_result.extruder_id == 0 && m_extruder_switch_btn->GetValue()) {
-                    // left extruder
-                    m_calib_results_history.emplace_back(pa_result);
-                } else if (pa_result.extruder_id == 1 && !m_extruder_switch_btn->GetValue()) {
-                    // right extruder
-                    m_calib_results_history.emplace_back(pa_result);
-                }
-            }
-        }
-        else {
-            m_calib_results_history = pa_calib_tab;
-        }
+        const int sel = m_comboBox_nozzle_dia->GetSelection();
+        const std::optional<NozzleDiameterType> dia = (sel >= 0 && sel < int(nozzle_diameter_list.size())) ? std::optional<NozzleDiameterType>(nozzle_diameter_list[sel]) : std::nullopt;
+        const std::optional<int> extruder_id = obj->is_multi_extruders() ? std::optional<int>(get_extruder_id()) : std::nullopt;
+
+        m_calib_results_history = obj->GetCalib()->GetPaHistoryFilter()
+            .set_nozzle_diameter(dia)
+            .set_extruder_id(extruder_id)
+            .get();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                               << " dia=" << (dia.has_value() ? static_cast<int>(dia.value()) : -1)
+                               << " ext=" << (extruder_id.has_value() ? extruder_id.value() : -1)
+                               << " matched=" << m_calib_results_history.size();
     }
 
     if (m_calib_results_history.empty()) {
         m_tips->SetLabel(_L("No History Result"));
-        return;
-    }
-    else {
+    } else {
         m_tips->SetLabel(_L("Success to get history result"));
     }
     m_tips->Refresh();
@@ -261,10 +258,14 @@ void HistoryWindow::on_device_connected(MachineObject* obj)
     }
     m_comboBox_nozzle_dia->SetSelection(selection);
 
-    if (obj->is_multi_extruders())
+    if (obj->is_multi_extruders()) {
+        m_extruder_switch_btn->SetLabels(
+            _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)),
+            _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
         m_extruder_switch_btn->Show();
-    else
+    } else {
         m_extruder_switch_btn->Hide();
+    }
 
     // trigger on_select nozzle
     wxCommandEvent evt(wxEVT_COMBOBOX);
@@ -281,14 +282,20 @@ void HistoryWindow::update(MachineObject* obj)
 {
     if (!obj) return;
 
-    if (obj->GetCalib()->IsVersionExpired()) {
-        if (obj->GetCalib()->IsPAHistoryReady()) {
-            reqeust_history_result(obj);
+    auto calib = obj->GetCalib();
+    if (calib->IsVersionExpired()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " version expired, prepare fetch queue";
+        if (calib->PrepareFetchQueue()) {
+            calib->SyncCalibVersion();
         }
     }
 
-    // sync when history is not empty
-    if (obj->GetCalib()->IsPAHistoryReady() && m_calib_results_history.empty()) {
+    calib->SendNextFetch();
+
+    // Combo/extruder change clears the local view; sync once when the fetch queue drains.
+    if (calib->IsPAHistoryReady() && m_pending_sync) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " history ready, sync pending view";
+        m_pending_sync = false;
         sync_history_result(curr_obj);
     }
 }
@@ -307,11 +314,6 @@ void HistoryWindow::on_switch_extruder(wxCommandEvent &evt)
 void HistoryWindow::reqeust_history_result(MachineObject* obj)
 {
     if (curr_obj) {
-        // reset
-        curr_obj->GetCalib()->ResetPAHistory();
-        m_calib_results_history.clear();
-        sync_history_data();
-
         float nozzle_value = get_nozzle_value();
         int extruder_id = get_extruder_id();
         if (nozzle_value > 0) {
@@ -321,8 +323,11 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             cali_info.use_nozzle_volume_type = false;
             cali_info.use_extruder_id        = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
+            m_pending_sync = true;
+            m_calib_results_history.clear();
+            sync_history_data();
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
-            BOOST_LOG_TRIVIAL(info) << "request calib history";
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " request history dia=" << nozzle_value << " extruder_id=" << extruder_id;
         }
     }
 }
@@ -366,7 +371,11 @@ void HistoryWindow::sync_history_data() {
         auto font = nozzle_name->GetFont();
         font.SetUnderlined(true);
         nozzle_name->SetFont(font);
-        nozzle_name->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
+        {
+            std::string chd_tt_pt = curr_obj ? curr_obj->printer_type : wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            wxString chd_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_tt_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase));
+            nozzle_name->SetToolTip(wxString::Format(_L("Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."), chd_ext_name));
+        }
         gbSizer->Add(nozzle_name, {0, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
     }
 
@@ -424,7 +433,7 @@ void HistoryWindow::sync_history_data() {
         delete_button->SetBackgroundColour(*wxWHITE);
         delete_button->SetMinSize(wxSize(-1, FromDIP(24)));
         delete_button->SetCornerRadius(FromDIP(12));
-        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, &result, column_count](auto& e) {
+        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, result, column_count](auto& e) {
             if (m_ui_op_lock) {
                 return;
             } else {
@@ -447,6 +456,7 @@ void HistoryWindow::sync_history_data() {
             cali_info.nozzle_pos_id   = result.nozzle_pos_id;
             cali_info.nozzle_sn       = result.nozzle_sn;
             CalibUtils::delete_PA_calib_result(cali_info);
+            CallAfter([this] { reqeust_history_result(curr_obj); });
             });
 
         auto edit_button = new Button(m_history_data_panel, _L("Edit"));
@@ -459,7 +469,7 @@ void HistoryWindow::sync_history_data() {
         edit_button->SetTextColor(wxColour("#FFFFFE"));
         edit_button->SetMinSize(wxSize(-1, FromDIP(24)));
         edit_button->SetCornerRadius(FromDIP(12));
-        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value, edit_button](auto& e) {
+        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value](auto& e) {
             if (m_ui_op_lock) return;
 
             PACalibResult result_buffer = result;
@@ -477,6 +487,7 @@ void HistoryWindow::sync_history_data() {
                 CalibUtils::set_PA_calib_result({ new_result }, true);
 
                 enbale_action_buttons(false);
+                CallAfter([this] { reqeust_history_result(curr_obj); });
             }
             });
 
@@ -554,7 +565,9 @@ void HistoryWindow::on_click_new_button(wxCommandEvent& event)
     }
 
     NewCalibrationHistoryDialog dlg(this, m_calib_results_history);
-    dlg.ShowModal();
+    if (dlg.ShowModal() == wxID_OK) {
+        reqeust_history_result(curr_obj);
+    }
 }
 
 EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow                        *parent,
@@ -595,8 +608,8 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow             
     if (obj && obj->is_multi_extruders()) {
 
         Label   *extruder_name_title = new Label(top_panel, _L("Extruder"));
-        int    extruder_index      = obj->is_main_extruder_on_left() ? result.extruder_id : 1 - result.extruder_id;
-        wxString extruder_name       = extruder_index == 0 ? _L("Left") : _L("Right");
+        wxString extruder_name       = _L(DevPrinterConfigUtil::get_toolhead_display_name(
+            obj->printer_type, result.extruder_id, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true));
         Label   *extruder_name_value   = new Label(top_panel, extruder_name);
         flex_sizer->Add(extruder_name_title);
         flex_sizer->Add(extruder_name_value);
@@ -850,8 +863,10 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         Label *extruder_name_title = new Label(top_panel, _L("Extruder"));
         m_comboBox_extruder      = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
         wxArrayString extruder_items;
-        extruder_items.push_back(_L("Left"));
-        extruder_items.push_back(_L("Right"));
+        extruder_items.push_back(_L(DevPrinterConfigUtil::get_toolhead_display_name(
+            curr_obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
+        extruder_items.push_back(_L(DevPrinterConfigUtil::get_toolhead_display_name(
+            curr_obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
         m_comboBox_extruder->Set(extruder_items);
         m_comboBox_extruder->SetSelection(-1);
         m_comboBox_extruder->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_extruder, this);
@@ -901,12 +916,8 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         m_comboBox_nozzle_type   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
         m_comboBox_nozzle_type->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_nozzle_volume, this);
 
-        std::vector<NozzleVolumeType> volumes = { nvtStandard, nvtHighFlow, nvtTPUHighFlow};
-        auto volume_set = get_valid_nozzle_volume_type();
-
-        for(const auto & volume_type : volumes) {
-            if(volume_set.find(volume_type) != volume_set.end())
-                m_comboBox_nozzle_type->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
+        for (auto [volume_type, diameters] : CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj, false)) {
+            m_comboBox_nozzle_type->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
         m_comboBox_nozzle_type->SetSelection(-1);
         flex_sizer->Add(nozzle_name_title);
@@ -1052,9 +1063,11 @@ void NewCalibrationHistoryDialog::on_select_nozzle_volume(wxCommandEvent &event)
     NozzleVolumeType volume_type = NozzleVolumeType(*(reinterpret_cast<int *>(m_comboBox_nozzle_type->GetClientData(sel))));
 
     m_comboBox_nozzle_diameter->Clear();
-    for (auto diameter : nozzle_diameter_list) {
-        if (is_high_volume(volume_type) && diameter == NozzleDiameterType::NOZZLE_DIAMETER_0_2) continue;
 
+    auto volume_diamters_map = CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj, false);
+    if (volume_diamters_map.find(volume_type) == volume_diamters_map.end()) return;
+
+    for (auto diameter : volume_diamters_map[volume_type]) {
         m_comboBox_nozzle_diameter->Append(wxString::Format("%1.1f mm", DevNozzle::ToNozzleDiameterFloat(diameter)), wxNullBitmap, new int{diameter});
     }
 

@@ -28,7 +28,8 @@ bambustudio_add_cmake_project(wxWidgets
     GIT_TAG master
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
-        -DwxBUILD_PRECOMP=ON
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        -DwxBUILD_PRECOMP=OFF
         ${_wx_toolkit}
         "-DCMAKE_DEBUG_POSTFIX:STRING="
         -DwxBUILD_DEBUG_LEVEL=0
@@ -48,6 +49,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_XTEST=OFF
         -DwxUSE_STC=OFF
         -DwxUSE_AUI=ON
+        -DwxUSE_EXCEPTIONS=OFF
         -DwxUSE_LIBPNG=sys
         -DwxUSE_ZLIB=sys
         -DwxUSE_LIBJPEG=sys

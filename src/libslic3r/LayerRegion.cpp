@@ -167,6 +167,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
         g.upper_slices = &this->layer()->upper_layer->lslices;
 
     g.layer_id              = (int)this->layer()->id();
+    g.slice_z               = this->layer()->slice_z;
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
     g.overhang_flow         = this->bridging_flow(frPerimeter, object_config.thick_bridges);
     g.solid_infill_flow     = this->flow(frSolidInfill);

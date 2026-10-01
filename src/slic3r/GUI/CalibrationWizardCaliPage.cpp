@@ -340,14 +340,14 @@ void CalibrationCaliPage::update_subtask(MachineObject* obj)
             m_printing_panel->update_progress_percent(NA_STR, wxEmptyString);
             m_printing_panel->update_left_time(NA_STR);
             m_printing_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
-            m_printing_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
+            m_printing_panel->update_title(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
 
 
             if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-                m_printing_panel->show_profile_info(true, wxString::FromUTF8(obj->get_modeltask()->profile_name));
+                m_printing_panel->show_subtitle(true, wxString::FromUTF8(obj->get_modeltask()->profile_name));
             }
             else {
-                m_printing_panel->show_profile_info(false);
+                m_printing_panel->show_subtitle(false);
             }
 
             if (obj->slice_info)
@@ -387,7 +387,7 @@ void CalibrationCaliPage::update_subtask(MachineObject* obj)
             }
             // update printing stage
 
-            m_printing_panel->update_left_time(obj->mc_left_time);
+            m_printing_panel->update_left_time(obj->mc_left_time, obj->is_printing_finished());
             if (obj->subtask_) {
                 m_printing_panel->update_stage_value(obj->get_curr_stage(), obj->subtask_->task_progress);
                 m_printing_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
@@ -401,13 +401,13 @@ void CalibrationCaliPage::update_subtask(MachineObject* obj)
             }
         }
 
-        m_printing_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
+        m_printing_panel->update_title(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
 
         if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-            m_printing_panel->show_profile_info(wxString::FromUTF8(obj->get_modeltask()->profile_name));
+            m_printing_panel->show_subtitle(true, wxString::FromUTF8(obj->get_modeltask()->profile_name));
         }
         else {
-            m_printing_panel->show_profile_info(false);
+            m_printing_panel->show_subtitle(false);
         }
 
     }
@@ -436,8 +436,8 @@ void CalibrationCaliPage::reset_printing_values()
     m_printing_panel->enable_pause_resume_button(false, "pause_disable");
     m_printing_panel->enable_abort_button(false);
     m_printing_panel->reset_printing_value();
-    m_printing_panel->update_subtask_name(NA_STR);
-    m_printing_panel->show_profile_info(false);
+    m_printing_panel->update_title(NA_STR);
+    m_printing_panel->show_subtitle(false);
     m_printing_panel->update_stage_value(wxEmptyString, 0);
     m_printing_panel->update_progress_percent(NA_STR, wxEmptyString);
     m_printing_panel->get_market_scoring_button()->Hide();

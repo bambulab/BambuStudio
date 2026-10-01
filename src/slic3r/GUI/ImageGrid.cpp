@@ -32,6 +32,10 @@ namespace GUI {
 
 static constexpr int SHADOW_WIDTH = 3;
 
+static constexpr int SCROLLBAR_WIDTH = 8;
+static constexpr int SCROLLBAR_MARGIN = 16; // right offset of the handle
+static constexpr int SCROLLBAR_HIT_WIDTH = 16; // wider grab area than the visual handle
+
 ImageGrid::ImageGrid(wxWindow * parent)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
     , m_buttonBackgroundColor(StateColor(
@@ -52,7 +56,6 @@ ImageGrid::ImageGrid(wxWindow * parent)
     SetBackgroundColour(0xEEEEEE);
     SetFont(Label::Head_20);
 
-    m_timer.Bind(wxEVT_TIMER, [this](auto & e) { Refresh(); });
     Rescale();
 }
 
@@ -258,6 +261,12 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
     if (!m_file_sys)
         return {HIT_NONE, -1};
     wxSize size  = GetClientSize();
+    if (wxRect bar = scrollBarRect(size); !bar.IsEmpty()) {
+        wxRect grab = bar;
+        grab.SetWidth(SCROLLBAR_HIT_WIDTH);
+        if (grab.Contains(pt))
+            return {HIT_SCROLLBAR, 0};
+    }
     if (m_file_sys->GetCount() == 0) {
         if (wxRect({0, 0}, m_border_size).CenterIn(wxRect({0, 0}, size)).Contains(pt))
             return {HIT_STATUS, 0};
@@ -296,6 +305,25 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
 
 void ImageGrid::mouseMoved(wxMouseEvent& event)
 {
+    if (m_dragging_scroll) {
+        wxSize size = GetClientSize();
+        wxRect bar  = scrollBarRect(size);
+        // Map the handle's pixel travel range to the row_offset range so the
+        // last drag step reaches the same bottom position as wheel scrolling.
+        int track = size.y - bar.GetHeight();
+        int max_row = m_row_count > 0 ? m_row_count - 1 : 0;
+        int delta_px = event.GetPosition().y - m_drag_start_y;
+        int row = m_drag_start_offset + (track > 0 ? delta_px * max_row / track : 0);
+        if (row < 0)
+            row = 0;
+        else if (row > max_row)
+            row = max_row;
+        m_row_offset = row;
+        m_scroll_offset = 0;
+        UpdateFocusRange();
+        Refresh();
+        return;
+    }
     if (!m_hovered || m_pressed)
         return;
     auto hit = HitTest(event.GetPosition());
@@ -325,6 +353,8 @@ void ImageGrid::mouseEnterWindow(wxMouseEvent& event)
 
 void ImageGrid::mouseLeaveWindow(wxMouseEvent& event)
 {
+    if (m_dragging_scroll)
+        return;
     if (m_hovered) {
         m_hovered = false;
         m_pressed = false;
@@ -343,6 +373,13 @@ void ImageGrid::mouseDown(wxMouseEvent& event)
         auto hit  = HitTest(event.GetPosition());
         m_hit_type = hit.first;
         m_hit_item = hit.second;
+        if (m_hit_type == HIT_SCROLLBAR) {
+            m_dragging_scroll   = true;
+            m_drag_start_y      = event.GetPosition().y;
+            m_drag_start_offset = m_row_offset;
+            if (!HasCapture())
+                CaptureMouse();
+        }
         if (m_hit_type >= HIT_ACTION)
             Refresh();
         SetFocus();
@@ -351,6 +388,14 @@ void ImageGrid::mouseDown(wxMouseEvent& event)
 
 void ImageGrid::mouseReleased(wxMouseEvent& event)
 {
+    if (m_dragging_scroll) {
+        m_dragging_scroll = false;
+        m_pressed         = false;
+        if (HasCapture())
+            ReleaseMouse();
+        Refresh();
+        return;
+    }
     if (!m_pressed)
         return;
     m_pressed = false;
@@ -387,7 +432,6 @@ void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
     else if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
     m_scroll_offset -= delta * m_cell_size.GetHeight();
-    m_timer.StartOnce(4000); // Show position bar
     UpdateFocusRange();
     Refresh();
 }
@@ -511,6 +555,17 @@ wxBitmap Slic3r::GUI::ImageGrid::createCircleBitmap(wxSize size, int borderWidth
     return bmp;
 }
 
+wxRect Slic3r::GUI::ImageGrid::scrollBarRect(wxSize const &size) const
+{
+    if (!m_file_sys || m_file_sys->GetCount() == 0)
+        return wxRect();
+    int total_height = (m_file_sys->GetCount() + m_col_count - 1) / m_col_count * m_cell_size.GetHeight() + m_cell_size.GetHeight() - m_border_size.GetHeight();
+    if (total_height <= size.y)
+        return wxRect();
+    int offset = (m_row_offset + 1 < m_row_count || m_row_count == 0) ? m_row_offset * (m_cell_size.GetHeight() / 4) : total_height - size.y;
+    return wxRect(size.x - SCROLLBAR_MARGIN, offset * size.y / total_height, SCROLLBAR_WIDTH, size.y * size.y / total_height);
+}
+
 static constexpr wchar_t const *TIME_FORMATS[] = {_T("%Y-%m-%d"), _T("%Y-%m"), _T("%Y")};
 
 /*
@@ -591,16 +646,11 @@ void ImageGrid::render(wxDC& dc)
     // Draw bottom background
     if (off.y < size.y)
         dc.DrawRectangle({off.x, off.y, size.x - off.x * 2, size.y - off.y});
-    // Draw position bar
-    if (m_timer.IsRunning()) {
-        int total_height = (m_file_sys->GetCount() + m_col_count - 1) / m_col_count * m_cell_size.GetHeight() + m_cell_size.GetHeight() - m_border_size.GetHeight();
-        if (total_height > size.y) {
-            int offset = (m_row_offset + 1 < m_row_count || m_row_count == 0) ? m_row_offset * (m_cell_size.GetHeight() / 4) : total_height - size.y;
-            wxRect rect = {size.x - 16, offset * size.y / total_height, 8,
-                size.y * size.y / total_height};
-            dc.SetBrush(wxBrush(*wxLIGHT_GREY));
-            dc.DrawRoundedRectangle(rect, 4);
-        }
+    // Draw scroll bar: always visible whenever the content overflows the
+    // visible area; the handle is draggable (see mouse handlers).
+    if (wxRect bar = scrollBarRect(size); !bar.IsEmpty()) {
+        dc.SetBrush(wxBrush(m_dragging_scroll ? wxColour("#909090") : *wxLIGHT_GREY));
+        dc.DrawRoundedRectangle(bar, 4);
     }
 }
 

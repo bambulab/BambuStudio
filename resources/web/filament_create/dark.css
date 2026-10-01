@@ -1,0 +1,357 @@
+/* Dark theme overrides for the "Create Custom Filament" wizard and the
+   Edit Filament dialog. Loaded by SwitchDarkMode("dark.css") from each
+   HTML file's inline bootstrap — Studio flips it in/out of the DOM by
+   matching this exact path, so keep the <link href="dark.css"> in HTML
+   using the same relative filename. */
+
+/* ---- CSS variable overrides (main palette) ------------------------ */
+:root {
+    /* keep brand green as-is — same value in light and dark */
+    --color-brand:              #00AE42;
+    --color-brand-hover:        #00C74E;
+
+    --color-text-main:          #E6E6E8;
+    --color-text-dark:          #FFFFFF;
+    --color-text-muted:         #9DA1A5;
+    --color-text-placeholder:   #6E7378;
+
+    --color-bg-main:            #2B2E31;
+    --color-bg-gray:            #34383B;
+    --color-bg-disabled:        #3A3E42;
+
+    --color-border:             #4A4E52;
+    --color-border-light:       #3F4347;
+    --color-border-dark:        #6A6E72;
+}
+
+/* ---- Hardcoded colors that don't go through variables -------------- */
+body,
+html {
+    background-color: transparent !important;
+    color: var(--color-text-main);
+}
+
+/* Window chrome */
+.window-frame {
+    background: #2B2E31;
+    border-color: #4A4E52;
+}
+.window-titlebar {
+    background: #34383B;
+    border-bottom-color: #3F4347;
+}
+
+/* Inputs (text, dropdown triggers) */
+.input-wrapper input,
+.dialog-input-wrapper input,
+#new-vendor-input {
+    background: #34383B;
+    color: var(--color-text-main);
+    border-color: #4A4E52;
+}
+.input-wrapper.vendor-readonly input {
+    background: var(--color-bg-disabled);
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+}
+.input-wrapper input::placeholder,
+.dialog-input-wrapper input::placeholder {
+    color: var(--color-text-placeholder);
+}
+
+/* Dropdown lists */
+.dropdown-list {
+    background: #34383B;
+    border-color: #4A4E52;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.dropdown-item { color: var(--color-text-main); }
+.dropdown-item:hover:not(.disabled) { background: #3F4347; }
+.dropdown-item.disabled { color: #6E7378; }
+.dropdown-category { color: var(--color-text-muted); }
+.dropdown-footer { border-top-color: #3F4347; }
+.add-btn { color: var(--color-brand); }
+
+/* Radio + checkbox cards */
+.radio-card {
+    background: #34383B;
+    border-color: #3F4347;
+}
+.radio-card.active {
+    border-color: var(--color-brand);
+}
+.radio-card.disabled {
+    background: #2F3235;
+}
+.radio-indicator {
+    background: #2B2E31;
+    border-color: #4A4E52;
+}
+.radio-title { color: var(--color-text-main); }
+.radio-desc  { color: var(--color-text-muted); }
+
+/* Buttons */
+.btn-secondary {
+    background: transparent;
+    color: var(--color-text-main);
+    border-color: #6A6E72;
+}
+.btn-secondary:hover { background: #3F4347; }
+.btn-primary:disabled,
+.btn-primary:disabled:hover { background: #5A5E62; }
+
+/* Steps header */
+.step-item .step-circle          { background: #6A6E72; color: #FFFFFF; }
+.step-item.active .step-circle   { background: var(--color-brand); }
+.step-item .step-label           { color: #A0A4A8; }
+.step-item.active .step-label    { color: #FFFFFF; }
+.step-line                       { background: #4A4E52; }
+.step-item.done .step-label      { color: var(--color-text-main); }
+
+/* Custom vendor dialog */
+.dialog-mask { background: rgba(0,0,0,0.6); }
+.dialog-body {
+    background: #2B2E31;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+.dialog-header { border-bottom-color: #3F4347; }
+
+/* Step 2 layout — info rows, param categories, param area */
+.parameters-area {
+    background: #34383B;
+    border-color: #3F4347;
+}
+.nozzle-tabs      { border-bottom-color: #4A4E52; }
+.nozzle-tab       { color: var(--color-text-muted); }
+.nozzle-tab.active { color: var(--color-text-main); border-bottom-color: var(--color-brand); }
+.nozzle-tab.disabled { color: #6E7378; }
+.param-category   { color: var(--color-text-muted); }
+.param-category.active { color: var(--color-brand); }
+.param-group-title { color: var(--color-text-main); }
+.param-row .p-name { color: var(--color-text-main); }
+.param-row .p-val,
+.param-row.temp-row .p-sub-label { color: var(--color-text-muted); }
+.param-row.temp-row .p-sub-val   { color: var(--color-text-main); }
+
+/* Custom checkbox */
+.checkmark {
+    background: #34383B;
+    border-color: #6A6E72;
+}
+.custom-checkbox.disabled .checkmark { background: #3F4347; }
+.custom-checkbox.disabled            { color: var(--color-text-muted); }
+
+/* Two-column selection area (step2_type / step2_copy) */
+.printer-list,
+.nozzle-list {
+    background: #34383B;
+    border-color: #4A4E52;
+}
+.list-row               { color: var(--color-text-main); border-bottom-color: #3F4347; }
+.list-row:hover         { background: #3F4347; }
+.list-row.active        { background: #223A2A; }
+.list-row .row-arrow    { color: #6A6E72; }
+.row-checkbox           { background: #34383B; border-color: #6A6E72; }
+
+/* Printer dropdown panel (step2_copy) */
+.printer-dropdown {
+    background: #34383B;
+    border-color: #4A4E52;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.dropdown-confirm-bar { background: #2F3235; border-top-color: #3F4347; }
+
+/* Preset table (step2_copy) */
+.preset-table {
+    background: #2B2E31;
+    border-color: #3F4347;
+}
+.preset-row { border-bottom-color: #3F4347; }
+.preset-row .nozzle-name { color: var(--color-text-main); }
+.preset-row select.preset-input,
+.preset-row input.preset-input {
+    background: #34383B;
+    color: var(--color-text-main);
+    border-color: #4A4E52;
+}
+
+/* Empty state (icon + hint) */
+.empty-state          { color: var(--color-text-muted); }
+.empty-state-text     { color: var(--color-text-muted); }
+/* preset_empty.svg uses light greys internally — dim it further so it doesn't
+   glow against the dark background. */
+.empty-state-img      { opacity: 0.55; filter: brightness(0.85); }
+
+/* Step 3 summary */
+.s3-label      { color: var(--color-text-main); }
+.s3-count      { color: var(--color-text-main); }
+.s3-value      { color: var(--color-text-muted); }
+.s3-preset-item { color: var(--color-text-muted); }
+.success-title { color: var(--color-text-main); }
+.success-desc  { color: var(--color-text-muted); }
+
+/* Tooltip (data-tooltip pseudo-element) */
+[data-tooltip]:hover::after {
+    background: rgba(230, 230, 232, 0.92);
+    color: #1F2124;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* -------------------------------------------------------------------
+   Shared selectors from ../guide/23/23.css.  edit_filament.html reuses
+   that file (see its <link>) so the dark overrides need to live here
+   as well.  Keep in sync with guide/23/dark.css (which handles the
+   guide/23/index.html side).
+   ------------------------------------------------------------------- */
+
+/* Edit Material dialog: body/wrapper/list backgrounds so the whole page
+   isn't a white block. edit_filament.css sets body { background: #fff }
+   explicitly so we have to fight that with an explicit dark value. */
+body,
+.ef-wrapper {
+    background: #2B2E31;
+    color: var(--color-text-main);
+}
+
+/* Header row: "材料名称 / 材料预设" section, top of dialog */
+.ef-header,
+.ef-title-row       { color: var(--color-text-main); }
+.ef-label           { color: var(--color-text-main); }
+.ef-filament-name   { color: var(--color-text-main); }
+
+/* "添加预设" outlined button, top-right of Edit Material */
+.ef-btn-add {
+    background: #34383B;
+    color: var(--color-text-main);
+    border-color: #6A6E72;
+}
+.ef-btn-add:hover {
+    background: #3F4347;
+    border-color: var(--color-brand);
+    color: var(--color-brand);
+}
+
+/* List container that holds the printer→preset rows */
+.ef-list-container {
+    background: #2B2E31;
+    border-color: #3F4347;
+}
+.ef-empty { color: var(--color-text-muted); }
+
+/* Group headers (H 系列 / A 系列 / 其它) — matches CFilament_GroupTitle */
+.ef-list-container .CFilament_GroupTitle,
+.CFilament_GroupTitle {
+    background: #34383B;
+    color: var(--color-text-main);
+}
+
+/* Each printer preset row */
+.ef-item {
+    background: #2B2E31;
+    border-bottom-color: #3F4347;
+}
+.ef-item:hover           { background: #3A3E42; }
+.ef-item-printer         { color: var(--color-text-main); }
+.ef-item-base-preset     { color: var(--color-text-muted); }
+
+/* Per-row action buttons ("编辑预设" / "移除") */
+.ef-btn-action {
+    background: #34383B;
+    color: var(--color-text-main);
+    border-color: #6A6E72;
+}
+.ef-btn-action:hover {
+    background: #3F4347;
+    border-color: var(--color-brand);
+    color: var(--color-brand);
+}
+.ef-btn-action.remove:hover {
+    border-color: #E53935;
+    color: #E53935;
+}
+
+/* Footer bar with the 确认 / 取消 buttons */
+.ef-footer {
+    background: #2B2E31;
+    border-top-color: #3F4347;
+}
+.ef-btn-secondary {
+    background: transparent;
+    color: var(--color-text-main);
+    border-color: #6A6E72;
+}
+.ef-btn-secondary:hover { background: #3F4347; }
+
+/* Custom filament rows shared with guide/23 tab */
+.CFilament_Item {
+    background: #2B2E31;
+    border-bottom-color: #3F4347;
+    color: var(--color-text-main);
+}
+.CFilament_Item:hover    { background: #3A3E42; }
+.CFilament_Name          { color: var(--color-text-main); }
+.CFilament_Type,
+.CFilament_Date          { color: var(--color-text-muted); }
+
+/* Edit/Delete icons stay dark svgs — invert them for dark bg */
+.CFilament_EditBtn,
+.CFilament_DeleteBtn { filter: brightness(0) invert(1); opacity: 0.7; }
+.CFilament_EditBtn:hover,
+.CFilament_DeleteBtn:hover { opacity: 1; }
+
+/* "+ 新建自定义材料" button */
+.CFilament_CreateBtn {
+    background: #34383B;
+    color: var(--color-text-main);
+    border-color: #6A6E72;
+}
+.CFilament_CreateBtn:hover { background: #3F4347; }
+
+/* Custom-filaments tab (guide/23) header + list container */
+#CFilament_Header,
+#CFilament_Count { color: var(--color-text-main); }
+#CFilament_Sort {
+    background: #34383B;
+    color: var(--color-text-main);
+    border-color: #4A4E52;
+}
+#CFilament_List {
+    background: #2B2E31;
+    border-color: #3F4347;
+}
+
+/* System-materials tab (guide/23) left filter panel */
+#FilterPanel,
+.filter-dd,
+.filter-dd-item {
+    color: var(--color-text-main);
+}
+.filter-dd-item:hover { background: #3F4347; }
+#selectAllCurrent { color: var(--color-text-main); }
+
+/* Search bar inside system-materials */
+#searchBar,
+#searchBar input {
+    background: #34383B;
+    color: var(--color-text-main);
+    border-color: #4A4E52;
+}
+#searchBar input::placeholder { color: var(--color-text-placeholder); }
+
+/* Filament item groups + individual checkboxes in system materials */
+.fila-group,
+.fila-group-header {
+    background: #34383B;
+    color: var(--color-text-main);
+    border-color: #3F4347;
+}
+.fila-item { color: var(--color-text-main); }
+.fila-item:hover { background: #3F4347; }
+
+/* Tabs (系统材料 / 自定义材料) */
+.tab-item          { color: var(--color-text-muted); }
+.tab-item.active   { color: var(--color-brand); border-bottom-color: var(--color-brand); }
+
+/* Empty state (search returned nothing) */
+.empty-icon        { opacity: 0.6; }
+.empty-text        { color: var(--color-text-muted); }

@@ -9,6 +9,7 @@
 #include "DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+#include "slic3r/GUI/DeviceCore/DevPrintOptions.h"
 #include "slic3r/GUI/DeviceCore/DevUpgrade.h"
 
 #include <set>
@@ -72,6 +73,8 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusFilamentWarningHighChamberTempCloseDoor: return "PrintStatusFilamentWarningHighChamberTempCloseDoor";
     case PrintStatusFilamentWarningHighChamberTempSoft: return "PrintStatusFilamentWarningHighChamberTempSoft";
     case PrintStatusFilamentWarningUnknownHighChamberTempSoft: return "PrintStatusFilamentWarningUnknownHighChamberTempSoft";
+    case PrintStatusFilamentWarningRemainNotEnough: return "PrintStatusFilamentWarningRemainNotEnough";
+    case PrintStatusSmartNozzleBlobNeedAuto: return "PrintStatusSmartNozzleBlobNeedAuto";
     case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
     case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
     case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
@@ -107,11 +110,16 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusBlankPlate: return _L("Cannot send the print job for empty plate");
     case PrintStatusTimelapseNoSdcard: return _L("Storage needs to be inserted to record timelapse.");
     case PrintStatusMixAmsAndVtSlotWarning: return _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
-    case PrintStatusTPUUnsupportAutoCali: return _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
+    case PrintStatusTPUUnsupportAutoCali: 
+        return _L("TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. "
+                  "If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process.");
+    case PrintStatusTPUUnsupportCaliOn:
+        return _L("TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. "
+                  "If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process.");
     case PrintStatusWarningKvalueNotUsed: return _L("Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value.");
     case PrintStatusNotSupportedPrintAll: return _L("This printer does not support printing all plates");
-    case PrintStatusColorQuantityExceed: return _L("The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support.");
     case PrintStatusHasUnreliableNozzleWarning: return _L("Please check if the required nozzle diameter and flow rate match the current display.");
+    case PrintStatusColorQuantityExceed: return _L("The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support.");
     }
     return wxEmptyString;
 }
@@ -167,6 +175,23 @@ void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, c
         }
         break;
     default: break;
+    }
+}
+
+void PrePrintChecker::add_with_link(PrintDialogStatus state, wxString msg, wxString link_label, std::function<void()> callback, prePrintInfoStyle style)
+{
+    prePrintInfo info;
+    info.level = is_error(state) ? prePrintInfoLevel::Error :
+                 is_warning(state) ? prePrintInfoLevel::Warning : prePrintInfoLevel::Normal;
+    info.type  = (is_error_printer(state) || is_warning_printer(state)) ? prePrintInfoType::Printer : prePrintInfoType::Filament;
+    info.msg   = msg;
+    info.link_label    = link_label;
+    info.link_callback = callback;
+    info.m_style = style;
+
+    auto& list = (info.type == prePrintInfoType::Printer) ? printerList : filamentList;
+    if (std::find(list.begin(), list.end(), info) == list.end()) {
+        list.push_back(info);
     }
 }
 
@@ -226,12 +251,37 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             label->SetFont(::Label::Body_13);
             label->SetForegroundColour(_GetLabelColour(info));
 
-            if (info.wiki_url.empty())
-{
+            if (info.testStyle(prePrintInfoStyle::BtnSwitchNozzleBlobAuto))
+            {
+                label->SetLabel(info.msg + " " + _L("Switch"));
+                label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+                label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+                label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
+                    auto obj_ = m_select_dialog ? m_select_dialog->get_current_machine() : nullptr;
+                    if (obj_ && obj_->GetPrintOptions()) {
+                        obj_->GetPrintOptions()->command_smart_nozzle_blob_detect_mode(2);
+                    }
+                });
+            }
+            else if (!info.link_callback && info.wiki_url.empty())
+            {
+                // plain text, no link
                 label->SetLabel(info.msg);
+            }
+            else if (info.link_callback)
+            {
+                // internal callback link (e.g. "Clean up files" → navigate to device page)
+                wxString link_text = info.link_label.empty() ? _L("Clean up files") : info.link_label;
+                label->SetLabel(info.msg + " " + link_text);
+                label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+                label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+                label->Bind(wxEVT_LEFT_DOWN, [info](wxMouseEvent& event) {
+                    if (info.link_callback) info.link_callback();
+                });
             }
             else
             {
+                // external wiki url
                 label->SetLabel(info.msg + " " + _L("Please refer to Wiki before use->"));
                 label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
                 label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
@@ -357,7 +407,8 @@ void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
     if (info.testStyle(prePrintInfoStyle::NozzleState)) {
         NozzleStatePanel* nozzle_info = new NozzleStatePanel(this);
         nozzle_info->UpdateInfoBy(m_select_dialog->get_plater(), m_select_dialog->get_current_machine());
-        m_sizer->Add(nozzle_info, 0, wxLEFT, FromDIP(16));
+        // Full message width, no indent
+        m_sizer->Add(nozzle_info, 0, wxEXPAND);
         m_sizer->AddSpacer(FromDIP(4));
     }
 }
@@ -395,5 +446,3 @@ void PrinterMsgPanel::OnUpgradeBtnClicked(wxMouseEvent& event)
 
 }
 };
-
-

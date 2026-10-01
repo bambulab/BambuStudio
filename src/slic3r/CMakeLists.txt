@@ -8,6 +8,8 @@ set(SLIC3R_GUI_SOURCES
     pchheader.hpp
     GUI/Printer/PrinterFileSystem.cpp
     GUI/Printer/PrinterFileSystem.h
+    GUI/Printer/LiveViewTrackContext.cpp
+    GUI/Printer/LiveViewTrackContext.h
     GUI/Widgets/AnimaController.hpp
     GUI/Widgets/AnimaController.cpp
     GUI/Widgets/AxisCtrlButton.cpp
@@ -58,6 +60,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/StateHandler.hpp
     GUI/Widgets/TabCtrl.cpp
     GUI/Widgets/TabCtrl.hpp
+    GUI/Widgets/TextTabbar.cpp
+    GUI/Widgets/TextTabbar.hpp
     GUI/Widgets/TextInput.cpp
     GUI/Widgets/TextInput.hpp
     GUI/Widgets/TempInput.cpp
@@ -70,10 +74,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/FilamentLoad.hpp
     GUI/Widgets/FanControl.cpp
     GUI/Widgets/FanControl.hpp
-    GUI/Widgets/Scrollbar.cpp
-    GUI/Widgets/Scrollbar.hpp
-    GUI/Widgets/ScrolledWindow.cpp
-    GUI/Widgets/ScrolledWindow.hpp
     GUI/Widgets/StepCtrl.cpp
     GUI/Widgets/StepCtrl.hpp
     GUI/Widgets/ProgressBar.cpp
@@ -82,10 +82,24 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/SideTools.hpp
     GUI/Widgets/WebView.cpp
     GUI/Widgets/WebView.hpp
+    GUI/Widgets/WebViewTraceLogger.cpp
+    GUI/Widgets/WebViewTraceLogger.hpp
+    GUI/Widgets/WebViewWatcher.cpp
+    GUI/Widgets/WebViewWatcher.hpp
+    GUI/DeviceWeb/DeviceWebHealth.cpp
+    GUI/DeviceWeb/DeviceWebHealth.hpp
     GUI/Widgets/ErrorMsgStaticText.cpp
     GUI/Widgets/ErrorMsgStaticText.hpp
     GUI/Widgets/MultiNozzleSync.hpp
     GUI/Widgets/MultiNozzleSync.cpp
+    GUI/MixedFilamentDialog.cpp
+    GUI/MixedFilamentDialog.hpp
+    GUI/ColorDecomposeDialog.cpp
+    GUI/ColorDecomposeDialog.hpp
+    GUI/ColorDecomposeSupport.cpp
+    GUI/ColorDecomposeSupport.hpp
+    GUI/GradientCurveEditor.cpp
+    GUI/GradientCurveEditor.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/NetworkTestDialog.cpp
@@ -116,6 +130,12 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
     GUI/GLEnums.hpp
+    GUI/MP4/PBOReader.hpp
+    GUI/MP4/PBOReader.cpp
+    GUI/MP4/Mp4Recorder.hpp
+    GUI/MP4/Mp4Recorder.cpp
+    GUI/MP4/minimp4_impl.c
+    GUI/MP4/minih264_impl.c
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
@@ -126,6 +146,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmosManager.hpp
     GUI/Gizmos/GLGizmosCommon.cpp
     GUI/Gizmos/GLGizmosCommon.hpp
+    GUI/Gizmos/FacetPicker.cpp
+    GUI/Gizmos/FacetPicker.hpp
     GUI/Gizmos/GLGizmoBase.cpp
     GUI/Gizmos/GLGizmoBase.hpp
     GUI/Gizmos/GLGizmoMove.cpp
@@ -172,6 +194,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/UIHelpers/MeshBooleanUI.hpp
     GUI/UIHelpers/TextEllipsis.cpp
     GUI/UIHelpers/TextEllipsis.hpp
+    GUI/UIHelpers/ImGuiFilamentWidgets.cpp
+    GUI/UIHelpers/ImGuiFilamentWidgets.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp
@@ -200,6 +224,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/AMSDryControl.hpp
     GUI/AMSMaterialsSetting.cpp
     GUI/AMSMaterialsSetting.hpp
+    GUI/AMSRFIDMaterialView.cpp
+    GUI/AMSRFIDMaterialView.hpp
+    GUI/FilamentSelectDialog.cpp
+    GUI/FilamentSelectDialog.hpp
     GUI/ExtrusionCalibration.cpp
     GUI/ExtrusionCalibration.hpp
     GUI/PresetHints.cpp
@@ -220,6 +248,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/IconManager.hpp
     GUI/MainFrame.cpp
     GUI/MainFrame.hpp
+    GUI/PerfTrace.cpp
+    GUI/PerfTrace.hpp
     GUI/BBLTopbar.cpp
     GUI/BBLTopbar.hpp
     GUI/BedShapeDialog.cpp
@@ -228,6 +258,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Plater.hpp
     GUI/PartPlate.cpp
     GUI/PartPlate.hpp
+    GUI/WipeTowerPlacement.cpp
+    GUI/WipeTowerPlacement.hpp
     GUI/UserNotification.cpp
     GUI/UserNotification.hpp
     GUI/PresetComboBoxes.hpp
@@ -322,18 +354,44 @@ set(SLIC3R_GUI_SOURCES
     GUI/OG_CustomCtrl.hpp
     GUI/MarkdownTip.cpp
     GUI/MarkdownTip.hpp
+    GUI/ParamTooltip.cpp
+    GUI/ParamTooltip.hpp
+    GUI/WindowShadow.cpp
+    GUI/WindowShadow.hpp
     GUI/2DBed.cpp
     GUI/2DBed.hpp
     GUI/3DBed.cpp
     GUI/3DBed.hpp
     GUI/Camera.cpp
     GUI/Camera.hpp
+    GUI/Overview/AssemblyPdfExportDialog.cpp
+    GUI/Overview/AssemblyPdfExportDialog.hpp
+    GUI/Overview/AssemblyExportProgressWindow.cpp
+    GUI/Overview/AssemblyExportProgressWindow.hpp
+    GUI/Overview/TinyExportMardDown.cpp
+    GUI/Overview/TinyExportMardDown.hpp
+    GUI/Overview/AssemblyStepsUtils.cpp
+    GUI/Overview/AssemblyStepsUtilsImgui.cpp
+    GUI/Overview/AssemblyStepsUtils.hpp
+    GUI/Overview/AssemblyStepsUtilsInternal.hpp
+    GUI/Overview/OverviewUtils.cpp
+    GUI/Overview/OverviewUtils.hpp
     GUI/CameraUtils.cpp
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
     GUI/ObjColorDialog.cpp
     GUI/ObjColorDialog.hpp
+    GUI/TextureImportDialog.hpp
+    GUI/TextureImportDialog.cpp
+    GUI/MixingKitsHelpDialog.hpp
+    GUI/MixingKitsHelpDialog.cpp
+    GUI/TextureImportUi.hpp
+    GUI/TextureImportUi.cpp
+    GUI/TextureImportOverLimitDialog.hpp
+    GUI/TextureImportOverLimitDialog.cpp
+    GUI/TextureImportPopupDismiss.hpp
+    GUI/TextureImportPopupDismiss.cpp
     GUI/FilamentPickerDialog.cpp
     GUI/FilamentPickerDialog.hpp
     GUI/FilamentBitmapUtils.cpp
@@ -501,12 +559,17 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
+    GUI/AmsMappingPopupUpdate.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
+    GUI/VersionPolicyDialog.hpp
+    GUI/VersionPolicyDialog.cpp
     GUI/HelioReleaseNote.hpp
     GUI/HelioReleaseNote.cpp
     GUI/HelioHistoryDialog.hpp
     GUI/HelioHistoryDialog.cpp
+    GUI/BetaVersionDialog.hpp
+    GUI/BetaVersionDialog.cpp
     GUI/SingleChoiceDialog.hpp
     GUI/SingleChoiceDialog.cpp
     GUI/CaliHistoryDialog.hpp
@@ -537,6 +600,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/SafetyOptionsDialog.cpp
     GUI/CreatePresetsDialog.hpp
     GUI/CreatePresetsDialog.cpp
+    GUI/CreateFilamentWebDialog.hpp
+    GUI/CreateFilamentWebDialog.cpp
+    GUI/EditFilamentWebDialog.hpp
+    GUI/EditFilamentWebDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
@@ -582,6 +649,12 @@ set(SLIC3R_GUI_SOURCES
     Utils/FileHelp.hpp
     Utils/PresetUpdater.cpp
     Utils/PresetUpdater.hpp
+    Utils/VersionPolicyParser.cpp
+    Utils/VersionPolicyParser.hpp
+    Utils/VersionPolicyFetcher.cpp
+    Utils/VersionPolicyFetcher.hpp
+    Utils/VersionPolicyManager.cpp
+    Utils/VersionPolicyManager.hpp
     Utils/Process.cpp
     Utils/Process.hpp
     Utils/RaycastManager.cpp
@@ -626,14 +699,23 @@ set(SLIC3R_GUI_SOURCES
     Utils/WxFontUtils.cpp
     Utils/HelioDragon.cpp
     Utils/HelioDragon.hpp
+    Utils/HelioRetryPolicy.cpp
+    Utils/HelioRetryPolicy.hpp
+    Utils/HelioSupportData.cpp
+    Utils/HelioSupportData.hpp
     Utils/FileTransferUtils.cpp
     Utils/FileTransferUtils.hpp
+    Utils/FileTransferObject.cpp
+    Utils/FileTransferObject.hpp
     Utils/CertificateVerify.hpp
     Utils/CertificateVerify.cpp
+    Utils/FrameBuffer.hpp
 )
 
 add_subdirectory(GUI/DeviceCore)
 add_subdirectory(GUI/DeviceTab)
+add_subdirectory(GUI/fila_manager)
+add_subdirectory(GUI/DeviceWeb)
 
 if (WIN32)
     list(APPEND SLIC3R_GUI_SOURCES
@@ -654,9 +736,15 @@ if (APPLE)
             GUI/Mouse3DHandlerMac.mm
             GUI/InstanceCheckMac.mm
             GUI/InstanceCheckMac.h
+            GUI/CameraFullscreenMac.mm
+            GUI/CameraFullscreenMac.hpp
+            GUI/TextureImportPopupDismiss.mm
+            GUI/MacIME.mm
+            GUI/MacIME.hpp
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
             GUI/wxMediaCtrl3.h
+            GUI/WindowShadowMac.mm
         )
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
 else ()
@@ -677,7 +765,19 @@ if (UNIX AND NOT APPLE)
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
+
+if (TARGET device_page_build)
+    add_dependencies(libslic3r_gui device_page_build)
+endif()
+
+#if (MSVC)
+#    target_compile_options(libslic3r_gui PRIVATE /Od /Zi)
+#else ()
+#    target_compile_options(libslic3r_gui PRIVATE -O0 -g)
+#endif ()
+
 target_include_directories(libslic3r_gui PRIVATE Utils)
+target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (WIN32)
     target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/WebView2/include)
@@ -687,10 +787,27 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+# libharu: hpdf.lib on Windows (separate Debug build under lib/Debug), libhpdf.a
+# on Linux/macOS. Use find_library so every CMAKE_PREFIX_PATH entry is searched
+# and the platform-specific library name is resolved automatically, instead of
+# hardcoding ${CMAKE_PREFIX_PATH}/lib (which breaks when it is a multi-path list).
+if (WIN32)
+    find_library(HPDF_LIBRARY_RELEASE NAMES hpdf)
+    find_library(HPDF_LIBRARY_DEBUG NAMES hpdf PATH_SUFFIXES Debug)
+    set(HPDF_LIBRARY
+        $<$<CONFIG:Debug>:${HPDF_LIBRARY_DEBUG}>
+        $<$<NOT:$<CONFIG:Debug>>:${HPDF_LIBRARY_RELEASE}>)
+else ()
+    find_library(HPDF_LIBRARY NAMES hpdf hpdfd HINTS lib REQUIRED)
+endif ()
+
+target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi
+    ${HPDF_LIBRARY}
+    ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+#target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
-    target_link_libraries(libslic3r_gui Setupapi.lib)
+    target_link_libraries(libslic3r_gui Setupapi.lib dwmapi.lib)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     FIND_LIBRARY(WAYLAND_SERVER_LIBRARIES NAMES wayland-server)
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
@@ -742,6 +859,18 @@ if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
     target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES})
+
+    pkg_check_modules(WEBKIT2GTK_4_1 QUIET webkit2gtk-4.1)
+    if (WEBKIT2GTK_4_1_FOUND)
+        target_compile_definitions(libslic3r_gui PRIVATE BBL_WEBKITGTK_4_1)
+    else ()
+        pkg_check_modules(WEBKIT2GTK_4_0 QUIET webkit2gtk-4.0)
+        if (WEBKIT2GTK_4_0_FOUND)
+            target_compile_definitions(libslic3r_gui PRIVATE BBL_WEBKITGTK_4_0)
+        else ()
+            message(FATAL_ERROR "Neither webkit2gtk-4.1 nor webkit2gtk-4.0 was found.")
+        endif ()
+    endif ()
 
     # We add GStreamer for bambu:/// support.
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)

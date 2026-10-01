@@ -1,0 +1,29 @@
+1 VERSIONINFO
+FILEVERSION 2,1,0,0
+PRODUCTVERSION 2,1,0,0
+FILEOS 0x4
+FILETYPE 0x1
+{
+BLOCK "StringFileInfo"
+{
+	BLOCK "040904E4"
+	{
+		VALUE "CompanyName", ""
+		VALUE "FileDescription", "Haru Free PDF Library [MinGW]"
+		VALUE "FileVersion", "2.1.0.0"
+		VALUE "InternalName", "LIBHPDF"
+		VALUE "LegalCopyright", "(c) Takeshi Kanno 1999-2006, Antony Dovgal 2007-2009"
+		VALUE "LegalTrademarks", ""
+		VALUE "OriginalFilename", "libhpdf"
+		VALUE "ProductName", ""
+		VALUE "ProductVersion", "2.1.0.0"
+		VALUE "Comments", ""
+		VALUE "Additional Notes", ""
+	}
+}
+
+BLOCK "VarFileInfo"
+{
+	VALUE "Translation",0x0409,0x04E4
+}
+}

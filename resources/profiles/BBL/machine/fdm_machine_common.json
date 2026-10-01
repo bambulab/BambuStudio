@@ -8,8 +8,6 @@
     ],
     "printer_variant": "0.4",
     "auxiliary_fan": "1",
-    "apply_top_surface_compensation": "0",
-    "fan_direction": "undefine",
     "best_object_pos": "0.5x0.5",
     "default_filament_profile": [],
     "default_print_profile": "0.16mm Optimal @BBL X1C",
@@ -66,6 +64,9 @@
     "machine_max_acceleration_z": [
         "100"
     ],
+    "machine_max_force_Y": "0",
+    "machine_bed_mass_Y": "0",
+    "machine_max_printed_mass": "0",
     "machine_max_jerk_e": [
         "5"
     ],
@@ -111,6 +112,7 @@
     "nozzle_flush_dataset": [
         "0"
     ],
+    "print_in_clockwise": "0",
     "printable_height": "250",
     "printer_settings_id": "",
     "printer_structure": "corexy",
@@ -147,6 +149,7 @@
     "single_extruder_multi_material": "1",
     "support_air_filtration": "0",
     "support_cooling_filter": "0",
+    "support_fast_purge_mode": "0",
     "cooling_filter_enabled": "0",
     "support_chamber_temp_control": "0",
     "support_object_skip_flush": "0",

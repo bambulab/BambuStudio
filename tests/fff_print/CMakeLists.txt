@@ -8,20 +8,57 @@ add_executable(${_TEST_NAME}_tests
 	test_flow.cpp
 	test_gcode.cpp
 	test_gcodewriter.cpp
+	test_gcodewriter_travel.cpp
 	test_model.cpp
 	test_print.cpp
 	test_printgcode.cpp
 	test_printobject.cpp
 	test_skirt_brim.cpp
 	test_support_material.cpp
+	test_support_material_on_wipe_tower.cpp
 	test_trianglemesh.cpp
 	)
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r)
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 if (WIN32)
-    bambuslicer_copy_dlls(${_TEST_NAME}_tests)
+    # See tests/libslic3r/CMakeLists.txt for the full rationale; the legacy
+    # 1-arg invocation no longer matches bambustudio_copy_dlls's 4-arg signature.
+    # bambustudio_copy_dlls(${_TEST_NAME}_tests <config> <postfix> <out>)
 endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(support_material_on_wipe_tower_tests
+	fff_print_tests.cpp
+	test_data.cpp
+	test_data.hpp
+	test_support_material_on_wipe_tower.cpp
+	)
+target_link_libraries(support_material_on_wipe_tower_tests test_common libslic3r
+	libcurl
+	OpenSSL::SSL OpenSSL::Crypto
+)
+if (MSVC)
+	target_link_options(support_material_on_wipe_tower_tests PRIVATE /FORCE:UNRESOLVED)
+endif()
+set_property(TARGET support_material_on_wipe_tower_tests PROPERTY FOLDER "tests")
+add_test(support_material_on_wipe_tower_tests support_material_on_wipe_tower_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(periodic_modifier_tests
+	fff_print_tests.cpp
+	test_data.cpp
+	test_data.hpp
+	test_periodic_modifier.cpp
+	)
+target_link_libraries(periodic_modifier_tests test_common libslic3r
+	libcurl
+	OpenSSL::SSL OpenSSL::Crypto
+)
+if (MSVC)
+	target_link_options(periodic_modifier_tests PRIVATE /FORCE:UNRESOLVED)
+endif()
+set_property(TARGET periodic_modifier_tests PROPERTY FOLDER "tests")
+add_test(periodic_modifier_tests periodic_modifier_tests ${CATCH_EXTRA_ARGS})
+

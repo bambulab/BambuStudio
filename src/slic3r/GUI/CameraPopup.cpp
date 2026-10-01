@@ -13,8 +13,16 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevStorage.h"
 
+#include <algorithm>
+
 namespace Slic3r {
 namespace GUI {
+
+namespace {
+// Icon bitmap size in DIP. The outer slot size (button width/height) is intentionally
+// left to the caller via SetMinSize() so that CameraItem stays reusable across panels.
+constexpr int kCameraItemIconDIP = 20;
+} // namespace
 
 wxIMPLEMENT_CLASS(CameraPopup, PopupWindow);
 
@@ -25,7 +33,7 @@ wxBEGIN_EVENT_TABLE(CameraPopup, PopupWindow)
     EVT_KILL_FOCUS(CameraPopup::OnKillFocus )
 wxEND_EVENT_TABLE()
 
-wxDEFINE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
+wxDEFINE_EVENT(EVT_VCAMERA_SWITCH, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
 #define CAMERAPOPUP_CLICK_INTERVAL 20
@@ -130,12 +138,18 @@ CameraPopup::CameraPopup(wxWindow *parent)
     main_sizer->Fit(m_panel);
 
     SetClientSize(m_panel->GetSize());
-    m_switch_recording->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(CameraPopup::on_switch_recording), NULL, this);
+    m_switch_recording->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        on_switch_recording(e);
+    });
     m_switch_vcamera->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        wxMouseEvent evt(EVT_VCAMERA_SWITCH);
+        auto now = std::chrono::steady_clock::now();
+        if (now - m_last_vcamera_click < std::chrono::milliseconds(300)) return;
+        m_last_vcamera_click = now;
+
+        wxCommandEvent evt(EVT_VCAMERA_SWITCH);
         evt.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
-        });
+    });
     #ifdef __APPLE__
     m_panel->Bind(wxEVT_LEFT_UP, &CameraPopup::OnLeftUp, this);
     #endif //APPLE
@@ -154,14 +168,19 @@ void CameraPopup::sdcard_absent_hint()
     GetEventHandler()->ProcessEvent(evt);
 }
 
-void CameraPopup::on_switch_recording(wxCommandEvent& event)
+void CameraPopup::on_switch_recording(wxMouseEvent& event)
 {
     if (!m_obj) return;
-    if (m_obj->GetStorage()->get_sdcard_state()  != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
+
+    auto now = std::chrono::steady_clock::now();
+    if (now - m_last_recording_click < std::chrono::milliseconds(300)) return;
+    m_last_recording_click = now;
+
+    bool value = m_switch_recording->GetValue();
+    if (!value && m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
         sdcard_absent_hint();
         return;
     }
-    bool value = m_switch_recording->GetValue();
     m_switch_recording->SetValue(!value);
     m_obj->command_ipcam_record(!value);
 }
@@ -388,7 +407,7 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
         auto recording_rect = m_switch_recording->ClientToScreen(wxPoint(0, 0));
         if (mouse_pos.x > recording_rect.x && mouse_pos.y > recording_rect.y && mouse_pos.x < (recording_rect.x + m_switch_recording->GetSize().x) && mouse_pos.y < (recording_rect.y + m_switch_recording->GetSize().y)) {
             wxMouseEvent recording_evt(wxEVT_LEFT_DOWN);
-            m_switch_recording->GetEventHandler()->ProcessEvent(recording_evt);
+            on_switch_recording(recording_evt);
             return;
         }
         //vcamera
@@ -472,79 +491,130 @@ void CameraPopup::OnMouse(wxMouseEvent &event)
 }
 
 CameraItem::CameraItem(wxWindow *parent, std::string normal, std::string hover)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxNO_BORDER)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
-#endif //__WINDOWS__
+#endif
 
-    m_bitmap_normal  = ScalableBitmap(this, normal, 20);
-    m_bitmap_hover   = ScalableBitmap(this, hover, 20);
+    m_bitmap_normal = ScalableBitmap(this, normal, kCameraItemIconDIP);
+    m_bitmap_hover  = ScalableBitmap(this, hover,  kCameraItemIconDIP);
 
-    SetSize(wxSize(FromDIP(20), FromDIP(20)));
-    SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
-    SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
-    Bind(wxEVT_PAINT, &CameraItem::paintEvent, this);
+    m_image = new wxStaticBitmap(this, wxID_ANY, m_bitmap_normal.bmp());
+    const wxSize icon_size{FromDIP(kCameraItemIconDIP), FromDIP(kCameraItemIconDIP)};
+    m_image->SetMinSize(icon_size);
+    m_image->SetMaxSize(icon_size);
+
+    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->AddStretchSpacer();
+    sizer->Add(m_image, 0, wxALIGN_CENTER_VERTICAL);
+    sizer->AddStretchSpacer();
+    SetSizer(sizer);
+    Layout();
+
     Bind(wxEVT_ENTER_WINDOW, &CameraItem::on_enter_win, this);
-    Bind(wxEVT_LEAVE_WINDOW, &CameraItem::on_level_win, this);
+    Bind(wxEVT_LEAVE_WINDOW, &CameraItem::on_leave_win, this);
+
+    m_image->Bind(wxEVT_LEFT_DOWN,   &CameraItem::forward_mouse_event, this);
+    m_image->Bind(wxEVT_LEFT_UP,     &CameraItem::forward_mouse_event, this);
+    m_image->Bind(wxEVT_LEFT_DCLICK, &CameraItem::forward_mouse_event, this);
+    m_image->Bind(wxEVT_RIGHT_DOWN,  &CameraItem::forward_mouse_event, this);
+    m_image->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+        if (!m_hover) {
+            m_hover = true;
+            update_displayed_bitmap();
+        }
+        e.Skip();
+    });
+    m_image->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
+        if (m_hover) {
+            m_hover = false;
+            update_displayed_bitmap();
+        }
+        e.Skip();
+    });
 }
 
 CameraItem::~CameraItem() {}
 
-void CameraItem::msw_rescale() {
+void CameraItem::msw_rescale()
+{
     m_bitmap_normal.msw_rescale();
     m_bitmap_hover.msw_rescale();
+    update_displayed_bitmap();
 }
 
 void CameraItem::on_enter_win(wxMouseEvent &evt)
 {
-    m_hover = true;
-    Refresh();
-}
-
-void CameraItem::on_level_win(wxMouseEvent &evt)
-{
-    m_hover = false;
-    Refresh();
-}
-
-void CameraItem::paintEvent(wxPaintEvent &evt)
-{
-    wxPaintDC dc(this);
-    render(dc);
-
-    // PrepareDC(buffdc);
-    // PrepareDC(dc);
-}
-
-void CameraItem::render(wxDC &dc)
-{
-#ifdef __WXMSW__
-    wxSize     size = GetSize();
-    wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
-    memdc.SelectObject(bmp);
-    memdc.Blit({0, 0}, size, &dc, {0, 0});
-
-    {
-        wxGCDC dc2(memdc);
-        doRender(dc2);
+    if (!m_hover) {
+        m_hover = true;
+        update_displayed_bitmap();
     }
-
-    memdc.SelectObject(wxNullBitmap);
-    dc.DrawBitmap(bmp, 0, 0);
-#else
-    doRender(dc);
-#endif
+    evt.Skip();
 }
 
-void CameraItem::doRender(wxDC &dc)
+void CameraItem::on_leave_win(wxMouseEvent &evt)
 {
     if (m_hover) {
-        dc.DrawBitmap(m_bitmap_hover.bmp(), wxPoint((GetSize().x - m_bitmap_hover.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_hover.GetBmpSize().y) / 2));
-    } else {
-        dc.DrawBitmap(m_bitmap_normal.bmp(), wxPoint((GetSize().x - m_bitmap_normal.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_normal.GetBmpSize().y) / 2));
+        m_hover = false;
+        update_displayed_bitmap();
     }
+    evt.Skip();
+}
+
+void CameraItem::reset_hover()
+{
+    if (m_hover) {
+        m_hover = false;
+        update_displayed_bitmap();
+    }
+}
+
+bool CameraItem::Enable(bool enable)
+{
+    bool ret = wxPanel::Enable(enable);
+    m_hover = false;
+    update_displayed_bitmap();
+    return ret;
+}
+
+wxBitmap CameraItem::make_disabled_bitmap(const wxBitmap &bmp) const
+{
+    if (!bmp.IsOk())
+        return bmp;
+
+    wxImage img = bmp.ConvertToImage();
+    std::vector<unsigned char> alpha;
+    if (img.HasAlpha()) {
+        unsigned char *alpha_data = img.GetAlpha();
+        alpha.assign(alpha_data, alpha_data + img.GetWidth() * img.GetHeight());
+    }
+
+    wxImage gray = img.ConvertToGreyscale();
+    if (!alpha.empty()) {
+        if (!gray.HasAlpha())
+            gray.InitAlpha();
+        std::copy(alpha.begin(), alpha.end(), gray.GetAlpha());
+    }
+    return wxBitmap(gray);
+}
+
+void CameraItem::update_displayed_bitmap()
+{
+    if (!m_image)
+        return;
+
+    const wxBitmap desired = IsEnabled() ? (m_hover ? m_bitmap_hover.bmp() : m_bitmap_normal.bmp())
+                                         : make_disabled_bitmap(m_bitmap_normal.bmp());
+    m_image->SetBitmap(desired);
+    m_image->Refresh();
+}
+
+void CameraItem::forward_mouse_event(wxMouseEvent &evt)
+{
+    wxMouseEvent fwd(evt);
+    fwd.SetEventObject(this);
+    ProcessWindowEvent(fwd);
 }
 
 }

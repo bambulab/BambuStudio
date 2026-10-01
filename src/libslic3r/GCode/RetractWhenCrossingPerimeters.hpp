@@ -17,15 +17,18 @@ class Polyline;
 class RetractWhenCrossingPerimeters
 {
 public:
-    bool travel_inside_internal_regions_no_wall_crossing(const Layer &layer, const Polyline &travel);
+    bool travel_inside_internal_regions_no_wall_crossing(
+        const Layer &layer, const Polyline &travel, coord_t wall_proximity_distance, coord_t max_near_wall_travel);
 
 private:
     bool travel_cross_perimeters(const Layer &layer, const Polyline &travel);
     bool travel_inside_internal_regions(const Layer &layer, const Polyline &travel);
+    bool travel_near_perimeters_too_long(
+        const Polyline &travel, coord_t wall_proximity_distance, coord_t max_near_wall_travel);
 
 private:
     // Last object layer visited, for which a cache of internal islands was created.
-    const Layer *m_layer;
+    const Layer *m_layer = nullptr;
     // Search structure over internal islands.
     BoundingBox                         m_internal_islands_bbox;
     AABBTreeLines::LinesDistancer<Line> m_aabbtree_lines_distancer;

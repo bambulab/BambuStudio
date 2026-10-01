@@ -26,6 +26,7 @@
 			"support_bed_leveling": 1,
 			"support_update_remain": false,
 			"support_timelapse": true,
+			"timelapse_slow_down": true,
 			"support_filament_backup": true,
 			"support_chamber_fan": false,
 			"support_aux_fan": false,
@@ -42,9 +43,10 @@
 			"support_extrusion_cali": true,
 			"support_user_preset": false,
 			"bed_temperature_limit": 80,
-			"support_ams_ext_mix_print": false
+			"support_ams_ext_mix_print": true
 		},
 		"model_id": "N1",
+		"sn_prefix": "030",
 		"support_wrapping_detection": false,
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_i3",
 		"compatible_machine": [],
@@ -62,7 +64,8 @@
 		"printer_is_enclosed": false,
 		"enable_set_nozzle_info": false,
 		"support_safety_options": false,
-		"air_print_detection_position": "ams_setting"
+		"air_print_detection_position": "ams_setting",
+		"filament_load_image": ["filament_load_a_series_ext0"]
 	},
 	"01.01.50.01": {
 		"print": {

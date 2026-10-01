@@ -148,7 +148,8 @@ Flow Flow::with_spacing(float new_spacing) const
         assert(m_width >= m_height);
         out.m_width += new_spacing - m_spacing;
         if (out.m_width < out.m_height)
-            throw Slic3r::InvalidArgument("Invalid spacing supplied to Flow::with_spacing()");
+            throw Slic3r::SlicingError(L("Slicing failed because the extrusion line width is too small or the layer height is too large.\n\n"
+                                         "Please increase the line width or reduce the layer height, then slice again."));
     }
     out.m_spacing = new_spacing;
     return out;

@@ -352,7 +352,7 @@ void FilamentComboBox::set_select_mode(CalibrationFilamentMode mode)
     Layout();
 }
 
-void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
+void FilamentComboBox::load_tray_from_ams(int id, const DynamicPrintConfig& tray)
 {
     m_comboBox->load_tray(tray);
 
@@ -393,7 +393,7 @@ bool FilamentComboBox::Enable(bool enable) {
         SetValue(false);
 
     if (m_radioBox)
-        m_radioBox->Enable(enable);
+        enable ? m_radioBox->Enable() : m_radioBox->Disable();
     if (m_checkBox)
         m_checkBox->Enable(enable);
     if (m_comboBox)

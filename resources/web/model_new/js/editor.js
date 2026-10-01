@@ -184,18 +184,18 @@ function saveInfo() {
   getProjectName();
   if (!projectName) {
     showToast("The project name is empty.");
-    return;
+    return false;
   }
   modelData["name"] = encodeURIComponent(projectName);
   if (projectPictures.length <= 0) {
     showToast("The project pictures is empty.");
-    return;
+    return false;
   }
   modelData["preview_img"] = projectPictures;
   getProjectDescription();
   if (!projectEditorData) {
     showToast("The project description is empty.");
-    return;
+    return false;
   }
   modelData["description"] = encodeURIComponent(projectEditorData);
   let fileData = {
@@ -222,6 +222,7 @@ function saveInfo() {
   tSend['model'] = updateData;
 		
 	SendWXMessage( JSON.stringify(tSend) );	
+  return true;
 }
 
 function updateInfo(p3MF) {
@@ -237,7 +238,7 @@ function updateInfo(p3MF) {
       break;
     }
   }
-  projectEditorData = decodeURIComponent(p3MF.model.description) || '';
+  projectEditorData = DecodeDescriptionFrom3MF(decodeURIComponent(p3MF.model.description));
   bomAccessories.length = 0;
   Array.prototype.push.apply(bomAccessories, p3MF.file.BOM || []);
   assemblyAccessories.length = 0;
@@ -256,7 +257,7 @@ function updateInfo(p3MF) {
       break;
     }
   }
-  profileEditorData = decodeURIComponent(p3MF.profile.description) || '';
+  profileEditorData = DecodeDescriptionFrom3MF(decodeURIComponent(p3MF.profile.description));
   setProjectName();
   setProjectPictrues();
   setProjectDescription();
@@ -413,11 +414,12 @@ function addAccessoryBtnListener() {
 });1
 }
 function setAccessories(id, accessoriesList) {
-  let updateHtml = "";
+  const $container = $(`#${id}`);
+  $container.empty();
   if (accessoriesList.length > 0) {
-    $(`#${id}`).prev().show();
+    $container.prev().show();
   }else {
-    $(`#${id}`).prev().hide();
+    $container.prev().hide();
   }
   for (let i = 0; i < accessoriesList.length; i++) {
     let acc_filepath = accessoriesList[i].filepath;
@@ -428,23 +430,23 @@ function setAccessories(id, accessoriesList) {
       type = getFileType(acc_filepath);
     }
     let iconPath = `img/icon_${type}.svg`;
-    let html = `<div class="attachment" data-index="${i}"><img class="attachment-icon" src="${iconPath}">${decodeURIComponent(accessoriesList[i].filename)}<img class="attachment-delete" src="img/del.svg"></div>`;
-    updateHtml += html;
+    let $attachment = $('<div>').addClass('attachment').attr('data-index', i);
+    $attachment.data('path', acc_filepath || '');
+    $attachment.append($('<img>').addClass('attachment-icon').attr('src', iconPath));
+    $attachment.append(document.createTextNode(decodeURIComponent(accessoriesList[i].filename)));
+    $attachment.append($('<img>').addClass('attachment-delete').attr('src', 'img/del.svg'));
+    $container.append($attachment);
   }
-  $(`#${id}`).html(updateHtml);
-  $(`#${id}`).children('.attachment').each(function(idx) {
-    $(this).data('path', accessoriesList[idx]?.filepath || '');
-  });
-  $(`#${id}`).prev().children('label').text(accessoriesList.length);
-  $(`#${id}`).off('click', '.attachment-delete');
-  $(`#${id}`).on('click', '.attachment-delete', function (event) {
+  $container.prev().children('label').text(accessoriesList.length);
+  $container.off('click', '.attachment-delete');
+  $container.on('click', '.attachment-delete', function (event) {
     event.stopPropagation();
     let index = parseInt($(this).parent().data('index'));
     removeAccessoryAt(index, accessoriesList);
     setAccessories(id, accessoriesList);
   });
-  $(`#${id}`).off('click', '.attachment');
-  $(`#${id}`).on('click', '.attachment', function (event) {
+  $container.off('click', '.attachment');
+  $container.on('click', '.attachment', function (event) {
     if ($(event.target).closest('.attachment-delete').length) return;
     const path = $(this).data('path');
     OnClickOpenFile(event, path);
@@ -666,8 +668,23 @@ function handleEditorMessage(rawMessage) {
     resolve(payload.data || {});
     return;
   }
+  if (command === 'query_unsaved_changes') {
+    SendWXMessage(JSON.stringify({
+      sequence_id: payload.sequence_id || Math.round(new Date() / 1000),
+      command: 'page_dirty_state',
+      dirty: isChange()
+    }));
+    return;
+  }
   if (command === 'save_project') {
-    saveInfo();
+    if (!saveInfo()) {
+      // Validation stopped the save, so no update_3mf_info will follow. Tell the
+      // host, otherwise a close waiting on the result would hang forever.
+      SendWXMessage(JSON.stringify({
+        sequence_id: Math.round(new Date() / 1000),
+        command: 'save_project_aborted'
+      }));
+    }
     return;
   }
   if (command === 'discard_project') {

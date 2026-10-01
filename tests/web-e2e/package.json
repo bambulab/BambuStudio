@@ -1,0 +1,42 @@
+{
+  "name": "bambu-studio-web-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests for the BambuStudio filament manager webview, driven by Playwright over CDP.",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "scripts": {
+    "e2e": "tsx src/cli/launch.ts",
+    "e2e:run": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:debug": "playwright test --debug",
+    "e2e:smoke": "playwright test --grep @smoke",
+    "e2e:webview-only": "playwright test --project=webview-only",
+    "e2e:printer": "playwright test --project=printer",
+    "e2e:list": "playwright test --list",
+    "e2e:report": "playwright show-report reports/html",
+    "e2e:check-cdp": "powershell -ExecutionPolicy Bypass -File ./scripts/check-cdp.ps1",
+    "lint": "eslint . --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.2.0",
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.1",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^9.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}

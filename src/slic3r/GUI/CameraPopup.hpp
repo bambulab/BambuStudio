@@ -7,8 +7,10 @@
 #include <wx/panel.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
+#include <wx/statbmp.h>
 #include <wx/sizer.h>
 #include <wx/timer.h>
+#include <chrono>
 #include <wx/gbsizer.h>
 #include <wx/webrequest.h>
 #include <wx/hyperlink.h>
@@ -19,7 +21,7 @@
 namespace Slic3r {
 namespace GUI {
 
-wxDECLARE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
+wxDECLARE_EVENT(EVT_VCAMERA_SWITCH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
 class CameraPopup : public PopupWindow
@@ -48,7 +50,7 @@ public:
     void rescale();
 
 protected:
-    void on_switch_recording(wxCommandEvent& event);
+    void on_switch_recording(wxMouseEvent& event);
     void on_set_resolution();
     void sdcard_absent_hint();
 
@@ -89,6 +91,10 @@ private:
     void OnKillFocus(wxFocusEvent &event);
     void OnLeftUp(wxMouseEvent& event);
 
+    // Debounce guards to prevent double-trigger on macOS
+    std::chrono::steady_clock::time_point m_last_recording_click{};
+    std::chrono::steady_clock::time_point m_last_vcamera_click{};
+
 private:
     wxDECLARE_ABSTRACT_CLASS(CameraPopup);
     wxDECLARE_EVENT_TABLE();
@@ -108,10 +114,17 @@ public:
 
     void msw_rescale();
     void on_enter_win(wxMouseEvent &evt);
-    void on_level_win(wxMouseEvent &evt);
-    void paintEvent(wxPaintEvent &evt);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
+    void on_leave_win(wxMouseEvent &evt);
+    void reset_hover();
+
+    bool Enable(bool enable = true) override;
+
+private:
+    void update_displayed_bitmap();
+    wxBitmap make_disabled_bitmap(const wxBitmap &bmp) const;
+    void forward_mouse_event(wxMouseEvent &evt);
+
+    wxStaticBitmap *m_image{nullptr};
 };
 
 }

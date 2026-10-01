@@ -10,15 +10,111 @@
 #include <boost/log/trivial.hpp>
 
 #import <Foundation/Foundation.h>
+#import <QuartzCore/QuartzCore.h>
 #import "BambuPlayer/BambuPlayer.h"
 #import "../Utils/NetworkAgent.hpp"
 
 #include <stdlib.h>
 #include <dlfcn.h>
+#include "Printer/LiveViewTrackContext.h"
 
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 
 #define BAMBU_DYNAMIC
+
+// Convert wxImage to CGImageRef. Caller must CGImageRelease the result.
+static CGImageRef createCGImageFromWxImage(const wxImage &image)
+{
+    if (!image.IsOk())
+        return nullptr;
+
+    int width  = image.GetWidth();
+    int height = image.GetHeight();
+    bool hasAlpha = image.HasAlpha();
+    int components = hasAlpha ? 4 : 3;
+    int bytesPerRow = width * components;
+
+    // Build an interleaved RGBA/RGB buffer
+    size_t bufferSize = (size_t)bytesPerRow * height;
+    const unsigned char *rgb = image.GetData();
+    const unsigned char *alpha = hasAlpha ? image.GetAlpha() : nullptr;
+
+    // Use CFData which retains ownership of the bytes
+    CFMutableDataRef cfData = CFDataCreateMutable(kCFAllocatorDefault, bufferSize);
+    CFDataSetLength(cfData, bufferSize);
+    unsigned char *buffer = CFDataGetMutableBytePtr(cfData);
+
+    for (int i = 0; i < width * height; ++i) {
+        buffer[i * components + 0] = rgb[i * 3 + 0];
+        buffer[i * components + 1] = rgb[i * 3 + 1];
+        buffer[i * components + 2] = rgb[i * 3 + 2];
+        if (hasAlpha)
+            buffer[i * components + 3] = alpha[i];
+    }
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmapInfo = hasAlpha
+        ? (kCGBitmapByteOrderDefault | kCGImageAlphaLast)
+        : (kCGBitmapByteOrderDefault | kCGImageAlphaNone);
+
+    // CGDataProviderCreateWithCFData retains the CFData, so data lives as long as the provider
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData(cfData);
+    CFRelease(cfData);
+
+    CGImageRef cgImage = CGImageCreate(
+        width, height,
+        8,                    // bits per component
+        8 * components,       // bits per pixel
+        bytesPerRow,
+        colorSpace,
+        bitmapInfo,
+        provider,
+        nullptr,              // decode array
+        false,                // should interpolate
+        kCGRenderingIntentDefault);
+
+    CGDataProviderRelease(provider);
+    CGColorSpaceRelease(colorSpace);
+    return cgImage;
+}
+
+// CATextLayer subclass that vertically centers its text.
+// CATextLayer draws from the top by default; this override translates the
+// graphics context so the text appears vertically centered in the layer bounds.
+@interface CenteredCATextLayer : CATextLayer
+@end
+
+@implementation CenteredCATextLayer
+- (void)drawInContext:(CGContextRef)ctx
+{
+    // Measure the actual text height
+    CGFloat textHeight = self.fontSize;
+    if (self.string) {
+        NSString *str = nil;
+        if ([self.string isKindOfClass:[NSAttributedString class]])
+            str = [(NSAttributedString *)self.string string];
+        else if ([self.string isKindOfClass:[NSString class]])
+            str = (NSString *)self.string;
+        if (str) {
+            NSFont *font = (__bridge NSFont *)self.font;
+            if (!font)
+                font = [NSFont systemFontOfSize:self.fontSize];
+            NSDictionary *attrs = @{NSFontAttributeName: [NSFont fontWithDescriptor:font.fontDescriptor size:self.fontSize]};
+            NSSize size = [str sizeWithAttributes:attrs];
+            textHeight = size.height;
+        }
+    }
+
+    // CATextLayer renders text from the top of its bounds.  In the CG context
+    // provided to drawInContext:, a positive Y translation moves the origin up,
+    // which shifts the rendered text downward toward the vertical center.
+    CGFloat yOffset = (self.bounds.size.height - textHeight) / 2.0;
+    CGContextSaveGState(ctx);
+    CGContextTranslateCTM(ctx, 0.0, yOffset);
+    [super drawInContext:ctx];
+    CGContextRestoreGState(ctx);
+}
+@end
 
 void wxMediaCtrl2::bambu_log(void const * ctx, int level, char const * msg)
 {
@@ -46,6 +142,76 @@ void wxMediaCtrl2::bambu_log(void const * ctx, int level, char const * msg)
     BOOST_LOG_TRIVIAL(info) << msg;
 }
 
+static void on_player_track_event(void* ctx, const PlayerEventC* event)
+{
+    if (event == nullptr || event->event_name == nullptr)
+        return;
+
+    auto* channel = static_cast<const BambuLiveViewTrack::ChannelInfo*>(ctx);
+
+    BambuLiveViewTrack::EmitParams params;
+    if (event->module)        params.module        = event->module;
+    if (event->phase)         params.phase         = event->phase;
+    if (event->result)        params.result        = event->result;
+    if (event->error_code)    params.error_code    = event->error_code;
+    if (event->error_message) params.error_message = event->error_message;
+    if (event->event_data_body) {
+        params.event_data = nlohmann::json::parse(event->event_data_body, nullptr, false);
+        if (params.event_data.is_discarded())
+            params.event_data = nlohmann::json::object();
+    }
+
+    BambuLiveViewTrack::LiveViewTrackContext::instance()
+        .emit(event->event_name, params, channel);
+}
+
+static void on_first_frame(void const* ctx, const BambuFirstFrameInfo* ff)
+{
+    wxMediaCtrl2* ctrl = (wxMediaCtrl2*) ctx;
+    FirstFrameInfo& info = ctrl->m_first_frame_info;
+    info.first_packet_time_ms       = ff->first_packet_ms;
+    info.decode_first_frame_time_ms = ff->decode_ms;
+    info.render_first_frame_time_ms = ff->render_ms;
+    info.video_codec                = ff->codec;
+    info.resolution_width           = ff->width;
+    info.resolution_height          = ff->height;
+
+    auto play_start = ctrl->m_play_start_time;
+    if (play_start != std::chrono::system_clock::time_point{}) {
+        auto now = std::chrono::system_clock::now();
+        info.first_frame_cost_ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - play_start).count();
+    }
+
+    ctrl->CallAfter([ctrl] {
+        wxCommandEvent evt(EVT_MEDIA_CTRL_FIRST_FRAME);
+        evt.SetEventObject(ctrl);
+        evt.SetInt(ctrl->m_first_frame_info.first_frame_cost_ms);
+        evt.SetClientData(new FirstFrameInfo(ctrl->m_first_frame_info));
+        wxPostEvent(ctrl, evt);
+    });
+}
+
+static void on_session_end(void const* ctx, const BambuSessionEndInfo* se)
+{
+    wxMediaCtrl2* ctrl = (wxMediaCtrl2*) ctx;
+    ctrl->m_session_stat.session_duration_ms      = se->session_duration_ms;
+    ctrl->m_session_stat.avg_fps                  = se->avg_fps;
+    ctrl->m_session_stat.avg_bitrate_kbps         = se->avg_bitrate_kbps;
+    ctrl->m_session_stat.freeze_count             = se->freeze_count;
+    ctrl->m_session_stat.freeze_total_duration_ms = se->freeze_total_ms;
+    ctrl->m_session_stat.avg_jitter_ms            = se->avg_jitter_ms;
+    ctrl->m_session_stat.max_jitter_ms            = se->max_jitter_ms;
+
+    Bambu_SessionStat stat = ctrl->m_session_stat;
+    ctrl->CallAfter([ctrl, stat] {
+        wxCommandEvent evt(EVT_MEDIA_CTRL_SESSION_END);
+        evt.SetEventObject(ctrl);
+        evt.SetClientData(new Bambu_SessionStat(stat));
+        wxPostEvent(ctrl, evt);
+    });
+}
+
 wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -60,6 +226,18 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
 
 wxMediaCtrl2::~wxMediaCtrl2()
 {
+    CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
+    if (wmLayer) {
+        [wmLayer removeFromSuperlayer];
+        [wmLayer release];
+        m_watermark_layer = nullptr;
+    }
+    CALayer *idleLayer = (CALayer *)m_idle_layer;
+    if (idleLayer) {
+        [idleLayer removeFromSuperlayer];
+        [idleLayer release];
+        m_idle_layer = nullptr;
+    }
     BambuPlayer * player = (BambuPlayer *) m_player;
     [player dealloc];
 }
@@ -81,10 +259,16 @@ void wxMediaCtrl2::create_player()
     BambuPlayer * player = [cls alloc];
     [player initWithImageView: imageView];
     [player setLogger: bambu_log withContext: this];
+    if ([player respondsToSelector:@selector(setTrackReporter:withContext:)])
+        [player setTrackReporter: on_player_track_event withContext: &m_track_channel];
+    if ([player respondsToSelector:@selector(setFirstFrameCallback:withContext:)])
+        [player setFirstFrameCallback: on_first_frame withContext: this];
+    if ([player respondsToSelector:@selector(setSessionEndCallback:withContext:)])
+        [player setSessionEndCallback: on_session_end withContext: this];
     m_player = player;
 }
 
-void wxMediaCtrl2::Load(wxURI url)
+void wxMediaCtrl2::Load(wxURI url, std::chrono::system_clock::time_point play_start_time)
 {
 	if (!m_player) {
 		create_player();
@@ -94,12 +278,27 @@ void wxMediaCtrl2::Load(wxURI url)
 		}
 	}
 
+    m_play_start_time  = play_start_time;
+    m_first_frame_info = FirstFrameInfo{};
+    m_session_stat     = Bambu_SessionStat{};
     BambuPlayer * player = (BambuPlayer *) m_player;
     if (player) {
         [player close];
         m_error = 0;
         m_error = [player open: url.BuildURI().ToUTF8()];
+        if (m_error == 0 && m_play_start_time != std::chrono::system_clock::time_point{}) {
+            auto now = std::chrono::system_clock::now();
+            int ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(now - m_play_start_time).count();
+            CallAfter([this, ms] {
+                wxCommandEvent evt(EVT_MEDIA_CTRL_FIRST_FRAME);
+                evt.SetEventObject(this);
+                evt.SetInt(ms);
+                wxPostEvent(this, evt);
+            });
+        }
     }
+    // Hide idle image when loading video (must run on main thread for CALayer)
+    dispatch_async(dispatch_get_main_queue(), ^{ removeIdleLayer(); });
     wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
     event.SetId(GetId());
     event.SetEventObject(this);
@@ -117,6 +316,8 @@ void wxMediaCtrl2::Play()
 	}
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 play];
+    // Hide idle image during playback (must run on main thread for CALayer)
+    dispatch_async(dispatch_get_main_queue(), ^{ removeIdleLayer(); });
     if (m_state != wxMEDIASTATE_PLAYING) {
         m_state = wxMEDIASTATE_PLAYING;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
@@ -137,11 +338,176 @@ void wxMediaCtrl2::Stop()
 	}
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 close];
+    // Restore idle image after stopping (must run on main thread for CALayer)
+    dispatch_async(dispatch_get_main_queue(), ^{ updateIdleLayer(); });
     NotifyStopped();
 }
 
-void wxMediaCtrl2::SetIdleImage(wxString const &image)
+void wxMediaCtrl2::SetIdleImage(wxString const &image, wxString const &watermark_text)
 {
+    if (m_idle_image == image && m_watermark_text == watermark_text)
+        return;
+    m_idle_image = image;
+    m_watermark_text = watermark_text;
+
+    // Clear stale wxImage contents so updateIdleLayer reloads from the new file path
+    CALayer *idleLayer = (CALayer *)m_idle_layer;
+    if (idleLayer)
+        idleLayer.contents = nil;
+
+    if (m_state != wxMEDIASTATE_PLAYING) {
+        updateIdleLayer();
+    }
+}
+
+void wxMediaCtrl2::SetIdleImage(const wxImage &image, wxString const &watermark_text)
+{
+    if (!image.IsOk())
+        return;
+    m_idle_image.clear();
+    m_watermark_text = watermark_text;
+    if (m_state != wxMEDIASTATE_PLAYING) {
+        // Convert wxImage to CGImage and display
+        CGImageRef cgImage = createCGImageFromWxImage(image);
+        if (!cgImage)
+            return;
+
+        NSView *view = (NSView *)GetHandle();
+        CALayer *rootLayer = view.layer;
+        if (!rootLayer) {
+            CGImageRelease(cgImage);
+            return;
+        }
+
+        // Create or reuse idle layer
+        CALayer *idleLayer = (CALayer *)m_idle_layer;
+        if (!idleLayer) {
+            idleLayer = [[CALayer alloc] init];
+            idleLayer.contentsGravity = kCAGravityResizeAspect;
+            m_idle_layer = idleLayer;
+        }
+        idleLayer.frame = rootLayer.bounds;
+        idleLayer.contents = (__bridge id)cgImage;
+        idleLayer.hidden = NO;
+        CGImageRelease(cgImage);
+
+        if (idleLayer.superlayer != rootLayer)
+            [rootLayer addSublayer:idleLayer];
+
+        updateWatermarkLayer();
+    }
+}
+
+void wxMediaCtrl2::updateIdleLayer()
+{
+    NSView *view = (NSView *)GetHandle();
+    CALayer *rootLayer = view.layer;
+    if (!rootLayer)
+        return;
+
+    // Create or reuse idle layer
+    CALayer *idleLayer = (CALayer *)m_idle_layer;
+    if (!idleLayer) {
+        idleLayer = [[CALayer alloc] init];
+        idleLayer.contentsGravity = kCAGravityResizeAspect;
+        m_idle_layer = idleLayer;
+    }
+    idleLayer.frame = rootLayer.bounds;
+
+    // Load image from file path
+    if (!m_idle_image.empty()) {
+        NSString *path = [NSString stringWithUTF8String:m_idle_image.ToUTF8().data()];
+        NSImage *nsImage = [[NSImage alloc] initWithContentsOfFile:path];
+        if (nsImage) {
+            CGImageRef cgImage = [nsImage CGImageForProposedRect:nil context:nil hints:nil];
+            idleLayer.contents = (__bridge id)cgImage;
+            [nsImage release];
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl2::updateIdleLayer: failed to load image: " << m_idle_image.ToUTF8().data();
+            idleLayer.contents = nil;
+        }
+    } else {
+        // No file path — contents may have been set directly by SetIdleImage(wxImage)
+        if (!idleLayer.contents) {
+            idleLayer.hidden = YES;
+            return;
+        }
+    }
+
+    idleLayer.hidden = NO;
+    if (idleLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:idleLayer];
+
+    updateWatermarkLayer();
+}
+
+void wxMediaCtrl2::updateWatermarkLayer()
+{
+    CALayer *idleLayer = (CALayer *)m_idle_layer;
+    if (!idleLayer || idleLayer.hidden)
+        return;
+
+    if (!m_watermark_text.empty()) {
+        CenteredCATextLayer *wmLayer = (CenteredCATextLayer *)m_watermark_layer;
+        if (!wmLayer) {
+            wmLayer = [[CenteredCATextLayer alloc] init];
+            wmLayer.alignmentMode = kCAAlignmentCenter;
+            wmLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
+            m_watermark_layer = wmLayer;
+        }
+
+        NSString *wmText = [NSString stringWithUTF8String:m_watermark_text.ToUTF8().data()];
+        NSFont *font = [NSFont boldSystemFontOfSize:10.0];
+        NSDictionary *attrs = @{NSFontAttributeName: font};
+        NSSize textSize = [wmText sizeWithAttributes:attrs];
+
+        CGFloat padH = 12.0;
+        CGFloat padV = 8.0;
+        CGFloat wmW = textSize.width + 2 * padH;
+        CGFloat wmH = textSize.height + 2 * padV;
+
+        NSView *view = (NSView *)GetHandle();
+        CALayer *rootLayer = view.layer;
+        CGFloat parentH = idleLayer.bounds.size.height;
+        CGFloat wmX = rootLayer ? (rootLayer.bounds.size.width - wmW) / 2.0 : 0;
+        // wxWidgets NSView is flipped (y=0 at top), so place near bottom edge
+        CGFloat wmY = parentH - wmH - 10.0;
+        CGFloat radius = 8.0;
+
+        wmLayer.frame = CGRectMake(wmX, wmY, wmW, wmH);
+        wmLayer.cornerRadius = radius;
+
+        CGColorRef bgColor = CGColorCreateGenericRGB(0.2, 0.2, 0.2, 0.63);
+        wmLayer.backgroundColor = bgColor;
+        CGColorRelease(bgColor);
+
+        wmLayer.string = wmText;
+        wmLayer.font = (__bridge CFTypeRef)font;
+        wmLayer.fontSize = 10.0;
+
+        CGColorRef fgColor = CGColorCreateGenericRGB(0.86, 0.86, 0.86, 1.0);
+        wmLayer.foregroundColor = fgColor;
+        CGColorRelease(fgColor);
+
+        wmLayer.hidden = NO;
+
+        if (wmLayer.superlayer != idleLayer)
+            [idleLayer addSublayer:wmLayer];
+    } else {
+        CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
+        if (wmLayer)
+            wmLayer.hidden = YES;
+    }
+}
+
+void wxMediaCtrl2::removeIdleLayer()
+{
+    CALayer *idleLayer = (CALayer *)m_idle_layer;
+    if (idleLayer)
+        idleLayer.hidden = YES;
+    CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
+    if (wmLayer)
+        wmLayer.hidden = YES;
 }
 
 void wxMediaCtrl2::NotifyStopped()
@@ -153,6 +519,11 @@ void wxMediaCtrl2::NotifyStopped()
         event.SetEventObject(this);
         wxPostEvent(this, event);
     }
+}
+
+void wxMediaCtrl2::SetTrackChannel(const BambuLiveViewTrack::ChannelInfo& info)
+{
+    m_track_channel = info;
 }
 
 wxMediaState wxMediaCtrl2::GetState() const
@@ -178,4 +549,24 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxMediaCtrl_OnSize(this, m_video_size, width, height);
+
+    // Sync idle layer and watermark positions on resize
+    NSView *view = (NSView *)GetHandle();
+    CALayer *rootLayer = view.layer;
+    if (!rootLayer) return;
+
+    CALayer *idleLayer = (CALayer *)m_idle_layer;
+    if (idleLayer && !idleLayer.hidden) {
+        idleLayer.frame = rootLayer.bounds;
+
+        // Reposition watermark centered at bottom (flipped coords: y=0 at top)
+        CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
+        if (wmLayer && !wmLayer.hidden) {
+            CGFloat wmW = wmLayer.frame.size.width;
+            CGFloat wmH = wmLayer.frame.size.height;
+            CGFloat wmX = (rootLayer.bounds.size.width - wmW) / 2.0;
+            CGFloat wmY = idleLayer.bounds.size.height - wmH - 10.0;
+            wmLayer.frame = CGRectMake(wmX, wmY, wmW, wmH);
+        }
+    }
 }

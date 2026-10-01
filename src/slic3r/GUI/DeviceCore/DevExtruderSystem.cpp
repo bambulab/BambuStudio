@@ -1,29 +1,49 @@
 #include <nlohmann/json.hpp>
 #include "DevExtruderSystem.h"
 #include "DevNozzleSystem.h"
+#include "DevConfigUtil.h"
 
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 #include "DevUtil.h"
+#include "DevFilaSystem.h"
 
 using namespace nlohmann;
 
 namespace Slic3r
 {
+    int DevExtder::to_physical_extruder_id(int total_ext_count, int logical_extruder_id)
+    {
+        if (total_ext_count == 2) {
+            return logical_extruder_id == 1 ? 0 : 1;
+        } else if (total_ext_count == 1) {
+            return 0;
+        } else {
+            return logical_extruder_id - 1;
+        }
+    }
+
+    int DevExtder::to_logical_extruder_id(int total_ext_count, int physical_extruder_id)
+    {
+        if (total_ext_count == 2) {
+            return physical_extruder_id == 1 ? 0 : 1;
+        } else if (total_ext_count == 1) {
+            return 0;
+        } else {
+            return physical_extruder_id + 1;
+        }
+    }
+
     wxString DevExtder::GetDisplayLoc() const
     {
         if (system->GetTotalExtderCount() == 2)
         {
-            if (m_ext_id == MAIN_EXTRUDER_ID)
-            {
-                return _L("right");
-            }
-            else
-            {
-                return _L("left");
-            }
+            return _L(DevPrinterConfigUtil::get_toolhead_display_name(
+                system->Owner()->printer_type, m_ext_id,
+                ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase, true));  // "right" / "main"
         }
 
         return wxEmptyString;
@@ -33,14 +53,10 @@ namespace Slic3r
     {
         if (system->GetTotalExtderCount() == 2)
         {
-            if (m_ext_id == MAIN_EXTRUDER_ID)
-            {
-                return _L("right extruder");
-            }
-            else
-            {
-                return _L("left extruder");
-            }
+            std::string name = DevPrinterConfigUtil::get_toolhead_display_name(
+                system->Owner()->printer_type, m_ext_id,
+                ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase);
+            return _L(name);  // "right extruder" / "main extruder"
         }
 
         return _L("extruder");
@@ -64,6 +80,48 @@ namespace Slic3r
     NozzleDiameterType DevExtder::GetNozzleDiameterType() const
     {
         return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).GetNozzleDiameterType();
+    }
+
+    std::unordered_map<int, bool> DevExtder::GetBackupStatus(unsigned int fila_back_group)
+    {
+        std::unordered_map<int, bool> trayid_group;
+        for (int i = 0; i < 16; i++)
+        {
+            if (fila_back_group & (1 << i))
+            {
+                trayid_group[i] = true;
+            }
+        }
+
+        for (int j = 16; j <= 23; j++)/* single ams is from 128*/
+        {
+            if (fila_back_group & (1 << j)) {
+                trayid_group[128 + j - 16] = true;
+            }
+        }
+
+        for (int i = 24; i <= 27; i++) /* ams lite for N9*/
+        {
+            if (fila_back_group & (1 << i)) { trayid_group[i] = true; }
+        }
+
+        return trayid_group;
+    }
+
+    bool  DevExtder::IsBowdenExtuder() const
+    {
+        Preset * preset = GUI::get_printer_preset(system->Owner());
+
+        if (!preset) return false;
+
+        auto exrtuder_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(preset->config.option("extruder_type"));
+
+        if (!exrtuder_type_opt) return false;
+
+        // reverse the order of preset extuder id to match the real extruder id
+        ExtruderType extruder_type = (ExtruderType)exrtuder_type_opt->values[exrtuder_type_opt->values.size() - 1 - GetExtId()];
+
+        return extruder_type == ExtruderType::etBowden;
     }
 
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
@@ -91,9 +149,8 @@ namespace Slic3r
 
     std::optional<DevExtder> DevExtderSystem::GetLoadingExtder() const
     {
-        if (m_current_loading_extder_id != INVALID_EXTRUDER_ID)
-        {
-            return GetExtderById(m_current_loading_extder_id);
+        if (m_current_loading_extder_id.has_value()) {
+            return GetExtderById(m_current_loading_extder_id.value());
         }
 
         return std::nullopt;
@@ -106,7 +163,7 @@ namespace Slic3r
             return std::nullopt;
         }
 
-        if (extder_id >= m_extders.size()) {
+        if (extder_id < 0 || extder_id >= m_extders.size()) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "No extruder found for " << extder_id;
             return std::nullopt;
         }
@@ -149,6 +206,38 @@ namespace Slic3r
         }
 
         return false;
+    }
+
+    std::vector<DevAmsSlotId> DevExtderSystem::GetBackupAmsSlotInGroup(const DevAmsSlotId& ams_slot_id)
+    {
+        std::map<int, DevAmsSlotId> tray_map = Owner()->GetFilaSystem()->GetTrayIndexMap();
+
+        std::vector<DevAmsSlotId> backup_group;
+        for (const auto& extruder : m_extders) {
+            for (int fila_backup : extruder.GetFilamBackup()) {
+                bool is_in_back_up_group = false;
+                for (auto [tray_id,  is_valid] : DevExtder::GetBackupStatus(fila_backup)) {
+                    if (is_valid && tray_map.find(tray_id) != tray_map.end() && tray_map[tray_id] == ams_slot_id) {
+                        is_in_back_up_group = true;
+                        break;
+                    }
+                }
+
+                if (is_in_back_up_group) {
+                    for (auto [tray_id, is_valid] : DevExtder::GetBackupStatus(fila_backup)) {
+                        if (is_valid && tray_map.find(tray_id) != tray_map.end() && tray_map[tray_id] != ams_slot_id) {
+                            backup_group.emplace_back(tray_map[tray_id]);
+                        }
+                    }
+
+                    if (!backup_group.empty()) {
+                        return backup_group;
+                    }
+                }
+            }
+        }
+
+        return backup_group;
     }
 
     void ExtderSystemParser::ParseV1_0(const nlohmann::json& print_json, DevExtderSystem* system)
@@ -232,11 +321,9 @@ namespace Slic3r
 
         system->m_current_busy_for_loading = false;
         system->m_current_loading_extder_id = INVALID_EXTRUDER_ID;
-        if (!system->m_extders[MAIN_EXTRUDER_ID].m_star.ams_id.empty())
-        {
-            system->m_current_busy_for_loading = (system->m_extders[MAIN_EXTRUDER_ID].m_snow == system->m_extders[MAIN_EXTRUDER_ID].m_star);
-            if (system->m_current_busy_for_loading)
-            {
+        if (!system->m_extders[MAIN_EXTRUDER_ID].m_star.ams_id.empty()) {
+            system->m_current_busy_for_loading = (system->m_extders[MAIN_EXTRUDER_ID].m_snow != system->m_extders[MAIN_EXTRUDER_ID].m_star);
+            if (system->m_current_busy_for_loading) {
                 system->m_current_loading_extder_id = MAIN_EXTRUDER_ID;
             }
         }
@@ -270,11 +357,12 @@ namespace Slic3r
             extder_obj.SetExtId(njon["id"].get<int>());
 
             extder_obj.m_filam_bak.clear();
-            const json& filam_bak_items = njon["filam_bak"];
-            for (const auto& filam_bak_item : filam_bak_items)
-            {
-                const auto& filam_bak_val = filam_bak_item.get<int>();
-                extder_obj.m_filam_bak.emplace_back(filam_bak_val);
+            if (njon.contains("filam_bak")) {
+                const json& filam_bak_items = njon["filam_bak"];
+                for (const auto& filam_bak_item : filam_bak_items) {
+                    const auto& filam_bak_val = filam_bak_item.get<int>();
+                    extder_obj.m_filam_bak.emplace_back(filam_bak_val);
+                }
             }
 
             extder_obj.m_ext_has_filament = (DevUtil::get_flag_bits(njon["info"].get<int>(), 1) != 0);
@@ -283,17 +371,37 @@ namespace Slic3r
             extder_obj.m_cur_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 0, 16);
             extder_obj.m_target_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 16, 16);
 
-            extder_obj.m_spre.slot_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 0, 8));
-            extder_obj.m_spre.ams_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 8, 8));
+            if(system->m_total_extder_count == 1 && njon["spre"].get<int>() == 0xffff) {
+                extder_obj.m_spre.slot_id = "";
+                extder_obj.m_spre.ams_id = "";
+            } else{
+                extder_obj.m_spre.slot_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 0, 8));
+                extder_obj.m_spre.ams_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 8, 8));
+            }
 
-            extder_obj.m_snow.slot_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8));
-            extder_obj.m_snow.ams_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8));
+            if(system->m_total_extder_count == 1 && njon["snow"].get<int>() == 0xffff) {
+                extder_obj.m_snow.slot_id = "";
+                extder_obj.m_snow.ams_id = "";
+            } else{
+                extder_obj.m_snow.slot_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8));
+                extder_obj.m_snow.ams_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8));
+            }
 
-            extder_obj.m_star.slot_id = std::to_string(DevUtil::get_flag_bits(njon["star"].get<int>(), 0, 8));
-            extder_obj.m_star.ams_id = std::to_string(DevUtil::get_flag_bits(njon["star"].get<int>(), 8, 8));
+            if(system->m_total_extder_count == 1 && njon["star"].get<int>() == 0xffff) {
+                extder_obj.m_star.slot_id = "";
+                extder_obj.m_star.ams_id = "";
+            } else{
+                extder_obj.m_star.slot_id = std::to_string(DevUtil::get_flag_bits(njon["star"].get<int>(), 0, 8));
+                extder_obj.m_star.ams_id = std::to_string(DevUtil::get_flag_bits(njon["star"].get<int>(), 8, 8));
+            }
 
             extder_obj.m_ams_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 0, 16);
             extder_obj.m_rfid_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 16, 16);
+
+            extder_obj.m_current_filament_change_step = static_cast<DevFilamentStep> (DevUtil::get_flag_bits(njon["stat"].get<int>(), 0, 8));
+            if (extder_obj.m_current_filament_change_step >= DevFilamentStep::STEP_COUNT) {
+                extder_obj.m_current_filament_change_step.reset();
+            }
 
             //current nozzle info
             extder_obj.m_current_nozzle_id = njon["hnow"].get<int>();

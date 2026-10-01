@@ -4,9 +4,6 @@
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include <wx/tipwin.h>
-#ifdef __APPLE__
-#include "libslic3r/MacUtils.hpp"
-#endif
 BEGIN_EVENT_TABLE(Button, StaticBox)
 
 EVT_LEFT_DOWN(Button::mouseDown)
@@ -125,6 +122,14 @@ void Button::SetPaddingSize(const wxSize& size)
     messureSize();
 }
 
+void Button::SetAllowShrink(bool allow)
+{
+    if (m_allow_shrink == allow)
+        return;
+    m_allow_shrink = allow;
+    messureSize();
+}
+
 void Button::SetTextColor(StateColor const& color)
 {
     text_color = color;
@@ -223,7 +228,7 @@ void Button::render(wxDC& dc)
             textSize = dc.GetMultiLineTextExtent(text);
         }
     }
-    auto szContent = textSize;
+    auto szContent = text.IsEmpty() ? wxSize(0, 0) : textSize;
     if (icon.bmp().IsOk()) {
         if (szContent.y > 0) {
             //BBS norrow size between text and icon
@@ -279,19 +284,6 @@ void Button::render(wxDC& dc)
             pt.y += (rcContent.height - textSize.y) / 2;
         }
         dc.SetTextForeground(text_color.colorForStates(states));
-#if 0
-        dc.SetBrush(*wxLIGHT_GREY);
-        dc.SetPen(wxPen(*wxLIGHT_GREY));
-        dc.DrawRectangle(pt, textSize.GetSize());
-#endif
-#ifdef __WXOSX__
-        pt.y -= this->textSize.x / 2;
-#endif
-#ifdef __APPLE__
-        if (Slic3r::is_mac_version_15()) {
-        pt.y -= FromDIP(1);
-    }
-#endif
         dc.DrawText(text, pt);
     }
 }
@@ -356,7 +348,9 @@ void Button::renderWhiteCorners(wxDC& dc)
 void Button::messureSize()
 {
     wxClientDC dc(this);
-    dc.GetTextExtent(GetLabel(), &textSize.width, &textSize.height, &textSize.x, &textSize.y);
+    dc.GetTextExtent(GetLabel(), &textSize.width, &textSize.height);
+    wxFontMetrics fm = dc.GetFontMetrics();
+    textSize.height = fm.ascent + fm.descent;
     wxSize szContent = textSize.GetSize();
     if (this->active_icon.bmp().IsOk()) {
         if (szContent.y > 0) {
@@ -386,6 +380,20 @@ void Button::messureSize()
         if (tip_str.IsEmpty()) {
             SetToolTip(GetLabel());
         }
+    }
+
+    // BBS: when shrinking is allowed, honor the explicit min width as the window's
+    // min size even though the content is wider. The sizer may then compress the
+    // button, and render() truncates the label with an ellipsis. The content width
+    // is still reported as the best size so the button prefers its full width.
+    if (m_allow_shrink && minSize.GetWidth() > 0) {
+        wxSize minWnd = size;
+        minWnd.SetWidth(minSize.GetWidth());
+        wxWindow::SetMinSize(minWnd);
+        // Keep the content size as the best-size hint so the sizer prefers the full
+        // width (up to the max) when there is room, and only compresses when crowded.
+        CacheBestSize(size);
+        return;
     }
 
     if (minSize.GetWidth() > size.GetWidth())

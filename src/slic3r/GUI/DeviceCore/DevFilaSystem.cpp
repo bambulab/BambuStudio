@@ -1,6 +1,7 @@
 #include <nlohmann/json.hpp>
 #include "DevExtruderSystem.h"
 #include "DevFilaSystem.h"
+#include "DevFilaSwitch.h"
 
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -64,11 +65,13 @@ void DevAmsTray::reset()
     nozzle_temp_min     = "";
     xcam_info           = "";
     uuid                = "";
+    tray_id_name        = "";
     k                   = 0.0f;
     n                   = 0.0f;
     is_bbl              = false;
     hold_count          = 0;
     remain              = 0;
+    remain_g            = -1;
 }
 
 
@@ -78,6 +81,50 @@ bool DevAmsTray::is_tray_info_ready() const
     if (m_fila_type.empty()) return false;
     //if (setting_id.empty()) return false;
     return true;
+}
+
+DevAmsSlotId DevAmsTray::get_ams_slot_id() const
+{
+    DevAmsSlotId ams_slot_id;
+    ams_slot_id.first = 0;
+    ams_slot_id.second = 0;
+
+    try {
+        ams_slot_id.first = std::stoi(this->ams_id);
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+    }
+
+    if (ams_type == DevAmsType::EXT_SPOOL) {
+        ams_slot_id.second = 0;
+    } else {
+        try {
+            ams_slot_id.second = std::stoi(id);
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+        }
+    }
+
+    return ams_slot_id;
+}
+
+static long long sGetAmsFlagBit(const DevAmsTray* tray) {
+    auto ams_slot_id = tray->get_ams_slot_id();
+    const auto& ams_type = tray->ams_type;
+    if (ams_type == DevAmsType::AMS || ams_type == DevAmsType::AMS_LITE || ams_type == DevAmsType::N3F) {
+        return ams_slot_id.first * 4 + ams_slot_id.second;
+    } else if (ams_type == DevAmsType::N3S) {
+        return 16 + (ams_slot_id.first - 128) + ams_slot_id.second;
+    } else if (ams_type == DevAmsType::AMS_LITE_MIXED) {
+        return 24 + ams_slot_id.second;
+    }
+
+    return -1;
+}
+
+bool DevAmsTray::is_reading(long long tray_reading_bits) const
+{
+    return DevUtil::get_flag_bits(tray_reading_bits, sGetAmsFlagBit(this));
 }
 
 bool DevAmsTray::is_unset_third_filament() const
@@ -111,19 +158,38 @@ std::optional<Slic3r::DevFilamentDryingPreset> DevAmsTray::get_ams_drying_preset
     return DevUtilBackend::GetFilamentDryingPreset(setting_id);
 }
 
-DevAms::DevAms(const std::string& ams_id, int extruder_id, AmsType type)
+std::optional<int> DevAmsTray::get_filament_remain_weight() const
 {
-    m_ams_id = ams_id;
-    m_ext_id = extruder_id;
-    m_ams_type = type;
+    // Prefer the accurate per-gram value reported by firmware; -1 means not edited/not provided.
+    if (remain_g >= 0) {
+        return remain_g > 0 ? std::optional<int>(remain_g) : std::nullopt;
+    }
+
+    if (weight.empty()) {
+        return std::nullopt;
+    }
+
+    std::optional<int> weight_int;
+    try {
+        weight_int = stoi(weight) * remain / 100;
+    } catch(...) {
+        weight_int = std::nullopt;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid filament weight " << weight;
+    }
+
+    if (weight_int.has_value() && weight_int.value() > 0) {
+        return weight_int;
+    } else {
+        return std::nullopt;
+    }
 }
 
-DevAms::DevAms(const std::string& ams_id, int nozzle_id, int type)
+DevAms::DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, DevAmsType type)
 {
+    m_fila_system = owner;
     m_ams_id = ams_id;
-    m_ext_id = nozzle_id;
-    m_ams_type = (AmsType)type;
-    assert(DUMMY < type && m_ams_type <= N3S);
+    m_ams_type = type;
+    m_binded_extruder_set = binded_extruder_set;
 }
 
 DevAms::~DevAms()
@@ -139,17 +205,44 @@ DevAms::~DevAms()
     m_trays.clear();
 }
 
-static unordered_map<int, wxString> s_ams_display_formats = {
-    {DevAms::AMS,      "AMS-%d"},
-    {DevAms::AMS_LITE, "AMS Lite-%d"},
-    {DevAms::N3F,      "AMS 2 PRO-%d"},
-    {DevAms::N3S,      "AMS HT-%d"}
+std::optional<int> DevAms::GetUniqueBindedExtruderId() const
+{
+    if (m_binded_extruder_set.size() == 1) {
+        return *m_binded_extruder_set.begin();
+    }
+
+    return std::nullopt;
+}
+
+std::optional<int> DevAms::GetCurrentExtruderId() const
+{
+    if (m_binded_extruder_set.size() == 1) {
+        return *m_binded_extruder_set.begin();
+    }
+
+    if (auto fila_sys = m_fila_system.lock()) {
+        const auto& extruder_map = fila_sys->GetOwner()->GetExtderSystem()->GetExtruders();
+        for (const auto& extruder : extruder_map) {
+            if (extruder.GetSlotNow().ams_id == m_ams_id) {
+                return extruder.GetExtId();
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
+static unordered_map<DevAmsType, wxString> s_ams_display_formats = {
+    {DevAmsType::AMS,      "AMS(%d)"},
+    {DevAmsType::AMS_LITE, "AMS Lite(%d)"},
+    {DevAmsType::N3F,      "AMS 2 Pro(%d)"},
+    {DevAmsType::N3S,      "AMS HT(%d)"}
 };
 
 wxString DevAms::GetDisplayName() const
 {
     wxString ams_display_format;
-    auto iter = s_ams_display_formats.find(m_ams_type);
+    auto iter = s_ams_display_formats.find(GetAmsType());
     if (iter != s_ams_display_formats.end())
     {
         ams_display_format = iter->second;
@@ -157,7 +250,7 @@ wxString DevAms::GetDisplayName() const
     else
     {
         assert(0 && __FUNCTION__);
-        ams_display_format = "AMS-%d";
+        ams_display_format = "AMS(%d)";
     }
 
     int num_id;
@@ -171,23 +264,53 @@ wxString DevAms::GetDisplayName() const
         BOOST_LOG_TRIVIAL(error) << "Invalid AMS ID: " << GetAmsId() << ", error: " << e.what();
         num_id = 0;
     }
-
-    int loc = (num_id > 127) ? (num_id - 127) : (num_id + 1);
+    int loc = num_id + 1;
+    if (num_id > 127) {
+        loc = num_id - 127;
+    } else if(num_id >= 0x10 && num_id <= 0x1f){
+        loc = num_id - 15;
+    }
     return wxString::Format(ams_display_format, loc);
 }
 
 int DevAms::GetSlotCount() const
 {
-    if (m_ams_type == AMS || m_ams_type == AMS_LITE || m_ams_type == N3F)
-    {
+    auto ams_type = GetAmsType();
+    if (ams_type == DevAmsType::AMS || ams_type == DevAmsType::AMS_LITE || ams_type == DevAmsType::N3F) {
         return 4;
-    }
-    else if (m_ams_type == N3S)
-    {
+    } else if (ams_type == DevAmsType::N3S) {
         return 1;
     }
 
+    if (!m_trays.empty()) {
+        return m_trays.size();
+    }
+
     return 1;
+}
+
+int DevAms::GetTrayId(int slot_id) const
+{
+    int ams_id = 0;
+    try {
+        ams_id = std::stoi(m_ams_id);
+    } catch (const std::exception& e) {
+        // BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": invalid ams_id " << m_ams_id << ", error: " << e.what();
+        return -1;
+    }
+
+    if (m_ams_type == DevAmsType::AMS || m_ams_type == DevAmsType::AMS_LITE || m_ams_type == DevAmsType::N3F) {
+        return ams_id * 4 + slot_id;
+    } else if (m_ams_type == DevAmsType::N3S) {
+        return 16 + (ams_id - 128) + slot_id;
+    } else if (m_ams_type == DevAmsType::AMS_LITE_MIXED) {
+        return 24 + slot_id;
+    } else {
+        assert(0);
+        // BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << m_ams_type;
+    }
+
+    return -1;
 }
 
 DevAmsTray* DevAms::GetTray(const std::string& tray_id) const
@@ -200,6 +323,7 @@ DevAmsTray* DevAms::GetTray(const std::string& tray_id) const
 
     return nullptr;
 }
+
 
 bool DevAms::IsSupportRemoteDry(const MachineObject* obj) const
 {
@@ -251,7 +375,7 @@ DevAmsTray* DevFilaSystem::GetAmsTray(const std::string& ams_id, const std::stri
     auto it = amsList.find(ams_id);
     if (it == amsList.end()) return nullptr;
     if (!it->second) return nullptr;
-    return it->second->GetTray(tray_id);;
+    return it->second->GetTray(tray_id);
 }
 
 void DevFilaSystem::CollectAmsColors(std::vector<wxColour>& ams_colors) const
@@ -271,11 +395,82 @@ void DevFilaSystem::CollectAmsColors(std::vector<wxColour>& ams_colors) const
     }
 }
 
+std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
+{
+    std::map<int, DevAmsSlotId> tray_id_map;
+    tray_id_map[VIRTUAL_TRAY_MAIN_ID]   = DevAmsSlotId{VIRTUAL_TRAY_MAIN_ID, 0};
+    tray_id_map[VIRTUAL_TRAY_DEPUTY_ID] = DevAmsSlotId{VIRTUAL_TRAY_DEPUTY_ID, 0};
+
+    for (auto& [ams_id, ams_item] : GetAmsList()) {
+        for (auto &[slot_id, slot_item] : ams_item->GetTrays()) {
+            if (ams_item && slot_item) {
+                try {
+                    int ams_id_int  = stoi(ams_id);
+                    int slot_id_int = stoi(slot_id);
+                    int tray_index  = -1;
+                    if (ams_item->GetAmsType() == DevAmsType::N3S) {
+                        tray_index = ams_id_int;
+                    } else if(ams_item->GetAmsType() == DevAmsType::AMS_LITE && ams_item->IsAmsLiteMixed()) {
+                        tray_index = 24 + slot_id_int;
+                    } else {
+                        tray_index = (ams_id_int * 4 + slot_id_int);
+                    }
+                    tray_id_map[tray_index] = {ams_id_int, slot_id_int};
+                } catch(...) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
+                }
+            }
+        }
+    }
+
+    return  tray_id_map;
+}
+
+int DevFilaSystem::GetTrayIdByAmsSlotId(int ams_id, int slot_id)
+{
+    auto tray_ams_slot_map = GetTrayIndexMap();
+    auto tray_it = std::find_if(tray_ams_slot_map.begin(), tray_ams_slot_map.end(),
+    [ams_id, slot_id](auto& item) {
+        return ams_id == item.second.first && slot_id == item.second.second;
+    });
+
+    if (tray_it != tray_ams_slot_map.end())
+        return tray_it->first;
+    else
+        return -1;
+}
+
+std::string DevFilaSystem::GetTrayNameByTrayId(int tray_id)
+{
+    std::string tray_name;
+
+    auto tray_ams_slot_map = GetTrayIndexMap();
+
+    if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        tray_name = "Ext";
+    } else if (tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end()) {
+        int  ams_id = tray_ams_slot_map[tray_id].first;
+        int slot_id = tray_ams_slot_map[tray_id].second;
+
+        if (ams_id >= 128 && ams_id < 153) {
+            char prefix = 'A' + ams_id - 128;
+            tray_name   = std::string(1, prefix);
+        } else {
+            char prefix = 'A' + ams_id;
+            char suffix = '0' + 1 + slot_id;
+            tray_name = std::string(1, prefix) + std::string(1, suffix);
+        }
+    }
+    return tray_name;
+}
+
 int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
 {
     auto it = amsList.find(ams_id);
     if (it != amsList.end()) {
-        return it->second->GetExtruderId();
+        if (it->second->GetBindedExtruderSet().size() == 1) {
+            return *it->second->GetBindedExtruderSet().begin();
+        }
     } else if (ams_id == VIRTUAL_AMS_MAIN_ID_STR) {
         return MAIN_EXTRUDER_ID;
     } else if (ams_id == VIRTUAL_AMS_DEPUTY_ID_STR) {
@@ -283,7 +478,7 @@ int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
     }
 
     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ams_id " << ams_id << " not found";
-    return 0; // not found
+    return -1; // not found
 }
 
 std::string DevFilaSystem::GetNozzleFlowStringByAmsId(const std::string& ams_id) const
@@ -324,6 +519,16 @@ bool DevFilaSystem::CanShowFilamentBackup() const
     return m_owner->is_support_filament_backup && IsAutoRefillEnabled() && HasAms() && m_owner->GetExtderSystem()->HasFilamentBackup();
 }
 
+
+std::optional<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeStep() const
+{
+    if (auto ext_opt = m_owner->GetExtderSystem()->GetLoadingExtder()) {
+        return ext_opt->GetCurrentFilamentChangeStep();
+    };
+
+    return std::nullopt;
+}
+
 void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaSystem* system, bool key_field_only)
 {
     if (jj.contains("ams"))
@@ -344,6 +549,12 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
 
             if (!key_field_only)
             {
+                if (jj["ams"].contains("cfs")) {
+                    system->m_filament_change_steps = DevJsonValParser::GetVal<std::vector<DevFilamentStep>>(jj["ams"], "cfs");
+                } else {
+                    system->m_filament_change_steps.clear();
+                }
+
                 if (jj["ams"].contains("tray_read_done_bits"))
                 {
                     obj->tray_read_done_bits = stol(jj["ams"]["tray_read_done_bits"].get<std::string>(), nullptr, 16);
@@ -363,10 +574,6 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                         obj->ams_version = jj["ams"]["version"].get<int>();
                     }
                 }
-
-#if 0
-                if (jj["ams"].contains("ams_rfid_status")) { }
-#endif
 
                 if (time(nullptr) - obj->ams_user_setting_start > HOLD_TIME_3SEC) {
                     if (jj["ams"].contains("insert_flag")) {
@@ -423,35 +630,48 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
         return nullptr;
     }
 
-    int extuder_id = MAIN_EXTRUDER_ID; // Default nozzle id
-    int type_id = DevAms::AMS; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+
+    std::set<int> binded_extruder_set;
+    std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos;
+    auto type_id = DevAmsType::AMS; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+    auto remain_estimate_version = DevAms::RemainEstimateVersion::Legacy;
 
     /*ams info*/
     if (j_ams.contains("info")) {
         const std::string& info = j_ams["info"].get<std::string>();
-        type_id = DevUtil::get_flag_bits(info, 0, 4);
-        extuder_id = DevUtil::get_flag_bits(info, 8, 4);
-    } else {
-        if (!obj->is_enable_ams_np && obj->get_printer_ams_type() == "f1") {
-            type_id = DevAms::AMS_LITE;
-        }
-    }
+        type_id = (DevAmsType)DevUtil::get_flag_bits(info, 0, 4);
+        int extuder_id = DevUtil::get_flag_bits(info, 8, 4);
+        if (extuder_id == 0xE && obj->GetFilaSwitch()->IsInstalled()) {
+            int bind_switch_in = DevUtil::get_flag_bits(info, 24, 4);
+            if (bind_switch_in == 0 || bind_switch_in == 1) {
+                binded_extruder_set = { MAIN_EXTRUDER_ID, DEPUTY_EXTRUDER_ID };
+            }
 
-    /*AMS without initialization*/
-    if (extuder_id == 0xE) {
-        return nullptr;
+            if (bind_switch_in == 0) {
+                binded_switcher_pos = DevFilaSwitch::SwitchPos::POS_IN_B;
+            } else if (bind_switch_in == 1) {
+                binded_switcher_pos = DevFilaSwitch::SwitchPos::POS_IN_A;
+            }
+        } else if (extuder_id == 0xE){
+            binded_extruder_set = {};
+        } else{
+            binded_extruder_set = { extuder_id };
+        }
+
+        remain_estimate_version = static_cast<DevAms::RemainEstimateVersion>(DevUtil::get_flag_bits(info, 30, 2));
+    } else {
+        binded_extruder_set = { MAIN_EXTRUDER_ID }; // Default extruder id
+        if (!obj->is_enable_ams_np && obj->get_printer_ams_type() == "f1") {
+            type_id = DevAmsType::AMS_LITE;
+        }
     }
 
     DevAms* curr_ams = nullptr;
     auto ams_it = system->amsList.find(ams_id);
     if (ams_it == system->amsList.end()) {
-        DevAms* new_ams = new DevAms(ams_id, extuder_id, type_id);
+        DevAms* new_ams = new DevAms(obj->GetFilaSystem(), ams_id, binded_extruder_set, type_id);
         curr_ams = new_ams;// new ams event
     } else {
-        if (extuder_id != ams_it->second->GetExtruderId()) {
-            ams_it->second->m_ext_id = extuder_id;
-        }
-
         curr_ams = ams_it->second;
     }
 
@@ -460,13 +680,26 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
     };
 
     /*set ams type flag*/
+    if (curr_ams->m_binded_switcher_pos != binded_switcher_pos || curr_ams->m_binded_extruder_set != binded_extruder_set) {
+        BOOST_LOG_TRIVIAL(info) << "[FilaSystem] AMS bind changed: ams_id=" << ams_id
+            << ", extruder_set " << curr_ams->m_binded_extruder_set.size() << " -> " << binded_extruder_set.size()
+            << ", switcher_pos "
+            << (curr_ams->m_binded_switcher_pos.has_value() ? std::to_string((int)curr_ams->m_binded_switcher_pos.value()) : "nullopt")
+            << " -> "
+            << (binded_switcher_pos.has_value() ? std::to_string((int)binded_switcher_pos.value()) : "nullopt");}
     curr_ams->SetAmsType(type_id);
+
+    curr_ams->m_binded_switcher_pos = binded_switcher_pos;
+    curr_ams->m_binded_extruder_set = binded_extruder_set;
+    curr_ams->m_remain_estimate_version = remain_estimate_version;
 
     /*set ams exist flag*/
     try {
         int ams_id_int = atoi(ams_id.c_str());
         if (type_id < 4) {
             curr_ams->m_exist = (obj->ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
+        } else if(type_id == 5) {
+            curr_ams->m_exist = DevUtil::get_flag_bits(obj->ams_exist_bits, 12);
         } else {
             curr_ams->m_exist = DevUtil::get_flag_bits(obj->ams_exist_bits, 4 + (ams_id_int - 128));
         }
@@ -511,7 +744,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
             curr_ams->m_dry_status = (DevAms::DryStatus)DevUtil::get_flag_bits(info, 4, 4);
             curr_ams->m_dry_fan1_status = (DevAms::DryFanStatus)DevUtil::get_flag_bits(info, 18, 2);
             curr_ams->m_dry_fan2_status = (DevAms::DryFanStatus)DevUtil::get_flag_bits(info, 20, 2);
-            curr_ams->m_dry_sub_status = (DevAms::DrySubStatus)DevUtil::get_flag_bits(info, 22, 4);
+            curr_ams->m_dry_sub_status = (DevAms::DrySubStatus)DevUtil::get_flag_bits(info, 22, 2);
         }
 
         if (j_ams.contains("dry_setting")) {
@@ -568,22 +801,31 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     }
 
     // compare tray_list
-    DevAmsTray* curr_tray = nullptr;
-    auto tray_iter = curr_ams->GetTrays().find(tray_id);
-    if (tray_iter == curr_ams->GetTrays().end()) {
-        DevAmsTray* new_tray = new DevAmsTray(tray_id);
-        curr_tray = new_tray; // new tray event
-    } else {
-        curr_tray = tray_iter->second;
+    DevAmsTray* curr_tray = curr_ams->GetTray(tray_id);
+    if (!curr_tray) {
+        curr_tray = new DevAmsTray(curr_ams->GetAmsId(), tray_id); // new tray event
     }
 
-    if (!curr_tray) {
-        return nullptr;
+    curr_tray->ams_id   = curr_ams->GetAmsId();
+    curr_tray->ams_type = curr_ams->GetAmsType();
+    curr_tray->current_extruder_id = curr_ams->GetCurrentExtruderId();
+    curr_tray->binded_extruder_set = curr_ams->GetBindedExtruderSet();
+    curr_tray->binded_switcher_pos = curr_ams->GetSwitcherPos();
+    // 把 is_exists 更新提前到 hold_count 守卫之前：物理插拔状态（feed-hall 传感器
+    // 的 tray_exist_bits）需要始终即时反映到 UI，不应受 hold 机制影响。
+    // hold 的用途是防止 slicer 发出 ams_filament_setting 之后紧接收到旧的
+    // push_status 而把类型/颜色等 identity 字段回滚，与物理在位状态无关。
+    int ams_id_int = 0;
+    int tray_id_int = 0;
+    try {
+        tray_id_int = atoi(curr_tray->id.c_str());
+        curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, curr_ams->GetTrayId(tray_id_int));
+    } catch (...) {
     }
 
     if (curr_tray->hold_count > 0) {
         curr_tray->hold_count--;
-        return curr_tray;
+        return curr_tray;   // 只跳过类型/颜色等 identity 字段，is_exists 已更新
     }
 
     DevJsonValParser::ParseVal(j_tray, "tag_uid", curr_tray->tag_uid, std::string("0"));
@@ -615,7 +857,9 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     DevJsonValParser::ParseVal(j_tray, "nozzle_temp_min", curr_tray->nozzle_temp_min);
     DevJsonValParser::ParseVal(j_tray, "xcam_info", curr_tray->xcam_info);
     DevJsonValParser::ParseVal(j_tray, "tray_uuid", curr_tray->uuid, std::string("0"));
+    DevJsonValParser::ParseVal(j_tray, "tray_id_name", curr_tray->tray_id_name);
     DevJsonValParser::ParseVal(j_tray, "remain", curr_tray->remain, -1);
+    DevJsonValParser::ParseVal(j_tray, "remain_g", curr_tray->remain_g, -1);
     DevJsonValParser::ParseVal(j_tray, "setting_id", curr_tray->filament_setting_id);
 
     {
@@ -644,24 +888,6 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
         }
     }
 
-    int ams_id_int = 0;
-    int tray_id_int = 0;
-    try {
-        std::string ams_id = curr_ams->GetAmsId();
-        if (!ams_id.empty() && !curr_tray->id.empty()) {
-            ams_id_int = atoi(ams_id.c_str());
-            tray_id_int = atoi(curr_tray->id.c_str());
-
-            if (curr_ams->GetAmsType() != DevAms::N3S) {
-                curr_tray->is_exists = (obj->tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
-            } else {
-                curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, 16 + (ams_id_int - 128));
-            }
-
-        }
-    } catch (...) {
-    }
-
     // Calibration k, n, cali_idx
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - obj->extrusion_cali_set_hold_start);
@@ -673,6 +899,13 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     }
 
     DevJsonValParser::ParseVal(j_tray, "cali_idx", curr_tray->cali_idx);
+
+    if (j_tray.contains("state")) {
+        const int state = DevJsonValParser::GetVal<int>(j_tray, "state");
+        curr_tray->remain_fetch_status =
+            static_cast<DevAmsTray::RemainFetchStatus>((state >> 5) & 0x7);
+    }
+
     return curr_tray;
 }
 

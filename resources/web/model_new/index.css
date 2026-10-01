@@ -121,6 +121,12 @@ hr {
 #projectDescription img {
   max-width: 80%;
 }
+/* CKEditor wraps block images in <figure class="image">; this page does not load
+   ckeditor5-content.css, so drop the UA default margin of 1em 40px. */
+#projectDescription figure.image,
+#profileDescript figure.image {
+  margin: 8px 0;
+}
 .subTitle {
   font-size: 16px;
   font-weight: 700;
@@ -149,6 +155,14 @@ hr {
   width: 28px;
   height: 28px;
   margin-right: 12px;
+}
+.attachment .attachment-thumb {
+  width: 48px;
+  height: 48px;
+  margin-right: 12px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .profileName {

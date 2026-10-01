@@ -20,6 +20,14 @@ namespace Slic3r
 class FilamentColorCode;
 class FilamentColorCodes;
 class FilamentColorCodeQuery;
+class PresetBundle;
+
+// Re-align filament_colour / filament_multi_colour[0] in preset_bundle->project_config to the
+// primary color defined by filaments_color_codes.json, for multi-color / gradient filaments.
+// Needed wherever project_config's filament colors may come from data saved before this
+// alignment existed (old 3mf projects, or an AppConfig-restored session), since such data may
+// carry a primary color derived from HSV-sorted order instead of the JSON-defined order.
+void align_project_filament_primary_colors_with_json(PresetBundle* preset_bundle);
 
 // Represents a color in HSV format
 struct ColourHSV
@@ -80,14 +88,27 @@ struct FilamentColor
     };
 
     ColorType m_color_type = ColorType::SINGLE_CLR; // default to single color
-    std::set<wxColour, wxColorSorter> m_colors;
 
 public:
-    size_t ColorCount() const noexcept { return m_colors.size(); }
+    const std::vector<wxColour>& GetColors() const noexcept { return m_color_list; }
+    size_t ColorCount() const noexcept { return m_color_list.size(); }
+
+    // True when color type and the unordered color set are the same.
+    bool MatchesColorSet(const FilamentColor& other) const
+    {
+        return m_color_type == other.m_color_type && m_colors == other.m_colors;
+    }
+
+    void AddColor(const wxColour& color)
+    {
+        if (m_colors.insert(color).second) {
+            m_color_list.push_back(color);
+        }
+    }
 
     void EndSet(int ctype)
     {
-        if (m_colors.size() < 2)
+        if (m_color_list.size() < 2)
         {
             m_color_type = ColorType::SINGLE_CLR;
         }
@@ -131,6 +152,10 @@ public:
 
         return false;
     }
+
+private:
+    std::set<wxColour, wxColorSorter> m_colors;
+    std::vector<wxColour> m_color_list;
 };
 
 // Compare function for EncodedFilaColor
@@ -150,10 +175,15 @@ public:
 
 public:
     FilamentColorCodes* GetFilaInfoMap(const wxString& fila_id) const;
-    wxString GetFilaColorName(const wxString& fila_id, const FilamentColor& colors) const;
 
-private:
+    wxString GetFilaColorName(const wxString& fila_id, const FilamentColor& colors) const;
+    wxString GetFilaColorName(const wxString& fila_id,
+                              const std::vector<wxString>& hex_colors,
+                              int color_type) const;
     FilamentColorCode* GetFilaInfo(const wxString& fila_id, const FilamentColor& colors) const;
+    FilamentColorCode* GetFilaInfo(const wxString& fila_id,
+                                   const std::vector<wxString>& hex_colors,
+                                   int color_type) const;
 
 protected:
     void  LoadFromLocal();
@@ -162,6 +192,7 @@ public:
     void  CreateFilaCode(const wxString& fila_id,
                          const wxString& fila_type,
                          const wxString& fila_color_code,
+                         const wxString& color_code,
                          FilamentColor&& fila_color,
                          std::unordered_map<wxString, wxString>&& fila_color_names);
 
@@ -202,7 +233,11 @@ class FilamentColorCode
 {
 public:
     FilamentColorCode() = delete;
-    FilamentColorCode(const wxString& color_code, FilamentColorCodes* owner, FilamentColor&& color, std::unordered_map<wxString, wxString>&& name_map);
+    FilamentColorCode(const wxString& fila_color_code,
+                      const wxString& color_code,
+                      FilamentColorCodes* owner,
+                      FilamentColor&& color,
+                      std::unordered_map<wxString, wxString>&& name_map);
     ~FilamentColorCode() {};
 
 public:
@@ -211,6 +246,7 @@ public:
 
 
     wxString         GetFilaColorCode() const { return m_fila_color_code; } // eg. Q01B00
+    wxString         GetColorCode() const { return m_color_code; } // eg. A0
     FilamentColor    GetFilaColor() const { return m_fila_color; }
     wxString         GetFilaColorName() const;
 
@@ -221,6 +257,7 @@ private:
 
     /* color info*/
     wxString                               m_fila_color_code; // eg. Q01B00
+    wxString                               m_color_code; // eg. A0
     FilamentColor                          m_fila_color;
     std::unordered_map<wxString, wxString> m_fila_color_names; // eg. en -> Red
 };

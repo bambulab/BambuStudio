@@ -63,7 +63,9 @@ public:
         SlicingReplaceInitEmptyLayers,
         SlicingNeedSupportOn,
         SlicingEmptyGcodeLayers,
-        SlicingGcodeOverlap
+        SlicingGcodeOverlap,
+        SlicingSupportIncomplete,
+        SlicingSupportIncompleteOnBuildPlate
     };
 
     typedef size_t TimeStamp;

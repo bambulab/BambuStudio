@@ -12,6 +12,8 @@
 #include <stdexcept>
 
 #include <boost/log/trivial.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include "nlohmann/json.hpp"
 
  /* Sequence Id*/
@@ -164,5 +166,47 @@ private:
     int         m_start_time{0};
     int         m_threshold{0};
 };
+
+
+static std::string s_get_diameter_str(float diameter)
+{
+    return (boost::format("%.2f") % diameter).str();
+}
+
+static std::string s_get_diameter_str(const std::string& diameter)
+{
+    try {
+        float dia = boost::lexical_cast<float>(diameter);
+        return s_get_diameter_str(dia);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to boost::lexical_cast: " << diameter;
+        return diameter;
+    }
+
+    try {
+        float dia = std::stof(diameter);
+        return s_get_diameter_str(dia);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " std::stof: " << diameter;
+        return diameter;
+    }
+}
+
+static float s_get_diameter(const std::string& diameter)
+{
+    try {
+        return boost::lexical_cast<float>(diameter);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to boost::lexical_cast: " << diameter;
+    }
+
+    try {
+        return std::stof(diameter);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " std::stof: " << diameter;
+    }
+
+    return 0.0;
+}
 
 }; // namespace Slic3r

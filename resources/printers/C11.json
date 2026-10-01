@@ -45,6 +45,7 @@
 			"support_ams_ext_mix_print": true
 		},
 		"model_id": "C11",
+		"sn_prefix": "01S",
 		"support_wrapping_detection": false,
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto",
 		"compatible_machine": [ "BL-P001", "BL-P002", "C12", "C13" ],
@@ -61,7 +62,8 @@
 		"has_cali_line": false,
 		"printer_is_enclosed": false,
 		"enable_set_nozzle_info": false,
-		"support_disable_cali_flow_type": true
+		"support_disable_cali_flow_type": true,
+		"filament_load_image": ["filament_load_p_series_ext0"]
 	},
 	"01.02.00.00": {
 		"print": {

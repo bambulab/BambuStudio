@@ -150,6 +150,10 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                     {
                         iter.value() = "******";
                     }
+                    else if(key_str.find("modelId") != string::npos || key_str.find("model_id") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
                 }
                 else if (iter.value().is_number())
                 {

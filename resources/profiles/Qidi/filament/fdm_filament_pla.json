@@ -67,7 +67,13 @@
     "close_fan_the_first_x_layers": [
         "1"
     ],
+    "close_additional_fan_first_x_layers": [
+        "1"
+    ],
     "full_fan_speed_layer": [
+        "3"
+    ],
+    "additional_fan_full_speed_layer": [
         "3"
     ],
     "nozzle_temperature": [

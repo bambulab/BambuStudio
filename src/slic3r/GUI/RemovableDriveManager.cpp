@@ -417,6 +417,9 @@ void RemovableDriveManager::shutdown()
 	// to blocking by the diskutil tool for a couple (up to 10) seconds. This is likely not critical, as the eject normally
 	// finishes quickly.
 	this->eject_thread_finish();
+	// Release the Cocoa observer allocated in init(); a later re-init (e.g. after recreate_GUI)
+	// would otherwise trip the assert in register_window_osx().
+	this->unregister_window_osx();
 #endif
 
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS

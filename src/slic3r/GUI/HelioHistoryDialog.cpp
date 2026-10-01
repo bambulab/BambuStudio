@@ -811,6 +811,9 @@ void HelioHistoryDialog::on_view_details_sim(const HelioQuery::SimulationRun& ru
 
 wxString HelioHistoryDialog::format_time_ago(const std::chrono::system_clock::time_point& timestamp)
 {
+    if (timestamp == std::chrono::system_clock::time_point{})
+        return _L("Unknown");
+
     auto now = std::chrono::system_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - timestamp);
 

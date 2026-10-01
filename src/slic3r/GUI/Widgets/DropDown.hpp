@@ -13,6 +13,7 @@
 
 #define DD_ITEM_STYLE_SPLIT_ITEM  0x0001 // ----text----, text with horizontal line arounds
 #define DD_ITEM_STYLE_DISABLED    0x0002 // ----text----, text with horizontal line arounds
+#define DD_ITEM_STYLE_DIMMED      0x0004 // gray text, but still selectable
 
 wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 
@@ -49,6 +50,7 @@ private:
     bool   limit_max_content_width = false;
     bool   align_icon        = false;
     bool   text_off          = false;
+    int    max_visible_rows  = 15;
 
     wxSize textSize;
     wxSize iconSize;

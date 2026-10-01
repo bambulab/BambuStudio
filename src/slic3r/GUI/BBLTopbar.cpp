@@ -50,8 +50,9 @@ void BBLTopbarArt::DrawLabel(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& it
     dc.SetTextForeground(*wxWHITE);
 #endif
 
-    int textWidth = 0, textHeight = 0;
-    dc.GetTextExtent(item.GetLabel(), &textWidth, &textHeight);
+    int textWidth = dc.GetTextExtent(item.GetLabel()).x;
+    wxFontMetrics fm = dc.GetFontMetrics();
+    int textHeight = fm.ascent + fm.descent;
 
     wxRect clipRect = rect;
     clipRect.width -= 1;
@@ -87,11 +88,9 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
     if (m_flags & wxAUI_TB_TEXT)
     {
         dc.SetFont(m_font);
-        int tx, ty;
-
-        dc.GetTextExtent(wxT("ABCDHgj"), &tx, &textHeight);
-        textWidth = 0;
-        dc.GetTextExtent(item.GetLabel(), &textWidth, &ty);
+        wxFontMetrics fm = dc.GetFontMetrics();
+        textHeight = fm.ascent + fm.descent;
+        textWidth = dc.GetTextExtent(item.GetLabel()).x;
     }
 
     int bmpX = 0, bmpY = 0;
@@ -230,16 +229,21 @@ void BBLTopbar::Init(wxFrame* parent)
 
     this->AddSpacer(FromDIP(10));
 
+    // Cross-platform modifier prefix ("Ctrl+" / "⌘") for the tooltip shortcuts.
+    const wxString ctrl = wxString::FromUTF8(Slic3r::GUI::shortkey_ctrl_prefix().c_str());
+
     wxBitmap save_bitmap = create_scaled_bitmap("topbar_save", nullptr, TOPBAR_ICON_SIZE);
     m_save_item          = this->AddTool(wxID_SAVE, "", save_bitmap);
     wxBitmap save_inactive_bitmap = create_scaled_bitmap("topbar_save_inactive", nullptr, TOPBAR_ICON_SIZE);
     m_save_item->SetDisabledBitmap(save_inactive_bitmap);
+    m_save_item->SetShortHelp(_L("Save Project") + " (" + ctrl + "S)");
     this->AddSpacer(FromDIP(10));
 
     wxBitmap undo_bitmap = create_scaled_bitmap("topbar_undo", nullptr, TOPBAR_ICON_SIZE);
     m_undo_item = this->AddTool(wxID_UNDO, "", undo_bitmap);
     wxBitmap undo_inactive_bitmap = create_scaled_bitmap("topbar_undo_inactive", nullptr, TOPBAR_ICON_SIZE);
     m_undo_item->SetDisabledBitmap(undo_inactive_bitmap);
+    m_undo_item->SetShortHelp(_L("Undo") + " (" + ctrl + "Z)");
 
     this->AddSpacer(FromDIP(10));
 
@@ -247,6 +251,7 @@ void BBLTopbar::Init(wxFrame* parent)
     m_redo_item = this->AddTool(wxID_REDO, "", redo_bitmap);
     wxBitmap redo_inactive_bitmap = create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE);
     m_redo_item->SetDisabledBitmap(redo_inactive_bitmap);
+    m_redo_item->SetShortHelp(_L("Redo") + " (" + ctrl + "Y)");
 
     this->AddSpacer(FromDIP(10));
 
@@ -513,6 +518,7 @@ void BBLTopbar::Rescale() {
 
     item = this->FindTool(wxID_SAVE);
     item->SetBitmap(create_scaled_bitmap("topbar_save", this, TOPBAR_ICON_SIZE));
+    item->SetDisabledBitmap(create_scaled_bitmap("topbar_save_inactive", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(wxID_UNDO);
     item->SetBitmap(create_scaled_bitmap("topbar_undo", this, TOPBAR_ICON_SIZE));

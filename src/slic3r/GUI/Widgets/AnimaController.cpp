@@ -6,12 +6,12 @@
 #include "libslic3r/MacUtils.hpp"
 #endif
 
-AnimaIcon::AnimaIcon(wxWindow *parent, wxWindowID id, std::vector<std::string> img_list, std::string img_enable, int ivt)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), m_ivt(ivt), m_img_enable(img_enable), m_img_list(img_list)
+AnimaIcon::AnimaIcon(wxWindow *parent, wxWindowID id, std::vector<std::string> img_list, std::string img_enable, int ivt, int size)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), m_ivt(ivt), m_img_enable(img_enable), m_img_list(img_list), m_size(size)
 {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     SetBackgroundColour((wxColour(255, 255, 255)));
-    m_size = 25;
+    // m_size = 25;
 
     //add ScalableBitmap
     for (const auto &filename : m_img_list) m_images.emplace_back(create_scaled_bitmap(filename, this, m_size));

@@ -427,7 +427,7 @@ double ExPolygon::map_moment_to_expansion(double speed, double height) const
     double        height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
 
     double brim_width = height_to_area * speed;
-    return std::max(std::min(brim_width, 5.), 1.);
+    return std::max(std::min(brim_width, 10.), 1.);
 }
 
 Lines ExPolygon::lines() const

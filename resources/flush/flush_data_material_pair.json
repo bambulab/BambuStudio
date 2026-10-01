@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "comment": "Measured purge volume per directional filament-id pair (From 'from' To 'to'). Direction matters: From A To B may differ from From B To A. 'from'/'to' use filament_id codes (e.g. GFA00 = PLA Basic, GFG00 = PETG Basic, GFB00 = ABS, GFN08 = PA6-GF, GFB01 = ASA, GFN04 = PAHT-CF). The final purge shown in the flush matrix is max(measured_purge, predicted_purge). Update this file to refine values without recompiling.",
+    "pairs": [
+        { "from": "GFG00", "to": "GFA00", "purge": 650 },
+        { "from": "GFA00", "to": "GFG00", "purge": 650 },
+        { "from": "GFB00", "to": "GFN08", "purge": 400 },
+        { "from": "GFB01", "to": "GFN04", "purge": 350 }
+    ]
+}

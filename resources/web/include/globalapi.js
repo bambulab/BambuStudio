@@ -352,7 +352,15 @@ function SendWXMessage( strMsg )
 	
 	if(bCheck!=null)
 	{
-		setTimeout("window.wx.postMessage("+strMsg+")",1);
+		// Callers hand over a JSON string and the host expects the parsed object, so parse it here.
+		// The old string form of setTimeout() built the call as source and had the engine eval it,
+		// which a page carrying a Content-Security-Policy without 'unsafe-eval' refuses outright -
+		// that silently killed every page-to-host command.
+		let tMsg=IsJson(strMsg);
+		if( tMsg===null )
+			tMsg=strMsg;
+
+		setTimeout(function(){ window.wx.postMessage(tMsg); },1);
 	}
 }
 
@@ -413,7 +421,8 @@ function CheckCssLinkExist( LinkPath )
 function SwitchDarkMode( DarkCssPath )
 {		
 	ExecuteDarkMode( DarkCssPath );
-    setInterval("ExecuteDarkMode('"+DarkCssPath+"')",1000);	
+    // Pass a function, not source text: the string form is an eval and CSP refuses it.
+    setInterval(function(){ ExecuteDarkMode(DarkCssPath); },1000);
 }
 
 function ExecuteDarkMode( DarkCssPath )
@@ -718,7 +727,7 @@ function showBase64ImageLayer(base64Str) {
   const imgWrapper = document.createElement('div');
   Object.assign(imgWrapper.style, {
     maxWidth: '90%',
-    maxHeight: '100%',
+    maxHeight: '90vh',
     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)'
   });
 
@@ -727,7 +736,9 @@ function showBase64ImageLayer(base64Str) {
   Object.assign(img.style, {
     display: 'block',
     maxWidth: '100%',
-    maxHeight: '100%',
+    width: 'auto',
+    height: 'auto',
+    maxHeight: '90vh',
     borderRadius: '8px'
   });
 
@@ -735,14 +746,19 @@ function showBase64ImageLayer(base64Str) {
   overlay.appendChild(imgWrapper);
   document.body.appendChild(overlay);
 
-  const closeLayer = () => overlay.remove();
+  const handleKeydown = function(evt) {
+    if (evt.key === 'Escape') {
+      closeLayer();
+    }
+  };
+
+  const closeLayer = () => {
+    window.removeEventListener('keydown', handleKeydown);
+    overlay.remove();
+  };
+
   overlay.addEventListener('click', event => {
     if (event.target === overlay) closeLayer();
   });
-  window.addEventListener('keydown', function handler(evt) {
-    if (evt.key === 'Escape') {
-      window.removeEventListener('keydown', handler);
-      closeLayer();
-    }
-  });
+  window.addEventListener('keydown', handleKeydown);
 }

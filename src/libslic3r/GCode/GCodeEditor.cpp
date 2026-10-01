@@ -35,7 +35,7 @@ void GCodeEditor::reset(const Vec3d &position)
     m_current_pos[0] = float(position.x());
     m_current_pos[1] = float(position.y());
     m_current_pos[2] = float(position.z());
-    m_current_pos[4] = float(m_config.travel_speed.get_at(get_config_idx_for_filament(m_config, m_current_extruder)));
+    m_current_pos[4] = float(m_config.travel_speed.get_at(get_process_config_idx(m_config, m_current_extruder)));
     m_fan_speed = -1;
     m_additional_fan_speed = -1;
     m_current_fan_speed = -1;
@@ -319,6 +319,10 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
             line.type = CoolingLine::TYPE_OVERHANG_FAN_START;
         } else if (boost::starts_with(sline, ";_OVERHANG_FAN_END")) {
             line.type = CoolingLine::TYPE_OVERHANG_FAN_END;
+        } else if (boost::starts_with(sline, ";_IRONING_FAN_START")) {
+            line.type = CoolingLine::TYPE_IRONING_FAN_START;
+        } else if (boost::starts_with(sline, ";_IRONING_FAN_END")) {
+            line.type = CoolingLine::TYPE_IRONING_FAN_END;
         } else if (boost::starts_with(sline, "G4 ")) {
             // Parse the wait time.
             line.type = CoolingLine::TYPE_G4;
@@ -382,6 +386,8 @@ std::string GCodeEditor::write_layer_gcode(
     new_gcode.reserve(gcode.size() * 2);
     bool overhang_fan_control= false;
     int  overhang_fan_speed   = 0;
+    bool ironing_fan_control  = false;
+    int  ironing_fan_speed    = 0;
     float pre_start_overhang_fan_time = 0.f;
 
     enum class SetFanType {
@@ -390,13 +396,16 @@ std::string GCodeEditor::write_layer_gcode(
         sfImmediatelyApply
     };
 
-    auto change_extruder_set_fan = [this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &pre_start_overhang_fan_time, not_set_additional_fan](SetFanType type) {
+    auto change_extruder_set_fan = [this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &ironing_fan_control, &ironing_fan_speed, &pre_start_overhang_fan_time, not_set_additional_fan](SetFanType type) {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
         //BBS
         int additional_fan_speed_new = EXTRUDER_CONFIG(additional_cooling_fan_speed);
         int close_fan_the_first_x_layers = EXTRUDER_CONFIG(close_fan_the_first_x_layers);
+        int close_additional_fan_first_x_layers = EXTRUDER_CONFIG(close_additional_fan_first_x_layers);
+        int additional_fan_full_speed_layer = EXTRUDER_CONFIG(additional_fan_full_speed_layer);
+        int first_x_layer_fan_speed = EXTRUDER_CONFIG(first_x_layer_fan_speed);
         // Is the fan speed ramp enabled?
         int full_fan_speed_layer = EXTRUDER_CONFIG(full_fan_speed_layer);
         if (close_fan_the_first_x_layers <= 0 && full_fan_speed_layer > 0) {
@@ -422,19 +431,32 @@ std::string GCodeEditor::write_layer_gcode(
             //}
             overhang_fan_speed   = EXTRUDER_CONFIG(overhang_fan_speed);
             if (int(layer_id) >= close_fan_the_first_x_layers && int(layer_id) + 1 < full_fan_speed_layer) {
-                // Ramp up the fan speed from close_fan_the_first_x_layers to full_fan_speed_layer.
+                // Ramp up the fan speed from first_x_layer_part_fan_speed to the layer-time-based speed.
                 float factor = float(int(layer_id + 1) - close_fan_the_first_x_layers) / float(full_fan_speed_layer - close_fan_the_first_x_layers);
-                fan_speed_new    = std::clamp(int(float(fan_speed_new) * factor + 0.5f), 0, 255);
-                overhang_fan_speed = std::clamp(int(float(overhang_fan_speed) * factor + 0.5f), 0, 255);
+                int first_part_fan = EXTRUDER_CONFIG(first_x_layer_part_fan_speed);
+                fan_speed_new    = std::clamp(int(float(first_part_fan) * (1.0f - factor) + float(fan_speed_new) * factor + 0.5f), 0, 255);
+                overhang_fan_speed = std::clamp(int(float(first_part_fan) * (1.0f - factor) + float(overhang_fan_speed) * factor + 0.5f), 0, 255);
             }
 
             overhang_fan_control= overhang_fan_speed > fan_speed_new;
+            ironing_fan_speed   = EXTRUDER_CONFIG(ironing_fan_speed);
+            ironing_fan_control = ironing_fan_speed >= 0;
         } else {
             overhang_fan_control= false;
             overhang_fan_speed   = 0;
-            fan_speed_new      = 0;
-            additional_fan_speed_new = EXTRUDER_CONFIG(first_x_layer_fan_speed);
+            ironing_fan_control  = false;
+            ironing_fan_speed    = 0;
+            fan_speed_new      = EXTRUDER_CONFIG(first_x_layer_part_fan_speed);
         }
+
+        // BBS: Independent control for additional fan
+        if (int(layer_id) < close_additional_fan_first_x_layers) {
+            additional_fan_speed_new = first_x_layer_fan_speed;
+        } else if (int(layer_id) + 1 < additional_fan_full_speed_layer && additional_fan_full_speed_layer > close_additional_fan_first_x_layers) {
+            float factor = float(int(layer_id + 1) - close_additional_fan_first_x_layers) / float(additional_fan_full_speed_layer - close_additional_fan_first_x_layers);
+            additional_fan_speed_new = std::clamp(int(float(first_x_layer_fan_speed) * (1.0f - factor) + float(additional_fan_speed_new) * factor + 0.5f), 0, 100);
+        }
+
 #undef EXTRUDER_CONFIG
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;
@@ -518,6 +540,16 @@ std::string GCodeEditor::write_layer_gcode(
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_END) {
             if (overhang_fan_control) {
                 //BBS
+                m_current_fan_speed = m_fan_speed;
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+            }
+        } else if (line->type & CoolingLine::TYPE_IRONING_FAN_START) {
+            if (ironing_fan_control && m_current_fan_speed != ironing_fan_speed) {
+                m_current_fan_speed = ironing_fan_speed;
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, ironing_fan_speed);
+            }
+        } else if (line->type & CoolingLine::TYPE_IRONING_FAN_END) {
+            if (ironing_fan_control) {
                 m_current_fan_speed = m_fan_speed;
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
             }

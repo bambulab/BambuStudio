@@ -1,10 +1,13 @@
 #include "PresetUpdater.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <thread>
 #include <unordered_map>
 #include <ostream>
 #include <utility>
+#include <chrono>
+#include <vector>
 #include <stdexcept>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
@@ -12,6 +15,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
+#include <tbb/parallel_for.h>
 
 #include <wx/app.h>
 #include <wx/msgdlg.h>
@@ -22,6 +26,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/EncodedFilament.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/UpdateDialogs.hpp"
 #include "slic3r/GUI/ConfigWizard.hpp"
@@ -53,6 +58,14 @@ static const char *TMP_EXTENSION = ".data";
 static const char *PRESET_SUBPATH = "presets";
 static const char *PLUGINS_SUBPATH = "plugins";
 
+long long getTimestamp()
+{
+    auto now          = std::chrono::system_clock::now();
+    auto duration     = now.time_since_epoch();
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    return milliseconds;
+}
+
 int copy_file_fix(const fs::path &source, const fs::path &target, std::string& error_message)
 {
     BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", PathSanitizer::sanitize(source), PathSanitizer::sanitize(target));
@@ -72,20 +85,11 @@ int copy_file_fix(const fs::path &source, const fs::path &target, std::string& e
 }
 
 //BBS: add directory copy
-int copy_directory_fix(const fs::path &source, const fs::path &target, std::string& error_message)
+int copy_directory_fix(const fs::path &source, const fs::path &target, std::string& error_message, std::vector<std::pair<fs::path, fs::path>>& files)
 {
     int ret = 0;
     BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", PathSanitizer::sanitize(source), PathSanitizer::sanitize(target));
 
-    if (fs::exists(target)) {
-        boost::system::error_code ec;
-        fs::remove_all(target, ec);
-        if (ec) {
-            error_message = ec.message();
-            BOOST_LOG_TRIVIAL(error) << "copy_directory_fix: Failed to remove existing target directory: " + error_message;
-            return -1;
-        }
-    }
     boost::system::error_code ec;
     fs::create_directories(target, ec);
     if (ec) {
@@ -99,22 +103,56 @@ int copy_directory_fix(const fs::path &source, const fs::path &target, std::stri
         fs::path target_file = target / dir_entry.path().filename();
 
         std::string name = dir_entry.path().filename().string();
+        // Skip IDE / VCS junk that may land under resources/profiles (e.g. Visual
+        // Studio's ".vs" cache with locked sqlite / vsidx files). Copying those
+        // into the user system/ preset tree fails with "Error: open src file"
+        // and aborts the whole GuideFrame install.
+        if (!name.empty() && name[0] == '.')
+            continue;
 
         if (fs::is_directory(dir_entry)) {
-            ret = copy_directory_fix(source_file, target_file, error_message);
+            ret = copy_directory_fix(source_file, target_file, error_message, files);
             if (ret)
                 return ret;
         }
         else {
-            //CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
-            CopyFileResult cfr = copy_file(source_file.string(), target_file.string(), error_message, false);
-            if (cfr != CopyFileResult::SUCCESS) {
-                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
-                return -3;
-            }
+           files.emplace_back(std::pair{source_file, target_file});
         }
     }
     return 0;
+}
+
+int copy_directory_inner(const fs::path &source, const fs::path &target, std::string &error_message)
+{
+    if (fs::exists(target)) {
+        boost::system::error_code ec;
+        fs::remove_all(target, ec);
+        if (ec) {
+            error_message = ec.message();
+            BOOST_LOG_TRIVIAL(error) << "copy_directory_fix: Failed to remove existing target directory: " + error_message;
+            return -1;
+        }
+    }
+    std::vector<std::pair<fs::path, fs::path>> files;
+
+    int ret = copy_directory_fix(source, target, error_message, files);
+    if (ret) { return ret; }
+    std::atomic<int> retVal = 0;
+    tbb::parallel_for(tbb::blocked_range<int>(0, files.size()), [&files, &error_message, &retVal](const tbb::blocked_range<int> &range) {
+        for (auto i = range.begin(); i != range.end(); ++i) {
+            if (retVal.load()) return;
+            auto &pair = files[i];
+            // CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
+            CopyFileResult cfr = copy_file(pair.first.string(), pair.second.string(), error_message, false);
+            if (cfr != CopyFileResult::SUCCESS) {
+                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message
+                                        << ", src=" << PathSanitizer::sanitize(pair.first)
+                                        << ", dst=" << PathSanitizer::sanitize(pair.second);
+                retVal.store(-3);
+            }
+        }
+    });
+    return retVal.load();
 }
 
 struct Update
@@ -153,7 +191,7 @@ struct Update
         std::string error_message;
 
         if (is_directory) {
-            ret = copy_directory_fix(source, target, error_message);
+            ret = copy_directory_inner(source, target, error_message);
         }
         else {
             ret = copy_file_fix(source, target, error_message);
@@ -190,17 +228,27 @@ struct Incompat
 		, is_directory(is_dir)
 	{}
 
-	void remove() {
-		// Remove the bundle file
-		if (is_directory) {
-			if (fs::exists(bundle))
-                fs::remove_all(bundle);
-		}
-		else {
-			if (fs::exists(bundle))
-				fs::remove(bundle);
-		}
-	}
+    void remove() {
+        // Remove the bundle file
+        if (is_directory) {
+            if (fs::exists(bundle)) {
+                fs::path newPath(bundle.string() + std::to_string(getTimestamp()));
+                boost::system::error_code ec;
+                fs::rename(bundle, newPath, ec);
+                if (!ec) {
+                    std::thread thread([newPath]() {
+                        boost::system::error_code ec;
+                        fs::remove_all(newPath, ec);
+                    });
+                    thread.detach();
+                } else {
+                    fs::remove_all(bundle);
+                }
+            }
+        } else {
+            if (fs::exists(bundle)) fs::remove(bundle);
+        }
+    }
 
 	friend std::ostream& operator<<(std::ostream& os , const Incompat &self) {
 		os << "Incompat(" << self.bundle.string() << ')';
@@ -231,11 +279,13 @@ struct PresetUpdater::priv
 	fs::path rsrc_path;
 	fs::path vendor_path;
 
-	bool cancel;
-	std::thread thread;
+    // Written by the main thread (in ~PresetUpdater) and polled by the sync worker
+    // thread, so it must be atomic to avoid a data race / cached read.
+    std::atomic<bool> cancel;
+    std::thread       thread;
 
-	bool has_waiting_updates { false };
-	Updates waiting_updates;
+    bool    has_waiting_updates{false};
+    Updates waiting_updates;
 	bool has_waiting_printer_updates { false };
     Updates waiting_printer_updates;
 
@@ -268,7 +318,9 @@ struct PresetUpdater::priv
 
     bool sync_config(std::string http_url, const VendorMap vendors);
     void sync_tooltip(std::string http_url, std::string language);
-    void sync_plugins(std::string http_url, std::string plugin_version);
+    // is_arm64 is captured on the main thread before the sync worker starts, so the
+    // worker never has to call GUI::wxGetApp() (which can be null during shutdown).
+    void sync_plugins(std::string http_url, std::string plugin_version, bool is_arm64);
     void sync_printer_config(std::string http_url);
     bool get_cached_plugins_version(std::string &cached_version, bool& force);
 
@@ -1124,8 +1176,10 @@ bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version
     return has_plugins;
 }
 
-void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_version)
+void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_version, bool is_arm64)
 {
+    if (cancel) return;
+
     if (plugin_version == "00.00.00.00") {
         BOOST_LOG_TRIVIAL(info) << "non need to sync plugins for there is no plugins currently.";
         return;
@@ -1169,7 +1223,7 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     }
 
 #if defined(__WINDOWS__)
-    if (GUI::wxGetApp().is_running_on_arm64()) {
+    if (is_arm64) {
         //set to arm64 for plugins
         std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
         current_headers["X-BBL-OS-Type"] = "windows_arm";
@@ -1189,7 +1243,7 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater] sync_plugins: %1%", e.what());
     }
 #if defined(__WINDOWS__)
-    if (GUI::wxGetApp().is_running_on_arm64()) {
+    if (is_arm64) {
         //set back
         std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
         current_headers["X-BBL-OS-Type"] = "windows";
@@ -1198,6 +1252,10 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type back to windows");
     }
 #endif
+
+    // The remaining work touches the GUI (wxGetApp().plater(), notifications), which
+    // is unsafe once shutdown has begun; bail out if cancellation was requested.
+    if (cancel) return;
 
     bool result = get_cached_plugins_version(cached_version, force_upgrade);
     if (result) {
@@ -1278,6 +1336,10 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
             result = true;
         }
     } catch (...) {}
+    // The notification below touches the GUI, which is unsafe once shutdown has
+    // begun; bail out if cancellation was requested.
+    if (cancel) return;
+
     if (result) {
         BOOST_LOG_TRIVIAL(info) << format("[BBL Updater] found new printer config: %1%, prompt to update", cached_version);
         waiting_printer_updates = get_printer_config_updates(true);
@@ -1314,16 +1376,18 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
         }
 
         if (fs::exists(print_folder)) {
-            fs::remove_all(print_folder, ec);
+            auto print_rename_folder = this->vendor_path / (bundle + std::to_string(getTimestamp()));
+            fs::rename(print_folder, print_rename_folder, ec);
             if (ec) {
                 BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to remove directory %1%, error %2% ") % print_folder.string() % ec.message();
                 return false;
             }
-        }
-        fs::create_directories(print_folder, ec);
-        if (ec) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to create directory %1%, error %2% ")% print_folder.string() %ec.message();
-            return false;
+            std::thread thread([print_rename_folder]() {
+                boost::system::error_code ec;
+                fs::remove_all(print_rename_folder, ec);
+            });
+            // remove the fold in background thread
+            thread.detach();
         }
         updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "", false, true);
 
@@ -1361,7 +1425,6 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                         Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
                         bool version_match = ((resource_ver.maj() == vendor_ver.maj()) && (resource_ver.min() == vendor_ver.min()));
-
                         if (!version_match || (vendor_ver < resource_ver)) {
                             BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found vendor "<<vendor_name<<" different version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string()<<", will copy from resource";
                             bundles.push_back(vendor_name);
@@ -1605,7 +1668,16 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
     // into the closure (but perhaps the compiler can elide this).
     VendorMap vendors = preset_bundle ? preset_bundle->vendors : VendorMap{};
 
-    p->thread = std::thread([this, vendors, http_url, language, plugin_version]() {
+    // Capture this on the main thread: the background thread must not call
+    // GUI::wxGetApp(), which is null once the app starts shutting down (the app
+    // pointer is cleared before ~GUI_App runs, and ~GUI_App joins this thread).
+#if defined(__WINDOWS__)
+    bool is_arm64 = GUI::wxGetApp().is_running_on_arm64();
+#else
+    bool is_arm64 = false;
+#endif
+  
+    p->thread = std::thread([this, vendors, http_url, language, plugin_version, is_arm64]() {
         this->p->prune_tmps();
         if (p->cancel)
             return;
@@ -1625,7 +1697,7 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
         }
         if (p->cancel)
             return;
-        this->p->sync_plugins(http_url, plugin_version);
+        this->p->sync_plugins(http_url, plugin_version, is_arm64);
         this->p->sync_printer_config(http_url);
         //if (p->cancel)
         //  return;
@@ -1652,6 +1724,8 @@ static bool reload_configs_update_gui()
 	// were already presented to the user on application start up. Just do substitutions now and keep quiet about it.
 	// However throw on substitutions in system profiles, those shall never happen with system profiles installed over the air.
 	GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
+	// AppConfig-restored filament colors may predate the JSON primary-color alignment.
+	Slic3r::align_project_filament_primary_colors_with_json(GUI::wxGetApp().preset_bundle);
 	GUI::wxGetApp().load_current_presets();
 	GUI::wxGetApp().plater()->set_bed_shape();
 

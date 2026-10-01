@@ -172,6 +172,36 @@ private:
     void release_VBOs();
 };
 
+// Assemble-canvas-only XY ground overlay (not part of the printable bed).
+// Lives next to Bed3D because 3DBed.hpp already hosts related GL render helpers
+// (Axes / bed geometry); consumed by GLCanvas3D::m_world_grid in CanvasAssembleView.
+// Driven by an AABB projected to Z≈0; 10mm cells, every 5th line bolder; extent is
+// snapped/expanded slightly past the XY projection and capped at MaxExtentMm.
+class WorldXYGrid
+{
+public:
+    static constexpr double CellSizeMm  = 10.0;
+    static constexpr double ExpandMm    = 10.0;
+    static constexpr double MaxExtentMm = 500.0;
+
+    // Rebuild geometry when the projected/expanded XY box changes.
+    void set_from_aabb(const BoundingBoxf3 &aabb);
+    void set_dark(bool is_dark) { m_is_dark = is_dark; }
+    void set_scale_factor(float scale_factor) { m_scale_factor = scale_factor; }
+    void render();
+    bool empty() const { return !m_valid; }
+
+private:
+    void update_geometry(const BoundingBoxf &xy_mm);
+
+    BoundingBoxf m_xy_bb;
+    bool         m_valid{false};
+    bool         m_is_dark{false};
+    float        m_scale_factor{1.0f};
+    GLModel      m_gridlines;
+    GLModel      m_gridlines_bolder;
+};
+
 } // GUI
 } // Slic3r
 

@@ -29,6 +29,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <functional>
 #include "Event.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "wxExtensions.hpp"
@@ -68,6 +69,11 @@ private:
     std::map<std::string, std::string> m_model_id_map;
     static inline int m_sequence_id = 8000;
     json       m_last_payload = json::object();
+    // Saving and the unsaved-changes query are round trips through the WebView,
+    // so callers that must wait for the result (e.g. closing the app) hand in a
+    // one-shot continuation here.
+    std::function<void()>     m_save_finished_cb;
+    std::function<void(bool)> m_dirty_query_cb;
 
 public:
     ProjectPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
@@ -93,7 +99,8 @@ public:
     std::string formatBytes(unsigned long bytes);
     std::string get_model_id(std::string desgin_id);
     wxString to_base64(std::string path);
-    void save_project();
+    void save_project(std::function<void()> on_saved = nullptr);
+    void query_unsaved_changes(std::function<void(bool)> on_result);
 };
 
 wxDECLARE_EVENT(EVT_PROJECT_RELOAD, wxCommandEvent);

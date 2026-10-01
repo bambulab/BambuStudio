@@ -1159,111 +1159,147 @@ static ExPolygons get_boundary(const Layer &layer, float perimeter_spacing, bool
     return boundary;
 }
 
-static Polygons get_boundary_external(const Layer &layer, bool include_supports_in_boundary = false)
+// Local-coordinate (pre-instance-shift) external boundary geometry for a single object on a single
+// layer: each island run through the resample + variable-width inner-offset pipeline. This is the
+// expensive part of get_boundary_external()'s per-object work and depends only on
+// (object, layer, is_support_layer, include_supports_in_boundary) - never on any PrintInstance's
+// world-space shift - so it is cached per (object, layer). See ObjectBoundaryCache.
+static ExPolygons compute_object_boundary_local(const PrintObject *object, const Layer &layer, const SupportLayer *support_layer,
+                                                bool include_supports_in_boundary, float perimeter_spacing, float offset_dis,
+                                                const std::vector<double> &min_contour_width_values)
+{
+    ExPolygons ex_polys_per_obj;
+    ExPolygons offset_ex_polys_per_obj;
+
+    if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
+        for (const ExPolygon &island : l->lslices) { ex_polys_per_obj.emplace_back(island); }
+    if (support_layer) {
+        auto *layer_below = object->get_first_layer_bellow_printz(layer.print_z, EPSILON);
+        if (layer_below)
+            for (const ExPolygon &island : layer_below->lslices) ex_polys_per_obj.emplace_back(island);
+        if (include_supports_in_boundary) append(ex_polys_per_obj, get_support_polygons(support_layer, perimeter_spacing));
+    }
+
+    for (ExPolygon &ex_poly : ex_polys_per_obj) {
+        for (auto iter = ex_poly.holes.begin(); iter != ex_poly.holes.end();) {
+            auto out_offset_holes = offset(*iter, scale_(1.0f));
+            if (out_offset_holes.empty()) {
+                iter = ex_poly.holes.erase(iter);
+            } else {
+                ++iter;
+            }
+        }
+    }
+
+    // compute offset_dis distances for each hole per_obj
+    resample_expolygons(ex_polys_per_obj, offset_dis / 2.0, scaled<double>(0.5));
+
+    for (auto &ex_poly : ex_polys_per_obj) {
+        BoundingBox bbox(get_extents(ex_poly));
+        bbox.offset(SCALED_EPSILON);
+        if (Vec2d bbox_size = bbox.size().cast<double>(); bbox_size.x() * bbox_size.y() < Slic3r::sqr(scale_(0.1f))) continue;
+        // ex_polys_num += 1;
+        for (const auto &min_contour_width : min_contour_width_values) {
+            const size_t min_contour_width_idx = &min_contour_width - &min_contour_width_values.front();
+
+            const double search_radius = 2. * (offset_dis + min_contour_width);
+
+            EdgeGrid::Grid grid;
+            grid.set_bbox(bbox);
+            grid.create(ex_poly, coord_t(0.7 * search_radius));
+
+            std::vector<std::vector<float>> ex_poly_distances;
+            precompute_expolygon_distances(ex_poly, ex_poly_distances);
+
+            std::vector<std::vector<float>> offsets;
+            offsets.reserve(ex_poly.holes.size() + 1);
+            for (size_t idx_contour = 0; idx_contour <= ex_poly.holes.size(); ++idx_contour) {
+                const Polygon &poly = (idx_contour == 0) ? ex_poly.contour : ex_poly.holes[idx_contour - 1];
+                assert(poly.is_counter_clockwise() == (idx_contour == 0));
+                std::vector<float> distances = contour_distance(grid, ex_poly_distances[idx_contour], idx_contour, poly, offset_dis, search_radius);
+                for (float &distance : distances) {
+                    if (distance < min_contour_width)
+                        distance = 0.f;
+                    else if (distance > min_contour_width + 2. * offset_dis)
+                        distance = -float(offset_dis);
+                    else
+                        distance = -(distance - float(min_contour_width)) / 2.f;
+                }
+                offsets.emplace_back(distances);
+            }
+            ExPolygons offset_ex_poly = variable_offset_inner_ex(ex_poly, offsets);
+            if (offset_ex_poly.size() == 1 && offset_ex_poly.front().holes.size() == ex_poly.holes.size()) {
+                ex_poly = std::move(offset_ex_poly.front());
+                break;
+            } else if ((min_contour_width_idx + 1) < min_contour_width_values.size())
+                continue;
+            else if (offset_ex_poly.size() == 1) {
+                ex_poly = std::move(offset_ex_poly.front());
+                break;
+            } else if (offset_ex_poly.size() > 1) {
+                // fix_after_inner_offset called inside variable_offset_inner_ex sometimes produces
+                // tiny artefacts polygons, so these artefacts are removed.
+                double max_area     = offset_ex_poly.front().area();
+                size_t max_area_idx = 0;
+                for (size_t poly_idx = 1; poly_idx < offset_ex_poly.size(); ++poly_idx) {
+                    double area = offset_ex_poly[poly_idx].area();
+                    if (max_area < area) {
+                        max_area     = area;
+                        max_area_idx = poly_idx;
+                    }
+                }
+                ex_poly = std::move(offset_ex_poly[max_area_idx]);
+                break;
+            }
+        }
+    }
+
+    for (const auto &ex_poly : ex_polys_per_obj) {
+        if (ex_poly.empty()) continue;
+        // append(holes_per_obj, ex_poly.holes);
+        offset_ex_polys_per_obj.emplace_back(ex_poly);
+    }
+    return offset_ex_polys_per_obj;
+}
+
+// Returns compute_object_boundary_local()'s result for (object, print height), computing and caching
+// it on first use for this print height and reusing the cached value on every subsequent call at the
+// same height. The cache is invalidated (cleared) whenever the print height (layer.print_z) changes.
+static const ExPolygons &get_object_boundary_local_cached(AvoidCrossingPerimeters::ObjectBoundaryCache &cache, const PrintObject *object,
+                                                          const Layer &layer, const SupportLayer *support_layer,
+                                                          bool include_supports_in_boundary, float perimeter_spacing, float offset_dis,
+                                                          const std::vector<double> &min_contour_width_values)
+{
+    if (cache.built_for_print_z != layer.print_z) {
+        cache.per_object.clear();
+        cache.built_for_print_z = layer.print_z;
+    }
+    auto it = cache.per_object.find(object);
+    if (it == cache.per_object.end())
+        it = cache.per_object.emplace(object, compute_object_boundary_local(object, layer, support_layer, include_supports_in_boundary,
+                                                                            perimeter_spacing, offset_dis, min_contour_width_values))
+                 .first;
+    return it->second;
+}
+
+static Polygons get_boundary_external(const Layer &layer, bool include_supports_in_boundary,
+                                      AvoidCrossingPerimeters::ObjectBoundaryCache &boundary_cache)
 {
     const float perimeter_spacing = get_perimeter_spacing_external(layer);
     // const float flow_width        = get_external_perimeter_width(layer);
     const float offset_dis        = 1.5 * perimeter_spacing;
     // double      min_contour_width = {offset_dis / 2.};
     const std::vector<double> min_contour_width_values = {offset_dis / 2., offset_dis, 2. * offset_dis + SCALED_EPSILON};
-    Polygons   boundary;
     ExPolygons offset_ex_polygons;
 
-    // size_t ex_polys_num = 0;
     // Collect all holes for all printed objects and their instances, which will be printed at the same time as passed "layer".
     auto const *support_layer = dynamic_cast<const SupportLayer *>(&layer);
     for (const PrintObject *object : layer.object()->print()->objects()) {
-        ExPolygons ex_polys_per_obj;
-        ExPolygons offset_ex_polys_per_obj;
-
-        if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
-            for (const ExPolygon &island : l->lslices) { ex_polys_per_obj.emplace_back(island); }
-        if (support_layer) {
-            auto *layer_below = object->get_first_layer_bellow_printz(layer.print_z, EPSILON);
-            if (layer_below)
-                for (const ExPolygon &island : layer_below->lslices) ex_polys_per_obj.emplace_back(island);
-            if (include_supports_in_boundary) append(ex_polys_per_obj, get_support_polygons(support_layer, perimeter_spacing));
-        }
-
-        for (ExPolygon &ex_poly : ex_polys_per_obj) {
-            for (auto iter = ex_poly.holes.begin(); iter != ex_poly.holes.end();) {
-                auto out_offset_holes = offset(*iter, scale_(1.0f));
-                if (out_offset_holes.empty()) {
-                    iter = ex_poly.holes.erase(iter);
-                } else {
-                    ++iter;
-                }
-            }
-        }
-
-        // compute offset_dis distances for each hole per_obj
-        resample_expolygons(ex_polys_per_obj, offset_dis / 2.0, scaled<double>(0.5));
-
-        for (auto &ex_poly : ex_polys_per_obj) {
-            BoundingBox bbox(get_extents(ex_poly));
-            bbox.offset(SCALED_EPSILON);
-            if (Vec2d bbox_size = bbox.size().cast<double>(); bbox_size.x() * bbox_size.y() < Slic3r::sqr(scale_(0.1f))) continue;
-            // ex_polys_num += 1;
-            for (const auto &min_contour_width : min_contour_width_values) {
-                const size_t min_contour_width_idx = &min_contour_width - &min_contour_width_values.front();
-
-                const double search_radius = 2. * (offset_dis + min_contour_width);
-
-                EdgeGrid::Grid grid;
-                grid.set_bbox(bbox);
-                grid.create(ex_poly, coord_t(0.7 * search_radius));
-
-                std::vector<std::vector<float>> ex_poly_distances;
-                precompute_expolygon_distances(ex_poly, ex_poly_distances);
-
-                std::vector<std::vector<float>> offsets;
-                offsets.reserve(ex_poly.holes.size() + 1);
-                for (size_t idx_contour = 0; idx_contour <= ex_poly.holes.size(); ++idx_contour) {
-                    const Polygon &poly = (idx_contour == 0) ? ex_poly.contour : ex_poly.holes[idx_contour - 1];
-                    assert(poly.is_counter_clockwise() == (idx_contour == 0));
-                    std::vector<float> distances = contour_distance(grid, ex_poly_distances[idx_contour], idx_contour, poly, offset_dis, search_radius);
-                    for (float &distance : distances) {
-                        if (distance < min_contour_width)
-                            distance = 0.f;
-                        else if (distance > min_contour_width + 2. * offset_dis)
-                            distance = -float(offset_dis);
-                        else
-                            distance = -(distance - float(min_contour_width)) / 2.f;
-                    }
-                    offsets.emplace_back(distances);
-                }
-                ExPolygons offset_ex_poly = variable_offset_inner_ex(ex_poly, offsets);
-                if (offset_ex_poly.size() == 1 && offset_ex_poly.front().holes.size() == ex_poly.holes.size()) {
-                    ex_poly = std::move(offset_ex_poly.front());
-                    break;
-                } else if ((min_contour_width_idx + 1) < min_contour_width_values.size())
-                    continue;
-                else if (offset_ex_poly.size() == 1) {
-                    ex_poly = std::move(offset_ex_poly.front());
-                    break;
-                } else if (offset_ex_poly.size() > 1) {
-                    // fix_after_inner_offset called inside variable_offset_inner_ex sometimes produces
-                    // tiny artefacts polygons, so these artefacts are removed.
-                    double max_area     = offset_ex_poly.front().area();
-                    size_t max_area_idx = 0;
-                    for (size_t poly_idx = 1; poly_idx < offset_ex_poly.size(); ++poly_idx) {
-                        double area = offset_ex_poly[poly_idx].area();
-                        if (max_area < area) {
-                            max_area     = area;
-                            max_area_idx = poly_idx;
-                        }
-                    }
-                    ex_poly = std::move(offset_ex_poly[max_area_idx]);
-                    break;
-                }
-            }
-        }
-
-        for (const auto &ex_poly : ex_polys_per_obj) {
-            if (ex_poly.empty()) continue;
-            // append(holes_per_obj, ex_poly.holes);
-            offset_ex_polys_per_obj.emplace_back(ex_poly);
-        }
+        // The per-object local boundary geometry depends only on (object, layer); reuse it across the
+        // repeated rebuilds within this layer instead of recomputing the expensive offset pipeline.
+        const ExPolygons &offset_ex_polys_per_obj = get_object_boundary_local_cached(boundary_cache, object, layer, support_layer,
+                                                                                     include_supports_in_boundary, perimeter_spacing,
+                                                                                     offset_dis, min_contour_width_values);
         for (const PrintInstance &instance : object->instances()) {
             size_t index = offset_ex_polygons.size();
             append(offset_ex_polygons, offset_ex_polys_per_obj);
@@ -1363,15 +1399,15 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     } else if (use_external) {
         // Initialize m_external only when exist any external travel for the current layer.
         if (m_external.boundaries.empty()) {
-            init_boundary(&m_external, get_boundary_external(*gcodegen.layer(), include_supports_in_boundary), {start, end});
+            init_boundary(&m_external, get_boundary_external(*gcodegen.layer(), include_supports_in_boundary, m_object_boundary_cache), {start, end});
         } else if (!(m_external.bbox.contains(startf) && m_external.bbox.contains(endf))) {
             // check if start and end are in bbox
             m_external.clear();
-            init_boundary(&m_external, get_boundary_external(*gcodegen.layer(), include_supports_in_boundary), {start, end});
+            init_boundary(&m_external, get_boundary_external(*gcodegen.layer(), include_supports_in_boundary, m_object_boundary_cache), {start, end});
         }
-        
+
         // Trim the travel line by the bounding box.
-        if (!m_external.boundaries.empty()) 
+        if (!m_external.boundaries.empty())
         {
             travel_intersection_count = avoid_perimeters(m_external, start, end, *gcodegen.layer(), result_pl);
             result_pl.points.front()  = start;
@@ -1417,6 +1453,9 @@ void AvoidCrossingPerimeters::init_layer(const Layer &layer)
 {
     m_internal.clear();
     m_external.clear();
+    // Note: m_object_boundary_cache is intentionally NOT cleared here. init_layer() is called once per
+    // object at each print height, so clearing here would defeat cross-object reuse within a height.
+    // The cache self-invalidates by print_z inside get_object_boundary_local_cached().
 
     m_lslices_offset.clear();
     m_lslices_offset_bboxes.clear();

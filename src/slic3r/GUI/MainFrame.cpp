@@ -8,6 +8,7 @@
 #include <wx/sizer.h>
 #include <wx/menu.h>
 #include <wx/progdlg.h>
+#include <wx/textentry.h>
 #include <wx/tooltip.h>
 //#include <wx/glcanvas.h>
 #include <wx/filename.h>
@@ -21,6 +22,7 @@
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 #include "Tab.hpp"
 #include "ProgressStatusBar.hpp"
@@ -50,6 +52,7 @@
 #include <string_view>
 
 #include "GUI_App.hpp"
+#include "slic3r/GUI/PerfTrace.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
@@ -57,18 +60,22 @@
 #include "GUI_ObjectList.hpp"
 #include "NotificationManager.hpp"
 #include "MarkdownTip.hpp"
+#include "ParamTooltip.hpp"
 #include "NetworkTestDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "Widgets/WebView.hpp"
 #include "DailyTips.hpp"
+#include "FilamentGroupPopup.hpp"
 #include "FilamentMapDialog.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
 #include <shlobj.h>
 #include <shellapi.h>
+#include <dwmapi.h>
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 
@@ -92,6 +99,41 @@ wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, wxCommandEvent);
+
+static bool is_text_entry_focused()
+{
+    for (wxWindow *window = wxWindow::FindFocus(); window != nullptr; window = window->GetParent())
+        if (dynamic_cast<wxTextEntry *>(window) != nullptr)
+            return true;
+
+    return false;
+}
+
+static bool should_skip_fit_camera_shortcut(Plater *plater)
+{
+    if (is_text_entry_focused())
+        return true;
+
+    if (wxGetApp().imgui()->want_text_input())
+        return true;
+
+    if (!plater)
+        return false;
+
+    auto is_gizmo_running = [](GLCanvas3D *canvas) {
+        return canvas && canvas->get_gizmos_manager().is_running();
+    };
+
+    return is_gizmo_running(plater->get_view3D_canvas3D()) ||
+           is_gizmo_running(plater->get_assmeble_canvas3D()) ||
+           is_gizmo_running(plater->get_current_canvas3D());
+}
+
+static bool should_block_window_resize_for_assembly(Plater *plater)
+{
+    GLCanvas3D *canvas = plater ? plater->get_assmeble_canvas3D() : nullptr;
+    return canvas && canvas->is_assembly_play_or_export_mode();
+}
 
 enum class ERescaleTarget
 {
@@ -181,8 +223,18 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     , m_settings_dialog(this)
     , diff_dialog(this)
 {
+    PERF_TRACE("Creating main window");
+
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
+#endif
+
+#ifdef _WIN32
+    // Enable DWM hardware-accelerated compositing for this borderless window.
+    // Without this, dragging the window by the title bar causes lag because
+    // DWM can't efficiently composite a frameless window during drag.
+    MARGINS margins = {0, 0, 0, 1};
+    DwmExtendFrameIntoClientArea((HWND)GetHandle(), &margins);
 #endif
 
     if (!wxGetApp().app_config->has("user_mode")) {
@@ -197,13 +249,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     long max_recent_count = 18;
     if (max_recent_count_str.ToLong(&max_recent_count))
         set_max_recent_count((int)max_recent_count);
-
-    //reset log level
-    auto loglevel = wxGetApp().app_config->get("severity_level");
-    Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
-    std::map<std::string, int> wx_log_levels{{"fatal", wxLOG_FatalError}, {"error", wxLOG_FatalError}, {"warning", wxLOG_Warning},
-                                             {"info", wxLOG_Info},        {"debug", wxLOG_Debug},      {"trace", wxLOG_Trace}};
-    wxLog::SetLogLevel(wx_log_levels[loglevel]);
 
     // BBS
     m_recent_projects.SetMenuPathStyle(wxFH_PATH_SHOW_ALWAYS);
@@ -347,6 +392,23 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 m_topbar->SetMaximizedSize();
             }
 #endif
+        if (should_block_window_resize_for_assembly(m_plater))
+            return;
+
+#ifdef _WIN32
+        if (m_is_in_move_or_resize) {
+            ULONGLONG now = GetTickCount64();
+            if (now - m_last_resize_layout_ms < 33) {
+                // Throttling the full layout keeps the 3D views cheap while dragging, but the
+                // topbar cannot be skipped: it is a child window, so a stale (still wider) topbar
+                // keeps its window controls and title laid out past the frame's client area, where
+                // they are clipped away - leaving what looks like empty space where the buttons were.
+                if (m_topbar) m_topbar->UpdateToolbarWidth(GetClientSize().GetWidth());
+                return;
+            }
+            m_last_resize_layout_ms = now;
+        }
+#endif
         Refresh();
         Layout();
         wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
@@ -397,22 +459,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     update_layout();
     sizer->SetSizeHints(this);
 
-    // BBS: fix taskbar overlay on windows
 #ifdef WIN32
-    auto setMaxSize = [this]() {
-        wxDisplay display(this);
-        auto size = display.GetClientArea().GetSize();
-        HWND      hWnd = GetHandle();
-        RECT      borderThickness;
-        SetRectEmpty(&borderThickness);
-        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
-        SetMaxSize(size + wxSize{-borderThickness.left + borderThickness.right, -borderThickness.top + borderThickness.bottom});
-    };
-    this->Bind(wxEVT_DPI_CHANGED, [setMaxSize](auto & e) {
-        setMaxSize();
-        e.Skip();
-        });
-    setMaxSize();
     // SetMaximize already position window at left/top corner, even if Windows Task Bar is at left side.
     // Not known why, but fix it here
     this->Bind(wxEVT_MAXIMIZE, [this](auto &e) {
@@ -453,6 +500,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         //    event.Veto();
         //    return;
         //}
+        // Runs before close_with_confirm() so that a save triggered from here marks
+        // the plater dirty in time for the "save project" prompt to pick it up.
+        if (event.CanVeto() && !confirm_project_page_can_leave([this] { Close(); })) {
+            event.Veto();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancelled or deferred by the project page";
+            return;
+        }
+
         auto check = [](bool yes_or_no) {
             if (yes_or_no)
                 return true;
@@ -461,7 +516,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         // BBS: close save project
         int result;
-        if (event.CanVeto() && ((result = m_plater->close_with_confirm(check)) == wxID_CANCEL)) {
+        if (((result = m_plater->close_with_confirm(check, event.CanVeto())) == wxID_CANCEL) && event.CanVeto()) {
             event.Veto();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by close_with_confirm selection";
             return;
@@ -469,6 +524,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
             event.Veto();
             return;
+        }
+        if (GLCanvas3D *canvas = m_plater->get_assmeble_canvas3D()) {
+            canvas->close_project_and_save_assembly_steps_tree();
         }
 
     #if 0 // BBS
@@ -521,6 +579,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["color_painting"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation));
                 j["brimears"]            = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::BrimEars));
                 j["assembly_view"] = get_value("assembly_view");
+                j["assembly_view_export_pdf"] = get_value("assembly_view_export_pdf");
+                j["assembly_view_export_markdown"] = get_value("assembly_view_export_markdown");
+                j["assembly_view_export_mp4"] = get_value("assembly_view_export_mp4");
 
                 agent->track_event("key_func", j.dump());
 
@@ -628,10 +689,15 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             });
 ;    }
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &evt) {
+        const int key_code = evt.GetKeyCode();
 #ifdef __APPLE__
         if (evt.CmdDown() && (evt.GetKeyCode() == 'H')) {
-            //call parent_menu hide behavior
-            return;}
+            // Pass Cmd+H through to the macOS application menu so the
+            // standard "Hide BambuStudio" action fires.  Without evt.Skip()
+            // wxEVT_CHAR_HOOK consumes the event and macOS never sees it.
+            evt.Skip();
+            return;
+        }
         if (evt.CmdDown() && !evt.ShiftDown() && (evt.GetKeyCode() == 'M')) {
             this->Iconize();
             return;
@@ -646,7 +712,16 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
-        if (evt.CmdDown() && evt.GetKeyCode() == 'R') { if (m_slice_enable) { wxGetApp().plater()->update(true, true); wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE)); this->m_tabpanel->SetSelection(tpPreview); } return; }
+        // on_action_slice_plate already switches to the Preview tab via select_view_3D("Preview").
+        // Do NOT also SetSelection(tpPreview) here: that posts a second preview-enter event whose
+        // do_reslice would run the version-policy guard a second time (double dialog on a blocked version).
+        if (evt.CmdDown() && evt.GetKeyCode() == 'R') {
+            if (wxGetApp().check_slice_version_policy() && m_slice_enable) {
+                wxGetApp().plater()->update(true, true);
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+            }
+            return;
+        }
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'G') {
             m_plater->apply_background_progress();
             m_print_enable = get_enable_print_status();
@@ -682,6 +757,15 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             if (dlg.seq_top_layer_only_changed())
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                 plater()->refresh_print();
+
+            // Refresh recent list if time format changed
+            if (dlg.use_12h_time_format_changed() && m_webview) {
+                wxGetApp().CallAfter([this]() {
+                    if (m_webview) {
+                        m_webview->SendRecentList(-1);
+                    }
+                });
+            }
             return;
         }
 
@@ -690,6 +774,28 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             if (m_plater) { m_plater->add_file(); }
             return;
         }
+
+        if (!evt.HasAnyModifiers() && (evt.GetKeyCode() == 'Z' || evt.GetKeyCode() == 'z')) {
+            if (!should_skip_fit_camera_shortcut(m_plater))
+                view_zoom_to_fit();
+            else
+                evt.Skip();
+            return;
+        }
+
+        // Pass 3D view preset shortcuts directly to the current canvas. (Only 0-7 currently used but reserve 8 & 9 anyway.)
+        if (evt.CmdDown() && ((key_code >= '0' && key_code <= '9') || (key_code >= WXK_NUMPAD0 && key_code <= WXK_NUMPAD9)) && m_plater) {
+            if (auto *canvas = m_plater->canvas3D()) {
+                if (auto *target = (wxWindow*)canvas->get_wxglcanvas()) {
+                    wxKeyEvent e(evt);
+                    e.SetEventType(wxEVT_KEY_UP);
+                    e.SetEventObject(target);
+                    wxPostEvent(target, e);
+                }
+            }
+            return;
+        }
+
         evt.Skip();
     });
 
@@ -705,6 +811,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                  m_topbar->EnableUndoItem(m_plater->can_undo());
                  m_topbar->EnableRedoItem(m_plater->can_redo());
              }
+             // Keep the unsaved-changes "*" in the title in sync on all platforms (#9987).
+             if (m_plater)
+                 update_title();
          }));
 #ifdef _MSW_DARK_MODE
     wxGetApp().UpdateDarkUIWin(this);
@@ -764,6 +873,36 @@ static void AdjustWorkingAreaForAutoHide(const HWND hWnd, MINMAXINFO *mmi)
     }
 }
 
+// Constrain the maximized size/position to the monitor work area. This frame is borderless
+// (no wxCAPTION), so Windows defaults ptMaxSize/ptMaxPosition to the whole monitor - covering
+// the taskbar. wxWidgets' HandleGetMinMaxInfo only touches the track size, never ptMaxSize, so
+// without this a plain Maximize() (e.g. the startup restore in window_pos_restore, which does not
+// go through the topbar maximize button) leaves the taskbar hidden until the first restore.
+static void ClampMaxToWorkArea(const HWND hWnd, MINMAXINFO *mmi)
+{
+    const auto monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    if (!monitor) { return; }
+    MONITORINFO mi;
+    mi.cbSize = sizeof(mi);
+    if (!GetMonitorInfo(monitor, &mi)) { return; }
+    const RECT &work      = mi.rcWork;      // excludes a normal (non-auto-hide) taskbar
+    const RECT &monitorRc = mi.rcMonitor;
+
+    // WM_NCCALCSIZE above does NOT return 0 when maximized, so DefWindowProc still subtracts the
+    // maximized non-client frame from the client area. If ptMaxSize were exactly the work area, the
+    // visible client would end up shorter/narrower by that frame. Grow ptMaxSize by the frame so the
+    // client fills the work area, and shift ptMaxPosition by the same amount to keep it aligned - the
+    // off-screen overhang is clipped to the monitor by Windows, matching BBLTopbar::OnFullScreen.
+    RECT frame;
+    SetRectEmpty(&frame);
+    AdjustWindowRectEx(&frame, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+
+    mmi->ptMaxPosition.x = (work.left - monitorRc.left) + frame.left;
+    mmi->ptMaxPosition.y = (work.top - monitorRc.top) + frame.top;
+    mmi->ptMaxSize.x     = (work.right - work.left) + (frame.right - frame.left);
+    mmi->ptMaxSize.y     = (work.bottom - work.top) + (frame.bottom - frame.top);
+}
+
 WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
     /* When we have a custom titlebar in the window, we don't need the non-client area of a normal window
@@ -812,10 +951,25 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             HWND hWnd = GetHandle();
             auto mmi = (MINMAXINFO *) lParam;
             HandleGetMinMaxInfo(mmi);
+            ClampMaxToWorkArea(hWnd, mmi);
             AdjustWorkingAreaForAutoHide(hWnd, mmi);
             return 0;
         }
-      }
+        break;
+    }
+    case WM_ENTERSIZEMOVE:
+        if (should_block_window_resize_for_assembly(m_plater))
+            return 0;
+        m_is_in_move_or_resize = true;
+        break;
+    case WM_EXITSIZEMOVE:
+        m_is_in_move_or_resize = false;
+        if (should_block_window_resize_for_assembly(m_plater))
+            return 0;
+        Refresh();
+        Layout();
+        wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
+        break;
     }
     return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 }
@@ -910,6 +1064,9 @@ void MainFrame::update_layout()
             }
             else if (evt.GetId() == tpCalibration) {
                 m_calibration->update_all();
+            } else if (evt.GetId() == tpPreview && !wxGetApp().check_slice_version_policy()) {
+                if (wxWindow *cur = m_tabpanel->GetCurrentPage()) cur->SetFocus();
+                return;
             }
             evt.Skip();
         });
@@ -960,8 +1117,18 @@ void MainFrame::update_layout()
 void MainFrame::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown enter";
-    // BBS: backup
-    Slic3r::set_backup_callback(nullptr);
+
+    // The rich parameter tooltip is a wxPopupTransientWindow parented to this frame. Both teardown
+    // paths funnel through here (app close, and the language-switch GUI rebuild via recreate_GUI),
+    // so destroy it and null its singleton before the frame goes away — otherwise the dangling
+    // s_self is a use-after-free on the next hover. Reset also rebuilds the store in the new
+    // language after a switch.
+    ParamTooltip::Shutdown();
+
+    // BBS: backup -- quiesce the worker before this frame is destroyed. Stops the periodic
+    // timer, drops the UI callback and any queued Backup UI posts so the backup thread cannot
+    // invoke a callback (wxPostEvent / export_3mf) against this MainFrame after it goes away.
+    Slic3r::stop_backup();
 #ifdef _WIN32
 	if (m_hDeviceNotify) {
 		::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
@@ -1040,7 +1207,29 @@ void MainFrame::update_filament_tab_ui()
 
 void MainFrame::update_title()
 {
-    return;
+    if (!m_plater)
+        return;
+    // Prepend "* " while the project has unsaved changes (#9987), on top of the project name
+    // that is already shown: in the custom topbar on Windows, and in the native window title
+    // on macOS/Linux (both set by Plater::priv::set_project_name).
+    const wxString name  = m_plater->get_project_name();
+    const wxString title = (m_plater->is_project_dirty() && !name.IsEmpty()) ? ("* " + name) : name;
+    if (title == m_title_cache)
+        return;
+    m_title_cache = title;
+#ifdef __WINDOWS__
+    if (m_topbar)
+        m_topbar->SetTitle(title);
+    // Also reflect the "*" in the window/taskbar title, which set_project_name builds
+    // as "<name> - BambuStudio".
+    SetTitle(title + " - BambuStudio");
+#else
+    SetTitle(title);
+#ifdef __APPLE__
+    if (!title.IsEmpty())
+        update_title_colour_after_set_title();
+#endif
+#endif
 }
 
 void MainFrame::show_calibration_button(bool show, bool is_BBL)
@@ -1057,13 +1246,31 @@ void MainFrame::show_calibration_button(bool show, bool is_BBL)
     topbar()->ShowCalibrationButton(show);
 #endif
     show = is_BBL;
-    auto shown2 = m_tabpanel->FindPage(m_calibration) != wxNOT_FOUND;
+    // STUDIO-18116: locate the Calibration tab by its page pointer instead of relying on
+    // the hardcoded `tpCalibration` enum index. The enum value (6) is calibrated for the
+    // multi_machine-enabled layout (8 pages); when multi_machine is disabled the actual
+    // notebook only has 7 pages and Calibration sits at index 5 while the Filament Manager
+    // tab sits at index 6. Calling RemovePage(tpCalibration=6) in that situation removes
+    // the Filament Manager tab instead, which is exactly the "no Filament Manager tab on
+    // first launch" symptom users hit when no BBL preset is selected yet.
+    int cal_page_id = m_tabpanel->FindPage(m_calibration);
+    auto shown2 = cal_page_id != wxNOT_FOUND;
     if (shown2 == show)
         ;
-    else if (show)
-        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
-    else
-        m_tabpanel->RemovePage(tpCalibration);
+    else if (show) {
+        // Insert right before the Filament Manager tab (or append if it isn't there) so
+        // the visual order stays Project / Calibration / Filament Manager regardless of
+        // how many leading plater pages update_layout() has inserted.
+        int fm_page_id = m_web_device ? m_tabpanel->FindPage(m_web_device) : wxNOT_FOUND;
+        size_t insert_at = (fm_page_id != wxNOT_FOUND)
+                               ? static_cast<size_t>(fm_page_id)
+                               : m_tabpanel->GetPageCount();
+        m_tabpanel->InsertPage(insert_at, m_calibration, _L("Calibration"),
+                               std::string("tab_monitor_active"),
+                               std::string("tab_monitor_active"), false);
+    } else {
+        m_tabpanel->RemovePage(static_cast<size_t>(cal_page_id));
+    }
 }
 
 void MainFrame::update_title_colour_after_set_title()
@@ -1117,22 +1324,44 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
         int old_sel = e.GetOldSelection();
         int new_sel = e.GetSelection();
+
+        //if (bool test = false) {
+        //    SupportRecommendDialog* dialog = new SupportRecommendDialog(nullptr, _L("Notice"));;
+
+        //    wxArrayString params;
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+
+        //    std::vector<wxString> objects;
+        //    for (int i = 0; i < 10; i++) {
+        //        objects.push_back("ABCABCABCABC");
+        //    }
+
+        //    std::vector<std::tuple<int, wxColour, wxString>> mainMat;
+        //    mainMat.push_back(std::make_tuple(2, *wxRED, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(5, *wxBLUE, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(3, *wxGREEN, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"));
+
+        //    dialog->AddSupportComboCard(objects, mainMat, std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"), params);
+        //    dialog->AddSupportComboCard(objects, mainMat, std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"), params);
+        //    dialog->ShowModal();
+        //}
+
         if (old_sel != wxNOT_FOUND &&
             new_sel != old_sel &&
             m_project != nullptr &&
             m_tabpanel->GetPage((size_t)old_sel) == m_project &&
-            m_project->is_editing_page()) {
-            MessageDialog dlg(this,
-                              _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
-                              _L("Save"),
-                              wxYES_NO | wxCANCEL |wxCENTRE);
-            int ret = dlg.ShowModal();
-            if (ret == wxID_YES) {
-                m_project->save_project();
-            } else {
-                e.Veto();
-                return;
-            }
+            !confirm_project_page_can_leave([this, new_sel] { m_tabpanel->SetSelection(new_sel); })) {
+            e.Veto();
+            return;
         }
         if (wxGetApp().preset_bundle &&
             wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
@@ -1215,6 +1444,27 @@ void MainFrame::init_tabpanel()
             if (agent)
                 agent->track_update_property("select_device_page", std::to_string(++select_device_page_count));
         }
+        else if (panel == m_web_device) {
+#if defined(__WXOSX__)
+            // Defer hash navigation until after the notebook paints (macOS + WKWebView).
+            CallAfter([this]() {
+                if (m_web_device && m_tabpanel && m_tabpanel->GetCurrentPage() == m_web_device)
+                    m_web_device->NavigateTo("/filament_manager", /*re_init=*/true);
+            });
+#else
+            // Switching back to this tab: re-run init() to pick up changes.
+            m_web_device->NavigateTo("/filament_manager", /*re_init=*/true);
+#endif
+        }
+#if defined(__WXOSX__)
+        // macOS root cause fix: suspend the Filament Manager WKWebView whenever it
+        // is not the visible tab. Its live React SPA, if left mounted in a hidden
+        // webview, keeps the CFRunLoop busy and starves wxEVT_IDLE app-wide, which
+        // freezes the 3D canvas / tab switching on the prepare page and breaks the
+        // language-switch GUI rebuild. Returning to the tab reloads it (NavigateTo).
+        if (m_web_device && panel != m_web_device)
+            m_web_device->Suspend();
+#endif
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
@@ -1224,7 +1474,12 @@ void MainFrame::init_tabpanel()
         }
 #endif
 #ifndef __WXGTK__
-        if (panel)
+        // macOS: avoid moving first responder into WKWebView on Filament Manager (STUDIO-18111).
+        if (panel
+#if defined(__WXOSX__)
+            && panel != m_web_device
+#endif
+        )
             panel->SetFocus();
 #endif
         /*switch (sel) {
@@ -1247,13 +1502,14 @@ void MainFrame::init_tabpanel()
     });
 
     if (wxGetApp().is_editor()) {
-        m_webview         = new WebViewPanel(m_tabpanel);
+        m_webview = new WebViewPanel(m_tabpanel);
         Bind(EVT_LOAD_URL, [this](wxCommandEvent &evt) {
             wxString url = evt.GetString();
             select_tab(MainFrame::tpHome);
             m_webview->load_url(url);
         });
         m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_active", false);
+        m_tabpanel->SetPageToolTip(tpHome, _L("Home"));
         m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     }
 
@@ -1292,6 +1548,11 @@ void MainFrame::init_tabpanel()
     m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_calibration->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
+
+    if (!wxGetApp().is_fila_manager_disabled()) {
+        m_web_device = new DeviceWebPage(m_tabpanel);
+        m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
+    }
 
     if (m_plater) {
         // load initial config
@@ -1468,6 +1729,56 @@ bool MainFrame::is_active_and_shown_tab(wxPanel* panel)
     if (m_tabpanel->GetCurrentPage() != panel)
         return false;
     return true;
+}
+
+bool MainFrame::confirm_project_page_can_leave(std::function<void()> retry)
+{
+    if (m_project == nullptr || !m_project->is_editing_page())
+        return true;
+
+    const bool dirty_known = m_project_leave_checked;
+    m_project_leave_checked = false;
+    bool page_dirty = m_project_leave_dirty;
+
+    if (!dirty_known) {
+        // Whether anything actually changed is only known inside the page, and the
+        // answer arrives as a separate message, so hold the action back and replay
+        // it from the callback.
+        const long long now = wxGetUTCTimeMillis().GetValue();
+        if (m_project_leave_query_ms == 0 || now - m_project_leave_query_ms < 1500) {
+            m_project_leave_query_ms = now;
+            m_project->query_unsaved_changes([this, retry](bool dirty) {
+                m_project_leave_checked  = true;
+                m_project_leave_dirty    = dirty;
+                m_project_leave_query_ms = 0;
+                CallAfter(retry);
+            });
+            return false;
+        }
+        // The page never answered. Prompt rather than risk discarding edits.
+        m_project_leave_query_ms = 0;
+        page_dirty = true;
+    }
+
+    if (!page_dirty)
+        return true;
+
+    MessageDialog dlg(this,
+                      _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
+                      _L("Save"),
+                      wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
+    const int ret = dlg.ShowModal();
+    if (ret == wxID_YES) {
+        m_project->save_project([this, retry] {
+            m_project_leave_checked  = true;
+            m_project_leave_dirty    = false;
+            CallAfter(retry);
+        });
+        return false;
+    }
+
+    // wxID_NO drops the edits and lets the action through; cancel stays on the page.
+    return ret == wxID_NO;
 }
 
 bool MainFrame::can_start_new_project() const
@@ -1652,6 +1963,21 @@ bool MainFrame::can_change_view() const
     }
 }
 
+bool MainFrame::can_toggle_camera_fullscreen() const
+{
+    StatusPanel *status_panel = m_monitor ? m_monitor->get_status_panel() : nullptr;
+    if (!status_panel) return false;
+    if (status_panel->is_camera_fullscreen()) return true;
+    return m_tabpanel && m_tabpanel->GetSelection() == TabPosition::tpMonitor && status_panel->can_show_camera_fullscreen();
+}
+
+void MainFrame::toggle_camera_fullscreen()
+{
+    StatusPanel *status_panel = m_monitor ? m_monitor->get_status_panel() : nullptr;
+    if (!status_panel || !can_toggle_camera_fullscreen()) return;
+    status_panel->toggle_camera_fullscreen();
+}
+
 bool MainFrame::can_clone() const {
     return can_select() && !m_plater->is_selection_empty();
 }
@@ -1690,7 +2016,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     /*helio*/
     split_line_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("topbar_line", this, 22), wxDefaultPosition, wxSize(FromDIP(3), FromDIP(22)), 0);
     expand_program_holder = new ExpandButtonHolder(this);
-    expand_program_holder->addExpandButton(expand_helio_id, "helio_icon");
+    expand_program_holder->addExpandButton(expand_helio_id, "helio_icon_topbar");
     expand_program_holder->addExpandButton(expand_program_id, "expand_program");
     expand_program_holder->Bind(wxEXPAND_LEFT_DOWN, [=](const wxCommandEvent& e) {
 
@@ -1749,12 +2075,11 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(expand_program_holder, 0, wxALIGN_CENTER, 0);
     sizer->Add(FromDIP(4), 0, 0, 0, 0);
     sizer->Add(split_line_icon, 0, wxALIGN_CENTER, 0);
-    sizer->Add(FromDIP(10), 0, 0, 0, 0);
+    sizer->Add(FromDIP(6), 0, 0, 0, 0);
     sizer->Add(slice_panel);
-    sizer->Add(FromDIP(15), 0, 0, 0, 0);
+    sizer->Add(FromDIP(8), 0, 0, 0, 0);
     sizer->Add(print_panel);
     sizer->Add(FromDIP(4), 0, 0, 0, 0);
-    sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
 
@@ -1772,7 +2097,7 @@ wxBoxSizer* MainFrame::create_side_tools()
         auto curr_plate = this->m_plater->get_partplate_list().get_curr_plate();
         m_filament_group_popup->SetPosition(pos);
         m_filament_group_popup->tryPopup(m_plater, curr_plate, m_slice_select == eSliceAll);
-        };
+    };
 
 #ifndef __linux__
 // in linux plateform, the pop up will taker over the mouse event and make the slice button cannot handle click event
@@ -1796,8 +2121,12 @@ wxBoxSizer* MainFrame::create_side_tools()
         });
 #endif
 
-    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
+    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event) {
+            if (!wxGetApp().check_slice_version_policy()) return;
+
+            if (m_plater->is_background_process_update_scheduled())
+                m_plater->update(false, true);
+
             m_plater->reset_check_status();
             if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
                 return;
@@ -1816,18 +2145,25 @@ wxBoxSizer* MainFrame::create_side_tools()
                 slice = try_pop_up_before_slice(m_slice_select == eSliceAll, m_plater, curr_plate, false);
             #endif
 
-            if (slice) {
+            bool model_fits     = false;
+            bool validate_error = false;
+            m_plater->validate_current_plate(model_fits, validate_error);
+
+            if (slice && model_fits && !validate_error) {
                 std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+                std::unordered_set<std::string> printer_models = {"Bambu Lab H2D", "Bambu Lab H2D Pro", "Bambu Lab H2C"};
                 int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
-                if (extruder_count > 1) {
-                    if (wxGetApp().app_config->get("play_slicing_video") == "true") {
+                if (extruder_count > 1 && printer_models.count(printer_model)) {
+                    const std::string slice_video_key = dual_extruder_first_slice_video_app_config_key(printer_model);
+                    const std::string slice_video_val = wxGetApp().app_config->get(slice_video_key);
+                    if (slice_video_val.empty() || slice_video_val == "true" || slice_video_val == "1") {
                         MessageDialog dlg(this, _L("This is your first time slicing with the dual extruder machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                         auto  res = dlg.ShowModal();
                         if (res == wxID_YES) {
                             play_dual_extruder_slice_video();
                             slice = false;
                         }
-                        wxGetApp().app_config->set("play_slicing_video", "false");
+                        wxGetApp().app_config->set(slice_video_key, "false");
                     }
 
                     if ((wxGetApp().app_config->get("play_tpu_printing_video") == "true")) {
@@ -1881,7 +2217,8 @@ wxBoxSizer* MainFrame::create_side_tools()
             //this->m_plater->select_view_3D("Preview");
             if (m_print_select == ePrintAll || m_print_select == ePrintPlate || m_print_select == ePrintMultiMachine)
             {
-                m_plater->apply_background_progress();
+                if (!m_plater->only_gcode_mode())
+                    m_plater->apply_background_progress();
                 // check valid of print
                 m_print_enable = get_enable_print_status();
                 m_print_btn->Enable(m_print_enable);
@@ -1930,6 +2267,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 m_slice_select = eSliceAll;
                 m_slice_enable = get_enable_slice_status();
                 m_slice_btn->Enable(m_slice_enable);
+                update_helio_button_state();
+
                 this->Layout();
                 if(m_slice_option_pop_up)
                     m_slice_option_pop_up->Dismiss();
@@ -1941,6 +2280,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 m_slice_select = eSlicePlate;
                 m_slice_enable = get_enable_slice_status();
                 m_slice_btn->Enable(m_slice_enable);
+                update_helio_button_state();
+
                 this->Layout();
                 if(m_slice_option_pop_up)
                     m_slice_option_pop_up->Dismiss();
@@ -2121,7 +2462,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     });
     sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
     */
-    sizer->Add(FromDIP(19), 0, 0, 0, 0);
+    // sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     return sizer;
 }
@@ -2168,6 +2509,9 @@ bool MainFrame::get_enable_slice_status()
         }
     }
 
+    if (enable && m_plater->sidebar().has_broken_mixed_filament())
+        enable = false;
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": m_slice_select %1%, enable= %2% ")%m_slice_select %enable;
     return enable;
 }
@@ -2181,6 +2525,8 @@ bool MainFrame::get_enable_print_status()
     bool is_all_plates = wxGetApp().plater()->get_preview_canvas3D()->is_all_plates_selected();
     if (m_print_select == ePrintAll)
     {
+        if (m_plater->only_gcode_mode())
+            return true;
         if (!part_plate_list.is_all_slice_results_ready_for_print())
         {
             enable = false;
@@ -2188,6 +2534,8 @@ bool MainFrame::get_enable_print_status()
     }
     else if (m_print_select == ePrintPlate)
     {
+        if (m_plater->only_gcode_mode())
+            return true;
         if (!current_plate->is_slice_result_ready_for_print())
         {
             enable = false;
@@ -2228,6 +2576,8 @@ bool MainFrame::get_enable_print_status()
 	}
 	else if (m_print_select == eSendToPrinter)
 	{
+        if (m_plater->only_gcode_mode() || m_plater->using_exported_file())
+            return true;
 		if (!current_plate->is_slice_result_ready_for_print())
 		{
 			enable = false;
@@ -2236,6 +2586,8 @@ bool MainFrame::get_enable_print_status()
 	}
     else if (m_print_select == eSendToPrinterAll)
     {
+        if (m_plater->only_gcode_mode() || m_plater->using_exported_file())
+            return true;
         if (!part_plate_list.is_all_slice_results_ready_for_print())
         {
             enable = false;
@@ -2334,17 +2686,30 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     m_slice_enable = enable_slice;
     m_print_enable = enable_print;
 
-    /*for healio*/
-    if (expand_program_holder) {
-        expand_program_holder->updateExpandButtonBitmap(expand_helio_id, m_print_enable?"helio_icon":"helio_icon_disable");
-        expand_program_holder->EnableExpandButton(expand_helio_id, m_print_enable);
-    }
+    update_helio_button_state();
 
-
-    if (!old_slice_status && enable_slice)
+    if (!old_slice_status && enable_slice) {
         m_plater->stop_helio_process();
         m_plater->reset_check_status();
+    }
 }
+
+void MainFrame::update_helio_button_state()
+{
+    if (!expand_program_holder)
+        return;
+
+    const PartPlate* current_plate = m_plater != nullptr ? m_plater->get_partplate_list().get_curr_plate() : nullptr;
+    const bool helio_enabled = m_plater != nullptr && !m_plater->only_gcode_mode() &&
+                               !m_plater->using_exported_file() && current_plate != nullptr &&
+                               current_plate->is_slice_result_valid() && current_plate->can_slice() &&
+                               !m_plater->sidebar().has_broken_mixed_filament() &&
+                               !m_plater->is_background_process_slicing();
+    expand_program_holder->updateExpandButtonBitmap(expand_helio_id, helio_enabled ? "helio_icon_topbar" : "helio_icon_topbar_disable");
+    expand_program_holder->EnableExpandButton(expand_helio_id, helio_enabled);
+}
+
+
 
 
 void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
@@ -2385,6 +2750,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     if (m_multi_machine)
         m_multi_machine->msw_rescale();
     m_calibration->msw_rescale();
+    if (m_web_device)
+        m_web_device->msw_rescale();
 
     // BBS
 #if 0
@@ -2444,6 +2811,7 @@ void MainFrame::on_sys_color_changed()
     wxGetApp().plater()->sys_color_changed();
     m_monitor->on_sys_color_changed();
     m_calibration->on_sys_color_changed();
+    if (m_web_device) m_web_device->on_sys_color_changed();
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
         tab->sys_color_changed();
@@ -2452,6 +2820,9 @@ void MainFrame::on_sys_color_changed()
     wxGetApp().plate_tab->sys_color_changed();
 
     MenuFactory::sys_color_changed(m_menubar);
+
+    // update DiffPresetDialog from here, we're friends
+    diff_dialog.on_sys_color_changed();
 
     WebView::RecreateAll();
 
@@ -2596,6 +2967,13 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
     append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 3", _L("Isometric View") + " 3",
         [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_3"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 #endif
+#ifdef __APPLE__//In the macOS menu, single-key shortcuts are not supported, so this option is hidden temporarily. The actual functionality still works normally.
+    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera"), _L("Fit camera to scene or selected object."),
+        [mainFrame](wxCommandEvent &) { mainFrame->view_zoom_to_fit(); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+#else
+    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera") + "\t" "Z", _L("Fit camera to scene or selected object."),
+        [mainFrame](wxCommandEvent &) { mainFrame->view_zoom_to_fit(); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+#endif
 }
 
 void MainFrame::init_menubar_as_editor()
@@ -2662,14 +3040,29 @@ void MainFrame::init_menubar_as_editor()
 
 
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + "Shift+" + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + "Shift+" + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #endif
+
+        append_menu_item(fileMenu, wxID_ANY, _L("Show Project in Folder"), _L("Show current project in folder"),
+            [this](wxCommandEvent&) {
+                if (m_plater) {
+                    const wxString filename = m_plater->get_project_filename(".3mf");
+                    if (!filename.IsEmpty() && wxFileExists(filename))
+                        Slic3r::GUI::desktop_open_any_folder(into_u8(filename));
+                }
+            }, "", nullptr,
+            [this]() {
+                if (m_plater == nullptr)
+                    return false;
+                const wxString filename = m_plater->get_project_filename(".3mf");
+                return !filename.IsEmpty() && wxFileExists(filename);
+            }, this);
 
 
         fileMenu->AppendSeparator();
@@ -2810,7 +3203,7 @@ void MainFrame::init_menubar_as_editor()
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "Shift+" + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
@@ -2892,7 +3285,7 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "Shift+" + "D",
             _L("Deletes all objects"),[this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
@@ -2977,6 +3370,17 @@ void MainFrame::init_menubar_as_editor()
         add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
         viewMenu->AppendSeparator();
 
+        wxMenuItem *camera_fullscreen_item = append_menu_item(
+            viewMenu, wxID_ANY, _L("Enter Camera Full Screen"), _L("Show the Device camera in full screen"),
+            [this](wxCommandEvent &) { toggle_camera_fullscreen(); }, "", nullptr);
+        Bind(wxEVT_UPDATE_UI, [this, camera_fullscreen_item](wxUpdateUIEvent &evt) {
+            StatusPanel *status_panel = m_monitor ? m_monitor->get_status_panel() : nullptr;
+            const bool active = status_panel && status_panel->is_camera_fullscreen();
+            camera_fullscreen_item->SetItemLabel(active ? _L("Exit Camera Full Screen") : _L("Enter Camera Full Screen"));
+            evt.Enable(can_toggle_camera_fullscreen());
+        }, camera_fullscreen_item->GetId());
+        viewMenu->AppendSeparator();
+
         //BBS perspective view
         wxWindowID camera_id_base = wxWindow::NewControlId(int(wxID_CAMERA_COUNT));
         auto perspective_item = append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use Perspective View"),
@@ -3009,9 +3413,31 @@ void MainFrame::init_menubar_as_editor()
             [this]() { return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview) && m_plater->is_sidebar_enabled(); },
             this);
         viewMenu->AppendSeparator();
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels") + "\t" + ctrl + "E", _L("Show object labels in 3D scene"),
-            [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
-            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
+        auto curr_plate_is_by_object = [this]() {
+            PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
+            return plate && plate->get_real_print_seq() == PrintSequence::ByObject;
+        };
+        wxMenuItem *labels_item = append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Layer") + "\t" + ctrl + "E", _L("Show Labels of printing by layer in 3D scene"),
+            [this, curr_plate_is_by_object](wxCommandEvent &) {
+                if (curr_plate_is_by_object())
+                    m_plater->show_view3D_object_labels(!m_plater->are_view3D_object_labels_shown());
+                else
+                    m_plater->show_view3D_layer_labels(!m_plater->are_view3D_layer_labels_shown());
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this, [this]() { return m_plater->is_view3D_shown(); },
+            [this, curr_plate_is_by_object]() {
+                return curr_plate_is_by_object() ? m_plater->are_view3D_object_labels_shown() : m_plater->are_view3D_layer_labels_shown();
+            },
+            this);
+        this->Bind(wxEVT_UPDATE_UI, [this, labels_item, curr_plate_is_by_object](wxUpdateUIEvent &evt) {
+            if (curr_plate_is_by_object())
+                labels_item->SetItemLabel(_L("Show Labels by Object") + "\t" + "Shift+" + "E");
+            else
+                labels_item->SetItemLabel(_L("Show Labels by Layer") + "\t" + ctrl + "E");
+            evt.Enable(m_plater->is_view3D_shown());
+            evt.Check(curr_plate_is_by_object() ? m_plater->are_view3D_object_labels_shown() : m_plater->are_view3D_layer_labels_shown());
+        }, labels_item->GetId());
 
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Overhang") + "\t" + ctrl + "L", _L("Show object overhang highlight in 3D scene"),
             [this](wxCommandEvent &) {
@@ -3183,6 +3609,15 @@ void MainFrame::init_menubar_as_editor()
             if (dlg.seq_top_layer_only_changed())
 #endif
                 plater()->refresh_print();
+
+            // Refresh recent list if time format changed
+            if (dlg.use_12h_time_format_changed() && m_webview) {
+                wxGetApp().CallAfter([this]() {
+                    if (m_webview) {
+                        m_webview->SendRecentList(-1);
+                    }
+                });
+            }
         },
         "", nullptr, []() { return true; }, this, 1);
     //parent_menu->Insert(1, preference_item);
@@ -3209,6 +3644,15 @@ void MainFrame::init_menubar_as_editor()
             if (dlg.seq_top_layer_only_changed())
 #endif
                 plater()->refresh_print();
+
+            // Refresh recent list if time format changed
+            if (dlg.use_12h_time_format_changed() && m_webview) {
+                wxGetApp().CallAfter([this]() {
+                    if (m_webview) {
+                        m_webview->SendRecentList(-1);
+                    }
+                });
+            }
         },
         "", nullptr, []() { return true; }, this);
     //m_topbar->AddDropDownMenuItem(preference_item);
@@ -3228,10 +3672,10 @@ void MainFrame::init_menubar_as_editor()
             [this]() {return m_plater->is_view3D_shown();; }, this);
         auto flowrate_menu = new wxMenu();
         append_menu_item(
-            flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+            flowrate_menu, wxID_ANY, _L("Coarse"), _L("Flow rate test - Coarse"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
-        append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        append_menu_item(flowrate_menu, wxID_ANY, _L("Fine"), _L("Flow rate test - Fine"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
         m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
@@ -3325,7 +3769,7 @@ void MainFrame::init_menubar_as_editor()
     // Flowrate
     auto flowrate_menu = new wxMenu();
     append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+        flowrate_menu, wxID_ANY, _L("Coarse"), _L("Flow rate test - Coarse"),
         [this](wxCommandEvent &) {
             if (m_plater) m_plater->calib_flowrate(1);
         },
@@ -3336,7 +3780,7 @@ void MainFrame::init_menubar_as_editor()
         },
         this);
     append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        flowrate_menu, wxID_ANY, _L("Fine"), _L("Flow rate test - Fine"),
         [this](wxCommandEvent &) {
             if (m_plater) m_plater->calib_flowrate(2);
         },
@@ -3839,6 +4283,25 @@ void MainFrame::jump_to_multipage()
     ((MultiMachinePage*)m_multi_machine)->jump_to_send_page();
 }
 
+// Readable name for a tab index, for perf tracing.
+static const char *perf_tab_name(size_t tab)
+{
+    switch (tab) {
+    case MainFrame::tpHome: return "Home";
+    case MainFrame::tp3DEditor: return "3D Editor";
+    case MainFrame::tpPreview: return "Preview";
+    case MainFrame::tpMonitor: return "Device";
+    case MainFrame::tpMultiDevice: return "Multi-device";
+    case MainFrame::tpProject: return "Project";
+    case MainFrame::tpCalibration: return "Calibration";
+    case MainFrame::tpAuxiliary: return "Auxiliary";
+    case MainFrame::toDebugTool: return "Debug Tool";
+    case MainFrame::tpFilamentManager: return "Filament Manager";
+    case MainFrame::tpWebDevice: return "Web Device";
+    case size_t(-1): return "last selected";
+    default: return "unknown";
+    }
+}
 
 //BBS GUI refactor: remove unused layout new/dlg
 void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
@@ -3872,6 +4335,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         }
     };
 
+    PERF_TRACE(std::string("Switching to ") + perf_tab_name(tab) + " tab");
     select(false);
 }
 
@@ -3893,6 +4357,12 @@ void MainFrame::select_view(const std::string& direction)
 {
      if (m_plater)
          m_plater->select_view(direction);
+}
+
+void MainFrame::view_zoom_to_fit() const
+{
+    if (GLCanvas3D *canvas = m_plater ? m_plater->canvas3D() : nullptr)
+        canvas->zoom_to_fit();
 }
 
 // #ys_FIXME_to_delete
@@ -3969,6 +4439,14 @@ void MainFrame::set_print_button_to_default(PrintSelectType select_type)
 
 void MainFrame::add_to_recent_projects(const wxString& filename)
 {
+    // Never record a path that would break out of its attribute when the home page renders the
+    // recent-file list. Plater::load_project() rejects these too; this keeps any other caller safe.
+    // The whole path is checked, not just the file name: the home page renders the full path.
+    if (Plater::has_html_unsafe_path_characters(filename)) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": skipped project with unsafe characters in its path";
+        return;
+    }
+
     if (wxFileExists(filename))
     {
         m_recent_projects.AddFileToHistory(filename);
@@ -4043,13 +4521,36 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int imag
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
         boost::property_tree::wptree item;
         std::wstring proj = m_recent_projects.GetHistoryFile(i).ToStdWstring();
-        item.put(L"project_name", proj.substr(proj.find_last_of(L"/\\") + 1));
+        std::wstring project_name = proj.substr(proj.find_last_of(L"/\\") + 1);
+        // Entries persisted by an older build may still carry a path that breaks out of the
+        // attribute it is rendered into, so filter on the way out as well as on the way in.
+        // Both fields below reach the page, so the full path has to be clean, not just the name.
+        if (Plater::has_html_unsafe_path_characters(wxString(proj)))
+            continue;
+        item.put(L"project_name", project_name);
         item.put(L"path", proj);
         boost::system::error_code ec;
         std::time_t t = boost::filesystem::last_write_time(proj, ec);
         if (!ec) {
-            std::wstring time = wxDateTime(t).FormatISOCombined(' ').ToStdWstring();
-            item.put(L"time", time);
+            std::tm* local_tm = std::localtime(&t);
+            if (local_tm != nullptr)
+            {
+                bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+
+                // Format date and time: YYYY-MM-DD HH:MM[:SS][AM/PM]
+                std::wstringstream time_stream;
+                time_stream << std::setw(4) << std::setfill(L'0') << (local_tm->tm_year + 1900) << L"-"
+                        << std::setw(2) << std::setfill(L'0') << (local_tm->tm_mon + 1) << L"-"
+                        << std::setw(2) << std::setfill(L'0') << local_tm->tm_mday << L" "
+                        << from_u8(Slic3r::format_time_hm(local_tm, use_12h_format));
+                item.put(L"time", time_stream.str());
+
+            }
+            else
+            {
+                std::wstring time = wxDateTime(t).FormatISOCombined(' ').ToStdWstring();
+                item.put(L"time", time);
+            }
             if (i <= images) {
                 auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
                 if (!thumbnail.empty()) item.put(L"image", thumbnail);

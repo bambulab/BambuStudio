@@ -1,4 +1,6 @@
 #include "DailyTips.hpp"
+#include "GUI_App.hpp"
+#include "Plater.hpp"
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -347,6 +349,51 @@ void DailyTipsPanel::retrieve_data_from_hint_database(HintDataNavigation nav)
     }
 }
 
+void DailyTipsPanel::retrieve_data_from_hint_database(const std::string& key, bool force_expand)
+{
+    if (force_expand)
+        m_is_expanded = true;
+
+    HintData* hint_data = HintDatabase::get_instance().get_hint_by_key(key);
+    if (hint_data != nullptr)
+    {
+        DailyTipsData data{ hint_data->text,
+                            hint_data->documentation_link,
+                            hint_data->image_url,
+                            hint_data->follow_text,
+                            hint_data->hypertext,
+                            hint_data->callback
+        };
+        m_dailytips_renderer->update_data(data);
+        m_first_enter = true;
+    }
+}
+
+void DailyTipsPanel::retrieve_data_from_hint_database(const std::string& key, const std::string& text_arg, bool force_expand)
+{
+    if (force_expand)
+        m_is_expanded = true;
+
+    HintData* hint_data = HintDatabase::get_instance().get_hint_by_key(key);
+    if (hint_data != nullptr)
+    {
+        std::string text = hint_data->text;
+        size_t pos = text.find("%s");
+        if (pos != std::string::npos)
+            text.replace(pos, 2, text_arg);
+
+        DailyTipsData data{ text,
+                            hint_data->documentation_link,
+                            hint_data->image_url,
+                            hint_data->follow_text,
+                            hint_data->hypertext,
+                            hint_data->callback
+        };
+        m_dailytips_renderer->update_data(data);
+        m_first_enter = true;
+    }
+}
+
 void DailyTipsPanel::expand(bool expand)
 {
     if (!m_can_expand)
@@ -578,7 +625,7 @@ void DailyTipsWindow::close()
     m_show = false;
 }
 
-void DailyTipsWindow::render()
+void DailyTipsWindow::render(float cnv_width, float cnv_height)
 {
     if (!m_show)
         return;
@@ -588,8 +635,7 @@ void DailyTipsWindow::render()
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     float scale = imgui.get_font_size() / 15.0f;
 
-    const Size& cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-    ImVec2 center = ImVec2(cnv_size.get_width() * 0.5f, cnv_size.get_height() * 0.5f);
+    ImVec2 center = ImVec2(cnv_width * 0.5f, cnv_height * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
     ImVec2 padding = ImVec2(25, 25) * scale;

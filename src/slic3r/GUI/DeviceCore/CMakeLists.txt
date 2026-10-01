@@ -36,6 +36,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevFilaSystem.h
     GUI/DeviceCore/DevFilaSystem.cpp
     GUI/DeviceCore/DevFilaSystemCtrl.cpp
+    GUI/DeviceCore/DevFilaSwitch.h
+    GUI/DeviceCore/DevFilaSwitch.cpp
     GUI/DeviceCore/DevFirmware.h
     GUI/DeviceCore/DevFirmware.cpp
     GUI/DeviceCore/DevPrintOptions.h
@@ -44,6 +46,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevPrintTaskInfo.cpp
     GUI/DeviceCore/DevHMS.h
     GUI/DeviceCore/DevHMS.cpp
+    GUI/DeviceCore/DevHMSQuery.h
+    GUI/DeviceCore/DevHMSQuery.cpp
     GUI/DeviceCore/DevInfo.h
     GUI/DeviceCore/DevInfo.cpp
     GUI/DeviceCore/DevLamp.h
@@ -53,6 +57,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevManager.cpp
     GUI/DeviceCore/DevMapping.h
     GUI/DeviceCore/DevMapping.cpp
+    GUI/DeviceCore/DevMappingNozzle.h
     GUI/DeviceCore/DevMappingNozzle.cpp
     GUI/DeviceCore/DevNozzleRack.h
     GUI/DeviceCore/DevNozzleRack.cpp

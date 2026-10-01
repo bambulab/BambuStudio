@@ -10,6 +10,7 @@
 #include "PartPlate.hpp"
 #include "I18N.hpp"
 #include "MainFrame.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 #include "Widgets/Button.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Notebook.hpp"
@@ -25,6 +26,9 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevMapping.h"
 #include "DeviceCore/DevStorage.h"
+#include "DeviceCore/DevNozzleRack.h"
+#include "libslic3r/FilamentMixer.hpp"
+#include "FilamentBitmapUtils.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::GUI;
@@ -37,6 +41,7 @@ using namespace Slic3r::GUI;
 #define SyncAmsInfoDialogHeightMAX FromDIP(660)
 #define SyncLabelWidth FromDIP(640)
 #define SyncAttentionTipWidth FromDIP(550)
+
 namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
@@ -348,7 +353,7 @@ void SyncAmsInfoDialog::update_map_when_change_map_mode()
         m_cur_colors_in_thumbnail = m_back_cur_colors_in_thumbnail;
     } else if (m_map_mode == MapModeEnum::Override) {
         if (m_ams_combo_info.empty()) {
-            wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info);
+            wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info, has_selector(nullptr));
         }
         for (size_t i = 0; i < m_ams_combo_info.ams_filament_colors.size(); i++) {
             auto result = decode_ams_color(m_ams_combo_info.ams_filament_colors[i]);
@@ -771,7 +776,8 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
     m_filament_panel_left_sizer     = new wxBoxSizer(wxVERTICAL);
     auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto left_recommend_title1      = new Label(m_filament_left_panel, _L("Left Extruder"));
+    std::string sai_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    auto left_recommend_title1      = new Label(m_filament_left_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(sai_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase)));
     left_recommend_title1->SetFont(::Label::Head_13);
     left_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
     auto left_recommend_title2 = new Label(m_filament_left_panel, _L("(Recommended filament)"));
@@ -796,7 +802,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
     m_filament_panel_right_sizer     = new wxBoxSizer(wxVERTICAL);
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto right_recommend_title1      = new Label(m_filament_right_panel, _L("Right Extruder"));
+    auto right_recommend_title1      = new Label(m_filament_right_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(sai_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase)));
     right_recommend_title1->SetFont(::Label::Head_13);
     right_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
 
@@ -1219,6 +1225,17 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
     }
 }
 
+bool SyncAmsInfoDialog::has_selector(MachineObject *obj_) const
+{
+    if (!obj_) {
+        DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (!dev_manager)
+            return false;
+        obj_ = dev_manager->get_selected_machine();
+    }
+    return obj_ && obj_->GetFilaSwitch()->IsInstalled() && obj_->GetFilaSwitch()->IsReady();
+}
+
 bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
 {
     if (!obj_) return false;
@@ -1235,6 +1252,10 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
     std::vector<bool> map_opt; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1) {
         map_opt         = {true, true, true, true}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+        if (has_selector(obj_)) {//选料器
+            map_opt[2] = false;
+            map_opt[3] = false;
+        }
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
                                                      wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
     }
@@ -1444,39 +1465,6 @@ bool SyncAmsInfoDialog::build_nozzles_info(std::string &nozzles_info)
     return true;
 }
 
-bool SyncAmsInfoDialog::can_hybrid_mapping(DevExtderSystem data)
-{
-    // Mixed mappings are not allowed
-    return false;
-
-    if (data.GetTotalExtderCount() <= 1 || !wxGetApp().preset_bundle) return false;
-
-    // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
-    // Therefore, some adjustments need to be made.
-    std::vector<std::string> flow_type_of_machine;
-    for (auto it = data.GetExtruders().rbegin(); it != data.GetExtruders().rend(); it++) {
-        // exist field is not updated, wait add
-        // if (it->exist < 3) return false;
-        std::string type_str = DevNozzle::ToNozzleFlowString(it->GetNozzleFlowType());
-        flow_type_of_machine.push_back(type_str);
-    }
-    // get the nozzle type of preset --> flow_types
-    const Preset &      current_printer = wxGetApp().preset_bundle->printers.get_selected_preset();
-    const Preset *      base_printer    = wxGetApp().preset_bundle->printers.get_preset_base(current_printer);
-    std::string         base_name       = base_printer->name;
-    auto                flow_data       = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_name);
-    std::vector<string> flow_types;
-    boost::split(flow_types, flow_data, boost::is_any_of(","));
-    if (flow_types.size() <= 1 || flow_types.size() != flow_type_of_machine.size()) return false;
-
-    // Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
-    auto type = flow_types[0];
-    for (int i = 0; i < flow_types.size(); i++) {
-        if (flow_types[i] != type || flow_type_of_machine[i] != type) return false;
-    }
-    return true;
-}
-
 // When filaments cannot be matched automatically, whether to use ext for automatic supply
 void SyncAmsInfoDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots)
 {
@@ -1541,11 +1529,12 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(DevExtderSystem data, wxString &err
 
             if (target_machine_nozzle_id < flow_type_of_machine.size()) {
                 if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) {
+                    std::string sai_nz_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
                     wxString pos;
                     if (target_machine_nozzle_id == DEPUTY_EXTRUDER_ID) {
-                        pos = _L("left nozzle");
+                        pos = _L(DevPrinterConfigUtil::get_toolhead_display_name(sai_nz_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
                     } else if ((target_machine_nozzle_id == MAIN_EXTRUDER_ID)) {
-                        pos = _L("right nozzle");
+                        pos = _L(DevPrinterConfigUtil::get_toolhead_display_name(sai_nz_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
                     }
 
                     error_message = wxString::Format(_L("The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "
@@ -1822,7 +1811,7 @@ void SyncAmsInfoDialog::show_status(PrintDialogStatus status, std::vector<wxStri
         for (auto warning : plate->get_slice_result()->warnings) {
             if (warning.msg == NOT_GENERATE_TIMELAPSE) {
                 if (warning.error_code == "10014001") {
-                    msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
+                    msg_text = _L("When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos.");
                 } else if (warning.error_code == "10014002") {
                     msg_text = _L("Timelapse is not supported because Print sequence is set to \"By object\".");
                 }
@@ -1884,8 +1873,7 @@ bool SyncAmsInfoDialog::is_same_nozzle_diameters(NozzleType &tag_nozzle_type, fl
 {
     bool is_same_nozzle_diameters = true;
 
-    float       preset_nozzle_diameters;
-    std::string preset_nozzle_type;
+    float preset_nozzle_diameters;
 
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return true;
@@ -1896,13 +1884,6 @@ bool SyncAmsInfoDialog::is_same_nozzle_diameters(NozzleType &tag_nozzle_type, fl
     try {
         PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
         auto          opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-
-        const ConfigOptionEnumsGenericNullable *nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
-        std::vector<std::string>                preset_nozzle_types(nozzle_type->size());
-        for (size_t idx = 0; idx < nozzle_type->size(); ++idx) preset_nozzle_types[idx] = NozzleTypeEumnToStr[NozzleType(nozzle_type->values[idx])];
-
-        std::vector<std::string> machine_nozzle_types(obj_->GetExtderSystem()->GetTotalExtderCount());
-        for (size_t idx = 0; idx < obj_->GetExtderSystem()->GetTotalExtderCount(); ++idx) machine_nozzle_types[idx] = obj_->GetExtderSystem()->GetNozzleType(idx);
 
         auto used_filaments = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_filaments();                                  // 1 based
         auto filament_maps  = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(preset_bundle->project_config); // 1 based
@@ -2365,31 +2346,6 @@ void SyncAmsInfoDialog::update_show_status()
             return;
         }
     }
-
-    // check ams and vt_slot mix use status
-    {
-        struct ExtruderStatus
-        {
-            bool has_ams{false};
-            bool has_vt_slot{false};
-        };
-        std::vector<ExtruderStatus> extruder_status(nozzle_nums);
-        for (const FilamentInfo &item : m_ams_mapping_result) {
-            if (item.ams_id.empty()) continue;
-
-            int extruder_id = obj_->get_extruder_id_by_ams_id(item.ams_id);
-            if (devPrinterUtil::IsVirtualSlot(item.ams_id))
-                extruder_status[extruder_id].has_vt_slot = true;
-            else
-                extruder_status[extruder_id].has_ams = true;
-        }
-        for (auto extruder : extruder_status) {
-            if (extruder.has_ams && extruder.has_vt_slot) {
-                show_status(PrintDialogStatus::PrintStatusMixAmsAndVtSlotWarning);
-                return;
-            }
-        }
-    }
 }
 
 bool SyncAmsInfoDialog::has_timelapse_warning()
@@ -2608,6 +2564,8 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
     m_materialList.clear();
     m_filaments.clear();
 
+    auto* is_mixed_opt = preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
+
     bool use_double_extruder = get_is_double_extruder();
     if (use_double_extruder) {
         const auto &project_config = preset_bundle->project_config;
@@ -2624,6 +2582,8 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
 
         auto colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
+            continue;
+        if (is_mixed_opt && extruder < (int) is_mixed_opt->values.size() && is_mixed_opt->values[extruder])
             continue;
 
         if (contronal_index % SYNC_FLEX_GRID_COL == 0) {
@@ -2693,10 +2653,17 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             MachineObject *obj_        = dev_manager->get_selected_machine();
             const auto &   full_config = wxGetApp().preset_bundle->full_config();
             size_t         nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+            bool           is_selector = false;
             if (nozzle_nums > 1) {
-                m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);//special
+                if (has_selector(obj_)) {//选料器
+                    m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT_DYNAMIC);
+                    is_selector = true;
+                } else {
+                    m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
+                }
+            } else {
+                m_mapping_popup.set_show_type(ShowType::RIGHT);
             }
-            // m_mapping_popup.set_show_type(ShowType::RIGHT);
             if (obj_) {
                 if (m_mapping_popup.IsShown())
                     return;
@@ -2721,7 +2688,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                     m_mapping_popup.set_reset_callback(reset_call_back);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.set_send_win(this);
-                    m_mapping_popup.update(obj_, m_ams_mapping_result);
+                    m_mapping_popup.update(obj_, m_ams_mapping_result, is_selector, std::nullopt);
                     m_mapping_popup.Popup();
                 }
             }
@@ -2804,7 +2771,7 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
         }
     }
     if (m_ams_combo_info.empty()) {
-        wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info);
+        wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info, has_selector(nullptr));
     }
     std::vector<int> extruders(wxGetApp().plater()->get_extruders_colors().size());
     std::iota(extruders.begin(), extruders.end(), 1);
@@ -2822,6 +2789,8 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
     m_fix_materialList.clear();
     m_fix_filaments.clear();
 
+    auto* is_mixed_opt = preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
+
     bool use_double_extruder = get_is_double_extruder();
     if (use_double_extruder) {
         const auto &project_config = preset_bundle->project_config;
@@ -2838,6 +2807,8 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
 
         auto colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
         if (extruder >= extruders.size() || extruder < 0 || extruder >= m_ams_combo_info.ams_filament_colors.size())
+            continue;
+        if (is_mixed_opt && extruder < (int) is_mixed_opt->values.size() && is_mixed_opt->values[extruder])
             continue;
 
         if (contronal_index % SYNC_FLEX_GRID_COL == 0) {
@@ -2963,6 +2934,20 @@ void SyncAmsInfoDialog::clone_thumbnail_data()
             iter++;
         }
     }
+
+    // Expand color arrays to cover mixed (virtual) slots and compute their blended colors
+    const auto& cfg = wxGetApp().preset_bundle->project_config;
+    size_t total = 0;
+    if (auto* opt = cfg.option<ConfigOptionBools>("filament_is_mixed"))
+        total = opt->values.size();
+    size_t target = std::max(total, m_cur_colors_in_thumbnail.size());
+    if (m_cur_colors_in_thumbnail.size() < target)
+        m_cur_colors_in_thumbnail.resize(target);
+    if (m_preview_colors_in_thumbnail.size() < target)
+        m_preview_colors_in_thumbnail.resize(target);
+    recompute_mixed_slot_colors(m_preview_colors_in_thumbnail, cfg);
+    recompute_mixed_slot_colors(m_cur_colors_in_thumbnail, cfg);
+
     // copy data
     auto &data = m_cur_input_thumbnail_data;
     m_preview_thumbnail_data.reset();
@@ -3151,6 +3136,10 @@ void SyncAmsInfoDialog::change_default_normal(int old_filament_id, wxColour temp
             return;
         }
     }
+    // Recompute mixed slot colors after physical slot color change
+    const auto& cfg = wxGetApp().preset_bundle->project_config;
+    recompute_mixed_slot_colors(m_cur_colors_in_thumbnail, cfg);
+
     ThumbnailData &data          = m_cur_input_thumbnail_data;
     ThumbnailData &no_light_data = m_cur_no_light_thumbnail_data;
     if (data.width > 0 && data.height > 0 && data.width == no_light_data.width && data.height == no_light_data.height) {
@@ -3296,6 +3285,32 @@ void FinishSyncAmsDialog::deal_ok() {
 }
 
 void FinishSyncAmsDialog::update_info(InputInfo &info)
+{
+    m_input_info = info;
+    restart();
+    SetPosition(m_input_info.dialog_pos);
+}
+
+ExtruderWarningDialog::ExtruderWarningDialog(InputInfo &input_info, std::string icon_name)
+    : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
+                              310,
+                              input_info.dialog_pos,
+                              68,
+                              _L("Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."),
+                              _CTX(L_CONTEXT("OK", "FinishSyncAms"), "FinishSyncAms"),
+                              "",
+                              DisappearanceMode::TimedDisappearance,
+                              icon_name)
+    , m_input_info(input_info)
+{
+    m_button_cancel->Hide();
+}
+
+ExtruderWarningDialog::~ExtruderWarningDialog() {}
+
+void ExtruderWarningDialog::deal_ok() { on_hide(); }
+
+void ExtruderWarningDialog::update_info(InputInfo &info)
 {
     m_input_info = info;
     restart();

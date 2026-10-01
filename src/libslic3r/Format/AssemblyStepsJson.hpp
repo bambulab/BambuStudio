@@ -1,0 +1,408 @@
+#ifndef slic3r_AssemblyStepsJson_hpp_
+#define slic3r_AssemblyStepsJson_hpp_
+
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <array>
+#include <memory>
+#include <optional>
+#include <unordered_map>
+#include <utility>
+#include <cstddef>
+
+#include <nlohmann/json.hpp>
+#include "libslic3r/Geometry.hpp"
+
+namespace Slic3r {
+// One SVG arrow ray: tip anchors to bound volumes' on-screen bbox center.
+// Multi-ray notes share one SVG icon: each ray's start+arrow_end_offset equals the
+// same absolute icon center; line tips attach to optimal points on that icon rect.
+struct ArrowSvgRay
+{
+    // The ModelVolumes this ray points at, recorded as (object_idx, volume_idx).
+    std::vector<std::pair<int, int>> bound_volumes{};
+    Vec2d arrow_start_offset{Vec2d::Zero()}; // offset from bound-volumes (or step) bbox screen center
+    Vec2d arrow_end_offset{Vec2d(80, -60)};  // offset from arrow start → shared SVG icon center
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+// ---- ArrowSvgNote: one shared SVG icon + one or more rays (multi-part → multi-arrow) ----
+struct ArrowSvgNote
+{
+    std::string svg_name{};
+    // Shared icon size / tint for every ray of this note.
+    Vec2d              label_size{Vec2d(56, 56)};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> color{63, 130, 240, 255};
+    // One ray per pointed part when created from a multi-selection. Always non-empty
+    // after from_json() (legacy single-arrow JSON is expanded into rays[0]).
+    // All rays share one SVG; rays[0] is the canonical icon-position owner.
+    std::vector<ArrowSvgRay> rays;
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+struct TextLabelNote
+{
+    std::string text{"Note"};
+    // The ModelVolumes this note is bound to, recorded as (object_idx, volume_idx).
+    std::vector<std::pair<int, int>> bound_volumes{};
+    Vec2d       pos_offset{Vec2d(60, -60)};
+    Vec2d       size{Vec2d(160, 80)};
+    std::array<int, 4>               color{255, 255, 255, 255};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> background_color{63, 130, 240, 255};
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+struct CircleNote
+{
+    // Bound ModelVolumes (object_idx, volume_idx); pos_offset is measured from
+    std::vector<std::pair<int, int>> bound_volumes{};
+    Vec2d pos_offset{Vec2d(60, -60)};
+    Vec2d size{Vec2d(80, 80)};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> color{63, 130, 240, 255};
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+struct RectangleNote
+{
+    // Bound ModelVolumes (object_idx, volume_idx); pos_offset is measured from
+    std::vector<std::pair<int, int>> bound_volumes{};
+    Vec2d pos_offset{Vec2d(60, -60)};
+    Vec2d size{Vec2d(80, 80)};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> color{63, 130, 240, 255};
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+struct PlainArrowNote
+{
+    // Bound ModelVolumes (object_idx, volume_idx); arrow_start_offset is measured
+    std::vector<std::pair<int, int>> bound_volumes{};
+    Vec2d arrow_start_offset{Vec2d::Zero()};
+    Vec2d arrow_end_offset{Vec2d(80, -60)};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> color{63, 130, 240, 255};
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+struct PartNumberLabel
+{
+    int         object_idx{-1};
+    int         volume_idx{-1};
+    std::string part_name;
+    std::string part_guid;
+    Vec2d       arrow_start_offset{Vec2d::Zero()};
+    Vec2d       arrow_end_offset{Vec2d(60, -50)};
+    // Per-label visibility on the canvas / tree "标签" column. Closing the pill
+    // sets this false; the label entry is kept so the tree can show the off state.
+    bool        visible{true};
+    // Per-label explosion marker for the tree "Explosion" column. Live display still
+    // prefers GLVolume vs ModelVolume matrix compare; this flag is persisted/toggled.
+    bool        in_explosion_state{false};
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+// ---- AssemblyNote: per-keyframe annotation data ----
+struct AssemblyNote
+{
+    std::vector<ArrowSvgNote> arrow_svgs;
+    std::vector<TextLabelNote> text_labels;
+    std::vector<CircleNote> circle_notes;
+    std::vector<RectangleNote> rectangle_notes;
+    std::vector<PlainArrowNote> plain_arrows;
+    std::vector<PartNumberLabel> part_number_labels;
+    bool show_part_labels{true};//guide_show_part_numbers
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+enum class LabelsShowType { AutoRecommend, OnlyModelObject, OnlyModelVolume };
+// ---- KeyFrame ----
+struct KeyFrame
+{
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    int                                                      id{0};
+    std::string                                              name;
+    bool                                                     is_sub_assembly{false};
+    bool                                                     is_camera_define{false};
+    // Set only when the user explicitly framed this keyframe (gizmo move / re-record).
+    // When true, look_cur_frame_logic() restores the stored camera as-is instead of
+    // auto-framing to the step's main plane, so returning to a hand-framed frame keeps
+    // the user's view. is_camera_define is NOT reused for this because playback prep /
+    // margin / label paths also set it (with a fallback/fit camera).
+    bool                                                     camera_user_defined{false};
+    Transform3d                                              view_matrix{Transform3d::Identity()};
+    Transform3d                                              projection_matrix{Transform3d::Identity()};
+    Vec3d                                                    camera_target{Vec3d::Zero()};
+    double                                                   camera_zoom{1.0};
+    // Camera "zoom-to-box" margin factor used to frame this keyframe. Stored per.
+    double                                                   camera_margin_factor{1.4};
+    // Per-keyframe assemble-transformation snapshots, split to mirror the
+    std::map<int, Geometry::Transformation>                  object_transformations;
+    std::map<std::pair<int, int>, Geometry::Transformation>  volume_transformations;
+    std::map<std::pair<int, int>, std::string>               volume_names;
+    // Stable ModelVolume::part_guid keyed like volume_transformations. Used to
+    // rebind poses after a prepare-side volume delete shifts volume_idx.
+    std::map<std::pair<int, int>, std::string>               volume_guids;
+    AssemblyNote                                             assembly_note;
+    LabelsShowType                                           labels_show_type{LabelsShowType::AutoRecommend};
+    bool                                                     is_interpolation{false}; // no need to save
+    int                                                      play_node_idx{-1};      // no need to save
+    int                                                      play_frame_idx{-1};     // no need to save
+    bool is_last() const{
+        return id == 0;
+    }
+    bool is_start() const {
+        return id == 1;
+    }
+    bool is_transition() const {
+        return id > 1;
+    }
+    void clone_from(const KeyFrame &src) {
+        id = src.id;
+        name = src.name;
+        is_sub_assembly = src.is_sub_assembly;
+        is_camera_define = src.is_camera_define;
+        camera_user_defined = src.camera_user_defined;
+        // Camera framing.
+        view_matrix = src.view_matrix;
+        projection_matrix = src.projection_matrix;
+        camera_target = src.camera_target;
+        camera_zoom = src.camera_zoom;
+        camera_margin_factor = src.camera_margin_factor;
+        // Per-keyframe assemble-transformation (matrix pose) snapshots: copy them
+        object_transformations = src.object_transformations;
+        volume_transformations = src.volume_transformations;
+        volume_names = src.volume_names;
+        volume_guids = src.volume_guids;
+        assembly_note = src.assembly_note;
+        labels_show_type = src.labels_show_type;
+    }
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+using KeyFrameVector = std::vector<KeyFrame>;
+struct AssembleBaseInfo
+{
+    std::string           name;
+    KeyFrameVector        keyframes;
+
+    virtual ~AssembleBaseInfo() = default;
+
+    virtual std::string get_type() const = 0;
+    virtual void        to_json(nlohmann::json &j) const;
+    virtual void        from_json(const nlohmann::json &j);
+
+    static std::shared_ptr<AssembleBaseInfo> create_from_json(const nlohmann::json &j);
+};
+
+struct AssembleSingleInfo : public AssembleBaseInfo
+{
+    int object_idx{-1};
+    size_t object_id{0};
+
+    std::string get_type() const override { return "single"; }
+    void        to_json(nlohmann::json &j) const override;
+    void        from_json(const nlohmann::json &j) override;
+};
+
+// Folder kind stored in AssembleSub / AssemblyStepsTreeNode::is_final_assembly
+// (legacy JSON key kept for compatibility).
+// 0 = normal step, 1 = final assembly, 2 = overall preview.
+// Kind 2 is runtime UI-only: created once for interaction, never serialized.
+namespace AssemblyStepKind {
+constexpr int Normal         = 0;
+constexpr int FinalAssembly  = 1;
+constexpr int OverallPreview = 2;
+}
+
+struct AssembleSub : public AssembleBaseInfo
+{
+    int id{-1};
+    int step{0};
+    // See AssemblyStepKind. Legacy bool JSON true maps to FinalAssembly (1).
+    // OverallPreview (2) is runtime UI-only and is never written to / read from JSON.
+    int is_final_assembly{AssemblyStepKind::Normal};
+    // Inheritance: source (parent) step id this step inherited from (-1 == none),
+    // resolved by id so it survives step reordering.
+    int inherited_from_step_id{-1};
+    // Stable ModelObject ids inherited from the parent step; these explode at
+    // Object granularity (never split into parts) in this step.
+    std::vector<size_t> inherited_object_ids;
+    std::vector<std::shared_ptr<AssembleBaseInfo>> children;
+    std::optional<std::unordered_map<std::string, bool>> assembly_tree_checked;
+
+    std::string get_type() const override { return "sub"; }
+    void        to_json(nlohmann::json &j) const override;
+    void        from_json(const nlohmann::json &j) override;
+};
+
+
+// ---- KeyFrameEntry / KFNodeData ----
+struct KeyFrameEntry
+{
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    bool     need_save{true};
+    KeyFrame data;
+    bool     is_last() const { return data.is_last(); }
+    bool     is_start() const { return data.is_start(); }
+    bool     is_transition() const { return data.is_transition(); }
+    void     clone_from(const KeyFrameEntry &src)
+    {
+        data.clone_from(src.data);
+        need_save = true;
+    }
+};
+
+using KeyFrameEntryVector = std::vector<KeyFrameEntry>;
+struct KFNodeData
+{
+    int                        node_idx{-1};
+    int                        object_idx{-1};
+    bool                       is_folder{false};
+    KeyFrameEntryVector        entries;
+};
+
+struct PlayFrameRef
+{
+    int node_idx{-1};
+    int frame_idx{-1};
+};
+
+enum class AssemblyNoteSelectionType { None, ArrowSvg, TextLabel, Circle, PlainArrow, Rectangle };
+enum class KeyframeDisplayMode { OnlyCurrentStep, Highlight, All };
+enum class PlayStrategy { Sequential, SubAssemblyFirst };
+enum class AssemblyNoteCursorType { Standard, Hand, Move, ResizeNWSE, ResizeNESW };
+
+struct AssemblyStepsTreeNode
+{
+    enum class Type { Folder, Object,Volume};
+    Type             type{Type::Folder};
+    int              id{-1};  // valid when type == Folder
+    int              step{0}; // valid when type == Folder
+    std::string      name;
+    int              object_idx{-1}; // valid when type == Object
+    size_t           object_id{0};   // ModelObject id, stable across object index changes
+    bool             visible{true};// per-object render visibility (drives GLVolume show/hide)
+    // See AssemblyStepKind. Legacy bool JSON true maps to FinalAssembly (1).
+    // OverallPreview (2) is runtime UI-only and is never written to / read from JSON.
+    int              is_final_assembly{AssemblyStepKind::Normal};
+    // Inheritance (Folder only): id of the parent step this step inherited from
+    // (-1 == none), plus the inherited ModelObject ids that must explode at
+    // Object granularity. See AssembleSub for the serialized counterparts.
+    int                 inherited_from_step_id{-1};
+    std::vector<size_t> inherited_object_ids;
+    std::vector<int> children; // indices into nodes
+    // Optional left-side assembly tree checkbox state for this step folder.
+    std::optional<std::unordered_map<std::string, bool>> assembly_tree_checked;
+    // Per-node keyframe state. Lives on the node itself so the typed in-memory tree
+    KFNodeData       kf_data;
+};
+
+class Model;// Forward declaration so the converter below stays decoupled from the heavy Model header.
+struct AssemblyStepsTreeData
+{
+    std::vector<AssemblyStepsTreeNode> nodes;
+    std::vector<int>                   roots;
+    // Canvas viewport (px) the user-framed keyframe cameras' zoom was captured at.
+    // Shared by all keyframes (a single document-level value) because every camera is
+    // recorded against the same canvas at a time; storing it once avoids the redundant
+    // per-keyframe copy. Used to rescale a restored user camera's zoom proportionally
+    // when reloaded into a different-sized viewport (window resize / 3mf reopen).
+    int                                camera_ref_viewport_w{0};
+    int                                camera_ref_viewport_h{0};
+
+    // Runtime-only (NOT serialized): model object/volume id snapshot captured at the
+    bool                                has_loaded_recorded_baseline{false};
+    std::set<std::string> loaded_recorded_volumes;
+
+    bool empty() const { return nodes.empty(); }
+    void clear()
+    {
+        nodes.clear();
+        roots.clear();
+        camera_ref_viewport_w = 0;
+        camera_ref_viewport_h = 0;
+        has_loaded_recorded_baseline = false;
+        loaded_recorded_volumes.clear();
+    }
+    std::string to_json_string() const;
+    static bool from_json_string(const std::string&     json_str,
+                                 AssemblyStepsTreeData& tree,
+                                 const Model&           model,
+                                 std::string*           error = nullptr,
+                                 float*                 assembly_part_number_label_font_size = nullptr);
+};
+
+
+// ---- AssemblyStepJson: file I/O wrapper ----
+class AssemblyStepJson
+{
+public:
+    struct PdfExportParams {
+        std::string title;
+    };
+
+    static std::string get_debug_file_path();
+
+    bool load(const std::string &path);
+    bool load_from_string(const std::string &json_str);
+    bool save(const std::string &path) const;
+    std::string to_json_string() const;
+
+    const std::vector<std::shared_ptr<AssembleBaseInfo>> &get_items() const { return m_items; }
+    void set_items(const std::vector<std::shared_ptr<AssembleBaseInfo>> &items) { m_items = items; }
+    void set_items(std::vector<std::shared_ptr<AssembleBaseInfo>> &&items) { m_items = std::move(items); }
+    const PdfExportParams& get_pdf_export_params() const { return m_pdf_export_params; }
+    void set_pdf_export_params(const PdfExportParams &params) { m_pdf_export_params = params; }
+    float get_assembly_part_number_label_font_size() const { return m_assembly_part_number_label_font_size; }
+    void set_assembly_part_number_label_font_size(float font_size) { m_assembly_part_number_label_font_size = font_size; }
+    // Document-level reference viewport (px) shared by all user-framed keyframe cameras.
+    int  get_camera_ref_viewport_w() const { return m_camera_ref_viewport_w; }
+    int  get_camera_ref_viewport_h() const { return m_camera_ref_viewport_h; }
+    void set_camera_ref_viewport(int w, int h) { m_camera_ref_viewport_w = w; m_camera_ref_viewport_h = h; }
+
+private:
+    void load_pdf_export_params(const nlohmann::json &root);
+    void load_assembly_part_number_label_font_size(const nlohmann::json &root);
+    void load_camera_ref_viewport(const nlohmann::json &root);
+
+    std::vector<std::shared_ptr<AssembleBaseInfo>> m_items;
+    PdfExportParams m_pdf_export_params;
+    float m_assembly_part_number_label_font_size{0.0f};
+    int   m_camera_ref_viewport_w{0};
+    int   m_camera_ref_viewport_h{0};
+};
+
+// ---- Independent assembly model (object graph) JSON ----
+// Serialize / restore the assembly-view independent Model. Only the object/volume/instance structure +
+// per-volume part_guid / assembly_src_guid + frozen transforms + assemble transforms are stored; geometry
+// is NOT duplicated. On restore each volume references a prepare-side part via assembly_src_guid and the
+// mesh shared_ptr is rebound from `mesh_source` (matched by part_guid). Backs the standalone
+// Metadata/assembly_model.json 3mf section.
+std::string assembly_model_to_json_string(const Model &assembly_model);
+bool        assembly_model_from_json_string(const std::string &json_str,
+                                            Model             &out_assembly_model,
+                                            const Model       &mesh_source,
+                                            std::string       *error = nullptr);
+} // namespace Slic3r
+#endif // slic3r_OverviewlyJson_hpp_

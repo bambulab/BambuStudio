@@ -21,6 +21,43 @@ const double GCodeWriter::slope_threshold = 3 * PI / 180;
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
+    // BBS: cache the bed printable-area bounding box so spiral lift can keep its arc inside the bed.
+    m_bed_bbox_valid = false;
+    const std::vector<Vec2d> &bed_pts = print_config.printable_area.values;
+    if (bed_pts.size() >= 3) {
+        Vec2d bmin = bed_pts.front();
+        Vec2d bmax = bed_pts.front();
+        for (const Vec2d &p : bed_pts) {
+            bmin = bmin.cwiseMin(p);
+            bmax = bmax.cwiseMax(p);
+        }
+        m_bed_min        = bmin;
+        m_bed_max        = bmax;
+        m_bed_bbox_valid = true;
+    }
+    // BBS: cache each physical nozzle's own printable-area bounding box. On multi-nozzle machines the
+    // left/right heads reach different regions, so the spiral must be bounded by the head that lifts.
+    m_extruder_bed_min.clear();
+    m_extruder_bed_max.clear();
+    m_extruder_bed_valid.clear();
+    const std::vector<Vec2ds> &ext_areas = print_config.extruder_printable_area.values;
+    m_extruder_bed_min.resize(ext_areas.size());
+    m_extruder_bed_max.resize(ext_areas.size());
+    m_extruder_bed_valid.resize(ext_areas.size(), 0);
+    for (size_t i = 0; i < ext_areas.size(); ++i) {
+        const Vec2ds &pts = ext_areas[i];
+        if (pts.size() < 3)
+            continue;
+        Vec2d bmin = pts.front();
+        Vec2d bmax = pts.front();
+        for (const Vec2d &p : pts) {
+            bmin = bmin.cwiseMin(p);
+            bmax = bmax.cwiseMax(p);
+        }
+        m_extruder_bed_min[i]   = bmin;
+        m_extruder_bed_max[i]   = bmax;
+        m_extruder_bed_valid[i] = 1;
+    }
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
     bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy
                   || print_config.gcode_flavor.value == gcfMarlinFirmware
@@ -32,6 +69,9 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
 {
     std::sort(extruder_ids.begin(), extruder_ids.end());
+    m_curr_extruder_id = -1;
+    m_current_process_config_idx = 0;
+    std::fill(m_curr_filament_extruder.begin(), m_curr_filament_extruder.end(), nullptr);
     m_filament_extruders.clear();
     m_filament_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
@@ -79,7 +119,8 @@ std::string GCodeWriter::postamble() const
     return gcode.str();
 }
 
-std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, int tool) const
+std::string GCodeWriter::set_temperature(
+    unsigned int temperature, bool wait, int tool, TemperatureCommandType command_type) const
 {
     if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
         return "";
@@ -98,7 +139,10 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
     }
 
     std::ostringstream gcode;
-    gcode << code << " ";
+    gcode << code;
+    if (command_type == TemperatureCommandType::LayerChange && code == "M104")
+        gcode << " M";
+    gcode << " ";
     if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
         gcode << "P";
     } else {
@@ -270,7 +314,7 @@ std::string GCodeWriter::set_acceleration_impl(unsigned int acceleration)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_pressure_advance(double pa) const
+std::string GCodeWriter::set_pressure_advance(double pa, bool is_bbl_bowden) const
 {
     std::ostringstream gcode;
     if (pa < 0) return gcode.str();
@@ -282,6 +326,8 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
             gcode << "SET_PRESSURE_ADVANCE ADVANCE=" << std::setprecision(4) << pa << "; Override pressure advance value\n";
         else if (this->config.gcode_flavor == gcfRepRapFirmware)
             gcode << ("M572 D0 S") << std::setprecision(4) << pa << "; Override pressure advance value\n";
+        else if (is_bbl_bowden)
+            gcode << "M400\n M901 P0.75 K" << std::setprecision(4) << pa << "; Override pressure advance value\n";
         else
             gcode << "M400\n M900 K" << std::setprecision(4) << pa << "; Override pressure advance value\n";
     }
@@ -356,13 +402,14 @@ std::string GCodeWriter::toolchange_prefix() const
            FLAVOR_IS(gcfSailfish)  ? "M108 T" : "T";
 }
 
-std::string GCodeWriter::toolchange(unsigned int filament_id)
+std::string GCodeWriter::toolchange(unsigned int filament_id, unsigned int nozzle_id)
 {
     // set the new extruder
     auto filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
     assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
     m_curr_extruder_id = filament_extruder_iter->extruder_id();
     m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
+    m_current_process_config_idx = get_process_config_idx(this->config, filament_id);
 
     // return the toolchange command
     // if we are running a single-extruder setup, just set the extruder and return nothing
@@ -370,7 +417,7 @@ std::string GCodeWriter::toolchange(unsigned int filament_id)
     if (this->multiple_extruders) {
         // BBS
         if (this->m_is_bbl_printer)
-            gcode << "M1020 S" << filament_id;
+            gcode << "M1020 S" << filament_id << " H" << nozzle_id;
         else
             gcode << this->toolchange_prefix() << filament_id;
         //BBS
@@ -411,7 +458,7 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
 
     GCodeG1Formatter w;
     w.emit_xy(point_on_plate);
-    w.emit_f(this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id())) * 60.0);
+    w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return set_travel_acceleration(use_short_travel_acceleration) + w.string();
@@ -449,6 +496,30 @@ std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase, bool to
     return "";
 }
 
+// BBS: return true if the full spiral-lift circle (centre, radius) stays inside the bed
+// printable area. When the bed bounding box is unknown, keep the legacy behavior (no block).
+bool GCodeWriter::spiral_arc_within_bed(const Vec2d &center, double radius) const
+{
+    // Prefer the printable area of the head that performs the lift (multi-nozzle machines have
+    // different left/right reachable regions). Fall back to the whole-bed box when the per-extruder
+    // area is unavailable, and keep the legacy no-block behavior when nothing is known.
+    Vec2d     bmin  = m_bed_min;
+    Vec2d     bmax  = m_bed_max;
+    bool      valid = m_bed_bbox_valid;
+    const int eid   = m_curr_extruder_id;
+    if (eid >= 0 && eid < (int) m_extruder_bed_valid.size() && m_extruder_bed_valid[eid]) {
+        bmin  = m_extruder_bed_min[eid];
+        bmax  = m_extruder_bed_max[eid];
+        valid = true;
+    }
+    if (!valid)
+        return true;
+    return center.x() - radius >= bmin.x() &&
+           center.x() + radius <= bmax.x() &&
+           center.y() - radius >= bmin.y() &&
+           center.y() + radius <= bmax.y();
+}
+
 // BBS: immediately execute an undelayed lift move with a spiral lift pattern
 // designed specifically for subsequent gcode injection (e.g. timelapse)
 std::string GCodeWriter::eager_lift(const LiftType type, bool tool_change)
@@ -472,14 +543,32 @@ std::string GCodeWriter::eager_lift(const LiftType type, bool tool_change)
         return lift_move;
 
     // BBS: spiral lift only safe with known position
-    // TODO: check the arc will move within bed area
     if (type == LiftType::SpiralLift && this->is_current_position_clear()) {
         if (to_lift > 0) {
             double radius = to_lift / (2 * PI * atan(GCodeWriter::slope_threshold));
             // static spiral alignment when no move in x,y plane.
-            // spiral centra is a radius distance to the right (y=0)
+            // The spiral centre sits a radius away from the current point; the resulting full
+            // circle spans [centre - radius, centre + radius] on both axes. When the current
+            // point is on the bed boundary the legacy +X centre pushes the arc off the bed, so
+            // try the opposite / orthogonal directions first and fall back to a plain lift when
+            // none of them keeps the whole circle inside the printable area.
+            const Vec2d cur_xy = { m_pos(0) - m_x_offset, m_pos(1) - m_y_offset };
+            const Vec2d dirs[4] = { Vec2d(1, 0), Vec2d(-1, 0), Vec2d(0, 1), Vec2d(0, -1) };
+            bool  found = false;
             Vec2d ij_offset = { radius, 0 };
-            lift_move = this->_spiral_travel_to_z(m_pos(2) + to_lift, ij_offset, "spiral lift Z",tool_change);
+            for (const Vec2d &d : dirs) {
+                const Vec2d off = radius * d;
+                if (this->spiral_arc_within_bed(cur_xy + off, radius)) {
+                    ij_offset = off;
+                    found     = true;
+                    break;
+                }
+            }
+            if (found)
+                lift_move = this->_spiral_travel_to_z(m_pos(2) + to_lift, ij_offset, "spiral lift Z", tool_change);
+            else
+                // no in-bed spiral direction, fall back to a plain vertical lift
+                lift_move = _travel_to_z(m_pos(2) + to_lift, "normal lift Z", tool_change);
         }
     }
     //BBS: if position is unknown use normal lift
@@ -533,11 +622,28 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         if (delta(2) > 0 && delta_no_z.norm() != 0.0f)    {
             //BBS: SpiralLift
             if (m_to_lift_type == LiftType::SpiralLift && this->is_current_position_clear()) {
-                //BBS: todo: check the arc move all in bed area, if not, then use lazy lift
                 double radius = delta(2) / (2 * PI * atan(GCodeWriter::slope_threshold));
-                Vec2d ij_offset = radius * delta_no_z.normalized();
-                ij_offset = { -ij_offset(1), ij_offset(0) };
-                slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
+                // The spiral centre sits perpendicular to the travel direction; the resulting full
+                // circle spans [centre - radius, centre + radius] on both axes. Keep the arc inside
+                // the bed: try the perpendicular side, then the opposite side, otherwise fall back
+                // to a plain vertical lift.
+                Vec2d perp = radius * delta_no_z.normalized();
+                perp = { -perp(1), perp(0) };
+                const Vec2d source_xy = { source(0), source(1) };
+                bool  found = false;
+                Vec2d ij_offset = perp;
+                if (this->spiral_arc_within_bed(source_xy + perp, radius)) {
+                    ij_offset = perp;
+                    found     = true;
+                } else if (this->spiral_arc_within_bed(source_xy - perp, radius)) {
+                    ij_offset = { -perp(0), -perp(1) };
+                    found     = true;
+                }
+                if (found)
+                    slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
+                else
+                    // no in-bed spiral direction, fall back to a plain vertical lift
+                    slop_move = _travel_to_z(target(2), "normal lift Z");
             }
             //BBS: SlopeLift
             else if (m_to_lift_type == LiftType::SlopeLift &&
@@ -550,7 +656,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 Vec3d slope_top_point = Vec3d(temp(0), temp(1), delta(2)) + source;
                 GCodeG1Formatter w0;
                 w0.emit_xyz(slope_top_point);
-                w0.emit_f(this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id())) * 60.0);
+                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
                 //BBS
                 w0.emit_comment(GCodeWriter::full_gcode_comment, "slope lift Z");
                 slop_move = w0.string();
@@ -565,13 +671,13 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             GCodeG1Formatter w0;
             if (this->is_current_position_clear()) {
                 w0.emit_xyz(target);
-                w0.emit_f(this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id())) * 60.0);
+                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 xy_z_move = w0.string();
             }
             else {
                 w0.emit_xy(Vec2d(target.x(), target.y()));
-                w0.emit_f(this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id())) * 60.0);
+                w0.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
                 xy_z_move = w0.string() + _travel_to_z(target.z(), comment);
             }
@@ -601,17 +707,19 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     Vec3d point_on_plate = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
     std::string out_string;
     GCodeG1Formatter w;
-    if (!this->is_current_position_clear())
+    if (!this->is_current_position_clear() ||
+        (m_avoid_z_descent_travel && point_on_plate.z() < m_pos.z() - EPSILON))
     {
-        //force to move xy first then z after filament change
+        // Split XY + Z: required after filament change (position unknown),
+        // or when mixed sub-layer Z must descend to avoid diagonal collision.
         w.emit_xy(Vec2d(point_on_plate.x(), point_on_plate.y()));
-        w.emit_f(this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id())) * 60.0);
+        w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);
         out_string = w.string() + _travel_to_z(point_on_plate.z(), comment);
     } else {
         GCodeG1Formatter w;
         w.emit_xyz(point_on_plate);
-        w.emit_f(this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id())) * 60.0);
+        w.emit_f(this->config.travel_speed.get_at(m_current_process_config_idx) * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);
         out_string = w.string();
     }
@@ -644,9 +752,9 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment, bool
 {
     m_pos(2) = z;
 
-    double speed = this->config.travel_speed_z.get_at(get_config_idx_for_filament(this->config, filament()->id()));
+    double speed = this->config.travel_speed_z.get_at(m_current_process_config_idx);
     if (speed == 0.)
-        speed = this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id()));
+        speed = this->config.travel_speed.get_at(m_current_process_config_idx);
     if (tool_change && this->config.prime_tower_lift_speed.value>0) {
         speed = this->config.prime_tower_lift_speed.value; // lift speed
     }
@@ -662,9 +770,9 @@ std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, c
 {
     m_pos(2) = z;
 
-    double speed = this->config.travel_speed_z.get_at(get_config_idx_for_filament(this->config, filament()->id()));
+    double speed = this->config.travel_speed_z.get_at(m_current_process_config_idx);
     if (speed == 0.)
-        speed = this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id()));
+        speed = this->config.travel_speed.get_at(m_current_process_config_idx);
     if (tool_change && this->config.prime_tower_lift_speed.value>0) {
         speed = this->config.prime_tower_lift_speed.value; // lift speed
     }
@@ -945,22 +1053,23 @@ void GCodeWriter::add_object_change_labels(std::string& gcode)
     add_object_start_labels(gcode);
 }
 
-std::string GCodeWriter::set_extruder(unsigned int filament_id)
+std::string GCodeWriter::set_extruder(unsigned int filament_id, unsigned int nozzle_id)
 {
     auto filament_ext_it = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
-    unsigned int extruder_id = filament_ext_it->extruder_id();
+    unsigned int extruder_id = nozzle_id>0;
     assert(filament_ext_it != m_filament_extruders.end() && filament_ext_it->id() == filament_id);
     //TODO: optmize here, pass extruder_id to toolchange
-    return this->need_toolchange(filament_id) ? this->toolchange(filament_id) : "";
+    return this->need_toolchange(filament_id) ? this->toolchange(filament_id,nozzle_id) : "";
 }
 
-void GCodeWriter::init_extruder(unsigned int filament_id)
+void GCodeWriter::init_extruder(unsigned int filament_id,unsigned int nozzle_id)
 {
     if (m_curr_extruder_id == -1 && filament_id != -1) {
         auto filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
         assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
-        m_curr_extruder_id = filament_extruder_iter->extruder_id();
+        m_curr_extruder_id = nozzle_id>0;
         m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
+        m_current_process_config_idx = get_process_config_idx(this->config, filament_id);
     }
 }
 

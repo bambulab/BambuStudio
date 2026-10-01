@@ -1,12 +1,19 @@
 #include "libslic3r/Technologies.hpp"
 #include "GUI_App.hpp"
+#include "BindDialog.hpp"
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
+#include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.hpp"
 #include "slic3r/GUI/UserManager.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
+#include "slic3r/GUI/PerfTrace.hpp"
 #include "format.hpp"
+#include <wx/language.h>
+#include <wx/string.h>
+#include <wx/weakref.h>
 
 // Localization headers: include libslic3r version first so everything in this file
 // uses the slic3r/GUI version (the macros will take precedence over the functions).
@@ -21,6 +28,7 @@
 #include <iterator>
 #include <exception>
 #include <cstdlib>
+#include <chrono>
 #include <regex>
 #include <thread>
 #include <string_view>
@@ -32,6 +40,11 @@
 #include <boost/nowide/convert.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
+#include "Printer/LiveViewTrackContext.h"
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -55,6 +68,7 @@
 #include <wx/glcanvas.h>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Debounce.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
 #include "libslic3r/LogSink.hpp"
@@ -67,13 +81,17 @@
 #include "GUI_Utils.hpp"
 #include "3DScene.hpp"
 #include "MainFrame.hpp"
+#include "slic3r/GUI/Widgets/WebView.hpp"
 #include "Plater.hpp"
 #include "GLCanvas3D.hpp"
 #include "EncodedFilament.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevConfigUtil.h"
+#include "DeviceCore/DevHMSQuery.h"
 
 #include "../Utils/PresetUpdater.hpp"
+#include "../Utils/VersionPolicyManager.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
@@ -108,10 +126,13 @@
 #include "WebDownPluginDlg.hpp"
 #include "WebGuideDialog.hpp"
 #include "ReleaseNote.hpp"
+#include "VersionPolicyDialog.hpp"
+#include "BetaVersionDialog.hpp"
 #include "PrivacyUpdateDialog.hpp"
 #include "ModelMall.hpp"
 #include "HintNotification.hpp"
 #include "BBLUtil.hpp"
+#include "fila_manager/wgtFilaManagerFeature.h"
 
 //#ifdef WIN32
 //#include "BaseException.h"
@@ -804,10 +825,10 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv } },
 #ifdef __APPLE__
     /* FT_MODEL */
-    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv, ".usd"sv, ".usda"sv, ".usdc"sv, ".usdz"sv, ".abc"sv, ".ply"sv}},
+    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv, ".gltf"sv, ".glb"sv, ".fbx"sv, ".usd"sv, ".usda"sv, ".usdc"sv, ".usdz"sv, ".abc"sv, ".ply"sv}},
 #else
     /* FT_MODEL */
-    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv}},
+    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv, ".gltf"sv, ".glb"sv, ".fbx"sv}},
 #endif
     /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
@@ -1074,6 +1095,80 @@ std::vector<std::string> GUI_App::split_str(std::string src, std::string separat
     return result;
 }
 
+namespace {
+bool host_in_domain(const std::string &host, const std::string &domain)
+{
+    return host == domain ||
+           (host.size() > domain.size() + 1 && boost::algorithm::ends_with(host, "." + domain));
+}
+
+bool is_trusted_model_download_url(const std::string &download_str)
+{
+    std::string target = download_str;
+    size_t name_pos = target.find("&name=");
+    if (name_pos != std::string::npos)
+        target = target.substr(0, name_pos);
+
+    CURLU *hurl = curl_url();
+    if (!hurl)
+        return false;
+
+    bool trusted = false;
+    if (curl_url_set(hurl, CURLUPART_URL, target.c_str(), 0) == CURLUE_OK) {
+        std::string scheme, host;
+        bool        has_userinfo = false;
+        char *      part         = nullptr;
+        if (curl_url_get(hurl, CURLUPART_SCHEME, &part, 0) == CURLUE_OK) { scheme = part; curl_free(part); part = nullptr; }
+        if (curl_url_get(hurl, CURLUPART_HOST, &part, 0) == CURLUE_OK) { host = part; curl_free(part); part = nullptr; }
+        if (curl_url_get(hurl, CURLUPART_USER, &part, 0) == CURLUE_OK) { if (part && *part) has_userinfo = true; curl_free(part); part = nullptr; }
+        if (!has_userinfo && curl_url_get(hurl, CURLUPART_PASSWORD, &part, 0) == CURLUE_OK) { if (part && *part) has_userinfo = true; curl_free(part); part = nullptr; }
+
+        boost::algorithm::to_lower(scheme);
+        boost::algorithm::to_lower(host);
+
+        if (!host.empty() && !has_userinfo && (scheme == "http" || scheme == "https")) {
+            struct TrustEntry { const char *host; bool suffix; bool https_only; };
+            static const TrustEntry trusted_entries[] = {
+                {"or-cloud-makerlab-prod.s3-accelerate.amazonaws.com", false, true},
+                {"sh-makerlab-prod.oss-cn-shanghai.aliyuncs.com", false, true},
+                {"public-cdn.bblmw.com", false, false},
+                {"makerworld.bblmw.cn", false, false},
+                {"makerworld.bblmw.com", false, false},
+            };
+            for (const auto &e : trusted_entries) {
+                bool match = e.suffix ? host_in_domain(host, e.host) : (host == e.host);
+                if (!match)
+                    continue;
+                if (e.https_only && scheme != "https")
+                    break;
+                trusted = true;
+                break;
+            }
+        }
+    }
+    curl_url_cleanup(hurl);
+    return trusted;
+}
+
+std::string extract_model_download_url_from_open(const std::string &protocol_url)
+{
+    std::string       decoded = Http::url_decode(protocol_url);
+    const std::string key     = "file=";
+    size_t            pos     = decoded.find(key);
+    if (pos == std::string::npos)
+        return {};
+    return decoded.substr(pos + key.size());
+}
+
+std::string extract_model_download_url_from_mac(const std::string &protocol_url)
+{
+    const std::string key = "bambustudioopen://";
+    if (!boost::istarts_with(protocol_url, key))
+        return {};
+    return Http::url_decode(protocol_url.substr(key.size()));
+}
+} // namespace
+
 void GUI_App::post_init()
 {
     assert(initialized());
@@ -1108,47 +1203,25 @@ void GUI_App::post_init()
         if (this->init_params->input_files.size() == 1 &&
             boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
 
-            std::string download_params_url = url_decode(this->init_params->input_files.front());
-            auto input_str_arr = split_str(download_params_url, "file=");
-            if (input_str_arr.size() > 1) {input_str_arr.erase(input_str_arr.begin());}
+            std::string input_str = extract_model_download_url_from_open(this->init_params->input_files.front());
 
             std::string download_url;
 #if BBL_RELEASE_TO_PUBLIC
-			short ext_url_open_state = -1; // -1 not set, wxNO not open, wxYES open
-            for (auto input_str : input_str_arr) {
-                if (boost::starts_with(input_str, "http://makerworld") ||
-                    boost::starts_with(input_str, "https://makerworld") ||
-                    boost::starts_with(input_str, "http://public-cdn.bblmw.com") ||
-                    boost::starts_with(input_str, "https://public-cdn.bblmw.com") ||
-                    boost::algorithm::contains(input_str, "amazonaws.com") ||
-                    boost::algorithm::contains(input_str, "aliyuncs.com")) {
+            if (is_trusted_model_download_url(input_str)) {
+                download_url = input_str;
+            }
+            else {
+                MessageDialog msg_dlg(nullptr,
+                                      _L("This file is not from a trusted site, do you want to open it anyway?"), "",
+                                      wxAPPLY | wxYES_NO);
+                if (msg_dlg.ShowModal() == wxID_YES) {
                     download_url = input_str;
-                }
-                else {
-                    if (ext_url_open_state == -1) {
-
-                        MessageDialog msg_dlg(nullptr,
-                                              _L("This file is not from a trusted site, do you want to open it anyway?"), "",
-                                              wxAPPLY | wxYES_NO);
-                        ext_url_open_state   = msg_dlg.ShowModal();
-                    }
-                    if (ext_url_open_state == wxID_YES) {
-                        download_url = input_str;
-                    }
                 }
             }
 #else
-            for (auto input_str : input_str_arr) {
-                download_url = input_str;
-            }
+            download_url = input_str;
 #endif
-            try
-            {
-                //filter relative directories
-                std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
-                download_url = std::regex_replace(download_url, pattern, "");
-            }
-            catch (...){}
+            download_url = sanitize_download_url(download_url);
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % PathSanitizer::sanitize(download_url);
 
@@ -1341,6 +1414,14 @@ void GUI_App::post_init()
 
             //BBS: check new version
             this->check_new_version();
+
+            //BBS: pull the studio version policy, the startup check point waits for it
+            VersionPolicyManager::inst().init([this] {
+                CallAfter([this] {
+                    this->check_startup_version_policy();
+                });
+            });
+
             //BBS: check privacy version
             if (is_user_login()) {
                 this->check_privacy_version(0);
@@ -1431,19 +1512,35 @@ GUI_App::GUI_App()
     , m_app_mode(EAppMode::Editor)
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
-    , hms_query(new HMSQuery())
+    , hms_query_mgr(new HMSQueryMgr())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
+    perf_mark("Application started");
+
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
-    if (app_config) {
-        ::Label::initSysFont(app_config->get_language_code(), false);
-    }
     this->init_download_path();
+
+#if defined(__WXOSX__)
+    m_macos_pending_pump_timer.Bind(wxEVT_TIMER, &GUI_App::on_macos_pending_pump, this);
+#endif
 
     reset_to_active();
 }
+
+#if defined(__WXOSX__)
+void GUI_App::on_macos_pending_pump(wxTimerEvent& WXUNUSED(evt))
+{
+    // STUDIO-18472: drain wx pending events ourselves. After the Filament Manager
+    // WKWebView churn the macOS run loop no longer reliably wakes to call
+    // ProcessPendingEvents() from its observer, which strands deferred actions
+    // (project restore, tab-bar page switches posted via wxPostEvent). The
+    // HasPendingEvents() guard makes this a no-op on the common (healthy) path.
+    if (wxTheApp && wxTheApp->HasPendingEvents())
+        wxTheApp->ProcessPendingEvents();
+}
+#endif
 
 void GUI_App::shutdown()
 {
@@ -1533,6 +1630,10 @@ std::string GUI_App::get_model_http_url(std::string country_code)
     else if (country_code == "NEW_ENV_PRE_HOST")
     {
         url = "https://makerhub-pre.bambulab.net/";
+    }
+    else if (country_code == "NEW_ENV_US_PRE")
+    {
+        url = "https://makerhub-pre-us.bambulab.net/";
     }
     else {
         url = "https://makerworld.com/";
@@ -2061,21 +2162,24 @@ void GUI_App::init_networking_callbacks()
             }
             if (return_code < 0) { //#define MQTTASYNC_SUCCESS 0
                 GUI::wxGetApp().CallAfter([this] {
-                    static bool is_showing = false;
-                    if (is_showing) return;
-                    is_showing = true;
+                    m_homepage_server_connect_failed = true;
+                    sync_left_server_connect_status();
+
+                    static bool s_mqtt_connect_failed_dialog_shown = false;
+                    if (s_mqtt_connect_failed_dialog_shown) return;
+                    s_mqtt_connect_failed_dialog_shown = true;
                     BOOST_LOG_TRIVIAL(trace) << "static: server connection failed";
                     MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
                     msg_dlg.ShowModal();
-                    is_showing = false;
                 });
                 return;
             }
             GUI::wxGetApp().CallAfter([this] {
-                if (is_closing())
-                    return;
-                BOOST_LOG_TRIVIAL(trace) << "static: server connected";
-                m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                    if (is_closing())
+                        return;
+                    m_homepage_server_connect_failed = false;
+                    sync_left_server_connect_status();
+                    BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                     if (this->is_enable_multi_machine()) {
                         auto evt = new wxCommandEvent(EVT_UPDATE_MACHINE_LIST);
                         wxQueueEvent(this, evt);
@@ -2105,8 +2209,11 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             GUI::wxGetApp().CallAfter([this, dev_id] {
-                if (is_closing())
+                if (is_closing()) return;
+                if (!m_device_manager) {
+                    BOOST_LOG_TRIVIAL(warning) << "on_printer_connected: m_device_manager is null, skip (is_closing=" << is_closing() << ")";
                     return;
+                }
                 bool tunnel = boost::algorithm::starts_with(dev_id, "tunnel/");
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_my_machine(tunnel ? dev_id.substr(7) : dev_id);
@@ -2125,8 +2232,8 @@ void GUI_App::init_networking_callbacks()
                     if (m_agent)
                         m_agent->install_device_cert(obj->get_dev_id(), obj->is_lan_mode_printer());
                 }
-                });
             });
+        });
 
         m_agent->set_get_country_code_fn([this]() {
             if (app_config)
@@ -2150,6 +2257,10 @@ void GUI_App::init_networking_callbacks()
                         return;
                     }
                     /* request_pushing */
+                    if (!m_device_manager) {
+                        BOOST_LOG_TRIVIAL(warning) << "on_local_connect: m_device_manager is null, skip (is_closing=" << is_closing() << ")";
+                        return;
+                    }
                     MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                     wxCommandEvent event(EVT_CONNECT_LAN_MODE_PRINT);
 
@@ -2224,11 +2335,25 @@ void GUI_App::init_networking_callbacks()
                     return;
                 }
 
+                if (!m_device_manager) {
+                    BOOST_LOG_TRIVIAL(warning) << "on_message(cloud): m_device_manager is null, skip (is_closing=" << is_closing() << ")";
+                    return;
+                }
+
                 if (MachineObject* obj = this->m_device_manager->get_user_machine(dev_id)) {
                     auto sel = this->m_device_manager->get_selected_machine();
                     if (sel && sel->get_dev_id() == dev_id) {
                         obj->parse_json("cloud", msg);
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
+                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
+                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
+                        bool fila_mount_changed = false;
+                        if (auto* sync = wxGetApp().fila_manager_sync())
+                            fila_mount_changed = sync->on_device_update(obj);
+                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+                            if (fila_mount_changed)
+                                mainframe->web_device()->NotifyFilamentSessionState();
+                        }
                     } else {
                         obj->parse_json("cloud", msg, true);
                     }
@@ -2250,9 +2375,7 @@ void GUI_App::init_networking_callbacks()
                     return;
 
                 //check user
-                if (user_id == m_agent->get_user_id()) {
-                    this->m_user_manager->parse_json(msg);
-                }
+                if (m_user_manager && user_id == m_agent->get_user_id()) { this->m_user_manager->parse_json(msg); }
 
             });
         };
@@ -2272,10 +2395,24 @@ void GUI_App::init_networking_callbacks()
                     return;
                 }
 
+                if (!m_device_manager) {
+                    BOOST_LOG_TRIVIAL(warning) << "on_local_message: m_device_manager is null, skip (is_closing=" << is_closing() << ")";
+                    return;
+                }
+
                 if (MachineObject* obj = m_device_manager->get_my_machine(dev_id)) {
                     obj->parse_json("lan", msg);
                     if (this->m_device_manager->get_selected_machine() == obj) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
+                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
+                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
+                        bool fila_mount_changed = false;
+                        if (auto* sync = wxGetApp().fila_manager_sync())
+                            fila_mount_changed = sync->on_device_update(obj);
+                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+                            if (fila_mount_changed)
+                                mainframe->web_device()->NotifyFilamentSessionState();
+                        }
                     }
                 }
 
@@ -2310,6 +2447,11 @@ GUI_App::~GUI_App()
     }
 
     StaticBambuLib::release();
+
+    if (hms_query_mgr != nullptr) {
+        delete hms_query_mgr;
+        hms_query_mgr = nullptr;
+    }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit");
 }
@@ -2468,6 +2610,18 @@ static LogEncOptions s_get_log_enc_opts()
     return enc_options;
 };
 
+bool GUI_App::confirm_mesh_paint_warning()
+{
+    MessageDialog dlg(nullptr,
+        _L("This operation rebuilds the model's mesh. Painted color, supports, seam and "
+           "fuzzy-skin will be transferred to the new mesh by a best-effort approximation, "
+           "so the result may be slightly off and, in rare cases, some painting may be lost.\n\n"
+           "Do you want to continue?"),
+        _L("Painting may change"),
+        wxICON_WARNING | wxYES_NO | wxNO_DEFAULT);
+    return dlg.ShowModal() == wxID_YES;
+}
+
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
@@ -2497,14 +2651,21 @@ void GUI_App::init_app_config()
 #endif
             //BBS create folder if not exists
             boost::filesystem::path data_dir_path(data_dir);
+            boost::filesystem::path log_dir_path = data_dir_path / "log";
             if (!boost::filesystem::exists(data_dir_path))
-                boost::filesystem::create_directory(data_dir_path);
+                boost::filesystem::create_directories(data_dir_path);
+            if (!boost::filesystem::exists(log_dir_path))
+                boost::filesystem::create_directories(log_dir_path);
             set_data_dir(data_dir);
 #if defined(__WINDOWS__)
             // Change current dirtory of application
-            _chdir(encode_path((data_dir + "/log").c_str()).c_str());
+            if (_chdir(encode_path((data_dir + "/log").c_str()).c_str()) != 0) {
+                printf("%s, warning: chdir to log folder failed: %s\n", __FUNCTION__, (data_dir + "/log").c_str());
+            }
 #else
-            chdir(encode_path((data_dir + "/log").c_str()).c_str());
+            if (chdir(encode_path((data_dir + "/log").c_str()).c_str()) != 0) {
+                printf("%s, warning: chdir to log folder failed: %s\n", __FUNCTION__, (data_dir + "/log").c_str());
+            }
 #endif
     } else {
         m_datadir_redefined = true;
@@ -2539,6 +2700,9 @@ void GUI_App::init_app_config()
         }
         // Save orig_version here, so its empty if no app_config existed before this run.
         m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
+
+        auto loglevel = wxGetApp().app_config->get("severity_level");
+        Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
     }
     else {
 #ifdef _WIN32
@@ -2693,6 +2857,21 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
             dev_manager->set_selected_machine(last_selected_machine);
             BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << BBLCrossTalk::Crosstalk_DevId(last_selected_machine);
         }
+
+        // After wake, force a re-layout of the main frame on the UI thread.
+        // macOS can leave the selected tab's wxWebView with a stale hidden
+        // NSView (setHidden:YES) after sleep/wake; events still route to the
+        // window but the hit-test view is hidden so keyboard/mouse input is
+        // silently dropped. Re-running Layout()+Refresh() reconciles wx's
+        // notion of visibility with AppKit's and unsticks the content view.
+        wxGetApp().CallAfter([] {
+            MainFrame *mf = wxGetApp().mainframe;
+            if (mf == nullptr) return;
+            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack: re-laying out main frame after wake";
+            mf->Layout();
+            mf->Refresh();
+            mf->Update();
+        });
     };
 }
 
@@ -2746,9 +2925,43 @@ int GUI_App::OnExit()
     UnRegisterMacPowerCallBack();
 #endif
 
+    Slic3r::HelioQuery::shutdown_background_requests();
+
     stop_sync_user_preset();
 
+    // The check_cert worker also runs the startup device-region query; join it
+    // before m_agent is deleted below (the region call is bounded by the
+    // network library's 10s timeout).
+    if (m_check_cert_thread.joinable())
+        m_check_cert_thread.join();
+
+    if (m_fila_manager_cloud_disp) {
+        delete m_fila_manager_cloud_disp;
+        m_fila_manager_cloud_disp = nullptr;
+    }
+
+    if (m_fila_manager_cloud_sync) {
+        delete m_fila_manager_cloud_sync;
+        m_fila_manager_cloud_sync = nullptr;
+    }
+
+    if (m_fila_manager_cloud_client) {
+        delete m_fila_manager_cloud_client;
+        m_fila_manager_cloud_client = nullptr;
+    }
+
+    if (m_fila_manager_sync) {
+        delete m_fila_manager_sync;
+        m_fila_manager_sync = nullptr;
+    }
+
+    if (m_fila_manager_store) {
+        delete m_fila_manager_store;
+        m_fila_manager_store = nullptr;
+    }
+
     if (m_device_manager) {
+        BOOST_LOG_TRIVIAL(warning) << "OnExit: deleting m_device_manager (is_closing=" << is_closing() << ")";
         delete m_device_manager;
         m_device_manager = nullptr;
     }
@@ -2767,14 +2980,78 @@ int GUI_App::OnExit()
         m_agent = nullptr;
     }
 
+#if !BBL_RELEASE_TO_PUBLIC
+    m_fila_debug_sink = nullptr;
+#endif
+
+    // Keep filaments that were auto-enabled during AMS sync (machine-used but not
+    // ticked in preferences) installed across restarts. Done once here instead of on
+    // every sync so it stays off the hot sync path.
+    if (preset_bundle && app_config) {
+        for (const auto &preset_name : preset_bundle->filament_presets) {
+            const Preset *preset = preset_bundle->filaments.find_preset(preset_name, false, true);
+            if (preset && preset->is_system && preset->is_visible)
+                app_config->set(AppConfig::SECTION_FILAMENTS, preset->name, "true");
+        }
+    }
+
+    // Flush any config changes that were deferred by the idle-handler debounce.
+    if (app_config && app_config->dirty())
+        app_config->save();
+
     return wxApp::OnExit();
+}
+
+void GUI_App::emit_fila_debug_log(const std::string& category,
+                                  const std::string& level,
+                                  const std::string& title,
+                                  const std::string& summary,
+                                  const nlohmann::json& detail)
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    if (!m_fila_debug_sink)
+        return;
+
+    nlohmann::json payload = {
+        {"category", category},
+        {"level",    level},
+        {"title",    title},
+        {"summary",  summary},
+        {"detail",   detail},
+        {"ts",       static_cast<std::uint64_t>(
+                         std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::system_clock::now().time_since_epoch()).count())}
+    };
+    m_fila_debug_sink(payload);
+#else
+    (void)category;
+    (void)level;
+    (void)title;
+    (void)summary;
+    (void)detail;
+#endif
 }
 
 class wxBoostLog : public wxLog
 {
-    void DoLogText(const wxString &msg) override {
-
-        BOOST_LOG_TRIVIAL(warning) << msg.ToUTF8().data();
+    // Forward each wx log record to Boost.Log preserving its original
+    // severity, instead of collapsing everything to warning. All wx messages
+    // are tagged with a "[wx]" prefix so they can be told apart from native
+    // Boost.Log output.
+    void DoLogTextAtLevel(wxLogLevel level, const wxString &msg) override
+    {
+        const std::string text = "[wx] " + std::string(msg.ToUTF8().data());
+        switch (level) {
+        case wxLOG_FatalError: BOOST_LOG_TRIVIAL(fatal) << text; break;
+        case wxLOG_Error: BOOST_LOG_TRIVIAL(error) << text; break;
+        case wxLOG_Warning: BOOST_LOG_TRIVIAL(warning) << text; break;
+        case wxLOG_Message:
+        case wxLOG_Status:
+        case wxLOG_Info: BOOST_LOG_TRIVIAL(info) << text; break;
+        case wxLOG_Debug: BOOST_LOG_TRIVIAL(debug) << text; break;
+        case wxLOG_Trace: BOOST_LOG_TRIVIAL(trace) << text; break;
+        default: BOOST_LOG_TRIVIAL(info) << text; break;
+        }
     }
     ~wxBoostLog() override
     {
@@ -2784,6 +3061,61 @@ class wxBoostLog : public wxLog
         wxLog::SetActiveTarget(t);
     }
 };
+
+// Map the "severity_level" app-config string (the same value driven by the
+// preference combobox and Slic3r::set_logging_level) to a wx log level, so the
+// wx logging verbosity stays in sync with the Boost.Log verbosity.
+static wxLogLevel severity_level_to_wx(const std::string &level)
+{
+    if (level == "fatal") return wxLOG_FatalError;
+    if (level == "error") return wxLOG_Error;
+    if (level == "warning") return wxLOG_Warning;
+    if (level == "info") return wxLOG_Info;
+    if (level == "debug") return wxLOG_Debug;
+    if (level == "trace") return wxLOG_Trace;
+    return wxLOG_Info;
+}
+
+void GUI_App::set_severity_level(const std::string &level)
+{
+    Slic3r::set_logging_level(Slic3r::level_string_to_boost(level));
+    wxLog::SetLogLevel(severity_level_to_wx(level));
+}
+
+// Populate process-wide live-view track context (client + session).
+// Called once during GUI_App::OnInit, before any tunnel-using code can emit
+// a track event.
+//
+// Fields filled here are the ones we can know reliably at startup. Other
+// fields (region / network_type / os_version) are intentionally left empty
+// — they can be filled later as the data becomes available; build_envelope
+// just skips empty strings.
+static void init_live_view_track_context(AppConfig* app_config)
+{
+    namespace track = BambuLiveViewTrack;
+
+    track::ClientInfo client;
+    client.client_ver = SLIC3R_VERSION;
+    if (app_config) {
+        client.client_id = app_config->get("slicer_uuid");
+    }
+#if defined(_WIN32)
+    client.platform = "windows";
+#elif defined(__APPLE__)
+    client.platform = "macos";
+#else
+    client.platform = "linux";
+#endif
+
+    track::SessionInfo session;
+    session.session_id = boost::uuids::to_string(boost::uuids::random_generator()());
+    session.start_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+
+    auto& ctx = track::LiveViewTrackContext::instance();
+    ctx.init_client(client);
+    ctx.init_session(session);
+}
 
 std::string get_system_info()
 {
@@ -2810,10 +3142,9 @@ std::string get_system_info()
 
 bool GUI_App::on_init_inner()
 {
+    PERF_TRACE("Initializing application");
     wxLog::SetActiveTarget(new wxBoostLog());
-#if BBL_RELEASE_TO_PUBLIC
-    wxLog::SetLogLevel(wxLOG_Message);
-#endif
+    set_severity_level(app_config->get("severity_level"));
 
     //set preset text
     auto preset_path = fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR;
@@ -2838,13 +3169,31 @@ bool GUI_App::on_init_inner()
     g_object_set (gtk_settings_get_default (), "gtk-menu-images", TRUE, NULL);
 #endif
 
-#ifdef WIN32
+//#ifdef WIN32
     //BBS set crash log folder
     //CBaseException::set_log_folder(data_dir());
-#endif
+// #endif
 
-    wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received wxEVT_QUERY_END_SESSION";
+    wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto &e) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "received wxEVT_QUERY_END_SESSION, dialogs=" << dialogStack.size();
+
+        // Native modal sessions are strictly LIFO: only the top one can be ended
+        // now. End it and keep dialogStackForceEnd set; each loop, as it unwinds,
+        // ends the next (now-top) dialog (see DPIAware::ShowModal). Re-drive from
+        // the main loop once the stack is drained to close the mainframe.
+        if (!dialogStack.empty()) {
+            dialogStackForceEnd = true;
+            dialogStack.front()->EndModal(wxID_ABORT);
+            CallAfter([] {
+                wxCloseEvent evt(wxEVT_QUERY_END_SESSION);
+                evt.SetCanVeto(true);
+                wxGetApp().ProcessEvent(evt);
+            });
+            e.Veto();
+            return;
+        }
+        dialogStackForceEnd = false;
+
         if (mainframe) {
             wxCloseEvent e2(wxEVT_CLOSE_WINDOW);
             e2.SetCanVeto(true);
@@ -2854,8 +3203,6 @@ bool GUI_App::on_init_inner()
                 return;
             }
         }
-        for (auto d : dialogStack)
-            d->EndModal(wxID_ABORT);
     });
 
     // Verify resources path
@@ -2878,7 +3225,12 @@ bool GUI_App::on_init_inner()
 
     BOOST_LOG_TRIVIAL(info) << get_system_info();
 
+    init_live_view_track_context(app_config);
+
 // initialize label colors and fonts
+    if (app_config) {
+        ::Label::initSysFont(app_config->get_language_code(), false);
+    }
     init_label_colours();
     init_fonts();
     wxGetApp().Update_dark_mode_flag();
@@ -3015,7 +3367,12 @@ bool GUI_App::on_init_inner()
         p_ogl_manager->set_advanced_gcode_viewer_enabled(b_advanced_gcode_viewer_enabled);
     }
 
-    BBLSplashScreen * scrn = nullptr;
+    wxWeakRef<BBLSplashScreen> scrn;
+
+    // BBS: ensure the splash screen is torn down on every exit path safely
+    ScopeGuard delete_scrn([&scrn]() {
+        if (scrn) scrn->Destroy();
+    });
     const bool show_splash_screen = true;
     if (show_splash_screen) {
         // make a bitmap with dark grey banner on the left side
@@ -3032,11 +3389,19 @@ bool GUI_App::on_init_inner()
 
         BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
         //BBS use BBL splashScreen
-        scrn = new BBLSplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 10000, splashscreen_pos);
-#ifndef __linux__
+        scrn = new BBLSplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN, 0, splashscreen_pos);
+        // Process pending paint events so the splash is drawn immediately on all
+        // platforms. Without this, GTK never paints the window before the heavy
+        // loading work begins, leaving a black window until the app is ready.
         wxYield();
-#endif
+        scrn->Raise();
+        scrn->Update();
         scrn->SetText(_L("Loading configuration")+ dots);
+        // BBLSplashScreen::SetText() does not force a repaint on non-macOS.
+        // Refresh() + Update() ensure the first status line is visible before
+        // the heavy startup work begins.
+        scrn->Refresh();
+        scrn->Update();
     }
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
@@ -3194,6 +3559,10 @@ bool GUI_App::on_init_inner()
             std::tie(init_params->preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
             if (!errors_cummulative.empty())
                 show_error(nullptr, errors_cummulative);
+            // AppConfig-restored filament colors may predate the JSON primary-color alignment
+            // (see the analogous fix at 3mf project load); re-align once at startup and persist
+            // the corrected order back so stale data doesn't linger in AppConfig.
+            Slic3r::align_project_filament_primary_colors_with_json(preset_bundle);
         }
         catch (const std::exception& ex) {
             show_error(nullptr, ex.what());
@@ -3209,6 +3578,42 @@ bool GUI_App::on_init_inner()
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
+
+#ifdef __APPLE__
+    constexpr bool is_macos = true;
+#else
+    constexpr bool is_macos = false;
+#endif
+    m_disable_fila_manager = is_fila_manager_disabled_by_config(
+        app_config->get(FilaManagerEnabledConfigKey), is_macos);
+    if (m_disable_fila_manager) {
+        BOOST_LOG_TRIVIAL(info) << "Filament Manager disabled by " << FilaManagerEnabledConfigKey;
+    } else {
+        // Initialize Filament Manager store & sync
+        if (!m_fila_manager_store) {
+            m_fila_manager_store = new wgtFilaManagerStore();
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager store initialized";
+        }
+        if (!m_fila_manager_sync) {
+            m_fila_manager_sync = new wgtFilaManagerSync(m_fila_manager_store);
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager sync initialized";
+        }
+        // Cloud layer — owns HTTP client, high-level sync and the serialization dispatcher.
+        if (!m_fila_manager_cloud_client) {
+            m_fila_manager_cloud_client = new wgtFilaManagerCloudClient();
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud client initialized";
+        }
+        if (!m_fila_manager_cloud_sync) {
+            m_fila_manager_cloud_sync = new wgtFilaManagerCloudSync(m_fila_manager_store,
+                                                                    m_fila_manager_cloud_client);
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud sync initialized";
+        }
+        if (!m_fila_manager_cloud_disp) {
+            m_fila_manager_cloud_disp = new wgtFilaManagerCloudDispatcher(m_fila_manager_cloud_sync,
+                                                                         m_fila_manager_cloud_client);
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud dispatcher initialized";
+        }
+    }
 
     BOOST_LOG_TRIVIAL(info) << "create the main window";
     mainframe = new MainFrame();
@@ -3249,6 +3654,7 @@ bool GUI_App::on_init_inner()
 #endif
     mainframe->Show(true);
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
+    perf_mark("Main window shown");
 
 //#if BBL_HAS_FIRST_PAGE
     //BBS: set tp3DEditor firstly
@@ -3307,8 +3713,13 @@ bool GUI_App::on_init_inner()
         if (! plater_)
             return;
 
-        if (app_config->dirty())
-            app_config->save();
+        if (app_config->dirty()) {
+            // Debounce: avoid synchronous disk writes on every idle event.
+            // Save at most once per 5 seconds; OnExit() flushes any remaining dirty state.
+            static auto s_last_config_save = std::chrono::steady_clock::time_point{};
+            if (Slic3r::debounce_elapsed(s_last_config_save, std::chrono::seconds(5)))
+                app_config->save();
+        }
 
         // BBS
         //this->obj_manipul()->update_if_dirty();
@@ -3344,9 +3755,25 @@ bool GUI_App::on_init_inner()
     flush_logs();
 
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
-    //BBS: delete splash screen
-    delete scrn;
     return true;
+}
+
+void GUI_App::notify_new_rfid_filament(const std::string& ams_id, const std::string& slot_id)
+{
+    // The Web AMS panel tracks the hint on its own, so record it before the
+    // classic monitor check: the Web page may be up while the monitor is not.
+    DevicePageAmsControlWebVM::NotifyNewRfidFilament(ams_id, slot_id);
+
+    if (!mainframe || !mainframe->m_monitor) return;
+    auto* sp = mainframe->m_monitor->get_status_panel();
+    if (sp) sp->show_ams_filament_hint(ams_id, slot_id);
+}
+
+void GUI_App::open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id)
+{
+    if (!mainframe || !mainframe->m_monitor) return;
+    auto* sp = mainframe->m_monitor->get_status_panel();
+    if (sp) sp->open_new_official_filament_hint(ams_id, slot_id);
 }
 
 void GUI_App::copy_network_if_available()
@@ -3500,6 +3927,9 @@ __retry:
             m_agent->set_country_code(country_code);
             m_agent->start();
             m_load_last_machine.InnerLoad(m_agent, getDeviceManager());
+            if (auto dev = getDeviceManager()) {
+                dev->restore_local_machines_from_user_access_config();
+            }
         }
     }
     else {
@@ -3761,7 +4191,7 @@ void GUI_App::UpdateFrameDarkUI(wxFrame* dlg)
     update_dark_children_ui(dlg);
 }
 
-void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
+void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/, const wxFont* header_font/* = nullptr*/)
 {
 #ifdef __WINDOWS__
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
@@ -3773,7 +4203,7 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
         NppDarkMode::SetDarkListViewHeader(hwnd);
     wxItemAttr attr;
     attr.SetTextColour(NppDarkMode::GetTextColor());
-    attr.SetFont(m_normal_font);
+    attr.SetFont(header_font ? *header_font : m_normal_font);
     dvc->SetHeaderAttr(attr);
 #endif //_MSW_DARK_MODE
     if (dvc->HasFlag(wxDV_ROW_LINES))
@@ -3977,6 +4407,21 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
 
+#if defined(__WXOSX__)
+    // macOS root cause (STUDIO-18472): switching language rebuilds the MainFrame and
+    // defers destruction of the old one (old_main_frame->Destroy() below), which only
+    // completes once wxEVT_IDLE fires. If the old frame still hosts a live Filament
+    // Manager WKWebView (e.g. the language was changed while that tab was visible, or
+    // the asynchronous about:blank teardown from a tab switch had not finished yet),
+    // its React app keeps the CFRunLoop busy and starves idle app-wide, so the old
+    // frame is never collected and the new frame cannot render or switch tabs.
+    // Proactively suspend it here so the old frame is guaranteed quiet before its
+    // deferred destruction, independent of which tab was visible or how fast the user
+    // reached Preferences. No-op off macOS.
+    if (mainframe && mainframe->web_device())
+        mainframe->web_device()->Suspend();
+#endif
+
     update_http_extra_header();
 
     mainframe->shutdown();
@@ -4016,9 +4461,6 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     obj_list()->set_min_height();
     update_mode();
 
-    // clear previous hms query, so that the hms info can use different language
-    if (hms_query) hms_query->clear_hms_info();
-
     //BBS: trigger restore project logic here, and skip confirm
     plater_->trigger_restore_project(1);
 
@@ -4032,6 +4474,17 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     update_publish_status();
 
     m_is_recreating_gui = false;
+
+#if defined(__WXOSX__)
+    // STUDIO-18472: a GUI rebuild just happened (and trigger_restore_project()
+    // queued EVT_RESTORE_PROJECT). From here on the macOS run loop may fail to
+    // wake for wx pending events after the Filament Manager WKWebView churn, so
+    // arm the pending-event pump for the rest of the session. This dispatches
+    // the deferred restore promptly (prepare canvas no longer stays blank) and
+    // keeps later tab-bar page switches (posted via wxPostEvent) responsive.
+    if (!m_macos_pending_pump_timer.IsRunning())
+        m_macos_pending_pump_timer.Start(30);
+#endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
 }
@@ -4165,14 +4618,13 @@ void GUI_App::request_helio_pat(std::function<void(std::string)> func)
     Slic3r::HelioQuery::request_pat_token(func);
 }
 
-void GUI_App::request_helio_supported_data()
+void GUI_App::request_helio_supported_data(bool force_refresh)
 {
     std::string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
     std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
 
-    if (HelioQuery::global_supported_printers.size() <= 0 || HelioQuery::global_supported_materials.size() <= 0) {
-        Slic3r::HelioQuery::request_all_support_machine(helio_api_url, helio_api_key);
-        Slic3r::HelioQuery::request_all_support_materials(helio_api_url, helio_api_key);
+    if (Slic3r::HelioQuery::request_supported_data(helio_api_url, helio_api_key, force_refresh)) {
+        Slic3r::HelioQuery::clear_print_priority_cache();
     }
 }
 
@@ -4292,9 +4744,9 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
 #ifdef __APPLE__
-        _L("Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"),
+        _L("Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"),
 #else
-        _L("Choose one or more files (3mf/step/stl/svg/obj/amf):"),
+        _L("Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx):"),
 #endif
         from_u8(app_config->get_last_dir()), "",
         file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
@@ -4315,11 +4767,16 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
-wxString GUI_App::transition_tridid(int trid_id) const
+wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extruder_count) const
 {
-    if (trid_id == VIRTUAL_TRAY_MAIN_ID || trid_id == VIRTUAL_TRAY_DEPUTY_ID)
-    {
-        assert(0);
+    if (trid_id == VIRTUAL_TRAY_MAIN_ID || trid_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        if (total_extruder_count.value_or(-1) == 2) {
+            if (trid_id == VIRTUAL_TRAY_MAIN_ID) {
+                return wxString("Ext-R");
+            } else {
+                return wxString("Ext-L");
+            }
+        }
         return wxString("Ext");
     }
 
@@ -4335,6 +4792,11 @@ wxString GUI_App::transition_tridid(int trid_id) const
         wxString prefix("HT-");
         prefix.append(base);
         return prefix;
+    }
+    else if (trid_id >= 24 && trid_id <= 27 )
+    {
+        int id_suffix = trid_id - 24 + 1;//ams lite for n9 trid_id start from 24
+        return wxString::Format("Q%d", id_suffix);
     }
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
@@ -4362,12 +4824,25 @@ void GUI_App::get_login_info()
             GUI::wxGetApp().run_script_left(strJS);
         }
         else {
+            m_homepage_server_connect_failed = false;
             m_agent->user_logout();
             std::string logout_cmd = m_agent->build_logout_cmd();
             wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
             GUI::wxGetApp().run_script_left(strJS);
         }
     }
+    sync_left_server_connect_status();
+}
+
+void GUI_App::sync_left_server_connect_status()
+{
+    json msg           = json::object();
+    msg["sequence_id"] = "10001";
+    msg["command"]     = "homepage_server_connect_status";
+    msg["failed"]      = m_homepage_server_connect_failed ? 1 : 0;
+
+    wxString strJS = wxString::Format("window.postMessage(%s)", msg.dump(-1, ' ', false, json::error_handler_t::ignore));
+    GUI::wxGetApp().run_script_left(strJS);
 }
 
 bool GUI_App::is_user_login()
@@ -4408,11 +4883,15 @@ void GUI_App::request_user_login(int online_login)
 
 void GUI_App::request_user_logout()
 {
+    m_homepage_server_connect_failed = false;
+    sync_left_server_connect_status();
+
     if (m_agent && m_agent->is_user_login()) {
         m_load_last_machine.is_list_ok = false;
         m_load_last_machine.is_mqtt_ok = false;
         // Update data first before showing dialogs
         m_agent->user_logout(true);
+        WebView::ClearBambulabTokenCookies();
         if (auto obj = m_device_manager->get_selected_machine();
             obj && obj->is_cloud_mode_printer()) {
             m_device_manager->record_user_last_machine("");
@@ -4432,6 +4911,19 @@ void GUI_App::request_user_logout()
         mainframe->update_side_preset_ui();
 
         GUI::wxGetApp().stop_sync_user_preset();
+
+        // Drop queued cloud ops so they don't fire against a stale user.
+        if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
+            m_fila_manager_cloud_disp->clear_pending();
+        }
+        // STUDIO-18155: 清 AMS auto-push 节流账本，避免账号 A 的 cooldown
+        // 影响登入账号 B 后第一次 sync 触发 push 的时机。
+        if (!m_disable_fila_manager && m_fila_manager_cloud_sync) {
+            m_fila_manager_cloud_sync->throttle().clear_all();
+        }
+        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+            mainframe->web_device()->NotifyFilamentSessionState();
+        }
     }
 }
 
@@ -4646,11 +5138,18 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     pt::ptree                    data_node = root.get_child("data");
                     boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
                     if (path.has_value()) {
-                        wxLaunchDefaultBrowser(path.value());
-                        if (m_agent) {
-                            json j;
-                            j["user_guide"] = path.value();
-                            m_agent->track_event("user_guide", j.dump());
+                        // Remote pages may send this command, so refuse anything but plain web URLs:
+                        // local schemes (file://, ms-msdt:, custom protocol handlers) must never reach the shell.
+                        const std::string &url = path.value();
+                        if (boost::istarts_with(url, "http://") || boost::istarts_with(url, "https://")) {
+                            wxLaunchDefaultBrowser(url);
+                            if (m_agent) {
+                                json j;
+                                j["user_guide"] = url;
+                                m_agent->track_event("user_guide", j.dump());
+                            }
+                        } else {
+                            BOOST_LOG_TRIVIAL(warning) << "userguide_wiki_open: refused non-http(s) url";
                         }
                     }
                 }
@@ -4658,7 +5157,14 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("common_openurl") == 0) {
                 boost::optional<std::string> path      = root.get_optional<std::string>("url");
                 if (path.has_value()) {
-                    wxLaunchDefaultBrowser(path.value());
+                    // Remote pages may send this command, so refuse anything but plain web URLs:
+                    // local schemes (file://, ms-msdt:, custom protocol handlers) must never reach the shell.
+                    const std::string &url = path.value();
+                    if (boost::istarts_with(url, "http://") || boost::istarts_with(url, "https://")) {
+                        wxLaunchDefaultBrowser(url);
+                    } else {
+                        BOOST_LOG_TRIVIAL(warning) << "common_openurl: refused non-http(s) url";
+                    }
                 }
             }
             else if (command_str.compare("homepage_leftmenu_clicked") == 0) {
@@ -4863,6 +5369,15 @@ void GUI_App::request_model_download(wxString url)
     }
 }
 
+std::string GUI_App::sanitize_download_url(const std::string &url)
+{
+    try {
+        std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
+        return std::regex_replace(url, pattern, "");
+    } catch (...) {}
+    return url;
+}
+
 //BBS download project by project id
 void GUI_App::download_project(std::string project_id)
 {
@@ -5060,6 +5575,7 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         dev->update_user_machine_list_info();
         CallAfter([this, dev]() {
             m_load_last_machine.TryLoadFromHttpCB(m_agent, dev);
+            dev->restore_local_machines_from_user_access_config();
         });
     });
 
@@ -5070,6 +5586,14 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         mainframe->update_side_preset_ui();
 
         GUI::wxGetApp().mainframe->show_sync_dialog();
+
+        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+            mainframe->web_device()->NotifyFilamentSessionState();
+        }
+    }
+
+    if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
+        m_fila_manager_cloud_disp->enqueue_pull();
     }
 }
 
@@ -5153,12 +5677,106 @@ void GUI_App::check_update(bool show_tips, int by_user)
     } else {
         wxGetApp().app_config->set("upgrade", "force_upgrade", false);
 
-        if (show_tips) {
+        // When the beta channel is enabled, defer the "newest version" toast to
+        // check_beta_version(): the stable channel says no, but GitHub may still have
+        // a newer beta. Showing the toast now would contradict the beta dialog that
+        // pops up moments later from the async GitHub check.
+        if (show_tips && app_config->get("enable_beta_version_update") != "true") {
             this->no_new_version();
+        } else {
+            check_beta_version(show_tips);
+        }
+    }
+}
+
+PolicyCheckResult GUI_App::check_version_policy(PolicyCheckPoint point)
+{
+    try {
+        return VersionPolicyManager::inst().check(point);
+    } catch (...) {
+        // Fail open, as everywhere in this layer: a policy that cannot be read
+        // must not be able to stop the user.
+        BOOST_LOG_TRIVIAL(error) << "[VersionPolicy]: check point " << (int) point << " failed, allowing";
+        return PolicyCheckResult();
+    }
+}
+
+void GUI_App::check_startup_version_policy()
+{
+    const PolicyCheckResult result = check_version_policy(PolicyCheckPoint::Startup);
+    if (result.has_message()) {
+        VersionPolicyDialog dialog(mainframe);
+
+        // A version blocked at startup offers no way out, so acknowledging the
+        // message is all the user can do; a warning still lets Studio start.
+        if (result.blocked()) {
+            dialog.add_button(VersionPolicyDialog::ButtonId::Acknowledge, _L("Got it"));
+        } else {
+            dialog.add_button(VersionPolicyDialog::ButtonId::Continue, _L("Continue"));
         }
 
-        check_beta_version();
+        dialog.UpdateByPolicyHits(result);
+        dialog.run();
+
+        // A version blocked at startup is not usable at all. Closing right here
+        // would tear the main frame down while the dialog is still on the
+        // stack, hence the hop to the next turn of the event loop.
+        if (result.blocked()) {
+            if(mainframe) mainframe->Close(true);
+        }
     }
+}
+
+namespace {
+
+/**
+ * @brief Runs the dialog of a check point that guards an operation.
+ *
+ * A block leaves the user nothing to decide, a warning lets them go on or
+ * step out of the operation they started.
+ *
+ * @return Whether the guarded operation may go ahead.
+ */
+bool run_policy_guard_dialog(wxWindow *parent, const PolicyCheckResult &result)
+{
+    VersionPolicyDialog dialog(parent);
+
+    if (result.blocked()) {
+        dialog.add_button(VersionPolicyDialog::ButtonId::Acknowledge, _L("Got it"));
+    } else {
+        dialog.add_button(VersionPolicyDialog::ButtonId::Continue, _L("Continue"));
+        dialog.add_button(VersionPolicyDialog::ButtonId::Back, _L("Cancel"), nullptr, VersionPolicyDialog::ButtonStyle::Secondary);
+    }
+
+    dialog.UpdateByPolicyHits(result);
+    return dialog.run();
+}
+
+} // namespace
+
+bool GUI_App::check_slice_version_policy()
+{
+    const PolicyCheckResult result = check_version_policy(PolicyCheckPoint::BeforeSlice);
+    if (!result.has_message()) {
+        return true;
+    }
+    return run_policy_guard_dialog(mainframe, result);
+}
+
+bool GUI_App::is_slice_version_blocked()
+{
+    // Cheap, in-memory evaluation; never shows UI. Mirrors the fail-open policy of
+    // check_version_policy() (a policy that cannot be read never blocks).
+    return check_version_policy(PolicyCheckPoint::BeforeSlice).blocked();
+}
+
+bool GUI_App::check_send_print_version_policy()
+{
+    const PolicyCheckResult result = check_version_policy(PolicyCheckPoint::BeforeSend);
+    if (!result.has_message()) {
+        return true;
+    }
+    return run_policy_guard_dialog(mainframe, result);
 }
 
 void GUI_App::check_new_version(bool show_tips, int by_user)
@@ -5192,10 +5810,14 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
                 if (j["message"].get<std::string>() == "success") {
                     if (j.contains("software")) {
                         if (j["software"].empty()) {
-                            if (show_tips) {
+                            // Same reasoning as in check_update(): suppress the toast when
+                            // the beta channel is enabled so it cannot contradict the beta
+                            // release dialog raised by the async GitHub check below.
+                            if (show_tips && app_config->get("enable_beta_version_update") != "true") {
                                 this->no_new_version();
+                            } else {
+                                check_beta_version(show_tips);
                             }
-                            check_beta_version();
                         }
                         else {
                             if (j["software"].contains("url")
@@ -5228,8 +5850,10 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     }).perform();
 }
 
-void GUI_App::check_beta_version()
+void GUI_App::check_beta_version(bool show_tips_when_no_beta)
 {
+    // When the beta channel is off the stable callers have already shown the toast
+    // (see check_update / check_new_version), so we just bail out here.
     if (app_config->get("enable_beta_version_update") != "true") {
         return;
     }
@@ -5256,7 +5880,7 @@ void GUI_App::check_beta_version()
     http.header("accept", "application/json")
         .timeout_connect(TIMEOUT_CONNECT)
         .timeout_max(TIMEOUT_RESPONSE)
-        .on_complete([this, platform](std::string body, unsigned) {
+        .on_complete([this, platform, show_tips_when_no_beta](std::string body, unsigned) {
         try {
             json versions = json::parse(body, nullptr, false);
             for (auto version : versions){
@@ -5282,7 +5906,12 @@ void GUI_App::check_beta_version()
                                     version_info.url = url;
                                     version_info.description = "###" + std::string(version["html_url"]) + "###";
                                     version_info.force_upgrade = false;
-                                    CallAfter([this]() {
+                                    CallAfter([this, show_tips_when_no_beta]() {
+                                        auto fallback_tips = [this, show_tips_when_no_beta]() {
+                                            if (show_tips_when_no_beta) {
+                                                this->no_new_version();
+                                            }
+                                        };
 
                                         if (version_info.version_str.empty() || version_info.url.empty()) {
                                             return;
@@ -5291,16 +5920,58 @@ void GUI_App::check_beta_version()
                                         auto curr_version   = Semver::parse(SLIC3R_VERSION);
                                         auto remote_version = Semver::parse(version_info.version_str);
                                         if (curr_version && remote_version && (*remote_version > *curr_version)) {
-                                            GUI::wxGetApp().request_new_version(false);
+                                            std::string skip_ver = app_config->get("app", "skip_version");
+                                            if (!skip_ver.empty() && version_info.version_str <= skip_ver) {
+                                                fallback_tips();
+                                                return;
+                                            }
+
+                                            BetaVersionDialog beta_dlg(this->mainframe);
+                                            beta_dlg.updateContent(
+                                                wxString::FromUTF8(version_info.version_str),
+                                                wxString::FromUTF8(SLIC3R_VERSION));
+
+                                            switch (beta_dlg.ShowModal()) {
+                                            case wxID_YES:
+                                                GUI::wxGetApp().request_new_version(2);
+                                                break;
+                                            case wxID_CANCEL:
+                                                // Triggered only by the explicit
+                                                // "Don't show me Beta updates again" button.
+                                                app_config->set("enable_beta_version_update", "false");
+                                                break;
+                                            case wxID_NO:
+                                                wxGetApp().set_skip_version(true);
+                                                break;
+                                            case wxID_CLOSE:
+                                                // Window close (X): dismiss the dialog without
+                                                // touching the beta-channel preference or
+                                                // skip_version. Same as default, listed
+                                                // explicitly to document the intent.
+                                                break;
+                                            default:
+                                                break;
+                                            }
+                                        } else {
+                                            fallback_tips();
                                         }
                                     });
                                 }
                             }
                         }
+                        // Newest beta located and scheduled; stop scanning older entries.
+                        return;
                     }
                 }
-                return;
             }
+            // No beta release exists across all GitHub releases (e.g. the newest
+            // release is stable). Fall back to the regular "no new version" toast
+            // instead of silently returning after inspecting only the first entry.
+            CallAfter([this, show_tips_when_no_beta]() {
+                if (show_tips_when_no_beta) {
+                    this->no_new_version();
+                }
+            });
         }
         catch (...) {
             ;
@@ -5318,8 +5989,28 @@ void GUI_App::check_cert()
         [this]{
             if (m_agent)
                 m_agent->check_cert();
+
+            // piggyback the startup device-region query on the same worker
+            // thread: both are one-shot synchronous cloud calls, and sharing
+            // the thread keeps the exit join in OnExit() simple.
+            post_device_region();
         });
     BOOST_LOG_TRIVIAL(info) << "check_cert";
+}
+
+// Startup device region query. The network call is synchronous inside the
+// network library (up to 10s timeout), so it must stay off the GUI thread.
+// Runs on m_check_cert_thread; OnExit() joins that thread before m_agent is deleted.
+void GUI_App::post_device_region()
+{
+    if (!m_agent)
+        return;
+
+    DeviceRegionParams params;
+    params.ClientType = "slicer";
+    std::string        http_body;
+    int ret = m_agent->post_device_region(params, &http_body);
+    BOOST_LOG_TRIVIAL(info) << "post_device_region: ret=" << ret << " body=" << http_body;
 }
 
 // return true if handled
@@ -5857,6 +6548,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     m_user_sync_token.reset(new int(0));
     if (with_progress_dlg) {
         auto dlg = new ProgressDialog(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+        dlg->EnableYield(false);
         dlg->Update(0, _L("Loading user preset"));
         progressFn = [this, dlg](int percent) {
             CallAfter([=]{
@@ -6227,6 +6919,8 @@ bool GUI_App::load_language(wxString language, bool initial)
             wxLanguage cur_lang = wxLANGUAGE_UNKNOWN;
             auto cur_lang_info = wxLocale::FindLanguageInfo(language);
             if (cur_lang_info) { cur_lang = static_cast<wxLanguage> (cur_lang_info->Language);}
+            // all share zh_TW
+            if(cur_lang == wxLANGUAGE_CHINESE || cur_lang==wxLANGUAGE_CHINESE_TAIWAN) cur_lang = wxLANGUAGE_CHINESE_TRADITIONAL;
             if (std::find(s_supported_languages.begin(), s_supported_languages.end(), cur_lang) == s_supported_languages.end())
             {
                 app_config->set("language", "");
@@ -6238,7 +6932,8 @@ bool GUI_App::load_language(wxString language, bool initial)
         	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by BambuStudio.conf: %1%") % language;
         else {
             // Get the system language.
-            const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+            wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+            if(lang_system == wxLANGUAGE_CHINESE || lang_system==wxLANGUAGE_CHINESE_TAIWAN) lang_system = wxLANGUAGE_CHINESE_TRADITIONAL;
             if (std::find(s_supported_languages.begin(), s_supported_languages.end(), lang_system) != s_supported_languages.end()) {
                 m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
 #ifdef __WXMSW__
@@ -6378,7 +7073,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
-    	wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed.";
+        wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed, because your computer is missing the corresponding locale.";
 #if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux system
         message += "\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";
@@ -6688,15 +7383,16 @@ void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
 //    menu->AppendSubMenu(local_menu, _L("Configuration"));
 //}
 
-void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_option)
+void GUI_App::open_preferences()
 {
     bool app_layout_changed = false;
     {
         // the dialog needs to be destroyed before the call to recreate_GUI()
         // or sometimes the application crashes into wxDialogBase() destructor
         // so we put it into an inner scope
-        PreferencesDialog dlg(mainframe, open_on_tab, highlight_option);
+        PreferencesDialog dlg(mainframe);
         dlg.ShowModal();
+
         // BBS
         //app_layout_changed = dlg.settings_layout_changed();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -6721,6 +7417,15 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
                 associate_files(L"gcode");
         }
 #endif // _WIN32
+
+        // Refresh the recent projects list if time format changed
+        if (dlg.use_12h_time_format_changed() && mainframe && mainframe->m_webview) {
+            CallAfter([mainframe = this->mainframe]() {
+                if (mainframe && mainframe->m_webview) {
+                    mainframe->m_webview->SendRecentList(-1);
+                }
+            });
+        }
     }
 
     // BBS
@@ -7003,6 +7708,8 @@ bool GUI_App::checked_tab(Tab* tab)
 //BBS: add preset combo box re-activate logic
 void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool check_printer_presets_ /*= true*/)
 {
+    PERF_TRACE("Loading presets");
+
     // check printer_presets for the containing information about "Print Host upload"
     // and create physical printer from it, if any exists
     if (check_printer_presets_)
@@ -7111,15 +7818,19 @@ void GUI_App::MacOpenURL(const wxString& url)
 #endif
 
     if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
-        auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
-        if (input_str_arr.size() > 1) {input_str_arr.erase(input_str_arr.begin());}
-
-        std::string download_origin_url;
-        for (auto input_str : input_str_arr) {
-            if (!input_str.empty()) download_origin_url = input_str;
+        std::string decoded_url = extract_model_download_url_from_mac(url.ToStdString());
+        std::string download_file_url;
+#if BBL_RELEASE_TO_PUBLIC
+        if (is_trusted_model_download_url(decoded_url)) {
+            download_file_url = decoded_url;
+        } else {
+            MessageDialog msg_dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "", wxAPPLY | wxYES_NO);
+            if (msg_dlg.ShowModal() == wxID_YES) download_file_url = decoded_url;
         }
-
-        std::string download_file_url = url_decode(download_origin_url);
+#else
+        download_file_url = decoded_url;
+#endif
+        download_file_url = sanitize_download_url(download_file_url);
 
 #if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
@@ -7461,6 +8172,11 @@ wxString GUI_App::current_language_code_safe() const
         { "tr",     "tr_TR", },
         { "pt",     "pt_BR", },
         { "hu",     "hu_HU", },
+        { "th",     "th_TH", },
+        { "ro",     "ro_RO", },
+        { "el",     "el_GR", },
+        { "id",     "id_ID", },
+        { "vi",     "vi_VN", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);
@@ -7522,10 +8238,13 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 
     GuideFrame wizard(this, pStyle);
     auto page = start_page == ConfigWizard::SP_WELCOME ? GuideFrame::BBL_WELCOME :
-                start_page == ConfigWizard::SP_FILAMENTS ? GuideFrame::BBL_FILAMENT_ONLY :
+                (start_page == ConfigWizard::SP_FILAMENTS || start_page == ConfigWizard::SP_CUSTOM) ? GuideFrame::BBL_FILAMENT_ONLY :
                 start_page == ConfigWizard::SP_PRINTERS ? GuideFrame::BBL_MODELS_ONLY :
                 GuideFrame::BBL_MODELS;
-    wizard.SetStartPage(page);
+    // SP_CUSTOM: reused (it's unused by the legacy ConfigWizard code path, which is
+    // dead since this webview-based GuideFrame replaced it) to mean "reopen straight
+    // to the Custom filaments tab" for the create/edit-custom-filament flow.
+    wizard.SetStartPage(page, true, start_page == ConfigWizard::SP_CUSTOM);
 
     bool config_applied = false;
     bool       res = wizard.run(config_applied);
@@ -7537,7 +8256,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
         // BBS: remove SLA related message
     }
     else if (config_applied){
-        MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxAPPLY | wxOK);
+        MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxOK | wxICON_WARNING);
         msg_dlg.ShowModal();
     }
 
@@ -7563,7 +8282,7 @@ void GUI_App::gcode_thumbnails_debug()
     unsigned int width = 0;
     unsigned int height = 0;
 
-    wxFileDialog dialog(GetTopWindow(), _L("Select a G-code file:"), "", "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog dialog(GetTopWindow(), _L("Select a G-code file:"), from_u8(wxGetApp().app_config->get_last_dir()), "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
@@ -7642,7 +8361,8 @@ const std::shared_ptr<GLShaderProgram>& GUI_App::get_shader(const std::string &s
         return p_ogl_manager->get_shader(shader_name);
     }
 
-    return nullptr;
+    static std::shared_ptr<GLShaderProgram> s_empty_shader{ nullptr };
+    return s_empty_shader;
 }
 
 const std::shared_ptr<GLShaderProgram> GUI_App::get_current_shader() const
@@ -7750,7 +8470,7 @@ void GUI_App::check_updates(const bool verbose)
         //updater_result = preset_updater->config_update(app_config->orig_version(), verbose ? PresetUpdater::UpdateParams::SHOW_TEXT_BOX : PresetUpdater::UpdateParams::SHOW_NOTIFICATION);
         updater_result = preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::SHOW_TEXT_BOX);
         if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
-            MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxAPPLY | wxOK);
+            MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxOK | wxICON_WARNING);
             msg_dlg.ShowModal();
         }
         else if (updater_result == PresetUpdater::R_INCOMPAT_CONFIGURED) {
@@ -8073,26 +8793,33 @@ static void sLocalBindFunc(std::string str_ip,
                            std::string str_access_code,
                            std::string sn)
 {
+    // bind_detect is a hint, not a gate. It used to erase the remembered IP whenever the probe was
+    // not conclusive, so a sleeping printer or a transient network hiccup made the device silently
+    // disappear from the list. Keep its data when it answers, otherwise log and connect with the
+    // persisted local info.
     detectResult detectData;
-    auto result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+    const int    result        = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+    const char*  reject_reason = nullptr;
     if (result < 0) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": bind_detect failed code=" << result;
-        wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-        return;
+        reject_reason = "bind_detect failed";
+    } else if (detectData.connect_type != "farm") {
+        if (detectData.bind_state == "occupied") {
+            reject_reason = "the device is already occupied";
+        } else if (detectData.connect_type == "cloud") {
+            reject_reason = "the device is cloud";
+        }
     }
 
-    if (detectData.connect_type != "farm") {
-        if (detectData.bind_state == "occupied") {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is already occupied";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-            return;
-        }
+    if (reject_reason) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << reject_reason << ", code=" << result
+                                   << ", falling back to the persisted local info";
 
-        if (detectData.connect_type == "cloud") {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is cloud";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-            return;
-        }
+        detectData              = detectResult();
+        detectData.dev_id       = sn;
+        detectData.dev_name     = sn;
+        detectData.connect_type = "lan";
+        detectData.bind_state   = "free";
+        detectData.model_id     = DevPrinterConfigUtil::get_model_id_by_dev_id(sn);
     }
 
     wxGetApp().CallAfter([detectData, str_ip, str_access_code]() {
@@ -8135,6 +8862,9 @@ void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try to reconnect " << BBLCrossTalk::Crosstalk_DevId(last_select_machine)
         << ", is_mqtt_ok=" << is_mqtt_ok << ", is_list_ok=" << is_list_ok;
     if (last_select_machine.empty()) {
+        if (is_mqtt_ok && is_list_ok) {
+            dev->load_last_machine();
+        }
         return;
     }
 
@@ -8166,8 +8896,13 @@ void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
         }
     } else {
         if (is_mqtt_ok && is_list_ok) {
-            dev->set_selected_machine(last_select_machine);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select cloud machine";
+            if (dev->get_my_machine(last_select_machine) &&
+                dev->set_selected_machine(last_select_machine)) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select cloud machine";
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": last selected machine is unavailable, fall back";
+                dev->load_last_machine();
+            }
         } else {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mqtt or list not ready";
         }

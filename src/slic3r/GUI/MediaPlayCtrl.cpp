@@ -9,6 +9,9 @@
 #include "DownloadProgressDialog.hpp"
 
 #include "slic3r/Utils/BBLUtil.hpp"
+#include "slic3r/Utils/FileTransferObject.hpp"
+#include "Printer/LiveViewTrackContext.h"
+#include "Printer/BambuTunnel.h"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
@@ -29,6 +32,10 @@
 #include <wx/clipbrd.h>
 #include "wx/evtloop.h"
 #include <wx/dcgraph.h>
+#include <wx/mstream.h>
+
+wxDEFINE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_MEDIA_CTRL_SESSION_END, wxCommandEvent);
 
 static std::map<int, std::string> error_messages = {
     {1, L("The device cannot handle more conversations. Please retry later.")},
@@ -44,6 +51,19 @@ namespace GUI {
 
 static int SecondsSinceLastInput();
 
+static const char* determine_end_reason(bool user_triggered, int failed_code, const wxString& msg)
+{
+    if (user_triggered)  return "user_close";
+    if (failed_code == 0) {
+        if (msg.Contains("no operation") || msg.Contains("no printing"))
+            return "timeout";
+        return "user_close";
+    }
+    if (failed_code == 1)  return "channel_error";
+    if (failed_code < 0)   return "network_error";
+    return "unknown";
+}
+
 MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const wxPoint &pos, const wxSize &size)
     : wxPanel(parent, wxID_ANY, pos, size)
     , m_media_ctrl(media_ctrl)
@@ -51,7 +71,66 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
     SetLabel("MediaPlayCtrl");
     SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
-    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+    m_media_ctrl->Bind(EVT_MEDIA_CTRL_FIRST_FRAME, [this](wxCommandEvent &e) {
+        if (!m_pending_start_liveview_json.empty()) {
+            try {
+                auto j = json::parse(m_pending_start_liveview_json);
+                j["first_frame_time"] = e.GetInt();
+                NetworkAgent *agent = wxGetApp().getAgent();
+                if (agent)
+                    agent->track_event("start_liveview", j.dump());
+            } catch (...) {}
+            m_pending_start_liveview_json.clear();
+        }
+        m_session_first_frame_success = true;
+        m_session_first_frame_cost_ms = e.GetInt();
+        if (auto* info = static_cast<FirstFrameInfo*>(e.GetClientData())) {
+            const char* codec_str = (info->video_codec == 1) ? "MJPEG" : "h264";
+            BambuLiveViewTrack::EmitParams p;
+            p.phase  = "render";
+            p.result = "success";
+            p.event_data["first_frame_cost_ms"]        = info->first_frame_cost_ms;
+            p.event_data["first_packet_time_ms"]       = info->first_packet_time_ms;
+            p.event_data["decode_first_frame_time_ms"] = info->decode_first_frame_time_ms;
+            p.event_data["render_first_frame_time_ms"] = info->render_first_frame_time_ms;
+            p.event_data["video_codec"]                = codec_str;
+            p.event_data["resolution_width"]           = info->resolution_width;
+            p.event_data["resolution_height"]          = info->resolution_height;
+            BambuLiveViewTrack::LiveViewTrackContext::instance()
+                .emit("liveview_first_frame", p, &m_media_ctrl->m_track_channel);
+            delete info;
+        }
+    });
+    m_media_ctrl->Bind(EVT_MEDIA_CTRL_SESSION_END, [this](wxCommandEvent &e) {
+        auto* ss = static_cast<Bambu_SessionStat*>(e.GetClientData());
+        if (!ss) return;
+
+        BambuLiveViewTrack::EmitParams p;
+        p.phase  = "close";
+        p.result = (m_failed_code == 0) ? "success" : "fail";
+        if (m_failed_code != 0)
+            p.error_code = std::to_string(m_failed_code);
+
+        p.event_data["session_duration_ms"]      = ss->session_duration_ms;
+        p.event_data["avg_fps"]                  = ss->avg_fps;
+        p.event_data["avg_bitrate_kbps"]         = ss->avg_bitrate_kbps;
+        p.event_data["freeze_count"]             = ss->freeze_count;
+        p.event_data["freeze_total_duration_ms"] = ss->freeze_total_duration_ms;
+        p.event_data["avg_jitter_ms"]            = ss->avg_jitter_ms;
+        p.event_data["max_jitter_ms"]            = ss->max_jitter_ms;
+        p.event_data["connect_success"]          = m_session_connect_success;
+        p.event_data["first_frame_success"]      = m_session_first_frame_success;
+        p.event_data["first_frame_cost_ms"]      = m_session_first_frame_cost_ms;
+        p.event_data["video_decode_error_count"] = m_media_ctrl->m_video_decode_error_count;
+        p.event_data["render_error_count"]       = m_media_ctrl->m_render_error_count;
+        p.event_data["last_error_code"]          = m_failed_code;
+        p.event_data["end_reason"]               = determine_end_reason(m_user_triggered, m_failed_code, wxString());
+
+        BambuLiveViewTrack::LiveViewTrackContext::instance()
+            .emit("liveview_session_end", p, &m_media_ctrl->m_track_channel);
+        delete ss;
+    });
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/liveview_bg.png"));
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
@@ -90,6 +169,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
             }
             m_stat.push_back(value);
         }
+        m_media_ctrl->UpdateSessionStat();
     });
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
@@ -137,6 +217,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
 
     m_lan_user = "bblp";
     m_lan_passwd = "bblp";
+    m_image_transfer = std::make_shared<FileTransferObject>();
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()
@@ -157,7 +238,9 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->get_dev_id() : "";
     if (obj) {
+        m_obj            = obj;
         m_camera_exists  = obj->has_ipcam;
+        m_support_liveview_preview = obj->is_support_liveview_preview;
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
         m_lan_proto      = obj->liveview_local;
@@ -167,7 +250,9 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_device_busy    = obj->is_camera_busy_off();
         m_tutk_state     = obj->tutk_state;
     } else {
+        m_obj = nullptr;
         m_camera_exists = false;
+        m_support_liveview_preview = false;
         m_lan_mode = false;
         m_lan_proto = MachineObject::LVL_None;
         m_lan_ip.clear();
@@ -181,6 +266,17 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (machine == m_machine) {
         if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
             Play();
+        if (m_last_state == MEDIASTATE_LOADING || m_last_state == MEDIASTATE_INITIALIZING) {
+            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now() - m_play_timer).count();
+            if (elapsed >= 15) {
+                BOOST_LOG_TRIVIAL(error) << "MediaPlayCtrl: loading/initializing timeout after " << elapsed
+                                         << "s, forcing stop";
+                m_failed_code = 2;
+                Stop(_L("Loading failed. Please check the network and try again."));
+                return;
+            }
+        }
         if (m_last_state == wxMediaState::wxMEDIASTATE_PLAYING) {
             auto now = std::chrono::system_clock::now();
             if (m_play_timer <= now) {
@@ -211,6 +307,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_disable_lan = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
+    m_image_last_machine.clear();
     m_last_user_play = wxDateTime::Now();
     std::string stream_url;
     if (get_stream_url(&stream_url)) {
@@ -224,6 +321,8 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     else
         SetStatus("", false);
+
+    start_device_image_flow();
 }
 
 wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1)
@@ -258,6 +357,39 @@ wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
     }
 #endif
     return url;
+}
+
+static std::string get_url_query(const std::string& url, const std::string& key)
+{
+    std::string needle = key + "=";
+    size_t q = url.find('?');
+    if (q == std::string::npos) return {};
+    size_t pos = url.find(needle, q);
+    while (pos != std::string::npos) {
+        if (pos > 0 && (url[pos - 1] == '?' || url[pos - 1] == '&')) {
+            size_t start = pos + needle.size();
+            size_t end   = url.find('&', start);
+            return url.substr(start, end == std::string::npos ? std::string::npos : end - start);
+        }
+        pos = url.find(needle, pos + 1);
+    }
+    return {};
+}
+
+static BambuLiveViewTrack::ChannelInfo parse_track_channel_from_url(const std::string& url)
+{
+    BambuLiveViewTrack::ChannelInfo info;
+    if (boost::algorithm::starts_with(url, "bambu:///agora?")) {
+        info.protocol  = "agora";
+        info.channel   = get_url_query(url, "channel");
+        info.local_uid = get_url_query(url, "user");
+        info.region    = get_url_query(url, "region");
+    } else if (boost::algorithm::starts_with(url, "bambu:///tutk?")) {
+        info.protocol   = "tutk";
+        info.remote_uid = get_url_query(url, "uid");
+        info.region     = get_url_query(url, "region");
+    }
+    return info;
 }
 
 void refresh_agora_url(char const* device, char const* dev_ver, char const* channel, void* context, void (*callback)(void* context, char const* url))
@@ -340,7 +472,7 @@ void MediaPlayCtrl::Play()
 
     if (m_lan_proto <= MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto)) {
         Stop(m_lan_proto == MachineObject::LVL_None
-            ? _L("Problem occured. Please update the printer firmware and try again.")
+            ? _L("Problem occurred. Please update the printer firmware and try again.")
             : _L("LAN Only Liveview is off. Please turn on the liveview on printer screen."));
         return;
     }
@@ -398,6 +530,9 @@ void MediaPlayCtrl::Play()
                         Stop(_L("Connection Failed. Please check the network and try again"), from_u8(url));
                     } else {
                         m_url = url;
+                        if (m_media_ctrl) {
+                            m_media_ctrl->SetTrackChannel(parse_track_channel_from_url(url));
+                        }
                         load();
                     }
                 } else {
@@ -415,6 +550,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
     int last_state = m_last_state;
 
     if (m_last_state != MEDIASTATE_IDLE) {
+        m_pending_start_liveview_json.clear();
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
         boost::unique_lock lock(m_mutex);
@@ -476,6 +612,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
         j["msg"]            = into_u8(msg);
         if (!msg2.IsEmpty())
             j["msg2"]            = into_u8(msg2);
+        j["printer_type"] = m_obj ? m_obj->get_show_printer_type() : "";
         NetworkAgent *agent = wxGetApp().getAgent();
         if (agent)
             agent->track_event("start_liveview", j.dump());
@@ -501,6 +638,10 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 
     m_url.clear();
     ++m_failed_retry;
+
+    // Set idle image after video stops
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/liveview_bg.png"));
+
     bool local = tunnel == "local" || tunnel == "rtsp" ||
                  tunnel == "rtsps";
     if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
@@ -681,6 +822,186 @@ void MediaPlayCtrl::jump_to_play()
     TogglePlay();
 }
 
+void MediaPlayCtrl::RequestFileSystemUrl(std::function<void(std::string url)> cb, bool lan_mode)
+{
+    if (!cb) return;
+
+    if (lan_mode && !m_lan_ip.empty() && !m_lan_passwd.empty()) {
+        std::string url = "bambu:///local/" + m_lan_ip + "?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        cb(url);
+        return;
+    }
+
+    NetworkAgent *agent = wxGetApp().getAgent();
+    std::string  agent_version = agent ? agent->get_version() : "";
+
+    if (!agent || !m_remote_proto) {
+        BOOST_LOG_TRIVIAL(info) << "RequestFileSystemUrl: agent not available or remote protocol not supported" << lan_mode << " " << m_remote_proto;
+        cb("");
+        return;
+    }
+
+    std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+    agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            [this, v = agent_version, dv = m_dev_ver, cb = std::move(cb)](std::string url) mutable {
+        if (boost::algorithm::starts_with(url, "bambu:///")) {
+            url += "&device=" + into_u8(m_machine);
+            url += "&net_ver=" + v;
+            url += "&dev_ver=" + dv;
+            url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
+            url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
+            url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+        }
+
+        CallAfter([cb = std::move(cb), url = std::move(url)]() mutable { cb(std::move(url)); });
+    });
+}
+
+void MediaPlayCtrl::start_device_image_flow()
+{
+    if (!m_support_liveview_preview) {
+        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/liveview_bg.png"));
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, liveview preview not supported";
+        return;
+    }
+
+    // if liveview is playing, do not request the image
+    if (m_last_state == wxMEDIASTATE_PLAYING) {
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, liveview is playing";
+        return;
+    }
+
+    // If we already have a valid cached image for this machine fetched within 30s, skip
+    auto now = std::chrono::steady_clock::now();
+    if (!m_machine.empty() && m_image_last_machine == m_machine
+        && m_image_last_success_time.time_since_epoch().count() > 0
+        && std::chrono::duration_cast<std::chrono::seconds>(now - m_image_last_success_time).count() < 30) {
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, using cached image (fetched "
+            << std::chrono::duration_cast<std::chrono::seconds>(now - m_image_last_success_time).count() << "s ago)";
+        return;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: begin requesting device image";
+
+    // Only reset to default image if we don't have a cached preview for this machine
+    if (m_image_last_machine != m_machine) {
+        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/liveview_bg.png"));
+    }
+
+    // Reset transfer object completely to avoid stale state after CancelAll
+    if (m_image_transfer) {
+        m_image_transfer->CancelAll();
+    }
+    m_image_transfer = std::make_shared<FileTransferObject>();
+
+    if (!IsEnabled()) {
+        m_image_token = std::make_shared<int>(0);
+        return;
+    }
+
+    m_image_token = std::make_shared<int>(0);
+    auto image_token = std::weak_ptr<int>(m_image_token);
+    std::string request_machine = m_machine;
+
+    enum class DownloadMode {
+        DOWNLOAD_MODE_LOCAL,
+        DOWNLOAD_MODE_REMOTE
+    };
+
+    auto mode_to_string = [](DownloadMode mode) -> const char* {
+        return mode == DownloadMode::DOWNLOAD_MODE_LOCAL ? "LAN" : "Remote";
+    };
+
+    // Helper: Process downloaded image data
+    auto process_image_data = [this, request_machine, mode_to_string](const std::vector<std::byte> &data, DownloadMode mode) -> bool {
+        if (data.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: received empty data (" << mode_to_string(mode) << ")";
+            return false;
+        }
+
+        wxMemoryInputStream stream(data.data(), data.size());
+        wxImage image(stream, wxBITMAP_TYPE_ANY);
+
+        if (!image.IsOk()) {
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: failed to parse image data (" << mode_to_string(mode) << ")";
+            return false;
+        }
+
+        std::string mode_str = mode_to_string(mode);
+        // Generate watermark text at image fetch time, not at paint time
+        time_t fetch_time = time(nullptr);
+        std::tm *local_tm = std::localtime(&fetch_time);
+        char time_buf[32];
+        strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", local_tm);
+        wxString watermark = _L("Printer Preview") + wxString::Format("  %s", time_buf);
+        CallAfter([this, img = std::move(image), request_machine, mode_str, watermark]() {
+            if (request_machine != m_machine) {
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: machine changed, skip display";
+                return;
+            }
+            if (m_media_ctrl) {
+                m_media_ctrl->SetIdleImage(img, watermark);
+                m_image_last_success_time = std::chrono::steady_clock::now();
+                m_image_last_machine = m_machine;
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: successfully received and displayed device image (" << mode_str << ")";
+            }
+        });
+        return true;
+    };
+
+    auto download_image = [this, image_token, request_machine, process_image_data, mode_to_string](DownloadMode mode, std::function<void()> on_failure = nullptr) {
+        bool lan_mode = (mode == DownloadMode::DOWNLOAD_MODE_LOCAL);
+        RequestFileSystemUrl([this, image_token, request_machine, mode, process_image_data, on_failure, mode_to_string](std::string url) {
+            if (image_token.expired() || url.empty()) return;
+
+            if (request_machine != m_machine) {
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: machine changed during URL request, skip";
+                return;
+            }
+
+            SetDeviceImageUrl(url);
+
+            m_image_transfer->DownloadMemFile("mem:/26", "", [this, image_token, mode, process_image_data, on_failure, mode_to_string]
+                (int ec, int resp_ec, std::string json, std::vector<std::byte> data) {
+                if (image_token.expired()) return;
+
+                if (ec != 0) {
+                    BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: download failed (" << mode_to_string(mode) << "), error code: " << ec;
+                    if (on_failure) {
+                        CallAfter([on_failure, image_token]() {
+                            if (!image_token.expired())
+                                on_failure();
+                        });
+                    }
+                    return;
+                }
+
+                process_image_data(data, mode);
+            });
+        }, lan_mode);
+    };
+
+    // Try LAN mode first, fallback to remote mode if failed
+    download_image(DownloadMode::DOWNLOAD_MODE_LOCAL, [this, download_image, image_token]() {
+        if (image_token.expired()) {
+            BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: token expired, download cancelled";
+            return;
+        }
+        if (!m_remote_proto) {
+            BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: no remote protocol, giving up";
+            return;
+        }
+        BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: LAN failed, trying remote mode";
+        download_image(DownloadMode::DOWNLOAD_MODE_REMOTE);
+    });
+}
+
+void MediaPlayCtrl::SetDeviceImageUrl(std::string url)
+{
+    if (!m_image_transfer) m_image_transfer = std::make_shared<FileTransferObject>();
+    m_image_transfer->SetTunnelUrl(std::move(url));
+}
+
 void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;
@@ -707,32 +1028,32 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         if (size.GetWidth() >= 320) {
             m_last_state = state;
             m_failed_code = 0;
+            m_session_connect_success = true;
             SetStatus(_L("Playing..."), false);
             m_print_idle = 0;
             auto now = std::chrono::system_clock::now();
             m_load_duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_play_timer).count();
             m_play_timer    = now + 1min;
 
-            // track event
-            json j;
-            j["stage"] =  std::to_string(m_last_state);
-            //j["dev_id"] = m_machine;
-            j["dev_id"] = "";
-            j["dev_ip"] = "";
-            j["result"] = "success";
-            j["code"] = 0;
-            auto tunnel = into_u8(wxURI(m_url).GetPath()).substr(1);
-            if (auto n = tunnel.find_first_of("/_"); n != std::string::npos)
-                tunnel = tunnel.substr(0, n);
-            j["tunnel"]         = tunnel;
-            if (tunnel == "tutk") {
-                if (m_url.size() > 38)
-                    j["tutk_id"] = m_url.substr(18, 20).c_str();
-                j["tutk_state"] = m_tutk_state;
+            // track event — deferred to first frame (EVT_MEDIA_CTRL_FIRST_FRAME)
+            {
+                json j;
+                j["stage"] = std::to_string(m_last_state);
+                // j["dev_id"] = m_machine;
+                j["dev_id"] = "";
+                j["dev_ip"] = "";
+                j["result"] = "success";
+                j["code"]   = 0;
+                auto tunnel = into_u8(wxURI(m_url).GetPath()).substr(1);
+                if (auto n = tunnel.find_first_of("/_"); n != std::string::npos) tunnel = tunnel.substr(0, n);
+                j["tunnel"] = tunnel;
+                if (tunnel == "tutk") {
+                    if (m_url.size() > 38) j["tutk_id"] = m_url.substr(18, 20).c_str();
+                    j["tutk_state"] = m_tutk_state;
+                }
+                j["printer_type"] = m_obj ? m_obj->get_show_printer_type() : "";
+                m_pending_start_liveview_json = j.dump();
             }
-            NetworkAgent *agent = wxGetApp().getAgent();
-            if (agent)
-                agent->track_event("start_liveview", j.dump());
 
             m_failed_retry = 0;
             m_disable_lan = false;
@@ -745,6 +1066,12 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             else if (m_failed_code == -2)
                 SetStatus(_L("DLL load error"));
             Stop();
+        } else {
+            // GetId()==0: media_proc synthetic event. PlayThread may still be connecting or
+            // stuck in Bambu_Close. Timeout enforced by SetMachineObject periodic polling.
+            BOOST_LOG_TRIVIAL(warning) << "MediaPlayCtrl: synthetic stateChanged with no valid frame, "
+                                       << "state=" << state << " size=" << size.x << "x" << size.y
+                                       << " failed_code=" << m_failed_code;
         }
     } else {
         m_last_state = state;
@@ -758,7 +1085,23 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
         int state2 = m_last_state >= MEDIASTATE_IDLE ? m_last_state - MEDIASTATE_IDLE :
                                                        m_last_state + MEDIASTATE_BUFFERING - MEDIASTATE_IDLE;
         msg += wxString::Format(" [%d:%d]", state2, m_failed_code);
-        msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
+
+        time_t now = time(nullptr);
+        std::tm *local_tm = std::localtime(&now);
+        if (local_tm == nullptr)
+        {
+            msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
+        }
+        else
+        {
+            bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+            std::string time_str = Slic3r::format_time_hm(local_tm, use_12h_format);
+
+            msg += wxString::Format(_T(" <%02d-%02d %s>"),
+                                local_tm->tm_mon + 1,
+                                local_tm->tm_mday,
+                                time_str);
+        }
     }
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data() << " tutk_state: " << m_tutk_state;
 #ifdef __WXMSW__
@@ -797,6 +1140,41 @@ void MediaPlayCtrl::load()
 {
     m_last_state = MEDIASTATE_LOADING;
     SetStatus(_L("Loading..."));
+    m_session_connect_success     = false;
+    m_session_first_frame_success = false;
+    m_session_first_frame_cost_ms = 0;
+
+    {
+        const char* trigger_source =
+            m_user_triggered ? "user_click" :
+            m_failed_retry > 0 ? "auto_retry" :
+            "background_resume";
+
+        std::string url_u8 = into_u8(m_url);
+        const char* protocol =
+            boost::algorithm::starts_with(url_u8, "bambu:///agora") ? "agora" :
+            boost::algorithm::starts_with(url_u8, "bambu:///tutk") ? "tutk" :
+            (boost::algorithm::starts_with(url_u8, "bambu:///rtsps") ||
+             boost::algorithm::contains(url_u8, "rtsps___")) ? "rtsps" :
+            (boost::algorithm::starts_with(url_u8, "bambu:///rtsp") ||
+             boost::algorithm::contains(url_u8, "rtsp___")) ? "rtsp" :
+            boost::algorithm::starts_with(url_u8, "bambu:///local") ? "local" :
+            "unknown";
+
+        BambuLiveViewTrack::ChannelInfo channel = parse_track_channel_from_url(url_u8);
+        BambuLiveViewTrack::EmitParams p;
+        p.phase  = "connect";
+        p.result = "ongoing";
+        p.event_data["trigger_source"] = trigger_source;
+        p.event_data["protocol"]       = protocol;
+        BambuLiveViewTrack::LiveViewTrackContext::instance()
+            .emit("liveview_session_start", p, &channel);
+    }
+    {
+        int64_t play_start_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            m_play_timer.time_since_epoch()).count();
+        m_url = m_url + "&play_start_ms=" + std::to_string(play_start_ms);
+    }
     if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
         std::string file_h264 = data_dir() + "/video.h264";
         std::string file_info = data_dir() + "/video.info";
@@ -819,7 +1197,12 @@ void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
     m_failed_retry = 0;
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid quick play/stop
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
-    IsShownOnScreen() ? Play() : Stop();
+    if (IsShownOnScreen()) {
+        Play();
+        start_device_image_flow();
+    } else {
+        Stop();
+    }
 }
 
 void MediaPlayCtrl::media_proc()
@@ -855,7 +1238,7 @@ void MediaPlayCtrl::media_proc()
         }
         else {
             BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start load";
-            m_media_ctrl->Load(wxURI(url));
+            m_media_ctrl->Load(wxURI(url), m_play_timer);
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end load";
         }
         lock.lock();
@@ -985,6 +1368,15 @@ static int SecondsSinceLastInput()
 
 void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, int height)
 {
+    if (auto *media3 = dynamic_cast<wxMediaCtrl3 *>(ctrl)) {
+        if (!media3->GetConstrainByAspectRatio()) return;
+    }
+#ifndef __WXMAC__
+    else if (auto *media2 = dynamic_cast<wxMediaCtrl2 *>(ctrl)) {
+        if (!media2->GetConstrainByAspectRatio()) return;
+    }
+#endif
+
     wxSize size = videoSize;
     if (!size.IsFullySpecified()) size = {16, 9};
     int maxHeight = (width * size.GetHeight() + size.GetHeight() - 1) / size.GetWidth();

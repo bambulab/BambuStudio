@@ -430,8 +430,6 @@ public:
 	    bool                disabled : 1;
 	    // Is this object printable?
 	    bool                printable : 1;
-        // Is this object visible(in assemble view)?
-	    bool                visible : 1;
 	    // Whether or not this volume is active for rendering
 	    bool                is_active : 1;
 	    // Whether or not to use this volume when applying zoom_to_volumes()
@@ -688,6 +686,10 @@ private:
     std::array<float, 4>    m_color_clip_plane;
     bool                     m_use_color_clip_plane{false};
     std::array<ColorRGBA, 2> m_color_clip_plane_colors{ColorRGBA::RED(), ColorRGBA::BLUE()};
+    bool        m_use_dovetail_clip{false};
+    Transform3d m_dovetail_clip_matrix{Transform3d::Identity()};
+    Vec4f       m_dovetail_clip_params{Vec4f::Zero()};
+    Vec2f       m_dovetail_clip_tolerance{Vec2f::Zero()};
 
     // Volume-based color override for gizmos (e.g., mesh boolean)
     bool m_use_volume_color_override{false};
@@ -789,6 +791,9 @@ public:
 
     void release_volume (GLVolume* volume);
 
+    // Find a scene volume by its (object, volume, instance) composite id; nullptr if none matches.
+    const GLVolume* get_volume_by_composite_id(int obj_id, int vol_id, int instance_id) const;
+
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
 
@@ -813,6 +818,13 @@ public:
         m_color_clip_plane[3] = offset;
     }
     void set_color_clip_plane_colors(const std::array<ColorRGBA, 2> &colors) { m_color_clip_plane_colors = colors; }
+    void set_use_dovetail_clip(bool use) { m_use_dovetail_clip = use; }
+    void set_dovetail_clip(const Transform3d &world_to_groove, const Vec4f &params, const Vec2f &tolerance)
+    {
+        m_dovetail_clip_matrix = world_to_groove;
+        m_dovetail_clip_params = params;
+        m_dovetail_clip_tolerance = tolerance;
+    }
 
     // Volume color override methods (similar to color_clip_plane methods)
     void set_use_volume_color_override(bool use) { m_use_volume_color_override = use; }

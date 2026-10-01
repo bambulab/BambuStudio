@@ -14,17 +14,20 @@ using LinesIt                     = Lines::iterator;
 using ColoredLinesConstIt         = ColoredLines::const_iterator;
 
 // Explicit template instantiation.
-template void VoronoiDiagram::construct_voronoi(LinesIt, LinesIt, bool);
-template void VoronoiDiagram::construct_voronoi(ColoredLinesConstIt, ColoredLinesConstIt, bool);
-template void VoronoiDiagram::construct_voronoi(PolygonsSegmentIndexConstIt, PolygonsSegmentIndexConstIt, bool);
+template void VoronoiDiagram::construct_voronoi(LinesIt, LinesIt, bool, const std::function<void()> &);
+template void VoronoiDiagram::construct_voronoi(ColoredLinesConstIt, ColoredLinesConstIt, bool, const std::function<void()> &);
+template void VoronoiDiagram::construct_voronoi(PolygonsSegmentIndexConstIt, PolygonsSegmentIndexConstIt, bool, const std::function<void()> &);
 
 template<typename SegmentIterator>
 typename boost::polygon::enable_if<
     typename boost::polygon::gtl_if<typename boost::polygon::is_segment_concept<
         typename boost::polygon::geometry_concept<typename std::iterator_traits<SegmentIterator>::value_type>::type>::type>::type,
     void>::type
-VoronoiDiagram::construct_voronoi(const SegmentIterator segment_begin, const SegmentIterator segment_end, const bool try_to_repair_if_needed) {
+VoronoiDiagram::construct_voronoi(const SegmentIterator segment_begin, const SegmentIterator segment_end, const bool try_to_repair_if_needed,
+                                  const std::function<void()> &throw_on_cancel) {
+    throw_on_cancel();
     boost::polygon::construct_voronoi(segment_begin, segment_end, &m_voronoi_diagram);
+    throw_on_cancel();
     if (try_to_repair_if_needed) {
         if (m_issue_type = detect_known_issues(*this, segment_begin, segment_end); m_issue_type != IssueType::NO_ISSUE_DETECTED) {
             if (m_issue_type == IssueType::MISSING_VORONOI_VERTEX) {
@@ -39,7 +42,7 @@ VoronoiDiagram::construct_voronoi(const SegmentIterator segment_begin, const Seg
                 BOOST_LOG_TRIVIAL(error) << "Detected unknown Voronoi diagram issue, input polygons will be rotated back and forth.";
             }
 
-            if (m_issue_type = try_to_repair_degenerated_voronoi_diagram(segment_begin, segment_end); m_issue_type != IssueType::NO_ISSUE_DETECTED) {
+            if (m_issue_type = try_to_repair_degenerated_voronoi_diagram(segment_begin, segment_end, throw_on_cancel); m_issue_type != IssueType::NO_ISSUE_DETECTED) {
                 if (m_issue_type == IssueType::MISSING_VORONOI_VERTEX) {
                     BOOST_LOG_TRIVIAL(error) << "Detected missing Voronoi vertex even after the rotation of input.";
                 } else if (m_issue_type == IssueType::NON_PLANAR_VORONOI_DIAGRAM) {
@@ -234,13 +237,15 @@ typename boost::polygon::enable_if<
     typename boost::polygon::gtl_if<typename boost::polygon::is_segment_concept<
         typename boost::polygon::geometry_concept<typename std::iterator_traits<SegmentIterator>::value_type>::type>::type>::type,
     VoronoiDiagram::IssueType>::type
-VoronoiDiagram::try_to_repair_degenerated_voronoi_diagram(const SegmentIterator segment_begin, const SegmentIterator segment_end)
+VoronoiDiagram::try_to_repair_degenerated_voronoi_diagram(const SegmentIterator segment_begin, const SegmentIterator segment_end,
+                                                          const std::function<void()> &throw_on_cancel)
 {
     IssueType issue_type = m_issue_type;
 
     const std::vector<double> fix_angles = {PI / 6, PI / 5, PI / 7, PI / 11};
     for (const double fix_angle : fix_angles) {
-        issue_type = try_to_repair_degenerated_voronoi_diagram_by_rotation(segment_begin, segment_end, fix_angle);
+        throw_on_cancel();
+        issue_type = try_to_repair_degenerated_voronoi_diagram_by_rotation(segment_begin, segment_end, fix_angle, throw_on_cancel);
         if (issue_type == IssueType::NO_ISSUE_DETECTED) {
             return issue_type;
         }
@@ -278,7 +283,8 @@ typename boost::polygon::enable_if<
     VoronoiDiagram::IssueType>::type
 VoronoiDiagram::try_to_repair_degenerated_voronoi_diagram_by_rotation(const SegmentIterator segment_begin,
                                                                       const SegmentIterator segment_end,
-                                                                      const double          fix_angle)
+                                                                      const double          fix_angle,
+                                                                      const std::function<void()> &throw_on_cancel)
 {
     using SegmentType = typename std::iterator_traits<SegmentIterator>::value_type;
     using PointType   = typename boost::polygon::segment_traits<SegmentType>::point_type;
@@ -292,8 +298,10 @@ VoronoiDiagram::try_to_repair_degenerated_voronoi_diagram_by_rotation(const Segm
         segments_rotated.emplace_back(from.rotated(fix_angle), to.rotated(fix_angle));
     }
 
+    throw_on_cancel();
     VoronoiDiagram::voronoi_diagram_type voronoi_diagram_rotated;
     boost::polygon::construct_voronoi(segments_rotated.begin(), segments_rotated.end(), &voronoi_diagram_rotated);
+    throw_on_cancel();
 
     this->copy_to_local(voronoi_diagram_rotated);
     const IssueType issue_type = detect_known_issues(*this, segments_rotated.begin(), segments_rotated.end());

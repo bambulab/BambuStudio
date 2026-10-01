@@ -70,7 +70,8 @@ void InterlockingGenerator::generate_embedding_wall(PrintObject* print_object){
 void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_object)
 {
     const auto& config = print_object->config();
-    if (!config.interlocking_beam) {
+    // Check if interlocking is enabled, and avoid errors like division by zero due to invalid configuration.
+    if (!config.interlocking_beam || config.interlocking_beam_layer_count < 1 || config.interlocking_depth < 1 || config.interlocking_beam_width < EPSILON ) {
         return;
     }
 
@@ -79,6 +80,10 @@ void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_o
     const int      interface_depth    = config.interlocking_depth;
     const int      boundary_avoidance = config.interlocking_boundary_avoidance;
     const coord_t  beam_width         = scaled(config.interlocking_beam_width.value);
+
+    // Zero width would cause divide-by-zero in VoxelUtils (cell_size used as divisor). Treat as disabled.
+    if (beam_width <= 0)
+        return;
 
     const DilationKernel interface_dilation(GridPoint3(interface_depth, interface_depth, interface_depth), DilationKernel::Type::PRISM);
 

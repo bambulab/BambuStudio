@@ -179,7 +179,8 @@ protected:
     bool render_combo(const std::string &label, const std::vector<std::string> &lines,
         size_t &selection_idx, float label_width, float item_width);
     void render_cross_mark(const Transform3d& matrix, const Vec3f& target,bool single =false);
-    void render_lines(const std::vector<Vec3d> &points);
+    void render_lines(const std::vector<std::vector<Vec3d>> &polylines);
+    void render_lines(GLModel &model, const std::vector<std::vector<Vec3d>> &polylines, const ColorRGBA &color);
     static float get_grabber_size();
 
 public:
@@ -204,7 +205,7 @@ public:
 
     virtual std::string get_icon_filename(bool b_dark_mode) const = 0;
 
-    bool is_activable() const { return on_is_activable(); }
+    bool is_activable() const;
     bool is_selectable() const { return on_is_selectable(); }
     CommonGizmosDataID get_requirements() const { return on_get_requirements(); }
     virtual bool wants_enter_leave_snapshots() const { return false; }
@@ -263,6 +264,7 @@ protected:
     virtual std::string on_get_name_str() { return ""; }
     virtual void on_set_state();
     virtual void on_set_hover_id() {}
+    bool can_activable_in_current_canvas() const;
     virtual bool on_is_activable() const { return true; }
     virtual bool on_is_selectable() const { return true; }
     virtual CommonGizmosDataID on_get_requirements() const { return CommonGizmosDataID(0); }

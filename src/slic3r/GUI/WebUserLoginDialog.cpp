@@ -80,7 +80,9 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         TargetUrl = host_url + "/sign-in";
         m_networkOk = false;
 
-        wxString strlang = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+        // Use the validated locale: the website only serves the languages we ship
+        // translations for, and an unsupported prefix (e.g. "he") 404s.
+        wxString strlang = wxGetApp().current_language_code_safe().BeforeFirst('_');
         if (strlang != "") {
             TargetUrl = host_url + "/" + strlang + "/sign-in";
         }
@@ -215,9 +217,17 @@ void ZUserLogin::OnNavigationComplete(wxWebViewEvent &evt)
     // wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
 
+    ShowBrowser();
+    UpdateState();
+}
+
+void ZUserLogin::ShowBrowser()
+{
+    if (m_browser == nullptr || m_browser->IsShown())
+        return;
+
     m_browser->Show();
     Layout();
-    UpdateState();
 }
 
 /**
@@ -236,6 +246,11 @@ void ZUserLogin::OnDocumentLoaded(wxWebViewEvent &evt)
         m_networkOk = true;
         // wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
+
+    // WebView2 reports an HTTP error status (404/5xx) as a failed navigation, so
+    // wxEVT_WEBVIEW_NAVIGATED is never sent and the browser would stay hidden,
+    // leaving a blank dialog. The document did load, so show it here as well.
+    ShowBrowser();
 
     UpdateState();
 }
@@ -387,6 +402,12 @@ void ZUserLogin::OnError(wxWebViewEvent &evt)
         if (m_networkOk==false)
             ShowErrorPage();
     }
+    else
+    {
+        // Any other failure (e.g. an HTTP 404/5xx page, reported as
+        // wxWEBVIEW_NAV_ERR_OTHER) still has content to display.
+        ShowBrowser();
+    }
 
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     // wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" +
@@ -416,16 +437,6 @@ bool  ZUserLogin::ShowErrorPage()
     load_url(ErrortUrl);
 
     return true;
-}
-
-
-std::string ZUserLogin::GetStudioLanguage()
-{
-    std::string strLanguage = wxGetApp().app_config->get("language");
-    boost::trim(strLanguage);
-    if (strLanguage.empty()) strLanguage = "en";
-
-    return strLanguage;
 }
 
 }} // namespace Slic3r::GUI

@@ -10,6 +10,8 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "Field.hpp"
+#include <wx/string.h>
+#include <set>
 
 namespace Slic3r {
 
@@ -21,9 +23,8 @@ namespace GUI {
 class ConfigManipulation
 {
     bool                is_msg_dlg_already_exist{ false };
-    bool                m_is_initialized_support_material_overhangs_queried{ false };
-    bool                m_support_material_overhangs_queried{ false };
     bool                is_BBL_Printer{false};
+    bool                m_alt_suboptimal_acknowledged{ false };
 
     // function to loading of changed configuration
     std::function<void()>                                       load_config = nullptr;
@@ -79,23 +80,33 @@ public:
     void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
     void    check_filament_scarf_setting(DynamicPrintConfig *config);
-    void    check_chamber_temperature(DynamicPrintConfig* config);
+    //BBS: keep the painted top/bottom color inside the solid shell, out of the sparse infill
+    void    check_color_penetration_layers(DynamicPrintConfig* config, const std::string& edited_key);
     void    set_is_BBL_Printer(bool is_bbl_printer) { is_BBL_Printer = is_bbl_printer; };
     // SLA print
     void    update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config = false);
     void    toggle_print_sla_options(DynamicPrintConfig* config);
 
-    bool    is_initialized_support_material_overhangs_queried() { return m_is_initialized_support_material_overhangs_queried; }
-    void    initialize_support_material_overhangs_queried(bool queried)
-    {
-        m_is_initialized_support_material_overhangs_queried = true;
-        m_support_material_overhangs_queried = queried;
-    }
     int    show_spiral_mode_settings_dialog(bool is_object_config = false);
 
 private:
     bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
+
+// 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
+// 返回是否有推荐参数
+bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, DynamicPrintConfig& out_config);
+
+// 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
+// support_filament_index: 用户选择的支撑料索引 (0-based)
+// model_material_type: 模型主体料类型 (如 "PLA")
+// model_material_name: 模型主体料名称 (如 "Bambu PLA Basic")
+// 返回 true 表示找到推荐参数，out_config 包含推荐配置
+bool query_support_recommended_params_for_combination(
+    int support_filament_index,
+    const std::string& model_material_type,
+    const std::string& model_material_name,
+    DynamicPrintConfig& out_config);
 
 } // GUI
 } // Slic3r

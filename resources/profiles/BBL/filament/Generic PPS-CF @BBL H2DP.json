@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFST98_02",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.96",
         "0.96"
@@ -12,9 +16,6 @@
     "filament_max_volumetric_speed": [
         "3",
         "3"
-    ],
-    "filament_printable": [
-        "1"
     ],
     "filament_ramming_travel_time": [
         "0",

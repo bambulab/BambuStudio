@@ -5,6 +5,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevHMSQuery.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -18,11 +19,12 @@ static wxString waiting_auth_str = _L("Logging in");
 static wxString login_failed_str = _L("Login failed");
 
 
-BindJob::BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id, std::string dev_ip, std::string sec_link,
+BindJob::BindJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id, std::string dev_ip, std::string dev_model, std::string sec_link,
     std::string ssdp_version)
     : PlaterJob{std::move(pri), plater},
     m_dev_id(dev_id),
     m_dev_ip(dev_ip),
+    m_dev_model(dev_model),
     m_sec_link(sec_link),
     m_ssdp_version(ssdp_version)
 {
@@ -71,7 +73,7 @@ void BindJob::process()
     std::string timezone = get_timezone_utc_hm(offset);
 
     m_agent->track_update_property("ssdp_version", m_ssdp_version, "string");
-    int result = m_agent->bind(m_dev_ip, m_dev_id, m_sec_link, timezone, m_improved,
+    int result = m_agent->bind(m_dev_ip, m_dev_id, m_dev_model, m_sec_link, timezone, m_improved,
         [this, &curr_percent, &msg, &result_code, &result_info](int stage, int code, std::string info) {
 
             result_code = code;
@@ -118,7 +120,7 @@ void BindJob::process()
             try
             {
                 error_code = stoi(result_info);
-                wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(m_dev_id, error_code);
+                wxString error_msg = wxGetApp().get_hms_query_mgr()->query_error(m_dev_id, error_code).text;
                 result_info = error_msg.ToStdString();
             }
             catch (...) {

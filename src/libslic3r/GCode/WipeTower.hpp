@@ -30,6 +30,9 @@ public:
 	// WipeTower height to minimum depth map
 	static const std::map<float, float> min_depth_per_height;
     static float get_limit_depth_by_height(float max_height);
+    // Minimum tower depth for wrapping detection; the pre-slice size estimate must floor
+    // its depth at this same value so it doesn't disagree with what gets sliced.
+    static constexpr double wrapping_wipe_tower_depth = 10.0;
     static float get_auto_brim_by_height(float max_height);
     static TriangleMesh                 its_make_rib_tower(float width, float depth, float height, float rib_length, float rib_width, bool fillet_wall);
     static TriangleMesh                 its_make_rib_brim(const Polygon& brim, float layer_height);
@@ -303,8 +306,6 @@ public:
     std::vector<float> get_used_filament() const { return m_used_filament_length; }
     int get_number_of_toolchanges() const { return m_num_tool_changes; }
 
-	void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
-
 	void set_has_tpu_filament(bool has_tpu) { m_has_tpu_filament = has_tpu; }
 
     bool has_tpu_filament() const { return m_has_tpu_filament; }
@@ -344,16 +345,16 @@ public:
         float filament_tower_interface_print_temp;
         float filament_tower_interface_pre_extrusion_dist = 0;
         float filament_tower_interface_pre_extrusion_length = 0;
+        float filament_petg_pre_extrusion_offset_dist = 0;
     };
 
 
     void set_used_filament_ids(const std::vector<int> &used_filament_ids) { m_used_filament_ids = used_filament_ids; };
     void set_filament_categories(const std::vector<int> & filament_categories) { m_filament_categories = filament_categories;};
-    void set_nozzle_group_result(const MultiNozzleUtils::MultiNozzleGroupResult &multi_nozzle_group_result) { m_multi_nozzle_group_result = &multi_nozzle_group_result; };
+    void set_nozzle_group_result(const MultiNozzleUtils::LayeredNozzleGroupResult &multi_nozzle_group_result) { m_multi_nozzle_group_result = &multi_nozzle_group_result; };
     std::vector<int> m_used_filament_ids;
     std::vector<int> m_filament_categories;
-    const MultiNozzleUtils::MultiNozzleGroupResult *m_multi_nozzle_group_result{nullptr};
-
+    const MultiNozzleUtils::LayeredNozzleGroupResult *m_multi_nozzle_group_result{nullptr};
 
     enum class WipeTowerLayerType : unsigned char { Normal, Contact, Solid, Contact_UP};// Contact layer should be solid and reduce feed
 
@@ -388,7 +389,6 @@ public:
     WipeTowerBlock* get_block_by_category(int filament_adhesiveness_category, bool create);
     void add_depth_to_block(int filament_id, int filament_adhesiveness_category, float depth, bool is_nozzle_change = false);
 	int get_filament_category(int filament_id);
-	bool is_in_same_extruder(int filament_id_1, int filament_id_2);
 	void reset_block_status();
     int get_wall_filament_for_all_layer();
 	// for generate new wipe tower
@@ -407,10 +407,11 @@ public:
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true, WipeTowerLayerType layer_type = WipeTowerLayerType::Normal);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_toolchange=false);
     Vec2f              get_rib_offset() const { return m_rib_offset; }
-    bool               is_need_ramming(int filament_id_1, int filament_id_2);
-    bool               is_same_extruder(int filament_id_1, int filament_id_2);
-    bool               is_same_nozzle(int filament_id_1, int filament_id_2);
-
+    bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id) const;
+    bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id) const;
+    bool               is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id) const;
+    int                get_nozzle_id(int filament_id, int layer_id) const;
+    int                get_extruder_id(int filament_id, int layer_id) const;
 
 private:
 	enum wipe_shape // A fill-in direction
@@ -452,7 +453,6 @@ private:
     std::pair<std::vector<double>,std::vector<double>> m_filaments_change_length;//[0]extruder change [1]nozzle change
     size_t       m_cur_layer_id;
     NozzleChangeResult m_nozzle_change_result;
-    std::vector<int>   m_filament_map;
     bool               m_has_tpu_filament{false};
     bool               m_is_multi_extruder{false};
     bool               m_use_gap_wall{false};
@@ -472,7 +472,10 @@ private:
     //float           m_parking_pos_retraction    = 0.f;
     //float           m_extra_loading_move        = 0.f;
     float           m_bridging                  = 0.f;
-    bool            m_no_sparse_layers          = false;
+    // Not the raw wipe_tower_no_sparse_layers option: it also accounts for the settings that put a
+    // tower on every layer regardless. Keeping m_first_layer_idx at the bottom-most planned layer and
+    // counting the filament of a layer that is printed anyway both depend on that distinction.
+    bool            m_sparse_layers_skipped       = false;
     // BBS: remove useless config
     //bool            m_set_extruder_trimpot      = false;
     bool            m_adhesion                  = true;
@@ -485,6 +488,7 @@ private:
     unsigned int              m_max_accels;
     bool                      m_accel_to_decel_enable;
     float                     m_accel_to_decel_factor;
+    bool                      m_enable_arc_fitting = true;
     std::vector<double>       m_hotend_heating_rate;
     std::vector<double>       m_hotend_cooling_rate;
     Polygons                  m_shared_print_bed;
@@ -528,11 +532,12 @@ private:
     std::map<float,Polylines> m_outer_wall;
     std::vector<double>        m_printable_height;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
-    bool                       is_valid_last_layer(int tool) const;
+    bool                       is_valid_last_layer(int tool, int layer_id, double layer_z) const;
     bool                       m_flat_ironing=false;
     bool                       m_contact_ironing = false;
+    bool                       m_has_filament_switcher = false;
     float                      m_contact_speed   = 20 * 60.f;
-
+    std::vector<int>           m_physical_extruder_map;
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
 		return std::max(0.f, volume / (layer_height * (line_width - layer_height * (1.f - float(M_PI) / 4.f))));
@@ -554,6 +559,7 @@ private:
     void save_on_last_wipe();
 
 	bool is_tpu_filament(int filament_id) const;
+	bool is_petg_filament(int filament_id) const;
     bool is_need_reverse_travel(int filament, bool extruder_change) const;
 	// BBS
 	box_coordinates align_perimeter(const box_coordinates& perimeter_box);
@@ -601,7 +607,7 @@ private:
     // ot -1 if there is no such toolchange.
     int first_toolchange_to_nonsoluble_nonsupport(
             const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const;
-    WipeTowerInfo::ToolChange set_toolchange(int old_tool, int new_tool, float layer_height, float wipe_volume, float purge_volume);
+    WipeTowerInfo::ToolChange set_toolchange(int old_tool, int new_tool, float layer_height, float wipe_volume, float purge_volume,int layer_id);
 	void toolchange_Unload(
 		WipeTowerWriter &writer,
 		const box_coordinates  &cleaning_box,
@@ -628,6 +634,22 @@ private:
 };
 
 
+// Compaction rule for wipe_tower_no_sparse_layers. Shared by the G-code emitter and by the
+// clearance validator so that both agree on where the compacted tower actually sits; a drift
+// between the two would either let a real nozzle collision through or reject a safe plate.
+
+// Whether sparse layers are really skipped, i.e. whether the tower is compacted at all. Smooth
+// timelapse and wrapping detection put a tower on every layer, so no layer is ever dropped and the
+// tower keeps following the object even though the option is on. Tower planning, G-code emission and
+// the clearance validator all ask this single question, so none of them can compact on its own.
+bool wipe_tower_sparse_layers_skipped(const PrintConfig &config);
+
+// A planned layer prints no tower at all when its only toolchange keeps the same filament.
+bool wipe_tower_layer_is_sparse(const std::vector<WipeTower::ToolChangeResult> &layer_tool_changes);
+
+// Print z the compacted tower reaches on every planned layer. Sparse layers carry over the
+// previous value, so the tower falls one layer height behind the object for each of them.
+std::vector<float> compute_compacted_wipe_tower_z(const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes);
 
 
 } // namespace Slic3r

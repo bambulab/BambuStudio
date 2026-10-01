@@ -1051,15 +1051,6 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         }
     }
 
-    int  extruder_nums = print.config().nozzle_diameter.values.size();
-    std::vector<Polygons> extruder_unprintable_area;
-    if (extruder_nums == 1)
-        extruder_unprintable_area.emplace_back(Polygons{Model::getBedPolygon()});
-    else {
-        extruder_unprintable_area = print.get_extruder_printable_polygons();
-    }
-    std::vector<int> filament_map = print.get_filament_maps();
-
     if (print.has_wipe_tower() && !print.get_fake_wipe_tower().outer_wall.empty()) {
         ExPolygons expolyFromLines{};
         for (auto polyline : print.get_fake_wipe_tower().outer_wall.begin()->second) {
@@ -1070,33 +1061,81 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         expolygons_append(no_brim_area, expolyFromLines);
     }
 
-    std::vector<ExPolygons> extruder_no_brim_area_cache(extruder_nums, no_brim_area);
-    for (int extruder_id = 0; extruder_id < extruder_nums; ++extruder_id) {
-        auto bedPoly = extruder_unprintable_area[extruder_id];
-        auto bedExPoly   = diff_ex((offset(bedPoly, scale_(30.), jtRound, SCALED_RESOLUTION)), {bedPoly});
-        if (!bedExPoly.empty()) {
-            extruder_no_brim_area_cache[extruder_id].push_back(bedExPoly.front());
+    {
+        const Pointfs& excl_pts = print.config().bed_exclude_area.values;
+        Polygon exclude_poly;
+        for (size_t i = 0; i < excl_pts.size(); i++) {
+            exclude_poly.points.emplace_back(scale_(excl_pts[i].x()), scale_(excl_pts[i].y()));
+            if (i % 4 == 3) {  // exclude areas are always rectangles (4 points each)
+                no_brim_area.emplace_back(std::move(exclude_poly));
+                exclude_poly.points.clear();
+            }
         }
-        extruder_no_brim_area_cache[extruder_id] = offset2_ex(extruder_no_brim_area_cache[extruder_id], scaled_flow_width, -scaled_flow_width); // connect scattered small areas to prevent generating very small brims
     }
 
+    if (print.config().enable_wrapping_detection.value && print.config().wrapping_exclude_area.values.size() > 2)
+        no_brim_area.emplace_back(Polygon::new_scale(print.config().wrapping_exclude_area.values));
+
+    // Build per-physical-extruder "outside printable" polygons.
+    // Each extruder's brim must not go outside that extruder's own printable area.
+    // This is done per-object so that the left head can still brim in its own
+    // exclusive zone (which the right head cannot reach), and vice versa.
+    // bed_exclude_area and wrapping_exclude_area are already in no_brim_area above
+    // and remain global (apply to all heads equally).
+    const std::vector<Polygons> extruder_printable_polys = print.get_extruder_printable_polygons();
+    const Polygons bed_poly = { Polygon::new_scale(print.config().printable_area.values) };
+
+    const int extruder_count = std::max(1, (int)print.config().nozzle_diameter.values.size());
+    std::vector<ExPolygons> outside_printable_area_by_extruder(extruder_count);
+    for (int physical_ext = 0; physical_ext < extruder_count; ++physical_ext) {
+        const Polygons& printable_area = (physical_ext < (int)extruder_printable_polys.size() && !extruder_printable_polys[physical_ext].empty()) ?
+                                             extruder_printable_polys[physical_ext] :
+                                             bed_poly;
+        if (!printable_area.empty())
+            outside_printable_area_by_extruder[physical_ext] = diff_ex(offset(printable_area, scale_(30.), jtRound, SCALED_RESOLUTION), { printable_area });
+    }
+
+    // Map ObjectID -> all 0-based physical extruder IDs using objPrintVec (filament id, 1-based)
+    // and the layered nozzle grouping result.
+    // Use get_nozzles_for_filament (not get_first_nozzle_for_filament) so that in sequential
+    // (ByObject) printing, where the same filament may be routed to different nozzles on different
+    // objects/layers, all possible nozzles are considered.  The outside areas of all involved
+    // nozzles are unioned, which is equivalent to restricting brim to the intersection of their
+    // printable areas – sacrificing some exclusive-zone area to guarantee correctness.
+    auto nozzle_group_result = print.get_nozzle_group_result();
+    auto get_physical_extruders = [&](unsigned int filament_id_1based) -> std::vector<int> {
+        const int filament_id = int(filament_id_1based) - 1;
+        std::vector<int> result;
+        if (nozzle_group_result) {
+            for (const auto& nozzle : nozzle_group_result->get_nozzles_for_filament(filament_id))
+                result.push_back(nozzle.extruder_id);
+        }
+        if (result.empty())
+            result.push_back(0);
+        return result;
+    };
+
+    // Build ObjectID -> physical extruder list lookup from objPrintVec
+    std::map<ObjectID, std::vector<int>> obj_physical_extruders;
+    for (const auto& pair : objPrintVec)
+        obj_physical_extruders[pair.first] = get_physical_extruders(pair.second);
+
+    no_brim_area = offset2_ex(no_brim_area, scaled_flow_width, -scaled_flow_width);
+
     for (const PrintObject* object : print.objects()) {
-        ExPolygons extruder_no_brim_area = no_brim_area;
-        auto iter = std::find_if(objPrintVec.begin(), objPrintVec.end(), [object](const std::pair<ObjectID, unsigned int>& item) {
-            return item.first == object->id();
-        });
+        const auto it = obj_physical_extruders.find(object->id());
+        const std::vector<int> physical_exts = (it != obj_physical_extruders.end()) ? it->second : std::vector<int>{0};
 
-        if (iter != objPrintVec.end()) {
-            int extruder_id = filament_map[iter->second - 1] - 1;
-            extruder_no_brim_area = extruder_no_brim_area_cache[extruder_id];
+        // Combine global no_brim with outside areas of all nozzles this filament may use.
+        // Union of outside areas == outside of intersection of printable areas.
+        ExPolygons obj_no_brim = no_brim_area;
+        for (int ext : physical_exts) {
+            if (ext >= 0 && ext < (int)outside_printable_area_by_extruder.size())
+                expolygons_append(obj_no_brim, outside_printable_area_by_extruder[ext]);
         }
 
-        if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
-            brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], extruder_no_brim_area);
-        }
-
-        if (supportBrimAreaMap.find(object->id()) != supportBrimAreaMap.end())
-            supportBrimAreaMap[object->id()] = diff_ex(supportBrimAreaMap[object->id()], extruder_no_brim_area);
+        if (brimAreaMap.find(object->id()) != brimAreaMap.end())
+            brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], obj_no_brim);
     }
 
     brim_area.clear();

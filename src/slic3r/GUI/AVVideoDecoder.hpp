@@ -24,11 +24,15 @@ public:
 public:
     int  open(Bambu_StreamInfo const &info);
 
+    int  reopen(Bambu_StreamInfo const &info);
+
     int  decode(Bambu_Sample const &sample);
 
     int  flush();
 
     void close();
+
+    bool got_frame() const { return got_frame_; }
 
     bool toWxImage(wxImage &image, wxSize const &size);
 

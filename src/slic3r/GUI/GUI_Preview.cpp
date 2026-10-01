@@ -478,23 +478,6 @@ void Preview::on_size(wxSizeEvent& evt)
     Refresh();
 }
 
-void Preview::check_layers_slider_values(std::vector<CustomGCode::Item>& ticks_from_model, const std::vector<double>& layers_z)
-{
-    // All ticks that would end up outside the slider range should be erased.
-    // TODO: this should be placed into more appropriate part of code,
-    // this function is e.g. not called when the last object is deleted
-    unsigned int old_size = ticks_from_model.size();
-    ticks_from_model.erase(std::remove_if(ticks_from_model.begin(), ticks_from_model.end(),
-                     [layers_z](CustomGCode::Item val)
-        {
-            auto it = std::lower_bound(layers_z.begin(), layers_z.end(), val.print_z - epsilon());
-            return it == layers_z.end();
-        }),
-        ticks_from_model.end());
-    if (ticks_from_model.size() != old_size)
-        m_schedule_background_process();
-}
-
 // Find an index of a value in a sorted vector, which is in <z-eps, z+eps>.
 // Returns -1 if there is no such member.
 static int find_close_layer_idx(const std::vector<double> &zs, double &z, double eps)
@@ -613,8 +596,6 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
         ticks_info_from_curr_plate.mode   = CustomGCode::Mode::SingleExtruder;
         ticks_info_from_curr_plate.gcodes = m_canvas->get_custom_gcode_per_print_z();
     }
-    check_layers_slider_values(ticks_info_from_curr_plate.gcodes, layers_z);
-
     // first of all update extruder colors to avoid crash, when we are switching printer preset from MM to SM
     m_layers_slider->SetExtruderColors(plater->get_extruder_colors_from_plater_config(wxGetApp().is_editor() ? nullptr : m_gcode_result));
     m_layers_slider->SetSliderValues(layers_z);
@@ -643,7 +624,11 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();
-    m_layers_slider->SetLayersTimes(print_mode_stat.layers_times, print_mode_stat.time);
+    // The slider has one tick per extrusion Z, which mixed-color sublayers make finer than the
+    // logical layers layers_times is built from. Prefer the matching partition when it exists.
+    const std::vector<float>& slider_layers_times = print_mode_stat.preview_layers_times.empty() ?
+        print_mode_stat.layers_times : print_mode_stat.preview_layers_times;
+    m_layers_slider->SetLayersTimes(slider_layers_times, print_mode_stat.time);
 
     // Suggest the auto color change, if model looks like sign
     if (m_layers_slider->IsNewPrint()) {
@@ -859,7 +844,6 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->enable_slope(false);
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_return_toolbar(true);
-    //m_canvas->set_show_world_axes(true);//wait for GitHub users to see if they have this requirement
     // BBS: set volume_selection_mode to Volume
     //same to 3d //m_canvas->get_selection().set_volume_selection_mode(Selection::Instance);
     //m_canvas->get_selection().lock_volume_selection_mode();

@@ -6,6 +6,7 @@
 #include "MsgDialog.hpp"
 
 #include "DeviceCore/DevConfig.h"
+#include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevPrintOptions.h"
@@ -179,6 +180,61 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         }
         evt.Skip();
         });
+
+    m_smart_nozzle_blob_mode_switch->Bind(wxCUSTOMEVT_MULTISWITCH_SELECTION, [this](wxCommandEvent& evt) {
+        if (!obj) { evt.Skip(); return; }
+        int sel = m_smart_nozzle_blob_mode_switch->GetSelection();
+        // UI: 0=Auto, 1=On, 2=Off → Protocol: 0=off, 1=on, 2=auto
+        int mode_map[] = {2, 1, 0};
+
+        // Auto -> On in-print confirmation: if the printer is currently in auto mode
+        // (cfg[43:44] == 2) AND a print is running AND any AMS slot currently loaded
+        // matches the stringing-prone filament list, ask the user to confirm before
+        // sending the command. See figma N1-9 screen #10100-23113 (flow 2.6).
+        const auto* opt = obj->GetPrintOptions()
+                              ? obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection)
+                              : nullptr;
+        const bool was_auto = opt && opt->current_detect_value == 2;
+        if (sel == 1 /*On*/ && was_auto && obj->is_in_printing()
+            && obj->any_loaded_filament_is_stringing_prone()) {
+            wxString message = _L("There is stringing-prone filament in the current print job. "
+                                  "Enabling nozzle clumping detection now may degrade print quality. "
+                                  "Are you sure you want to enable it?");
+            wxString caption = _L("Enable Nozzle Clumping Detection");
+            // Use Bambu-styled MessageDialog (warning icon) and manually add the buttons so
+            // that Cancel is the highlighted (green) default and Confirm is the plain white
+            // button. This is a risky in-print toggle, so the safe choice should be the
+            // default, requiring the user to actively pick Confirm.
+            MessageDialog dialog(this, message, caption, wxICON_WARNING);
+            dialog.AddButton(wxID_CANCEL, _L("Cancel"),  true);
+            dialog.AddButton(wxID_OK,     _L("Confirm"), false);
+            if (dialog.ShowModal() != wxID_OK) {
+                // User cancelled: roll the switch back to Auto without sending the command.
+                m_smart_nozzle_blob_mode_switch->SetSelection(0);
+                update_smart_nozzle_blob_mode_desc(0);
+                evt.Skip();
+                return;
+            }
+        }
+
+        obj->GetPrintOptions()->command_smart_nozzle_blob_detect_mode(mode_map[sel]);
+        update_smart_nozzle_blob_mode_desc(sel);
+        evt.Skip();
+    });
+
+    m_cb_fod_check->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->GetPrintOptions()->command_xcam_control_fod_check(m_cb_fod_check->GetValue());
+        }
+        evt.Skip();
+    });
+
+    m_cb_displacement_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->GetPrintOptions()->command_xcam_control_displacement_detection(m_cb_displacement_detection->GetValue());
+        }
+        evt.Skip();
+    });
 
     m_cb_open_door->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (m_cb_open_door->GetValue()) {
@@ -371,7 +427,7 @@ void PrintOptionsDialog::update_purify_air_at_print_end(MachineObject *obj_)
     m_cb_purify_air_at_print_end->Enable();
     purify_air_switch_board->Enable();
     text_purify_air_context->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
-    text_purify_air->SetForegroundColour(*wxBLACK);
+    text_purify_air->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
 
     if (obj_->GetFan()->GetAirDuctData().IsExaustFanExit())
     {
@@ -434,7 +490,9 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection)->is_support_detect ||
         obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection)->is_support_detect ||
         obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection)->is_support_detect ||
-        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection)->is_support_detect) {
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection)->is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::FOD_Check_Detection)->is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Displacement_Detection)->is_support_detect) {
         ai_refine_panel->Show();
         text_ai_detections->Show();
         text_ai_detections_caption->Show();
@@ -560,7 +618,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         if (obj_->GetPrintOptions()->GetPlateMakerDectectType() == DevPrintOptions::POS_CHECK &&
             (text_plate_mark->GetLabel() != _L("Enable detection of build plate position"))) {
             text_plate_mark->SetLabel(_L("Enable detection of build plate position"));
-            text_plate_mark_caption->SetLabel(_L("The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."));
+            text_plate_mark_caption->SetLabel(_L("Pauses printing when build plate misalignment is detected."));
             text_plate_mark_caption->Wrap(FromDIP(400));
         } else if (obj_->GetPrintOptions()->GetPlateMakerDectectType() == DevPrintOptions::TYPE_POS_CHECK && (text_plate_mark->GetLabel() != _L("Build Plate Detection"))) {
             text_plate_mark->SetLabel(_L("Build Plate Detection"));
@@ -649,17 +707,55 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line6->Hide();
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->is_support_detect) {
+    // Smart 三档模式优先，与原有 Nozzle_Blob_Detection 互斥
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection)->is_support_detect) {
+        text_smart_nozzle_blob->Show();
+        m_smart_nozzle_blob_mode_switch->Show();
+        text_smart_nozzle_blob_mode_desc->Show();
+
+        text_nozzle_blob->Hide();
+        m_cb_nozzle_blob->Hide();
+        text_nozzle_blob_caption->Hide();
+    }
+    else if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->is_support_detect) {
         text_nozzle_blob->Show();
         m_cb_nozzle_blob->Show();
         text_nozzle_blob_caption->Show();
-       // line7->Show();
+
+        text_smart_nozzle_blob->Hide();
+        m_smart_nozzle_blob_mode_switch->Hide();
+        text_smart_nozzle_blob_mode_desc->Hide();
     }
     else {
         text_nozzle_blob->Hide();
         m_cb_nozzle_blob->Hide();
         text_nozzle_blob_caption->Hide();
+        text_smart_nozzle_blob->Hide();
+        m_smart_nozzle_blob_mode_switch->Hide();
+        text_smart_nozzle_blob_mode_desc->Hide();
         line7->Hide();
+    }
+
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::FOD_Check_Detection)->is_support_detect) {
+        text_fod_check->Show();
+        m_cb_fod_check->Show();
+        text_fod_check_caption->Show();
+    }
+    else {
+        text_fod_check->Hide();
+        m_cb_fod_check->Hide();
+        text_fod_check_caption->Hide();
+    }
+
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Displacement_Detection)->is_support_detect) {
+        text_displacement_detection->Show();
+        m_cb_displacement_detection->Show();
+        text_displacement_detection_caption->Show();
+    }
+    else {
+        text_displacement_detection->Hide();
+        m_cb_displacement_detection->Hide();
+        text_displacement_detection_caption->Hide();
     }
 
     if (obj_->is_support_air_print_detection && (DevPrinterConfigUtil::air_print_detection_position(obj->printer_type) == "print_option"))
@@ -683,7 +779,19 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_auto_recovery->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection)->current_detect_value);
     m_cb_sup_sound->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection)->current_detect_value);
     m_cb_filament_tangle->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection)->current_detect_value);
-    m_cb_nozzle_blob->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->current_detect_value);
+    // Smart nozzle blob mode vs original nozzle blob
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection)->is_support_detect) {
+        int mode = obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection)->current_detect_value;
+        // Protocol: 0=off, 1=on, 2=auto → UI: 0=Auto, 1=On, 2=Off
+        int ui_map[] = {2, 1, 0};  // off→2, on→1, auto→0
+        int ui_sel = (mode >= 0 && mode <= 2) ? ui_map[mode] : 0;
+        m_smart_nozzle_blob_mode_switch->SetSelection(ui_sel);
+        update_smart_nozzle_blob_mode_desc(ui_sel);
+    } else {
+        m_cb_nozzle_blob->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->current_detect_value);
+    }
+    m_cb_fod_check->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::FOD_Check_Detection)->current_detect_value);
+    m_cb_displacement_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Displacement_Detection)->current_detect_value);
     m_cb_plate_type->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->current_detect_value);
     m_cb_plate_align->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->current_detect_value);
     m_cb_non_visual_airprinting_detection->SetValue(obj_->ams_air_print_status);
@@ -1061,6 +1169,48 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     airprinting_bottom_space = ai_refine_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
 
+    //FOD check detection
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_fod_check = new CheckBox(ai_refine_panel);
+    text_fod_check = new Label(ai_refine_panel, _L("Foreign Object Detection"));
+    text_fod_check->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_fod_check, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    line_sizer->Add(text_fod_check, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString fod_check_caption_text = _L("Checks for any objects on the build plate at the start of a print to avoid collisions.");
+    text_fod_check_caption = new Label(ai_refine_panel, fod_check_caption_text);
+    text_fod_check_caption->SetFont(Label::Body_12);
+    text_fod_check_caption->Wrap(FromDIP(400));
+    text_fod_check_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(30), 0, 0, 0);
+    line_sizer->Add(text_fod_check_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    ai_refine_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+
+    //Printed Part Displacement Detection
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_displacement_detection = new CheckBox(ai_refine_panel);
+    text_displacement_detection = new Label(ai_refine_panel, _L("Printed Part Displacement Detection"));
+    text_displacement_detection->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_displacement_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    line_sizer->Add(text_displacement_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString displacement_detection_caption_text = _L("Monitors the printed part during printing and alerts immediately if it shifts or collapses.");
+    text_displacement_detection_caption = new Label(ai_refine_panel, displacement_detection_caption_text);
+    text_displacement_detection_caption->SetFont(Label::Body_12);
+    text_displacement_detection_caption->Wrap(FromDIP(400));
+    text_displacement_detection_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(30), 0, 0, 0);
+    line_sizer->Add(text_displacement_detection_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    ai_refine_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+
     ai_refine_panel->SetSizer(ai_refine_sizer);
     sizer->Add(ai_refine_panel, 0, wxEXPAND | wxRIGHT, FromDIP(18));
 
@@ -1084,7 +1234,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxString caption_text = _L(
-        "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
+        "Pauses printing when build plate misalignment is detected."
     );
     text_plate_mark_caption = new Label(parent, caption_text);
     text_plate_mark_caption->Wrap(FromDIP(400));
@@ -1298,6 +1448,39 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_nozzle_blob_caption->Hide();
     line7->Hide();
 
+    // Smart Nozzle Blob Detection — 三档裹头检测选择器
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    text_smart_nozzle_blob = new Label(parent, _L("Nozzle Clumping Detection"));
+    text_smart_nozzle_blob->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(text_smart_nozzle_blob, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString smart_nozzle_blob_caption_text = _L("Checks if the nozzle is clumping by filament or other foreign objects.");
+    text_smart_nozzle_blob_mode_desc = new Label(parent, smart_nozzle_blob_caption_text);
+    text_smart_nozzle_blob_mode_desc->SetFont(Label::Body_12);
+    text_smart_nozzle_blob_mode_desc->Wrap(FromDIP(400));
+    text_smart_nozzle_blob_mode_desc->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    // Align caption with the section title above (both use a 5px leading spacer + 5px
+    // label left padding under the same 18px outer margin), per figma N1-9 #10100-23113.
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(text_smart_nozzle_blob_mode_desc, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    m_smart_nozzle_blob_mode_switch = new MultiSwitchButton(parent);
+    m_smart_nozzle_blob_mode_switch->SetOptions({_L("Auto"), _L("On"), _L("Off")});
+    m_smart_nozzle_blob_mode_switch->SetSelection(0);
+    // Tight vertical spacing (5px) between caption and the 3-state switch; keep the
+    // 30px left indent that hints the switch is a child of the section above.
+    sizer->Add(0, FromDIP(5), 0, 0);
+    sizer->Add(m_smart_nozzle_blob_mode_switch, 0, wxLEFT, FromDIP(30));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    text_smart_nozzle_blob->Hide();
+    m_smart_nozzle_blob_mode_switch->Hide();
+    text_smart_nozzle_blob_mode_desc->Hide();
+
     //non_visual_airprinting_detection
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_non_visual_airprinting_detection = new CheckBox(parent);
@@ -1359,6 +1542,27 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     airprinting_detection_level_list->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_airprinting_detection_sensitivity), NULL, this);
 
     return sizer;
+}
+
+void PrintOptionsDialog::update_smart_nozzle_blob_mode_desc(int selection)
+{
+    wxString desc;
+    switch (selection) {
+    case 0: // Auto
+        desc = _L("Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection).");
+        break;
+    case 1: // On
+        desc = _L("Detect whether the nozzle is wrapped by filament or other foreign matter.");
+        break;
+    case 2: // Off
+        desc = _L("After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage.");
+        break;
+    default:
+        desc = _L("Detect whether the nozzle is wrapped by filament or other foreign matter.");
+        break;
+    }
+    text_smart_nozzle_blob_mode_desc->SetLabel(desc);
+    text_smart_nozzle_blob_mode_desc->Wrap(FromDIP(400));
 }
 
 wxString PrintOptionsDialog::sensitivity_level_to_label_string(enum AiMonitorSensitivityLevel level) {
@@ -1579,7 +1783,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multi_line->SetBackgroundColour(wxColour("#A6A9AA"));
 
     /*left*/
-    auto leftTitle = new Label(multiple_panel, _L("Left Nozzle"));
+    std::string pod_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    auto leftTitle = new Label(multiple_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(pod_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     leftTitle->SetFont(::Label::Head_14);
     leftTitle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#2C2C2E")));
 
@@ -1613,7 +1818,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_left_line_sizer->Add(multiple_left_nozzle_flow_checkbox, 0, wxALIGN_CENTER, 0);
 
     /*right*/
-    auto rightTitle = new Label(multiple_panel, _L("Right Nozzle"));
+    auto rightTitle = new Label(multiple_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(pod_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     rightTitle->SetFont(::Label::Head_14);
     rightTitle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#2C2C2E")));
 
@@ -1818,7 +2023,8 @@ wxString PrinterPartsDialog::GetString(NozzleFlowType nozzle_flow_type) const {
         case Slic3r::S_FLOW: return _L("Standard");
         case Slic3r::H_FLOW: return _L("High flow");
         case Slic3r::U_FLOW: return _L("TPU High flow");
-        default: break;
+        case Slic3r::E_FLOW: return _L("E3D High Flow");
+        default: return wxEmptyString;
     }
 
     return wxEmptyString;

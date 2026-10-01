@@ -5,17 +5,21 @@
     "from": "system",
     "setting_id": "GFSG96_12",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "16",
         "16"
     ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

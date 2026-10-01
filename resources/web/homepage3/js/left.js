@@ -3,12 +3,15 @@
 var m_HotModelList=null;
 var m_HasNetworkPlugin=true;
 var m_GetPrintHistoryStatus=false;
+var m_IsUserLogin=false;
+var m_ServerConnectFailed=false;
 
 function OnInit()
 {
 	//-----Official-----
     TranslatePage();
 
+	UpdateServerConnectFailTipVisible();
 	SendMsg_GetLoginInfo();
 	GotoMenu( 'home' );
 	$("#Login2").click(function() {
@@ -32,15 +35,25 @@ function HandleStudio( pVal )
 	if(strCmd=='studio_userlogin')
 	{
 		var lastLoginInfo = pVal;
+		m_IsUserLogin=true;
 		SetLoginInfo(pVal['data']['avatar'],pVal['data']['name']);
+		UpdateServerConnectFailTipVisible();
 		if (!m_GetPrintHistoryStatus && (pVal != lastLoginInfo)) {
 			SendMsg_GetPrintHistory();
 		}
 	}
 	else if(strCmd=='studio_useroffline')
 	{
+		m_IsUserLogin=false;
+		m_ServerConnectFailed=false;
 		SetUserOffline();
+		UpdateServerConnectFailTipVisible();
 		m_GetPrintHistoryStatus=false;
+	}
+	else if(strCmd=='homepage_server_connect_status')
+	{
+		m_ServerConnectFailed=(pVal['failed']*1)==1;
+		UpdateServerConnectFailTipVisible();
 	}
 	else if( strCmd=="network_plugin_installtip" )
 	{
@@ -86,6 +99,21 @@ function HandleStudio( pVal )
 	}
 }
 
+function UpdateServerConnectFailTipVisible()
+{
+	if(m_IsUserLogin && m_ServerConnectFailed)
+	{
+		$("#LoginArea").addClass("ServerConnectFailVisible");
+		$("#ServerConnectFailTip").show();
+		$("#ServerConnectFailTip").css("display","flex");
+	}
+	else
+	{
+		$("#LoginArea").removeClass("ServerConnectFailVisible");
+		$("#ServerConnectFailTip").hide();
+	}
+}
+
 var NowMenu='';
 function GotoMenu( strMenu )
 {
@@ -121,6 +149,45 @@ function GotoMenu( strMenu )
 			SendWXMessage( JSON.stringify(tSend) );
 		}
 	}
+}
+
+function OnManualExternalLinkClick(evt)
+{
+	// Keep the row click (GotoMenu) for the in-app wiki view; this icon alone
+	// jumps to the same-region landing page in the system browser, mirroring
+	// wiki.html's own openAcademyUrl() region split (mainland goes to
+	// bambulab.cn, wiki.bambulab.com does not resolve correctly there).
+	if(evt && evt.stopPropagation) evt.stopPropagation();
+
+	let strRegion=GetQueryString("region");
+
+	let open_url;
+	if(strRegion=="CN")
+	{
+		open_url="https://bambulab.cn/zh-cn/support/academy/";
+	}
+	else
+	{
+		let strLang=GetQueryString("lang");
+		if(strLang==null)
+			strLang=localStorage.getItem(LANG_COOKIE_NAME);
+
+		let lang;
+		if(strLang!=null && strLang.includes('zh')) lang='zh';
+		else if(strLang!=null && strLang.includes('fr')) lang='fr-fr';
+		else if(strLang!=null && strLang.includes('de')) lang='de-de';
+		else if(strLang!=null && strLang.includes('es')) lang='es-mx';
+		else if(strLang!=null && strLang.includes('it')) lang='it-it';
+		else if(strLang!=null && strLang.includes('ja')) lang='ja-jp';
+		else if(strLang!=null && strLang.includes('ko')) lang='ko-kr';
+		else if(strLang!=null && strLang.includes('pt')) lang='pt-br';
+		else if(strLang!=null && strLang.includes('nl')) lang='nl-nl';
+		else lang='en';
+
+		open_url="https://bambulab.com/"+lang+"/support/academy/";
+	}
+
+	OpenUrlInLocalBrowser(open_url);
 }
 
 function ShowMenuNewTag(MenuName,nStatus)

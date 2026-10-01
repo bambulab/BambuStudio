@@ -29,10 +29,11 @@ bool DevHMSItem::parse_hms_info(unsigned attr, unsigned code)
 std::string DevHMSItem::get_long_error_code() const
 {
     char buf[64];
-    ::sprintf(buf, "%02X%02X%02X00000%1X%04X",
+    ::sprintf(buf, "%02X%02X%02X%02X00%02X%04X",
         this->m_module_id,
         this->m_module_num,
         this->m_part_id,
+        this->m_reserved,
         (int)this->m_msg_level,
         this->m_msg_code);
     return std::string(buf);

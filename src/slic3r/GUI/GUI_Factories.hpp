@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <array>
+#include <memory>
 
 #include <wx/bitmap.h>
 
@@ -103,7 +104,8 @@ private:
     MenuWithSeparators m_assemble_object_menu;
     MenuWithSeparators m_assemble_part_menu;
 
-    wxMenu m_filament_action_menu;
+    std::unique_ptr<wxMenu>     m_filament_popup_menu;
+    int                         m_filament_menu_active_id{-1};
 
     int object_menu_count{ 0 };
     int part_menu_count{ 0 };
@@ -134,7 +136,7 @@ private:
     void        create_bbl_assemble_part_menu();
     void        create_cut_cutter_menu();
 
-    void        create_filament_action_menu(bool init, int active_filament_menu_id);
+    void        create_filament_action_menu(wxMenu* menu, int active_filament_menu_id);
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);
@@ -151,7 +153,7 @@ private:
     void        append_menu_item_reload_from_disk(wxMenu* menu);
     void        append_menu_item_replace_with_stl(wxMenu* menu);
     void        append_menu_item_change_extruder(wxMenu* menu);
-    void        append_menu_item_set_visible(wxMenu* menu);
+    void        append_menu_items_assembly_steps(wxMenu* menu);
     void        append_menu_item_delete(wxMenu* menu);
     void        append_menu_item_delete_all_cutter(wxMenu *menu);
     void        append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
@@ -181,6 +183,7 @@ private:
     void        append_menu_item_locked(wxMenu* menu);
     void        append_menu_item_fill_bed(wxMenu *menu);
     void        append_menu_item_plate_name(wxMenu *menu);
+    void        append_menu_item_show_labels(wxMenu *menu);
     void        append_menu_item_align_distribute(wxMenu *menu);
 };
 

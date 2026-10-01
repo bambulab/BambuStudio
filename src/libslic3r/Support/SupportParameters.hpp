@@ -10,6 +10,47 @@
 #include "SupportLayer.hpp"
 
 namespace Slic3r {
+
+// Read a bool print option when present; unknown keys stay false.
+inline bool config_flag_or_false(const ConfigBase &cfg, const t_config_option_key &key)
+{
+    const auto *opt = cfg.option<ConfigOptionBool>(key);
+    return opt != nullptr && opt->value;
+}
+
+// Keep Default / Grid / Snug / mismatched-style rewrite in one place so the uncovered-overhang
+// warning names the same classic-vs-organic path as SupportParameters. Organic is refused for
+// variable layer heights (#4313), a zero Top Z gap, or a requested ring / heat preserve.
+inline SupportMaterialStyle resolve_support_style(
+    SupportMaterialStyle support_style,
+    SupportType          support_type,
+    bool                 has_variable_layer_heights,
+    bool                 soluble_interface,
+    bool                 heat_preserve_mode,
+    bool                 enable_support_ring)
+{
+    if (support_style != smsDefault) {
+        if ((support_style == smsSnug || support_style == smsGrid) && is_tree(support_type))
+            support_style = smsDefault;
+        if ((support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid ||
+             support_style == smsTreeOrganic) &&
+            !is_tree(support_type))
+            support_style = smsDefault;
+    }
+    if (support_style == smsDefault) {
+        if (is_tree(support_type)) {
+            if (!has_variable_layer_heights && !soluble_interface &&
+                !heat_preserve_mode && !enable_support_ring)
+                support_style = smsTreeOrganic;
+            else
+                support_style = smsTreeHybrid;
+        } else {
+            support_style = smsGrid;
+        }
+    }
+    return support_style;
+}
+
 struct SupportParameters {
     SupportParameters() = delete;
     SupportParameters(const PrintObject& object)
@@ -308,6 +349,13 @@ struct SupportParameters {
     // Produce a raft interface angle for a given SupportLayer::interface_id()
     float 					raft_interface_angle(size_t interface_id) const
     	{ return this->raft_angle_interface + ((interface_id & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.)); }
+
+    // Produce a support interface angle for a given SupportLayer::interface_id()
+    float                   support_interface_angle(size_t interface_id, SupportMaterialInterfacePattern interface_pattenn) const {
+        if (this->support_style == smsGrid || interface_pattenn == smipRectilinear)
+            return this->interface_angle;
+        return this->interface_angle + ((interface_id & 1) ? float(-M_PI / 4.) : float(+M_PI / 4.));
+    }
 
     bool independent_layer_height = false;
     const double thresh_big_overhang = /*Slic3r::sqr(scale_(10))*/scale_(10);

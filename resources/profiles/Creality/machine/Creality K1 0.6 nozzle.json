@@ -19,7 +19,6 @@
       "0x220"
   ],
   "printable_height": "250",
-  "nozzle_type": "brass",
   "auxiliary_fan": "1",
   "support_multi_bed_types": "1",
   "machine_max_acceleration_e": [

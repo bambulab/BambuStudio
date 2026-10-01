@@ -17,6 +17,10 @@
     "counter_limit_max": [
         "0.03"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.96",
         "0.96"

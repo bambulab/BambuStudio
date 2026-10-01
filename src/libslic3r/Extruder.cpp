@@ -1,10 +1,12 @@
 #include "Extruder.hpp"
-#include "PrintConfig.hpp"
 
 namespace Slic3r {
 
 std::vector<double> Extruder::m_share_E = {0.,0.};
 std::vector<double> Extruder::m_share_retracted = {0.,0.};
+
+
+// TODO(米粒)：后续增加通过 (GCodeConfig, volume_type, extruder_type) 取参数的接口
 
 Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_id(id),
@@ -25,6 +27,36 @@ unsigned int Extruder::extruder_id() const
     }
     return 0;
 }
+
+unsigned int Extruder::nozzle_id() const
+{
+    assert(m_config);
+    if (m_id < m_config->filament_nozzle_map.size()) {
+        return m_config->filament_nozzle_map.get_at(m_id) - 1;
+    }
+    return 0;
+}
+
+NozzleVolumeType Extruder::volume_type() const
+{
+    assert(m_config);
+    if(m_id < m_config->nozzle_volume_type.size()) {
+        return NozzleVolumeType(m_config->nozzle_volume_type.get_at(m_id));
+    }
+
+    return NozzleVolumeType::nvtStandard;
+}
+
+ExtruderType Extruder::extruder_type() const
+{
+    assert(m_config);
+    unsigned int ext_id = this->extruder_id();
+    if (ext_id < m_config->extruder_type.size()) {
+        return ExtruderType(m_config->extruder_type.get_at(ext_id));
+    }
+    return ExtruderType::etDirectDrive;
+}
+
 
 double Extruder::extrude(double dE)
 {
@@ -143,39 +175,39 @@ double Extruder::filament_cost() const
 
 double Extruder::filament_flow_ratio() const
 {
-    return m_config->filament_flow_ratio.get_at(m_id);
+    return m_config->filament_flow_ratio.get_at(get_filament_config_idx(*m_config, m_id));
 }
 
 // Return a "retract_before_wipe" percentage as a factor clamped to <0, 1>
 double Extruder::retract_before_wipe() const
 {
-    return std::min(1., std::max(0., m_config->retract_before_wipe.get_at(m_id) * 0.01));
+    return std::min(1., std::max(0., m_config->retract_before_wipe.get_at(get_filament_config_idx(*m_config, m_id)) * 0.01));
 }
 
 double Extruder::retraction_length() const
 {
-    return m_config->retraction_length.get_at(m_id);
+    return m_config->retraction_length.get_at(get_filament_config_idx(*m_config, m_id));
 }
 
 double Extruder::retract_lift() const
 {
-    return m_config->z_hop.get_at(m_id);
+    return m_config->z_hop.get_at(get_filament_config_idx(*m_config, m_id));
 }
 
 int Extruder::retract_speed() const
 {
-    return int(floor(m_config->retraction_speed.get_at(m_id)+0.5));
+    return int(floor(m_config->retraction_speed.get_at(get_filament_config_idx(*m_config, m_id))+0.5));
 }
 
 int Extruder::deretract_speed() const
 {
-    int speed = int(floor(m_config->deretraction_speed.get_at(m_id)+0.5));
+    int speed = int(floor(m_config->deretraction_speed.get_at(get_filament_config_idx(*m_config, m_id)) + 0.5));
     return (speed > 0) ? speed : this->retract_speed();
 }
 
 double Extruder::retract_restart_extra() const
 {
-    return m_config->retract_restart_extra.get_at(m_id);
+    return m_config->retract_restart_extra.get_at(get_filament_config_idx(*m_config, m_id));
 }
 
 double Extruder::retract_length_toolchange() const

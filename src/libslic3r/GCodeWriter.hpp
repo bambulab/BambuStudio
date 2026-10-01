@@ -8,6 +8,7 @@
 #include "Point.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/CoolingBuffer.hpp"
+#include "MultiNozzleUtils.hpp"
 
 namespace Slic3r {
 
@@ -15,6 +16,11 @@ enum class LiftType {
     NormalLift,
     SlopeLift,
     SpiralLift
+};
+
+enum class TemperatureCommandType {
+    Default,
+    LayerChange
 };
 
 class GCodeWriter {
@@ -25,6 +31,7 @@ public:
     GCodeWriter() :
         multiple_extruders(false), m_curr_filament_extruder{ nullptr,nullptr },
         m_curr_extruder_id (-1),
+        m_current_process_config_idx(0),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0),
         m_last_jerk(0), m_max_jerk(0),
@@ -37,6 +44,8 @@ public:
     const Extruder* filament(size_t extruder_id) const { assert(extruder_id < m_curr_filament_extruder.size()); return m_curr_filament_extruder[extruder_id]; }
     Extruder* filament() { if (m_curr_extruder_id == -1) return nullptr; return m_curr_filament_extruder[m_curr_extruder_id]; }
     const Extruder* filament() const { if(m_curr_extruder_id==-1) return nullptr; return m_curr_filament_extruder[m_curr_extruder_id]; }
+
+    int get_curr_extruder_id() const  { return m_curr_extruder_id; }
 
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
@@ -51,7 +60,8 @@ public:
     }
     std::string preamble();
     std::string postamble() const;
-    std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
+    std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1,
+                                TemperatureCommandType command_type = TemperatureCommandType::Default) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_chamber_temperature(int temperature, bool wait = false);
     void set_acceleration(unsigned int acceleration);
@@ -62,18 +72,18 @@ public:
     std::vector<unsigned int> &get_travel_short_acceleration() { return m_travel_short_accelerations; }
     void set_first_layer_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
     void set_first_layer(bool is_first_layer);
-    std::string set_pressure_advance(double pa) const;
+    std::string set_pressure_advance(double pa, bool is_bbl_bowden = false) const;
     std::string set_jerk_xy(double jerk);
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
     // return false if this extruder was already selected
     bool        need_toolchange(unsigned int filament_id) const;
-    std::string set_extruder(unsigned int filament_id);
-    void init_extruder(unsigned int filament_id);
+    std::string set_extruder(unsigned int filament_id, unsigned int nozzle_id);
+    void init_extruder(unsigned int filament_id, unsigned int nozzle_id);
     // Prefix of the toolchange G-code line, to be used by the CoolingBuffer to separate sections of the G-code
     // printed with the same extruder.
     std::string toolchange_prefix() const;
-    std::string toolchange(unsigned int filament_id);
+    std::string toolchange(unsigned int filament_id,unsigned int nozzle_id);
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
     double      get_current_speed() { return m_current_speed; };
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
@@ -122,12 +132,15 @@ public:
     void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     void set_is_bbl_printer(bool is_bbl_printer) { m_is_bbl_printer = is_bbl_printer; };
+    void set_avoid_z_descent_travel(bool v) { m_avoid_z_descent_travel = v; }
     //BBS:
     static const bool full_gcode_comment;
     //Radian threshold of slope for lazy lift and spiral lift;
     static const double slope_threshold;
 
 private:
+    // BBS: check whether a full spiral-lift circle stays inside the bed printable area.
+    bool        spiral_arc_within_bed(const Vec2d &center, double radius) const;
     std::string set_extrude_acceleration();
     std::string set_travel_acceleration();
     std::string set_travel_acceleration(bool use_short_travel_acceleration);
@@ -139,6 +152,7 @@ private:
     bool            m_single_extruder_multi_material;
     std::vector<Extruder*> m_curr_filament_extruder;
     int        m_curr_extruder_id;
+    size_t     m_current_process_config_idx;
     unsigned int    m_last_acceleration;
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
@@ -159,9 +173,20 @@ private:
     //A example that of the first move, the m_pos is zero, but the real position of extruder doesn't
     //Pos must be clear after the first xyz travel move
     bool            m_is_current_pos_clear = false;
+    bool            m_avoid_z_descent_travel = false;
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
+    //BBS: bed printable-area bounding box (in plate/gcode coordinates) for spiral-lift boundary check
+    Vec2d           m_bed_min{ 0., 0. };
+    Vec2d           m_bed_max{ 0., 0. };
+    bool            m_bed_bbox_valid{ false };
+    //BBS: per-extruder printable-area bounding boxes (indexed by physical nozzle id). On multi-nozzle
+    // machines the left/right heads can reach different regions, so the spiral must stay inside the
+    // area of the head that performs the lift. Falls back to the whole-bed box above when missing.
+    std::vector<Vec2d> m_extruder_bed_min;
+    std::vector<Vec2d> m_extruder_bed_max;
+    std::vector<char>  m_extruder_bed_valid;
     double           m_current_speed{ 0 };
     bool            m_is_bbl_printer = false;
 

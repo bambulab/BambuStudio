@@ -59,6 +59,8 @@ public:
 
     virtual bool Show(bool show = true) wxOVERRIDE;
 
+    void EnableYield(bool need_yield) { m_need_yield = need_yield; }
+
     // This enum is an implementation detail and should not be used
     // by user code.
     enum State {
@@ -183,6 +185,8 @@ private:
     void DisableSkip() { EnableSkip(false); }
     void DisableAbort() { EnableAbort(false); }
 
+    void Yield();
+
     // the widget displaying current status (may be NULL)
     wxGauge *m_gauge;
     // the message displayed
@@ -227,6 +231,11 @@ private:
     // Temporary event loop created by the dialog itself if there is no
     // currently active loop when it is created.
     wxEventLoop *m_tempEventLoop;
+
+    // if we are doing a heavy job, we should yield for some time to let others use the main thread
+    // Note: this many cause a great delay on operations such as Update()
+    // disable this if not needed.
+    bool m_need_yield{true};
 
     wxDECLARE_NO_COPY_CLASS(ProgressDialog);
 };

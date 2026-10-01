@@ -163,6 +163,7 @@ public:
 
     //BBS: add m_loaded_print logic
     bool is_loaded() const { return (m_loaded_print != nullptr); }
+    bool is_print_loaded(const Slic3r::PrintBase* print) const { return m_loaded_print != nullptr && m_loaded_print == print; }
     //BBS
     void on_tick_changed(CustomGCode::Type type);
 
@@ -179,8 +180,6 @@ private:
     void unbind_event_handlers();
     void on_size(wxSizeEvent& evt);
     // Create/Update/Reset double slider on 3dPreview
-    void check_layers_slider_values(std::vector<CustomGCode::Item>& ticks_from_model,
-        const std::vector<double>& layers_z);
 
     void update_layers_slider(const std::vector<double>& layers_z, bool keep_z_range = false);
     void update_layers_slider_mode();

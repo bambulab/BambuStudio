@@ -23,6 +23,10 @@
     "fan_min_speed": [
         "5"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "11.5",
         "11.5"

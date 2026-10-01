@@ -2,6 +2,7 @@
 #include "UserPresetsDialog.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 
 #include <slic3r/GUI/Widgets/CheckBox.hpp>
 #include <slic3r/GUI/Widgets/TabCtrl.hpp>
@@ -416,8 +417,7 @@ void UserPresetsDialog::on_all_checked(bool checked, bool from_user)
 
 void UserPresetsDialog::update_preset_counts()
 {
-    wxString labels[] = {_L("Printer presets (%d/%d)"), _L("Filament presets (%d/%d)"), _L("Process presets (%d/%d)")};
-    int capacities[] = {20, 100, 200};
+    wxString labels[] = {_L("Printer presets (%d)"), _L("Filament presets (%d)"), _L("Process presets (%d)")};
     for (int i = 0; i < 3; ++i) {
         size_t n = i == 1 ? std::accumulate(m_filament_presets.begin(), m_filament_presets.end(), size_t(0),
             [](size_t t, auto &filament) { return t + filament.second.size(); }) : 0;
@@ -425,7 +425,7 @@ void UserPresetsDialog::update_preset_counts()
             m_tab_ctrl->SetItemTextColour(i, wxColour("#262E30"));
             m_tab_ctrl->SetItemPaddingSize(i, {FromDIP(20), FromDIP(4)});
         }
-        m_tab_ctrl->SetItemText(i, wxString::Format(labels[i], int(m_presets[i].size() + n), capacities[i]));
+        m_tab_ctrl->SetItemText(i, wxString::Format(labels[i], int(m_presets[i].size() + n)));
     }
 }
 

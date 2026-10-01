@@ -51,6 +51,8 @@ class ImGuiWrapper
     // Chinese, Japanese, Korean
     bool m_font_cjk{ false };
     bool m_is_korean{ false };
+    // Thai glyphs are absent from every bundled font, so a Thai-only font is merged on top.
+    bool m_is_thai{ false };
     float m_font_size{ 18.0 };
     unsigned m_font_texture{ 0 };
     unsigned m_font_another_texture{ 0 };
@@ -79,6 +81,9 @@ public:
 
     ImGuiWrapper();
     ~ImGuiWrapper();
+
+    // True when the UI font set was loaded for Korean (NanumGothic instead of HarmonyOS).
+    bool is_korean() const { return m_is_korean; }
 
     void read_glsl_version();
 
@@ -119,6 +124,7 @@ public:
     bool bbl_input_double(const wxString &label, const double &value, const std::string &format = "%0.2f");
     bool bbl_slider_float(const std::string &label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f, bool clamp = true, const wxString& tooltip = {});
     bool bbl_slider_float_style(const std::string &label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f, bool clamp = true, const wxString& tooltip = {});
+    void bbl_readonly_progress(float fraction, const ImVec2 &size, const ImVec4 &track_col = ImVec4(0.85f, 0.85f, 0.85f, 0.6f), const ImVec4 &fill_col = ImVec4(0.27f, 0.71f, 0.27f, 1.0f), const ImVec4 &thumb_col = ImVec4(0.20f, 0.65f, 0.20f, 1.0f));
 
     bool begin(const std::string &name, int flags = 0);
     bool begin(const wxString &name, int flags = 0);

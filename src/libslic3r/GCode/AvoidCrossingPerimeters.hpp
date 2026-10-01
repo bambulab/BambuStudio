@@ -5,12 +5,15 @@
 #include "../ExPolygon.hpp"
 #include "../EdgeGrid.hpp"
 
+#include <unordered_map>
+
 namespace Slic3r {
 
 // Forward declarations.
 class GCode;
 class Layer;
 class Point;
+class PrintObject;
 
 class AvoidCrossingPerimeters
 {
@@ -51,6 +54,19 @@ public:
         }
     };
 
+    // Per-object, per-print-height cache of get_boundary_external()'s expensive local-coordinate
+    // geometry (each object's resampled islands run through the variable-width inner-offset pipeline).
+    // That geometry depends only on (object, print height, is_support_layer, include_supports_in_boundary),
+    // never on a PrintInstance's world-space shift, so it can be reused across the many
+    // get_boundary_external() rebuilds that happen within a single print height.
+    // Invalidation key is the print height (print_z): GCode::process_layer resets gcodegen.layer() to
+    // each object's own Layer while iterating the objects at one print height, so a Layer* key would
+    // thrash across objects; every object's Layer at the same height shares the same print_z.
+    struct ObjectBoundaryCache {
+        std::unordered_map<const PrintObject *, ExPolygons> per_object;
+        coordf_t                                            built_for_print_z { -1. };
+    };
+
 private:
     bool           m_use_external_mp { false };
     // just for the next travel move
@@ -68,6 +84,8 @@ private:
     Boundary m_internal;
     // Store all needed data for travels outside object
     Boundary m_external;
+    // Per-object local-coordinate boundary geometry cache for the current layer (see ObjectBoundaryCache).
+    ObjectBoundaryCache m_object_boundary_cache;
 };
 
 } // namespace Slic3r

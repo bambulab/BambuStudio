@@ -2,6 +2,7 @@
 #include "TriangleMesh.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "MeshSplitImpl.hpp"
+#include "MeshDiagnostics.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "Geometry/ConvexHull.hpp"
@@ -48,9 +49,31 @@ static void fill_initial_stats(const indexed_triangle_set &its, TriangleMeshStat
     out.volume              = its_volume(its);
     update_bounding_box(its, out);
 
-    const std::vector<Vec3i> face_neighbors = its_face_neighbors(its);
-    out.number_of_parts = its_number_of_patches(its, face_neighbors);
-    out.open_edges      = its_num_open_edges(face_neighbors);
+    std::vector<Vec3i> face_neighbors;
+    const auto         nm_stats = its_quick_diagnostics(its, &face_neighbors);
+    out.number_of_parts         = static_cast<int>(its_number_of_patches(its, face_neighbors));
+    assert(nm_stats.open_edges <= INT_MAX && nm_stats.non_manifold_edges <= INT_MAX && nm_stats.non_manifold_vertices <= INT_MAX);
+    out.open_edges            = static_cast<int>(nm_stats.open_edges);
+    out.non_manifold_edges    = static_cast<int>(nm_stats.non_manifold_edges);
+    out.non_manifold_vertices = static_cast<int>(nm_stats.non_manifold_vertices);
+    out.has_reversed_faces    = nm_stats.has_reversed_faces;
+    BOOST_LOG_TRIVIAL(info)
+        << "reversed-faces: mesh-stats faces=" << out.number_of_facets
+        << " verts=" << its.vertices.size()
+        << " parts=" << out.number_of_parts
+        << " volume=" << out.volume
+        << " open_edges=" << out.open_edges
+        << " nm_edges=" << out.non_manifold_edges
+        << " nm_verts=" << out.non_manifold_vertices
+        << " has_reversed_faces=" << (out.has_reversed_faces ? 1 : 0);
+    if (out.has_reversed_faces)
+        BOOST_LOG_TRIVIAL(info)
+            << "reversed-faces: FLAG mesh-stats faces=" << out.number_of_facets
+            << " verts=" << its.vertices.size()
+            << " parts=" << out.number_of_parts
+            << " volume=" << out.volume
+            << " open_edges=" << out.open_edges
+            << " nm_edges=" << out.non_manifold_edges;
 }
 
 TriangleMesh::TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces) : its { faces, vertices }
@@ -205,10 +228,9 @@ bool TriangleMesh::from_stl(stl_file& stl, bool repair)
 #endif
 
     stl_generate_shared_vertices(&stl, this->its);
+    if (its_volume(this->its) < 0.)
+        its_flip_triangles(this->its);
     fill_initial_stats(this->its, this->m_stats);
-    if (m_stats.volume < 0) {
-        flip_triangles();
-    }
     return true;
 }
 
@@ -365,6 +387,15 @@ void TriangleMesh::flip_triangles()
 {
     its_flip_triangles(its);
     m_stats.volume = - m_stats.volume;
+    // Topology is unchanged by a global flip; reuse edge counts and only
+    // re-run the reversed-face test. same_direction_edges is not stored on
+    // TriangleMeshStats: watertight meshes with same-dir edges fall through
+    // to the ray test instead of the shortcut.
+    MeshDiagnosticStats st;
+    st.open_edges         = static_cast<size_t>(std::max(0, m_stats.open_edges));
+    st.non_manifold_edges = static_cast<size_t>(std::max(0, m_stats.non_manifold_edges));
+    its_detect_reversed_faces(its, st);
+    m_stats.has_reversed_faces = st.has_reversed_faces;
 }
 
 void TriangleMesh::align_to_origin()
@@ -1024,6 +1055,87 @@ indexed_triangle_set its_make_cylinder(double r, double h, double fa)
     facets.emplace_back(id, 2,      3);
     facets.emplace_back(id, id - 1, 2);
 
+    return mesh;
+
+}
+
+// =======================================================================
+// CUSTOM GENERATOR: 3D THREAD
+// Generates a helical cosine thread for the Advanced Cut tool
+// =======================================================================
+indexed_triangle_set its_make_thread(double radius, double height, double pitch, double fa)
+{
+    indexed_triangle_set mesh;
+    
+    // 1. Calculate the resolution (how many points per ring, and how many rings)
+    size_t n_steps = (size_t)ceil(2. * PI / fa); 
+    double angle_step = 2. * PI / n_steps;
+    
+    // We need lots of vertical slices to make the thread smooth. Let's do 12 slices per pitch.
+    size_t z_steps = (size_t)ceil((height / pitch) * 12.0); 
+    if (z_steps < 2) z_steps = 2;
+    double z_step_size = height / z_steps;
+    
+    double thread_depth = pitch * 0.4; // How deep the threads cut into the core
+    
+    auto &vertices = mesh.vertices;
+    auto &facets   = mesh.indices;
+    
+    // 2. Generate the Point Cloud (Vertices)
+    for (size_t j = 0; j <= z_steps; ++j) {
+        double z = j * z_step_size;
+        for (size_t i = 0; i < n_steps; ++i) {
+            double angle = i * angle_step;
+            
+            // The magic spiral math
+            double phase = angle - ((z / pitch) * 2.0 * PI);
+            
+            // Calculate the bulging radius for this specific point
+            double r_current = radius - thread_depth + (thread_depth * 0.5 * (1.0 + std::cos(phase)));
+            
+            double x = r_current * std::cos(angle);
+            double y = r_current * std::sin(angle);
+            vertices.emplace_back(Vec3f(float(x), float(y), float(z)));
+        }
+    }
+    
+    // 3. Stitch the Wall Triangles (Facets)
+    for (size_t j = 0; j < z_steps; ++j) {
+        for (size_t i = 0; i < n_steps; ++i) {
+            int next_i = (i + 1) % n_steps;
+            
+            // Get the 4 corners of our current "square" on the wall
+            int v0 = j * n_steps + i;               // Bottom-left
+            int v1 = j * n_steps + next_i;          // Bottom-right
+            int v2 = (j + 1) * n_steps + i;         // Top-left
+            int v3 = (j + 1) * n_steps + next_i;    // Top-right
+            
+            // Draw two triangles to fill the square
+            facets.emplace_back(v0, v1, v2);
+            facets.emplace_back(v1, v3, v2);
+        }
+    }
+    
+    // 4. Create the Top and Bottom Center Vertices
+    int bottom_center_idx = vertices.size();
+    vertices.emplace_back(Vec3f(0.f, 0.f, 0.f));
+    
+    int top_center_idx = vertices.size();
+    vertices.emplace_back(Vec3f(0.f, 0.f, float(height)));
+    
+    // 5. Stitch the Top and Bottom Caps
+    for (size_t i = 0; i < n_steps; ++i) {
+        int next_i = (i + 1) % n_steps;
+        
+        // Bottom cap triangle
+        facets.emplace_back(bottom_center_idx, next_i, i);
+        
+        // Top cap triangle
+        int top_v0 = z_steps * n_steps + i;
+        int top_v1 = z_steps * n_steps + next_i;
+        facets.emplace_back(top_center_idx, top_v0, top_v1);
+    }
+    
     return mesh;
 }
 
@@ -1804,19 +1916,30 @@ bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i>
     return its_is_splittable<>(ItsNeighborsWrapper{ its, face_neighbors });
 }
 
-size_t its_num_open_edges(const std::vector<Vec3i> &face_neighbors)
-{
-    size_t num_open_edges = 0;
-    for (Vec3i neighbors : face_neighbors)
-        for (int n : neighbors)
-            if (n < 0)
-                ++ num_open_edges;
-    return num_open_edges;
-}
-
 size_t its_num_open_edges(const indexed_triangle_set &its)
 {
-    return its_num_open_edges(its_face_neighbors(its));
+    std::vector<int64_t> edges;
+    edges.reserve(its.indices.size() * 3);
+    for (const auto &face : its.indices) {
+        for (int i = 0; i < 3; ++i) {
+            int v0 = face[i];
+            int v1 = face[(i + 1) % 3];
+            if (v0 > v1) std::swap(v0, v1);
+            edges.push_back((int64_t(v0) << 32) | int64_t(v1));
+        }
+    }
+    std::sort(edges.begin(), edges.end());
+
+    size_t num_open = 0;
+    for (size_t i = 0; i < edges.size(); ) {
+        size_t j = i + 1;
+        while (j < edges.size() && edges[j] == edges[i])
+            ++j;
+        if (j - i == 1)
+            ++num_open;
+        i = j;
+    }
+    return num_open;
 }
 
 void VertexFaceIndex::create(const indexed_triangle_set &its)

@@ -27,8 +27,6 @@
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
-#include "FilamentGroupPopup.hpp"
-
 
 // BBS
 #include "BBLTopbar.hpp"
@@ -52,6 +50,8 @@ class PrintHostQueueDialog;
 class Plater;
 class MainFrame;
 class ParamsDialog;
+class FilamentGroupPopup;
+class DeviceWebPage;
 
 enum QuickSlice
 {
@@ -96,6 +96,7 @@ class MainFrame : public DPIFrame
 #endif
     bool     m_loaded {false};
     wxTimer* m_reset_title_text_colour_timer{ nullptr };
+    wxString m_title_cache;  // last value applied by update_title(), avoids redundant SetTitle
 
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
@@ -134,6 +135,8 @@ class MainFrame : public DPIFrame
     //bool can_eject() const;
     bool can_slice() const;
     bool can_change_view() const;
+    bool can_toggle_camera_fullscreen() const;
+    void toggle_camera_fullscreen();
     bool can_select() const;
     bool can_deselect() const;
     bool can_clone() const;
@@ -210,6 +213,7 @@ public:
 #ifdef __APPLE__
     bool get_mac_full_screen() { return m_mac_fullscreen; }
 #endif
+    DeviceWebPage* web_device() const { return m_web_device; }
     //BBS GUI refactor
     enum TabPosition
     {
@@ -219,9 +223,11 @@ public:
         tpMonitor       = 3,
         tpMultiDevice   = 4,
         tpProject       = 5,
-        tpCalibration   = 6,
-        tpAuxiliary     = 7,
-        toDebugTool     = 8,
+        tpCalibration      = 6,
+        tpAuxiliary        = 7,
+        toDebugTool        = 8,
+        tpFilamentManager  = 9,
+        tpWebDevice        = 10,
     };
 
     //BBS: add slice&&print status update logic
@@ -329,6 +335,7 @@ public:
     void        request_select_tab(TabPosition pos);
     int         get_calibration_curr_tab();
     void        select_view(const std::string& direction);
+    void        view_zoom_to_fit() const;
     // Propagate changed configuration from the Tab to the Plater and save changes to the AppConfig
     void        on_config_changed(DynamicPrintConfig* cfg) const ;
     void        set_print_button_to_default(PrintSelectType select_type);
@@ -339,6 +346,12 @@ public:
     bool can_upload() const;
     void save_project();
     bool save_project_as(const wxString& filename = wxString());
+
+    // Gate for leaving the project page while it is being edited. Returns true when
+    // the caller may proceed. Returns false when the caller must abort (veto) either
+    // because the user cancelled, or because the answer is still pending - in the
+    // latter case `retry` is invoked once the page reports back.
+    bool confirm_project_page_can_leave(std::function<void()> retry);
 
     void        add_to_recent_projects(const wxString& filename);
     void        get_recent_projects(boost::property_tree::wptree &tree, int images);
@@ -376,8 +389,15 @@ public:
     //AuxiliaryPanel*       m_auxiliary{ nullptr };
     MultiMachinePage*     m_multi_machine{ nullptr };
     ProjectPanel*         m_project{ nullptr };
+    // State for confirm_project_page_can_leave(): the page answers the
+    // unsaved-changes query asynchronously, so the verdict is cached for the
+    // replayed attempt and the query timestamp guards against a mute page.
+    bool                  m_project_leave_checked{ false };
+    bool                  m_project_leave_dirty{ false };
+    long long             m_project_leave_query_ms{ 0 };
 
     CalibrationPanel*     m_calibration{ nullptr };
+    DeviceWebPage*        m_web_device{ nullptr };
     WebViewPanel*         m_webview { nullptr };
     PrinterWebView*       m_printer_view{nullptr};
     wxLogWindow*          m_log_window { nullptr };
@@ -417,6 +437,8 @@ public:
     //BBS
     void update_side_button_style();
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);
+    void update_helio_button_state();
+
 
     int select_device_page_count{ 0 };
 
@@ -428,6 +450,8 @@ public:
     void*				m_hDeviceNotify { nullptr };
     uint32_t  			m_ulSHChangeNotifyRegister { 0 };
 	static constexpr int WM_USER_MEDIACHANGED { 0x7FFF }; // WM_USER from 0x0400 to 0x7FFF, picking the last one to not interfere with wxWidgets allocation
+    bool                m_is_in_move_or_resize { false };
+    ULONGLONG           m_last_resize_layout_ms { 0 };
 #endif // _WIN32
 };
 

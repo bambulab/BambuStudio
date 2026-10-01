@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_BackgroundSlicingProcess_hpp_
 #define slic3r_GUI_BackgroundSlicingProcess_hpp_
 
+#include <cstdint>
 #include <string>
 #include <condition_variable>
 #include <mutex>
@@ -27,8 +28,8 @@ class SLAPrint;
 class HelioCompletionEvent : public wxEvent
 {
 public:
-    HelioCompletionEvent(wxEventType eventType, int winid, std::string in_path, std::string in_tmp_path, bool in_is_successful, std::string in_error_message = "", int ac = 0, std::string mean_impro = "", std::string std_impro = "")
-        : wxEvent(winid, eventType), tmp_path(in_tmp_path), path(in_path), is_successful(in_is_successful), error_message(in_error_message), action(ac), quality_mean_improvement(mean_impro), quality_std_improvement(std_impro){}
+    HelioCompletionEvent(wxEventType eventType, int winid, std::string in_path, std::string in_tmp_path, bool in_is_successful, std::string in_error_message = "", int ac = 0, std::string mean_impro = "", std::string std_impro = "", std::uint64_t in_generation = 0)
+        : wxEvent(winid, eventType), tmp_path(in_tmp_path), path(in_path), is_successful(in_is_successful), error_message(in_error_message), action(ac), quality_mean_improvement(mean_impro), quality_std_improvement(std_impro), generation(in_generation) {}
     virtual wxEvent *Clone() const { return new HelioCompletionEvent(*this); }
 
     std::string tmp_path;
@@ -36,19 +37,31 @@ public:
     bool        is_successful;
     std::string error_message;
     int action; //0-simulation 1-optimization
-    std::string quality_mean_improvement;	
-    std::string quality_std_improvement;	
+    std::string quality_mean_improvement;
+    std::string quality_std_improvement;
+    std::uint64_t generation;
+};
+
+class HelioActionEvent : public wxEvent
+{
+public:
+    HelioActionEvent(wxEventType eventType, int winid, std::uint64_t in_generation)
+        : wxEvent(winid, eventType), generation(in_generation) {}
+    virtual wxEvent *Clone() const { return new HelioActionEvent(*this); }
+    std::uint64_t generation;
 };
 
 class SlicingStatusEvent : public wxEvent
 {
 public:
-	SlicingStatusEvent(wxEventType eventType, int winid, const PrintBase::SlicingStatus &status) :
-		wxEvent(winid, eventType), status(std::move(status)) {}
-	virtual wxEvent *Clone() const { return new SlicingStatusEvent(*this); }
+    SlicingStatusEvent(wxEventType eventType, int winid, const PrintBase::SlicingStatus &status, std::uint64_t in_generation = 0) :
+        wxEvent(winid, eventType), status(std::move(status)), generation(in_generation) {}
+    virtual wxEvent *Clone() const { return new SlicingStatusEvent(*this); }
 
-	PrintBase::SlicingStatus status;
+    PrintBase::SlicingStatus status;
+    std::uint64_t generation;
 };
+
 
 class SlicingProcessCompletedEvent : public wxEvent
 {
@@ -154,6 +167,9 @@ public:
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
     PrintBase::ApplyStatus apply(const Model &model, const DynamicPrintConfig &config);
+	// If set before the current slicing run reaches finalize_gcode(), external post-processing scripts are not run (user chose "Do not execute" in Plater). Cleared when consumed or when stop() runs.
+	// Guarded by m_mutex so the background slicing thread (finalize_gcode) and the UI thread (reslice) don't race on this flag.
+	void set_skip_post_process_once(bool skip);
 	// After calling the apply() function, set_task() may be called to limit the task to be processed by process().
 	// This is useful for calculating SLA supports for a single object only.
 	void 		set_task(const PrintBase::TaskParams &params);
@@ -267,10 +283,16 @@ private:
 	// Thread, on which the background processing is executed. The thread will always be present
 	// and ready to execute the slicing process.
 	boost::thread		 		m_thread;
+	// Threads orphaned by force-cancel (stop() timeout). They continue running until
+	// their computation finishes, then exit silently. Detached in the destructor.
+	std::vector<boost::thread>	m_orphaned_threads;
 	// Mutex and condition variable to synchronize m_thread with the UI thread.
 	std::mutex 		 			m_mutex;
 	std::condition_variable		m_condition;
 	State 						m_state = STATE_INITIAL;
+	// Incremented on force-cancel (stop() timeout). The background thread checks this
+	// after completing work; if it changed, the thread skips state/event updates.
+	unsigned int				m_task_generation = 0;
 
 	// For executing tasks from the background thread on UI thread synchronously (waiting for result) using wxWidgets CallAfter().
 	// When the background proces is canceled, the UITask has to be invalidated as well, so that it will not be
@@ -293,6 +315,7 @@ private:
 	GUI::PartPlate* m_current_plate;
 	PrinterTechnology m_printer_tech = ptUnknown;
 	bool m_internal_cancelled = false;
+	bool m_skip_post_process_once = false;
 
     PrintState<BackgroundSlicingProcessStep, bspsCount>   	m_step_state;
 	bool                set_step_started(BackgroundSlicingProcessStep step);

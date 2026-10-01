@@ -17,6 +17,10 @@
     "counter_limit_max": [
         "0.03"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.96",
         "0.96"
@@ -45,9 +49,7 @@
         "20"
     ],
     "compatible_printers": [
-        "Bambu Lab H2D Pro 0.4 nozzle",
-        "Bambu Lab H2D Pro 0.6 nozzle",
-        "Bambu Lab H2D Pro 0.8 nozzle"
+        "Bambu Lab H2D Pro 0.4 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

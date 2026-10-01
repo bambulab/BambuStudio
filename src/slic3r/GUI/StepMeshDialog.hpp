@@ -48,6 +48,7 @@ private:
     unsigned int m_mesh_number = 0;
     boost::thread* m_task {nullptr};
     bool validate_number_range(const wxString& value, double min, double max);
+    void log_step_tree_structure();
     void update_mesh_number_text();
     void on_task_done(wxCommandEvent& event);
     void stop_task();

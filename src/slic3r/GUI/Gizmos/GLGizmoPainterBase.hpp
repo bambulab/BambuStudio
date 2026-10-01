@@ -243,6 +243,7 @@ public:
 protected:
     virtual void set_painter_gizmo_data(const Selection &selection);
     virtual void render_triangles(const Selection& selection) const;
+    Transform3d  get_volume_world_matrix(const Selection &selection, const ModelObject *mo, const ModelVolume *mv, int volume_id) const;
     void         init_selected_glvolume(GLVolume &v, const TriangleMesh &mesh, const Geometry::Transformation &world_transformation) const;
     void render_cursor() const;
     void render_cursor_circle() const;
@@ -310,7 +311,7 @@ protected:
     float       m_smart_fill_angle           = DEFAULT_FILL_ANGLE;
     float       m_last_edge_detection_smart_fill_angle = DEFAULT_FILL_ANGLE;
     enum class BucketFillType { SameColor, EdgeDetect };
-    BucketFillType m_bucket_fill_mode           = BucketFillType::SameColor;
+    BucketFillType m_bucket_fill_mode           = BucketFillType::EdgeDetect;
     bool     m_paint_on_overhangs_only          = false;
     float    m_highlight_by_angle_threshold_deg = 0.f;
 

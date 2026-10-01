@@ -3,6 +3,9 @@
 #include "libslic3r/Color.hpp"
 #include "objparser.hpp"
 #include <unordered_map>
+
+struct indexed_triangle_set;
+
 namespace Slic3r {
 
 class TriangleMesh;
@@ -72,8 +75,16 @@ struct ObjDialogInOut
     bool       exist_texture_error{false};
 };
 typedef std::function<void(ObjDialogInOut &in_out)> ObjImportColorFn;
-extern bool load_obj(const char *path, TriangleMesh *mesh, ObjInfo &vertex_colors, std::string &message, bool gamma_correct =false);
-extern bool load_obj(const char *path, Model *model, ObjInfo &vertex_colors, std::string &message, const char *object_name = nullptr, bool gamma_correct =false);
+extern bool load_obj(const char *path, TriangleMesh *mesh, ObjInfo &vertex_colors, std::string &message, bool gamma_correct = false, ObjParser::MtlData *out_mtl = nullptr);
+extern bool load_obj(const char *path, Model *model, ObjInfo &vertex_colors, std::string &message, const char *object_name = nullptr, bool gamma_correct = false, ObjParser::MtlData *out_mtl = nullptr);
+
+struct TexturedMesh;
+extern bool obj_to_textured_mesh(
+    const ObjInfo& obj_info,
+    const indexed_triangle_set& its,
+    const ObjParser::MtlData& mtl_data,
+    const std::string& obj_directory,
+    TexturedMesh& out);
 
 extern bool store_obj(const char *path, TriangleMesh *mesh);
 extern bool store_obj(const char *path, ModelObject *model);

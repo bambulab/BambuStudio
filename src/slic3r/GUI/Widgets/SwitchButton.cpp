@@ -6,9 +6,6 @@
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/WxFontUtils.hpp"
 #include "../GUI_App.hpp"
-#ifdef __APPLE__
-#include "libslic3r/MacUtils.hpp"
-#endif
 
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
@@ -87,10 +84,12 @@ void SwitchButton::Rescale()
 #ifdef __WXOSX__
         dc.SetFont(dc.GetFont().Scaled(scale));
 #endif
+        wxFontMetrics fm = dc.GetFontMetrics();
+        int fmHeight = fm.ascent + fm.descent;
         wxSize textSize[2];
 		{
-			textSize[0] = dc.GetTextExtent(labels[0]);
-			textSize[1] = dc.GetTextExtent(labels[1]);
+			textSize[0] = { dc.GetTextExtent(labels[0]).x, fmHeight };
+			textSize[1] = { dc.GetTextExtent(labels[1]).x, fmHeight };
 		}
 		float fontScale = 0;
 		{
@@ -129,8 +128,10 @@ void SwitchButton::Rescale()
             memdc.SetFont(dc.GetFont());
             if (fontScale) {
                 memdc.SetFont(dc.GetFont().Scaled(fontScale));
-                textSize[0] = memdc.GetTextExtent(labels[0]);
-                textSize[1] = memdc.GetTextExtent(labels[1]);
+                wxFontMetrics fmScaled = memdc.GetFontMetrics();
+                int fmScaledH = fmScaled.ascent + fmScaled.descent;
+                textSize[0] = { memdc.GetTextExtent(labels[0]).x, fmScaledH };
+                textSize[1] = { memdc.GetTextExtent(labels[1]).x, fmScaledH };
 			}
 			auto state = i == 0 ? StateColor::Enabled : (StateColor::Checked | StateColor::Enabled);
             {
@@ -149,17 +150,17 @@ void SwitchButton::Rescale()
             memdc.SetTextForeground(text_color.colorForStates(state ^ StateColor::Checked));
             auto text_y = BS + (thumbSize.y - textSize[0].y) / 2;
 #ifdef __APPLE__
-            if (Slic3r::is_mac_version_15()) {
-                text_y -= FromDIP(2);
-            }
+            /* wx计算文字长宽都是浮点数向下取整
+               macOS系统文字渲染为了抗锯齿效果，会在边缘向外多渲染0.5到1个像素，所以需要向上取整
+               简单方案：+1手动向上取整
+            */
+            text_y -= FromDIP(1);
 #endif
             memdc.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, text_y});
             memdc.SetTextForeground(text_color2.count() == 0 ? text_color.colorForStates(state) : text_color2.colorForStates(state));
             auto text_y_1 = BS + (thumbSize.y - textSize[1].y) / 2;
 #ifdef __APPLE__
-            if (Slic3r::is_mac_version_15()) {
-                text_y_1 -= FromDIP(2);
-            }
+            text_y_1 -= FromDIP(1);
 #endif
             memdc.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, text_y_1});
 			memdc.SelectObject(wxNullBitmap);
@@ -229,6 +230,15 @@ void SwitchBoard::updateState(wxString target)
     Refresh();
 }
 
+void SwitchBoard::SetLabels(const wxString &left, const wxString &right)
+{
+    if (leftLabel == left && rightLabel == right)
+        return;
+    leftLabel  = left;
+    rightLabel = right;
+    Refresh();
+}
+
 void SwitchBoard::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
@@ -281,8 +291,10 @@ void SwitchBoard::doRender(wxDC &dc)
     dc.SetFont(::Label::Body_13);
     Slic3r::GUI::WxFontUtils::get_suitable_font_size(0.6 * GetSize().GetHeight(), dc);
 
+    wxFontMetrics fm = dc.GetFontMetrics();
+    int fmHeight = fm.ascent + fm.descent;
     auto left_txt_size = dc.GetTextExtent(leftLabel);
-    dc.DrawText(leftLabel, wxPoint((GetSize().x / 2 - left_txt_size.x) / 2, (GetSize().y - left_txt_size.y) / 2));
+    dc.DrawText(leftLabel, wxPoint((GetSize().x / 2 - left_txt_size.x) / 2, (GetSize().y - fmHeight) / 2));
 
 	/*right*/
     if (switch_right) {
@@ -297,7 +309,7 @@ void SwitchBoard::doRender(wxDC &dc)
     } else {
         dc.SetTextForeground(0x333333);
     }
-    dc.DrawText(rightLabel, wxPoint((GetSize().x / 2 - right_txt_size.x) / 2 + GetSize().x / 2, (GetSize().y - right_txt_size.y) / 2));
+    dc.DrawText(rightLabel, wxPoint((GetSize().x / 2 - right_txt_size.x) / 2 + GetSize().x / 2, (GetSize().y - fmHeight) / 2));
 
 }
 
@@ -306,19 +318,9 @@ void SwitchBoard::on_left_down(wxMouseEvent &evt)
     if (!is_enable) {
         return;
     }
-    int index = -1;
-    auto pos = ClientToScreen(evt.GetPosition());
-    auto rect = ClientToScreen(wxPoint(0, 0));
 
-    if (pos.x > 0 && pos.x < rect.x + GetSize().x / 2) {
-        switch_left = true;
-        switch_right = false;
-        index = 1;
-    } else {
-        switch_left  = false;
-        switch_right = true;
-        index = 0;
-    }
+    switch_left = evt.GetPosition().x < GetSize().GetWidth() / 2;
+    switch_right = !switch_left;
 
     if (auto_disable_when_switch)
     {
@@ -327,7 +329,7 @@ void SwitchBoard::on_left_down(wxMouseEvent &evt)
     Refresh();
 
     wxCommandEvent event(wxCUSTOMEVT_SWITCH_POS);
-    event.SetInt(index);
+    event.SetInt((int)switch_left);
     wxPostEvent(this, event);
 }
 
@@ -471,7 +473,8 @@ void CustomToggleButton::doRender(wxDC& dc)
         dc.SetTextForeground(Slic3r::GUI::wxGetApp().dark_mode() ? *wxWHITE:wxColour("#5C5C5C"));
     }
 
-    int textY = (rect.GetHeight() - dc.GetCharHeight()) / 2;
+    wxFontMetrics fm = dc.GetFontMetrics();
+    int textY = (rect.GetHeight() - (fm.ascent + fm.descent)) / 2;
     dc.DrawText(m_label, left, textY);
 }
 void CustomToggleButton::OnSize(wxSizeEvent& event) {

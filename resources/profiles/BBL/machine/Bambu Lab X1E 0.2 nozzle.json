@@ -23,10 +23,6 @@
     "min_layer_height": [
         "0.04"
     ],
-    "nozzle_type": [
-        "stainless_steel",
-        "stainless_steel"
-    ],
     "retraction_length": [
         "0.4",
         "0.4"
@@ -41,6 +37,8 @@
         "Bambu Lab H2D Pro 0.2 nozzle",
         "Bambu Lab H2S 0.2 nozzle",
         "Bambu Lab P2S 0.2 nozzle",
-        "Bambu Lab H2C 0.2 nozzle"
+        "Bambu Lab H2C 0.2 nozzle",
+        "Bambu Lab X2D 0.2 nozzle",
+        "Bambu Lab A2L 0.2 nozzle"
     ]
 }

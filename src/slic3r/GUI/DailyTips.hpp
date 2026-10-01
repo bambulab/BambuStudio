@@ -26,6 +26,8 @@ public:
     ImVec2 get_size();
     void render();
     void retrieve_data_from_hint_database(HintDataNavigation nav);
+    void retrieve_data_from_hint_database(const std::string& key, bool force_expand = false);
+    void retrieve_data_from_hint_database(const std::string& key, const std::string& text_arg, bool force_expand = false);
     void expand(bool expand = true);
     void collapse();
     bool is_expanded();
@@ -62,7 +64,7 @@ public:
     DailyTipsWindow();
     void open();
     void close();
-    void render();
+    void render(float cnv_width, float cnv_height);
     void on_change_color_mode(bool is_dark);
 
 private:

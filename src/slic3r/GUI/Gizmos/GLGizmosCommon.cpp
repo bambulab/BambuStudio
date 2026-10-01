@@ -123,12 +123,15 @@ void SelectionInfo::on_update()
     const Selection& selection = get_pool()->get_canvas()->get_selection();
     // BBS still keep object pointer when selection is volume
     //if (selection.is_single_full_instance()) {
+    m_model_object = nullptr;
     if (!selection.is_empty()) {
-        m_model_object = selection.get_model()->objects[selection.get_object_idx()];
-        m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+        const Model* model = selection.get_model();
+        const int object_idx = selection.get_object_idx();
+        if (model != nullptr && object_idx >= 0 && object_idx < int(model->objects.size())) {
+            m_model_object = model->objects[object_idx];
+            m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+        }
     }
-    else
-        m_model_object = nullptr;
 }
 
 void SelectionInfo::on_release()
@@ -389,9 +392,12 @@ void ObjectClipper::on_update()
     Geometry::Transformation     mc_tr;
 
     if (meshes.empty()) {
+        // BBS: assembly view uses per-volume assemble transformation so the clipper
+        GLCanvas3D *canvas         = get_pool()->get_canvas();
+        const bool  is_assemble_cv = canvas && canvas->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
         for (const ModelVolume *mv : mo->volumes) {
             meshes.emplace_back(&mv->mesh());
-            trafos.emplace_back(mv->get_transformation());
+            trafos.emplace_back(is_assemble_cv ? mv->get_assemble_transformation() : mv->get_transformation());
         }
     }
 

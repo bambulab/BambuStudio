@@ -237,3 +237,55 @@ SCENARIO("DynamicPrintConfig serialization", "[Config]") {
         }
     }
 }
+
+SCENARIO("get_real_skirt_dist calculates the correct boundary including loop width", "[Config]") {
+    GIVEN("A DynamicPrintConfig with skirt loops and spacing") {
+        Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
+
+        config.set("skirt_distance", 2.0);
+        config.set("skirt_loops", 3);
+        config.set("initial_layer_line_width", 0.4);
+        config.set("draft_shield", "disabled"); // Just to be safe, dsDisabled is 0 usually
+        config.set("skirt_per_object", true);
+
+        WHEN("get_real_skirt_dist is called") {
+            float dist = Slic3r::get_real_skirt_dist(config);
+
+            THEN("The distance includes the width of the skirt loops") {
+                // 2.0 + 3 * 0.4 = 3.2
+                REQUIRE(dist == Approx(3.2));
+            }
+        }
+
+        WHEN("skirt_per_object is disabled") {
+            config.set("skirt_per_object", false);
+            float dist = Slic3r::get_real_skirt_dist(config);
+            THEN("The distance is not applied") {
+                REQUIRE(dist == 0.0f);
+            }
+        }
+
+        WHEN("skirt_loops is 0") {
+            config.set("skirt_loops", 0);
+            float dist = Slic3r::get_real_skirt_dist(config);
+            THEN("The distance is exactly 0 because has_skirt() should return false") {
+                REQUIRE(dist == 0.0f);
+            }
+        }
+    }
+}
+
+TEST_CASE("Bed shape falls back when extruder areas do not overlap", "[Config]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.opt<ConfigOptionPoints>("printable_area")->values =
+        {{0., 0.}, {30., 0.}, {30., 10.}, {0., 10.}};
+    config.opt<ConfigOptionPointsGroups>("extruder_printable_area")->values = {
+        {{0., 0.}, {10., 0.}, {10., 10.}, {0., 10.}},
+        {{20., 0.}, {30., 0.}, {30., 10.}, {20., 10.}}
+    };
+
+    const Points bed_shape = get_bed_shape(config, true);
+    REQUIRE(bed_shape.size() == 4);
+    REQUIRE(Polygon(bed_shape).bounding_box().defined);
+}

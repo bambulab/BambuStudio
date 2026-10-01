@@ -9,6 +9,7 @@ namespace Slic3r {namespace GUI {
 struct HintData
 {
 	std::string        id_string;
+	std::string        key;
 	std::string        text;
 	size_t			   weight;
 	bool               was_displayed;
@@ -19,6 +20,7 @@ struct HintData
 	bool               runtime_disable; // if true - hyperlink will check before every click if not in disabled mode
 	std::string        documentation_link;
 	std::string        image_url;
+	bool               internal_only{ false };
 	std::function<void(void)> callback{ nullptr };
 };
 
@@ -49,9 +51,14 @@ public:
 	void operator=(HintDatabase const&) = delete;
 
 	// return true if HintData filled;
-	HintData* get_hint(HintDataNavigation nav, bool is_helio);
-	size_t	  get_index(bool is_helio) { return is_helio ? m_helio_hint_id : m_hint_id; }
-	size_t    get_count(bool is_helio) { return is_helio ? m_loaded_helio_hints.size() : m_loaded_hints.size();	}
+	HintData* get_hint(HintDataNavigation nav, bool is_helio = false);
+	HintData* get_hint_by_key(const std::string& key);
+	size_t	  get_index(bool is_helio = false) { return is_helio ? m_helio_hint_id : m_hint_id; }
+	size_t    get_count(bool is_helio = false) {
+		if (!m_initialized)
+			return 0;
+		return is_helio ? m_loaded_helio_hints.size() : m_loaded_hints.size();
+	}
 	// resets m_initiailized to false and writes used if was initialized
 	// used when reloading in runtime - like change language
 	void    uninit();

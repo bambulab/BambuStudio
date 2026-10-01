@@ -1,14 +1,207 @@
 #include "DevConfigUtil.h"
 
+#include <mutex>
+#include <unordered_map>
+
 #include <wx/dir.h>
 #include <boost/filesystem/operations.hpp>
+#include "../I18N.hpp"
+#include "libslic3r/Utils.hpp"
 
 using namespace nlohmann;
 
 namespace Slic3r
 {
 
+// Translation markers for xgettext extraction.
+// These strings are configured in printers/*.json (tool_head_display_names)
+// and passed to _L() at runtime. xgettext cannot scan dynamic strings,
+// so we mark them here with L() for extraction into .pot file.
+// This block is never executed at runtime.
+static void _toolhead_translation_markers()
+{
+    // Dynamic toolhead display names from JSON config — xgettext cannot scan these
+    L("Main Extruder");     L("Main extruder");     L("main extruder");
+    L("Auxiliary Extruder"); L("Auxiliary extruder"); L("auxiliary extruder");
+    L("Left Extruder");     L("Left extruder");     L("left extruder");
+    L("Right Extruder");    L("Right extruder");    L("right extruder");
+    L("Main Nozzle");       L("Main nozzle");       L("main nozzle");
+    L("Auxiliary Nozzle");   L("Auxiliary nozzle");   L("auxiliary nozzle");
+    L("Left Nozzle");       L("Left nozzle");       L("left nozzle");
+    L("Right Nozzle");      L("Right nozzle");      L("right nozzle");
+    L("Main Hotend");       L("Main hotend");       L("main hotend");
+    L("Auxiliary Hotend");   L("Auxiliary hotend");   L("auxiliary hotend");
+    L("Left Hotend");       L("Left hotend");       L("left hotend");
+    L("Right Hotend");      L("Right hotend");      L("right hotend");
+    // standalone position words (short_name=true runtime results)
+    L("main");              L("auxiliary");
+    L("Main");              L("Auxiliary");
+    L("left");              L("right");
+    L("Left");              L("Right");
+}
+
 std::string DevPrinterConfigUtil::m_resource_file_path = "";
+
+bool DevPrinterConfigUtil::is_printer_visible_in_this_build(const json& printer_00)
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    return true;
+#else
+    if (!printer_00.contains("printer_modes") || !printer_00["printer_modes"].is_array())
+        return true;
+
+    for (const auto& mode : printer_00["printer_modes"]) {
+        if (mode.is_string() && mode.get<std::string>() == "fdm")
+            return true;
+    }
+    return false;
+#endif
+}
+
+bool DevPrinterConfigUtil::is_printer_visible_in_this_build(const std::string& type_str)
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    return true;
+#else
+    if (type_str.empty())
+        return true;
+
+    static std::mutex s_mutex;
+    static std::unordered_map<std::string, bool> s_cache;
+    static std::string s_cached_resource_path;
+
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_cached_resource_path != m_resource_file_path) {
+        s_cache.clear();
+        s_cached_resource_path = m_resource_file_path;
+    }
+
+    auto it = s_cache.find(type_str);
+    if (it != s_cache.end())
+        return it->second;
+
+    bool visible = true;
+    const json modes = get_json_from_config(type_str, "printer_modes");
+    if (modes.is_array()) {
+        visible = false;
+        for (const auto& mode : modes) {
+            if (mode.is_string() && mode.get<std::string>() == "fdm") {
+                visible = true;
+                break;
+            }
+        }
+    }
+
+    s_cache[type_str] = visible;
+    return visible;
+#endif
+}
+
+namespace
+{
+struct SnPrefixInfo
+{
+    std::string model_id;     // printers/<model_id>.json, ie. the key the other config getters take
+    std::string printer_type; // the printer_type field inside that json
+};
+
+// Looks up the printer whose sn_prefix matches. The index is built lazily by scanning
+// printers/*.json and is rebuilt whenever the resource path changes. The mutex is required
+// because device restore resolves printers from worker threads.
+bool find_printer_by_sn_prefix(const std::string& resource_file_path, const std::string& sn_prefix, SnPrefixInfo& info_out)
+{
+    static std::mutex                                   s_mutex;
+    static std::unordered_map<std::string, SnPrefixInfo> s_sn_prefix_index;
+    static std::string                                  s_cached_resource_path;
+
+    std::lock_guard<std::mutex> lock(s_mutex);
+
+    if (s_sn_prefix_index.empty() || s_cached_resource_path != resource_file_path) {
+        s_sn_prefix_index.clear();
+        s_cached_resource_path = resource_file_path;
+
+        const auto& from_dir = resource_file_path + "/printers/";
+        try {
+            if (!boost::filesystem::exists(from_dir)) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": printers dir does not exist: " << from_dir;
+                return false;
+            }
+
+            for (const auto& entry : boost::filesystem::directory_iterator(from_dir)) {
+                const boost::filesystem::path& file_path = entry.path();
+                if (!boost::filesystem::is_regular_file(file_path) || file_path.extension() != ".json")
+                    continue;
+
+                try {
+                    json jj;
+                    boost::nowide::ifstream json_file(file_path.string());
+                    if (!json_file.is_open())
+                        continue;
+
+                    json_file >> jj;
+                    if (!jj.contains("00.00.00.00"))
+                        continue;
+
+                    json const& printer = jj["00.00.00.00"];
+                    if (!printer.contains("sn_prefix") || !printer.contains("printer_type"))
+                        continue;
+
+                    const std::string prefix       = printer["sn_prefix"].get<std::string>();
+                    const std::string printer_type = printer["printer_type"].get<std::string>();
+                    const std::string model_id     = file_path.stem().string();
+                    if (prefix.empty() || printer_type.empty() || model_id.empty())
+                        continue;
+
+                    auto inserted = s_sn_prefix_index.emplace(prefix, SnPrefixInfo{model_id, printer_type});
+                    if (!inserted.second && inserted.first->second.printer_type != printer_type) {
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
+                            << ": duplicate sn_prefix=" << prefix
+                            << " for printer_type=" << printer_type
+                            << " (kept " << inserted.first->second.printer_type << ")";
+                    }
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to load " << file_path.filename().string();
+                }
+            }
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": std::exception: " << e.what();
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unknown exception";
+        }
+    }
+
+    auto it = s_sn_prefix_index.find(sn_prefix);
+    if (it == s_sn_prefix_index.end())
+        return false;
+
+    info_out = it->second;
+    return true;
+}
+} // namespace
+
+std::string DevPrinterConfigUtil::get_model_id_by_dev_id(const std::string& dev_id)
+{
+    if (dev_id.size() < 3 || m_resource_file_path.empty())
+        return std::string();
+
+    SnPrefixInfo info;
+    if (!find_printer_by_sn_prefix(m_resource_file_path, dev_id.substr(0, 3), info))
+        return std::string();
+
+    return info.model_id;
+}
+
+std::string DevPrinterConfigUtil::get_printer_type_by_dev_id(const std::string& dev_id)
+{
+    if (dev_id.size() < 3 || m_resource_file_path.empty())
+        return std::string();
+
+    SnPrefixInfo info;
+    if (!find_printer_by_sn_prefix(m_resource_file_path, dev_id.substr(0, 3), info))
+        return std::string();
+
+    return info.printer_type;
+}
 
 
 std::map<std::string, std::string> DevPrinterConfigUtil::get_all_model_id_with_name()
@@ -45,6 +238,8 @@ std::map<std::string, std::string> DevPrinterConfigUtil::get_all_model_id_with_n
                     if (jj.contains("00.00.00.00"))
                     {
                         json const& printer = jj["00.00.00.00"];
+                        if (!is_printer_visible_in_this_build(printer))
+                            continue;
 
                         std::string model_id;
                         std::string display_name;
@@ -81,6 +276,28 @@ std::string DevPrinterConfigUtil::get_printer_ext_img(const std::string& type_st
     const auto& vec = get_value_from_config<std::vector<std::string>>(type_str, "printer_ext_image");
     return (vec.size() > pos) ? vec[pos] : std::string();
 };
+
+std::string DevPrinterConfigUtil::get_filament_load_img(const std::string &type_str, int ext_id, bool has_nozzle_rack)
+{
+    if (has_nozzle_rack)
+    {
+        const auto &rack_vec = get_value_from_config<std::vector<std::string>>(type_str, "filament_load_image_nozzle_rack") ;
+        if (!rack_vec.empty())
+        {
+            if (ext_id >= 0 && static_cast<size_t>(ext_id) < rack_vec.size())
+            {
+                return rack_vec[ext_id];
+            }
+            return rack_vec[0];
+        }
+    }
+    const auto &vec = get_value_from_config<std::vector<std::string>>(type_str, "filament_load_image");
+    if (ext_id >= 0 && static_cast<size_t>(ext_id) < vec.size())
+    {
+        return vec[ext_id];
+    }
+    return vec.empty() ? std::string() : vec[0];
+}
 
 std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, const std::string& key)
 {
@@ -172,6 +389,36 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, int 
     return std::string();
 }
 
+std::string DevPrinterConfigUtil::get_fan_mode_text(const std::string& type_str, int airduct_mode, const std::string& key)
+{
+    std::vector<std::string> filaments;
+    std::string              config_file = m_resource_file_path + "/printers/" + type_str + ".json";
+    boost::nowide::ifstream  json_file(config_file.c_str());
+    try {
+        json jj;
+        if (json_file.is_open()) {
+            json_file >> jj;
+            if (jj.contains("00.00.00.00")) {
+                json const& printer = jj["00.00.00.00"];
+                if (!printer.contains("fan")) {
+                    return std::string();
+                }
+
+                json const& fan_item = printer["fan"];
+                const auto& airduct_mode_str = std::to_string(airduct_mode);
+                if (!fan_item.contains(airduct_mode_str)) {
+                    return std::string();
+                }
+
+                if (fan_item[airduct_mode_str].contains(key)) {
+                    return fan_item[airduct_mode_str][key].get<std::string>();
+                }
+            }
+        }
+    } catch (...) {}
+    return std::string();
+}
+
 std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_subseries(std::string type_str)
 {
     std::map<std::string, std::vector<std::string>> subseries;
@@ -204,6 +451,8 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
                         if (jj.contains("00.00.00.00"))
                         {
                             json const& printer = jj["00.00.00.00"];
+                            if (!is_printer_visible_in_this_build(printer))
+                                continue;
                             if (printer.contains("subseries"))
                             {
                                 std::vector<std::string> subs;
@@ -260,6 +509,60 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
     }
 
     return subseries;
+}
+
+std::string DevPrinterConfigUtil::get_toolhead_display_name(
+    const std::string& type_str,
+    int ext_id,
+    ToolHeadComponent component,
+    ToolHeadNameCase name_case,
+    bool short_name)
+{
+    static const std::map<ToolHeadComponent, std::string> comp_keys = {
+        { ToolHeadComponent::Extruder, "extruder" },
+        { ToolHeadComponent::Nozzle,   "nozzle" },
+        { ToolHeadComponent::Hotend,   "hotend" }
+    };
+
+    int case_index = static_cast<int>(name_case);  // 0, 1, 2
+
+    // Try to read from printer config json
+    auto names_json = get_value_from_config<json>(type_str, "tool_head_display_names");
+    std::string role_key = std::to_string(ext_id);  // "0" or "1"
+    const std::string& comp_key = comp_keys.at(component);
+
+    std::string result;
+
+    if (!names_json.is_null()
+        && names_json.contains(role_key)
+        && names_json[role_key].contains(comp_key))
+    {
+        auto& arr = names_json[role_key][comp_key];
+        if (arr.is_array() && case_index < static_cast<int>(arr.size())) {
+            result = arr[case_index].get<std::string>();
+        }
+    }
+
+    // Fallback: all dual-extruder printers should have tool_head_display_names configured.
+    // This is a safety net only — return a generic name.
+    if (result.empty()) {
+        static const std::map<ToolHeadComponent, std::string> fallback_names = {
+            { ToolHeadComponent::Extruder, "Extruder" },
+            { ToolHeadComponent::Nozzle,   "Nozzle" },
+            { ToolHeadComponent::Hotend,   "Hotend" }
+        };
+        result = fallback_names.at(component);
+    }
+
+    // short_name: return only the role prefix (e.g. "Main" from "Main Nozzle")
+    if (short_name) {
+        auto sp = result.find(' ');
+        if (sp != std::string::npos) {
+            result = result.substr(0, sp);
+        }
+    }
+
+    return result;
 }
 
 };

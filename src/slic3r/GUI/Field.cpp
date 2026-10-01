@@ -17,6 +17,7 @@
 #include <wx/tokenzr.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include "OG_CustomCtrl.hpp"
+#include "ParamTooltip.hpp"
 #include "MsgDialog.hpp"
 #include "BitmapComboBox.hpp"
 
@@ -123,43 +124,10 @@ void Field::PostInitialize()
 
 	BUILD();
 
-	// For the mode, when settings are in non-modal dialog, neither dialog nor tabpanel doesn't receive wxEVT_KEY_UP event, when some field is selected.
-	// So, like a workaround check wxEVT_KEY_UP event for the Filed and switch between tabs if Ctrl+(1-4) was pressed
-    if (getWindow()) {
-        if (m_opt.readonly) {
-            this->disable();
-        } else {
-            this->enable();
-        }
-		getWindow()->Bind(wxEVT_KEY_UP, [](wxKeyEvent& evt) {
-		    if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
-			    int tab_id = -1;
-			    switch (evt.GetKeyCode()) {
-			    case '1': { tab_id = 0; break; }
-			    case '2': { tab_id = 1; break; }
-				case '3': { tab_id = 2; break; }
-				case '4': { tab_id = 3; break; }
-#ifdef __APPLE__
-				case 'f':
-#else /* __APPLE__ */
-				case WXK_CONTROL_F:
-#endif /* __APPLE__ */
-                case 'F': {
-                    //wxGetApp().plater()->search(false, Preset::TYPE_MODEL, nullptr, nullptr);
-                    break;
-                }
-			    default: break;
-			    }
-			    if (tab_id >= 0)
-					wxGetApp().mainframe->select_tab(tab_id);
-				if (tab_id > 0)
-					// tab panel should be focused for correct navigation between tabs
-				    wxGetApp().tab_panel()->SetFocus();
-		    }
-
-		    evt.Skip();
-	    }, getWindow()->GetId());
-    }
+    if (m_opt.readonly)
+        this->disable();
+    else
+        this->enable();
 }
 
 // Values of width to alignments of fields
@@ -200,23 +168,12 @@ void Field::toggle(bool en) { en && !m_opt.readonly ? enable() : disable(); }
 
 wxString Field::get_tooltip_text(const wxString &default_string)
 {
-	wxString tooltip_text("");
-#ifdef NDEBUG
-	wxString tooltip = _(m_opt.tooltip);
-    edit_tooltip(tooltip);
-
-    std::string opt_id = m_opt_id;
-    auto hash_pos = opt_id.find("#");
-    if (hash_pos != std::string::npos) {
-        opt_id.replace(hash_pos, 1,"[");
-        opt_id += "]";
-    }
-
-	if (tooltip.length() > 0)
-        tooltip_text = tooltip + "\n" +
-        _(L("parameter name")) + "\t: " + opt_id;
- #endif
-	return tooltip_text;
+    // Deliberately empty: by product decision the edit controls carry no native tooltip. The rich
+    // ParamTooltip card shown on the option label is the single source for the parameter
+    // description (and, in developer mode, the opt_key pill), so a second tip on the control would
+    // duplicate it. All the SetToolTip(get_tooltip_text(...)) call sites are kept so the control
+    // tip can be reinstated by returning text here if that decision changes.
+    return wxString();
 }
 
 bool Field::is_matched(const std::string& string, const std::string& pattern)
@@ -259,7 +216,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 			wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
             show_error(m_parent, from_u8((boost::format(_utf8(L("%s can't be percentage"))) % into_u8(label)).str()));
 			set_value(double_to_string(m_opt.min), true);
-			m_value = double(m_opt.min);
+			m_value = m_opt.min;
 			break;
 		}
         double val;
@@ -1002,17 +959,17 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
-    const int min_val = m_opt.min == INT_MIN
+    const int min_val = m_opt.min == ConfigOptionDef::min_default
 #ifdef __WXOSX__
     // We will forcibly set the input value for SpinControl, since the value
     // inserted from the keyboard is not updated under OSX.
     // So, we can't set min control value bigger then 0.
     // Otherwise, it couldn't be possible to input from keyboard value
     // less then min_val.
-    || m_opt.min > 0
+    || m_opt.min > 0.0
 #endif
-    ? 0 : m_opt.min;
-	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
+    ? 0 : (int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX);
+    const int max_val = (int)std::clamp<double>(m_opt.max, INT_MIN, INT_MAX);
 
     static Builder<SpinInput> builder;
 	auto temp = builder.build(m_parent, "", "", wxDefaultPosition, size,
@@ -1068,7 +1025,7 @@ void SpinCtrl::BUILD() {
         if (!parsed || value < INT_MIN || value > INT_MAX)
             tmp_value = UNDEF_VALUE;
         else {
-            tmp_value = std::min(std::max((int)value, m_opt.min), m_opt.max);
+            tmp_value = (int)std::clamp<double>(std::clamp<double>(value, m_opt.min, m_opt.max), INT_MIN, INT_MAX);
 #ifdef __WXOSX__
 #ifdef UNDEFINED__WXOSX__ // BBS
             // Forcibly set the input value for SpinControl, since the value
@@ -1083,10 +1040,7 @@ void SpinCtrl::BUILD() {
             // update value for the control only if it was changed in respect to the Min/max values
             if (tmp_value != (int)value) {
                 temp->SetValue(tmp_value);
-                // But after SetValue() cursor ison the first position
-                // so put it to the end of string
-                // int pos = std::to_string(tmp_value).length();
-                // temp->SetSelection(pos, pos);
+                temp->GetTextCtrl()->SetInsertionPointEnd();
             }
 #endif
         }
@@ -1110,9 +1064,9 @@ void SpinCtrl::propagate_value()
 	} else {
 #ifdef __WXOSX__
         // check input value for minimum
-        if (m_opt.min > 0 && tmp_value < m_opt.min) {
+        if (m_opt.min > 0.0 && tmp_value < m_opt.min) {
             SpinInput* spin = static_cast<SpinInput*>(window);
-            spin->SetValue(m_opt.min);
+            spin->SetValue((int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX));
             // spin->GetText()->SetInsertionPointEnd(); // BBS
         }
 #endif
@@ -1129,7 +1083,7 @@ void SpinCtrl::set_value(const boost::any& value, bool change_event) {
     m_disable_change_event = !change_event;
     m_value = value;
     if (value.empty()) { // BBS: null value
-        dynamic_cast<SpinInput*>(window)->SetValue(m_opt.min);
+        dynamic_cast<SpinInput*>(window)->SetValue((int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX));
         dynamic_cast<SpinInput*>(window)->GetTextCtrl()->SetValue("");
     }
     else {
@@ -1262,6 +1216,9 @@ void Choice::BUILD()
                 } else {
                     temp->Append(_(el));
                 }
+                // Per-value tip shown when hovering this dropdown item
+                const wxString item_tip = ParamTooltip::ItemTooltip(m_opt_id, m_opt.enum_values[i]);
+                if (!item_tip.IsEmpty()) temp->SetItemTooltip(i, item_tip);
                 ++i;
             }
 		}
@@ -1472,9 +1429,17 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (m_opt_id.compare("host_type") == 0 && val != 0 &&
 			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
 			val--;
-        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
-            m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" || m_opt_id == "locked_skeleton_infill_pattern")
+        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sub_top_surface_pattern" || m_opt_id == "sparse_infill_pattern" ||
+            m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" || m_opt_id == "locked_skeleton_infill_pattern" ||
+            m_opt_id == "ironing_pattern" || m_opt_id == "conformal_stagger")
 		{
+            // Dropdown shows Off/Alternate only. Map leftover stagger modes onto those two.
+            if (m_opt_id == "conformal_stagger") {
+                if (val == int(ConformalStagger::HalfStep))
+                    val = int(ConformalStagger::Alternate);
+                else if (val == int(ConformalStagger::Orthogonal))
+                    val = int(ConformalStagger::None);
+            }
 			std::string key;
 			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
 			for (auto it : map_names)
@@ -1560,8 +1525,8 @@ boost::any& Choice::get_value()
 	{
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
-        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" ||
-                 m_opt_id == "locked_skeleton_infill_pattern") {
+        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sub_top_surface_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" ||
+                 m_opt_id == "locked_skeleton_infill_pattern" || m_opt_id == "ironing_pattern" || m_opt_id == "conformal_stagger") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(m_opt.enum_keys_map->at(key));
 		}
@@ -1717,7 +1682,7 @@ void ColourPicker::BUILD()
     // create the clear button
     m_clear_button = new wxButton(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(25, picker_size.GetHeight()), wxBORDER_NONE);
     update_clear_button_icon();
-    
+
     bool has_color = clr.IsOk() && clr != wxTransparentColour;
     m_clear_button->Show(has_color);
 
@@ -1846,7 +1811,7 @@ void ColourPicker::msw_rescale()
         // recalculate the size of the color picker and clear button
         wxSize picker_size = size;
         picker_size.SetWidth(size.GetWidth() - 30);
-    
+
         if (parent_is_custom_ctrl) {
             m_color_picker->SetSize(picker_size);
             m_clear_button->SetSize(wxSize(25, picker_size.GetHeight()));
@@ -1859,7 +1824,7 @@ void ColourPicker::msw_rescale()
         if (sizer) { sizer->Layout(); }
         window->Refresh();
     }
-    
+
 
     if (m_color_picker->GetColour() == wxTransparentColour)
         set_undef_value(m_color_picker);
@@ -2135,9 +2100,9 @@ void SliderCtrl::BUILD()
 
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
 
-	auto def_val = m_opt.get_default_value<ConfigOptionInt>()->value;
-	auto min = m_opt.min == INT_MIN ? 0 : m_opt.min;
-	auto max = m_opt.max == INT_MAX ? 100 : m_opt.max;
+	const int def_val = m_opt.get_default_value<ConfigOptionInt>()->value;
+	const int min = m_opt.min == ConfigOptionDef::min_default ? 0 : (int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX);
+	const int max = m_opt.max == ConfigOptionDef::max_default ? 100 : (int)std::clamp<double>(m_opt.max, INT_MIN, INT_MAX);
 
 	m_slider = new wxSlider(m_parent, wxID_ANY, def_val * m_scale,
 							min * m_scale, max * m_scale,
@@ -2201,7 +2166,7 @@ t_field MultiVariantTextCtrl::create_text_ctrl(int opt_index, wxWindow *parent)
     auto text_ctrl = TextCtrl::Create<TextCtrl>(parent_to_use, opt_copy, opt_id_with_index);
     text_ctrl->m_opt_idx = opt_index;
 
-    text_ctrl->m_on_change = [this, opt_id_with_index](const t_config_option_key& key, 
+    text_ctrl->m_on_change = [this, opt_id_with_index](const t_config_option_key& key,
                                                          const boost::any& value) {
         if (m_on_change && !m_disable_change_event) {
             m_on_change(opt_id_with_index, value);
@@ -2322,7 +2287,7 @@ void MultiVariantTextCtrl::refresh_text_ctrls_layout(wxWindow *parent)
         m_text_ctrls.push_back(VariantTextCtrl(
             std::move(text_ctrl), index, label_text));
     }
-    
+
     parent_to_use->Layout();
     set_value(boost::any(), false);
 

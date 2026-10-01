@@ -808,6 +808,7 @@ namespace cereal
 #include <slic3r/GUI/Selection.hpp>
 #include <slic3r/GUI/Gizmos/GLGizmosManager.hpp>
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
 
 namespace Slic3r {

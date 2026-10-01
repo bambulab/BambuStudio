@@ -134,6 +134,8 @@ void AppConfig::set_defaults()
             set_bool("single_instance", false);
         if (get("import_3mf_as_project").empty())
             set_bool("import_3mf_as_project", true);
+        if (get("show_bed_heat_soak_area").empty())
+            set_bool("show_bed_heat_soak_area", true);
 #ifdef SUPPORT_REMEMBER_OUTPUT_PATH
         if (get("remember_output_path").empty())
             set_bool("remember_output_path", true);
@@ -167,10 +169,8 @@ void AppConfig::set_defaults()
         set_bool("use_free_camera", false);
 #endif
 
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
-#endif
     if (get("enable_append_color_by_sync_ams").empty())
         set_bool("enable_append_color_by_sync_ams", true);
     if (get("enable_merge_color_by_sync_ams").empty())
@@ -184,7 +184,9 @@ void AppConfig::set_defaults()
         set_bool("export_sources_full_pathnames", false);
 
     if (get("zoom_to_mouse").empty())
-        set_bool("zoom_to_mouse", false);
+        set_bool("zoom_to_mouse", true);
+    if (get("canvas_drag_to_move").empty())
+        set_bool("canvas_drag_to_move", true);
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
     if (get("enable_text_styles").empty())
@@ -193,6 +195,12 @@ void AppConfig::set_defaults()
         set_bool("use_last_fold_state_gcodeview_option_panel", true);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
+    if (get("enable_assemble_view_preview").empty())
+        set("enable_assemble_view_preview", "Auto");
+    if (get("enable_bvh").empty())
+        set_bool("enable_bvh", true);
+    if (get("show_assembly_bvh_bounds").empty())
+        set_bool("show_assembly_bvh_bounds", false);
     if (get("gamma_correct_in_import_obj").empty())
         set_bool("gamma_correct_in_import_obj", false);
     if (get("enable_opengl_multi_instance").empty())
@@ -203,6 +211,8 @@ void AppConfig::set_defaults()
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
         set("grabber_size_factor", "1.0");
+    if (get("assembly_part_number_label_font_size").empty())
+        set("assembly_part_number_label_font_size", "0");
     if (get("3d_middle_tooltip_offset_x").empty())
         set("3d_middle_tooltip_offset_x", "0.0");
     if (get("3d_middle_tooltip_offset_y").empty())
@@ -219,6 +229,14 @@ void AppConfig::set_defaults()
         set("custom_back_font_name", "");
     if (get("enable_multi_machine").empty())
         set_bool("enable_multi_machine", false);
+
+    if (get("studio_enable_fila_manager").empty()) {
+#ifdef __APPLE__
+        set_bool("studio_enable_fila_manager", false);
+#else
+        set_bool("studio_enable_fila_manager", true);
+#endif
+    }
 
     if (get("enable_record_gcodeviewer_option_item").empty())
         set_bool("enable_record_gcodeviewer_option_item", false);
@@ -277,6 +295,12 @@ void AppConfig::set_defaults()
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
 
+    if (get("enable_webview_devtools").empty())
+        set_bool("enable_webview_devtools", false);
+
+    if (get("disable_auto_flow_cali_tips").empty())
+        set_bool("disable_auto_flow_cali_tips", false);
+
     // BBS
     if (get("preset_folder").empty())
         set("preset_folder", "");
@@ -309,6 +333,14 @@ void AppConfig::set_defaults()
 
     if (get("enable_high_low_temp_mixed_printing").empty()){
         set_bool("enable_high_low_temp_mixed_printing", false);
+    }
+
+    if (get("auto_optimize_wipe_tower_placement").empty()) {
+        set_bool("auto_optimize_wipe_tower_placement", true);
+    }
+
+    if (get("camera_fullscreen_active_monitor_only").empty()){
+        set_bool("camera_fullscreen_active_monitor_only", true);
     }
 
     if (get("ignore_ext_filament_in_filament_map").empty()){
@@ -466,14 +498,31 @@ void AppConfig::set_defaults()
     if (get("is_split_compound").empty()) {
         set_bool("is_split_compound", false);
     }
-    if (get("play_slicing_video").empty()) {
-        set_bool("play_slicing_video", true);
+    // Dual-extruder first-slice guide: per printer_model (H2D / H2D Pro / H2C); migrate legacy global play_slicing_video.
+    {
+        static const char* dual_extruder_slice_guide_models[] = { "Bambu Lab H2D", "Bambu Lab H2D Pro", "Bambu Lab H2C" };
+        const std::string  legacy_sv                            = get("play_slicing_video");
+        for (const char* model : dual_extruder_slice_guide_models) {
+            const std::string k = dual_extruder_first_slice_video_app_config_key(model);
+            if (get(k).empty()) {
+                if (!legacy_sv.empty())
+                    set(k, legacy_sv);
+                else
+                    set_bool(k, true);
+            }
+        }
+    }
+    if (get("show_fila_switch_tips").empty()) {
+        set_bool("show_fila_switch_tips", true);
     }
     if (get("play_tpu_printing_video").empty()) {
         set_bool("play_tpu_printing_video", true);
     }
     if (get("show_wrapping_detect_dialog").empty()) {
         set_bool("show_wrapping_detect_dialog", true);
+    }
+    if (get("show_support_recommend_dialog").empty()) {
+        set_bool("show_support_recommend_dialog", true);
     }
     if (get("ignore_module_cert").empty()) {
         set_bool("ignore_module_cert", false);
@@ -485,6 +534,10 @@ void AppConfig::set_defaults()
 
     if (get("prompt_for_brittle_filaments").empty()){
         set_bool("prompt_for_brittle_filaments", true);
+    }
+
+    if (get("use_12h_time_format").empty()) {
+        set_bool("use_12h_time_format", false);
     }
 
     // Remove legacy window positions/sizes
@@ -850,9 +903,16 @@ void AppConfig::save()
             j[category.first] = j_filaments;
             continue;
         } else if (category.first == "presets") {
+            auto is_filament_preset_key = [](const std::string& key) -> bool {
+                if (key == "filament") return true;
+                if (key.size() > 9 && key.substr(0, 9) == "filament_") {
+                    return std::all_of(key.begin() + 9, key.end(), ::isdigit);
+                }
+                return false;
+            };
             json j_filament_array;
             for(const auto& kvp : category.second) {
-                if (boost::starts_with(kvp.first, "filament") && kvp.first != "filament_colors" && kvp.first != "filament_multi_colors" && kvp.first != "filament_color_types") {
+                if (is_filament_preset_key(kvp.first)) {
                     j_filament_array.push_back(kvp.second);
                 } else {
                     j[category.first][kvp.first] = kvp.second;
@@ -1228,7 +1288,7 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
 }
 
 void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone,
-                                 float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz)
+                                 float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz, bool lock_horizon)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -1242,6 +1302,7 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
     it->second["rotation_deadzone"] = float_to_string_decimal_point(rotation_deadzone);
     it->second["zoom_speed"] = float_to_string_decimal_point(zoom_speed);
     it->second["swap_yz"] = swap_yz ? "1" : "0";
+    it->second["lock_horizon"] = lock_horizon ? "1" : "0";
 }
 
 std::vector<std::string> AppConfig::get_mouse_device_names() const

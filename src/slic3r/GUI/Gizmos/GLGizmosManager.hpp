@@ -104,8 +104,6 @@ private:
     //BBS: GUI refactor: add object manipulation
     GizmoObjectManipulation m_object_manipulation;
 
-    std::vector<size_t> get_selectable_idxs() const;
-
     bool activate_gizmo(EType type);
 
     bool m_serializing;
@@ -139,6 +137,22 @@ public:
         IC_FIT_CAMERA_DARK,
         IC_FIT_CAMERA_DARK_HOVER,
         IC_HELIO_ICON,
+        IC_VIEW_BOTTOM,
+        IC_VIEW_TOP,
+        IC_VIEW_FRONT,
+        IC_VIEW_REAR,
+        IC_VIEW_LEFT,
+        IC_VIEW_OK,
+        IC_VIEW_RIGHT,
+        IC_VIEW_ISO,
+        IC_VIEW_HELP,
+        IC_VIEW_BOTTOM_DARK,
+        IC_VIEW_TOP_DARK,
+        IC_VIEW_FRONT_DARK,
+        IC_VIEW_REAR_DARK,
+        IC_VIEW_LEFT_DARK,
+        IC_VIEW_RIGHT_DARK,
+        IC_VIEW_ISO_DARK,
         IC_ALIGN_X_MIN,
         IC_ALIGN_X_CENTER,
         IC_ALIGN_X_MAX,
@@ -272,6 +286,7 @@ public:
     bool get_object_located_outside_plate() const { return m_object_located_outside_plate; }
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     bool is_paint_gizmo()const;
+    bool is_allow_x_ray_in_assembly() const;
     bool is_allow_select_all() const;
     bool is_allow_multi_select_parts_or_objects() const;
     bool is_allow_show_volume_highlight_outline() const;
@@ -299,6 +314,7 @@ public:
 
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
+    std::vector<size_t> get_selectable_idxs(bool ignore_selectable_include_right_click_trigger = false) const;
     int get_selectable_icons_cnt() const { return get_selectable_idxs().size(); }
     int get_shortcut_key(GLGizmosManager::EType) const;
 

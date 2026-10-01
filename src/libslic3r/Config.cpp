@@ -5,6 +5,7 @@
 #include "Preset.hpp"
 
 #include <assert.h>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -45,7 +46,7 @@ namespace Slic3r {
 //static const std::string CONFIG_INHERITS_KEY = "inherits";
 //static const std::string CONFIG_INSTANT_KEY = "instantiation";
 
-// Escape \n, \r and backslash
+// Escape \n, \r, quotes and backslash
 std::string escape_string_cstyle(const std::string &str)
 {
     // Allocate a buffer twice the input string length,
@@ -60,6 +61,9 @@ std::string escape_string_cstyle(const std::string &str)
         } else if (c == '\n') {
             (*outptr ++) = '\\';
             (*outptr ++) = 'n';
+        } else if (c == '"') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = '"';
         } else if (c == '\\') {
             (*outptr ++) = '\\';
             (*outptr ++) = '\\';
@@ -119,7 +123,7 @@ std::string escape_strings_cstyle(const std::vector<std::string> &strs)
     return std::string(out.data(), outptr - out.data());
 }
 
-// Unescape \n, \r and backslash
+// Unescape \n, \r, quotes and backslash
 bool unescape_string_cstyle(const std::string &str, std::string &str_out)
 {
     std::vector<char> out(str.size(), 0);
@@ -300,17 +304,14 @@ ConfigOption* ConfigOptionDef::create_default_option() const
             return new ConfigOptionEnumGeneric(this->enum_keys_map, this->default_value->getInt());
 
         if (type == coEnums) {
-            auto dft = this->default_value->clone();
-            if (dft->nullable()) {
+            if (this->default_value->nullable()) {
                 ConfigOptionEnumsGenericNullable *opt = dynamic_cast<ConfigOptionEnumsGenericNullable *>(this->default_value->clone());
                 opt->keys_map = this->enum_keys_map;
                 return opt;
-            } else {
-                ConfigOptionEnumsGeneric *opt = dynamic_cast<ConfigOptionEnumsGeneric *>(this->default_value->clone());
-                opt->keys_map = this->enum_keys_map;
-                return opt;
             }
-            delete dft;
+            ConfigOptionEnumsGeneric *opt = dynamic_cast<ConfigOptionEnumsGeneric *>(this->default_value->clone());
+            opt->keys_map = this->enum_keys_map;
+            return opt;
         }
 
         return this->default_value->clone();
@@ -522,11 +523,51 @@ t_config_option_keys ConfigBase::equal(const ConfigBase &other) const
     return equal;
 }
 
+// Best-effort, never-throwing diagnostic dump of an option's raw values, used to record the
+// "crime scene" when serialization fails (e.g. a NaN in a non-nullable float vector). It bypasses
+// serialize() on purpose so it works even for the very values that make serialize() throw.
+static std::string describe_option_values(const ConfigOption *opt)
+{
+    if (opt == nullptr)
+        return "<null option>";
+    std::ostringstream ss;
+    ss << "type=" << int(opt->type()) << " nullable=" << (opt->nullable() ? 1 : 0);
+    // The failing options are float / float-or-percent vectors; dump their doubles directly and
+    // flag which entries are non-finite so the offending index is obvious in the log.
+    if (const auto *fv = dynamic_cast<const ConfigOptionVector<double>*>(opt)) {
+        ss << " size=" << fv->values.size() << " values=[";
+        for (size_t i = 0; i < fv->values.size(); ++i) {
+            const double v = fv->values[i];
+            if (i) ss << ",";
+            if (std::isnan(v))       ss << "#" << i << ":NaN";
+            else if (! std::isfinite(v)) ss << "#" << i << ":Inf";
+            else                     ss << v;
+        }
+        ss << "]";
+    } else {
+        // For any other type, serialize() is what threw; fall back to a size hint if it is a vector.
+        if (const auto *vb = dynamic_cast<const ConfigOptionVectorBase*>(opt))
+            ss << " size=" << vb->size();
+    }
+    return ss.str();
+}
+
 std::string ConfigBase::opt_serialize(const t_config_option_key &opt_key) const
 {
     const ConfigOption* opt = this->option(opt_key);
     assert(opt != nullptr);
-    return opt->serialize();
+    try {
+        return opt->serialize();
+    } catch (const ConfigurationError &err) {
+        // Record the crime scene: which option, its type, and every raw value (NaN/Inf indices
+        // marked). serialize()'s own message never carries the key, so we log it here where the key
+        // is known, then rethrow an enriched error so the caller can name the setting to the user.
+        std::string details = describe_option_values(opt);
+        BOOST_LOG_TRIVIAL(error) << "opt_serialize failed for option \"" << opt_key << "\": "
+                                 << err.what() << " | " << details;
+        throw ConfigurationError(std::string("Failed to serialize option \"") + opt_key + "\": "
+                                 + err.what() + " (" + details + ")");
+    }
 }
 
 void ConfigBase::set(const std::string &opt_key, int value, bool create)
@@ -766,6 +807,14 @@ ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::strin
             // ignore
         }
     }
+    if (this->has("close_fan_the_first_x_layers") && !this->has("close_additional_fan_first_x_layers")) {
+        auto *src = this->option("close_fan_the_first_x_layers");
+        if (src) {
+            auto *dst = this->option("close_additional_fan_first_x_layers", true);
+            if (dst)
+                dst->set(src);
+        }
+    }
     return std::move(substitutions_ctxt.substitutions);
 }
 
@@ -910,6 +959,15 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 std::string value_str;
 
                 if (it.value().is_string()) {
+                    if (opt_key == "reduce_infill_retraction")
+                    {
+                        // Legacy bool: false(0) -> Disabled, true(1) bypass
+                        // New profiles that don't set this will get the default "Auto"
+                        if (it.value() == "0" || it.value() == "false") {
+                            // should disable
+                            different_settings_append.push_back("reduce_infill_retraction_mode");
+                        }
+                    }
                     //bool test1 = (it.key() == std::string("end_gcode"));
                     this->set_deserialize(opt_key, it.value(), substitution_context);
                     //some logic for special values
@@ -990,7 +1048,37 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 }
             }
         }
+
+        // Migrate: when opening old 3MF that has close_fan_the_first_x_layers but not
+        // close_additional_fan_first_x_layers, copy the value to the new key as well.
+        if (this->has("close_fan_the_first_x_layers") && !this->has("close_additional_fan_first_x_layers")) {
+            auto *src = this->option("close_fan_the_first_x_layers");
+            if (src) {
+                auto *dst = this->option("close_additional_fan_first_x_layers", true);
+                if (dst)
+                    dst->set(src);
+            }
+            if (this->has("different_settings_to_system")) {
+                auto *diff_opt = this->option<ConfigOptionStrings>("different_settings_to_system");
+                if (diff_opt) {
+                    for (auto &diff_str : diff_opt->values) {
+                        if (diff_str.find("close_fan_the_first_x_layers") != std::string::npos &&
+                            diff_str.find("close_additional_fan_first_x_layers") == std::string::npos) {
+                            diff_str += ";close_additional_fan_first_x_layers";
+                        }
+                    }
+                }
+            }
+        }
+
         if (!different_settings_append.empty()) {
+            auto it = std::find(different_settings_append.begin(), different_settings_append.end(), "reduce_infill_retraction_mode");
+            if (it != different_settings_append.end()){
+                //should disable
+                ConfigOptionEnum<ReduceInfillRetractionMode> *opt = this->option<ConfigOptionEnum<ReduceInfillRetractionMode>>("reduce_infill_retraction_mode", true);
+                opt->value                                        = ReduceInfillRetractionMode::rirDisabled;
+            }
+
             if (!new_support_style.empty()) {
                 ConfigOptionEnum<SupportMaterialStyle>* opt = this->option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
                 opt->value = smsTreeHybrid;
@@ -1005,7 +1093,8 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 std::vector<std::string>& different_settings = this->option<ConfigOptionStrings>("different_settings_to_system", true)->values;
                 size_t size = different_settings.size();
                 if (size == 0) {
-                    size = this->option<ConfigOptionStrings>("filament_settings_id")->values.size() + 2;
+                    auto *filament_ids = this->option<ConfigOptionStrings>("filament_settings_id");
+                    size = (filament_ids ? filament_ids->values.size() : 0) + 2;
                     different_settings.resize(size);
                 }
 

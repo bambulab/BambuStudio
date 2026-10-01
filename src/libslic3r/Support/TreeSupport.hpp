@@ -53,6 +53,7 @@ struct SupportNode
     SupportNode()
         : distance_to_top(0)
         , position(Point(0, 0))
+        , orig_pos(Point(0, 0))
         , obj_layer_nr(0)
         , support_roof_layers_below(0)
         , to_buildplate(true)
@@ -66,6 +67,7 @@ struct SupportNode
         coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0)
         : distance_to_top(distance_to_top)
         , position(position)
+        , orig_pos(position)
         , obj_layer_nr(obj_layer_nr)
         , support_roof_layers_below(support_roof_layers_below)
         , to_buildplate(to_buildplate)
@@ -79,6 +81,7 @@ struct SupportNode
             parents.push_back(parent);
             type = parent->type;
             overhang = parent->overhang;
+            orig_pos = parent->orig_pos;
             if (dist_mm_to_top == 0)
                 dist_mm_to_top = parent->dist_mm_to_top + parent->height;
             if (radius == 0 && parent->radius>0)
@@ -116,6 +119,7 @@ struct SupportNode
      */
     Point          position;
     Point          movement; // movement towards neighbor center or outline
+    Point          orig_pos;
     mutable double radius          = 0.0;
     mutable double max_move_dist   = 0.0;
     TreeNodeType   type            = eCircle;
@@ -128,6 +132,7 @@ struct SupportNode
     double         overhang_degree = 0.0;  // overhang degree for cooling just like perimeter
     ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
     coordf_t       origin_area;
+    coordf_t       target_radius = -1.;
 
     /*!
      * \brief The direction of the skin lines above the tip of the branch.
@@ -437,7 +442,7 @@ private:
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
-    float    DO_NOT_MOVER_UNDER_MM = 0.0;
+    float    DO_NOT_MOVER_UNDER_MM = 2.0;
     coordf_t base_radius                        = 0.0;
     const coordf_t MAX_BRANCH_RADIUS = 10.0;
     const coordf_t MIN_BRANCH_RADIUS = 0.4;
@@ -446,6 +451,16 @@ private:
     double diameter_angle_scale_factor = tan(5.0*M_PI/180.0);
     // minimum roof area (1 mm^2), area smaller than this value will not have interface
     const double minimum_roof_area{SQ(scaled<double>(1.))};
+    // a base support area carried by less than this fraction of itself is treated as floating and dropped,
+    // unless the support below carries a part of it as wide as the thinnest printable branch
+    const double MIN_CARRIED_RATIO = 0.3;
+    // An interface layer is drawn as the whole overhang and bridges across the branch tips under it, so the
+    // fraction of itself it rests on is small by design and says nothing about whether it prints. Ask only
+    // that it be anchored at all. Pruning a region also takes away what the regions above it stood on, so
+    // holding an interface to the base threshold does not stay local: it takes the branch above it down too.
+    // This concession is measured against the support below only; an interface resting on the model instead
+    // has to clear MIN_CARRIED_RATIO, the same bar as a base standing on that ledge.
+    const double MIN_CARRIED_RATIO_INTERFACE = 0.02;
     float        top_z_distance = 0.0;
 
     bool  is_strong = false;
@@ -465,6 +480,23 @@ private:
      * \param contact_nodes The nodes to draw as support.
      */
     void draw_circles();
+
+    /*!
+     * \brief Removes support areas that nothing below them can carry.
+     *
+     * drop_nodes() may stop a branch without giving it a child (it ran into the model), and draw_circles()
+     * paints such a node anyway, so its area can end up hanging in mid-air. Walking the layers bottom up and
+     * dropping every region that is carried neither by the support underneath nor by the model catches those
+     * leftovers regardless of which code path produced them. See GitHub #11681.
+     *
+     * How much of a region has to be carried depends on what it is: a base region stacks on the one below and
+     * is held to MIN_CARRIED_RATIO, while an interface region bridges across the branch tips and only has to
+     * be anchored at all, hence MIN_CARRIED_RATIO_INTERFACE.
+     *
+     * Called from draw_circles() once the areas are final and before anything reads them back, so that the
+     * lightning generator and the hole moving pass do not plan against regions that are about to disappear.
+     */
+    void prune_floating_supports();
 
     /*!
      * \brief Drops down the nodes of the tree support towards the build plate.

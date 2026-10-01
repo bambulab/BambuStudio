@@ -133,13 +133,27 @@ public:
     void fill_surface_extrusion(const Surface *surface, const FillParams &params, ExtrusionEntitiesPtr &out) override;
     bool is_self_crossing() override { return false; }
 
-    bool apply_gap_compensation{ false };
+    float gap_compensation_ratio{0.0};
+
 protected:
     Fill* clone() const override { return new FillMonotonicLineWGapFill(*this); };
     bool no_sort() const override { return true; }
+    // When true, keep monotonic-line geometry, sweep columns left-to-right,
+    // and alternate direction by column.
+    virtual bool global_monotonic_sweep() const { return false; }
 
 private:
     void fill_surface_by_lines(const Surface* surface, const FillParams& params, Polylines& polylines_out);
+};
+
+class FillGlobalMonotonicLine : public FillMonotonicLineWGapFill
+{
+public:
+    Fill* clone() const override { return new FillGlobalMonotonicLine(*this); }
+    ~FillGlobalMonotonicLine() override = default;
+
+protected:
+    bool global_monotonic_sweep() const override { return true; }
 };
 
 class FillZigZag : public FillRectilinear

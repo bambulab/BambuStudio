@@ -215,7 +215,12 @@ void SysInfoDialog::on_dpi_changed(const wxRect &suggested_rect)
 void SysInfoDialog::onCopyToClipboard(wxEvent &)
 {
     wxTheClipboard->Open();
-    const auto text = get_main_info(false) + "\n" + wxGetApp().get_gl_info(true);
+
+    const auto text = get_main_info(false) + "\n\n" +
+        get_mem_info(false) +
+        wxGetApp().get_gl_info(true) + "\n\n" +
+        std::string("SIMD is supported: ") + Eigen::SimdInstructionSetsInUse();
+
     wxTheClipboard->SetData(new wxTextDataObject(text));
     wxTheClipboard->Close();
 }

@@ -427,7 +427,8 @@ function ConstructFileHtml( ID, pItem )
 {
 	let fTotal=pItem.length;
 	
-	let strHtml='';
+	let $board = $('#'+ID+'  .FileListBoard');
+	$board.empty();
 	for( let f=0;f<fTotal;f++ )
 	{
 		let pOne=pItem[f];
@@ -463,30 +464,42 @@ function ConstructFileHtml( ID, pItem )
 		//Add html
 		if( strClass!='ImageIcon' )
 		{
-		strHtml+='<div class="FileItem">'+
-				 '	<div class="'+strClass+'"><img src="'+ImgPath+'" /></div>'+
-				 '	<div class="FileText">'+
-			     '		<div class="FileName">'+tName+'</div>'+
-				 '	</div>'+
-				 '	<div class="FileMenu" onClick="OnClickOpenFile(\''+tPath+'\')"><img src="img/s.svg" /></div>'+
-				 '</div>';
+			let $fileItem = $('<div>').addClass('FileItem');
+			let $iconWrap = $('<div>').addClass(strClass);
+			$iconWrap.append($('<img>').attr('src', ImgPath));
+			let $fileText = $('<div>').addClass('FileText');
+			$fileText.append($('<div>').addClass('FileName').text(tName));
+			let $fileMenu = $('<div>').addClass('FileMenu');
+			$fileMenu.append($('<img>').attr('src', 'img/s.svg'));
+			$fileMenu.on('click', function() {
+				OnClickOpenFile(tPath);
+			});
+			$fileItem.append($iconWrap);
+			$fileItem.append($fileText);
+			$fileItem.append($fileMenu);
+			$board.append($fileItem);
 		}
 		else
 		{
 			ImgID++;
 			let TmpImgID="AF"+ImgID;
 			
-		strHtml+='<div class="FileItem">'+
-				 '	<div class="'+strClass+'"><img id="'+TmpImgID+'" src="'+ImgPath+'" /></div>'+
-				 '	<div class="FileText">'+
-			     '		<div class="FileName">'+tName+'</div>'+
-				 '	</div>'+
-				 '	<div class="FileMenu" onClick="OnClickOpenImage(\''+TmpImgID+'\')"><img src="img/s.svg" /></div>'+
-				 '</div>';			
+			let $fileItem = $('<div>').addClass('FileItem');
+			let $iconWrap = $('<div>').addClass(strClass);
+			$iconWrap.append($('<img>').attr('id', TmpImgID).attr('src', ImgPath));
+			let $fileText = $('<div>').addClass('FileText');
+			$fileText.append($('<div>').addClass('FileName').text(tName));
+			let $fileMenu = $('<div>').addClass('FileMenu');
+			$fileMenu.append($('<img>').attr('src', 'img/s.svg'));
+			$fileMenu.on('click', function() {
+				OnClickOpenImage(TmpImgID);
+			});
+			$fileItem.append($iconWrap);
+			$fileItem.append($fileText);
+			$fileItem.append($fileMenu);
+			$board.append($fileItem);			
 		}
 	}
-	
-	$('#'+ID+'  .FileListBoard').html(strHtml);
 	
     if( fTotal>0 )
 		$('#'+ID).show();

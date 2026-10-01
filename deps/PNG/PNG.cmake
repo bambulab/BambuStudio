@@ -19,6 +19,7 @@ if(APPLE AND IS_CROSS_COMPILE)
             -DPNG_PREFIX=prusaslicer_
             -DPNG_TESTS=OFF
             -DDISABLE_DEPENDENCY_TRACKING=OFF
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
             ${_disable_neon_extension}
     )
 else ()
@@ -39,6 +40,7 @@ set(_patch_step "")
             -DPNG_PREFIX=prusaslicer_
             -DPNG_TESTS=OFF
             -DDISABLE_DEPENDENCY_TRACKING=OFF
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
             ${_disable_neon_extension}
 )
 endif()

@@ -110,7 +110,7 @@ function ShowModelInfo(pModel)
   let rawName = decodeURIComponent(pModel.name);
   let rawAuthor = decodeURIComponent(pModel.author);
   let rawDesc = decodeURIComponent(pModel.description);
-  rawDesc = HtmlDecodeFrom3MF(rawDesc);
+  rawDesc = DecodeDescriptionFrom3MF(rawDesc);
 
   const sanitizeCfg = {
     ADD_TAGS: ['span','img','font','u','s','a'],
@@ -170,14 +170,6 @@ function ShowModelInfo(pModel)
 }
 
 
-function HtmlDecodeFrom3MF(strInput)
-{
-  const el = document.createElement('textarea');
-  el.innerHTML = strInput;
-  el.innerHTML = el.value;
-  return el.value;
-}
-
 function ShowFileInfo( pFile ){
   let pBOM=pFile['BOM'];
 	let pAssembly=pFile['Assembly'];
@@ -228,7 +220,7 @@ function ShowProfileInfo( pProfile )
   };
   let sProfileName=DOMPurify.sanitize(decodeURIComponent(pProfile.name));
 	let sProfileAuthor=DOMPurify.sanitize(decodeURIComponent(pProfile.author));
-	let sProfileDesc=HtmlDecodeFrom3MF(decodeURIComponent(pProfile.description));
+	let sProfileDesc=DecodeDescriptionFrom3MF(decodeURIComponent(pProfile.description));
 	sProfileDesc=DOMPurify.sanitize(sProfileDesc, sanitizeCfg);
   let ModelPreviewList=pProfile.preview_img;
   let modelImages=[];
@@ -273,17 +265,22 @@ var PdfTail=['pdf','fdf','xfdf','xdp','ppdf','ofd'];
 var JpgTail=['jpg','jpeg'];
 var PngTail=['png'];
 
+function isImageFileTail(fileTail) {
+  return $.inArray(fileTail, JpgTail) >= 0 || $.inArray(fileTail, PngTail) >= 0;
+}
+
 function ConstructFileHtml( ID, pItem ){
   let fTotal=pItem.length;
-	
-	let strHtml='';
+  let $container = $("#"+ID);
+  $container.empty();
   for( let f=0;f<fTotal;f++ ){
     let pOne=pItem[f];
 		
 		let tPath=pOne['filepath'];
 		let tName=decodeURIComponent(pOne['filename']);
-		
+
 		let sTail=getFileTail(tName).toLowerCase();
+    let isImageFile=isImageFileTail(sTail);
 
     let ImgPath='img/icon_txt.svg';
     if( $.inArray( sTail, JpgTail )>=0 ){
@@ -299,15 +296,28 @@ function ConstructFileHtml( ID, pItem ){
       ImgPath='img/icon_pdf.svg';
     }
 
-    // base64 图片不发送外部打开指令
-    let onclick = '';
-    if (tPath) {
-      onclick = ' onClick="OnClickOpenFile(\''+tPath+'\')"';
+    let $attachment = $('<div>').addClass('attachment');
+    if (isImageFile && tPath) {
+      $attachment.addClass('attachment-image');
     }
-    strHtml+='<div class="attachment"'+onclick+'><img src="'+ImgPath+'">'+tName+'</div>';
+    if (tPath) {
+      $attachment.on('click', function() {
+        OnClickOpenFile(tPath);
+      });
+    }
+
+    let $img = $('<img>').attr('alt', tName);
+    if (isImageFile && tPath) {
+      $img.addClass('attachment-thumb').attr('src', tPath);
+    } else {
+      $img.attr('src', ImgPath);
+    }
+
+    $attachment.append($img);
+    $attachment.append(document.createTextNode(tName));
+    $container.append($attachment);
   }
-  $("#"+ID).html( strHtml );
-  if( fTotal>0 ) {$("#"+ID).show();}
+  if( fTotal>0 ) {$container.show();}
 }
 
 function OnClickOpenFile( strFullPath )

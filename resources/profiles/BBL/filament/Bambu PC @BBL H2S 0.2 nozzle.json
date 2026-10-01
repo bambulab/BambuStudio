@@ -5,8 +5,24 @@
     "from": "system",
     "setting_id": "GFSC00_17",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.0081"
+    ],
+    "counter_coef_3": [
+        "0.0183"
+    ],
+    "counter_limit_min": [
+        "0.0183"
+    ],
+    "counter_limit_max": [
+        "0.2208"
+    ],
     "fan_max_speed": [
         "40"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
     ],
     "filament_flow_ratio": [
         "0.94",
@@ -20,15 +36,27 @@
         "1",
         "1"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
     ],
-    "filament_prime_volume": [
-        "30"
-    ],
     "filament_change_length": [
         "4"
+    ],
+    "hole_coef_2": [
+        "0.0009"
+    ],
+    "hole_coef_3": [
+        "0.0725"
+    ],
+    "hole_limit_min": [
+        "0.0725"
+    ],
+    "hole_limit_max": [
+        "0.095"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

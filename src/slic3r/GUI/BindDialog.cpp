@@ -1,5 +1,6 @@
 #include "BindDialog.hpp"
 #include "GUI_App.hpp"
+#include "DeviceCore/DevHMSQuery.h"
 
 #include <wx/wx.h>
 #include <wx/mstream.h>
@@ -299,7 +300,7 @@ void PingCodeBindDialog::on_key_backspace(wxKeyEvent& event)
         }
     }
 
-    if (event.GetKeyCode() == WXK_BACK && idx >= 0) {
+    if (event.GetKeyCode() == WXK_BACK && idx > 0) {
         CallAfter([this, idx]() {
             m_text_input_single_code[idx - 1]->SetFocus();
             m_button_bind->Enable(false);
@@ -322,7 +323,7 @@ void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
         if (result < 0) {
             MessageDialog msg_wingow(nullptr, _L("Login failed. Please check the following items:\n"
                                                  "1. Ensure the Pin code is entered correctly.\n"
-                                                 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxAPPLY | wxOK);
+                                                 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxICON_WARNING | wxOK);
             msg_wingow.ShowModal();
             return;
         }
@@ -485,7 +486,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_link_Terms_title->Wrap(FromDIP(450));
      m_link_Terms_title->SetForegroundColour(wxColour("#00AE42"));
      m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         wxString txt = _L("Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
+         wxString txt = _L("Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
          ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
          confirm_dlg.update_text(txt);
          confirm_dlg.CenterOnParent();
@@ -759,7 +760,8 @@ PingCodeBindDialog::~PingCodeBindDialog() {
          json j = json::parse(str.utf8_string());
          if (j.contains("err_code")) {
              int error_code = j["err_code"].get<int>();
-             extra = wxGetApp().get_hms_query()->query_print_error_msg(m_machine_info, error_code);
+              if (m_machine_info)
+                  extra = wxGetApp().get_hms_query_mgr()->query_error(m_machine_info->get_dev_id(), error_code).text;
          }
      }
      catch (...) {
@@ -871,7 +873,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      m_simplebook->SetSelection(0);
      m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(),
-         m_machine_info->get_dev_id(), m_machine_info->get_dev_ip(), m_machine_info->bind_sec_link, m_machine_info->bind_ssdp_version);
+         m_machine_info->get_dev_id(), m_machine_info->get_dev_ip(), m_machine_info->get_show_printer_type(), m_machine_info->bind_sec_link, m_machine_info->bind_ssdp_version);
 
      if (m_machine_info && (m_machine_info->get_printer_series() == PrinterSeries::SERIES_X1)) {
          m_bind_job->set_improved(false);

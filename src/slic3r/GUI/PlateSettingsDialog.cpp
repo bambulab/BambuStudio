@@ -1,5 +1,6 @@
 #include "PlateSettingsDialog.hpp"
 #include "MsgDialog.hpp"
+#include "libslic3r/FilamentMixer.hpp"
 
 namespace Slic3r { namespace GUI {
 static constexpr int MIN_LAYER_VALUE = 2;
@@ -292,7 +293,10 @@ void OtherLayersSeqPanel::append_layer(const LayerSeqInfo* layer_info)
         end_layer_input->set_layer_number(MAX_LAYER_VALUE);
     }
 
-    const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    size_t num_physical = wxGetApp().plater()->physical_filament_config_indices().size();
+    if (extruder_colours.size() > num_physical)
+        extruder_colours.resize(num_physical);
     std::vector<int> order(extruder_colours.size());
     for (int i = 0; i < order.size(); i++) {
         order[i] = i + 1;
@@ -448,7 +452,10 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
     top_sizer->Add(first_layer_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(5));
     top_sizer->Add(m_first_layer_print_seq_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxTOP | wxBOTTOM, FromDIP(5));
 
-    const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    size_t num_physical = wxGetApp().plater()->physical_filament_config_indices().size();
+    if (extruder_colours.size() > num_physical)
+        extruder_colours.resize(num_physical);
     std::vector<int> order(extruder_colours.size());
     for (int i = 0; i < order.size(); i++) {
         order[i] = i + 1;
@@ -507,6 +514,27 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
             this->Close();
         });
 
+    {
+        auto &proj_cfg     = wxGetApp().preset_bundle->project_config;
+        auto *is_mixed_opt = proj_cfg.option<ConfigOptionBools>("filament_is_mixed");
+        if (is_mixed_opt && Slic3r::has_any_mixed_filament(is_mixed_opt->values)) {
+            m_first_layer_print_seq_choice->Enable(false);
+            m_other_layers_seq_panel->enable_seq_choice(false);
+
+            auto *warn_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 16),
+                                                 wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
+            auto *warn_text = new wxStaticText(this, wxID_ANY,
+                _L("The filament list contains mixed filaments. Custom filament sequence will not take effect."));
+            warn_text->SetForegroundColour(wxColour(255, 111, 0));
+            warn_text->SetFont(Label::Body_12);
+            warn_text->Wrap(FromDIP(300));
+
+            sizer_button->Add(FromDIP(30), 0, 0, 0);
+            sizer_button->Add(warn_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
+            sizer_button->Add(warn_text, 1, wxALIGN_CENTER_VERTICAL, 0);
+        }
+    }
+
     sizer_button->AddStretchSpacer();
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
@@ -521,6 +549,7 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
     CenterOnParent();
 
     wxGetApp().UpdateDlgDarkUI(this);
+
 
     if (only_layer_seq) {
         for (auto item : top_sizer->GetChildren()) {
@@ -565,7 +594,10 @@ void PlateSettingsDialog::sync_first_layer_print_seq(int selection, const std::v
 {
     if (m_first_layer_print_seq_choice != nullptr) {
         if (selection == 1) {
-            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+            std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+            size_t num_physical = wxGetApp().plater()->physical_filament_config_indices().size();
+            if (extruder_colours.size() > num_physical)
+                extruder_colours.resize(num_physical);
             m_drag_canvas->set_shape_list(extruder_colours, seq);
         }
         m_first_layer_print_seq_choice->SetSelection(selection);

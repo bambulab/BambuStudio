@@ -55,6 +55,9 @@ struct TriangleMeshStats {
 
     // Mesh errors, remaining.
     int           open_edges                = 0;
+    int           non_manifold_edges        = 0;
+    int           non_manifold_vertices     = 0;
+    bool          has_reversed_faces        = false;
 
     // Mesh errors, fixed.
     RepairedMeshErrors repaired_errors;
@@ -72,15 +75,20 @@ struct TriangleMeshStats {
         out.min                     = this->min.cwiseMin(rhs.min);
         out.max                     = this->max.cwiseMax(rhs.max);
         out.size                    = out.max - out.min;
-        out.number_of_parts         = this->number_of_parts     + rhs.number_of_parts;
-        out.open_edges              = this->open_edges          + rhs.open_edges;
-        out.volume                  = this->volume              + rhs.volume;
+        out.number_of_parts         = this->number_of_parts          + rhs.number_of_parts;
+        out.open_edges              = this->open_edges               + rhs.open_edges;
+        out.non_manifold_edges      = this->non_manifold_edges       + rhs.non_manifold_edges;
+        out.non_manifold_vertices   = this->non_manifold_vertices    + rhs.non_manifold_vertices;
+        out.has_reversed_faces      = this->has_reversed_faces       || rhs.has_reversed_faces;
+        out.volume                  = this->volume                   + rhs.volume;
         out.repaired_errors.merge(rhs.repaired_errors);
         return out;
       }
     }
 
-    bool manifold() const { return open_edges == 0; }
+    bool manifold() const { return non_manifold_edges == 0 && non_manifold_vertices == 0; }
+    bool has_open_edges() const { return open_edges > 0; }
+    bool has_any_issue() const { return !manifold() || has_open_edges() || has_reversed_faces; }
     bool repaired() const { return repaired_errors.repaired(); }
 };
 
@@ -230,9 +238,8 @@ size_t its_number_of_patches(const indexed_triangle_set &its, const std::vector<
 bool its_is_splittable(const indexed_triangle_set &its);
 bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors);
 
-// Calculate number of unconnected face edges. There should be no unconnected edge in a manifold mesh.
+// Calculate number of open edges (undirected edges referenced by exactly one half-edge).
 size_t its_num_open_edges(const indexed_triangle_set &its);
-size_t its_num_open_edges(const std::vector<Vec3i> &face_neighbors);
 
 // Shrink the vectors of its.vertices and its.faces to a minimum size by reallocating the two vectors.
 void its_shrink_to_fit(indexed_triangle_set &its);
@@ -345,6 +352,7 @@ indexed_triangle_set    its_make_pyramid(float base, float height);
 indexed_triangle_set    its_make_sphere(double radius, double fa);
 indexed_triangle_set    its_make_snap(double r, double h, float space_proportion = 0.25f, float bulge_proportion = 0.125f);
 indexed_triangle_set    its_make_groove_plane(const Groove &cur_groove, float rotate_radius, std::vector<Vec3d> &cur_groove_vertices);
+indexed_triangle_set    its_make_thread(double radius, double height, double pitch, double fa = (2. * PI / 360.));
 
 indexed_triangle_set        its_convex_hull(const std::vector<Vec3f> &pts);
 inline indexed_triangle_set its_convex_hull(const indexed_triangle_set &its) { return its_convex_hull(its.vertices); }

@@ -38,7 +38,7 @@ namespace GUI {
 
 static const std::vector<std::string> filament_vendors = {"Polymaker", "OVERTURE", "Kexcelled", "HATCHBOX",  "eSUN",       "SUNLU",    "Prusament", "Creality", "Protopasta",
                                                           "Anycubic",  "Basf",     "ELEGOO",    "INLAND",    "FLASHFORGE", "FusRock", "AMOLEN",   "MIKA3D",    "3DXTECH",
-                                                          "Duramic", "Priline",   "Eryone",   "3Dgunius",  "Novamaker", "Justmaker",  "Giantarm", "iProspect", "LDO"};
+                                                          "Duramic", "Priline",   "Eryone",   "3Dgenius",  "Novamaker", "Justmaker",  "Giantarm", "iProspect", "LDO"};
 
 static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",        "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PP",          "PEI",    "PET",    "PETG",
@@ -194,9 +194,24 @@ static std::string get_curr_time()
 
     std::time_t time = std::chrono::system_clock::to_time_t(now);
 
-    std::tm            local_time = *std::localtime(&time);
+    std::tm *local_time = std::localtime(&time);
     std::ostringstream time_stream;
-    time_stream << std::put_time(&local_time, "%Y_%m_%d_%H_%M_%S");
+    if (local_time == nullptr)
+    {
+        bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+
+        std::string hm_formatted = Slic3r::format_time_hm(local_time, use_12h_format);
+        // Replace colons with underscores for filename compatibility
+        std::replace(hm_formatted.begin(), hm_formatted.end(), ':', '_');
+
+        time_stream << std::put_time(local_time, "%Y_%m_%d_") << hm_formatted << "_"
+                    << std::put_time(local_time, "%S");
+    }
+    else
+    {
+        time_stream << std::put_time(local_time, "%Y_%m_%d_%H_%M_%S");
+    }
+
 
     std::string current_time = time_stream.str();
     return current_time;
@@ -462,7 +477,15 @@ static std::string get_filament_id(std::string vendor_typr_serial)
         }
     }
 
-    std::string user_filament_id = "P" + calculate_md5(vendor_typr_serial).substr(0, 7);
+    // Include user_id in hash to avoid cross-user collision.
+    std::string hash_input = vendor_typr_serial;
+    NetworkAgent *agent = wxGetApp().getAgent();
+    if (agent && agent->is_user_login() && !agent->get_user_id().empty()) {
+        // '@' is used as separator to avoid ambiguity between filament name and user_id,
+        // such as filament name having numbers.
+        hash_input += "@" + agent->get_user_id();
+    }
+    std::string user_filament_id = "P" + calculate_md5(hash_input).substr(0, 7);
 
     while (filament_id_to_filament_name.find(user_filament_id) != filament_id_to_filament_name.end()) {//find same filament id
         bool have_same_filament_name = false;
@@ -807,7 +830,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
             m_filament_preset_combobox->Set(filament_preset_choice);
             m_filament_preset_combobox->SetLabel(_L("Select Filament Preset"));
             m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
-
+            m_filament_preset_combobox->Enable(!filament_preset_choice.empty());
         } else if (curr_create_type == m_create_type.base_filament_preset) {
             get_filament_presets_by_machine();
         }
@@ -1047,8 +1070,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
         if (preset_bundle->filaments.is_alias_exist(filament_preset_name)) {
             MessageDialog dlg(this,
-                              wxString::Format(_L("The Filament name %s you created already exists. \nIf you continue creating, the preset created will be displayed with its "
-                                                  "full name. Do you want to continue?"),
+                              wxString::Format(_L("The Filament name %s you created already exists. \nIf you continue, the new preset will be saved alongside the existing "
+                                                  "custom filaments and shown with its full name to distinguish it. Do you want to continue?"),
                                                from_u8(filament_preset_name)),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
             if (wxID_YES != dlg.ShowModal()) { return; }
@@ -1234,6 +1257,7 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
                     m_filament_preset_combobox->Set(filament_preset_choice);
                     m_filament_preset_combobox->SetLabel(_L("Select Filament Preset"));
                     m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
+                    m_filament_preset_combobox->Enable(!filament_preset_choice.empty());
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
                 m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more prinetrs, Please go to printer selection"));
@@ -4523,6 +4547,7 @@ void ExportConfigsDialog::data_init()
         if (filament_preset.is_system || filament_preset.is_default) continue;
         Preset *new_filament_preset = new Preset(filament_preset);
         const Preset *base_filament_preset = preset_bundle.filaments.get_preset_base(*new_filament_preset);
+        if(!base_filament_preset) continue;
 
         std::string filament_preset_name = base_filament_preset->name;
         std::string machine_name         = get_machine_name(filament_preset_name);
@@ -4611,6 +4636,7 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
     this->SetSizer(m_main_sizer);
     this->Layout();
     this->Fit();
+    this->CenterOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
 }
 EditFilamentPresetDialog::~EditFilamentPresetDialog() {}

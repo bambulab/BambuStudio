@@ -1,0 +1,32 @@
+diff --git a/code/AssetLib/FBX/FBXMeshGeometry.cpp b/code/AssetLib/FBX/FBXMeshGeometry.cpp
+index 67488f5..eca5538 100644
+--- a/code/AssetLib/FBX/FBXMeshGeometry.cpp
++++ b/code/AssetLib/FBX/FBXMeshGeometry.cpp
+@@ -310,8 +310,12 @@ void MeshGeometry::ReadVertexData(const std::string& type, int index, const Scop
+     );
+ 
+     if (type == "LayerElementUV") {
+-        if(index >= AI_MAX_NUMBER_OF_TEXTURECOORDS) {
+-            FBXImporter::LogError("ignoring UV layer, maximum number of UV channels exceeded: ",
++        // SECURITY: TypedIndex comes straight from the file and is signed, so a
++        // negative value would index m_uvs/m_uvNames before their first element
++        // (out-of-bounds read, and an out-of-bounds write through the returned
++        // reference). Reject it together with the upper bound.
++        if(index < 0 || index >= AI_MAX_NUMBER_OF_TEXTURECOORDS) {
++            FBXImporter::LogError("ignoring UV layer, invalid or out of range UV channel index: ",
+                 index, " (limit is ", AI_MAX_NUMBER_OF_TEXTURECOORDS, ")" );
+             return;
+         }
+@@ -388,8 +392,10 @@ void MeshGeometry::ReadVertexData(const std::string& type, int index, const Scop
+         );
+     }
+     else if (type == "LayerElementColor") {
+-        if(index >= AI_MAX_NUMBER_OF_COLOR_SETS) {
+-            FBXImporter::LogError("ignoring vertex color layer, maximum number of color sets exceeded: ",
++        // SECURITY: see the LayerElementUV branch above - a negative TypedIndex
++        // would index m_colors before its first element.
++        if(index < 0 || index >= AI_MAX_NUMBER_OF_COLOR_SETS) {
++            FBXImporter::LogError("ignoring vertex color layer, invalid or out of range color set index: ",
+                 index, " (limit is ", AI_MAX_NUMBER_OF_COLOR_SETS, ")" );
+             return;
+         }

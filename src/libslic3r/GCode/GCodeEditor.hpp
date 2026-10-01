@@ -63,6 +63,9 @@ struct CoolingLine
         // Internal perimeter types for ConsistentSurface cooling logic
         TYPE_INTERNAL_PERIMETER       = 1 << 20,
         TYPE_FIRST_INTERNAL_PERIMETER = 1 << 21,
+        // Ironing fan speed control
+        TYPE_IRONING_FAN_START        = 1 << 22,
+        TYPE_IRONING_FAN_END          = 1 << 23,
     };
 
     CoolingLine(unsigned int type, size_t line_start, size_t line_end)

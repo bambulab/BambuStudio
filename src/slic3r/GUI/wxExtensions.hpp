@@ -48,11 +48,17 @@ wxMenuItem* append_menu_check_item(wxMenu* menu, int id, const wxString& string,
 void enable_menu_item(wxUpdateUIEvent& evt, std::function<bool()> const cb_condition, wxMenuItem* item, wxWindow* win);
 
 class wxDialog;
+class wxStaticText;
 
 void    edit_tooltip(wxString& tooltip);
 void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<int>& btn_ids);
 int     em_unit(wxWindow* win);
 int     mode_icon_px_size();
+
+bool    copy_text_to_clipboard(const wxString& text);
+// Give a read-only wxStaticText a right-click "Copy" menu carrying its own
+// label, for values the user needs to quote elsewhere (serial, model, version).
+void    enable_static_text_copy_menu(wxStaticText* label);
 
 wxBitmap create_menu_bitmap(const std::string& bmp_name);
 

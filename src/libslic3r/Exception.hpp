@@ -26,7 +26,7 @@ SLIC3R_DERIVE_EXCEPTION(ExportError,        CriticalException);
 SLIC3R_DERIVE_EXCEPTION(PlaceholderParserError, RuntimeError);
 // Runtime exception produced by Slicer. Such exception cancels the slicing process and it shall be shown in notifications.
 //SLIC3R_DERIVE_EXCEPTION(SlicingError,       Exception);
-class SlicingError : public Exception 
+class SlicingError : public Exception
 {
 public:
     using Exception::Exception;

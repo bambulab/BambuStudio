@@ -57,11 +57,15 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipConcentricInternal:  return new FillConcentricInternal();
     // BBS: for bottom and top surface only
     case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
+    case ipGlobalMonotonicLine: return new FillGlobalMonotonicLine();
     case ipZigZag:              return new FillZigZag();
     case ipCrossZag:            return new FillCrossZag();
     case ipFloatingConcentric:  return new FillFloatingConcentric();
     case ipLockedZag:           return new FillLockedZag();
     case ip2DLattice:           return new Fill2DLattice();
+    // Same filler as ipArchimedeanChords; the ironing specific lead-in and center-out ordering are
+    // selected by FillParams::extrusion_role inside FillPlanePath::_fill_surface_single().
+    case ipIroningArchimedeanSpiral: return new FillArchimedeanChords();
     default: throw Slic3r::InvalidArgument("unknown type");
     }
 }

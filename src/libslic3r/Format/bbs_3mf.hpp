@@ -4,6 +4,7 @@
 #include "../GCode/ThumbnailData.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
 #include <functional>
 
 namespace Slic3r {
@@ -36,6 +37,7 @@ struct VolumeColorInfo;
 #define BBL_DESIGNER_PROFILE_ID_TAG      "DesignProfileId"
 #define BBL_DESIGNER_PROFILE_TITLE_TAG   "ProfileTitle"
 #define BBL_DESIGNER_MODEL_ID_TAG        "DesignModelId"
+#define BBL_SVC_CONTEXT_TAG              "SvcContext"
 
 
 //BBS: define assistant struct to store temporary variable during exporting 3mf
@@ -49,6 +51,27 @@ public:
     PackingTemporaryData() {}
 };
 
+
+//BBS: per-AMS filament load/unload time, exported so the print start flow can replace the
+// estimated time with the actual AMS time according to the real AMS mapping.
+struct AmsLoadUnloadTimeInfo
+{
+    std::string ams_type;
+    double      load_time{0.0};
+    double      unload_time{0.0};
+};
+
+// Mixed (virtual) filament used by a plate. Mixed filaments are virtual slots that get
+// resolved to their physical components before g-code statistics, so they never appear in
+// slice_filaments_info. They are recorded here separately so a plate's mixed-color usage
+// can be recovered from slice_info.
+struct PlateMixedFilamentInfo
+{
+    int         id{0};         // 1-based virtual filament slot id
+    std::string type;
+    std::string color;         // blended display color, "#RRGGBB"
+    std::string components;    // 1-based physical component ids, comma separated, e.g. "1,3"
+};
 
 //BBS: define plate data list related structures
 struct PlateData
@@ -75,6 +98,7 @@ struct PlateData
     std::map<int, std::pair<int, int>> obj_inst_map;
     std::string     printer_model_id;
     std::string     nozzle_diameters;
+    std::string     nozzle_volume_types;
     std::string     gcode_file;
     std::string     gcode_file_md5;
     std::string     thumbnail_file;
@@ -90,17 +114,27 @@ struct PlateData
     std::string     first_layer_time;
     std::string     plate_name;
     std::vector<FilamentInfo> slice_filaments_info;
+    // Mixed (virtual) filaments used by this plate; empty when no mixed filament is used.
+    std::vector<PlateMixedFilamentInfo> mixed_filaments_info;
     std::vector<size_t> skipped_objects;
+    // AMS type used for the load/unload time estimation, and the full per-AMS time matrix of this machine.
+    std::string                       default_ams_type;
+    std::vector<AmsLoadUnloadTimeInfo> ams_list;
     DynamicPrintConfig config;
     bool            is_support_used {false};
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
     bool            is_label_object_enabled {false};
+    bool            support_material_on_wipe_tower {false};
     int             timelapse_warning_code = 0; // 1<<0 sprial vase, 1<<1 by object
     std::vector<int>          filament_maps;   // 1 base
     using LayerFilaments = std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>, GCodeProcessorResult::FilamentSequenceHash>;
     LayerFilaments layer_filaments;
     std::vector<unsigned int> filament_change_sequence;
+    std::vector<unsigned int> nozzle_change_sequence;
+    std::vector<int> optimal_assignment;
+    std::vector<GCodeProcessorResult::PausePrintInfo> pause_printing;
+    std::optional<MultiNozzleUtils::LayeredNozzleGroupResult> nozzle_group_result;
     // Hexadecimal number,
     // the 0th digit corresponds to extruder 1
     // the 1th digit corresponds to extruder 2
@@ -109,6 +143,9 @@ struct PlateData
     std::vector<int>          limit_filament_maps;
 
     std::vector<GCodeProcessorResult::SliceWarning> warnings;
+
+    // 喷嘴信息列表，用于多喷嘴打印
+    std::vector<MultiNozzleUtils::NozzleInfo> nozzles_info;
 
     std::string get_gcode_prediction_str() {
         return gcode_prediction;
@@ -255,7 +292,7 @@ struct StoreParams
 // Load the content of a 3mf file into the given model and preset bundle.
 extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
         bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn = nullptr, LoadStrategy strategy = LoadStrategy::Default, BBLProject *project = nullptr, int plate_id = 0,
-        std::unordered_map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr);
+        std::map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr);
 
 extern std::string bbs_3mf_get_thumbnail(const char * path);
 
@@ -298,6 +335,10 @@ extern void remove_backup(Model& model, bool removeAll);
 extern void set_backup_interval(long interval);
 
 extern void set_backup_callback(std::function<void(int)> callback);
+
+// Quiesce the backup worker (stop timer, drop UI callback + pending Backup posts) before the
+// owning frame is destroyed. Safe to call repeatedly; the worker is re-armed by a new frame.
+extern void stop_backup();
 
 extern void run_backup_ui_tasks();
 

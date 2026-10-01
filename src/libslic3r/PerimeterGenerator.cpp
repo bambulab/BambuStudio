@@ -1,6 +1,9 @@
 #include "PerimeterGenerator.hpp"
+#include "BridgeDetector.hpp"
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntityCollection.hpp"
+#include "ExPolygonCollection.hpp"
+#include "Geometry.hpp"
 #include "ShortestPath.hpp"
 #include "VariableWidth.hpp"
 #include "CurveAnalyzer.hpp"
@@ -269,13 +272,18 @@ static void detect_bridge_wall(const PerimeterGenerator &perimeter_generator, Ex
 static bool is_enable_overhang_speed(const PerimeterGenerator& perimeter_generator)
 {
     int filament_idx = perimeter_generator.config->wall_filament - 1;
-    int extruder_id = get_extruder_index(*perimeter_generator.print_config, filament_idx);
+    int config_idx = get_process_config_idx(*perimeter_generator.print_config, filament_idx);
     bool use_filament_overhang_speed = perimeter_generator.print_config->override_process_overhang_speed.get_at(filament_idx);
 
     return use_filament_overhang_speed ? perimeter_generator.print_config->filament_enable_overhang_speed.get_at(filament_idx) :
-        perimeter_generator.config->enable_overhang_speed.get_at(extruder_id);
+        perimeter_generator.config->enable_overhang_speed.get_at(config_idx);
 }
 
+static bool fuzzy_skin_allows_overhang_slowdown(const PerimeterGenerator &pg)
+{
+    const FuzzySkinType fs = pg.config->fuzzy_skin.value;
+    return fs == FuzzySkinType::Disabled_fuzzy || (fs == FuzzySkinType::None && pg.perimeter_regions->empty());
+}
 
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls)
 {
@@ -338,7 +346,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
         // Apply fuzzy skin if it is enabled for at least some part of the polygon.
         const Polygon polygon = apply_fuzzy_skin(loop.polygon, *(perimeter_generator.config), *(perimeter_generator.perimeter_regions),
-                                perimeter_generator.layer_id, loop.depth, loop.is_contour);
+                                perimeter_generator.layer_id, loop.depth, loop.is_contour, perimeter_generator.slice_z);
 
         if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
@@ -356,7 +364,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
             remain_polines = diff_pl_2({to_polyline(polygon)}, lower_polygons_series_clipped);
 
-            bool detect_overhang_speed = is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None;
+            bool detect_overhang_speed = is_enable_overhang_speed(perimeter_generator) && fuzzy_skin_allows_overhang_slowdown(perimeter_generator);
 
             if (!detect_overhang_speed) {
                 if (!inside_polines.empty())
@@ -404,26 +412,15 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // outside the grown lower slices (thus where the distance between
             // the loop centerline and original lower slices is >= half nozzle diameter
             if (remain_polines.size() != 0) {
-                if (!((perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) &&
-                      perimeter_generator.object_config->support_top_z_distance.value == 0)) {
-                    //detect if the overhang perimeter is bridge
-                    detect_bridge_wall(perimeter_generator,
-                                       paths,
-                                       remain_polines,
-                                       erOverhangPerimeter,
-                                       perimeter_generator.mm3_per_mm_overhang(),
-                                       perimeter_generator.overhang_flow.width(),
-                                       perimeter_generator.overhang_flow.height());
-                } else {
-                    detect_bridge_wall( perimeter_generator,
-                                        paths,
-                                        remain_polines,
-                                        role,
-                                        extrusion_mm3_per_mm,
-                                        extrusion_width,
-                                        (float)perimeter_generator.layer_height);
-                }
-
+                // Detect overhang perimeter / bridge. Zero-gap support must not force normal wall role/flow here:
+                // unsupported walls still need erOverhangPerimeter + overhang_flow. See GitHub #11462.
+                detect_bridge_wall(perimeter_generator,
+                                   paths,
+                                   remain_polines,
+                                   erOverhangPerimeter,
+                                   perimeter_generator.mm3_per_mm_overhang(),
+                                   perimeter_generator.overhang_flow.width(),
+                                   perimeter_generator.overhang_flow.height());
             }
 
             if (paths.empty())
@@ -655,7 +652,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
         // Apply fuzzy skin if it is enabled for at least some part of the ExtrusionLine.
         *extrusion = apply_fuzzy_skin(*extrusion, *(perimeter_generator.config), *(perimeter_generator.perimeter_regions), perimeter_generator.layer_id,
-                                     pg_extrusion.extrusion->inset_idx, !pg_extrusion.extrusion->is_closed || pg_extrusion.is_contour);
+                                     pg_extrusion.extrusion->inset_idx, !pg_extrusion.extrusion->is_closed || pg_extrusion.is_contour, perimeter_generator.slice_z);
 
         ExtrusionPaths paths;
         // detect overhanging/bridging perimeters
@@ -695,7 +692,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     clip_paths.back().emplace_back(p.x(), p.y(), 0);
             }
 
-            if (is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
+            if (is_enable_overhang_speed(perimeter_generator) && fuzzy_skin_allows_overhang_slowdown(perimeter_generator)) {
                 bool is_external = extrusion->inset_idx == 0;
                 Flow flow = is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow;
                 ExtrusionRole role = is_external ? ExtrusionRole::erExternalPerimeter : ExtrusionRole::erPerimeter;
@@ -714,12 +711,9 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             // the loop centerline and original lower slices is >= half nozzle diameter
             // detect if the overhang perimeter is bridge
             ZPaths path_overhang = clip_extrusion(subject_path, clip_paths, ClipperLib_Z::ctDifference);
-            bool zero_z_support = (perimeter_generator.object_config->enable_support || perimeter_generator.object_config->enforce_support_layers > 0) && perimeter_generator.object_config->support_top_z_distance.value == 0;
-
-            if(zero_z_support)
-                detect_brigde_wall_arachne(perimeter_generator, paths, path_overhang, role, is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
-            else
-                detect_brigde_wall_arachne(perimeter_generator, paths, path_overhang, erOverhangPerimeter, perimeter_generator.overhang_flow);
+            // Zero-gap support must not force normal wall role/flow: unsupported walls still need
+            // erOverhangPerimeter + overhang_flow. See GitHub #11462.
+            detect_brigde_wall_arachne(perimeter_generator, paths, path_overhang, erOverhangPerimeter, perimeter_generator.overhang_flow);
             // Reapply the nearest point search for starting point.
             // We allow polyline reversal because Clipper may have randomly reversed polylines during clipping.
             // Arachne sometimes creates extrusion with zero-length (just two same endpoints);
@@ -757,7 +751,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
                 chain_and_reorder_extrusion_paths(paths, &start_point);
 
-                if (is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
+                if (is_enable_overhang_speed(perimeter_generator) && fuzzy_skin_allows_overhang_slowdown(perimeter_generator)) {
                     // BBS: filter the speed
                     smooth_overhang_level(paths);
                 }
@@ -880,7 +874,7 @@ void PerimeterGenerator::process_classic()
     // internal flow which is unrelated.
     coord_t min_spacing         = coord_t(perimeter_spacing      * (1 - INSET_OVERLAP_TOLERANCE));
     coord_t ext_min_spacing     = coord_t(ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE));
-    bool    has_gap_fill        = this->config->gap_infill_speed.get_at(get_config_idx_for_filament(*print_config, this->config->wall_filament - 1)) > 0;
+    bool    has_gap_fill        = this->config->gap_infill_speed.get_at(get_process_config_idx(*print_config, this->config->wall_filament - 1)) > 0;
 
     // BBS: this flow is for smaller external perimeter for small area
     coord_t ext_min_spacing_smaller = coord_t(ext_perimeter_spacing * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE));
@@ -905,17 +899,22 @@ void PerimeterGenerator::process_classic()
     // we need to process each island separately because we might have different
     // extra perimeters for each one
 
+    Surfaces all_surfaces = this->slices->surfaces;
+    process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
+
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
     double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
     //BBS: reorder the surface to reduce the travel time
     ExPolygons surface_exp;
-    for (const Surface &surface : this->slices->surfaces)
+    for (const Surface &surface : all_surfaces)
         surface_exp.push_back(surface.expolygon);
     std::vector<size_t> surface_order = chain_expolygons(surface_exp);
     for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
-        const Surface &surface = this->slices->surfaces[surface_order[order_idx]];
+        const Surface &surface = all_surfaces[surface_order[order_idx]];
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
+        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase)
+            loop_number++;
         //BBS: set the topmost and bottom most layer to be one wall
         if (loop_number > 0 && ((this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr) || (this->object_config->only_one_wall_first_layer && layer_id == 0)))
             loop_number = 0;
@@ -1490,6 +1489,8 @@ void PerimeterGenerator::process_arachne()
         m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
     }
 
+    Surfaces all_surfaces = this->slices->surfaces;
+    process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
 
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
     double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
@@ -1497,9 +1498,11 @@ void PerimeterGenerator::process_arachne()
     // extra perimeters for each one
 
 	bool apply_precise_outer_wall = config->precise_outer_wall && config->wall_sequence == WallSequence::InnerOuter;
-    for (const Surface& surface : this->slices->surfaces) {
+    for (const Surface& surface : all_surfaces) {
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
+        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase)
+            loop_number++;
 
         bool apply_circle_compensation = true;
         // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
@@ -1867,7 +1870,13 @@ PerimeterRegion::PerimeterRegion(const LayerRegion &layer_region) : region(&laye
 bool PerimeterRegion::has_compatible_perimeter_regions(const PrintRegionConfig &config, const PrintRegionConfig &other_config)
 {
     return config.fuzzy_skin == other_config.fuzzy_skin && config.fuzzy_skin_thickness == other_config.fuzzy_skin_thickness
-           && config.fuzzy_skin_point_distance == other_config.fuzzy_skin_point_distance;
+           && config.fuzzy_skin_point_distance == other_config.fuzzy_skin_point_distance
+           && config.fuzzy_skin_first_layer == other_config.fuzzy_skin_first_layer
+           && config.fuzzy_skin_noise_type == other_config.fuzzy_skin_noise_type
+           && config.fuzzy_skin_scale == other_config.fuzzy_skin_scale
+           && config.fuzzy_skin_octaves == other_config.fuzzy_skin_octaves
+           && config.fuzzy_skin_persistence == other_config.fuzzy_skin_persistence
+           && config.fuzzy_skin_mode == other_config.fuzzy_skin_mode;
 }
 
 void PerimeterRegion::merge_compatible_perimeter_regions(PerimeterRegions &perimeter_regions)
@@ -1892,4 +1901,170 @@ void PerimeterRegion::merge_compatible_perimeter_regions(PerimeterRegions &perim
 
     perimeter_regions = perimeter_regions_merged;
 }
+
+// Counterbore hole bridging: sacrificial bridge layer algorithm ported from OrcaSlicer/SuperSlicer
+void PerimeterGenerator::process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width)
+{
+    //store surface for bridge infill to avoid unsupported perimeters (but the first one, this one is always good)
+    if (this->config->counterbore_hole_bridging != chbNone
+        && this->lower_slices != NULL && !this->lower_slices->empty()) {
+        const coordf_t bridged_infill_margin = scale_(BRIDGE_INFILL_MARGIN);
+
+        for (size_t surface_idx = 0; surface_idx < all_surfaces.size(); surface_idx++) {
+            Surface* surface = &all_surfaces[surface_idx];
+            ExPolygons last = { surface->expolygon };
+            //compute our unsupported surface
+            ExPolygons unsupported = diff_ex(last, *this->lower_slices, ApplySafetyOffset::Yes);
+            if (!unsupported.empty()) {
+                //remove small overhangs
+                ExPolygons unsupported_filtered = offset2_ex(unsupported, double(-perimeter_spacing), double(perimeter_spacing));
+                if (!unsupported_filtered.empty()) {
+                    //extract only the useful part of the lower layer. The safety offset is really needed here.
+                    ExPolygons support = diff_ex(last, unsupported, ApplySafetyOffset::Yes);
+                    if (!unsupported.empty()) {
+                        //only consider the part that can be bridged (really, by the bridge algorithm)
+                        //first, separate into islands (ie, each ExPlolygon)
+                        //only consider the bottom layer that intersect unsupported, to be sure it's only on our island.
+                        ExPolygonCollection lower_island(support);
+                        //a detector per island
+                        ExPolygons bridgeable;
+                        for (ExPolygon unsupported_ep : unsupported_filtered) {
+                            BridgeDetector detector{ unsupported_ep,
+                                                    lower_island.expolygons,
+                                                    perimeter_spacing };
+                            if (detector.detect_angle(Geometry::deg2rad(this->config->bridge_angle.value)))
+                                expolygons_append(bridgeable, union_ex(detector.coverage(-1)));
+                        }
+                        if (!bridgeable.empty()) {
+                            //check if we get everything or just the bridgeable area
+                            if (this->config->counterbore_hole_bridging.value == chbFilled) {
+                                //we bridge everything, even the not-bridgeable bits
+                                for (size_t i = 0; i < unsupported_filtered.size();) {
+                                    ExPolygon& poly_unsupp = *(unsupported_filtered.begin() + i);
+                                    Polygons contour_simplified = poly_unsupp.contour.simplify(perimeter_spacing);
+                                    ExPolygon poly_unsupp_bigger = poly_unsupp;
+                                    Polygons contour_bigger = offset(poly_unsupp_bigger.contour, bridged_infill_margin);
+                                    if (contour_bigger.size() == 1) poly_unsupp_bigger.contour = contour_bigger[0];
+
+                                    //check convex, has some bridge, not overhang
+                                    if (contour_simplified.size() == 1 && contour_bigger.size() == 1 && contour_simplified[0].concave_points().size() == 0
+                                        && intersection_ex(bridgeable, ExPolygons{ poly_unsupp }).size() > 0
+                                        && diff_ex(ExPolygons{ poly_unsupp_bigger }, union_ex(last, offset_ex(bridgeable, bridged_infill_margin + perimeter_spacing / 2)), ApplySafetyOffset::Yes).size() == 0
+                                    ) {
+                                        //ok, keep it
+                                        i++;
+                                    } else {
+                                        unsupported_filtered.erase(unsupported_filtered.begin() + i);
+                                    }
+                                }
+                                unsupported_filtered = intersection_ex(last,
+                                                                       offset2_ex(unsupported_filtered, double(-perimeter_spacing / 2), double(bridged_infill_margin + perimeter_spacing / 2)));
+                                for (ExPolygon& expol : unsupported_filtered) {
+                                    expol.holes.clear();
+
+                                    //detect inside volume
+                                    for (size_t surface_idx_other = 0; surface_idx_other < all_surfaces.size(); surface_idx_other++) {
+                                        if (surface_idx == surface_idx_other) continue;
+                                        if (intersection_ex(ExPolygons() = { expol }, ExPolygons() = { all_surfaces[surface_idx_other].expolygon }).size() > 0) {
+                                            //this means that other_surf was inside an expol holes
+                                            //as we removed them, we need to add a new one
+                                            ExPolygons new_poly = offset2_ex(ExPolygons{ all_surfaces[surface_idx_other].expolygon }, double(-bridged_infill_margin - perimeter_spacing), double(perimeter_spacing));
+                                            if (new_poly.size() == 1) {
+                                                all_surfaces[surface_idx_other].expolygon = new_poly[0];
+                                                expol.holes.push_back(new_poly[0].contour);
+                                                expol.holes.back().make_clockwise();
+                                            } else {
+                                                for (size_t idx = 0; idx < new_poly.size(); idx++) {
+                                                    Surface new_surf = all_surfaces[surface_idx_other];
+                                                    new_surf.expolygon = new_poly[idx];
+                                                    all_surfaces.push_back(new_surf);
+                                                    expol.holes.push_back(new_poly[idx].contour);
+                                                    expol.holes.back().make_clockwise();
+                                                }
+                                                all_surfaces.erase(all_surfaces.begin() + surface_idx_other);
+                                                if (surface_idx_other < surface_idx) {
+                                                    surface_idx--;
+                                                    surface = &all_surfaces[surface_idx];
+                                                }
+                                                surface_idx_other--;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (this->config->counterbore_hole_bridging.value == chbBridges) {
+                                //simplify to avoid most of artefacts from printing lines.
+                                ExPolygons bridgeable_simplified;
+                                for (ExPolygon& poly : bridgeable) {
+                                    poly.simplify(perimeter_spacing, &bridgeable_simplified);
+                                }
+                                bridgeable_simplified = offset2_ex(bridgeable_simplified, -ext_perimeter_width, ext_perimeter_width);
+
+                                ExPolygons unbridgeable = unsupported_filtered;
+                                for (ExPolygon& expol : unbridgeable)
+                                    expol.holes.clear();
+                                unbridgeable = diff_ex(unbridgeable, bridgeable_simplified);
+                                unbridgeable = offset2_ex(unbridgeable, -ext_perimeter_width * 2, ext_perimeter_width * 2);
+                                ExPolygons bridges_temp = offset2_ex(intersection_ex(last, diff_ex(unsupported_filtered, unbridgeable), ApplySafetyOffset::Yes), -ext_perimeter_width / 4, ext_perimeter_width / 4);
+                                //remove the overhangs section from the surface polygons
+                                ExPolygons reference = last;
+                                last = diff_ex(last, unsupported_filtered);
+                                coordf_t offset_to_do = bridged_infill_margin;
+                                bool first = true;
+                                unbridgeable = diff_ex(unbridgeable, offset_ex(bridges_temp, ext_perimeter_width));
+                                while (offset_to_do > ext_perimeter_width * 1.5) {
+                                    unbridgeable = offset2_ex(unbridgeable, -ext_perimeter_width / 4, ext_perimeter_width * 2.25, ClipperLib::jtSquare);
+                                    bridges_temp = diff_ex(bridges_temp, unbridgeable);
+                                    bridges_temp = offset_ex(bridges_temp, ext_perimeter_width, ClipperLib::jtMiter, 6.);
+                                    unbridgeable = diff_ex(unbridgeable, offset_ex(bridges_temp, ext_perimeter_width));
+                                    offset_to_do -= ext_perimeter_width;
+                                    first = false;
+                                }
+                                unbridgeable = offset_ex(unbridgeable, ext_perimeter_width + offset_to_do, ClipperLib::jtSquare);
+                                bridges_temp = diff_ex(bridges_temp, unbridgeable);
+                                unsupported_filtered = offset_ex(bridges_temp, offset_to_do);
+                                unsupported_filtered = intersection_ex(unsupported_filtered, reference);
+                            } else {
+                                unsupported_filtered.clear();
+                            }
+                        } else {
+                            unsupported_filtered.clear();
+                        }
+                    }
+
+                    if (!unsupported_filtered.empty()) {
+
+                        //add this directly to the infill list.
+                        // this will avoid to throw wrong offsets into a good polygons
+                        this->fill_surfaces->append(
+                            unsupported_filtered,
+                            stInternal);
+
+                        // store the results
+                        last = diff_ex(last, unsupported_filtered, ApplySafetyOffset::Yes);
+                        //remove "thin air" polygons (note: it assumes that all polygons below will be extruded)
+                        for (int i = 0; i < last.size(); i++) {
+                            if (intersection_ex(support, ExPolygons() = { last[i] }).empty()) {
+                                this->fill_surfaces->append(
+                                    ExPolygons() = { last[i] },
+                                    stInternal);
+                                last.erase(last.begin() + i);
+                                i--;
+                            }
+                        }
+                    }
+                }
+            }
+            if (last.size() == 0) {
+                all_surfaces.erase(all_surfaces.begin() + surface_idx);
+                surface_idx--;
+            } else {
+                surface->expolygon = last[0];
+                for (size_t idx = 1; idx < last.size(); idx++) {
+                    all_surfaces.emplace_back(*surface, last[idx]);
+                }
+            }
+        }
+    }
+}
+
 }

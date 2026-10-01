@@ -3,6 +3,7 @@
 
 #include "GLGizmoBase.hpp"
 #include "GLGizmoRotate.hpp"
+#include "FacetPicker.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/CutUtils.hpp"
 
@@ -44,6 +45,8 @@ public:
     void         toggle_selection(const Vec2d &mouse_pos);
     void         toggle_selection(int id);
     void         turn_over_selection();
+    // True when the mouse ray hits a switchable cut part (tooltip hover only).
+    bool         is_mouse_over_part(const Vec2d &mouse_pos) const;
     ModelObject* model_object() { return m_model.objects.front(); }
     bool         valid() const { return m_valid; }
     bool         is_one_object() const;
@@ -66,6 +69,8 @@ private:
     std::vector<Vec3d>              m_contour_points; // Debugging
     std::vector<std::vector<Vec3d>> m_debug_pts;      // Debugging
     void                            add_object(const ModelObject *object);
+    // MeshRaycaster hit test for cut-part preview meshes; -1 if no hit.
+    int                             pick_part_id(const Vec2d &mouse_pos) const;
 };
 
 class GLGizmoAdvancedCut : public GLGizmoRotate3D
@@ -122,7 +127,12 @@ private:
     mutable Grabber m_move_z_grabber;
     mutable Grabber m_move_x_grabber;
 
+    // Pick-face mode: click a triangular facet of the model to set the cut plane.
+    FacetPicker m_facet_picker;
+
     bool m_connectors_editing{false};
+    bool m_localized_cut_editing = true;
+    Vec3d m_localized_cut_pos = Vec3d::Zero();
     bool m_add_connector_ok{false};
     std::vector<size_t> m_invalid_connectors_idxs;
     bool m_show_shortcuts{false};
@@ -156,6 +166,7 @@ private:
     bool               m_was_cut_plane_dragged{false};
     bool               m_was_contour_selected{false};
     bool               m_is_dragging{false};
+    bool               m_auto_center_connector{false};
     std::shared_ptr<PartSelection>    m_part_selection{nullptr};
     // dragging angel in hovered axes
     double             m_rotate_angle{0.0};
@@ -248,6 +259,7 @@ protected:
     virtual void update_plate_center(Axis axis_type, double projection, bool is_abs_move); // old name:dragging_grabber_move
     virtual void update_plate_normal_boundingbox_clipper(const Transform3d &rotation_tmp); // old name:dragging_grabber_rotation
     virtual void on_update(const UpdateData& data);
+    virtual bool on_mouse(const wxMouseEvent &mouse_event) override;
     virtual void on_render();
     virtual void on_render_for_picking();
     virtual void on_render_input_window(float x, float y, float bottom_limit);
@@ -277,6 +289,10 @@ protected:
     }
 
 private:
+    // Set while a deferred perform_cut() is queued on the event loop, so holding the button down
+    // or clicking twice in one frame cannot enqueue a second cut.
+    bool m_perform_cut_requested { false };
+
     void perform_cut(const Selection& selection);
     bool can_perform_cut() const;
     void apply_connectors_in_model(ModelObject *mo, int &dowels_count);
@@ -296,12 +312,16 @@ private:
     void put_connectors_on_cut_plane(const Vec3d &cp_normal, double cp_offset);
     void update_plane_normal();
     void update_clipper();
+    void update_dovetail_preview_clip();
     // on render
     void render_cut_plane_and_grabbers();
     void on_render_rotate_gizmos();
     void render_connectors();
+    void render_localized_cut_shadow();
     void render_clipper_cut();
     void render_cut_line();
+    // pick-face mode
+    bool apply_picked_facet();
 
     void clear_selection();
     void init_connector_shapes();
@@ -321,6 +341,7 @@ private:
     void flip_cut_plane();
     void update_plane_model();
     void init_picking_models();
+    bool has_valid_groove_shape() const;
     bool has_valid_groove() const;
     bool has_valid_contour() const;
     void reset_cut_by_contours();

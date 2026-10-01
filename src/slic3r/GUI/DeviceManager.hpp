@@ -2,6 +2,7 @@
 #define slic3r_DeviceManager_hpp_
 
 #include <map>
+#include <functional>
 #include <mutex>
 #include <vector>
 #include <string>
@@ -21,6 +22,7 @@
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevFirmware.h"
+#include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevUtil.h"
 #include "DeviceCore/DevCalib.h"
 
@@ -82,10 +84,12 @@ class DevExtensionTool;
 class DevExtderSystem;
 class DevFan;
 class DevFilaSystem;
+class DevFilaSwitch;
 class DevPrintOptions;
 class DevHMS;
 class DevInfo;
 class DevLamp;
+class DevNozzleMappingCtrl;
 class DevNozzleSystem;
 class DevNozzleRack;
 class DeviceManager;
@@ -95,13 +99,28 @@ class DevUpgrade;
 struct DevPrintTaskRatingInfo;
 struct DevNozzle;
 
+// Returns true when the given filament_id (e.g. "GFA11", "GFU00") is on the
+// stringing-prone list for the given nozzle diameter (mm). The list is bucketed
+// per nozzle size and mirrors the printer firmware:
+//   nozzle < 0.3 mm           : empty (no entries for 0.2 nozzle)
+//   0.3 mm <= nozzle < 0.5 mm : 0.4 list  (PLA Aero / TPU 90A / TPU 95A HF / TPU for AMS)
+//   nozzle >= 0.5 mm          : 0.6/0.8 list (PLA Aero / TPU 95A HF)
+// filament_id is matched case-sensitively against the official Bambu Lab IDs.
+bool is_stringing_prone_filament(const std::string& filament_id, float nozzle_diameter);
+
 
 class MachineObject
 {
+public:
+    using AccessCodeRefreshCallback = std::function<void(bool success, std::string access_code, std::string print_status)>;
+
 private:
     NetworkAgent *    m_agent{nullptr};
     DeviceManager*    m_manager{ nullptr };
     std::shared_ptr<int> m_token = std::make_shared<int>(1);
+    std::mutex m_access_code_refresh_mutex;
+    std::string m_access_code_refresh_sequence_id;
+    AccessCodeRefreshCallback m_access_code_refresh_callback;
 
     /* properties */
     std::string dev_name;
@@ -114,7 +133,7 @@ private:
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
 
     // the latest nozzle mapping
-    DevNozzleMappingResult m_auto_nozzle_mapping;
+    std::shared_ptr<DevNozzleMappingCtrl> m_nozzle_mapping_ptr;;
 
     /*parts*/
     std::shared_ptr<DevAxis>    m_axis;
@@ -124,6 +143,7 @@ private:
     DevExtderSystem*  m_extder_system;
     DevNozzleSystem*  m_nozzle_system;
     std::shared_ptr<DevFilaSystem> m_fila_system;
+    std::shared_ptr<DevFilaSwitch> m_fila_switch;
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;
@@ -137,6 +157,9 @@ private:
 
     /*Upgrade*/
     std::shared_ptr<DevUpgrade> m_upgrade;
+
+    /* Print task information */
+    DevPrintTaskInfo m_printTaskInfo;
 
     /*Status*/
     DevStatus* m_status;
@@ -303,17 +326,14 @@ public:
     /*extruder*/
     bool is_main_extruder_on_left() const { return false;  } // only means the extruder is on the left hand when extruder id is 0
     bool is_multi_extruders() const;
-    int  get_extruder_id_by_ams_id(const std::string& ams_id);
 
     /* nozzle */
     DevNozzle get_nozzle_by_id_code(int id_code) const;
     DevNozzle get_nozzle_by_sn(const std::string& sn) const;
 
     // auto nozzle mapping
-    DevNozzleMappingResult get_nozzle_mapping_result() const { return m_auto_nozzle_mapping; }
-    void set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id) { m_auto_nozzle_mapping.SetManualNozzleMapping(this, fila_id, nozzle_pos_id); };// nozzle_pos_id is O\0x10\0x20\0x30...
-    void clear_auto_nozzle_mapping() { m_auto_nozzle_mapping.Clear(); }
-    int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
+    std::shared_ptr<DevNozzleMappingCtrl> get_nozzle_mapping_result() const { return m_nozzle_mapping_ptr;; }
+    void clear_auto_nozzle_mapping();
 
     /* ams settings*/
     std::optional<bool> IsDetectOnInsertEnabled() const;
@@ -351,6 +371,7 @@ public:
     std::shared_ptr<DevNozzleRack> GetNozzleRack() const;;
 
     std::shared_ptr<DevFilaSystem>   GetFilaSystem() const { return m_fila_system;}
+    std::shared_ptr<DevFilaSwitch>   GetFilaSwitch() const { return m_fila_switch;}
     bool             HasAms() const;
 
     std::shared_ptr<DevAxis>    GetAxis() const { return m_axis; }
@@ -360,6 +381,8 @@ public:
     DevBed *        GetBed()    const { return m_bed; };
     DevStorage*     GetStorage()const { return m_storage; }
     DevCalib*       GetCalib()  const { return m_calib; }
+
+    bool            supports_full_pa_calib_table() const;
     DevStatus*      GetStatus() const { return m_status; }; /* status*/
 
     DevCtrl*   GetCtrl() const { return m_ctrl; }       /* ctrl*/
@@ -381,6 +404,9 @@ public:
     DevFirmwareVersionInfo cutting_module_version_info;
     DevFirmwareVersionInfo extinguish_version_info;
     DevFirmwareVersionInfo rotary_version_info;
+    DevFirmwareVersionInfo exhaustfan_version_info;
+    DevFirmwareVersionInfo amshub_version_info;
+    DevFirmwareVersionInfo filatrack_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
     std::vector<FirmwareInfo> firmware_list;
 
@@ -396,6 +422,8 @@ public:
     void store_version_info(const DevFirmwareVersionInfo& info);
 
     /* printing */
+    const DevPrintTaskInfo &getPrintTaskInfo() const { return m_printTaskInfo; }
+
     std::string print_type;
     //float   nozzle { 0.0f };        // default is 0.0f as initial value
     bool    is_220V_voltage { false };
@@ -426,7 +454,7 @@ public:
     CalibSendStatus     calib_send_status{CalibSendStatus::IDLE};
 
     std::vector<int> stage_list_info;
-    int stage_curr = 0;
+    int stage_curr = -1;
     int stage_remaining_seconds = -1;
     int m_push_count = 0;
     int m_full_msg_count = 0; /*the full message count, there are full or diff messages from network*/
@@ -516,6 +544,7 @@ public:
     bool is_support_send_to_sdcard {false};
     bool is_support_filament_backup{false};
     bool is_support_timelapse{false};
+    bool is_timelapse_slow_down{false};
     bool is_support_update_remain{false};
     bool is_support_update_remain_hide_display{ false};
     int  is_support_bed_leveling = 0;/*0: false; 1; on/off 2: auto/on/off*/
@@ -538,12 +567,24 @@ public:
     bool is_support_partskip{false};
     bool is_support_refresh_nozzle{false};
     bool is_support_fila_change_abort{false};
+    bool is_support_ext_change_assist_old{false}; //for a and p
 
+    // timelapse storage check result (temp state from MQTT response)
+    std::atomic<bool> timelapse_storage_check_done { false };
+    int timelapse_storage_check_result { -1 };
+    bool timelapse_storage_is_enough { true };
+    int timelapse_storage_file_count { 0 };
 
     // fun2
     bool is_support_print_with_emmc{false};
     bool is_support_pa_mode{false};
     bool is_support_remote_dry = false;
+    bool is_support_filament_manual_multi_color{false};
+    bool is_support_active_arc_fitting{false};
+    bool is_support_liveview_preview{false};
+    bool is_support_check_track_switch_match_slice_printer{ false };
+    bool is_support_model_internal_storage{false};
+    int  ams_preload_version{0};
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
@@ -570,6 +611,11 @@ public:
     BBLSliceInfo* slice_info {nullptr};
     boost::thread* get_slice_info_thread { nullptr };
     boost::thread* get_model_task_thread { nullptr };
+
+    // Per-filament-index AMS slot mapping reported by the printer in print.mapping.
+    // Up to 32 entries, each value packs (ams_id << 8) | slot_id; 0xFFFF means unused.
+    std::vector<uint16_t> print_job_filament_mapping;
+    bool any_loaded_filament_is_stringing_prone() const;
 
     /* job attr */
     int jobState_ = 0;
@@ -603,6 +649,7 @@ public:
 
     /* quick check*/
     bool canEnableTimelapse(wxString& error_message) const;
+    bool is_timelapse_storage_low(const std::string& storage) const;
 
     /* command commands */
     int command_get_version(bool with_retry = true);
@@ -613,6 +660,8 @@ public:
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
     int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter);
     int command_get_access_code();
+    std::string request_access_code(AccessCodeRefreshCallback callback);
+    void cancel_access_code_request(const std::string& sequence_id);
     int command_ack_proceed(json& proceed);
 
     /* control apis */
@@ -627,6 +676,8 @@ public:
     int command_hms_resume(const std::string& error_str, const std::string& job_id);
     int command_hms_ignore(const std::string& error_str, const std::string& job_id);
     int command_hms_stop(const std::string &error_str, const std::string &job_id);
+    int command_purification_disable();
+    int command_dont_remind_next_time(json& mqtt_guard_json);
     /* buzzer*/
     int command_stop_buzzer();
 
@@ -640,12 +691,13 @@ public:
     int check_resume_condition();
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
-    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210);
+    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt);
     int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
     int command_ams_calibrate(int ams_id);
-    int command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
+    int command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type,
+                                      int nozzle_temp_min, int nozzle_temp_max, const std::vector<std::string>& tray_colors = {}, int tray_ctype = 2);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
     int command_ams_refresh_rfid2(int ams_id, int slot_id);
@@ -682,6 +734,8 @@ public:
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
     int command_ipcam_resolution_set(std::string resolution);
+    int command_ipcam_check_timelapse_storage(const std::string& storage, int total_layer);
+    int command_ipcam_delete_oldest_timelapse(const std::string& storage, int total_layer);
 
     /* common apis */
     inline bool is_local() { return !get_dev_ip().empty(); }
@@ -741,10 +795,16 @@ public:
     /*for more extruder*/
     bool                        is_enable_np{ false };
     bool                        is_enable_ams_np{ false };
+    bool                        is_support_filament_32_colors{ false };
+
+    // Returns the maximum filament color count allowed to be sent to this printer.
+    // Returns 0 when there is no explicit upper bound (legacy behavior for is_enable_np).
+    int get_max_filament_color_count() const;
 
     /*vi slot data*/
     std::vector<DevAmsTray> vt_slot;
     DevAmsTray parse_vt_tray(json vtray);
+    DevAmsTray* get_vt_tray(const std::string &ams_id);
 
     /*get ams slot info*/
     bool    contains_tray(const std::string &ams_id, const std::string &tray_id) const;

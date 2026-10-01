@@ -10,6 +10,7 @@
 #include "GLShader.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Colors.hpp"
+#include "Camera.hpp"
 
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
@@ -519,7 +520,6 @@ GLVolume::GLVolume(float r, float g, float b, float a, bool create_index_data)
     , selected(false)
     , disabled(false)
     , printable(true)
-    , visible(true)
     , is_active(true)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
@@ -623,13 +623,6 @@ void GLVolume::set_render_color()
         render_color[3] = UNPRINTABLE_COLOR[3];
     }
 
-    //BBS set invisible color
-    if (!visible) {
-        render_color[0] = MODEL_HIDDEN_COL[0];
-        render_color[1] = MODEL_HIDDEN_COL[1];
-        render_color[2] = MODEL_HIDDEN_COL[2];
-        render_color[3] = MODEL_HIDDEN_COL[3];
-    }
 }
 
 std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume)
@@ -927,6 +920,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                         int extruder_id = mv->extruder_id();
                         //to make black not too hard too see
                         if (extruder_id <= 0) { extruder_id = 1; }
+                        if (extruder_id > (int)cp_colors.size()) { extruder_id = 1; }
                         std::array<float, 4> new_color = adjust_color_for_rendering(cp_colors[extruder_id - 1]);
                         shader->set_uniform("uniform_color", new_color);
                     }
@@ -1174,6 +1168,7 @@ void GLVolume::simple_render(const std::shared_ptr<GLShaderProgram>& shader, Mod
                     int extruder_id = model_volume->extruder_id();
                     if (extruder_id <= 0) { extruder_id = 1; }
                     //to make black not too hard too see
+                    if (extruder_id > (int)extruder_colors.size()) { extruder_id = 1; }
                     std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
                     if (ban_light) {
                         new_color[3] = (255 - (extruder_id - 1))/255.0f;
@@ -1320,6 +1315,15 @@ int GLVolumeCollection::load_object_volume(
     bool                 use_loaded_id,
     bool                 lod_enabled)
 {
+    // Guard against malformed or partially-loaded objects: the code below
+    // dereferences volumes[volume_idx] and, in particular, instances[instance_idx]
+    // (e.g. instance->get_transformation()). An object with no instances - or an
+    // out-of-range index - would dereference a null/garbage pointer and crash.
+    // Seen when opening some MakerWorld 3MFs via the object-color dialog. See #11016.
+    if (model_object == nullptr
+        || volume_idx < 0 || volume_idx >= (int) model_object->volumes.size()
+        || instance_idx < 0 || instance_idx >= (int) model_object->instances.size())
+        return -1;
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance 	  = model_object->instances[instance_idx];
@@ -1396,10 +1400,13 @@ int GLVolumeCollection::load_object_volume(
     if (in_assemble_view) {
         v.set_instance_transformation(instance->get_assemble_transformation());
         v.set_offset_to_assembly(instance->get_offset_to_assembly());
+        // BBS: in the assembly view the per-volume assemble transformation contributes
+        v.set_volume_transformation(model_volume->get_assemble_transformation());
     }
-    else
+    else {
         v.set_instance_transformation(instance->get_transformation());
-    v.set_volume_transformation(model_volume->get_transformation());
+        v.set_volume_transformation(model_volume->get_transformation());
+    }
     //use object's instance id
     if (use_loaded_id && (instance->loaded_id > 0))
         v.model_object_ID = instance->loaded_id;
@@ -1434,6 +1441,14 @@ void GLVolumeCollection::release_volume (GLVolume* volume)
             //should not happen
         }
     }
+}
+
+const GLVolume* GLVolumeCollection::get_volume_by_composite_id(int obj_id, int vol_id, int instance_id) const
+{
+    for (const GLVolume* v : volumes)
+        if (v->composite_id.object_id == obj_id && v->composite_id.volume_id == vol_id && v->composite_id.instance_id == instance_id)
+            return v;
+    return nullptr;
 }
 
 // Load SLA auxiliary GLVolumes (for support trees or pad).
@@ -1498,9 +1513,9 @@ int GLVolumeCollection::load_wipe_tower_preview(
     std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders(true);
     TriangleMesh wipe_tower_shell = make_cube(width, depth, height);
     for (int extruder_id : plate_extruders) {
-        if (extruder_id <= extruder_colors.size())
+        if (extruder_id > 0 && extruder_id <= (int)extruder_colors.size())
             colors.push_back(extruder_colors[extruder_id - 1]);
-        else
+        else if (!extruder_colors.empty())
             colors.push_back(extruder_colors[0]);
     }
 
@@ -1544,9 +1559,10 @@ int GLVolumeCollection::load_real_wipe_tower_preview(
     std::vector<int>                  plate_extruders  = ppl.get_plate(plate_idx)->get_extruders(true);
     std::vector<std::array<float, 4>>              colors;
     if (!plate_extruders.empty()) {
-        if (plate_extruders.front() <= extruder_colors.size())
-            colors.push_back(extruder_colors[plate_extruders.front() - 1]);
-        else
+        int front_id = plate_extruders.front();
+        if (front_id > 0 && front_id <= (int)extruder_colors.size())
+            colors.push_back(extruder_colors[front_id - 1]);
+        else if (!extruder_colors.empty())
             colors.push_back(extruder_colors[0]);
     }
     if (colors.empty()) return int(this->volumes.size() - 1);
@@ -1745,6 +1761,10 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
             shader->set_uniform("color_clip_plane", m_color_clip_plane);
             shader->set_uniform("uniform_color_clip_plane_1", m_color_clip_plane_colors[0]);
             shader->set_uniform("uniform_color_clip_plane_2", m_color_clip_plane_colors[1]);
+            shader->set_uniform("use_dovetail_clip", m_use_dovetail_clip);
+            shader->set_uniform("dovetail_clip_matrix", m_dovetail_clip_matrix);
+            shader->set_uniform("dovetail_clip_params", m_dovetail_clip_params);
+            shader->set_uniform("dovetail_clip_tolerance", m_dovetail_clip_tolerance);
             //BOOST_LOG_TRIVIAL(info) << boost::format("set uniform_color to {%1%, %2%, %3%, %4%}, with_outline=%5%, selected %6%")
             //    %volume.first->render_color[0]%volume.first->render_color[1]%volume.first->render_color[2]%volume.first->render_color[3]
             //    %with_outline%volume.first->selected;
@@ -1961,8 +1981,8 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     ModelInstanceEPrintVolumeState overall_state = ModelInstancePVS_Fully_Outside;
     bool contained_min_one = false;
 
-    //BBS: add instance judge logic, besides to original volume judge logic
-    //std::map<int64_t, ModelInstanceEPrintVolumeState> model_state;
+    // Track the print volume state of each object instance across its volumes.
+    std::map<int64_t, ModelInstanceEPrintVolumeState> model_state;
 
     GUI::PartPlate* curr_plate = GUI::wxGetApp().plater()->get_partplate_list().get_selected_plate();
     const Pointfs& pp_bed_shape = curr_plate->get_shape();
@@ -2039,7 +2059,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 }
             }
 
-            //int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
+            const int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
             volume->is_outside = (state != BuildVolume::ObjectState::Inside && state != BuildVolume::ObjectState::Limited);
             volume->partly_inside = (state == BuildVolume::ObjectState::Colliding);
             if (volume->printable) {
@@ -2054,38 +2074,39 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                     overall_state = ModelInstancePVS_Fully_Outside;
                 }
                 contained_min_one |= !volume->is_outside;
-            }
+                ModelInstanceEPrintVolumeState volume_state;
+                if (volume->is_outside && (state == BuildVolume::ObjectState::Colliding))
+                    volume_state = ModelInstancePVS_Partly_Outside;
+                else if (volume->is_outside)
+                    volume_state = ModelInstancePVS_Fully_Outside;
+                else
+                    volume_state = ModelInstancePVS_Inside;
 
-            /*ModelInstanceEPrintVolumeState volume_state;
-            //if (volume->is_outside && (plate_build_volume.bounding_volume().intersects(volume->bounding_box())))
-            if (volume->is_outside && (state == BuildVolume::ObjectState::Colliding))
-                volume_state = ModelInstancePVS_Partly_Outside;
-            else if (volume->is_outside)
-                volume_state = ModelInstancePVS_Fully_Outside;
-            else
-                volume_state = ModelInstancePVS_Inside;
-
-            if (model_state.find(comp_id) != model_state.end())
-            {
-                if (model_state[comp_id] != ModelInstancePVS_Partly_Outside)
-                {
-                    if (volume_state == ModelInstancePVS_Partly_Outside)
-                        model_state[comp_id] = ModelInstancePVS_Partly_Outside;
-                    else if (model_state[comp_id] != volume_state)
-                    {
-                        model_state[comp_id] = ModelInstancePVS_Partly_Outside;
+                const auto it = model_state.find(comp_id);
+                if (it != model_state.end()) {
+                    if (it->second != ModelInstancePVS_Partly_Outside) {
+                        if (volume_state == ModelInstancePVS_Partly_Outside || it->second != volume_state)
+                            it->second = ModelInstancePVS_Partly_Outside;
                     }
+                } else {
+                    model_state.emplace(comp_id, volume_state);
+                }
+
+                if (model_state[comp_id] == ModelInstancePVS_Partly_Outside) {
+                    overall_state = ModelInstancePVS_Partly_Outside;
+                    partly_objects_set.emplace(model_objects[volume->object_idx()]);
                 }
             }
-            else
-            {
-                model_state[comp_id] = volume_state;
-            }
+        }
+    }
 
-            if (model_state[comp_id] == ModelInstancePVS_Partly_Outside) {
-                overall_state = ModelInstancePVS_Partly_Outside;
-                BOOST_LOG_TRIVIAL(debug) << "instance includes " << volume->name << " is partially outside of bed";
-            }*/
+    for (GLVolume* volume : this->volumes)
+    {
+        if (!volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (!volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
+            const int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
+            const auto it = model_state.find(comp_id);
+            if (it != model_state.end() && it->second == ModelInstancePVS_Partly_Outside)
+                volume->partly_inside = true;
         }
     }
 
@@ -2103,7 +2124,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     {
         const auto& project_config = Slic3r::GUI::wxGetApp().preset_bundle->project_config;
         object_results->mode = curr_plate->get_real_filament_map_mode(project_config);
-        if (object_results->mode < FilamentMapMode::fmmManual)
+        if (is_auto_filament_map_mode(object_results->mode))
         {
             std::vector<int> conflict_filament_vector;
             for (int index = 0; index < extruder_count; index++ )
@@ -2263,7 +2284,7 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *con
     unsigned char rgba[4];
     std::vector<Color> colors;
 
-    if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA)
+    if (config->has("printer_technology") && static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA)
     {
         const std::string& txt_color = config->opt_string("material_colour").empty() ?
                                        print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value :
@@ -2275,6 +2296,9 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *con
     }
     else
     {
+        if (!config->has("filament_colour")) {
+            return;
+        }
         const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(config->option("filament_colour"));
         if (filamemts_opt == nullptr)
             return;

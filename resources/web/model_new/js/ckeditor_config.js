@@ -5,7 +5,10 @@ const {
 	Paragraph,
 	ImageUtils,
 	ImageEditing,
+	Image,
+	GeneralHtmlSupport,
 	Link,
+	LinkImage,
 	List,
 	Alignment,
 	Bold,
@@ -62,13 +65,20 @@ function detectEditorLanguage() {
 		return 'en';
 	}
 	const normalizedUnderscore = lang.replace('-', '_');
-	if (CKEDITOR_LANGUAGE_MAP[normalizedUnderscore]) {
-		return CKEDITOR_LANGUAGE_MAP[normalizedUnderscore];
+	const mapped = lookupEditorLanguage(normalizedUnderscore) || lookupEditorLanguage(lang);
+	if (mapped) {
+		return mapped;
 	}
-	if (CKEDITOR_LANGUAGE_MAP[lang]) {
-		return CKEDITOR_LANGUAGE_MAP[lang];
-	}
-	return normalizedUnderscore.replace('_', '-').toLowerCase();
+	// The result is interpolated into a script src below, and `lang` comes from a query string or
+	// from localStorage - both attacker-reachable. Returning it verbatim allowed path traversal
+	// into any local file, which same-origin file: URLs make CSP unable to stop. Never pass through
+	// anything that is not one of the codes we actually ship.
+	return 'en';
+}
+
+// Plain property access would also hit Object.prototype members such as `constructor`.
+function lookupEditorLanguage(key) {
+	return Object.prototype.hasOwnProperty.call(CKEDITOR_LANGUAGE_MAP, key) ? CKEDITOR_LANGUAGE_MAP[key] : null;
 }
 
 const editorLanguage = detectEditorLanguage();
@@ -96,7 +106,7 @@ const editorConfig = {
 		],
 		shouldNotGroupWhenFull: false
 	},
-	plugins: [Alignment, AutoLink, Autosave, Bold, Essentials, Heading, ImageEditing, ImageUtils, Italic, Link, List, Paragraph, Underline],
+	plugins: [Alignment, AutoLink, Autosave, Bold, Essentials, GeneralHtmlSupport, Heading, Image, ImageEditing, ImageUtils, Italic, Link, LinkImage, List, Paragraph, Underline],
 	heading: {
 		options: [
 			{
@@ -139,6 +149,25 @@ const editorConfig = {
 				view: 'h6',
 				title: 'Heading 6',
 				class: 'ck-heading_heading6'
+			}
+		]
+	},
+	// Keep the markup that the read-only page (index.js) already allows through DOMPurify,
+	// otherwise a single edit+save round trip strips it from the 3mf description for good.
+	// Attributes are listed explicitly instead of `true` so that on* handlers stay out.
+	htmlSupport: {
+		allow: [
+			{
+				name: 'img',
+				attributes: ['src', 'alt', 'title', 'width', 'height'],
+				classes: true,
+				styles: true
+			},
+			{
+				name: /^(a|div|figure|figcaption|font|p|s|span|sub|sup|u)$/,
+				attributes: ['color', 'face', 'size', 'target', 'rel', 'title'],
+				classes: true,
+				styles: true
 			}
 		]
 	},

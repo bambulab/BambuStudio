@@ -45,6 +45,26 @@ int AVVideoDecoder::open(Bambu_StreamInfo const &info)
     return 0;
 }
 
+int AVVideoDecoder::reopen(Bambu_StreamInfo const &info)
+{
+    if (sws_ctx_) {
+        sws_freeContext(sws_ctx_);
+        sws_ctx_ = nullptr;
+    }
+    if (frame_)
+        av_frame_free(&frame_);
+    if (codec_ctx_)
+        avcodec_free_context(&codec_ctx_);
+
+    got_frame_ = false;
+    width_     = 0; // force bits_ zero-fill on next scale (new dimensions)
+
+    codec_ctx_ = avcodec_alloc_context3(nullptr);
+    if (codec_ctx_ == nullptr)
+        return -1;
+    return open(info);
+}
+
 int AVVideoDecoder::decode(const Bambu_Sample &sample)
 {
     int ret = -1;
@@ -101,8 +121,7 @@ bool AVVideoDecoder::toWxImage(wxImage &image, wxSize const &size2)
     AVPixelFormat wxFmt = AV_PIX_FMT_RGB24;
     sws_ctx_   = sws_getCachedContext(sws_ctx_,
                                     frame_->width, frame_->height, AVPixelFormat(frame_->format),
-                                    size1.GetWidth(), size1.GetHeight(), wxFmt,
-                                    SWS_GAUSS,
+                                    size1.GetWidth(), size1.GetHeight(), wxFmt, SWS_FAST_BILINEAR,
                                     nullptr, nullptr, nullptr);
     if (sws_ctx_ == nullptr)
         return false;
@@ -142,8 +161,7 @@ bool AVVideoDecoder::toWxBitmap(wxBitmap &bitmap, wxSize const &size2)
     AVPixelFormat wxFmt = AV_PIX_FMT_RGB32;
     sws_ctx_ = sws_getCachedContext(sws_ctx_,
                                     frame_->width, frame_->height, AVPixelFormat(frame_->format),
-                                    size1.GetWidth(), size1.GetHeight(), wxFmt,
-                                    SWS_GAUSS,
+                                    size1.GetWidth(), size1.GetHeight(), wxFmt, SWS_FAST_BILINEAR,
                                     nullptr, nullptr, nullptr);
     if (sws_ctx_ == nullptr)
         return false;

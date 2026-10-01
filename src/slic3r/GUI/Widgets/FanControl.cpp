@@ -456,12 +456,15 @@ void FanControlNew::command_control_fan()
 
     BOOST_LOG_TRIVIAL(info) << "Functions Need to be supplemented! :FanControlNew::command_control_fan. the speed may change";
     if (m_obj) {
-        if (!m_obj->is_enable_np){
+        if (!m_obj->is_enable_np || (!m_obj->GetFan()->GetSupportAirduct())) {
             int speed = floor(m_current_speed * float(25.5));
             m_obj->GetFan()->command_control_fan(m_part_id, speed);
-        } else {
+        }
+        else
+        {
             m_obj->GetFan()->command_control_fan_new(m_part_id, m_current_speed * 10);
         }
+
         post_event();
     }
 }
@@ -690,7 +693,7 @@ void FanControlPopupNew::CreateDuct()
     while (iter != m_data.modes.end()) {
 
         int mode_id = iter->second.id;
-        const wxString& text = wxString::Format("%s", radio_btn_name[AIR_DUCT(mode_id)]);
+        const wxString& text = get_fan_mode_name(mode_id);
         if (text.empty()) { BOOST_LOG_TRIVIAL(error) << "FanControlPopupNew::CreateDuct: radio_btn_name is empty";}
 
         SendModeSwitchButton *radio_btn = new SendModeSwitchButton(this, text, m_data.curren_mode == mode_id);
@@ -1050,6 +1053,21 @@ void FanControlPopupNew::init_names(MachineObject* obj) {
     }
 }
 
+wxString FanControlPopupNew::get_fan_mode_name(int mode_id) const
+{
+    if (m_obj) {
+        const std::string& mode_text = DevPrinterConfigUtil::get_fan_mode_text(m_obj->printer_type, mode_id,  "mode_name");
+        if (!mode_text.empty()) {
+            L("Strong Cooling");
+            L("Heating");
+            return _L(mode_text);
+        }
+    }
+
+    auto iter = radio_btn_name.find(AIR_DUCT(mode_id));
+    return iter != radio_btn_name.end() ? iter->second : wxString::Format(_L("Fan"));;
+}
+
 wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN func) const
 {
     if (m_obj)
@@ -1060,6 +1078,7 @@ wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN fu
             L_CONTEXT("Right(Aux)", "air_duct");
             L_CONTEXT("Right(Filter)", "air_duct");
             L_CONTEXT("Left(Aux)", "air_duct");
+            L_CONTEXT("Left(Heating)", "air_duct");
             L_CONTEXT("Chamber", "air_duct");
             return _CTX(func_text, "air_duct");
         }

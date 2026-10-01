@@ -2,18 +2,34 @@
 set(_srcdir ${CMAKE_CURRENT_LIST_DIR}/gmp)
 set(_dstdir ${DESTDIR}/usr/local)
 
+if (IN_GIT_REPO)
+    set(GMP_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_GMP-prefix/src/dep_GMP)
+endif ()
+
 if (MSVC)
-    set(_output  ${_dstdir}/include/gmp.h 
+    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+        set(_gmpheader win_arm64/gmp.h)
+        set(_gmplib win_arm64/libgmp-10.lib)
+        set(_gmpdll win_arm64/gmp-10.dll)
+        set(_output  ${_dstdir}/include/gmp.h 
+                 ${_dstdir}/lib/libgmp-10.lib 
+                 ${_dstdir}/bin/gmp-10.dll)
+    else ()
+        set(_gmpheader win64/gmp.h)
+        set(_gmplib win${DEPS_BITS}/libgmp-10.lib)
+        set(_gmpdll win${DEPS_BITS}/libgmp-10.dll)
+        set(_output  ${_dstdir}/include/gmp.h 
                  ${_dstdir}/lib/libgmp-10.lib 
                  ${_dstdir}/bin/libgmp-10.dll)
+    endif ()
 
     add_custom_command(
         OUTPUT  ${_output}
-        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/include/gmp.h ${_dstdir}/include/
-        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/win${DEPS_BITS}/libgmp-10.lib ${_dstdir}/lib/
-        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/win${DEPS_BITS}/libgmp-10.dll ${_dstdir}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/include/${_gmpheader} ${_dstdir}/include/
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_gmplib} ${_dstdir}/lib/
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_gmpdll} ${_dstdir}/bin/
     )
-    
+
     add_custom_target(dep_GMP SOURCES ${_output})
 
 else ()
@@ -60,7 +76,16 @@ else ()
         URL https://github.com/bambulab/gmp/archive/refs/tags/6.2.1.tar.gz
         URL_HASH SHA256=705ae57ee2014b2c6fc0f572c85ee43276b99b6b256ee16c1a9d3a8c4e3609d5
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/GMP
-        BUILD_IN_SOURCE ON 
+        # 0001: GCC15 build fix.
+        # 0002: upstream GMP changeset 5f32dbc41afc, replaces the reserved x18
+        #       register in the arm64 mpn assembly. x18 is the platform register on
+        #       Darwin/Apple Silicon, so 6.2.1's arm64 asm silently corrupts it and
+        #       causes intermittent crashes (e.g. __gmpz_gcd / __gmpn_* + __stack_chk_fail)
+        #       in CGAL exact arithmetic. Harmless on non-arm64 targets (files unused)
+        #       and correct on Linux aarch64 too, so it is applied unconditionally here.
+        PATCH_COMMAND git apply ${GMP_DIRECTORY_FLAG} --verbose ${CMAKE_CURRENT_LIST_DIR}/0001-GMP_GCC15.patch
+        COMMAND git apply ${GMP_DIRECTORY_FLAG} --verbose ${CMAKE_CURRENT_LIST_DIR}/0002-GMP_arm64_avoid_x18_reserved_on_darwin.patch
+        BUILD_IN_SOURCE ON
         CONFIGURE_COMMAND  env "CFLAGS=${_gmp_ccflags}" "CXXFLAGS=${_gmp_ccflags}" ./configure ${_cross_compile_arg} --enable-shared=no --enable-cxx=yes --enable-static=yes "--prefix=${DESTDIR}/usr/local" ${_gmp_build_tgt}
         BUILD_COMMAND     make -j
         INSTALL_COMMAND   make install

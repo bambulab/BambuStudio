@@ -4,11 +4,14 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/PerfTrace.hpp"
 #include "libslic3r_version.h"
 #include "../Utils/Http.hpp"
 
 #include <regex>
+#include <set>
 #include <utility>
+#include <algorithm>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -22,8 +25,38 @@
 #include <wx/url.h>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
+#include "slic3r/GUI/Widgets/StateColor.hpp"
 
 namespace pt = boost::property_tree;
+
+namespace {
+
+// Extract "command" without parsing the full JSON payload (STL/3mf base64 can be huge).
+// Only scan the leading key region so a forged "command" inside base64 cannot bypass the
+// MakerLab/MakerWorld allowlist (IsAllowedScriptCommand uses this; handle_web_request still
+// parses real JSON and would otherwise execute the true top-level command).
+std::string extract_web_command(const std::string &payload)
+{
+    constexpr size_t k_max_scan = 512;
+    size_t           scan_end   = std::min(payload.size(), k_max_scan);
+
+    // Do not scan into large binary fields where base64 could embed a fake "command" key.
+    static const char *k_payload_keys[] = {"\"file_data\"", "\"3mf\"", "\"data\""};
+    for (const char *key : k_payload_keys) {
+        const size_t pos = payload.find(key);
+        if (pos != std::string::npos && pos < scan_end)
+            scan_end = pos;
+    }
+
+    const std::string   head = payload.substr(0, scan_end);
+    static const std::regex re("\"command\"\\s*:\\s*\"([^\"]+)\"");
+    std::smatch             m;
+    if (std::regex_search(head, m, re) && m.size() > 1)
+        return m[1].str();
+    return {};
+}
+
+} // namespace
 
 namespace Slic3r {
 namespace GUI {
@@ -41,6 +74,26 @@ namespace GUI {
         wxString lower = url.Lower();
         return lower.StartsWith("about:blank");
     }
+
+    std::string GetSafeWebUrlForLog(const wxString &url)
+    {
+        std::string safe_url = url.ToUTF8().data();
+        const size_t sensitive_part = safe_url.find_first_of("?#");
+        if (sensitive_part != std::string::npos)
+            safe_url.erase(sensitive_part);
+        return safe_url.empty() ? "<empty>" : safe_url;
+    }
+
+    bool IsMakerWorldSignInUrl(const wxString &url)
+    {
+        return url.Contains("/api/sign-in/ticket");
+    }
+
+    bool IsMakerWorldAuthenticationPage(const wxString &url)
+    {
+        const wxString lower = url.Lower();
+        return lower.Contains("/login") || lower.Contains("/sign-in") || lower.Contains("/agree-terms");
+    }
     }
 
     BEGIN_EVENT_TABLE(WebViewPanel, wxPanel)
@@ -51,38 +104,40 @@ namespace GUI {
 WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
-    m_Region = wxGetApp().app_config->get_country_code();
-    m_loginstatus = -1;
+     PERF_TRACE("Creating WebViewPanel");
 
-    // Connect the webview events
-    Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this);
-    Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnNavigationComplete, this);
-    Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnDocumentLoaded, this);
-    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnTitleChanged, this);
-    Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnError, this);
-    Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnNewWindow, this);
-    Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnScriptMessage, this);
-    Bind(EVT_RESPONSE_MESSAGE, &WebViewPanel::OnScriptResponseMessage, this);
+     m_Region      = wxGetApp().app_config->get_country_code();
+     m_loginstatus = -1;
 
-    wxString UrlLeft  = wxString::Format("file://%s/web/homepage3/left.html", from_u8(resources_dir()));
-    wxString UrlRight = wxString::Format("file://%s/web/homepage3/home.html", from_u8(resources_dir()));
-    wxString UrlWiki  = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
-    wxString wiki_region_param;
+     // Connect the webview events
+     Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this);
+     Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnNavigationComplete, this);
+     Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnDocumentLoaded, this);
+     Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnTitleChanged, this);
+     Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnError, this);
+     Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnNewWindow, this);
+     Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnScriptMessage, this);
+     Bind(EVT_RESPONSE_MESSAGE, &WebViewPanel::OnScriptResponseMessage, this);
+
+     wxString UrlLeft  = wxString::Format("file://%s/web/homepage3/left.html", from_u8(resources_dir()));
+     wxString UrlRight = wxString::Format("file://%s/web/homepage3/home.html", from_u8(resources_dir()));
+     wxString UrlWiki  = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
+     wxString wiki_region_param;
     if (!m_Region.empty())
         wiki_region_param = wxString::Format("region=%s", from_u8(m_Region));
     if (!wiki_region_param.empty())
         UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?%s", from_u8(resources_dir()), wiki_region_param);
 
-    wxString strlang = GetStudioLanguage();
+     wxString strlang = GetStudioLanguage();
     if (strlang != "")
     {
         UrlLeft = wxString::Format("file://%s/web/homepage3/left.html?lang=%s", from_u8(resources_dir()), strlang);
-        UrlRight = wxString::Format("file://%s/web/homepage3/home.html?lang=%s", from_u8(resources_dir()), strlang);
-        if (!wiki_region_param.empty())
-            UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s&%s", from_u8(resources_dir()), strlang, wiki_region_param);
-        else
-            UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
-    }
+         UrlRight = wxString::Format("file://%s/web/homepage3/home.html?lang=%s", from_u8(resources_dir()), strlang);
+         if (!wiki_region_param.empty())
+             UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s&%s", from_u8(resources_dir()), strlang, wiki_region_param);
+         else
+             UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
+     }
 
     topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -133,25 +188,27 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_online_container->Hide();
 
     m_online_toolbar_panel = new wxPanel(m_online_container);
-    m_online_toolbar_panel->SetBackgroundColour(*wxWHITE);
+    wxColour toolbar_bg = StateColor::darkModeColorFor(*wxWHITE);
+    m_online_toolbar_panel->SetBackgroundColour(toolbar_bg);
     m_online_container->SetBackgroundColour(m_online_toolbar_panel->GetBackgroundColour());
     m_online_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_online_toolbar_panel->SetSizer(m_online_toolbar_sizer);
 
-    auto make_online_toolbar_button = [this](const std::string &icon, const wxString &tooltip) {
-        wxBitmap bitmap = create_scaled_bitmap(icon, this, m_online_toolbar_icon_px);
+    // Icon color: map dark icons based on the StateColor mapping
+    std::string icon_color = StateColor::darkModeColorFor(wxColour("#262E30")).GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    auto make_online_toolbar_button = [this, &toolbar_bg, &icon_color](const std::string &icon, const wxString &tooltip) {
+        wxBitmap bitmap = create_scaled_bitmap(icon, this, m_online_toolbar_icon_px, false, icon_color);
         auto *btn       = new wxBitmapButton(m_online_toolbar_panel, wxID_ANY, bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         btn->SetToolTip(tooltip);
-        btn->SetBackgroundColour(m_online_toolbar_panel->GetBackgroundColour());
-        btn->SetBitmapDisabled(create_scaled_bitmap(icon, this, m_online_toolbar_icon_px, true));
+        btn->SetBackgroundColour(toolbar_bg);
+        btn->SetBitmapDisabled(create_scaled_bitmap(icon, this, m_online_toolbar_icon_px, false, StateColor::darkModeColorFor(wxColour("#c0babaff")).GetAsString(wxC2S_HTML_SYNTAX).ToStdString()));
         btn->SetMinSize(wxSize(FromDIP(28), FromDIP(28)));
         return btn;
     };
 
     wxBoxSizer *left_group  = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *right_group = new wxBoxSizer(wxHORIZONTAL);
-
-    m_online_back_btn    = make_online_toolbar_button("mall_control_back", _L("Back"));
+    m_online_back_btn    = make_online_toolbar_button("mall_control_back", _CTX(L_CONTEXT("Back", "WebView"), "WebView"));
     m_online_refresh_btn = make_online_toolbar_button("mall_control_refresh", _L("Refresh"));
     left_group->Add(m_online_back_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
     left_group->Add(m_online_refresh_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
@@ -168,18 +225,15 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_online_open_browser_btn->Enable(false);
 
     m_online_toolbar_panel->Hide();
-    int toolbar_top_padding = FromDIP(16);
-#ifdef __WXOSX__
-    toolbar_top_padding = FromDIP(8);
-#endif
-    m_online_container_sizer->Add(m_online_toolbar_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, toolbar_top_padding);
+    int toolbar_top_padding = FromDIP(8);
+    m_online_container_sizer->Add(m_online_toolbar_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, toolbar_top_padding);
 
     //Create Webview Panel
     m_home_web = new wxBoxSizer(wxHORIZONTAL);
 
     // LeftMenu webview
     m_leftfirst   = false;
-    m_browserLeft = WebView::CreateWebView(this, UrlLeft);
+    m_browserLeft = WebView::CreateWebView(this, UrlLeft, "LeftMenu");
     if (m_browserLeft == nullptr) {
         wxLogError("Could not init m_browser");
         return;
@@ -189,14 +243,14 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_browserLeft->SetMaxSize(wxSize(FromDIP(224), -1));
 
     // Create the webview
-    m_browser = WebView::CreateWebView(this, UrlRight);
+    m_browser = WebView::CreateWebView(this, UrlRight, "Home");
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;
     }
 
     // Makerworld webview
-    m_browserMW = WebView::CreateWebView(m_online_container, "about:blank");
+    m_browserMW = WebView::CreateWebView(m_online_container, "about:blank", "Makerworld");
     if (m_browserMW == nullptr) {
         wxLogError("Could not init  m_browserMW");
         return;
@@ -206,7 +260,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_onlinefirst    = false;
 
     // MakerLab webview
-    m_browserML = WebView::CreateWebView(m_online_container, "about:blank");
+    m_browserML = WebView::CreateWebView(m_online_container, "about:blank", "MakerLab");
     if (m_browserML == nullptr) {
         wxLogError("Could not init  m_browserML");
         return;
@@ -216,7 +270,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_MakerLabFirst = false;
 
     // PrintHistory webview
-    m_browserPH = WebView::CreateWebView(this, "about:blank");
+    m_browserPH = WebView::CreateWebView(this, "about:blank", "PrintHistory");
     if (m_browserPH == nullptr) {
         wxLogError("Could not init  m_browserPH");
         return;
@@ -226,7 +280,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_printhistoryfirst = false;
 
     // Wiki webview
-    m_browserWiki = WebView::CreateWebView(this, UrlWiki);
+    m_browserWiki = WebView::CreateWebView(this, UrlWiki, "Wiki");
     if (m_browserWiki == nullptr) {
         wxLogError("Could not init  m_browserWiki");
         return;
@@ -660,6 +714,13 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
 {
     //wxString mwnow = m_browserMW->GetCurrentURL();
 
+    if (m_makerworld_sso_navigation_pending &&
+        std::chrono::steady_clock::now() - m_makerworld_sso_navigation_started_at > std::chrono::seconds(15)) {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                 << " sign-in navigation timed out";
+        m_makerworld_sso_navigation_pending = false;
+    }
+
     auto mainframe = Slic3r::GUI::wxGetApp().mainframe;
     if (mainframe && mainframe->m_webview == this)
         Slic3r::GUI::wxGetApp().get_login_info();
@@ -886,7 +947,7 @@ void WebViewPanel::get_wiki_search_result(std::string keyword)
 
 void WebViewPanel::get_academy_list()
 {
-    std::string query_params = "v1/hub-service/academy/client/course/printerList";
+    std::string query_params = "v1/hub-service/academy/client/course/categories/tree";
     std::string url = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), query_params);
     Http http = Http::get(url);
     http.header("accept", "application/json")
@@ -992,7 +1053,7 @@ void WebViewPanel::ShowNetpluginTip()
 
     wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
-    RunScriptLeft(strJS);
+    RunScriptLeft(strJS, true);
 }
 
 void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback)
@@ -1090,7 +1151,12 @@ bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName
     std::string separatorStr(1, separator);
 
     download_path = wxString::FromUTF8(wxGetApp().app_config->get("download_path"));
-    download_file = download_path + separatorStr + FileName + "_" + ss.str() + "_" + GenerateRandomString(4) + "."+ FileTail;
+
+    wxString safe_name = boost::filesystem::path(wxString(FileName.c_str(), wxConvLibc).wc_str()).filename().wstring();
+    if (safe_name.empty() || safe_name == "." || safe_name == "..")
+        safe_name = "makerlab";
+
+    download_file = download_path + separatorStr + safe_name + "_" + ss.str() + "_" + GenerateRandomString(4) + "." + FileTail;
 
     std::ofstream outFile(download_file.ToStdString(), std::ios::binary);
     if (!outFile) {
@@ -1134,14 +1200,15 @@ void WebViewPanel::SaveMakerlabStl(int SequenceID, std::string Base64Buf, std::s
     wxString SavePath, SaveFile;
     bool     bRet = SaveBase64ToLocal(Base64Buf, FileName, "stl", SavePath, SaveFile);
 
-    // Response
+    // Response — must use window.postMessage like other homepage bridges
     json JFile;
     JFile["sequence_id"] = SequenceID;
     JFile["command"]     = "homepage_makerlab_stl_download";
     JFile["file_name"]   = FileName;
     JFile["result"]      = bRet ? "success" : "fail";
 
-    std::string strJS = JFile.dump(-1, ' ', false, json::error_handler_t::ignore);
+    wxString strJS = wxString::Format("window.postMessage(%s)",
+                                      JFile.dump(-1, ' ', false, json::error_handler_t::ignore));
 
     wxGetApp().CallAfter([this, strJS] {
         if (!m_browserML) return;
@@ -1261,14 +1328,29 @@ bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, w
 
 void WebViewPanel::UpdateMakerworldLoginStatus()
 {
+    const std::uint64_t flow_id = ++m_makerworld_sso_flow_id;
     NetworkAgent *agent = GUI::wxGetApp().getAgent();
-    if (agent == nullptr) return;
+    if (agent == nullptr) {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << flow_id
+                                 << " cannot request bind ticket because NetworkAgent is unavailable";
+        m_makerworld_sso_navigation_pending = false;
+        m_makerworld_sso_redirect_completed = false;
+        return;
+    }
 
+    BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << flow_id << " requesting bind ticket";
+    m_makerworld_sso_redirect_completed = false;
     std::string newticket;
     int ret = agent->request_bind_ticket(&newticket);
-    if (ret==0)
+    if (ret == 0) {
+        BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << flow_id
+                                << " bind ticket acquired; starting sign-in navigation";
         SetMakerworldPageLoginStatus(true, newticket);
-    else {
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << flow_id
+                                 << " failed to acquire bind ticket, ret=" << ret;
+        m_makerworld_sso_navigation_pending = false;
+        m_makerworld_sso_redirect_completed = false;
         wxString UrlDisconnect = MakeDisconnectUrl("online");
         m_browserMW->LoadURL(UrlDisconnect);
     }
@@ -1278,6 +1360,9 @@ void WebViewPanel::UpdateMakerworldLoginStatus()
 void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
 {
     if (m_browserMW == nullptr) return;
+
+    if (!login)
+        m_makerworld_sso_redirect_completed = false;
 
     wxString mw_currenturl;
     if (m_online_LastUrl != "") {
@@ -1301,7 +1386,7 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
             //std::cout << "Not Find agreeBackUrl" << std::endl;
             auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-            wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+            wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
 
             mw_currenturl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
         }
@@ -1313,8 +1398,19 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
 
     bool b = GetJumpUrl(login, ticket, mw_currenturl, mw_jumpurl);
     if (b) {
+        m_makerworld_sso_navigation_pending = login;
+        if (login) {
+            m_makerworld_sso_navigation_started_at = std::chrono::steady_clock::now();
+            BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                    << " navigating to sign-in endpoint; target="
+                                    << GetSafeWebUrlForLog(mw_currenturl);
+        }
         m_browserMW->LoadURL(mw_jumpurl);
         m_online_LastUrl = "";
+    } else if (login) {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                 << " failed to build sign-in navigation URL";
+        m_makerworld_sso_navigation_pending = false;
     }
 }
 
@@ -1423,10 +1519,89 @@ void WebViewPanel::update_mode()
     * Callback invoked when there is a request to load a new page (for instance
     * when the user clicks a link)
     */
+void WebViewPanel::HandleBlobDownload(wxWebView *browser, const wxString &blob_url)
+{
+    if (!browser || blob_url.empty())
+        return;
+
+    // Only accept WebKit-controlled blob: URLs; never treat arbitrary strings as script args.
+    if (!blob_url.StartsWith("blob:")) {
+        BOOST_LOG_TRIVIAL(warning) << "HandleBlobDownload: rejected non-blob url";
+        return;
+    }
+
+    // Escape blob URL as a JSON string literal for safe JS embedding.
+    // nlohmann::json::dump() quotes and escapes the string so it is safe as a JS argument.
+    const std::string blob_url_js = json(std::string(blob_url.ToUTF8().data())).dump();
+
+    // WKWebView rejects <a download href="blob:...">. Read the blob in-page and reuse the
+    // existing homepage_makerlab_stl_download / open_3mf_binary bridge.
+    const wxString js = wxString::Format(
+        "(function(blobUrl){"
+        "function toBase64(buffer){"
+        "var bytes=new Uint8Array(buffer),binary='',chunk=0x8000;"
+        "for(var i=0;i<bytes.length;i+=chunk)"
+        "binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));"
+        "return btoa(binary);"
+        "}"
+        "function stripExt(name){return String(name||'makerlab').replace(/\\.(stl|3mf)$/i,'');}"
+        "var fileName='makerlab.stl';"
+        "try{"
+        "var anchors=document.querySelectorAll('a[download]');"
+        "for(var i=0;i<anchors.length;i++){"
+        "if(anchors[i].href===blobUrl&&anchors[i].download){fileName=anchors[i].download;break;}"
+        "}"
+        "}catch(e){}"
+        "fetch(blobUrl).then(function(r){return r.arrayBuffer();}).then(function(buf){"
+        "var lower=fileName.toLowerCase();"
+        "var is3mf=lower.indexOf('.3mf')>=0;"
+        "var msg;"
+        "if(is3mf){"
+        "msg={sequence_id:1,command:'homepage_makerlab_open_3mf_binary','3mf':toBase64(buf),'3mf_name':stripExt(fileName)};"
+        "}else{"
+        "msg={sequence_id:1,command:'homepage_makerlab_stl_download',file_data:toBase64(buf),file_name:stripExt(fileName)};"
+        "}"
+        "if(window.wx&&typeof window.wx.postMessage==='function')"
+        "window.wx.postMessage(JSON.stringify(msg));"
+        "}).catch(function(err){console.error('studio blob download failed',err);});"
+        "})(%s);",
+        wxString::FromUTF8(blob_url_js));
+
+    WebView::RunScript(browser, js);
+}
+
 void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     const wxString &url = evt.GetURL();
+
+    if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId() &&
+        m_makerworld_sso_navigation_pending) {
+        BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                << " navigation requested; page=" << GetSafeWebUrlForLog(url);
+    } else if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId() &&
+               m_makerworld_sso_redirect_completed && IsMakerWorldAuthenticationPage(url)) {
+        BOOST_LOG_TRIVIAL(warning) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                   << " navigated to an authentication page after SSO redirect; "
+                                      "the MakerWorld session may not be persisted, page="
+                                   << GetSafeWebUrlForLog(url);
+        m_makerworld_sso_redirect_completed = false;
+    }
+
+#ifdef __WXOSX__
+    // MakerLab STL download uses blob: object URLs. WebView2 on Windows handles this as a
+    // file download; WKWebView treats it as navigation and fails with "Frame load interrupted".
+    if (url.StartsWith("blob:")) {
+        const bool is_ml = m_browserML && evt.GetId() == m_browserML->GetId();
+        const bool is_mw = m_browserMW && evt.GetId() == m_browserMW->GetId();
+        if (is_ml || is_mw) {
+            evt.Veto();
+            HandleBlobDownload(is_ml ? m_browserML : m_browserMW, url);
+            return;
+        }
+    }
+#endif
+
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage3/")) {
             auto file = wxURL::Unescape(wxURL(url).GetPath());
@@ -1476,8 +1651,11 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
         m_info->Dismiss();
     }
 
+    const wxString log_url = (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId())
+        ? wxString::FromUTF8(GetSafeWebUrlForLog(evt.GetURL()))
+        : evt.GetURL();
     if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage("%s", "Navigation request to '" + evt.GetURL() + "' (target='" +
+        wxLogMessage("%s", "Navigation request to '" + log_url + "' (target='" +
             evt.GetTarget() + "')");
 
     //If we don't want to handle navigation then veto the event and navigation
@@ -1501,6 +1679,10 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     if (m_browserMW!=nullptr && evt.GetId() == m_browserMW->GetId())
     {
         wxString current_url = m_browserMW->GetCurrentURL();
+        if (m_makerworld_sso_navigation_pending) {
+            BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                    << " navigation completed; page=" << GetSafeWebUrlForLog(current_url);
+        }
         std::string TmpNowUrl = current_url.ToStdString();
         std::string mwHost    = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
         if (TmpNowUrl.find(mwHost) != std::string::npos) m_onlinefirst = true;
@@ -1557,8 +1739,11 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     //m_browser->Show();
     Layout();
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
+    const wxString completed_log_url = (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId())
+        ? wxString::FromUTF8(GetSafeWebUrlForLog(evt.GetURL()))
+        : evt.GetURL();
     if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
+        wxLogMessage("%s", "Navigation complete; url='" + completed_log_url + "'");
     UpdateState();
     ShowNetpluginTip();
 }
@@ -1568,14 +1753,27 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     wxString wurl = evt.GetURL();
     // Only notify if the document is the main frame, not a subframe
-    if (m_browser!=nullptr && evt.GetId() == m_browser->GetId()) {
+    if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId()) {
+        if (m_makerworld_sso_navigation_pending) {
+            const wxString current_url = m_browserMW->GetCurrentURL();
+            if (IsMakerWorldSignInUrl(current_url)) {
+                BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                         << " sign-in endpoint loaded without redirect; authentication unverified";
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                        << " sign-in redirect completed; final_page="
+                                        << GetSafeWebUrlForLog(current_url);
+                m_makerworld_sso_redirect_completed = true;
+            }
+            m_makerworld_sso_navigation_pending = false;
+        }
+    } else if (m_browser != nullptr && evt.GetId() == m_browser->GetId()) {
+        wxString name = GetName();
+        perf_mark((name.IsEmpty() ? std::string("WebView") : name.ToStdString()) + " loaded");
         if (wxGetApp().get_mode() == comDevelop) wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
-    }
-    else if (m_browserLeft!=nullptr && evt.GetId() == m_browserLeft->GetId())
-    {
+    } else if (m_browserLeft != nullptr && evt.GetId() == m_browserLeft->GetId()) {
         m_leftfirst = true;
     }
 
@@ -1613,6 +1811,58 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
     UpdateState();
 }
 
+bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
+{
+    const int id = evt.GetId();
+
+    const bool is_local =
+        (m_browser     && id == m_browser->GetId())     ||
+        (m_browserLeft && id == m_browserLeft->GetId()) ||
+        (m_browserWiki && id == m_browserWiki->GetId()) ||
+        (m_browserPH   && id == m_browserPH->GetId());
+    if (is_local)
+        return true;
+
+    const bool is_makerlab   = (m_browserML && id == m_browserML->GetId());
+    const bool is_makerworld = (m_browserMW && id == m_browserMW->GetId());
+
+    static const std::set<std::string> kMakerLabAllowed = {
+        "homepage_makerlab_open_3mf_binary",
+        "homepage_makerlab_stl_download",
+        "common_openurl",  // MakerLab pages use this to open external links (e.g. "Support Creator", "open in browser")
+        "makerworld_model_open",
+        "homepage_login_or_register",
+    };
+    static const std::set<std::string> kMakerWorldAllowed = {
+        "makerworld_model_open",
+        // Used by the MakerWorld page header (logo, external links). The handler in
+        // GUI_App::handle_web_request only launches http/https URLs.
+        "common_openurl",
+        // Used by the MakerWorld search page "back to model library" button to
+        // notify the left-menu panel to switch back to the home/online view.
+        "homepage_leftmenu_switch",
+        "get_web_shortcut",
+        "homepage_login_or_register",
+    };
+
+    // Avoid full JSON parse here — MakerLab STL/3mf payloads can be multi-MB base64.
+    const std::string payload     = std::string(evt.GetString().ToUTF8().data());
+    const std::string command_str = extract_web_command(payload);
+
+    const std::set<std::string>* allow = nullptr;
+    const char* src = "unknown";
+    if (is_makerlab)        { allow = &kMakerLabAllowed;   src = "makerlab"; }
+    else if (is_makerworld) { allow = &kMakerWorldAllowed; src = "makerworld"; }
+
+    if (allow && allow->count(command_str))
+        return true;
+
+    BOOST_LOG_TRIVIAL(warning) << "OnScriptMessage: blocked web command from untrusted source"
+                               << " src=" << src
+                               << " cmd=" << (command_str.empty() ? "<none>" : command_str);
+    return false;
+}
+
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
@@ -1625,6 +1875,10 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
+
+    if (!IsAllowedScriptCommand(evt))
+        return;
+
     std::string response = wxGetApp().handle_web_request(evt.GetString().ToUTF8().data());
     if (response.empty()) return;
 
@@ -1713,7 +1967,7 @@ void WebViewPanel::RunScript(const wxString& javascript)
     WebView::RunScript(m_browser, javascript);
 }
 
-void WebViewPanel::RunScriptLeft(const wxString &javascript)
+void WebViewPanel::RunScriptLeft(const wxString &javascript, bool force_execute)
 {
     // Remember the script we run in any case, so the next time the user opens
     // the "Run Script" dialog box, it is shown there for convenient updating.
@@ -1721,7 +1975,7 @@ void WebViewPanel::RunScriptLeft(const wxString &javascript)
 
     if (!m_browserLeft) return;
 
-    WebView::RunScript(m_browserLeft, javascript);
+    WebView::RunScript(m_browserLeft, javascript, force_execute);
 }
 
 
@@ -1855,7 +2109,6 @@ void WebViewPanel::OnSelectAll(wxCommandEvent& WXUNUSED(evt))
     */
 void WebViewPanel::OnError(wxWebViewEvent& evt)
 {
-    //BOOST_LOG_TRIVIAL(info) << "HomePage OnError, Url = " << evt.GetURL() << " , Message: "<<evt.GetString();
 
 #define WX_ERROR_CASE(type) \
     case type: \
@@ -1875,11 +2128,22 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_OTHER);
     }
 
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": [" << category << "] " << evt.GetString().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(warning) << "WebViewPanel got error: " << "[" << category << "] " << evt.GetString().ToUTF8().data();
+
+    if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId() &&
+        m_makerworld_sso_navigation_pending) {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                 << " sign-in navigation failed, category=" << category
+                                 << ", page=" << GetSafeWebUrlForLog(evt.GetURL());
+        m_makerworld_sso_navigation_pending = false;
+    }
 
     if (wxGetApp().get_mode() == comDevelop)
     {
-        wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
+        const wxString error_log_url = (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId())
+            ? wxString::FromUTF8(GetSafeWebUrlForLog(evt.GetURL()))
+            : evt.GetURL();
+        wxLogMessage("%s", "Error; url='" + error_log_url + "', error='" + category + " (" + evt.GetString() + ")'");
 
         // Show the info bar with an error
     }
@@ -1944,7 +2208,7 @@ void WebViewPanel::OpenMakerworldSearchPage(std::string KeyWord)
 
     auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-    wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+    wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
 
     m_online_LastUrl = (boost::format("%1%%2%/studio/webview/search?from=bambustudio&keyword=%3%&from_studio_home=true") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
     SwitchWebContent("online");
@@ -1955,7 +2219,7 @@ void WebViewPanel::SetMakerworldModelID(std::string ModelID)
 {
     auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-    wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+    wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
 
     if (ModelID != "")
         m_online_LastUrl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=bambustudio") % host % language_code.mb_str() % ModelID).str();
@@ -1967,7 +2231,7 @@ void WebViewPanel::SetPrintHistoryTaskID(int TaskID)
 {
     auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-    wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+    wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
 
     if (TaskID != 0)
         m_print_history_LastUrl = (boost::format("%1%%2%/studio/print-history/%3%?from=bambustudio") % host % language_code.mb_str() % TaskID).str();
@@ -1989,7 +2253,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         std::string strRegion = wxGetApp().app_config->get_country_code();
         wxString    MakerSupplyUrl;
         if (strRegion == "CN")
-            MakerSupplyUrl = "https://bambulab.tmall.com/category-1761686934.htm?from=bambustudio&from=mw_homepage_ms";
+            MakerSupplyUrl = "https://mall.jd.com/view_search-2380482-25151560-99-1-20-1.html";
         else
             MakerSupplyUrl = "https://store.bambulab.com/collections/makers-supply?from=bambustudio&from=mw_homepage_ms";
 
@@ -2047,7 +2311,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
                 std::regex pattern("&keyword=[^&]*");
                 TmpNowUrl = std::regex_replace(TmpNowUrl, pattern, "");
                 if(TmpNowUrl != m_browserMW->GetCurrentURL().ToStdString()) {
-                    m_browserMW->LoadURL(TmpNowUrl); 
+                    m_browserMW->LoadURL(TmpNowUrl);
                 }
             }
         }
@@ -2291,12 +2555,14 @@ void WebViewPanel::UpdateOnlineToolbarState()
     const bool can_show_open_button = (on_online_tab || on_makerlab_tab) && has_webview;
 
 
-    auto update_btn_state = [this](wxBitmapButton *btn, bool enable, const std::string &icon) {
+    std::string enabled_color = StateColor::darkModeColorFor(wxColour("#262E30")).GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    std::string disabled_color = StateColor::darkModeColorFor(wxColour("#c0babaff")).GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+    auto update_btn_state = [this, &enabled_color, &disabled_color](wxBitmapButton *btn, bool enable, const std::string &icon) {
         if (!btn) return;
         btn->Enable(enable);
         const int px = m_online_toolbar_icon_px;
-        btn->SetBitmap(enable ? create_scaled_bitmap(icon, this, px)
-                              : create_scaled_bitmap(icon, this, px, false, "#c0babaff"));
+        btn->SetBitmap(enable ? create_scaled_bitmap(icon, this, px, false, enabled_color)
+                              : create_scaled_bitmap(icon, this, px, false, disabled_color));
     };
 
     bool can_go_back = false;
@@ -2304,8 +2570,7 @@ void WebViewPanel::UpdateOnlineToolbarState()
         can_go_back = active_webview->CanGoBack();
 
     update_btn_state(m_online_back_btn, can_go_back, "mall_control_back");
-    if (m_online_refresh_btn)
-        m_online_refresh_btn->Enable(can_show_open_button);
+    update_btn_state(m_online_refresh_btn, can_show_open_button, "mall_control_refresh");
     if (m_online_open_browser_btn) {
         bool has_url = false;
         if (can_show_open_button) {

@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.13)
 
-# The CMake version on Windows must not be greater than 4.0.
-if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0") )
-    message(FATAL_ERROR "Only cmake versions between 3.13.x and 4.0.x is supported on windows. Detected version: ${CMAKE_VERSION}")
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release "")
+
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif()
+if(POLICY CMP0175)
+  cmake_policy(SET CMP0175 OLD)
+endif()
+
+# The CMake version on Windows: 3.13–4.2 supported (4.2.x is used by VS 2026).
+if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "5.0") )
+    message(FATAL_ERROR "Only cmake versions between 3.13.x and 4.2.x is supported on windows. Detected version: ${CMAKE_VERSION}")
 endif()
 
 project(BambuStudio)
@@ -40,6 +50,27 @@ option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
 option(SLIC3R_HEADLESS          "Enable EGL headless rendering support for CLI mode (Linux only)" OFF)
+option(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN "Enable experimental OpenMeshCraft mesh boolean backend" 1)
+option(SLIC3R_ALLOW_MCUT_BOOLEAN "Allow compiling mesh boolean with MCUT only (no OpenMeshCraft)" 0)
+option(LINUX_CLI_COMPILE "Linux CLI build: skip prebuilt OpenMeshCraft lib (ABI mismatch vs server libstdc+), use MCUT/stub path" 0)
+if(LINUX_CLI_COMPILE)
+    # The prebuilt libOpenMeshCraft.a / libOpenMeshCraftBoolean.a in dep_linux_new were built
+    # against a newer libstdc++ ABI (std::__throw_bad_array_new_length, std::to_chars,
+    # std::basic_string::_M_replace_cold) than the build-server toolchain, causing link failure.
+    # Force OpenMeshCraft off and allow MCUT so the link succeeds. MeshBoolean.cpp already has
+    # #if SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN guards + stubs for the off path.
+    set(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN OFF CACHE BOOL "" FORCE)
+    set(SLIC3R_ALLOW_MCUT_BOOLEAN ON CACHE BOOL "" FORCE)
+    # Also clear the find_package() result cached on a previous configure (set in src/CMakeLists.txt
+    # without FORCE, so it would otherwise survive a re-configure and keep linking OMC).
+    set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "" FORCE)
+    message(STATUS "LINUX_CLI_COMPILE=ON: OpenMeshCraft disabled (prebuilt lib ABI mismatch), using MCUT/stub mesh-boolean path.")
+endif()
+if(NOT SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN AND NOT SLIC3R_ALLOW_MCUT_BOOLEAN)
+    message(FATAL_ERROR
+        "OpenMeshCraft boolean is required. "
+        "Keep SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN=ON, or pass -DSLIC3R_ALLOW_MCUT_BOOLEAN=ON.")
+endif()
 # If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
 CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
@@ -72,6 +103,13 @@ if (APPLE)
     message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_INSTALL_RPATH "$ORIGIN")
+elseif (MSVC)
+        message(STATUS "CMAKE_GENERATOR_PLATFORM is ${CMAKE_GENERATOR_PLATFORM} ")
+        message(STATUS "CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR} ")
+        if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64)$") AND (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+            message(STATUS " is cross compile set to true.............")
+            set(IS_CROSS_COMPILE TRUE)
+        endif ()
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -197,6 +235,12 @@ if(WIN32)
        endif()
     endif()
 
+    if(NOT PKG_CONFIG_EXECUTABLE AND DEFINED ENV{PKG_CONFIG_EXECUTABLE})
+        set(PKG_CONFIG_EXECUTABLE "$ENV{PKG_CONFIG_EXECUTABLE}" CACHE FILEPATH "pkg-config executable")
+    endif()
+    if(NOT PKG_CONFIG_EXECUTABLE)
+        find_program(PKG_CONFIG_EXECUTABLE NAMES pkg-config)
+    endif()
     find_package(PkgConfig REQUIRED)
     if(NOT DEFINED WIN10SDK_PATH)
         if(DEFINED ENV{WIN10SDK_PATH})
@@ -280,8 +324,16 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-deprecated-declarations)
     endif()
 
-    if((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
-        add_compile_options(-Wno-error=enum-constexpr-conversion)
+    # Some Clang versions (e.g. Xcode 16) treat invalid enum constexpr conversions
+    # as a hard error unless this warning is downgraded. However, the warning option
+    # itself does not exist on every Clang (it was removed again in newer toolchains
+    # such as Xcode 26), so probe for it instead of relying on the version number.
+    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
+        include(CheckCXXCompilerFlag)
+        check_cxx_compiler_flag("-Wno-error=enum-constexpr-conversion" HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
+        if(HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
+            add_compile_options(-Wno-error=enum-constexpr-conversion)
+        endif()
     endif()
 
     #GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see
@@ -314,6 +366,19 @@ endif ()
 if (APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
+
+    # Release 默认没有调试信息，补上调试信息以便产出独立的 .dSYM 符号文件；
+    # 原先开启了-g（完整调试信息），libslic3r_gui又是模板重度的静态库，.o里的DWARF调试段被大量重复实例化的模板符号撑大；
+    # 在低版本（macOS 12.7+xcode14.2）打包机工具链上，Mach-O文件大小上限为4个G；高版本（macOS26.x+xcode26.x）可以突破4G限制
+    # 原先-g配置下，单架构的libslic3r_gui.a就超出了4个G，双架构直接到8个G以上，导致编译失败；
+    # 现调整为用-gline-tables-only而非完整-g：只保留“地址 -> 文件:行号”的行号表，足够对崩溃栈做符号化；
+    # 但体积比完整-g大幅减少，实际测试libslic3r_gui.a大小为之前的十分之一，最终的.dSYM符号文件约为之前的五分之一。
+    string(APPEND CMAKE_C_FLAGS_RELEASE   " -gline-tables-only")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -gline-tables-only")
+
+    # Xcode generator：只让 Release 配置生成独立 .dSYM，Debug 保持原速
+    set(CMAKE_XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+    set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Release] "dwarf-with-dsym")
 endif ()
 
 if(MSVC)
@@ -429,6 +494,46 @@ else()
     target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 endif()
 
+# Boost::iostreams pulls in an imported zstd target that (on some system
+# packages) only exports one build configuration (often the empty/NONE one).
+# Multi-config builds such as RelWithDebInfo then fail with "IMPORTED_LOCATION
+# not set". Copy an existing configuration's location onto the missing ones so
+# every consumer of boost_libs can resolve zstd.
+function(slic3r_backfill_imported_configs tgt)
+    if(NOT TARGET ${tgt})
+        return()
+    endif()
+    get_target_property(_have ${tgt} IMPORTED_CONFIGURATIONS)
+    if(NOT _have)
+        return()
+    endif()
+    list(GET _have 0 _src)
+    get_target_property(_loc ${tgt} IMPORTED_LOCATION_${_src})
+    get_target_property(_imp ${tgt} IMPORTED_IMPLIB_${_src})
+    get_target_property(_son ${tgt} IMPORTED_SONAME_${_src})
+    foreach(_cfg RELEASE RELWITHDEBINFO MINSIZEREL DEBUG)
+        if(NOT _cfg IN_LIST _have)
+            set_property(TARGET ${tgt} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${_cfg})
+            if(_loc)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_LOCATION_${_cfg} "${_loc}")
+            endif()
+            if(_imp)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_IMPLIB_${_cfg} "${_imp}")
+            endif()
+            if(_son)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_SONAME_${_cfg} "${_son}")
+            endif()
+        endif()
+    endforeach()
+endfunction()
+
+# Only needed on Linux, where boost_iostreams pulls the system zstd package
+# whose CMake config exports a single (NONE) configuration. On Windows/macOS
+# zstd comes from the prebuilt deps / vcpkg with all configurations present.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    slic3r_backfill_imported_configs(zstd::libzstd_shared)
+    slic3r_backfill_imported_configs(zstd::libzstd_static)
+endif()
 
 
 # Find and configure intel-tbb
@@ -621,6 +726,20 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         set(_bits 32)
     endif ()
 
+    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+        set(_gmpdll win_arm64/gmp-10.dll)
+        set(_mpfrdll win_arm64/mpfr-6.dll)
+        set(output_gmpdll gmp-10.dll)
+        set(output_mpfrdll mpfr-6.dll)
+        set(_webviewloaderdll win_arm64/WebView2Loader.dll)
+    else ()
+        set(_gmpdll win${_bits}/libgmp-10.dll)
+        set(_mpfrdll win${_bits}/libmpfr-4.dll)
+        set(output_gmpdll libgmp-10.dll)
+        set(output_mpfrdll libmpfr-4.dll)
+        set(_webviewloaderdll win${_bits}/WebView2Loader.dll)
+    endif ()
+
     get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     get_target_property(_alt_out_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
 
@@ -635,9 +754,9 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
+    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/${_gmpdll}
+            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/${_mpfrdll}
+            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/${_webviewloaderdll}
         DESTINATION ${_out_dir})
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
@@ -674,8 +793,8 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
-        ${_out_dir}/libgmp-10.dll
-        ${_out_dir}/libmpfr-4.dll
+        ${_out_dir}/${output_gmpdll}
+        ${_out_dir}/${output_mpfrdll}
         ${_out_dir}/WebView2Loader.dll
 
         ${_out_dir}/TKBO.dll

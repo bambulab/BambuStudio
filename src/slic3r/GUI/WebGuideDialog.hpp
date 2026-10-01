@@ -6,6 +6,7 @@
 #include "wx/notifmsg.h"
 #include "wx/settings.h"
 #include "wx/webview.h"
+#include <atomic>
 
 #if wxUSE_WEBVIEW_IE
 #include "wx/msw/webview_ie.h"
@@ -51,7 +52,7 @@ public:
 
     //Web Function
     void load_url(wxString &url);
-    wxString SetStartPage(GuidePage startpage=BBL_WELCOME, bool load = true);
+    wxString SetStartPage(GuidePage startpage=BBL_WELCOME, bool load = true, bool default_custom_tab = false);
 
     void UpdateState();
     void OnIdle(wxIdleEvent &evt);
@@ -83,6 +84,10 @@ public:
     bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
     bool run(bool& config_applied);
 
+    // Delete every user filament preset that shares the given filament_id, after asking
+    // the user to confirm. Triggered by the trash icon in the "自定义材料" list.
+    void delete_custom_filament(const std::string &filament_id, const std::string &filament_name);
+
     void        StrReplace(std::string &strBase, std::string strSrc, std::string strDes);
     std::string w2s(wxString sSrc);
     void        GetStardardFilePath(std::string &FilePath);
@@ -110,7 +115,7 @@ private:
 
     //First Load
     bool bFirstComplete{false};
-    bool m_destroy{false};
+    std::atomic_bool m_destroy{false};
     boost::thread* m_load_task{ nullptr };
 
     // User Config

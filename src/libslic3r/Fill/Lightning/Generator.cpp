@@ -104,12 +104,17 @@ Generator::Generator(PrintObject* m_object, std::vector<Polygons>& contours, std
     const double               layer_thickness      = scaled<double>(object_config.layer_height.value);
 
     m_infill_extrusion_width = scaled<float>(region_config.sparse_infill_line_width.value);
+    // sparse_infill_line_width may be 0 (auto) in a support-only context; fall back to the
+    // nozzle-derived default so the supporting radius (and thus the DistanceField cell size)
+    // never collapses to 0, which would make sample_grid_pattern loop forever.
+    if (m_infill_extrusion_width < float(SCALED_EPSILON))
+        m_infill_extrusion_width = scaled<float>(default_infill_extrusion_width);
     //m_supporting_radius: against to the density of lightning, failures may happen if set to high density
     //higher density lightning makes support harder, more time-consuming on computing and printing, but more reliable on supporting overhangs
     //lower density lightning performs opposite
     //TODO: decide whether enable density controller in advanced options or not
     density = std::max(0.15f, density);
-    m_supporting_radius = coord_t(m_infill_extrusion_width) / density;
+    m_supporting_radius = std::max<coord_t>(coord_t(m_infill_extrusion_width / density), scaled<coord_t>(0.05));
 
     const double lightning_infill_overhang_angle = M_PI / 4; // 45 degrees
     const double lightning_infill_prune_angle = M_PI / 4; // 45 degrees

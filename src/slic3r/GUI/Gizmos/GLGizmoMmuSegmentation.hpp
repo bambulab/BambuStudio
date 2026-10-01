@@ -77,6 +77,12 @@ public:
     // will be also extended to support additional states, requiring at least one state to remain free out of 19 states.
     static const constexpr size_t EXTRUDERS_LIMIT = 16;
 
+    struct GradientInfo {
+        bool is_gradient = false;
+        std::array<float, 4> color_from = {0.5f, 0.5f, 0.5f, 1.0f};
+        std::array<float, 4> color_to   = {0.5f, 0.5f, 0.5f, 1.0f};
+    };
+
     const float get_cursor_radius_min() const override { return CursorRadiusMin; }
 
     // BBS
@@ -112,6 +118,7 @@ protected:
     // BBS
     size_t                            m_selected_extruder_idx = 0;
     std::vector<std::array<float, 4>> m_extruders_colors;
+    std::vector<GradientInfo> m_gradient_info;
     std::vector<int>                  m_volumes_extruder_idxs;
 
     // BBS

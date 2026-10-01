@@ -42,19 +42,23 @@ struct FilamentInfo
     std::string type;
     std::string color;
     std::string filament_id;
+    std::string setting_id;
     std::string brand;
     float       used_m{0.f};
     float       used_g{0.f};
     int         tray_id{0}; // start with 0
     float       distance{0.f};
+    int         remain{-1};    // filament remain on the mapped tray: 0~100, -1 = unknown / not reported by the printer
     int         ctype = 0;
     std::vector<std::string> colors = std::vector<std::string>();
     int         mapping_result = 0;
     bool        used_for_support{false};
     bool        used_for_object{false};
+    double      total_load_time{0.0};
+    double      total_unload_time{0.0};
 
     /*for multi nozzle*/
-    int group_id {-1};
+    std::vector<int> group_id;
     double nozzle_diameter{0};
     std::string nozzle_volume_type;
 
@@ -163,6 +167,11 @@ public:
     std::string                 model_id;
     std::string                 model_name;
     std::string                 profile_name;
+
+    std::string                 design_title;
+    std::string                 title;
+    std::string                 instance_title;
+    std::string                 create_client;
 };
 
 class BBLSubTask {
@@ -193,6 +202,7 @@ public:
         task_url_md5        = obj.task_url_md5;
         task_gcode_in_3mf   = obj.task_gcode_in_3mf;
         task_record_timelapse = obj.task_record_timelapse;
+        task_timelapse_use_internal = obj.task_timelapse_use_internal;
         task_bed_type       = obj.task_bed_type;
         task_bed_leveling   = obj.task_bed_leveling;
         task_flow_cali      = obj.task_flow_cali;
@@ -221,6 +231,7 @@ public:
     bool            task_vibration_cali; /* vibration calibration of task */
     bool            task_layer_inspect {true}; /* first layer inspection of task */
     bool            task_record_timelapse; /* record timelapse of task */
+    bool            task_timelapse_use_internal { false }; /* use internal storage for timelapse, cfg bit[2] */
 
     // task of plate info
     std::string     task_weight;        /* weight create by slicer */

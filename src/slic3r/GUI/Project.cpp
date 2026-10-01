@@ -63,7 +63,7 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_browser = WebView::CreateWebView(this, m_project_home_url);
+    m_browser = WebView::CreateWebView(this, m_project_home_url, "Project");
     if (m_browser == nullptr) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("load web view of project page failed");
         return;
@@ -198,7 +198,15 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         //file info
         std::string file_path = encode_path(wxGetApp().plater()->model().get_auxiliary_file_temp_path().c_str());
         if (!file_path.empty()) {
-            files = Reload(file_path);
+            // A malformed auxiliary directory must not take the whole process down: this runs on a
+            // worker thread, where an escaping exception ends up in std::terminate.
+            try {
+                files = Reload(file_path);
+            }
+            catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(error) << "Failed reloading the auxiliary files: " << e.what();
+                files.clear();
+            }
         }
         else {
             clear_model_info();
@@ -302,11 +310,81 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
             wxString accessory_path =  j["accessory_path"];
 
             if (!accessory_path.empty()) {
-                std::string decode_path = wxGetApp().url_decode(accessory_path.ToStdString());
-                fs::path path(decode_path);
+                // Restrict open requests to files under the current auxiliary root.
+                auto is_sub_path = [](const fs::path& child, const fs::path& root) {
+                    auto child_it = child.begin();
+                    auto root_it  = root.begin();
+                    for (; root_it != root.end(); ++root_it, ++child_it) {
+                        if (child_it == child.end() || *child_it != *root_it)
+                            return false;
+                    }
+                    return true;
+                };
+                auto json_array_or_empty = [](const json& parent, const char* key) -> json {
+                    if (parent.is_object() && parent.contains(key) && parent[key].is_array())
+                        return parent[key];
+                    return json::array();
+                };
 
-                if (fs::exists(path)) {
-                    wxLaunchDefaultApplication(path.wstring(), 0);
+                // Keep runtime-openable types aligned with current accessory UI support.
+                static const std::set<std::string> s_allowed_extensions = {
+                    ".txt",  ".pdf",  ".fdf",  ".xfdf", ".xdp",  ".ppdf", ".ofd",
+                    ".xls",  ".xlsx", ".xlsm", ".xlsb", ".csv",  ".xltx", ".xltm",
+                    ".xlt",  ".xlam", ".xla",
+                    ".jpg",  ".jpeg", ".pjpeg", ".png",  ".jfif", ".pjp",
+                    ".webp", ".bmp"
+                };
+
+                std::string decode_path = wxGetApp().url_decode(accessory_path.ToStdString());
+                fs::path requested_path(decode_path);
+
+                // Only consider real files while we still have the current project context.
+                if (fs::exists(requested_path) && fs::is_regular_file(requested_path) && !m_last_payload.empty() && !m_root_dir.empty()) {
+                    fs::path canonical_path = fs::canonical(requested_path);
+                    fs::path canonical_root = fs::canonical(fs::path(m_root_dir.ToStdWstring()));
+
+                    std::string extension = canonical_path.extension().string();
+                    boost::algorithm::to_lower(extension);
+
+                    bool is_known_accessory = false;
+                    // Reject paths outside the project root or outside the allowed attachment types.
+                    if (is_sub_path(canonical_path, canonical_root) && s_allowed_extensions.count(extension) > 0) {
+                        const json& model_section = m_last_payload.contains("model") ? m_last_payload["model"] : json::object();
+                        const json& file_section = (model_section.is_object() && model_section.contains("file")) ? model_section["file"] : json::object();
+
+                        // Only files already published to the current page payload may be opened.
+                        for (const char* key : {"BOM", "Assembly", "Other"}) {
+                            for (const auto& entry : json_array_or_empty(file_section, key)) {
+                                if (!entry.is_object() || !entry.contains("filepath") || !entry["filepath"].is_string())
+                                    continue;
+
+                                std::string stored_path = entry["filepath"].get<std::string>();
+                                if (stored_path.empty() || boost::starts_with(stored_path, "data:"))
+                                    continue;
+
+                                fs::path allowed_path(wxGetApp().url_decode(stored_path));
+                                if (!fs::exists(allowed_path) || !fs::is_regular_file(allowed_path))
+                                    continue;
+
+                                fs::path canonical_allowed_path = fs::canonical(allowed_path);
+                                if (!is_sub_path(canonical_allowed_path, canonical_root))
+                                    continue;
+
+                                if (canonical_allowed_path == canonical_path) {
+                                    is_known_accessory = true;
+                                    break;
+                                }
+                            }
+
+                            if (is_known_accessory)
+                                break;
+                        }
+                    }
+
+                    // Hand the file to the OS only after all project-scoped checks pass.
+                    if (is_known_accessory) {
+                        wxLaunchDefaultApplication(canonical_path.wstring(), 0);
+                    }
                 }
             }
         }
@@ -720,6 +798,33 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
             wxGetApp().CallAfter([this, script] {
                 RunScript(script.ToStdString());
             });
+
+            // Release the waiter only once the data actually landed; on failure it
+            // is dropped so that a pending close stays cancelled.
+            if (m_save_finished_cb) {
+                auto cb = std::move(m_save_finished_cb);
+                m_save_finished_cb = nullptr;
+                if (!response.contains("error"))
+                    cb();
+            }
+        }
+        else if (strCmd == "page_dirty_state") {
+            // Answer to query_unsaved_changes. Assume the worst if the page sent
+            // something unexpected, so that edits are never dropped silently.
+            bool dirty = true;
+            if (j.contains("dirty") && j["dirty"].is_boolean())
+                dirty = j["dirty"].get<bool>();
+
+            if (m_dirty_query_cb) {
+                auto cb = std::move(m_dirty_query_cb);
+                m_dirty_query_cb = nullptr;
+                cb(dirty);
+            }
+        }
+        else if (strCmd == "save_project_aborted") {
+            // The page refused to save (empty name, no pictures, ...) and never sent
+            // update_3mf_info, so drop the waiter instead of blocking the app forever.
+            m_save_finished_cb = nullptr;
         }
         else if (strCmd == "debug_info") {
             //wxString msg =  j["msg"];
@@ -776,7 +881,6 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
 {
     std::vector<fs::path>                           dir_cache;
     fs::directory_iterator                          iter_end;
-    wxString                                        m_root_dir;
     std::map<std::string, std::vector<json>> m_paths_list;
 
     const static std::array<wxString, 5> s_default_folders = {
@@ -793,12 +897,16 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
 
 
     fs::path new_aux_path(aux_path.ToStdWstring());
+    fs::path old_aux_path(m_root_dir.ToStdWstring());
 
-    try {
-        fs::remove_all(fs::path(m_root_dir.ToStdWstring()));
-    }
-    catch (...) {
-        BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory" << m_root_dir.c_str();
+    // Only clear the previous auxiliary root when switching to a different project path.
+    if (!m_root_dir.empty() && old_aux_path.lexically_normal() != new_aux_path.lexically_normal()) {
+        try {
+            fs::remove_all(old_aux_path);
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "Failed  removing the auxiliary directory" << m_root_dir.c_str();
+        }
     }
 
     m_root_dir = aux_path;
@@ -815,14 +923,23 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
     }
 
     // Load from new path
+    // Only sub directories are scanned below. A 3mf package may legally place plain files
+    // directly under Auxiliaries/, constructing a directory_iterator on those would throw.
     for (fs::directory_iterator iter(new_aux_path); iter != iter_end; iter++) {
-        wxString path = iter->path().generic_wstring();
+        boost::system::error_code ec;
+        if (!fs::is_directory(iter->path(), ec) || ec) continue;
         dir_cache.push_back(iter->path());
     }
 
 
     for (auto dir : dir_cache) {
-        for (fs::directory_iterator iter(dir); iter != iter_end; iter++) {
+        boost::system::error_code dir_ec;
+        fs::directory_iterator iter(dir, dir_ec);
+        if (dir_ec) {
+            BOOST_LOG_TRIVIAL(error) << "Failed iterating the auxiliary directory: " << dir_ec.message();
+            continue;
+        }
+        for (; iter != iter_end; iter++) {
             if (fs::is_directory(iter->path())) continue;
 
             json pfile_obj;
@@ -932,8 +1049,25 @@ bool ProjectPanel::Show(bool show)
     return wxPanel::Show(show);
 }
 
-void ProjectPanel::save_project()
+void ProjectPanel::query_unsaved_changes(std::function<void(bool)> on_result)
 {
+    m_dirty_query_cb = std::move(on_result);
+
+    json resp = json::object();
+    resp["command"] = "query_unsaved_changes";
+    resp["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+
+    wxString strJS = wxString::Format("window.HandleEditor && window.HandleEditor(%s);",
+                                      resp.dump(-1, ' ', false, json::error_handler_t::ignore));
+    wxGetApp().CallAfter([this, strJS] {
+        RunScript(strJS.ToStdString());
+    });
+}
+
+void ProjectPanel::save_project(std::function<void()> on_saved)
+{
+    m_save_finished_cb = std::move(on_saved);
+
     json resp = json::object();
     resp["command"] = "save_project";
     resp["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);

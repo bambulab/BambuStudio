@@ -1,0 +1,9 @@
+This is an Oberon-2 (www.excelsior-usa.com/xds.html) binding for libharu.
+
+It tested on Windows, but should work on Linux as well.
+
+Copy libhpdf.dll to this folder and run build.bat, then run test.exe.
+
+PTS55F.ttf is a part of 'PT Sans' font.
+http://www.fontstock.com/public/PTSans.zip
+http://fonts.ru/public

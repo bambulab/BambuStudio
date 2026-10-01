@@ -7,6 +7,7 @@
 #include "Widgets/TextInput.hpp"
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/ProgressBar.hpp"
+#include "Widgets/RadioBox.hpp"
 #include "wxExtensions.hpp"
 #include "PresetComboBoxes.hpp"
 
@@ -91,7 +92,7 @@ public:
 
     void set_select_mode(CalibrationFilamentMode mode);
     CalibrationFilamentMode get_select_mode() { return m_mode; }
-    void load_tray_from_ams(int id, DynamicPrintConfig& tray);
+    void load_tray_from_ams(int id, const DynamicPrintConfig& tray);
     void update_from_preset();
     int get_index() { return m_index; }
     int get_tray_id() { return m_tray_id; }
@@ -100,8 +101,8 @@ public:
     CalibrateFilamentComboBox* GetComboBox() { return m_comboBox; }
     CheckBox* GetCheckBox() { return m_checkBox; }
     void SetCheckBox(CheckBox* cb) { m_checkBox = cb; }
-    wxRadioButton* GetRadioBox() { return m_radioBox; }
-    void SetRadioBox(wxRadioButton* btn) { m_radioBox = btn; }
+    RadioBox* GetRadioBox() { return m_radioBox; }
+    void SetRadioBox(RadioBox* btn) { m_radioBox = btn; }
     virtual bool Show(bool show = true);
     virtual bool Enable(bool enable);
     virtual void SetValue(bool value, bool send_event = true);
@@ -125,7 +126,7 @@ protected:
     bool m_is_bbl_filamnet{ false };
 
     CheckBox* m_checkBox{ nullptr };
-    wxRadioButton* m_radioBox{ nullptr };
+    RadioBox* m_radioBox{ nullptr };
     CalibrateFilamentComboBox* m_comboBox{ nullptr };
     wxStaticBitmap* m_nozzle_bmp{ nullptr };
     ComboBox* m_nozzle_combo{ nullptr };

@@ -174,8 +174,6 @@ void Slic3r::DevFan::ParseV3_0(const json &device)
         m_air_duct_data.modes.clear();
         m_air_duct_data.parts.clear();
 
-        m_air_duct_data.curren_mode = device["airduct"]["modeCur"].get<int>();
-
         const json &airduct = device["airduct"];
         if (airduct.contains("modeCur")) { m_air_duct_data.curren_mode = airduct["modeCur"].get<int>(); }
         if (airduct.contains("subMode")) { m_air_duct_data.m_sub_mode = airduct["subMode"].get<int>(); }

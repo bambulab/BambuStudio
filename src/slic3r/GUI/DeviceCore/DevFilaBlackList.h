@@ -21,6 +21,7 @@ public:
         std::string fila_vendor;
 
         std::string calib_mode;
+        bool has_filament_switch = false;
 
         std::optional<bool> used_for_print_support;// optional
         std::optional<bool> used_for_print_object;// optional
@@ -35,9 +36,11 @@ public:
 
     struct CheckResultItem
     {
-        std::string action;
+        std::string action;// warning/prohibition
         wxString    info_msg;
         wxString    wiki_url;
+        std::string group;
+        int         priority = 0;
     };
 
     struct CheckResult

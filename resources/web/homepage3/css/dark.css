@@ -199,3 +199,16 @@ html,body
 .topicCard{
 	background-color: #333337;
 }
+
+.academyTab{
+	color: #818183;
+}
+
+.academyTab:hover{
+	color: #efeff0;
+}
+
+.academyTab.active{
+	color: #ffffff;
+	border-bottom-color: #ffffff;
+}

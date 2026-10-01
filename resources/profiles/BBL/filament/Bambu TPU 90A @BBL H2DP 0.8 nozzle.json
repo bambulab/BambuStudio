@@ -14,6 +14,10 @@
     "eng_plate_temp_initial_layer": [
         "35"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_density": [
         "1.22"
     ],
@@ -29,12 +33,17 @@
         "2.8",
         "2.8"
     ],
+    "filament_pre_cooling_temperature": [
+        "195",
+        "195"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20"
+    ],
     "filament_ramming_volumetric_speed": [
         "0.7",
         "0.7"
-    ],
-    "filament_printable": [
-        "2"
     ],
     "filament_retraction_length": [
         "0.2",
@@ -44,29 +53,15 @@
         "10",
         "10"
     ],
-    "filament_support_printable": [
-        "2"
-    ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_pre_cooling_temperature": [
-        "195",
-        "195"
-    ],
-    "filament_ramming_travel_time": [
-        "20",
-        "20"
     ],
     "impact_strength_z": [
         "88.7"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
-    ],
-    "nozzle_temperature_range_high": [
-        "250"
     ],
     "nozzle_temperature": [
         "220",
@@ -76,11 +71,15 @@
         "220",
         "220"
     ],
+    "nozzle_temperature_range_high": [
+        "250"
+    ],
     "retraction_distances_when_ec": [
         "0",
         "0"
     ],
     "slow_down_min_speed": [
+        "25",
         "25"
     ],
     "compatible_printers": [

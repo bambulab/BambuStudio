@@ -26,6 +26,8 @@
 #include "wx/textctrl.h"
 #include <wx/timer.h>
 
+#include <chrono>
+#include <cstdint>
 
 namespace Slic3r {
 
@@ -58,6 +60,7 @@ public:
     void OnTitleChanged(wxWebViewEvent &evt);
     void OnNewWindow(wxWebViewEvent& evt);
     void OnScriptMessage(wxWebViewEvent& evt);
+    bool IsAllowedScriptCommand(wxWebViewEvent& evt);
     void OnScriptResponseMessage(wxCommandEvent& evt);
     void OnViewSourceRequest(wxCommandEvent& evt);
     void OnViewTextRequest(wxCommandEvent& evt);
@@ -70,7 +73,7 @@ public:
     void OnRedo(wxCommandEvent& evt);
     void OnMode(wxCommandEvent& evt);
     void RunScript(const wxString& javascript);
-    void RunScriptLeft(const wxString &javascript);
+    void RunScriptLeft(const wxString &javascript, bool force_execute = false);
     void OnRunScriptString(wxCommandEvent& evt);
     void OnRunScriptInteger(wxCommandEvent& evt);
     void OnRunScriptDouble(wxCommandEvent& evt);
@@ -152,6 +155,8 @@ public:
     bool     SaveBase64ToLocal(std::string Base64Buf, std::string FileName,std::string FileTail, wxString &download_path, wxString &download_file);
     void     SaveMakerlabStl(int SequenceID,std::string Base64Buf, std::string FileName);
     void     UpdateMakerlabStatus();
+    // macOS WKWebView cannot download blob: URLs; convert via JS to existing save bridge.
+    void     HandleBlobDownload(wxWebView *browser, const wxString &blob_url);
 
     //wiki
     bool m_WikiFirst;
@@ -179,6 +184,10 @@ private:
     wxBoxSizer *topsizer { nullptr };
 
     int         m_loginstatus;
+    bool        m_makerworld_sso_navigation_pending { false };
+    bool        m_makerworld_sso_redirect_completed { false };
+    std::uint64_t m_makerworld_sso_flow_id { 0 };
+    std::chrono::steady_clock::time_point m_makerworld_sso_navigation_started_at;
     bool m_isPerformingBack = false;
     bool m_online_history_cleared { false };
     bool m_makerlab_history_cleared { false };

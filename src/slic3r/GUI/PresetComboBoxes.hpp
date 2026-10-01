@@ -245,6 +245,10 @@ public:
 
     PresetCollection*   presets()   const { return m_collection; }
     Preset::Type        type()      const { return m_type; }
+
+private:
+    std::vector<wxString> m_last_presets;
+    wxString m_last_select_name;
 };
 
 // ---------------------------------
@@ -257,7 +261,7 @@ public:
     CalibrateFilamentComboBox(wxWindow *parent);
     ~CalibrateFilamentComboBox();
 
-    void load_tray(DynamicPrintConfig & config);
+    void load_tray(const DynamicPrintConfig & config);
 
     void update() override;
     void msw_rescale() override;
