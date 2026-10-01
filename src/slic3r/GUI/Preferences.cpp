@@ -1501,6 +1501,12 @@ wxWindow *PreferencesDialog::create_user_tab()
     auto item_user_sync = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), scrolled,
                                                _L("If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."), 50, "sync_user_preset");
 
+    auto item_ams_sync_default_overwrite =
+        create_item_checkbox(_L("Default to Overwriting when syncing filaments"), scrolled,
+                             _L("Open filament synchronization in Overwriting mode. Project filaments are replaced in printer slot order "
+                                "after you click Synchronize now."),
+                             50, "ams_sync_default_overwrite");
+
     auto item_system_sync = create_item_checkbox(_L("Auto check for system presets updates"), scrolled,
                                                  _L("If enabled, auto check whether there are system presets updates after Bambu Studio startup."), 50, "sync_system_preset");
 
@@ -1519,6 +1525,7 @@ wxWindow *PreferencesDialog::create_user_tab()
     sizer->Add(wrap_option_row(scrolled, item_mix_print_high_low_temp), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_arrange_wipe_tower_on_switch_printer), flags);
     sizer->Add(wrap_option_row(scrolled, item_user_sync), flags);
+    sizer->Add(wrap_option_row(scrolled, item_ams_sync_default_overwrite), flags);
     sizer->Add(wrap_option_row(scrolled, item_system_sync), flags);
 #ifdef _WIN32
     sizer->Add(wrap_option_row(scrolled, item_webview_auto_fill), flags);
@@ -2058,6 +2065,7 @@ void PreferencesDialog::on_reset_preferences()
         "auto_transfer_when_switch_preset",
         "enable_high_low_temp_mixed_printing",
         "sync_user_preset",
+        "ams_sync_default_overwrite",
         "sync_system_preset",
         "disable_fins_extrude_safe_temp",
         "zoom_to_mouse",
