@@ -175,6 +175,16 @@ double multi_nozzle_top_shell_thickness(double nozzle_diameter, double preset_va
     return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.8, 1.0, 0.8, 0.8 });
 }
 
+int multi_nozzle_bottom_shell_layers(double nozzle_diameter, int preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 5, 3, 3, 3 });
+}
+
+double multi_nozzle_bottom_shell_thickness(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.0, 0.0, 0.0, 0.0 });
+}
+
 int multi_nozzle_top_color_penetration_layers(double nozzle_diameter, int preset_value)
 {
     return multi_nozzle_value(nozzle_diameter, preset_value, std::array<int, 4> { 7, 5, 3, 3 });
