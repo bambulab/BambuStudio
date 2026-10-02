@@ -4213,8 +4213,8 @@ void PrintObject::discover_horizontal_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 }
 
-// The diameter every band size is measured against: the nozzle the layer grid resolves, i.e. the finest one
-// the machine offers, whatever the nozzles this plate actually uses. SlicingParameters divided the preset's
+// The diameter every band size is measured against: the nozzle the layer grid resolves, i.e. the 0.2 in
+// multi-diameter mode, whatever nozzles are mounted or used. SlicingParameters divided the preset's
 // layer height down to that nozzle's step, so each nozzle covers diameter/reference of those steps. The
 // reference is deliberately not the preset diameter (the preset may be a coarse one) and not the finest
 // nozzle in use either: the latter would rescale the grid whenever the finest one is absent, so a 0.4 + 0.8

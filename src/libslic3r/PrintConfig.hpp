@@ -2222,17 +2222,18 @@ float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filam
 // Read from DynamicPrintConfig (full_print_config); printer_variant is not a PrintConfig member.
 double primary_nozzle_diameter(const ConfigBase &config);
 
-// Diameter the object layer grid is anchored to: the finest nozzle the machine offers. This is a separate
+// Diameter the object layer grid is anchored to: always 0.2 in multi-diameter mode, regardless of whether
+// the rack currently carries a 0.2. This is a separate
 // concept from primary_nozzle_diameter() - the preset supplies the authored values (line widths, speeds,
 // layer height), the grid anchor supplies their resolution - and the two only coincide when the preset
-// already sits on the finest nozzle. Every band count is a ratio against this value, so it must be the
+// already sits on the 0.2 nozzle. Every band count is a ratio against this value, so it must be the
 // same value SlicingParameters divided the preset layer height by. Equals primary_nozzle_diameter() while
 // multi_nozzle_diameter_mode is off, keeping single-diameter slicing bit-identical.
 double layer_grid_nozzle_diameter(const ConfigBase &config);
 
 // How many object layers the preset's authored layer height is cut into, i.e.
-// round(primary_nozzle_diameter / layer_grid_nozzle_diameter). A 0.4 preset on a rack that also carries a
-// 0.2 slices 0.2mm layers as 2 x 0.1mm, so the coarse nozzle keeps the preset's speeds and line widths
+// round(primary_nozzle_diameter / layer_grid_nozzle_diameter). A 0.4 preset slices 0.2mm layers as
+// 2 x 0.1mm whether or not the rack carries a 0.2, so the coarse nozzle keeps the preset's speeds and line widths
 // while the grid still resolves what the 0.2 can print. Always 1 without multi-diameter mode.
 int layer_grid_subdivision(const ConfigBase &config);
 

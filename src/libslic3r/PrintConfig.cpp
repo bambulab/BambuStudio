@@ -197,8 +197,7 @@ double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value)
 
 // The diameters that describe what the machine offers: per-slot where that data is authoritative,
 // per-extruder otherwise. Per-slot diameters describe the capability of both single-extruder multi-nozzle
-// machines and H2C-class multi-extruder machines. Both the "offers more than one diameter" query and the
-// layer grid anchor read this, so the two can never disagree about which nozzles exist.
+// machines and H2C-class multi-extruder machines. The "offers more than one diameter" query reads this.
 static const std::vector<double> *configured_nozzle_diameters(const ConfigBase &config)
 {
     const auto *per_slot     = config.option<ConfigOptionFloats>("extruder_nozzle_diameter");
@@ -241,15 +240,9 @@ double layer_grid_nozzle_diameter(const ConfigBase &config)
     if (! multi_nozzle_diameter_mode_enabled(config) || primary <= EPSILON)
         return primary;
 
-    // The grid has to resolve the finest nozzle the rack carries, not the finest one this plate happens to
-    // load: a plate that leaves the 0.2 at home must still slice on the grid the 0.2 would need, or every
-    // band count rescales the moment it is used again.
-    double finest = primary;
-    if (const std::vector<double> *diameters = configured_nozzle_diameters(config))
-        for (double diameter : *diameters)
-            if (diameter > EPSILON && diameter < finest)
-                finest = diameter;
-    return finest;
+    // The grid is pinned to the 0.2 nozzle even when the rack does not carry one: a rack without a 0.2 must
+    // still slice on the grid the 0.2 would need, or every band count rescales the moment one is mounted.
+    return 0.2;
 }
 
 int layer_grid_subdivision(const ConfigBase &config)
