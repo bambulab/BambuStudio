@@ -179,11 +179,23 @@ public:
                           std::vector<std::string>* out_changed_ids = nullptr,
                           std::vector<EjectedSlotSnapshot>* out_ejected = nullptr);
 
+    // FilamentSpool::preset_name is neither part of the cloud spool record nor kept by the
+    // (cloud-populated) store across restarts, so the preset each spool was last used with is
+    // remembered in a small local file instead and folded back into spools as they arrive.
+    std::string get_spool_preset(const std::string& spool_id) const;
+    void        set_spool_preset(const std::string& spool_id, const std::string& preset_name);
+
 private:
     std::string get_storage_path() const;
+    std::string get_spool_presets_path() const;
+    void        load_spool_presets() const;
+    void        apply_spool_preset(FilamentSpool& spool) const;
 
     std::map<std::string, FilamentSpool> m_spools;
     bool                                 m_dirty = false;
+
+    mutable std::map<std::string, std::string> m_spool_presets;
+    mutable bool                               m_spool_presets_loaded = false;
 };
 
 }} // namespace Slic3r::GUI

@@ -409,6 +409,11 @@ public:
     // BBS: ams
     std::map<int, DynamicPrintConfig> filament_ams_list;
     std::vector<std::vector<std::string>> ams_multi_color_filment;
+    // Tray each project filament was taken from by the last direct (non-mapped) AMS sync, and
+    // the preset it was given then. Lets the GUI tell which physical spool a later preset change
+    // for that filament applies to. Cleared by a mapped sync.
+    std::vector<AMSMapInfo>  synced_filament_trays;
+    std::vector<std::string> synced_filament_presets;
 
     std::vector<std::map<int, int>> extruder_ams_counts;
     std::vector<ExtruderAmsSelection> extruder_ams_selections;

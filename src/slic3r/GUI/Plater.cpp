@@ -6938,6 +6938,19 @@ void Sidebar::on_bed_type_change(BedType bed_type)
     if (p->combo_printer_bed != nullptr) p->combo_printer_bed->SetSelection(sel_idx);
 }
 
+// Add the preset the Filament Manager remembers for the spool in each tray; sync_ams_list() prefers it.
+static std::map<int, DynamicPrintConfig> with_spool_presets(MachineObject *obj, std::map<int, DynamicPrintConfig> trays)
+{
+    if (auto *fila_sync = wxGetApp().fila_manager_sync())
+        for (auto &entry : trays) {
+            const std::string ams_id  = entry.second.opt_string("ams_id", 0u);
+            const std::string slot_id = entry.second.opt_string("slot_id", 0u);
+            if (const FilamentSpool *spool = fila_sync->spool_in_slot(obj, ams_id, slot_id); spool && !spool->preset_name.empty())
+                entry.second.set_key_value("spool_preset", new ConfigOptionStrings{spool->preset_name});
+        }
+    return trays;
+}
+
 std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject* obj)
 {
     if (!obj) return {};
@@ -6946,7 +6959,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     assert(preset_bundle);
 
     // for machines like N1X, which treat hotends as logical extruders
-    if (obj->GetNozzleRack()->IsDirectConnectedRack()) { return build_filament_ams_list_for_n1x(obj); }
+    if (obj->GetNozzleRack()->IsDirectConnectedRack()) { return with_spool_presets(obj, build_filament_ams_list_for_n1x(obj)); }
 
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (obj->ams_support_virtual_tray) {
@@ -6994,7 +7007,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
             }
         }
     }
-    return filament_ams_list;
+    return with_spool_presets(obj, std::move(filament_ams_list));
 }
 
 bool Sidebar::sync_extruder_list()
@@ -16261,6 +16274,35 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
     }
 }
 
+// After a direct AMS sync, project filament `idx` is known to come from a particular tray. When
+// the user then picks another preset for it, remember that preset on the spool the Filament
+// Manager has matched to the tray, so the next sync (in this or any other project) restores it
+// instead of the parent preset or "Generic <type>" the printer's filament_id resolves to.
+static void remember_synced_spool_preset(size_t idx, const std::string &prev_preset, const std::string &new_preset)
+{
+    PresetBundle *bundle    = wxGetApp().preset_bundle;
+    auto         *store     = wxGetApp().fila_manager_store();
+    auto         *fila_sync = wxGetApp().fila_manager_sync();
+    auto         *dev       = wxGetApp().getDeviceManager();
+    if (!bundle || !store || !fila_sync || !dev || idx >= bundle->synced_filament_trays.size() ||
+        idx >= bundle->synced_filament_presets.size())
+        return;
+    // The tray mapping only holds while this filament still has the preset the sync (or an
+    // earlier change remembered here) gave it; a loaded project or reordered filaments won't.
+    if (prev_preset.empty() || bundle->synced_filament_presets[idx] != prev_preset)
+        return;
+    MachineObject *obj    = dev->get_selected_machine();
+    const Preset  *preset = bundle->filaments.find_preset(new_preset, false);
+    if (!obj || !preset)
+        return;
+    const AMSMapInfo &tray  = bundle->synced_filament_trays[idx];
+    const FilamentSpool *spool = fila_sync->spool_in_slot(obj, tray.ams_id, tray.slot_id);
+    if (!spool || (!spool->material_type.empty() && spool->material_type != preset->config.opt_string("filament_type", 0u)))
+        return;
+    store->set_spool_preset(spool->spool_id, new_preset);
+    bundle->synced_filament_presets[idx] = new_preset;
+}
+
 void Plater::priv::on_select_preset(wxCommandEvent &evt)
 {
     PlaterPresetComboBox* combo = static_cast<PlaterPresetComboBox*>(evt.GetEventObject());
@@ -16335,11 +16377,14 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     if (preset_type == Preset::TYPE_FILAMENT) {
         std::string old_name = wxGetApp().preset_bundle->filaments.get_edited_preset().name;
         const auto &slot_presets = wxGetApp().preset_bundle->filament_presets;
+        const std::string prev_at_idx = idx >= 0 && idx < (int) slot_presets.size() ? slot_presets[idx] : std::string();
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
         if (!q->on_filament_change(idx))
             wxGetApp().preset_bundle->set_filament_preset(idx, old_name);
-        else if (idx >= 0 && idx < (int) slot_presets.size())
+        else if (idx >= 0 && idx < (int) slot_presets.size()) {
+            remember_synced_spool_preset(idx, prev_at_idx, preset_name);
             show_tpu_tips = MultiNozzleTpuTipsDialog::should_show(slot_presets[idx]);
+        }
 
         // Multi-diameter mode: also carry over the tray's nozzle diameter + flow type to this slot,
         // so the "synced" state actually matches on all four fields (filament_id, color, diameter,

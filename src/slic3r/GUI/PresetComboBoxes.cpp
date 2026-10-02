@@ -1545,13 +1545,8 @@ void PlaterPresetComboBox::open_filament_manager_picker()
     // user makes afterwards and re-picks this same spool for) so the next time this
     // spool is chosen here, its own last-used preset comes back rather than the
     // generic default for its filament type.
-    if (applied && store && !res.spool_id.empty()) {
-        if (const FilamentSpool* sp = store->get_spool(res.spool_id); sp && sp->preset_name != preset_name) {
-            FilamentSpool updated = *sp;
-            updated.preset_name   = preset_name;
-            store->update_spool_if_changed(updated);
-        }
-    }
+    if (applied && store && !res.spool_id.empty())
+        store->set_spool_preset(res.spool_id, preset_name);
     this->update();
 }
 

@@ -2910,6 +2910,24 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             }
             continue;
         }
+        // The Filament Manager remembers the exact preset last used with the spool bound to this
+        // tray. A user preset saved from a system one reaches the printer only as its parent's
+        // filament_id, so the lookups below would resolve it to that parent (or "Generic <type>").
+        // Prefer the remembered preset while it is still compatible and of the reported type.
+        if (const std::string spool_preset = ams.has("spool_preset") ? ams.opt_string("spool_preset", 0u) : std::string(); !spool_preset.empty()) {
+            Preset *remembered = filaments.find_preset(spool_preset, false);
+            if (remembered && remembered->is_compatible &&
+                remembered->config.opt_string("filament_type", 0u) == ams.opt_string("filament_type", 0u)) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": tray %1% uses spool preset %2%") % tray_name % spool_preset;
+                ams_infos.back().install_preset = remembered;
+                ams_filament_presets.push_back(remembered->name);
+                ams_filament_colors.push_back(filament_color);
+                ams_filament_color_types.push_back(filament_color_type);
+                ams_multi_color_filment.push_back(filament_multi_color);
+                synced_ams_maps.push_back(temp);
+                continue;
+            }
+        }
         if (!filament_changed && this->filament_presets.size() > ams_filament_presets.size()) {
             ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
             ams_filament_colors.push_back(filament_color);
@@ -3233,11 +3251,16 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         filament_color_type->values = exist_color_types;
         ams_multi_color_filment = exist_multi_color_filment;
         this->filament_presets = exist_filament_presets;
+        // Mapped/appended sync: project filaments no longer line up 1:1 with trays.
+        synced_filament_trays.clear();
+        synced_filament_presets.clear();
         filament_map->values.resize(exist_filament_presets.size(), 1);
     } else { // overwrite;
         filament_color->values = ams_filament_colors;
         filament_color_type->values = ams_filament_color_types;
         this->filament_presets = ams_filament_presets;
+        synced_filament_trays   = synced_ams_maps;
+        synced_filament_presets = ams_filament_presets;
         filament_map->values.resize(ams_filament_colors.size(), 1);
         maps.clear();
         for (size_t i = 0; i < synced_ams_maps.size(); ++i)
