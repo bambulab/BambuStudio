@@ -16274,7 +16274,7 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
     }
 }
 
-// After a direct AMS sync, project filament `idx` is known to come from a particular tray. When
+// After an AMS sync, project filament `idx` is known to come from a particular tray. When
 // the user then picks another preset for it, remember that preset on the spool the Filament
 // Manager has matched to the tray, so the next sync (in this or any other project) restores it
 // instead of the parent preset or "Generic <type>" the printer's filament_id resolves to.

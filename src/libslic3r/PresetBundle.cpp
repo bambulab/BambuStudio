@@ -3163,10 +3163,13 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         for (int i = 0; i < exist_colors.size(); i++) {
             exist_multi_color_filment[i] = {exist_colors[i]};
         }
+        // Tray each resulting project filament was taken from; empty for filaments left unmapped.
+        std::vector<AMSMapInfo> exist_trays(exist_colors.size());
         for (size_t i = 0; i < exist_colors.size(); i++) {
             if (maps.find(i) != maps.end()) {//mapping exist
                 auto valid_index = get_map_index(ams_array_maps, maps[i]);
                 if (valid_index >= 0 && valid_index < ams_filament_presets.size()) {
+                    exist_trays[i]            = ams_array_maps[valid_index];
                     maps[i].nozzle_diameter    = ams_array_maps[valid_index].nozzle_diameter;
                     maps[i].nozzle_volume_type = ams_array_maps[valid_index].nozzle_volume_type;
                     exist_colors[i]           = ams_filament_colors[valid_index];
@@ -3236,8 +3239,10 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 // present as an identical preset and colour.
                 unsynced_trays.erase(need_append_colors[i].source);
                 if (idx >= 0) {
-                    if (maps.find(idx) == maps.end())
+                    if (maps.find(idx) == maps.end()) {
                         maps[idx] = need_append_colors[i].mapping;
+                        exist_trays[idx] = need_append_colors[i].mapping;
+                    }
                     continue;
                 }
                 maps[int(exist_filament_presets.size())] = need_append_colors[i].mapping;
@@ -3245,15 +3250,18 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 exist_colors.push_back(need_append_colors[i].filament_color);
                 exist_color_types.push_back(need_append_colors[i].filament_color_type);
                 exist_multi_color_filment.push_back(need_append_colors[i].mutli_filament_color);
+                exist_trays.push_back(need_append_colors[i].mapping);
             }
         }
         filament_color->values = exist_colors;
         filament_color_type->values = exist_color_types;
         ams_multi_color_filment = exist_multi_color_filment;
         this->filament_presets = exist_filament_presets;
-        // Mapped/appended sync: project filaments no longer line up 1:1 with trays.
-        synced_filament_trays.clear();
-        synced_filament_presets.clear();
+        synced_filament_trays   = exist_trays;
+        synced_filament_presets = exist_filament_presets;
+        for (size_t i = 0; i < exist_trays.size(); ++i)
+            if (exist_trays[i].ams_id.empty())
+                synced_filament_presets[i].clear(); // not taken from a tray by this sync
         filament_map->values.resize(exist_filament_presets.size(), 1);
     } else { // overwrite;
         filament_color->values = ams_filament_colors;
