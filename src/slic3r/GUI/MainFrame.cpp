@@ -712,6 +712,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
+#ifdef __linux__
+		if (evt.GetModifiers() == wxMOD_CONTROL && key_code == 'Q') { Close(false); return; }
+#endif
         // on_action_slice_plate already switches to the Preview tab via select_view_3D("Preview").
         // Do NOT also SetSelection(tpPreview) here: that posts a second preview-enter event whose
         // do_reslice would run the version-policy guard a second time (double dialog on a blocked version).
