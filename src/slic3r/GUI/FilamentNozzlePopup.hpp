@@ -1,56 +1,72 @@
 #ifndef FILAMENT_NOZZLE_POPUP_HPP
 #define FILAMENT_NOZZLE_POPUP_HPP
 
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include <wx/bitmap.h>
+#include <wx/string.h>
 
-#include "Widgets/PopupWindow.hpp"
+#include "Widgets/CascadeMenu.hpp"
 #include "libslic3r/PrintConfig.hpp"
-
-class StaticBox;
-class wxBoxSizer;
 
 namespace Slic3r { namespace GUI {
 
-// Lightweight transient popup listing the printer's currently installed (diameter, flow type)
-// nozzles as a single flat list (e.g. "0.2 标准", "0.4 高流量", ...), with a checkmark next to the
-// active one. The list mirrors the rack rather than what the slot's filament happens to support,
-// so it stays put as the user moves between filaments; entries the filament cannot print with are
-// greyed out and ignore clicks. Rebuilt on every popup, so swapping the printer's nozzles is
-// picked up straight away. Clicking a selectable item writes back both the diameter and the flow
-// type immediately and dismisses the popup.
+// Transient two-level menu for a filament slot's nozzle: diameters at the first level, each opening
+// the flow types that diameter is made in. The pair is picked in one gesture, so a slot can never be
+// left on a combination no nozzle exists in -- which the flat "0.2 Standard / 0.4 High Flow / ..."
+// list this replaced could only avoid by enumerating the rack and hiding everything else.
+//
+// Both levels list what the printer could have rather than only what is installed, because a row the
+// user cannot pick is what tells them a nozzle is missing; silently omitting it reads as the option
+// not existing. Two kinds of unavailable row say which is which: a combination no nozzle is made in
+// (or this filament cannot print with) is greyed, while one the printer supports but the rack does
+// not carry is faded out and says so on hover.
+//
+// Rebuilt on every popup, so swapping the printer's nozzles is picked up straight away. Picking a
+// row writes back both the diameter and the flow type immediately and closes both levels.
 // Dismissed by clicking outside it (default wxPopupTransientWindow behavior).
-class FilamentNozzlePopup : public PopupWindow
+class FilamentNozzlePopup : public CascadeMenuPopup
 {
 public:
     explicit FilamentNozzlePopup(wxWindow *parent);
 
-    // Rebuilds the option list for the given filament and shows the popup.
+    // Rebuilds the menu for the given filament and shows it.
     // Caller is responsible for positioning it (SetPosition) beforehand.
     void tryPopup(int filament_idx);
 
 private:
-    struct Option
+    // One flow type offered for a diameter. Both flags have to hold for the row to be pickable, and
+    // which one failed decides what the row says on hover -- see the class comment.
+    struct FlowRow
     {
-        std::string      diameter;
-        NozzleVolumeType volume_type;
-        // False for a nozzle the rack carries but this filament cannot print with: the row is
-        // still listed (the list mirrors the printer's nozzles) but greyed out and inert.
-        bool             selectable = true;
+        NozzleVolumeType volume{nvtStandard};
+        wxString         label;
+        bool             installed{true}; // the nozzle settings carry one of these in this diameter
+        bool             usable{true};    // this slot's filament can print with it
     };
 
-    void rebuild_options();
-    void on_item_clicked(size_t option_idx);
+    void                 read_slot_state();
+    void                 build_menu();
+    void                 open_flow_menu(const std::string &diameter, const wxWindow *anchor);
+    std::vector<FlowRow> flow_rows_for(const std::string &diameter) const;
+    void                 apply_pick(const std::string &diameter, NozzleVolumeType volume);
+    void                 close_menus();
 
-    int m_filament_idx = -1;
-    std::vector<Option> m_options;
-    int m_selected = -1;
+    int              m_filament_idx = -1;
+    std::string      m_diameter;             // the diameter this slot is on right now
+    NozzleVolumeType m_volume{nvtStandard};  // and its flow type
 
-    StaticBox  *m_panel      = nullptr;
-    wxBoxSizer *m_list_sizer = nullptr;
-    wxBitmap    m_check_bmp;
+    // What the printer is sold with, what it currently carries, and what this slot's filament can
+    // print with -- read once per popup so the row builders do not each re-derive them.
+    std::vector<std::string>                          m_printer_diameters;
+    std::set<std::pair<std::string, NozzleVolumeType>> m_rack;
+    std::vector<std::string>                          m_filament_diameters;
+    std::vector<std::string>                          m_filament_variants;
+    bool                                              m_filament_variants_complete = false;
+
+    CascadeMenuPopup *m_sub_menu = nullptr;
 };
 
 // Re-derive per-plate filament_map / filament_volume_map / filament_nozzle_map for every plate from

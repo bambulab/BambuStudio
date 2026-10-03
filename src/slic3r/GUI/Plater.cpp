@@ -979,7 +979,8 @@ struct Sidebar::priv
     ExtruderPanel            *r_extruder_panel = nullptr;
     ExtruderPanel            *s_extruder_panel = nullptr;
     ExtruderPanelGroup       *dual_panel       = nullptr;
-    ExtruderPanelGroup       *single_panel     = nullptr;
+    SingleExtruderPanelGroup *single_panel     = nullptr;
+    wxBoxSizer               *diameter_btns_host = nullptr;
     NozzleDetailPopup        *nozzle_detail_popup = nullptr;
     wxPoint                   fila_switch_pos;
 
@@ -1251,14 +1252,28 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
 
         vsizer_printer->AddSpacer(FromDIP(4));
 
-        // diameter buttons
-        vsizer_printer->Add(diameter_btns, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
+        // The host is used by dual-extruder layouts. On a single-extruder multi-nozzle printer the
+        // same control moves into the nozzle card to match the design.
+        diameter_btns_host = new wxBoxSizer(wxVERTICAL);
+        vsizer_printer->Add(diameter_btns_host, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
         vsizer_printer->AddSpacer(FromDIP(4));
 
         vsizer_printer->Add(dual_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->Add(single_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->AddSpacer(FromDIP(4));
     }
+
+    if (supports_multi_diameter) {
+        if (diameter_btns_host->GetItem(diameter_btns))
+            diameter_btns_host->Detach(diameter_btns);
+        single_panel->AttachDiameterPanel(diameter_btns);
+    } else {
+        single_panel->DetachDiameterPanel(m_panel_printer_content);
+        if (!diameter_btns_host->GetItem(diameter_btns))
+            diameter_btns_host->Add(diameter_btns, 0, wxEXPAND);
+    }
+    if (wxSizerItem *host_item = vsizer_printer->GetItem(diameter_btns_host))
+        host_item->Show(!supports_multi_diameter);
 
     btn_connect_printer->Show(!isBBL);
     btn_sync_printer->Show(isBBL);
@@ -2261,6 +2276,23 @@ static void apply_nozzle_migration(const PendingNozzleMigration &migration)
         apply_migrated_volume_types(volume_by_slot);
 }
 
+// The one diameter every configured slot carries, or nothing when they disagree (or none is set).
+// Drives the one-way exit from multi-diameter mode: a setup that no longer mixes diameters has
+// nothing left for the gate to express. Nothing ever turns the mode back on from here -- mixing
+// diameters again is always a deliberate act.
+static std::optional<wxString> common_nozzle_diameter(const std::vector<NozzleConfig> &configs)
+{
+    std::optional<wxString> common;
+    for (const auto &cfg : configs) {
+        if (cfg.diameter.IsEmpty()) continue;
+        if (!common)
+            common = cfg.diameter;
+        else if (*common != cfg.diameter)
+            return std::nullopt;
+    }
+    return common;
+}
+
 void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diameter)
 {
     auto extruder_variants = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
@@ -2290,7 +2322,8 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
     bool                      accepted = false;
     wxString                  selected_diameter;
     std::vector<NozzleConfig> new_left, new_right, new_single;
-    std::optional<bool>       new_multi_diameter_mode; // set only by the list dialog, which owns the mode toggle
+    std::optional<bool>       new_multi_diameter_mode; // set by the list dialog, which owns the mode toggle, or by the auto-exit below
+    bool                      auto_left_multi_diameter = false;
 
     if (use_card_dialog) {
         NozzleSettingsCardDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), diameter, s_ext_cfg);
@@ -2298,6 +2331,17 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         if (accepted) {
             selected_diameter = dlg.GetSelectedDiameter();
             new_single        = dlg.GetExtruderConfigs(0);
+
+            // The card dialog has no mode toggle; the sidebar selector owns it. But a setup the user
+            // just levelled onto one diameter no longer mixes anything, so leave the mode here rather
+            // than making them go back to the selector to say so.
+            if (multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config)) {
+                if (auto common = common_nozzle_diameter(new_single)) {
+                    new_multi_diameter_mode  = false;
+                    auto_left_multi_diameter = true;
+                    selected_diameter        = *common;
+                }
+            }
         }
     } else {
         NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), is_dual, diameter, is_dual ? l_ext_cfg : s_ext_cfg, r_ext_cfg, fila_state);
@@ -2355,7 +2399,11 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
 
         // Mode on/off already selected the 0.2 or 0.4 printer above. switch_diameter()
         // is only for changing the slicing diameter while staying in single-diameter mode.
-        if (!multi_diameter_mode_changed && !target_multi_diameter_mode &&
+        //
+        // The auto-exit is the exception: leaving the mode restores the printer the project used
+        // before it entered multi-diameter mode, and that printer's diameter need not be the one
+        // the slots have since settled on, so the diameter still has to follow.
+        if ((!multi_diameter_mode_changed || auto_left_multi_diameter) && !target_multi_diameter_mode &&
             !selected_diameter.IsEmpty() && selected_diameter != diameter) {
             diameter_btns->SetSelectedDiameter(selected_diameter);
             is_switching_diameter = true;
@@ -3026,6 +3074,18 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
 
         wxString selected_diameter = wxString::FromUTF8(get_diameter_string(nozzle_diameters[0]));
         s_ext_cfg = collect_nozzle_configs_from_machine(obj, 0, extruder_max_nozzle_count[0]);
+
+        // Syncing replaces the whole local nozzle setup with the machine's, so the multi-diameter
+        // gate has to be re-judged against what the machine actually reports: a rack carrying one
+        // diameter leaves nothing for the mode to express. Done before the branch below, which then
+        // picks the printer preset for that diameter and clears the fallback guard as usual.
+        if (multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) && common_nozzle_diameter(s_ext_cfg)) {
+            is_switching_diameter = true;
+            apply_multi_nozzle_diameter_mode(false);
+            is_switching_diameter = false;
+            diameter_btns->SetMultiDiameterMode(false);
+        }
+
         update_extruder_full_stats(LOGIC_UNIQUE_EXTRUDER_ID, selected_diameter, s_ext_cfg);
 
         // Multi-diameter slicing stays anchored on the canonical printer preset, so the machine's
@@ -3158,7 +3218,13 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     } else {
         clear_all_sync_status();
 
-        wxGetApp().plater()->sidebar().clear_combos_filament_badge();
+        // Filament-row badges record whether each slot matches an AMS tray. A nozzle-inventory
+        // mismatch must not wipe that. A different printer still clears them: those trays belong
+        // to the machine that was connected before.
+        if (wxGetApp().plater()->is_same_printer_for_connected_and_selected(false))
+            wxGetApp().plater()->sidebar().udpate_combos_filament_badge();
+        else
+            wxGetApp().plater()->sidebar().clear_combos_filament_badge();
         return;
     }
 
@@ -3870,6 +3936,10 @@ Sidebar::Sidebar(Plater *parent)
                 auto previous_diameter = preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
                 p->diameter_btns->SetSelectedDiameter(wxString(previous_diameter));
             }
+            // Re-project the slot tiles immediately from the final selection. Preset updates also
+            // refresh this panel, but that indirect path may be deferred; the Figma interaction
+            // requires every non-matching diameter to fade as soon as the user picks a diameter.
+            p->update_extruder_panel();
             refresh_filament_diameter_buttons(true);
 
             // Keep the guard up through the extruder-panel sync below: set_extruder_volume_type()
@@ -3920,11 +3990,16 @@ Sidebar::Sidebar(Plater *parent)
             refresh_filament_diameter_buttons();
         });
 
+        auto *single_panel  = new SingleExtruderPanelGroup(p->m_panel_printer_content);
         p->dual_panel       = new DualExtruderPanelGroup(p->m_panel_printer_content);
-        p->single_panel     = new SingleExtruderPanelGroup(p->m_panel_printer_content);
+        p->single_panel     = single_panel;
         p->l_extruder_panel = p->dual_panel->GetPanel(0);
         p->r_extruder_panel = p->dual_panel->GetPanel(1);
         p->s_extruder_panel = p->single_panel->GetPanel(0);
+
+        // The mode selector is drawn across the nozzle card's top border, so the card owns the
+        // widget; diameter_btns keeps the mode itself and adopts the widget here.
+        p->diameter_btns->AttachModePill(single_panel->GetModePill());
 
         p->dual_panel->SetOnClick([this](bool is_dual) { p->open_extruder_settings_dialog(); });
 

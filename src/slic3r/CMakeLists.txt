@@ -124,6 +124,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/NozzleDetailPopup.cpp
     GUI/Widgets/RoundedPopupWindow.hpp
     GUI/Widgets/RoundedPopupWindow.cpp
+    GUI/Widgets/CascadeMenu.hpp
+    GUI/Widgets/CascadeMenu.cpp
     GUI/MixedFilamentDialog.cpp
     GUI/MixedFilamentDialog.hpp
     GUI/ColorDecomposeDialog.cpp

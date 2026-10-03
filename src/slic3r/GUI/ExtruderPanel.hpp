@@ -17,7 +17,9 @@ class ComboBox;
 namespace Slic3r::GUI {
 
 struct NozzleConfig;
-class NozzleSummary; // icon + diameter + flow + count tile; defined in ExtruderPanel.cpp
+class NozzleSummary;  // icon + diameter + flow + count tile; defined in ExtruderPanel.cpp
+class NozzleSlotTile; // one numbered nozzle slot: icon + diameter + flow; defined in ExtruderPanel.cpp
+class NozzleTileScrollbar;
 
 enum class NozzleStatus : int
 {
@@ -25,6 +27,14 @@ enum class NozzleStatus : int
     nsError,
     nsUnknown
 };
+
+// Single-/multi-diameter mode pill geometry, from the design. Shared because DiameterButtonPanel
+// sizes the widget to its widest item while the nozzle card that hosts it both straddles its own top
+// border across that height and lays out the label and chevron inside it.
+constexpr int MODE_PILL_H      = 24;
+constexpr int MODE_PILL_PAD_X  = 8;  // inset before the label and after the chevron
+constexpr int MODE_PILL_GAP    = 6;  // label to chevron
+constexpr int MODE_PILL_ICON_D = 16; // drop-down chevron
 
 class CustomSeparator : public wxPanel
 {
@@ -69,14 +79,29 @@ public:
                         bool show_title = true, DisabledTooltipContext tooltip_context = PrinterContext,
                         bool show_multi_diameter_mode = false);
     wxString    GetSelectedDiameter() const { return m_selected_diameter; }
+    bool        IsMultiDiameterMode() const { return m_multi_diameter_mode_enabled; }
     void        SetSelectedDiameter(const wxString &diameter);
     void        SetNozzleQueryCallback(NozzleQueryCallback callback) { m_nozzle_query_callback = callback; }
     void        SetNoNozzleClickCallback(NoNozzleClickCallback callback) { m_no_nozzle_click_callback = callback; }
     void        SetMultiDiameterMode(bool enabled);
     void        SetMultiDiameterModeCallback(MultiDiameterModeCallback callback) { m_multi_diameter_mode_callback = callback; }
+    void        SetShowTitle(bool show);
     // Show or hide the Single-/Multi-diameter mode selector. Only the sidebar panel is built with one, so
     // this is a no-op elsewhere. The selector belongs to single-extruder multi-nozzle printers only.
     void        ShowModeSelector(bool show);
+    /**
+     * \brief Adopt the mode selector the nozzle card owns and drives from then on.
+     *
+     * The design draws the selector as a pill straddling the nozzle card's top border, and a
+     * wxWidgets child cannot be drawn outside its parent, so the widget has to be the card's child
+     * rather than this panel's. This panel still owns the mode itself -- it hides its own diameter
+     * buttons in multi-diameter mode -- so it keeps the state and only borrows the widget.
+     *
+     * Populates the two items, wires the change callback and pushes the current state onto the pill.
+     * Safe to call before the mode is known: \ref SetMultiDiameterMode and \ref ShowModeSelector
+     * forward to it afterwards.
+     */
+    void        AttachModePill(ComboBox *pill);
     void        UpdateSingleButtonState(Button *btn, const wxString &diameter);
     void        UpdateButtonStates();
     void        RefreshLayout(const std::vector<wxString> &choices);
@@ -89,7 +114,7 @@ private:
     /**
      * \brief Widen the mode selector so its widest item shows without ellipsis
      *
-     * No-op until the combo exists and its items are populated.
+     * No-op until the pill is attached and its items are populated.
      */
     void FitModeComboToWidestItem();
     // In multi-diameter mode every configured diameter is valid, so the diameter selector is meaningless;
@@ -106,7 +131,7 @@ private:
     NozzleQueryCallback   m_nozzle_query_callback{nullptr};
     NoNozzleClickCallback m_no_nozzle_click_callback{nullptr};
     MultiDiameterModeCallback m_multi_diameter_mode_callback{nullptr};
-    ComboBox              *m_multi_diameter_mode_combo{nullptr};
+    ComboBox              *m_multi_diameter_mode_combo{nullptr}; // owned by the nozzle card, not by this panel
     wxBoxSizer            *m_title_sizer{nullptr};
     wxBoxSizer            *m_button_sizer{nullptr};
     bool                   m_mode_selector_visible{true}; // survives CreateLayout rebuilds
@@ -118,7 +143,8 @@ public:
     HorizontalScrollablePanel(wxWindow* parent,
                              wxWindowID id = wxID_ANY,
                              const wxPoint& pos = wxDefaultPosition,
-                             const wxSize& size = wxDefaultSize);
+                             const wxSize& size = wxDefaultSize,
+                             long style = wxHSCROLL);
 
     void Clear();
 
@@ -156,16 +182,22 @@ public:
     void set_ams_count(int n4, int n1);
 
     // Variant behavior. The base defaults are no-ops so a single-extruder panel safely
-    // ignores the AMS/scroll calls that Plater issues uniformly on every panel.
+    // ignores the scroll calls that Plater issues uniformly on every panel.
     virtual void update_ams() {}
-    virtual void sync_ams(MachineObject const           *obj,
-                          std::vector<DevAms *> const   &ams_internal,
-                          std::vector<DevAms *> const   &ams4,
-                          std::vector<DevAms *> const   &ams1,
-                          std::vector<DevAmsTray> const &ext)
-    {}
     virtual void UpdateScrollButtons() {}
     virtual void Rescale();
+
+    /**
+     * \brief Re-read the machine's AMS units into \ref m_ams_4 and friends, then redraw if changed.
+     *
+     * Parsing device state into AMSinfo is the same work for every card variant, so it lives here;
+     * only the drawing it triggers through the virtual \ref update_ams differs between them.
+     */
+    void sync_ams(MachineObject const           *obj,
+                  std::vector<DevAms *> const   &ams_internal,
+                  std::vector<DevAms *> const   &ams4,
+                  std::vector<DevAms *> const   &ams1,
+                  std::vector<DevAmsTray> const &ext);
 
     // AMS slot counts for this extruder. Read by the sidebar AMS-count popup on every
     // panel (single included), so they live in the base rather than the dual subclass.
@@ -189,6 +221,17 @@ protected:
      * \param main_sizer the horizontal sizer holding the variant content next to the tile row
      */
     virtual void CreateContent(wxBoxSizer *main_sizer) = 0;
+
+    /**
+     * \brief Append the variant's own full-width rows below the content row.
+     *
+     * Runs once the content row is in place, so anything added here stays under it. The tile row
+     * still comes first when it needs a line of its own — \ref update_tile_row_line inserts it
+     * ahead of these rows rather than appending.
+     *
+     * \param main_sizer the card's vertical sizer
+     */
+    virtual void CreateExtraRows(wxBoxSizer *main_sizer) {}
 
     // Append one NozzleSummary tile to the summary row.
     void add_summary_tile(const wxString &diameter, const wxString &flow, int count, bool show_count);
@@ -228,6 +271,13 @@ protected:
     wxBoxSizer                  *m_content_sizer{nullptr}; // variant content + warning icon, kept together
     wxBoxSizer                  *m_content_row{nullptr};   // tiles + content, split across lines when the tiles don't fit
     wxBoxSizer                  *m_main_sizer{nullptr};
+
+    // The machine's AMS units for this extruder, as parsed by sync_ams. Kept in the base because
+    // the parsing is shared; each variant decides for itself how much of it to draw.
+    std::vector<AMSinfo> m_ams_4;
+    std::vector<AMSinfo> m_ams_1;
+    std::vector<AMSinfo> m_ams_internal;
+    std::vector<AMSinfo> m_ext;
 };
 
 /**
@@ -239,11 +289,6 @@ public:
     DualExtruderPanel(wxWindow *parent, GroupType type) : ExtruderPanel(parent, type) { Build(); }
 
     void update_ams() override;
-    void sync_ams(MachineObject const           *obj,
-                  std::vector<DevAms *> const   &ams_internal,
-                  std::vector<DevAms *> const   &ams4,
-                  std::vector<DevAms *> const   &ams1,
-                  std::vector<DevAmsTray> const &ext) override;
     void UpdateScrollButtons() override;
     void Rescale() override;
 
@@ -271,29 +316,38 @@ private:
 
     std::vector<AMSPreview *> m_ams_previews;
     std::vector<AMSPreview *> m_ext_previews;
-
-    std::vector<AMSinfo> m_ams_4;
-    std::vector<AMSinfo> m_ams_1;
-    std::vector<AMSinfo> m_ams_internal;
-    std::vector<AMSinfo> m_ext;
 };
 
 /**
- * \brief Single head with multiple nozzles: NozzleSummary tiles only, no AMS scroll.
+ * \brief Single head with multiple nozzles: one NozzleSlotTile per nozzle slot, no AMS scroll.
  */
 class SingleExtruderPanel : public ExtruderPanel
 {
 public:
     explicit SingleExtruderPanel(wxWindow *parent) : ExtruderPanel(parent, SingleExtruder) { Build(); }
 
-    // Adds the experimental multi-nozzle-diameter view; single-diameter mode defers to the base.
+    // Projects each slot as its own numbered tile instead of the base's aggregated summary tile.
     void UpdateNozzles(const std::vector<NozzleConfig> &configs, const wxString &selected_diameter) override;
+
+    // Draws the AMS units attached to this extruder on the row under the nozzle tiles.
+    void update_ams() override;
 
 protected:
     void CreateContent(wxBoxSizer *main_sizer) override;
+    void CreateExtraRows(wxBoxSizer *main_sizer) override;
 
 private:
-    Label *m_nozzle_index_label{nullptr}; // "Nozzle NO. …" / "No Available Nozzle", single-diameter mode only
+    void UpdateTileScrollLayout();
+
+    // Slot tiles keep their design minimum width in one row; the scroll window exposes overflow
+    // when the sidebar becomes narrower than the complete rack.
+    HorizontalScrollablePanel *m_tile_scroll{nullptr};
+    NozzleTileScrollbar        *m_tile_scrollbar{nullptr};
+    wxBoxSizer                 *m_tile_row{nullptr};
+    std::vector<NozzleSlotTile *> m_nozzle_tiles; // one per configured slot, rebuilt by UpdateNozzles
+
+    wxBoxSizer               *m_ams_sizer{nullptr}; // the AMS row under the tiles
+    std::vector<AMSPreview *> m_ams_previews;       // fixed pool, shown or hidden by update_ams
 };
 
 } // namespace Slic3r::GUI

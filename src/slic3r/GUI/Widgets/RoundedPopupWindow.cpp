@@ -30,11 +30,22 @@ RoundedPopupWindow::RoundedPopupWindow(wxWindow *parent, int corner_radius, bool
         ApplyShape();
         e.Skip();
     });
-    if (m_with_shadow)
+    if (m_with_shadow) {
         Bind(wxEVT_SHOW, [this](wxShowEvent &e) {
             m_shadow.Sync(this, e.IsShown());
             e.Skip();
         });
+        // A cascade level is moved while it stays up (the submenu follows the hovered row), so the
+        // shadow has to track move and size, not only the first show.
+        Bind(wxEVT_MOVE, [this](wxMoveEvent &e) {
+            if (IsShown()) m_shadow.Sync(this, true);
+            e.Skip();
+        });
+        Bind(wxEVT_SIZE, [this](wxSizeEvent &e) {
+            if (IsShown()) m_shadow.Sync(this, true);
+            e.Skip();
+        });
+    }
 }
 
 void RoundedPopupWindow::Finalize()
@@ -48,6 +59,16 @@ void RoundedPopupWindow::ApplyShape()
 {
     const wxSize sz = GetSize();
     if (sz.GetWidth() <= 0 || sz.GetHeight() <= 0) return;
+
+    // A square card stays on the system window rect. Clipping a rounded region on Windows is a hard
+    // edge with no antialiasing, and that edge reads as a second, darker border around the stroke.
+    if (m_radius <= 0) {
+#ifdef __WIN32__
+        if (HWND hwnd = (HWND) GetHWND())
+            SetWindowRgn(hwnd, nullptr, TRUE);
+#endif
+        return;
+    }
     const int d = FromDIP(m_radius * 2); // GDI ellipse size = 2*radius
 
 #ifdef __WIN32__
@@ -86,13 +107,16 @@ void RoundedPopupWindow::OnPaint(wxPaintEvent &)
     gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
 
     const double r  = FromDIP(m_radius);
-    const double bw = FromDIP(1);
+    const double bw = m_border_width_px > 0 ? static_cast<double>(m_border_width_px) : static_cast<double>(FromDIP(1));
     const wxSize sz = GetClientSize();
     const double ir = r > bw ? r - bw : 0.0;
 
     gc->SetPen(*wxTRANSPARENT_PEN);
     gc->SetBrush(wxBrush(t(GetBackgroundColour())));
-    gc->DrawRoundedRectangle(bw, bw, sz.GetWidth() - 2.0 * bw, sz.GetHeight() - 2.0 * bw, ir);
+    if (r <= 0.0)
+        gc->DrawRectangle(bw, bw, sz.GetWidth() - 2.0 * bw, sz.GetHeight() - 2.0 * bw);
+    else
+        gc->DrawRoundedRectangle(bw, bw, sz.GetWidth() - 2.0 * bw, sz.GetHeight() - 2.0 * bw, ir);
 }
 
 } // namespace Slic3r::GUI

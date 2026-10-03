@@ -10,16 +10,57 @@
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
 
+#include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "ExtruderHelpers.hpp"
 #include "wxExtensions.hpp"
+#include "Widgets/ComboBox.hpp"
+#include "Widgets/Label.hpp"
 #include "Widgets/StateColor.hpp"
 
 namespace Slic3r::GUI {
 
 namespace {
 constexpr int HOVER_HIDE_DELAY_MS = 150; // grace after the pointer leaves, so a re-enter cancels the hide
-}
+
+/**
+ * \brief The single-/multi-diameter mode selector, drawn as the pill the design puts on the
+ *        nozzle card's top border.
+ *
+ * Only the contents are custom: the drop-down list, its events and the rounded border all come from
+ * ComboBox. TextInput always draws its icon ahead of the label, while the design puts the chevron
+ * after it, so this paints the label and chevron itself on top of the inherited StaticBox chrome.
+ */
+class ModePill : public ComboBox
+{
+public:
+    explicit ModePill(wxWindow *parent)
+        : ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, parent->FromDIP(wxSize(120, MODE_PILL_H)), 0, nullptr, wxCB_READONLY)
+        , m_chevron(this, "drop_down", MODE_PILL_ICON_D)
+    {}
+
+protected:
+    void render(wxDC &dc) override
+    {
+        StaticBox::render(dc); // the rounded brand-green outline and the opaque fill behind it
+
+        const wxSize size  = GetSize();
+        const wxSize arrow = m_chevron.GetBmpSize();
+
+        dc.SetFont(GetFont());
+        dc.SetTextForeground(ThemeColor::BrandGreen);
+        // wxWindow::GetLabel, as TextInput::render reads it: ComboBox::GetLabel would answer from
+        // the hidden text control instead once this stopped being a read-only combo.
+        const wxString label = wxWindow::GetLabel();
+        const wxSize   text  = dc.GetTextExtent(label);
+        dc.DrawText(label, FromDIP(MODE_PILL_PAD_X), (size.y - text.y) / 2);
+        dc.DrawBitmap(m_chevron.bmp(), size.x - FromDIP(MODE_PILL_PAD_X) - arrow.x, (size.y - arrow.y) / 2, true);
+    }
+
+private:
+    ScalableBitmap m_chevron;
+};
+} // namespace
 
 ExtruderPanelGroup::ExtruderPanelGroup(wxWindow *parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
@@ -34,18 +75,27 @@ ExtruderPanelGroup::ExtruderPanelGroup(wxWindow *parent) : wxPanel(parent, wxID_
 
 void ExtruderPanelGroup::Build()
 {
-    m_main_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    CreateExtruders(m_main_sizer);
+    // A variant with a header puts its settings entry there, so it also drops the trailing arrow
+    // that would otherwise be the card's only hint that it opens a dialog.
+    const bool has_header = CreateHeader(m_main_sizer);
 
-    auto separator = new wxPanel(this, wxID_ANY);
-    separator->SetBackgroundColour(ThemeColor::Grey400);
-    separator->SetMinSize(wxSize(FromDIP(1), -1));
-    m_main_sizer->Add(separator, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(4));
+    auto *content = new wxBoxSizer(wxHORIZONTAL);
+    CreateExtruders(content);
 
-    auto arrow = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("arrow_right", this, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
-    arrow->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
-    m_main_sizer->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(10));
+    if (!has_header) {
+        auto separator = new wxPanel(this, wxID_ANY);
+        separator->SetBackgroundColour(ThemeColor::Grey400);
+        separator->SetMinSize(wxSize(FromDIP(1), -1));
+        content->Add(separator, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(4));
+
+        auto arrow = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("arrow_right", this, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
+        arrow->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+        content->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(10));
+    }
+
+    m_main_sizer->Add(content, 1, wxEXPAND);
 
     SetSizer(m_main_sizer);
     Layout();
@@ -63,13 +113,19 @@ void ExtruderPanelGroup::OnPaint(wxPaintEvent &evt)
     wxAutoBufferedPaintDC dc(this);
     wxGraphicsContext    *gc   = wxGraphicsContext::Create(dc);
     wxSize                size = GetSize();
+
+    // A control hung across the top edge pushes the border down to its vertical centre; the control
+    // paints after us and its own fill covers the segment behind it, leaving the fieldset-legend look.
+    const wxWindow *straddling = BorderStraddlingWidget();
+    const int       border_top = straddling ? straddling->GetSize().y / 2 : 0;
+
     if (gc) {
         dc.Clear();
         gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
         wxGraphicsPath path   = gc->CreatePath();
-        double         radius = FromDIP(2);
+        double         radius = FromDIP(4);
 
-        path.AddRoundedRectangle(0, 0, size.x - 1, size.y - 1, radius);
+        path.AddRoundedRectangle(0, border_top, size.x - 1, size.y - 1 - border_top, radius);
 
         auto  color = StateColor::darkModeColorFor(ThemeColor::Grey400);
         wxPen pen(color, FromDIP(1));
@@ -82,7 +138,7 @@ void ExtruderPanelGroup::OnPaint(wxPaintEvent &evt)
 #ifdef __WXMSW__
     if (m_badge.bmp().IsOk()) {
         auto s = m_badge.bmp().GetScaledSize();
-        dc.DrawBitmap(m_badge.bmp(), GetSize().x - s.x, 0);
+        dc.DrawBitmap(m_badge.bmp(), size.x - s.x, border_top); // pinned to the card's own top corner
     }
 #endif
 }
@@ -96,7 +152,10 @@ void ExtruderPanelGroup::BindClickEvents()
     std::function<void(wxWindow *)> bind_recursive = [this, &bind_recursive](wxWindow *window) {
         if (!window) return;
 
-        if (dynamic_cast<wxButton *>(window) || dynamic_cast<wxComboBox *>(window) || dynamic_cast<ScalableButton *>(window) || dynamic_cast<wxScrollBar *>(window) ||
+        // ::ComboBox is a StaticBox, not a wxComboBox, so it needs its own test -- without it the
+        // mode pill would open the settings dialog instead of its own drop-down.
+        if (dynamic_cast<wxButton *>(window) || dynamic_cast<wxComboBox *>(window) || dynamic_cast<::ComboBox *>(window) ||
+            dynamic_cast<ScalableButton *>(window) || dynamic_cast<wxScrollBar *>(window) ||
             dynamic_cast<wxTextCtrl *>(window) || dynamic_cast<wxSpinCtrl *>(window)) {
             return;
         }
@@ -259,8 +318,10 @@ void ExtruderPanelGroup::LayoutBadge()
     wxSize panel_size = GetSize();
     wxSize badge_size = m_badge->GetBestSize();
 
+    const wxWindow *straddling = BorderStraddlingWidget();
+
     int x = panel_size.x - badge_size.x;
-    int y = 0;
+    int y = straddling ? straddling->GetSize().y / 2 : 0; // the card's own top edge, see OnPaint
 
     m_badge->SetPosition(wxPoint(x, y));
 }
@@ -303,9 +364,124 @@ CustomSeparator::State DualExtruderPanelGroup::GetSeparatorState() const { retur
 
 void SingleExtruderPanelGroup::CreateExtruders(wxBoxSizer *content)
 {
+    // The spacers widen the side inset to the header row's 6px (4 here plus the panel's own 2), so
+    // the tiles line up under "Nozzle" instead of starting 4px further left. A wider border on the
+    // item itself would push the top and bottom out with them, since a sizer item has only one.
     auto single = new SingleExtruderPanel(this);
+    content->AddSpacer(FromDIP(4));
     content->Add(single, 1, wxEXPAND | wxALL, FromDIP(2));
+    content->AddSpacer(FromDIP(4));
     m_panels.push_back(single);
+}
+
+// The mode pill rides the card's top border, so OnPaint has to know how tall it is. Reported only
+// while it is shown: on a printer without the mode selector the card has an ordinary top border.
+wxWindow *SingleExtruderPanelGroup::BorderStraddlingWidget() const { return m_mode_pill && m_mode_pill->IsShown() ? m_mode_pill : nullptr; }
+
+// Fully rounded with the brand outline, and opaque in the card's own background so it hides the
+// stretch of border OnPaint runs behind it -- that hidden stretch is what makes the pill read as
+// sitting on the border rather than below it.
+void SingleExtruderPanelGroup::StyleModePill()
+{
+    if (!m_mode_pill) return;
+
+    m_mode_pill->SetCornerRadius(FromDIP(MODE_PILL_H) / 2.0);
+    m_mode_pill->SetBorderColor(ThemeColor::BrandGreen); // brand colour, identical in both themes
+    m_mode_pill->SetBackgroundColor(GetBackgroundColour());
+    m_mode_pill->SetFont(Label::Body_13);
+}
+
+void SingleExtruderPanelGroup::AttachDiameterPanel(DiameterButtonPanel *panel)
+{
+    if (!panel || m_diameter_panel == panel)
+        return;
+
+    panel->Reparent(this);
+    panel->SetShowTitle(false);
+
+    m_diameter_sizer = new wxBoxSizer(wxVERTICAL);
+    m_diameter_sizer->AddSpacer(FromDIP(10));
+    m_diameter_sizer->Add(panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
+    m_diameter_sizer->AddSpacer(FromDIP(8));
+    m_main_sizer->Insert(m_main_sizer->GetItemCount() - 1, m_diameter_sizer, 0, wxEXPAND);
+    m_diameter_panel = panel;
+
+    ShowDiameterPanel(!panel->IsMultiDiameterMode());
+}
+
+void SingleExtruderPanelGroup::ShowDiameterPanel(bool show)
+{
+    if (!m_diameter_sizer)
+        return;
+
+    m_main_sizer->Show(m_diameter_sizer, show);
+    Layout();
+    FitToPanels();
+}
+
+void SingleExtruderPanelGroup::DetachDiameterPanel(wxWindow *new_parent)
+{
+    if (!m_diameter_panel || !new_parent)
+        return;
+
+    m_diameter_sizer->Detach(m_diameter_panel);
+    m_main_sizer->Detach(m_diameter_sizer);
+    delete m_diameter_sizer;
+    m_diameter_sizer = nullptr;
+
+    m_diameter_panel->Reparent(new_parent);
+    m_diameter_panel->SetShowTitle(true);
+    m_diameter_panel = nullptr;
+
+    Layout();
+    FitToPanels();
+}
+
+void SingleExtruderPanelGroup::Rescale()
+{
+    StyleModePill();
+    ExtruderPanelGroup::Rescale();
+}
+
+// Two rows: the mode pill straddling the top border, then "Nozzle" on the left with the settings
+// entry (gear + label + arrow) on the right. The entry is not a control of its own -- BindClickEvents
+// already makes the whole card open the dialog, so this only has to read as the place to click.
+bool SingleExtruderPanelGroup::CreateHeader(wxBoxSizer *outer)
+{
+    // Only the widget is ours; DiameterButtonPanel::AttachModePill fills it in and owns the mode.
+    m_mode_pill = new ModePill(this);
+    StyleModePill();
+    outer->Add(m_mode_pill, 0, wxLEFT, FromDIP(16));
+
+    auto *row = new wxBoxSizer(wxHORIZONTAL);
+
+    auto *title = new Label(this, _L("Nozzle"));
+    title->SetFont(Label::Body_12);
+    title->SetForegroundColour(ThemeColor::Grey500);
+    title->SetBackgroundColour(ThemeColor::Grey200);
+    row->Add(title, 0, wxALIGN_CENTER_VERTICAL);
+
+    row->AddStretchSpacer();
+
+    auto *gear = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("settings", this, 16));
+    row->Add(gear, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto *entry = new Label(this, _L("Settings"));
+    entry->SetFont(Label::Body_13);
+    entry->SetForegroundColour(ThemeColor::TextPrimary);
+    entry->SetBackgroundColour(ThemeColor::Grey200);
+    row->Add(entry, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
+
+    // right_arrow, not arrow_right: the design ends the row with a thin chevron, where arrow_right
+    // is a full shafted arrow.
+    auto *arrow = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("right_arrow", this, 16));
+    row->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
+
+    // The design puts this row 20px below the card's top border. The pill above already accounts for
+    // 12 of those -- its lower half sits inside the card -- so only the remainder is added here.
+    outer->AddSpacer(FromDIP(8));
+    outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
+    return true;
 }
 
 } // namespace Slic3r::GUI

@@ -783,9 +783,14 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
         // can't be mounted on the current extruder right now.
         int item_style = 0;
         if (!is_incompatible_row && printer_connected_and_matched && row_matches_current) item_style |= DD_ITEM_STYLE_SYNCED;
+        // A tray under "Unavailable Nozzles" sits on a nozzle whose diameter this print does not
+        // use, so it is greyed and refuses the click instead of accepting a selection that could
+        // not be printed. The tooltip points at the one setting that makes it selectable.
+        if (is_incompatible_row) item_style |= DD_ITEM_STYLE_DISABLED;
 
-        Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry_key, item_style);
+        const int index = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry_key, item_style);
         SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+        if (is_incompatible_row) SetItemTooltip(index, _L("To select this filament, change the nozzle settings first."));
         if (row_matches_current) selected_in_ams = true;
     };
 

@@ -24,6 +24,14 @@ public:
     void SetBorderColour(const wxColour &light) { m_border_light = light; }
     void SetCornerRadius(int radius) { m_radius = radius; }
 
+    /**
+     * \brief Stroke width in device pixels. 0 keeps the default one-DIP stroke.
+     *
+     * A design that specifies a 0.5px hairline wants one device pixel, which FromDIP(1)
+     * overshoots once the window is scaled.
+     */
+    void SetBorderWidthPx(int px) { m_border_width_px = px; }
+
     /** \brief Size the popup to its content and clip it to the rounded shape. Call after building the sizer. */
     void Finalize();
 
@@ -33,6 +41,7 @@ protected:
 
     int          m_radius{8};
     bool         m_with_shadow{false};
+    int          m_border_width_px{0};
     wxColour     m_border_light;
     WindowShadow m_shadow;
 };

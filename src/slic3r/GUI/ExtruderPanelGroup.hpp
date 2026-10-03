@@ -7,6 +7,7 @@
 #include <wx/timer.h>
 
 #include "ExtruderPanel.hpp" // ExtruderPanel, CustomSeparator, and the NozzleConfig forward decl
+#include "Widgets/StateColor.hpp" // ThemeColor, for the card background the constructor sets
 
 /**
  * \file ExtruderPanelGroup.hpp
@@ -55,7 +56,7 @@ public:
     void UpdateNozzles(int index, const std::vector<NozzleConfig> &configs, const wxString &selected_diameter);
 
     // Layout
-    void Rescale();
+    virtual void Rescale();
 
     // Separator state is only meaningful for the dual printers
     virtual void                   SetSeparatorState(CustomSeparator::State state) {}
@@ -78,10 +79,37 @@ protected:
      */
     virtual void CreateExtruders(wxBoxSizer *content) = 0;
 
+    /**
+     * \brief Build the variant's header row above the panels, if it has one.
+     *
+     * A variant with a header owns the card's settings entry, so \ref Build leaves out the shared
+     * divider and trailing arrow when this returns true.
+     *
+     * \param outer the card's vertical sizer, still empty at this point
+     * \return true when a header was added
+     */
+    virtual bool CreateHeader(wxBoxSizer *outer) { return false; }
+
     /// \brief true for dual-extruder cards; forwarded to the click callback as its \c is_dual argument.
     virtual bool IsDual() const { return false; }
 
+    /**
+     * \brief The widget the card's top border has to run through instead of over, if any.
+     *
+     * A variant whose header hangs a control across the top edge returns it here: \ref OnPaint then
+     * starts the border half that control's height down, so the line crosses its vertical centre and
+     * the control's own opaque fill hides the crossing. Returns nullptr while it is hidden, so the
+     * border snaps back to the top edge.
+     */
+    virtual wxWindow *BorderStraddlingWidget() const { return nullptr; }
+
     std::vector<ExtruderPanel *> m_panels;
+    wxBoxSizer                  *m_main_sizer{nullptr};
+
+    /**
+     * \brief Re-fit the card to the height its panels and optional controls now need.
+     */
+    void FitToPanels();
 
 private:
     // Re-arm click / hover on the whole card after a panel rebuilt its summary tiles
@@ -92,14 +120,6 @@ private:
     void OnHover(wxMouseEvent &evt); // one handler bound to both enter and leave
     void SetHoverShown(bool shown);  // drives m_on_hover; a show is dropped while disabled/inactive
     void OnPaint(wxPaintEvent &evt);
-
-    /**
-     * \brief Re-fit the card to the height its panels now need.
-     *
-     * Call after a panel changed its height, so the card and the sidebar following it grow to hold
-     * a tile row that wrapped onto extra lines instead of clipping it.
-     */
-    void FitToPanels();
 
     // Re-fit after a resize, since a different width fits a different number of tiles per line.
     void OnSize(wxSizeEvent &evt);
@@ -114,7 +134,6 @@ private:
 #endif
 
     // Layout components
-    wxBoxSizer               *m_main_sizer{nullptr};
     bool                      m_fit_pending{false}; // a re-fit is already queued for this resize
     std::function<void(bool)> m_on_click{};
     std::function<void(bool)> m_on_hover{};
@@ -147,10 +166,40 @@ private:
 class SingleExtruderPanelGroup : public ExtruderPanelGroup
 {
 public:
-    explicit SingleExtruderPanelGroup(wxWindow *parent) : ExtruderPanelGroup(parent) { Build(); }
+    explicit SingleExtruderPanelGroup(wxWindow *parent) : ExtruderPanelGroup(parent)
+    {
+        // The design draws this card on white rather than the shared grey, which is what gives its
+        // nozzle tiles their contrast. Set before Build(), which reads it back for the mode pill.
+        SetBackgroundColour(ThemeColor::White);
+        Build();
+    }
+
+    /**
+     * \brief The single-/multi-diameter mode pill drawn across the card's top border.
+     *
+     * The card only owns the widget so it can be painted over its own border; the mode itself stays
+     * with DiameterButtonPanel, which adopts the pill through \c AttachModePill.
+     */
+    ComboBox *GetModePill() const { return m_mode_pill; }
+
+    void AttachDiameterPanel(DiameterButtonPanel *panel);
+    void DetachDiameterPanel(wxWindow *new_parent);
+    void ShowDiameterPanel(bool show);
+    void Rescale() override;
 
 protected:
-    void CreateExtruders(wxBoxSizer *content) override;
+    void      CreateExtruders(wxBoxSizer *content) override;
+    bool      CreateHeader(wxBoxSizer *outer) override;
+    wxWindow *BorderStraddlingWidget() const override;
+
+private:
+    // StaticBox keeps its colours rather than re-reading them at paint time, so the pill's theming
+    // has to be re-applied whenever the card is rescaled or the system colours change.
+    void StyleModePill();
+
+    ComboBox            *m_mode_pill{nullptr};
+    DiameterButtonPanel *m_diameter_panel{nullptr};
+    wxBoxSizer          *m_diameter_sizer{nullptr};
 };
 
 } // namespace Slic3r::GUI

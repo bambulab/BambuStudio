@@ -8,6 +8,7 @@
 #include <wx/string.h>
 
 class wxBoxSizer;
+class wxStaticBitmap;
 class Label;
 class ScalableButton;
 class PopupWindow;
@@ -50,6 +51,7 @@ public:
 
 private:
     void refresh_previews();
+    void update_sync_badge();
     void show_add_popup();
     void show_delete_popup(AMSPreview *preview);
 
@@ -61,9 +63,11 @@ private:
 
     Label                    *m_label{nullptr};
     wxPanel                  *m_previews_container{nullptr};
+    wxBoxSizer               *m_row_sizer{nullptr};
     wxBoxSizer               *m_previews_sizer{nullptr};
     std::vector<AMSPreview *> m_previews; // 4 AMS-type + 8 N3S-type, reused
     ScalableButton           *m_add_btn{nullptr};
+    wxStaticBitmap           *m_sync_badge{nullptr}; // right-end check when counts match the printer
     PopupWindow              *m_popup{nullptr}; // tracks the live add/delete popup
 };
 

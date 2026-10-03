@@ -19,10 +19,11 @@ class NozzleAmsRow;
 /**
  * \brief Card-grid nozzle settings dialog for singel extruder multi nozzle printers
  *
- * Layout is a two-row grid by nozzle number: even numbers on top, odd on the bottom. The diameter
- * selector is shown only in single-diameter mode (multi_nozzle_diameter_mode off), where cards whose
- * diameter differs from the selected one are flagged; in multi-diameter mode the selector is hidden
- * and every configured diameter is valid.
+ * Layout is a two-row grid by nozzle number: even numbers on top, odd on the bottom. The dialog
+ * records which nozzle is installed in which slot; picking the diameter the plate slices at stays
+ * with the sidebar selector. In single-diameter mode (multi_nozzle_diameter_mode off) cards whose
+ * diameter differs from that one are flagged; in multi-diameter mode every configured diameter is
+ * valid and nothing is flagged.
  */
 class NozzleSettingsCardDialog : public DPIDialog
 {
@@ -35,19 +36,16 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
 private:
-    void create_layout(const wxString &selected_diameter, const std::vector<NozzleConfig> &seeds);
-    void build_diameter_selector(wxBoxSizer *main_sizer, const wxString &selected_diameter);
+    void create_layout(const std::vector<NozzleConfig> &seeds);
     void build_card_grid(wxBoxSizer *main_sizer, const std::vector<NozzleConfig> &seeds);
     void build_ams_row(wxBoxSizer *main_sizer);
     void build_warning_panels(wxBoxSizer *main_sizer);
     void build_button_bar(wxBoxSizer *main_sizer);
-    void setup_callbacks();
     void update_state();
 
     bool     m_multi_diameter_mode{false};
-    wxString m_selected_diameter;
+    wxString m_selected_diameter; ///< the diameter the plate slices at, as the caller passed it in
 
-    DiameterButtonPanel      *m_diameter_panel{nullptr};
     std::vector<NozzleCard *> m_cards;
 
     NozzleAmsRow *m_ams_row{nullptr};

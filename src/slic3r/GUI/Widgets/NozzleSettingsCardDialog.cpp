@@ -25,10 +25,11 @@
 #include "slic3r/GUI/ExtruderHelpers.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
-#include "slic3r/GUI/Widgets/ComboBox.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include "slic3r/GUI/Widgets/PopupWindow.hpp"
+#include "slic3r/GUI/Widgets/RoundedPopupWindow.hpp"
+#include "slic3r/GUI/Widgets/CascadeMenu.hpp"
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
@@ -42,7 +43,7 @@ namespace Slic3r::GUI {
 namespace {
 
 constexpr int CARD_W   = 120;
-constexpr int CARD_H   = 100;
+constexpr int CARD_H   = 88; // header pill + the diameter and type rows; the combos that set it to 100 are gone
 constexpr int CARD_GAP = 16;
 
 // Card fill/border/corner as ThemeColor tokens; mapped through StateColor's dark map at paint time.
@@ -51,13 +52,70 @@ inline wxColour themed(const wxColour &c) { return wxGetApp().dark_mode() ? Stat
 // encode_volume / decode_volume live in ExtruderHelpers.hpp; the external-AMS row (previews,
 // popups, count edits) is encapsulated in the shared NozzleAmsRow widget.
 
+// One flow type offered for a nozzle. Every entry is a nozzle that exists and can be fitted, so
+// this dialog -- which configures what the rack holds, independently of any connected machine --
+// has no unselectable rows at all.
+struct FlowOption
+{
+    NozzleVolumeType volume{nvtStandard};
+    wxString         label;
+};
+
+/**
+ * \brief The flow types offered for a nozzle of \p diameter on \p extruder_index.
+ *
+ * Two sources decide the outcome. The printer preset's extruder_variant_list says which types that
+ * printer is sold with at all; anything outside it (and hybrid, which is a slicing construct rather
+ * than a nozzle anyone can install) is left out. That list is of parameter variants rather than of
+ * nozzles, so nozzle_variant_exists() then drops the combinations it names that no one makes.
+ */
+std::vector<FlowOption> flow_options_for_diameter(int extruder_index, const wxString &diameter)
+{
+    std::vector<FlowOption> options;
+
+    auto *preset_bundle      = wxGetApp().preset_bundle;
+    auto  nozzle_volumes_def = preset_bundle->project_config.def()->get("nozzle_volume_type");
+
+    auto printer_preset            = preset_bundle->get_similar_printer_preset({}, diameter.ToStdString());
+    auto extruder_variants         = printer_preset->config.option<ConfigOptionStrings>("extruder_variant_list");
+    auto extruders_def             = printer_preset->config.def()->get("extruder_type");
+    auto extruders                 = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    auto extruder_max_nozzle_count = printer_preset->config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+
+    const int         idx          = std::max(0, std::min(extruder_index, static_cast<int>(extruders->values.size()) - 1));
+    const auto        type         = extruders_def->enum_labels[extruders->values[idx]];
+    const std::string diameter_str = diameter.ToStdString();
+
+    for (int j = 0; j < (int) nozzle_volumes_def->enum_labels.size(); ++j) {
+        const auto volume     = nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]);
+        const bool variant_ok = boost::algorithm::contains(extruder_variants->values[idx], type + " " + nozzle_volumes_def->enum_labels[j]);
+        const bool hybrid_ok  = extruder_max_nozzle_count->values[idx] > 1 && volume == nvtHybrid;
+        if (!variant_ok && !hybrid_ok) continue;
+        if (volume == NozzleVolumeType::nvtHybrid) continue;
+        if (!nozzle_variant_exists(diameter_str, static_cast<NozzleVolumeType>(volume))) continue;
+
+        options.push_back({static_cast<NozzleVolumeType>(volume), _L(nozzle_volumes_def->enum_labels[j])});
+    }
+    return options;
+}
+
+// The user-facing name of a flow type, as the nozzle_volume_type enum declares it.
+wxString flow_label(NozzleVolumeType volume)
+{
+    auto      def = wxGetApp().preset_bundle->project_config.def()->get("nozzle_volume_type");
+    const int idx = static_cast<int>(volume);
+    if (def && idx >= 0 && idx < (int) def->enum_labels.size()) return _L(def->enum_labels[idx]);
+    return wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(volume));
+}
+
 } // namespace
 
 // ---------------------------------------------------------------------------
 // NozzleCard — one nozzle as a vertical card
-//   [Nozzle N            ▟]   (title + green corner flag)
-//   [ 0.4mm            v ]     diameter dropdown
-//   [ Standard         v ]     flow dropdown
+//   [Nozzle N            ✎]   (title + edit icon; green corner flag when synced)
+//   [ Diameter     0.4 mm ]    read-only
+//   [ Type       Standard ]    read-only
+// Both values are edited together through the two-level menu the edit icon opens.
 // ---------------------------------------------------------------------------
 class NozzleCard : public wxPanel
 {
@@ -74,9 +132,11 @@ public:
 
 private:
     void build_header(wxSizer *v, int number);
-    void build_combos(wxSizer *v);
-    void rebuild_diameter_combo(NozzleVolumeType volume);
-    void rebuild_flow_combo(const wxString &diameter);
+    void build_value_rows(wxSizer *v);
+    void refresh_values();
+    void show_edit_menu();                                   // the diameter menu, with a flow submenu per diameter
+    void close_menus();                                      // both levels, in the order the guard requires
+    void apply_pick(const wxString &diameter, NozzleVolumeType volume);
     bool is_synced() const; // current diameter/volume matches what the connected printer reports for this slot
     void OnPaint(wxPaintEvent &evt);
 
@@ -89,12 +149,20 @@ private:
     std::vector<std::pair<int, int>> m_ams_slots;   // preserved and passed back through GetConfig
     bool                             m_warn{false}; // diameter mismatch -> yellow border (single mode)
 
+    // The card's own state, which the menu writes and the value rows read. Held here rather than in
+    // the widgets so the two stay in lockstep and so an empty slot needs no sentinel list entry.
+    wxString         m_diameter; // empty means the slot carries no nozzle
+    NozzleVolumeType m_volume{nvtStandard};
+
     Label          *m_title{nullptr};
     wxStaticBitmap *m_warning_icon{nullptr};
+    wxStaticBitmap *m_edit_icon{nullptr};
     wxBitmap        m_badge_bmp;     // "badge" (synced check), drawn at the card's top-right corner
     bool            m_synced{false}; // whether this nozzle still matches the machine-seeded config
-    ComboBox       *m_diameter_combo{nullptr};
-    ComboBox       *m_flow_combo{nullptr};
+    Label          *m_diameter_value{nullptr};
+    Label          *m_flow_value{nullptr};
+    CascadeMenuPopup *m_menu{nullptr};     // the open diameter menu, if any
+    CascadeMenuPopup *m_sub_menu{nullptr}; // the open flow menu, if any
 };
 
 NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, std::function<void()> on_changed)
@@ -106,6 +174,8 @@ NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const N
     , m_on_changed(std::move(on_changed))
     , m_status(seed.status)
     , m_ams_slots(seed.ams_slots)
+    , m_diameter(seed.diameter)
+    , m_volume(seed.volume)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetMinSize(FromDIP(wxSize(CARD_W, CARD_H)));
@@ -113,153 +183,202 @@ NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const N
 
     auto *v = new wxBoxSizer(wxVERTICAL);
     build_header(v, number);
-    build_combos(v);
+    build_value_rows(v);
     SetSizer(v);
+
+    // The whole card opens the menu, not just the icon: the rows it edits are right there, and a
+    // 14px icon is a small target for what is the card's only action.
+    Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { show_edit_menu(); });
 }
 
 void NozzleCard::build_header(wxSizer *v, int number)
 {
     auto *row = new wxBoxSizer(wxHORIZONTAL);
 
+    // The title is the row's only flexible item, so it both pushes the icons to the right edge and
+    // is the one that gives way when a warning adds a second icon to a card this narrow. The icons
+    // keep their size either way -- losing the edit affordance costs the user the card's only action.
     m_title = new Label(this, wxString::Format(_L("Nozzle %d"), number));
     m_title->SetFont(Label::Body_13.Bold());
     m_title->SetBackgroundColour(themed(ThemeColor::Grey250));
-    row->Add(m_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+    row->Add(m_title, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
 
     m_warning_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning_serious", this, 14), wxDefaultPosition, FromDIP(wxSize(14, 14)), 0);
     m_warning_icon->Hide();
-    // Clear the grey pill painted behind the title, which extends FromDIP(6) past the label (see OnPaint).
-    row->Add(m_warning_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(8));
+    row->Add(m_warning_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
+
+    m_edit_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("edit", this, 14), wxDefaultPosition, FromDIP(wxSize(14, 14)), 0);
+    m_edit_icon->SetCursor(wxCursor(wxCURSOR_HAND));
+    m_edit_icon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { show_edit_menu(); });
+    row->Add(m_edit_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(4));
 
     m_badge_bmp = create_scaled_bitmap("badge", this, 16); // drawn at the card's top-right corner in OnPaint
 
     v->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
 }
 
-void NozzleCard::build_combos(wxSizer *v)
+// Two read-only rows, caption left and value right. Editing goes through show_edit_menu(), which
+// sets both at once -- a diameter and a flow type are only ever valid as a pair.
+void NozzleCard::build_value_rows(wxSizer *v)
 {
-    auto width       = CARD_W - 2 * 8;
-    m_diameter_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(width), -1), 0, nullptr, wxCB_READONLY);
-    rebuild_diameter_combo(m_seed.volume);
-    v->Add(m_diameter_combo, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
+    auto add_row = [this, v](const wxString &caption) {
+        auto *row  = new wxBoxSizer(wxHORIZONTAL);
+        auto *name = new Label(this, caption);
+        name->SetFont(Label::Body_12);
+        name->SetForegroundColour(themed(ThemeColor::TextMuted));
+        name->SetBackgroundColour(themed(ThemeColor::White));
+        row->Add(name, 0, wxALIGN_CENTER_VERTICAL);
 
-    v->AddSpacer(FromDIP(6));
+        row->AddStretchSpacer();
 
-    m_flow_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(width), -1), 0, nullptr, wxCB_READONLY);
-    rebuild_flow_combo(m_seed.diameter);
-    v->Add(m_flow_combo, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(8));
+        auto *value = new Label(this, wxEmptyString);
+        value->SetFont(Label::Body_12);
+        value->SetForegroundColour(themed(ThemeColor::TextPrimary));
+        value->SetBackgroundColour(themed(ThemeColor::White));
+        row->Add(value, 0, wxALIGN_CENTER_VERTICAL);
 
-    m_diameter_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
-        const int sel      = m_diameter_combo->GetSelection();
-        wxString  diameter = (sel == m_diameter_combo->GetCount() - 1) ? _L("Empty") : parse_diameter_value(m_diameter_combo->GetValue());
-        rebuild_flow_combo(diameter);
-        if (m_on_changed) m_on_changed();
-        e.Skip();
-    });
-    m_flow_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
-        const int sel = m_flow_combo->GetSelection();
-        if (sel != wxNOT_FOUND) {
-            if (void *data = m_flow_combo->GetClientData(sel)) rebuild_diameter_combo(static_cast<NozzleVolumeType>(decode_volume(data)));
-        }
-        if (m_on_changed) m_on_changed();
-        e.Skip();
-    });
+        v->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
+        return value;
+    };
+
+    m_diameter_value = add_row(_L("Diameter"));
+    m_flow_value     = add_row(_L("Type"));
+    v->AddSpacer(FromDIP(8));
+
+    refresh_values();
 }
 
-// Rebuild the diameter list for the given volume type. 0.2 nozzle only exists with a Standard
-// volume type. Ported from NozzleSettingsListDialog::NozzleRow.
-void NozzleCard::rebuild_diameter_combo(NozzleVolumeType volume_type)
+void NozzleCard::refresh_values()
 {
-    const wxString prev     = m_diameter_combo->GetValue();
-    const wxString prev_dia = parse_diameter_value(prev);
-    const bool     had_list = m_diameter_combo->GetCount() > 0;
-    m_diameter_combo->Clear();
+    if (m_diameter_value) m_diameter_value->SetLabel(m_diameter.IsEmpty() ? _L("Empty") : m_diameter + " mm");
+    // An empty slot has no flow type to report, so the row reads as a dash rather than claiming
+    // the Standard the config happens to default to.
+    if (m_flow_value) m_flow_value->SetLabel(m_diameter.IsEmpty() ? wxString("--") : flow_label(m_volume));
+    Layout();
+}
 
-    int seed_idx = -1;
-    int prev_idx = -1;
+void NozzleCard::apply_pick(const wxString &diameter, NozzleVolumeType volume)
+{
+    if (m_diameter == diameter && m_volume == volume) return;
+    m_diameter = diameter;
+    m_volume   = volume;
+    refresh_values();
+    if (m_on_changed) m_on_changed();
+}
+
+// Diameters at the first level, each opening the flow types that diameter is made in. The pair is
+// picked in one gesture, so the card can never sit on a combination no nozzle exists in -- which
+// the two linked dropdowns this replaced could only avoid by rebuilding each other on every change.
+void NozzleCard::show_edit_menu()
+{
+    auto dismiss = [](CascadeMenuPopup *&popup) {
+        if (!popup) return;
+        popup->Dismiss();
+        popup->Destroy();
+        popup = nullptr;
+    };
+    if (m_menu) m_menu->SetSubMenu(nullptr); // drop the guard before tearing the pair down
+    dismiss(m_sub_menu);
+    dismiss(m_menu);
+
+    auto *menu  = new CascadeMenuPopup(this);
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
+    m_menu      = menu;
+
+    // One flow menu for the whole gesture, refilled as the pointer moves between diameters, exactly
+    // as DropDown reuses its own submenu. Destroying a popup and building a new one on every hover
+    // does not work: Destroy() on a top-level window only queues the deletion for idle time, so the
+    // outgoing window is usually still alive -- and still holding wx's popup handlers -- when the
+    // incoming one pops, which is what made the submenu appear only some of the time.
+    auto *sub  = new CascadeMenuPopup(this);
+    m_sub_menu = sub;
+    sub->Hide(); // the guard on the diameter menu keys off this, so start it in a known state
+    sub->SetMainMenu(menu);
+    menu->SetSubMenu(sub);
+
+    bool first_row = true;
     for (const auto &d : m_diameters) {
-        if (d == "0.2" && volume_type != NozzleVolumeType::nvtStandard) continue;
-        m_diameter_combo->Append(wxString::FromUTF8(d) + " mm", {});
-        const int idx = static_cast<int>(m_diameter_combo->GetCount()) - 1;
-        if (d == m_seed.diameter.ToStdString()) seed_idx = idx;
-        if (had_list && d == prev_dia.ToStdString()) prev_idx = idx;
+        const wxString diameter = wxString::FromUTF8(d);
+        auto          *item     = new CascadeMenuItem(menu, diameter + " mm", true, diameter == m_diameter, true);
+
+        // Hover opens the submenu, click does too: the chevron reads as hover-to-open, but a user
+        // who clicks the row instead should not be met with nothing happening.
+        auto open_sub = [this, item, diameter] {
+            auto *sub = m_sub_menu;
+            if (!sub) return;
+
+            // Refill in place. The sizer goes before its items do, so it never holds dead rows.
+            sub->SetSizer(nullptr);
+            sub->DestroyChildren();
+            auto *sub_box = new wxBoxSizer(wxVERTICAL);
+
+            bool first = true;
+            for (const auto &flow : flow_options_for_diameter(m_extruder_index, diameter)) {
+                const bool checked  = diameter == m_diameter && flow.volume == m_volume;
+                auto      *sub_item = new CascadeMenuItem(sub, flow.label, true, checked, false);
+                sub_item->Bind(wxEVT_LEFT_DOWN, [this, diameter, flow](wxMouseEvent &) {
+                    apply_pick(diameter, flow.volume);
+                    close_menus();
+                });
+                CascadeMenu::AddItem(sub_box, sub_item, first);
+                first = false;
+            }
+            CascadeMenu::Finish(sub, sub_box);
+
+            CascadeMenu::PositionSubMenu(sub, m_menu, item);
+            if (!sub->IsShown())
+                sub->Popup();
+            else
+                sub->Refresh();
+        };
+        item->Bind(wxEVT_ENTER_WINDOW, [open_sub](wxMouseEvent &e) {
+            open_sub();
+            e.Skip();
+        });
+        item->Bind(wxEVT_LEFT_DOWN, [open_sub](wxMouseEvent &) {
+            open_sub();
+            // Consume the click here. Letting it bubble into wxPopupTransientWindow makes the
+            // diameter popup treat the completed click as a reason to dismiss itself.
+        });
+
+        CascadeMenu::AddItem(sizer, item, first_row);
+        first_row = false;
     }
-    m_diameter_combo->Append(_L("Empty"), {});
-    const int empty_idx = static_cast<int>(m_diameter_combo->GetCount()) - 1;
 
-    // Keep the user's in-dialog diameter across a flow-driven rebuild; only fall back to the seed
-    // (the value at dialog open) when there is no prior selection to preserve.
-    int select = 0;
-    if (had_list && prev_idx != -1)
-        select = prev_idx;
-    else if (had_list && prev == _L("Empty"))
-        select = empty_idx;
-    else if (m_seed.diameter.IsEmpty())
-        select = empty_idx;
-    else if (seed_idx != -1)
-        select = seed_idx;
+    // Clearing the slot needs no flow type, so it stays a leaf rather than a diameter row.
+    auto *empty_item = new CascadeMenuItem(menu, _L("Empty"), true, m_diameter.IsEmpty(), false);
+    empty_item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+        apply_pick(wxEmptyString, m_volume);
+        close_menus();
+    });
+    CascadeMenu::AddItem(sizer, empty_item, first_row);
 
-    m_diameter_combo->SetSelection(select);
+    CascadeMenu::Finish(menu, sizer);
+
+    // Anchored on the edit icon rather than on the card: the design drops the panel from the icon,
+    // and a card is tall enough that dropping from its bottom edge lands the menu over the row of
+    // cards below it. Position() is given the icon's size so it can flip the menu above it near the
+    // bottom of the screen; the x offset lines the rows up with the icon, past the panel's inset.
+    menu->Position(m_edit_icon->GetScreenPosition() - wxPoint(menu->FromDIP(CascadeMenu::Pad), 0), m_edit_icon->GetSize());
+    menu->Popup();
 }
 
-// Rebuild the flow list from the printer preset that matches `diameter`
-void NozzleCard::rebuild_flow_combo(const wxString &diameter)
+// Order matters: the diameter menu refuses to dismiss while the flow menu is still up, so release
+// the guard and close that one first.
+void NozzleCard::close_menus()
 {
-    auto *preset_bundle      = wxGetApp().preset_bundle;
-    auto  nozzle_volumes_def = preset_bundle->project_config.def()->get("nozzle_volume_type");
-
-    m_flow_combo->Clear();
-
-    auto printer_preset            = preset_bundle->get_similar_printer_preset({}, diameter.ToStdString());
-    auto extruder_variants         = printer_preset->config.option<ConfigOptionStrings>("extruder_variant_list");
-    auto extruders_def             = printer_preset->config.def()->get("extruder_type");
-    auto extruders                 = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    auto extruder_max_nozzle_count = printer_preset->config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-
-    const int  idx    = std::max(0, std::min(m_extruder_index, static_cast<int>(extruders->values.size()) - 1));
-    const auto type   = extruders_def->enum_labels[extruders->values[idx]];
-    const int  wanted = static_cast<int>(m_seed.volume);
-    int        select = -1;
-
-    for (int j = 0; j < (int) nozzle_volumes_def->enum_labels.size(); ++j) {
-        const bool variant_ok = boost::algorithm::contains(extruder_variants->values[idx], type + " " + nozzle_volumes_def->enum_labels[j]);
-        const bool hybrid_ok  = extruder_max_nozzle_count->values[idx] > 1 && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]) == nvtHybrid;
-        if (!variant_ok && !hybrid_ok) continue;
-
-        auto cur_volume_type = nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]);
-        if (cur_volume_type == NozzleVolumeType::nvtE3DHighFlow && diameter.ToStdString() != "0.4" && diameter.ToStdString() != "0.6") continue;
-        if (diameter.ToStdString() == "0.2" && cur_volume_type == NozzleVolumeType::nvtHighFlow) continue;
-        if (cur_volume_type == NozzleVolumeType::nvtHybrid) continue;
-
-        if (wanted == j) select = m_flow_combo->GetCount();
-        m_flow_combo->Append(_L(nozzle_volumes_def->enum_labels[j]), {}, encode_volume(j));
-    }
-    if (select == -1) select = m_flow_combo->GetCount() - 1;
-    m_flow_combo->SetSelection(select);
+    if (m_menu) m_menu->SetSubMenu(nullptr);
+    if (m_sub_menu) m_sub_menu->Dismiss();
+    if (m_menu) m_menu->Dismiss();
 }
 
-wxString NozzleCard::GetDiameter() const
-{
-    wxString d = m_diameter_combo->GetValue();
-    if (d == _L("Empty")) return wxEmptyString;
-    d.Replace(" mm", "");
-    return d;
-}
+wxString NozzleCard::GetDiameter() const { return m_diameter; }
 
 NozzleConfig NozzleCard::GetConfig() const
 {
     NozzleConfig cfg;
-    wxString     diameter_text = m_diameter_combo->GetValue();
-    if (diameter_text == _L("Empty")) {
-        cfg.diameter = wxEmptyString;
-    } else {
-        diameter_text.Replace(" mm", "");
-        cfg.diameter = diameter_text;
-    }
-    const int sel = m_flow_combo->GetSelection();
-    if (sel != wxNOT_FOUND) {
-        if (void *data = m_flow_combo->GetClientData(sel)) cfg.volume = static_cast<NozzleVolumeType>(decode_volume(data));
-    }
+    cfg.diameter  = m_diameter;
+    cfg.volume    = m_volume;
     cfg.status    = m_status;
     cfg.ams_slots = m_ams_slots;
     return cfg;
@@ -277,7 +396,7 @@ bool NozzleCard::is_synced() const
 
 void NozzleCard::UpdateWarning(const wxString &selected_diameter, bool show_diameter_warning)
 {
-    if (m_diameter_combo->GetSelection() != -1 && m_flow_combo->GetSelection() != -1 && m_status != NozzleStatus::nsNormal) m_status = NozzleStatus::nsNormal;
+    if (!m_diameter.IsEmpty() && m_status != NozzleStatus::nsNormal) m_status = NozzleStatus::nsNormal;
 
     wxString   diameter = GetDiameter();
     const bool empty    = diameter.IsEmpty();
@@ -310,8 +429,8 @@ void NozzleCard::UpdateWarning(const wxString &selected_diameter, bool show_diam
             w->UnsetToolTip();
     };
     set_tip(this);
-    set_tip(m_diameter_combo);
-    set_tip(m_flow_combo);
+    set_tip(m_diameter_value);
+    set_tip(m_flow_value);
 
     Layout();
 }
@@ -319,8 +438,6 @@ void NozzleCard::UpdateWarning(const wxString &selected_diameter, bool show_diam
 void NozzleCard::Rescale()
 {
     SetMinSize(FromDIP(wxSize(CARD_W, CARD_H)));
-    if (m_diameter_combo) m_diameter_combo->SetMinSize(FromDIP(wxSize(91, 24)));
-    if (m_flow_combo) m_flow_combo->SetMinSize(FromDIP(wxSize(91, 24)));
     Layout();
 }
 
@@ -359,13 +476,16 @@ void NozzleCard::OnPaint(wxPaintEvent &)
 
     // A rounded grey pill behind the "Nozzle N" label
     if (m_title) {
+        // Width from the label text, not from the window: the title's sizer item stretches to hold
+        // the icons against the right edge, and the pill has to stay wrapped around the text.
         const wxRect tr = m_title->GetRect();
-        if (tr.GetWidth() > 0) {
+        const int    tw = m_title->GetTextExtent(m_title->GetLabel()).x;
+        if (tw > 0) {
             const double px = FromDIP(6);
             const double py = FromDIP(3);
             gc->SetPen(*wxTRANSPARENT_PEN);
             gc->SetBrush(wxBrush(themed(ThemeColor::Grey250)));
-            gc->DrawRoundedRectangle(tr.GetX() - px, tr.GetY() - py, tr.GetWidth() + 2 * px, tr.GetHeight() + 2 * py, FromDIP(4));
+            gc->DrawRoundedRectangle(tr.GetX() - px, tr.GetY() - py, tw + 2 * px, tr.GetHeight() + 2 * py, FromDIP(4));
         }
     }
 
@@ -389,20 +509,17 @@ NozzleSettingsCardDialog::NozzleSettingsCardDialog(wxWindow *parent, const wxStr
     if (seeds.empty()) seeds.emplace_back();
 
     SetBackgroundColour(*wxWHITE);
-    create_layout(selected_diameter, seeds);
+    create_layout(seeds);
     CentreOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void NozzleSettingsCardDialog::create_layout(const wxString &selected_diameter, const std::vector<NozzleConfig> &seeds)
+void NozzleSettingsCardDialog::create_layout(const std::vector<NozzleConfig> &seeds)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
-    // Single-diameter mode picks one slicing diameter (selector shown, mismatched cards flagged);
-    // multi-diameter mode allows every configured diameter, so the selector is hidden.
-    if (!m_multi_diameter_mode) build_diameter_selector(main_sizer, selected_diameter);
     build_card_grid(main_sizer, seeds);
     build_ams_row(main_sizer);
     build_warning_panels(main_sizer);
@@ -420,21 +537,7 @@ void NozzleSettingsCardDialog::create_layout(const wxString &selected_diameter, 
     if (m_warning_label && wrap_w > 0) m_warning_label->Wrap(wrap_w);
     if (m_warning_serious_label && wrap_w > 0) m_warning_serious_label->Wrap(wrap_w);
 
-    setup_callbacks();
     update_state();
-}
-
-void NozzleSettingsCardDialog::build_diameter_selector(wxBoxSizer *main_sizer, const wxString &selected_diameter)
-{
-    auto *label = new Label(this, _L("Select Nozzle Diameter"));
-    label->SetFont(Label::Body_14.Bold());
-    main_sizer->Add(label, 0, wxALIGN_LEFT | wxLEFT | wxTOP, FromDIP(20));
-
-    std::vector<wxString> choices;
-    for (const auto &d : wxGetApp().preset_bundle->printers.diameters_of_selected_printer()) choices.push_back(wxString::FromUTF8(d));
-    m_diameter_panel = new DiameterButtonPanel(this, choices, false);
-    m_diameter_panel->SetSelectedDiameter(selected_diameter);
-    main_sizer->Add(m_diameter_panel, 0, wxEXPAND | wxLEFT, FromDIP(20));
 }
 
 void NozzleSettingsCardDialog::build_card_grid(wxBoxSizer *main_sizer, const std::vector<NozzleConfig> &seeds)
@@ -560,52 +663,35 @@ void NozzleSettingsCardDialog::build_button_bar(wxBoxSizer *main_sizer)
     main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 }
 
-void NozzleSettingsCardDialog::setup_callbacks()
-{
-    if (!m_diameter_panel) return;
-    m_diameter_panel->SetNozzleQueryCallback([this](const wxString &diameter) -> bool {
-        for (auto *c : m_cards)
-            if (c->GetDiameter() == diameter) return true;
-        return false;
-    });
-    m_diameter_panel->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-        e.Skip();
-        CallAfter([this]() { update_state(); });
-    });
-}
-
 void NozzleSettingsCardDialog::update_state()
 {
-    // Diameter mismatch only matters in single-diameter mode (where a selector picks one diameter).
-    const bool     show_dia_warning = !m_multi_diameter_mode;
-    const wxString selected         = m_diameter_panel ? m_diameter_panel->GetSelectedDiameter() : "";
-    bool           has_warning      = false;
-    bool           has_empty        = false;
+    // Mismatch only matters in single-diameter mode, where the one diameter the plate slices at is
+    // the one the sidebar selector already holds -- this dialog reports installation, not choice.
+    const bool show_dia_warning = !m_multi_diameter_mode;
+    bool       has_warning      = false;
+    bool       has_empty        = false;
 
     for (auto *c : m_cards) {
-        c->UpdateWarning(selected, show_dia_warning);
+        c->UpdateWarning(m_selected_diameter, show_dia_warning);
         const wxString d = c->GetDiameter();
         if (d.IsEmpty())
             has_empty = true;
-        else if (show_dia_warning && d != selected)
+        else if (show_dia_warning && d != m_selected_diameter)
             has_warning = true;
     }
 
     if (m_warning_panel) m_warning_panel->Show(has_warning);
     if (m_warning_serious_panel) m_warning_serious_panel->Show(has_empty);
-    if (m_diameter_panel) m_diameter_panel->UpdateButtonStates();
 
     Layout();
     Fit();
     wxGetApp().UpdateDarkUIWin(this);
 }
 
-wxString NozzleSettingsCardDialog::GetSelectedDiameter() const
-{
-    // Multi-diameter mode has no selector: keep the pre-dialog diameter so the caller's write-back
-    // doesn't trigger a spurious diameter switch.
-    return m_diameter_panel ? m_diameter_panel->GetSelectedDiameter() : m_selected_diameter;
-}
+// The dialog records which nozzle is installed where; which diameter the plate slices at stays with
+// the sidebar selector. Handing the caller back what it passed in keeps its write-back a no-op,
+// except where it overrides this itself after reading the configs.
+wxString NozzleSettingsCardDialog::GetSelectedDiameter() const { return m_selected_diameter; }
 
 std::vector<NozzleConfig> NozzleSettingsCardDialog::GetExtruderConfigs(int index) const
 {
@@ -629,7 +715,6 @@ void NozzleSettingsCardDialog::build_ams_row(wxBoxSizer *main_sizer)
 
 void NozzleSettingsCardDialog::on_dpi_changed(const wxRect & /*suggested_rect*/)
 {
-    if (m_diameter_panel) m_diameter_panel->Rescale();
     for (auto *c : m_cards) c->Rescale();
     if (m_ams_row) m_ams_row->Rescale();
 

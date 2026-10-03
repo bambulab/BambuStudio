@@ -9,12 +9,14 @@
 #include <wx/timer.h>
 
 #include <algorithm>
+#include <memory>
 
 #include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "ExtruderHelpers.hpp"
+#include "ExtruderPanelGroup.hpp"
 #include "libslic3r/PresetBundle.hpp" // project_config, for reading multi-diameter mode
 #include "wxExtensions.hpp"
 #include "Widgets/Label.hpp"
@@ -33,6 +35,10 @@ static const wxColour HasNozzleTextColor   = ThemeColor::TextPrimary;
 static const wxColour NoNozzleBgColor      = ThemeColor::White;
 static const wxColour NoNozzleBorderColor  = ThemeColor::Grey300;
 static const wxColour NoNozzleTextColor    = ThemeColor::Grey400;
+
+// Per-extruder AMS caps, matching the ones show_ams_add_menu enforces when adding a unit.
+constexpr size_t MAX_AMS_4_SLOT = 4;
+constexpr size_t MAX_AMS_1_SLOT = 8;
 
 static const wxColour DiameterNormalColor   = ThemeColor::TextMuted;
 static const wxColour FlowNormalColor       = ThemeColor::Grey500;
@@ -62,25 +68,13 @@ void DiameterButtonPanel::CreateLayout()
     if (GetSizer()) { GetSizer()->Clear(true); }
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    // Production nozzle-diameter mode selector (was a debug SwitchButton). Item 0 = single, 1 = multi.
+    // The mode selector itself lives on the nozzle card (see AttachModePill); only its state is
+    // mirrored here. The project config is the source of truth, so re-read it on every rebuild
+    // rather than trusting a local value that a preset change may have invalidated.
     if (m_show_multi_diameter_mode) {
-        // The project config is the source of truth for the mode; mirror it so the combo and the
-        // selector-visibility gate reflect the real state on every rebuild, not a stale local value.
         m_multi_diameter_mode_enabled = multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
-        m_multi_diameter_mode_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(200, 24)), 0, nullptr, wxCB_READONLY);
-        m_multi_diameter_mode_combo->Append(_L("Single-diameter mode"), {});
-        m_multi_diameter_mode_combo->Append(_L("Multi-diameter mode"), {});
-        m_multi_diameter_mode_combo->SetSelection(m_multi_diameter_mode_enabled ? 1 : 0);
-        FitModeComboToWidestItem();
-        m_multi_diameter_mode_combo->Show(m_mode_selector_visible);
-        m_multi_diameter_mode_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &event) {
-            m_multi_diameter_mode_enabled = (m_multi_diameter_mode_combo->GetSelection() == 1);
-            UpdateSelectorVisibility();
-            if (m_multi_diameter_mode_callback)
-                m_multi_diameter_mode_callback(m_multi_diameter_mode_enabled);
-            event.Skip();
-        });
-        main_sizer->Add(m_multi_diameter_mode_combo, 0, wxBOTTOM, FromDIP(4));
+        if (m_multi_diameter_mode_combo)
+            m_multi_diameter_mode_combo->SetSelection(m_multi_diameter_mode_enabled ? 1 : 0);
     }
 
     m_title_sizer = nullptr;
@@ -124,9 +118,31 @@ void DiameterButtonPanel::FitModeComboToWidestItem()
     for (unsigned int i = 0; i < m_multi_diameter_mode_combo->GetCount(); ++i)
         text_w = std::max(text_w, m_multi_diameter_mode_combo->GetTextExtent(m_multi_diameter_mode_combo->GetString(i)).x);
 
-    // Reserve room for the drop-down arrow and the left/right text margins.
-    const int width = text_w + m_multi_diameter_mode_combo->FromDIP(40);
-    m_multi_diameter_mode_combo->SetMinSize(wxSize(width, FromDIP(24)));
+    // Everything the pill draws beside the label: an inset on each side, the gap, and the chevron.
+    const int reserve = 2 * MODE_PILL_PAD_X + MODE_PILL_GAP + MODE_PILL_ICON_D;
+    m_multi_diameter_mode_combo->SetMinSize(wxSize(text_w + FromDIP(reserve), FromDIP(MODE_PILL_H)));
+}
+
+void DiameterButtonPanel::AttachModePill(ComboBox *pill)
+{
+    if (!pill || m_multi_diameter_mode_combo == pill) return;
+    m_multi_diameter_mode_combo = pill;
+
+    pill->Append(_L("Single-diameter mode"), {}); // item 0 = single, 1 = multi
+    pill->Append(_L("Multi-diameter mode"), {});
+    FitModeComboToWidestItem();
+
+    pill->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &event) {
+        const bool enabled = m_multi_diameter_mode_combo->GetSelection() == 1;
+        SetMultiDiameterMode(enabled);
+        if (m_multi_diameter_mode_callback)
+            m_multi_diameter_mode_callback(enabled);
+        event.Skip();
+    });
+
+    // The mode may already have been pushed in before the card existed, so replay it onto the pill.
+    SetMultiDiameterMode(m_multi_diameter_mode_enabled);
+    ShowModeSelector(m_mode_selector_visible);
 }
 
 void DiameterButtonPanel::RefreshLayout(const std::vector<wxString> &choices)
@@ -148,17 +164,33 @@ void DiameterButtonPanel::SetMultiDiameterMode(bool enabled)
     if (m_multi_diameter_mode_combo)
         m_multi_diameter_mode_combo->SetSelection(enabled ? 1 : 0);
     UpdateSelectorVisibility();
+    if (auto *card = dynamic_cast<SingleExtruderPanelGroup *>(GetParent()))
+        card->ShowDiameterPanel(!enabled);
+}
+
+void DiameterButtonPanel::SetShowTitle(bool show)
+{
+    if (m_show_title == show)
+        return;
+
+    m_show_title = show;
+    CreateLayout();
 }
 
 void DiameterButtonPanel::ShowModeSelector(bool show)
 {
-    m_mode_selector_visible = show; // remembered so a later CreateLayout rebuild keeps the state
+    m_mode_selector_visible = show; // remembered so a later AttachModePill replays the state
     if (!m_multi_diameter_mode_combo || m_multi_diameter_mode_combo->IsShown() == show)
         return;
     m_multi_diameter_mode_combo->Show(show);
-    if (GetSizer()) GetSizer()->Layout();
-    Layout();
-    if (wxWindow *parent = GetParent()) parent->Layout();
+    // The pill is the card's child, so it is the card that has to re-lay out around it -- hiding it
+    // also collapses the strip the card reserved for it and pulls the top border back up, which
+    // changes the card's height and so the sidebar's layout too.
+    if (wxWindow *card = m_multi_diameter_mode_combo->GetParent()) {
+        card->Layout();
+        card->Refresh();
+        if (wxWindow *sidebar = card->GetParent()) sidebar->Layout();
+    }
 }
 
 void DiameterButtonPanel::UpdateSelectorVisibility()
@@ -293,7 +325,8 @@ void DiameterButtonPanel::UpdateSingleButtonState(Button *btn, const wxString &d
     btn->Refresh();
 }
 
-HorizontalScrollablePanel::HorizontalScrollablePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxScrolledWindow(parent, id, pos, size, wxHSCROLL)
+HorizontalScrollablePanel::HorizontalScrollablePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
+    : wxScrolledWindow(parent, id, pos, size, style)
 {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     SetSizer(sizer);
@@ -364,6 +397,273 @@ private:
     Label *m_nozzle_number{};
 };
 
+// Prepare-page nozzle-slot tile geometry, taken from the design: a narrow card holding the
+// hotend icon with its slot number stamped on it, then the diameter over the flow type.
+constexpr int    TILE_W            = 37; // design minimum; overflow scrolls instead of shrinking tiles
+constexpr int    TILE_H            = 110;
+constexpr int    TILE_GAP          = 4;
+constexpr int    TILE_RADIUS       = 4;
+constexpr int    TILE_PAD_Y        = 4;
+constexpr int    TILE_ICON_H       = 48;
+constexpr int    TILE_BADGE_D      = 16;
+constexpr int    TILE_BADGE_Y      = 14; // badge top, measured down from the tile's top
+constexpr int    TILE_TEXT_GAP     = 9;  // icon bottom to the diameter line
+constexpr double TILE_DIM_OPACITY  = 0.3;
+
+static wxColour faded_tile_colour(const wxColour &colour, const wxColour &background)
+{
+    auto blend = [](unsigned char foreground, unsigned char backdrop) {
+        return static_cast<unsigned char>(foreground * TILE_DIM_OPACITY + backdrop * (1.0 - TILE_DIM_OPACITY) + 0.5);
+    };
+    return wxColour(blend(colour.Red(), background.Red()),
+                    blend(colour.Green(), background.Green()),
+                    blend(colour.Blue(), background.Blue()));
+}
+
+static wxBitmap faded_tile_bitmap(const wxBitmap &bitmap, const wxColour &background)
+{
+    wxImage image = bitmap.ConvertToImage();
+    for (int y = 0; y < image.GetHeight(); ++y) {
+        for (int x = 0; x < image.GetWidth(); ++x) {
+            const wxColour colour(image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y));
+            const wxColour faded = faded_tile_colour(colour, background);
+            image.SetRGB(x, y, faded.Red(), faded.Green(), faded.Blue());
+        }
+    }
+    return wxBitmap(image, -1, bitmap.GetScaleFactor());
+}
+
+// The prepare page draws a lighter hotend than the device page's rack view, so the normal state has
+// its own asset. Only that state was in the design; the other two still borrow the rack icons.
+static std::string nozzle_icon_name(NozzleStatus status)
+{
+    switch (status) {
+    case NozzleStatus::nsNormal: return "prepare_nozzle_normal";
+    case NozzleStatus::nsError: return "dev_rack_nozzle_error";
+    default: return "dev_rack_nozzle_unknown";
+    }
+}
+
+/**
+ * \brief One physical nozzle slot: the hotend icon carrying its slot number, then diameter + flow.
+ *
+ * Where \ref NozzleSummary folds every nozzle sharing a (diameter, flow) pair into one tile, a slot
+ * tile stands for exactly one slot, so the card can address nozzles by the number the user sees on
+ * the machine. Painted whole rather than assembled from child windows: the badge has to sit on top
+ * of the icon, and the dimmed state composites the entire tile at one opacity, which a tree of
+ * labels and static bitmaps cannot do.
+ */
+class NozzleSlotTile : public wxPanel
+{
+public:
+    NozzleSlotTile(wxWindow *parent, int number, const wxString &diameter, const wxString &flow, NozzleStatus status)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+        , m_icon(this, nozzle_icon_name(status), TILE_ICON_H)
+        , m_number(number)
+        , m_diameter(diameter)
+        , m_flow(flow)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetBackgroundColour(parent->GetBackgroundColour()); // the surface the rounded corners reveal
+        SetMinSize(FromDIP(wxSize(TILE_W, TILE_H)));
+        Bind(wxEVT_PAINT, &NozzleSlotTile::OnPaint, this);
+    }
+
+    /// \brief Fade the whole tile out: the slot is configured but not printed at in this mode.
+    void SetDimmed(bool dimmed)
+    {
+        if (m_dimmed == dimmed) return;
+        m_dimmed = dimmed;
+        Refresh();
+    }
+
+private:
+    void OnPaint(wxPaintEvent &evt);
+
+    ScalableBitmap m_icon;
+    int            m_number{0};
+    wxString       m_diameter;
+    wxString       m_flow;
+    bool           m_dimmed{false};
+};
+
+void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
+{
+    wxAutoBufferedPaintDC dc(this);
+    // wxBG_STYLE_PAINT leaves the whole client area to us and the rounded card never covers its
+    // corners, so the surrounding surface has to go down first or those corners keep stale pixels.
+    dc.SetBackground(wxBrush(GetBackgroundColour()));
+    dc.Clear();
+
+    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+    if (!gc) return;
+    gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+
+    const wxSize size = GetSize();
+    const wxColour background = GetBackgroundColour();
+    auto tile_colour = StateColor::darkModeColorFor(ThemeColor::Grey350);
+    auto badge_colour = StateColor::darkModeColorFor(ThemeColor::Grey400);
+    auto text_colour = StateColor::darkModeColorFor(ThemeColor::TextPrimary);
+    if (m_dimmed) {
+        // BeginLayer(opacity) is not implemented by wxWidgets' default GDI+ renderer on Windows.
+        // Blend every visual with the card surface instead, producing the same 30% result on every
+        // graphics backend.
+        tile_colour  = faded_tile_colour(tile_colour, background);
+        badge_colour = faded_tile_colour(badge_colour, background);
+        text_colour  = faded_tile_colour(text_colour, background);
+    }
+
+    gc->SetPen(*wxTRANSPARENT_PEN);
+    gc->SetBrush(wxBrush(tile_colour));
+    gc->DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(TILE_RADIUS));
+
+    const wxSize icon_size = m_icon.GetBmpSize();
+    const double icon_x    = (size.x - icon_size.x) / 2.0;
+    const double icon_y    = FromDIP(TILE_PAD_Y);
+    const wxBitmap icon = m_dimmed ? faded_tile_bitmap(m_icon.bmp(), background) : m_icon.bmp();
+    gc->DrawBitmap(icon, icon_x, icon_y, icon_size.x, icon_size.y);
+
+    // The number goes on the icon, not beside it: the tile is barely wider than the icon itself.
+    const double badge_d = FromDIP(TILE_BADGE_D);
+    const double badge_x = (size.x - badge_d) / 2.0;
+    const double badge_y = FromDIP(TILE_BADGE_Y);
+    gc->SetBrush(wxBrush(badge_colour));
+    gc->DrawEllipse(badge_x, badge_y, badge_d, badge_d);
+
+    gc->SetFont(Label::Body_12, text_colour);
+
+    double text_w = 0.0, text_h = 0.0, descent = 0.0, leading = 0.0;
+    const wxString number = wxString::Format("%d", m_number);
+    gc->GetTextExtent(number, &text_w, &text_h, &descent, &leading);
+    gc->DrawText(number, badge_x + (badge_d - text_w) / 2.0, badge_y + (badge_d - text_h) / 2.0);
+
+    double y = icon_y + icon_size.y + FromDIP(TILE_TEXT_GAP);
+    for (const wxString &line : {m_diameter, m_flow}) {
+        gc->GetTextExtent(line, &text_w, &text_h, &descent, &leading);
+        gc->DrawText(line, (size.x - text_w) / 2.0, y);
+        y += text_h;
+    }
+}
+
+class NozzleTileScrollbar : public wxPanel
+{
+public:
+    NozzleTileScrollbar(wxWindow *parent, wxScrolledWindow *target)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+        , m_target(target)
+    {
+        SetMinSize(wxSize(-1, FromDIP(6)));
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetBackgroundColour(parent->GetBackgroundColour());
+
+        Bind(wxEVT_PAINT, &NozzleTileScrollbar::OnPaint, this);
+        Bind(wxEVT_LEFT_DOWN, &NozzleTileScrollbar::OnLeftDown, this);
+        Bind(wxEVT_LEFT_UP, &NozzleTileScrollbar::OnLeftUp, this);
+        Bind(wxEVT_MOTION, &NozzleTileScrollbar::OnMotion, this);
+        Bind(wxEVT_MOUSE_CAPTURE_LOST, [this](wxMouseCaptureLostEvent &) { m_dragging = false; });
+    }
+
+    bool UpdateState()
+    {
+        const bool show = m_target->GetVirtualSize().x > m_target->GetClientSize().x;
+        const bool changed = IsShown() != show;
+        Show(show);
+        Refresh();
+        return changed;
+    }
+
+private:
+    struct ThumbGeometry
+    {
+        int x{0};
+        int width{0};
+    };
+
+    ThumbGeometry GetThumbGeometry() const
+    {
+        const int width = GetClientSize().x;
+        const int client_width = m_target->GetClientSize().x;
+        const int virtual_width = m_target->GetVirtualSize().x;
+        if (width <= 0 || client_width <= 0 || virtual_width <= client_width)
+            return {0, width};
+
+        const int thumb_width = std::max(FromDIP(24), width * client_width / virtual_width);
+        int view_x = 0;
+        int view_y = 0;
+        int unit_x = 0;
+        int unit_y = 0;
+        m_target->GetViewStart(&view_x, &view_y);
+        m_target->GetScrollPixelsPerUnit(&unit_x, &unit_y);
+        const int scroll_x = view_x * std::max(1, unit_x);
+        const int thumb_x = (width - thumb_width) * scroll_x / (virtual_width - client_width);
+        return {thumb_x, thumb_width};
+    }
+
+    void ScrollToThumb(int thumb_x)
+    {
+        const int width = GetClientSize().x;
+        const int client_width = m_target->GetClientSize().x;
+        const int virtual_width = m_target->GetVirtualSize().x;
+        const ThumbGeometry thumb = GetThumbGeometry();
+        const int thumb_range = width - thumb.width;
+        if (thumb_range <= 0 || virtual_width <= client_width) return;
+
+        const int clamped_x = std::clamp(thumb_x, 0, thumb_range);
+        const int scroll_x = clamped_x * (virtual_width - client_width) / thumb_range;
+        int unit_x = 0;
+        int unit_y = 0;
+        m_target->GetScrollPixelsPerUnit(&unit_x, &unit_y);
+        m_target->Scroll(scroll_x / std::max(1, unit_x), -1);
+        Refresh();
+    }
+
+    void OnPaint(wxPaintEvent &)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(GetBackgroundColour()));
+        dc.Clear();
+
+        std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+        if (!gc) return;
+
+        const wxSize size = GetClientSize();
+        const ThumbGeometry thumb = GetThumbGeometry();
+        const double radius = size.y / 2.0;
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->SetBrush(wxBrush(StateColor::darkModeColorFor(ThemeColor::Grey300)));
+        gc->DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+        gc->SetBrush(wxBrush(StateColor::darkModeColorFor(ThemeColor::Grey400)));
+        gc->DrawRoundedRectangle(thumb.x, 0, thumb.width, size.y, radius);
+    }
+
+    void OnLeftDown(wxMouseEvent &event)
+    {
+        const ThumbGeometry thumb = GetThumbGeometry();
+        m_drag_offset = event.GetX() >= thumb.x && event.GetX() < thumb.x + thumb.width
+            ? event.GetX() - thumb.x
+            : thumb.width / 2;
+        m_dragging = true;
+        CaptureMouse();
+        ScrollToThumb(event.GetX() - m_drag_offset);
+    }
+
+    void OnLeftUp(wxMouseEvent &)
+    {
+        m_dragging = false;
+        if (HasCapture()) ReleaseMouse();
+    }
+
+    void OnMotion(wxMouseEvent &event)
+    {
+        if (m_dragging && event.LeftIsDown())
+            ScrollToThumb(event.GetX() - m_drag_offset);
+    }
+
+    wxScrolledWindow *m_target{nullptr};
+    bool              m_dragging{false};
+    int               m_drag_offset{0};
+};
+
 // ----------------------------------------------------------------------------
 // ExtruderPanel (abstract base)
 // ----------------------------------------------------------------------------
@@ -371,7 +671,9 @@ private:
 ExtruderPanel::ExtruderPanel(wxWindow *parent, GroupType type) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_type(type)
 {
     SetForegroundColour(ThemeColor::Grey400);
-    SetBackgroundColour(ThemeColor::Grey200);
+    // The panel is a region of the card that frames it, so it takes the card's surface rather than
+    // naming one of its own -- the single-nozzle card is white where the dual card is grey.
+    SetBackgroundColour(parent->GetBackgroundColour());
 }
 
 void ExtruderPanel::Build()
@@ -399,6 +701,8 @@ void ExtruderPanel::Build()
     m_content_row->Add(m_content_sizer, 1, wxEXPAND);
     m_main_sizer->Add(m_content_row, 0, wxEXPAND);
 
+    CreateExtraRows(m_main_sizer);
+
     SetSizer(m_main_sizer);
     Bind(wxEVT_SIZE, &ExtruderPanel::OnSize, this);
     Layout();
@@ -416,24 +720,6 @@ static void set_tooltip_recursive(wxWindow *window, const wxString &tooltip, boo
 }
 
 static wxString volume_short(NozzleVolumeType volume) { return wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(volume)); }
-
-// Orders the tile groups by diameter and then by flow type, so a given nozzle set always projects
-// to the same left-to-right order. The flow types follow the order the enum declares them in, which
-// runs standard, high flow, then the TPU types.
-static bool nozzle_group_less(const std::pair<wxString, NozzleVolumeType> &a, const std::pair<wxString, NozzleVolumeType> &b)
-{
-    // ToCDouble, not ToDouble: the diameters come from config as "0.4" and must read the same way
-    // whatever decimal separator the user's locale uses.
-    double     da = 0.0, db = 0.0;
-    const bool a_numeric = a.first.ToCDouble(&da);
-    const bool b_numeric = b.first.ToCDouble(&db);
-
-    // A diameter that does not read as a number keeps to the end, behind every real one.
-    if (a_numeric != b_numeric) return a_numeric;
-    if (a_numeric ? da != db : a.first != b.first) return a_numeric ? da < db : a.first < b.first;
-
-    return a.second < b.second;
-}
 
 void ExtruderPanel::add_summary_tile(const wxString &diameter, const wxString &flow, int count, bool show_count)
 {
@@ -453,8 +739,12 @@ void ExtruderPanel::add_summary_tile(const wxString &diameter, const wxString &f
 int ExtruderPanel::tiles_single_line_width() const
 {
     int width = 0;
-    for (const auto *tile : m_summaries)
-        if (tile && tile->IsShown()) width += tile->GetBestSize().x + FromDIP(2);
+    if (!m_summary_sizer) return width;
+
+    for (const auto *item : m_summary_sizer->GetChildren()) {
+        const wxWindow *tile = item->GetWindow();
+        if (tile && tile->IsShown()) width += tile->GetBestSize().x + item->GetBorder();
+    }
 
     return width;
 }
@@ -488,7 +778,9 @@ void ExtruderPanel::update_tile_row_line()
         m_content_row->Add(m_content_sizer, 1, wxEXPAND);
     } else {
         m_content_row->Add(m_content_sizer, 1, wxEXPAND);
-        m_main_sizer->Add(m_summary_sizer, 0, wxEXPAND | wxTOP, FromDIP(2)); // a line of its own, under the content
+        // A line of its own, directly under the content row (index 0) and so still above whatever
+        // CreateExtraRows appended -- an Add() here would drop it below those rows instead.
+        m_main_sizer->Insert(1, m_summary_sizer, 0, wxEXPAND | wxTOP, FromDIP(2));
     }
 
     m_main_sizer->Layout();
@@ -908,7 +1200,11 @@ void DualExtruderPanel::Rescale()
     ExtruderPanel::Rescale();
 }
 
-void DualExtruderPanel::sync_ams(
+// ----------------------------------------------------------------------------
+// ExtruderPanel — AMS state, parsed the same way for every card variant
+// ----------------------------------------------------------------------------
+
+void ExtruderPanel::sync_ams(
     MachineObject const *obj, std::vector<DevAms *> const &ams_internal, std::vector<DevAms *> const &ams4, std::vector<DevAms *> const &ams1, std::vector<DevAmsTray> const &ext)
 {
     if (m_ams_4.empty() && ams4.empty() && m_ams_1.empty() && ams1.empty() && m_ext.empty() && ext.empty()) return;
@@ -923,14 +1219,14 @@ void DualExtruderPanel::sync_ams(
 
         for (size_t ams_index = 0; ams_index < infos2.size(); ++ams_index) {
             auto ams_info = infos2[ams_index];
-            BOOST_LOG_TRIVIAL(info) << "DualExtruderPanel::sync_ams - AMS Info: "
+            BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - AMS Info: "
                                     << "ams_id = \"" << ams_info.ams_id << "\""
                                     << ", ams_type = " << static_cast<int>(ams_info.ams_type) << ", cans_count = " << ams_info.cans.size();
 
             for (size_t can_index = 0; can_index < ams_info.cans.size(); ++can_index) {
                 const auto &can_info = ams_info.cans[can_index];
 
-                BOOST_LOG_TRIVIAL(info) << "DualExtruderPanel::sync_ams - Can[" << can_index << "]: "
+                BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Can[" << can_index << "]: "
                                         << "can_id = \"" << can_info.can_id << "\""
                                         << ", material_name = \"" << can_info.material_name.ToStdString() << "\""
                                         << ", material_colour = " << can_info.material_colour.GetAsString(2).ToStdString()
@@ -943,7 +1239,7 @@ void DualExtruderPanel::sync_ams(
                         const auto &color = can_info.material_cols[i];
                         multi_colors_str += color.GetAsString(2).ToStdString();
                     }
-                    BOOST_LOG_TRIVIAL(info) << "DualExtruderPanel::sync_ams - Can[" << can_index << "] MultiColors: " << multi_colors_str;
+                    BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Can[" << can_index << "] MultiColors: " << multi_colors_str;
                 }
             }
         }
@@ -961,10 +1257,10 @@ void DualExtruderPanel::sync_ams(
         }
         if (infos == infos2) return false;
 
-        BOOST_LOG_TRIVIAL(info) << "DualExtruderPanel::sync_ams - External material count: " << infos2.size();
+        BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - External material count: " << infos2.size();
         for (size_t i = 0; i < infos2.size(); ++i) {
             const auto &ext_info = infos2[i];
-            BOOST_LOG_TRIVIAL(info) << "DualExtruderPanel::sync_ams - Ext[" << i << "]: "
+            BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Ext[" << i << "]: "
                                     << "tray_id = \"" << ext_info.ams_id << "\"";
             if (!ext_info.cans.empty()) {
                 const auto &can = ext_info.cans[0];
@@ -981,66 +1277,136 @@ void DualExtruderPanel::sync_ams(
 }
 
 // ----------------------------------------------------------------------------
-// SingleExtruderPanel — single head with multiple nozzles: nozzle-index label
+// SingleExtruderPanel — single head with multiple nozzles: one tile per nozzle slot
 // ----------------------------------------------------------------------------
 
-// The single-extruder card adds the nozzle-index label; the NozzleSummary tiles come from the base.
-// Proportion 1 so it fills the middle and pushes the trailing warning icon to the right end.
-void SingleExtruderPanel::CreateContent(wxBoxSizer *main_sizer)
+// Nothing but tiles: every slot tile carries its own number, so the card needs no content column
+// next to them. The base still appends the trailing warning icon to this sizer.
+void SingleExtruderPanel::CreateContent(wxBoxSizer * /*main_sizer*/) {}
+
+// The nozzle rack stays on one line at the design's minimum tile width. A horizontal scroll window
+// exposes the trailing slots when the sidebar is too narrow instead of shrinking or clipping them.
+void SingleExtruderPanel::CreateExtraRows(wxBoxSizer *main_sizer)
 {
-    m_nozzle_index_label = new Label(this, _L("No Available Nozzle"));
-    m_nozzle_index_label->SetFont(Label::Body_12);
-    m_nozzle_index_label->SetForegroundColour(DiameterNormalColor);
-    m_nozzle_index_label->SetBackgroundColour(ThemeColor::Grey200);
-    main_sizer->Add(m_nozzle_index_label, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+    m_tile_scroll = new HorizontalScrollablePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_tile_scroll->SetBackgroundColour(GetBackgroundColour());
+    m_tile_scroll->SetMinSize(wxSize(-1, FromDIP(TILE_H)));
+    m_tile_row = static_cast<wxBoxSizer *>(m_tile_scroll->GetSizer());
+    main_sizer->Add(m_tile_scroll, 0, wxEXPAND | wxTOP, FromDIP(10));
+
+    m_tile_scrollbar = new NozzleTileScrollbar(this, m_tile_scroll);
+    m_tile_scrollbar->Hide();
+    main_sizer->Add(m_tile_scrollbar, 0, wxEXPAND | wxTOP, FromDIP(5));
+
+    m_tile_scroll->Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
+        event.Skip();
+        CallAfter([this]() { UpdateTileScrollLayout(); });
+    });
+    m_tile_scroll->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent &event) {
+        int unit_x = 0;
+        int unit_y = 0;
+        m_tile_scroll->GetScrollPixelsPerUnit(&unit_x, &unit_y);
+        unit_x = std::max(1, unit_x);
+        const int steps = event.GetWheelDelta() == 0 ? 0 : event.GetWheelRotation() / event.GetWheelDelta();
+        int view_x = 0;
+        int view_y = 0;
+        m_tile_scroll->GetViewStart(&view_x, &view_y);
+        m_tile_scroll->Scroll(std::max(0, view_x - steps * FromDIP(40) / unit_x), -1);
+        m_tile_scrollbar->Refresh();
+    });
+
+    m_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // Fixed pool sized to the per-extruder caps the AMS-count menu enforces, as on the dual card.
+    // Previews are only opened and closed from here on, so changing the counts costs no rebuild.
+    auto seed_previews = [this](size_t count, DevAmsType type) {
+        for (size_t i = 0; i < count; ++i) {
+            AMSinfo info;
+            info.ams_type = type;
+            auto *preview = new AMSPreview(this, wxID_ANY, info);
+            preview->Close();
+            m_ams_previews.push_back(preview);
+        }
+    };
+    seed_previews(MAX_AMS_4_SLOT, DevAmsType::AMS);
+    seed_previews(MAX_AMS_1_SLOT, DevAmsType::N3S);
+
+    main_sizer->Add(m_ams_sizer, 0, wxEXPAND | wxTOP, FromDIP(4));
 }
 
-// "Nozzle NO. <1-based positions matching the selected diameter>", or "No Available Nozzle" if none.
-static wxString nozzle_index_text(const std::vector<NozzleConfig> &configs, const wxString &selected_diameter)
+void SingleExtruderPanel::UpdateTileScrollLayout()
 {
-    wxString positions;
-    for (int i = 0; i < static_cast<int>(configs.size()); ++i) {
-        if (configs[i].diameter != selected_diameter) continue;
-        if (!positions.IsEmpty()) positions += ", ";
-        positions += wxString::Format("%d", i + 1);
+    if (!m_tile_scroll || !m_tile_scrollbar) return;
+
+    m_tile_scroll->Layout();
+    m_tile_scroll->FitInside();
+    if (m_tile_scrollbar->UpdateState()) {
+        Layout();
+        if (GetParent()) GetParent()->Layout();
     }
-    return positions.IsEmpty() ? _L("No Available Nozzle") : _L("Nozzle NO. ") + positions;
 }
 
-// Multi-diameter mode is experimental and only enabled for single-extruder multi-nozzle
-// printers, so the multi-tile projection lives here. Single-diameter mode defers to the base.
+void SingleExtruderPanel::update_ams()
+{
+    if (!m_ams_sizer) return;
+
+    m_ams_sizer->Clear(false); // detach only: the pool outlives every refresh
+    for (auto *preview : m_ams_previews) preview->Close();
+
+    // A unit the machine has not reported yet still gets a slot, drawn from an empty placeholder,
+    // so the row matches the count the user configured instead of appearing one short.
+    auto show_units = [this](size_t pool_offset, size_t wanted, const std::vector<AMSinfo> &known, DevAmsType type) {
+        AMSinfo placeholder;
+        placeholder.ams_type = type;
+        placeholder.cans.resize(type == DevAmsType::AMS ? 4 : 1);
+
+        for (size_t i = 0; i < wanted && pool_offset + i < m_ams_previews.size(); ++i) {
+            auto *preview = m_ams_previews[pool_offset + i];
+            preview->Update(i < known.size() ? known[i] : placeholder);
+            preview->Refresh();
+            preview->Open();
+            m_ams_sizer->Add(preview, 0, wxALL, FromDIP(2));
+        }
+    };
+    show_units(0, m_ams_n4, m_ams_4, DevAmsType::AMS);
+    show_units(MAX_AMS_4_SLOT, m_ams_n1, m_ams_1, DevAmsType::N3S);
+
+    Layout();
+    Refresh();
+}
+
+// One tile per nozzle slot, numbered by its position on the machine. An empty slot stays visible
+// and reads the same way the nozzle-settings card does: "Empty" over "--". Single-diameter mode
+// dims every slot that cannot print at the selected diameter, including empty slots.
 void SingleExtruderPanel::UpdateNozzles(const std::vector<NozzleConfig> &configs, const wxString &selected_diameter)
 {
-    if (!multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config)) {
-        // Single-diameter mode: the base builds the tile + warning; add the nozzle-index label on top.
-        ExtruderPanel::UpdateNozzles(configs, selected_diameter);
-        m_nozzle_index_label->SetLabel(nozzle_index_text(configs, selected_diameter));
-        m_nozzle_index_label->Show(true);
-        Layout();
-        return;
+    m_tile_row->Clear(true); // destroy the tiles from the previous projection
+    m_nozzle_tiles.clear();
+
+    const bool multi_diameter = multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
+
+    int matching = 0;
+    for (int i = 0; i < static_cast<int>(configs.size()); ++i) {
+        const NozzleConfig &cfg = configs[i];
+        const bool          empty = cfg.diameter.IsEmpty();
+        const bool          on_selected_diameter = !empty && cfg.diameter == selected_diameter;
+        if (on_selected_diameter) matching++;
+
+        // Same copy as NozzleCard::refresh_values(): an empty slot has no diameter and no flow type.
+        const wxString diameter = empty ? _L("Empty") : cfg.diameter;
+        const wxString flow     = empty ? wxString("--") : volume_short(cfg.volume);
+        auto *tile = new NozzleSlotTile(m_tile_scroll, i + 1, diameter, flow, cfg.status);
+        tile->SetDimmed(!multi_diameter && !on_selected_diameter);
+        if (!m_nozzle_tiles.empty()) m_tile_row->AddSpacer(FromDIP(TILE_GAP));
+        m_tile_row->Add(tile, 1, wxALIGN_CENTER_VERTICAL);
+        wxGetApp().UpdateDarkUIWin(tile); // tiles are created after Build()'s one-time dark-mode pass
+        m_nozzle_tiles.push_back(tile);
     }
+    UpdateTileScrollLayout();
 
-    // Multi-diameter mode: one tile per (diameter, volume) group; the index label is hidden.
-    m_summary_sizer->Clear(true); // destroy the tiles from the previous projection
-    m_summaries.clear();
-    m_nozzle_index_label->Hide();
-
-    std::vector<std::pair<std::pair<wxString, NozzleVolumeType>, int>> groups;
-    for (const auto &c : configs) {
-        if (c.diameter.IsEmpty()) continue;
-        auto key = std::make_pair(c.diameter, c.volume);
-        auto it  = std::find_if(groups.begin(), groups.end(), [&](const auto &e) { return e.first == key; });
-        if (it == groups.end())
-            groups.push_back({key, 1});
-        else
-            it->second++;
-    }
-    // Tiles read left to right, smallest diameter first and standard flow ahead of the high flow
-    // types, so the same nozzle set always projects to the same order.
-    std::sort(groups.begin(), groups.end(), [](const auto &a, const auto &b) { return nozzle_group_less(a.first, b.first); });
-    for (const auto &g : groups) add_summary_tile(g.first.first, volume_short(g.first.second), g.second, true);
-
-    finish_projection(true); // every configured diameter is valid in multi mode
+    // Every configured diameter is valid in multi-diameter mode, so the mixed-diameter warning
+    // only applies once a single diameter has been picked for the whole plate.
+    finish_projection(multi_diameter || matching > 0);
 }
 
 CustomSeparator::CustomSeparator(wxWindow *parent, bool is_small) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)

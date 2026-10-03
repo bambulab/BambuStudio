@@ -10,7 +10,9 @@
 #include <wx/graphics.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/statbmp.h>
 
+#include "slic3r/GUI/ExtruderHelpers.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -247,7 +249,8 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     m_has_ams  = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_int("ams_nozzle_idx", 0) >= 0;
     m_snapshot = wxGetApp().preset_bundle->get_ams_count(m_extruder_index);
 
-    auto *row = new wxBoxSizer(wxHORIZONTAL);
+    m_row_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto *row   = m_row_sizer;
 
     m_label = new Label(this, label_text);
     m_label->SetFont(Label::Body_14);
@@ -284,6 +287,12 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
         e.Skip();
     });
     row->Add(m_add_btn, 0, wxALIGN_CENTER_VERTICAL);
+
+    // Right-end check: this row's 4-slot and 1-slot counts match the connected printer.
+    row->AddStretchSpacer();
+    m_sync_badge = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("badge", this, 16), wxDefaultPosition, FromDIP(wxSize(16, 16)), 0);
+    m_sync_badge->Hide();
+    row->Add(m_sync_badge, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
 
     // A standalone band pads itself; an inline row sits flush against the nozzle row it joins.
     const int pad   = m_placement == Placement::StandaloneRow ? FromDIP(6) : 0;
@@ -340,7 +349,31 @@ void NozzleAmsRow::refresh_previews()
 
     if (m_placement == Placement::Inline) m_label->Show(shown > 0);
 
+    update_sync_badge();
     Layout();
+}
+
+// Show the check only when this extruder's local 4-slot and 1-slot counts equal the connected
+// printer's. Offline, not ready, or a different printer model hides it.
+void NozzleAmsRow::update_sync_badge()
+{
+    if (!m_sync_badge || !m_row_sizer) return;
+
+    bool matched = false;
+    MachineObject *obj = selected_machine();
+    PresetBundle  *preset_bundle = wxGetApp().preset_bundle;
+    if (obj && obj->is_online() && obj->is_info_ready() && obj->GetFilaSystem() && obj->GetExtderSystem() && preset_bundle &&
+        preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
+        const auto counts   = collect_ams_counts(obj);
+        const auto [n4, n1] = preset_bundle->get_ams_count(m_extruder_index);
+        const auto found4   = counts.find(std::make_pair(m_extruder_index, 4));
+        const auto found1   = counts.find(std::make_pair(m_extruder_index, 1));
+        const int  machine_n4 = found4 == counts.end() ? 0 : found4->second;
+        const int  machine_n1 = found1 == counts.end() ? 0 : found1->second;
+        matched = machine_n4 == n4 && machine_n1 == n1;
+    }
+
+    m_row_sizer->Show(m_sync_badge, matched);
 }
 
 void NozzleAmsRow::show_add_popup()

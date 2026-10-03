@@ -320,6 +320,11 @@ MachineNozzleBaseline collect_machine_nozzle_baseline(bool is_dual)
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle) return baseline;
 
+    // Same guard is_extruder_stat_synced() applies: a slot on a printer of another model says
+    // nothing about the selected preset, so reporting it as a baseline would let callers mark
+    // slots synced against hardware the preset has no relation to.
+    if (preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) != obj->get_show_printer_type()) return baseline;
+
     const auto *max_nozzle_count = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     if (!max_nozzle_count) return baseline;
 

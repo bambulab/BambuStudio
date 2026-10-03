@@ -7,17 +7,18 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 
+#include <wx/event.h>
 #include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/statbmp.h>
 
+#include "ExtruderHelpers.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 #include "Plater.hpp"
 #include "PresetComboBoxes.hpp"
 #include "PartPlate.hpp"
 #include "FilamentMapDialog.hpp"
 #include "FilamentMapPanel.hpp"
-#include "Widgets/StaticBox.hpp"
+#include "Widgets/CascadeMenu.hpp"
 #include "Widgets/Label.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceCore/DevNozzleSystem.h"
@@ -29,30 +30,16 @@ namespace Slic3r { namespace GUI {
 
 namespace {
 
-// Whether this slot's filament can actually print with a (diameter, flow) nozzle. Two independent
-// conditions must hold: the printer preset must declare that extruder variant so print profiles
-// exist, and the filament itself must declare support for that flow (filament_extruder_variant,
-// the same is_nozzle_printable_for_filament check PartPlate.cpp validates a slice with).
-//
-// Deliberately NOT a test of whether the rack carries the nozzle: the list is built from the rack
-// now, so every row is installed by construction and this only decides which of those rows are
-// selectable rather than greyed out.
-//
-// Also mirrors the per-extruder filter rules used to populate ExtruderGroup::combo_flow
-// (Plater.cpp, update_extruder_variant): E3DHighFlow only applies to 0.4/0.6 nozzles, and
-// 0.2 nozzles have no HighFlow variant.
-bool filament_supports_nozzle(const std::string &diameter,
-                              NozzleVolumeType volume_type,
-                              const std::vector<std::string> &filament_variants,
-                              bool filament_variants_complete)
-{
-    if (volume_type == NozzleVolumeType::nvtE3DHighFlow && diameter != "0.4" && diameter != "0.6")
-        return false;
-    if (diameter == "0.2" && volume_type == NozzleVolumeType::nvtHighFlow)
-        return false;
-    if (!is_nozzle_printable_for_filament(volume_type, filament_variants, filament_variants_complete))
-        return false;
+// The two reasons a listed nozzle cannot be picked. Both render the same way; only the message
+// differs, because only one of them is something the user can go and fix.
+wxString missing_nozzle_tip() { return _L("To pick this, change the nozzle settings first"); }
+wxString unusable_nozzle_tip() { return _L("The filament in this slot cannot print with this nozzle"); }
 
+// Whether the printer is sold with a nozzle of this flow type, going by the preset that carries
+// `diameter` -- i.e. whether print profiles exist for that extruder variant at all. Says nothing
+// about whether one is installed, nor about whether a given filament can print with it.
+bool printer_offers_flow(const std::string &diameter, NozzleVolumeType volume_type)
+{
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const Preset *printer_preset = preset_bundle->get_similar_printer_preset({}, diameter);
     if (printer_preset == nullptr)
@@ -79,177 +66,228 @@ bool filament_supports_nozzle(const std::string &diameter,
 
 } // anonymous namespace
 
-FilamentNozzlePopup::FilamentNozzlePopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+FilamentNozzlePopup::FilamentNozzlePopup(wxWindow *parent) : CascadeMenuPopup(parent)
 {
-    SetBackgroundColour(*wxWHITE);
-
-    m_check_bmp = create_scaled_bitmap("checked", this, 16);
-
-    // Rounded white panel per Figma node 7808:13592 (4px radius, #CECECE border);
-    // StaticBox already defaults to this exact border color, set explicitly for clarity.
-    m_panel = new StaticBox(this);
-    m_panel->SetCornerRadius(4);
-    m_panel->SetBorderWidth(1);
-    m_panel->SetBorderColorNormal(wxColour(0xCE, 0xCE, 0xCE));
-    m_panel->SetBackgroundColorNormal(*wxWHITE);
-    m_panel->SetBackgroundColour(*wxWHITE);
-
-    m_list_sizer = new wxBoxSizer(wxVERTICAL);
-    auto *panel_sizer = new wxBoxSizer(wxVERTICAL);
-    panel_sizer->Add(m_list_sizer, 1, wxEXPAND | wxALL, FromDIP(8));
-    m_panel->SetSizer(panel_sizer);
-
-    auto *top_sizer = new wxBoxSizer(wxVERTICAL);
-    top_sizer->Add(m_panel, 1, wxEXPAND);
-    SetSizer(top_sizer);
+    // One flow menu for the life of this popup, refilled as the pointer moves between diameters,
+    // exactly as DropDown reuses its own submenu. Destroying a popup and building a new one on every
+    // hover does not work: Destroy() on a top-level window only queues the deletion for idle time,
+    // so the outgoing window is usually still alive -- and still holding wx's popup handlers -- when
+    // the incoming one pops. Parented on the owning window rather than on this popup, because a
+    // transient popup parented on another transient popup goes down with it.
+    m_sub_menu = new CascadeMenuPopup(parent);
+    m_sub_menu->Hide(); // the guard on this level keys off this, so start it in a known state
+    m_sub_menu->SetMainMenu(this);
+    SetSubMenu(m_sub_menu);
 }
 
-void FilamentNozzlePopup::rebuild_options()
+// Everything the row builders need about the slot, read once per popup rather than re-derived per row.
+void FilamentNozzlePopup::read_slot_state()
 {
-    m_options.clear();
-    m_selected = -1;
+    m_printer_diameters.clear();
+    m_rack.clear();
+    m_filament_diameters.clear();
+    m_filament_variants = {"Direct Drive Standard"};
+    m_filament_variants_complete = false;
+    m_diameter.clear();
+    m_volume = NozzleVolumeType::nvtStandard;
+    if (m_filament_idx < 0)
+        return;
 
-    if (m_filament_idx >= 0) {
-        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-        // Diameters this slot's filament has a preset for. Not the list's source any more -- only
-        // one of the two things that decide whether a listed nozzle is selectable.
-        const std::vector<std::string> supported_diameters = preset_bundle->get_filament_nozzle_diameter_options((size_t) m_filament_idx);
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
 
-        const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
-        std::string current_diameter = (selected != nullptr && m_filament_idx < (int) selected->values.size())
-            ? selected->values[m_filament_idx] : std::string();
-        // Same fallback the sidebar's nozzle label applies (Sidebar::priv::refresh_filament_nozzle_label):
-        // a legacy project, or a validate pass that ran with a single diameter installed, leaves this
-        // slot's entry blank. The label still shows a diameter by falling back to the first option, so
-        // reading the raw entry here matched no row and left the list with no checkmark at all, even
-        // though the chip it was opened from was displaying one of them.
-        if (current_diameter.empty() && !supported_diameters.empty())
-            current_diameter = supported_diameters.front();
+    // Every diameter this printer is sold in, not just the ones on the rack: a diameter the user
+    // could install but has not is exactly what the faded rows are there to show.
+    m_printer_diameters = preset_bundle->printers.diameters_of_selected_printer();
 
-        NozzleVolumeType current_type = NozzleVolumeType::nvtStandard;
-        if (PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate()) {
-            const std::vector<int> volume_maps = plate->get_real_filament_volume_maps(preset_bundle->project_config);
-            if (m_filament_idx < (int) volume_maps.size())
-                current_type = (NozzleVolumeType) volume_maps[m_filament_idx];
+    // Hybrid is a slicing construct rather than a nozzle anyone installs, so it never reaches a row.
+    for (const auto &nozzle : preset_bundle->get_installed_nozzle_variants()) {
+        if (nozzle.second != NozzleVolumeType::nvtHybrid)
+            m_rack.insert(nozzle);
+    }
+
+    // What this slot can actually be set to: the diameters the rack carries, narrowed to those this
+    // slot's filament has a preset for. Already a subset of the rack, so a diameter missing from it
+    // can mean either reason -- which is why the row builder checks the rack first.
+    m_filament_diameters = preset_bundle->get_filament_nozzle_diameter_options((size_t) m_filament_idx);
+
+    const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    m_diameter = (selected != nullptr && m_filament_idx < (int) selected->values.size())
+        ? selected->values[m_filament_idx] : std::string();
+    // Same fallback the sidebar's nozzle label applies (Sidebar::priv::refresh_filament_nozzle_label):
+    // a legacy project, or a validate pass that ran with a single diameter installed, leaves this
+    // slot's entry blank. The label still shows a diameter by falling back to the first option, so
+    // reading the raw entry here matched no row and left the list with no checkmark at all, even
+    // though the chip it was opened from was displaying one of them.
+    if (m_diameter.empty() && !m_filament_diameters.empty())
+        m_diameter = m_filament_diameters.front();
+
+    if (PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate()) {
+        const std::vector<int> volume_maps = plate->get_real_filament_volume_maps(preset_bundle->project_config);
+        if (m_filament_idx < (int) volume_maps.size())
+            m_volume = (NozzleVolumeType) volume_maps[m_filament_idx];
+    }
+
+    // Restrict the offered flow types to what this filament itself declares support for
+    // (same rule PartPlate.cpp uses to validate printability), not just what the printer's
+    // nozzle can physically report -- otherwise e.g. TPU-only flow types would leak into the
+    // list for a non-TPU filament, or vice versa.
+    if (m_filament_idx < (int) preset_bundle->filament_presets.size()) {
+        const Preset *fil_preset = preset_bundle->filaments.find_preset(preset_bundle->filament_presets[m_filament_idx]);
+        if (fil_preset != nullptr) {
+            if (fil_preset->config.has("filament_extruder_variant"))
+                m_filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+            m_filament_variants_complete = preset_bundle->filaments.is_bbl_brand_filament(*fil_preset);
+        }
+    }
+}
+
+std::vector<FilamentNozzlePopup::FlowRow> FilamentNozzlePopup::flow_rows_for(const std::string &diameter) const
+{
+    std::vector<FlowRow> rows;
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    auto         *def           = preset_bundle->project_config.def()->get("nozzle_volume_type");
+    if (def == nullptr)
+        return rows;
+
+    for (size_t j = 0; j < def->enum_labels.size(); ++j) {
+        const auto volume = (NozzleVolumeType) def->enum_keys_map->at(def->enum_values[j]);
+        if (volume == NozzleVolumeType::nvtHybrid)
+            continue;
+        // Left out rather than greyed: a type the printer is not sold with, and a combination no
+        // nozzle is made in, are both things the user can do nothing about, so the row would only
+        // be noise -- and worse, it would send them to the nozzle settings to look for something
+        // that is not there.
+        if (!printer_offers_flow(diameter, volume) || !nozzle_variant_exists(diameter, volume))
+            continue;
+
+        FlowRow row;
+        row.volume    = volume;
+        row.label     = _L(def->enum_labels[j]);
+        row.installed = m_rack.count({diameter, volume}) > 0;
+        row.usable    = is_nozzle_printable_for_filament(volume, m_filament_variants, m_filament_variants_complete);
+        rows.push_back(row);
+    }
+    return rows;
+}
+
+void FilamentNozzlePopup::open_flow_menu(const std::string &diameter, const wxWindow *anchor)
+{
+    auto *sub = m_sub_menu;
+    if (sub == nullptr)
+        return;
+
+    // Refill in place. The sizer goes before its items do, so it never holds dead rows.
+    sub->SetSizer(nullptr);
+    sub->DestroyChildren();
+    auto *sub_box = new wxBoxSizer(wxVERTICAL);
+
+    bool first = true;
+    for (const auto &flow : flow_rows_for(diameter)) {
+        // Only a pickable row can carry the checkmark: on an unavailable one it would read as
+        // "this is what you have" next to an entry the user is being told they cannot pick. A slot
+        // left on an unusable nozzle shows no checkmark at all, and the red mark on the filament
+        // row is what says something needs fixing.
+        const bool pickable = flow.installed && flow.usable;
+        const bool checked  = pickable && diameter == m_diameter && flow.volume == m_volume;
+
+        // Greyed label only, no fade: a second-level row is just text, so that is the design's
+        // rendering of the state here. The message is what tells the two reasons apart.
+        auto *item = new CascadeMenuItem(sub, flow.label, pickable, checked, false);
+        if (!pickable)
+            item->SetTip(flow.installed ? unusable_nozzle_tip() : missing_nozzle_tip());
+
+        if (pickable)
+            // apply_pick closes both levels itself, at the point in its write-back sequence where
+            // the sidebar expects the menu to be gone.
+            item->Bind(wxEVT_LEFT_DOWN, [this, diameter, flow](wxMouseEvent &) { apply_pick(diameter, flow.volume); });
+        else
+            // Swallow the click rather than leave the row unbound: an unhandled one bubbles into
+            // wxPopupTransientWindow, which treats the completed click as a reason to dismiss.
+            item->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) {});
+
+        CascadeMenu::AddItem(sub_box, item, first);
+        first = false;
+    }
+    CascadeMenu::Finish(sub, sub_box);
+
+    CascadeMenu::PositionSubMenu(sub, this, anchor);
+    if (!sub->IsShown())
+        sub->Popup();
+    else
+        sub->Refresh();
+}
+
+// Diameters at the first level, each opening the flow types that diameter is made in.
+void FilamentNozzlePopup::build_menu()
+{
+    // Refilled in place for the same reason the flow menu is: this popup outlives a single gesture.
+    SetSizer(nullptr);
+    DestroyChildren();
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
+
+    bool first = true;
+    for (const auto &diameter : m_printer_diameters) {
+        // Two reasons a diameter can be unavailable, told apart by what the row says on hover: the
+        // nozzle settings not carrying one is something the user can go and change, while a
+        // filament with no preset at that diameter is a fact about the filament. The settings are
+        // checked first because m_filament_diameters is already narrowed to them, so a diameter
+        // missing from that list alone does not say which of the two it is.
+        const bool installed = std::any_of(m_rack.begin(), m_rack.end(),
+                                           [&diameter](const auto &n) { return n.first == diameter; });
+        const bool pickable  = installed && std::find(m_filament_diameters.begin(), m_filament_diameters.end(), diameter) !=
+                                                m_filament_diameters.end();
+
+        auto *item = new CascadeMenuItem(this, wxString::FromUTF8(diameter) + " mm", pickable, pickable && diameter == m_diameter, true);
+        if (!pickable) {
+            // Faded whole-row, the design's rendering for a level that also carries a tick column
+            // and a chevron.
+            item->SetDimmed(true);
+            item->SetTip(installed ? unusable_nozzle_tip() : missing_nozzle_tip());
         }
 
-        // Restrict the offered flow types to what this filament itself declares support for
-        // (same rule PartPlate.cpp uses to validate printability), not just what the printer's
-        // nozzle can physically report -- otherwise e.g. TPU-only flow types would leak into the
-        // list for a non-TPU filament, or vice versa.
-        std::vector<std::string> filament_variants = {"Direct Drive Standard"};
-        bool filament_variants_complete = false;
-        if (m_filament_idx < (int) preset_bundle->filament_presets.size()) {
-            const Preset *fil_preset = preset_bundle->filaments.find_preset(preset_bundle->filament_presets[m_filament_idx]);
-            if (fil_preset != nullptr) {
-                if (fil_preset->config.has("filament_extruder_variant"))
-                    filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
-                filament_variants_complete = preset_bundle->filaments.is_bbl_brand_filament(*fil_preset);
-            }
-        }
-
-        // The list is the printer's rack: every nozzle physically installed gets a row, whether or
-        // not this filament can use it. Hybrid is not a nozzle the user picks, so it stays out.
-        std::vector<std::pair<std::string, NozzleVolumeType>> rack;
-        for (const auto &nozzle : preset_bundle->get_installed_nozzle_variants()) {
-            if (nozzle.second != NozzleVolumeType::nvtHybrid)
-                rack.push_back(nozzle);
-        }
-        // `installed` is keyed on the diameter as a string, so it orders "0.10" before "0.2".
-        // Sort on the number instead, then on flow type, to get the natural 0.2/0.4/0.6/0.8 order.
-        std::sort(rack.begin(), rack.end(), [](const auto &lhs, const auto &rhs) {
-            const double l = atof(lhs.first.c_str()), r = atof(rhs.first.c_str());
-            return l != r ? l < r : lhs.second < rhs.second;
+        // Every diameter the printer supports opens its flow menu, including a faded diameter that
+        // is absent from the nozzle settings. Its flow rows remain disabled, but rebuilding the
+        // submenu tells the user which nozzle types that diameter offers and, importantly, replaces
+        // the stale submenu belonging to the previously hovered diameter.
+        auto open = [this, diameter, item] { open_flow_menu(diameter, item); };
+        item->Bind(wxEVT_ENTER_WINDOW, [open](wxMouseEvent &e) {
+            open();
+            e.Skip();
         });
+        item->Bind(wxEVT_LEFT_DOWN, [open](wxMouseEvent &) { open(); });
 
-        for (const auto &[diameter, type] : rack) {
-            const bool diameter_ok = std::find(supported_diameters.begin(), supported_diameters.end(), diameter) !=
-                                     supported_diameters.end();
-            const bool selectable  = diameter_ok &&
-                                     filament_supports_nozzle(diameter, type, filament_variants, filament_variants_complete);
-            // Only a selectable row can carry the checkmark: on a greyed one it would read as
-            // "this is what you have" next to an entry the user is being told they cannot pick.
-            // A slot left on an unusable nozzle shows no checkmark at all, and the red mark on the
-            // filament row is what says something needs fixing.
-            if (selectable && diameter == current_diameter && type == current_type)
-                m_selected = (int) m_options.size();
-            m_options.push_back({diameter, type, selectable});
-        }
+        CascadeMenu::AddItem(sizer, item, first);
+        first = false;
     }
-
-    m_list_sizer->Clear(true);
-    const wxSize check_size = m_check_bmp.IsOk() ? m_check_bmp.GetSize() : wxSize(FromDIP(16), FromDIP(16));
-    // The checkmark sits flush against the row's left edge; the panel's own 8px padding is already
-    // all the inset it needs.
-    const int    check_left_margin = 0;
-
-    for (size_t i = 0; i < m_options.size(); ++i) {
-        if (i > 0)
-            m_list_sizer->AddSpacer(FromDIP(6));
-
-        const Option &opt = m_options[i];
-        const bool is_selected = ((int) i == m_selected);
-
-        auto *row = new wxWindow(m_panel, wxID_ANY);
-        row->SetBackgroundColour(*wxWHITE);
-        if (opt.selectable)
-            row->SetCursor(wxCursor(wxCURSOR_HAND));
-
-        auto *check = new wxStaticBitmap(row, wxID_ANY, is_selected ? m_check_bmp : wxNullBitmap, wxDefaultPosition, check_size);
-
-        auto *label = new wxStaticText(row, wxID_ANY, wxString::FromUTF8(opt.diameter) + " " + DevNozzle::GetNozzleVolumeTypeStr(opt.volume_type));
-        label->SetFont(Label::Body_14);
-        label->SetForegroundColour(opt.selectable ? wxColour("#262E30") : wxColour("#909090"));
-
-        // The checkmark is a real sizer item, and the right side gets a spacer of the same
-        // footprint so the label still lands in the middle of the row. Positioning it by hand
-        // outside the sizer (as this used to) reserved no width for it: the row measured only as
-        // wide as its text, the centred label was laid out straight across the mark, and the
-        // opaque label window won the sibling z-order on MSW and hid it -- while OSX, ordering
-        // siblings the other way, left it showing and looking misplaced.
-        // Left-aligned: the labels start on one vertical line right after the checkmark column, so
-        // the list reads as a column of options rather than each row's text drifting with its own
-        // width. The trailing stretch spacer is what pushes the leftover row width to the right.
-        auto *row_sizer = new wxBoxSizer(wxHORIZONTAL);
-        row_sizer->Add(check, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, check_left_margin);
-        row_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
-        row_sizer->AddStretchSpacer(1);
-        row_sizer->AddSpacer(FromDIP(6));
-        row->SetSizer(row_sizer);
-
-        // Greyed-out rows get no handler at all rather than one that checks and bails: with nothing
-        // bound, the click is simply not consumed anywhere in the row.
-        if (opt.selectable) {
-            auto on_click = [this, i](wxMouseEvent &) { on_item_clicked(i); };
-            row->Bind(wxEVT_LEFT_UP, on_click);
-            check->Bind(wxEVT_LEFT_UP, on_click);
-            label->Bind(wxEVT_LEFT_UP, on_click);
-        }
-
-        m_list_sizer->Add(row, 0, wxEXPAND);
-    }
-
-    GetSizer()->Layout();
-    GetSizer()->SetSizeHints(this);
-
+    CascadeMenu::Finish(this, sizer);
 }
 
 void FilamentNozzlePopup::tryPopup(int filament_idx)
 {
     m_filament_idx = filament_idx;
-    rebuild_options();
-    wxGetApp().UpdateDarkUIWin(this);
+    read_slot_state();
+    build_menu();
+    // No UpdateDarkUIWin pass here, unlike the flat list this replaced: RoundedPopupWindow paints
+    // its own fill from GetBackgroundColour() through the dark-mode map, so letting the generic
+    // walker rewrite that colour would map an already-mapped one a second time.
     Popup();
 }
 
-void FilamentNozzlePopup::on_item_clicked(size_t option_idx)
+// Order matters: this level refuses to dismiss while the flow menu is still up, so release the
+// guard and close that one first, then put the guard back for the next gesture.
+void FilamentNozzlePopup::close_menus()
 {
-    if (m_filament_idx < 0 || option_idx >= m_options.size())
-        return;
+    SetSubMenu(nullptr);
+    if (m_sub_menu)
+        m_sub_menu->Dismiss();
+    Dismiss();
+    SetSubMenu(m_sub_menu);
+}
 
-    const Option &opt = m_options[option_idx];
-    // Greyed-out rows are not wired up at all, so this is belt-and-braces against a later caller.
-    if (!opt.selectable)
+void FilamentNozzlePopup::apply_pick(const std::string &diameter, NozzleVolumeType volume)
+{
+    if (m_filament_idx < 0)
         return;
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -264,13 +302,15 @@ void FilamentNozzlePopup::on_item_clicked(size_t option_idx)
     const std::string old_preset   = preset_bundle->filament_presets[m_filament_idx];
     const std::string old_diameter = selected->values[m_filament_idx];
 
-    if (opt.diameter != old_diameter) {
-        if (!preset_bundle->set_filament_nozzle_diameter((size_t) m_filament_idx, opt.diameter)) {
+    if (diameter != old_diameter) {
+        if (!preset_bundle->set_filament_nozzle_diameter((size_t) m_filament_idx, diameter)) {
             preset_bundle->filament_presets[m_filament_idx] = old_preset;
             selected->values[m_filament_idx] = old_diameter;
             if (m_filament_idx == 0)
                 preset_bundle->filaments.select_preset_by_name(old_preset, false, true);
-            rebuild_options();
+            // Nothing changed, so leaving the menu up would invite the user to try the same row
+            // again. Close it instead and let them reopen against the restored state.
+            close_menus();
             return;
         }
     }
@@ -279,7 +319,7 @@ void FilamentNozzlePopup::on_item_clicked(size_t option_idx)
     if (global_volume_map != nullptr) {
         if ((int) global_volume_map->values.size() <= m_filament_idx)
             global_volume_map->values.resize(m_filament_idx + 1, (int) NozzleVolumeType::nvtStandard);
-        global_volume_map->values[m_filament_idx] = (int) opt.volume_type;
+        global_volume_map->values[m_filament_idx] = (int) volume;
 
         for (PartPlate *plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
             if (plate == nullptr)
@@ -289,7 +329,7 @@ void FilamentNozzlePopup::on_item_clicked(size_t option_idx)
                 continue; // no per-plate override: keep falling back to the (just-updated) global default
             if ((int) plate_volume_map.size() <= m_filament_idx)
                 plate_volume_map.resize(m_filament_idx + 1, (int) NozzleVolumeType::nvtStandard);
-            plate_volume_map[m_filament_idx] = (int) opt.volume_type;
+            plate_volume_map[m_filament_idx] = (int) volume;
             plate->set_filament_volume_maps(plate_volume_map);
         }
     }
@@ -310,7 +350,7 @@ void FilamentNozzlePopup::on_item_clicked(size_t option_idx)
     if ((size_t) m_filament_idx < combos.size() && combos[m_filament_idx] != nullptr)
         combos[m_filament_idx]->update();
 
-    Dismiss();
+    close_menus();
     // on_config_change only rebuilds mixed rows on colour/type/support diffs.
     // Diameter/volume edits must refresh chips and broken-diameter marks here.
     plater->sidebar().update_mixed_filament_list(false);
