@@ -475,6 +475,9 @@ enum class LoadType : unsigned char
     LoadConfig
 };
 
+// Asks whether a 3mf has to be opened as project or imported into the current one, when the plate is not empty.
+static LoadType choose_3mf_load_type(const Model &model, const std::string &filename);
+
 class SlicedInfo : public wxStaticBoxSizer
 {
 public:
@@ -20637,9 +20640,6 @@ void Plater::import_model_id(wxString download_info)
 
     boost::filesystem::path target_path;
 
-    //reset params
-    p->project.reset();
-
     /* prepare project and profile */
     boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &retry_count, max_retries, &msg, &target_path, &download_ok, download_url, &filename] {
 
@@ -20885,6 +20885,25 @@ void Plater::import_model_id(wxString download_info)
 
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
+
+        // Same choice offered when a 3mf is dropped on a non empty plate: the link may come while a project is open.
+        LoadType load_type = choose_3mf_load_type(model(), encode_path(target_path.filename().string().c_str()));
+        if (load_type == LoadType::Unknown)
+            return;
+        if (load_type != LoadType::OpenProject) {
+            if (load_type == LoadType::LoadGeometry) {
+                Plater::TakeSnapshot snapshot(this, "Import Object");
+                load_files({target_path}, LoadStrategy::LoadModel);
+            } else
+                load_files({target_path}, LoadStrategy::LoadConfig);
+            statistics_burial_data_form_mw();
+            p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
+            return;
+        }
+
+        //reset params
+        p->project.reset();
+
         /* load project */
         auto result = this->load_project(target_path.wstring());
         statistics_burial_data_form_mw();
@@ -22503,15 +22522,10 @@ void Plater::statistics_burial_data_form_mw()
     statistics_burial_data_once(j.dump());
 }
 
-bool Plater::open_3mf_file(const fs::path &file_path)
+static LoadType choose_3mf_load_type(const Model &model, const std::string &filename)
 {
-    std::string filename = encode_path(file_path.filename().string().c_str());
-    if (!boost::algorithm::iends_with(filename, ".3mf")) {
-        return false;
-    }
-
     LoadType load_type = LoadType::Unknown;
-    if (!model().objects.empty()) {
+    if (!model.objects.empty()) {
         bool show_drop_project_dialog = true;
         if (show_drop_project_dialog) {
             ProjectDropDialog dlg(filename);
@@ -22528,7 +22542,17 @@ bool Plater::open_3mf_file(const fs::path &file_path)
                 std::clamp(std::stoi(wxGetApp().app_config->get("import_project_action")), static_cast<int>(LoadType::OpenProject), static_cast<int>(LoadType::LoadConfig)));
     } else
         load_type = LoadType::OpenProject;
+    return load_type;
+}
 
+bool Plater::open_3mf_file(const fs::path &file_path)
+{
+    std::string filename = encode_path(file_path.filename().string().c_str());
+    if (!boost::algorithm::iends_with(filename, ".3mf")) {
+        return false;
+    }
+
+    LoadType load_type = choose_3mf_load_type(model(), filename);
     if (load_type == LoadType::Unknown) return false;
 
     switch (load_type) {

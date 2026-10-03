@@ -1,10 +1,7 @@
 #include "GUI_App.hpp"
 #include "InstanceCheck.hpp"
 #include "Plater.hpp"
-
-#ifdef _WIN32
-  #include "MainFrame.hpp"
-#endif
+#include "MainFrame.hpp"
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
@@ -58,6 +55,8 @@ namespace instance_check_internal
 	{
 		std::optional<bool>	should_send;
 		std::string    		cl_string;
+		// A link opened from the browser ("Open in Bambu Studio")
+		bool                has_web_open_url { false };
 	};
 	static CommandLineAnalysis process_command_line(int argc, char** argv)
 	{
@@ -72,8 +71,11 @@ namespace instance_check_internal
 				ret.should_send = true;
 			else if (token == "--no-single-instance")
 				ret.should_send = false;
-			else
+			else {
+				if (GUI::GUI_App::is_web_open_url(token))
+					ret.has_web_open_url = true;
 				arguments.emplace_back(token);
+			}
 		}
 		ret.cl_string = escape_strings_cstyle(arguments);
 		BOOST_LOG_TRIVIAL(debug) << "single instance: " <<
@@ -342,8 +344,9 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	GUI::wxGetApp().set_instance_hash(hashed_path);
 	BOOST_LOG_TRIVIAL(debug) <<"full path: "<< lock_name;
 	instance_check_internal::CommandLineAnalysis cla = instance_check_internal::process_command_line(argc, argv);
+	// Links opened from the browser always go to the running instance, otherwise the user would have to close it first.
 	if (! cla.should_send.has_value())
-		cla.should_send = app_config_single_instance;
+		cla.should_send = app_config_single_instance || cla.has_web_open_url;
 #ifdef _WIN32
 	GUI::wxGetApp().init_single_instance_checker(lock_name + ".lock", data_dir() + "\\cache\\");
 	if (cla.should_send.value() && GUI::wxGetApp().single_instance_checker()->IsAnotherRunning()) {
@@ -351,7 +354,11 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 	// get_lock() creates the lockfile therefore *cla.should_send is checked after
 	if (instance_check_internal::get_lock(lock_name + ".lock", data_dir() + "/cache/") && *cla.should_send) {
 #endif
-		instance_check_internal::send_message(cla.cl_string, lock_name);
+		if (! instance_check_internal::send_message(cla.cl_string, lock_name) && cla.has_web_open_url) {
+			// The running instance has no window yet (still starting): open the link in this instance rather than losing it.
+			BOOST_LOG_TRIVIAL(warning) << "Instance check: Another instance found but not reachable, opening the link in this instance.";
+			return false;
+		}
 		BOOST_LOG_TRIVIAL(error) << "Instance check: Another instance found. This instance will terminate. Lock file of current running instance is located at " << PathSanitizer::sanitize(data_dir()) <<
 #ifdef _WIN32
 			"\\cache\\"
@@ -501,6 +508,16 @@ void OtherInstanceMessageHandler::handle_message(const std::string& message)
 	// Skip the first argument, it is the path to the slicer executable.
 	auto it = args.begin();
 	for (++ it; it != args.end(); ++ it) {
+		if (GUI_App::is_web_open_url(*it)) {
+			// May be called from the DBus listener thread: the download and its dialogs must run on the UI thread.
+			std::string url = *it;
+			wxGetApp().CallAfter([url]() {
+				if (wxGetApp().mainframe)
+					wxGetApp().mainframe->Raise();
+				wxGetApp().open_web_url(url);
+			});
+			continue;
+		}
 		boost::filesystem::path p = MessageHandlerInternal::get_path(*it);
 		if (! p.string().empty())
 			paths.emplace_back(p);

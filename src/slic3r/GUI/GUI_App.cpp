@@ -1167,7 +1167,51 @@ std::string extract_model_download_url_from_mac(const std::string &protocol_url)
         return {};
     return Http::url_decode(protocol_url.substr(key.size()));
 }
+
+// Extracts the model download url from a web open link and asks the user to confirm untrusted sources.
+// Returns an empty string if the link is not valid or the user refused it.
+std::string confirm_model_download_url_from_web(const std::string &protocol_url)
+{
+    std::string input_str = boost::istarts_with(protocol_url, "bambustudioopen://") ?
+        extract_model_download_url_from_mac(protocol_url) :
+        extract_model_download_url_from_open(protocol_url);
+    if (input_str.empty())
+        return {};
+#if BBL_RELEASE_TO_PUBLIC
+    if (is_trusted_model_download_url(input_str))
+        return input_str;
+    MessageDialog msg_dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "", wxAPPLY | wxYES_NO);
+    return msg_dlg.ShowModal() == wxID_YES ? input_str : std::string();
+#else
+    return input_str;
+#endif
+}
 } // namespace
+
+bool GUI_App::is_web_open_url(const std::string &url)
+{
+    return boost::starts_with(url, "bambustudio://open") || boost::istarts_with(url, "bambustudioopen://");
+}
+
+void GUI_App::open_web_url(const std::string &url)
+{
+    if (!is_web_open_url(url))
+        return;
+
+    std::string download_file_url = sanitize_download_url(confirm_model_download_url_from_web(url));
+
+#if !BBL_RELEASE_TO_PUBLIC
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
+#endif
+
+    if (download_file_url.empty() || !(boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://")))
+        return;
+
+    if (m_post_initialized)
+        request_model_download(from_u8(download_file_url));
+    else
+        m_download_file_url = from_u8(download_file_url);
+}
 
 void GUI_App::post_init()
 {
@@ -1203,25 +1247,7 @@ void GUI_App::post_init()
         if (this->init_params->input_files.size() == 1 &&
             boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
 
-            std::string input_str = extract_model_download_url_from_open(this->init_params->input_files.front());
-
-            std::string download_url;
-#if BBL_RELEASE_TO_PUBLIC
-            if (is_trusted_model_download_url(input_str)) {
-                download_url = input_str;
-            }
-            else {
-                MessageDialog msg_dlg(nullptr,
-                                      _L("This file is not from a trusted site, do you want to open it anyway?"), "",
-                                      wxAPPLY | wxYES_NO);
-                if (msg_dlg.ShowModal() == wxID_YES) {
-                    download_url = input_str;
-                }
-            }
-#else
-            download_url = input_str;
-#endif
-            download_url = sanitize_download_url(download_url);
+            std::string download_url = sanitize_download_url(confirm_model_download_url_from_web(this->init_params->input_files.front()));
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % PathSanitizer::sanitize(download_url);
 
@@ -7817,35 +7843,8 @@ void GUI_App::MacOpenURL(const wxString& url)
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
 #endif
 
-    if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
-        std::string decoded_url = extract_model_download_url_from_mac(url.ToStdString());
-        std::string download_file_url;
-#if BBL_RELEASE_TO_PUBLIC
-        if (is_trusted_model_download_url(decoded_url)) {
-            download_file_url = decoded_url;
-        } else {
-            MessageDialog msg_dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "", wxAPPLY | wxYES_NO);
-            if (msg_dlg.ShowModal() == wxID_YES) download_file_url = decoded_url;
-        }
-#else
-        download_file_url = decoded_url;
-#endif
-        download_file_url = sanitize_download_url(download_file_url);
-
-#if !BBL_RELEASE_TO_PUBLIC
-        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
-#endif
-
-        if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
-
-            if (m_post_initialized) {
-                request_model_download(download_file_url);
-            }
-            else {
-                m_download_file_url = download_file_url;
-            }
-        }
-    }
+    if (!url.empty() && boost::starts_with(url, "bambustudioopen://"))
+        open_web_url(url.ToStdString());
 }
 
 // wxWidgets override to get an event on open files.
