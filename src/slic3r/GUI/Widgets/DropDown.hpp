@@ -50,7 +50,7 @@ private:
     bool   limit_max_content_width = false;
     bool   align_icon        = false;
     bool   text_off          = false;
-    int    max_visible_rows  = 15;
+    int    max_visible_rows  = 15; // only caps sub-menus; top-level lists grow to fit the screen
 
     wxSize textSize;
     wxSize iconSize;
@@ -124,6 +124,7 @@ private:
     friend class ComboBox;
     void messureSize();
     void autoPosition();
+    size_t rowLimit(int row_height) const;
 
     // some useful events
     void mouseDown(wxMouseEvent& event);
