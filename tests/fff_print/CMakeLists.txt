@@ -3,6 +3,7 @@ add_executable(${_TEST_NAME}_tests
 	${_TEST_NAME}_tests.cpp
 	test_data.cpp
 	test_data.hpp
+	test_center_of_mass.cpp
 	test_extrusion_entity.cpp
 	test_fill.cpp
 	test_flow.cpp
@@ -29,6 +30,15 @@ endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
+
+# Keep the processor regressions runnable independently of the slicing suites.
+add_executable(center_of_mass_tests
+	fff_print_tests.cpp
+	test_center_of_mass.cpp
+)
+target_link_libraries(center_of_mass_tests test_common libslic3r)
+set_property(TARGET center_of_mass_tests PROPERTY FOLDER "tests")
+add_test(center_of_mass_tests center_of_mass_tests ${CATCH_EXTRA_ARGS})
 
 add_executable(support_material_on_wipe_tower_tests
 	fff_print_tests.cpp
@@ -61,4 +71,3 @@ if (MSVC)
 endif()
 set_property(TARGET periodic_modifier_tests PROPERTY FOLDER "tests")
 add_test(periodic_modifier_tests periodic_modifier_tests ${CATCH_EXTRA_ARGS})
-

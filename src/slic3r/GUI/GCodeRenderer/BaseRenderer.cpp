@@ -17,7 +17,12 @@
 #include "../Utils/HelioDragon.hpp"
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
+#include <algorithm>
 #include <chrono>
+#include <cstdio>
+#include <limits>
+#include <unordered_map>
+#include <unordered_set>
 namespace
 {
     std::string get_view_type_string(Slic3r::GUI::gcode::EViewType view_type)
@@ -44,6 +49,8 @@ namespace
             return _u8L("Tool");
         else if (view_type == Slic3r::GUI::gcode::EViewType::ColorPrint)
             return _u8L("Filament");
+        else if (view_type == Slic3r::GUI::gcode::EViewType::Objects)
+            return _u8L("Objects");
         else if (view_type == Slic3r::GUI::gcode::EViewType::LayerTime)
             return _u8L("Layer Time");
         // helio
@@ -583,6 +590,155 @@ namespace Slic3r
                 m_last_result_id = gcode_result.id;
                 m_gcode_result = &gcode_result;
                 m_only_gcode_in_preview = only_gcode;
+
+                // G-code move positions include the current plate offset. Keep the offset captured at
+                // load time so the legend can report plate-local coordinates while the marker remains
+                // in the same world coordinate system as the rendered toolpaths.
+                if (auto* plater = wxGetApp().plater(); plater != nullptr) {
+                    if (PartPlate* plate = plater->get_partplate_list().get_curr_plate(); plate != nullptr)
+                        m_center_of_gravity.plate_origin = plate->get_origin();
+                }
+
+                Vec2d bed_center = build_volume.bed_center();
+                Vec2d bed_size   = build_volume.bounding_volume2d().size();
+                // Imported G-code may describe a bed different from the active printer preset. Prefer
+                // its embedded printable area when available. BuildVolume::bed_center() is already in
+                // world coordinates for a normal sliced preview; the embedded area remains plate-local.
+                if (only_gcode && !gcode_result.printable_area.empty()) {
+                    const BoundingBoxf bed_bounds = get_extents(gcode_result.printable_area);
+                    bed_center = Vec2d(m_center_of_gravity.plate_origin.x(), m_center_of_gravity.plate_origin.y()) +
+                                 bed_bounds.center();
+                    bed_size   = bed_bounds.size();
+                }
+                m_center_of_gravity.plate_center = bed_center;
+                const double bed_min_size = std::min(bed_size.x(), bed_size.y());
+                if (bed_min_size > 0.0)
+                    m_center_of_gravity.marker_scale = std::clamp(0.025 * bed_min_size, 3.0, 8.0);
+
+                const GCodeProcessorResult::MassProperties finished_model = gcode_result.center_of_mass.finished_model();
+                const GCodeProcessorResult::MassProperties all_spatial_extrusions = gcode_result.center_of_mass.all_spatial_extrusions();
+                const GCodeProcessorResult::MassProperties* combined_properties = nullptr;
+                if (finished_model.valid())
+                    combined_properties = &finished_model;
+                else if (all_spatial_extrusions.valid())
+                    combined_properties = &all_spatial_extrusions;
+
+                std::vector<std::pair<int, std::string>> object_labels;
+                std::unordered_set<int> seen_labels;
+                std::unordered_map<const ModelObject*, size_t> total_copies;
+                std::unordered_map<const ModelObject*, size_t> next_copy;
+                for (const PrintObject* print_object : print.objects()) {
+                    if (print_object != nullptr)
+                        total_copies[print_object->model_object()] += print_object->instances().size();
+                }
+                for (const PrintObject* print_object : print.objects()) {
+                    if (print_object == nullptr)
+                        continue;
+                    const ModelObject* model_object = print_object->model_object();
+                    for (const PrintInstance& instance : print_object->instances()) {
+                        if (instance.model_instance == nullptr)
+                            continue;
+                        const size_t raw_label = instance.model_instance->get_labeled_id();
+                        if (raw_label > static_cast<size_t>(std::numeric_limits<int>::max()))
+                            continue;
+                        const int label_id = static_cast<int>(raw_label);
+                        if (!seen_labels.emplace(label_id).second)
+                            continue;
+
+                        std::string name = model_object != nullptr && !model_object->name.empty()
+                            ? model_object->name : _u8L("Object");
+                        const size_t copy_number = ++next_copy[model_object];
+                        if (total_copies[model_object] > 1)
+                            name += " (" + _u8L("Copy") + " " + std::to_string(copy_number) + ")";
+                        object_labels.emplace_back(label_id, std::move(name));
+                    }
+                }
+
+                for (const auto& [label_id, properties] : gcode_result.center_of_mass.by_object) {
+                    if (seen_labels.emplace(label_id).second)
+                        object_labels.emplace_back(label_id, _u8L("Object") + " " + std::to_string(label_id));
+                }
+
+                if (object_labels.empty() && combined_properties != nullptr) {
+                    object_labels.emplace_back(-1, _u8L("Combined objects"));
+                    m_center_of_gravity.combined_fallback = true;
+                } else if (!object_labels.empty() && gcode_result.center_of_mass.by_object.empty() && combined_properties != nullptr) {
+                    object_labels.emplace_back(-1, _u8L("Combined objects") + " (" + _u8L("fallback") + ")");
+                    m_center_of_gravity.combined_fallback = true;
+                }
+
+                bool has_object_label = false;
+                for (const auto& [label_id, name] : object_labels) {
+                    if (label_id < 0)
+                        continue;
+                    if (!has_object_label) {
+                        m_center_of_gravity.object_label_min = label_id;
+                        m_center_of_gravity.object_label_max = label_id;
+                        has_object_label = true;
+                    } else {
+                        m_center_of_gravity.object_label_min = std::min(m_center_of_gravity.object_label_min, static_cast<double>(label_id));
+                        m_center_of_gravity.object_label_max = std::max(m_center_of_gravity.object_label_max, static_cast<double>(label_id));
+                    }
+                }
+                const Range object_color_range(static_cast<float>(m_center_of_gravity.object_label_min),
+                                               static_cast<float>(m_center_of_gravity.object_label_max));
+
+                double attributed_model_mass = 0.0;
+                for (const auto& [label_id, name] : object_labels) {
+                    CenterOfGravityObjectState object;
+                    object.label_id = label_id;
+                    object.name = name;
+                    if (label_id >= 0 && has_object_label)
+                        object.color = object_color_range.get_color_at(static_cast<float>(label_id)).get_data();
+                    else
+                        object.color = ::decode_color("#00AE42");
+
+                    const GCodeProcessorResult::MassProperties* selected = nullptr;
+                    GCodeProcessorResult::MassProperties object_finished;
+                    GCodeProcessorResult::MassProperties object_all;
+                    if (label_id >= 0) {
+                        const auto it = gcode_result.center_of_mass.by_object.find(label_id);
+                        if (it != gcode_result.center_of_mass.by_object.end()) {
+                            object_finished = it->second.finished_model();
+                            object_all = it->second.all_spatial_extrusions();
+                            if (object_finished.valid()) {
+                                selected = &object_finished;
+                                attributed_model_mass += object_finished.mass_g;
+                            } else if (object_all.valid()) {
+                                selected = &object_all;
+                                object.uses_all_spatial_extrusions = true;
+                            }
+                        }
+                    } else {
+                        selected = combined_properties;
+                        object.uses_all_spatial_extrusions = !finished_model.valid();
+                    }
+
+                    if (selected != nullptr && selected->valid()) {
+                        object.valid = true;
+                        object.world_position = selected->center_of_mass();
+                        object.mass_g = selected->mass_g;
+                        object.volume_mm3 = selected->volume_mm3;
+                    } else if (label_id >= 0) {
+                        m_center_of_gravity.incomplete_object_attribution = true;
+                    }
+                    m_center_of_gravity.objects.emplace_back(std::move(object));
+                }
+
+                if (finished_model.valid()) {
+                    const double tolerance = std::max(1e-9, finished_model.mass_g * 1e-6);
+                    if (attributed_model_mass + tolerance < finished_model.mass_g)
+                        m_center_of_gravity.incomplete_object_attribution = true;
+                }
+
+                m_center_of_gravity.valid = combined_properties != nullptr || !m_center_of_gravity.objects.empty();
+                if (combined_properties != nullptr) {
+                    m_center_of_gravity.contains_unknown_roles = combined_properties->contains_unknown_roles;
+                    m_center_of_gravity.used_default_density = combined_properties->used_default_density;
+                    m_center_of_gravity.used_default_filament_diameter = combined_properties->used_default_filament_diameter;
+                    m_center_of_gravity.unsupported_flow_override = combined_properties->unsupported_flow_override;
+                    m_center_of_gravity.unsupported_volumetric_extrusion = combined_properties->unsupported_volumetric_extrusion;
+                }
                 const auto& p_sequential_view = get_sequential_view();
                 if (p_sequential_view) {
                     p_sequential_view->gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
@@ -1230,6 +1386,7 @@ namespace Slic3r
                 m_plater_extruder.clear();
                 m_contained_in_bed = true;
                 m_config = nullptr;
+                m_center_of_gravity = CenterOfGravityState{};
 
                 if (m_p_extrusions) {
                     m_p_extrusions->reset_ranges();
@@ -1409,6 +1566,73 @@ namespace Slic3r
                 m_shells.volumes.render(GUI::ERenderPipelineStage::Normal, GLVolumeCollection::ERenderType::Transparent, false, camera, colors, wxGetApp().plater()->model());
                 wxGetApp().unbind_shader();
                 glsafe(::glDepthMask(GL_TRUE));
+            }
+
+            void BaseRenderer::render_center_of_gravity_marker()
+            {
+                if (m_view_type != EViewType::Objects || !m_center_of_gravity.valid || !m_show_center_of_gravity)
+                    return;
+
+                const auto& shader = wxGetApp().get_shader("flat");
+                if (shader == nullptr || wxGetApp().plater() == nullptr)
+                    return;
+
+                if (!m_center_of_gravity_marker.is_initialized())
+                    m_center_of_gravity_marker.init_from(diamond(16));
+                if (!m_center_of_gravity_projection.is_initialized())
+                    m_center_of_gravity_projection.init_from(smooth_cylinder(16, 1.0f, 1.0f));
+
+                const std::shared_ptr<GLShaderProgram> previous_shader = wxGetApp().get_current_shader();
+                const GLboolean depth_test_enabled = glIsEnabled(GL_DEPTH_TEST);
+                GLboolean depth_write_enabled = GL_TRUE;
+                glsafe(::glGetBooleanv(GL_DEPTH_WRITEMASK, &depth_write_enabled));
+
+                // Render as an overlay so the marker is still discoverable when the CoG is enclosed
+                // by opaque toolpaths or shell geometry. Do not let the overlay modify the depth buffer.
+                glsafe(::glDisable(GL_DEPTH_TEST));
+                glsafe(::glDepthMask(GL_FALSE));
+                wxGetApp().bind_shader(shader);
+
+                const Camera& camera = wxGetApp().plater()->get_camera();
+                shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+                for (const CenterOfGravityObjectState& object : m_center_of_gravity.objects) {
+                    if (!object.valid)
+                        continue;
+
+                    Color projection_color = object.color;
+                    for (size_t channel = 0; channel < 3; ++channel)
+                        projection_color[channel] = std::min(1.0f, 0.35f + 0.65f * projection_color[channel]);
+
+                    const double projection_height = std::max(0.0, object.world_position.z());
+                    if (projection_height > EPSILON) {
+                        const double projection_radius = std::max(0.35, 0.075 * m_center_of_gravity.marker_scale);
+                        const Transform3d projection_transform =
+                            Geometry::translation_transform(Vec3d(object.world_position.x(), object.world_position.y(), 0.0)) *
+                            Geometry::scale_transform(Vec3d(projection_radius, projection_radius, projection_height));
+                        shader->set_uniform("view_model_matrix", camera.get_view_matrix() * projection_transform);
+                        m_center_of_gravity_projection.set_color(projection_color);
+                        m_center_of_gravity_projection.render_geometry();
+                    }
+
+                    // Draw the diamond last so the projection cap never obscures the marker itself.
+                    const Transform3d marker_transform =
+                        Geometry::translation_transform(object.world_position) *
+                        Geometry::scale_transform(Vec3d::Constant(m_center_of_gravity.marker_scale));
+                    shader->set_uniform("view_model_matrix", camera.get_view_matrix() * marker_transform);
+                    m_center_of_gravity_marker.set_color(object.color);
+                    m_center_of_gravity_marker.render_geometry();
+                }
+
+                if (previous_shader != nullptr)
+                    wxGetApp().bind_shader(previous_shader);
+                else
+                    wxGetApp().unbind_shader();
+                glsafe(::glDepthMask(depth_write_enabled));
+                if (depth_test_enabled)
+                    glsafe(::glEnable(GL_DEPTH_TEST));
+                else
+                    glsafe(::glDisable(GL_DEPTH_TEST));
             }
 
             void BaseRenderer::render_slider(int canvas_width, int canvas_height)
@@ -1746,6 +1970,7 @@ namespace Slic3r
                     ImGui::PopStyleVar(2);
                     return;
                 }
+
                 //BBS display Color Scheme
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::Dummy({ window_padding, window_padding });
@@ -1816,6 +2041,8 @@ namespace Slic3r
                 pop_combo_style();
                 ImGui::SameLine();
                 ImGui::Dummy({ window_padding, window_padding });
+                if (m_view_type == EViewType::Objects)
+                    render_center_of_gravity_legend(window_padding, imgui);
                 // data used to properly align items in columns when showing time
                 std::vector<float> offsets;
                 std::vector<std::string> labels;
@@ -2742,6 +2969,93 @@ namespace Slic3r
                 ImGui::PopStyleVar(2);
             }
 
+            void BaseRenderer::render_center_of_gravity_legend(float window_padding, ImGuiWrapper& imgui)
+            {
+                if (m_view_type != EViewType::Objects || !m_center_of_gravity.valid)
+                    return;
+
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::Dummy({ window_padding, window_padding });
+                ImGui::SameLine();
+                imgui.bold_text(_u8L("Object centers of gravity"));
+                ImGui::SameLine();
+                const std::string checkbox_label = _u8L("Show markers") + "##center_of_gravity_markers";
+                ImGui::Checkbox(checkbox_label.c_str(), &m_show_center_of_gravity);
+
+                ImGui::Dummy({ window_padding, 0.0f });
+                ImGui::SameLine();
+                const ImGuiTableFlags table_flags = ImGuiTableFlags_BordersH | ImGuiTableFlags_RowBg |
+                    ImGuiTableFlags_SizingFixedFit;
+                if (ImGui::BeginTable("##object_centers_of_gravity", 5, table_flags)) {
+                    ImGui::TableSetupColumn(_u8L("Object").c_str(), ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn(_u8L("Mass").c_str(), ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("X (mm)", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("Y (mm)", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("Z (mm)", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableHeadersRow();
+
+                    char value[64];
+                    for (size_t index = 0; index < m_center_of_gravity.objects.size(); ++index) {
+                        const CenterOfGravityObjectState& object = m_center_of_gravity.objects[index];
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        const std::string color_id = "##object_cog_color_" + std::to_string(index);
+                        ImGui::ColorButton(color_id.c_str(), ImVec4(object.color[0], object.color[1], object.color[2], object.color[3]),
+                                           ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoDragDrop,
+                                           ImVec2(ImGui::GetTextLineHeight() * 0.7f, ImGui::GetTextLineHeight() * 0.7f));
+                        ImGui::SameLine();
+                        imgui.text(object.name);
+
+                        if (!object.valid) {
+                            for (int column = 1; column < 5; ++column) {
+                                ImGui::TableSetColumnIndex(column);
+                                imgui.text("--");
+                            }
+                            continue;
+                        }
+
+                        const Vec3d plate_local_position = object.world_position - m_center_of_gravity.plate_origin;
+                        ImGui::TableSetColumnIndex(1);
+                        std::snprintf(value, sizeof(value), "%.2f g", object.mass_g);
+                        imgui.text(value);
+                        ImGui::TableSetColumnIndex(2);
+                        std::snprintf(value, sizeof(value), "%.2f", plate_local_position.x());
+                        imgui.text(value);
+                        ImGui::TableSetColumnIndex(3);
+                        std::snprintf(value, sizeof(value), "%.2f", plate_local_position.y());
+                        imgui.text(value);
+                        ImGui::TableSetColumnIndex(4);
+                        std::snprintf(value, sizeof(value), "%.2f", plate_local_position.z());
+                        imgui.text(value);
+                    }
+                    ImGui::EndTable();
+                }
+
+                auto render_warning = [&imgui, window_padding](const std::string& warning) {
+                    ImGui::Dummy({ window_padding, 0.0f });
+                    ImGui::SameLine();
+                    const float available_width = std::max(1.0f, ImGui::GetContentRegionAvail().x - window_padding);
+                    imgui.warning_text_wrapped(warning.c_str(), available_width);
+                };
+                if (m_center_of_gravity.combined_fallback)
+                    render_warning(_u8L("Warning: this G-code has no object attribution; only the combined center of gravity is available."));
+                if (m_center_of_gravity.incomplete_object_attribution)
+                    render_warning(_u8L("Warning: some model extrusions could not be assigned to an object."));
+                if (std::any_of(m_center_of_gravity.objects.begin(), m_center_of_gravity.objects.end(),
+                                [](const CenterOfGravityObjectState& object) { return object.uses_all_spatial_extrusions; }))
+                    render_warning(_u8L("Warning: non-model extrusions are included for one or more objects."));
+                if (m_center_of_gravity.contains_unknown_roles)
+                    render_warning(_u8L("Warning: unknown extrusion roles found."));
+                if (m_center_of_gravity.used_default_density)
+                    render_warning(_u8L("Warning: default filament density used."));
+                if (m_center_of_gravity.used_default_filament_diameter)
+                    render_warning(_u8L("Warning: default filament diameter used."));
+                if (m_center_of_gravity.unsupported_flow_override)
+                    render_warning(_u8L("Warning: flow override not included."));
+                if (m_center_of_gravity.unsupported_volumetric_extrusion)
+                    render_warning(_u8L("Warning: volumetric extrusion not included."));
+            }
+
             void BaseRenderer::delete_wipe_tower()
             {
                 size_t current_volumes_count = m_shells.volumes.volumes.size();
@@ -3158,6 +3472,7 @@ namespace Slic3r
                 }
                 case EViewType::Tool: break;
                 case EViewType::ColorPrint: break;
+                case EViewType::Objects: break;
                 case EViewType::FilamentId: break;
                 case EViewType::LayerTime: {
                     _min = m_p_extrusions->ranges.layer_duration.min;
@@ -3215,6 +3530,7 @@ namespace Slic3r
                 view_type_items.push_back(EViewType::Summary);
                 view_type_items.push_back(EViewType::FeatureType);
                 view_type_items.push_back(EViewType::ColorPrint);
+                view_type_items.push_back(EViewType::Objects);
                 view_type_items.push_back(EViewType::Feedrate);
                 view_type_items.push_back(EViewType::Height);
                 view_type_items.push_back(EViewType::Width);
