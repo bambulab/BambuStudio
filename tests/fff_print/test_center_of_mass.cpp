@@ -22,6 +22,10 @@ GCodeProcessorResult::CenterOfMassResult process_center_of_mass(
     FullPrintConfig config = FullPrintConfig::defaults();
     config.filament_diameter.values = filament_diameters;
     config.filament_density.values = filament_densities;
+    // Each material maps to its own physical tool in these synthetic fixtures.
+    // Keep nozzle arrays consistent with that map, as a real printer profile does.
+    config.nozzle_diameter.values.resize(filament_diameters.size(), config.nozzle_diameter.values.front());
+    config.nozzle_volume.values.resize(filament_diameters.size(), config.nozzle_volume.values.front());
     config.filament_map.values.resize(filament_diameters.size());
     std::iota(config.filament_map.values.begin(), config.filament_map.values.end(), 1);
 

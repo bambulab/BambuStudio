@@ -13,6 +13,58 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 "X-Generator: Poedit 3.4.2\n"
 
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Combined objects"
+msgstr "Objetos combinados"
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "fallback"
+msgstr "estimación alternativa"
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Object centers of gravity"
+msgstr "Centros de gravedad de los objetos"
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Show markers"
+msgstr "Mostrar marcadores"
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Mass"
+msgstr "Masa"
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: this G-code has no object attribution; only the combined center of gravity is available."
+msgstr "Advertencia: este G-code no identifica los objetos; solo está disponible el centro de gravedad combinado."
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: some model extrusions could not be assigned to an object."
+msgstr "Advertencia: algunas extrusiones del modelo no se han podido asignar a un objeto."
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: non-model extrusions are included for one or more objects."
+msgstr "Advertencia: uno o más objetos incluyen extrusiones que no forman parte del modelo."
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: unknown extrusion roles found."
+msgstr "Advertencia: se han encontrado tipos de extrusión desconocidos."
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: default filament density used."
+msgstr "Advertencia: se ha utilizado la densidad de filamento predeterminada."
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: default filament diameter used."
+msgstr "Advertencia: se ha utilizado el diámetro de filamento predeterminado."
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: flow override not included."
+msgstr "Advertencia: no se ha tenido en cuenta la modificación del flujo."
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: volumetric extrusion not included."
+msgstr "Advertencia: no se ha tenido en cuenta la extrusión volumétrica."
+
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
 msgstr "Es posible que el filamento no sea compatible con la configuración actual de la máquina. Se utilizarán preajustes de filamento genéricos."
 

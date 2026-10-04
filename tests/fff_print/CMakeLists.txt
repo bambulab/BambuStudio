@@ -33,10 +33,14 @@ add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
 
 # Keep the processor regressions runnable independently of the slicing suites.
 add_executable(center_of_mass_tests
-	fff_print_tests.cpp
+	center_of_mass_main.cpp
 	test_center_of_mass.cpp
+	${PROJECT_SOURCE_DIR}/src/slic3r/Utils/Http.cpp
+	${PROJECT_SOURCE_DIR}/src/slic3r/Utils/BBLUtil.cpp
 )
-target_link_libraries(center_of_mass_tests test_common libslic3r)
+target_link_libraries(center_of_mass_tests test_common libslic3r
+	libcurl OpenSSL::SSL OpenSSL::Crypto
+)
 set_property(TARGET center_of_mass_tests PROPERTY FOLDER "tests")
 add_test(center_of_mass_tests center_of_mass_tests ${CATCH_EXTRA_ARGS})
 
