@@ -100,6 +100,7 @@ class ModelMallDialog;
 class PingCodeBindDialog;
 class NetworkErrorDialog;
 class OpenGLManager;
+class MCPServer;
 
 enum FileType
 {
@@ -372,6 +373,7 @@ private:
     wxString         m_info_dialog_content;
     wxString         m_install_preset_fail_text;
     HttpServer       m_http_server;
+    std::unique_ptr<MCPServer> m_mcp_server;
 #if !BBL_RELEASE_TO_PUBLIC
     std::function<void(const nlohmann::json&)> m_fila_debug_sink;
 #endif
@@ -587,6 +589,10 @@ public:
     void            stop_sync_user_preset();
     void            start_http_server();
     void            stop_http_server();
+    void            start_mcp_server(int port = 27183);
+    void            stop_mcp_server();
+    bool            is_mcp_server_started() const;
+    MCPServer*      get_mcp_server();
     void            switch_staff_pick(bool on);
 
     void            on_show_check_privacy_dlg(int online_login = 0);
