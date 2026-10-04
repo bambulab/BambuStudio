@@ -28,6 +28,8 @@ public:
     nlohmann::json tool_paint_part(const nlohmann::json& args);
     nlohmann::json tool_slice_project(const nlohmann::json& args);
     nlohmann::json tool_get_slice_status(const nlohmann::json& args);
+    nlohmann::json tool_load_model(const nlohmann::json& args);
+    nlohmann::json tool_clear_plate(const nlohmann::json& args);
 
 private:
     nlohmann::json make_response(const nlohmann::json& id, const nlohmann::json& result);

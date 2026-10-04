@@ -246,6 +246,36 @@ nlohmann::json MCPDispatcher::handle_tools_list(const nlohmann::json& id)
         }}
     });
 
+    // 8. load_model
+    tools.push_back({
+        {"name", "load_model"},
+        {"description", "Loads a 3D model or project file (.stl, .step, .stp, .3mf, .obj, .amf) onto the build plate in Bambu Studio. Optionally clears existing objects first."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", {
+                {"file_path", {
+                    {"type", "string"},
+                    {"description", "Absolute path to the 3D model file (STL, STEP, 3MF, OBJ, etc.)."}
+                }},
+                {"clear_plate", {
+                    {"type", "boolean"},
+                    {"description", "If true, clears existing objects on the plate before loading the new model (default: false)."}
+                }}
+            }},
+            {"required", nlohmann::json::array({"file_path"})}
+        }}
+    });
+
+    // 9. clear_plate
+    tools.push_back({
+        {"name", "clear_plate"},
+        {"description", "Clears all 3D models and objects from the active build plate in Bambu Studio."},
+        {"inputSchema", {
+            {"type", "object"},
+            {"properties", nlohmann::json::object()}
+        }}
+    });
+
     nlohmann::json result;
     result["tools"] = tools;
     return make_response(id, result);
@@ -272,6 +302,10 @@ nlohmann::json MCPDispatcher::handle_tools_call(const nlohmann::json& params, co
             tool_res = tool_slice_project(args);
         } else if (tool_name == "get_slice_status") {
             tool_res = tool_get_slice_status(args);
+        } else if (tool_name == "load_model") {
+            tool_res = tool_load_model(args);
+        } else if (tool_name == "clear_plate") {
+            tool_res = tool_clear_plate(args);
         } else {
             return make_error(id, -32601, "Unknown tool: " + tool_name);
         }
@@ -646,6 +680,63 @@ nlohmann::json MCPDispatcher::tool_get_slice_status(const nlohmann::json& /*args
         res["is_slicing"] = plater->is_background_process_slicing();
         res["has_toolpaths"] = plater->has_toolpaths_to_export();
         return res;
+    });
+}
+
+nlohmann::json MCPDispatcher::tool_load_model(const nlohmann::json& args)
+{
+    std::string file_path = args.value("file_path", "");
+    if (file_path.empty()) {
+        return {{"error", "Missing required parameter 'file_path'"}};
+    }
+
+    bool clear_plate = args.value("clear_plate", false);
+
+    return run_on_gui([file_path, clear_plate]() -> nlohmann::json {
+        Plater* plater = wxGetApp().plater();
+        if (!plater) return {{"error", "Plater not initialized"}};
+
+        boost::filesystem::path p(file_path);
+        if (!boost::filesystem::exists(p)) {
+            return {{"error", "File does not exist: " + file_path}};
+        }
+
+        if (clear_plate) {
+            plater->reset();
+        }
+
+        std::vector<std::string> files = { file_path };
+        std::vector<size_t> loaded = plater->load_files(files);
+
+        nlohmann::json res;
+        res["success"] = true;
+        res["file_path"] = file_path;
+        res["loaded_objects_count"] = loaded.size();
+
+        const Model& model = plater->model();
+        nlohmann::json objects = nlohmann::json::array();
+        for (size_t i = 0; i < model.objects.size(); ++i) {
+            const ModelObject* obj = model.objects[i];
+            if (!obj) continue;
+            nlohmann::json o;
+            o["index"] = i;
+            o["name"] = obj->name;
+            o["volumes_count"] = obj->volumes.size();
+            objects.push_back(o);
+        }
+        res["total_objects_on_plate"] = objects.size();
+        res["objects"] = objects;
+        return res;
+    });
+}
+
+nlohmann::json MCPDispatcher::tool_clear_plate(const nlohmann::json& /*args*/)
+{
+    return run_on_gui([]() -> nlohmann::json {
+        Plater* plater = wxGetApp().plater();
+        if (!plater) return {{"error", "Plater not initialized"}};
+        plater->reset();
+        return {{"success", true}, {"message", "Build plate cleared"}};
     });
 }
 
