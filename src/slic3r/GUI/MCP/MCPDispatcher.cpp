@@ -183,7 +183,7 @@ nlohmann::json MCPDispatcher::handle_tools_list(const nlohmann::json& id)
                     {"type", "object"},
                     {"description", "Key-value dictionary of parameters to set (e.g. {'xy_contour_compensation': -0.10, 'xy_hole_compensation': 0.10, 'elefant_foot_compensation': 0.20})."}
                 }}
-            },
+            }},
             {"required", nlohmann::json::array({"params"})}
         }}
     });
@@ -221,7 +221,7 @@ nlohmann::json MCPDispatcher::handle_tools_list(const nlohmann::json& id)
                     {"type", "integer"},
                     {"description", "Filament extruder slot (1 for Slot 1, 2 for Slot 2, etc.)."}
                 }}
-            },
+            }},
             {"required", nlohmann::json::array({"extruder_id"})}
         }}
     });
@@ -295,7 +295,7 @@ nlohmann::json MCPDispatcher::tool_get_profile_summary(const nlohmann::json& /*a
         }
 
         // Printer preset
-        const Preset& printer = bundle->printers.get_edited_preset();
+        Preset& printer = bundle->printers.get_edited_preset();
         j["printer"] = {
             {"name", printer.name},
             {"model", printer.get_printer_type(bundle)},
