@@ -1182,6 +1182,12 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
     }
 
+    if (app_config->get("enable_mcp_server") == "true") {
+        std::string mcp_port = app_config->get("mcp_server_port");
+        if (mcp_port.empty()) mcp_port = "27183";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Starting Model Context Protocol (MCP) Server on loopback port " << mcp_port;
+    }
+
 
 
     wxGetApp().report_consent_common(app_config->get("firstguide", "privacyuse") == "true"? true : false, "studio_improvement_policy_enable", "StudioImprovementPolicy");

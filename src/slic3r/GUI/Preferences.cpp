@@ -1717,6 +1717,19 @@ wxWindow *PreferencesDialog::create_other_tab()
     sizer->Add(wrap_option_row(scrolled, item_skip_blacklist), flags);
     sizer->Add(wrap_option_row(scrolled, item_webview_devtools), flags);
 
+    // ---- Model Context Protocol (MCP) ----
+    auto title_mcp = create_item_title(_L("Model Context Protocol (MCP)"), scrolled, _L("Model Context Protocol (MCP)"));
+    auto item_enable_mcp = create_item_checkbox(
+        _L("Enable Local MCP Server") + " (" + _L("Take effect after restarting Studio") + ")", scrolled,
+        _L("Enables local loopback MCP server (127.0.0.1) for AI assistants (Claude, Antigravity, Cursor) to inspect parameters, slice, and color models."),
+        50, "enable_mcp_server");
+    auto item_mcp_port = create_item_input(
+        _L("MCP Server Port"), _L("Port for local SSE/HTTP MCP server (default 27183)"), scrolled,
+        _L("27183"), "mcp_server_port");
+    sizer->Add(title_mcp, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
+    sizer->Add(wrap_option_row(scrolled, item_enable_mcp), flags);
+    sizer->Add(wrap_option_row(scrolled, item_mcp_port), flags);
+
 #ifdef _WIN32
     // ---- Associate Files To Bambu Studio (Windows only) ----
     auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), scrolled, _L("Associate Files To Bambu Studio"));
