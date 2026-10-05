@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
-"PO-Revision-Date: 2026-09-16 00:00+0300\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
+"PO-Revision-Date: 2026-10-05 20:45+0300\n"
 "Last-Translator: Finnish localization contributors\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
@@ -227,7 +227,7 @@ msgid "The current filament doesn't support the E3D high-flow nozzle and can't b
 msgstr "Nykyinen filamentti ei sovellu E3D High Flow -suuttimeen eikä sitä voi käyttää."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "When using %s on the right extruder, it can only be used as support material."
 msgstr "Kun oikeassa ekstruuderissa käytetään filamenttia %s, sitä voi käyttää vain tukimateriaalina."
 
@@ -279,6 +279,10 @@ msgstr "PPS-CF on haurasta ja voi katketa tulostuspään yläpuolella olevassa t
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF on haurasta ja voi katketa tulostuspään yläpuolella olevassa taipuneessa PTFE-putkessa."
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr "CF/GF-filamentit ovat kovia ja hauraita. Ne voivat helposti katketa tai juuttua AMS:ään, joten käytä niitä varoen."
+
 # Finnish review: English/context/Swedish/glossary
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "PLA Glow voi kuluttaa AMS:n ensimmäisen vaiheen syöttölaitetta. Käytä ulkoista kelaa."
@@ -288,47 +292,47 @@ msgid "Default settings may affect print quality. Adjust as needed for best resu
 msgstr "Oletusasetukset voivat vaikuttaa tulostuslaatuun. Säädä niitä tarvittaessa parhaan tuloksen saavuttamiseksi."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
 msgstr "%s voi tukkia 0,4 mm:n High Flow -suuttimen. Käytä harkiten."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
 msgstr "%s-filamentit ovat kovia ja hauraita ja voivat katketa AMS:ssä. Lisäksi ne voivat tukkia 0,4 mm:n High Flow -suuttimen. Käytä harkiten."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr "%s voi tukkia 0,4, 0,6 tai 0,8 mm:n High Flow -suuttimen. Käytä harkiten."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
 msgstr "%s-filamentin lataus tai poisto voi epäonnistua filamenttiradan vaihtimen vuoksi. Jos haluat jatkaa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s ei ole tuettu ekstruuderissa %s."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
 msgstr "Filamentin '%s' tulostaminen Bowden-ekstruuderilla %s voi aiheuttaa vakavia tulostuslaatuongelmia. Käytä harkiten!"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
 msgstr "Filamentin '%s' tulostaminen ekstruuderilla %s voi aiheuttaa vakavia tulostuslaatuongelmia. Käytä harkiten!"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
 msgstr "Filamentin '%s' tulostaminen Bowden-ekstruuderilla %s voi aiheuttaa tulostuslaatuongelmia. Käytä harkiten."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "Filamentin '%s' tulostaminen ekstruuderilla %s voi aiheuttaa tulostuslaatuongelmia. Käytä harkiten."
 
@@ -441,7 +445,7 @@ msgid "Idle"
 msgstr "Valmiustila"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d ℃"
 msgstr "%d ℃"
 
@@ -491,7 +495,7 @@ msgid "Close"
 msgstr "Sulje"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
 msgstr "Järjestä tulostimen filamentit alla olevan kaavion mukaisesti. Näin säästät arviolta %s."
 
@@ -508,7 +512,7 @@ msgid "AMS on Filament Inlet B"
 msgstr "AMS filamentin syöttöaukossa B"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
 msgstr "Viipaloinnin filamentti %d on kohdistettu paikkaan '%s'. Kohdistaminen paikkaan '%s' voi lyhentää tulostusaikaa."
 
@@ -625,7 +629,7 @@ msgid "Version"
 msgstr "Versio"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Used Time: %s"
 msgstr "Käyttöaika: %s"
 
@@ -754,7 +758,7 @@ msgid "Gap Fill"
 msgstr "Aukkojen täyttö"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr "Sallii maalaamisen vain tahkoille, jotka on valittu asetuksella: \"%1%\""
 
@@ -799,7 +803,7 @@ msgid "Lay on face"
 msgstr "Aseta tahkolleen"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Filament count exceeds the maximum number that painting tool supports. only the first %1% filaments will be available in painting tool."
 msgstr "Filamenttien määrä ylittää maalaustyökalun tukeman enimmäismäärän. Vain ensimmäiset %1% filamenttia ovat käytettävissä maalaustyökalussa."
 
@@ -912,7 +916,7 @@ msgid "Remove painted color"
 msgstr "Poista maalattu väri"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Painted using: Filament %1%"
 msgstr "Maalattu filamentilla %1%"
 
@@ -1498,7 +1502,7 @@ msgid "Decimate ratio"
 msgstr "Harvennussuhde"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Processing model '%1%' with more than 1M triangles could be slow. It is highly recommended to simplify the model."
 msgstr "Yli miljoona kolmiota sisältävän mallin '%1%' käsittely voi olla hidasta. Mallin yksinkertaistamista suositellaan vahvasti."
 
@@ -1535,7 +1539,7 @@ msgid "Extra low"
 msgstr "Erittäin matala"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d triangles"
 msgstr "%d kolmiota"
 
@@ -1544,7 +1548,7 @@ msgid "Show wireframe"
 msgstr "Näytä rautalankamalli"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1%"
 msgstr "%1%"
 
@@ -1840,17 +1844,17 @@ msgid "Save the parameters of the current text tool as a style for easy subseque
 msgstr "Tallenna nykyisen tekstityökalun asetukset tyyliksi, jotta voit käyttää niitä helposti myöhemmin."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Modified style \"%1%\""
 msgstr "Muokattu tyyli \"%1%\""
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Current style is \"%1%\""
 msgstr "Nykyinen tyyli on \"%1%\""
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "Changing style to \"%1%\" will discard current style modification.\n"
 "\n"
@@ -1865,7 +1869,7 @@ msgid "Not valid style."
 msgstr "Virheellinen tyyli."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Style \"%1%\" can't be used and will be removed from a list."
 msgstr "Tyyliä \"%1%\" ei voi käyttää, ja se poistetaan luettelosta."
 
@@ -1874,7 +1878,7 @@ msgid "First Add style to list."
 msgstr "Lisää ensin tyyli luetteloon."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Save %1% style"
 msgstr "Tallenna tyyli %1%"
 
@@ -1927,22 +1931,22 @@ msgid "Can't remove the last existing style."
 msgstr "Viimeistä jäljellä olevaa tyyliä ei voi poistaa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Are you sure you want to permanently remove the \"%1%\" style?"
 msgstr "Haluatko varmasti poistaa tyylin \"%1%\" pysyvästi?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Delete \"%1%\" style."
 msgstr "Poista tyyli \"%1%\"."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Can't delete \"%1%\". It is last style."
 msgstr "Tyyliä \"%1%\" ei voi poistaa. Se on viimeinen tyyli."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Can't delete temporary style \"%1%\"."
 msgstr "Väliaikaista tyyliä \"%1%\" ei voi poistaa."
 
@@ -2029,6 +2033,10 @@ msgstr "Upotussyvyys"
 msgid "Text Gap"
 msgstr "Merkkiväli"
 
+# Finnish review: English/source/Swedish supplementary review
+msgid "Line Gap"
+msgstr "Riviväli"
+
 # Finnish review: English/context/Swedish/glossary
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Varoitus: Tekstin muunnosmatriisi sisältää peilauksen. Tekstin vetäminen luo sen kokonaan uudelleen."
@@ -2086,7 +2094,7 @@ msgid "Text doesn't show current horizontal alignment."
 msgstr "Teksti ei vastaa nykyistä vaakakohdistusta."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Font \"%1%\" can't be selected."
 msgstr "Fonttia \"%1%\" ei voi valita."
 
@@ -2110,6 +2118,17 @@ msgstr "Lihavuus"
 # Finnish review: English/context/Swedish/glossary
 msgid "Skew"
 msgstr "Kallistus"
+
+# Finnish review: English/context/Swedish/glossary
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "Kohdistus"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Mirror horizontally"
+msgid "Align center horizontally"
+msgstr "Keskitä vaakasuunnassa"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "No symbol"
@@ -2136,12 +2155,6 @@ msgstr "Käytä pintaa"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "Merkkikohtaisesti"
-
-# Finnish review: English/context/Swedish/glossary
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "Kohdistus"
 
 # Finnish review: English/context/Swedish/glossary
 #. TRN - Input label. Be short as possible
@@ -2241,22 +2254,22 @@ msgid "Choose SVG file for emboss:"
 msgstr "Valitse kohokuvion SVG-tiedosto:"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "File does NOT exist (%1%)."
 msgstr "Tiedostoa EI ole olemassa (%1%)."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Filename has to end with \".svg\" but you selected %1%"
 msgstr "Tiedostonimen on päätyttävä tarkenteeseen \".svg\", mutta valitsit %1%"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Nano SVG parser can't load from file (%1%)."
 msgstr "Nano SVG -jäsennin ei voi ladata tiedostoa (%1%)."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1% contains some unsupported data. Please use third-party software to convert the SVG to path data before reimporting."
 msgstr "%1% sisältää tietoja, joita ei tueta. Muunna SVG poluiksi toisessa ohjelmassa ennen uudelleentuontia."
 
@@ -2266,12 +2279,12 @@ msgid "Mirror"
 msgstr "Peilaa"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Opacity (%1%)"
 msgstr "Peittävyys (%1%)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Color gradient (%1%)"
 msgstr "Väriliukuma (%1%)"
 
@@ -2304,23 +2317,23 @@ msgid "Final shape constains selfintersection or multiple points with same coord
 msgstr "Lopullinen muoto sisältää itseleikkauksia tai useita pisteitä samoissa koordinaateissa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Shape is marked as invisible (%1%)."
 msgstr "Muoto on merkitty näkymättömäksi (%1%)."
 
 # Finnish review: English/context/Swedish/glossary
 #. TRN: The first placeholder is shape identifier, the second one is text describing the problem.
-#, possible-boost-format
+#, boost-format
 msgid "Fill of shape (%1%) contains unsupported: %2%."
 msgstr "Muodon (%1%) täyttö sisältää tietoja, joita ei tueta: %2%."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Stroke of shape (%1%) is too thin (minimal width is %2% mm)."
 msgstr "Muodon (%1%) viiva on liian ohut (vähimmäisleveys on %2% mm)."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Muodon (%1%) viiva sisältää tietoja, joita ei tueta: %2%."
 
@@ -2350,7 +2363,7 @@ msgid "Unknown filename"
 msgstr "Tuntematon tiedostonimi"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "SVG file path is \"%1%\""
 msgstr "SVG-tiedoston polku on \"%1%\""
 
@@ -2394,7 +2407,7 @@ msgstr "Koko kohokuvion suunnassa."
 
 # Finnish review: English/context/Swedish/glossary
 #. TRN: The placeholder contains a number.
-#, possible-boost-format
+#, boost-format
 msgid "Scale also changes amount of curve samples (%1%)"
 msgstr "Skaalaus muuttaa myös käyrän näytteiden määrää (%1%)"
 
@@ -2472,7 +2485,7 @@ msgid "Undefined"
 msgstr "Määrittämätön"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1% was replaced with %2%"
 msgstr "%1% korvattiin arvolla %2%"
 
@@ -2501,7 +2514,7 @@ msgid "Configuration package was loaded, but some values were not recognized."
 msgstr "Asetuspaketti ladattiin, mutta joitakin arvoja ei tunnistettu."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr "Asetustiedosto \"%1%\" ladattiin, mutta joitakin arvoja ei tunnistettu."
 
@@ -2534,7 +2547,7 @@ msgid "Critical error"
 msgstr "Kriittinen virhe"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Bambu Studiossa tapahtui käsittelemätön poikkeus: %1%"
 
@@ -2563,7 +2576,7 @@ msgid "Incorrect password"
 msgstr "Virheellinen salasana"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Yhteys kohteeseen %s epäonnistui! [SN:%s, koodi=%s]"
 
@@ -2586,7 +2599,7 @@ msgid "BambuStudio configuration file read failed. Please manually backup and de
 msgstr "Bambu Studion asetustiedoston lukeminen epäonnistui. Varmuuskopioi ja poista se käsin ja käynnistä Bambu Studio sitten uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Failed to install preset files to %s.\n"
 "Please make sure Bambu Studio has permission to delete and write in this directory,\n"
@@ -2597,7 +2610,7 @@ msgstr ""
 "eikä järjestelmä tai toinen sovellus varaa sitä käyttöönsä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "%s\n"
 "Do you want to continue?"
@@ -2614,7 +2627,7 @@ msgid "Loading configuration"
 msgstr "Ladataan asetuksia"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Click to download new version in default browser: %s"
 msgstr "Lataa uusi versio oletusselaimessa napsauttamalla: %s"
 
@@ -2807,7 +2820,7 @@ msgid "Bambu Studio GUI initialization failed"
 msgstr "Bambu Studion käyttöliittymän alustus epäonnistui"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Fatal error, exception caught: %1%"
 msgstr "Vakava virhe, havaittu poikkeus: %1%"
 
@@ -3088,7 +3101,7 @@ msgid "Default"
 msgstr "Oletus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Filament %d"
 msgstr "Filamentti %d"
 
@@ -3204,13 +3217,15 @@ msgstr "Mitätöi leikkaustiedot"
 msgid "Add Primitive"
 msgstr "Lisää perusmuoto"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Show Labels by Layer"
-msgstr "Näytä tunnisteet kerroksittain"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Add plate"
+msgid "Add New Plate"
+msgstr "Lisää uusi levy"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Show Labels by Object"
-msgstr "Näytä tunnisteet objekteittain"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Add as new filament"
+msgid "Add a new plate"
+msgstr "Lisää uusi levy"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "To objects"
@@ -3397,12 +3412,16 @@ msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "Täytä alustan vapaa alue valitun objektin kopioilla"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Edit Plate Name"
-msgstr "Muokkaa levyn nimeä"
+msgid "Show Labels by Layer"
+msgstr "Näytä tunnisteet kerroksittain"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Show Labels"
-msgstr "Näytä tunnisteet"
+msgid "Show Labels by Object"
+msgstr "Näytä tunnisteet objekteittain"
+
+# Finnish review: English/context/Swedish/glossary
+msgid "Edit Plate Name"
+msgstr "Muokkaa levyn nimeä"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Name"
@@ -3413,26 +3432,26 @@ msgid "Fila."
 msgstr "Filam."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d virhe korjattu"
 msgstr[1] "%1$d virhettä korjattu"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Error: %1$d non-manifold edges, %2$d non-manifold vertices"
 msgstr "Virhe: %1$d ei-moniston reunaa, %2$d ei-moniston kärkipistettä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Error: %1$d non-manifold edge"
 msgid_plural "Error: %1$d non-manifold edges"
 msgstr[0] "Virhe: %1$d ei-moniston reuna"
 msgstr[1] "Virhe: %1$d ei-moniston reunaa"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] "Virhe: %1$d ei-moniston kärkipiste"
@@ -3443,7 +3462,7 @@ msgid "Error: reversed faces detected, which may affect rendering"
 msgstr "Virhe: Havaittiin käänteisiä tahkoja, mikä voi vaikuttaa renderöintiin"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
 msgstr[0] "Tieto: %1$d avoin reuna"
@@ -3658,7 +3677,7 @@ msgid "Repairing was canceled"
 msgstr "Korjaus peruutettiin"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
 msgstr "Mallissa \"%s\" on tämän tihennyksen jälkeen yli miljoona tahkoa, mikä voi pidentää viipalointiaikaa. Haluatko jatkaa?"
 
@@ -3667,7 +3686,7 @@ msgid "BambuStudio warning"
 msgstr "Bambu Studion varoitus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "\"%s\" part's mesh contains errors. Please repair it first."
 msgstr "Osan \"%s\" verkko sisältää virheitä. Korjaa se ensin."
 
@@ -3961,7 +3980,7 @@ msgid "Confirm"
 msgstr "Vahvista"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Load %s to "
 msgstr "Lataa %s kohteeseen "
 
@@ -4043,12 +4062,12 @@ msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this m
 msgstr "Tehostettu jäähdytys sopii PLA-/TPU-materiaaleille. Tässä tilassa tulosteet jäähdytetään tehokkaasti."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Cooling mode is suitable for printing %s materials."
 msgstr "Jäähdytystila sopii %s-materiaaleille."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr "Lämmitystila sopii %s-materiaaleille ja kierrättää sekä suodattaa tulostuskammion ilmaa."
 
@@ -4507,7 +4526,7 @@ msgid "Add some objects to current step"
 msgstr "Lisää objekteja nykyiseen vaiheeseen"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "No more than %1% steps are allowed."
 msgstr "Enintään %1% vaihetta sallitaan."
 
@@ -4848,7 +4867,7 @@ msgid "Arranging"
 msgstr "Järjestetään"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Object %1% has zero size and can't be arranged."
 msgstr "Objektin %1% koko on nolla, eikä sitä voi järjestää."
 
@@ -5027,7 +5046,7 @@ msgid "Sending gcode file to sdcard"
 msgstr "Lähetetään G-code-tiedostoa SD-kortille"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
 msgstr "Lähetys onnistui. Nykyinen sivu suljetaan %s s kuluttua"
 
@@ -5048,17 +5067,47 @@ msgid "The heated bed's thermal preconditioning helps optimize the first layer p
 msgstr "Lämmitettävän alustan lämmön tasaus auttaa parantamaan ensimmäisen kerroksen tulostuslaatua. Tulostus alkaa, kun lämmön tasaus on valmis."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
 msgstr "Aikaa jäljellä: %dmin%ds"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "One-click CMYW auto-mix"
-msgstr "CMYW-automaattisekoitus yhdellä napsautuksella"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
+msgstr "Värialueiden välisten siirtymien tasaisuus: suurempi arvo tasoittaa enemmän"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr "Pienten alueiden automaattinen yhdistäminen: suurempi arvo yhdistää enemmän"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Add Mixed Filament"
+msgid "Add Filament"
+msgstr "Lisää filamentti"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "One-click RYBW auto-mix"
-msgstr "RYBW-automaattisekoitus yhdellä napsautuksella"
+msgid "More Colors"
+msgstr "Lisää värejä"
+
+# Finnish review: English/context/Swedish/glossary
+msgid "Official Filament"
+msgstr "Virallinen filamentti"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Filament matching color difference threshold"
+msgstr "Filamenttien vastaavuushaun värieron raja"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr "Automaattisessa filamenttien vastaavuushaussa sallittu väriero. Suurempi arvo sallii suuremman värieron ja helpottaa vastaavan filamentin löytämistä."
+
+# Finnish review: English/context/Swedish/glossary
+msgid "Decompose Color"
+msgstr "Erottele värit"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Add Mixed Filament"
+msgid "+ Add Filament"
+msgstr "+ Lisää filamentti"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Project Physical Filaments"
@@ -5076,86 +5125,142 @@ msgstr "Projektin sekoitetut filamentit"
 msgid "New Mixed Filaments"
 msgstr "Uudet sekoitetut filamentit"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Decompose Color"
-msgstr "Erottele värit"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, boost-format
+#| msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgstr "Projekti tukee enintään %1% filamenttia. Ylimääräiset filamentit on yhdistettävä ennen tuontia."
 
-# Finnish review: English/context/Swedish/glossary
-msgid "+ Add Material"
-msgstr "+ Lisää materiaali"
+# Finnish review: native-b
+msgid "Updating"
+msgstr "Päivitetään"
 
-# Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "Projekti tukee enintään %d filamenttia. Ylimääräiset filamentit hylätään."
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Simplify model"
+msgid "Simplify Colors"
+msgstr "Yksinkertaista värit"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Import Model"
-msgstr "Tuo malli"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Filament Mapping"
+msgid "Filament Matching"
+msgstr "Filamenttien vastaavuudet"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Import model only"
+msgid "Import Model: Simplify Colors"
+msgstr "Mallin tuonti: värien yksinkertaistaminen"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Original"
 msgstr "Alkuperäinen"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Multi-Color"
-msgstr "Monivärinen"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "Your input texture model"
-msgstr "Tuomasi teksturoitu malli"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "Processed multi-color model"
-msgstr "Käsitelty monivärinen malli"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Simplify"
+msgid "Simplified"
+msgstr "Yksinkertaistettu"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Color Count"
 msgstr "Värien määrä"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Smooth Level"
-msgstr "Tasoitustaso"
+msgid "Advanced settings"
+msgstr "Lisäasetukset"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr "Määritä vain optimaalinen värimäärä automaattisesti ja laske filamenttien kohdistus uudelleen"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Boundary Smoothness"
+msgstr "Värirajojen tasaisuus"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr "Muunna tekstuuri maalaukseksi käyttäen määritettyä värimäärää ja tasoitustasoa"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Gap area"
+msgid "Gap Area"
+msgstr "Aukon pinta-ala"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr "Muistutus: Parametrit muuttuivat. Ota muutokset käyttöön napsauttamalla Käytä"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgid "Automatically determine the optimal color count"
+msgstr "Määritä optimaalinen värimäärä automaattisesti"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Filament Mapping"
-msgstr "Filamenttien kohdistus"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Color Painting"
+msgid "Color mixing"
+msgstr "Värien sekoittaminen"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "Palauta filamenttien kohdistus yhden napsautuksen sekoitusta edeltäneeseen tilaan"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Use official mixing kits →"
+msgstr "Käytä virallisia värisekoitussarjoja →"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "Valitse yhden napsautuksen automaattisekoitustila tekstuurin värien tuontiin"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Some colors have no matching filament. Please match them before importing."
+msgstr "Joillekin väreille ei ole vastaavaa filamenttia. Valitse niille filamentit ennen tuontia."
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Auto-merge same filament"
-msgstr "Yhdistä samat filamentit automaattisesti"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Model Filament"
+msgid "Auto-Add All Filaments"
+msgstr "Lisää kaikki filamentit automaattisesti"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Fix model"
+msgid "Fix now"
+msgstr "Korjaa nyt"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "Yhdistä samanlaiset filamentit automaattisesti projektin olemassa oleviin filamentteihin"
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Automatically merge the same colors in the model after mapping."
+msgid "Automatically merge filaments of the same color and type"
+msgstr "Yhdistä samanväriset ja samantyyppiset filamentit automaattisesti"
+
 # Finnish review: English/context/Swedish/glossary
-msgid "Skip Matching"
-msgstr "Ohita kohdistus"
+msgid "Skip"
+msgstr "Ohita"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Skip filament mapping and import as a single-color model"
 msgstr "Ohita filamenttien kohdistus ja tuo yksivärisenä mallina"
+
+# Finnish review: English/context/Swedish/glossary
+msgid "Next"
+msgstr "Seuraava"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Preview"
+msgctxt "TextureImport"
+msgid "Previous"
+msgstr "Edellinen"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr "Hylkää juuri lisätyt filamentit ja hae vastaavuudet automaattisesti uudelleen"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Refreshing"
+msgid "Before matching"
+msgstr "Ennen vastaavuushakua"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "After mapping"
+msgid "After matching"
+msgstr "Vastaavuushaun jälkeen"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+#| msgid "Model simplification has been canceled"
+msgid "Before simplification: %d colors"
+msgstr "Ennen yksinkertaistamista: %d väriä"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+#| msgid "Application is closing"
+msgid "After simplification: %d colors"
+msgstr "Yksinkertaistamisen jälkeen: %d väriä"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Model Filament"
+msgid "Import Model: Filament Matching"
+msgstr "Mallin tuonti: filamenttien vastaavuudet"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Processing"
@@ -5169,29 +5274,103 @@ msgstr "Lasketaan tekstuurin värejä..."
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Laskenta epäonnistui. Säädä parametreja ja yritä uudelleen."
 
-# Finnish review: English/context/Swedish/glossary
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "Verkossa on ei-moniston geometriaa tai avoimia reunoja. Voit tuoda sen sellaisenaan tai korjata sen ennen tuontia Windowsin 3D-korjauspalvelulla."
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
+msgstr "Värimäärä ei voi ylittää alkuperäistä värimäärää (%d)."
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Mesh repair"
-msgstr "Verkon korjaus"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
+msgstr "Värimäärä ei voi ylittää projektin filamenttien enimmäismäärää (%d)."
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Import without repair"
-msgstr "Tuo korjaamatta"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "The current printer preset cannot be sliced using Helio."
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr "Nykyiselle tulostimelle ei ole yhteensopivaa PLA Basic -filamenttia."
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Repair and import"
-msgstr "Korjaa ja tuo"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Click to select this frame"
+msgid "Click to select a matching filament"
+msgstr "Valitse vastaava filamentti napsauttamalla"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Huomaa, että verkossa on ei-moniston geometriaa tai avoimia reunoja."
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, boost-format
+#| msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr "Projekti tukee enintään %1% filamenttia. Nykyinen määrä on %2%, mikä ylittää rajan."
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Mesh issue"
-msgstr "Verkon ongelma"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Error code"
+msgid "Error Prompt"
+msgstr "Virheilmoitus"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr "Tämä yhdistämistapa ei voi yhdistää yhtään filamenttia. Jäljellä olevat filamentit ovat eri materiaaleja."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr "Tämä yhdistämistapa vähentää filamenttien määräksi %1% (enimmäismäärä %2%). Jäljellä olevia filamentteja ei voi yhdistää, koska ne ovat eri materiaaleja."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Left filaments"
+msgid "Kept filaments"
+msgstr "Säilytettävät filamentit"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Delete filament"
+msgid "Deleted filaments"
+msgstr "Poistettavat filamentit"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "After mapping"
+msgid "After merging"
+msgstr "Yhdistämisen jälkeen"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, boost-format
+#| msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr "Projekti tukee enintään %1% filamenttia. Nykyinen määrä on %2%, mikä ylittää rajan. Valitse, miten haluat jatkaa."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Prioritize merging similar-color filaments"
+msgstr "Yhdistä ensisijaisesti samankaltaiset värit"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Prioritize merging small-area filaments"
+msgstr "Yhdistä ensisijaisesti pienillä alueilla käytetyt filamentit"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "How to use standard mixing kits"
+msgstr "Värisekoitussarjojen käyttö"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "What is the CMYW mixing kit?"
+msgstr "Mikä on CMYW-värisekoitussarja?"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr "Virallisten tulostustestien perusteella tavallinen CMYW-värisekoitussarja riittää satojen värisävyjen sekoittamiseen."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "4-color CMYW"
+msgstr "4-värinen CMYW"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Cyan · Magenta · Yellow · White"
+msgstr "Syaani · magenta · keltainen · valkoinen"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr "Kun tuot mallin, voit siis valita väreille näiden sarjojen filamentteja ja niiden sekoituksia."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Add one filament"
+msgid "Add to project filament list"
+msgstr "Lisää projektin filamenttiluetteloon"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Choose SLA archive:"
@@ -5314,7 +5493,7 @@ msgid "This software uses open source components whose copyright and other propr
 msgstr "Ohjelmisto käyttää avoimen lähdekoodin komponentteja, joiden tekijänoikeudet ja muut omistusoikeudet kuuluvat niiden omistajille"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "About %s"
 msgstr "Tietoja ohjelmasta %s"
 
@@ -5427,12 +5606,12 @@ msgid "Remark"
 msgstr "Huomautus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "Anna kelvollinen arvo (K välillä %.1f~%.1f)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr "Huomautus: %s-tulostimen hotendin numero määräytyy pidikkeen mukaan. Numero päivittyy automaattisesti, kun hotend siirretään uuteen pidikkeeseen."
 
@@ -5509,10 +5688,6 @@ msgid "Start calibration"
 msgstr "Aloita kalibrointi"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Next"
-msgstr "Seuraava"
-
-# Finnish review: English/context/Swedish/glossary
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "Kalibrointi valmis. Etsi tulostusalustalta tasaisin pursotusviiva alla olevan kuvan mukaisesti ja syötä sen vasemmalla puolella oleva arvo K-kertoimen kenttään."
 
@@ -5529,7 +5704,7 @@ msgid "Example"
 msgstr "Esimerkki"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Calibrating... %d%%"
 msgstr "Kalibroidaan... %d%%"
 
@@ -5538,12 +5713,12 @@ msgid "Calibration completed"
 msgstr "Kalibrointi valmis"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Anna kelvolliset arvot (K välillä %.1f~%.1f, N välillä %.1f~%.1f)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s does not support %s"
 msgstr "%s ei tue kohdetta %s"
 
@@ -5594,7 +5769,7 @@ msgid "Please select from the following filaments"
 msgstr "Valitse seuraavista filamenteista"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Select filament that installed to the %s"
 msgstr "Valitse kohteeseen %s asennettu filamentti"
 
@@ -5615,22 +5790,22 @@ msgid "Right AMS"
 msgstr "Oikea AMS"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "Nykyisellä suuttimella tulostaminen voi tuottaa %0.2f g ylimääräistä jätettä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr "Vinkki: Filamenttityyppi (%s) ei vastaa viipaloidun tiedoston filamenttityyppiä (%s). Jos haluat käyttää tätä paikkaa, asenna %s filamentin %s tilalle ja muuta paikan tiedot Laite-sivulla."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr "Ei voi valita: Filamenttityyppi (%s) ei vastaa viipaloidun tiedoston filamenttityyppiä (%s). Jos haluat käyttää tätä paikkaa, asenna %s filamentin %s tilalle ja muuta paikan tiedot Laite-sivulla."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr "Ei voi valita: Paikka on tyhjä tai määrittämätön. Jos haluat käyttää tätä paikkaa, asenna %s ja muuta paikan tiedot Laite-sivulla."
 
@@ -5739,7 +5914,7 @@ msgid "AMS"
 msgstr "AMS"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Please select the filament installed on the %s."
 msgstr "Valitse kohteeseen %s asennettu filamentti."
 
@@ -5976,7 +6151,7 @@ msgid "Unknown error when export G-code."
 msgstr "Tuntematon virhe G-coden viennissä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "Failed to save gcode file.\n"
 "Error message: %1%.\n"
@@ -5991,7 +6166,7 @@ msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Väliaikaisen G-coden kopiointi tulostiedostoon epäonnistui"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
 msgstr "Ajastetaan lähetys kohteeseen `%1%`. Katso Ikkuna -> Tulostuspalvelimen lähetysjono"
 
@@ -6060,7 +6235,7 @@ msgid "Choose a file to import bed texture from (PNG/SVG):"
 msgstr "Valitse tiedosto, josta alustan tekstuuri tuodaan (PNG/SVG):"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The file exceeds %d MB, please import again."
 msgstr "Tiedoston koko ylittää %d MB. Tuo se uudelleen."
 
@@ -6099,7 +6274,7 @@ msgstr ""
 "\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "Tämän filamenttityypin suositeltu suuttimen lämpötila on [%d, %d] celsiusastetta"
 
@@ -6124,7 +6299,7 @@ msgid "Value is out of range."
 msgstr "Arvo on sallitun alueen ulkopuolella."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
 msgstr "%1% ei saa ylittää kuorikerrosten määrää (%2%), sillä muuten maalattu väri ulottuisi harvaan täyttöön."
 
@@ -6277,7 +6452,7 @@ msgstr ""
 "EI – Säilytä tuen itsenäinen kerroskorkeus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1% infill pattern doesn't support 100%% density."
 msgstr "Täyttökuvio %1% ei tue 100%%:n tiheyttä."
 
@@ -6317,12 +6492,12 @@ msgid "Set ensure vertical shell thickness to Partial."
 msgstr "Aseta pystysuoran kuoripaksuuden varmistukseksi Osittainen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Set wall loops to %d."
 msgstr "Aseta seinämien määräksi %d."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Set sparse infill density to %d%%."
 msgstr "Aseta harvan täytön tiheydeksi %d%%."
 
@@ -6340,6 +6515,25 @@ msgstr ""
 "Kyllä – Käytä muutoksia ja säilytä vuorotteleva lisäseinämä käytössä\n"
 "Ei – Älä käytä vuorottelevaa lisäseinämää"
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr "Kerroksittain toistuva muokkausalue ei ole yhteensopiva spiraalimaljakkotilan kanssa. Sen käyttöön suositellaan seuraavia muutoksia:"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid ""
+#| "Change these settings automatically?\n"
+#| "Yes - Apply and keep alternate extra wall enabled\n"
+#| "No  - Don't use alternate extra wall"
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+"Muutetaanko nämä asetukset automaattisesti?\n"
+"Kyllä – Käytä muutoksia ja säilytä kerroksittain toistuva muokkausalue käytössä\n"
+"Ei – Älä käytä kerroksittain toistuvaa muokkausaluetta"
+
 # Finnish review: English/context/Swedish/glossary
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "Jotta vuorotteleva lisäseinämä toimii oikein, suositellaan seuraavia muutoksia:"
@@ -6354,9 +6548,10 @@ msgstr ""
 "Kyllä – Käytä muutoksia ja säilytä vuorotteleva lisäseinämä käytössä\n"
 "Ei – Säilytä nykyiset asetukset ja vuorotteleva lisäseinämä käytössä"
 
-# Finnish review: English/context/Swedish/glossary
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-msgstr "Spiraalitila toimii vain, kun seinämien määrä on 1, tuet ja kosketukseen perustuva paakkuuntumisen tunnistus ovat poissa käytöstä, yläkuorikerrosten määrä ja harvan täytön tiheys ovat 0, ajastetun kuvauksen tyyppi on välitön ja seinämänopeuden tasoitus Z-suunnassa sekä vuorotteleva lisäseinämä ovat poissa käytöstä."
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
+msgstr "Spiraalitila toimii vain, kun seinämien määrä on 1, tuet ja kosketukseen perustuva paakkuuntumisen tunnistus ovat poissa käytöstä, yläkuorikerrosten määrä ja harvan täytön tiheys ovat 0, ajastetun kuvauksen tyyppi on välitön ja seinämänopeuden tasoitus Z-suunnassa, vuorotteleva lisäseinämä sekä kerroksittain toistuva muokkausalue ovat poissa käytöstä."
 
 # Finnish review: English/context/Swedish/glossary
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -6701,12 +6896,12 @@ msgid "To ensure your safety, certain processing tasks (such as laser) can only 
 msgstr "Turvallisuuden vuoksi tiettyjä työstötehtäviä (kuten laserointia) voi jatkaa vain tulostimelta."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down."
 msgstr "Tulostuskammion lämpötila on liian korkea, mikä voi pehmentää filamenttia. Odota, että lämpötila laskee alle %d℃. Voit avata etuoven tai käynnistää tuulettimet jäähdyttämiseksi."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "AMS temperature is too high, which may cause the filament to soften. Please wait until the AMS temperature drops below %d℃."
 msgstr "AMS:n lämpötila on liian korkea, mikä voi pehmentää filamenttia. Odota, että AMS:n lämpötila laskee alle %d℃."
 
@@ -6834,6 +7029,18 @@ msgstr "Yritä uudelleen"
 msgid "Resume"
 msgstr "Jatka"
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Loading file list..."
+msgid "Loading error details ..."
+msgstr "Ladataan virheen tietoja ..."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid ""
+#| "Unable to load shaders:\n"
+#| "%s"
+msgid "Unable to load error details."
+msgstr "Virheen tietoja ei voitu ladata."
+
 # Finnish review: English/context/Swedish/glossary
 msgid "Unknown error."
 msgstr "Tuntematon virhe."
@@ -6855,12 +7062,12 @@ msgid "N/A"
 msgstr "–"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s ei voi olla prosenttiarvo"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Value %s is out of range, continue?"
 msgstr "Arvo %s on sallitun alueen ulkopuolella. Jatketaanko?"
 
@@ -6869,12 +7076,12 @@ msgid "Parameter validation"
 msgstr "Parametrien tarkistus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
 msgstr "Arvo %s on sallitun alueen ulkopuolella. Sallittu alue on %d–%d."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Is it %s%% or %s %s?\n"
 "YES for %s%%, \n"
@@ -6885,7 +7092,7 @@ msgstr ""
 "EI: %s %s."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Virheellinen muoto. Odotettu vektorimuoto: \"%1%\""
 
@@ -6902,7 +7109,7 @@ msgid "R"
 msgstr "O"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s %s:"
 msgstr "%s %s:"
 
@@ -7195,32 +7402,32 @@ msgid "Current grouping of slice result is not optimal."
 msgstr "Viipalointituloksen nykyinen ryhmittely ei ole optimaalinen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
 msgstr "Kuluttaa %1% g enemmän filamenttia ja vaatii %2% suuttimen huuhtelua enemmän kuin optimaalinen ryhmittely."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
 msgstr "Kuluttaa %1% g enemmän filamenttia ja säästää %2% suuttimen huuhtelua optimaaliseen ryhmittelyyn verrattuna."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
 msgstr "Säästää %1% g filamenttia ja vaatii %2% suuttimen huuhtelua enemmän kuin optimaalinen ryhmittely."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
 msgstr "Säästää %1% g filamenttia ja %2% suuttimen huuhtelua yksisuuttimiseen tulostimeen verrattuna."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
 msgstr "Säästää %1% g filamenttia ja vaatii %2% suuttimen huuhtelua enemmän kuin yksisuuttiminen tulostin."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
 msgstr "Kuluttaa %1% g enemmän filamenttia ja säästää %2% suuttimen huuhtelua yksisuuttimiseen tulostimeen verrattuna."
 
@@ -7401,12 +7608,12 @@ msgid "Please solve the problem by moving it totally on or off the plate, and co
 msgstr "Siirrä objekti kokonaan levylle tai sen ulkopuolelle ja varmista, että korkeus mahtuu tulostustilavuuteen.\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Joidenkin mallien sijainti tai koko ylittää tulostimen %s tulostusalueen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The position or size of the model %s exceeds the %s's printable range."
 msgstr "Mallin %s sijainti tai koko ylittää tulostimen %s tulostusalueen."
 
@@ -7545,7 +7752,7 @@ msgid "Change camera perspective"
 msgstr "Vaihda kameran perspektiiviä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
 msgstr "Nykyinen kokoamisaste: %1%%%, tilavuusosuus: %2%%%"
 
@@ -7663,7 +7870,7 @@ msgid "Reset to origin"
 msgstr "Palauta origoon"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "G-code-liikeradat törmäävät kerroksella %d. Siirrä törmäävät objektit kauemmas toisistaan (%s <-> %s)."
 
@@ -7688,22 +7895,22 @@ msgid "The total printed weight exceeds this printer's recommended capacity and 
 msgstr "Tulosteen kokonaispaino ylittää tämän tulostimen suositellun kapasiteetin ja voi hidastaa tulostusta tai aiheuttaa tulostusvirheitä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr "Filamentti %s on sijoitettu kohteeseen %s, mutta luotu G-code-liikerata ylittää kohteen %s tulostusalueen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr "Filamentit %s on sijoitettu kohteeseen %s, mutta luotu G-code-liikerata ylittää kohteen %s tulostusalueen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
 msgstr "Filamentti %s on sijoitettu kohteeseen %s, mutta luotu G-code-liikerata ylittää kohteen %s tulostuskorkeuden."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
 msgstr "Filamentit %s on sijoitettu kohteeseen %s, mutta luotu G-code-liikerata ylittää kohteen %s tulostuskorkeuden."
 
@@ -7716,7 +7923,7 @@ msgid "Only the object being edited is visible."
 msgstr "Vain muokattava objekti näkyy."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "filaments %s cannot be printed directly on the surface of this plate."
 msgstr "Filamentteja %s ei voi tulostaa suoraan tämän levyn pinnalle."
 
@@ -7736,9 +7943,9 @@ msgstr "Pohjustustorni parantaa moniväritulostuksen laatua, ja sen käyttöä s
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Pohjustustorni ulottuu levyn rajan ulkopuolelle."
 
-# Finnish review: English/context/Swedish/glossary
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-msgstr "Kaikki nykyisen levyn objektit on merkitty ei-tulostettaviksi. Viipalointi tuottaa tyhjän tuloksen. Tarkista asetukset."
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
+msgstr "Kaikki levyn objektit on merkitty ei-tulostettaviksi. Tarkista tulostettavuusasetukset objektiluettelosta."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
@@ -7880,6 +8087,16 @@ msgstr ""
 msgid "Invalid input."
 msgstr "Virheellinen syöte."
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Network Test"
+msgid "Network error"
+msgstr "Verkkovirhe"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Unknown error."
+msgid "Unknown error"
+msgstr "Tuntematon virhe"
+
 # Finnish review: English/context/Swedish/glossary
 msgid "New Window"
 msgstr "Uusi ikkuna"
@@ -7907,10 +8124,6 @@ msgstr "Valmistelu"
 # Finnish review: English/context/Swedish/glossary
 msgid "Preview"
 msgstr "Esikatselu"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "Nykyisellä sivulla on tallentamattomia muutoksia. Voit jatkaa muokkausta tai tallentaa tai hylätä muutokset ennen poistumista."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Home"
@@ -7943,6 +8156,10 @@ msgstr "Ei"
 # Finnish review: English/context/Swedish/glossary
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "suljetaan ennen uuden mallin luomista. Haluatko jatkaa?"
+
+# Finnish review: English/context/Swedish/glossary
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "Nykyisellä sivulla on tallentamattomia muutoksia. Voit jatkaa muokkausta tai tallentaa tai hylätä muutokset ennen poistumista."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
@@ -8061,7 +8278,7 @@ msgid "Open Network Test"
 msgstr "Avaa verkkotesti"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "&About %s"
 msgstr "&Tietoja ohjelmasta %s"
 
@@ -8339,10 +8556,6 @@ msgid "Show Labels of printing by layer in 3D scene"
 msgstr "Näytä kerroksittaisen tulostuksen tunnisteet 3D-näkymässä"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "Näytä objektikohtaisen tulostuksen tunnisteet 3D-näkymässä"
-
-# Finnish review: English/context/Swedish/glossary
 msgid "Show &Overhang"
 msgstr "Näytä &ylitykset"
 
@@ -8511,7 +8724,7 @@ msgid "&Quit"
 msgstr "&Lopeta"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Quit %s"
 msgstr "Lopeta %s"
 
@@ -8528,12 +8741,12 @@ msgid "&Help"
 msgstr "&Ohje"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to override it."
 msgstr "Samanniminen tiedosto on jo olemassa: %s. Haluatko korvata sen?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to override it."
 msgstr "Samanniminen määritys on jo olemassa: %s. Haluatko korvata sen?"
 
@@ -8554,7 +8767,7 @@ msgid "Choose a directory"
 msgstr "Valitse kansio"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
 msgstr[0] "Vietiin %d määritys. (Vain muut kuin järjestelmän määritykset)"
@@ -8569,7 +8782,7 @@ msgid "Select profile to load:"
 msgstr "Valitse ladattava profiili:"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
 msgstr[0] "Tuotiin %d määritys. (Vain yhteensopivat muut kuin järjestelmän määritykset)"
@@ -8708,7 +8921,7 @@ msgstr ""
 "Haluatko pysäyttää tämän virtuaalikameran?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
 msgstr "Virtuaalikameran alustus epäonnistui (%s)!"
 
@@ -8841,7 +9054,7 @@ msgid "Browsing file in storage is not supported in LAN Only Mode."
 msgstr "Tallennustilan tiedostojen selaamista ei tueta vain lähiverkko -tilassa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural "You are going to delete %u files from printer. Are you sure to continue?"
 msgstr[0] "Olet poistamassa %u tiedoston tulostimesta. Haluatko varmasti jatkaa?"
@@ -8852,7 +9065,7 @@ msgid "Delete files"
 msgstr "Poista tiedostot"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Do you want to delete the file '%s' from printer?"
 msgstr "Haluatko poistaa tiedoston '%s' tulostimesta?"
 
@@ -8877,12 +9090,12 @@ msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu S
 msgstr ".gcode.3mf-tiedosto ei sisällä G-koodia. Viipaloi se Bambu Studiolla ja vie uusi .gcode.3mf-tiedosto."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Tiedosto '%s' katosi! Lataa se uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "File: %s\n"
 "Title: %s\n"
@@ -8907,7 +9120,7 @@ msgid "Download finished"
 msgstr "Lataus valmis"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Ladataan %d%%..."
 
@@ -8976,7 +9189,7 @@ msgid "File upload failed, please try again."
 msgstr "Tiedoston lähetys epäonnistui. Yritä uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Error code: %d"
 msgstr "Virhekoodi: %d"
 
@@ -9186,22 +9399,22 @@ msgid "Rate"
 msgstr "Arvostele"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%dday%dh%dmin%ds"
 msgstr "%dvrk%dh%dmin%ds"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%dh%dmin%ds"
 msgstr "%dh%dmin%ds"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%dmin%ds"
 msgstr "%dmin%ds"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%ds"
 msgstr "%ds"
 
@@ -9326,22 +9539,22 @@ msgid "Cloud Slicing..."
 msgstr "Viipaloidaan pilvessä..."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr "Pilviviipaloinnin jonossa on %s tehtävää edellä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Layer: %s"
 msgstr "Kerros: %s"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Kerros: %d/%d"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "(%d)"
 msgstr "(%d)"
 
@@ -9611,22 +9824,22 @@ msgid "Later"
 msgstr "Myöhemmin"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s error"
 msgstr "%s – virhe"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s has encountered an error"
 msgstr "%s kohtasi virheen"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s warning"
 msgstr "%s – varoitus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s antaa varoituksen"
 
@@ -9643,18 +9856,14 @@ msgid "Do not execute"
 msgstr "Älä suorita"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s info"
 msgstr "%s – tiedot"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s information"
 msgstr "%s – tiedot"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "Skip"
-msgstr "Ohita"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Newer 3mf version"
@@ -9790,28 +9999,28 @@ msgid "Safely remove hardware."
 msgstr "Poista laite turvallisesti."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%1$d Object has custom support."
 msgid_plural "%1$d Objects have custom support."
 msgstr[0] "%1$d objektilla on mukautetut tuet."
 msgstr[1] "%1$d objektilla on mukautetut tuet."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d objektilla on värimaalausta."
 msgstr[1] "%1$d objektilla on värimaalausta."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%1$d Object has fuzzy skin."
 msgid_plural "%1$d Objects have fuzzy skin."
 msgstr[0] "%1$d objektilla on karhennettu pinta."
 msgstr[1] "%1$d objektilla on karhennettu pinta."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] "%1$d objekti ladattiin leikatun objektin osana."
@@ -9926,7 +10135,7 @@ msgid "Unsupported OpenGL version"
 msgstr "OpenGL-versiota ei tueta"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Unable to load shaders:\n"
 "%s"
@@ -10931,12 +11140,12 @@ msgid "Customize current plate"
 msgstr "Mukauta nykyistä levyä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "%s-suutin ei voi tulostaa filamenttia %s."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Mixing %1% with %2% in printing is not recommended.\n"
 msgstr "Filamenttien %1% ja %2% yhdistämistä samassa tulosteessa ei suositella.\n"
 
@@ -10945,7 +11154,7 @@ msgid " nozzle"
 msgstr " suutin"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "It is not recommended to print the following filament(s) with %1%: %2%\n"
 msgstr "Seuraavien filamenttien tulostamista suuttimella %1% ei suositella: %2%\n"
 
@@ -10954,12 +11163,12 @@ msgid "It is not recommended to use the following nozzle and filament combinatio
 msgstr "Seuraavia suutin- ja filamenttiyhdistelmiä ei suositella:\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1% with %2%\n"
 msgstr "%1% ja %2%\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The %s nozzle does not support automatic filament switching.\n"
 msgstr "%s-suutin ei tue automaattista filamentin vaihtoa.\n"
 
@@ -10968,7 +11177,7 @@ msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr "Vaihda suutintyyppi tai määritä filamentit uudelleen ja yritä uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
 msgstr "Nykyisellä korkean lämpötilan filamentilla (%s) havaittiin suuttimen paakkuuntumisen riski. Suosittelemme paakkuuntumisen tunnistusta tunnustelemalla. Toiminto tarkistaa suuttimen kertymät nopealla tunnustelujaksolla tulostuksen aikana ja käyttää pohjustustornia vuotavan filamentin keräämiseen ennen jatkamista."
 
@@ -10977,7 +11186,7 @@ msgid "Printing mixed-color filament on a single-extruder printer requires frequ
 msgstr "Sekoitettujen filamenttivärien tulostaminen yhden ekstruuderin tulostimella vaatii tiheitä filamentin vaihtoja ja huuhtelua, mikä voi lisätä jätettä sekä suuttimen ja jätekourun tukkeutumisriskiä merkittävästi."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid " plate %1%: "
 msgstr " levy %1%: "
 
@@ -11068,12 +11277,12 @@ msgid "Do you want to sync the preset printer with the connected printer, "
 msgstr "Haluatko synkronoida tulostinesiasetuksen yhdistetyn tulostimen kanssa, "
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Current connected printer (Device page): %s (%s)"
 msgstr "Yhdistetty tulostin (Laite-sivu): %s (%s)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Current printer preset (Prepare page): %s"
 msgstr "Nykyinen tulostinesiasetus (Valmistelu-sivu): %s"
 
@@ -11169,12 +11378,36 @@ msgstr "Filamenttisekoituksessa on virheellisiä tai yhteensopimattomia osafilam
 msgid "Search plate, object and part."
 msgstr "Etsi levyä, objektia tai osaa."
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+#| msgid "Learn more"
+msgid ", and %d more"
+msgstr ", ja %d muuta"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr "malli \"%s\""
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
+msgstr "Poistettavaa filamenttia käyttää tällä hetkellä %s. Poiston jälkeen mallin filamentiksi palautetaan luettelon ensimmäinen filamentti."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgstr "Vinkki: Jos haluat korvata sen toisella filamentilla, käytä filamenttiluettelon oikealla puolella olevaa \"Yhdistä kohteeseen\" -toimintoa."
+
+# Finnish review: English/context/Swedish/glossary
+msgid "Delete Filament"
+msgstr "Poista filamentti"
+
 # Finnish review: English/context/Swedish/glossary
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Kohteena oleva filamenttisekoitus käyttää tätä fyysistä filamenttia osafilamenttina. Yhdistäminen poistaa fyysisen filamentin ja voi rikkoa sekoituksen. Jatketaanko?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
 msgstr "Kun toiminto on valmis, projekti %s suljetaan ja uusi projekti luodaan."
 
@@ -11207,17 +11440,17 @@ msgid "Edit / Delete / Merge"
 msgstr "Muokkaa / Poista / Yhdistä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "Haluatko tallentaa muutokset kohteeseen \"%1%\"?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Successfully unmounted. The device %s(%s) can now be safely removed from the computer."
 msgstr "Irrotus onnistui. Laitteen %s(%s) voi nyt poistaa tietokoneesta turvallisesti."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "Laitteen %s(%s) poistaminen epäonnistui."
 
@@ -11262,7 +11495,7 @@ msgid "Collapse sidebar"
 msgstr "Pienennä sivupalkki"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Ladataan tiedostoa: %s"
 
@@ -11347,7 +11580,7 @@ msgid "Unclosed Shell Warning"
 msgstr "Varoitus avoimesta kuoresta"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Tiedoston \"%1%\" lataus epäonnistui. Määritys on virheellinen."
 
@@ -11358,14 +11591,6 @@ msgstr "Nollatilavuuksiset objektit poistettu"
 # Finnish review: English/context/Swedish/glossary
 msgid "The volume of the object is zero"
 msgstr "Objektin tilavuus on nolla"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr "Tiedoston objekti on hyvin pieni. Haluatko tuoda sen käyttäen millimetrejä oletusyksikkönä?"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "Object too small"
-msgstr "Objekti on liian pieni"
 
 # Finnish review: English/context/Swedish/glossary
 msgid ""
@@ -11381,10 +11606,11 @@ msgstr ""
 msgid "Multi-part object detected"
 msgstr "Moniosainen objekti havaittu"
 
-# Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
-msgid "Computing texture colors: %s"
-msgstr "Lasketaan tekstuurin värejä: %s"
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+#| msgid "Computing texture colors: %s"
+msgid "Computing model colors: %s"
+msgstr "Lasketaan mallin värejä: %s"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Texture Import Warning"
@@ -11469,7 +11695,7 @@ msgid "Export OBJ file:"
 msgstr "Vie OBJ-tiedosto:"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The file %s already exists\n"
 "Do you want to replace it?"
@@ -11572,7 +11798,7 @@ msgid "Great! Now click the Helio button to start optimization."
 msgstr "Hyvä! Aloita optimointi napsauttamalla Helio-painiketta."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Viipaloidaan levyä %d"
 
@@ -11593,7 +11819,7 @@ msgid "Multicolour simulation currently supports only a single filament material
 msgstr "Monivärisimulointi tukee tällä hetkellä vain yhtä filamenttimateriaalia."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "Olet valinnut useita materiaaleja: %s"
 
@@ -11714,7 +11940,7 @@ msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Virheellinen tulostinesiasetus. Heliolla ei voi viipaloida."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Helio found a potential printer match using token-based matching:\n"
 "\n"
@@ -11735,7 +11961,7 @@ msgid "Helio Printer Match Confirmation"
 msgstr "Vahvista Helion tulostinvastaavuus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Your printer '%s' is not officially supported by Helio.\n"
 "Select a reference printer:"
@@ -11752,7 +11978,7 @@ msgid "The current printer preset cannot be sliced using Helio."
 msgstr "Nykyisellä tulostinesiasetuksella ei voi viipaloida Heliossa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Helio found a potential material match using token-based matching:\n"
 "\n"
@@ -11773,7 +11999,7 @@ msgid "Helio Material Match Confirmation"
 msgstr "Vahvista Helion materiaalivastaavuus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Helio does not support materials %s.\n"
 "\n"
@@ -11788,7 +12014,7 @@ msgid "View supported materials"
 msgstr "Näytä tuetut materiaalit"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio ei tue materiaaleja %s"
 
@@ -11819,7 +12045,7 @@ msgid "⚠ Unsupported Printer Detected"
 msgstr "⚠ Tulostin, jota ei tueta, havaittu"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "You're using %s which is not officially supported by Helio."
 msgstr "Käytät tulostinta %s, jota Helio ei tue virallisesti."
 
@@ -11903,6 +12129,24 @@ msgstr "Helion tietojen lataus epäonnistui"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Korjaa viipalointivirheet ja julkaise uudelleen."
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Open G-code file:"
+msgid "Send G-code file"
+msgstr "Lähetä G-kooditiedosto"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr "Bambu Studio ei tue .gcode-tiedostojen lähettämistä suoraan tulostettavaksi. Voit lähettää tiedoston tulostimeen ja käynnistää tulostuksen sitten tulostimesta."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr "Huomaa: Tulostaminen suoraan G-koodista voi aiheuttaa tulostusvirheitä. Suosittelemme tulostamista 3mf-tiedostoista."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Sync now"
+msgid "Send now"
+msgstr "Lähetä nyt"
+
 # Finnish review: English/context/Swedish/glossary
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "Bambu Farm Manager Clientin käynnistäminen epäonnistui."
@@ -11942,7 +12186,7 @@ msgid "Creating a new project"
 msgstr "Luodaan uutta projektia"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The currently connected printer '%s', is a %s model.\n"
 "To use this printer for printing, please switch the printer model of project file to %s."
@@ -11951,7 +12195,7 @@ msgstr ""
 "Voit käyttää sitä tulostukseen vaihtamalla projektitiedoston tulostinmalliksi %s."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
 "To use this printer for printing, please switch the preset first."
@@ -12000,7 +12244,7 @@ msgid "Download failed, File size exception."
 msgstr "Lataus epäonnistui: poikkeava tiedostokoko."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Projektista ladattu %d%%"
 
@@ -12117,7 +12361,7 @@ msgid "Export sliced file"
 msgstr "Vie viipaloitu tiedosto"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr "Tiedosto %s on lähetetty tulostimen tallennustilaan, ja sitä voi tarkastella tulostimessa."
 
@@ -12134,24 +12378,23 @@ msgid "Unable to perform boolean operation on model meshes. You may fix the mesh
 msgstr "Mallin kolmioverkoille ei voi suorittaa Boolen operaatiota. Korjaa kolmioverkot ja yritä uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Reason: part \"%1%\" is empty."
 msgstr "Syy: osa \"%1%\" on tyhjä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "Syy: osa \"%1%\" ei rajaa suljettua tilavuutta."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "Syy: osa \"%1%\" leikkaa itsensä."
-
-# Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "Syy: \"%1%\" ja toinen osa eivät leikkaa toisiaan."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Reason: the meshes have face issues."
+msgstr "Syy: kolmioverkoissa on ongelmallisia pintoja."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
@@ -12174,7 +12417,7 @@ msgstr ""
 "Varmista tiedoston lähde ja komentojen sisältö ennen jatkamista."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
 msgstr "Kalibrointifilamentti on määritetty eri ekstruuderille kuin PA-kalibrointi-ikkunassa valittu ekstruuderi (%s). Tämä voi tuottaa virheelliset kalibrointitulokset. Voit muuttaa määritystä filamenttien ryhmittelyasetuksissa."
 
@@ -12223,12 +12466,12 @@ msgid "Detail view wiki->"
 msgstr "Lisätietoja wikissä->"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
 msgstr "Tulostinta ei ole yhdistetty. Yhdistä %s Laite-sivulla ennen synkronointia."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The currently connected printer on the device page is not %s. Please switch to %s before syncing."
 msgstr "Laite-sivulla yhdistetty tulostin ei ole %s. Vaihda tulostimeen %s ennen synkronointia."
 
@@ -12273,47 +12516,47 @@ msgid "A cube printed during a filament change to purge old color and ensure smo
 msgstr "Filamentin vaihdon yhteydessä tulostettava kuutio, joka huuhtelee vanhan värin ja varmistaa tasaisen värinvaihdon."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Number of currently selected parts: %1%\n"
 msgstr "Valittujen osien määrä: %1%\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Number of currently selected objects: %1%\n"
 msgstr "Valittujen objektien määrä: %1%\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Part name: %1%\n"
 msgstr "Osan nimi: %1%\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Object name: %1%\n"
 msgstr "Objektin nimi: %1%\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Size: %1% x %2% x %3% in\n"
 msgstr "Koko: %1% x %2% x %3% in\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr "Koko: %1% x %2% x %3% mm\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Volume: %1% in³\n"
 msgstr "Tilavuus: %1% in³\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Volume: %1% mm³\n"
 msgstr "Tilavuus: %1% mm³\n"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Triangles: %1%\n"
 msgstr "Kolmioita: %1%\n"
 
@@ -12326,7 +12569,7 @@ msgid "To repair the model, please use a third-party tool before importing it in
 msgstr "Korjaa malli kolmannen osapuolen työkalulla ennen tuontia Bambu Studioon, esimerkiksi "
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Plate% d: %s is not suggested to be used to print filament %s(%s). If you still want to do this printing, please set this filament's bed temperature to non zero."
 msgstr "Levy% d: Levyä %s ei suositella filamentin %s(%s) tulostamiseen. Jos haluat silti tulostaa, aseta tämän filamentin alustan lämpötila nollaa suuremmaksi."
 
@@ -13003,21 +13246,30 @@ msgstr "Kaikki varoitusikkunat, jotka poistit käytöstä valitsemalla \"Älä n
 msgid "Check details"
 msgstr "Näytä lisätiedot"
 
-# Finnish review: English/context/Swedish/glossary
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid ""
+#| "- Sync printer presets after loading a file\n"
+#| "- \"Load 3MF\" dialog settings\n"
+#| "- Executing post-processing scripts\n"
+#| "- Support structure recommendation prompt\n"
+#| "- Unsaved projects.\n"
+#| "- Mixed color sublayer with variable layer height warning"
 msgid ""
 "- Sync printer presets after loading a file\n"
 "- \"Load 3MF\" dialog settings\n"
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 "- Tulostinesiasetusten synkronointi tiedoston latauksen jälkeen\n"
 "- \"Lataa 3MF\" -ikkunan asetukset\n"
 "- Jälkikäsittelykomentojen suoritus\n"
 "- Tukirakenteiden suosituskehote\n"
 "- Tallentamattomat projektit.\n"
-"- Sekoitusvärien osakerrosten ja muuttuvan kerroskorkeuden varoitus"
+"- Sekoitusvärien osakerrosten ja muuttuvan kerroskorkeuden varoitus\n"
+"- Mallin käyttämän filamentin poistaminen"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
@@ -13244,7 +13496,7 @@ msgid "Jump to webpage"
 msgstr "Siirry verkkosivulle"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Save %s as"
 msgstr "Tallenna %s nimellä"
 
@@ -13265,12 +13517,12 @@ msgid "Overwrite a system profile is not allowed"
 msgstr "Järjestelmäprofiilia ei saa korvata"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Preset \"%1%\" already exists."
 msgstr "Esiasetus \"%1%\" on jo olemassa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Preset \"%1%\" already exists and is incompatible with current printer."
 msgstr "Esiasetus \"%1%\" on jo olemassa, eikä se sovi yhteen nykyisen tulostimen kanssa."
 
@@ -13292,27 +13544,27 @@ msgid "Copy"
 msgstr "Kopioi"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Printer \"%1%\" is selected with preset \"%2%\""
 msgstr "Tulostin \"%1%\" on valittu esiasetuksella \"%2%\""
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Please choose an action with \"%1%\" preset after saving."
 msgstr "Valitse, mitä esiasetukselle \"%1%\" tehdään tallennuksen jälkeen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "For \"%1%\", change \"%2%\" to \"%3%\" "
 msgstr "Vaihda tulostimelle \"%1%\" esiasetus \"%2%\" esiasetukseksi \"%3%\" "
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "For \"%1%\", add \"%2%\" as a new preset"
 msgstr "Lisää tulostimelle \"%1%\" uusi esiasetus \"%2%\""
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "Vaihda vain esiasetukseen \"%1%\""
 
@@ -13461,17 +13713,17 @@ msgid "Error code"
 msgstr "Virhekoodi"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
 msgstr "Suositeltu filamenttijärjestely säästää %s->"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "Nykyinen laiteohjelmisto tukee enintään %s materiaalia. Vähennä materiaalien määrä Valmistelu-sivulla enintään %s materiaaliin tai päivitä laiteohjelmisto. Jos rajoitus jatkuu päivityksen jälkeen, odota tukea tulevassa laiteohjelmistossa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filamentti %s ei vastaa AMS-paikan %s filamenttia. Päivitä tulostimen laiteohjelmisto, jotta AMS-paikkojen kohdistus on tuettu."
 
@@ -13480,7 +13732,7 @@ msgid "Filament does not match the filament in AMS slot. Please update the print
 msgstr "Filamentti ei vastaa AMS-paikan filamenttia. Päivitä tulostimen laiteohjelmisto, jotta AMS-paikkojen kohdistus on tuettu."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "Valittu tulostin (%s) ei ole yhteensopiva tulostustiedoston määrityksen (%s) kanssa. Muuta tulostinesiasetusta Valmistelu-sivulla tai valitse yhteensopiva tulostin tällä sivulla."
 
@@ -13545,7 +13797,7 @@ msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is
 msgstr "Kun ajastettu kuvaus on käytössä, tulostin siirtää tulostuslevyä ja tulostuspäätä ennen jokaista kuvaa sekä välittömässä että tasaisessa tilassa. Tämä voi pidentää kokonaistulostusaikaa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
 msgstr "Tallennustilassa %s on vapaana alle 10 Mt. Ajastettu video ei ehkä tallennu oikein. Voit poistaa kuvauksen käytöstä tai"
 
@@ -13614,7 +13866,7 @@ msgid "The name length exceeds the limit."
 msgstr "Nimi on liian pitkä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
 msgstr "Kuluttaa %dg enemmän filamenttia ja vaatii %d vaihtoa enemmän kuin optimaalinen ryhmittely."
 
@@ -13627,22 +13879,22 @@ msgid "both extruders"
 msgstr "molemmat ekstruuderit"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
 msgstr "[ %s ] vaatii korkean tulostuslämpötilan. Muista sulkea ovi, jos se ei ole jo kiinni."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment."
 msgstr "[ %s ] vaatii korkean tulostuslämpötilan."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The filament on %s may soften. Please unload."
 msgstr "Filamentti kohteessa %s voi pehmetä. Poista se."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Filamentti kohteessa %s on tuntematon ja voi pehmetä. Määritä filamentti."
 
@@ -13667,7 +13919,7 @@ msgid "Install toolhead enhanced cooling fan to prevent filament softening."
 msgstr "Asenna tulostuspään tehostettu jäähdytystuuletin filamentin pehmenemisen estämiseksi."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Refreshing information of hotends(%d/%d)."
 msgstr "Päivitetään hotendien tietoja (%d/%d)."
 
@@ -13696,7 +13948,7 @@ msgid "The Filament Track Switch has not been setup. Please setup it first."
 msgstr "Filament Track Switchiä ei ole määritetty. Määritä se ensin."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "Suuttimien automaattisen kohdistuspyynnön lähetys tulostimelle epäonnistui { code: %d }. Päivitä tulostimen tiedot. Jos ongelma jatkuu, liitä tulostin uudelleen ja tarkista verkkoyhteys."
 
@@ -13705,17 +13957,17 @@ msgid "The printer is calculating nozzle mapping."
 msgstr "Tulostin laskee suuttimien kohdistuksia."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."
 msgstr "Suuttimien automaattista kohdistustaulukkoa ei saatu tulostimelta { msg: %s }. Päivitä tulostimen tiedot."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
 msgstr "Tulostin ei voinut muodostaa suuttimien automaattista kohdistustaulukkoa { code: %d }. Päivitä suuttimien tiedot."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "Nykyinen suutinkohdistus voi tuottaa %0.2f g enemmän jätettä."
 
@@ -13724,7 +13976,7 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "Nykyinen laiteohjelmistoversio ei voi käynnistää tätä tulostustyötä. Päivitä uusimpaan versioon ja yritä uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "Nykyisen materiaalin (%s) kovuus ylittää suuttimen %s (%s) kovuuden. Tämä voi kuluttaa suutinta ja aiheuttaa materiaalivuotoja sekä epätasaista virtausta. Käytä harkiten."
 
@@ -13733,16 +13985,30 @@ msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the 
 msgstr "Jos virtausdynamiikan kalibrointi on automaattinen tai päällä, järjestelmä käyttää manuaalista kalibrointiarvoa tai oletusarvoa ja ohittaa virtauskalibroinnin. Voit kalibroida TPU-filamentin virtauksen manuaalisesti Kalibrointi-sivulla."
 
 # Finnish review: English/context/Swedish/glossary
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr "AMS:n filamentti ei ehkä riitä tähän tulostukseen. Lisää tai vaihda filamentti."
-
-# Finnish review: English/context/Swedish/glossary
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Jotkin filamentit voivat vaihtaa ekstruuderia tulostuksen aikana. Manuaalista K-arvon kalibrointia ei voi käyttää koko tulostuksessa, mikä voi vaikuttaa tulostuslaatuun. Suosittelemme virtausdynamiikan kalibrointia."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr "Tässä tiedostossa on herkästi rihmoittuvaa filamenttia. Parhaan tulostuslaadun saavuttamiseksi suosittelemme suuttimen paakkuuntumisen tunnistuksen automaattista tilaa."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+#| msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr "Filamentti kohteessa %s ei ehkä riitä tähän tulostukseen. Lisää tai vaihda filamentti."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+#| msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr "Filamentti automaattisen täydennyksen ryhmässä %s ei ehkä riitä tähän tulostukseen. Lisää tai vaihda filamentti."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#, c-format, boost-format
+#| msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr "Filamentti automaattisen täydennyksen ryhmissä %s ei ehkä riitä tähän tulostukseen. Lisää tai vaihda filamentti."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Cool"
@@ -14057,7 +14323,7 @@ msgid "Statement about User Experience Improvement Program"
 msgstr "Seloste käyttökokemuksen parantamisohjelmasta"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "In the 3D Printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. %s follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training %s to be smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in  Privacy Policy. We will not collect any Personal Data by which an individual can be identified directly or indirectly, including without limitation names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the statement about Privacy Policy."
 msgstr "3D-tulostusyhteisössä opimme toistemme onnistumisista ja epäonnistumisista ja säädämme niiden perusteella viipalointiasetuksiamme. %s noudattaa samaa periaatetta ja parantaa toimintaansa koneoppimisen avulla käyttäjiemme lukuisten tulostusten onnistumisten ja epäonnistumisten perusteella. Koulutamme %s-järjestelmää älykkäämmäksi todellisesta käytöstä saadulla tiedolla. Jos suostut, palvelu saa käyttöönsä virhe- ja käyttölokiesi tietoja, joihin voi sisältyä tietosuojakäytännössä kuvattuja tietoja. Emme kerää henkilötietoja, joista henkilö voidaan tunnistaa suoraan tai epäsuorasti, kuten nimiä, osoitteita, maksutietoja tai puhelinnumeroita. Ottamalla palvelun käyttöön hyväksyt nämä ehdot ja tietosuojakäytäntöä koskevan selosteen."
 
@@ -14091,7 +14357,7 @@ msgstr "Uloskirjautuminen epäonnistui."
 
 # Finnish review: English/context/Swedish/glossary
 #. TRN "Save current Settings"
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Save current %s"
 msgstr "Tallenna nykyinen %s"
 
@@ -14172,7 +14438,7 @@ msgid "Prime tower is required for clumping detection. There may be flaws on the
 msgstr "Paakkuuntumisen tunnistus vaatii pohjustustornin. Ilman sitä malliin voi tulla virheitä. Haluatko silti ottaa paakkuuntumisen tunnistuksen käyttöön?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The selected printer has a bed temperature limit of %d°C.\n"
 "Setting a higher bed temperature may cause damage to the printer."
@@ -14225,7 +14491,7 @@ msgstr ""
 "Ei – Älä muuta asetuksia"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
 msgstr "Kun materiaalilla %s tuetaan materiaalia %s, suosittelemme seuraavia asetuksia:"
 
@@ -14377,8 +14643,13 @@ msgstr "Muistiinpanot"
 msgid "Frequent"
 msgstr "Usein käytetyt"
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Modifier"
+msgid "Modifier cycle"
+msgstr "Muokkausalueen toistojakso"
+
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Following line %s contains reserved keywords.\n"
 "Please remove it, or will beat G-code visualization and printing time estimation."
@@ -14743,7 +15014,7 @@ msgid "Unable to save preset"
 msgstr "Esiasetusta ei voitu tallentaa"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
 msgstr "Tähän tulostimeen liittyy %d filamenttiesiasetusta ja %d prosessiesiasetusta. Ne poistetaan, jos tulostin poistetaan."
 
@@ -14759,7 +15030,7 @@ msgstr[1] "Seuraavat esiasetukset perivät tämän esiasetuksen."
 
 # Finnish review: English/context/Swedish/glossary
 #. TRN  Remove/Delete
-#, possible-boost-format
+#, boost-format
 msgid "%1% Preset"
 msgstr "Esiasetus %1%"
 
@@ -14778,7 +15049,7 @@ msgstr ""
 "Jos esiasetus vastaa tulostimessa käytössä olevaa filamenttia, määritä kyseisen paikan filamenttitiedot uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Haluatko varmasti suorittaa toiminnon %1% valitulle esiasetukselle?"
 
@@ -14791,7 +15062,7 @@ msgid "Set"
 msgstr "Aseta"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s: %s"
 msgstr "%s: %s"
 
@@ -14804,12 +15075,12 @@ msgid "Copy parameters"
 msgstr "Kopioi asetukset"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Modify parameters of %s"
 msgstr "Muokkaa kohteen %s asetuksia"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
 msgstr "Haluatko muuttaa seuraavat kohteen %s asetukset vastaamaan kohteen %s asetuksia?"
 
@@ -14906,7 +15177,7 @@ msgid "Transfer the selected options to the newly selected preset."
 msgstr "Siirrä valitut asetukset juuri valittuun esiasetukseen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "Save the selected options to preset \n"
 "\"%1%\"."
@@ -14915,7 +15186,7 @@ msgstr ""
 "\"%1%\"."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "Transfer the selected options to the newly selected preset \n"
 "\"%1%\"."
@@ -14924,22 +15195,22 @@ msgstr ""
 "\"%1%\"."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Preset \"%1%\" contains the following unsaved changes:"
 msgstr "Esiasetuksessa \"%1%\" on seuraavat tallentamattomat muutokset:"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Preset \"%1%\" is not compatible with the new printer profile and it contains the following unsaved changes:"
 msgstr "Esiasetus \"%1%\" ei ole yhteensopiva uuden tulostinprofiilin kanssa, ja siinä on seuraavat tallentamattomat muutokset:"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Preset \"%1%\" is not compatible with the new process profile and it contains the following unsaved changes:"
 msgstr "Esiasetus \"%1%\" ei ole yhteensopiva uuden prosessiprofiilin kanssa, ja siinä on seuraavat tallentamattomat muutokset:"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "You have changed the preset \"%1%\". "
 msgstr "Olet muuttanut esiasetusta \"%1%\". "
 
@@ -15036,7 +15307,7 @@ msgid "Cover"
 msgstr "Kansikuva"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "The name \"%1%\" already exists."
 msgstr "Nimi \"%1%\" on jo olemassa."
 
@@ -15061,7 +15332,7 @@ msgid "Model Name"
 msgstr "Mallin nimi"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s Update"
 msgstr "%s – päivitys"
 
@@ -15090,7 +15361,7 @@ msgid "the configuration package is incompatible with current application."
 msgstr "määrityspaketti ei ole yhteensopiva nykyisen sovelluksen kanssa."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The configuration package is incompatible with current application.\n"
 "%s will update the configuration package, Otherwise it won't be able to start"
@@ -15099,7 +15370,7 @@ msgstr ""
 "%s päivittää määrityspaketin, koska muuten sovellus ei voi käynnistyä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Exit %s"
 msgstr "Lopeta %s"
 
@@ -15303,10 +15574,6 @@ msgid "Replace the project filaments list sequentially based on printer filament
 msgstr "Korvaa projektin filamenttiluettelo järjestyksessä tulostimen filamenttien perusteella. Käyttämättömät tulostimen filamentit lisätään automaattisesti luettelon loppuun."
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Advanced settings"
-msgstr "Lisäasetukset"
-
-# Finnish review: English/context/Swedish/glossary
 msgid "Add unused AMS filaments to filaments list."
 msgstr "Lisää käyttämättömät AMS-filamentit filamenttiluetteloon."
 
@@ -15347,7 +15614,7 @@ msgid "Ext spool"
 msgstr "Ulkoinen kela"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
 msgstr "Suuttimen %s virtausasetus (%s) ei vastaa viipaloitua tiedostoa (%s). Varmista, että asennettu suutin vastaa tulostimen asetuksia, ja käytä vastaavaa tulostinesiasetusta viipaloinnissa."
 
@@ -15356,7 +15623,7 @@ msgid "Please check whether the nozzle type of the device is the same as the pre
 msgstr "Tarkista, vastaako laitteen suutintyyppi esiasetuksen suutintyyppiä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
 msgstr "Valittu tulostin (%s) ei ole yhteensopiva viipaloijassa valitun tulostinprofiilin (%s) kanssa."
 
@@ -15411,12 +15678,12 @@ msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Huuhtelumäärä (mm³) jokaiselle filamenttiparille."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
 msgstr "Suositus: Huuhtelumäärä alueella [%d, %d]"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "Kertoimen tulee olla alueella [%.2f, %.2f]."
 
@@ -15814,7 +16081,7 @@ msgid "Release Note"
 msgstr "Julkaisutiedot"
 
 # Finnish review: native-b
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "version %s update information :"
 msgstr "Version %s päivitystiedot:"
 
@@ -15827,7 +16094,7 @@ msgid "Click OK to update the Network plug-in when Bambu Studio launches next ti
 msgstr "Päivitä verkkolisäosa Bambu Studion seuraavalla käynnistyskerralla valitsemalla OK."
 
 # Finnish review: native-b
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr "Uusi verkkolisäosa (%s) on saatavilla. Haluatko asentaa sen?"
 
@@ -16703,6 +16970,11 @@ msgstr "Päivitä laiteohjelmisto"
 msgid "Hotends on Rack"
 msgstr "Telineen hotendit"
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "My Device"
+msgid "Copy Device Info"
+msgstr "Kopioi laitteen tiedot"
+
 # Finnish review: native-b
 msgid "Beta version"
 msgstr "Beetaversio"
@@ -16714,10 +16986,6 @@ msgstr "Päivitetään hotendien tietoja..."
 # Finnish review: native-b
 msgid "Checking version..."
 msgstr "Tarkistetaan versiota..."
-
-# Finnish review: native-b
-msgid "Updating"
-msgstr "Päivitetään"
 
 # Finnish review: native-b
 msgid "Updating failed"
@@ -16844,12 +17112,12 @@ msgid "Sending print configuration"
 msgstr "Lähetetään tulostusmäärityksiä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "Lähetys onnistui. Laitesivu avautuu automaattisesti %s s kuluttua"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Lähetys onnistui. Seuraava sivu avautuu automaattisesti %s s kuluttua"
 
@@ -16862,12 +17130,12 @@ msgid "The following object(s) have empty initial layer and can't be printed. Pl
 msgstr "Seuraavien objektien ensimmäinen kerros on tyhjä, joten niitä ei voi tulostaa. Leikkaa pohja tai ota tuet käyttöön."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
 msgstr "Objektia ei voi tulostaa, koska välillä %1%–%2% on tyhjä kerros."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Object: %1%"
 msgstr "Objekti: %1%"
 
@@ -16908,7 +17176,7 @@ msgid "You can find it from 'Filament settings' -> 'Advanced'."
 msgstr "Löydät sen kohdasta 'Filamenttiasetukset' -> 'Lisäasetukset'."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Generating G-code: layer %1%"
 msgstr "Luodaan G-koodia: kerros %1%"
 
@@ -17005,7 +17273,7 @@ msgid "Flush"
 msgstr "Huuhtelu"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
 msgstr "Kohteen %1% viivan leveyttä ei voitu laskea. Arvoa \"%2%\" ei saada "
 
@@ -17144,17 +17412,17 @@ msgid "write callback failed"
 msgstr "kirjoituksen takaisinkutsufunktio epäonnistui"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1% is too close to exclusion area, there may be collisions when printing."
 msgstr "%1% on liian lähellä kiellettyä aluetta. Tulostuksen aikana voi tapahtua törmäyksiä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
 msgstr "%1% on liian lähellä muita, mikä voi aiheuttaa törmäyksiä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% on liian korkea ja aiheuttaa törmäyksiä."
 
@@ -17275,16 +17543,16 @@ msgid "The prime tower requires that all objects are sliced with the same layer 
 msgstr "Pohjustustorni edellyttää, että kaikki objektit viipaloidaan samoilla kerroskorkeuksilla."
 
 # Finnish review: English/context/Swedish/glossary
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "Pohjustustornia tuetaan vain, jos kaikilla objekteilla on sama muuttuva kerroskorkeus"
+
+# Finnish review: English/context/Swedish/glossary
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "Tarkka Z-korkeus antaa objekteille eri kerroskorkeudet, mikä voi kasvattaa pohjustustornin kokoa huomattavasti."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Jump to: Precise Z height"
 msgstr "Siirry kohtaan: Tarkka Z-korkeus"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "Pohjustustornia tuetaan vain, jos kaikilla objekteilla on sama muuttuva kerroskorkeus"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Too small line width"
@@ -17307,7 +17575,7 @@ msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Kerroskorkeus ei voi ylittää suuttimen halkaisijaa"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Levy %d: %s ei tue filamenttia %s"
 
@@ -18129,6 +18397,11 @@ msgstr "Monotoninen"
 # Finnish review: English/context/Swedish/glossary
 msgid "Monotonic line"
 msgstr "Monotoniset viivat"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Monotonic line"
+msgid "Global monotonic line"
+msgstr "Globaalit monotoniset viivat"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Aligned Rectilinear"
@@ -19334,36 +19607,16 @@ msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "Määrittää G-kooditiedostoihin tallennettavan pikkukuvan koon"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Nozzle type"
-msgstr "Suuttimen tyyppi"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "Suuttimen metallimateriaali. Se määrittää suuttimen kulutuskestävyyden ja tulostukseen sopivat filamentit"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "Undefine"
-msgstr "Määrittämätön"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "Hardened steel"
-msgstr "Karkaistu teräs"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "Stainless steel"
-msgstr "Ruostumaton teräs"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "Tungsten carbide"
-msgstr "Volframikarbidi"
-
-# Finnish review: English/context/Swedish/glossary
 msgid "Printer structure"
 msgstr "Tulostimen rakenne"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "The physical arrangement and components of a printing device"
 msgstr "Tulostimen fyysinen rakenne ja osat"
+
+# Finnish review: English/context/Swedish/glossary
+msgid "Undefine"
+msgstr "Määrittämätön"
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Best object position"
@@ -19500,6 +19753,97 @@ msgstr "Runkotäytön viivan leveys"
 # Finnish review: English/context/Swedish/glossary
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "Säätää valittujen runkotäyttöpolkujen viivan leveyttä."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Gap infill"
+msgid "Conformal infill"
+msgstr "Muotoa seuraava täyttö"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr "Harva täyttö seuraa kunkin kerroksen ääriviivaa yhden yhdensuuntaisten viivojen joukon sijaan. Pitkänomaisissa tai kaarevissa muodoissa viivat säteilevät keskipisteestä. Käytettävissä täyttökuvioissa Siksak, Ristisiksak, Suoraviivainen ja Kohdistettu suoraviivainen sekä Lukittu siksak -pintakuviossa."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Layer time"
+msgid "Layer stagger"
+msgstr "Kerrosten limitys"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr "Vierekkäisten kerrosten siirtymä toisiinsa nähden. Kun asetus on pois käytöstä, sama kuvio toistuu päällekkäin. Vuorottelu säilyttää viivojen suunnat mutta yhdistää kunkin viivan viereiseen viivaan vastakkaisella puolella, mikä parantaa kerrosten tartuntaa toisiinsa."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Alternate nozzles:"
+msgid "Alternate"
+msgstr "Vuorottele"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "%d layers"
+msgid "Forward layers"
+msgstr "Myötäkerrokset"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Conformal forward layers"
+msgstr "Muotoa seuraavan täytön myötäkerrokset"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr "Peräkkäisten kerrosten määrä, joilla siksak säilyy myötäsuuntaisena. Yhdessä vastakerrosten kanssa toistuu jakso: N myötäkerrosta ja sitten M vastakerrosta. 0 aloittaa vastasuunnasta heti ensimmäisessä kerroksessa."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Other layers"
+msgid "Reverse layers"
+msgstr "Vastakerrokset"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Bottom shell layers"
+msgid "Conformal reverse layers"
+msgstr "Muotoa seuraavan täytön vastakerrokset"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr "Peräkkäisten kerrosten määrä, joilla siksakin suunta käännetään (aloitus vastakkaiselta reunalta). 0 poistaa suunnanvaihdon käytöstä. Kun sekä myötä- että vastakerrosten määrä on 1, suunta vaihtuu joka toisessa kerroksessa."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Radial gradient"
+msgid "Radial center"
+msgstr "Säteittäisen täytön keskipiste"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr "Säteittäisen täytön keskipisteen määritys. Jokainen kerros valitsee keskipisteen omasta poikkileikkauksestaan. Akseli sovittaa yhden 3D-suoran näiden keskipisteiden kautta. Tasainen käyrä sovittaa käyrän niin, ettei keskipiste hypähtele kerrosten välillä."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "At layer"
+msgid "Each layer"
+msgstr "Jokainen kerros"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Axis"
+msgstr "Akseli"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Smooth Level"
+msgid "Smooth curve"
+msgstr "Tasainen käyrä"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Radial gradient"
+msgid "Radial line count"
+msgstr "Säteittäisten viivojen määrä"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr "Keskipisteen ympärillä olevien säteittäisten viivojen määrä. 0 määrittää määrän harvan täytön tiheyden perusteella. Positiivinen arvo on viivojen määrä, joka pyöristetään ylöspäin parilliseksi luvuksi, kuitenkin vähintään neljäksi."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Detection radius"
+msgid "Center region radius"
+msgstr "Keskialueen säde"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr "Tavallista suoraviivaista täyttöä käyttävän keskialueen säde. Tämän ympyrän ulkopuolella täyttö pysyy säteittäisenä. 0 valitsee säteen automaattisesti. Positiivinen arvo annetaan millimetreinä."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Symmetric infill y axis"
@@ -20056,6 +20400,54 @@ msgstr "Lisäseinämä joka toisella kerroksella"
 # Finnish review: English/context/Swedish/glossary
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "Lisää seinämän joka toiselle kerrokselle kerrosten tartunnan ja kappaleen lujuuden parantamiseksi ilman jatkuvan lisäseinämän koko materiaalin- ja ajankulutusta."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Add modifier"
+msgid "Periodic modifier"
+msgstr "Kerroksittain toistuva muokkausalue"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr "Käytä tätä muokkausaluetta toistuvassa kerrosjaksossa. Ohitettavissa kerroksissa sitä ei huomioida, aivan kuin muokkausaluetta ei olisi."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Skip"
+msgid "Skip for"
+msgstr "Ohita"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Periodic modifier skip layers"
+msgstr "Toistuvan muokkausalueen ohitettavat kerrokset"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr "Peräkkäisten kerrosten määrä, joilla tätä muokkausaluetta ei käytetä. 0 käyttää muokkausaluetta jokaisessa kerroksessa."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Apply"
+msgid "Apply for"
+msgstr "Käytä"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Periodic modifier apply layers"
+msgstr "Toistuvan muokkausalueen käyttökerrokset"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr "Peräkkäisten kerrosten määrä kussakin jaksossa, joilla tätä muokkausaluetta käytetään kokonaan. Jakso alkaa kerroksesta 0: ensin käyttökerrokset, sitten ohitettavat kerrokset."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "Print settings"
+msgid "Ignore infill settings"
+msgstr "Ohita täyttöasetukset"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Modifier ignore infill settings"
+msgstr "Muokkausalueen täyttöasetusten ohitus"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
+msgstr "Älä käytä tämän muokkausalueen täyttöasetuksia (kuvio, tiheys, muotoa seuraava täyttö ja niihin liittyvät asetukset). Seinämät ja muut korvaavat asetukset ovat edelleen voimassa. Täyttö määräytyy ylemmän tason alueen mukaan."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "Post-processing Scripts"
@@ -21375,7 +21767,7 @@ msgid "large overhangs"
 msgstr "suuria ylityksiä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "It seems object %s has %s. Please re-orient the object or enable support generation."
 msgstr "Objektissa %s näyttää olevan %s. Käännä objekti toiseen asentoon tai ota tukien luonti käyttöön."
 
@@ -21388,7 +21780,7 @@ msgid "Optimizing toolpath"
 msgstr "Optimoidaan työkalupolkua"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
@@ -21397,7 +21789,7 @@ msgstr ""
 "Mallissa \"%1%\" on %2% ylitysaluetta. Koska \"Tuet vain tulostuslevyltä\" on käytössä, tuet eivät pääse ulottumaan tulostuslevyyn. Kokeile poistaa asetus käytöstä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
@@ -21420,6 +21812,10 @@ msgstr "Viipaloidaan pintaverkkoa"
 # Finnish review: English/context/Swedish/glossary
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "Kerroksia ei havaittu. Korjaa STL-tiedostot tai tarkista niiden koko ja paksuus ja yritä uudelleen.\n"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr "Kutistuman kompensointi ei vaikuta värimaalattuihin malleihin."
 
 # Finnish review: English/context/Swedish/glossary
 msgid ""
@@ -21500,6 +21896,11 @@ msgstr "Tiedosto sisältää monikulmioita, joissa on alle 3 kärkeä."
 # Finnish review: English/context/Swedish/glossary
 msgid "The file contains invalid vertex index."
 msgstr "Tiedosto sisältää virheellisen kärki-indeksin."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid "The file contains invalid vertex index."
+msgid "The file contains invalid texture coordinate index."
+msgstr "Tiedosto sisältää virheellisen tekstuurikoordinaatin indeksin."
 
 # Finnish review: English/context/Swedish/glossary
 msgid "This OBJ file couldn't be read because it's empty."
@@ -21590,7 +21991,7 @@ msgid "The name cannot be empty."
 msgstr "Nimi ei voi olla tyhjä."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The selected preset: %s is not found."
 msgstr "Valittua esiasetusta %s ei löytynyt."
 
@@ -21607,7 +22008,7 @@ msgid "create new preset failed."
 msgstr "Uuden esiasetuksen luonti epäonnistui."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Could not find parameter: %s."
 msgstr "Parametria %s ei löytynyt."
 
@@ -21640,17 +22041,17 @@ msgstr ""
 "Haluatko jatkaa kalibrointia?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Only one of the results with the same name: %s will be saved. Are you sure you want to override the other results?"
 msgstr "Vain yksi samalla nimellä %s oleva tulos tallennetaan. Haluatko varmasti korvata muut tulokset?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "There is already a historical calibration result with the same name: %s. Only one of the results with the same name is saved. Are you sure you want to override the historical result?"
 msgstr "Kalibrointihistoriassa on jo tulos nimellä %s. Vain yksi samanniminen tulos voidaan tallentaa. Haluatko varmasti korvata aiemman tuloksen?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Within the same extruder, the name(%s) must be unique when the filament type, nozzle diameter, and nozzle flow are the same.\n"
 "Are you sure you want to override the historical result?"
@@ -21659,7 +22060,7 @@ msgstr ""
 "Haluatko varmasti korvata aiemman tuloksen?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle. This result will not be saved."
 msgstr "Tämä laitetyyppi voi tallentaa vain %d aiempaa tulosta suutinta kohden. Tätä tulosta ei tallenneta."
 
@@ -21882,7 +22283,7 @@ msgid "Skip Calibration2"
 msgstr "Ohita kalibrointi 2"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "flow ratio : %s "
 msgstr "Virtauskerroin: %s "
 
@@ -21931,7 +22332,7 @@ msgid "Please connect the printer first before synchronizing."
 msgstr "Yhdistä ensin tulostimeen ennen synkronointia."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
 msgstr "Tulostimen %s suutintietoja ei ole määritetty. Määritä ne ennen kalibroinnin jatkamista."
 
@@ -21996,7 +22397,7 @@ msgid "Method"
 msgstr "Menetelmä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may have a high probability of failure.\n"
 "If it fails, it is recommended to use manual calibration."
@@ -22005,7 +22406,7 @@ msgstr ""
 "Jos se epäonnistuu, suosittelemme manuaalista kalibrointia."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Tip: Using a %.1fmm nozzle for auto dynamic flow calibration may not get accurate calibration results.\n"
 "It is recommended to use manual calibration."
@@ -22014,7 +22415,7 @@ msgstr ""
 "Suosittelemme manuaalista kalibrointia."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s ei ole yhteensopiva seuraavan kanssa: %s"
 
@@ -22027,7 +22428,7 @@ msgid "Can not print multiple filaments which have large difference of temperatu
 msgstr "Filamentteja, joiden tulostuslämpötilat eroavat paljon, ei voi tulostaa yhdessä. Ekstruuderi ja suutin voivat muuten tukkeutua tai vaurioitua tulostuksen aikana"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Tip: Calibrating foam filaments(%s) in X series printers may not get accurate results\n"
 "because their dynamic response is much different from that of ordinary filaments, and there is a high risk of oozing when printing calibration lines."
@@ -22036,7 +22437,7 @@ msgstr ""
 "koska niiden dynaaminen vaste poikkeaa paljon tavallisista filamenteista ja kalibrointiviivoja tulostettaessa on suuri valumisriski."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Tip: When using the A1/A1 mini printer, we do not recommend calibrating foam filaments(%s),\n"
 "as the results may be unstable and affect print quality."
@@ -22053,7 +22454,7 @@ msgid "Connecting to printer"
 msgstr "Yhdistetään tulostimeen"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Calibration only supports cases where the %s and %s diameters are identical."
 msgstr "Kalibrointi onnistuu vain, kun %s ja %s ovat halkaisijaltaan samat."
 
@@ -22114,7 +22515,7 @@ msgid "Action"
 msgstr "Toiminto"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
 msgstr "Tämä laitetyyppi voi tallentaa vain %d aiempaa tulosta suutinta kohden."
 
@@ -22123,7 +22524,7 @@ msgid "Edit Flow Dynamics Calibration"
 msgstr "Muokkaa virtausdynamiikan kalibrointia"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Within the same extruder, the name '%s' must be unique when the filament type, nozzle diameter, and nozzle flow are identical. Please choose a different name."
 msgstr "Nimen '%s' on oltava yksilöllinen samalla ekstruuderilla, kun filamenttityyppi, suuttimen halkaisija ja suuttimen virtaus ovat samat. Valitse toinen nimi."
 
@@ -22312,7 +22713,7 @@ msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr "Käytä tarvittaessa hakemistoerottimena vinoviivaa ( / )."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Lähetettävän tiedoston nimi ei pääty merkkijonoon \"%s\". Haluatko jatkaa?"
 
@@ -22670,7 +23071,7 @@ msgid "You have not selected a printer or preset yet. Please select at least one
 msgstr "Et ole vielä valinnut tulostinta tai esiasetusta. Valitse vähintään yksi."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
@@ -22987,7 +23388,7 @@ msgid "Export successful"
 msgstr "Vienti onnistui"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The '%s' folder already exists in the current directory. Do you want to clear it and rebuild it.\n"
 "If not, a time suffix will be added, and you can modify the name after creation."
@@ -23090,10 +23491,6 @@ msgid "+ Add Preset"
 msgstr "+ Lisää esiasetus"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Delete Filament"
-msgstr "Poista filamentti"
-
-# Finnish review: English/context/Swedish/glossary
 msgid "Add Preset"
 msgstr "Lisää esiasetus"
 
@@ -23142,7 +23539,7 @@ msgstr ""
 "Napsauta yllä olevaa Synkronoi-painiketta ja käynnistä kalibrointi uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Please input valid values:\n"
 "Start value: >= %.1f\n"
@@ -23157,12 +23554,12 @@ msgstr ""
 "Arvon askel: >= %.3f)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "nozzle size in preset: %d"
 msgstr "Suuttimien määrä esiasetuksessa: %d"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "nozzle size memorized: %d"
 msgstr "Muistiin tallennettu suuttimien määrä: %d"
 
@@ -23171,12 +23568,12 @@ msgid "The size of nozzle type in preset is not consistent with memorized nozzle
 msgstr "Esiasetuksen suuttimien määrä ei vastaa muistiin tallennettua. Oletko vaihtanut suutinta hiljattain? "
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "nozzle[%d] in preset: %.1f"
 msgstr "Suutin[%d] esiasetuksessa: %.1f"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "nozzle[%d] memorized: %.1f"
 msgstr "Suutin[%d] muistissa: %.1f"
 
@@ -23185,7 +23582,7 @@ msgid "Your nozzle type in preset is not consistent with memorized nozzle.Did yo
 msgstr "Esiasetuksen suuttimen halkaisija ei vastaa muistiin tallennettua. Oletko vaihtanut suutinta hiljattain? "
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Printing %1s material with %2s nozzle may cause nozzle damage."
 msgstr "Materiaalin %1s tulostaminen suuttimella %2s voi vaurioittaa suutinta."
 
@@ -23210,17 +23607,17 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr "Tulostimen ekstruuderien määrä ei vastaa kalibrointiin valitun tulostimen määrää."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
 msgstr "Ekstruuderi %s on Bowden-tyyppinen eikä tue automaattista virtausdynamiikan kalibrointia."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "Ekstruuderin %s suuttimen halkaisija on 0.2 mm, mikä ei tue automaattista virtausdynamiikan kalibrointia."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
 "Please click the Sync button above and restart the calibration."
@@ -23237,7 +23634,7 @@ msgstr ""
 "Napsauta yllä olevaa Synkronoi-painiketta ja käynnistä kalibrointi uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
 "Please click the Sync button above and restart the calibration."
@@ -23290,7 +23687,7 @@ msgid "Open CA certificate file"
 msgstr "Avaa CA-varmennetiedosto"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain."
 msgstr "Tässä järjestelmässä %s käyttää HTTPS-varmenteita järjestelmän varmennevarastosta tai avainnipusta."
 
@@ -23303,7 +23700,7 @@ msgid "Connection to printers connected via the print host failed."
 msgstr "Yhteys tulostuspalvelimen kautta liitettyihin tulostimiin epäonnistui."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Mismatched type of print host: %s"
 msgstr "Väärä tulostuspalvelimen tyyppi: %s"
 
@@ -23404,7 +23801,7 @@ msgid "Note: Repetier version at least 0.90.0 is required."
 msgstr "Huomautus: Repetierin on oltava vähintään versio 0.90.0."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
@@ -23413,7 +23810,7 @@ msgstr ""
 "Viestin sisältö: \"%2%\""
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "Parsing of host response failed.\n"
 "Message body: \"%1%\"\n"
@@ -23424,7 +23821,7 @@ msgstr ""
 "Virhe: \"%2%\""
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid ""
 "Enumeration of host printers failed.\n"
 "Message body: \"%1%\"\n"
@@ -23855,12 +24252,12 @@ msgid "Select connected printers (0/6)"
 msgstr "Valitse yhdistetyt tulostimet (0/6)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Select Connected Printers (%d/6)"
 msgstr "Valitse yhdistetyt tulostimet (%d/6)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
 msgstr "Voit valita enintään %d tulostinta"
 
@@ -23957,22 +24354,22 @@ msgid "No content"
 msgstr "Ei sisältöä"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Printer presets (%d)"
 msgstr "Tulostinesiasetukset (%d)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Filament presets (%d)"
 msgstr "Filamenttiesiasetukset (%d)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Process presets (%d)"
 msgstr "Prosessiesiasetukset (%d)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%u Selected"
 msgstr "%u valittu"
 
@@ -23981,7 +24378,7 @@ msgid "Please select the preset to be deleted"
 msgstr "Valitse poistettava esiasetus"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d %s Preset will be deleted."
 msgstr "%d %s-esiasetusta poistetaan."
 
@@ -24014,22 +24411,22 @@ msgid "Custom Mode"
 msgstr "Mukautettu tila"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
 msgstr "Ryhmittelee filamentit kohteille %s ja %s mahdollisimman paljon filamenttia säästäen jätteen vähentämiseksi"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr "Ryhmittelee filamentit kohteille %s ja %s tulostimen todellisten filamenttitietojen perusteella, mikä vähentää käsin tehtävien muutosten tarvetta"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
 msgstr "Ryhmittelee filamentit kohteille %s ja %s laadun optimoimiseksi"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Manually assign filament to the %s or %s"
 msgstr "Kohdista filamentti käsin kohteeseen %s tai %s"
 
@@ -24046,7 +24443,7 @@ msgid "(Sync with printer)"
 msgstr "(Synkronoi tulostimen kanssa)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr "Virhe: Ekstruuderissa %s ei ole käytettävissä suutinta %s. Nykyinen ryhmittely on virheellinen."
 
@@ -24067,7 +24464,7 @@ msgid " to set nozzle count"
 msgstr " määrittääksesi suuttimien määrän"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr "Ryhmittelee filamentit kohteille %s ja %s tulostuslaadun perusteella. Laatu asetetaan filamentin säästämisen edelle"
 
@@ -24092,17 +24489,17 @@ msgid "Load skipping objects information failed. Please try again."
 msgstr "Ohitettavien objektien tietojen lataaminen epäonnistui. Yritä uudelleen."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d%%"
 msgstr "%d%%"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d"
 msgstr "%d"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "/%d Selected"
 msgstr "/%d valittu"
 
@@ -24127,7 +24524,7 @@ msgid "The printing job will be stopped. Continue?"
 msgstr "Tulostustyö pysäytetään. Jatketaanko?"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Skipping %d objects."
 msgstr "Ohitetaan %d objektia."
 
@@ -24152,14 +24549,6 @@ msgid "Multiple Color"
 msgstr "Monivärinen"
 
 # Finnish review: English/context/Swedish/glossary
-msgid "Official Filament"
-msgstr "Virallinen filamentti"
-
-# Finnish review: English/context/Swedish/glossary
-msgid "More Colors"
-msgstr "Lisää värejä"
-
-# Finnish review: English/context/Swedish/glossary
 msgid "Search filament"
 msgstr "Etsi filamenttia"
 
@@ -24179,6 +24568,11 @@ msgstr "paikka"
 msgid "Recently used"
 msgstr "Viimeksi käytetyt"
 
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#| msgid " to set nozzle count"
+msgid "Set nozzle count"
+msgstr "Aseta suuttimien määrä"
+
 # Finnish review: English/context/Swedish/glossary
 msgid "Please set nozzle count"
 msgstr "Määritä suuttimien määrä"
@@ -24188,7 +24582,7 @@ msgid "Error: Can not set both nozzle count to zero."
 msgstr "Virhe: Molemmat suutinmäärät eivät voi olla nolla."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Error: Nozzle count can not exceed %d."
 msgstr "Virhe: Suuttimien määrä ei voi ylittää arvoa %d."
 
@@ -24209,7 +24603,7 @@ msgid "Caution: Mixing nozzle diameters in one print is not supported. If the se
 msgstr "Varoitus: Eri suutinhalkaisijoiden käyttöä samassa tulostuksessa ei tueta. Jos valittu koko on vain toisessa ekstruuderissa, tulostus tehdään yhdellä ekstruuderilla."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Refresh %d/%d..."
 msgstr "Päivitetään %d/%d..."
 
@@ -24463,22 +24857,22 @@ msgid "No completed simulations or optimizations found"
 msgstr "Valmistuneita simulaatioita tai optimointeja ei löytynyt"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "OPTIMIZATIONS (%d)"
 msgstr "OPTIMOINNIT (%d)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "SIMULATIONS (%d)"
 msgstr "SIMULAATIOT (%d)"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d layers"
 msgstr "%d kerrosta"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Quality: %s | Consistency: %s"
 msgstr "Laatu: %s | Tasaisuus: %s"
 
@@ -24503,7 +24897,7 @@ msgid "Save GCode File"
 msgstr "Tallenna G-kooditiedosto"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "GCode file downloaded successfully!\n"
 "\n"
@@ -24518,7 +24912,7 @@ msgid "Download Complete"
 msgstr "Lataus valmis"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Failed to open file for writing:\n"
 "%s"
@@ -24527,12 +24921,12 @@ msgstr ""
 "%s"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Error saving file: %s"
 msgstr "Virhe tiedoston tallentamisessa: %s"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid ""
 "Failed to download GCode file.\n"
 "\n"
@@ -24551,22 +24945,22 @@ msgid "Simulation Details"
 msgstr "Simulaation tiedot"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d seconds ago"
 msgstr "%d sekuntia sitten"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d minutes ago"
 msgstr "%d minuuttia sitten"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d hours ago"
 msgstr "%d tuntia sitten"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "%d days ago"
 msgstr "%d päivää sitten"
 
@@ -24603,6 +24997,10 @@ msgid "Select Mixed Materials"
 msgstr "Valitse sekoitettavat materiaalit"
 
 # Finnish review: English/context/Swedish/glossary
+msgid "+ Add Material"
+msgstr "+ Lisää materiaali"
+
+# Finnish review: English/context/Swedish/glossary
 msgid "- Delete Material"
 msgstr "- Poista materiaali"
 
@@ -24635,7 +25033,7 @@ msgid "Mixed Color Sublayer"
 msgstr "Sekavärialikerros"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr "Paikka %s (%s)"
 
@@ -24664,7 +25062,7 @@ msgid "Remove the third material"
 msgstr "Poista kolmas materiaali"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "RGB(%d, %d, %d)"
 msgstr "RGB(%d, %d, %d)"
 
@@ -24709,7 +25107,7 @@ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and 
 msgstr "Tarkempi sekoitus lasketaan neljästä perusväristä: punainen, keltainen, sininen ja valkoinen. Tällä hetkellä tuetaan vain PLA Basicia. Jos vastaavia filamentteja ei ole projektissa, ne lisätään automaattisesti."
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-boost-format
+#, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "Materiaaliluettelo tukee enintään %1% väriä. Värierottelun %2% jälkeen materiaalien määrä ylittäisi rajan %1%. Poista käyttämättömiä filamentteja päänäkymästä ennen värierottelua."
 
@@ -24770,7 +25168,7 @@ msgid "Create Custom Filament"
 msgstr "Luo mukautettu filamentti"
 
 # Finnish review: English/context/Swedish/glossary
-#, possible-c-format, possible-boost-format
+#, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
 msgstr "Esiasetus \"%s\" on jo olemassa. Korvataanko se?"
 
@@ -25261,11 +25659,6 @@ msgid "Model Pictures"
 msgstr "Mallin kuvat"
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/ConfigWizard.cpp:285
-msgid "Alternate nozzles:"
-msgstr "Vaihtoehtoiset suuttimet:"
-
-# Finnish review: English/source/Swedish supplementary review
 #: src/slic3r/GUI/ConfigWizard.cpp:349
 msgid "All standard"
 msgstr "Kaikki vakioversiot"
@@ -25647,27 +26040,27 @@ msgstr ""
 "Jatka painamalla \"Suorita\"."
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:141
+#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:382
 msgid "This calibration does not support the currently selected nozzle diameter"
 msgstr "Tämä kalibrointi ei tue valittua suuttimen halkaisijaa"
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:143
+#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:384
 msgid "Current flowrate cali param is invalid"
 msgstr "Nykyinen virtausnopeuden kalibrointiparametri on virheellinen"
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:145
+#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:386
 msgid "Selected diameter and machine diameter do not match"
 msgstr "Valittu halkaisija ei vastaa tulostimen suuttimen halkaisijaa"
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:147
+#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:388
 msgid "Failed to generate cali gcode"
 msgstr "Kalibroinnin G-coden luonti epäonnistui"
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:152
+#: src/slic3r/GUI/DeviceCore/DevCalib.cpp:393
 msgid "Calibration error"
 msgstr "Kalibrointivirhe"
 
@@ -25760,11 +26153,6 @@ msgstr "Avataan mittaustyökalu"
 #: src/slic3r/GUI/Gizmos/GLGizmoMeasure.hpp:246
 msgid "Leaving Measure gizmo"
 msgstr "Suljetaan mittaustyökalu"
-
-# Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/Gizmos/GLGizmoSimplify.hpp:145
-msgid "Model simplification has been canceled"
-msgstr "Mallin yksinkertaistaminen peruutettiin"
 
 # Finnish review: English/source/Swedish supplementary review
 #: src/slic3r/GUI/Gizmos/GLGizmoSlaSupports.cpp:45
@@ -25892,11 +26280,6 @@ msgid "Switch to editing mode"
 msgstr "Siirry muokkaustilaan"
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/Gizmos/GLGizmoText.cpp:2495
-msgid "Line Gap"
-msgstr "Riviväli"
-
-# Finnish review: English/source/Swedish supplementary review
 #: src/slic3r/GUI/Jobs/RotoptimizeJob.hpp:21
 msgid "Best surface quality"
 msgstr "Paras pinnanlaatu"
@@ -26005,26 +26388,7 @@ msgid "Please enter a float between %f and %f."
 msgstr "Anna liukuluku väliltä %f–%f."
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/Widgets/WebView.cpp:474
-#, c-format, boost-format
-msgid ""
-"The embedded webpage has crashed. Please contact Bambu Studio.\n"
-"\n"
-"Reason:\n"
-"%s"
-msgstr ""
-"Upotettu verkkosivu kaatui. Ota yhteyttä Bambu Studion tukeen.\n"
-"\n"
-"Syy:\n"
-"%s"
-
-# Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/Widgets/WebView.cpp:477
-msgid "Embedded Webpage Crashed"
-msgstr "Upotettu verkkosivu kaatui"
-
-# Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/Widgets/WebView.cpp:604
+#: src/slic3r/GUI/Widgets/WebView.cpp:803
 msgid ""
 "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank.\n"
 "\n"
@@ -26035,12 +26399,12 @@ msgstr ""
 "Asenna tai korjaa Microsoft Edge WebView2 Runtime ja käynnistä Bambu Studio uudelleen."
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/Widgets/WebView.cpp:609
+#: src/slic3r/GUI/Widgets/WebView.cpp:808
 msgid "Failed to start the embedded browser. Pages such as the home page, the device page and the login window will stay blank."
 msgstr "Upotetun selaimen käynnistys epäonnistui. Esimerkiksi etusivu, laitesivu ja kirjautumisikkuna jäävät tyhjiksi."
 
 # Finnish review: English/source/Swedish supplementary review
-#: src/slic3r/GUI/Widgets/WebView.cpp:612
+#: src/slic3r/GUI/Widgets/WebView.cpp:811
 msgid "Embedded Browser Unavailable"
 msgstr "Upotettu selain ei ole käytettävissä"
 
@@ -26068,3 +26432,172 @@ msgstr "Käytössä on toiseen asennukseen kuuluva BambuSource, joten videon toi
 #: src/slic3r/GUI/wxMediaCtrl2.cpp:172
 msgid "Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"
 msgstr "Järjestelmästäsi puuttuvat videon toistoon tarvittavat GStreamerin H.264-koodekit. (Kokeile asentaa gstreamer1.0-plugins-bad- tai gstreamer1.0-libav-paketti ja käynnistä Bambu Studio uudelleen.)"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#: src/slic3r/GUI/ConfigWizard.cpp:285
+msgid "Alternate nozzles:"
+msgstr "Vaihtoehtoiset suuttimet:"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#: src/slic3r/GUI/DeviceWeb/DeviceWebHost.cpp:81
+msgid "The embedded webpage could not be loaded."
+msgstr "Upotettua verkkosivua ei voitu ladata."
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#: src/slic3r/GUI/DeviceWeb/DeviceWebHost.cpp:82
+msgid "Reload"
+msgstr "Lataa uudelleen"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#: src/slic3r/GUI/DeviceWeb/DeviceWebHost.cpp:83
+msgid "Copy diagnostic information"
+msgstr "Kopioi vianmääritystiedot"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#: src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.cpp:37
+msgid "AMS Control Web Debug"
+msgstr "AMS:n web-ohjauksen vianmääritys"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#: src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.cpp:80 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModelActions.cpp:288
+msgid "Please select a printer"
+msgstr "Valitse tulostin"
+
+# Finnish review: 2026-10-05 English/current source/Swedish/glossary
+#: src/slic3r/GUI/Gizmos/GLGizmoSimplify.hpp:145
+msgid "Model simplification has been canceled"
+msgstr "Mallin yksinkertaistaminen peruutettiin"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Show Labels"
+#~ msgstr "Näytä tunnisteet"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "One-click CMYW auto-mix"
+#~ msgstr "CMYW-automaattisekoitus yhdellä napsautuksella"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "One-click RYBW auto-mix"
+#~ msgstr "RYBW-automaattisekoitus yhdellä napsautuksella"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Import Model"
+#~ msgstr "Tuo malli"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Multi-Color"
+#~ msgstr "Monivärinen"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Your input texture model"
+#~ msgstr "Tuomasi teksturoitu malli"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Processed multi-color model"
+#~ msgstr "Käsitelty monivärinen malli"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Convert texture to painting using the specified color count and smooth level"
+#~ msgstr "Muunna tekstuuri maalaukseksi käyttäen määritettyä värimäärää ja tasoitustasoa"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Reminder: parameters changed, click Apply to take effect"
+#~ msgstr "Muistutus: Parametrit muuttuivat. Ota muutokset käyttöön napsauttamalla Käytä"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Reset filament mapping to the state before one-click mixing"
+#~ msgstr "Palauta filamenttien kohdistus yhden napsautuksen sekoitusta edeltäneeseen tilaan"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Choose the one-click auto-mix mode for texture color import"
+#~ msgstr "Valitse yhden napsautuksen automaattisekoitustila tekstuurin värien tuontiin"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Auto-merge same filament"
+#~ msgstr "Yhdistä samat filamentit automaattisesti"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Skip Matching"
+#~ msgstr "Ohita kohdistus"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "Verkossa on ei-moniston geometriaa tai avoimia reunoja. Voit tuoda sen sellaisenaan tai korjata sen ennen tuontia Windowsin 3D-korjauspalvelulla."
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Mesh repair"
+#~ msgstr "Verkon korjaus"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Import without repair"
+#~ msgstr "Tuo korjaamatta"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Repair and import"
+#~ msgstr "Korjaa ja tuo"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Huomaa, että verkossa on ei-moniston geometriaa tai avoimia reunoja."
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Mesh issue"
+#~ msgstr "Verkon ongelma"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+#~ msgstr "Kaikki nykyisen levyn objektit on merkitty ei-tulostettaviksi. Viipalointi tuottaa tyhjän tuloksen. Tarkista asetukset."
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Show Labels of printing by object in 3D scene"
+#~ msgstr "Näytä objektikohtaisen tulostuksen tunnisteet 3D-näkymässä"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
+#~ msgstr "Tiedoston objekti on hyvin pieni. Haluatko tuoda sen käyttäen millimetrejä oletusyksikkönä?"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Object too small"
+#~ msgstr "Objekti on liian pieni"
+
+# Finnish review: English/context/Swedish/glossary
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "Syy: osa \"%1%\" leikkaa itsensä."
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Nozzle type"
+#~ msgstr "Suuttimen tyyppi"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "Suuttimen metallimateriaali. Se määrittää suuttimen kulutuskestävyyden ja tulostukseen sopivat filamentit"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Hardened steel"
+#~ msgstr "Karkaistu teräs"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Stainless steel"
+#~ msgstr "Ruostumaton teräs"
+
+# Finnish review: English/context/Swedish/glossary
+#~ msgid "Tungsten carbide"
+#~ msgstr "Volframikarbidi"
+
+# Finnish review: English/source/Swedish supplementary review
+#, c-format, boost-format
+#~ msgid ""
+#~ "The embedded webpage has crashed. Please contact Bambu Studio.\n"
+#~ "\n"
+#~ "Reason:\n"
+#~ "%s"
+#~ msgstr ""
+#~ "Upotettu verkkosivu kaatui. Ota yhteyttä Bambu Studion tukeen.\n"
+#~ "\n"
+#~ "Syy:\n"
+#~ "%s"
+
+# Finnish review: English/source/Swedish supplementary review
+#~ msgid "Embedded Webpage Crashed"
+#~ msgstr "Upotettu verkkosivu kaatui"

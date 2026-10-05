@@ -203,5 +203,10 @@
   "Synced {{count}} filament changes to cloud._one": "Synkronoitu {{count}} filamenttimuutos pilveen.",
   "Synced {{count}} filament changes to cloud._other": "Synkronoitu {{count}} filamenttimuutosta pilveen.",
   "Synced {{count}} filament deletions to cloud._one": "Synkronoitu {{count}} filamentin poisto pilveen.",
-  "Synced {{count}} filament deletions to cloud._other": "Synkronoitu {{count}} filamentin poisto pilveen."
+  "Synced {{count}} filament deletions to cloud._other": "Synkronoitu {{count}} filamentin poisto pilveen.",
+  "AMS Settings": "AMS-asetukset",
+  "Auto-refill": "Automaattinen täydennys",
+  "Humidity": "Ilmankosteus",
+  "Load": "Lataa",
+  "Unload": "Poista"
 }
