@@ -8678,9 +8678,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // check the loaded config if its not from BBL
                     if (!is_bbl_vendor_config(config_loaded, wxGetApp().preset_bundle) && !check_project_config(config_loaded)) {
                         load_config = false;
-                        q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
-                            NotificationManager::NotificationLevel::WarningNotificationLevel,
-                            into_u8(_L("The 3mf file has invalid config, load geometry data only")));
+                        if (!wxGetEnv(wxString::FromUTF8("BAMBU_SUPPRESS_WARNINGS"), nullptr)) {
+                            q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
+                                NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                into_u8(_L("The 3mf file has invalid config, load geometry data only")));
+                        }
                     }
 
                     // BBS: version check
@@ -8689,9 +8691,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         // do not reset the model config
                         load_config = false;
                         if(load_type != LoadType::LoadGeometry)
-                            q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
-                                NotificationManager::NotificationLevel::WarningNotificationLevel,
-                                into_u8(_L("The 3mf is not from Bambu Lab, load geometry data only.")));
+                            if (!wxGetEnv(wxString::FromUTF8("BAMBU_SUPPRESS_WARNINGS"), nullptr)) {
+                                q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
+                                    NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                    into_u8(_L("The 3mf is not from Bambu Lab, load geometry data only.")));
+                            }
                     }
                     else if (load_config && (file_version.maj() > app_version.maj())) {
                         // version mismatch, only load geometries
