@@ -17,14 +17,15 @@ class wxSizer;
 
 namespace Slic3r::GUI {
 
-// Native rich tooltip card for slicing parameters
-// Deliberately wxPopupWindow, NOT wxPopupTransientWindow: the transient variant's Show(true)
-// takes a gtk_grab_add + gdk pointer grab (wx src/common/popupcmn.cpp) that only Show(false)
-// releases. This card hides on hover-leave, but the grab starves the underlying row of the
-// leave event that would request that hide - so any time focus left the app with the card up,
-// the grab was held forever and every click in Bambu Studio was swallowed. The transient
-// class's click-outside dismissal is installed by Popup(), which this class never calls, so
-// the grab was the only behavior it ever contributed. A hover tooltip must not grab the pointer.
+// Native rich tooltip card for slicing parameters.
+//
+// This is a hover card, not a menu: it must NOT use wxPopupTransientWindow.
+// On GTK, wxPopupTransientWindow::Show() grabs the pointer (gtk_grab_add +
+// gdk_device_grab). ParamTooltip shows itself with Show() rather than Popup(),
+// so the grab is taken but the click-outside dismiss path is never armed.
+// Mouse events then never reach the settings row, Hide() is never called, and
+// the whole UI stops accepting clicks until the process is killed
+// (bambulab/BambuStudio#12233, #12253).
 class ParamTooltip : public wxPopupWindow
 {
 public:
