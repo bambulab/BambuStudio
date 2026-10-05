@@ -16,6 +16,7 @@
 #include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
 #include "Fill/FillAdaptive.hpp"
+#include "Fill/FillRadialZigZag.hpp"
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
 #include "InternalBridgeDetector.hpp"
@@ -1016,6 +1017,85 @@ void PrintObject::prepare_infill()
             Slic3r::Utils::get_current_milliseconds_time_monotonic() - prepare_infill_begin_time;
 }
 
+static const VolumeSlices *volume_slices_by_id(const std::vector<VolumeSlices> &all, const ObjectID id)
+{
+    for (const VolumeSlices &vs : all)
+        if (vs.volume_id == id)
+            return &vs;
+    return nullptr;
+}
+
+// Island of a conformal modifier after earlier modifiers/model, before later
+// volumes carve it. Radial rays are generated on this island.
+static std::vector<std::vector<ExPolygon>> conformal_modifier_islands(const PrintObject &po, size_t region_id,
+                                                                      size_t nlid, size_t lid0)
+{
+    std::vector<std::vector<ExPolygon>> out(nlid);
+    const PrintObjectRegions *regions = po.shared_regions();
+    const std::vector<VolumeSlices> &vol_slices = po.firstLayerObjSlice();
+    if (regions == nullptr || vol_slices.empty() || po.layer_count() == 0)
+        return out;
+
+    for (size_t zi = 0; zi < po.layer_count(); ++zi) {
+        const Layer *layer = po.get_layer(int(zi));
+        const size_t lid   = layer->id() - lid0;
+        if (lid >= nlid)
+            continue;
+        const double z = layer->slice_z;
+        auto it = regions->layer_ranges.begin();
+        for (; it != regions->layer_ranges.end(); ++it) {
+            if (it->layer_height_range.first <= z + EPSILON && z <= it->layer_height_range.second + EPSILON)
+                break;
+        }
+        if (it == regions->layer_ranges.end())
+            continue;
+        if (std::abs(z - it->layer_height_range.second) < EPSILON) {
+            auto nxt = it;
+            ++nxt;
+            if (nxt != regions->layer_ranges.end() && std::abs(nxt->layer_height_range.first - z) < EPSILON)
+                it = nxt;
+        }
+        const PrintObjectRegions::LayerRangeRegions &layer_range = *it;
+        if (layer_range.volume_regions.empty())
+            continue;
+
+        std::vector<ExPolygons> temp(layer_range.volume_regions.size());
+        for (size_t i = 0; i < layer_range.volume_regions.size(); ++i) {
+            const VolumeSlices *vs = volume_slices_by_id(vol_slices, layer_range.volume_regions[i].model_volume->id());
+            if (vs != nullptr && zi < vs->slices.size())
+                temp[i] = vs->slices[zi];
+        }
+
+        for (int idx = 0; idx < int(layer_range.volume_regions.size()); ++idx) {
+            if (temp[size_t(idx)].empty())
+                continue;
+            const PrintObjectRegions::VolumeRegion &vr = layer_range.volume_regions[size_t(idx)];
+            if (!vr.model_volume->is_modifier() || vr.parent < 0)
+                continue;
+            const bool next_same = idx + 1 < int(layer_range.volume_regions.size()) &&
+                layer_range.volume_regions[size_t(idx + 1)].model_volume == vr.model_volume;
+            ExPolygons source = temp[size_t(idx)];
+            const bool skip_periodic = vr.region != nullptr && vr.region->config().periodic_modifier.value &&
+                !periodic_modifier_active(vr.region->config(), int(zi));
+            if (skip_periodic || temp[size_t(vr.parent)].empty()) {
+                temp[size_t(idx)].clear();
+            } else {
+                temp[size_t(idx)]           = intersection_ex(temp[size_t(vr.parent)], source);
+                temp[size_t(vr.parent)]     = diff_ex(temp[size_t(vr.parent)], source);
+            }
+            if (next_same)
+                temp[size_t(idx + 1)] = std::move(source);
+            if (vr.region != nullptr && size_t(vr.region->print_object_region_id()) == region_id &&
+                vr.region->config().conformal_infill && !temp[size_t(idx)].empty())
+                append(out[lid], temp[size_t(idx)]);
+        }
+    }
+    for (std::vector<ExPolygon> &row : out)
+        if (row.size() > 1)
+            row = union_ex(row);
+    return out;
+}
+
 void PrintObject::infill()
 {
     // prerequisites
@@ -1030,6 +1110,63 @@ void PrintObject::infill()
         const auto& adaptive_fill_octree = this->m_adaptive_fill_octrees.first;
         const auto& support_fill_octree = this->m_adaptive_fill_octrees.second;
 
+        bool   want_conformal = false;
+        double chart_spacing  = 0.4;
+        for (const PrintRegion &region : this->all_regions()) {
+            if (region.config().conformal_infill) {
+                want_conformal = true;
+                if (region.config().sparse_infill_line_width > 0)
+                    chart_spacing = region.config().sparse_infill_line_width;
+                break;
+            }
+        }
+
+        if (want_conformal && !m_layers.empty()) {
+            const size_t lid0 = this->get_layer(0)->id();
+            size_t       nlid = 0;
+            for (const Layer *layer : m_layers)
+                nlid = std::max(nlid, layer->id() - lid0 + 1);
+            std::vector<double> zs(nlid, 0.);
+            for (const Layer *layer : m_layers)
+                zs[layer->id() - lid0] = layer->print_z;
+
+            FillRadialZigZag::reset_n_lock();
+            const size_t nreg = this->num_printing_regions();
+            for (size_t region_id = 0; region_id < nreg; ++region_id) {
+                const PrintRegionConfig &rcfg = this->printing_region(region_id).config();
+                if (!rcfg.conformal_infill)
+                    continue;
+                const double density = std::max(0.05, 0.01 * rcfg.sparse_infill_density);
+                double       line_w  = chart_spacing;
+                if (rcfg.sparse_infill_line_width > 0)
+                    line_w = rcfg.sparse_infill_line_width;
+                std::vector<std::vector<ExPolygon>> islands_by_layer =
+                    conformal_modifier_islands(*this, region_id, nlid, lid0);
+                size_t n_cast = 0;
+                for (const auto &row : islands_by_layer)
+                    if (!row.empty())
+                        ++n_cast;
+                if (n_cast < 3) {
+                    islands_by_layer.assign(nlid, {});
+                    for (const Layer *layer : m_layers) {
+                        if (region_id >= layer->regions().size())
+                            continue;
+                        const LayerRegion *lr = layer->regions()[region_id];
+                        if (!lr->region().config().conformal_infill)
+                            continue;
+                        const size_t lid = layer->id() - lid0;
+                        for (const Surface &surface : lr->fill_surfaces.surfaces)
+                            if (surface.surface_type == stInternal)
+                                islands_by_layer[lid].push_back(surface.expolygon);
+                    }
+                }
+                FillRadialZigZag::pin_scan_counts(islands_by_layer, line_w / density, zs, region_id,
+                                                   rcfg.conformal_ray_count.value);
+            }
+        } else {
+            FillRadialZigZag::reset_n_lock();
+        }
+
         //BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
            tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -1041,6 +1178,7 @@ void PrintObject::infill()
            }
         );
         m_print->throw_if_canceled();
+        FillRadialZigZag::reset_n_lock();
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - end";
         /*  we could free memory now, but this would make this step not idempotent
         ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
@@ -1377,6 +1515,14 @@ bool PrintObject::invalidate_state_by_config_options(
                     steps.emplace_back(posPerimeters);
             }
         } else if (
+               opt_key == "periodic_modifier"
+            || opt_key == "periodic_modifier_skip_layers"
+            || opt_key == "periodic_modifier_apply_layers"
+            || opt_key == "modifier_ignore_infill") {
+            // Region assignment changes per layer when a modifier is skipped.
+            // Ignoring infill keys can also merge/split regions vs the parent.
+            steps.emplace_back(posSlice);
+        } else if (
                opt_key == "wall_loops"
             || opt_key == "top_one_wall_type"
             || opt_key == "top_area_threshold"
@@ -1543,6 +1689,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "detect_floating_vertical_shell") {
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern"
+                   || opt_key == "conformal_infill"
+                   || opt_key == "conformal_stagger"
+                   || opt_key == "conformal_link_keep_layers"
+                   || opt_key == "conformal_link_flip_layers"
+                   || opt_key == "conformal_pole"
+                   || opt_key == "conformal_ray_count"
+                   || opt_key == "conformal_hub_radius"
                    || opt_key == "symmetric_infill_y_axis"
                    || opt_key == "infill_shift_step"
                    || opt_key == "sparse_infill_lattice_angle_1"
@@ -2023,6 +2176,16 @@ void PrintObject::process_external_surfaces()
     }
 }
 
+static bool layer_skips_periodic_modifier(const PrintObject &object, int layer_id)
+{
+    for (size_t i = 0; i < object.num_printing_regions(); ++i) {
+        const PrintRegionConfig &cfg = object.printing_region(i).config();
+        if (cfg.periodic_modifier.value && !periodic_modifier_active(cfg, layer_id))
+            return true;
+    }
+    return false;
+}
+
 void PrintObject::discover_vertical_shells()
 {
     PROFILE_FUNC();
@@ -2278,7 +2441,10 @@ void PrintObject::discover_vertical_shells()
                     // Trim the shells region by the internal & internal void surfaces.
                     const Polygons    polygonsInternal = to_polygons(layerm->fill_surfaces.filter_by_types({ stInternal, stInternalVoid, stInternalSolid }));
                     shell = intersection(shell, polygonsInternal, ApplySafetyOffset::Yes);
-                    polygons_append(shell, diff(polygonsInternal, holes));
+                    // A skipped periodic modifier leaves a 0-wall layer next to a walled layer.
+                    // Do not fill that missing-wall band with solid infill.
+                    if (!layer_skips_periodic_modifier(*this, int(idx_layer)))
+                        polygons_append(shell, diff(polygonsInternal, holes));
                     if (shell.empty())
                         continue;
 
@@ -3380,6 +3546,68 @@ static void apply_to_print_region_config(PrintRegionConfig &out, const DynamicPr
             }
 }
 
+// Internal infill keys a modifier may set that should be dropped when modifier_ignore_infill is on.
+static const char *s_modifier_ignored_infill_keys[] = {
+    "sparse_infill_density",
+    "sparse_infill_pattern",
+    "conformal_infill",
+    "conformal_stagger",
+    "conformal_link_keep_layers",
+    "conformal_link_flip_layers",
+    "conformal_pole",
+    "conformal_ray_count",
+    "conformal_hub_radius",
+    "infill_direction",
+    "symmetric_infill_y_axis",
+    "infill_shift_step",
+    "sparse_infill_lattice_angle_1",
+    "sparse_infill_lattice_angle_2",
+    "infill_rotate_step",
+    "skeleton_infill_density",
+    "skin_infill_density",
+    "fill_multiline",
+    "infill_lock_depth",
+    "skin_infill_depth",
+    "locked_skin_infill_pattern",
+    "locked_skeleton_infill_pattern",
+    "sparse_infill_filament",
+    "sparse_infill_line_width",
+    "skin_infill_line_width",
+    "skeleton_infill_line_width",
+    "infill_wall_overlap",
+    "sparse_infill_speed",
+    "infill_combination",
+    "minimum_sparse_infill_area",
+    "internal_solid_infill_pattern",
+    "internal_solid_infill_line_width",
+    "internal_solid_infill_speed",
+    "solid_infill_filament",
+    "sparse_infill_anchor",
+    "sparse_infill_anchor_max",
+    "detect_narrow_internal_solid_infill",
+    "embedding_wall_into_infill",
+    "infill_instead_top_bottom_surfaces",
+    "bridge_angle",
+};
+
+static bool volume_ignores_modifier_infill(const ModelVolume &volume)
+{
+    if (!volume.is_modifier())
+        return false;
+    const auto *opt = volume.config.get().option<ConfigOptionBool>("modifier_ignore_infill");
+    return opt != nullptr && opt->value;
+}
+
+static void restore_parent_internal_infill(PrintRegionConfig &config, const PrintRegionConfig &parent)
+{
+    for (const char *key : s_modifier_ignored_infill_keys) {
+        const ConfigOption *src = parent.option(key);
+        ConfigOption       *dst = config.option(key, false);
+        if (src != nullptr && dst != nullptr)
+            dst->set(src);
+    }
+}
+
 PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_or_parent_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders, std::vector<int>& variant_index)
 {
     PrintRegionConfig config = default_or_parent_region_config;
@@ -3390,6 +3618,7 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     } else {
         // default_or_parent_region_config contains parent PrintRegion config, which already contains ModelVolume's config.
     }
+    const bool ignore_infill = volume_ignores_modifier_infill(volume);
     apply_to_print_region_config(config, volume.config.get(), variant_index);
     if (! volume.material_id().empty())
         apply_to_print_region_config(config, volume.material()->config.get(), variant_index);
@@ -3398,6 +3627,10 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
         assert(volume.is_model_part());
         apply_to_print_region_config(config, *layer_range_config, variant_index);
     }
+    if (ignore_infill)
+        restore_parent_internal_infill(config, default_or_parent_region_config);
+    // Do not inherit this flag onto child modifiers; it only describes this volume.
+    config.modifier_ignore_infill.value = ignore_infill;
 
     {//over write the seprate filament for features config
         auto resolve_filament_value = [&](const std::string &key, int default_or_parent, int previous_value) -> int {
@@ -3420,10 +3653,12 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
                 return previous_value;
         };
         config.wall_filament.value          = resolve_filament_value("wall_filament", default_or_parent_region_config.wall_filament.value, config.wall_filament.value);
-        config.sparse_infill_filament.value = resolve_filament_value("sparse_infill_filament", default_or_parent_region_config.sparse_infill_filament.value,
-                                                                     config.sparse_infill_filament.value);
-        config.solid_infill_filament.value  = resolve_filament_value("solid_infill_filament", default_or_parent_region_config.solid_infill_filament.value,
-                                                                     config.solid_infill_filament.value);
+        if (!ignore_infill) {
+            config.sparse_infill_filament.value = resolve_filament_value("sparse_infill_filament", default_or_parent_region_config.sparse_infill_filament.value,
+                                                                         config.sparse_infill_filament.value);
+            config.solid_infill_filament.value  = resolve_filament_value("solid_infill_filament", default_or_parent_region_config.solid_infill_filament.value,
+                                                                         config.solid_infill_filament.value);
+        }
     }
 
     // Clamp invalid extruders to the default extruder (with index 1).

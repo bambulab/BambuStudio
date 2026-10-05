@@ -184,18 +184,18 @@ function saveInfo() {
   getProjectName();
   if (!projectName) {
     showToast("The project name is empty.");
-    return;
+    return false;
   }
   modelData["name"] = encodeURIComponent(projectName);
   if (projectPictures.length <= 0) {
     showToast("The project pictures is empty.");
-    return;
+    return false;
   }
   modelData["preview_img"] = projectPictures;
   getProjectDescription();
   if (!projectEditorData) {
     showToast("The project description is empty.");
-    return;
+    return false;
   }
   modelData["description"] = encodeURIComponent(projectEditorData);
   let fileData = {
@@ -222,6 +222,7 @@ function saveInfo() {
   tSend['model'] = updateData;
 		
 	SendWXMessage( JSON.stringify(tSend) );	
+  return true;
 }
 
 function updateInfo(p3MF) {
@@ -237,7 +238,7 @@ function updateInfo(p3MF) {
       break;
     }
   }
-  projectEditorData = decodeURIComponent(p3MF.model.description) || '';
+  projectEditorData = DecodeDescriptionFrom3MF(decodeURIComponent(p3MF.model.description));
   bomAccessories.length = 0;
   Array.prototype.push.apply(bomAccessories, p3MF.file.BOM || []);
   assemblyAccessories.length = 0;
@@ -256,7 +257,7 @@ function updateInfo(p3MF) {
       break;
     }
   }
-  profileEditorData = decodeURIComponent(p3MF.profile.description) || '';
+  profileEditorData = DecodeDescriptionFrom3MF(decodeURIComponent(p3MF.profile.description));
   setProjectName();
   setProjectPictrues();
   setProjectDescription();
@@ -667,8 +668,23 @@ function handleEditorMessage(rawMessage) {
     resolve(payload.data || {});
     return;
   }
+  if (command === 'query_unsaved_changes') {
+    SendWXMessage(JSON.stringify({
+      sequence_id: payload.sequence_id || Math.round(new Date() / 1000),
+      command: 'page_dirty_state',
+      dirty: isChange()
+    }));
+    return;
+  }
   if (command === 'save_project') {
-    saveInfo();
+    if (!saveInfo()) {
+      // Validation stopped the save, so no update_3mf_info will follow. Tell the
+      // host, otherwise a close waiting on the result would hang forever.
+      SendWXMessage(JSON.stringify({
+        sequence_id: Math.round(new Date() / 1000),
+        command: 'save_project_aborted'
+      }));
+    }
     return;
   }
   if (command === 'discard_project') {

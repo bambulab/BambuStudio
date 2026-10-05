@@ -1977,10 +1977,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.filament_vitrification_temperature.resize(filament_count);
     m_result.filament_costs.resize(filament_count);
     m_extruder_temps.resize(filament_count);
-    std::vector<NozzleType>(config.nozzle_type.size()).swap(m_result.nozzle_type);
-    for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx) {
-        m_result.nozzle_type[idx] = NozzleType(config.nozzle_type.values[idx]);
-    }
 
     std::vector<int> filament_map = config.filament_map.values; // 1 based idxs
     // if filament map has wrong length, set filament to master extruder_id
@@ -2146,14 +2142,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionInts* physical_extruder_map = config.option<ConfigOptionInts>("physical_extruder_map");
     if (physical_extruder_map != nullptr) {
         m_physical_extruder_map = physical_extruder_map->values;
-    }
-
-    const ConfigOptionEnumsGenericNullable* nozzle_type = config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
-    if (nozzle_type != nullptr) {
-        m_result.nozzle_type.resize(nozzle_type->size());
-        for (size_t idx = 0; idx < nozzle_type->values.size(); ++idx) {
-            m_result.nozzle_type[idx] = NozzleType(nozzle_type->values[idx]);
-        }
     }
 
     const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
@@ -2803,6 +2791,9 @@ void GCodeProcessor::finalize(bool post_process)
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+    // Must run after post_process() above, which fills in the move times that were left at 0 during
+    // time estimation; otherwise the per-extrusion-Z slicing below would read incomplete times.
+    update_preview_layers_times_stats();
     //BBS: update slice warning
     update_slice_warnings();
 }
@@ -5866,13 +5857,10 @@ void GCodeProcessor::process_T(const std::string_view command, int nozzle_id)
 }
 
 
-void GCodeProcessor::init_filament_maps_and_nozzle_type_when_import_only_gcode()
+void GCodeProcessor::init_filament_maps_when_import_only_gcode()
 {
     if (m_filament_maps.empty()) {
         m_filament_maps.assign((int) EnforcerBlockerType::ExtruderMax, 1);
-    }
-    if (m_result.nozzle_type.empty()) {
-        m_result.nozzle_type.assign((int) EnforcerBlockerType::ExtruderMax, NozzleType::ntUndefine);
     }
 }
 
@@ -6338,6 +6326,52 @@ void GCodeProcessor::update_estimated_times_stats()
     m_result.print_statistics.total_volumes_per_extruder = m_used_filaments.total_volumes_per_filament;
 }
 
+void GCodeProcessor::update_preview_layers_times_stats()
+{
+    // Tag-based layers (spiral vase / scarf) use a different partition; leave them to layers_times.
+    if (m_detect_layer_based_on_tag)
+        return;
+
+    // Build a per-slider-layer time table keyed by unique extrusion Z (matching IMSlider::m_layers_values),
+    // keeping the largest cumulative time at each Z so a Z revisited by a sublayer maps to its finish.
+    for (size_t mode_idx = 0; mode_idx < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++mode_idx) {
+        PrintEstimatedStatistics::Mode& data = m_result.print_statistics.modes[mode_idx];
+        if (data.layers_times.empty())
+            continue;
+
+        std::map<float, float> end_time_by_z; // unique extrusion Z -> cumulative time when that Z is done
+        // Z only changes at layer/sublayer boundaries, so cache the slot and re-query the map only on change.
+        // std::map nodes are stable across insertions, so the cached pointer stays valid.
+        float last_z = std::numeric_limits<float>::quiet_NaN();
+        float* slot = nullptr;
+        for (const GCodeProcessorResult::MoveVertex& move : m_result.moves) {
+            if (move.type != EMoveType::Extrude)
+                continue;
+            if (move.position.z() != last_z) {
+                last_z = move.position.z();
+                slot = &end_time_by_z[last_z];
+            }
+            *slot = std::max(*slot, move.time[mode_idx]);
+        }
+
+        // Only mixed-color sublayers make the unique-Z partition finer than the logical layers.
+        // When the counts match, layers_times already fits the slider, so leave preview empty.
+        if (end_time_by_z.size() <= data.layers_times.size())
+            continue;
+
+        std::vector<float> layer_times;
+        layer_times.reserve(end_time_by_z.size());
+        for (const auto& z_time : end_time_by_z)
+            layer_times.emplace_back(z_time.second); // cumulative end-times, already sorted by Z ascending
+
+        // Convert cumulative end-times into per-layer durations (iterate backwards for in-place diff).
+        layer_times.back() = std::max(layer_times.back(), data.time);
+        for (size_t i = layer_times.size(); i-- > 1; )
+            layer_times[i] = std::max(0.0f, layer_times[i] - layer_times[i - 1]);
+        data.preview_layers_times = std::move(layer_times);
+    }
+}
+
 //BBS: ugly code...
 void GCodeProcessor::update_slice_warnings()
 {
@@ -6355,43 +6389,6 @@ void GCodeProcessor::update_slice_warnings()
     auto used_filaments = get_used_filaments();
     assert(!used_filaments.empty());
     GCodeProcessorResult::SliceWarning warning;
-
-    //bbs:HRC checker // remove the checker
-    //warning.params.clear();
-    //warning.level=1;
-
-    //std::vector<int> nozzle_hrc_lists(m_result.nozzle_type.size(), 0);
-    //// store the nozzle hrc of each extruder
-    //for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx)
-    //    nozzle_hrc_lists[idx] = Print::get_hrc_by_nozzle_type(m_result.nozzle_type[idx]);
-
-    //for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
-    //    int filament_hrc = 0;
-
-    //    if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
-    //        filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
-
-    //    int extruder_hrc = 0;
-    //    int filament_extruder_id = 0;
-    //    if (used_filaments[idx] >= 0 && used_filaments[idx] < m_filament_maps.size()) {
-    //        filament_extruder_id = m_filament_maps[used_filaments[idx]];
-    //        if (filament_extruder_id >= 0 && filament_extruder_id < nozzle_hrc_lists.size()) {
-    //            extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
-    //        }
-    //    }
-
-    //    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
-
-    //    if (extruder_hrc!=0 && extruder_hrc < filament_hrc)
-    //        warning.params.push_back(std::to_string(used_filaments[idx]));
-    //}
-
-    //if (!warning.params.empty()) {
-    //    warning.level      = 3;
-    //    warning.msg = NOZZLE_HRC_CHECKER;
-    //    warning.error_code = "1000C002";
-    //    m_result.warnings.push_back(warning);
-    //}
 
     // bbs:timelapse checker
     warning.params.clear();

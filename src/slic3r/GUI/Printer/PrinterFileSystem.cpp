@@ -1,6 +1,7 @@
 #include "PrinterFileSystem.h"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/Format/ResourcePathUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
@@ -31,6 +32,14 @@ std::string last_system_error() {
         errno,
 #endif
         std::system_category()).message().c_str());
+}
+
+static std::string safe_download_path(std::string const &dir, std::string const &name)
+{
+    std::string leaf = Slic3r::resource_path::filename_from_portable_path(name).string();
+    if (leaf.empty() || leaf == "." || leaf == "..")
+        leaf = "download";
+    return (boost::filesystem::path(dir) / leaf).string();
 }
 
 wxDEFINE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
@@ -431,7 +440,7 @@ void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
             file.flags |= FF_DOWNLOAD;
             std::shared_ptr<Download> download(new Download);
             download->progress = -1;
-            download->local_path = (boost::filesystem::path(path) / file.name).string();
+            download->local_path = safe_download_path(path, file.name);
             file.download = download;
             ++n;
         }
@@ -445,7 +454,7 @@ void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
         file.flags |= FF_DOWNLOAD;
         std::shared_ptr<Download> download(new Download);
         download->progress   = -1;
-        download->local_path = (boost::filesystem::path(path) / file.name).string();
+        download->local_path = safe_download_path(path, file.name);
         file.download        = download;
     }
     boost::filesystem::create_directories(path);
@@ -462,7 +471,7 @@ void PrinterFileSystem::DownloadCheckFiles(std::string const &path)
     for (size_t i = 0; i < m_file_list.size(); ++i) {
         auto &file = m_file_list[i];
         if ((file.flags & FF_DOWNLOAD) != 0 && file.download) continue;
-        auto path2 = boost::filesystem::path(path) / file.name;
+        boost::filesystem::path path2 = safe_download_path(path, file.name);
         boost::system::error_code ec;
         if (boost::filesystem::file_size(path2, ec) == file.size) {
             file.flags |= FF_DOWNLOAD;

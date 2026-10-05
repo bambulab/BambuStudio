@@ -153,6 +153,22 @@
       "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
     },
     {
+      "type_suffix": "CF",
+      "action": "warning",
+      "slot": "ams",
+      "group": "cf_gf_ams",
+      "priority": 0,
+      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+    },
+    {
+      "type_suffix": "GF",
+      "action": "warning",
+      "slot": "ams",
+      "group": "cf_gf_ams",
+      "priority": 0,
+      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+    },
+    {
       "vendor": "Bambu Lab",
       "type": "PLA",
       "name": "Bambu PLA Glow",
@@ -250,6 +266,8 @@
       "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
       "action": "warning",
       "slot": "ams",
+      "group": "cf_gf_ams",
+      "priority": 1,
       "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
     },
     {
@@ -259,6 +277,8 @@
       "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
       "action": "warning",
       "slot": "ams",
+      "group": "cf_gf_ams",
+      "priority": 1,
       "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
     },
     {

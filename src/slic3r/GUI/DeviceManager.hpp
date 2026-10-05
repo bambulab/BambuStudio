@@ -381,6 +381,8 @@ public:
     DevBed *        GetBed()    const { return m_bed; };
     DevStorage*     GetStorage()const { return m_storage; }
     DevCalib*       GetCalib()  const { return m_calib; }
+
+    bool            supports_full_pa_calib_table() const;
     DevStatus*      GetStatus() const { return m_status; }; /* status*/
 
     DevCtrl*   GetCtrl() const { return m_ctrl; }       /* ctrl*/
@@ -802,6 +804,7 @@ public:
     /*vi slot data*/
     std::vector<DevAmsTray> vt_slot;
     DevAmsTray parse_vt_tray(json vtray);
+    DevAmsTray* get_vt_tray(const std::string &ams_id);
 
     /*get ams slot info*/
     bool    contains_tray(const std::string &ams_id, const std::string &tray_id) const;

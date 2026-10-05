@@ -241,7 +241,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "crosszag",           ipCrossZag },
     { "lockedzag",          ipLockedZag },
     { "2dlattice",          ip2DLattice  },
-    { "ironingarchimedeanspiral", ipIroningArchimedeanSpiral }
+    { "ironingarchimedeanspiral", ipIroningArchimedeanSpiral },
+    { "globalmonotonicline", ipGlobalMonotonicLine }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -252,6 +253,21 @@ static t_config_enum_values s_keys_map_IroningType {
     { "solid",          int(IroningType::AllSolid) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(IroningType)
+
+static t_config_enum_values s_keys_map_ConformalStagger {
+    { "none",       int(ConformalStagger::None) },
+    { "halfstep",   int(ConformalStagger::HalfStep) },
+    { "orthogonal", int(ConformalStagger::Orthogonal) },
+    { "alternate",  int(ConformalStagger::Alternate) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ConformalStagger)
+
+static t_config_enum_values s_keys_map_ConformalPole {
+    { "layer",  int(ConformalPole::Layer) },
+    { "axis",   int(ConformalPole::Axis) },
+    { "bezier", int(ConformalPole::Bezier) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ConformalPole)
 
 //BBS:
 static t_config_enum_values s_keys_map_TopOneWallType {
@@ -608,6 +624,18 @@ int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_ty
     //                          << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
     //                                 extruder_variant % variant_id_1based;
     return 0;
+}
+
+int find_printer_variant_index(const DynamicPrintConfig &printer_config, const std::string &filament_variant)
+{
+    const auto *printer_variants = printer_config.option<ConfigOptionStrings>("printer_extruder_variant");
+    if (!printer_variants || filament_variant.empty())
+        return -1;
+    for (size_t i = 0; i < printer_variants->values.size(); ++i) {
+        if (printer_variants->values[i] == filament_variant)
+            return static_cast<int>(i);
+    }
+    return -1;
 }
 
 
@@ -2125,6 +2153,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("monotonic");
     def->enum_values.push_back("monotonicline");
+    def->enum_values.push_back("globalmonotonicline");
     def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
@@ -2133,6 +2162,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Monotonic"));
     def->enum_labels.push_back(L("Monotonic line"));
+    def->enum_labels.push_back(L("Global monotonic line"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Hilbert Curve"));
     def->enum_labels.push_back(L("Archimedean Chords"));
@@ -3698,25 +3728,6 @@ void PrintConfigDef::init_fff_params()
     // def->mode = comSimple;
     // def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("nozzle_type", coEnums);
-    def->label = L("Nozzle type");
-    def->tooltip = L("The metallic material of nozzle. This determines the abrasive resistance of nozzle, and "
-                     "what kind of filament can be printed");
-    def->enum_keys_map = &ConfigOptionEnum<NozzleType>::get_enum_values();
-    def->enum_values.push_back("undefine");
-    def->enum_values.push_back("hardened_steel");
-    def->enum_values.push_back("stainless_steel");
-    def->enum_values.push_back("tungsten_carbide");
-    def->enum_values.push_back("brass");
-    def->enum_labels.push_back(L("Undefine"));
-    def->enum_labels.push_back(L("Hardened steel"));
-    def->enum_labels.push_back(L("Stainless steel"));
-    def->enum_labels.push_back(L("Tungsten carbide"));
-    def->enum_labels.push_back(L("Brass"));
-    def->mode = comDevelop;
-    def->nullable = true;
-    def->set_default_value(new ConfigOptionEnumsGenericNullable({ ntUndefine }));
-
     def = this->add("printer_structure", coEnum);
     def->label = L("Printer structure");
     def->tooltip = L("The physical arrangement and components of a printing device");
@@ -3915,6 +3926,88 @@ void PrintConfigDef::init_fff_params()
     def->min      = 0;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
+
+    def           = this->add("conformal_infill", coBool);
+    def->label    = L("Conformal infill");
+    def->category = L("Strength");
+    def->tooltip  = L("Make sparse infill follow each layer's outline instead of using one set of parallel lines. "
+                      "On elongated or curved shapes, lines radiate from a center. "
+                      "Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("conformal_stagger", coEnum);
+    def->label    = L("Layer stagger");
+    def->category = L("Strength");
+    def->tooltip  = L("How neighboring layers are offset. Off stacks the same layout. "
+                      "Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding.");
+    def->enum_keys_map = &ConfigOptionEnum<ConformalStagger>::get_enum_values();
+    def->enum_values.push_back("none");
+    def->enum_values.push_back("alternate");
+    def->enum_labels.push_back(L("Off"));
+    def->enum_labels.push_back(L("Alternate"));
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<ConformalStagger>(ConformalStagger::None));
+
+    def           = this->add("conformal_link_keep_layers", coInt);
+    def->label    = L("Forward layers");
+    def->full_label = L("Conformal forward layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Number of consecutive layers that keep the forward zigzag. "
+                      "Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer.");
+    def->sidetext = L("layers");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def           = this->add("conformal_link_flip_layers", coInt);
+    def->label    = L("Reverse layers");
+    def->full_label = L("Conformal reverse layers");
+    def->category = L("Strength");
+    def->tooltip  = L("Number of consecutive layers that reverse the zigzag (start from the opposite rim). "
+                      "0 disables reversing. Forward 1 and Reverse 1 reverses every other layer.");
+    def->sidetext = L("layers");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
+    def           = this->add("conformal_pole", coEnum);
+    def->label    = L("Radial center");
+    def->category = L("Strength");
+    def->tooltip  = L("Where the radial center comes from. Each layer picks a center on that slice. "
+                      "Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers.");
+    def->enum_keys_map = &ConfigOptionEnum<ConformalPole>::get_enum_values();
+    def->enum_values.push_back("layer");
+    def->enum_values.push_back("axis");
+    def->enum_values.push_back("bezier");
+    def->enum_labels.push_back(L("Each layer"));
+    def->enum_labels.push_back(L("Axis"));
+    def->enum_labels.push_back(L("Smooth curve"));
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<ConformalPole>(ConformalPole::Layer));
+
+    def           = this->add("conformal_ray_count", coInt);
+    def->label    = L("Radial line count");
+    def->category = L("Strength");
+    def->tooltip  = L("How many radial lines around the center. 0 uses the count from sparse infill density. "
+                      "A positive value is the radial line count, rounded up to an even number of at least 4.");
+    def->min      = 0;
+    def->max      = 1000;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
+    def           = this->add("conformal_hub_radius", coFloat);
+    def->label    = L("Center region radius");
+    def->category = L("Strength");
+    def->tooltip  = L("Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. "
+                      "0 chooses the radius automatically. A positive value is in millimeters.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 200;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def           = this->add("symmetric_infill_y_axis", coBool);
     def->label    = L("Symmetric infill y axis");
@@ -4683,6 +4776,39 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip  = L("Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall.");
     def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("periodic_modifier", coBool);
+    def->label = L("Periodic modifier");
+    def->category = L("Others");
+    def->tooltip = L("Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there.");
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("periodic_modifier_skip_layers", coInt);
+    def->label = L("Skip for");
+    def->full_label = L("Periodic modifier skip layers");
+    def->category = L("Others");
+    def->tooltip = L("Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer.");
+    def->sidetext = L("layers");
+    def->min = 0;
+    def->max = 1000;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("periodic_modifier_apply_layers", coInt);
+    def->label = L("Apply for");
+    def->full_label = L("Periodic modifier apply layers");
+    def->category = L("Others");
+    def->tooltip = L("Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for.");
+    def->sidetext = L("layers");
+    def->min = 1;
+    def->max = 1000;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("modifier_ignore_infill", coBool);
+    def->label = L("Ignore infill settings");
+    def->full_label = L("Modifier ignore infill settings");
+    def->category = L("Others");
+    def->tooltip = L("Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("post_process", coStrings);
@@ -7472,7 +7598,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top","bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
         "prime_volume",
-        "apply_top_surface_compensation"
+        "apply_top_surface_compensation",
+        "nozzle_type"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -7612,7 +7739,6 @@ std::set<std::string> printer_options_with_variant_1 = {
     "retract_restart_extra_toolchange",
     "long_retractions_when_cut",
     "retraction_distances_when_cut",
-    "nozzle_type",
     "printer_extruder_id",
     "printer_extruder_variant",
     "hotend_cooling_rate",
@@ -8719,9 +8845,14 @@ int DynamicPrintConfig::get_extruder_nozzle_volume_count(int extruder_count, std
         count = 0;
         for (int i = 0; i < extruder_count;  i++)
         {
-            count += extruder_nozzle_counts[i].size();
             for (auto& iter: extruder_nozzle_counts[i])
-                nozzle_volume_types[i].push_back(iter.first);
+            {
+                if (iter.second > 0)
+                {
+                    count++;
+                    nozzle_volume_types[i].push_back(iter.first);
+                }
+            }
         }
     }
     /*auto opt_extruder_nozzle_volume_types = dynamic_cast<const ConfigOptionInts*>(this->option("extruder_nozzle_volume_type"));
@@ -8767,6 +8898,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
         }
 
         if (extruder_id > 0 && extruder_id <= static_cast<unsigned> (extruder_count)) {
+            //材料参数处理
             variant_index.resize(1);
             ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
@@ -8793,6 +8925,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             variant_count = 1;
         }
         else {
+            //机器和工艺参数处理
             if  (extruder_nozzle_volume_count > extruder_count){
                 variant_count = extruder_nozzle_volume_count;
             } else
@@ -9546,6 +9679,21 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     // --perimeters
     if (cfg.wall_loops.value < 0) {
         error_message.emplace("wall_loops", L("invalid value ") + std::to_string(cfg.wall_loops.value));
+    }
+    if (cfg.periodic_modifier_skip_layers.value < 0) {
+        error_message.emplace("periodic_modifier_skip_layers", L("invalid value ") + std::to_string(cfg.periodic_modifier_skip_layers.value));
+    }
+    if (cfg.periodic_modifier_apply_layers.value < 1) {
+        error_message.emplace("periodic_modifier_apply_layers", L("invalid value ") + std::to_string(cfg.periodic_modifier_apply_layers.value));
+    }
+    if (cfg.conformal_link_keep_layers.value < 0) {
+        error_message.emplace("conformal_link_keep_layers", L("invalid value ") + std::to_string(cfg.conformal_link_keep_layers.value));
+    }
+    if (cfg.conformal_link_flip_layers.value < 0) {
+        error_message.emplace("conformal_link_flip_layers", L("invalid value ") + std::to_string(cfg.conformal_link_flip_layers.value));
+    }
+    if (cfg.conformal_ray_count.value < 0) {
+        error_message.emplace("conformal_ray_count", L("invalid value ") + std::to_string(cfg.conformal_ray_count.value));
     }
 
     // --solid-layers

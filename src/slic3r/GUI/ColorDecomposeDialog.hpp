@@ -66,7 +66,9 @@ public:
                          const std::vector<std::string>& filament_types,
                          size_t current_filament_count = 0,
                          size_t max_filament_count = 32,
-                         std::vector<size_t> physical_config_indices = {});
+                         std::vector<size_t> physical_config_indices = {},
+                         // Texture import passes false: Confirm later opens the over-limit resolver.
+                         bool enforce_filament_limit = true);
 
     ColorDecomposeResult get_result() const { return m_result; }
 
@@ -135,6 +137,7 @@ private:
     std::vector<std::string>    m_combo_item_families;
     size_t                      m_current_filament_count{0};
     size_t                      m_max_filament_count{32};
+    bool                        m_enforce_filament_limit{true};
     std::vector<size_t>         m_physical_config_indices;
     std::function<size_t(const ColorDecomposeResult&)> m_missing_calculator;
     std::function<DecomposePreviewIds(const ColorDecomposeResult&)> m_preview_id_calculator;

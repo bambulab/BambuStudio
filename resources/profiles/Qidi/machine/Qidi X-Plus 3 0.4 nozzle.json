@@ -18,7 +18,6 @@
 		"0x280"
 	],
 	"printable_height": "270",
-	"nozzle_type": "hardened_steel",
 	"max_layer_height": [
 		"0.28"
 	],

@@ -32,6 +32,26 @@ std::string get_font_filepath()
     return {};
 }
 
+std::string get_cjk_font_filepath()
+{
+    const char *candidates[] = {
+#ifdef _WIN32
+        "C:/Windows/Fonts/msyh.ttc",
+        "C:/Windows/Fonts/simsun.ttc",
+#elif defined(__APPLE__)
+        "/System/Library/Fonts/PingFang.ttc",
+        "/System/Library/Fonts/Supplemental/Songti.ttc",
+#else
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.otf",
+#endif
+    };
+    for (const char *path : candidates)
+        if (boost::filesystem::exists(path))
+            return path;
+    return {};
+}
+
 ExPolygonsWithIds ids_to_shapes(const std::vector<unsigned> &ids)
 {
     ExPolygonsWithIds shapes;
@@ -105,6 +125,45 @@ TEST_CASE("Multi line text shapes keep per glyph data aligned", "[Emboss]")
     EmbossShape left;
     text2vshapes(left, font, text, fp_left, scale);
     CHECK(left.text_align_offsets.size() == text.size());
+}
+
+TEST_CASE("Fallback font baseline correction is independent of line count", "[Emboss]")
+{
+    const std::string main_font_path = get_font_filepath();
+    const std::string cjk_font_path  = get_cjk_font_filepath();
+    if (main_font_path.empty() || cjk_font_path.empty()) {
+        WARN("Main or CJK fallback font not found, test skipped");
+        return;
+    }
+
+    FontFileWithCache main_font(create_font_file(main_font_path.c_str()));
+    FontFileWithCache fallback_font(create_font_file(cjk_font_path.c_str()));
+    REQUIRE(main_font.has_value());
+    REQUIRE(fallback_font.has_value());
+
+    BackFontCacheFn fallback = [&fallback_font]() {
+        return std::vector<FontFileWithCache>{fallback_font};
+    };
+
+    for (FontProp::HorizontalAlign align : {FontProp::HorizontalAlign::center, FontProp::HorizontalAlign::left}) {
+        FontProp fp(10.f);
+        fp.align.first = align;
+        const double scale = get_text_shape_scale(fp, *main_font.font_file);
+
+        EmbossShape single;
+        EmbossShape multiline;
+        text2vshapes(single, main_font, L"A\u4E2D", fp, scale, []() { return false; }, fallback);
+        text2vshapes(multiline, main_font, L"A\u4E2D\nA\u4E2D", fp, scale, []() { return false; }, fallback);
+        if (single.shapes_with_ids.size() != 2 || single.shapes_with_ids[1].expoly.empty()) {
+            WARN("Selected fallback font does not provide the CJK test glyph, test skipped");
+            return;
+        }
+
+        REQUIRE(multiline.text_align_offsets.size() == 5);
+        const float single_baseline_delta = single.text_align_offsets[1].y() - single.text_align_offsets[0].y();
+        CHECK(multiline.text_align_offsets[1].y() - multiline.text_align_offsets[0].y() == Approx(single_baseline_delta));
+        CHECK(multiline.text_align_offsets[4].y() - multiline.text_align_offsets[3].y() == Approx(single_baseline_delta));
+    }
 }
 
 TEST_CASE("Line gap changes distance between text lines", "[Emboss]")

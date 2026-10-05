@@ -312,6 +312,7 @@ private:
     void put_connectors_on_cut_plane(const Vec3d &cp_normal, double cp_offset);
     void update_plane_normal();
     void update_clipper();
+    void update_dovetail_preview_clip();
     // on render
     void render_cut_plane_and_grabbers();
     void on_render_rotate_gizmos();
@@ -340,6 +341,7 @@ private:
     void flip_cut_plane();
     void update_plane_model();
     void init_picking_models();
+    bool has_valid_groove_shape() const;
     bool has_valid_groove() const;
     bool has_valid_contour() const;
     void reset_cut_by_contours();

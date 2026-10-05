@@ -18,6 +18,11 @@ enum class LiftType {
     SpiralLift
 };
 
+enum class TemperatureCommandType {
+    Default,
+    LayerChange
+};
+
 class GCodeWriter {
 public:
     GCodeConfig config;
@@ -55,7 +60,8 @@ public:
     }
     std::string preamble();
     std::string postamble() const;
-    std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
+    std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1,
+                                TemperatureCommandType command_type = TemperatureCommandType::Default) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_chamber_temperature(int temperature, bool wait = false);
     void set_acceleration(unsigned int acceleration);

@@ -17,8 +17,16 @@ class wxSizer;
 
 namespace Slic3r::GUI {
 
-// Native rich tooltip card for slicing parameters
-class ParamTooltip : public wxPopupTransientWindow
+// Native rich tooltip card for slicing parameters.
+//
+// This is a hover card, not a menu: it must NOT use wxPopupTransientWindow.
+// On GTK, wxPopupTransientWindow::Show() grabs the pointer (gtk_grab_add +
+// gdk_device_grab). ParamTooltip shows itself with Show() rather than Popup(),
+// so the grab is taken but the click-outside dismiss path is never armed.
+// Mouse events then never reach the settings row, Hide() is never called, and
+// the whole UI stops accepting clicks until the process is killed
+// (bambulab/BambuStudio#12233, #12253).
+class ParamTooltip : public wxPopupWindow
 {
 public:
     // tip_pos is the screen anchor the card is placed beside (the row's right-center).

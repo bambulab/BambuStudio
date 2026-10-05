@@ -93,13 +93,15 @@ public:
     void set_machine_obj(MachineObject* obj) { m_obj = obj; }
 
     std::vector<std::pair<int, std::string>> default_naming(std::vector<std::pair<int, std::string>> preset_names);
-    void sync_cali_result(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result);
+    void sync_cali_result(const std::vector<PACalibResult>& cali_result);
     void save_to_result_from_widgets(wxWindow* window, bool* out_is_valid, wxString* out_msg);
     bool get_result(std::vector<PACalibResult>& out_result);
     bool is_all_failed() { return m_is_all_failed; }
 
 protected:
-    void sync_cali_result_for_multi_extruder(const std::vector<PACalibResult> &cali_result, const std::vector<PACalibResult> &history_result);
+    void sync_cali_result_for_multi_extruder(const std::vector<PACalibResult> &cali_result);
+    /* Row-per-result layout for rack machines, whose result count can far exceed the ~4 fitting as columns. */
+    void sync_cali_result_for_single_rack(const std::vector<PACalibResult> &cali_result);
 
 protected:
     wxBoxSizer* m_top_sizer;
@@ -108,7 +110,6 @@ protected:
     wxPanel*    m_grid_panel{ nullptr };
     wxPanel*    m_multi_extruder_grid_panel{ nullptr };
     std::vector<PACalibResult> m_calib_results;
-    std::vector<PACalibResult> m_history_results;
     bool m_is_all_failed{ true };
     MachineObject* m_obj{ nullptr };
 };

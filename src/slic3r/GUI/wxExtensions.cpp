@@ -3,7 +3,10 @@
 #include <stdexcept>
 #include <cmath>
 
+#include <wx/clipbrd.h>
+#include <wx/menu.h>
 #include <wx/sizer.h>
+#include <wx/stattext.h>
 #include <boost/algorithm/string/replace.hpp>
 
 /* mac need the macro while including <boost/stacktrace.hpp>*/
@@ -382,6 +385,38 @@ void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& e
 void edit_tooltip(wxString& tooltip)
 {
     tooltip.Replace("Slic3r", SLIC3R_APP_KEY, true);
+}
+
+bool copy_text_to_clipboard(const wxString& text)
+{
+    if (text.IsEmpty() || !wxTheClipboard->Open())
+        return false;
+
+    const bool copied = wxTheClipboard->SetData(new wxTextDataObject(text));
+    wxTheClipboard->Close();
+    return copied;
+}
+
+void enable_static_text_copy_menu(wxStaticText* label)
+{
+    if (!label)
+        return;
+
+    // wxEVT_CONTEXT_MENU is not delivered by MSW static controls, so drive the
+    // menu from the raw right-click instead.
+    label->Bind(wxEVT_RIGHT_UP, [label](wxMouseEvent& evt) {
+        const wxString value = label->GetLabel();
+        if (value.IsEmpty() || value == "-") {
+            evt.Skip();
+            return;
+        }
+
+        wxMenu menu;
+        const int copy_id = wxWindow::NewControlId();
+        menu.Append(copy_id, _L("Copy"));
+        menu.Bind(wxEVT_MENU, [value](wxCommandEvent&) { copy_text_to_clipboard(value); }, copy_id);
+        label->PopupMenu(&menu, evt.GetPosition());
+    });
 }
 
 /* Function for rescale of buttons in Dialog under MSW if dpi is changed.

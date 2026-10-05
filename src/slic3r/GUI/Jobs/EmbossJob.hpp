@@ -407,7 +407,22 @@ public:
                                                      int                        i,
                                                      float                      line_y = 0.f);
     static void generate_mesh_according_points(InputInfo& input_info);
-    static std::vector<Vec3d>       debug_cut_points_in_world;
+    // Debug view (show_text_cs): slice of every text line of the last surface text generation
+    struct LineDebug
+    {
+        std::vector<Vec3d> cut_points_in_world;                   // slice polygon the line is placed on
+        Transform3d        tran_in_world{Transform3d::Identity()}; // line CS, on the projected line anchor
+        float              line_y      = 0.f;                     // [mm] nominal base line offset in text CS
+        double             align_shift = 0.;                      // [mm] slide along the curve of the horizontal align
+        float              placed_y    = 0.f;                     // [mm] offset of the used slice, differs when borrowed
+        bool               hit         = false;                   // own base line crossed the object
+        size_t             glyph_first = 0;
+        size_t             glyph_last  = 0;
+    };
+    static std::vector<LineDebug> debug_lines;
+    static std::vector<Vec3d>     debug_anchor_cut_in_world; // curve of the text handle, filled only when a line used it
+    static std::vector<std::vector<Vec3d>> debug_glyph_normal_lines; // final per-glyph normals in world coordinates
+    static size_t                 debug_lines_version; // bumped on every fill, viewers re-upload their model
 
 public:
     explicit GenerateTextJob(InputInfo &&input);

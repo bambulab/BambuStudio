@@ -2265,22 +2265,29 @@ void align_shape(ExPolygonsWithIds &            shapes,
 
     unsigned count_lines = get_count_lines(text);
     int      main_y_offset    = get_align_y_offset(prop.align.second, count_lines, font, prop);
+    const float main_single_line_y_offset = get_align_y_offset(prop.align.second, 1, font, prop);
+    auto glyph_y_offset = [&](size_t index) {
+        if (!real_fonts[index].has_value() || text_scales[index] <= 0.f)
+            return main_y_offset;
+
+        const FontFile &fallback_font = *real_fonts[index].font_file;
+        const float fallback_scale = text_scales[index] / standard_scale;
+        const float fallback_single_line_y_offset =
+            get_align_y_offset(prop.align.second, 1, fallback_font, prop) * fallback_scale;
+        return static_cast<int>(std::lround(main_y_offset +
+            fallback_single_line_y_offset - main_single_line_y_offset));
+    };
 
     // Speed up for left aligned text
     if (prop.align.first == FontProp::HorizontalAlign::left) {
         // already horizontaly aligned
-        int index = 0;
-        for (ExPolygonsWithId &shape : shapes) {
-            int temp_y_offset = main_y_offset;
-            if (real_fonts[index].has_value()) {
-                const FontFile &temp_font = *real_fonts[index].font_file;
-                temp_y_offset             = get_align_y_offset(prop.align.second, count_lines, temp_font, prop);
-            }
+        for (size_t index = 0; index < shapes.size(); ++index) {
+            ExPolygonsWithId &shape = shapes[index];
+            const int temp_y_offset = glyph_y_offset(index);
             offset_xy.emplace_back(Point(0, temp_y_offset));
             for (ExPolygon &s : shape.expoly) {
                 s.translate(Point(0, temp_y_offset));
             }
-            index++;
         }
         return;
     }
@@ -2307,11 +2314,7 @@ void align_shape(ExPolygonsWithIds &            shapes,
         ExPolygons &shape = shapes[i].expoly;
         auto       temp_offset = main_offset;
         if (real_fonts[i].has_value()) {
-            const FontFile &temp_font = *real_fonts[i].font_file;
-            int temp_y_offset         = get_align_y_offset(prop.align.second, count_lines, temp_font, prop);
-            int ratio = int(text_scales[i] / standard_scale);
-            Point           new_offset(main_offset.x(), temp_y_offset * ratio);
-            temp_offset = new_offset;
+            temp_offset.y() = glyph_y_offset(i);
         }
         offset_xy.emplace_back(temp_offset);
         for (ExPolygon &s : shape) {

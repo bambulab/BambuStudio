@@ -131,6 +131,17 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                         message = _L("The file contains invalid vertex index.");
                         return false;
                     }
+                    // Reject UV indices outside the parsed texture coordinate table up front, so get_uv
+                    // below never sees a value large enough to overflow its signed bounds check.
+                    // -1 is the "no texture coordinate" marker (e.g. faces written as "f v//n"),
+                    // and with an empty table the UV references are inert (the get_uv block below
+                    // is skipped), so both keep loading as they did before.
+                    if (data.textureCoordinates.size() > 0 && vertex.textureCoordIdx != -1 &&
+                        (vertex.textureCoordIdx < 0 || size_t(vertex.textureCoordIdx) * 2 + 1 >= data.textureCoordinates.size())) {
+                        BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains invalid texture coordinate index.";
+                        message = _L("The file contains invalid texture coordinate index.");
+                        return false;
+                    }
                     indices.push_back(vertex.coordIdx);
                     uvs.push_back(vertex.textureCoordIdx);
                 }
@@ -163,9 +174,9 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                         }
                         if (data.textureCoordinates.size() > 0) {
                             auto get_uv = [&data](int uv_idx) {
-                                if (uv_idx < 0 || (uv_idx + 1) * 2 > static_cast<int>(data.textureCoordinates.size()))
+                                if (uv_idx < 0 || size_t(uv_idx) * 2 + 1 >= data.textureCoordinates.size())
                                     return Vec2f(0.f, 0.f);
-                                return Vec2f(data.textureCoordinates[uv_idx * 2], data.textureCoordinates[uv_idx * 2 + 1]);
+                                return Vec2f(data.textureCoordinates[size_t(uv_idx) * 2], data.textureCoordinates[size_t(uv_idx) * 2 + 1]);
                             };
                             Vec2f                uv0 = get_uv(tri_uvs[0]);
                             Vec2f                uv1 = get_uv(tri_uvs[1]);

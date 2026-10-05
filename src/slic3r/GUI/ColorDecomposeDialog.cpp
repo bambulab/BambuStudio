@@ -278,7 +278,8 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
                                            const std::vector<std::string>& filament_types,
                                            size_t current_filament_count,
                                            size_t max_filament_count,
-                                           std::vector<size_t> physical_config_indices)
+                                           std::vector<size_t> physical_config_indices,
+                                           bool enforce_filament_limit)
     : DPIDialog(parent, wxID_ANY, _L("Decompose Color"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_filament_idx(filament_idx)
@@ -288,6 +289,7 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
     , m_filament_types(filament_types)
     , m_current_filament_count(current_filament_count)
     , m_max_filament_count(max_filament_count)
+    , m_enforce_filament_limit(enforce_filament_limit)
     , m_physical_config_indices(std::move(physical_config_indices))
 {
     if (m_filament_idx >= 0 && static_cast<size_t>(m_filament_idx) < m_filament_types.size())
@@ -1026,7 +1028,7 @@ void ColorDecomposeDialog::update_filament_limit_warning()
     const bool creates_mixed = m_result.components.size() >= 2;
     // +1 for the mixed filament slot that will be created after decomposition.
     const size_t needed = m_current_filament_count + missing_new + 1;
-    const bool blocked = creates_mixed && needed > m_max_filament_count;
+    const bool blocked = m_enforce_filament_limit && creates_mixed && needed > m_max_filament_count;
 
     const bool was_shown = m_limit_warning_panel->IsShown();
 

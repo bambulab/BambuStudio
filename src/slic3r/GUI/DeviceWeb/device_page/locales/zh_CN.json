@@ -188,5 +188,12 @@
   "Enter brand name": "输入品牌名称",
   "Material Type is required": "类型为必填项",
   "No options": "无可选项",
-  "Total Net Weight must be greater than 0": "总净重必须大于 0"
+  "Total Net Weight must be greater than 0": "总净重必须大于 0",
+  "AMS Settings": "AMS 设置",
+  "Auto-refill": "自动续料",
+  "Humidity": "湿度",
+  "Load": "进料",
+  "Unload": "退料",
+  "External Spool": "外挂料",
+  "Quantity": "数量"
 }

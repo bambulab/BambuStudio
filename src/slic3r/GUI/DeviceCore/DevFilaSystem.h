@@ -16,7 +16,7 @@
 #include <wx/string.h>
 #include <wx/colour.h>
 
-#define HOLD_COUNT_MAX          3
+#define TRAY_HOLD_COUNT_MAX          5
 
 namespace Slic3r
 {
@@ -47,9 +47,18 @@ public:
     {
         is_bbl = false;
         id = tray_id;
+        ams_id = tray_id; // ext spool: the unit and the slot share the same id
+    }
+
+    DevAmsTray(const std::string& ams_id, const std::string& slot_id)
+    {
+        is_bbl = false;
+        id = slot_id;
+        this->ams_id = ams_id;
     }
 
     std::string              id;
+    std::string              ams_id; // same as id if it's EXT_SPOOL
     DevAmsType               ams_type = DevAmsType::EXT_SPOOL;
     std::string              tag_uid;             // tag_uid
     std::string              setting_id;          // tray_info_idx
@@ -99,10 +108,13 @@ public:
     // setters
     void reset();
     void UpdateColorFromStr(const std::string& color);
-    void set_hold_count() { hold_count = HOLD_COUNT_MAX; }
+    void set_hold_count() { hold_count = TRAY_HOLD_COUNT_MAX; }
 
     // getter
+    DevAmsSlotId get_ams_slot_id() const;
+
     bool is_tray_info_ready() const;
+    bool is_reading(long long tray_reading_bits) const;
     bool is_unset_third_filament() const;
 
     wxColour    get_color()  const { return decode_color(color); };

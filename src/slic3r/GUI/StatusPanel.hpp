@@ -13,6 +13,7 @@
 #include <wx/image.h>
 #include <wx/sizer.h>
 #include <wx/gbsizer.h>
+#include <wx/weakref.h>
 #include <wx/webrequest.h>
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
@@ -34,6 +35,7 @@
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/FilamentLoad.hpp"
 #include "Widgets/FanControl.hpp"
+#include "DeviceTab/AmsControl/AmsControlWebEnable.hpp"
 #include "HMS.hpp"
 #include "PartSkipDialog.hpp"
 #include "DeviceErrorDialog.hpp"
@@ -53,6 +55,9 @@ namespace GUI {
 // Previous definitions
 class MessageDialog;
 class wgtDeviceNozzleRack;
+#if BBL_ENABLE_AMS_CONTROL_WEB
+class wgtAmsControlWebPanel;
+#endif
 class CameraFullscreenFrame;
 
 enum CameraRecordingStatus {
@@ -299,12 +304,12 @@ private:
 
     wxBoxSizer*     m_printing_sizer;
     wxStaticText *  m_staticText_printing;
-    wxStaticText*   m_staticText_subtask_value;
+    wxStaticText*   m_staticText_title;
     wxStaticText*   m_staticText_consumption_of_time;
     wxStaticText*   m_staticText_consumption_of_weight;
     wxStaticText*   m_printing_stage_value;
     ScalableButton* m_question_button;
-    wxStaticText*   m_staticText_profile_value;
+    wxStaticText*   m_staticText_subtitle;
     wxStaticText*   m_staticText_progress_percent;
     wxStaticText*   m_staticText_progress_percent_icon;
     wxStaticText*   m_staticText_progress_left;
@@ -360,7 +365,7 @@ public:
     void update_stopping_state(bool enter);
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
-    void update_subtask_name(wxString name);
+    void update_title(const wxString &title);
     void update_stage_value(wxString stage, int val);
     void update_stage_value_with_machine(wxString stage, int val, MachineObject* obj = nullptr);
     void on_stage_clicked(wxMouseEvent& event);
@@ -374,7 +379,7 @@ public:
     void updatePauseNum(bool show, wxString num = wxEmptyString);
     void updatePauseMarkers(const DevPrintPauseList *pauseList, int printRemainingTime = 0);
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
-    void show_profile_info(bool show, wxString profile = wxEmptyString);
+    void show_subtitle(bool show, const wxString &subtitle = wxEmptyString);
     void set_thumbnail_img(const wxBitmap& bmp, const std::string& bmp_name);
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
@@ -481,9 +486,9 @@ protected:
 
     Label *         m_staticText_printing;
     wxStaticBitmap *m_bitmap_thumbnail;
-    wxStaticText *  m_staticText_subtask_value;
+    wxStaticText *  m_staticText_title;
     wxStaticText *  m_printing_stage_value;
-    wxStaticText *  m_staticText_profile_value;
+    wxStaticText *  m_staticText_subtitle;
     ProgressBar*    m_gauge_progress;
     wxStaticText *  m_staticText_progress_percent;
     wxStaticText *  m_staticText_progress_percent_icon;
@@ -551,6 +556,11 @@ protected:
 
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    SwitchBoard*    m_ams_control_web_switch{ nullptr };
+    wgtAmsControlWebPanel* m_ams_control_web_panel{ nullptr };
+    bool            m_ams_control_web_active{ ams_control_use_web() };
+#endif
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
 
@@ -649,6 +659,9 @@ public:
 
 private:
     void on_ams_rack_switch(wxCommandEvent& event);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    void on_ams_control_web_switch(wxCommandEvent& event);
+#endif
     void show_camera_fullscreen();
 };
 
@@ -656,6 +669,12 @@ class StatusPanel : public StatusBasePanel
 {
 private:
     friend class MonitorPanel;
+
+    struct TaskDisplayInfo
+    {
+        wxString title;
+        wxString subtitle;
+    };
 
 protected:
     std::shared_ptr<SliceInfoPopup> m_slice_info_popup;
@@ -674,7 +693,7 @@ protected:
     AMSNewOfficialFilamentDlg *m_new_official_filament_dlg{nullptr};
     SoftMatchPendingResponse   m_soft_match_pending;
 
-    DeviceErrorDialog* m_print_error_dlg = nullptr;
+    wxWeakRef<DeviceErrorDialog> m_print_error_dlg;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* con_load_dlg = nullptr;
     MessageDialog *       ctrl_e_hint_dlg             = nullptr;
@@ -812,6 +831,9 @@ protected:
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
     void update_basic_print_data(bool def = false);
     void update_model_info();
+    TaskDisplayInfo resolve_task_display_info(const std::string &task_id, const std::string &subtask_name,
+                                              const BBLModelTask *model_task) const;
+    void update_task_display_info(MachineObject *obj);
     void update_subtask(MachineObject* obj);
     void update_partskip_subtask(MachineObject *obj);
     void update_cloud_subtask(MachineObject *obj);
@@ -819,6 +841,7 @@ protected:
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
+    void update_calib_history(MachineObject* obj);
     void update_filament_loading_panel(MachineObject* obj);
 
     void update_extruder_status(MachineObject* obj);
@@ -848,6 +871,7 @@ protected:
 public:
     void update_error_message();
     void show_ams_filament_hint(const std::string& ams_id, const std::string& slot_id);
+    void open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id);
 
 public:
     StatusPanel(wxWindow *      parent,

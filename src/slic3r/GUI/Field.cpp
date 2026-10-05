@@ -1431,8 +1431,15 @@ void Choice::set_value(const boost::any& value, bool change_event)
 			val--;
         if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sub_top_surface_pattern" || m_opt_id == "sparse_infill_pattern" ||
             m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" || m_opt_id == "locked_skeleton_infill_pattern" ||
-            m_opt_id == "ironing_pattern")
+            m_opt_id == "ironing_pattern" || m_opt_id == "conformal_stagger")
 		{
+            // Dropdown shows Off/Alternate only. Map leftover stagger modes onto those two.
+            if (m_opt_id == "conformal_stagger") {
+                if (val == int(ConformalStagger::HalfStep))
+                    val = int(ConformalStagger::Alternate);
+                else if (val == int(ConformalStagger::Orthogonal))
+                    val = int(ConformalStagger::None);
+            }
 			std::string key;
 			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
 			for (auto it : map_names)
@@ -1519,7 +1526,7 @@ boost::any& Choice::get_value()
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
         else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sub_top_surface_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style" || m_opt_id == "curr_bed_type" || m_opt_id == "locked_skin_infill_pattern" ||
-                 m_opt_id == "locked_skeleton_infill_pattern" || m_opt_id == "ironing_pattern") {
+                 m_opt_id == "locked_skeleton_infill_pattern" || m_opt_id == "ironing_pattern" || m_opt_id == "conformal_stagger") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(m_opt.enum_keys_map->at(key));
 		}

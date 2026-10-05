@@ -500,6 +500,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         //    event.Veto();
         //    return;
         //}
+        // Runs before close_with_confirm() so that a save triggered from here marks
+        // the plater dirty in time for the "save project" prompt to pick it up.
+        if (event.CanVeto() && !confirm_project_page_can_leave([this] { Close(); })) {
+            event.Veto();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancelled or deferred by the project page";
+            return;
+        }
+
         auto check = [](bool yes_or_no) {
             if (yes_or_no)
                 return true;
@@ -1117,8 +1125,10 @@ void MainFrame::shutdown()
     // language after a switch.
     ParamTooltip::Shutdown();
 
-    // BBS: backup
-    Slic3r::set_backup_callback(nullptr);
+    // BBS: backup -- quiesce the worker before this frame is destroyed. Stops the periodic
+    // timer, drops the UI callback and any queued Backup UI posts so the backup thread cannot
+    // invoke a callback (wxPostEvent / export_3mf) against this MainFrame after it goes away.
+    Slic3r::stop_backup();
 #ifdef _WIN32
 	if (m_hDeviceNotify) {
 		::UnregisterDeviceNotification(HDEVNOTIFY(m_hDeviceNotify));
@@ -1349,18 +1359,9 @@ void MainFrame::init_tabpanel()
             new_sel != old_sel &&
             m_project != nullptr &&
             m_tabpanel->GetPage((size_t)old_sel) == m_project &&
-            m_project->is_editing_page()) {
-            MessageDialog dlg(this,
-                              _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
-                              _L("Save"),
-                              wxYES_NO | wxCANCEL |wxCENTRE);
-            int ret = dlg.ShowModal();
-            if (ret == wxID_YES) {
-                m_project->save_project();
-            } else {
-                e.Veto();
-                return;
-            }
+            !confirm_project_page_can_leave([this, new_sel] { m_tabpanel->SetSelection(new_sel); })) {
+            e.Veto();
+            return;
         }
         if (wxGetApp().preset_bundle &&
             wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
@@ -1728,6 +1729,56 @@ bool MainFrame::is_active_and_shown_tab(wxPanel* panel)
     if (m_tabpanel->GetCurrentPage() != panel)
         return false;
     return true;
+}
+
+bool MainFrame::confirm_project_page_can_leave(std::function<void()> retry)
+{
+    if (m_project == nullptr || !m_project->is_editing_page())
+        return true;
+
+    const bool dirty_known = m_project_leave_checked;
+    m_project_leave_checked = false;
+    bool page_dirty = m_project_leave_dirty;
+
+    if (!dirty_known) {
+        // Whether anything actually changed is only known inside the page, and the
+        // answer arrives as a separate message, so hold the action back and replay
+        // it from the callback.
+        const long long now = wxGetUTCTimeMillis().GetValue();
+        if (m_project_leave_query_ms == 0 || now - m_project_leave_query_ms < 1500) {
+            m_project_leave_query_ms = now;
+            m_project->query_unsaved_changes([this, retry](bool dirty) {
+                m_project_leave_checked  = true;
+                m_project_leave_dirty    = dirty;
+                m_project_leave_query_ms = 0;
+                CallAfter(retry);
+            });
+            return false;
+        }
+        // The page never answered. Prompt rather than risk discarding edits.
+        m_project_leave_query_ms = 0;
+        page_dirty = true;
+    }
+
+    if (!page_dirty)
+        return true;
+
+    MessageDialog dlg(this,
+                      _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
+                      _L("Save"),
+                      wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
+    const int ret = dlg.ShowModal();
+    if (ret == wxID_YES) {
+        m_project->save_project([this, retry] {
+            m_project_leave_checked  = true;
+            m_project_leave_dirty    = false;
+            CallAfter(retry);
+        });
+        return false;
+    }
+
+    // wxID_NO drops the edits and lets the action through; cancel stays on the page.
+    return ret == wxID_NO;
 }
 
 bool MainFrame::can_start_new_project() const
@@ -2166,7 +2217,8 @@ wxBoxSizer* MainFrame::create_side_tools()
             //this->m_plater->select_view_3D("Preview");
             if (m_print_select == ePrintAll || m_print_select == ePrintPlate || m_print_select == ePrintMultiMachine)
             {
-                m_plater->apply_background_progress();
+                if (!m_plater->only_gcode_mode())
+                    m_plater->apply_background_progress();
                 // check valid of print
                 m_print_enable = get_enable_print_status();
                 m_print_btn->Enable(m_print_enable);
@@ -2473,6 +2525,8 @@ bool MainFrame::get_enable_print_status()
     bool is_all_plates = wxGetApp().plater()->get_preview_canvas3D()->is_all_plates_selected();
     if (m_print_select == ePrintAll)
     {
+        if (m_plater->only_gcode_mode())
+            return true;
         if (!part_plate_list.is_all_slice_results_ready_for_print())
         {
             enable = false;
@@ -2480,6 +2534,8 @@ bool MainFrame::get_enable_print_status()
     }
     else if (m_print_select == ePrintPlate)
     {
+        if (m_plater->only_gcode_mode())
+            return true;
         if (!current_plate->is_slice_result_ready_for_print())
         {
             enable = false;
@@ -3357,12 +3413,31 @@ void MainFrame::init_menubar_as_editor()
             [this]() { return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview) && m_plater->is_sidebar_enabled(); },
             this);
         viewMenu->AppendSeparator();
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Layer") + "\t" + ctrl + "E", _L("Show Labels of printing by layer in 3D scene"),
-            [this](wxCommandEvent&) { m_plater->show_view3D_layer_labels(!m_plater->are_view3D_layer_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
-            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_layer_labels_shown(); }, this);
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Object") + "\t" + ctrl + "Shift+" + "E", _L("Show Labels of printing by object in 3D scene"),
-            [this](wxCommandEvent&) { m_plater->show_view3D_object_labels(!m_plater->are_view3D_object_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
-            [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_object_labels_shown(); }, this);
+        auto curr_plate_is_by_object = [this]() {
+            PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
+            return plate && plate->get_real_print_seq() == PrintSequence::ByObject;
+        };
+        wxMenuItem *labels_item = append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Layer") + "\t" + ctrl + "E", _L("Show Labels of printing by layer in 3D scene"),
+            [this, curr_plate_is_by_object](wxCommandEvent &) {
+                if (curr_plate_is_by_object())
+                    m_plater->show_view3D_object_labels(!m_plater->are_view3D_object_labels_shown());
+                else
+                    m_plater->show_view3D_layer_labels(!m_plater->are_view3D_layer_labels_shown());
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this, [this]() { return m_plater->is_view3D_shown(); },
+            [this, curr_plate_is_by_object]() {
+                return curr_plate_is_by_object() ? m_plater->are_view3D_object_labels_shown() : m_plater->are_view3D_layer_labels_shown();
+            },
+            this);
+        this->Bind(wxEVT_UPDATE_UI, [this, labels_item, curr_plate_is_by_object](wxUpdateUIEvent &evt) {
+            if (curr_plate_is_by_object())
+                labels_item->SetItemLabel(_L("Show Labels by Object") + "\t" + "Shift+" + "E");
+            else
+                labels_item->SetItemLabel(_L("Show Labels by Layer") + "\t" + ctrl + "E");
+            evt.Enable(m_plater->is_view3D_shown());
+            evt.Check(curr_plate_is_by_object() ? m_plater->are_view3D_object_labels_shown() : m_plater->are_view3D_layer_labels_shown());
+        }, labels_item->GetId());
 
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Overhang") + "\t" + ctrl + "L", _L("Show object overhang highlight in 3D scene"),
             [this](wxCommandEvent &) {
@@ -4364,6 +4439,14 @@ void MainFrame::set_print_button_to_default(PrintSelectType select_type)
 
 void MainFrame::add_to_recent_projects(const wxString& filename)
 {
+    // Never record a path that would break out of its attribute when the home page renders the
+    // recent-file list. Plater::load_project() rejects these too; this keeps any other caller safe.
+    // The whole path is checked, not just the file name: the home page renders the full path.
+    if (Plater::has_html_unsafe_path_characters(filename)) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": skipped project with unsafe characters in its path";
+        return;
+    }
+
     if (wxFileExists(filename))
     {
         m_recent_projects.AddFileToHistory(filename);
@@ -4438,7 +4521,13 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int imag
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
         boost::property_tree::wptree item;
         std::wstring proj = m_recent_projects.GetHistoryFile(i).ToStdWstring();
-        item.put(L"project_name", proj.substr(proj.find_last_of(L"/\\") + 1));
+        std::wstring project_name = proj.substr(proj.find_last_of(L"/\\") + 1);
+        // Entries persisted by an older build may still carry a path that breaks out of the
+        // attribute it is rendered into, so filter on the way out as well as on the way in.
+        // Both fields below reach the page, so the full path has to be clean, not just the name.
+        if (Plater::has_html_unsafe_path_characters(wxString(proj)))
+            continue;
+        item.put(L"project_name", project_name);
         item.put(L"path", proj);
         boost::system::error_code ec;
         std::time_t t = boost::filesystem::last_write_time(proj, ec);

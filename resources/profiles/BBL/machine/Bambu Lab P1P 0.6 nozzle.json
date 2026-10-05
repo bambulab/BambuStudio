@@ -23,10 +23,6 @@
     "min_layer_height": [
         "0.12"
     ],
-    "nozzle_type": [
-        "hardened_steel",
-        "hardened_steel"
-    ],
     "retraction_length": [
         "1.4",
         "1.4"

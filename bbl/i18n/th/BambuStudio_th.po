@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 19:53+0800\n"
+"POT-Creation-Date: 2026-09-22 15:53+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -215,6 +215,9 @@ msgstr "PPS-CF มีความเปราะและอาจหักใ�
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF มีความเปราะและอาจหักในท่อ PTFE ที่โค้งงอเหนือชุดหัวจ่าย"
+
+msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+msgstr ""
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "PLA Glow อาจทำให้ตัวป้อนเส้นวัสดุระยะแรกของ AMS สึกหรอได้ ควรใช้ม้วนวัสดุจากภายนอกแทน"
@@ -903,7 +906,7 @@ msgid "Object"
 msgstr "วัตถุ"
 
 msgid "Right-click a part to assign it to the other side"
-msgstr ""
+msgstr "คลิกขวาที่ชิ้นส่วนเพื่อย้ายไปยังอีกฝั่ง"
 
 msgid "Drag to move the cut plane"
 msgstr "ลากเพื่อย้ายระนาบตัด"
@@ -978,13 +981,13 @@ msgid "Groove Angle"
 msgstr "มุมร่อง"
 
 msgid "Pick face"
-msgstr ""
+msgstr "เลือกพื้นผิว"
 
 msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
-msgstr ""
+msgstr "คลิกที่พื้นผิวของโมเดลเพื่อตั้งค่าระนาบตัด ระนาบจะวางแนบสนิทกับพื้นผิวนั้น ใช้เครื่องมือย้ายเพื่อปรับระยะออฟเซต"
 
 msgid "Click a face of the model."
-msgstr ""
+msgstr "คลิกที่พื้นผิวของโมเดล"
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -1546,6 +1549,9 @@ msgstr "ความลึกของการฝัง"
 msgid "Text Gap"
 msgstr "ระยะห่างข้อความ"
 
+msgid "Line Gap"
+msgstr ""
+
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "คำเตือน: พบการสะท้อนในเมทริกซ์ข้อความ การลากจะสร้างข้อความขึ้นใหม่ทั้งหมด"
 
@@ -1609,6 +1615,14 @@ msgstr "ความหนา"
 msgid "Skew"
 msgstr "การเอียง"
 
+#. TRN - Input label. Be short as possible
+#. Align Top|Middle|Bottom and Left|Center|Right
+msgid "Alignment"
+msgstr "จัดตำแหน่ง"
+
+msgid "Align center horizontally"
+msgstr ""
+
 msgid "No symbol"
 msgstr "ไม่มีสัญลักษณ์"
 
@@ -1629,11 +1643,6 @@ msgstr "ใช้พื้นผิว"
 #. for each character(glyph) in text separately
 msgid "Per glyph"
 msgstr "ต่ออักขระ"
-
-#. TRN - Input label. Be short as possible
-#. Align Top|Middle|Bottom and Left|Center|Right
-msgid "Alignment"
-msgstr "จัดตำแหน่ง"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
@@ -2444,11 +2453,11 @@ msgstr "ล้างข้อมูลการตัด"
 msgid "Add Primitive"
 msgstr "เพิ่มรูปทรงพื้นฐาน"
 
-msgid "Show Labels by Layer"
-msgstr "แสดงป้ายกำกับตามชั้น"
+msgid "Add New Plate"
+msgstr ""
 
-msgid "Show Labels by Object"
-msgstr "แสดงป้ายกำกับตามวัตถุ"
+msgid "Add a new plate"
+msgstr ""
 
 msgid "To objects"
 msgstr "เป็นวัตถุ"
@@ -2588,11 +2597,14 @@ msgstr "เติมสำเนาเต็มฐานพิมพ์"
 msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr "เติมสำเนาของวัตถุที่เลือกลงบนพื้นที่ที่เหลือของฐานพิมพ์"
 
+msgid "Show Labels by Layer"
+msgstr "แสดงป้ายกำกับตามชั้น"
+
+msgid "Show Labels by Object"
+msgstr "แสดงป้ายกำกับตามวัตถุ"
+
 msgid "Edit Plate Name"
 msgstr "แก้ไขชื่อแผ่นฐาน"
-
-msgid "Show Labels"
-msgstr "แสดงป้ายกำกับ"
 
 msgid "Name"
 msgstr "ชื่อ"
@@ -2620,7 +2632,7 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 
 msgid "Error: reversed faces detected, which may affect rendering"
-msgstr ""
+msgstr "ข้อผิดพลาด: ตรวจพบพื้นผิวกลับด้าน ซึ่งอาจส่งผลต่อการเรนเดอร์"
 
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
@@ -2637,7 +2649,7 @@ msgid "Click the icon to reset all settings of the object"
 msgstr "คลิกที่ไอคอนเพื่อรีเซ็ตการตั้งค่าทั้งหมดของวัตถุ"
 
 msgid "Unprintable object"
-msgstr ""
+msgstr "วัตถุที่ไม่สามารถพิมพ์ได้"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "คลิกขวาที่ไอคอนเพื่อยกเลิกคุณสมบัติการพิมพ์ของวัตถุ"
@@ -3839,11 +3851,32 @@ msgstr "การปรับสภาพด้วยความร้อนล
 msgid "Remaining time: %dmin%ds"
 msgstr "เวลาที่เหลือ: %d นาที %d วินาที"
 
-msgid "One-click CMYW auto-mix"
-msgstr "ผสมสี CMYW อัตโนมัติในคลิกเดียว"
+msgid "Transition Smoothness (between color blocks): the higher, the smoother"
+msgstr ""
 
-msgid "One-click RYBW auto-mix"
-msgstr "ผสมสี RYBW อัตโนมัติในคลิกเดียว"
+msgid "Auto Merge Small Fragments: the higher, the more merging"
+msgstr ""
+
+msgid "Add Filament"
+msgstr ""
+
+msgid "More Colors"
+msgstr "สีเพิ่มเติม"
+
+msgid "Official Filament"
+msgstr "เส้นวัสดุอย่างเป็นทางการ"
+
+msgid "Filament matching color difference threshold"
+msgstr ""
+
+msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgstr ""
+
+msgid "Decompose Color"
+msgstr "แยกสี"
+
+msgid "+ Add Filament"
+msgstr ""
 
 msgid "Project Physical Filaments"
 msgstr "เส้นวัสดุจริงในโปรเจกต์"
@@ -3857,66 +3890,96 @@ msgstr "เส้นวัสดุผสมในโปรเจกต์"
 msgid "New Mixed Filaments"
 msgstr "เส้นวัสดุผสมใหม่"
 
-msgid "Decompose Color"
-msgstr "แยกสี"
+#, boost-format
+msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
+msgstr ""
 
-msgid "+ Add Material"
-msgstr "+ เพิ่มวัสดุ"
+msgid "Updating"
+msgstr "กำลังอัปเดต"
 
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "โปรเจกต์รองรับเส้นวัสดุได้สูงสุด %d ประเภท เส้นวัสดุส่วนเกินจะถูกละทิ้ง"
+msgid "Simplify Colors"
+msgstr ""
 
-msgid "Import Model"
-msgstr "นำเข้าโมเดล"
+msgid "Filament Matching"
+msgstr ""
+
+msgid "Import Model: Simplify Colors"
+msgstr ""
 
 msgid "Original"
 msgstr "ต้นฉบับ"
 
-msgid "Multi-Color"
-msgstr "หลายสี"
-
-msgid "Your input texture model"
-msgstr "โมเดลลวดลายที่คุณป้อน"
-
-msgid "Processed multi-color model"
-msgstr "โมเดลหลายสีที่ประมวลผลแล้ว"
+msgid "Simplified"
+msgstr ""
 
 msgid "Color Count"
 msgstr "จำนวนสี"
 
-msgid "Smooth Level"
-msgstr "ระดับความเรียบ"
+msgid "Advanced settings"
+msgstr "การตั้งค่าขั้นสูง"
 
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr "กำหนดจำนวนสีที่เหมาะสมที่สุดโดยอัตโนมัติเท่านั้น และคำนวณการจับคู่เส้นวัสดุใหม่"
+msgid "Boundary Smoothness"
+msgstr ""
 
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr "แปลงลวดลายเป็นการระบายสีโดยใช้จำนวนสีและระดับความเรียบที่กำหนด"
+msgid "Gap Area"
+msgstr ""
 
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr "การแจ้งเตือน: พารามิเตอร์เปลี่ยนแปลง คลิกใช้เพื่อให้มีผล"
+msgid "Automatically determine the optimal color count"
+msgstr ""
 
-msgid "Filament Mapping"
-msgstr "การจับคู่เส้นวัสดุ"
+msgid "Color mixing"
+msgstr ""
 
-msgid "Reset filament mapping to the state before one-click mixing"
-msgstr "รีเซ็ตการจับคู่เส้นวัสดุให้กลับสู่สถานะก่อนการผสมสีในคลิกเดียว"
+msgid "Use official mixing kits →"
+msgstr ""
 
-msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr "เลือกโหมดผสมอัตโนมัติในคลิกเดียวสำหรับการนำเข้าสีลวดลาย"
+msgid "Some colors have no matching filament. Please match them before importing."
+msgstr ""
 
-msgid "Auto-merge same filament"
-msgstr "ผสานเส้นวัสดุที่เหมือนกันโดยอัตโนมัติ"
+msgid "Auto-Add All Filaments"
+msgstr ""
+
+msgid "Fix now"
+msgstr ""
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "ผสานเส้นวัสดุที่เหมือนกันเข้ากับเส้นวัสดุที่มีอยู่ในโปรเจกต์อัตโนมัติ"
 
-msgid "Skip Matching"
-msgstr "ข้ามการจับคู่"
+msgid "Automatically merge filaments of the same color and type"
+msgstr ""
+
+msgid "Skip"
+msgstr "ข้าม"
 
 msgid "Skip filament mapping and import as a single-color model"
 msgstr "ข้ามการจับคู่เส้นวัสดุและนำเข้าเป็นโมเดลสีเดียว"
+
+msgid "Next"
+msgstr "ถัดไป"
+
+msgctxt "TextureImport"
+msgid "Previous"
+msgstr "ก่อนหน้า"
+
+msgid "Discard newly added filaments and re-run automatic matching"
+msgstr ""
+
+msgid "Before matching"
+msgstr ""
+
+msgid "After matching"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Before simplification: %d colors"
+msgstr ""
+
+#, c-format, boost-format
+msgid "After simplification: %d colors"
+msgstr ""
+
+msgid "Import Model: Filament Matching"
+msgstr ""
 
 msgid "Processing"
 msgstr "กำลังประมวลผล"
@@ -3927,23 +3990,73 @@ msgstr "กำลังคำนวณสีลวดลาย..."
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr "การคำนวณล้มเหลว โปรดปรับพารามิเตอร์แล้วลองอีกครั้ง"
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "เมชมีรูปทรงที่ไม่เป็นแมนิโฟลด์หรือมีขอบเขตเปิด คุณสามารถนำเข้าตามสภาพเดิม หรือซ่อมแซมด้วยบริการซ่อมแซม 3D ของ Windows ก่อนนำเข้า"
+#, c-format, boost-format
+msgid "The color count cannot exceed the original color count (%d)."
+msgstr ""
 
-msgid "Mesh repair"
-msgstr "ซ่อมแซมเมช"
+#, c-format, boost-format
+msgid "The color count cannot exceed the project's filament limit (%d)."
+msgstr ""
 
-msgid "Import without repair"
-msgstr "นำเข้าโดยไม่ซ่อมแซม"
+msgid "The current printer has no compatible PLA Basic filament."
+msgstr ""
 
-msgid "Repair and import"
-msgstr "ซ่อมแซมและนำเข้า"
+msgid "Click to select a matching filament"
+msgstr ""
 
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "โปรดทราบว่าเมชมีรูปทรงที่ไม่เป็นแมนิโฟลด์หรือมีขอบเขตเปิด"
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
+msgstr ""
 
-msgid "Mesh issue"
-msgstr "ปัญหาเมช"
+msgid "Error Prompt"
+msgstr ""
+
+msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
+msgstr ""
+
+#, boost-format
+msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Kept filaments"
+msgstr ""
+
+msgid "Deleted filaments"
+msgstr ""
+
+msgid "After merging"
+msgstr ""
+
+#, boost-format
+msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit. Please choose how to proceed."
+msgstr ""
+
+msgid "Prioritize merging similar-color filaments"
+msgstr ""
+
+msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "How to use standard mixing kits"
+msgstr ""
+
+msgid "What is the CMYW mixing kit?"
+msgstr ""
+
+msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgstr ""
+
+msgid "4-color CMYW"
+msgstr ""
+
+msgid "Cyan · Magenta · Yellow · White"
+msgstr ""
+
+msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
+msgstr ""
+
+msgid "Add to project filament list"
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "เลือกไฟล์ SLA:"
@@ -4064,7 +4177,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr "ปัจจัยการปรับเทียบพลศาสตร์การไหล"
 
 msgid "View Wiki for details"
-msgstr ""
+msgstr "ดูรายละเอียดเพิ่มเติมได้ที่ Wiki"
 
 msgid "Nozzle Type"
 msgstr "ชนิดหัวฉีด"
@@ -4086,25 +4199,25 @@ msgstr ""
 "หัวฉีด"
 
 msgid "Tip: Setting AMS slot information while printing is not supported"
-msgstr ""
+msgstr "คำแนะนำ: ไม่รองรับการตั้งค่าข้อมูลช่อง AMS ระหว่างพิมพ์"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "คำแนะนำ: ไม่รองรับการตั้งค่าข้อมูลช่อง Virtual ระหว่างพิมพ์"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลเส้นวัสดุ?"
 
 msgid "Add to Filament Library?"
-msgstr ""
+msgstr "เพิ่มลงในคลังเส้นวัสดุหรือไม่"
 
 msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
-msgstr ""
+msgstr "การแก้ไขประเภทหรือสีของเส้นวัสดุจะทำให้การผูกกับคลังเส้นวัสดุถูกยกเลิก คุณต้องการเพิ่มเส้นวัสดุนี้เป็นม้วนใหม่หรือไม่"
 
 msgid "Add to Filament Library"
-msgstr ""
+msgstr "เพิ่มลงในคลังเส้นวัสดุ"
 
 msgid "Save Only"
-msgstr ""
+msgstr "บันทึกเท่านั้น"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU ต้องการเส้นทางการป้อนและขั้นตอนการป้อนเข้าที่แตกต่างกัน มิฉะนั้นอาจเกิดการอุดตันหรือติดขัดได้ โปรดอ่านบทช่วยสอนก่อนใช้ TPU"
@@ -4116,7 +4229,7 @@ msgid "You need to select the material type and color first."
 msgstr "คุณต้องเลือกประเภทวัสดุและสีก่อน"
 
 msgid "Please select a color"
-msgstr ""
+msgstr "โปรดเลือกสี"
 
 msgid "Remark"
 msgstr "หมายเหตุ"
@@ -4137,25 +4250,25 @@ msgstr ""
 "'อุปกรณ์ -> พิมพ์ชิ้นส่วน'"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "เส้นวัสดุที่ตรงกัน"
 
 msgid "Add as new filament"
 msgstr "เพิ่มเป็นเส้นวัสดุใหม่"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS ตรวจพบเส้นวัสดุใหม่ เพิ่มลงใน Filament Manager หรือไม่"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "พบเส้นวัสดุที่คล้ายกันใน Filament Manager และทำการจับคู่โดยอัตโนมัติ"
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr ""
+msgstr "พบเส้นวัสดุที่คล้ายกันหลายเส้นใน Filament Manager โปรดยืนยันการจับคู่"
 
 msgid "New Filament"
-msgstr ""
+msgstr "เส้นวัสดุใหม่"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "บันทึกข้อมูลเส้นวัสดุใหม่เรียบร้อยแล้ว"
 
 msgid "Dynamic flow calibration"
 msgstr "การปรับเทียบพลศาสตร์การไหล"
@@ -4183,9 +4296,6 @@ msgstr "อุณหภูมิฐาน"
 
 msgid "Start calibration"
 msgstr "เริ่มการปรับเทียบ"
-
-msgid "Next"
-msgstr "ถัดไป"
 
 msgid "Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box."
 msgstr "การปรับเทียบเสร็จสมบูรณ์ โปรดค้นหาเส้นที่ฉีดออกมาสม่ำเสมอที่สุดบนฐานความร้อนของคุณตามภาพด้านล่าง แล้วกรอกค่าที่อยู่ทางด้านซ้ายลงในช่องป้อนค่า K"
@@ -4460,10 +4570,10 @@ msgid "Reset AMS Sequence"
 msgstr "รีเซ็ตลำดับ AMS"
 
 msgid "View wiki for details"
-msgstr ""
+msgstr "ดูรายละเอียดเพิ่มเติมได้ที่ wiki"
 
 msgid "Nozzle Temperature"
-msgstr ""
+msgstr "อุณหภูมิหัวฉีด"
 
 msgid "File"
 msgstr "ไฟล์"
@@ -4662,7 +4772,7 @@ msgstr "ค่าอยู่นอกช่วง"
 
 #, boost-format
 msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
-msgstr ""
+msgstr "%1% ไม่สามารถเกินจำนวนเลเยอร์เปลือก (%2%) มิฉะนั้นสีที่ทาจะลามไปถึง Sparse Infill"
 
 msgid ""
 "Too small layer height.\n"
@@ -4823,6 +4933,8 @@ msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
 msgstr ""
+"ความลึกของการล็อกควรน้อยกว่าความลึกผิว\n"
+"รีเซ็ตเป็น 50% ของความลึกผิว"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "ผนังเสริมสลับชั้นไม่สามารถใช้งานร่วมกับโหมดแจกันเกลียว หากต้องการเปิดใช้งานผนังเสริมสลับชั้น ขอแนะนำให้ปรับดังต่อไปนี้:"
@@ -4850,6 +4962,15 @@ msgstr ""
 "ใช่ - นำไปใช้และเปิดใช้งานผนังเสริมสลับชั้นต่อไป\n"
 "ไม่ - ไม่ใช้ผนังเสริมสลับชั้น"
 
+msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep periodic modifier enabled\n"
+"No  - Don't use periodic modifier"
+msgstr ""
+
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "เพื่อให้ผนังเสริมสลับชั้นทำงานได้อย่างถูกต้อง ขอแนะนำให้ปรับดังต่อไปนี้:"
 
@@ -4862,7 +4983,7 @@ msgstr ""
 "ใช่ - นำไปใช้และเปิดใช้งานผนังเสริมสลับชั้นต่อไป\n"
 "ไม่ - คงการตั้งค่าปัจจุบันและเปิดใช้งานผนังเสริมสลับชั้น"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5223,6 +5344,12 @@ msgstr "ลองใหม่"
 
 msgid "Resume"
 msgstr "พิมพ์ต่อ"
+
+msgid "Loading error details ..."
+msgstr ""
+
+msgid "Unable to load error details."
+msgstr ""
 
 msgid "Unknown error."
 msgstr "ข้อผิดพลาดที่ไม่รู้จัก"
@@ -5911,7 +6038,7 @@ msgstr "ทาวเวอร์สลับสีช่วยปรับปร
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "ทาวเวอร์สลับสียื่นเลยขอบแผ่นฐาน"
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
 msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
@@ -6022,6 +6149,12 @@ msgstr ""
 msgid "Invalid input."
 msgstr "ข้อมูลที่ป้อนไม่ถูกต้อง"
 
+msgid "Network error"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
 msgid "New Window"
 msgstr "หน้าต่างใหม่"
 
@@ -6042,9 +6175,6 @@ msgstr "เตรียมการ"
 
 msgid "Preview"
 msgstr "ดูตัวอย่าง"
-
-msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr "หน้าปัจจุบันมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก คุณสามารถแก้ไขต่อ หรือเลือกที่จะบันทึก/ละทิ้งก่อนออกจากหน้านี้ได้"
 
 msgid "Home"
 msgstr "หน้าหลัก"
@@ -6069,6 +6199,9 @@ msgstr "ไม่"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "จะถูกปิดก่อนสร้างโมเดลใหม่ คุณต้องการดำเนินการต่อหรือไม่?"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "หน้าปัจจุบันมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก คุณสามารถแก้ไขต่อ หรือเลือกที่จะบันทึก/ละทิ้งก่อนออกจากหน้านี้ได้"
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "ปลดล็อกงานพิมพ์ที่เร็วขึ้น เสถียรขึ้น และไร้การบิดงอด้วย Helio Additive"
@@ -6367,9 +6500,6 @@ msgstr "รีเซ็ตเป็นเค้าโครงหน้าต่
 
 msgid "Show Labels of printing by layer in 3D scene"
 msgstr "แสดงป้ายกำกับการพิมพ์ตามชั้นในฉาก 3 มิติ"
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr "แสดงป้ายกำกับการพิมพ์ตามวัตถุในฉาก 3 มิติ"
 
 msgid "Show &Overhang"
 msgstr "แสดง &ส่วนยื่น"
@@ -6883,7 +7013,7 @@ msgid "Swap Y/Z axes"
 msgstr "สลับแกน Y/Z"
 
 msgid "Lock horizon"
-msgstr ""
+msgstr "ล็อกแนวระนาบ"
 
 msgid "(LAN)"
 msgstr ""
@@ -7035,7 +7165,7 @@ msgid "Finished"
 msgstr "เสร็จสิ้น"
 
 msgid "Almost complete"
-msgstr ""
+msgstr "ใกล้เสร็จสมบูรณ์แล้ว"
 
 msgid "Camera"
 msgstr "กล้อง"
@@ -7374,9 +7504,6 @@ msgstr "ข้อมูล %s"
 msgid "%s information"
 msgstr "ข้อมูล %s"
 
-msgid "Skip"
-msgstr "ข้าม"
-
 msgid "Newer 3mf version"
 msgstr "ไฟล์ 3mf เวอร์ชันใหม่กว่า"
 
@@ -7519,10 +7646,10 @@ msgid "Open link for more info"
 msgstr "เปิดลิงก์เพื่อดูข้อมูลเพิ่มเติม"
 
 msgid "Jump to: Support on build plate only"
-msgstr ""
+msgstr "ข้ามไปที่: รองรับเฉพาะบนแผ่นฐานเท่านั้น"
 
 msgid "Jump to: Support"
-msgstr ""
+msgstr "ข้ามไปที่: การรองรับ"
 
 msgid "Warning:"
 msgstr "คำเตือน:"
@@ -7784,478 +7911,537 @@ msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "หยุดการทำความร้อนโดยอัตโนมัติหลังจากไม่ได้ใช้งาน 5 นาที เพื่อความปลอดภัย"
 
 msgid "Note: "
-msgstr ""
+msgstr "หมายเหตุ: "
 
 msgid "Controls the printed height of each layer."
-msgstr ""
+msgstr "ควบคุมความสูงของการพิมพ์แต่ละเลเยอร์"
 
 msgid ""
 "A larger layer height prints faster but shows more obvious layer lines.\n"
 "A smaller layer height gives finer curved surfaces but takes longer to print.\n"
 "If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
 msgstr ""
+"การตั้งความสูงของเลเยอร์ให้มากขึ้นจะทำให้พิมพ์ได้เร็วขึ้น แต่จะทำให้เห็นรอยเส้นเลเยอร์ได้อย่างชัดเจน\n"
+"การลดความสูงของเลเยอร์จะทำให้ได้พื้นผิวโค้งที่ละเอียดกว่า แต่จะใช้เวลาพิมพ์นานขึ้น\n"
+"หากความสูงของเลเยอร์น้อยเกินไปในขณะที่ความเร็วสูงเกินไป การฉีดพลาสติกจะไม่ทัน ส่งผลให้พื้นผิวขาดวัสดุและขรุขระ"
 
 msgid "Recommended layer height is 20%-70% of the nozzle diameter."
-msgstr ""
+msgstr "ความสูงของเลเยอร์ที่แนะนำคือ 20%-70% ของเส้นผ่านศูนย์กลางหัวฉีด"
 
 msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
-msgstr ""
+msgstr "ควบคุมความหนาของเลเยอร์แรกของโมเดลที่ฉีดลงบนฐานทำความร้อน ซึ่งส่งผลต่อประสิทธิภาพการยึดเกาะของเลเยอร์แรกกับแผ่นฐาน"
 
 msgid ""
 "Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
 "Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
 msgstr ""
+"หากน้อยเกินไป เลเยอร์แรกจะไวต่อความราบเรียบของฐานทำความร้อนและมีแนวโน้มที่จะเกิดข้อบกพร่องในการพิมพ์\n"
+"หากใหญ่เกินไป อัตราส่วนความกว้างต่อความสูงของเลเยอร์แรกจะต่ำเกินไป ซึ่งจะส่งผลเสียต่อการยึดเกาะของวัสดุ"
 
 msgid "Usually set to half the nozzle diameter."
-msgstr ""
+msgstr "โดยปกติจะตั้งค่าไว้ที่ครึ่งหนึ่งของเส้นผ่านศูนย์กลางหัวฉีด"
 
 msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
-msgstr ""
+msgstr "สำหรับฟีเจอร์ของเส้นวัสดุผสมสี เมื่อเปิดใช้งาน เลเยอร์ที่ใช้เส้นวัสดุผสมสีจะถูกแบ่งออกเป็นเลเยอร์ย่อยที่บางลงตามสัดส่วน เพื่อให้ได้การผสมสีที่สม่ำเสมอยิ่งขึ้น"
 
 msgid ""
 "When off, colors change per full layer, so the blend is coarser and less even.\n"
 "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
 msgstr ""
+"เมื่อปิดใช้งาน สีจะเปลี่ยนไปในแต่ละเลเยอร์ที่สมบูรณ์ ทำให้การผสมสีหยาบและสม่ำเสมอน้อยลง\n"
+"เมื่อเปิดใช้งาน เลเยอร์ย่อยจะสลับซ้อนกันอย่างหนาแน่นยิ่งขึ้นเพื่อให้ผสมผสานกันได้อย่างสม่ำเสมอ แต่จะใช้เวลาพิมพ์นานขึ้น"
 
 msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr ""
+msgstr "แนะนำให้ใช้เฉพาะเมื่อใช้เส้นวัสดุผสมสี เพื่อให้ได้เอฟเฟกต์การไล่เลเยอร์สีที่ดีขึ้น"
 
 msgid "Controls where each layer's outer wall starts and ends."
-msgstr ""
+msgstr "ควบคุมจุดเริ่มต้นและจุดสิ้นสุดของผนังด้านนอกในแต่ละเลเยอร์"
 
 msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
-msgstr ""
+msgstr "จุดดังกล่าวอาจทิ้งรอยนูนเล็กๆ หรือรอยต่อเอาไว้ การเลือกตำแหน่งที่เหมาะสมจึงช่วยลดผลกระทบของรอยต่อที่มีต่อรูปลักษณ์ของโมเดลได้"
 
 msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
-msgstr ""
+msgstr "พิมพ์ผนังเพียงเส้นเดียวบนพื้นผิวด้านบน เพื่อให้พื้นผิวด้านบนถูกเติมเต็มด้วยลวดลายการอินฟิลให้มากที่สุดเพื่อให้ได้รูปลักษณ์ที่สม่ำเสมอยิ่งขึ้น"
 
 msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
-msgstr ""
+msgstr "บนพื้นผิวที่ลาดเอียงหรือเป็นทรงโดม ตัวเลือกนี้จะทำให้เกิดเอฟเฟกต์ขั้นบันไดที่รุนแรงขึ้น จึงไม่แนะนำให้ใช้ในบริเวณดังกล่าว"
 
 msgid "Recommended only for flat top surfaces."
-msgstr ""
+msgstr "แนะนำให้ใช้กับพื้นผิวเรียบด้านบนเท่านั้น"
 
 msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
-msgstr ""
+msgstr "ใช้ผนังเพียงเลเยอร์เดียวในเลเยอร์แรกของโมเดล (ด้านที่สัมผัสกับฐานทำความร้อน) เพื่อให้พื้นที่ส่วนใหญ่ถูกเติมเต็มด้วยลวดลายการอินฟิลในเลเยอร์แรก เพื่อให้รูปลักษณ์ดูสม่ำเสมอยิ่งขึ้น"
 
 msgid ""
 "When off, the first layer uses multiple wall loops.\n"
 "When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
 msgstr ""
+"เมื่อปิดใช้งาน เลเยอร์แรกจะใช้ลูปผนังหลายรอบ\n"
+"เมื่อเปิดใช้งาน การอินฟิลจะมีความต่อเนื่องมากขึ้นและด้านล่างจะเรียบกว่า แต่เส้นขอบของเลเยอร์แรกจะอ่อนลงเล็กน้อย"
 
 msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
-msgstr ""
+msgstr "ควบคุมจำนวนลูปผนังในเปลือกของแต่ละเลเยอร์ ซึ่งเป็นปัจจัยสำคัญต่อความแข็งแรงของโมเดล"
 
 msgid ""
 "More walls give higher strength but use more material and time;\n"
 "fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
 msgstr ""
+"ผนังที่มากกว่าจะให้ความแข็งแรงที่สูงขึ้น แต่ก็ต้องใช้เส้นวัสดุและเวลามากขึ้นเช่นกัน\n"
+"การใช้ผนังน้อยลงจะทำให้พิมพ์ได้เร็วขึ้นและประหยัดเส้นวัสดุ แต่จะลดความแข็งแรงลง และอาจทำให้ลวดลายการอินฟิลทะลุมาให้เห็นบนพื้นผิวได้"
 
 msgid "2-3 loops is recommended for typical models; increase it for functional parts."
-msgstr ""
+msgstr "แนะนำให้ใช้ 2-3 ลูปสำหรับโมเดลทั่วไป และเพิ่มจำนวนลูปสำหรับชิ้นส่วนที่ใช้งานจริง"
 
 msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
-msgstr ""
+msgstr "บริเวณรอยต่อระหว่างพื้นที่ที่มีผนังและพื้นที่ที่ไม่มีผนัง ฟังก์ชันนี้จะฝังผนังเข้าไปในบริเวณอินฟิลที่ไม่มีผนังด้านนอกแบบสลับเลเยอร์ ทำให้ผนังและส่วนอินฟิลเชื่อมต่อกันได้อย่างแน่นหนาขึ้น"
 
 msgid ""
 "It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
 "Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
 msgstr ""
+"ตัวเลือกนี้จะจัดการเฉพาะขอบเขตที่ด้านหนึ่งมีผนังและอีกด้านไม่มีผนังเท่านั้น ขอบเขตระหว่างผนังกับอินฟิลทั่วไปภายในชิ้นส่วนจะไม่ถูกประมวลผล\n"
+"การฝังแบบสลับเลเยอร์จะสร้างการประสานแบบสลับเหลื่อมกัน ซึ่งแข็งแรงกว่าการต่อแบบเรียบสนิท"
 
 msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
-msgstr ""
+msgstr "ใช้เมื่อตัวปรับแต่งเปลี่ยนพื้นที่ให้กลายเป็นอินฟิลที่ไม่มีผนัง แต่ยังคงต้องการการยึดเกาะที่แน่นหนากับเปลือกโดยรอบ ไม่จำเป็นต้องใช้หากทั้งสองด้านพิมพ์ผนังตามปกติ"
 
 msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
-msgstr ""
+msgstr "เพิ่มลูปผนังพิเศษในเลเยอร์คี่ ในขณะที่เลเยอร์คู่จะไม่มีการเปลี่ยนแปลง"
 
 msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
-msgstr ""
+msgstr "การเพิ่มผนังแบบเว้นเลเยอร์จะช่วยเสริมความแข็งแรงของการยึดเกาะระหว่างเลเยอร์โดยไม่ต้องสร้างผนังทุกเลเยอร์ ซึ่งจะช่วยปรับปรุงการยึดเกาะระหว่างเลเยอร์และความแข็งแรงของชิ้นส่วน ในขณะเดียวกันก็หลีกเลี่ยงต้นทุนด้านเส้นวัสดุและเวลาในการสร้างผนังเสริมเต็มรูปแบบ"
 
 msgid "Requires sparse infill; not applicable in vase mode."
-msgstr ""
+msgstr "จำเป็นต้องใช้ Sparse Infill ไม่สามารถใช้งานได้ในโหมด vase"
 
 msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
-msgstr ""
+msgstr "รูปแบบเส้นทางการเคลื่อนที่ของเครื่องมือสำหรับ Solid Infill บนสุด ซึ่งส่งผลต่อความเรียบและรูปลักษณ์ของพื้นผิวด้านบนเป็นหลัก"
 
 msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
-msgstr ""
+msgstr "ควบคุมเส้นทางการเคลื่อนที่ของเครื่องมืออินฟิลบริเวณพื้นผิวด้านล่างของโมเดล ซึ่งส่งผลต่อพื้นผิวและความเรียบของด้านล่าง"
 
 msgid "Bridging areas are not affected by this parameter."
-msgstr ""
+msgstr "พื้นที่เชื่อมต่อ (Bridging areas) จะไม่ได้รับผลกระทบจากพารามิเตอร์นี้"
 
 msgid "Controls the number of solid top shell layers, including the top surface."
-msgstr ""
+msgstr "ควบคุมจำนวนเลเยอร์ Solid Top Shell รวมถึงพื้นผิวด้านบนสุด"
 
 msgid ""
 "More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
 "If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
 msgstr ""
+"การเพิ่มจำนวนเลเยอร์จะทำให้เปลือกด้านบนหนาขึ้น ช่วยลดโอกาสที่จะมองเห็นลายอินฟิลที่อยู่ด้านใต้\n"
+"หาก (จำนวนเลเยอร์ × ความสูงเลเยอร์) น้อยกว่าความหนาของเปลือกด้านบน โปรแกรม Slicer จะเพิ่มเลเยอร์ให้โดยอัตโนมัติ"
 
 msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "กำหนดความหนาขั้นต่ำสำหรับ Solid Top Shell เพื่อป้องกันไม่ให้เปลือกบางเกินไปเมื่อใช้ความสูงเลเยอร์ที่น้อยลง"
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
 msgstr ""
+"ตั้งค่าเป็น 0 เพื่อปิดใช้งาน และให้จำนวนเลเยอร์เป็นตัวตัดสินเพียงอย่างเดียว\n"
+"หากความหนาจาก (จำนวนเลเยอร์ × ความสูงเลเยอร์) ไม่เพียงพอ โปรแกรม Slicer จะเพิ่มเลเยอร์เปลือกด้านบนให้โดยอัตโนมัติ"
 
 msgid "Controls the number of solid bottom shell layers, including the bottom surface."
-msgstr ""
+msgstr "ควบคุมจำนวนเลเยอร์ Solid Bottom Shell รวมถึงพื้นผิวด้านล่าง"
 
 msgid ""
 "More layers make the bottom more solid but take longer.\n"
 "If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
 msgstr ""
+"ยิ่งมีจำนวนเลเยอร์มากเท่าใด ส่วนล่างก็จะยิ่งแน่นหนามากขึ้น แต่จะใช้เวลาพิมพ์นานขึ้น\n"
+"หาก (ความสูงเลเยอร์ × จำนวนเลเยอร์) น้อยกว่าความหนาของเปลือกด้านล่าง โปรแกรม Slicer จะเพิ่มเลเยอร์ให้โดยอัตโนมัติ"
 
 msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
-msgstr ""
+msgstr "กำหนดความหนาขั้นต่ำสำหรับ Solid Bottom Shell เพื่อป้องกันไม่ให้เปลือกบางเกินไปเมื่อใช้ความสูงเลเยอร์ที่น้อยลง"
 
 msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
 msgstr ""
+"ตั้งค่าเป็น 0 เพื่อปิดใช้งาน และให้จำนวนเลเยอร์เป็นตัวตัดสินเพียงอย่างเดียว\n"
+"หากความหนาจากจำนวนเลเยอร์ไม่เพียงพอ โปรแกรม Slicer จะเพิ่มเลเยอร์เปลือกด้านล่างให้โดยอัตโนมัติ"
 
 msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "ควบคุมจำนวนเลเยอร์ที่สีของพื้นผิวด้านบนจะแทรกซึมลงด้านล่าง เพื่อป้องกันไม่ให้สีของเส้นวัสดุด้านในทะลุมาให้เห็น"
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"หากใช้จำนวนเลเยอร์น้อย จะทำให้สีเกิดการซึมทะลุได้ง่ายขึ้น\n"
+"การเพิ่มจำนวนเลเยอร์จะช่วยลดการซึมทะลุ แต่จะทำให้ต้องเปลี่ยนเส้นวัสดุบ่อยขึ้น\n"
+"เพื่อป้องกันไม่ให้การแทรกซึมลงด้านล่างส่งผลกระทบต่อสีด้านข้างของโมเดล พื้นที่ที่ถูกแทรกซึมจะหดตัวลงทีละเลเยอร์"
 
 msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "ควบคุมจำนวนเลเยอร์ที่สีของพื้นผิวด้านล่างจะแทรกซึมขึ้นด้านบน เพื่อป้องกันไม่ให้สีของเส้นวัสดุด้านในทะลุมาให้เห็น"
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"หากใช้จำนวนเลเยอร์น้อย จะทำให้สีเกิดการซึมทะลุได้ง่ายขึ้น\n"
+"การเพิ่มจำนวนเลเยอร์จะช่วยลดการซึมทะลุ แต่จะทำให้ต้องเปลี่ยนเส้นวัสดุบ่อยขึ้น\n"
+"เพื่อป้องกันไม่ให้การแทรกซึมขึ้นด้านบนส่งผลกระทบต่อสีด้านข้างของโมเดล พื้นที่ที่ถูกแทรกซึมจะหดตัวลงทีละเลเยอร์"
 
 msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
-msgstr ""
+msgstr "ควบคุมรูปแบบเส้นทางการเคลื่อนที่ของเครื่องมือของ Solid Infill ภายใน ซึ่งใช้กับเลเยอร์ทึบระหว่างเปลือกบนและเปลือกล่าง รวมถึงบริเวณทึบภายใน"
 
 msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
-msgstr ""
+msgstr "หากเปิดใช้งานการตรวจจับ Solid Infill ภายในที่แคบ บริเวณขนาดเล็กจะใช้รูปแบบร่วมศูนย์โดยอัตโนมัติ"
 
 msgid "Controls how dense the model's internal sparse infill is."
-msgstr ""
+msgstr "ควบคุมความหนาแน่นของ Sparse Infill ภายในของโมเดล"
 
 #, no-c-format, no-boost-format
 msgid ""
 "10-15% is recommended for typical models; raise it for functional parts.\n"
 "100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
 msgstr ""
+"แนะนำให้ใช้ 10-15% สำหรับโมเดลทั่วไป และควรเพิ่มค่านี้สำหรับชิ้นส่วนที่ใช้งานจริง\n"
+"100% หมายถึงทึบสนิท ซึ่งจะมีเฉพาะลวดลาย Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords และ Octagram Spiral เท่านั้นที่สามารถใช้งานได้"
 
 msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
-msgstr ""
+msgstr "เปิดใช้งานการอินฟิลแบบหลายเส้น โดยจะพิมพ์เส้นทางอินฟิลแต่ละเส้นเป็นเส้นขนานหลายเส้นเคียงคู่กันไป"
 
 msgid ""
 "Higher values make the infill beams thicker and stronger but use more material and time;\n"
 "1 is ordinary single-line infill."
 msgstr ""
+"ค่าที่สูงขึ้นจะทำให้เส้นอินฟิลมีความหนาและแข็งแรงมากขึ้น แต่จะใช้เส้นวัสดุและเวลามากขึ้นเช่นกัน\n"
+"1 คือการอินฟิลแบบเส้นเดี่ยวทั่วไป"
 
 msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
-msgstr ""
+msgstr "รองรับโดยรูปแบบต่างๆ เช่น Line, Grid, Gyroid, Honeycomb, Cubic และ Lightning"
 
 msgid "Controls the toolpath structure of the internal sparse infill."
-msgstr ""
+msgstr "ควบคุมโครงสร้างเส้นทางการเคลื่อนที่ของเครื่องมือของ Sparse Infill ภายใน"
 
 msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
-msgstr ""
+msgstr "ส่วนรองรับคือโครงสร้างที่ถอดออกได้ ซึ่งจะพิมพ์ไว้ใต้พื้นผิวแขวนลอยและมุมที่ลาดชัน เพื่อรองรับเลเยอร์ถัดไปและป้องกันการทรุดตัว"
 
 msgid ""
 "When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
 "Recommended when the model has obvious overhangs."
 msgstr ""
+"เมื่อเปิดใช้งาน ฟังก์ชันนี้จะสร้างส่วนรองรับสำหรับพื้นผิวแขวนลอยและมุมลาดชัน ช่วยให้พิมพ์ชิ้นงานได้อย่างมั่นคงยิ่งขึ้น แต่ต้องแกะออกและอาจทิ้งรอยไว้บนพื้นผิว\n"
+"แนะนำให้ใช้เมื่อโมเดลมีพื้นผิวแขวนลอยที่เห็นได้ชัด"
 
 msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
-msgstr ""
+msgstr "เลือกรูปแบบและวิธีการสร้างส่วนรองรับ โดยระบบจะสร้างประเภท Normal (อัตโนมัติ) และ Tree (อัตโนมัติ) ให้โดยอัตโนมัติตามพื้นผิวแขวนลอย"
 
 msgid ""
 "Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
 "Choose a manual mode when you need precise control."
 msgstr ""
+"ส่วนรองรับแบบ Normal จะมีความเป็นระเบียบและมั่นคงกว่า ส่วนรองรับแบบ Tree จะสัมผัสกับโมเดลน้อยกว่าและแกะออกได้ง่ายกว่า\n"
+"เลือกโหมดกำหนดเอง (Manual) เมื่อคุณต้องการควบคุมอย่างแม่นยำ"
 
 msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
-msgstr ""
+msgstr "โหมดกำหนดเอง (Manual) จะใช้ร่วมกับเครื่องมือระบายสีพื้นที่รองรับในแถบเครื่องมือ Gizmo"
 
 msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
-msgstr ""
+msgstr "สร้างส่วนรองรับสำหรับพื้นผิวที่มีมุมแขวนลอยต่ำกว่าค่าเกณฑ์ ซึ่งสามารถปรับแต่งได้ในโหมดอัตโนมัติ"
 
 msgid ""
 "A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
 "A larger threshold also supports more slopes, giving more support."
 msgstr ""
+"ค่าเกณฑ์ที่ต่ำกว่าจะสร้างส่วนรองรับเฉพาะพื้นผิวแขวนลอยขนาดใหญ่ที่เกือบราบเท่านั้น ซึ่งจะใช้ส่วนรองรับน้อยลง แต่อาจทำให้บริเวณที่ลาดเอียงเล็กน้อยไม่ได้รับการรองรับ\n"
+"ค่าเกณฑ์ที่สูงขึ้นจะช่วยรองรับพื้นผิวที่ลาดเอียงได้มากขึ้น และจะสร้างส่วนรองรับมากขึ้นตามไปด้วย"
 
 msgid "A common default of 30 degrees balances print stability against the amount of support used."
-msgstr ""
+msgstr "โดยทั่วไปแล้ว มุม 30 องศาซึ่งเป็นค่าเริ่มต้น จะช่วยสร้างสมดุลระหว่างความเสถียรในการพิมพ์กับปริมาณส่วนรองรับที่ใช้"
 
 msgid "Generates support only from the build plate, not on the model's surfaces."
-msgstr ""
+msgstr "สร้างส่วนรองรับเฉพาะจากแผ่นฐานเท่านั้น โดยจะไม่สร้างบนพื้นผิวของโมเดล"
 
 msgid ""
 "When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
 "When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
 msgstr ""
+"เมื่อปิดใช้งาน ส่วนรองรับอาจถูกสร้างขึ้นบนพื้นผิวของโมเดลเพื่อให้ครอบคลุมยิ่งขึ้น แต่ก็มีแนวโน้มที่จะทิ้งรอยไว้มากขึ้นเช่นกัน\n"
+"เมื่อเปิดใช้งาน ส่วนรองรับทั้งหมดจะเริ่มจากแผ่นฐาน ซึ่งช่วยให้พื้นผิวของโมเดลดูเรียบร้อยขึ้น แต่พื้นผิวแขวนลอยบางส่วนอาจไม่ได้รับการรองรับ"
 
 msgid "Recommended when appearance matters."
-msgstr ""
+msgstr "แนะนำสำหรับผู้ที่ให้ความสำคัญกับรูปลักษณ์ภายนอก"
 
 msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
-msgstr ""
+msgstr "อินเทอร์เฟซส่วนรองรับคือเลเยอร์สัมผัสที่มีความหนาแน่นสูงตรงจุดที่ส่วนรองรับเจอกับโมเดล ช่วยยึดโมเดลให้มั่นคง แกะออกง่าย และลดรอยบนพื้นผิว ฟังก์ชันนี้จะกำหนดเส้นวัสดุที่จะใช้สำหรับพื้นผิวสัมผัสนั้น"
 
 msgid ""
 "By default the interface uses the same filament as the model, which can make removal harder.\n"
 "Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
 msgstr ""
+"โดยค่าเริ่มต้น อินเทอร์เฟซจะใช้เส้นวัสดุชนิดเดียวกับโมเดล ซึ่งอาจทำให้แกะออกได้ยากขึ้น\n"
+"การเลือกใช้เส้นวัสดุแบบแกะออกง่ายจะทำให้แกะพื้นผิวสัมผัสได้ง่ายและสะอาดขึ้น แต่จะเพิ่มจำนวนครั้งในการเปลี่ยนเส้นวัสดุ"
 
 msgid "The filament used to print the support body and the raft."
-msgstr ""
+msgstr "เส้นวัสดุที่ใช้ในการพิมพ์ส่วนรองรับและราฟต์"
 
 msgid ""
 "By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
 "Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
 msgstr ""
+"โดยค่าเริ่มต้น ส่วนรองรับจะใช้เส้นวัสดุชนิดเดียวกับโมเดล ซึ่งจะตรงกับเส้นวัสดุของโมเดลในแต่ละเลเยอร์สำหรับการพิมพ์แบบหลายเส้นวัสดุ\n"
+"การเลือกใช้เส้นวัสดุชนิดอื่นอาจทำให้แกะออกได้ง่ายขึ้นหรือช่วยลดต้นทุน แต่จะทำให้เสียเวลาในการเปลี่ยนเส้นวัสดุเพิ่มขึ้น"
 
 msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
-msgstr ""
+msgstr "พิมพ์ลูปเส้นขอบแบบแยก (สเกิร์ต) รอบโมเดล เพื่อเคลียร์หัวฉีดและช่วยให้การฉีดพลาสติกมีเสถียรภาพก่อนเริ่มการพิมพ์"
 
 msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
-msgstr ""
+msgstr "ยิ่งมีจำนวนลูปมากเท่าใด ก็จะยิ่งเคลียร์หัวฉีดได้ทั่วถึงมากขึ้น แต่จะใช้เส้นวัสดุมากขึ้นด้วย ทั้งนี้สามารถตั้งค่าเป็น 0 เพื่อปิดใช้งานสเกิร์ต"
 
 msgid "Controls how many layers the skirt is printed."
-msgstr ""
+msgstr "ควบคุมจำนวนเลเยอร์ของสเกิร์ต"
 
 msgid ""
 "During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
 "The default is 1 layer."
 msgstr ""
+"ในช่วงการพิมพ์เลเยอร์แรกๆ สเกิร์ตที่สูงกว่าจะสามารถช่วยบล็อกอากาศเย็นรอบๆ โมเดลได้บางส่วน ทำให้เกิดสภาพแวดล้อมที่อบอุ่นบริเวณฐานของโมเดล และลดความเสี่ยงในการงอตัวช่วงแรกที่เกิดจากการหดตัว\n"
+"ค่าเริ่มต้นคือ 1 เลเยอร์"
 
 msgid "Requires the skirt loop count to be greater than 0."
-msgstr ""
+msgstr "กำหนดให้จำนวนลูปของสเกิร์ตต้องมากกว่า 0"
 
 msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
-msgstr ""
+msgstr "บริม (Brim) คือแถบวัสดุเลเยอร์เดียวที่เพิ่มเข้ามาบริเวณฐานของโมเดลและเชื่อมต่อกับเลเยอร์แรก ทำหน้าที่เป็นขอบเสริมแรงเพื่อป้องกันการงอตัวและช่วยให้ยึดเกาะได้ดี"
 
 msgid ""
 "This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
 "The default is Auto."
 msgstr ""
+"ตัวเลือกนี้จะควบคุมประเภทของบริม (แถบที่เชื่อมต่อกับเลเยอร์แรกของโมเดล) ที่ใช้เพื่อปรับปรุงการยึดเกาะกับฐานทำความร้อนและลดการงอตัว\n"
+"ค่าเริ่มต้นคืออัตโนมัติ (Auto)"
 
 msgid "The distance from the model to the outermost brim line."
-msgstr ""
+msgstr "ระยะห่างจากโมเดลถึงเส้นบริมด้านนอกสุด"
 
 msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
-msgstr ""
+msgstr "ความกว้างที่มากขึ้นจะช่วยเพิ่มการยึดเกาะของฐานทำความร้อนและป้องกันการงอตัว แต่จะใช้เส้นวัสดุมากขึ้นและทำความสะอาดได้ยากขึ้น"
 
 msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr ""
+msgstr "หลังจากเปลี่ยนสีหรือเส้นวัสดุ เครื่องพิมพ์จะไล่เส้นวัสดุที่ค้างอยู่และปรับแรงดันหัวฉีดให้คงที่บนไพรม์ทาวเวอร์แยกต่างหาก ก่อนที่จะเริ่มพิมพ์โมเดลต่อ ซึ่งจะช่วยลดการปนกันของสี ปัญหาวัสดุขาดช่วง และข้อบกพร่องบนพื้นผิว"
 
 msgid ""
 "Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
 "On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
 msgstr ""
+"ปิด: ช่วยประหยัดเส้นวัสดุและใช้พื้นที่บนฐานทำความร้อนน้อยลง แต่เส้นวัสดุที่เหลือจากการเปลี่ยนสีอาจตกค้างอยู่บนโมเดล และทำให้เกิดการปนกันของสี เกิดเส้นใยยืด หรือเกิดวัสดุขาดช่วงเฉพาะจุดได้\n"
+"เปิด: ช่วยให้การเปลี่ยนสีราบเรียบยิ่งขึ้น และงานพิมพ์หลากสีจะมีความสม่ำเสมอมากขึ้น แต่จะใช้เส้นวัสดุและเวลามากขึ้น อีกทั้งยังสิ้นเปลืองพื้นที่บนฐานทำความร้อนด้วย"
 
 msgid "Mutually exclusive with by-object printing and independent support layer height."
-msgstr ""
+msgstr "ไม่สามารถใช้ร่วมกับการพิมพ์ทีละวัตถุ (By-object) และการกำหนดความสูงของเลเยอร์รองรับแบบอิสระได้"
 
 msgid "Controls the horizontal size of the prime tower."
-msgstr ""
+msgstr "ควบคุมขนาดแนวนอนของไพรม์ทาวเวอร์"
 
 msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
-msgstr ""
+msgstr "ความกว้างที่มากขึ้นจะช่วยให้มีระยะเผื่อในการเคลียร์หัวฉีดมากขึ้น และทำให้ไพรม์ทาวเวอร์มีความเสถียรยิ่งขึ้น แต่จะใช้เส้นวัสดุและพื้นที่บนฐานทำความร้อนมากขึ้น"
 
 msgid "The width cannot be customized when the rib outer wall is enabled."
-msgstr ""
+msgstr "ไม่สามารถปรับแต่งความกว้างได้เมื่อเปิดใช้งานผนังเสริมแรงด้านนอก"
 
 msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
-msgstr ""
+msgstr "เพิ่มโครงเสริมแรงที่มุมทั้งสี่ด้านให้กับผนังด้านนอกของไพรม์ทาวเวอร์ เพื่อเพิ่มความมั่นคง"
 
 msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
-msgstr ""
+msgstr "แนะนำสำหรับไพรม์ทาวเวอร์ที่มีความสูง วัสดุที่มีความหนืดสูง เช่น PETG หรือมีการเปลี่ยนสีบ่อยๆ ควรปิดฟังก์ชันนี้เมื่อพื้นที่ฐานทำความร้อนมีจำกัดและไพรม์ทาวเวอร์สั้น เพื่อให้สามารถลดความกว้างลงได้"
 
 msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
-msgstr ""
+msgstr "ใช้เส้นวัสดุช่วงเปลี่ยนผ่านบางส่วนหลังจากเปลี่ยนวัสดุ เพื่อพิมพ์ส่วนอินฟิลภายในของวัตถุ ช่วยลดของเสียและเวลาในการพิมพ์"
 
 msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
-msgstr ""
+msgstr "เปิดใช้งานกับชิ้นส่วนที่ไม่โปร่งแสงเพื่อประหยัดเส้นวัสดุ ปิดใช้งานสำหรับชิ้นส่วนที่โปร่งใสหรือมีผนังบาง หรือเมื่อสีภายในมีความสำคัญ"
 
 msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
-msgstr ""
+msgstr "ใช้เส้นวัสดุช่วงเปลี่ยนผ่านหลังจากเปลี่ยนสีหรือชนิดวัสดุ เพื่อพิมพ์ส่วนรองรับของโมเดล ช่วยลดของเสียและประหยัดเวลา"
 
 msgid "Enabling it saves material, but the supports may show mixed colors."
-msgstr ""
+msgstr "การเปิดใช้งานฟังก์ชันนี้จะช่วยประหยัดเส้นวัสดุ แต่ส่วนรองรับอาจมีสีที่ปนกัน"
 
 msgid "Takes effect when printing multiple filaments through the same nozzle."
-msgstr ""
+msgstr "จะมีผลเมื่อพิมพ์เส้นวัสดุหลายชนิดผ่านหัวฉีดเดียวกัน"
 
 msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
-msgstr ""
+msgstr "เลือกได้ว่าจะพิมพ์ทั้งแผ่นฐานทีละเลเยอร์ หรือจะพิมพ์โมเดลชิ้นหนึ่งให้เสร็จก่อนแล้วค่อยเริ่มพิมพ์โมเดลชิ้นต่อไป"
 
 msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
-msgstr ""
+msgstr "ใช้การตั้งค่าแบบ By Layer สำหรับงานพิมพ์หลายชิ้นหรือหลากสีทั่วไป พิจารณาใช้การตั้งค่าแบบ By Object สำหรับชิ้นส่วนขนาดเล็กจำนวนมาก หรือเพื่อลดผลกระทบจากความผิดพลาดระหว่างพิมพ์ ทั้งนี้ต้องตรวจสอบระยะห่างและการจำกัดของไพรม์ทาวเวอร์ด้วย"
 
 msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
-msgstr ""
+msgstr "พิมพ์ลวดลายเป็นเกลียวต่อเนื่องไปตามขอบด้านนอก สร้างโมเดลทั้งหมดขึ้นมาด้วยเส้นเดียว โดยปกติจะไม่มีรอยต่อที่ด้านข้าง"
 
 msgid ""
 "When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
 "It is best for single, thin-walled, open-top models."
 msgstr ""
+"เมื่อเปิดใช้งาน โมเดลจะไม่มีเปลือกด้านบน ไม่มีส่วนอินฟิล และโดยปกติจะมีเพียงผนังเดียว ทำให้โมเดลไม่แข็งแรงและจะขัดแย้งกับส่วนรองรับ เลเยอร์เปลือกด้านบน รวมถึงการตั้งค่าอื่นๆ อีกหลายอย่าง\n"
+"เหมาะที่สุดสำหรับโมเดลแบบชิ้นเดียวที่มีผนังบางและเปิดด้านบน"
 
 msgid "Requires top shell layers to be 0 and is not compatible with support."
-msgstr ""
+msgstr "ต้องกำหนดให้เลเยอร์เปลือกด้านบนเป็น 0 และไม่สามารถใช้งานร่วมกับส่วนรองรับได้"
 
 msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
-msgstr ""
+msgstr "ถ่ายภาพหนึ่งภาพต่อเลเยอร์ในระหว่างการพิมพ์ และประมวลผลเป็นวิดีโอไทม์แลปส์เมื่อการพิมพ์เสร็จสิ้น"
 
 msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
-msgstr ""
+msgstr "เลือกโหมดไทม์แลปส์ได้ที่นี่ ส่วนการเปิดใช้งานฟีเจอร์นี้จะเปิด/ปิดได้ในหน้าส่งพิมพ์"
 
 msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
-msgstr ""
+msgstr "สุ่มเขย่าเส้นทางการเคลื่อนที่ของเครื่องมือของผนัง ทำให้พื้นผิวด้านนอกมีความขรุขระ ด้าน และได้พื้นผิวสัมผัสสากแบบฟัซซี่"
 
 msgid ""
 "It affects only walls; the top and bottom surfaces are unchanged.\n"
 "Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
 msgstr ""
+"ซึ่งจะส่งผลกระทบเฉพาะผนังเท่านั้น ส่วนพื้นผิวด้านบนและด้านล่างจะไม่มีการเปลี่ยนแปลง\n"
+"เหมาะสำหรับชิ้นส่วนตกแต่งและเปลือกโมเดลฟิกเกอร์ ควรปิดใช้งานเมื่อต้องการขนาดที่แม่นยำอย่างยิ่งหรือต้องการพื้นผิวที่เรียบเนียน"
 
 msgid "Selects how the fuzzy texture is generated."
-msgstr ""
+msgstr "เลือกวิธีการสร้างพื้นผิวสัมผัสแบบฟัซซี่"
 
 msgid "There are three generator modes; pick the one that suits your needs."
-msgstr ""
+msgstr "มีโหมดตัวสร้างสามรูปแบบ เลือกโหมดที่เหมาะสมกับความต้องการของคุณ"
 
 msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
-msgstr ""
+msgstr "กำหนดความสุ่มของพื้นผิวสัมผัสแบบฟัซซี่ ซึ่งจะส่งผลต่อรูปแบบของพื้นผิวสัมผัส"
 
 msgid "Several noise types are available; pick the one that suits your needs."
-msgstr ""
+msgstr "มีประเภทนอยส์ (Noise) ให้เลือกหลายแบบ เลือกแบบที่เหมาะกับความต้องการของคุณ"
 
 msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
-msgstr ""
+msgstr "ควบคุมระยะห่างเฉลี่ยระหว่างจุดสุ่มที่แทรกตามแนวเส้นทางของผนังเมื่อสร้างพื้นผิวแบบฟัซซี่"
 
 msgid ""
 "A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
 "A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
 msgstr ""
+"ค่าที่มากขึ้นจะทำให้จุดสุ่มอยู่ห่างกันมากขึ้น ส่งผลให้ได้พื้นผิวที่หยาบขึ้น แต่จะใช้จุดเส้นทางน้อยลง ทำให้การตัดแบ่งและการพิมพ์เสร็จเร็วขึ้น รวมถึงไฟล์ G-code จะมีขนาดเล็กลง\n"
+"ค่าที่น้อยลงจะทำให้จุดต่างๆ อยู่ใกล้กันมากขึ้น ส่งผลให้ได้พื้นผิวที่ละเอียดและสม่ำเสมอยิ่งขึ้น แต่จะเพิ่มจำนวนจุดเส้นทาง ทำให้การตัดแบ่งและการพิมพ์ช้าลง และไฟล์ G-code จะมีขนาดใหญ่ขึ้น"
 
 msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
-msgstr ""
+msgstr "หากน้อยเกินไป ซอฟต์แวร์จะปิดใช้งานพื้นผิวแบบฟัซซี่ เนื่องจากระยะห่างระหว่างจุดแคบเกินไป (เพื่อหลีกเลี่ยงเส้นทางที่ผิดปกติ)"
 
 msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
-msgstr ""
+msgstr "ควบคุมความกว้างของการสั่นไหวของเส้นทางผนังเมื่อสร้างพื้นผิวแบบฟัซซี่ หรือก็คือความลึกของพื้นผิวสัมผัส"
 
 msgid ""
 "A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
 "The default is about 0.3 mm; keep it below the outer wall's line width."
 msgstr ""
+"ค่าที่มากขึ้นจะทำให้พื้นผิวมีความลึกและชัดเจนยิ่งขึ้น โดยมีลายผิวที่ชัดเจนขึ้น แต่เส้นขอบจะขยายออก ความแม่นยำของขนาดจะลดลง และผนังอาจเกิดช่องว่างและสูญเสียความแข็งแรงได้\n"
+"ค่าเริ่มต้นจะอยู่ที่ประมาณ 0.3 มม. โดยควรตั้งค่าให้น้อยกว่าความกว้างเส้นของผนังด้านนอก"
 
 msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
-msgstr ""
+msgstr "เมื่อเกินความกว้างเส้น โหมด Extrusion และโหมด Combined ของตัวสร้างจะหยุดทำงาน และจะใช้ได้เฉพาะโหมด Displacement เท่านั้น"
 
 msgid "Determines whether the fuzzy effect is also applied to the first layer."
-msgstr ""
+msgstr "กำหนดว่าเอฟเฟกต์ฟัซซี่จะถูกใช้กับเลเยอร์แรกด้วยหรือไม่"
 
 msgid ""
 "When on, the first-layer side walls also get the fuzzy texture.\n"
 "Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
 msgstr ""
+"เมื่อเปิดใช้งาน ผนังด้านข้างของเลเยอร์แรกก็จะมีพื้นผิวสัมผัสแบบฟัซซี่ด้วยเช่นกัน\n"
+"โดยปกติควรปิดใช้งานไว้ จะเปิดใช้งานเฉพาะเมื่อขอบด้านล่างต้องการพื้นผิวที่สม่ำเสมอ และการยึดเกาะของฐานทำความร้อนดีพอเท่านั้น"
 
 msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
-msgstr ""
+msgstr "จะวางรอยต่อไว้บริเวณมุมเว้าหรือมุมนูนเป็นหลัก และช่วยลดระยะการเคลื่อนที่ เหมาะสำหรับโมเดลที่มีขอบชัดเจน"
 
 msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
-msgstr ""
+msgstr "จัดเรียงรอยต่อของแต่ละเลเยอร์ให้เป็นเส้นตรงแนวตั้งเส้นเดียว ทำให้รอยต่ออยู่รวมกันและซ่อนได้ง่าย"
 
 msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
-msgstr ""
+msgstr "วางรอยต่อไว้ด้านหลังของโมเดล เหมาะสำหรับโมเดลจัดแสดงที่มีทิศทางคงที่"
 
 msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
-msgstr ""
+msgstr "กระจายรอยต่อไปตามเลเยอร์ต่างๆ เพื่อหลีกเลี่ยงเส้นแนวตั้ง แม้ว่าอาจมีจุดนูนเล็กๆ ปรากฏบนพื้นผิวบ้างก็ตาม"
 
 msgid "All top surfaces print with the normal number of wall loops."
-msgstr ""
+msgstr "พื้นผิวด้านบนทั้งหมดจะถูกพิมพ์ด้วยจำนวนลูปผนังตามปกติ"
 
 msgid "Applies to every flat upward-facing top surface, for the widest coverage."
-msgstr ""
+msgstr "ใช้ได้กับพื้นผิวราบทุกชนิดที่หงายขึ้น เพื่อการครอบคลุมที่กว้างที่สุด"
 
 msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
-msgstr ""
+msgstr "ใช้ได้เฉพาะกับพื้นผิวบนสุดของโมเดลเท่านั้น ส่วนพื้นผิวด้านบนของเลเยอร์กลางยังคงได้รับการจัดการตามปกติ"
 
 msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
-msgstr ""
+msgstr "วิเคราะห์โมเดลและคำนวณความกว้างและตำแหน่งของบริมที่เหมาะสม แนะนำสำหรับโมเดลส่วนใหญ่"
 
 msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
-msgstr ""
+msgstr "สร้างบริมเฉพาะบริเวณขอบด้านนอกเพื่อเสริมความแข็งแรงในการยึดเกาะภายนอก"
 
 msgid "Generates a brim in inner holes only."
-msgstr ""
+msgstr "สร้างบริมเฉพาะในรูด้านในเท่านั้น"
 
 msgid "Generates a brim on both the outer contour and inner holes."
-msgstr ""
+msgstr "สร้างบริมทั้งบริเวณขอบด้านนอกและรูด้านใน"
 
 msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
-msgstr ""
+msgstr "สร้างบริมโดยการทาสีหรือเสริมความแข็งแรงเฉพาะจุด เหมาะสำหรับมุมแหลมที่มักเกิดการงอตัวได้ง่าย"
 
 msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
-msgstr ""
+msgstr "ไม่มีการสร้างบริม ทำให้ด้านล่างสะอาดกว่า แต่การยึดเกาะกับฐานทำความร้อนจะลดลง"
 
 msgid "All objects rise together, layer by layer."
-msgstr ""
+msgstr "วัตถุทั้งหมดจะถูกสร้างขึ้นพร้อมกันทีละเลเยอร์"
 
 msgid "Finishes one object before starting the next; has placement clearance requirements."
-msgstr ""
+msgstr "ต้องพิมพ์วัตถุชิ้นหนึ่งให้เสร็จก่อนจึงจะเริ่มวัตถุชิ้นต่อไปได้ ซึ่งมีข้อกำหนดเรื่องระยะห่างในการวางวัตถุ"
 
 msgid "A snapshot is taken directly after each layer."
-msgstr ""
+msgstr "จะมีการถ่ายภาพสแนปช็อตทันทีหลังจากแต่ละเลเยอร์เสร็จสิ้น"
 
 msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
-msgstr ""
+msgstr "หลังจากพิมพ์แต่ละเลเยอร์ หัวจ่ายจะเคลื่อนไปยังช่องทิ้งเศษวัสดุก่อนที่จะถ่ายภาพ เพื่อให้ได้ภาพที่สะอาดขึ้น ทั้งนี้เส้นวัสดุอาจเกิดการไหลเยิ้มระหว่างถ่ายภาพ จึงจำเป็นต้องใช้ไพรม์ทาวเวอร์เพื่อเช็ดหัวฉีด ซึ่งระบบจะสร้างขึ้นมาแม้กระทั่งสำหรับงานพิมพ์สีเดียว"
 
 msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
-msgstr ""
+msgstr "ไม่มีการเพิ่มพื้นผิวสากแบบฟัซซี่โดยอัตโนมัติ แต่คุณยังสามารถระบายสีลงไปได้เองเฉพาะจุด"
 
 msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
-msgstr ""
+msgstr "เพิ่มพื้นผิวสากแบบฟัซซี่เฉพาะบริเวณขอบด้านนอกสุดเท่านั้น ส่วนรูด้านในจะยังคงเรียบเนียน"
 
 msgid "Adds fuzzy skin to both the outer contour and inner holes."
-msgstr ""
+msgstr "เพิ่มพื้นผิวสากแบบฟัซซี่ทั้งบริเวณขอบด้านนอกและรูด้านใน"
 
 msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
-msgstr ""
+msgstr "แนวผนังทุกเส้นจะสั่นไหว เพื่อให้ได้เอฟเฟกต์ที่ชัดเจนที่สุด แต่ก็อาจทำให้เกิดความคลาดเคลื่อนของขนาดที่มากขึ้น"
 
 msgid "Turns fuzzy skin fully off; even painting has no effect."
-msgstr ""
+msgstr "ปิดใช้งานพื้นผิวสากแบบฟัซซี่อย่างสมบูรณ์ ซึ่งจะทำให้การระบายสีเฉพาะจุดไม่มีผลใดๆ"
 
 msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
-msgstr ""
+msgstr "หัวฉีดจะเลื่อนไปด้านข้างเพื่อสร้างพื้นผิวสัมผัส ทำให้ได้มิติแบบสามมิติที่ชัดเจน แต่ก็อาจเกิดช่องว่างระหว่างลูปได้"
 
 msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
-msgstr ""
+msgstr "เส้นทางจะยังคงเป็นเส้นตรง และมีเพียงปริมาณการฉีดพลาสติกเท่านั้นที่เปลี่ยนแปลงไป ทำให้ผนังมีความหนาแน่นมากขึ้น"
 
 msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
-msgstr ""
+msgstr "โหมด Displacement บวกกับ Extrusion ซึ่งให้ผลลัพธ์ใกล้เคียงกับโหมด Displacement ในขณะที่ช่วยเติมเต็มช่องว่างระหว่างลูป"
 
 msgid "Uniform random noise with a fine, grainy texture and no clear direction."
-msgstr ""
+msgstr "นอยส์ (Noise) แบบสุ่มที่สม่ำเสมอ ซึ่งให้พื้นผิวสัมผัสเป็นเม็ดละเอียดและไม่มีทิศทางที่ชัดเจน"
 
 msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
-msgstr ""
+msgstr "การเปลี่ยนผ่านระหว่างเลเยอร์อย่างราบรื่น เพื่อให้ได้พื้นผิวสัมผัสที่สม่ำเสมอและต่อเนื่อง พร้อมความเว้าโค้งที่นุ่มนวลและเป็นระเบียบ"
 
 msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
-msgstr ""
+msgstr "คล้ายกับนอยส์แบบ Perlin แต่จะเกาะกันเป็นก้อนมากกว่า โดยมีจุดนูนและพื้นที่ราบกระจุกตัวกัน คล้ายกับก้อนเมฆ"
 
 msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
-msgstr ""
+msgstr "มีลักษณะเป็นสันหยักแหลมคม มีส่วนยอดและร่องละเอียด ทำให้ได้พื้นผิวสัมผัสคล้ายหินอ่อน"
 
 msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
-msgstr ""
+msgstr "แบ่งพื้นผิวออกเป็นเซลล์และวางแต่ละเซลล์เยื้องไปพร้อมกัน ทำให้เกิดพื้นผิวสัมผัสเป็นขั้นบันไดแบบโมเสก"
 
 msgid "View details on Wiki"
-msgstr ""
+msgstr "ดูรายละเอียดเพิ่มเติมได้ที่ wiki"
 
 msgid "Global"
 msgstr "การตั้งค่าส่วนกลาง"
@@ -8489,6 +8675,24 @@ msgstr "เส้นวัสดุผสมมีส่วนประกอบ
 msgid "Search plate, object and part."
 msgstr "ค้นหาแผ่นฐาน วัตถุ และชิ้นส่วน"
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
+msgstr ""
+
+msgid "Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list."
+msgstr ""
+
+msgid "Delete Filament"
+msgstr "ลบเส้นวัสดุ"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "เส้นวัสดุผสมเป้าหมายใช้เส้นวัสดุจริงนี้เป็นส่วนประกอบ การผสานจะลบเส้นวัสดุจริงนี้ออก และอาจทำให้เส้นวัสดุผสมไม่ถูกต้อง ดำเนินการต่อหรือไม่?"
 
@@ -8544,7 +8748,7 @@ msgid "The nozzle hardness required by the filament is higher than the default n
 msgstr "ความแข็งของหัวฉีดที่เส้นวัสดุต้องการสูงกว่าความแข็งของหัวฉีดเริ่มต้นของเครื่องพิมพ์ โปรดเปลี่ยนหัวฉีดชนิดแข็งหรือเส้นวัสดุ มิฉะนั้น หัวฉีดจะสึกหรอหรือเสียหาย"
 
 msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr ""
+msgstr "การเปิดใช้งานไทม์แลปส์แบบทันทีอาจทำให้เกิดข้อบกพร่องบนพื้นผิวได้ แนะนำให้เปลี่ยนเป็นโหมด Smooth"
 
 msgid "\n"
 msgstr ""
@@ -8635,12 +8839,6 @@ msgstr "ลบวัตถุที่มีปริมาตรเป็นศ
 msgid "The volume of the object is zero"
 msgstr "ปริมาตรของวัตถุเป็นศูนย์"
 
-msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
-
-msgid "Object too small"
-msgstr "วัตถุเล็กเกินไป"
-
 msgid ""
 "This file contains several objects positioned at multiple heights.\n"
 "Instead of considering them as multiple objects, should \n"
@@ -8654,8 +8852,8 @@ msgid "Multi-part object detected"
 msgstr "ตรวจพบวัตถุหลายชิ้นส่วน"
 
 #, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr "กำลังคำนวณสีลวดลาย: %s"
+msgid "Computing model colors: %s"
+msgstr ""
 
 msgid "Texture Import Warning"
 msgstr "คำเตือนเกี่ยวกับการนำเข้าลวดลาย"
@@ -9063,6 +9261,18 @@ msgstr "การโหลดข้อมูล Helio ล้มเหลว"
 msgid "Please resolve the slicing errors and publish again."
 msgstr "โปรดแก้ไขข้อผิดพลาดในการตัดแบ่งและเผยแพร่อีกครั้ง"
 
+msgid "Send G-code file"
+msgstr ""
+
+msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
+msgstr ""
+
+msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
+msgstr ""
+
+msgid "Send now"
+msgstr ""
+
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "ไม่สามารถเริ่ม Bambu Farm Manager Client"
 
@@ -9252,12 +9462,11 @@ msgid "Reason: part \"%1%\" does not bound a volume."
 msgstr "เหตุผล: ชิ้นส่วน \"%1%\" ไม่ปิดล้อมเป็นปริมาตร"
 
 #, boost-format
-msgid "Reason: part \"%1%\" has self intersection."
-msgstr "เหตุผล: ชิ้นส่วน \"%1%\" มีการตัดกันเอง"
-
-#, boost-format
 msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "เหตุผล: \"%1%\" และอีกชิ้นส่วนไม่มีส่วนที่ตัดกัน"
+
+msgid "Reason: the meshes have face issues."
+msgstr ""
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "ตรวจพบชิ้นส่วนลบ คุณต้องการดำเนินการเมชบูลีนก่อนส่งออกหรือไม่?"
@@ -9524,25 +9733,25 @@ msgid "Enable dark mode"
 msgstr "เปิดใช้งานโหมดมืด"
 
 msgid "All related changes"
-msgstr ""
+msgstr "การเปลี่ยนแปลงที่เกี่ยวข้องทั้งหมด"
 
 msgid "When color changes"
-msgstr ""
+msgstr "เมื่อสีเปลี่ยนไป"
 
 msgid "Turn off auto calculate"
-msgstr ""
+msgstr "ปิดการคำนวณอัตโนมัติ"
 
 msgid "Auto calculate when color changes, type or configuration changes"
-msgstr ""
+msgstr "คำนวณอัตโนมัติเมื่อสี ประเภท หรือการกำหนดค่าเปลี่ยนแปลง"
 
 msgid "Auto calculate when sync or modify filament colors"
-msgstr ""
+msgstr "คำนวณอัตโนมัติเมื่อซิงค์หรือแก้ไขสีของเส้นวัสดุ"
 
 msgid "Keep current flush volumes, trigger manually when needed"
-msgstr ""
+msgstr "คงปริมาตรการฟลัชปัจจุบันไว้ และกดใช้งานด้วยตนเองเมื่อจำเป็น"
 
 msgid "Auto Calculate Flush Volume"
-msgstr ""
+msgstr "คำนวณปริมาตรการฟลัชอัตโนมัติ"
 
 msgid "Auto calculate flush volumes"
 msgstr "คำนวณปริมาณการไล่เส้นอัตโนมัติ"
@@ -9621,10 +9830,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "เมื่อเปิดใช้งานตัวเลือกนี้ คุณจะสามารถพิมพ์วัสดุที่ต้องการอุณหภูมิต่างกันมากร่วมกันได้"
 
 msgid "Automatically optimize wipe tower placement"
-msgstr ""
+msgstr "ปรับตำแหน่งไวป์ทาวเวอร์ให้เหมาะสมโดยอัตโนมัติ"
 
 msgid "With this option enabled, the wipe tower will be placed at its optimal position."
-msgstr ""
+msgstr "เมื่อเปิดใช้งานตัวเลือกนี้ ไวป์ทาวเวอร์จะถูกวางไว้ในตำแหน่งที่เหมาะสมที่สุด"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "ซิงค์ค่าที่ตั้งไว้ล่วงหน้าของผู้ใช้โดยอัตโนมัติ (เครื่องพิมพ์/เส้นวัสดุ/กระบวนการ)"
@@ -9645,10 +9854,10 @@ msgid "3D Settings"
 msgstr "การตั้งค่า 3 มิติ"
 
 msgid "Mouse Settings"
-msgstr ""
+msgstr "การตั้งค่าเมาส์"
 
 msgid "Import Settings"
-msgstr ""
+msgstr "การตั้งค่าการนำเข้า"
 
 msgid "Zoom to mouse position"
 msgstr "ซูมไปยังตำแหน่งเมาส์"
@@ -9657,16 +9866,16 @@ msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than 
 msgstr "ซูมขยายไปยังตำแหน่งของตัวชี้เมาส์ในมุมมอง 3 มิติ แทนที่จะเป็นจุดศูนย์กลางของหน้าต่าง 2 มิติ"
 
 msgid "Reverse direction of zoom with mouse wheel"
-msgstr ""
+msgstr "กลับทิศทางการซูมด้วยล้อหมุนของเมาส์"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
+msgstr "หากเปิดใช้งาน จะกลับทิศทางการซูมเมื่อใช้ล้อหมุนของเมาส์"
 
 msgid "Drag with left mouse button to move"
-msgstr ""
+msgstr "ลากด้วยปุ่มซ้ายของเมาส์เพื่อย้าย"
 
 msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
-msgstr ""
+msgstr "หากเปิดใช้งาน จะสามารถย้ายโมเดลได้โดยการลากปุ่มซ้ายของเมาส์ หากปิดใช้งาน ปุ่มซ้ายจะใช้สำหรับการเลือกหรือคลิกเท่านั้น"
 
 msgid "Display overview"
 msgstr "แสดงภาพรวม"
@@ -9702,10 +9911,10 @@ msgid "Always show shells or not in preview view tab. If you change this value, 
 msgstr "เลือกว่าจะแสดงเปลือกในแท็บแสดงตัวอย่างเสมอหรือไม่ หากคุณเปลี่ยนค่านี้ คุณต้องตัดแบ่งใหม่"
 
 msgid "Show Thermal Preconditioning Area"
-msgstr ""
+msgstr "แสดงพื้นที่อุ่นความร้อนล่วงหน้า"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr ""
+msgstr "แจ้งเตือนหากโมเดลขยายออกไปนอกพื้นที่อุ่นความร้อนล่วงหน้า ใช้งานได้เฉพาะกับเครื่องพิมพ์ที่รองรับฟีเจอร์นี้เท่านั้น"
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "แสดงกล่องโต้ตอบการตั้งค่าพารามิเตอร์เมชสเต็ป"
@@ -9816,7 +10025,7 @@ msgid "Skip AMS blacklist check"
 msgstr "ข้ามการตรวจสอบบัญชีดำ AMS"
 
 msgid "Enable DevTools For Webview"
-msgstr ""
+msgstr "เปิดใช้งาน DevTools สำหรับ Webview"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "เชื่อมโยงไฟล์กับ Bambu Studio"
@@ -9914,7 +10123,8 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
@@ -10278,7 +10488,7 @@ msgid "When enabling spiral vase mode, machines with I3 structure will not gener
 msgstr "เมื่อเปิดใช้งานโหมดแจกันเกลียว เครื่องพิมพ์ที่มีโครงสร้าง I3 จะไม่สร้างวิดีโอไทม์แลปส์"
 
 msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
-msgstr ""
+msgstr "เครื่องพิมพ์รุ่นปัจจุบันไม่รองรับไทม์แลปส์ในโหมด Instant เมื่อพิมพ์ทีละวัตถุ"
 
 msgid "Errors"
 msgstr "ข้อผิดพลาด"
@@ -10317,7 +10527,7 @@ msgid "This process determines the dynamic flow values to improve overall print 
 msgstr "กระบวนการนี้จะกำหนดค่าพลศาสตร์การไหลเพื่อปรับปรุงคุณภาพการพิมพ์โดยรวม"
 
 msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr ""
+msgstr "หลังจากเปิดใช้งานโหมดไทม์แลปส์แล้ว ไม่ว่าจะเลือกโหมด Instant หรือ Smooth เครื่องพิมพ์จะเลื่อนแผ่นฐานและหัวจ่ายก่อนการถ่ายภาพแต่ละครั้ง ซึ่งอาจส่งผลให้เวลาในการพิมพ์โดยรวมเพิ่มขึ้น"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10465,14 +10675,23 @@ msgstr "ความแข็งของวัสดุปัจจุบัน
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "หากตั้งค่า 'การปรับเทียบพลศาสตร์การไหล' เป็นอัตโนมัติหรือเปิด ระบบจะใช้ค่าจากการปรับเทียบด้วยตนเองหรือค่าเริ่มต้น และจะข้ามกระบวนการปรับเทียบอัตราไหล คุณสามารถทำการปรับเทียบอัตราไหลด้วยตนเองสำหรับเส้นวัสดุ TPU ได้ในหน้า 'การปรับเทียบ'"
 
-msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr "เส้นวัสดุใน AMS อาจไม่เพียงพอสำหรับการพิมพ์นี้ โปรดเติมหรือเปลี่ยนเส้นวัสดุ"
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "ขณะพิมพ์ เส้นวัสดุบางประเภทอาจสลับไปมาระหว่างเอ็กซ์ทรูเดอร์ การปรับเทียบค่า K ด้วยตนเองไม่สามารถใช้ได้ตลอดการพิมพ์ ซึ่งอาจส่งผลต่อคุณภาพงานพิมพ์ ขอแนะนำให้เปิดใช้งานการปรับเทียบพลศาสตร์การไหล"
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr "ไฟล์นี้มีเส้นวัสดุที่เกิดเส้นใยได้ง่าย เพื่อคุณภาพงานพิมพ์ที่ดีที่สุด เราขอแนะนำให้เปลี่ยนการตรวจจับหัวฉีดจับเป็นก้อนเป็นโหมดอัตโนมัติ"
+
+#, c-format, boost-format
+msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr ""
 
 msgid "Cool"
 msgstr "อุณหภูมิต่ำ"
@@ -10816,7 +11035,7 @@ msgid "Prime tower is required for smooth timelapse. There may be flaws on the m
 msgstr "จำเป็นต้องมีทาวเวอร์สลับสีสำหรับไทม์แลปส์แบบเกลี่ยเรียบ โมเดลอาจเกิดตำหนิได้หากไม่มีทาวเวอร์สลับสี คุณต้องการเปิดใช้งานทาวเวอร์สลับสีหรือไม่?"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
-msgstr ""
+msgstr "ฟังก์ชัน \"ไม่มี Sparse Layer\" ไม่เข้ากันกับไทม์แลปส์แบบ Smooth ซึ่งจำเป็นต้องมีไพรม์ทาวเวอร์ในทุกเลเยอร์ โหมดไทม์แลปส์ถูกเปลี่ยนเป็นโหมด Instant แล้ว"
 
 msgid "Still print by object?"
 msgstr "ยังพิมพ์ทีละวัตถุอยู่หรือไม่?"
@@ -10962,6 +11181,9 @@ msgstr "บันทึก"
 
 msgid "Frequent"
 msgstr "บ่อยครั้ง"
+
+msgid "Modifier cycle"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11425,34 +11647,34 @@ msgid "Right: "
 msgstr "ขวา: "
 
 msgid "Preset A"
-msgstr ""
+msgstr "พรีเซต A"
 
 msgid "Preset B"
-msgstr ""
+msgstr "พรีเซต B"
 
 msgid "Show all presets (including incompatible)"
 msgstr "แสดงค่าที่ตั้งไว้ล่วงหน้าทั้งหมด (รวมถึงที่ไม่รองรับ)"
 
 msgid "Parameters"
-msgstr ""
+msgstr "พารามิเตอร์"
 
 msgid "Process Preset"
-msgstr ""
+msgstr "พรีเซตกระบวนการ"
 
 msgid "Filament Preset"
 msgstr "ค่าที่ตั้งไว้ล่วงหน้าของเส้นวัสดุ"
 
 msgid "Material Preset"
-msgstr ""
+msgstr "พรีเซตวัสดุ"
 
 msgid "Machine Preset"
-msgstr ""
+msgstr "พรีเซตเครื่องจักร"
 
 msgid "These two presets have no visible differences"
-msgstr ""
+msgstr "ไม่มีความแตกต่างที่เห็นได้ชัดระหว่างสองพรีเซตนี้"
 
 msgid "Please select two different presets A and B to compare"
-msgstr ""
+msgstr "โปรดเลือกพรีเซตสองแบบที่แตกต่างกัน (A และ B) เพื่อเปรียบเทียบ"
 
 msgid "Add File"
 msgstr "เพิ่มไฟล์"
@@ -11668,9 +11890,6 @@ msgstr "ซิงโครไนซ์เฉพาะประเภทและ
 
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "แทนที่รายการเส้นวัสดุของโปรเจกต์ตามลำดับจากเส้นวัสดุของเครื่องพิมพ์ และเส้นวัสดุเครื่องพิมพ์ที่ไม่ได้ใช้จะถูกเพิ่มต่อท้ายรายการโดยอัตโนมัติ"
-
-msgid "Advanced settings"
-msgstr "การตั้งค่าขั้นสูง"
 
 msgid "Add unused AMS filaments to filaments list."
 msgstr "เพิ่มเส้นวัสดุ AMS ที่ไม่ได้ใช้ไปยังรายการเส้นวัสดุ"
@@ -12733,6 +12952,9 @@ msgstr "อัปเดตเฟิร์มแวร์"
 msgid "Hotends on Rack"
 msgstr "ชุดหัวพิมพ์บนชั้นวาง"
 
+msgid "Copy Device Info"
+msgstr ""
+
 msgid "Beta version"
 msgstr "เวอร์ชันเบต้า"
 
@@ -12741,9 +12963,6 @@ msgstr "กำลังรีเฟรชข้อมูลชุดหัวพ
 
 msgid "Checking version..."
 msgstr "กำลังตรวจสอบเวอร์ชัน..."
-
-msgid "Updating"
-msgstr "กำลังอัปเดต"
 
 msgid "Updating failed"
 msgstr "การอัปเดตล้มเหลว"
@@ -13166,14 +13385,14 @@ msgstr "ทาวเวอร์สลับสีต้องกำหนดใ
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "ทาวเวอร์สลับสีต้องกำหนดให้วัตถุทั้งหมดถูกตัดแบ่งด้วยความหนาต่อชั้นเท่ากัน"
 
-msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
-msgstr ""
-
-msgid "Jump to: Precise Z height"
-msgstr ""
-
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "ทาวเวอร์สลับสีรองรับเฉพาะในกรณีที่วัตถุทั้งหมดมีความหนาต่อชั้นแบบแปรผันเท่ากัน"
+
+msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
+msgstr "การกำหนดความสูง Z ที่แม่นยำจะทำให้โมเดลมีระดับความสูงเลเยอร์ที่แตกต่างกัน ซึ่งอาจทำให้ขนาดของไพรม์ทาวเวอร์เพิ่มขึ้นอย่างมาก"
+
+msgid "Jump to: Precise Z height"
+msgstr "ข้ามไปที่: ความสูง Z ที่แม่นยำ"
 
 msgid "Too small line width"
 msgstr "ความกว้างของเส้นเล็กเกินไป"
@@ -13204,7 +13423,7 @@ msgid "Generating G-code"
 msgstr "กำลังสร้าง G-code"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr ""
+msgstr "ตำแหน่งสัมพัทธ์ของโมเดลและไพรม์ทาวเวอร์ไม่ตรงตามข้อกำหนดของฟังก์ชัน \"ไม่มี Sparse Layer\" โปรดปรับตำแหน่งสัมพัทธ์ของโมเดล ลดความสูงของโมเดล หรือปิดใช้งาน \"ไม่มี Sparse Layer\""
 
 msgid "Failed processing of the filename_format template."
 msgstr "ประมวลผลเทมเพลต filename_format ล้มเหลว"
@@ -13518,7 +13737,7 @@ msgstr "มม./วินาที"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "ความเร็วของผนังแขวนลอย 100% ซึ่งไม่มีการทับซ้อนกับเลเยอร์ล่าง"
 
 msgid "Slow down by height"
 msgstr "ชะลอความเร็วตามความสูง"
@@ -13820,6 +14039,9 @@ msgstr "โมโนโทนิก"
 msgid "Monotonic line"
 msgstr "โมโนโทนิกไลน์"
 
+msgid "Global monotonic line"
+msgstr ""
+
 msgid "Aligned Rectilinear"
 msgstr "เส้นตรงขนาน"
 
@@ -13864,7 +14086,7 @@ msgid "Line pattern of internal solid infill. if the detect narrow internal soli
 msgstr "รูปแบบเส้นของโครงทึบภายใน หากเปิดใช้งานการตรวจจับโครงทึบภายในที่แคบ จะใช้รูปแบบวงแหวนซ้อนสำหรับพื้นที่ขนาดเล็ก"
 
 msgid "Sub-top surface pattern"
-msgstr ""
+msgstr "รูปแบบพื้นผิวย่อยด้านบน"
 
 msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
 msgstr ""
@@ -14548,7 +14770,7 @@ msgid "Initial layer infill"
 msgstr "การเติมเต็มชั้นเริ่มต้น"
 
 msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
-msgstr ""
+msgstr "ความกว้างเส้นของการอินฟิลในเลเยอร์เริ่มต้น รวมถึง Sparse Infill, Solid Infill และพื้นผิวด้านบน ผนัง ส่วนรองรับ และส่วนประกอบอื่นๆ ทั้งหมดของเลเยอร์เริ่มต้นจะไม่ได้รับผลกระทบ โดยจะยังคงใช้ความกว้างเส้นของเลเยอร์เริ่มต้นตามปกติ ค่าเป็น 0 หมายถึงให้ใช้ความกว้างเส้นของเลเยอร์เริ่มต้น"
 
 msgid "Initial layer height"
 msgstr "ความหนาต่อชั้นเริ่มต้น"
@@ -14729,29 +14951,14 @@ msgstr "ขนาดภาพขนาดย่อ"
 msgid "Decides the size of thumbnail stored in gcode files"
 msgstr "กำหนดขนาดของภาพขนาดย่อที่จัดเก็บไว้ในไฟล์ G-code"
 
-msgid "Nozzle type"
-msgstr "ชนิดหัวฉีด"
-
-msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
-msgstr "วัสดุโลหะของหัวฉีด สิ่งนี้จะกำหนดความทนทานต่อการขัดถูของหัวฉีด และชนิดของเส้นวัสดุที่สามารถพิมพ์ได้"
-
-msgid "Undefine"
-msgstr "ไม่ระบุ"
-
-msgid "Hardened steel"
-msgstr "เหล็กกล้าชุบแข็ง"
-
-msgid "Stainless steel"
-msgstr "เหล็กกล้าไร้สนิม"
-
-msgid "Tungsten carbide"
-msgstr "ทังสเตนคาร์ไบด์"
-
 msgid "Printer structure"
 msgstr "โครงสร้างเครื่องพิมพ์"
 
 msgid "The physical arrangement and components of a printing device"
 msgstr "การจัดวางจริงและส่วนประกอบของอุปกรณ์การพิมพ์"
+
+msgid "Undefine"
+msgstr "ไม่ระบุ"
 
 msgid "Best object position"
 msgstr "ตำแหน่งวัตถุที่ดีที่สุด"
@@ -14854,6 +15061,66 @@ msgstr "ความกว้างของเส้นสเกเลตัน
 
 msgid "Adjust the line width of the selected skeleton paths."
 msgstr "ปรับความกว้างของเส้นทางสเกเลตันที่เลือก"
+
+msgid "Conformal infill"
+msgstr ""
+
+msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
+msgstr ""
+
+msgid "Layer stagger"
+msgstr ""
+
+msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
+msgstr ""
+
+msgid "Alternate"
+msgstr ""
+
+msgid "Forward layers"
+msgstr ""
+
+msgid "Conformal forward layers"
+msgstr ""
+
+msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
+msgstr ""
+
+msgid "Reverse layers"
+msgstr ""
+
+msgid "Conformal reverse layers"
+msgstr ""
+
+msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
+msgstr ""
+
+msgid "Radial center"
+msgstr ""
+
+msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
+msgstr ""
+
+msgid "Each layer"
+msgstr ""
+
+msgid "Axis"
+msgstr ""
+
+msgid "Smooth curve"
+msgstr ""
+
+msgid "Radial line count"
+msgstr ""
+
+msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
+msgstr ""
+
+msgid "Center region radius"
+msgstr ""
+
+msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
+msgstr ""
 
 msgid "Symmetric infill y axis"
 msgstr "อินฟิลแบบสมมาตรตามแกน Y"
@@ -15272,6 +15539,39 @@ msgstr "ผนังเสริมสลับชั้น"
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr "เพิ่มผนังเสริมสลับกันในแต่ละชั้นเพื่อปรับปรุงการยึดเกาะระหว่างชั้นและความแข็งแรงของชิ้นงาน โดยไม่ต้องเสียต้นทุนเท่ากับการเสริมผนังถาวร"
 
+msgid "Periodic modifier"
+msgstr ""
+
+msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
+msgstr ""
+
+msgid "Skip for"
+msgstr ""
+
+msgid "Periodic modifier skip layers"
+msgstr ""
+
+msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
+msgstr ""
+
+msgid "Apply for"
+msgstr ""
+
+msgid "Periodic modifier apply layers"
+msgstr ""
+
+msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
+msgstr ""
+
+msgid "Ignore infill settings"
+msgstr ""
+
+msgid "Modifier ignore infill settings"
+msgstr ""
+
+msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "สคริปต์หลังกระบวนการ"
 
@@ -15572,7 +15872,7 @@ msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf
 msgstr "ระยะสูงสุดในการเคลื่อนจุดบนแกน XY เพื่อสร้างเกลียวที่เรียบเนียน หากแสดงเป็น % จะคำนวณจากเส้นผ่านศูนย์กลางหัวฉีด"
 
 msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr ""
+msgstr "หากเลือกโหมด Smooth หรือ Instant ระบบจะสร้างวิดีโอไทม์แลปส์สำหรับการพิมพ์แต่ละครั้ง หลังจากพิมพ์แต่ละเลเยอร์เสร็จแล้ว จะมีการถ่ายภาพสแนปช็อตด้วยกล้องในห้องพิมพ์ ภาพถ่ายสแนปช็อตทั้งหมดนี้จะถูกนำมาประมวลผลเป็นวิดีโอไทม์แลปส์เมื่อการพิมพ์เสร็จสมบูรณ์ หากเลือกโหมด Smooth หัวจ่ายจะเคลื่อนไปยังช่องทิ้งเศษวัสดุหลังจากพิมพ์แต่ละเลเยอร์เสร็จ จากนั้นจึงจะถ่ายภาพสแนปช็อต เนื่องจากเส้นวัสดุหลอมละลายอาจเกิดการไหลเยิ้มออกจากหัวฉีดในระหว่างกระบวนการถ่ายภาพ โหมด Smooth จึงจำเป็นต้องใช้ไพรม์ทาวเวอร์เพื่อเช็ดทำความสะอาดหัวฉีด"
 
 msgid "Instant"
 msgstr ""
@@ -15581,7 +15881,7 @@ msgid "Farthest point timelapse"
 msgstr "ไทม์แลปส์ ณ จุดไกลที่สุด"
 
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
-msgstr ""
+msgstr "เมื่อเปิดใช้งาน ฟังก์ชันไทม์แลปส์จะถ่ายภาพจากจุดที่ไกลที่สุดจากกล้อง แทนที่จะเคลื่อนที่ไปยังไวป์ทาวเวอร์หรือช่องทิ้งเศษวัสดุ ใช้งานได้เฉพาะในโหมดไทม์แลปส์แบบทันทีบนเครื่องพิมพ์ที่ไม่ใช่รุ่น I3 เท่านั้น"
 
 msgid "Temperature variation"
 msgstr "ความผันผวนของอุณหภูมิ"
@@ -16219,7 +16519,7 @@ msgstr "--use-firmware-retraction ไม่สามารถใช้งาน�
 
 #, no-c-format, no-boost-format
 msgid " doesn't work at 100% density "
-msgstr ""
+msgstr " ใช้งานไม่ได้ที่ความหนาแน่น 100% "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "ค่าไม่ถูกต้องเมื่อเปิดใช้งานโหมดแจกันเกลียว: "
@@ -16278,12 +16578,16 @@ msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
 msgstr ""
+"ตรวจพบพื้นผิวแขวนลอยที่ไม่มีส่วนรองรับ\n"
+"โมเดล \"%1%\" มีบริเวณพื้นผิวแขวนลอย %2% แห่ง เนื่องจากเปิดใช้งานฟังก์ชัน \"รองรับเฉพาะบนแผ่นฐานเท่านั้น\" ส่วนรองรับจึงไม่สามารถสร้างลงมาถึงแผ่นฐานได้ ลองปิดใช้งานตัวเลือกนี้ดู"
 
 #, boost-format
 msgid ""
 "Unsupported overhangs were detected.\n"
 "Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
 msgstr ""
+"ตรวจพบพื้นผิวแขวนลอยที่ไม่มีส่วนรองรับ\n"
+"โมเดล \"%1%\" มีบริเวณพื้นผิวแขวนลอย %2% แห่งที่ไม่สามารถสร้างส่วนรองรับได้ ลองปรับการตั้งค่าส่วนรองรับหรือจัดวางทิศทางของวัตถุใหม่"
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "ชั้นว่างบริเวณส่วนล่างถูกแทนที่ด้วยชั้นปกติที่ใกล้ที่สุด"
@@ -16296,6 +16600,9 @@ msgstr "กำลังตัดแบ่งเมช"
 
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "ไม่พบชั้น คุณอาจลองซ่อมแซมไฟล์ STL หรือตรวจสอบขนาดหรือความหนาของชิ้นงานแล้วลองอีกครั้ง\n"
+
+msgid "Shrinkage compensation does not take effect on color-painted models."
+msgstr ""
 
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
@@ -16358,6 +16665,9 @@ msgstr "ไฟล์มีรูปหลายเหลี่ยมที่ม
 
 msgid "The file contains invalid vertex index."
 msgstr "ไฟล์มีดัชนีจุดยอดที่ไม่ถูกต้อง"
+
+msgid "The file contains invalid texture coordinate index."
+msgstr ""
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "ไม่สามารถอ่านไฟล์ OBJ นี้ได้ เนื่องจากเป็นไฟล์ว่าง"
@@ -17270,6 +17580,8 @@ msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
+"ชื่อเส้นวัสดุ %s ที่คุณสร้างขึ้นมีอยู่แล้ว \n"
+"หากคุณดำเนินการต่อ พรีเซตใหม่จะถูกบันทึกไว้ร่วมกับเส้นวัสดุที่กำหนดเองที่มีอยู่ และจะแสดงด้วยชื่อเต็มเพื่อแยกแยะความแตกต่าง คุณต้องการดำเนินการต่อหรือไม่"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "มีค่าที่ตั้งไว้ล่วงหน้าบางรายการสร้างไม่ได้ ดังรายละเอียดต่อไปนี้:\n"
@@ -17586,9 +17898,6 @@ msgstr "ลบค่าที่ตั้งไว้ล่วงหน้า"
 
 msgid "+ Add Preset"
 msgstr "+ เพิ่มค่าที่ตั้งไว้ล่วงหน้า"
-
-msgid "Delete Filament"
-msgstr "ลบเส้นวัสดุ"
 
 msgid "Add Preset"
 msgstr "เพิ่มค่าที่ตั้งไว้ล่วงหน้า"
@@ -18403,25 +18712,22 @@ msgstr "ไม่มีสี"
 msgid "Multiple Color"
 msgstr "หลายสี"
 
-msgid "Official Filament"
-msgstr "เส้นวัสดุอย่างเป็นทางการ"
-
-msgid "More Colors"
-msgstr "สีเพิ่มเติม"
-
 msgid "Search filament"
-msgstr ""
+msgstr "ค้นหาเส้นวัสดุ"
 
 msgid "Unsupported Filaments"
-msgstr ""
+msgstr "เส้นวัสดุที่ไม่รองรับ"
 
 msgid "No filaments"
-msgstr ""
+msgstr "ไม่มีเส้นวัสดุ"
 
 msgid "slot"
-msgstr ""
+msgstr "ช่อง"
 
 msgid "Recently used"
+msgstr "ที่เพิ่งใช้งานล่าสุด"
+
+msgid "Set nozzle count"
 msgstr ""
 
 msgid "Please set nozzle count"
@@ -18749,6 +19055,9 @@ msgstr "ตัวอย่างแสดงผล"
 msgid "Select Mixed Materials"
 msgstr "เลือกวัสดุผสม"
 
+msgid "+ Add Material"
+msgstr "+ เพิ่มวัสดุ"
+
 msgid "- Delete Material"
 msgstr "- ลบวัสดุ"
 
@@ -18768,10 +19077,10 @@ msgid "-- Select --"
 msgstr "-- เลือก --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "เอฟเฟกต์การไล่ระดับสีจำเป็นต้องเปิดใช้งาน 'เลเยอร์ย่อยสีผสม' ก่อน เปิดใช้งานตอนนี้เลยไหม"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "เลเยอร์ย่อยสีผสม"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
@@ -18800,47 +19109,47 @@ msgid "RGB(%d, %d, %d)"
 msgstr ""
 
 msgid "Decomposition result for this combination"
-msgstr ""
+msgstr "ผลลัพธ์การแยกสีสำหรับชุดค่าผสมนี้"
 
 msgid "Filament Color"
-msgstr ""
+msgstr "สีของเส้นวัสดุ"
 
 msgid "Decomposed Colors"
-msgstr ""
+msgstr "สีที่ถูกแยกออก"
 
 msgid "Select Color Decomposition"
 msgstr "เลือกการแยกสี"
 
 msgid "Project Filament"
-msgstr ""
+msgstr "เส้นวัสดุในโปรเจกต์"
 
 msgid "Material List"
 msgstr "รายการวัสดุ"
 
 msgid "Standard Palette"
-msgstr ""
+msgstr "พาเลทมาตรฐาน"
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "ต้องมีเส้นวัสดุประเภทเดียวกันอย่างน้อยสองเส้นสำหรับการแยก"
 
 msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "การผสมสีที่ใกล้เคียงยิ่งขึ้นจะคำนวณจากสีพื้นฐานสี่สี ได้แก่ Cyan (ฟ้า), Magenta (ม่วงแดง), Yellow (เหลือง) และ White (ขาว) ขณะนี้รองรับเฉพาะ PLA Basic เท่านั้น หากไม่มีเส้นวัสดุที่ตรงกันในโปรเจกต์ ระบบจะเพิ่มเส้นวัสดุเหล่านั้นให้โดยอัตโนมัติ"
 
 msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "การผสมสีที่ใกล้เคียงยิ่งขึ้นจะคำนวณจากสีพื้นฐานสี่สี ได้แก่ Red (แดง), Yellow (เหลือง), Blue (น้ำเงิน) และ White (ขาว) ขณะนี้รองรับเฉพาะ PLA Basic เท่านั้น หากไม่มีเส้นวัสดุที่ตรงกันในโปรเจกต์ ระบบจะเพิ่มเส้นวัสดุเหล่านั้นให้โดยอัตโนมัติ"
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "รายการวัสดุรองรับได้สูงสุด %1% สี หลังจากแยก %2% แล้ว จำนวนวัสดุจะเกิน %1% โปรดลบเส้นวัสดุที่ไม่ได้ใช้งานบนหน้าจอหลักก่อนแยก"
 
 msgid "Decompose Color (gradient not supported)"
-msgstr ""
+msgstr "แยกองค์ประกอบสี (ไม่รองรับการไล่ระดับสี)"
 
 msgid "Decompose Color (transparent not supported)"
-msgstr ""
+msgstr "แยกองค์ประกอบสี (ไม่รองรับวัสดุโปร่งแสง)"
 
 msgid "Decompose Color (multi-color not supported)"
-msgstr ""
+msgstr "แยกองค์ประกอบสี (ไม่รองรับหลากสี)"
 
 msgid "Cyan"
 msgstr "สีฟ้าอมเขียว"
@@ -18873,11 +19182,11 @@ msgid "An unexpected error occurred"
 msgstr "เกิดข้อผิดพลาดที่ไม่คาดคิด"
 
 msgid "Create Custom Filament"
-msgstr ""
+msgstr "สร้างเส้นวัสดุแบบกำหนดเอง"
 
 #, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
-msgstr ""
+msgstr "พรีเซต \"%s\" มีอยู่แล้ว เขียนทับข้อมูลหรือไม่"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -19174,6 +19483,111 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Previous"
+#~ msgstr "ก่อนหน้า"
+
+#~ msgid "One-click CMYW auto-mix"
+#~ msgstr "ผสมสี CMYW อัตโนมัติในคลิกเดียว"
+
+#~ msgid "One-click RYBW auto-mix"
+#~ msgstr "ผสมสี RYBW อัตโนมัติในคลิกเดียว"
+
+#, c-format, boost-format
+#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#~ msgstr "โปรเจกต์รองรับเส้นวัสดุได้สูงสุด %d ประเภท เส้นวัสดุส่วนเกินจะถูกละทิ้ง"
+
+#~ msgid "Reset filament mapping to the state before one-click mixing"
+#~ msgstr "รีเซ็ตการจับคู่เส้นวัสดุให้กลับสู่สถานะก่อนการผสมสีในคลิกเดียว"
+
+#~ msgid "Choose the one-click auto-mix mode for texture color import"
+#~ msgstr "เลือกโหมดผสมอัตโนมัติในคลิกเดียวสำหรับการนำเข้าสีลวดลาย"
+
+#, c-format, boost-format
+#~ msgid "Computing texture colors: %s"
+#~ msgstr "กำลังคำนวณสีลวดลาย: %s"
+
+#~ msgid "Show Labels"
+#~ msgstr "แสดงป้ายกำกับ"
+
+#~ msgid "Import Model"
+#~ msgstr "นำเข้าโมเดล"
+
+#~ msgid "Multi-Color"
+#~ msgstr "หลายสี"
+
+#~ msgid "Your input texture model"
+#~ msgstr "โมเดลลวดลายที่คุณป้อน"
+
+#~ msgid "Processed multi-color model"
+#~ msgstr "โมเดลหลายสีที่ประมวลผลแล้ว"
+
+#~ msgid "Smooth Level"
+#~ msgstr "ระดับความเรียบ"
+
+#~ msgid "Automatically determine the optimal color count only and recompute filament mapping"
+#~ msgstr "กำหนดจำนวนสีที่เหมาะสมที่สุดโดยอัตโนมัติเท่านั้น และคำนวณการจับคู่เส้นวัสดุใหม่"
+
+#~ msgid "Convert texture to painting using the specified color count and smooth level"
+#~ msgstr "แปลงลวดลายเป็นการระบายสีโดยใช้จำนวนสีและระดับความเรียบที่กำหนด"
+
+#~ msgid "Reminder: parameters changed, click Apply to take effect"
+#~ msgstr "การแจ้งเตือน: พารามิเตอร์เปลี่ยนแปลง คลิกใช้เพื่อให้มีผล"
+
+#~ msgid "Filament Mapping"
+#~ msgstr "การจับคู่เส้นวัสดุ"
+
+#~ msgid "Auto-merge same filament"
+#~ msgstr "ผสานเส้นวัสดุที่เหมือนกันโดยอัตโนมัติ"
+
+#~ msgid "Skip Matching"
+#~ msgstr "ข้ามการจับคู่"
+
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "เมชมีรูปทรงที่ไม่เป็นแมนิโฟลด์หรือมีขอบเขตเปิด คุณสามารถนำเข้าตามสภาพเดิม หรือซ่อมแซมด้วยบริการซ่อมแซม 3D ของ Windows ก่อนนำเข้า"
+
+#~ msgid "Mesh repair"
+#~ msgstr "ซ่อมแซมเมช"
+
+#~ msgid "Import without repair"
+#~ msgstr "นำเข้าโดยไม่ซ่อมแซม"
+
+#~ msgid "Repair and import"
+#~ msgstr "ซ่อมแซมและนำเข้า"
+
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "โปรดทราบว่าเมชมีรูปทรงที่ไม่เป็นแมนิโฟลด์หรือมีขอบเขตเปิด"
+
+#~ msgid "Mesh issue"
+#~ msgstr "ปัญหาเมช"
+
+#~ msgid "Show Labels of printing by object in 3D scene"
+#~ msgstr "แสดงป้ายกำกับการพิมพ์ตามวัตถุในฉาก 3 มิติ"
+
+#~ msgid "Object too small"
+#~ msgstr "วัตถุเล็กเกินไป"
+
+#, boost-format
+#~ msgid "Reason: part \"%1%\" has self intersection."
+#~ msgstr "เหตุผล: ชิ้นส่วน \"%1%\" มีการตัดกันเอง"
+
+#~ msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+#~ msgstr "เส้นวัสดุใน AMS อาจไม่เพียงพอสำหรับการพิมพ์นี้ โปรดเติมหรือเปลี่ยนเส้นวัสดุ"
+
+#~ msgid "Nozzle type"
+#~ msgstr "ชนิดหัวฉีด"
+
+#~ msgid "The metallic material of nozzle. This determines the abrasive resistance of nozzle, and what kind of filament can be printed"
+#~ msgstr "วัสดุโลหะของหัวฉีด สิ่งนี้จะกำหนดความทนทานต่อการขัดถูของหัวฉีด และชนิดของเส้นวัสดุที่สามารถพิมพ์ได้"
+
+#~ msgid "Hardened steel"
+#~ msgstr "เหล็กกล้าชุบแข็ง"
+
+#~ msgid "Stainless steel"
+#~ msgstr "เหล็กกล้าไร้สนิม"
+
+#~ msgid "Tungsten carbide"
+#~ msgstr "ทังสเตนคาร์ไบด์"
 
 #, c-format, boost-format
 #~ msgid " doesn't work at 100%% density "

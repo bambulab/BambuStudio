@@ -131,6 +131,12 @@ set(lisbslic3r_sources
     Fill/Lightning/TreeNode.hpp
     Fill/FillRectilinear.cpp
     Fill/FillRectilinear.hpp
+    Fill/FillConformal.cpp
+    Fill/FillConformal.hpp
+    Fill/FillConformalChart.cpp
+    Fill/FillConformalChart.hpp
+    Fill/FillRadialZigZag.cpp
+    Fill/FillRadialZigZag.hpp
     Fill/FillFloatingConcentric.hpp
     Fill/FillFloatingConcentric.cpp
     Flow.cpp

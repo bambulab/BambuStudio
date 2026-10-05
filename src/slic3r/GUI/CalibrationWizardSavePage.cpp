@@ -199,19 +199,18 @@ std::vector<std::pair<int, std::string>> CaliPASaveAutoPanel::default_naming(std
     return preset_names;
 }
 
-void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result)
+void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cali_result)
 {
     if (m_obj && m_obj->is_multi_extruders()) {
         m_grid_panel->Hide();
         m_multi_extruder_grid_panel->Show();
-        sync_cali_result_for_multi_extruder(cali_result, history_result);
+        sync_cali_result_for_multi_extruder(cali_result);
         return;
     }
 
     m_grid_panel->Show();
     m_multi_extruder_grid_panel->Hide();
 
-    m_history_results = history_result;
     m_calib_results.clear();
     for (auto& item : cali_result) {
         if (item.confidence == 0)
@@ -281,11 +280,12 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         wxArrayString selections;
         static std::vector<PACalibResult> filtered_results;
         filtered_results.clear();
-        for (auto history : history_result) {
-            if (history.filament_id == item.filament_id) {
-                filtered_results.push_back(history);
-                selections.push_back(from_u8(history.name));
-            }
+        if (m_obj && !item.filament_id.empty()) {
+            PaHistoryFilter pa_history_filter = m_obj->GetCalib()->GetPaHistoryFilter();
+            filtered_results = pa_history_filter.set_filament_id(item.filament_id).get();
+        }
+        for (const auto &history : filtered_results) {
+            selections.push_back(from_u8(history.name));
         }
         comboBox_tray_name->Set(selections);
 
@@ -449,7 +449,7 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
     }
 }
 
-void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<PACalibResult>& cali_result, const std::vector<PACalibResult>& history_result)
+void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<PACalibResult>& cali_result)
 {
     if (!m_obj || !m_obj->GetNozzleSystem()) return;
 
@@ -465,7 +465,6 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     if (cali_result.empty())
         part_failed = true;
 
-    m_history_results = history_result;
     m_calib_results.clear();
     for (auto &item : cali_result) {
         if (item.confidence == 0) {
@@ -626,14 +625,16 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         wxArrayString                     selections;
         static std::vector<PACalibResult> filtered_results;
         filtered_results.clear();
-        for (auto history : history_result) {
-            if (history.filament_id == item.filament_id
-                && history.extruder_id == item.extruder_id
-                && history.nozzle_volume_type == item.nozzle_volume_type
-                && history.nozzle_diameter == item.nozzle_diameter) {
-                filtered_results.push_back(history);
-                selections.push_back(from_u8(history.name));
-            }
+        if (!item.filament_id.empty() && DevNozzle::ToNozzleDiameterType(item.nozzle_diameter) != NozzleDiameterType::NONE_DIAMETER_TYPE) {
+            PaHistoryFilter pa_history_filter = m_obj->GetCalib()->GetPaHistoryFilter();
+            filtered_results = pa_history_filter.set_filament_id(item.filament_id)
+                                        .set_extruder_id(item.extruder_id)
+                                        .set_nozzle_volume_type(item.nozzle_volume_type)
+                                        .set_nozzle_diameter(DevNozzle::ToNozzleDiameterType(item.nozzle_diameter))
+                                        .get();
+        }
+        for (const auto &history : filtered_results) {
+            selections.push_back(from_u8(history.name));
         }
         comboBox_tray_name->Set(selections);
 
@@ -1217,12 +1218,11 @@ void CalibrationPASavePage::sync_cali_result(MachineObject* obj)
 {
     // only auto need sync cali_result
     if (obj && (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)) {
-        auto pa_tab = obj->GetCalib()->GetPAHistory();
         auto pa_result = obj->GetCalib()->GetPAResult();
-        m_auto_panel->sync_cali_result(pa_result, pa_tab);
+        m_auto_panel->sync_cali_result(pa_result);
     } else {
         std::vector<PACalibResult> empty_result;
-        m_auto_panel->sync_cali_result(empty_result, empty_result);
+        m_auto_panel->sync_cali_result(empty_result);
     }
 }
 

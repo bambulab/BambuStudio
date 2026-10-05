@@ -84,6 +84,18 @@ static bool plate_allows_wipe_tower(PartPlate *pl)
     return pl->printable_instance_size() == 1;
 }
 
+// Smooth timelapse / wrapping detection always needs a tower, even single-color.
+static bool wipe_tower_is_mandatory()
+{
+    const DynamicPrintConfig &cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto sop = cfg.option("timelapse_type");
+    if (sop && sop->getInt() == TimelapseType::tlSmooth)
+        return true;
+    if (cfg.has("enable_wrapping_detection") && cfg.opt_bool("enable_wrapping_detection"))
+        return true;
+    return false;
+}
+
 arrangement::ArrangePolygon get_wipetower_arrange_poly(WipeTower* tower)
 {
     ArrangePolygon ap = tower->get_arrange_polygon();
@@ -392,10 +404,7 @@ bool ArrangeJob::selected_items_need_wipe_tower() const
     bool enable_prime_tower = op && op->getBool();
     if (!enable_prime_tower) return false;
 
-    auto sop = current_config.option("timelapse_type");
-    if (sop && sop->getInt() == TimelapseType::tlSmooth) return true;
-
-    if (current_config.opt_bool("enable_wrapping_detection")) return true;
+    if (wipe_tower_is_mandatory()) return true;
 
     // estimate if we need wipe tower for all plates:
     // need wipe tower if some object has multiple extruders (has paint-on colors or support material)
@@ -422,12 +431,96 @@ bool ArrangeJob::selected_items_need_wipe_tower() const
     return false;
 }
 
+// Retry single-filament items rejected by the tower-crowded main pass on fresh plates.
+static void retry_unfit_single_color_items(ArrangePolygons &selected, const ArrangePolygons &unselected,
+                                            const Points &bedpts, const arrangement::ArrangeParams &params)
+{
+    // No tower obstacle in the main pass: rejected items were genuinely oversized.
+    if (std::none_of(unselected.begin(), unselected.end(),
+                     [](const ArrangePolygon &ap) { return ap.is_wipe_tower; }))
+        return;
+
+    // Step 1: rejected items that only use one filament.
+    std::vector<size_t> candidates;
+    for (size_t i = 0; i < selected.size(); i++) {
+        const ArrangePolygon &ap = selected[i];
+        // Skip virtual objects: finalize() doesn't skip them, so giving them a fallback
+        // bed_idx would create empty plates. Real instances always have >= 1 filament id.
+        if (!ap.is_virt_object && ap.bed_idx < 0 && ap.extrude_id_filament_types.size() == 1)
+            candidates.push_back(i);
+    }
+    if (candidates.empty())
+        return;
+
+    // Step 2: group by filament id so each group gets its own fresh plate; mixing
+    // filaments on one plate would need a tower again.
+    std::map<int, std::vector<size_t>> groups;
+    for (size_t idx : candidates)
+        groups[selected[idx].extrude_id_filament_types.begin()->first].push_back(idx);
+
+    // Step 3: fallback obstacles - unselected items minus wipe towers.
+    ArrangePolygons fallback_unselected;
+    for (const ArrangePolygon &ap : unselected) {
+        if (!ap.is_wipe_tower)
+            fallback_unselected.emplace_back(ap);
+    }
+
+    // Step 4: first free plate index.
+    int base_bed = 0;
+    for (const ArrangePolygon &ap : selected) {
+        if (ap.bed_idx >= 0)
+            base_bed = std::max(base_bed, ap.bed_idx + 1);
+    }
+
+    ARRANGE_LOG(info) << boost::format("wipe tower fallback: %1% candidates in %2% groups, base bed %3%")
+                             % candidates.size() % groups.size() % base_bed;
+
+    // Silence progress callback so the fallback's own counter doesn't jump the main pass back.
+    arrangement::ArrangeParams fallback_params = params;
+    fallback_params.progressind                = nullptr;
+
+    // Step 5: rearrange group by group.
+    for (auto &kv : groups) {
+        ArrangePolygons group;
+        group.reserve(kv.second.size());
+        for (size_t idx : kv.second)
+            group.emplace_back(selected[idx]);
+
+        for (ArrangePolygon &ap : group)
+            ap.bed_idx = 0;
+
+        arrangement::arrange(group, fallback_unselected, bedpts, fallback_params);
+
+        int next_base = base_bed;
+        for (ArrangePolygon &ap : group) {
+            if (ap.bed_idx < 0)
+                continue;   // still oversized, leave it outside
+            ap.bed_idx += base_bed;
+            if (ap.bed_idx >= MAX_NUM_PLATES)
+                ap.bed_idx = -1;
+            else
+                next_base = std::max(next_base, ap.bed_idx + 1);
+        }
+        base_bed = next_base;
+
+        // Write back by index, not itemid: arrange() overwrites itemid with packing order.
+        for (size_t k = 0; k < kv.second.size() && k < group.size(); k++) {
+            const int original_itemid   = selected[kv.second[k]].itemid;
+            selected[kv.second[k]]      = group[k];
+            selected[kv.second[k]].itemid = original_itemid;
+            ARRANGE_LOG(debug) << "wipe tower fallback: " << group[k].name << " -> bed " << group[k].bed_idx;
+        }
+    }
+}
+
 void ArrangeJob::prepare_wipe_tower(bool select)
 {
     DynamicPrintConfig& current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto                op = current_config.option("enable_prime_tower");
     bool enable_prime_tower = op && op->getBool();
     if (!enable_prime_tower) return;
+    // ByObject: a plate's future tower can't be evaluated before it exists.
+    if (params.is_seq_print) return;
 
     bool need_wipe_tower = selected_items_need_wipe_tower();
     ARRANGE_LOG(info) << "need_wipe_tower=" << need_wipe_tower;
@@ -539,7 +632,16 @@ void ArrangeJob::prepare_partplate() {
     DynamicPrintConfig& current_config_wt = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto  op_wt = current_config_wt.option("enable_prime_tower");
     bool  enable_prime_tower_wt = op_wt && op_wt->getBool();
-    if (enable_prime_tower_wt && plate_allows_wipe_tower(plate)) {
+    if (params.is_seq_print) {
+        // ByObject: only avoid an existing tower, never reserve one. get_wipe_tower()'s
+        // GLVolume only exists when the tower is enabled, so no extra check needed here.
+        if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
+            ArrangePolygon&& ap = get_wipetower_arrange_poly(&wti);
+            ap.setter = NULL;
+            m_unselected.emplace_back(std::move(ap));
+        }
+    }
+    else if (enable_prime_tower_wt) {
         DynamicConfig *proj_cfg_ptr = &wxGetApp().preset_bundle->project_config;
         auto *wtx = proj_cfg_ptr->opt<ConfigOptionFloats>("wipe_tower_x");
         auto *wty = proj_cfg_ptr->opt<ConfigOptionFloats>("wipe_tower_y");
@@ -839,6 +941,15 @@ void ArrangeJob::process()
         for (auto item : m_unselected)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << unscale<double>(item.translation(X)) << "," << unscale<double>(item.translation(Y));
     }
+
+    // Retry single-color items squeezed out by a preloaded tower placeholder, on fresh
+    // tower-free plates.
+    const bool mandatory_tower = wipe_tower_is_mandatory();
+    if (!only_on_partplate && !mandatory_tower)
+        retry_unfit_single_color_items(m_selected, m_unselected, bedpts, params);
+    else
+        ARRANGE_LOG(info) << "wipe tower fallback skipped: only_on_partplate=" << only_on_partplate
+                          << ", mandatory_tower=" << mandatory_tower;
 
     // put unpackable items to m_unprintable so they goes outside
     bool we_have_unpackable_items = false;

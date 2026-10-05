@@ -20,7 +20,19 @@ TriangleRaycaster::TriangleRaycaster(const indexed_triangle_set &its)
     m_impl->its = &its;
     if (its.indices.empty() || its.vertices.empty())
         return;
-    m_impl->tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(its.vertices, its.indices);
+    // Float AABBs with eps=0 drop leaves whose box face/edge the ray grazes
+    // (axis rays on a silhouette shared edge). Expansion only affects
+    // traversal; the triangle test is unchanged. Scale with the mesh AABB
+    // so a 2 mm part and a 300 mm part share one policy.
+    stl_vertex bmin = its.vertices.front();
+    stl_vertex bmax = bmin;
+    for (const auto &v : its.vertices) {
+        bmin = bmin.cwiseMin(v);
+        bmax = bmax.cwiseMax(v);
+    }
+    const float max_ext   = (bmax - bmin).maxCoeff();
+    const float build_eps = std::max(1e-4f * max_ext, 1e-5f);
+    m_impl->tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(its.vertices, its.indices, build_eps);
 }
 
 TriangleRaycaster::~TriangleRaycaster() = default;

@@ -4504,13 +4504,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 }
                 return;
             }
-            case 'e':
-            case 'E':
-            case WXK_CONTROL_E: {
-                m_labels.show_object_labels(!m_labels.are_object_labels_shown());
-                m_dirty = true;
-                return;
-            }
             }
         }
         // CTRL is pressed
@@ -4753,6 +4746,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                     post_event(SimpleEvent(EVT_GLCANVAS_ORIENT_PARTPLATE));
                 else
                     post_event(SimpleEvent(EVT_GLCANVAS_ORIENT));
+                break;
+            }
+        case 'e':
+        case 'E':
+            {
+                if ((evt.GetModifiers() & shiftMask) != 0) {
+                    m_labels.show_object_labels(!m_labels.are_object_labels_shown());
+                    m_dirty = true;
+                }
                 break;
             }
 #if !BBL_RELEASE_TO_PUBLIC
@@ -13937,7 +13939,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     }
     case EWarning::AllObjectsUnprintable:
-        text = _u8L("All objects on the current plate are unprintable. Slicing will produce an empty result. Please check.");
+        text = _u8L("All objects on the plate are unprintable, please check the printable settings in the object list.");
         break;
     case EWarning::FlushingVolumeZero:
         text = _u8L("Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings.");

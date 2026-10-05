@@ -1381,6 +1381,53 @@ static void chain_open_polylines_close_gaps(std::vector<OpenPolyline> &open_poly
     }
 }
 
+namespace {
+
+// Several mesh indices may sit at one position of the cut plane: the intersection vertices
+// inserted while splitting the facets, plus the original vertices the plane happens to pass
+// through (CAD models often stack a few of those). Shell faces and cap triangles have to agree
+// on a single index per position, otherwise the cap does not close the shell and the cut leaves
+// open edges behind.
+static bool cut_plane_xy_equal(const Vec2f &l, const Vec2f &r)
+{
+    return is_equal(l.x(), r.x()) && is_equal(l.y(), r.y());
+}
+
+// Index the welded map holds for a cut plane position, -1 when the position is not in the map.
+// The accepted distance is much wider than the rounding the cap coordinates went through, so the
+// closest entry is taken rather than the first one hit: several distinct positions may be within
+// the tolerance and only the closest one is the vertex the shell uses here.
+static int find_cut_plane_vertex_index(const std::vector<std::pair<Vec2f, int>> &map_vertex_to_index, const Vec2f &v)
+{
+    int   best_idx  = -1;
+    float best_dist = 0.f;
+    auto  consider  = [&v, &best_idx, &best_dist](const std::pair<Vec2f, int> &e) {
+        if (! cut_plane_xy_equal(e.first, v))
+            return;
+        const float dist = (e.first - v).squaredNorm();
+        if (best_idx == -1 || dist < best_dist || (dist == best_dist && e.second < best_idx)) {
+            best_idx  = e.second;
+            best_dist = dist;
+        }
+    };
+    auto it = lower_bound_by_predicate(map_vertex_to_index.begin(), map_vertex_to_index.end(),
+        [&v](const std::pair<Vec2f, int> &l) {
+            return l.first.x() < v.x() || (is_equal_for_sort(l.first.x(), v.x()) && l.first.y() < v.y());
+        });
+    // is_equal() accepts a wider distance than the sort key, so candidates sit on either side.
+    for (auto cur = it; cur != map_vertex_to_index.end() && is_equal(cur->first.x(), v.x()); ++ cur)
+        consider(*cur);
+    for (auto cur = it; cur != map_vertex_to_index.begin(); ) {
+        -- cur;
+        if (! is_equal(cur->first.x(), v.x()))
+            break;
+        consider(*cur);
+    }
+    return best_idx;
+}
+
+} // namespace
+
 static Polygons make_loops(
     // Lines will have their flags modified.
     IntersectionLines   &lines)
@@ -2229,8 +2276,6 @@ static void triangulate_slice(
     indexed_triangle_set    &its,
     IntersectionLines       &lines,
     std::vector<int>        &slice_vertices,
-    // Vertices of the original (unsliced) mesh. Newly added vertices are those on the slice.
-    int                      num_original_vertices,
     // Z height of the slice.
     float                    z,
     bool                     triangulate,
@@ -2240,12 +2285,17 @@ static void triangulate_slice(
 {
     sort_remove_duplicates(slice_vertices);
 
-    // 1) Create map of the slice vertices from positions to mesh indices.
+    // 1) Create map of the cut plane vertices from positions to mesh indices.
     // As the caller will likely add duplicate points when intersecting triangle edges, there will be duplicates.
+    // The original vertices the plane passes through are registered as well, so that a stack of
+    // coincident vertices ends up in a single group of step 2 instead of forking shell and cap.
     std::vector<std::pair<Vec2f, int>> map_vertex_to_index;
-    map_vertex_to_index.reserve(slice_vertices.size());
+    map_vertex_to_index.reserve(slice_vertices.size() + section_vertices_map.size());
     for (int i : slice_vertices)
         map_vertex_to_index.emplace_back(to_2d(its.vertices[i]), i);
+    for (const auto &kvp : section_vertices_map)
+        if (kvp.first >= 0 && kvp.first < int(its.vertices.size()) && is_equal(its.vertices[kvp.first].z(), z))
+            map_vertex_to_index.emplace_back(to_2d(its.vertices[kvp.first]), kvp.first);
     std::sort(map_vertex_to_index.begin(), map_vertex_to_index.end(),
         [](const std::pair<Vec2f, int> &l, const std::pair<Vec2f, int> &r) {
             return l.first.x() < r.first.x() || 
@@ -2255,35 +2305,47 @@ static void triangulate_slice(
 
     // 2) Discover duplicate points on the slice. Remap duplicate vertices to a vertex with a lowest index.
     //    Remove denegerate triangles, if they happen to be created by merging duplicate vertices.
+    //    Every entry lies on the cut plane, so entries sharing a position describe the same point
+    //    and the lowest index becomes the one index both the shell and the cap below refer to.
     {
-        std::vector<int> map_duplicate_vertex(int(its.vertices.size()) - num_original_vertices, -1);
+        std::vector<int>  map_duplicate_vertex(its.vertices.size(), -1);
+        std::vector<char> grouped(map_vertex_to_index.size(), 0);
         int i = 0;
         int k = 0;
-        for (; i < int(map_vertex_to_index.size());) {
-            map_vertex_to_index[k ++] = map_vertex_to_index[i];
-            const Vec2f &ipos = map_vertex_to_index[i].first;
-            const int    iidx = map_vertex_to_index[i].second;
-            if (iidx >= num_original_vertices)
-                // map to itself
-                map_duplicate_vertex[iidx - num_original_vertices] = iidx;
-            int j = i;
-            for (++ j; j < int(map_vertex_to_index.size()) && is_equal(ipos.x(), map_vertex_to_index[j].first.x()) && is_equal(ipos.y(), map_vertex_to_index[j].first.y()); ++ j) {
-                const int jidx = map_vertex_to_index[j].second;
-                assert(jidx >= num_original_vertices);
-                if (jidx >= num_original_vertices)
-                    // map to the first vertex
-                    map_duplicate_vertex[jidx - num_original_vertices] = iidx;
+        for (; i < int(map_vertex_to_index.size()); ++ i) {
+            if (grouped[i])
+                continue;
+            const Vec2f ipos = map_vertex_to_index[i].first;
+            // The entries are ordered by x alone, so the ones describing this position are not
+            // necessarily adjacent: another vertex of the same x band but of a far away y may sit
+            // between them. Walk the whole band and collect what is close to this anchor, rather
+            // than stopping at the first neighbour that does not match.
+            int band_end = i;
+            for (; band_end < int(map_vertex_to_index.size()) && is_equal(ipos.x(), map_vertex_to_index[band_end].first.x()); ++ band_end)
+                ;
+            int iidx = map_vertex_to_index[i].second;
+            for (int t = i + 1; t < band_end; ++ t)
+                if (! grouped[t] && cut_plane_xy_equal(ipos, map_vertex_to_index[t].first))
+                    iidx = std::min(iidx, map_vertex_to_index[t].second);
+            for (int t = i; t < band_end; ++ t) {
+                if (grouped[t] || ! cut_plane_xy_equal(ipos, map_vertex_to_index[t].first))
+                    continue;
+                grouped[t] = 1;
+                if (map_vertex_to_index[t].second != iidx)
+                    map_duplicate_vertex[map_vertex_to_index[t].second] = iidx;
+                // Keep every registered position pointing at the canonical index instead of keeping
+                // the group representative alone: the tolerant comparison is not transitive, so a cap
+                // vertex may well match one member of the group while missing that representative.
+                map_vertex_to_index[t].second = iidx;
             }
-            i = j;
         }
-        map_vertex_to_index.erase(map_vertex_to_index.begin() + k, map_vertex_to_index.end());
         assert(src_faces == nullptr || src_faces->size() == its.indices.size());
         for (i = 0; i < int(its.indices.size());) {
             stl_triangle_vertex_indices &f = its.indices[i];
-            // Remap the newly added face vertices.
+            // Remap the face vertices that lost against another index of the same position.
             for (k = 0; k < 3; ++ k)
-                if (f(k) >= num_original_vertices)
-                    f(k) = map_duplicate_vertex[f(k) - num_original_vertices];
+                if (f(k) >= 0 && f(k) < int(map_duplicate_vertex.size()) && map_duplicate_vertex[f(k)] >= 0)
+                    f(k) = map_duplicate_vertex[f(k)];
             if (f(0) == f(1) || f(0) == f(2) || f(1) == f(2)) {
                 // Remove degenerate face.
                 f = its.indices.back();
@@ -2305,42 +2367,9 @@ static void triangulate_slice(
             stl_triangle_vertex_indices facet;
             for (size_t j = 0; j < 3; ++ j) {
                 Vec3f v = triangles[i ++].cast<float>();
-                auto it = lower_bound_by_predicate(map_vertex_to_index.begin(), map_vertex_to_index.end(),
-                    [&v](const std::pair<Vec2f, int> &l) {
-                    return l.first.x() < v.x() || (is_equal_for_sort(l.first.x(), v.x()) && l.first.y() < v.y());
-                    });
-                auto  back_it = it;
-                int   idx = -1;
-                bool exist = false;
-                for (auto iter = section_vertices_map.begin(); iter != section_vertices_map.end(); iter++) {
-                    if (is_equal(v, *iter->second)) {
-                        idx   = iter->first;
-                        exist = true;
-                        break;
-                    }
-                }
-                // go on finding
-                if (!exist) {
-                    for (; it != map_vertex_to_index.end(); it++) {
-                        if (is_equal(it->first.x(), v.x()) && is_equal(it->first.y(), v.y())) {
-                            idx   = it->second;
-                            exist = true;
-                            break;
-                        }
-                    }
-                }
-                // go on finding
-                if (!exist) {
-                    it = back_it;
-                    for (; it != map_vertex_to_index.begin(); it--) {
-                        if (is_equal(it->first.x(), v.x()) && is_equal(it->first.y(), v.y())) {
-                            idx   = it->second;
-                            exist = true;
-                            break;
-                        }
-                    }
-                }
-                if (!exist){
+                // The cap lies on the cut plane, so the map welded above yields the very index the shell uses.
+                int   idx = find_cut_plane_vertex_index(map_vertex_to_index, to_2d(v));
+                if (idx == -1) {
                     // Try to find the vertex in the list of newly added vertices. Those vertices are not matched on the cut and they shall be rare.
                     for (size_t k = idx_vertex_new_first; k < its.vertices.size(); ++ k)
                         if (its.vertices[k] == v) {
@@ -2641,7 +2670,7 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     if (upper != nullptr && !canceled) {
         if (progress)
             progress(SlicePercentSpan);
-        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_DOWN, upper_src_faces, section_vertices_map);
+        triangulate_slice(*upper, upper_lines, upper_slice_vertices, z, triangulate_caps, NORMALS_DOWN, upper_src_faces, section_vertices_map);
         if (upper_src_faces) {
             assert(upper_src_faces->size() <= upper->indices.size());
             upper_src_faces->resize(upper->indices.size(), -1);
@@ -2658,7 +2687,7 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     if (lower != nullptr && !canceled) {
         if (progress)
             progress(90);
-        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_UP, lower_src_faces, section_vertices_map);
+        triangulate_slice(*lower, lower_lines, lower_slice_vertices, z, triangulate_caps, NORMALS_UP, lower_src_faces, section_vertices_map);
         if (lower_src_faces) {
             assert(lower_src_faces->size() <= lower->indices.size());
             lower_src_faces->resize(lower->indices.size(), -1);

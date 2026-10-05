@@ -16,12 +16,11 @@ import './filament-manager.css';
 type TabMode = 'all' | 'ams';
 // 列表筛选项（label ↔ 本地字段 ↔ 云端字段）：
 //   Brand         brand          filamentVendor
-//   Filament Type material_type  filamentType   （类型大类，PLA / PETG / PA ...）
 //   Material Type series         filamentName   （完整名，PLA Basic / Support For PA/PET）
-type FilterKey = 'brand' | 'material_type' | 'series';
+type FilterKey = 'brand' | 'series';
 
 const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
-  brand: 'Brand', material_type: 'Filament Type', series: 'Material Type',
+  brand: 'Brand', series: 'Material Type',
 };
 
 function spoolSearchText(spool: Spool): string {
@@ -377,7 +376,7 @@ export function FilamentManagerPage() {
 
                 {/* Filters */}
                 <div className={`flex gap-2 ${!isLoggedIn ? 'opacity-40 pointer-events-none' : ''}`}>
-                  {(['brand', 'material_type', 'series'] as const).map((fk) => (
+                  {(['brand', 'series'] as const).map((fk) => (
                     <div key={fk} style={{ position: 'relative' }}>
                       <div
                         className={`flex items-center gap-1 px-2 pl-[6px] py-[2px] h-6 rounded-md cursor-pointer text-sm text-fm-text-primary transition-colors duration-150 hover:bg-fm-hover whitespace-nowrap ${filters[fk] ? 'bg-fm-brand/15 text-fm-brand font-medium' : ''}`}

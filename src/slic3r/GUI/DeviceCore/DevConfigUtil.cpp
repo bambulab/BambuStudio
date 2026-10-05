@@ -6,6 +6,7 @@
 #include <wx/dir.h>
 #include <boost/filesystem/operations.hpp>
 #include "../I18N.hpp"
+#include "libslic3r/Utils.hpp"
 
 using namespace nlohmann;
 
@@ -40,6 +41,61 @@ static void _toolhead_translation_markers()
 }
 
 std::string DevPrinterConfigUtil::m_resource_file_path = "";
+
+bool DevPrinterConfigUtil::is_printer_visible_in_this_build(const json& printer_00)
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    return true;
+#else
+    if (!printer_00.contains("printer_modes") || !printer_00["printer_modes"].is_array())
+        return true;
+
+    for (const auto& mode : printer_00["printer_modes"]) {
+        if (mode.is_string() && mode.get<std::string>() == "fdm")
+            return true;
+    }
+    return false;
+#endif
+}
+
+bool DevPrinterConfigUtil::is_printer_visible_in_this_build(const std::string& type_str)
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    return true;
+#else
+    if (type_str.empty())
+        return true;
+
+    static std::mutex s_mutex;
+    static std::unordered_map<std::string, bool> s_cache;
+    static std::string s_cached_resource_path;
+
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_cached_resource_path != m_resource_file_path) {
+        s_cache.clear();
+        s_cached_resource_path = m_resource_file_path;
+    }
+
+    auto it = s_cache.find(type_str);
+    if (it != s_cache.end())
+        return it->second;
+
+    bool visible = true;
+    const json modes = get_json_from_config(type_str, "printer_modes");
+    if (modes.is_array()) {
+        visible = false;
+        for (const auto& mode : modes) {
+            if (mode.is_string() && mode.get<std::string>() == "fdm") {
+                visible = true;
+                break;
+            }
+        }
+    }
+
+    s_cache[type_str] = visible;
+    return visible;
+#endif
+}
 
 namespace
 {
@@ -182,6 +238,8 @@ std::map<std::string, std::string> DevPrinterConfigUtil::get_all_model_id_with_n
                     if (jj.contains("00.00.00.00"))
                     {
                         json const& printer = jj["00.00.00.00"];
+                        if (!is_printer_visible_in_this_build(printer))
+                            continue;
 
                         std::string model_id;
                         std::string display_name;
@@ -393,6 +451,8 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
                         if (jj.contains("00.00.00.00"))
                         {
                             json const& printer = jj["00.00.00.00"];
+                            if (!is_printer_visible_in_this_build(printer))
+                                continue;
                             if (printer.contains("subseries"))
                             {
                                 std::vector<std::string> subs;

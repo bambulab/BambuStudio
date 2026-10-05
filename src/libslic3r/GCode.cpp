@@ -4814,7 +4814,8 @@ GCode::LayerResult GCode::process_layer(
                 continue;
             int temperature = print.config().nozzle_temperature.get_at(extruder.id());
             if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
-                gcode += m_writer.set_temperature(temperature, false, extruder.id());
+                gcode += m_writer.set_temperature(
+                    temperature, false, extruder.id(), TemperatureCommandType::LayerChange);
         }
 
         // BBS
@@ -7938,10 +7939,12 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
             should_reduce = (metal_stickiness == int(fmsLow) || metal_stickiness == int(fmsNone));
         }
         // rirDisabled: should_reduce remains false
+        const double wall_proximity_distance = m_config.inner_wall_line_width.value > 0 ?
+            m_config.inner_wall_line_width.value : EXTRUDER_CONFIG(nozzle_diameter);
         if (should_reduce && !is_perimeter(role) && m_layer != nullptr && m_config.sparse_infill_density.value > 0 &&
-            m_retract_when_crossing_perimeters.travel_inside_internal_regions_no_wall_crossing(*m_layer, travel))
-            // Skip retraction if travel is contained in an internal slice *and*
-            // internal infill is enabled (so that stringing is entirely not visible).
+            m_retract_when_crossing_perimeters.travel_inside_internal_regions_no_wall_crossing(
+                *m_layer, travel, scale_(wall_proximity_distance), scale_(FILAMENT_CONFIG(retraction_minimum_travel))))
+            // 内部空驶不穿墙且未长距离贴墙时跳过回抽。
             //FIXME any_internal_region_slice_contains() is potentionally very slow, it shall test for the bounding boxes first.
             return false;
     }

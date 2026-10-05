@@ -581,10 +581,7 @@ std::string GLGizmoAdvancedCut::on_get_name() const
 
 void GLGizmoAdvancedCut::apply_color_clip_plane_colors()
 {
-    if (CutMode(m_cut_mode) == CutMode::cutTongueAndGroove)
-        m_parent.set_color_clip_plane_colors({CUT_PLANE_DEF_COLOR, CUT_PLANE_DEF_COLOR});
-    else
-        m_parent.set_color_clip_plane_colors({UPPER_PART_COLOR, LOWER_PART_COLOR});
+    m_parent.set_color_clip_plane_colors({UPPER_PART_COLOR, LOWER_PART_COLOR});
 }
 
 void GLGizmoAdvancedCut::on_load(cereal::BinaryInputArchive &ar)
@@ -676,6 +673,7 @@ void GLGizmoAdvancedCut::on_set_state()
     }
     else if (get_state() == Off) {
         toggle_model_objects_visibility(true);
+        m_parent.set_use_dovetail_clip(false);
         if (auto oc = m_c->object_clipper()) {
             oc->set_behaviour(true, true, 0.);
             oc->release();
@@ -725,8 +723,7 @@ CommonGizmosDataID GLGizmoAdvancedCut::on_get_requirements() const
 {
     return CommonGizmosDataID(int(CommonGizmosDataID::SelectionInfo)
         | int(CommonGizmosDataID::InstancesHider)
-        | int(CommonGizmosDataID::ObjectClipper)
-        | int(CommonGizmosDataID::Raycaster));
+        | int(CommonGizmosDataID::ObjectClipper));
 }
 
 void GLGizmoAdvancedCut::on_start_dragging()
@@ -876,6 +873,7 @@ void GLGizmoAdvancedCut::on_render()
     toggle_model_objects_visibility();
     update_clipper();
     init_picking_models();
+    update_dovetail_preview_clip();
 
     // Show placed connectors
     if (m_connectors_editing) {
@@ -1605,6 +1603,21 @@ void GLGizmoAdvancedCut::update_clipper()
     }
 }
 
+void GLGizmoAdvancedCut::update_dovetail_preview_clip()
+{
+    if (m_cut_mode != CutMode::cutTongueAndGroove || m_connectors_editing || m_dragging || m_groove_editing || !has_valid_groove_shape()) {
+        m_parent.set_use_dovetail_clip(false);
+        return;
+    }
+
+    const Transform3d groove_to_world = Geometry::translation_transform(m_plane_center) * m_rotate_matrix;
+    m_parent.set_dovetail_clip(
+        groove_to_world.inverse(),
+        Vec4f(m_groove.depth, m_groove.width, m_groove.flaps_angle, m_groove.angle),
+        Vec2f(m_groove.depth_tolerance, m_groove.width_tolerance));
+    m_parent.set_use_dovetail_clip(true);
+}
+
 void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 {
     // plane points is in object coordinate
@@ -1619,7 +1632,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    bool      is_valid = can_perform_cut() && has_valid_groove();
+    bool      is_valid = m_cut_mode == CutMode::cutTongueAndGroove ? has_valid_groove() : can_perform_cut();
     ColorRGBA cp_clr   = is_valid ? CUT_PLANE_DEF_COLOR : CUT_PLANE_ERR_COLOR;
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         cp_clr.a(cp_clr.a() - 0.1f);
@@ -1854,6 +1867,9 @@ void GLGizmoAdvancedCut::render_connectors()
 
 void GLGizmoAdvancedCut::render_clipper_cut()
 {
+    if (m_cut_mode == CutMode::cutTongueAndGroove)
+        return;
+
     if (!m_connectors_editing)
         ::glDisable(GL_DEPTH_TEST);
 
@@ -2207,6 +2223,8 @@ void GLGizmoAdvancedCut::switch_to_mode(CutMode new_mode) {
     m_cut_mode = new_mode;
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         m_cut_to_parts = false;//into Groove function,cancel m_cut_to_parts
+    } else {
+        m_parent.set_use_dovetail_clip(false);
     }
     if (m_cut_mode != CutMode::cutPlanar)
         m_facet_picker.set_active(false);
@@ -2265,14 +2283,17 @@ bool GLGizmoAdvancedCut::has_valid_groove() const
     if (m_cut_mode != CutMode::cutTongueAndGroove)
         return true;
 
-    const float flaps_width = -2.f * m_groove.depth / tan(m_groove.flaps_angle);
-    if (flaps_width > m_groove.width) return false;
+    if (!has_valid_groove_shape())
+        return false;
 
     const Selection &selection = m_parent.get_selection();
     const auto &     list      = selection.get_volume_idxs();
     // is more volumes selected?
     if (list.empty())
         return false;
+    // Groove edge samples are filled when the plane mesh is built.
+    if (m_groove_vertices.size() < 2)
+        return true;
 
     const Transform3d cp_matrix = Geometry::translation_transform(m_plane_center) * m_rotate_matrix;
     if (!m_c->raycaster()) {
@@ -2302,6 +2323,18 @@ bool GLGizmoAdvancedCut::has_valid_groove() const
     return true;
 }
 
+bool GLGizmoAdvancedCut::has_valid_groove_shape() const
+{
+    if (m_cut_mode != CutMode::cutTongueAndGroove)
+        return true;
+
+    if (m_groove.depth <= 0.f || m_groove.width <= 0.f)
+        return false;
+
+    const float sin_flap = std::abs(std::sin(m_groove.flaps_angle));
+    return sin_flap > 0.01f;
+}
+
 bool GLGizmoAdvancedCut::has_valid_contour() const
 {
     const auto clipper = m_c->object_clipper();
@@ -2316,9 +2349,10 @@ void GLGizmoAdvancedCut::reset_cut_by_contours()
     m_part_selection.reset(new PartSelection());
 
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
-        if (m_dragging || m_groove_editing || !has_valid_groove())
+        if (m_dragging || m_groove_editing || !has_valid_groove_shape())
             return;
-        process_contours();
+        update_dovetail_preview_clip();
+        toggle_model_objects_visibility();
     } else {
         toggle_model_objects_visibility();
     }
@@ -2334,17 +2368,12 @@ void GLGizmoAdvancedCut::process_contours()
         return;
     const int object_idx = selection.get_object_idx();
 
-    wxBusyCursor wait;
-
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
-        if (has_valid_groove()) {
-            Cut                    cut(model_objects[object_idx], instance_idx, get_cut_matrix(selection));
-            const ModelObjectPtrs &new_objects = cut.perform_with_groove(m_groove, m_rotate_matrix, true);
-            if (!new_objects.empty()) {
-                m_part_selection.reset(new PartSelection(new_objects.front(), instance_idx));
-            }
-        }
+        // Dovetail preview is shader-based. Avoid running the expensive temporary
+        // boolean here; the real perform_with_groove() still runs on confirmation.
+        update_dovetail_preview_clip();
     } else {
+        wxBusyCursor wait;
         if (m_c->object_clipper()) {
             m_part_selection.reset(new PartSelection(model_objects[object_idx], get_cut_matrix(selection), instance_idx, m_plane_center, m_plane_normal, *m_c->object_clipper()));
         }

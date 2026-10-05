@@ -633,7 +633,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
         }
 
         m_mapping_item->set_data(m_tag_material, display_color, display_name, remain_detect_flag, tray_data[i], !can_pick_the_item, item_tooltip_msg);
-        m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, can_pick_the_item, m_mapping_item](wxMouseEvent& e) {
+        m_mapping_item->Bind(wxEVT_LEFT_UP, [this, can_pick_the_item, m_mapping_item](wxMouseEvent &e) {
             if (can_pick_the_item) {
                 m_mapping_item->send_event(m_current_filament_id);
                 Dismiss();
@@ -660,7 +660,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
             m_has_unmatch_filament = true;
         }
 
-        item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, item](wxMouseEvent& e) {
+        item->Bind(wxEVT_LEFT_UP, [this, tray_data, item](wxMouseEvent &e) {
             if (!item->GetParent() || !item->GetParent()->IsEnabled()) return;
             if (m_ext_mapping_filatype_check && !is_match_material(tray_data.filament_type)) return;
             item->send_event(m_current_filament_id);

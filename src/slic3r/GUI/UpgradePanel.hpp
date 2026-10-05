@@ -2,6 +2,9 @@
 #define slic3r_UpgradePanel_hpp_
 
 #include <wx/panel.h>
+#include <wx/image.h>
+#include <wx/statbmp.h>
+#include <wx/timer.h>
 #include <slic3r/GUI/Widgets/Button.hpp>
 #include "Widgets/ProgressBar.hpp"
 #include <slic3r/GUI/DeviceManager.hpp>
@@ -34,6 +37,8 @@ public:
         const wxString& name = wxEmptyString);
     ~ExtensionPanel();
     void msw_rescale();
+
+    wxString get_info_text() const;
 };
 
 class AmsPanel : public wxPanel
@@ -56,6 +61,8 @@ public:
     ~AmsPanel();
 
     void msw_rescale();
+
+    wxString get_info_text() const;
 };
 
 class ExtraAmsPanel : public AmsPanel
@@ -172,6 +179,13 @@ protected:
     wxStaticText *  m_staticText_release_note;
     Button *        m_button_upgrade_firmware;
     Button *        m_nozzle_rack_update_btn;
+    wxStaticBitmap *m_copy_info{nullptr};
+    wxTimer        *m_copy_feedback_timer{nullptr};
+    wxImage         m_copy_from;
+    wxImage         m_copy_to;
+    double          m_copy_scale{1.0};
+    int             m_copy_step{0};
+    bool            m_copy_hovered{false};
 
     wxPanel* create_caption_panel(wxWindow *parent);
     AmsPanelHash             m_amspanel_list;
@@ -202,6 +216,9 @@ protected:
     SecondaryCheckDialog* confirm_dlg = nullptr;
 
     void upgrade_firmware_internal();
+    void start_copy_feedback();
+    void on_copy_feedback_timer(wxTimerEvent &event);
+    void set_copy_bitmap(const std::string &name);
     void on_show_release_note(wxMouseEvent &event);
     void confirm_upgrade(MachineObject* obj = nullptr);
 
@@ -222,6 +239,10 @@ public:
     void msw_rescale();
     void update(MachineObject *obj);
     void update_version_text(MachineObject *obj);
+
+    // Model / serial / version of every card currently on screen, as one
+    // pasteable block.
+    wxString get_device_info_text() const;
     void update_ams_ext(MachineObject *obj);
     void show_status(int status, std::string upgrade_status_str = "");
     void show_ams(bool show = false, bool force_update = false);

@@ -162,8 +162,10 @@ void PrintJob::process()
     //unsigned int http_code;
     std::string http_body;
 
+    const bool is_imported_3mf = m_print_type == "from_normal" && !m_imported_3mf_path.empty();
+
     int total_plate_num = plate_data.plate_count;
-    if (!plate_data.is_valid) {
+    if (!plate_data.is_valid && !is_imported_3mf) {
         total_plate_num =  m_plater->get_partplate_list().get_plate_count();
         PartPlate *plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
         if (plate == nullptr) {
@@ -250,8 +252,23 @@ void PrintJob::process()
 
     params.dev_id               = m_dev_id;
     params.ftp_folder           = m_ftp_folder;
-    params.filename             = job_data._3mf_path.string();
-    params.config_filename      = job_data._3mf_config_path.string();
+    if (is_imported_3mf) {
+        params.filename        = m_imported_3mf_path;
+        params.config_filename = params.filename;
+    } else {
+        params.filename        = job_data._3mf_path.string();
+        params.config_filename = job_data._3mf_config_path.string();
+    }
+
+    if (is_imported_3mf) {
+        boost::system::error_code ec;
+        const boost::uintmax_t file_size = fs::file_size(params.filename, ec);
+        if (ec || file_size == 0) {
+            BOOST_LOG_TRIVIAL(error) << "print_job: imported 3mf missing or empty, file=" << params.filename;
+            update_status(curr_percent, FILE_IS_NOT_EXISTS_STR);
+            return;
+        }
+    }
     params.plate_index          = curr_plate_idx;
     params.task_bed_leveling    = this->task_bed_leveling;
     params.task_flow_cali       = this->task_flow_cali;
@@ -379,7 +396,7 @@ void PrintJob::process()
     }
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
-    if (params.project_name.empty()) {params.project_name = m_project_name;}
+    if (!m_project_name.empty()) { params.project_name = m_project_name; }
 
     if (m_is_calibration_task) {
         params.project_name = m_project_name;
@@ -394,9 +411,9 @@ void PrintJob::process()
         20,     // PrintingStageCreate
         30,     // PrintingStageUpload
         70,     // PrintingStageWaiting
-        75,     // PrintingStageRecord
         97,     // PrintingStageSending
-        100,    // PrintingStageFinished
+        75,     // PrintingStageRecord
+        100,    // PrintingStageWaitPrinter
         100     // PrintingStageFinished
     };
 
@@ -521,8 +538,7 @@ void PrintJob::process()
                         // update current percnet
                         if (stage >= 0 && stage <= (int) PrintingStageFinished) {
                             curr_percent = StagePercentPoint[stage];
-                            if ((stage == BBL::SendingPrintJobStage::PrintingStageUpload
-                                || stage == BBL::SendingPrintJobStage::PrintingStageRecord)
+                            if (stage == BBL::SendingPrintJobStage::PrintingStageUpload
                                 && (code > 0 && code <= 100)) {
                                 curr_percent = (StagePercentPoint[stage + 1] - StagePercentPoint[stage]) * code / 100 + StagePercentPoint[stage];
                             }

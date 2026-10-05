@@ -147,6 +147,17 @@ namespace Slic3r
                 connection_name = j["connection_name"].get<std::string>();
             }
 
+            const std::string parsed_type = _parse_printer_type(printer_type_str);
+            const std::string type_by_sn  = DevPrinterConfigUtil::get_printer_type_by_dev_id(dev_id);
+            if (!DevPrinterConfigUtil::is_printer_visible_in_this_build(parsed_type) ||
+                (!type_by_sn.empty() && !DevPrinterConfigUtil::is_printer_visible_in_this_build(type_by_sn))) {
+                BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " skip printer without fdm mode"
+                    << ", type=" << parsed_type
+                    << ", sn_type=" << type_by_sn
+                    << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                return;
+            }
+
             MachineObject* obj;
 
             /* update userMachineList info */
@@ -292,12 +303,20 @@ namespace Slic3r
         std::string dev_ip, std::string connection_type, std::string bind_state,
         std::string version, std::string access_code, std::string printer_type)
     {
+        const std::string resolved_type = printer_type.empty() ? _parse_printer_type("C11") : _parse_printer_type(printer_type);
+        const std::string type_by_sn    = DevPrinterConfigUtil::get_printer_type_by_dev_id(dev_id);
+        if (!DevPrinterConfigUtil::is_printer_visible_in_this_build(resolved_type) ||
+            (!type_by_sn.empty() && !DevPrinterConfigUtil::is_printer_visible_in_this_build(type_by_sn))) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip printer without fdm mode"
+                << ", type=" << resolved_type
+                << ", sn_type=" << type_by_sn
+                << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+            return nullptr;
+        }
+
         MachineObject* obj;
         obj = new MachineObject(this, m_agent, dev_name, dev_id, dev_ip);
-        if (printer_type.empty())
-            obj->printer_type = _parse_printer_type("C11");
-        else
-            obj->printer_type = _parse_printer_type(printer_type);
+        obj->printer_type = resolved_type;
 
         if (connection_type == "farm") {
             obj->GetInfo()->SetConnectionType("lan");
@@ -797,8 +816,36 @@ namespace Slic3r
                     if (!elem["dev_id"].is_null())
                     {
                         dev_id = elem["dev_id"].get<std::string>();
-                        new_list.insert(dev_id);
                     }
+
+                    std::string resolved_type;
+                    if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null()) {
+                        auto printer_type = elem["dev_model_name"].get<std::string>();
+                        for (const std::pair<std::string, std::vector<std::string>> &pair : device_subseries) {
+                            auto it = std::find(pair.second.begin(), pair.second.end(), printer_type);
+                            if (it != pair.second.end())
+                            {
+                                resolved_type = Slic3r::_parse_printer_type(pair.first);
+                                break;
+                            }
+                            else
+                            {
+                                resolved_type = Slic3r::_parse_printer_type(printer_type);
+                            }
+                        }
+                    }
+                    if (resolved_type.empty())
+                        resolved_type = DevPrinterConfigUtil::get_printer_type_by_dev_id(dev_id);
+                    if (!DevPrinterConfigUtil::is_printer_visible_in_this_build(resolved_type)) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip printer without fdm mode"
+                            << ", type=" << resolved_type
+                            << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                        continue;
+                    }
+
+                    if (!dev_id.empty())
+                        new_list.insert(dev_id);
+
                     std::map<std::string, MachineObject*>::iterator iter = userMachineList.find(dev_id);
                     if (iter != userMachineList.end())
                     {
@@ -829,21 +876,8 @@ namespace Slic3r
                         obj->set_dev_name(elem["dev_name"].get<std::string>());
                     if (!elem["dev_online"].is_null())
                         obj->m_is_online = elem["dev_online"].get<bool>();
-                    if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null()) {
-                        auto printer_type = elem["dev_model_name"].get<std::string>();
-                        for (const std::pair<std::string, std::vector<std::string>> &pair : device_subseries) {
-                            auto it = std::find(pair.second.begin(), pair.second.end(), printer_type);
-                            if (it != pair.second.end())
-                            {
-                                obj->printer_type = Slic3r::_parse_printer_type(pair.first);
-                                break;
-                            }
-                            else
-                            {
-                                obj->printer_type = Slic3r::_parse_printer_type(printer_type);
-                            }
-                        }
-                    }
+                    if (!resolved_type.empty())
+                        obj->printer_type = resolved_type;
                     if (!elem["task_status"].is_null())
                         obj->iot_print_status = elem["task_status"].get<std::string>();
                     if (elem.contains("dev_access_code") && !elem["dev_access_code"].is_null())

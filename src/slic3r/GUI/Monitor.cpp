@@ -30,6 +30,7 @@
 #include "BindDialog.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevHMSQuery.h"
 #include "fila_manager/wgtFilaManagerCloudDispatcher.h"
 
 namespace Slic3r {
@@ -413,9 +414,10 @@ void MonitorPanel::update_hms_tag()
         if (!obj) { break; }
 
         if (!hmsitem.second.has_read()) {
-            const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->get_dev_id(), hmsitem.second.get_long_error_code());
-            if (!msg.empty()) {
-                m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
+            HMSResult r = wxGetApp().get_hms_query_mgr()->query_hms(obj->get_dev_id(), hmsitem.second.get_long_error_code());
+            const bool light = (r.status == HMSStatus::Ready && !r.text.IsEmpty()) || r.status == HMSStatus::Failed;
+            if (light) {
+                m_tabpanel->GetBtnsListCtrl()->showNewTag(PT_HMS, true);
                 m_last_hms_list = m_hms_panel->temp_hms_list;
                 return;
             }
