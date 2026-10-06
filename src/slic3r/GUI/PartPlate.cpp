@@ -37,6 +37,7 @@
 #include "Widgets/Label.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
+#include "McpTools.hpp"
 #include "WipeTowerPlacement.hpp"
 #include "GLCanvas3D.hpp"
 #include "Camera.hpp"
@@ -3717,23 +3718,32 @@ bool PartPlate::has_helio_result() const
 }
 
 //update current slice context into backgroud slicing process
-void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
+void PartPlate::mcp_set_status_run(std::uint64_t run, std::shared_ptr<McpWorkerLifetime> worker_lifetime)
 {
-	auto statuscb = [this](const Slic3r::PrintBase::SlicingStatus& status) {
+	auto statuscb = [this, run, worker_lifetime](const Slic3r::PrintBase::SlicingStatus& status) {
+        auto publish = [this, run, &status] {
 		Slic3r::SlicingStatusEvent *event = new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status);
+        event->mcp_run_id = run;
 		//BBS: GUI refactor: add plate info befor message
 		if (status.message_type == Slic3r::PrintStateBase::SlicingDefaultNotification) {
 			auto temp = Slic3r::format(_u8L(" plate %1%: "), std::to_string(m_plate_index + 1));
 			event->status.text = temp + event->status.text;
 		}
 		wxQueueEvent(m_plater, event);
+        };
+        if (worker_lifetime) worker_lifetime->publish(publish); else publish();
 	};
 
+    m_print->set_status_callback(statuscb);
+}
+
+void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
+{
+    if (!mcp_slice_active()) mcp_set_status_run(0);
 	process.set_fff_print(m_print);
 	process.set_gcode_result(m_gcode_result);
 	process.select_technology(this->printer_technology);
 	process.set_current_plate(this);
-	m_print->set_status_callback(statuscb);
 	process.switch_print_preprocess();
 
 	return;

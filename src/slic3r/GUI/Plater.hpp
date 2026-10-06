@@ -2,6 +2,7 @@
 #define slic3r_Plater_hpp_
 
 #include <memory>
+#include <cstdint>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -366,7 +367,7 @@ public:
     void reset_flags_when_new_or_close_project();
     int new_project(bool skip_confirm = false, bool silent = false, const wxString &project_name = wxString());
     // BBS: save & backup
-    int load_project(wxString const & filename = "", wxString const & originfile = "-");
+    int load_project(wxString const & filename = "", wxString const & originfile = "-", bool no_dialogs = false);
     int save_project(bool saveAs = false);
     //BBS download project by project id
     void import_model_id(wxString download_info);
@@ -452,6 +453,9 @@ public:
     const Worker &get_ui_job_worker() const;
     void object_list_changed();
     void stop_jobs();
+    void mcp_start_arrange(std::uint64_t run);
+    void mcp_start_orient(std::uint64_t run);
+    void mcp_cancel_ui_job();
     bool is_any_job_running() const;
     void select_view(const std::string& direction);
     //BBS: add no_slice logic
@@ -536,6 +540,8 @@ public:
     bool has_toolpaths_to_export() const;
     void export_toolpaths_to_obj() const;
     void reslice();
+    StringObjectException mcp_validate_slice(StringObjectException* warning);
+    bool mcp_start_slice(std::uint64_t run);
     void stop_helio_process();
     void feedback_helio_process(float rating, std::string commend);
     void record_slice_preset(std::string action);
@@ -719,6 +725,7 @@ public:
     void show_seqprintinfo_notification(bool has_error = false);
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
+    std::vector<size_t> mcp_load_model_objects(const ModelObjectPtrs& objects);
     void split_object(ModelObject *mo = nullptr, bool ignore_warning = false);
     // While set, prepare-side object removals are treated as internal restructuring (split / merge) and
     // are NOT propagated as deletes to the independent assembly model (m_assemble_model).
@@ -813,6 +820,8 @@ public:
     void validate_current_plate(bool& model_fits, bool& validate_error);
     //BBS: select the plate by index
     int select_plate(int plate_index, bool need_slice = false);
+    int mcp_reorder_plate(int from_index, int to_index);
+    int mcp_delete_plate(int plate_index);
     //BBS: update progress result
     void apply_background_progress();
     //BBS: select the plate by hover_id

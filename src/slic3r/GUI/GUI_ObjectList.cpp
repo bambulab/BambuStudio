@@ -2091,6 +2091,20 @@ void ObjectList::OnDropPossible(wxDataViewEvent &event)
     }
 }
 
+void ObjectList::mcp_reorder_object(int from_index, int to_index)
+{
+    if (from_index < 0 || to_index < 0 || from_index >= int(m_objects->size()) || to_index >= int(m_objects->size()))
+        return;
+    if (from_index == to_index) return;
+    take_snapshot("Object order changed");
+    const int delta = to_index < from_index ? -1 : 1;
+    for (int index = from_index; index != to_index; index += delta)
+        std::swap((*m_objects)[index], (*m_objects)[index + delta]);
+    select_item(m_objects_model->ReorganizeObjects(from_index, to_index));
+    wxGetApp().plater()->get_partplate_list().reload_all_objects();
+    changed_object(to_index);
+}
+
 void ObjectList::OnDrop(wxDataViewEvent &event)
 {
     const wxDataViewItem& item = event.GetItem();

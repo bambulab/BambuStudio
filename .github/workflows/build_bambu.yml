@@ -36,6 +36,33 @@ jobs:
           key: ${{ inputs.cache-key }}
           fail-on-cache-miss: true
 
+      - name: Test native MCP on macOS
+        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26'
+        shell: bash
+        run: |
+          cmake -S tests/mcp -B build-mcp-tests -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/deps/build/${{ inputs.arch }}/BambuStudio_deps/usr/local"
+          cmake --build build-mcp-tests --parallel 2
+          ctest --test-dir build-mcp-tests --output-on-failure
+          python3 tests/mcp/test_legacy_contract.py
+
+      - name: Test native MCP on Windows
+        if: inputs.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          cmake -S tests/mcp -B build-mcp-tests -G "Visual Studio 18 2026" -A x64 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local"
+          cmake --build build-mcp-tests --config Release --parallel 2
+          ctest --test-dir build-mcp-tests -C Release --output-on-failure
+          python tests/mcp/test_legacy_contract.py
+
+      - name: Test native MCP on Ubuntu
+        if: startsWith(inputs.os, 'ubuntu-')
+        shell: bash
+        run: |
+          cmake -S tests/mcp -B build-mcp-tests -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/deps/build/destdir/usr/local"
+          cmake --build build-mcp-tests --parallel 2
+          ctest --test-dir build-mcp-tests --output-on-failure
+          python3 tests/mcp/test_legacy_contract.py
+
       - name: Get the version and date on Ubuntu and macOS
         if: inputs.os != 'windows-latest'
         run: |
