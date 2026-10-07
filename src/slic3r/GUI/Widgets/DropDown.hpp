@@ -132,7 +132,7 @@ private:
     void mouseMove(wxMouseEvent &event);
     void mouseWheelMoved(wxMouseEvent &event);
 
-    void sendDropDownEvent();
+    void sendDropDownEvent(int index);
 
 
     DECLARE_EVENT_TABLE()
