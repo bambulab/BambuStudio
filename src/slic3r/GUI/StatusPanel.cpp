@@ -1778,7 +1778,7 @@ void PrintingTaskPanel::update_left_time(int mc_left_time, bool is_printing_fini
     wxString    left_time_text = NA_STR;
 
     try {
-        bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+        bool use_12h_format = wxGetApp().app_config->get_bool("use_12h_time_format");
         left_time           = get_bbl_monitor_time_dhm(mc_left_time);
         if (mc_left_time > 0) finish_time = get_bbl_finish_time(mc_left_time, use_12h_format);
     } catch (...) {
