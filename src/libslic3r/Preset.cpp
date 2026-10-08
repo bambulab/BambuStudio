@@ -51,60 +51,80 @@ using boost::property_tree::ptree;
 
 namespace Slic3r {
 
-const std::vector<std::string> &get_filament_orders()
-{
-    static std::vector<std::string> orders = {"Bambu PLA Basic",
-                                              "Bambu PLA Palette",
-                                              "Bambu PLA Matte",
-                                              "Bambu PLA Pure",
-                                              "Bambu PLA Lite",
-                                              "Bambu PLA Tough+",
-                                              "Bambu PETG Basic",
-                                              "Bambu PETG Matte",
-                                              "Bambu PETG HF",
-                                              "Bambu ABS",
-                                              "Bambu ASA",
-                                              "Bambu PLA Silk+",
-                                              "Bambu PLA Silk",
-                                              "Bambu PLA-CF",
-                                              "Bambu PLA Marble",
-                                              "Bambu PLA Metal",
-                                              "Bambu PLA Sparkle",
-                                              "Bambu PLA Galaxy",
-                                              "Bambu PLA Glow",
-                                              "Bambu PLA Wood",
-                                              "Bambu PLA Translucent",
-                                              "Bambu PETG Translucent",
-                                              "Bambu PC",
-                                              "Bambu PC FR",
-                                              "Bambu PETG-CF",
-                                              "Bambu ABS-GF",
-                                              "Bambu ASA-CF",
-                                              "Bambu PA6-CF",
-                                              "Bambu PA6-GF",
-                                              "Bambu PAHT-CF",
-                                              "Bambu PET-CF",
-                                              "Bambu PPA-CF",
-                                              "Bambu PPS-CF",
-                                              "Bambu PLA Aero",
-                                              "Bambu ASA-Aero",
-                                              "Bambu TPU for AMS",
-                                              "Bambu TPU 95A HF",
-                                              "Bambu TPU 90A",
-                                              "Bambu TPU 85A",
-                                              "Bambu Support For PLA",
-                                              "Bambu Support For PLA/PETG",
-                                              "Bambu Support for ABS",
-                                              "Bambu PVA",
-                                              "Bambu Support For PA/PET",
-                                              "Bambu TPU 95A",
-                                              "Bambu PA-CF",
-                                              "Bambu PLA Tough",
-                                              "Bambu PLA Dynamic",
-                                              "Bambu Support W",
-                                              "Bambu Support G"};
+namespace {
 
+// A trailing '*' turns an entry into a prefix match, so a whole product line keeps one slot.
+struct VendorFilamentOrder
+{
+    std::string              vendor;
+    std::vector<std::string> aliases;
+};
+
+// Empty vendor (user presets) leads; unlisted vendors follow by name.
+const std::vector<VendorFilamentOrder> &curated_filament_orders()
+{
+    static const std::vector<VendorFilamentOrder> orders = {
+        {"", {}},
+        {"Bambu",
+         {"Bambu PLA Basic",        "Bambu PLA Matte",       "Bambu PLA Pure",        "Bambu PLA Lite",
+          "Bambu PLA Tough+",       "Bambu PLA Palette",     "Bambu PETG Basic",      "Bambu PETG Matte",
+          "Bambu PETG HF",          "Bambu ABS",             "Bambu ASA",             "Bambu PLA Silk+",
+          "Bambu PLA Silk",         "Bambu PLA-CF",          "Bambu PLA Marble",      "Bambu PLA Metal",
+          "Bambu PLA Sparkle",      "Bambu PLA Galaxy",      "Bambu PLA Glow",        "Bambu PLA Wood",
+          "Bambu PLA Translucent",  "Bambu PETG Translucent", "Bambu PC",             "Bambu PC FR",
+          "Bambu PETG-CF",          "Bambu ABS-GF",          "Bambu ASA-CF",          "Bambu PA6-CF",
+          "Bambu PA6-GF",           "Bambu PAHT-CF",         "Bambu PET-CF",          "Bambu PPA-CF",
+          "Bambu PPS-CF",           "Bambu PLA Aero",        "Bambu ASA-Aero",        "Bambu TPU for AMS",
+          "Bambu TPU 95A HF",       "Bambu TPU 90A",         "Bambu TPU 85A",         "Bambu TPU 75A(2.85mm)",
+          "Bambu Support For PLA",  "Bambu Support For PLA/PETG", "Bambu Support for ABS", "Bambu PVA",
+          "Bambu Support For PA/PET", "Bambu TPU 95A",       "Bambu PA-CF",           "Bambu PLA Tough",
+          "Bambu PLA Dynamic",      "Bambu Support W",       "Bambu Support G"}},
+        {"Generic", {"Generic PLA", "Generic PETG", "Generic ABS", "Generic TPU"}},
+        {"Polymaker", {"PolyLite PLA", "PolyTerra PLA", "PolyLite PETG", "Fiberon *"}},
+        {"Overture", {"Overture Matte PLA", "Overture PLA"}},
+        {"eSUN", {"eSUN PLA+"}},
+    };
     return orders;
+}
+
+size_t alias_rank(const std::vector<std::string> &aliases, const std::string &alias)
+{
+    auto matches = [&alias](const std::string &entry) {
+        return boost::ends_with(entry, "*") ? boost::starts_with(alias, entry.substr(0, entry.size() - 1)) : alias == entry;
+    };
+    return size_t(std::find_if(aliases.begin(), aliases.end(), matches) - aliases.begin());
+}
+
+// Unlisted vendors keep the common materials on top.
+size_t type_rank(const std::string &type)
+{
+    static const std::vector<std::string> first_types = {"PLA", "PETG", "ABS", "TPU"};
+    return size_t(std::find(first_types.begin(), first_types.end(), type) - first_types.begin());
+}
+
+} // namespace
+
+bool filament_list_less(const FilamentListKey &l, const FilamentListKey &r)
+{
+    auto normalized_vendor = [](const std::string &vendor) { return vendor == "Bambu Lab" ? std::string("Bambu") : vendor; };
+    const std::string lv = normalized_vendor(l.vendor), rv = normalized_vendor(r.vendor);
+
+    const auto &orders = curated_filament_orders();
+    auto find_order = [&orders](const std::string &vendor) {
+        return std::find_if(orders.begin(), orders.end(), [&vendor](const VendorFilamentOrder &o) { return o.vendor == vendor; });
+    };
+    const auto lo = find_order(lv), ro = find_order(rv);
+    if (lo != ro) return lo < ro;
+    if (lv != rv) return lv < rv;
+
+    if (lo != orders.end() && !lo->aliases.empty()) {
+        const size_t la = alias_rank(lo->aliases, l.alias), ra = alias_rank(lo->aliases, r.alias);
+        if (la != ra) return la < ra;
+    } else {
+        const size_t lt = type_rank(l.type), rt = type_rank(r.type);
+        if (lt != rt) return lt < rt;
+    }
+    return l.alias < r.alias;
 }
 
 //BBS: add a function to load the version from xxx.json

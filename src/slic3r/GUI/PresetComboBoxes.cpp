@@ -1682,10 +1682,7 @@ void PlaterPresetComboBox::update()
         selected_in_ams = add_ams_filaments(into_u8(effective_selected), true);
     }
 
-    std::vector<std::string> first_vendors     = {"", "Bambu", "Generic"}; // Empty vendor for non-system presets
-    std::vector<std::string> first_types     = {"PLA", "PETG", "ABS", "TPU"};
-    std::vector<std::string>    polymaker_priority = {"PolyLite PLA", "PolyTerra PLA", "PolyLite PETG"};
-    auto  add_presets       = [this, &preset_descriptions, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types, &selected_in_ams, &polymaker_priority]
+    auto  add_presets       = [this, &preset_descriptions, &preset_filament_vendors, &preset_filament_types, &selected_in_ams]
             (std::map<wxString, wxBitmap *> const &presets, wxString const &selected, std::string const &group, wxString const &groupName) {
         if (!presets.empty()) {
             set_label_marker(Append(_L(group), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
@@ -1697,60 +1694,12 @@ void PlaterPresetComboBox::update()
                 //    if (GetCount() == 1) Clear();
                 //    else SetString(GetCount() - 1, "");
                 //}
-                if (group == "System presets" || group == "Unsupported presets")
-                    std::sort(list.begin(), list.end(), [&preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types, &polymaker_priority](auto *l, auto *r) {
-                        { // Compare order
-                            const auto &filament_orders = get_filament_orders();
-                            auto iter1 = std::find(filament_orders.begin(), filament_orders.end(), l->first);
-                            auto iter2 = std::find(filament_orders.begin(), filament_orders.end(), r->first);
-                            if (iter1 != iter2)
-                                return iter1 < iter2;
-                        }
-                        { // Compare vendor
-                            auto iter1 = std::find(first_vendors.begin(), first_vendors.end(), preset_filament_vendors[l->first]);
-                            auto iter2 = std::find(first_vendors.begin(), first_vendors.end(), preset_filament_vendors[r->first]);
-                            if (iter1 != iter2)
-                                return iter1 < iter2;
-                        }
-                        if (preset_filament_vendors[l->first] == "Polymaker" && preset_filament_vendors[r->first] == "Polymaker") {
-                            wxString l_name = l->first;
-                            wxString r_name = r->first;
-
-                            // Check if left is in priority list
-                            auto l_priority_it = std::find(polymaker_priority.begin(), polymaker_priority.end(), l_name);
-                            int  l_priority    = (l_priority_it != polymaker_priority.end()) ? std::distance(polymaker_priority.begin(), l_priority_it) : -1;
-
-                            // Check if right is in priority list
-                            auto r_priority_it = std::find(polymaker_priority.begin(), polymaker_priority.end(), r_name);
-                            int  r_priority    = (r_priority_it != polymaker_priority.end()) ? std::distance(polymaker_priority.begin(), r_priority_it) : -1;
-
-                            // If both have priority positions, sort by priority
-                            if (l_priority >= 0 && r_priority >= 0) return l_priority < r_priority;
-
-                            // If only left has priority, it comes first
-                            if (l_priority >= 0) return true;
-
-                            // If only right has priority, it comes first
-                            if (r_priority >= 0) return false;
-
-                            // Check if either starts with "Fiberon"
-                            bool l_is_fiberon = l_name.StartsWith("Fiberon");
-                            bool r_is_fiberon = r_name.StartsWith("Fiberon");
-
-                            // If both are Fiberon or both are not, sort alphabetically
-                            if (l_is_fiberon == r_is_fiberon) return l_name < r_name;
-
-                            // Fiberon comes before non-Fiberon (after priority items)
-                            return l_is_fiberon;
-                        }
-                        { // Compare type
-                            auto iter1 = std::find(first_types.begin(), first_types.end(), preset_filament_types[l->first]);
-                            auto iter2 = std::find(first_types.begin(), first_types.end(), preset_filament_types[r->first]);
-                            if (iter1 != iter2)
-                                return iter1 < iter2;
-                        }
-                        return l->first < r->first;
-                    });
+                if (group == "System presets" || group == "Unsupported presets") {
+                    auto key = [&preset_filament_vendors, &preset_filament_types](const wxString &name) {
+                        return FilamentListKey{into_u8(name), preset_filament_vendors[name], preset_filament_types[name]};
+                    };
+                    std::sort(list.begin(), list.end(), [&key](auto *l, auto *r) { return filament_list_less(key(l->first), key(r->first)); });
+                }
                 bool unsupported = group == "Unsupported presets";
                 for (auto it : list) {
                     auto groupName2 = groupByGroup ? groupName : preset_filament_vendors[it->first];
@@ -2651,23 +2600,9 @@ void GUI::VirtualFilamentComboBox::update()
         list.reserve(system_presets.size());
         for (const auto &item : system_presets)
             list.push_back(&item);
-        const std::vector<std::string> first_vendors = {"Bambu", "Generic"};
-        const std::vector<std::string> first_types   = {"PLA", "PETG", "ABS", "TPU"};
-        const auto                    &orders        = get_filament_orders();
-        auto rank = [](const std::vector<std::string> &order, const std::string &value) {
-            return size_t(std::find(order.begin(), order.end(), value) - order.begin());
-        };
-        std::sort(list.begin(), list.end(), [&](auto *l, auto *r) {
-            const size_t lo = rank(orders, into_u8(l->first)), ro = rank(orders, into_u8(r->first));
-            if (lo != ro)
-                return lo < ro;
-            const size_t lv = rank(first_vendors, l->second.vendor), rv = rank(first_vendors, r->second.vendor);
-            if (lv != rv)
-                return lv < rv;
-            const size_t lt = rank(first_types, l->second.type), rt = rank(first_types, r->second.type);
-            if (lt != rt)
-                return lt < rt;
-            return l->first < r->first;
+        std::sort(list.begin(), list.end(), [](auto *l, auto *r) {
+            return filament_list_less({into_u8(l->first), l->second.vendor, l->second.type},
+                                      {into_u8(r->first), r->second.vendor, r->second.type});
         });
 
         set_label_marker(Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));

@@ -104,7 +104,23 @@ extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &
 
 extern void extend_default_config_length(DynamicPrintConfig &config, const DynamicPrintConfig &inherit_config, const bool set_nil_to_default, const DynamicPrintConfig &defaults);
 
-const std::vector<std::string> &get_filament_orders();
+/**
+ * \brief Identity of a filament preset as far as its position in selection lists is concerned
+ */
+struct FilamentListKey
+{
+    std::string alias;  ///< display name, e.g. "Bambu PLA Basic"
+    std::string vendor; ///< filament_vendor; empty for user presets
+    std::string type;   ///< filament_type
+};
+
+/**
+ * \brief Strict weak "listed before" order for filament presets in selection lists
+ *
+ * Vendors are grouped, curated vendors first, then the rest by name. Within a curated vendor the
+ * curated aliases lead and everything else follows by name.
+ */
+bool filament_list_less(const FilamentListKey &l, const FilamentListKey &r);
 
 class VendorProfile
 {
