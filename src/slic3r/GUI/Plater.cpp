@@ -2957,7 +2957,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     auto extruder_max_nozzle_count = cur_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count")->values;
     bool support_multi_nozzle = std::any_of(extruder_max_nozzle_count.begin(),extruder_max_nozzle_count.end(),[](int val){return val>1;});
     auto nozzle_option = get_nozzle_options(obj, extruder_nums, support_multi_nozzle, is_manual);
-    if (!nozzle_option && support_multi_nozzle)
+    if (!nozzle_option && support_multi_nozzle && extruder_nums > 1) 
         return false;
 
     // Syncing brings over the nozzle inventory and the AMS state; the slicing diameter stays the
