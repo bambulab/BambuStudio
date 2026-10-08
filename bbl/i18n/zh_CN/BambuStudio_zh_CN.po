@@ -19474,8 +19474,8 @@ msgstr "您的打印机安装了不同的喷嘴。请选择一个喷嘴进行本
 msgid "Purge Mode Settings"
 msgstr "冲刷模式"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "带有变速与变温的冲刷逻辑，冲刷更彻底，可在追求极致打印质量时使用"
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr "带有变速和变温的擦料塔冲刷逻辑，冲刷更彻底，可在追求打印质量时使用"
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "使用调优过的冲刷温度、倍率与更快的冲刷挤出来缩短冲刷时长，可能会在某些极端情况产生轻微混色"
@@ -19483,8 +19483,8 @@ msgstr "使用调优过的冲刷温度、倍率与更快的冲刷挤出来缩短
 msgid "Prime Saving"
 msgstr "省料模式"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "减少冲刷量，加快打印速度，但可能出现轻微的颜色混合或表面瑕疵。"
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr "减少擦料塔冲刷量，加快打印速度但可能出现轻微的颜色混合（仅H2C和H3C外接1/2代AMS喷嘴）或表面瑕疵"
 
 msgid "Learn more about prime mode"
 msgstr "了解更多冲刷模式信息"

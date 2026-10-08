@@ -3581,19 +3581,6 @@ std::pair<int, int> PresetBundle::get_ams_count(int index)
     return {counts[4], counts[1]};
 }
 
-bool PresetBundle::has_ams() const
-{
-    for (const auto &counts : extruder_ams_counts) {
-        const auto it4 = counts.find(4);
-        const auto it1 = counts.find(1);
-        const int  n4  = it4 != counts.end() ? it4->second : 0;
-        const int  n1  = it1 != counts.end() ? it1->second : 0;
-        if (n4 + n1 > 0)
-            return true;
-    }
-    return false;
-}
-
 std::vector<std::string> PresetBundle::get_extra_compatible_printers_by_full_stat()
 {
     std::vector<std::string> result;

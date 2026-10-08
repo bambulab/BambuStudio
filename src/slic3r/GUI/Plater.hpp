@@ -249,9 +249,6 @@ public:
     void reset_fila_switch();
     void enable_nozzle_count_edit(bool enable);
     void enable_purge_mode_btn(bool enable);
-    // Recompute purge-mode button visibility from current printer capability and AMS presence.
-    void update_purge_mode_btn();
-    void reset_all_nozzle_status();
     void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
 
     PlaterPresetComboBox *  printer_combox();

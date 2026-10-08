@@ -52,7 +52,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent, PurgeModeDialogType dialog_ty
     bool is_fast_mode = (m_dialog_type == PurgeModeDialogType::FastMode);
 
     // Standard option
-    m_standard_panel = new PurgeModeBtnPanel(options_panel, _L("Standard"), _L("Perform full purging with speed and temperature transition for the best print quality."),
+    m_standard_panel = new PurgeModeBtnPanel(options_panel, _L("Standard"), _L("Perform a full prime tower purge with speed and temperature transitions for optimal print quality."),
                                              "shield");
     m_standard_panel->SetMinSize(wxSize(FromDIP(200), FromDIP(150)));
     m_standard_panel->Select(mode == pvmDefault);
@@ -69,7 +69,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent, PurgeModeDialogType dialog_ty
     } else {
         // Multi-nozzle: Prime Saving option
         m_saving_panel = new PurgeModeBtnPanel(options_panel, _L("Prime Saving"),
-                                               _L("Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."), "leaf");
+                                               _L("Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."), "leaf");
         m_saving_panel->SetMinSize(wxSize(FromDIP(200), FromDIP(150)));
         m_saving_panel->Select(mode == pvmSaving);
         m_saving_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { select_option(pvmSaving); });
