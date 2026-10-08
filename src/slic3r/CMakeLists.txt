@@ -428,6 +428,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/UserManager.cpp
     GUI/HttpServer.hpp
     GUI/HttpServer.cpp
+    GUI/MCP/MCPServer.hpp
+    GUI/MCP/MCPServer.cpp
+    GUI/MCP/MCPDispatcher.hpp
+    GUI/MCP/MCPDispatcher.cpp
     Config/Snapshot.cpp
     Config/Snapshot.hpp
     Config/Version.cpp

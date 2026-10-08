@@ -116,6 +116,7 @@
 #include "KBShortcutsDialog.hpp"
 #include "DownloadProgressDialog.hpp"
 #include "HttpServer.hpp"
+#include "MCP/MCPServer.hpp"
 
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
@@ -1180,6 +1181,20 @@ void GUI_App::post_init()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
+    }
+
+    if (app_config->get("enable_mcp_server") == "true") {
+        std::string mcp_port_str = app_config->get("mcp_server_port");
+        int mcp_port = 27183;
+        if (!mcp_port_str.empty()) {
+            try {
+                mcp_port = std::stoi(mcp_port_str);
+            } catch (...) {
+                mcp_port = 27183;
+            }
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Starting Model Context Protocol (MCP) Server on loopback port " << mcp_port;
+        start_mcp_server(mcp_port);
     }
 
 
@@ -2927,6 +2942,7 @@ int GUI_App::OnExit()
 
     Slic3r::HelioQuery::shutdown_background_requests();
 
+    stop_mcp_server();
     stop_sync_user_preset();
 
     // The check_cert worker also runs the startup device-region query; join it
@@ -6698,6 +6714,33 @@ void GUI_App::start_http_server()
 void GUI_App::stop_http_server()
 {
     m_http_server.stop();
+}
+
+void GUI_App::start_mcp_server(int port)
+{
+    if (!m_mcp_server) {
+        m_mcp_server = std::make_unique<MCPServer>();
+    }
+    if (!m_mcp_server->is_started()) {
+        m_mcp_server->start(port);
+    }
+}
+
+void GUI_App::stop_mcp_server()
+{
+    if (m_mcp_server && m_mcp_server->is_started()) {
+        m_mcp_server->stop();
+    }
+}
+
+bool GUI_App::is_mcp_server_started() const
+{
+    return m_mcp_server && m_mcp_server->is_started();
+}
+
+MCPServer* GUI_App::get_mcp_server()
+{
+    return m_mcp_server.get();
 }
 
 void GUI_App::switch_staff_pick(bool on)
