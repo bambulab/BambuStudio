@@ -59,6 +59,11 @@ void ExtrusionPath::polygons_covered_by_width(Polygons &out, const float scaled_
 
 void ExtrusionPath::polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const
 {
+    // Travel-only paths do not deposit material. Counting them as covered area
+    // can hide real voids from later gap-fill detection.
+    if (this->is_force_no_extrusion())
+        return;
+
     // Instantiating the Flow class to get the line spacing.
     // Don't know the nozzle diameter, setting to zero. It shall not matter it shall be optimized out by the compiler.
     bool bridge = is_bridge(this->role());
