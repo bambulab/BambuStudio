@@ -1069,7 +1069,8 @@ void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool
         if (!nozzle_rack)
             return;
         nozzle_rack->CtrlRackConfirmAll();
-        UpdateUi(rack, true, true);
+        if (!UpdateUi(rack, true, true))
+            EndModal(wxID_OK);
     };
 
     auto ignore_opt = [rack,this]() {
