@@ -16,7 +16,10 @@
 
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <cmath>
 #include "Printer/LiveViewTrackContext.h"
+#include "BitmapCache.hpp"
+#include "I18N.hpp"
 
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 
@@ -232,6 +235,24 @@ wxMediaCtrl2::~wxMediaCtrl2()
         [wmLayer release];
         m_watermark_layer = nullptr;
     }
+    CALayer *badgeBgLayer = (CALayer *)m_badge_bg_layer;
+    if (badgeBgLayer) {
+        [badgeBgLayer removeFromSuperlayer];
+        [badgeBgLayer release];
+        m_badge_bg_layer = nullptr;
+    }
+    CALayer *badgeDotLayer = (CALayer *)m_badge_dot_layer;
+    if (badgeDotLayer) {
+        [badgeDotLayer removeFromSuperlayer];
+        [badgeDotLayer release];
+        m_badge_dot_layer = nullptr;
+    }
+    CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
+    if (pauseIconLayer) {
+        [pauseIconLayer removeFromSuperlayer];
+        [pauseIconLayer release];
+        m_pause_icon_layer = nullptr;
+    }
     CALayer *idleLayer = (CALayer *)m_idle_layer;
     if (idleLayer) {
         [idleLayer removeFromSuperlayer];
@@ -317,7 +338,10 @@ void wxMediaCtrl2::Play()
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 play];
     // Hide idle image during playback (must run on main thread for CALayer)
-    dispatch_async(dispatch_get_main_queue(), ^{ removeIdleLayer(); });
+    dispatch_async(dispatch_get_main_queue(), ^{
+        removeIdleLayer();
+        updateStatusBadge();
+    });
     if (m_state != wxMEDIASTATE_PLAYING) {
         m_state = wxMEDIASTATE_PLAYING;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
@@ -394,7 +418,8 @@ void wxMediaCtrl2::SetIdleImage(const wxImage &image, wxString const &watermark_
         if (idleLayer.superlayer != rootLayer)
             [rootLayer addSublayer:idleLayer];
 
-        updateWatermarkLayer();
+        updatePauseIconLayer();
+        updateStatusBadge();
     }
 }
 
@@ -438,66 +463,135 @@ void wxMediaCtrl2::updateIdleLayer()
     if (idleLayer.superlayer != rootLayer)
         [rootLayer addSublayer:idleLayer];
 
-    updateWatermarkLayer();
+    updatePauseIconLayer();
+    updateStatusBadge();
 }
 
-void wxMediaCtrl2::updateWatermarkLayer()
+void wxMediaCtrl2::updateStatusBadge()
 {
-    CALayer *idleLayer = (CALayer *)m_idle_layer;
-    if (!idleLayer || idleLayer.hidden)
+    NSView *view = (NSView *)GetHandle();
+    CALayer *rootLayer = view.layer;
+    if (!rootLayer)
         return;
 
-    if (!m_watermark_text.empty()) {
-        CenteredCATextLayer *wmLayer = (CenteredCATextLayer *)m_watermark_layer;
-        if (!wmLayer) {
-            wmLayer = [[CenteredCATextLayer alloc] init];
-            wmLayer.alignmentMode = kCAAlignmentCenter;
-            wmLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
-            m_watermark_layer = wmLayer;
-        }
+    bool playing = (m_state == wxMEDIASTATE_PLAYING);
+    wxString text = playing ? _L("Live") : m_watermark_text;
+    bool visible = playing || !m_watermark_text.empty();
 
-        NSString *wmText = [NSString stringWithUTF8String:m_watermark_text.ToUTF8().data()];
-        NSFont *font = [NSFont boldSystemFontOfSize:10.0];
-        NSDictionary *attrs = @{NSFontAttributeName: font};
-        NSSize textSize = [wmText sizeWithAttributes:attrs];
+    CALayer *bgLayer = (CALayer *)m_badge_bg_layer;
+    CALayer *dotLayer = (CALayer *)m_badge_dot_layer;
+    CenteredCATextLayer *textLayer = (CenteredCATextLayer *)m_watermark_layer;
 
-        CGFloat padH = 12.0;
-        CGFloat padV = 8.0;
-        CGFloat wmW = textSize.width + 2 * padH;
-        CGFloat wmH = textSize.height + 2 * padV;
-
-        NSView *view = (NSView *)GetHandle();
-        CALayer *rootLayer = view.layer;
-        CGFloat parentH = idleLayer.bounds.size.height;
-        CGFloat wmX = rootLayer ? (rootLayer.bounds.size.width - wmW) / 2.0 : 0;
-        // wxWidgets NSView is flipped (y=0 at top), so place near bottom edge
-        CGFloat wmY = parentH - wmH - 10.0;
-        CGFloat radius = 8.0;
-
-        wmLayer.frame = CGRectMake(wmX, wmY, wmW, wmH);
-        wmLayer.cornerRadius = radius;
-
-        CGColorRef bgColor = CGColorCreateGenericRGB(0.2, 0.2, 0.2, 0.63);
-        wmLayer.backgroundColor = bgColor;
-        CGColorRelease(bgColor);
-
-        wmLayer.string = wmText;
-        wmLayer.font = (__bridge CFTypeRef)font;
-        wmLayer.fontSize = 10.0;
-
-        CGColorRef fgColor = CGColorCreateGenericRGB(0.86, 0.86, 0.86, 1.0);
-        wmLayer.foregroundColor = fgColor;
-        CGColorRelease(fgColor);
-
-        wmLayer.hidden = NO;
-
-        if (wmLayer.superlayer != idleLayer)
-            [idleLayer addSublayer:wmLayer];
-    } else {
-        CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
-        if (wmLayer)
-            wmLayer.hidden = YES;
+    if (!visible) {
+        if (bgLayer) bgLayer.hidden = YES;
+        if (dotLayer) dotLayer.hidden = YES;
+        if (textLayer) textLayer.hidden = YES;
+        return;
     }
+
+    if (!bgLayer) {
+        bgLayer = [[CALayer alloc] init];
+        m_badge_bg_layer = bgLayer;
+    }
+    if (!dotLayer) {
+        dotLayer = [[CALayer alloc] init];
+        m_badge_dot_layer = dotLayer;
+    }
+    if (!textLayer) {
+        textLayer = [[CenteredCATextLayer alloc] init];
+        textLayer.alignmentMode = kCAAlignmentLeft;
+        textLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
+        m_watermark_layer = textLayer;
+    }
+
+    NSString *nsText = [NSString stringWithUTF8String:text.ToUTF8().data()];
+    NSFont *font = [NSFont systemFontOfSize:14.0];
+    NSDictionary *attrs = @{NSFontAttributeName: font};
+    NSSize textSize = [nsText sizeWithAttributes:attrs];
+
+    CGFloat padH   = 12.0;
+    CGFloat dotD   = 8.0;
+    CGFloat dotGap = 6.0;
+    CGFloat pillH  = 39.0;
+    CGFloat margin = 10.0;
+    CGFloat pillW  = padH + dotD + dotGap + textSize.width + padH;
+    CGFloat radius = pillH / 2.0;
+
+    CGFloat pillX = margin;
+    CGFloat pillY = margin;
+
+    bgLayer.frame = CGRectMake(pillX, pillY, pillW, pillH);
+    bgLayer.cornerRadius = radius;
+    CGColorRef bgColor = CGColorCreateGenericRGB(51 / 255.0, 51 / 255.0, 51 / 255.0, 160 / 255.0);
+    bgLayer.backgroundColor = bgColor;
+    CGColorRelease(bgColor);
+    bgLayer.hidden = NO;
+    if (bgLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:bgLayer];
+
+    CGFloat dotX = pillX + padH;
+    CGFloat dotY = pillY + (pillH - dotD) / 2.0;
+    dotLayer.frame = CGRectMake(dotX, dotY, dotD, dotD);
+    dotLayer.cornerRadius = dotD / 2.0;
+    wxColour dotColour = playing ? wxColour(76, 217, 100) : wxColour(0xCE, 0xCE, 0xCE);
+    CGColorRef dotColor = CGColorCreateGenericRGB(dotColour.Red() / 255.0, dotColour.Green() / 255.0, dotColour.Blue() / 255.0, 1.0);
+    dotLayer.backgroundColor = dotColor;
+    CGColorRelease(dotColor);
+    dotLayer.hidden = NO;
+    if (dotLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:dotLayer];
+
+    CGFloat textX = dotX + dotD + dotGap;
+    textLayer.frame = CGRectMake(textX, pillY, textSize.width, pillH);
+    textLayer.string = nsText;
+    textLayer.font = (__bridge CFTypeRef)font;
+    textLayer.fontSize = 14.0;
+    textLayer.backgroundColor = nil;
+    CGColorRef fgColor = CGColorCreateGenericRGB(0xCE / 255.0, 0xCE / 255.0, 0xCE / 255.0, 1.0);
+    textLayer.foregroundColor = fgColor;
+    CGColorRelease(fgColor);
+    textLayer.hidden = NO;
+    if (textLayer.superlayer != rootLayer)
+        [rootLayer addSublayer:textLayer];
+}
+
+void wxMediaCtrl2::updatePauseIconLayer()
+{
+    CALayer *idleLayer = (CALayer *)m_idle_layer;
+    if (!idleLayer)
+        return;
+
+    CGFloat iconSz = idleLayer.bounds.size.height * 0.12;
+    if (iconSz <= 0)
+        return;
+
+    static Slic3r::GUI::BitmapCache cache;
+    wxBitmap *bmp = cache.load_svg("liveview_pause", (unsigned) std::lround(iconSz), (unsigned) std::lround(iconSz));
+    if (!bmp || !bmp->IsOk())
+        return;
+
+    wxImage image = bmp->ConvertToImage();
+    CGImageRef cgImage = createCGImageFromWxImage(image);
+    if (!cgImage)
+        return;
+
+    CALayer *iconLayer = (CALayer *)m_pause_icon_layer;
+    if (!iconLayer) {
+        iconLayer = [[CALayer alloc] init];
+        iconLayer.contentsGravity = kCAGravityResizeAspect;
+        m_pause_icon_layer = iconLayer;
+    }
+
+    CGFloat iconX = (idleLayer.bounds.size.width - iconSz) / 2.0;
+    CGFloat iconY = (idleLayer.bounds.size.height - iconSz) / 2.0;
+    iconLayer.frame = CGRectMake(iconX, iconY, iconSz, iconSz);
+    iconLayer.contentsScale = cache.scale();
+    iconLayer.contents = (__bridge id)cgImage;
+    iconLayer.hidden = NO;
+    CGImageRelease(cgImage);
+
+    if (iconLayer.superlayer != idleLayer)
+        [idleLayer addSublayer:iconLayer];
 }
 
 void wxMediaCtrl2::removeIdleLayer()
@@ -505,6 +599,15 @@ void wxMediaCtrl2::removeIdleLayer()
     CALayer *idleLayer = (CALayer *)m_idle_layer;
     if (idleLayer)
         idleLayer.hidden = YES;
+    CALayer *pauseIconLayer = (CALayer *)m_pause_icon_layer;
+    if (pauseIconLayer)
+        pauseIconLayer.hidden = YES;
+    CALayer *badgeBgLayer = (CALayer *)m_badge_bg_layer;
+    if (badgeBgLayer)
+        badgeBgLayer.hidden = YES;
+    CALayer *badgeDotLayer = (CALayer *)m_badge_dot_layer;
+    if (badgeDotLayer)
+        badgeDotLayer.hidden = YES;
     CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
     if (wmLayer)
         wmLayer.hidden = YES;
@@ -518,6 +621,7 @@ void wxMediaCtrl2::NotifyStopped()
         event.SetId(GetId());
         event.SetEventObject(this);
         wxPostEvent(this, event);
+        dispatch_async(dispatch_get_main_queue(), ^{ updateStatusBadge(); });
     }
 }
 
@@ -550,7 +654,6 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxMediaCtrl_OnSize(this, m_video_size, width, height);
 
-    // Sync idle layer and watermark positions on resize
     NSView *view = (NSView *)GetHandle();
     CALayer *rootLayer = view.layer;
     if (!rootLayer) return;
@@ -558,15 +661,6 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     CALayer *idleLayer = (CALayer *)m_idle_layer;
     if (idleLayer && !idleLayer.hidden) {
         idleLayer.frame = rootLayer.bounds;
-
-        // Reposition watermark centered at bottom (flipped coords: y=0 at top)
-        CATextLayer *wmLayer = (CATextLayer *)m_watermark_layer;
-        if (wmLayer && !wmLayer.hidden) {
-            CGFloat wmW = wmLayer.frame.size.width;
-            CGFloat wmH = wmLayer.frame.size.height;
-            CGFloat wmX = (rootLayer.bounds.size.width - wmW) / 2.0;
-            CGFloat wmY = idleLayer.bounds.size.height - wmH - 10.0;
-            wmLayer.frame = CGRectMake(wmX, wmY, wmW, wmH);
-        }
+        updatePauseIconLayer();
     }
 }

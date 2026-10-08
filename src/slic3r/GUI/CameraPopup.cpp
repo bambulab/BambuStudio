@@ -15,15 +15,10 @@
 #include "DeviceCore/DevStorage.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace Slic3r {
 namespace GUI {
-
-namespace {
-// Icon bitmap size in DIP. The outer slot size (button width/height) is intentionally
-// left to the caller via SetMinSize() so that CameraItem stays reusable across panels.
-constexpr int kCameraItemIconDIP = 20;
-} // namespace
 
 wxIMPLEMENT_CLASS(CameraPopup, PopupWindow);
 
@@ -130,6 +125,18 @@ CameraPopup::CameraPopup(wxWindow *parent)
         top_sizer->Add(m_resolution_options[i], 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
         top_sizer->Add(0, 0, wxALL, 0);
     }
+
+    m_text_storage = new wxStaticText(m_panel, wxID_ANY, _L("External Storage"));
+    m_text_storage->Wrap(-1);
+    m_text_storage->SetFont(Label::Head_14);
+    m_text_storage->SetForegroundColour(TEXT_COL);
+    m_text_storage_value = new wxStaticText(m_panel, wxID_ANY, wxEmptyString);
+    m_text_storage_value->Wrap(-1);
+    m_text_storage_value->SetFont(Label::Body_14);
+    m_text_storage_value->SetForegroundColour(ThemeColor::TextMuted);
+
+    top_sizer->Add(m_text_storage, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_text_storage_value, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
 
     main_sizer->Add(top_sizer, 0, wxALL, FromDIP(10));
 
@@ -450,6 +457,12 @@ void CameraPopup::update(bool vcamera_streaming)
     sync_resolution_setting(m_obj->camera_resolution);
     sync_vcamera_state(vcamera_streaming);
 
+    switch (m_obj->GetStorage()->get_sdcard_state()) {
+    case DevStorage::SdcardState::NO_SDCARD: m_text_storage_value->SetLabel(_L("Not Installed")); break;
+    case DevStorage::SdcardState::HAS_SDCARD_ABNORMAL: m_text_storage_value->SetLabel(_L("Abnormal")); break;
+    default: m_text_storage_value->SetLabel(_L("Installed")); break;
+    }
+
     rescale();
 }
 
@@ -564,6 +577,8 @@ void CameraPopup::stop_interval(wxTimerEvent& event)
 void CameraPopup::OnDismiss() {
     PopupWindow::OnDismiss();
     this->start_interval();
+    if (m_on_dismiss)
+        m_on_dismiss();
 }
 
 bool CameraPopup::ProcessLeftDown(wxMouseEvent &event)
@@ -596,18 +611,25 @@ void CameraPopup::OnMouse(wxMouseEvent &event)
     event.Skip();
 }
 
-CameraItem::CameraItem(wxWindow *parent, std::string normal, std::string hover)
+CameraItem::CameraItem(wxWindow *parent, std::string normal, std::string hover, int icon_dip, std::string selected, double selected_scale)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxNO_BORDER)
+    , m_icon_dip(icon_dip)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif
 
-    m_bitmap_normal = ScalableBitmap(this, normal, kCameraItemIconDIP);
-    m_bitmap_hover  = ScalableBitmap(this, hover,  kCameraItemIconDIP);
+    m_bitmap_normal = ScalableBitmap(this, normal, m_icon_dip);
+    m_bitmap_hover  = ScalableBitmap(this, hover,  m_icon_dip);
+    if (!selected.empty()) {
+        m_selected_icon_dip = static_cast<int>(std::lround(m_icon_dip * selected_scale));
+        m_bitmap_selected   = ScalableBitmap(this, selected, m_selected_icon_dip);
+    }
+
+    apply_outer_size();
 
     m_image = new wxStaticBitmap(this, wxID_ANY, m_bitmap_normal.bmp());
-    const wxSize icon_size{FromDIP(kCameraItemIconDIP), FromDIP(kCameraItemIconDIP)};
+    const wxSize icon_size{FromDIP(m_icon_dip), FromDIP(m_icon_dip)};
     m_image->SetMinSize(icon_size);
     m_image->SetMaxSize(icon_size);
 
@@ -626,17 +648,11 @@ CameraItem::CameraItem(wxWindow *parent, std::string normal, std::string hover)
     m_image->Bind(wxEVT_LEFT_DCLICK, &CameraItem::forward_mouse_event, this);
     m_image->Bind(wxEVT_RIGHT_DOWN,  &CameraItem::forward_mouse_event, this);
     m_image->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
-        if (!m_hover) {
-            m_hover = true;
-            update_displayed_bitmap();
-        }
+        set_hover(true);
         e.Skip();
     });
     m_image->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
-        if (m_hover) {
-            m_hover = false;
-            update_displayed_bitmap();
-        }
+        set_hover(false);
         e.Skip();
     });
 }
@@ -647,33 +663,68 @@ void CameraItem::msw_rescale()
 {
     m_bitmap_normal.msw_rescale();
     m_bitmap_hover.msw_rescale();
+    if (m_bitmap_selected.bmp().IsOk())
+        m_bitmap_selected.msw_rescale();
+    update_displayed_bitmap();
+}
+
+void CameraItem::SetBitmaps(const std::string &normal, const std::string &hover, const std::string &selected, double selected_scale)
+{
+    if (m_bitmap_normal.name() != normal) m_bitmap_normal = ScalableBitmap(this, normal, m_icon_dip);
+    if (m_bitmap_hover.name() != hover) m_bitmap_hover = ScalableBitmap(this, hover, m_icon_dip);
+
+    if (selected.empty()) {
+        m_selected_icon_dip = 0;
+        m_bitmap_selected   = ScalableBitmap();
+    } else if (m_bitmap_selected.name() != selected) {
+        m_selected_icon_dip = static_cast<int>(std::lround(m_icon_dip * selected_scale));
+        m_bitmap_selected   = ScalableBitmap(this, selected, m_selected_icon_dip);
+    }
+    apply_outer_size();
+    update_displayed_bitmap();
+    if (GetParent())
+        GetParent()->Layout();
+}
+
+void CameraItem::apply_outer_size()
+{
+    const int    max_dip = std::max(m_icon_dip, m_selected_icon_dip);
+    const wxSize sz(FromDIP(max_dip), FromDIP(max_dip));
+    SetMinSize(sz);
+    SetMaxSize(sz);
+}
+
+void CameraItem::SetSelected(bool selected)
+{
+    if (m_selected == selected)
+        return;
+    m_selected = selected;
     update_displayed_bitmap();
 }
 
 void CameraItem::on_enter_win(wxMouseEvent &evt)
 {
-    if (!m_hover) {
-        m_hover = true;
-        update_displayed_bitmap();
-    }
+    set_hover(true);
     evt.Skip();
 }
 
 void CameraItem::on_leave_win(wxMouseEvent &evt)
 {
-    if (m_hover) {
-        m_hover = false;
-        update_displayed_bitmap();
-    }
+    set_hover(false);
     evt.Skip();
 }
 
 void CameraItem::reset_hover()
 {
-    if (m_hover) {
-        m_hover = false;
-        update_displayed_bitmap();
-    }
+    set_hover(false);
+}
+
+void CameraItem::set_hover(bool hover)
+{
+    if (m_hover == hover)
+        return;
+    m_hover = hover;
+    update_displayed_bitmap();
 }
 
 bool CameraItem::Enable(bool enable)
@@ -681,6 +732,14 @@ bool CameraItem::Enable(bool enable)
     bool ret = wxPanel::Enable(enable);
     m_hover = false;
     update_displayed_bitmap();
+    return ret;
+}
+
+bool CameraItem::SetBackgroundColour(const wxColour &colour)
+{
+    bool ret = wxPanel::SetBackgroundColour(colour);
+    if (m_image)
+        m_image->SetBackgroundColour(colour);
     return ret;
 }
 
@@ -710,8 +769,18 @@ void CameraItem::update_displayed_bitmap()
     if (!m_image)
         return;
 
-    const wxBitmap desired = IsEnabled() ? (m_hover ? m_bitmap_hover.bmp() : m_bitmap_normal.bmp())
-                                         : make_disabled_bitmap(m_bitmap_normal.bmp());
+    bool show_selected = (m_selected || m_hover) && m_bitmap_selected.bmp().IsOk();
+    int  dip = show_selected ? m_selected_icon_dip : m_icon_dip;
+    const wxSize sz(FromDIP(dip), FromDIP(dip));
+    if (m_image->GetMinSize() != sz) {
+        m_image->SetMinSize(sz);
+        m_image->SetMaxSize(sz);
+        Layout();
+    }
+
+    const wxBitmap desired = show_selected ? m_bitmap_selected.bmp()
+                            : IsEnabled()   ? (m_hover ? m_bitmap_hover.bmp() : m_bitmap_normal.bmp())
+                                            : make_disabled_bitmap(m_bitmap_normal.bmp());
     m_image->SetBitmap(desired);
     m_image->Refresh();
 }

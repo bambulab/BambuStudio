@@ -36,6 +36,7 @@
 
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_SESSION_END, wxCommandEvent);
+wxDEFINE_EVENT(EVT_MEDIA_FULLSCREEN, wxCommandEvent);
 
 static std::map<int, std::string> error_messages = {
     {1, L("The device cannot handle more conversations. Please retry later.")},
@@ -147,6 +148,18 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
     m_button_camera_switch->Hide();
     m_button_camera_switch->Disable();
 
+    m_button_fullscreen = new Button(this, "", "liveview_fullscreen", wxBORDER_NONE);
+    m_button_fullscreen->SetCanFocus(false);
+    {
+        auto parent_bg = StaticBox::GetParentBackgroundColor(this);
+        m_button_fullscreen->SetBackgroundColor(StateColor(
+            std::make_pair(parent_bg, (int) StateColor::Disabled),
+            std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+            std::make_pair(parent_bg, (int) StateColor::Normal)));
+    }
+    m_button_fullscreen->SetToolTip(_L("Enter Camera Full Screen"));
+    m_button_fullscreen->Disable();
+
     m_label_status = new Label(this, "");
     m_label_status->SetForegroundColour(wxColour("#323A3C"));
 
@@ -187,6 +200,8 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
 
+    m_media_ctrl->Bind(wxEVT_LEFT_UP, [this](auto &e) { TogglePlay(); });
+
     m_button_camera_switch->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         // Capture m_obj locally to ensure consistent pointer during event handling
         MachineObject* obj = m_obj;
@@ -219,6 +234,12 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
         obj->command_switch_camera(next_camera);
     });
 
+    m_button_fullscreen->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
+        wxCommandEvent evt(EVT_MEDIA_FULLSCREEN);
+        evt.SetEventObject(this);
+        wxPostEvent(GetParent(), evt);
+    });
+
     m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
         auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", wxGetApp().current_language_code_safe() == "zh_CN" ? "zh" : "en");
         wxLaunchDefaultBrowser(url);
@@ -247,7 +268,8 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
     sizer->Add(m_label_status, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     sizer->Add(m_label_stat, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(25));
     sizer->AddStretchSpacer(1);
-    sizer->Add(m_button_camera_switch, 0, wxEXPAND | wxRIGHT, FromDIP(25));
+    sizer->Add(m_button_camera_switch, 0, wxEXPAND | wxRIGHT, FromDIP(10));
+    sizer->Add(m_button_fullscreen, 0, wxEXPAND | wxRIGHT, FromDIP(15));
     SetSizer(sizer);
 
     m_thread = boost::thread([this] {
@@ -675,6 +697,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
         m_button_camera_switch->Disable();
+        m_button_fullscreen->Disable();
         boost::unique_lock lock(m_mutex);
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
@@ -936,6 +959,7 @@ void MediaPlayCtrl::ToggleStream()
 void MediaPlayCtrl::msw_rescale() {
     m_button_play->Rescale();
     m_button_camera_switch->Rescale();
+    m_button_fullscreen->Rescale();
 }
 
 void MediaPlayCtrl::jump_to_play()
@@ -1055,8 +1079,9 @@ void MediaPlayCtrl::start_device_image_flow()
         time_t fetch_time = time(nullptr);
         std::tm *local_tm = std::localtime(&fetch_time);
         char time_buf[32];
-        strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", local_tm);
-        wxString watermark = _L("Printer Preview") + wxString::Format("  %s", time_buf);
+        strftime(time_buf, sizeof(time_buf), "%H:%M:%S %d/%m/%Y", local_tm);
+        wxString watermark = _L("Not live") + "  " +
+                             wxString::Format(_L("Captured at %s"), wxString::FromUTF8(time_buf));
         CallAfter([this, img = std::move(image), request_machine, mode_str, watermark]() {
             if (request_machine != m_machine) {
                 BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: machine changed, skip display";
@@ -1155,6 +1180,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             SetStatus(_L("Playing..."), false);
             if (m_button_camera_switch->IsShown())
                 m_button_camera_switch->Enable();
+            m_button_fullscreen->Enable();
             m_print_idle = 0;
             auto now = std::chrono::system_clock::now();
             m_load_duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_play_timer).count();

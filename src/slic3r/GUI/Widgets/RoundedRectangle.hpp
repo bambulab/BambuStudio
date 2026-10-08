@@ -15,6 +15,8 @@ public:
     RoundedRectangle(wxWindow *parent, const wxColour &fill, const wxColour &border, double radius, wxPoint pos = wxDefaultPosition, wxSize size = wxDefaultSize);
     ~RoundedRectangle(){};
 
+    void SetFillColour(const wxColour &fill);
+
 private:
     double   m_radius;
     wxColour m_fill;

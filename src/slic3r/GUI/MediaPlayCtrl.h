@@ -35,6 +35,8 @@
 class Button;
 class Label;
 
+wxDECLARE_EVENT(EVT_MEDIA_FULLSCREEN, wxCommandEvent);
+
 namespace Slic3r {
 
 class MachineObject;
@@ -161,6 +163,7 @@ private:
 
     ::Button *m_button_play;
     ::Button *m_button_camera_switch;
+    ::Button *m_button_fullscreen;
     ::Label * m_label_stat;
     ::Label * m_label_status;
 

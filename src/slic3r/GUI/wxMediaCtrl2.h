@@ -78,7 +78,8 @@ protected:
 private:
     void create_player();
     void updateIdleLayer();
-    void updateWatermarkLayer();
+    void updateStatusBadge();
+    void updatePauseIconLayer();
     void removeIdleLayer();
 
     void * m_player = nullptr;
@@ -90,7 +91,10 @@ private:
     wxString m_idle_image;
     wxString m_watermark_text;
     void *   m_idle_layer = nullptr;      // CALayer* for idle image
-    void *   m_watermark_layer = nullptr;  // CATextLayer* for watermark
+    void *   m_watermark_layer = nullptr;  // CenteredCATextLayer* for status badge text
+    void *   m_badge_bg_layer = nullptr;
+    void *   m_badge_dot_layer = nullptr;
+    void *   m_pause_icon_layer = nullptr;
 
 public:
     std::chrono::system_clock::time_point m_play_start_time;

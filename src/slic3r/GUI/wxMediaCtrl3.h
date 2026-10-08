@@ -91,7 +91,7 @@ protected:
 
     void paintEvent(wxPaintEvent &evt);
 
-    void DrawLiveviewLogo(wxGraphicsContext *gc, double bg_x, double bg_y, double bg_w, double bg_h);
+    void DrawLiveviewPause(wxGraphicsContext *gc, double bg_x, double bg_y, double bg_w, double bg_h);
 
     void mouseWheelEvent(wxMouseEvent &evt);
 
@@ -117,8 +117,9 @@ private:
     wxString m_idle_image;
     wxImage  m_idle_image_raw; // last idle image applied via the wxImage overload (UI thread only)
     wxString m_watermark_text;
-    wxBitmap m_logo_bitmap;      // cached rasterized logo (UI thread only)
-    wxSize   m_logo_bitmap_size;
+    wxString m_live_badge_text;
+    wxBitmap m_pause_bitmap;     // cached rasterized pause icon (UI thread only)
+    wxSize   m_pause_bitmap_size;
     wxMediaState m_state  = wxMEDIASTATE_STOPPED;
     int m_error  = 0;
     wxSize m_video_size = wxDefaultSize;

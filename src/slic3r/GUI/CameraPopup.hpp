@@ -14,6 +14,7 @@
 #include <wx/gbsizer.h>
 #include <wx/webrequest.h>
 #include <wx/hyperlink.h>
+#include <functional>
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/PopupWindow.hpp"
@@ -39,6 +40,7 @@ public:
     void sync_vcamera_state(bool show_vcamera);
     void check_func_supported(MachineObject* obj);
     void update(bool vcamera_streaming);
+    void SetOnDismiss(std::function<void()> cb) { m_on_dismiss = std::move(cb); }
 
     enum CameraResolution
     {
@@ -75,6 +77,8 @@ private:
     SwitchButton* m_switch_visual_cam_rec;
     wxStaticText* m_text_vcamera;
     SwitchButton* m_switch_vcamera;
+    wxStaticText* m_text_storage;
+    wxStaticText* m_text_storage_value;
     wxStaticText* m_text_liveview_retry;
     SwitchButton* m_switch_liveview_retry;
     wxStaticText* m_text_resolution;
@@ -103,6 +107,8 @@ private:
     std::chrono::steady_clock::time_point m_last_visual_cam_click{};
     std::chrono::steady_clock::time_point m_last_vcamera_click{};
 
+    std::function<void()> m_on_dismiss;
+
 private:
     wxDECLARE_ABSTRACT_CLASS(CameraPopup);
     wxDECLARE_EVENT_TABLE();
@@ -112,26 +118,35 @@ private:
 class CameraItem : public wxPanel
 {
 public:
-    CameraItem(wxWindow *parent, std::string normal, std::string hover);
+    CameraItem(wxWindow *parent, std::string normal, std::string hover, int icon_dip = 20, std::string selected = "", double selected_scale = 1.0);
     ~CameraItem();
 
     MachineObject *m_obj{nullptr};
     bool     m_hover{false};
     ScalableBitmap m_bitmap_normal;
     ScalableBitmap m_bitmap_hover;
+    ScalableBitmap m_bitmap_selected;
 
     void msw_rescale();
+    void SetBitmaps(const std::string &normal, const std::string &hover, const std::string &selected = "", double selected_scale = 1.0);
     void on_enter_win(wxMouseEvent &evt);
     void on_leave_win(wxMouseEvent &evt);
     void reset_hover();
+    void SetSelected(bool selected);
 
     bool Enable(bool enable = true) override;
+    bool SetBackgroundColour(const wxColour &colour) override;
 
 private:
     void update_displayed_bitmap();
     wxBitmap make_disabled_bitmap(const wxBitmap &bmp) const;
     void forward_mouse_event(wxMouseEvent &evt);
+    void set_hover(bool hover);
+    void apply_outer_size();
 
+    int  m_icon_dip;
+    int  m_selected_icon_dip{0};
+    bool m_selected{false};
     wxStaticBitmap *m_image{nullptr};
 };
 

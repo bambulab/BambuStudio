@@ -105,6 +105,13 @@ static const wxColour BUTTON_HOVER_COL   = wxColour(0, 174, 66);
 static const wxColour DISCONNECT_TEXT_COL = wxColour(171, 172, 172);
 static const wxColour NORMAL_TEXT_COL     = wxColour(48, 58, 60);
 
+static wxColour camera_pill_fill(bool hovered)
+{
+    if (wxGetApp().dark_mode())
+        return hovered ? StateColor::darkModeColorFor(ThemeColor::Grey300) : wxColour();
+    return hovered ? ThemeColor::Grey400 : ThemeColor::Grey300;
+}
+
 class CameraFullscreenCloseButton : public wxPopupWindow
 {
 public:
@@ -2103,14 +2110,6 @@ void StatusBasePanel::close_camera_fullscreen()
     frame->Destroy();
 }
 
-void StatusBasePanel::on_camera_fullscreen(wxMouseEvent &event)
-{
-    if (m_camera_fullscreen_button)
-        m_camera_fullscreen_button->reset_hover();
-    toggle_camera_fullscreen();
-    event.Skip();
-}
-
 void StatusBasePanel::init_bitmaps()
 {
     static Slic3r::GUI::BitmapCache cache;
@@ -2133,15 +2132,9 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_extruder_empty_unload  = *cache.load_png("monitor_extruder_empty_unload", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_extruder_filled_unload = *cache.load_png("monitor_extruder_filled_unload", FromDIP(28), FromDIP(70), false, false);
 
-    m_bitmap_sdcard_state_abnormal = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_abnormal_dark" : "sdcard_state_abnormal", 20);
-    m_bitmap_sdcard_state_normal   = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_normal_dark" : "sdcard_state_normal", 20);
-    m_bitmap_sdcard_state_no       = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_no_dark" : "sdcard_state_no", 20);
-    m_bitmap_recording_on          = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_on_dark" : "monitor_recording_on", 20);
-    m_bitmap_recording_off         = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_off_dark" : "monitor_recording_off", 20);
-    m_bitmap_timelapse_on          = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_on_dark" : "monitor_timelapse_on", 20);
-    m_bitmap_timelapse_off         = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_off_dark" : "monitor_timelapse_off", 20);
-    m_bitmap_vcamera_on            = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_on_dark" : "monitor_vcamera_on", 20);
-    m_bitmap_vcamera_off           = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_off_dark" : "monitor_vcamera_off", 20);
+    m_bitmap_record_on_light    = ScalableBitmap(this, wxGetApp().dark_mode() ? "liveview_record_dark" : "liveview_record_light", 16);
+    m_bitmap_timelapse_on_light = ScalableBitmap(this, wxGetApp().dark_mode() ? "liveview_timelapse_dark" : "liveview_timelapse_light", 16);
+    m_bitmap_golive_on_light    = ScalableBitmap(this, wxGetApp().dark_mode() ? "liveview_golive_dark" : "liveview_golive_light", 16);
 }
 
 wxBoxSizer *StatusBasePanel::create_monitoring_page()
@@ -2185,42 +2178,85 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     //m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
     //bSizer_monitoring_title->Add(m_bitmap_camera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
-    m_bitmap_sdcard_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
-    m_bitmap_sdcard_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    const wxColour initial_pill_fill = camera_pill_fill(false);
+    m_camera_title_pill = new RoundedRectangle(m_panel_monitoring_title, initial_pill_fill, wxColour(), FromDIP(12));
+    m_camera_title_pill->SetBackgroundColour(m_panel_monitoring_title->GetBackgroundColour());
+#ifdef __WINDOWS__
+    m_camera_title_pill->SetDoubleBuffered(true);
+#endif //__WINDOWS__
+    wxBoxSizer *pill_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_bitmap_timelapse_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
-    m_bitmap_timelapse_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_bitmap_timelapse_img->Hide();
+    const wxColour pill_child_bg = initial_pill_fill.IsOk() ? initial_pill_fill : m_panel_monitoring_title->GetBackgroundColour();
 
-    m_bitmap_recording_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
-    m_bitmap_recording_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_bitmap_timelapse_img->Hide();
+    m_breathing_dot_light = new BreathingDot(m_camera_title_pill, "liveview_breathe_dark", "liveview_breathe_light");
+    m_breathing_dot_light->SetBackgroundColour(pill_child_bg);
+    pill_sizer->Add(m_breathing_dot_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
 
-    m_bitmap_vcamera_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
-    m_bitmap_vcamera_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_bitmap_vcamera_img->Hide();
+    m_bitmap_record_light = new wxStaticBitmap(m_camera_title_pill, wxID_ANY, m_bitmap_record_on_light.bmp());
+    m_bitmap_record_light->SetBackgroundColour(pill_child_bg);
+    m_bitmap_record_light->Hide();
+    pill_sizer->Add(m_bitmap_record_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
 
-    m_camera_fullscreen_button = new CameraItem(m_panel_monitoring_title, "camera_fullscreen", "camera_fullscreen_hover");
-    m_camera_fullscreen_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_camera_fullscreen_button->SetBackgroundColour(STATUS_TITLE_BG);
+    m_bitmap_timelapse_light = new wxStaticBitmap(m_camera_title_pill, wxID_ANY, m_bitmap_timelapse_on_light.bmp());
+    m_bitmap_timelapse_light->SetBackgroundColour(pill_child_bg);
+    m_bitmap_timelapse_light->Hide();
+    pill_sizer->Add(m_bitmap_timelapse_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
 
-    m_setting_button = new CameraItem(m_panel_monitoring_title, "camera_setting", "camera_setting_hover");
-    m_setting_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_setting_button->SetBackgroundColour(STATUS_TITLE_BG);
+    m_bitmap_golive_light = new wxStaticBitmap(m_camera_title_pill, wxID_ANY, m_bitmap_golive_on_light.bmp());
+    m_bitmap_golive_light->SetBackgroundColour(pill_child_bg);
+    m_bitmap_golive_light->Hide();
+    pill_sizer->Add(m_bitmap_golive_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(6));
 
-    m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
-    m_bitmap_timelapse_img->SetToolTip(_L("Timelapse"));
-    m_bitmap_recording_img->SetToolTip(_L("Video"));
-    m_bitmap_vcamera_img->SetToolTip(_L("Go Live"));
-    m_camera_fullscreen_button->SetToolTip(_L("Enter Camera Full Screen"));
-    m_setting_button->SetToolTip(_L("Camera Setting"));
+    m_camera_title_pill->SetSizer(pill_sizer);
+    m_camera_title_pill->Layout();
+    pill_sizer->Fit(m_camera_title_pill);
 
-    bSizer_monitoring_title->Add(m_bitmap_sdcard_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_bitmap_timelapse_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_bitmap_recording_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_bitmap_vcamera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_camera_fullscreen_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_setting_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    bSizer_monitoring_title->Add(m_camera_title_pill, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+
+    m_device_operations_tooltip = new DeviceOperationsTooltip(this);
+
+    auto update_pill_hover = [this](bool hovered) {
+        const wxColour fill = camera_pill_fill(hovered);
+        m_camera_title_pill->SetFillColour(fill);
+        const wxColour child_bg = fill.IsOk() ? fill : m_panel_monitoring_title->GetBackgroundColour();
+        for (wxWindow *child : {static_cast<wxWindow *>(m_breathing_dot_light), static_cast<wxWindow *>(m_bitmap_record_light), static_cast<wxWindow *>(m_bitmap_timelapse_light),
+                                static_cast<wxWindow *>(m_bitmap_golive_light)}) {
+            child->SetBackgroundColour(child_bg);
+            child->Refresh();
+        }
+
+        if (hovered) {
+            std::vector<wxString> ops = collect_device_operations();
+            if (!ops.empty()) {
+                m_device_operations_tooltip->SetOperations(ops);
+                wxPoint pos = m_camera_title_pill->ClientToScreen(wxPoint(0, m_camera_title_pill->GetSize().GetHeight() + FromDIP(4)));
+                m_device_operations_tooltip->SetPosition(pos);
+                m_device_operations_tooltip->Show();
+            } else {
+                m_device_operations_tooltip->Hide();
+            }
+        } else {
+            m_device_operations_tooltip->Hide();
+        }
+    };
+    for (wxWindow *child : {static_cast<wxWindow *>(m_camera_title_pill), static_cast<wxWindow *>(m_breathing_dot_light), static_cast<wxWindow *>(m_bitmap_record_light),
+                            static_cast<wxWindow *>(m_bitmap_timelapse_light), static_cast<wxWindow *>(m_bitmap_golive_light)}) {
+        child->Bind(wxEVT_ENTER_WINDOW, [update_pill_hover](wxMouseEvent &e) { update_pill_hover(true); e.Skip(); });
+        child->Bind(wxEVT_LEAVE_WINDOW, [update_pill_hover](wxMouseEvent &e) { update_pill_hover(false); e.Skip(); });
+    }
+
+    m_camera_title_separator = new StaticLine(m_panel_monitoring_title, true);
+    m_camera_title_separator->SetLineColour(StateColor::darkModeColorFor(ThemeColor::Grey350));
+    m_camera_title_separator->SetMinSize(wxSize(FromDIP(1), FromDIP(16)));
+    m_camera_title_separator->Hide();
+    bSizer_monitoring_title->Add(m_camera_title_separator, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+
+    const char *settings_icon = wxGetApp().dark_mode() ? "liveview_settings_dark" : "liveview_settings_light";
+    const char *settings_selected_icon = wxGetApp().dark_mode() ? "liveview_settings_select_dark" : "";
+    m_setting_button_light = new CameraItem(m_panel_monitoring_title, settings_icon, settings_icon, 16, settings_selected_icon, 24.0 / 16.0);
+    m_setting_button_light->SetBackgroundColour(m_panel_monitoring_title->GetBackgroundColour());
+    m_setting_button_light->SetToolTip(_L("Camera Setting"));
+    bSizer_monitoring_title->Add(m_setting_button_light, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     bSizer_monitoring_title->Add(FromDIP(13), 0, 0);
 
@@ -2236,6 +2272,8 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_media_ctrl->SetMinSize(wxSize(PAGE_MIN_WIDTH, FromDIP(288)));
 
     m_media_play_ctrl = new MediaPlayCtrl(this, m_media_ctrl, wxDefaultPosition, wxSize(-1, FromDIP(40)));
+
+    Bind(EVT_MEDIA_FULLSCREEN, [this](wxCommandEvent &) { toggle_camera_fullscreen(); });
 
     sizer->Add(m_media_ctrl, 1, wxEXPAND | wxALL, 0);
     sizer->Add(m_media_play_ctrl, 0, wxEXPAND | wxALL, 0);
@@ -3148,105 +3186,85 @@ void StatusBasePanel::on_ams_control_web_switch(wxCommandEvent &e)
 }
 #endif
 
+std::vector<wxString> StatusBasePanel::collect_device_operations() const
+{
+    std::vector<wxString> ops;
+    if (!obj) return ops;
+
+    if (obj->is_recording()) {
+        bool support_cam_main = std::find(obj->support_record_cams.begin(), obj->support_record_cams.end(),
+                                           static_cast<int>(LiveviewCameraType::CAMERA_MAIN)) != obj->support_record_cams.end();
+        bool support_cam_deputy = std::find(obj->support_record_cams.begin(), obj->support_record_cams.end(),
+                                             static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) != obj->support_record_cams.end();
+        bool recording_cam_main = support_cam_main && std::find(obj->enable_record_cams.begin(), obj->enable_record_cams.end(),
+                                                                  static_cast<int>(LiveviewCameraType::CAMERA_MAIN)) != obj->enable_record_cams.end();
+        bool recording_cam_deputy = support_cam_deputy && std::find(obj->enable_record_cams.begin(), obj->enable_record_cams.end(),
+                                                                     static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) != obj->enable_record_cams.end();
+
+        if (recording_cam_main)
+            ops.push_back(_L("Live Camera Recording in progress"));
+        if (recording_cam_deputy)
+            ops.push_back(_L("Visual Enhancement Camera Recording in progress"));
+        if (!recording_cam_main && !recording_cam_deputy)
+            ops.push_back(_L("Recording in progress"));
+    }
+
+    if (obj->is_support_timelapse && obj->is_timelapse())
+        ops.push_back(_L("Timelapse in progress"));
+
+    if (obj->virtual_camera && m_media_play_ctrl->IsStreaming())
+        ops.push_back(_L("Go Live in progress"));
+
+    return ops;
+}
+
 void StatusPanel::update_camera_state(MachineObject *obj)
 {
     if (!obj) return;
 
-    // sdcard
-    auto sdcard_state = obj->GetStorage()->get_sdcard_state();
-    if (m_last_sdcard != sdcard_state) {
-        if (sdcard_state == DevStorage::NO_SDCARD) {
-            m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_no.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("No Storage"));
-        } else if (sdcard_state == DevStorage::HAS_SDCARD_NORMAL) {
-            m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
-        } else if (sdcard_state == DevStorage::HAS_SDCARD_ABNORMAL) {
-            m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_abnormal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("Storage Abnormal"));
-        } else {
-            m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-            m_bitmap_sdcard_img->SetToolTip(_L("Storage"));
-        }
-        m_last_sdcard = sdcard_state;
+    bool want_record    = obj->is_recording();
+    bool want_timelapse = obj->is_support_timelapse && obj->is_timelapse();
+    bool want_golive    = obj->virtual_camera && m_media_play_ctrl->IsStreaming();
+    bool layout_dirty   = false;
+
+    if (m_bitmap_record_light->IsShown() != want_record) {
+        m_bitmap_record_light->Show(want_record);
+        layout_dirty = true;
+    }
+    if (m_bitmap_timelapse_light->IsShown() != want_timelapse) {
+        m_bitmap_timelapse_light->Show(want_timelapse);
+        layout_dirty = true;
+    }
+    if (m_bitmap_golive_light->IsShown() != want_golive) {
+        m_bitmap_golive_light->Show(want_golive);
+        layout_dirty = true;
+    }
+
+    bool want_breathe = want_record || want_timelapse || want_golive;
+    if (want_breathe && !m_breathing_dot_light->IsPlaying()) {
+        m_breathing_dot_light->Show();
+        m_breathing_dot_light->Start();
+        layout_dirty = true;
+    } else if (!want_breathe && m_breathing_dot_light->IsPlaying()) {
+        m_breathing_dot_light->Stop();
+        m_breathing_dot_light->Hide();
+        layout_dirty = true;
+    }
+
+    if (m_camera_title_separator->IsShown() != want_breathe) {
+        m_camera_title_separator->Show(want_breathe);
+        layout_dirty = true;
+    }
+
+    if (layout_dirty) {
+        m_camera_title_pill->Layout();
         m_panel_monitoring_title->Layout();
-    }
-
-    // recording
-    if (m_last_recording != (obj->is_recording() ? 1 : 0)) {
-        if (obj->is_recording()) {
-            m_bitmap_recording_img->SetBitmap(m_bitmap_recording_on.bmp());
-        } else {
-            m_bitmap_recording_img->SetBitmap(m_bitmap_recording_off.bmp());
-        }
-        m_last_recording = obj->is_recording() ? 1 : 0;
-    }
-
-    if (!m_bitmap_recording_img->IsShown()) {
-        m_bitmap_recording_img->Show();
-        m_panel_monitoring_title->Layout();
-    }
-
-    /*if (m_bitmap_recording_img->IsShown())
-        m_bitmap_recording_img->Hide();*/
-
-    // timelapse
-    if (obj->is_support_timelapse) {
-        if (m_last_timelapse != (obj->is_timelapse() ? 1 : 0)) {
-            if (obj->is_timelapse()) {
-                m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_on.bmp());
-            } else {
-                m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_off.bmp());
-            }
-            m_last_timelapse = obj->is_timelapse() ? 1 : 0;
-        }
-
-        if (!m_bitmap_timelapse_img->IsShown()) {
-            m_bitmap_timelapse_img->Show();
-            m_panel_monitoring_title->Layout();
-        }
-    } else {
-        if (m_bitmap_timelapse_img->IsShown()) {
-            m_bitmap_timelapse_img->Hide();
-            m_panel_monitoring_title->Layout();
-        }
-    }
-
-    // vcamera
-    if (obj->virtual_camera) {
-        if (m_last_vcamera != (m_media_play_ctrl->IsStreaming() ? 1 : 0)) {
-            if (m_media_play_ctrl->IsStreaming()) {
-                m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_on.bmp());
-            } else {
-                m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_off.bmp());
-            }
-            m_last_vcamera = m_media_play_ctrl->IsStreaming() ? 1 : 0;
-        }
-
-        if (!m_bitmap_vcamera_img->IsShown()) {
-            m_bitmap_vcamera_img->Show();
-            m_panel_monitoring_title->Layout();
-        }
-    } else {
-        if (m_bitmap_vcamera_img->IsShown()) {
-            m_bitmap_vcamera_img->Hide();
-            m_panel_monitoring_title->Layout();
-        }
     }
 
     // camera setting
     if (m_camera_popup && m_camera_popup->IsShown()) {
         bool show_vcamera = m_media_play_ctrl->IsStreaming();
         m_camera_popup->update(show_vcamera);
-    }
-
-    // fullscreen button: enable only when media is playing
-    if (m_camera_fullscreen_button) {
-        bool playing = m_media_ctrl && m_media_ctrl->GetState() == wxMEDIASTATE_PLAYING;
-        if (m_camera_fullscreen_button->IsEnabled() != playing) {
-            m_camera_fullscreen_button->Enable(playing);
-            m_camera_fullscreen_button->Refresh();
-        }
     }
 }
 
@@ -3308,10 +3326,9 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_project_task_panel->get_market_retry_buttom()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_retry), NULL, this);
     m_project_task_panel->get_clean_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
 
-    m_setting_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
-    m_setting_button->Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
-    m_camera_fullscreen_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusBasePanel::on_camera_fullscreen), NULL, this);
-    m_camera_fullscreen_button->Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(StatusBasePanel::on_camera_fullscreen), NULL, this);
+    m_setting_button_light->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
+    m_setting_button_light->Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
+    update_camera_title_bar_theme();
     m_tempCtrl_bed->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -3383,12 +3400,8 @@ StatusPanel::~StatusPanel()
     m_project_task_panel->get_market_retry_buttom()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_retry), NULL, this);
     m_project_task_panel->get_clean_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
 
-    m_setting_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
-    m_setting_button->Disconnect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
-    if (m_camera_fullscreen_button) {
-        m_camera_fullscreen_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusBasePanel::on_camera_fullscreen), NULL, this);
-        m_camera_fullscreen_button->Disconnect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(StatusBasePanel::on_camera_fullscreen), NULL, this);
-    }
+    m_setting_button_light->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
+    m_setting_button_light->Disconnect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -6095,7 +6108,12 @@ void StatusPanel::on_switch_vcamera(wxCommandEvent &event)
 void StatusPanel::on_camera_enter(wxMouseEvent &event)
 {
     if (obj) {
-        if (m_camera_popup == nullptr) m_camera_popup = std::make_shared<CameraPopup>(this);
+        if (m_camera_popup == nullptr) {
+            m_camera_popup = std::make_shared<CameraPopup>(this);
+            m_camera_popup->SetOnDismiss([this] {
+                if (m_setting_button_light) m_setting_button_light->SetSelected(false);
+            });
+        }
         m_camera_popup->check_func_supported(obj);
         m_camera_popup->sync_vcamera_state(show_vcamera);
         m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
@@ -6114,6 +6132,7 @@ void StatusPanel::on_camera_enter(wxMouseEvent &event)
         m_camera_popup->SetPosition(pos);
         m_camera_popup->update(m_media_play_ctrl->IsStreaming());
         m_camera_popup->Popup();
+        if (m_setting_button_light) m_setting_button_light->SetSelected(true);
     }
 }
 
@@ -6388,10 +6407,13 @@ void StatusPanel::set_default()
     m_switch_cham_fan_timeout     = 0;
     reset_printing_values();
 
-    m_bitmap_timelapse_img->Hide();
-    m_bitmap_recording_img->Hide();
-    m_bitmap_vcamera_img->Hide();
-    m_setting_button->Show();
+    m_bitmap_record_light->Hide();
+    m_bitmap_timelapse_light->Hide();
+    m_bitmap_golive_light->Hide();
+    m_breathing_dot_light->Stop();
+    m_breathing_dot_light->Hide();
+    m_camera_title_separator->Hide();
+    update_camera_title_bar_theme();
     m_tempCtrl_chamber->Show();
     m_options_btn->Show();
     m_safety_btn->Show();
@@ -6458,50 +6480,42 @@ void StatusPanel::set_hold_count(int &count) { count = COMMAND_TIMEOUT; }
 void StatusPanel::rescale_camera_icons()
 {
     if (!GetParent() || IsBeingDeleted()) return;
-    if (!m_setting_button || !m_media_play_ctrl || !m_bitmap_vcamera_img || !m_bitmap_sdcard_img || !m_bitmap_recording_img || !m_bitmap_timelapse_img) return;
+    if (!m_setting_button_light || !m_media_play_ctrl || !m_camera_title_pill) return;
 
-    m_setting_button->msw_rescale();
-    if (m_camera_fullscreen_button) m_camera_fullscreen_button->msw_rescale();
+    bool dark = wxGetApp().dark_mode();
 
-    m_bitmap_sdcard_state_abnormal = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_abnormal_dark" : "sdcard_state_abnormal", 20);
-    m_bitmap_sdcard_state_normal   = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_normal_dark" : "sdcard_state_normal", 20);
-    m_bitmap_sdcard_state_no       = ScalableBitmap(this, wxGetApp().dark_mode() ? "sdcard_state_no_dark" : "sdcard_state_no", 20);
-    m_bitmap_recording_on          = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_on_dark" : "monitor_recording_on", 20);
-    m_bitmap_recording_off         = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_recording_off_dark" : "monitor_recording_off", 20);
-    m_bitmap_timelapse_on          = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_on_dark" : "monitor_timelapse_on", 20);
-    m_bitmap_timelapse_off         = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_timelapse_off_dark" : "monitor_timelapse_off", 20);
-    m_bitmap_vcamera_on            = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_on_dark" : "monitor_vcamera_on", 20);
-    m_bitmap_vcamera_off           = ScalableBitmap(this, wxGetApp().dark_mode() ? "monitor_vcamera_off_dark" : "monitor_vcamera_off", 20);
+    m_bitmap_record_on_light    = ScalableBitmap(this, dark ? "liveview_record_dark" : "liveview_record_light", 16);
+    m_bitmap_timelapse_on_light = ScalableBitmap(this, dark ? "liveview_timelapse_dark" : "liveview_timelapse_light", 16);
+    m_bitmap_golive_on_light    = ScalableBitmap(this, dark ? "liveview_golive_dark" : "liveview_golive_light", 16);
+    m_bitmap_record_light->SetBitmap(m_bitmap_record_on_light.bmp());
+    m_bitmap_timelapse_light->SetBitmap(m_bitmap_timelapse_on_light.bmp());
+    m_bitmap_golive_light->SetBitmap(m_bitmap_golive_on_light.bmp());
 
-    if (m_media_play_ctrl->IsStreaming()) {
-        m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_on.bmp());
-    } else {
-        m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_off.bmp());
+    m_setting_button_light->SetBitmaps(dark ? "liveview_settings_dark" : "liveview_settings_light", dark ? "liveview_settings_dark" : "liveview_settings_light",
+                                        dark ? "liveview_settings_select_dark" : "", 24.0 / 16.0);
+    m_setting_button_light->msw_rescale();
+    m_camera_title_separator->SetLineColour(StateColor::darkModeColorFor(ThemeColor::Grey350));
+    m_camera_title_separator->Rescale();
+
+    const wxColour pill_fill = camera_pill_fill(false);
+    m_camera_title_pill->SetFillColour(pill_fill);
+    const wxColour pill_child_bg = pill_fill.IsOk() ? pill_fill : m_panel_monitoring_title->GetBackgroundColour();
+    for (wxWindow *child : {static_cast<wxWindow *>(m_breathing_dot_light), static_cast<wxWindow *>(m_bitmap_record_light), static_cast<wxWindow *>(m_bitmap_timelapse_light),
+                            static_cast<wxWindow *>(m_bitmap_golive_light)}) {
+        child->SetBackgroundColour(pill_child_bg);
+        child->Refresh();
     }
+}
 
-    if (!obj) return;
+void StatusPanel::update_camera_title_bar_theme()
+{
+    if (!m_setting_button_light || !m_camera_title_pill || !m_camera_title_separator || !m_breathing_dot_light) return;
 
-    if (obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
-        m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_no.bmp());
-    } else if (obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
-        m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-    } else if (obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL) {
-        m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_abnormal.bmp());
-    } else {
-        m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-    }
+    rescale_camera_icons();
+    if (obj)
+        update_camera_state(obj);
 
-    if (obj->is_recording()) {
-        m_bitmap_recording_img->SetBitmap(m_bitmap_recording_on.bmp());
-    } else {
-        m_bitmap_recording_img->SetBitmap(m_bitmap_recording_off.bmp());
-    }
-
-    if (obj->is_timelapse()) {
-        m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_on.bmp());
-    } else {
-        m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_off.bmp());
-    }
+    m_panel_monitoring_title->Layout();
 }
 
 void StatusPanel::on_sys_color_changed()
@@ -6511,7 +6525,7 @@ void StatusPanel::on_sys_color_changed()
     m_bitmap_speed_active.msw_rescale();
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_ams_control->msw_rescale();
-    rescale_camera_icons();
+    update_camera_title_bar_theme();
 }
 
 void StatusPanel::msw_rescale()

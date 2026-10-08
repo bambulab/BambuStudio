@@ -26,6 +26,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/ProgressDialog.cpp
     GUI/Widgets/RoundedRectangle.hpp
     GUI/Widgets/RoundedRectangle.cpp
+    GUI/Widgets/BreathingDot.hpp
+    GUI/Widgets/BreathingDot.cpp
     GUI/Widgets/ComboBox.cpp
     GUI/Widgets/ComboBox.hpp
     GUI/Widgets/SideButton.hpp
@@ -363,6 +365,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SliceInfoPanel.hpp
     GUI/CameraPopup.cpp
     GUI/CameraPopup.hpp
+    GUI/DeviceOperationsTooltip.cpp
+    GUI/DeviceOperationsTooltip.hpp
     GUI/Monitor.cpp
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp

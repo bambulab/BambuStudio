@@ -31,3 +31,11 @@ void RoundedRectangle::OnPaint(wxPaintEvent &)
     gdc.SetBrush(m_fill.IsOk() ? wxBrush(m_fill) : *wxTRANSPARENT_BRUSH);
     gdc.DrawRoundedRectangle(r, m_radius);
 }
+
+void RoundedRectangle::SetFillColour(const wxColour &fill)
+{
+    if (m_fill == fill)
+        return;
+    m_fill = fill;
+    Refresh();
+}

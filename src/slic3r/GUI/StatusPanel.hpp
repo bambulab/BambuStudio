@@ -31,6 +31,9 @@
 #include "Widgets/wgtCircleItem.hpp"
 #include "Widgets/StaticLine.hpp"
 #include "Widgets/ProgressBar.hpp"
+#include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/BreathingDot.hpp"
+#include "DeviceOperationsTooltip.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/FilamentLoad.hpp"
@@ -447,22 +450,23 @@ protected:
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
 
-    CameraItem *m_setting_button;
-    CameraItem *m_camera_fullscreen_button{ nullptr };
     wxBoxSizer *m_camera_media_sizer{ nullptr };
     CameraFullscreenFrame *m_camera_fullscreen_frame{ nullptr };
     wxPanel *m_camera_placeholder{ nullptr };
 
     wxBitmap m_bitmap_camera;
-    ScalableBitmap m_bitmap_sdcard_state_normal;
-    ScalableBitmap m_bitmap_sdcard_state_abnormal;
-    ScalableBitmap m_bitmap_sdcard_state_no;
-    ScalableBitmap m_bitmap_recording_on;
-    ScalableBitmap m_bitmap_recording_off;
-    ScalableBitmap m_bitmap_timelapse_on;
-    ScalableBitmap m_bitmap_timelapse_off;
-    ScalableBitmap m_bitmap_vcamera_on;
-    ScalableBitmap m_bitmap_vcamera_off;
+
+    ScalableBitmap    m_bitmap_record_on_light;
+    ScalableBitmap    m_bitmap_timelapse_on_light;
+    ScalableBitmap    m_bitmap_golive_on_light;
+    BreathingDot     *m_breathing_dot_light{nullptr};
+    RoundedRectangle  *m_camera_title_pill{nullptr};
+    wxStaticBitmap    *m_bitmap_record_light{nullptr};
+    wxStaticBitmap    *m_bitmap_timelapse_light{nullptr};
+    wxStaticBitmap    *m_bitmap_golive_light{nullptr};
+    StaticLine        *m_camera_title_separator{nullptr};
+    CameraItem        *m_setting_button_light{nullptr};
+    DeviceOperationsTooltip *m_device_operations_tooltip{nullptr};
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
@@ -479,10 +483,6 @@ protected:
     wxStaticText *m_mqtt_source;
 
     wxStaticBitmap *m_bitmap_camera_img;
-    wxStaticBitmap *m_bitmap_recording_img;
-    wxStaticBitmap *m_bitmap_timelapse_img;
-    wxStaticBitmap* m_bitmap_vcamera_img;
-    wxStaticBitmap *m_bitmap_sdcard_img;
     wxStaticBitmap *m_bitmap_static_use_time;
     wxStaticBitmap *m_bitmap_static_use_weight;
 
@@ -651,6 +651,7 @@ public:
     MachineObject* obj{ nullptr };
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
+    std::vector<wxString> collect_device_operations() const;
     wxBoxSizer *create_machine_control_page(wxWindow *parent);
 
     wxBoxSizer *create_temp_axis_group(wxWindow *parent);
@@ -679,7 +680,6 @@ public:
     bool is_camera_fullscreen() const;
     void toggle_camera_fullscreen();
     void close_camera_fullscreen();
-    void on_camera_fullscreen(wxMouseEvent& event);
 
 private:
     void on_ams_rack_switch(wxCommandEvent& event);
@@ -732,11 +732,7 @@ protected:
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
     bool         m_load_sdcard_thumbnail = false;
-    int          m_last_sdcard    = -1;
-    int          m_last_recording = -1;
-    int          m_last_timelapse = -1;
     int          m_last_extrusion = -1;
-    int          m_last_vcamera   = -1;
     int          m_model_mall_request_count = 0;
     bool         m_is_load_with_temp = false;
     json         m_rating_result;
@@ -939,6 +935,7 @@ public:
     void set_hold_count(int& count);
 
     void rescale_camera_icons();
+    void update_camera_title_bar_theme();
     void on_sys_color_changed();
     void msw_rescale();
 };

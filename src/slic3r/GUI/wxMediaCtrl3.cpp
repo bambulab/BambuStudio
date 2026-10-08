@@ -1,5 +1,6 @@
 #include "wxMediaCtrl3.h"
 #include "AVVideoDecoder.hpp"
+#include "Widgets/Label.hpp"
 #include "I18N.hpp"
 #include "libslic3r/Utils.hpp"
 #include <boost/log/trivial.hpp>
@@ -42,6 +43,7 @@ wxMediaCtrl3::wxMediaCtrl3(wxWindow *parent)
     m_render_timer.SetOwner(this);
     Bind(wxEVT_TIMER, &wxMediaCtrl3::OnRenderTimer, this);
     Bind(wxEVT_MOUSEWHEEL, &wxMediaCtrl3::mouseWheelEvent, this);
+    m_live_badge_text = _L("Live");
 }
 
 void wxMediaCtrl3::mouseWheelEvent(wxMouseEvent &evt)
@@ -90,6 +92,7 @@ void wxMediaCtrl3::Load(wxURI url, std::chrono::system_clock::time_point play_st
     m_play_start_time = play_start_time;
     m_url.reset(new wxURI(url));
     m_cond.notify_all();
+    Refresh();
 }
 
 void wxMediaCtrl3::Play()
@@ -216,14 +219,16 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
     // Treat the default background as idle content so the bg and its logo are always
     // drawn together, even if m_url flips to playing before the first video frame arrives.
     const bool is_idle = (m_url == nullptr) || current_is_default_bg;
+    const bool show_play_icon = (m_url == nullptr);
+    double dst_x = 0, dst_y = 0, dst_w = size.x, dst_h = size.y;
     if (is_idle) {
         // Draw the static idle image through wxGraphicsContext with high-quality
         // interpolation. wxDC::SetUserScale + DrawBitmap uses GDI StretchBlt
         // (COLORONCOLOR, no interpolation) which aliases badly when scaling a
         // hi-res image down. Only wxGraphicsContext::DrawBitmap accepts an explicit
         // destination size, so compute an aspect-fit rectangle here.
-        double dst_w = size.x;
-        double dst_h = size.y;
+        dst_w = size.x;
+        dst_h = size.y;
         if (size2.x > 0 && size2.y > 0) {
             if (size.x * size2.y > size.y * size2.x) {
                 dst_h = size.y;
@@ -233,18 +238,16 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
                 dst_h = double(size2.y) * size.x / size2.x;
             }
         }
-        double dst_x = (size.x - dst_w) / 2;
-        double dst_y = (size.y - dst_h) / 2;
+        dst_x = (size.x - dst_w) / 2;
+        dst_y = (size.y - dst_h) / 2;
 
         if (wxGraphicsContext *gc = wxGraphicsContext::Create(dc)) {
             gc->SetInterpolationQuality(wxINTERPOLATION_BEST);
             wxBitmap bmp(current_frame);
             gc->DrawBitmap(bmp, dst_x, dst_y, dst_w, dst_h);
 
-            // Logo is bound to the default background frame so they appear/disappear together.
-            if (current_is_default_bg) {
-                DrawLiveviewLogo(gc, dst_x, dst_y, dst_w, dst_h);
-            }
+            if (show_play_icon)
+                DrawLiveviewPause(gc, dst_x, dst_y, dst_w, dst_h);
             delete gc;
         }
     } else {
@@ -265,67 +268,71 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
             wxRound(size.y / 2.0 / effective_scale - size2.y / 2.0);
 
         dc.DrawBitmap(current_frame, offset_x, offset_y);
+
+        dst_w = size2.x * effective_scale;
+        dst_h = size2.y * effective_scale;
+        dst_x = (size.x - dst_w) / 2;
+        dst_y = (size.y - dst_h) / 2;
     }
 
-    // Draw watermark overlay when showing device preview image
-    if (!m_watermark_text.empty() && is_idle) {
-        // Reset user scale for watermark (draw at 1:1)
+    auto draw_status_badge = [&](const wxString &text, const wxColour &dot_color) {
         dc.SetUserScale(1.0, 1.0);
 
-        wxString watermark_text = m_watermark_text;
-
-        // Setup font
-        wxFont font = dc.GetFont();
-        font.SetPointSize(10);
-        font.SetWeight(wxFONTWEIGHT_BOLD);
+        wxFont font = Label::Body_14;
         dc.SetFont(font);
-        wxSize text_size = dc.GetTextExtent(watermark_text);
+        wxSize text_size = dc.GetTextExtent(text);
 
-        // Calculate watermark rectangle with padding
-        int pad_h = FromDIP(12);
-        int pad_v = FromDIP(8);
-        int wm_w = text_size.GetWidth() + 2 * pad_h;
-        int wm_h = text_size.GetHeight() + 2 * pad_v;
-        int wm_x = (size.GetWidth() - wm_w) / 2;
-        int wm_y = size.GetHeight() - wm_h - FromDIP(10);
-        int radius = 8;
+        int pad_h   = FromDIP(12);
+        int dot_d   = FromDIP(8);
+        int dot_gap = FromDIP(6);
+        int wm_w    = pad_h + dot_d + dot_gap + text_size.GetWidth() + pad_h;
+        int wm_h    = FromDIP(39);
+        int margin  = FromDIP(10);
+        int wm_x    = int(dst_x > 0 ? dst_x : 0) + margin;
+        int wm_y    = int(dst_y > 0 ? dst_y : 0) + margin;
+        int radius  = wm_h / 2;
 
-        // Use wxGCDC for alpha-blended rounded rectangle
         wxGCDC gcdc(dc);
         gcdc.SetBrush(wxBrush(wxColour(51, 51, 51, 160)));
         gcdc.SetPen(*wxTRANSPARENT_PEN);
         gcdc.DrawRoundedRectangle(wm_x, wm_y, wm_w, wm_h, radius);
 
-        // Draw text centered in the rectangle
-        gcdc.SetTextForeground(wxColour(220, 220, 220));
+        int content_x = wm_x + pad_h;
+        gcdc.SetBrush(wxBrush(dot_color));
+        int dot_y = wm_y + (wm_h - dot_d) / 2;
+        gcdc.DrawEllipse(content_x, dot_y, dot_d, dot_d);
+        content_x += dot_d + dot_gap;
+
+        gcdc.SetTextForeground(wxColour(0xCE, 0xCE, 0xCE));
         gcdc.SetFont(font);
-        int tx = wm_x + (wm_w - text_size.GetWidth()) / 2;
         int ty = wm_y + (wm_h - text_size.GetHeight()) / 2;
-        gcdc.DrawText(watermark_text, tx, ty);
+        gcdc.DrawText(text, content_x, ty);
+    };
+
+    if (is_idle) {
+        if (!m_watermark_text.empty())
+            draw_status_badge(m_watermark_text, wxColour(0xCE, 0xCE, 0xCE));
+    } else {
+        draw_status_badge(m_live_badge_text, wxColour(76, 217, 100));
     }
 }
 
-void wxMediaCtrl3::DrawLiveviewLogo(wxGraphicsContext *gc, double bg_x, double bg_y, double bg_w, double bg_h)
+void wxMediaCtrl3::DrawLiveviewPause(wxGraphicsContext *gc, double bg_x, double bg_y, double bg_w, double bg_h)
 {
     if (gc == nullptr || bg_w <= 0 || bg_h <= 0)
         return;
 
-    // Logo is 448x128 centered in the original 1920x1080 artwork.
-    constexpr double logo_aspect      = 448.0 / 128.0;
-    constexpr double logo_width_ratio = 448.0 / 1920.0;
-    const double     logo_w           = bg_w * logo_width_ratio;
-    const double     logo_h           = logo_w / logo_aspect;
-    const double     logo_x           = bg_x + (bg_w - logo_w) / 2.0;
-    const double     logo_y           = bg_y + (bg_h - logo_h) / 2.0;
+    const double icon_sz = bg_h * 0.12;
+    const double icon_x  = bg_x + (bg_w - icon_sz) / 2.0;
+    const double icon_y  = bg_y + (bg_h - icon_sz) / 2.0;
 
-    // Rasterize at exact pixel size (cached) to avoid aliasing.
-    const wxSize target_px(std::lround(logo_w), std::lround(logo_h));
+    const wxSize target_px(std::lround(icon_sz), std::lround(icon_sz));
     if (target_px.x <= 0 || target_px.y <= 0)
         return;
 
-    if (!m_logo_bitmap.IsOk() || m_logo_bitmap_size != target_px) {
-        const std::string logo_path = Slic3r::resources_dir() + "/images/liveview_logo.svg";
-        NSVGimage *image = ::nsvgParseFromFile(logo_path.c_str(), "px", 96.0f);
+    if (!m_pause_bitmap.IsOk() || m_pause_bitmap_size != target_px) {
+        const std::string icon_path = Slic3r::resources_dir() + "/images/liveview_pause.svg";
+        NSVGimage *image = ::nsvgParseFromFile(icon_path.c_str(), "px", 96.0f);
         if (image == nullptr)
             return;
 
@@ -340,7 +347,6 @@ void wxMediaCtrl3::DrawLiveviewLogo(wxGraphicsContext *gc, double bg_x, double b
         ::nsvgDeleteRasterizer(rast);
         ::nsvgDelete(image);
 
-        // NanoSVG emits non-premultiplied RGBA; split into wxImage RGB + alpha.
         wxImage wx_image(target_px.x, target_px.y);
         wx_image.InitAlpha();
         unsigned char *rgb   = wx_image.GetData();
@@ -351,12 +357,12 @@ void wxMediaCtrl3::DrawLiveviewLogo(wxGraphicsContext *gc, double bg_x, double b
             rgb[i * 3 + 2] = rgba[i * 4 + 2];
             alpha[i]       = rgba[i * 4 + 3];
         }
-        m_logo_bitmap      = wxBitmap(wx_image);
-        m_logo_bitmap_size = target_px;
+        m_pause_bitmap      = wxBitmap(wx_image);
+        m_pause_bitmap_size = target_px;
     }
 
-    if (m_logo_bitmap.IsOk())
-        gc->DrawBitmap(m_logo_bitmap, logo_x, logo_y, logo_w, logo_h);
+    if (m_pause_bitmap.IsOk())
+        gc->DrawBitmap(m_pause_bitmap, icon_x, icon_y, icon_sz, icon_sz);
 }
 
 void wxMediaCtrl3::DoSetSize(int x, int y, int width, int height, int sizeFlags)
