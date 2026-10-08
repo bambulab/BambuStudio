@@ -14,6 +14,12 @@
 #include <wx/filename.h>
 #include <wx/debug.h>
 
+#if defined(__linux__) && defined(__WXGTK3__)
+#include <gtk/gtk.h>
+#include <array>
+#include <algorithm>
+#endif
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -215,6 +221,179 @@ static const wxString ctrl = ("Ctrl+");
 static const wxString ctrl = _L("Ctrl+");
 #endif
 
+#if defined(__linux__) && defined(__WXGTK3__)
+namespace {
+// Owned by the GtkWindow's destroy signal, not by the content sizer.
+class LinuxResizeSurfaces
+{
+public:
+    explicit LinuxResizeSurfaces(MainFrame* frame)
+        : m_frame(frame), m_widget(GTK_WIDGET(frame->GetHandle()))
+    {
+        g_signal_connect_after(m_widget, "realize", G_CALLBACK(OnRealize), this);
+        g_signal_connect(m_widget, "unrealize", G_CALLBACK(OnUnrealize), this);
+        g_signal_connect_after(m_widget, "map", G_CALLBACK(OnUpdate), this);
+        g_signal_connect(m_widget, "unmap", G_CALLBACK(OnUnmap), this);
+        g_signal_connect_after(m_widget, "size-allocate", G_CALLBACK(OnSizeAllocate), this);
+        g_signal_connect(m_widget, "window-state-event", G_CALLBACK(OnState), this);
+        // The generic event signal runs before button-press handlers, including
+        // wxGTK's dispatch. Consume only events from our own input surfaces.
+        g_signal_connect(m_widget, "event", G_CALLBACK(OnEvent), this);
+        g_signal_connect(m_widget, "destroy", G_CALLBACK(OnDestroy), this);
+        Create();
+        Update();
+    }
+
+private:
+    ~LinuxResizeSurfaces()
+    {
+        g_signal_handlers_disconnect_by_data(m_widget, this);
+        Clear();
+    }
+
+    void Create()
+    {
+        if (!gtk_widget_get_realized(m_widget) || m_windows[0])
+            return;
+        GdkWindow* parent = gtk_widget_get_window(m_widget);
+        if (!parent || gdk_window_is_destroyed(parent))
+            return;
+        const char* cursors[] = {"nw-resize", "n-resize", "ne-resize", "w-resize",
+                                 "e-resize", "sw-resize", "s-resize", "se-resize"};
+        for (size_t i = 0; i < m_windows.size(); ++i) {
+            GdkWindowAttr attr{};
+            attr.window_type = GDK_WINDOW_CHILD;
+            attr.wclass = GDK_INPUT_ONLY;
+            attr.width = attr.height = 1;
+            attr.event_mask = GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK |
+                              GDK_POINTER_MOTION_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK;
+            m_windows[i] = gdk_window_new(parent, &attr, GDK_WA_X | GDK_WA_Y);
+            if (!m_windows[i]) {
+                Clear();
+                return;
+            }
+            // Native input windows must stack above native children such as GL canvases.
+            if (!gdk_window_ensure_native(m_windows[i])) {
+                gdk_window_destroy(m_windows[i]);
+                m_windows[i] = nullptr;
+                Clear();
+                return;
+            }
+            gtk_widget_register_window(m_widget, m_windows[i]);
+            GdkCursor* cursor = gdk_cursor_new_from_name(gdk_window_get_display(parent), cursors[i]);
+            gdk_window_set_cursor(m_windows[i], cursor);
+            if (cursor)
+                g_object_unref(cursor);
+        }
+    }
+
+    void Clear()
+    {
+        for (GdkWindow*& window : m_windows) {
+            if (window) {
+                gtk_widget_unregister_window(m_widget, window);
+                gdk_window_destroy(window);
+                window = nullptr;
+            }
+        }
+    }
+
+    void Hide()
+    {
+        for (GdkWindow* window : m_windows)
+            if (window)
+                gdk_window_hide(window);
+    }
+
+    void Update()
+    {
+        GdkWindow* parent = gtk_widget_get_window(m_widget);
+        if (!parent || !m_windows[0])
+            return;
+        const GdkWindowState state = gdk_window_get_state(parent);
+        const int w = gdk_window_get_width(parent), h = gdk_window_get_height(parent);
+        const int t = std::max(1, m_frame->FromDIP(6));
+        if (!gtk_widget_get_mapped(m_widget) ||
+            (state & (GDK_WINDOW_STATE_MAXIMIZED | GDK_WINDOW_STATE_FULLSCREEN)) ||
+            w <= 2 * t || h <= 2 * t) {
+            Hide();
+            return;
+        }
+        const GdkRectangle rects[] = {
+            {0, 0, t, t}, {t, 0, w - 2 * t, t}, {w - t, 0, t, t},
+            {0, t, t, h - 2 * t}, {w - t, t, t, h - 2 * t},
+            {0, h - t, t, t}, {t, h - t, w - 2 * t, t}, {w - t, h - t, t, t}
+        };
+        for (size_t i = 0; i < m_windows.size(); ++i) {
+            const auto& r = rects[i];
+            // Move/resize only the invisible input surfaces, never the application window.
+            gdk_window_move_resize(m_windows[i], r.x, r.y, r.width, r.height);
+            gdk_window_show(m_windows[i]);
+            gdk_window_raise(m_windows[i]);
+        }
+    }
+
+    static void OnRealize(GtkWidget*, gpointer data)
+    {
+        auto* self = static_cast<LinuxResizeSurfaces*>(data);
+        self->Create();
+        self->Update();
+    }
+    static void OnUnrealize(GtkWidget*, gpointer data)
+    { static_cast<LinuxResizeSurfaces*>(data)->Clear(); }
+    static void OnUpdate(GtkWidget*, gpointer data)
+    { static_cast<LinuxResizeSurfaces*>(data)->Update(); }
+    static void OnUnmap(GtkWidget*, gpointer data)
+    { static_cast<LinuxResizeSurfaces*>(data)->Hide(); }
+    static void OnSizeAllocate(GtkWidget*, GtkAllocation*, gpointer data)
+    { static_cast<LinuxResizeSurfaces*>(data)->Update(); }
+    static gboolean OnState(GtkWidget*, GdkEventWindowState* event, gpointer data)
+    {
+        auto* self = static_cast<LinuxResizeSurfaces*>(data);
+        if (event->changed_mask & (GDK_WINDOW_STATE_MAXIMIZED | GDK_WINDOW_STATE_FULLSCREEN)) {
+            self->Update();
+            if (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED)
+                self->m_frame->topbar()->SetWindowSize();
+            else
+                self->m_frame->topbar()->SetMaximizedSize();
+            self->m_frame->topbar()->Refresh();
+        }
+        return FALSE;
+    }
+    static gboolean OnEvent(GtkWidget*, GdkEvent* event, gpointer data)
+    {
+        auto* self = static_cast<LinuxResizeSurfaces*>(data);
+        if (event->type != GDK_BUTTON_PRESS || event->button.button != 1)
+            return FALSE;
+        static const GdkWindowEdge edges[] = {
+            GDK_WINDOW_EDGE_NORTH_WEST, GDK_WINDOW_EDGE_NORTH, GDK_WINDOW_EDGE_NORTH_EAST,
+            GDK_WINDOW_EDGE_WEST, GDK_WINDOW_EDGE_EAST,
+            GDK_WINDOW_EDGE_SOUTH_WEST, GDK_WINDOW_EDGE_SOUTH, GDK_WINDOW_EDGE_SOUTH_EAST
+        };
+        for (size_t i = 0; i < self->m_windows.size(); ++i) {
+            if (event->any.window != self->m_windows[i])
+                continue;
+            GdkWindow* parent = gtk_widget_get_window(self->m_widget);
+            if (gdk_window_get_state(parent) &
+                (GDK_WINDOW_STATE_MAXIMIZED | GDK_WINDOW_STATE_FULLSCREEN))
+                return TRUE;
+            gtk_window_begin_resize_drag(GTK_WINDOW(self->m_widget), edges[i], event->button.button,
+                                         static_cast<int>(event->button.x_root),
+                                         static_cast<int>(event->button.y_root), event->button.time);
+            return TRUE;
+        }
+        return FALSE;
+    }
+    static void OnDestroy(GtkWidget*, gpointer data)
+    { delete static_cast<LinuxResizeSurfaces*>(data); }
+
+    MainFrame* m_frame;
+    GtkWidget* m_widget;
+    std::array<GdkWindow*, 8> m_windows{};
+};
+} // namespace
+#endif
+
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe")
     , m_printhost_queue_dlg(new PrintHostQueueDialog(this))
@@ -224,6 +403,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     , diff_dialog(this)
 {
     PERF_TRACE("Creating main window");
+
+#if defined(__linux__) && defined(__WXGTK3__)
+    // Suppress decorations without removing GDK_FUNC_RESIZE. wxGTK reapplies
+    // m_gdkDecor when realizing the window, so keep its cached mask in sync.
+    m_gdkDecor = 0;
+    m_decorSize = DecorSize();
+    gtk_window_set_decorated(GTK_WINDOW(GetHandle()), FALSE);
+#endif
 
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
@@ -458,6 +645,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // initialize layout from config
     update_layout();
     sizer->SetSizeHints(this);
+#if defined(__linux__) && defined(__WXGTK3__)
+    new LinuxResizeSurfaces(this);
+#endif
 
 #ifdef WIN32
     // SetMaximize already position window at left/top corner, even if Windows Task Bar is at left side.
