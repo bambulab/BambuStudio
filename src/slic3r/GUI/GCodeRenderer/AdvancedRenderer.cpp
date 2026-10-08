@@ -74,6 +74,11 @@ namespace
             rt.x() = 3.0f;
             break;
         }
+        case Slic3r::GUI::gcode::EViewType::Objects:
+        {
+            rt.x() = 13.0f;
+            break;
+        }
         default:
             break;
         }
@@ -129,6 +134,10 @@ namespace
         case Slic3r::GUI::gcode::EViewType::ColorPrint:
         {
             return float(t_move.cp_color_id);
+        }
+        case Slic3r::GUI::gcode::EViewType::Objects:
+        {
+            return float(t_move.object_label_id);
         }
         // helio
         case Slic3r::GUI::gcode::EViewType::ThermalIndexMin:
@@ -339,6 +348,7 @@ namespace Slic3r
                 case EViewType::Temperature:
                 case EViewType::LayerTime:
                 case EViewType::VolumetricRate:
+                case EViewType::Objects:
                 {
                     fprintf(fp, "map_Kd range_color.png\n");
                     export_image(m_p_color_range_texture, parent_path.wstring() + "/range_color.png");
@@ -717,6 +727,7 @@ namespace Slic3r
                 m_p_layer_manager->update_per_move_data(m_view_type, *m_gcode_result);
 
                 render_toolpaths();
+                render_center_of_gravity_marker();
                 //render_shells();
                 render_legend(m_legend_height, canvas_width, canvas_height, right_margin);
                 if (m_user_mode != wxGetApp().get_mode()) {
@@ -1198,6 +1209,7 @@ namespace Slic3r
                 case EViewType::Temperature:
                 case EViewType::LayerTime:
                 case EViewType::VolumetricRate:
+                case EViewType::Objects:
                 {
                     const uint8_t color_range_stage = texture_stage;
                     bind_color_range_texture(color_range_stage);
@@ -1470,6 +1482,13 @@ namespace Slic3r
                     t_range.min = 0;
                     t_range.max = m_tools.m_tool_colors.size() - 1;
                     t_range.count = t_range.max - t_range.min + 1;
+                    return t_range;
+                }
+                case Slic3r::GUI::gcode::EViewType::Objects:
+                {
+                    t_range.min = static_cast<float>(m_center_of_gravity.object_label_min);
+                    t_range.max = static_cast<float>(m_center_of_gravity.object_label_max);
+                    t_range.count = static_cast<unsigned int>(m_center_of_gravity.objects.size());
                     return t_range;
                 }
                 case Slic3r::GUI::gcode::EViewType::FilamentId:

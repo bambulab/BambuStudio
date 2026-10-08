@@ -18,6 +18,58 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Combined objects"
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "fallback"
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Object centers of gravity"
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Show markers"
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Mass"
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: this G-code has no object attribution; only the combined center of gravity is available."
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: some model extrusions could not be assigned to an object."
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: non-model extrusions are included for one or more objects."
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: unknown extrusion roles found."
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: default filament density used."
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: default filament diameter used."
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: flow override not included."
+msgstr ""
+
+#: src/slic3r/GUI/GCodeRenderer/BaseRenderer.cpp
+msgid "Warning: volumetric extrusion not included."
+msgstr ""
+
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
 msgstr ""
 
