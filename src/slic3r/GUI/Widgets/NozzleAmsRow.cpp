@@ -7,6 +7,7 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
+#include <wx/gdicmn.h>
 #include <wx/graphics.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -129,7 +130,7 @@ private:
         }
 
         const wxColour fg = m_hover ? *wxWHITE : (m_enabled ? ThemeColor::TextPrimary : ThemeColor::Grey400);
-        gc->SetFont(Label::Body_13, fg);
+        gc->SetFont(Label::Body_13, wxGetApp().dark_mode() && !m_hover ? StateColor::darkModeColorFor(fg) : fg);
         double tw = 0, th = 0;
         gc->GetTextExtent(m_text, &tw, &th);
         gc->DrawText(m_text, FromDIP(8), (sz.GetHeight() - th) / 2.0);
@@ -206,12 +207,14 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
         current = nullptr;
     }
 
-    auto *popup = new RoundedPopupWindow(preview, 6, false);
+    auto *popup = new RoundedPopupWindow(preview, 2, false);
+    popup->SetBackgroundColour(ThemeColor::White);
 
-    auto *del = new ScalableButton(popup, wxID_ANY, wxGetApp().dark_mode() ? "trash_dark" : "trash", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,
-                                   false, 12);
+    const ScalableBitmap trash_icon(popup, wxGetApp().dark_mode() ? "trash_dark" : "trash", 12);
+    auto                *del = new wxStaticBitmap(popup, wxID_ANY, trash_icon.bmp());
+    del->SetBackgroundColour(wxGetApp().dark_mode() ? StateColor::darkModeColorFor(ThemeColor::White) : ThemeColor::White);
     del->SetToolTip(_L("Remove this AMS"));
-    del->Bind(wxEVT_BUTTON, [extruder_index, preview, &previews, on_changed, popup](wxCommandEvent &) {
+    del->Bind(wxEVT_LEFT_UP, [extruder_index, preview, &previews, on_changed, popup](wxMouseEvent &) {
         auto it = std::find(previews.begin(), previews.end(), preview);
         if (it != previews.end()) {
             const size_t index  = std::distance(previews.begin(), it);
@@ -226,7 +229,7 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
     });
 
     auto *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(del, 0, wxALL, preview->FromDIP(4));
+    sizer->Add(del, 0, wxALL, popup->FromDIP(2));
     popup->SetSizer(sizer);
     popup->Finalize();
 
