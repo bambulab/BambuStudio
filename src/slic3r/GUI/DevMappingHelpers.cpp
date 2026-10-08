@@ -15,6 +15,7 @@
 #include "Plater.hpp"
 
 #include "libslic3r/MultiNozzleUtils.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevFilaSystem.h"
@@ -42,7 +43,7 @@ ExpectedNozzleSpec sCollapseNozzlesToSpec(const std::vector<MultiNozzleUtils::No
         try {
             diameters.insert(static_cast<float>(boost::lexical_cast<double>(nozzle.diameter)));
         } catch (const std::exception&) {
-            diameters.insert(static_cast<float>(atof(nozzle.diameter.c_str())));
+            diameters.insert(static_cast<float>(string_to_double_decimal_point(nozzle.diameter.c_str())));
         }
         flows.insert(DevNozzle::ToNozzleFlowType(nozzle.volume_type));
     }

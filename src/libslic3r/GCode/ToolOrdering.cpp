@@ -2050,7 +2050,7 @@ FilamentGroupContext build_filament_group_context(
             for (auto fil_id : used_filaments) {
                 if (fil_id >= selected.size() || selected[fil_id].empty())
                     continue;
-                const std::string allowed = format_diameter_to_str(atof(selected[fil_id].c_str()));
+                const std::string allowed = format_diameter_to_str(string_to_double_decimal_point(selected[fil_id].c_str()));
 
                 std::vector<int> incompatible_extruders;
                 for (size_t e = 0; e < extruder_nums && e < unprintable_filaments.size(); ++e) {
@@ -2390,7 +2390,7 @@ static void validate_manual_diameter_or_throw(const PrintConfig                &
     for (auto fid : used_filaments) {
         if (fid >= selected.size() || selected[fid].empty())
             continue;
-        const std::string allowed = format_diameter_to_str(atof(selected[fid].c_str()));
+        const std::string allowed = format_diameter_to_str(string_to_double_decimal_point(selected[fid].c_str()));
         if (fid >= extruder_map_0based.size())
             continue;
         const int e = extruder_map_0based[fid];

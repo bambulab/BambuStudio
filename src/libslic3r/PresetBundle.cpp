@@ -7,6 +7,7 @@
 #include "libslic3r.h"
 #include "I18N.hpp"
 #include "Utils.hpp"
+#include "LocalesUtils.hpp"
 #include "Model.hpp"
 #include "format.hpp"
 
@@ -1855,7 +1856,7 @@ void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, con
         for (const auto &slot : ext) {
             if (!slot.second.empty()) {
                 nozzle_volume_types.push_back(static_cast<int>(nozzle_volume_type_from_string(slot.second)));
-                nozzle_diameters.push_back(slot.first.empty() ? 0.0 : atof(slot.first.c_str()));
+                nozzle_diameters.push_back(slot.first.empty() ? 0.0 : string_to_double_decimal_point(slot.first.c_str()));
                 nozzle_slots.push_back(global_slot);
                 ++installed;
             }
@@ -1888,7 +1889,7 @@ std::vector<double> derive_nozzle_diameter_from_full_stat(const ExtruderFullStat
         for (const auto &slot : full_stat.get_extruder_stats(e)) {
             if (slot.first.empty())
                 continue;
-            const double d = atof(slot.first.c_str());
+            const double d = string_to_double_decimal_point(slot.first.c_str());
             if (d <= 0.0)
                 continue;
             if (!found || d < min_diam) {
@@ -1922,7 +1923,7 @@ static std::set<std::string> collect_printer_model_nozzle_diameters(const Preset
     for (auto it = bundle.printers.begin(); it != bundle.printers.end(); ++it) {
         if (it->config.opt_string("printer_model") != printer_model)
             continue;
-        const double diam = atof(it->config.opt_string("printer_variant").c_str());
+        const double diam = string_to_double_decimal_point(it->config.opt_string("printer_variant").c_str());
         if (diam > 0.0)
             result.insert(format_diameter_to_str(diam));
     }
@@ -3153,7 +3154,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         auto get_map_index = [&ams_infos](const std::vector<AMSMapInfo> &infos, const AMSMapInfo &temp) {
             for (int i = 0; i < infos.size(); i++) {
                 const bool diameter_matches = temp.nozzle_diameter.empty() || infos[i].nozzle_diameter.empty() ||
-                    std::abs(atof(infos[i].nozzle_diameter.c_str()) - atof(temp.nozzle_diameter.c_str())) < 1e-6;
+                    std::abs(string_to_double_decimal_point(infos[i].nozzle_diameter.c_str()) - string_to_double_decimal_point(temp.nozzle_diameter.c_str())) < 1e-6;
                 if (infos[i].slot_id == temp.slot_id && infos[i].ams_id == temp.ams_id && diameter_matches) {
                     ams_infos[i].is_map = true;
                     return i;
@@ -3612,7 +3613,7 @@ std::vector<std::string> PresetBundle::get_extra_compatible_printers_by_full_sta
         for (const auto &slot : this->extruder_full_stat.get_extruder_stats(e)) {
             if (slot.first.empty())
                 continue;
-            const double d = atof(slot.first.c_str());
+            const double d = string_to_double_decimal_point(slot.first.c_str());
             if (d > 0.0)
                 selected_diameters.insert(d);
         }
@@ -3632,7 +3633,7 @@ std::vector<std::string> PresetBundle::get_extra_compatible_printers_by_full_sta
     for (auto printer_it = this->printers.begin(); printer_it != this->printers.end(); ++printer_it) {
         if (printer_it->config.opt_string("printer_model") != printer_model)
             continue;
-        const double variant_diameter = atof(printer_it->config.opt_string("printer_variant").c_str());
+        const double variant_diameter = string_to_double_decimal_point(printer_it->config.opt_string("printer_variant").c_str());
         if (variant_diameter <= 0.0)
             continue;
         for (double d : selected_diameters) {
@@ -3658,7 +3659,7 @@ std::vector<std::string> PresetBundle::compute_filament_supported_nozzle_diamete
     for (auto printer_it = this->printers.begin(); printer_it != this->printers.end(); ++printer_it) {
         if (printer_it->config.opt_string("printer_model") != printer_model)
             continue;
-        const double variant_diameter = atof(printer_it->config.opt_string("printer_variant").c_str());
+        const double variant_diameter = string_to_double_decimal_point(printer_it->config.opt_string("printer_variant").c_str());
         if (variant_diameter > 0.0)
             printer_name_to_diameter[printer_it->name] = format_diameter_to_str(variant_diameter);
     }
@@ -3719,7 +3720,7 @@ static std::map<std::string, std::string> build_printer_name_to_diameter(const P
     for (auto it = bundle.printers.begin(); it != bundle.printers.end(); ++it) {
         if (it->config.opt_string("printer_model") != printer_model)
             continue;
-        const double diameter = atof(it->config.opt_string("printer_variant").c_str());
+        const double diameter = string_to_double_decimal_point(it->config.opt_string("printer_variant").c_str());
         if (diameter > 0.0)
             result[it->name] = format_diameter_to_str(diameter);
     }
@@ -3754,7 +3755,7 @@ static std::set<std::string> collect_configured_nozzle_diameters(const PresetBun
     // on this set holding fewer than two entries, so the whole preset/selector side follows from here.
     if (!multi_nozzle_diameter_mode_enabled(bundle.project_config) ||
         !uses_per_slot_nozzle_diameters(printer.config)) {
-        const double primary_diameter = atof(printer.config.opt_string("printer_variant").c_str());
+        const double primary_diameter = string_to_double_decimal_point(printer.config.opt_string("printer_variant").c_str());
         if (primary_diameter > 0.0)
             result.insert(format_diameter_to_str(primary_diameter));
         return result;
@@ -3767,14 +3768,14 @@ static std::set<std::string> collect_configured_nozzle_diameters(const PresetBun
     // logical extruder may carry several physical diameters.
     for (int extruder_id = 0; extruder_id < bundle.extruder_full_stat.get_extruder_count(); ++extruder_id)
         for (const auto &slot : bundle.extruder_full_stat.get_extruder_stats(extruder_id)) {
-            const double diameter = atof(slot.first.c_str());
+            const double diameter = string_to_double_decimal_point(slot.first.c_str());
             if (diameter > 0.0)
                 result.insert(format_diameter_to_str(diameter));
         }
 
     // Without a per-slot snapshot the printer preset is all we know about the hardware.
     if (result.empty()) {
-        const double primary_diameter = atof(printer.config.opt_string("printer_variant").c_str());
+        const double primary_diameter = string_to_double_decimal_point(printer.config.opt_string("printer_variant").c_str());
         if (primary_diameter > 0.0)
             result.insert(format_diameter_to_str(primary_diameter));
     }
@@ -3793,7 +3794,7 @@ static std::set<std::pair<std::string, NozzleVolumeType>> collect_installed_nozz
     // offers exactly its printer preset's diameter, paired with the per-extruder project flow setting.
     if (!multi_nozzle_diameter_mode_enabled(bundle.project_config) ||
         !uses_per_slot_nozzle_diameters(printer.config)) {
-        const double primary_diameter = atof(printer.config.opt_string("printer_variant").c_str());
+        const double primary_diameter = string_to_double_decimal_point(printer.config.opt_string("printer_variant").c_str());
         if (primary_diameter <= 0.0)
             return result;
         const std::string diameter = format_diameter_to_str(primary_diameter);
@@ -3812,7 +3813,7 @@ static std::set<std::pair<std::string, NozzleVolumeType>> collect_installed_nozz
             // keeps the selector from offering a variant the machine does not physically have.
             if (slot.second.empty() || slot.first.empty())
                 continue;
-            const double diameter = atof(slot.first.c_str());
+            const double diameter = string_to_double_decimal_point(slot.first.c_str());
             if (diameter <= 0.0)
                 continue;
             const NozzleVolumeType volume_type = nozzle_volume_type_from_string(slot.second);
@@ -3895,7 +3896,7 @@ static std::vector<std::string> get_filament_nozzle_diameter_options(
                               std::back_inserter(result));
     }
     std::sort(result.begin(), result.end(), [](const std::string &lhs, const std::string &rhs) {
-        return atof(lhs.c_str()) < atof(rhs.c_str());
+        return string_to_double_decimal_point(lhs.c_str()) < string_to_double_decimal_point(rhs.c_str());
     });
     return result;
 }
@@ -3956,7 +3957,7 @@ bool PresetBundle::is_filament_nozzle_diameter_valid(size_t filament_index, cons
 {
     if (diameter.empty())
         return true;
-    const std::string normalized = format_diameter_to_str(atof(diameter.c_str()));
+    const std::string normalized = format_diameter_to_str(string_to_double_decimal_point(diameter.c_str()));
     const auto options = get_filament_nozzle_diameter_options(filament_index);
     return std::find(options.begin(), options.end(), normalized) != options.end();
 }
@@ -3981,7 +3982,7 @@ static bool set_filament_nozzle_diameter(
         return true;
     }
 
-    const std::string normalized = format_diameter_to_str(atof(diameter.c_str()));
+    const std::string normalized = format_diameter_to_str(string_to_double_decimal_point(diameter.c_str()));
     if (std::find(options.begin(), options.end(), normalized) == options.end())
         return false;
 
@@ -4074,7 +4075,7 @@ std::string PresetBundle::tray_diameter_for_filament_slot(size_t filament_index)
 
 void PresetBundle::seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter)
 {
-    const std::string normalized = format_diameter_to_str(atof(fallback_diameter.c_str()));
+    const std::string normalized = format_diameter_to_str(string_to_double_decimal_point(fallback_diameter.c_str()));
     if (normalized.empty())
         return;
 
@@ -4132,7 +4133,7 @@ static const Preset *find_default_filament_for_nozzle_diameter(
     for (auto printer = bundle.printers.begin(); printer != bundle.printers.end(); ++printer) {
         if (printer->config.opt_string("printer_model") != printer_model)
             continue;
-        const double variant = atof(printer->config.opt_string("printer_variant").c_str());
+        const double variant = string_to_double_decimal_point(printer->config.opt_string("printer_variant").c_str());
         if (variant <= 0. || format_diameter_to_str(variant) != diameter)
             continue;
         const auto *defaults = printer->config.option<ConfigOptionStrings>("default_filament_profile");
@@ -4259,7 +4260,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                                 *this, i, target, nullptr, printer_name_to_diameter, options);
                         continue;
                     }
-                    if (format_diameter_to_str(atof(current_value.c_str())) == target)
+                    if (format_diameter_to_str(string_to_double_decimal_point(current_value.c_str())) == target)
                         continue; // the nozzle for this slot's diameter is still installed
 
                     // The nozzle for this slot's previously-selected diameter was removed. Flag
@@ -4317,7 +4318,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
     }
 
     auto tray_diameter = [this](const AMSMapInfo &mapping) {
-        const double mapped_diameter = atof(mapping.nozzle_diameter.c_str());
+        const double mapped_diameter = string_to_double_decimal_point(mapping.nozzle_diameter.c_str());
         if (mapped_diameter > 0.)
             return format_diameter_to_str(mapped_diameter);
         for (const auto &entry : filament_ams_list) {
@@ -4370,7 +4371,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         // slot as fine (or AMS sync would move it onto options.front()). Hold the red mark until
         // the stored diameter is actually in this filament's option list.
         if (was_marked_incompatible(i)) {
-            const std::string stored = format_diameter_to_str(atof(selected->values[i].c_str()));
+            const std::string stored = format_diameter_to_str(string_to_double_decimal_point(selected->values[i].c_str()));
             if (stored.empty() ||
                 std::find(options.begin(), options.end(), stored) == options.end()) {
                 incompatible_nozzle_diameter_slots.push_back(i);
@@ -4389,7 +4390,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         }
 
         if (!device_diameter.empty()) {
-            const std::string normalized_device = format_diameter_to_str(atof(device_diameter.c_str()));
+            const std::string normalized_device = format_diameter_to_str(string_to_double_decimal_point(device_diameter.c_str()));
             if (std::find(options.begin(), options.end(), normalized_device) != options.end() &&
                 ::Slic3r::set_filament_nozzle_diameter(
                     *this, i, normalized_device, nullptr, printer_name_to_diameter, options)) {
@@ -4439,7 +4440,7 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         // on the user's behalf: if what the slot carries turns out to be unusable, the pass below marks it
         // red and the user resolves it.
         std::string target = selected->values[i];
-        const std::string normalized = format_diameter_to_str(atof(target.c_str()));
+        const std::string normalized = format_diameter_to_str(string_to_double_decimal_point(target.c_str()));
         if (std::find(options.begin(), options.end(), normalized) == options.end()) {
             // A non-empty target that fell out of `options` means a nozzle of that diameter was
             // physically removed (Nozzle Settings dialog). Flag it instead of silently moving the
@@ -4922,7 +4923,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
                 const std::string &diameter_str = selected->values[filament_id];
                 if (diameter_str.empty() || diameter_str.find(';') != std::string::npos)
                     continue;
-                const double diameter = std::atof(diameter_str.c_str());
+                const double diameter = string_to_double_decimal_point(diameter_str.c_str());
                 if (diameter <= 0.)
                     continue;
                 const size_t config_idx = Slic3r::get_filament_config_idx(
@@ -7440,7 +7441,7 @@ void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
     for (auto it = printers.begin(); it != printers.end(); ++it) {
         if (it->config.opt_string("printer_model") != printer_model)
             continue;
-        const double diameter = atof(it->config.opt_string("printer_variant").c_str());
+        const double diameter = string_to_double_decimal_point(it->config.opt_string("printer_variant").c_str());
         if (diameter > 0.0)
             printer_name_to_diameter[it->name] = format_diameter_to_str(diameter);
     }

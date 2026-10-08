@@ -9,6 +9,7 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -131,8 +132,8 @@ std::vector<SlotSpec> collect_project_slot_specs(const PresetBundle &preset_bund
     const size_t slot_count = preset_bundle.filament_presets.size();
 
     if (!multi_diameter_mode) {
-        const float preset_diameter = (float) std::strtod(
-            preset_bundle.printers.get_selected_preset().config.opt_string("printer_variant").c_str(), nullptr);
+        const float preset_diameter = (float) string_to_double_decimal_point(
+            preset_bundle.printers.get_selected_preset().config.opt_string("printer_variant").c_str());
         if (preset_diameter <= 0.f)
             return {};
 
@@ -167,11 +168,11 @@ std::vector<SlotSpec> collect_project_slot_specs(const PresetBundle &preset_bund
     for (size_t i = 0; i < slot_count; ++i) {
         NozzleSpec spec;
         if (diameter_map != nullptr && i < diameter_map->values.size() && !diameter_map->values[i].empty())
-            spec.diameter = (float) std::strtod(diameter_map->values[i].c_str(), nullptr);
+            spec.diameter = (float) string_to_double_decimal_point(diameter_map->values[i].c_str());
         if (spec.diameter <= 0.f) {
             const std::vector<std::string> options = preset_bundle.get_filament_nozzle_diameter_options(i);
             if (!options.empty())
-                spec.diameter = (float) std::strtod(options.front().c_str(), nullptr);
+                spec.diameter = (float) string_to_double_decimal_point(options.front().c_str());
         }
         if (spec.diameter <= 0.f)
             spec.diameter = preset_diameter;

@@ -25,6 +25,7 @@
 #include "libslic3r/GCode/BedExcludeChecker.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
@@ -2006,7 +2007,7 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
         if (selected != nullptr && filament_idx < selected->values.size() &&
             !selected->values[filament_idx].empty() &&
             selected->values[filament_idx].find(';') == std::string::npos) {
-            const double diameter = std::atof(selected->values[filament_idx].c_str());
+            const double diameter = string_to_double_decimal_point(selected->values[filament_idx].c_str());
             if (diameter > 0.)
                 return float(diameter);
         }

@@ -4,6 +4,7 @@
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "libslic3r/FilamentMixer.hpp"
@@ -150,7 +151,7 @@ static bool fill_nozzle_info_from_nozzles(FilamentInfo &info, const std::vector<
         try {
             diameters.insert(boost::lexical_cast<double>(nozzle.diameter));
         } catch (const std::exception &) {
-            diameters.insert(atof(nozzle.diameter.c_str()));
+            diameters.insert(string_to_double_decimal_point(nozzle.diameter.c_str()));
         }
         volume_types.insert(nozzle.volume_type);
     }

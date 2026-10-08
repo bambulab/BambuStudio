@@ -5,6 +5,7 @@
 #include "I18N.hpp"
 #include "FilamentMixer.hpp"
 #include "Utils.hpp"
+#include "LocalesUtils.hpp"
 
 #include <array>
 #include <set>
@@ -298,7 +299,7 @@ void sync_mixed_filament_nozzle_diameters(DynamicPrintConfig &config)
             }
 
             const std::string &component_diameter = selected->values[component_index];
-            const double diameter = std::atof(component_diameter.c_str());
+            const double diameter = string_to_double_decimal_point(component_diameter.c_str());
             if (diameter <= 0. || component_diameter.find(';') != std::string::npos) {
                 valid = false;
                 break;
@@ -367,7 +368,7 @@ bool complete_filament_nozzle_diameter_selections(
         std::string token;
         std::stringstream stream(joined);
         while (std::getline(stream, token, ';')) {
-            const double diameter = std::atof(token.c_str());
+            const double diameter = string_to_double_decimal_point(token.c_str());
             if (diameter > 0.)
                 values.insert(format_diameter_to_str(diameter));
         }
@@ -390,14 +391,14 @@ bool complete_filament_nozzle_diameter_selections(
             continue;
         }
 
-        const std::string normalized = format_diameter_to_str(std::atof(selected->values[index].c_str()));
+        const std::string normalized = format_diameter_to_str(string_to_double_decimal_point(selected->values[index].c_str()));
         if (allowed.count(normalized) != 0) {
             selected->values[index] = normalized;
             continue;
         }
         selected->values[index] = *std::min_element(allowed.begin(), allowed.end(),
             [](const std::string &lhs, const std::string &rhs) {
-                return std::atof(lhs.c_str()) < std::atof(rhs.c_str());
+                return string_to_double_decimal_point(lhs.c_str()) < string_to_double_decimal_point(rhs.c_str());
             });
     }
     sync_mixed_filament_nozzle_diameters(config);
@@ -411,7 +412,7 @@ float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filam
         const auto  &selected = config.filament_diameter_map.values;
         if (fil_idx < selected.size() && !selected[fil_idx].empty() &&
             selected[fil_idx].find(';') == std::string::npos) {
-            const double diameter = std::atof(selected[fil_idx].c_str());
+            const double diameter = string_to_double_decimal_point(selected[fil_idx].c_str());
             if (diameter > 0.0)
                 return float(diameter);
         }
@@ -424,7 +425,7 @@ float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filam
 double primary_nozzle_diameter(const ConfigBase &config)
 {
     if (const auto *opt = config.option<ConfigOptionString>("printer_variant")) {
-        const double variant = std::atof(opt->value.c_str());
+        const double variant = string_to_double_decimal_point(opt->value.c_str());
         if (variant > 0.0)
             return variant;
     }
@@ -11388,7 +11389,7 @@ static float skirt_nozzle_diameter_for_filament(const ConfigBase &cfg, unsigned 
     const auto  *selected     = cfg.option<ConfigOptionStrings>("filament_diameter_map");
     if (selected != nullptr && filament_idx < selected->values.size() &&
         selected->values[filament_idx].find(';') == std::string::npos) {
-        const double selected_diameter = std::atof(selected->values[filament_idx].c_str());
+        const double selected_diameter = string_to_double_decimal_point(selected->values[filament_idx].c_str());
         if (selected_diameter > 0.)
             return static_cast<float>(selected_diameter);
     }

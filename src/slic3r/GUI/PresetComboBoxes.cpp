@@ -1,5 +1,6 @@
 #include "PresetComboBoxes.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 
 #include <cstddef>
 #include <cstdlib>
@@ -101,9 +102,10 @@ static bool numeric_text(const std::string& text)
 {
     if (text.empty())
         return false;
-    char* end = nullptr;
-    std::strtod(text.c_str(), &end);
-    return end == text.c_str() + text.size();
+    // Not strtod: under a comma-decimal UI locale (e.g. French) it stops at the '.' in "0.4".
+    size_t end = 0;
+    string_to_double_decimal_point(text, &end);
+    return end == text.size();
 }
 
 // Display-only rewrite: "Bambu Lab H3C 0.4 nozzle" -> "Bambu Lab H3C Multiple nozzle". Heuristic on the

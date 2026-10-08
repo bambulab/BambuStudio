@@ -1348,6 +1348,8 @@ std::string format_diameter_to_str(double diameter, int precision)
     double candidates[] = {0.2, 0.4, 0.6, 0.8};
     double best = *std::min_element(std::begin(candidates), std::end(candidates), [diameter](double a, double b) { return std::abs(a - diameter) < std::abs(b - diameter); });
     std::ostringstream oss;
+    // Diameters are used as keys ("0.4"), never as UI text, so they must not follow the UI locale.
+    oss.imbue(std::locale::classic());
     oss << std::fixed << std::setprecision(precision) << best;
     return oss.str();
 }

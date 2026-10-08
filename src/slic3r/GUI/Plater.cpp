@@ -3802,7 +3802,7 @@ Sidebar::Sidebar(Plater *parent)
             // Capture the single-diameter printer_variant before that switch lands on canonical 0.4,
             // so the first toggle-ON can pin every slot to it instead of the smallest remaining option.
             const std::string diameter_before = enabled ?
-                format_diameter_to_str(atof(
+                format_diameter_to_str(string_to_double_decimal_point(
                     preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant").c_str())) :
                 std::string();
             p->is_switching_diameter = true;
@@ -5059,7 +5059,7 @@ void Sidebar::priv::refresh_filament_nozzle_label(size_t idx, int filament_idx)
         // place that shows what the machine has and greys out what this filament cannot use. Name
         // the smallest installed nozzle instead, the same one the picker lists first.
         for (const auto &nozzle : preset_bundle->get_installed_nozzle_variants())
-            if (diameter.empty() || atof(nozzle.first.c_str()) < atof(diameter.c_str()))
+            if (diameter.empty() || string_to_double_decimal_point(nozzle.first.c_str()) < string_to_double_decimal_point(diameter.c_str()))
                 diameter = nozzle.first;
     }
 
