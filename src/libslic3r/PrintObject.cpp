@@ -1668,6 +1668,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "skin_infill_line_width"
             || opt_key == "skeleton_infill_line_width"
             || opt_key == "infill_direction"
+            || opt_key == "sparse_infill_rotate_template"
+            || opt_key == "solid_infill_rotate_template"
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
@@ -3558,6 +3560,8 @@ static const char *s_modifier_ignored_infill_keys[] = {
     "conformal_ray_count",
     "conformal_hub_radius",
     "infill_direction",
+    "sparse_infill_rotate_template",
+    "solid_infill_rotate_template",
     "symmetric_infill_y_axis",
     "infill_shift_step",
     "sparse_infill_lattice_angle_1",
