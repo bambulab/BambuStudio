@@ -3839,7 +3839,7 @@ Sidebar::Sidebar(Plater *parent)
             // before validate runs, otherwise empty slots fall through to options.front().
             if (enabled && !p->m_saved_per_slot_valid && !diameter_before.empty() &&
                 is_single_ext_multi_nozzle(preset_bundle->printers.get_edited_preset().config))
-                preset_bundle->seed_filament_nozzles_from_single_diameter(diameter_before);
+                preset_bundle->seed_filament_nozzles_for_multi_diameter(diameter_before);
 
             // The printer preset is already the one this mode needs, so the diameter buttons are
             // left to update_presets(TYPE_PRINTER) below, which derives them from printer_variant.
@@ -4364,6 +4364,7 @@ Sidebar::Sidebar(Plater *parent)
             auto indices = plater->mixed_filament_config_indices();
             if (!indices.empty())
                 delete_mixed_filament_at(indices.size() - 1);
+            scroll_mixed_filament_area_to_bottom();
         });
         title_sizer->Add(p->m_btn_mixed_del, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
         title_sizer->Add(FromDIP(16), 0, 0, 0, 0);
@@ -6595,9 +6596,8 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
     return insert_pos;
 }
 
-void Sidebar::scroll_filament_area_to_bottom()
+static void scroll_area_to_bottom(wxScrolledWindow *sw)
 {
-    auto* sw = p->m_physical_scroll_area;
     if (!sw) return;
     // Defer until after the pending layout pass so the virtual size reflects the new row.
     sw->CallAfter([sw]() {
@@ -6609,6 +6609,16 @@ void Sidebar::scroll_filament_area_to_bottom()
         int max_units = std::max(0, (virtual_h - client_h + ppu_y - 1) / ppu_y);
         sw->Scroll(0, max_units);
     });
+}
+
+void Sidebar::scroll_filament_area_to_bottom()
+{
+    scroll_area_to_bottom(p->m_physical_scroll_area);
+}
+
+void Sidebar::scroll_mixed_filament_area_to_bottom()
+{
+    scroll_area_to_bottom(p->m_mixed_scroll_area);
 }
 
 bool Sidebar::is_new_project_in_gcode3mf()
@@ -7487,6 +7497,8 @@ void Sidebar::udpate_combos_filament_badge() {
 
 // ---- Mixed Filament sidebar methods ----
 
+// Rows the filament panel may show before it starts scrolling -- shared by the physical and the
+// mixed list together, not allowed to each of them (see recalc_filament_scroll_sizes).
 static constexpr int kMaxFilamentScrollRows  = 6;
 // Cap the panel height at kMaxFilamentScrollRows the moment the list exceeds it, instead of
 // letting it grow all the way up to a separate threshold and then snapping down. Otherwise
@@ -7511,14 +7523,55 @@ void Sidebar::recalc_filament_scroll_sizes()
     }
     // The per-row DiameterButtonPanel that used to add extra height is now permanently hidden
     // (see refresh_filament_diameter_buttons) -- superseded by the FilamentNozzlePopup that opens
-    // off the nozzle label. Row height is always the base value.
+    // off the nozzle label.
     (void) configured_diameters;
-    const int row_height = 34;
-    int max_h = (total > kScrollCapThreshold)
-        ? FromDIP(kMaxFilamentScrollRows * row_height)
-        : -1;
+    (void) total;
 
-    auto recalc = [max_h](wxScrolledWindow* sw) {
+    // Counted in rows, not slots: both lists lay out two slots per row unless they have collapsed to
+    // a single column, so a twelve-slot panel can still be six rows tall and need no scrolling at
+    // all. Comparing the slot count against a row budget started capping lists that fit.
+    auto row_count = [](size_t slots, bool single_column) -> size_t {
+        const size_t columns = single_column ? 1u : 2u;
+        return (slots + columns - 1) / columns;
+    };
+    const size_t rows_physical = row_count(num_physical, p->m_filament_single_column);
+    const size_t rows_mixed    = row_count(num_mixed, p->m_mixed_single_column);
+
+    auto content_height = [](wxScrolledWindow *sw) {
+        return (sw != nullptr && sw->GetSizer() != nullptr) ? sw->GetSizer()->GetMinSize().y : 0;
+    };
+    const int want_physical = content_height(p->m_physical_scroll_area);
+    const int want_mixed    = content_height(p->m_mixed_scroll_area);
+
+    // Split on need rather than evenly: a list that fits in less than half the budget gets exactly
+    // the rows it asks for and hands the rest to the other one, so a single mixed row does not cost
+    // the physical list three. Only when both want more than half is the budget halved -- there is
+    // no way to satisfy either then, and an even split is the one that favours neither.
+    int cap_physical = -1, cap_mixed = -1;
+    if (rows_physical + rows_mixed > size_t(kMaxFilamentScrollRows)) {
+        const size_t half = size_t(kMaxFilamentScrollRows) / 2;
+        size_t give_physical = half, give_mixed = size_t(kMaxFilamentScrollRows) - half;
+        if (rows_physical <= half) {
+            give_physical = rows_physical;
+            give_mixed    = size_t(kMaxFilamentScrollRows) - give_physical;
+        } else if (rows_mixed <= half) {
+            give_mixed    = rows_mixed;
+            give_physical = size_t(kMaxFilamentScrollRows) - give_mixed;
+        }
+        // Row height comes from what each list actually measured rather than a constant: the rows
+        // carry their own borders and spacing, so a hardcoded guess lands short and clips the last
+        // row by a few pixels. Rounded up for the same reason.
+        auto rows_to_height = [](int content, size_t have_rows, size_t give_rows) {
+            if (have_rows == 0 || give_rows >= have_rows)
+                return -1; // nothing to cap: the list already fits in what it was given
+            const int per_row = (content + int(have_rows) - 1) / int(have_rows);
+            return per_row * int(give_rows);
+        };
+        cap_physical = rows_to_height(want_physical, rows_physical, give_physical);
+        cap_mixed    = rows_to_height(want_mixed, rows_mixed, give_mixed);
+    }
+
+    auto recalc = [](wxScrolledWindow* sw, int max_h) {
         if (!sw || !sw->GetSizer()) return;
         auto content_size = sw->GetSizer()->GetMinSize();
         if (max_h > 0 && content_size.y > max_h) {
@@ -7530,8 +7583,8 @@ void Sidebar::recalc_filament_scroll_sizes()
         sw->SetMinSize({0, content_size.y});
     };
 
-    recalc(p->m_physical_scroll_area);
-    recalc(p->m_mixed_scroll_area);
+    recalc(p->m_physical_scroll_area, cap_physical);
+    recalc(p->m_mixed_scroll_area, cap_mixed);
 }
 
 void Sidebar::sync_filament_area_height()
@@ -8848,8 +8901,12 @@ void Sidebar::add_mixed_filament()
         if (modal == wxID_OK)
             result = dlg.get_result();
     }
-    if (modal == wxID_OK)
+    if (modal == wxID_OK) {
         create_mixed_filament_from_result(this, result, color_strs);
+        // Same courtesy the physical list gets in add_filament(): the new row is appended at the
+        // end of the mixed list, which the shared row budget can easily push below the fold.
+        scroll_mixed_filament_area_to_bottom();
+    }
 }
 
 void Sidebar::edit_mixed_filament(size_t panel_idx)

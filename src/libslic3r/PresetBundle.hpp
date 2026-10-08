@@ -345,11 +345,17 @@ public:
     // Updates the selected diameter and switches to a matching system preset when the current preset cannot serve it.
     bool                        set_filament_nozzle_diameter(size_t filament_index, const std::string &diameter,
                                                            std::string *selected_preset_name = nullptr);
-    // First single-diameter -> multi-diameter toggle: pin every physical slot to `diameter`
-    // (the printer_variant in effect before the switch) and the first printable flow for that
-    // diameter. Slots that cannot use it keep the requested diameter so validation can flag them
-    // instead of rewriting them to the smallest remaining option.
-    void                        seed_filament_nozzles_from_single_diameter(const std::string &diameter);
+    // Nozzle diameter the machine reports for the tray this slot's filament came from, or an empty
+    // string when no tray matches. Matched on filament_id + colour, the same pair the sync badge
+    // uses to decide whether a slot still corresponds to a tray.
+    std::string                 tray_diameter_for_filament_slot(size_t filament_index) const;
+    // First single-diameter -> multi-diameter toggle: give every physical slot a diameter and the
+    // first printable flow for it. Prefers what the machine says the slot's tray is mounted on,
+    // falling back to `fallback_diameter` (the printer_variant in effect before the switch) when no
+    // tray matches or its diameter is not one this filament has a preset for. Slots that cannot use
+    // the result keep it anyway so validation can flag them instead of rewriting them to the
+    // smallest remaining option.
+    void                        seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter);
     // Resizes selections and fills missing or invalid values with a deterministic supported default.
     // Device mappings, when supplied, take precedence and bind a filament to its physical slot diameter.
     void                        validate_filament_nozzle_diameter_selections(

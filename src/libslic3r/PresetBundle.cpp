@@ -4050,9 +4050,37 @@ bool PresetBundle::set_filament_nozzle_diameter(size_t filament_index, const std
     return updated;
 }
 
-void PresetBundle::seed_filament_nozzles_from_single_diameter(const std::string &diameter)
+std::string PresetBundle::tray_diameter_for_filament_slot(size_t filament_index) const
 {
-    const std::string normalized = format_diameter_to_str(atof(diameter.c_str()));
+    if (filament_index >= filament_presets.size())
+        return {};
+    const Preset *preset = filaments.find_preset(filament_presets[filament_index], false);
+    if (preset == nullptr || preset->filament_id.empty())
+        return {};
+    const auto *colors = project_config.option<ConfigOptionStrings>("filament_colour");
+    const std::string color = (colors != nullptr && filament_index < colors->values.size())
+        ? colors->values[filament_index] : std::string();
+
+    std::string first_match;
+    for (const auto &entry : filament_ams_list) {
+        const DynamicPrintConfig &tray = entry.second;
+        if (tray.opt_string("filament_id", 0u) != preset->filament_id)
+            continue;
+        if (!color.empty() && tray.opt_string("filament_colour", 0u) != color)
+            continue;
+        const auto *diameters = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
+        if (diameters == nullptr || diameters->values.empty() || diameters->values.front() <= 0.)
+            continue;
+        const std::string diameter = format_diameter_to_str(diameters->values.front());
+        if (first_match.empty())
+            first_match = diameter;
+    }
+    return first_match;
+}
+
+void PresetBundle::seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter)
+{
+    const std::string normalized = format_diameter_to_str(atof(fallback_diameter.c_str()));
     if (normalized.empty())
         return;
 
@@ -4074,15 +4102,27 @@ void PresetBundle::seed_filament_nozzles_from_single_diameter(const std::string 
 
         const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
             *this, i, printer_name_to_diameter, configured);
+
+        // Single-diameter mode never recorded which nozzle each tray feeds -- validate_filament_
+        // nozzle_diameter_selections() returns from its configured.size() < 2 branch long before the
+        // device-map code that would have read it. The machine did report it though, and
+        // filament_ams_list still holds it, so take it here rather than flattening every slot onto
+        // the one diameter that happened to be selected. Falling back to that diameter only when
+        // the machine has nothing to say about this slot keeps the old behaviour for filaments the
+        // user picked by hand.
+        std::string target = tray_diameter_for_filament_slot(i);
+        if (target.empty() || std::find(options.begin(), options.end(), target) == options.end())
+            target = normalized;
+
         if (!::Slic3r::set_filament_nozzle_diameter(
-                *this, i, normalized, nullptr, printer_name_to_diameter, options)) {
+                *this, i, target, nullptr, printer_name_to_diameter, options)) {
             // Keep the requested diameter so validation flags the slot instead of rewriting
             // it to the smallest remaining option.
-            selected->values[i] = normalized;
+            selected->values[i] = target;
             continue;
         }
 
-        const auto flows = ::Slic3r::get_filament_nozzle_flow_options(*this, i, normalized, installed);
+        const auto flows = ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed);
         if (flows.empty())
             continue;
         volume_map->values[i] = static_cast<int>(flows.front());
