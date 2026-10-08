@@ -66,6 +66,10 @@ struct CoolingLine
         // Ironing fan speed control
         TYPE_IRONING_FAN_START        = 1 << 22,
         TYPE_IRONING_FAN_END          = 1 << 23,
+        // Wave-overhang fan override. The percentages are carried inline in the marker
+        // (";_WAVE_OVERHANG_FAN_START <main> <aux>") so this stage needs no region config.
+        TYPE_WAVE_OVERHANG_FAN_START  = 1 << 24,
+        TYPE_WAVE_OVERHANG_FAN_END    = 1 << 25,
     };
 
     CoolingLine(unsigned int type, size_t line_start, size_t line_end)
@@ -125,6 +129,10 @@ struct CoolingLine
     bool  outwall_smooth_mark = false;
     int   object_id = -1;
     int   cooling_node_id = -1;
+    // Wave-overhang fan override percentages parsed from the marker line; valid only when
+    // type & TYPE_WAVE_OVERHANG_FAN_START. -1 means "no override" for that fan.
+    int   wave_overhang_fan_percent     = -1;
+    int   wave_overhang_aux_fan_percent = -1;
 
     // For ConsistentSurface logic - split adjustable vs non-adjustable portions
     float adjustable_length = 0.f;

@@ -30,6 +30,36 @@ endif()
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
 
+# The omnibus fff_print_tests target above does not currently compile against
+# master: several of its sources call APIs that have since changed signature or
+# been removed. Rather than gate new tests behind fixing all of that, give them
+# their own target, the same way support_material_on_wipe_tower_tests does below.
+add_executable(wave_overhang_infra_tests
+	fff_print_tests.cpp
+	test_extrusion_entity.cpp
+	test_gcodewriter_travel.cpp
+	test_wave_overhangs.cpp
+	test_wave_overhangs_gcode.cpp
+	test_data.cpp
+	)
+target_link_libraries(wave_overhang_infra_tests test_common libslic3r
+	libcurl
+	OpenSSL::SSL OpenSSL::Crypto
+)
+if (WIN32)
+	# libslic3r reaches Windows' CNG through boost's UUID generator. Without this the
+	# BCrypt* imports stay unresolved and, since the link is forced through below, calling
+	# them faults at runtime rather than failing to link.
+	target_link_libraries(wave_overhang_infra_tests bcrypt)
+endif()
+if (MSVC)
+	# Same rationale as support_material_on_wipe_tower_tests: libslic3r pulls in
+	# crypto entry points that only the application supplies.
+	target_link_options(wave_overhang_infra_tests PRIVATE /FORCE:UNRESOLVED)
+endif()
+set_property(TARGET wave_overhang_infra_tests PROPERTY FOLDER "tests")
+add_test(wave_overhang_infra_tests wave_overhang_infra_tests ${CATCH_EXTRA_ARGS})
+
 add_executable(support_material_on_wipe_tower_tests
 	fff_print_tests.cpp
 	test_data.cpp

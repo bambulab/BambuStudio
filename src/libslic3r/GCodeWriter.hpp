@@ -87,9 +87,13 @@ public:
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
     double      get_current_speed() { return m_current_speed; };
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
-    std::string travel_to_xy(const Vec2d &point, const std::string &comment, bool use_short_travel_acceleration);
+    std::string travel_to_xy(const Vec2d &point, const std::string &comment, bool use_short_travel_acceleration, double speed_override = 0.);
+    // Travel at an explicit speed in mm/s; 0 falls back to the configured travel speed.
+    std::string travel_to_xy(const Vec2d &point, double speed_override, const std::string &comment = std::string());
     std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string());
-    std::string travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration);
+    std::string travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration, double speed_override = 0.);
+    // Travel at an explicit speed in mm/s; 0 falls back to the configured travel speed.
+    std::string travel_to_xyz(const Vec3d &point, double speed_override, const std::string &comment = std::string());
     std::string travel_to_z(double z, const std::string &comment = std::string());
     bool        will_move_z(double z) const;
     std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
@@ -97,6 +101,8 @@ public:
     std::string extrude_arc_to_xy(const Vec2d &point, const Vec2d &center_offset, double dE, const bool is_ccw, const std::string &comment = std::string(), bool force_no_extrusion = false);
     std::string extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
     std::string retract(bool before_wipe = false);
+    // Retract by an explicit length in mm; 0 uses the filament's configured length.
+    std::string retract(bool before_wipe, double length_override);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract(float extra_retract = 0.f);
     double get_extruder_retracted_length(const int filament_id);
