@@ -2800,35 +2800,9 @@ bool Sidebar::priv::switch_diameter(bool single)
 {
     PERF_TRACE("switch diameter");
 
-    wxString diameter;
-    if (single) {
-        diameter = single_extruder->combo_diameter->GetValue();
-    } else {
-        auto diameter_left = left_extruder->combo_diameter->GetValue();
-        auto diameter_right = right_extruder->combo_diameter->GetValue();
-        if (diameter_left != diameter_right) {
-            std::string sd_printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-            auto sd_left_name  = _L(DevPrinterConfigUtil::get_toolhead_display_name(sd_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase));
-            auto sd_right_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(sd_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase));
-            MessageDialog dlg(this->plater,
-                              _L("The software does not support using different diameter of nozzles for one print.\n"
-                                 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-                                 "Please confirm which nozzle you would like to use for this project."),
-                              _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT);
-            dlg.SetButtonLabel(wxID_YES, wxString::Format("%s: %smm", sd_left_name, diameter_left));
-            dlg.SetButtonLabel(wxID_NO, wxString::Format("%s: %smm", sd_right_name, diameter_right));
-            int result = dlg.ShowModal();
-            if (result == wxID_YES)
-                diameter = diameter_left;
-            else if (result == wxID_NO)
-                diameter = diameter_right;
-            else
-                return false;
-        }
-        else {
-            diameter = diameter_left;
-        }
-    }
+    // Dual-extruder and multi-nozzle printers pick the diameter on the shared diameter buttons;
+    // callers select the target button before switching.
+    const wxString diameter = single ? single_extruder->combo_diameter->GetValue() : diameter_btns->GetSelectedDiameter();
     auto preset          = wxGetApp().preset_bundle->get_similar_printer_preset({}, diameter.ToStdString());
     if (preset == nullptr) {
         MessageDialog dlg(this->plater, _L(""), _L(""));
@@ -3234,18 +3208,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     }
 
     //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
-
-    if (extruder_nums == 1) {
-        double value = 0.0;
-        single_extruder->diameter.ToDouble(&value);
-    }
-    else if(extruder_nums == 2){
-        double value = 0.0;
-        left_extruder->diameter.ToDouble(&value);
-
-        value = 0.0;
-        right_extruder->diameter.ToDouble(&value);
-    }
 
     std::vector<ExtruderInfo> machine_extruder_infos(obj->GetExtderSystem()->GetTotalExtderCount());
 
