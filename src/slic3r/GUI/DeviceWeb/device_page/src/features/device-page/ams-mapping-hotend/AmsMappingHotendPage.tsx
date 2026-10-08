@@ -114,7 +114,7 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
 export function AmsMappingHotendPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
-  const { state, error, selectSlot, editSlot, openWiki } = useAmsMappingHotendBridge();
+  const { state, error, selectSlot, editSlot, openWiki, showNozzleError } = useAmsMappingHotendBridge();
   // Track the entered sub-AMS page by its slot key rather than a snapshot of
   // the slot object: an edit inside the sub-page re-publishes fresh state, and
   // we must re-derive the slot from the latest state so the sub-page reflects
@@ -189,6 +189,7 @@ export function AmsMappingHotendPage() {
                     onClick={() => void selectSlot(slot)}
                     onEnterSubAms={() => setSubAmsKey(`${slot.ams_id}:${slot.slot_id}`)}
                     onEdit={() => void editSlot(slot)}
+                    onNozzleError={() => void showNozzleError()}
                   />
                 ))}
               </div>

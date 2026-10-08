@@ -103,7 +103,9 @@
   transition: border-color 120ms ease;
 }
 
-.ams-map-hotend__slot-card:not([data-state="MaterialUnmatch"]):not([data-state="MaterialEmpty"]):not([data-state="NozzleUnmatch"]):not([data-state="NozzleEmpty"]):not([data-state="Unavailable"]):hover {
+/* Normal is the only pickable state (see ComputePickable on the C++ side), so
+   key the hover affordance off it rather than enumerating every fault state. */
+.ams-map-hotend__slot-card[data-state="Normal"]:hover {
   border-color: var(--color-card-border);
 }
 
@@ -120,22 +122,26 @@
    variant so users only have to read two visual modes (pickable vs not).
    Backend keeps the granular states (NozzleUnmatch / NozzleEmpty / etc.) for
    business logic; we just don't surface them in opacity here. */
-.ams-map-hotend__slot-card[data-state="MaterialUnmatch"],
-.ams-map-hotend__slot-card[data-state="NozzleUnmatch"],
-.ams-map-hotend__slot-card[data-state="MaterialEmpty"],
-.ams-map-hotend__slot-card[data-state="NozzleEmpty"],
-.ams-map-hotend__slot-card[data-state="Unavailable"] {
+.ams-map-hotend__slot-card:not([data-state="Normal"]) {
   cursor: default;
 }
 
-/* Dim per content block, not the card root: the edit button and the swap icon
-   stay actionable, and a descendant cannot raise its opacity above its parent. */
-.ams-map-hotend__slot-card:is([data-state="MaterialUnmatch"],[data-state="NozzleUnmatch"],[data-state="MaterialEmpty"],[data-state="NozzleEmpty"],[data-state="Unavailable"]) :is(
+/* A hotend that cannot reach the mainboard is the one fault the user can act
+   on from here: clicking opens the HMS prompt. */
+.ams-map-hotend__slot-card[data-nozzle-error="true"] {
+  cursor: pointer;
+}
+
+/* Dim per content block, not the card root: the edit button, the swap icon and
+   the hotend fault badge stay at full strength, and a descendant cannot raise
+   its opacity above its parent. */
+.ams-map-hotend__slot-card:not([data-state="Normal"]) :is(
   .ams-map-hotend__slot-card__head,
   .spool-ring,
   .ams-map-hotend__slot-card__material-name,
   .ams-map-hotend__slot-card__divider,
-  .ams-map-hotend__nozzle-info
+  .ams-map-hotend__nozzle-info__icon,
+  .ams-map-hotend__nozzle-info__text
 ) {
   opacity: 0.4;
 }
@@ -151,7 +157,8 @@
   .spool-ring,
   .ams-map-hotend__slot-card__material-name,
   .ams-map-hotend__slot-card__divider,
-  .ams-map-hotend__nozzle-info
+  .ams-map-hotend__nozzle-info__icon,
+  .ams-map-hotend__nozzle-info__text
 ) {
   opacity: 1;
 }
@@ -196,7 +203,12 @@
   color: var(--color-text-secondary);
 }
 
-.ams-map-hotend__slot-card__pill[data-state="Unavailable"] {
+.ams-map-hotend__slot-card__pill:is(
+  [data-state="NozzleLost"],
+  [data-state="NozzleUncalibrated"],
+  [data-state="NozzleError"],
+  [data-state="NozzleUnknown"]
+) {
   color: var(--color-text-secondary);
 }
 
@@ -304,10 +316,33 @@
   width: 96px;
 }
 
+/* Anchors the fault badge over the glyph. Fixed at the Figma 18x24 nozzle cell
+   so the text column keeps the same left edge whether or not a badge shows. */
+.ams-map-hotend__nozzle-info__glyph {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
 .ams-map-hotend__nozzle-info__icon {
   width: 12px;
   height: 24px;
   flex-shrink: 0;
+}
+
+/* Deliberately outside the opacity:0.4 dim applied to the rest of the card:
+   the fault is the one thing that must stay legible on a disabled card. */
+.ams-map-hotend__nozzle-info__badge {
+  position: absolute;
+  left: 0;
+  bottom: 1px;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
 }
 
 /* Cutter / pen glyphs use an 18x24 viewBox (vs the nozzle's 12x24), so widen
@@ -366,11 +401,15 @@
   text-overflow: ellipsis;
 }
 
-.ams-map-hotend__nozzle-na {
+/* Single-line label for a hotend the device cannot describe (NozzleError /
+   NozzleUnknown). Same vertical rhythm as __empty so the card footer height
+   matches Normal / Unmatch siblings. */
+.ams-map-hotend__nozzle-info__fault {
   font-size: 12px;
   color: var(--color-text-secondary);
   text-align: center;
-  width: 100%;
+  line-height: 32px;
+  white-space: nowrap;
 }
 
 /* Spool wrapper (relative container for swap icon overlay) */
@@ -591,17 +630,13 @@
   outline-offset: 2px;
 }
 
-.ams-map-hotend__sub-card[data-state="MaterialUnmatch"],
-.ams-map-hotend__sub-card[data-state="MaterialEmpty"],
-.ams-map-hotend__sub-card[data-state="NozzleUnmatch"],
-.ams-map-hotend__sub-card[data-state="NozzleEmpty"],
-.ams-map-hotend__sub-card[data-state="Unavailable"] {
+.ams-map-hotend__sub-card:not([data-state="Normal"]) {
   cursor: default;
 }
 
 /* Same content-only dim as the main card so the sub-card edit pencil stays
    fully legible and clickable on a non-pickable third-party sub slot. */
-.ams-map-hotend__sub-card:is([data-state="MaterialUnmatch"],[data-state="MaterialEmpty"],[data-state="NozzleUnmatch"],[data-state="NozzleEmpty"],[data-state="Unavailable"]) :is(
+.ams-map-hotend__sub-card:not([data-state="Normal"]) :is(
   .ams-map-hotend__sub-card__head,
   .ams-map-hotend__sub-card__name,
   .spool-ring
@@ -748,6 +783,26 @@
   color: var(--color-wiki-text);
   font-weight: 400;
   text-decoration: underline;
+}
+
+/* Custom hover tip. Colours match the wx mapping popup tip
+   (AmsMapingPopup::on_mouse_move: white background, black text). 288px is the
+   wrap cap; shorter copy stays on one line. */
+.ams-map-hotend__hover-tip {
+  position: fixed;
+  z-index: 20;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 288px;
+  padding: 4px;
+  border: 1px solid #d0d0d0;
+  background: #ffffff;
+  color: #000000;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  pointer-events: none;
 }
 
 /* ---------- Dark mode ----------

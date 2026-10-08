@@ -16,14 +16,34 @@ export type AmsMappingHotendShowType =
 //   - MaterialEmpty:   nozzle present but no filament loaded
 //   - NozzleUnmatch:   nozzle present but dia / flow mismatch
 //   - NozzleEmpty:     no nozzle on this rack position
-//   - Unavailable:     nozzle abnormal / unknown
+// NozzleLost / NozzleUncalibrated / NozzleError / NozzleUnknown are
+// device-reported hardware faults; each one gets its own label and tooltip
+// because the user action differs (reinstall / calibrate / check the cable /
+// re-read the info).
 export type AmsMappingHotendSlotState =
   | 'Normal'
   | 'MaterialUnmatch'
   | 'MaterialEmpty'
   | 'NozzleUnmatch'
   | 'NozzleEmpty'
-  | 'Unavailable';
+  | 'NozzleLost'
+  | 'NozzleUncalibrated'
+  | 'NozzleError'
+  | 'NozzleUnknown';
+
+// States that render the red warning badge over the nozzle glyph and can never
+// be picked. Exported so the card, the tooltip resolver and the CSS-facing
+// checks all agree on the same set.
+export const NOZZLE_FAULT_STATES: readonly AmsMappingHotendSlotState[] = [
+  'NozzleLost',
+  'NozzleUncalibrated',
+  'NozzleError',
+  'NozzleUnknown',
+];
+
+export function isNozzleFaultState(state: AmsMappingHotendSlotState): boolean {
+  return NOZZLE_FAULT_STATES.includes(state);
+}
 
 export type AmsMappingHotendColorType = 'single' | 'multi' | 'gradient';
 

@@ -43,24 +43,16 @@ struct ExpectedNozzleSpec
     bool           valid       = false;
 };
 
-// Visual state of a single hotend slot card in the mapping popup.
-// Shared with the Web ViewModel so both renderers agree on the same enum.
-//
-// Naming convention is symmetric on the dimension that has a problem:
-//   Material* = filament dimension
-//     - MaterialUnmatch: filament loaded but type mismatches the slicing spec
-//     - MaterialEmpty:   nozzle present but no filament loaded
-//   Nozzle*   = nozzle dimension
-//     - NozzleUnmatch:   nozzle present but diameter / flow mismatches spec
-//     - NozzleEmpty:     no nozzle on this rack position
-//   Unavailable: nozzle reported abnormal / unknown by firmware
 enum class HotendSlotState {
-    Normal,           // selectable / regular
-    MaterialUnmatch,  // filament type mismatch, dimmed
-    MaterialEmpty,    // nozzle present but no filament loaded
-    NozzleUnmatch,    // nozzle dia / flow mismatch, dimmed
-    NozzleEmpty,      // no nozzle on this rack position
-    Unavailable       // nozzle abnormal / unknown
+    Normal,             // selectable / regular
+    MaterialUnmatch,    // filament type mismatch, dimmed
+    MaterialEmpty,      // nozzle present but no filament loaded
+    NozzleUnmatch,      // nozzle dia / flow mismatch, dimmed
+    NozzleEmpty,        // no nozzle on this rack position
+    NozzleLost,         // holder reports connected but the tool is detached
+    NozzleUncalibrated, // rack slot has not completed docking calibration
+    NozzleError,        // firmware reports the hotend as abnormal
+    NozzleUnknown       // firmware cannot describe the hotend yet
 };
 
 // Combined judgement for one hotend slot.

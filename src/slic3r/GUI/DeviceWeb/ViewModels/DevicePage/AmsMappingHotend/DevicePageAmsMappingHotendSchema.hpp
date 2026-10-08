@@ -109,12 +109,15 @@ namespace show_type {
 
 // slot.state
 namespace slot_state {
-    inline constexpr const char* normal           = "Normal";
-    inline constexpr const char* material_unmatch = "MaterialUnmatch";
-    inline constexpr const char* material_empty   = "MaterialEmpty";
-    inline constexpr const char* nozzle_unmatch   = "NozzleUnmatch";
-    inline constexpr const char* nozzle_empty     = "NozzleEmpty";
-    inline constexpr const char* unavailable      = "Unavailable";
+    inline constexpr const char* normal              = "Normal";
+    inline constexpr const char* material_unmatch    = "MaterialUnmatch";
+    inline constexpr const char* material_empty      = "MaterialEmpty";
+    inline constexpr const char* nozzle_unmatch      = "NozzleUnmatch";
+    inline constexpr const char* nozzle_empty        = "NozzleEmpty";
+    inline constexpr const char* nozzle_lost         = "NozzleLost";
+    inline constexpr const char* nozzle_uncalibrated = "NozzleUncalibrated";
+    inline constexpr const char* nozzle_error        = "NozzleError";
+    inline constexpr const char* nozzle_unknown      = "NozzleUnknown";
 }
 
 // slot.feed_block / slot.hotend_feed_block — mirrors Slic3r::DevSlotFeedBlock.

@@ -7,6 +7,7 @@ import type {
 import { resolveFeedBlockTooltip, resolveSlotTooltip } from '../slotTooltip';
 import { SpoolRing } from './SpoolRing';
 import { BottomWikiTip } from './BottomWikiTip';
+import { useHoverTip } from './HoverTip';
 
 interface SubAmsPageProps {
   slot: AmsMappingHotendSlotViewModel;
@@ -43,6 +44,7 @@ function SubCard({
   const { t } = useTranslation();
   const disabled = !sub.is_pickable;
   const tooltip = resolveCardTooltip(t, sub, materialIndex);
+  const { hoverProps, tip } = useHoverTip(tooltip);
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
   const isEmpty = !sub.has_filament;
   const isThird = sub.filament_name === '?';
@@ -54,8 +56,8 @@ function SubCard({
       data-state={sub.state}
       data-checked={sub.checked}
       data-pickable={sub.is_pickable}
-      title={tooltip || undefined}
       onClick={() => { if (!disabled) onSelect(sub); }}
+      {...hoverProps}
       role="button"
       tabIndex={disabled ? -1 : 0}
       onKeyDown={(e) => {
@@ -108,6 +110,7 @@ function SubCard({
           )}
         </div>
       </div>
+      {tip}
     </div>
   );
 }
@@ -128,6 +131,7 @@ function ParentCard({
 }) {
   const { t } = useTranslation();
   const tooltip = resolveCardTooltip(t, sub, materialIndex);
+  const { hoverProps, tip } = useHoverTip(tooltip);
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
   const isEmpty = !sub.has_filament;
   const isThird = sub.filament_name === '?';
@@ -143,10 +147,10 @@ function ParentCard({
         // A card locked behind an engaged external spool keeps state Normal, so
         // the dim has to be keyed off pickability just like the sub-cards do.
         data-pickable={sub.is_pickable}
-        title={tooltip || undefined}
         role={sub.is_pickable ? 'button' : undefined}
         tabIndex={sub.is_pickable ? 0 : -1}
         onClick={() => { if (sub.is_pickable) onSelect(sub); }}
+        {...hoverProps}
         onKeyDown={(e) => {
           if ((e.key === 'Enter' || e.key === ' ') && sub.is_pickable) {
             e.preventDefault();
@@ -196,6 +200,7 @@ function ParentCard({
             )}
           </div>
         </div>
+        {tip}
       </div>
     </div>
   );

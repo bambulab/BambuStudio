@@ -14,6 +14,7 @@
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
@@ -67,12 +68,15 @@ std::string slot_state_to_string(HotendSlotState s)
 {
     namespace SV = AmsMappingHotendSchema::values;
     switch (s) {
-    case HotendSlotState::Normal:          return SV::slot_state::normal;
-    case HotendSlotState::MaterialUnmatch: return SV::slot_state::material_unmatch;
-    case HotendSlotState::MaterialEmpty:   return SV::slot_state::material_empty;
-    case HotendSlotState::NozzleUnmatch:   return SV::slot_state::nozzle_unmatch;
-    case HotendSlotState::NozzleEmpty:     return SV::slot_state::nozzle_empty;
-    case HotendSlotState::Unavailable:     return SV::slot_state::unavailable;
+    case HotendSlotState::Normal:             return SV::slot_state::normal;
+    case HotendSlotState::MaterialUnmatch:    return SV::slot_state::material_unmatch;
+    case HotendSlotState::MaterialEmpty:      return SV::slot_state::material_empty;
+    case HotendSlotState::NozzleUnmatch:      return SV::slot_state::nozzle_unmatch;
+    case HotendSlotState::NozzleEmpty:        return SV::slot_state::nozzle_empty;
+    case HotendSlotState::NozzleLost:         return SV::slot_state::nozzle_lost;
+    case HotendSlotState::NozzleUncalibrated: return SV::slot_state::nozzle_uncalibrated;
+    case HotendSlotState::NozzleError:        return SV::slot_state::nozzle_error;
+    case HotendSlotState::NozzleUnknown:      return SV::slot_state::nozzle_unknown;
     }
     return SV::slot_state::normal;
 }
@@ -581,12 +585,19 @@ SlotJudgement DevicePageAmsMappingHotendVM::ResolveSlotJudgement(MachineObject* 
         }
     }
 
-    const bool nozzle_abnormal = j.has_nozzle && (nz->IsAbnormal() || nz->IsUnknown());
+    const auto& rack           = obj ? obj->GetNozzleRack() : nullptr;
+    const bool  nozzle_lost    = nz.has_value() && nz->IsToolLostInHolder();
+    const bool  docking_uncali = rack && rack->IsDirectConnectedRack() && j.has_nozzle &&
+                                 nz->GetAddrId().has_value() &&
+                                 !rack->IsHotendDockingCalibrated(*nz->GetAddrId());
 
     // ---- Step 2: project facts to state via priority chain ----
     // Order: hardware > config > content. Earliest match wins.
-    if (nozzle_abnormal)         j.state = HotendSlotState::Unavailable;
+    if (nozzle_lost)             j.state = HotendSlotState::NozzleLost;
     else if (!j.has_nozzle)      j.state = HotendSlotState::NozzleEmpty;
+    else if (nz->IsAbnormal())   j.state = HotendSlotState::NozzleError;
+    else if (nz->IsUnknown())    j.state = HotendSlotState::NozzleUnknown;
+    else if (docking_uncali)     j.state = HotendSlotState::NozzleUncalibrated;
     else if (!j.nozzle_match)    j.state = HotendSlotState::NozzleUnmatch;
     else if (!j.has_filament)    j.state = HotendSlotState::MaterialEmpty;
     else if (!j.material_match)  j.state = HotendSlotState::MaterialUnmatch;
@@ -752,7 +763,9 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     // Per-slot nozzle info row. Use the rack nozzle resolved from the known
     // rack position rather than reverse-deriving via `tray->get_nozzle_pos_id`,
     // which fails on AMS sub-slots bound directly to a hotend rack.
-    if (parent_nz.has_value() && parent_nz->IsExist()) {
+    const bool keep_lost_spec = parent_nz.has_value() && parent_nz->IsToolLostInHolder() &&
+                                parent_nz->GetNozzleDiameter() > 0.f;
+    if (parent_nz.has_value() && (parent_nz->IsExist() || keep_lost_spec)) {
         namespace SV = AmsMappingHotendSchema::values;
         wxString dia = wxString::Format("%.1f mm", parent_nz->GetNozzleDiameter());
         wxString flow = wxString::FromUTF8(
@@ -925,6 +938,28 @@ nlohmann::json DevicePageAmsMappingHotendVM::HandleAction(const std::string& act
             auto* popup = m_popup;
             wxGetApp().CallAfter([popup, seq]() { popup->OnHotendWebPresented(seq); });
         }
+    } else if (action == "show_nozzle_error") {
+        auto* popup = m_popup;
+        auto* send_win = m_send_win;
+        wxGetApp().CallAfter([popup, send_win]() {
+            MessageDialog dlg(wxGetActiveWindow(),
+                              _L("Please check the hotend cable and try again."),
+                              _L("Hotend communication error"),
+                              wxOK | wxCANCEL | wxICON_WARNING);
+            dlg.SetButtonLabel(wxID_OK, _L("View Details"));
+            if (dlg.ShowModal() != wxID_OK) {
+                // Keep the user where they were: the modal steals focus and
+                // dismisses the transient popup, same as the edit path.
+                if (popup && !popup->IsShown()) { popup->Popup(); }
+                return;
+            }
+
+            if (popup && popup->IsShown()) { popup->Dismiss(); }
+            if (auto* send_dlg = dynamic_cast<wxDialog*>(send_win)) {
+                if (send_dlg->IsModal()) { send_dlg->EndModal(wxID_CANCEL); }
+            }
+            OpenHmsPanel();
+        });
     } else if (action == "open_wiki") {
         // Open the filament-matching-rules Wiki in the system browser. URL kept
         // identical to the wx popup (AmsMapingPopup::update_ams_tips).

@@ -6,9 +6,10 @@ import type { AmsMappingHotendFeedBlock, AmsMappingHotendSlotState } from './typ
 //
 // Only one tip is ever shown, and it is the most severe reason: `state` is a
 // single value already collapsed by the C++ priority chain in
-// BuildSlotJudgement (Unavailable > NozzleEmpty > NozzleUnmatch > MaterialEmpty
-// > MaterialUnmatch), so when both the nozzle and the material mismatch the
-// state is a Nozzle* one and the nozzle copy wins automatically.
+// BuildSlotJudgement (NozzleLost > NozzleEmpty > NozzleError > NozzleUnknown >
+// NozzleUncalibrated > NozzleUnmatch > MaterialEmpty > MaterialUnmatch), so
+// when both the nozzle and the material mismatch the state is a nozzle-side
+// one and the nozzle copy wins automatically.
 //
 // Material copy mirrors the legacy wx popup tooltips in
 // `AmsMappingPopup.cpp` MappingItem::set_data. Nozzle copy reuses the wording
@@ -44,10 +45,20 @@ export function resolveSlotTooltip(
       return t(
         'Cannot select: No hotends available. Please complete the hotend rack setup and try again.',
       );
-    case 'Unavailable':
+    case 'NozzleLost':
+      return t('Cannot select: The hotend is detached. Please install it before printing.');
+    case 'NozzleUncalibrated':
       return t(
-        'Cannot select: The nozzle status is abnormal or unknown. Please refresh the nozzle information and try again.',
+        'Cannot select: The toolhead position is not calibrated yet. Please go to the printer and run the toolhead rack position calibration, then try again.',
       );
+    case 'NozzleUnknown':
+      return t(
+        'Cannot select: The hotend type is unknown. Please go to the printer and edit the hotend type, then try again.',
+      );
+    // NozzleError has no hover tooltip on purpose: clicking the card opens a
+    // dialog that routes to HMS, which carries the full diagnosis.
+    case 'NozzleError':
+      return '';
     case 'NozzleUnmatch':
       return t(
         "Cannot select: The nozzle diameter or flow setting doesn't match with the slicing file. Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing.",

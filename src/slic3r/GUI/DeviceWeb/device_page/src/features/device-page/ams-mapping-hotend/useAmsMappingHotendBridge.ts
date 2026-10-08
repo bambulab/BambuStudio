@@ -132,6 +132,13 @@ export function useAmsMappingHotendBridge() {
     );
   }, [request]);
 
+  const showNozzleError = useCallback(async () => {
+    await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsMappingHotendViewModel>>(
+      makeBody('action', 'show_nozzle_error', {}),
+      4000,
+    );
+  }, [request]);
+
   // Ask C++ to open the filament-matching-rules Wiki in the system browser.
   // The WebView cannot navigate away itself, so the URL lives on the C++ side.
   const openWiki = useCallback(async () => {
@@ -145,8 +152,6 @@ export function useAmsMappingHotendBridge() {
     void refresh();
   }, [refresh]);
 
-  // Mirror the host theme onto <html data-theme> so the popup chrome follows
-  // Studio's light/dark mode. Only the chrome reacts; filament colors stay.
   useEffect(() => {
     if (state.theme === 'dark' || state.theme === 'light') {
       document.documentElement.dataset.theme = state.theme;
@@ -191,5 +196,5 @@ export function useAmsMappingHotendBridge() {
     return () => document.removeEventListener('cpp:device', handler);
   }, [applyState]);
 
-  return { state, error, refresh, selectSlot, editSlot, resetMapping, dismiss, openWiki };
+  return { state, error, refresh, selectSlot, editSlot, resetMapping, dismiss, openWiki, showNozzleError };
 }

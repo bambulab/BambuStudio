@@ -3,6 +3,7 @@ import type { AmsMappingHotendSlotViewModel } from '../types';
 import { resolveSlotTooltip } from '../slotTooltip';
 import { SpoolRing } from './SpoolRing';
 import { NozzleInfo } from './NozzleInfo';
+import { useHoverTip } from './HoverTip';
 
 interface SlotCardProps {
   slot: AmsMappingHotendSlotViewModel;
@@ -12,18 +13,26 @@ interface SlotCardProps {
   onClick: () => void;
   onEnterSubAms: () => void;
   onEdit: () => void;
+  // Raised when a hotend that cannot talk to the mainboard is clicked; the
+  // native side shows the prompt and routes to HMS.
+  onNozzleError: () => void;
 }
 
-export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit }: SlotCardProps) {
+export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit, onNozzleError }: SlotCardProps) {
   const { t } = useTranslation();
   const hasRealSubAms = !!slot.sub_ams && slot.sub_ams.some(g => !g.is_preload);
   const hasSubAms = !!slot.sub_ams && slot.sub_ams.length > 0;
   // Pickability is decided in C++ (see ComputePickable). All-ext relaxation
   // and nozzle strictness are already baked in.
   const disabled = !slot.is_pickable;
+  // A hotend error is the one non-pickable state that stays clickable: the
+  // click is the only entry point to the HMS diagnosis.
+  const isNozzleError = slot.state === 'NozzleError';
 
   const handleClick = () => {
-    if (hasSubAms) {
+    if (isNozzleError) {
+      onNozzleError();
+    } else if (hasSubAms) {
       onEnterSubAms();
     } else if (!disabled) {
       onClick();
@@ -44,15 +53,17 @@ export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit }
   const tooltip = hasSubAms
     ? ''
     : resolveSlotTooltip(t, slot.state, slot.is_pickable, slot.filament_type, materialIndex);
+  const { hoverProps, tip } = useHoverTip(tooltip);
 
   return (
     <div
       className="ams-map-hotend__slot-card"
       data-state={slot.state}
       data-has-sub-ams={hasSubAms}
+      data-nozzle-error={isNozzleError}
       data-testid={`ams-mapping-hotend-slot-${slot.ams_id}-${slot.slot_id}`}
-      title={tooltip || undefined}
       onClick={handleClick}
+      {...hoverProps}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -152,7 +163,7 @@ export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit }
 
       {/* Nozzle info */}
       <NozzleInfo nozzle={slot.nozzle} state={slot.state} />
-
+      {tip}
     </div>
   );
 }

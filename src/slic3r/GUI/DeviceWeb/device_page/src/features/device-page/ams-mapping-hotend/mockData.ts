@@ -7,9 +7,12 @@ import type { AmsMappingHotendViewModel } from './types';
 //
 // To exercise every disabled visual variant (and keep the e2e suite
 // meaningful), we deliberately set:
-//   slot 128-1 -> MaterialUnmatch  (PLA preset vs PETG filament; has_filament=true)
-//   slot 128-2 -> MaterialEmpty    (rack nozzle present, no filament loaded)
-// All other slots are Normal / pickable.
+//   slot 128-0 -> NozzleLost          (detached tool, spec still shown, dimmed)
+//   slot 128-1 -> MaterialUnmatch     (PLA preset vs PETG filament)
+//   slot 128-2 -> MaterialEmpty       (rack nozzle present, no filament loaded)
+//   slot 128-3 -> NozzleUncalibrated  (docking calibration missing)
+//   slot 128-4 -> NozzleError         (communication error, click opens HMS)
+//   slot 128-5 -> NozzleUnknown       (hotend type unknown)
 export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
   selected_dev_id: 'mock-hotend',
   current_filament_id: 0,
@@ -26,7 +29,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
       index: '1',
       is_top_tier: false,
       ext: false,
-      state: 'Normal',
+      state: 'NozzleLost',
       filament_type: 'PLA',
       filament_name: 'PLA',
       color: '#1F8B4C',
@@ -34,7 +37,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
       color_type: 'single',
       remain: 80,
       has_filament: true,
-      is_pickable: true,
+      is_pickable: false,
       can_edit: false,
       checked: false,
       multi_colors: [],
@@ -89,7 +92,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
       index: '4',
       is_top_tier: true,
       ext: false,
-      state: 'Normal',
+      state: 'NozzleUncalibrated',
       filament_type: 'PLA',
       filament_name: 'PLA',
       color: '#1F8B4C',
@@ -97,7 +100,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
       color_type: 'single',
       remain: 90,
       has_filament: true,
-      is_pickable: true,
+      is_pickable: false,
       can_edit: false,
       checked: false,
       multi_colors: [],
@@ -110,7 +113,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
       index: '5',
       is_top_tier: false,
       ext: false,
-      state: 'Normal',
+      state: 'NozzleError',
       filament_type: 'PLA',
       filament_name: 'PLA',
       color: '#1F8B4C',
@@ -118,7 +121,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
       color_type: 'single',
       remain: 45,
       has_filament: true,
-      is_pickable: true,
+      is_pickable: false,
       can_edit: false,
       checked: false,
       multi_colors: [],
@@ -131,7 +134,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
       index: '6',
       is_top_tier: true,
       ext: false,
-      state: 'Normal',
+      state: 'NozzleUnknown',
       filament_type: 'PLA',
       filament_name: 'PLA',
       color: '#1F8B4C',
@@ -139,7 +142,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
       color_type: 'single',
       remain: 55,
       has_filament: true,
-      is_pickable: true,
+      is_pickable: false,
       can_edit: false,
       checked: false,
       multi_colors: [],
