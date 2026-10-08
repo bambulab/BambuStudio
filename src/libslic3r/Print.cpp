@@ -1316,7 +1316,7 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
     // extruders() includes the filaments used by every object and by supports, in both print sequences.
     for (unsigned int extruder_idx : print.extruders()) {
         if (get_filament_temp_type(print_config.filament_type.get_at(extruder_idx)) == FilamentTempType::HighTemp) {
-            ret.string     = L("High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments such as PLA.");
+            ret.string     = L("High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments.");
             ret.is_warning = true;
             ret.hypetext   = "filament_mix_print";
             break;

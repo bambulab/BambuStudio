@@ -13045,11 +13045,11 @@ msgstr " 太靠近裹头检测区域，会发生碰撞。\n"
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
 msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。"
 
-msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments such as PLA."
-msgstr "检测到当前盘使用了高温材料，请注意不要和PLA等低温材料混合打印"
+msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+msgstr "检测到当前盘使用了高温材料，请注意不要和低温材料混合打印。"
 
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments such as PLA."
-msgstr "发现AMS中有高温材料，注意不要与PLA等低温材料混合打印。"
+msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+msgstr "发现AMS中有高温材料，注意不要与低温材料混合打印。"
 
 msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
 msgstr "同时打印高温和低温材料可能导致喷嘴堵塞或打印机损坏。若仍需打印，可在偏好设置中启用该选项。"

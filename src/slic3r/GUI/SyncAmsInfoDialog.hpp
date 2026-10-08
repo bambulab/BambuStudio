@@ -345,6 +345,7 @@ private:
     wxString m_tip_attention_override;
     Label* m_tip_text{nullptr};
     Label* m_high_temp_tip_text{nullptr};
+    wxStaticText* m_high_temp_tip_link{nullptr};
     bool   m_has_high_temp_fila{false};
     //wxStaticText *m_specify_color_cluster_title = nullptr;
     //wxStaticText*  m_used_colors_tip_text{nullptr};

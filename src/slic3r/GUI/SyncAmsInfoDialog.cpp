@@ -929,14 +929,24 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info, long extr
         m_tip_text->SetMinSize(wxSize(SyncAttentionTipWidth, -1));
         m_tip_text->SetMaxSize(wxSize(SyncAttentionTipWidth, -1));
         m_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-        m_high_temp_tip_text = new Label(m_scrolledWindow, _L("High-temperature filament detected in AMS. Do not mix it with low-temperature filaments such as PLA."), LB_AUTO_WRAP);
+        m_high_temp_tip_text = new Label(m_scrolledWindow, _L("High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."), LB_AUTO_WRAP);
         m_high_temp_tip_text->SetMinSize(wxSize(SyncAttentionTipWidth, -1));
         m_high_temp_tip_text->SetMaxSize(wxSize(SyncAttentionTipWidth, -1));
         m_high_temp_tip_text->SetForegroundColour(wxColour(107, 107, 107, 100));
         m_high_temp_tip_text->Hide();
+        m_high_temp_tip_link = new wxStaticText(m_scrolledWindow, wxID_ANY, _L("Click Wiki for help."));
+        m_high_temp_tip_link->SetForegroundColour(wxColour(0, 174, 100));
+        m_high_temp_tip_link->SetCursor(wxCursor(wxCURSOR_HAND));
+        m_high_temp_tip_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) {
+            const bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+            wxLaunchDefaultBrowser(is_zh ? "https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit" :
+                                           "https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
+        });
+        m_high_temp_tip_link->Hide();
         wxBoxSizer *tip_text_sizer = new wxBoxSizer(wxVERTICAL);
         tip_text_sizer->Add(m_tip_text, 0, wxALIGN_LEFT, 0);
         tip_text_sizer->Add(m_high_temp_tip_text, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+        tip_text_sizer->Add(m_high_temp_tip_link, 0, wxALIGN_LEFT, 0);
         tip_sizer->Add(tip_text_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
         tip_sizer->AddSpacer(FromDIP(20));
         bSizer->Add(tip_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
@@ -1389,6 +1399,7 @@ void SyncAmsInfoDialog::update_high_temp_tip(MachineObject *obj_)
     m_has_high_temp_fila = has_high_temp;
     // keep in sync with m_tip_text, which is toggled by show_ams_controls()
     m_high_temp_tip_text->Show(m_tip_text->IsShown() && m_has_high_temp_fila);
+    m_high_temp_tip_link->Show(m_tip_text->IsShown() && m_has_high_temp_fila);
 }
 
 void SyncAmsInfoDialog::show_thumbnail_page()
@@ -3171,6 +3182,7 @@ void SyncAmsInfoDialog::show_ams_controls(bool flag)
     m_attention_text->Show(flag && !m_hide_hint_labels);
     m_tip_text->Show(flag && !m_hide_hint_labels);
     m_high_temp_tip_text->Show(flag && !m_hide_hint_labels && m_has_high_temp_fila);
+    m_high_temp_tip_link->Show(flag && !m_hide_hint_labels && m_has_high_temp_fila);
 }
 
 void SyncAmsInfoDialog::apply_scroll_height(int height)
