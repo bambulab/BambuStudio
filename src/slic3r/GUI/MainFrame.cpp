@@ -1150,6 +1150,13 @@ void MainFrame::shutdown()
     // language after a switch.
     ParamTooltip::Shutdown();
 
+#ifdef __APPLE__
+    if (m_sync_dialog_pending_activate) {
+        wxGetApp().Unbind(wxEVT_ACTIVATE_APP, &MainFrame::on_activate_app_show_sync_dialog, this);
+        m_sync_dialog_pending_activate = false;
+    }
+#endif // __APPLE__
+
     // BBS: backup -- quiesce the worker before this frame is destroyed. Stops the periodic
     // timer, drops the UI callback and any queued Backup UI posts so the backup thread cannot
     // invoke a callback (wxPostEvent / export_3mf) against this MainFrame after it goes away.
@@ -4731,6 +4738,20 @@ void MainFrame::show_sync_dialog()
     wxQueueEvent(this, evt);
 }
 
+#ifdef __APPLE__
+void MainFrame::on_activate_app_show_sync_dialog(wxActivateEvent& evt)
+{
+    evt.Skip();
+    if (!evt.GetActive())
+        return;
+    if (!m_sync_dialog_pending_activate)
+        return;
+    m_sync_dialog_pending_activate = false;
+    wxGetApp().Unbind(wxEVT_ACTIVATE_APP, &MainFrame::on_activate_app_show_sync_dialog, this);
+    show_sync_dialog();
+}
+#endif // __APPLE__
+
 bool MainFrame::check_bbl_farm_client_installed()
 {
 #ifdef WIN32
@@ -4770,6 +4791,16 @@ void MainFrame::update_side_preset_ui()
 
 void MainFrame::on_select_default_preset(SimpleEvent& evt)
 {
+#ifdef __APPLE__
+    if (!wxGetApp().IsActive()) {
+        if (!m_sync_dialog_pending_activate) {
+            m_sync_dialog_pending_activate = true;
+            wxGetApp().Bind(wxEVT_ACTIVATE_APP, &MainFrame::on_activate_app_show_sync_dialog, this);
+        }
+        return;
+    }
+#endif // __APPLE__
+
     MessageDialog dialog(this,
                     _L("Do you want to synchronize your personal data from Bambu Cloud? \n"
                         "It contains the following information:\n"

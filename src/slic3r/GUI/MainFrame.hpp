@@ -444,6 +444,8 @@ public:
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;
+    bool        m_sync_dialog_pending_activate { false };
+    void        on_activate_app_show_sync_dialog(wxActivateEvent& evt);
 #endif // __APPLE__
 
 #ifdef _WIN32

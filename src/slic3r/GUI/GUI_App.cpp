@@ -7889,6 +7889,8 @@ void GUI_App::MacOpenURL(const wxString& url)
 
     if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
         std::string decoded_url = extract_model_download_url_from_mac(url.ToStdString());
+        if (decoded_url.empty())
+            return;
         std::string download_file_url;
 #if BBL_RELEASE_TO_PUBLIC
         if (is_trusted_model_download_url(decoded_url)) {
