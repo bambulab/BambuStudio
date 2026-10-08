@@ -3121,7 +3121,9 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     // Claim a 3MF-armed migration now so an early return cannot leave it for the next sync.
     std::optional<PendingNozzleMigration> migration = std::move(pending_nozzle_migration);
     pending_nozzle_migration.reset();
-    if (obj == nullptr || !obj->is_online()) {
+    // While the printer is still connecting, the full status push has not arrived yet; treat it as not connected
+    // instead of reporting an unset nozzle type.
+    if (obj == nullptr || !obj->is_online() || !obj->is_info_ready()) {
         plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NOT_CONNECTED, _L("Sync printer information"));
         return false;
     }
@@ -3129,11 +3131,6 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     //    plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::INCONSISTENT, _L("Sync printer information"));
     //    return false;
     //}
-
-    if (!plater->check_printer_initialized(obj)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " check_printer_initialized fail";
-        return false;
-    }
 
     // some rack can't auto-read filament info, popup a dialog to give user a change to trigger a read opration
     if (is_manual) { tryPopUpSyncMachineInfoDialog(obj); }
