@@ -305,10 +305,11 @@ private:
     // which slot wins.
     void match_clusters_to_physical_filaments();
     // Rebind each color with select_filament_for_color(). Mixed slots are
-    // compared by their display color. Auto merge on: project filaments and
-    // ones created in this dialog. Auto merge off: only filaments created in
-    // this dialog. drop_unused removes created filaments that no color
-    // references; live edits pass false. Keeps row order.
+    // compared by their display color only while Color Mixing is on; otherwise
+    // they stay out of the pool at every threshold. Auto merge on: project
+    // filaments and ones created in this dialog. Auto merge off: only filaments
+    // created in this dialog. drop_unused removes created filaments that no
+    // color references; live edits pass false. Keeps row order.
     void reapply_match_threshold(bool drop_unused);
     void show_match_threshold_popup();
     void hide_match_threshold_popup();

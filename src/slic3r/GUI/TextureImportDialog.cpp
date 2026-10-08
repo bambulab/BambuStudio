@@ -7281,7 +7281,7 @@ void TextureImportDialog::reapply_match_threshold(bool drop_unused)
 
     // Same family vote as the initial auto-match. Empty family is kept in the
     // typed pass; a filament is skipped only when its family is known and differs.
-    // Mixed slots use their display color, the same way a single filament does.
+    // Mixed slots use their display color, and only while Color Mixing is on.
     const bool merge_on = m_auto_merge_enabled;
     const std::string match_type = pick_auto_match_filament_type(m_filament_entries, m_existing_filament_count);
     const size_t filament_count = std::min(m_filament_entries.size(), m_filament_colors_rgba.size());
@@ -7291,6 +7291,8 @@ void TextureImportDialog::reapply_match_threshold(bool drop_unused)
         indices.reserve(filament_count);
         for (size_t i = 0; i < filament_count; ++i) {
             const TextureFilamentKind kind = m_filament_entries[i].kind;
+            if (!m_mix_enabled && texture_entry_is_mixed(kind))
+                continue;
             if (merge_on) {
                 if (!texture_entry_is_physical(kind) && !texture_entry_is_mixed(kind))
                     continue;
