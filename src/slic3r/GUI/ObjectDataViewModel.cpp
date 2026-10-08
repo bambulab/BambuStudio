@@ -1296,23 +1296,8 @@ void ObjectDataViewModel::DeleteSettings(const wxDataViewItem& parent)
 {
     ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(parent.GetID());
     if (!node) return;
-#if NEW_OBJECT_SETTING
     node->set_action_icon(false);
     ItemChanged(parent);
-#else
-    // if volume has a "settings"item, than delete it before volume deleting
-    if (node->GetChildCount() > 0 && node->GetNthChild(0)->GetType() == itSettings) {
-        auto settings_node = node->GetNthChild(0);
-        auto settings_item = wxDataViewItem(settings_node);
-        node->GetChildren().RemoveAt(0);
-        delete settings_node;
-        // BBS
-        if (node->GetChildCount() == 0) {
-            node->m_container = false;
-        }
-        ItemDeleted(parent, settings_item);
-    }
-#endif
 }
 
 wxDataViewItem ObjectDataViewModel::GetItemById(int obj_idx)
