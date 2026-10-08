@@ -720,6 +720,9 @@ private:
     void update_save_time_hint(MachineObject* obj, const std::optional<float>& save_time);
 
     bool has_bowden_extuder(MachineObject *obj);
+    
+    std::string get_source_printer_model() const;
+    int find_preset_matched_index() const;
 };
 
 class PrinterInfoBox : public StaticBox

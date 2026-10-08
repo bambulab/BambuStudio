@@ -4119,6 +4119,44 @@ _collect_sorted_machines(Slic3r::DeviceManager* dev_manager,
     _collect_sorted_objs(other_list, sorted_machine_objs);
 }
 
+std::string SelectMachineDialog::get_source_printer_model() const
+{
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        if (!preset_bundle) return std::string();
+        return preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    }
+
+    if (m_print_type == PrintFromType::FROM_SDCARD_VIEW || m_print_type == PrintFromType::FROM_PRINT_QUEUE) {
+        if (m_print_plate_idx >= 0 && m_print_plate_idx < (int) m_required_data_plate_data_list.size() &&
+            m_required_data_plate_data_list[m_print_plate_idx]) {
+            return m_required_data_plate_data_list[m_print_plate_idx]->printer_model_id;
+        }
+    }
+
+    return std::string();
+}
+
+int SelectMachineDialog::find_preset_matched_index() const
+{
+    const std::string source_model = get_source_printer_model();
+    if (source_model.empty()) return 0;
+
+    for (size_t i = 0; i < m_list.size(); ++i) {
+        if (m_list[i] && m_list[i]->printer_type == source_model)
+            return (int) i;
+    }
+
+    for (size_t i = 0; i < m_list.size(); ++i) {
+        if (!m_list[i]) continue;
+        const auto& compat = m_list[i]->get_compatible_machine();
+        if (std::find(compat.begin(), compat.end(), source_model) != compat.end())
+            return (int) i;
+    }
+
+    return 0;
+}
+
 void SelectMachineDialog::update_user_printer()
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -4141,8 +4179,17 @@ void SelectMachineDialog::update_user_printer()
     m_printer_box->SetPrinters(m_list);
     if (!m_list.empty())
     {
-        m_printer_last_select = m_list.front()->get_dev_id();
-        m_printer_box->GetPrinterComboBox()->SetSelection(0);
+        int prefer_idx = 0;
+        if (m_print_type != FROM_PRINT_QUEUE && m_printer_last_select.empty()) {
+            prefer_idx = find_preset_matched_index();
+            BOOST_LOG_TRIVIAL(info)
+                << __FUNCTION__
+                << ": pick printer by source model, dev_id = "
+                << BBLCrossTalk::Crosstalk_DevId(m_list[prefer_idx]->get_dev_id());
+        }
+
+        m_printer_last_select = m_list[prefer_idx]->get_dev_id();
+        m_printer_box->GetPrinterComboBox()->SetSelection(prefer_idx);
         wxCommandEvent event(wxEVT_COMBOBOX);
         event.SetEventObject(m_printer_box->GetPrinterComboBox());
         wxPostEvent(m_printer_box->GetPrinterComboBox(), event);
