@@ -3,6 +3,10 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/compare.hpp>
+#include <wx/display.h>
 #include <openssl/md5.h>
 #include <openssl/evp.h>
 #include <boost/nowide/cstdio.hpp>
@@ -575,14 +579,15 @@ static std::string get_printer_nozzle_diameter(std::string printer_name) {
 }
 
 static void adjust_dialog_in_screen(DPIDialog* dialog) {
-    wxSize screen_size = wxGetDisplaySize();
+    int display_idx = wxDisplay::GetFromWindow(dialog);
+    wxRect screen_rect = wxDisplay(display_idx == wxNOT_FOUND ? 0 : display_idx).GetClientArea();
     int    pos_x, pos_y, size_x, size_y, screen_width, screen_height, dialog_x, dialog_y;
-    pos_x         = dialog->GetPosition().x;
-    pos_y         = dialog->GetPosition().y;
+    pos_x         = dialog->GetPosition().x - screen_rect.x;
+    pos_y         = dialog->GetPosition().y - screen_rect.y;
     size_x        = dialog->GetSize().x;
     size_y        = dialog->GetSize().y;
-    screen_width  = screen_size.GetWidth();
-    screen_height = screen_size.GetHeight();
+    screen_width  = screen_rect.GetWidth();
+    screen_height = screen_rect.GetHeight();
     dialog_x      = pos_x;
     dialog_y      = pos_y;
     if (pos_x + size_x > screen_width) {
@@ -593,7 +598,7 @@ static void adjust_dialog_in_screen(DPIDialog* dialog) {
         int exceed_y = pos_y + size_y - screen_height + 50;
         dialog_y -= exceed_y;
     }
-    if (pos_x != dialog_x || pos_y != dialog_y) { dialog->SetPosition(wxPoint(dialog_x, dialog_y)); }
+    if (pos_x != dialog_x || pos_y != dialog_y) { dialog->SetPosition(wxPoint(dialog_x + screen_rect.x, dialog_y + screen_rect.y)); }
 }
 
 CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
@@ -657,6 +662,7 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
 
     Layout();
     Fit();
+    CentreOnParent();
 
     this->Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
         this->Refresh();
@@ -726,8 +732,10 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxArrayString choices;
-    for (const wxString &vendor : filament_vendors) {
-        choices.push_back(vendor);
+    std::vector<std::string> sorted_vendors = filament_vendors;
+    std::sort(sorted_vendors.begin(), sorted_vendors.end(), [](const std::string &a, const std::string &b) { return boost::algorithm::ilexicographical_compare(a, b); });
+    for (const std::string &vendor : sorted_vendors) {
+        choices.push_back(wxString::FromUTF8(vendor));
     }
 
     wxBoxSizer *vendor_sizer   = new wxBoxSizer(wxHORIZONTAL);
@@ -809,8 +817,10 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxArrayString filament_type;
-    for (const wxString &filament : m_system_filament_types_set) {
-        filament_type.Add(filament);
+    std::vector<std::string> sorted_types(m_system_filament_types_set.begin(), m_system_filament_types_set.end());
+    std::sort(sorted_types.begin(), sorted_types.end());
+    for (const std::string &filament : sorted_types) {
+        filament_type.Add(wxString::FromUTF8(filament));
     }
 
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
