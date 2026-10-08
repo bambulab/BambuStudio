@@ -4,6 +4,7 @@
 #include <ClipperUtils.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include <tbb/parallel_for.h>
+#include <Eigen/Eigenvalues>
 
 #if defined(_MSC_VER) && defined(__clang__)
 #define BOOST_NO_CXX17_HDR_STRING_VIEW
@@ -120,6 +121,8 @@ public:
         area_cumulation_accurate(face_normals, normals_quantize, areas, 10);
 
         area_cumulation_accurate(face_normals_hull, normals_hull_quantize, areas_hull, 14);
+
+        add_principal_axes();
 
         add_supplements();
 
@@ -295,6 +298,55 @@ public:
             {0.70710678, 0, 0.70710678},{0, 0.70710678, 0.70710678},
             {-0.70710678, 0, 0.70710678},{0, -0.70710678, 0.70710678},{0, 0, 1} };
         orientations.insert(orientations.end(), vecs.begin(), vecs.end());
+    }
+
+    // Principal axes of the surface are body-fixed, so they keep the candidate set independent of the current pose.
+    // E.g. the cap of a long thin rod is smaller than any side strip and never enters the area-ranked groups.
+    void add_principal_axes()
+    {
+        const auto &its = mesh->its;
+        double   total_area    = 0.;
+        Vec3d    first_moment  = Vec3d::Zero();
+        Matrix3d second_moment = Matrix3d::Zero();
+        for (size_t i = 0; i < its.indices.size(); ++i) {
+            const Vec3d  a    = its.get_vertex(i, 0).cast<double>();
+            const Vec3d  b    = its.get_vertex(i, 1).cast<double>();
+            const Vec3d  c    = its.get_vertex(i, 2).cast<double>();
+            const double area = 0.5 * (b - a).cross(c - a).norm();
+            if (area <= 0.)
+                continue;
+            const Vec3d s = a + b + c;
+            total_area += area;
+            first_moment += area / 3. * s;
+            second_moment += area / 12. * (a * a.transpose() + b * b.transpose() + c * c.transpose() + s * s.transpose());
+        }
+        if (total_area < EPSILON)
+            return;
+
+        const Vec3d    centroid   = first_moment / total_area;
+        const Matrix3d covariance = second_moment / total_area - centroid * centroid.transpose();
+        Eigen::SelfAdjointEigenSolver<Matrix3d> solver(covariance);
+        if (solver.info() != Eigen::Success)
+            return;
+
+        // Snap to a real face normal so that a planar cap lies exactly flat on the bed.
+        const float snap_cos = float(cos(1. * PI / 180.));
+        for (int k = 0; k < 3; ++k) {
+            const Vec3f axis = solver.eigenvectors().col(k).cast<float>().normalized();
+            for (const Vec3f &dir : { axis, Vec3f(-axis) }) {
+                float  best_dot = -1.f;
+                size_t best_idx = 0;
+                for (size_t i = 0; i < face_normals.size(); ++i) {
+                    const float d = face_normals[i].dot(dir);
+                    if (d > best_dot) {
+                        best_dot = d;
+                        best_idx = i;
+                    }
+                }
+                const Vec3f candidate = (best_dot > snap_cos) ? face_normals[best_idx] : dir;
+                orientations.push_back(candidate);
+            }
+        }
     }
 
     /// <summary>
