@@ -2600,6 +2600,48 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     std::vector<AmsInfo> ams_infos;
     int                  index = 0;
     std::set<std::pair<std::string, std::string>> added_filaments;
+
+    // Finds an already-assigned project filament preset to keep for a tray instead of a fresh
+    // lookup. Only the index-aligned slot is trusted on filament type alone: that alignment holds
+    // once a project has been synced to this AMS, while a 3MF prepared elsewhere lists its own
+    // filaments in its own order, and a type match against those says nothing about what is
+    // physically loaded. When `search_all` is set (used for exact filament_id matches, which are
+    // real evidence), the rest of the project is searched as well, preferring a colour match.
+    const std::vector<std::string> prev_filament_presets = this->filament_presets;
+    const std::vector<std::string> prev_filament_colors  = project_config.option<ConfigOptionStrings>("filament_colour")->values;
+    auto same_color = [](const std::string &a, const std::string &b) {
+        // AMS reports #RRGGBBAA, the project stores #RRGGBB.
+        return a.size() >= 7 && b.size() >= 7 && boost::iequals(a.substr(0, 7), b.substr(0, 7));
+    };
+    auto find_prev_assignment = [&](size_t aligned_idx, const std::string &tray_type, const std::string &tray_color,
+                                    const std::function<bool(const Preset &)> &accept, bool search_all) -> std::string {
+        auto candidate = [&](size_t i) -> const Preset * {
+            if (i >= prev_filament_presets.size())
+                return nullptr;
+            const Preset *p = filaments.find_preset(prev_filament_presets[i], false);
+            if (p == nullptr || !p->is_compatible || !accept(*p))
+                return nullptr;
+            if (!tray_type.empty() && p->config.opt_string("filament_type", 0u) != tray_type)
+                return nullptr;
+            return p;
+        };
+        auto color_of = [&](size_t i) { return i < prev_filament_colors.size() ? prev_filament_colors[i] : std::string(); };
+        if (const Preset *p = candidate(aligned_idx); p && same_color(color_of(aligned_idx), tray_color))
+            return p->name;
+        if (search_all)
+            for (size_t i = 0; i < prev_filament_presets.size(); ++i)
+                if (const Preset *p = candidate(i); p && same_color(color_of(i), tray_color))
+                    return p->name;
+        if (const Preset *p = candidate(aligned_idx))
+            return p->name;
+        if (search_all)
+            for (size_t i = 0; i < prev_filament_presets.size(); ++i)
+                if (const Preset *p = candidate(i))
+                    return p->name;
+        return std::string();
+    };
+    auto accept_any = [](const Preset &) { return true; };
+
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
         auto filament_id = ams.opt_string("filament_id", 0u);
@@ -2631,14 +2673,30 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                         maps.erase(j);
                     }
                 }
-                ams_filament_presets.push_back("Generic PLA");//for unknow matieral
-                auto default_unknown_color = "#CECECE";
-                ams_filament_colors.push_back(default_unknown_color);
-                ams_filament_color_types.push_back("1");
-                if (filament_multi_color.size() == 0) {
-                    filament_multi_color.push_back(default_unknown_color);
+                // No RFID reported for this tray. Third-party spools never carry a
+                // filament_id at all, so an empty value here doesn't mean the
+                // physical filament changed -- it's simply unreadable, same as it
+                // was a moment ago. Keep whatever preset (including a manually
+                // customized one) was already assigned to this slot instead of
+                // blindly overwriting it with a hardcoded "Generic PLA" default.
+                std::string prev = find_prev_assignment(ams_filament_presets.size(), ams.opt_string("filament_type", 0u), filament_color, accept_any, false);
+                if (prev.empty() && ams_filament_presets.size() < this->filament_presets.size())
+                    prev = this->filament_presets[ams_filament_presets.size()];
+                if (!prev.empty()) {
+                    ams_filament_presets.push_back(prev);
+                    ams_filament_colors.push_back(filament_color);
+                    ams_filament_color_types.push_back(filament_color_type);
+                    ams_multi_color_filment.push_back(filament_multi_color);
+                } else {
+                    ams_filament_presets.push_back("Generic PLA");//for unknow matieral
+                    auto default_unknown_color = "#CECECE";
+                    ams_filament_colors.push_back(default_unknown_color);
+                    ams_filament_color_types.push_back("1");
+                    if (filament_multi_color.size() == 0) {
+                        filament_multi_color.push_back(default_unknown_color);
+                    }
+                    ams_multi_color_filment.push_back(filament_multi_color);
                 }
-                ams_multi_color_filment.push_back(filament_multi_color);
             }
             continue;
         }
@@ -2656,6 +2714,25 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             return f.is_compatible && filaments.get_preset_base(f) == &f && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
+            // Prefer old selection. An exact filament_id match failing doesn't mean
+            // the physical filament changed -- third-party spools routinely report a
+            // filament_id (or just a type) that isn't an exact hit against Bambu's
+            // own catalog even when it's the very same spool as before. Try this
+            // *before* falling back to a generic/random guess, so an existing
+            // (possibly customized) assignment for this slot isn't silently replaced
+            // by "Generic <type>" just because the exact ID didn't match.
+            std::string prev = find_prev_assignment(ams_filament_presets.size(), filament_type, filament_color, accept_any, false);
+            if (prev.empty() && filament_type.empty() && ams_filament_presets.size() < this->filament_presets.size())
+                prev = this->filament_presets[ams_filament_presets.size()];
+            if (!prev.empty()) {
+                ams_filament_presets.push_back(prev);
+                ams_filament_colors.push_back(filament_color);
+                ams_filament_color_types.push_back(filament_color_type);
+                ams_multi_color_filment.push_back(filament_multi_color);
+                unknowns.emplace_back(&ams, has_type ? L("The filament may not be compatible with the current machine settings. Still using the previous filament preset.") :
+                                                       L("The filament model is unknown. Still using the previous filament preset."));
+                continue;
+            }
             if (!filament_type.empty()) {
                 filament_type = "Generic " + filament_type;
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
@@ -2664,16 +2741,6 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 });
             }
             if (iter == filaments.end()) {
-                // Prefer old selection
-                if (ams_filament_presets.size() < this->filament_presets.size()) {
-                    ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
-                    ams_filament_colors.push_back(filament_color);
-                    ams_filament_color_types.push_back(filament_color_type);
-                    ams_multi_color_filment.push_back(filament_multi_color);
-                    unknowns.emplace_back(&ams, has_type ? L("The filament may not be compatible with the current machine settings. Generic filament presets will be used.") :
-                                                           L("The filament model is unknown. Still using the previous filament preset."));
-                    continue;
-                }
                 iter = std::find_if(filaments.begin(), filaments.end(), [](auto &f) {
                     return f.is_compatible && f.is_system;
                 });
@@ -2691,7 +2758,33 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         // in Studio even if the user never ticked it in the filament preferences,
         // otherwise it stays hidden in the filament settings dropdown after sync.
         iter->is_visible = true;
-        ams_filament_presets.push_back(iter->name);
+        // If the slot's currently-assigned preset already matches this exact
+        // filament_id, nothing has actually changed physically -- keep it as-is
+        // rather than reverting to iter's plain default preset. This preserves any
+        // customization (nozzle temp, scarf settings, etc.) the user saved for this
+        // spool instead of silently discarding it on every resync.
+        std::string preset_name_to_use = iter->name;
+        {
+            // Same filament_id already assigned somewhere in the project (possibly a customized
+            // or project-embedded preset): keep it.
+            const std::string matched_id = filament_id;
+            std::string prev = find_prev_assignment(ams_filament_presets.size(), std::string(), filament_color,
+                                                    [&matched_id](const Preset &p) { return p.filament_id == matched_id; }, true);
+            if (prev.empty()) {
+                // A spool with no Bambu RFID (e.g. third-party filament) still gets matched here,
+                // but only against the printer/AMS's own generic fallback ID for that filament type
+                // (e.g. "GFG99" / Generic PETG) -- a real, valid match, just not a specific brand.
+                // That's not evidence of an actual filament swap, so don't let it downgrade an
+                // existing, more specific preset of the very same filament type.
+                auto *iter_vendor = iter->config.option<ConfigOptionStrings>("filament_vendor");
+                bool  iter_is_generic = iter_vendor && !iter_vendor->values.empty() && iter_vendor->values[0] == "Generic";
+                if (iter_is_generic && !filament_type.empty())
+                    prev = find_prev_assignment(ams_filament_presets.size(), filament_type, filament_color, accept_any, false);
+            }
+            if (!prev.empty())
+                preset_name_to_use = prev;
+        }
+        ams_filament_presets.push_back(preset_name_to_use);
         ams_filament_colors.push_back(filament_color);
         ams_filament_color_types.push_back(filament_color_type);
         ams_multi_color_filment.push_back(filament_multi_color);
@@ -5676,13 +5769,29 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
         const double m_prefered_layer_height;
     };
 
+    // Project-embedded / external / user filament presets (e.g. "SUNLU PETG @BBL X1C(model.3mf)",
+    // created whenever a 3MF's filament settings differ from the system profile) carry no alias of
+    // their own. Without one, switching printers fell back to "first visible preset of the same
+    // filament_type", silently turning e.g. SUNLU PETG into Bambu/Generic PETG HF. Borrow the alias
+    // of the system preset they inherit from instead, so the same filament for the new printer wins.
+    const PresetCollection &filament_collection = this->filaments;
+    auto filament_alias_for_match = [&filament_collection](const Preset *preset) -> std::string {
+        if (preset == nullptr)
+            return std::string();
+        if (!preset->alias.empty())
+            return preset->alias;
+        const Preset *parent = filament_collection.get_preset_parent(*preset);
+        return (parent && parent != preset) ? parent->alias : std::string();
+    };
+
     // Matching by the layer height in addition.
     class PreferedFilamentProfileMatch : public PreferedProfileMatch
     {
     public:
-        PreferedFilamentProfileMatch(const Preset *preset, const std::string &prefered_name) :
-            PreferedProfileMatch(preset ? preset->alias : std::string(), prefered_name),
-            m_prefered_filament_type(preset ? preset->config.opt_string("filament_type", 0) : std::string()) {}
+        PreferedFilamentProfileMatch(const Preset *preset, const std::string &prefered_alias, const std::string &prefered_name) :
+            PreferedProfileMatch(prefered_alias, prefered_name),
+            m_prefered_filament_type(preset ? preset->config.opt_string("filament_type", 0) : std::string()),
+            m_prefered_filament_id(preset ? preset->filament_id : std::string()) {}
 
         int operator()(const Preset &preset) const
         {
@@ -5691,6 +5800,10 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
                 return 0;
             int match_quality = PreferedProfileMatch::operator()(preset);
             if (match_quality < std::numeric_limits<int>::max()) {
+                // Same physical filament for another printer shares the filament_id (e.g. GFSNL08):
+                // the next best evidence after an alias match.
+                if (!m_prefered_filament_id.empty() && preset.is_system && preset.filament_id == m_prefered_filament_id)
+                    return std::numeric_limits<int>::max() - 1;
                 match_quality += 1;
                 if(preset.is_visible)
                     match_quality += 1;
@@ -5702,15 +5815,17 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
 
     private:
         const std::string m_prefered_filament_type;
+        const std::string m_prefered_filament_id;
     };
 
     // Matching by the layer height in addition.
     class PreferedFilamentsProfileMatch
     {
     public:
-        PreferedFilamentsProfileMatch(const Preset *preset, const std::vector<std::string> &prefered_names) :
-            m_prefered_alias(preset ? preset->alias : std::string()),
+        PreferedFilamentsProfileMatch(const Preset *preset, const std::string &prefered_alias, const std::vector<std::string> &prefered_names) :
+            m_prefered_alias(prefered_alias),
             m_prefered_filament_type(preset ? preset->config.opt_string("filament_type", 0) : std::string("PLA")), // BBS: default choose PLA
+            m_prefered_filament_id(preset ? preset->filament_id : std::string()),
             m_prefered_names(prefered_names)
             {}
 
@@ -5722,6 +5837,8 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
             if (! m_prefered_alias.empty() && m_prefered_alias == preset.alias)
                 // Matching an alias, always take this preset with priority.
                 return std::numeric_limits<int>::max();
+            if (!m_prefered_filament_id.empty() && preset.is_system && preset.filament_id == m_prefered_filament_id)
+                return std::numeric_limits<int>::max() - 1;
             int match_quality = (std::find(m_prefered_names.begin(), m_prefered_names.end(), preset.name) != m_prefered_names.end()) + 1;
             if (! m_prefered_filament_type.empty() && m_prefered_filament_type == preset.config.opt_string("filament_type", 0))
                 match_quality *= 10;
@@ -5731,6 +5848,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
     private:
         const std::string               m_prefered_alias;
         const std::string               m_prefered_filament_type;
+        const std::string               m_prefered_filament_id;
         const std::vector<std::string> &m_prefered_names;
     };
 
@@ -5759,8 +5877,9 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
         for (size_t idx = 0; idx < prefered_filament_profiles.size(); ++idx) {
             BOOST_LOG_TRIVIAL(info) << boost::format("prefered filament： %1%") % prefered_filament_profiles[idx];
         }
+        const Preset *prev_edited_filament = this->filaments.get_selected_idx() == size_t(-1) ? nullptr : &this->filaments.get_edited_preset();
         this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_filament_if_incompatible,
-            PreferedFilamentsProfileMatch(this->filaments.get_selected_idx() == size_t(-1) ? nullptr : &this->filaments.get_edited_preset(), prefered_filament_profiles));
+            PreferedFilamentsProfileMatch(prev_edited_filament, filament_alias_for_match(prev_edited_filament), prefered_filament_profiles));
         if (select_other_filament_if_incompatible != PresetSelectCompatibleType::Never) {
             // Verify validity of the current filament presets.
             const std::string prefered_filament_profile = prefered_filament_profiles.empty() ? std::string() : prefered_filament_profiles.front();
@@ -5775,7 +5894,7 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
                     if (preset == nullptr || (! preset->is_compatible && (select_other_filament_if_incompatible == PresetSelectCompatibleType::Always || filament_preset_was_compatible[idx])))
                         // Pick a compatible profile. If there are prefered_filament_profiles, use them.
                         filament_name = this->filaments.first_compatible(
-                            PreferedFilamentProfileMatch(preset,
+                            PreferedFilamentProfileMatch(preset, filament_alias_for_match(preset),
                                 (idx < prefered_filament_profiles.size()) ? prefered_filament_profiles[idx] : prefered_filament_profile)).name;
                 }
             }
