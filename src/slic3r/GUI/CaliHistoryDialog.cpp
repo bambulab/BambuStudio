@@ -113,17 +113,17 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     this->SetBackgroundColour(*wxWHITE);
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto scroll_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
-    scroll_window->SetScrollRate(5, 5);
-    scroll_window->SetBackgroundColour(*wxWHITE);
-    scroll_window->SetMinSize(HISTORY_WINDOW_SIZE);
-    scroll_window->SetSize(HISTORY_WINDOW_SIZE);
-    scroll_window->SetMaxSize(HISTORY_WINDOW_SIZE);
+    m_scroll_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
+    m_scroll_window->SetScrollRate(5, 5);
+    m_scroll_window->SetBackgroundColour(*wxWHITE);
+    m_scroll_window->SetMinSize(HISTORY_WINDOW_SIZE);
+    m_scroll_window->SetSize(HISTORY_WINDOW_SIZE);
+    m_scroll_window->SetMaxSize(HISTORY_WINDOW_SIZE);
 
     auto scroll_sizer = new wxBoxSizer(wxVERTICAL);
-    scroll_window->SetSizer(scroll_sizer);
+    m_scroll_window->SetSizer(scroll_sizer);
 
-    Button *   mew_btn = new Button(scroll_window, _L("New"));
+    Button *   mew_btn = new Button(m_scroll_window, _L("New"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     mew_btn->SetBackgroundColour(*wxWHITE);
@@ -138,13 +138,13 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     scroll_sizer->Add(mew_btn, 0, wxLEFT, FromDIP(20));
     scroll_sizer->AddSpacer(FromDIP(15));
 
-    m_nozzle_tab_panel = new wxPanel(scroll_window);
+    m_nozzle_tab_panel = new wxPanel(m_scroll_window);
     m_nozzle_tab_panel->SetBackgroundColour(*wxWHITE);
     m_nozzle_tab_panel->Hide();
     scroll_sizer->Add(m_nozzle_tab_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
     scroll_sizer->AddSpacer(FromDIP(10));
 
-    m_extruder_switch_btn = new SwitchButton(scroll_window);
+    m_extruder_switch_btn = new SwitchButton(m_scroll_window);
     m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 174, 66));
     m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(200), FromDIP(24)));
     m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(200), FromDIP(24)));
@@ -157,7 +157,7 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     scroll_sizer->Add(m_extruder_switch_btn, 0, wxCENTER | wxALL, FromDIP(10));
     scroll_sizer->AddSpacer(10);
 
-    wxPanel* comboBox_panel = new wxPanel(scroll_window);
+    wxPanel* comboBox_panel = new wxPanel(m_scroll_window);
     comboBox_panel->SetBackgroundColour(wxColour(238, 238, 238));
     auto comboBox_sizer = new wxBoxSizer(wxVERTICAL);
     comboBox_panel->SetSizer(comboBox_sizer);
@@ -176,7 +176,7 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
 
     scroll_sizer->AddSpacer(FromDIP(15));
 
-    wxPanel* tips_panel = new wxPanel(scroll_window, wxID_ANY);
+    wxPanel* tips_panel = new wxPanel(m_scroll_window, wxID_ANY);
     tips_panel->SetBackgroundColour(*wxWHITE);
     auto tips_sizer = new wxBoxSizer(wxVERTICAL);
     tips_panel->SetSizer(tips_sizer);
@@ -188,12 +188,12 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
 
     scroll_sizer->AddSpacer(FromDIP(15));
 
-    m_history_data_panel = new wxPanel(scroll_window);
+    m_history_data_panel = new wxPanel(m_scroll_window);
     m_history_data_panel->SetBackgroundColour(*wxWHITE);
 
     scroll_sizer->Add(m_history_data_panel, 1, wxEXPAND);
 
-    main_sizer->Add(scroll_window, 1, wxEXPAND | wxALL, FromDIP(10));
+    main_sizer->Add(m_scroll_window, 1, wxEXPAND | wxALL, FromDIP(10));
 
     SetSizer(main_sizer);
     Layout();
@@ -616,6 +616,10 @@ void HistoryWindow::sync_history_data() {
     Layout();
     Fit();
     Thaw();
+
+    m_scroll_window->Layout();
+    m_scroll_window->FitInside();
+    m_scroll_window->Refresh();
 }
 
 float HistoryWindow::get_nozzle_value()

@@ -34,6 +34,7 @@ protected:
     void build_nozzle_tab_panel();
     void update_nozzle_tab_styles();
 
+    wxScrolledWindow*          m_scroll_window { nullptr };
     wxPanel*                   m_history_data_panel;
     ComboBox*                  m_comboBox_nozzle_dia;
     SwitchButton*              m_extruder_switch_btn;
