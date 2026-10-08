@@ -166,6 +166,11 @@ class Sidebar : public wxPanel
 
     /**
      * \brief Run the new Sync-AMS dialog (single-extruder multi-nozzle machines or multi-diameter mode) modally and return its result.
+     *
+     * Unsaved filament preset edits are discarded only after the user confirms. Without objects on any plate
+     * there is nothing to map, so no dialog opens and the result asks for a direct sync.
+     *
+     * \return the result; \c dlg_res is \c wxID_CANCEL when the user cancels
      */
     SyncResult run_multi_nozzle_sync_dialog();
 

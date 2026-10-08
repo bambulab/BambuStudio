@@ -6917,11 +6917,53 @@ SyncResult Sidebar::run_legacy_sync_dialog(MachineObject *obj, bool is_from_big_
     return out;
 }
 
+namespace {
+
+bool any_plate_has_objects()
+{
+    PartPlateList &plates = wxGetApp().plater()->get_partplate_list();
+    for (int i = 0; i < plates.get_plate_count(); ++i)
+        if (!plates.get_plate(i)->empty()) return true;
+    return false;
+}
+
+/**
+ * \brief Drop unsaved filament preset edits before a sync, asking the user first.
+ *
+ * \param parent  owner of the confirmation prompt
+ * \return false when the user keeps the edits, so the sync must not go on
+ */
+bool confirm_discard_filament_preset_edits(wxWindow *parent)
+{
+    if (!wxGetApp().preset_bundle->filaments.get_edited_preset().is_dirty)
+        return true;
+    MessageDialog confirm(parent, _L("Synchronizing AMS filaments will discard your modified but unsaved filament presets.\nAre you sure you want to continue?"),
+                          _L("Sync filaments with AMS"), wxOK | wxCANCEL);
+    if (confirm.ShowModal() != wxID_OK)
+        return false;
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", false, true);
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+    dynamic_filament_list.update();
+    return true;
+}
+
+} // namespace
+
 SyncResult Sidebar::run_multi_nozzle_sync_dialog()
 {
+    SyncResult out;
+    if (!confirm_discard_filament_preset_edits(this)) {
+        out.dlg_res = (int) wxID_CANCEL;
+        return out;
+    }
+    // Nothing to map without objects: sync directly.
+    out.dlg_res = (int) wxID_YES;
+    if (!any_plate_has_objects())
+        return out;
+
     SyncAmsDialog dlg(this);
     const int     dlg_res = dlg.ShowModal();
-    SyncResult    out     = dlg.get_result();
+    out                   = dlg.get_result();
     out.dlg_res           = (dlg_res == wxID_CANCEL) ? (int) wxID_CANCEL : (int) wxID_YES;
     return out;
 }
