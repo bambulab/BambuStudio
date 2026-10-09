@@ -562,7 +562,7 @@ void DropDown::messureSize()
     if (iconSize.x > 0) szContent.x += iconSize.x + (text_off ? 0 : 5);
     if (iconSize.y > szContent.y) szContent.y = iconSize.y;
     szContent.y += 10;
-    if (count > (size_t)max_visible_rows) szContent.x += 6;
+    if (count > rowLimit(szContent.y)) szContent.x += 6;
     if (GetParent() && group.IsEmpty()) {
         auto x = GetParent()->GetSize().x;
         if (x > 0 && (!use_content_width || x > szContent.x))
@@ -580,8 +580,9 @@ void DropDown::messureSize()
             szContent  = rowSize;
         }
     }
-    szContent.y *= std::min((size_t)max_visible_rows, std::max(count, (size_t) 1));
-    szContent.y += items.size() > (size_t)max_visible_rows ? rowSize.y / 2 : 0;
+    const size_t row_limit = rowLimit(rowSize.y);
+    szContent.y *= std::min(row_limit, std::max(count, (size_t) 1));
+    szContent.y += count > row_limit ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);
 #ifdef __WXGTK__
     // Gtk has a wrapper window for popup widget
@@ -621,6 +622,19 @@ void DropDown::messureSize()
     need_sync = false;
 }
 
+size_t DropDown::rowLimit(int row_height) const
+{
+    if (mainDropDown || !GetParent() || row_height <= 0)
+        return (size_t) max_visible_rows;
+    // Top-level list: show every row that fits on the roomier side of the combo box,
+    // keeping space for the half row that hints at scrolling.
+    wxRect area = wxDisplay(GetParent()).GetClientArea();
+    wxRect anchor = GetParent()->GetScreenRect();
+    int room = std::max(anchor.GetTop() - area.GetTop(), area.GetBottom() - anchor.GetBottom());
+    room -= 20 + row_height / 2;
+    return std::max<size_t>(1, room / row_height);
+}
+
 void DropDown::autoPosition()
 {
     messureSize();
@@ -644,9 +658,10 @@ void DropDown::autoPosition()
     wxSize size = GetSize();
     Position(pos, off);
     if (old != GetPosition()) {
+        const size_t row_limit = rowLimit(rowSize.y);
         size = rowSize;
-        size.y *= std::min((size_t)max_visible_rows, count);
-        size.y += count > (size_t)max_visible_rows ? rowSize.y / 2 : 0;
+        size.y *= std::min(row_limit, count);
+        size.y += count > row_limit ? rowSize.y / 2 : 0;
         if (size != GetSize()) {
             wxWindow::SetSize(size);
             offset = wxPoint();
@@ -655,9 +670,9 @@ void DropDown::autoPosition()
     }
     if (GetPosition().y > pos.y) {
         // may exceed
-        auto drect = wxDisplay(GetParent()).GetGeometry();
+        auto drect = wxDisplay(GetParent()).GetClientArea(); // keep clear of panels/taskbars
         if (GetPosition().y + size.y + 10 > drect.GetBottom()) {
-            if (use_content_width && count <= (size_t)max_visible_rows) size.x += 6;
+            if (use_content_width && count <= rowLimit(rowSize.y)) size.x += 6;
             size.y = drect.GetBottom() - GetPosition().y - 10;
             wxWindow::SetSize(size);
             if (selection >= 0) {
