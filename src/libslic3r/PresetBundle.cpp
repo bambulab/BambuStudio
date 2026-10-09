@@ -327,6 +327,13 @@ void ExtruderNozzleStat::on_printer_model_change(PresetBundle* preset_bundle)
             BOOST_LOG_TRIVIAL(error)<< __FUNCTION__ << boost::format(": eid out of bounds, use standard flow");
         else
             type = NozzleVolumeType(nozzle_volume_type->values[eid]);
+        if (type == nvtHybrid) {
+            // Hybrid only summarises mixed slots, so take the real mix from the preset's per-slot defaults.
+            extruder_nozzle_counts[eid].clear();
+            for (const auto &[vt, cnt] : count_default_nozzle_volume_types(preset_bundle->printers.get_selected_preset().config, (int) eid, max_nozzle_count->values[eid]))
+                set_extruder_nozzle_count(eid, vt, cnt, false);
+            continue;
+        }
         set_extruder_nozzle_count(eid, type, max_nozzle_count->values[eid], true);
     }
 }
@@ -1796,6 +1803,50 @@ std::string GetNozzleVolumeTypeStr(const NozzleVolumeType &type)
     }
 }
 
+// Format: extruders joined by ',', physical slots within an extruder joined by '|'. See the header.
+std::string serialize_nozzle_volume_types(const std::vector<std::vector<NozzleVolumeType>> &per_extruder_slots)
+{
+    std::string out;
+    for (size_t e = 0; e < per_extruder_slots.size(); ++e) {
+        if (e) out += ',';
+        const auto &slots = per_extruder_slots[e];
+        for (size_t s = 0; s < slots.size(); ++s) {
+            if (s) out += '|';
+            out += GetNozzleVolumeTypeStr(slots[s]);
+        }
+    }
+    return out;
+}
+
+std::vector<std::vector<NozzleVolumeType>> deserialize_nozzle_volume_types(const std::string &value)
+{
+    std::vector<std::vector<NozzleVolumeType>> result;
+    if (value.empty()) return result;
+    std::vector<std::string> ext_tokens;
+    boost::algorithm::split(ext_tokens, value, boost::is_any_of(","));
+    result.reserve(ext_tokens.size());
+    for (auto &ext : ext_tokens) {
+        std::vector<std::string> slot_tokens;
+        boost::algorithm::split(slot_tokens, ext, boost::is_any_of("|"));
+        std::vector<NozzleVolumeType> slots;
+        slots.reserve(slot_tokens.size());
+        for (auto &token : slot_tokens) {
+            boost::algorithm::trim(token);
+            slots.push_back(nozzle_volume_type_from_string(token));
+        }
+        result.push_back(std::move(slots));
+    }
+    return result;
+}
+
+std::map<NozzleVolumeType, int> count_default_nozzle_volume_types(const ConfigBase &printer_config, int extruder_id, int slot_count)
+{
+    std::map<NozzleVolumeType, int> counts;
+    for (int slot = 0; slot < slot_count; ++slot)
+        ++counts[get_default_nozzle_volume_type(printer_config, extruder_id, slot)];
+    return counts;
+}
+
 ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleStat &nozzle_stat,
                                                            const std::vector<int>   &extruder_max_nozzle_count,
                                                            const std::string        &diameter_str)
@@ -2045,6 +2096,150 @@ void PresetBundle::generate_extruder_full_stats_from_nozzle_stats()
     const auto* max_nozzle_count_opt        = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     const std::vector<int> max_nozzle_count = max_nozzle_count_opt ? max_nozzle_count_opt->values : std::vector<int>{};
     extruder_full_stat = build_extruder_full_stat_from_nozzle_stat(extruder_nozzle_stat, max_nozzle_count, diameter);
+}
+
+/**
+ * \brief Diameters of one extruder's slots after its volume types are re-applied for a printer preset
+ *
+ * A slot keeps the diameter the user, a project or a machine sync already gave it (e.g. a rack mixing
+ * 0.4 and 0.2), as long as one installed slot carries the preset's diameter. Otherwise the slots describe
+ * another diameter variant of the printer and all take the preset's diameter, so the preset's diameter is
+ * always present and a later volume type switch has a slot to land on.
+ *
+ * \param previous_slots   the extruder's current <diameter, volume type> slots; empty diameter = not set
+ * \param slot_count       number of physical nozzle slots of the extruder
+ * \param preset_diameter  the preset's diameter of the extruder, as format_diameter_to_str() gives it
+ */
+static std::vector<std::string> slot_diameters_for_preset(const std::vector<std::pair<std::string, std::string>> &previous_slots,
+                                                          int                                                     slot_count,
+                                                          const std::string                                      &preset_diameter)
+{
+    const bool inventory_fits = std::any_of(previous_slots.begin(), previous_slots.end(),
+                                            [&preset_diameter](const auto &slot) { return slot.first == preset_diameter; });
+    std::vector<std::string> diameters(std::max(slot_count, 0), preset_diameter);
+    if (!inventory_fits) return diameters;
+    for (int slot = 0; slot < slot_count && slot < (int) previous_slots.size(); ++slot)
+        if (!previous_slots[slot].first.empty()) diameters[slot] = previous_slots[slot].first;
+    return diameters;
+}
+
+void PresetBundle::apply_nozzle_volume_types(const Preset &printer_preset,
+    const std::function<NozzleVolumeType(int extruder_id, int slot_id)> &volume_for_slot)
+{
+    // Machine data describes what is physically installed; neither defaults nor history override it.
+    if (extruder_nozzle_stat.get_force_keep_flag() || extruder_nozzle_stat.get_nozzle_data_flag() == ExtruderNozzleStat::ndfMachine) return;
+
+    const DynamicPrintConfig &printer_config            = printer_preset.config;
+    auto                     *nozzle_volume_type_option = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    const auto               *nozzle_diameter_opt       = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const auto               *max_nozzle_count_opt      = printer_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    if (!nozzle_volume_type_option || !nozzle_diameter_opt || !max_nozzle_count_opt) return;
+
+    const size_t extruder_count = nozzle_diameter_opt->values.size();
+
+    nozzle_volume_type_option->values.resize(extruder_count);
+    // Only the volume types are replaced; slot diameters follow slot_diameters_for_preset().
+    const ExtruderFullStat previous_full_stat = extruder_full_stat;
+    extruder_full_stat.clear();
+    extruder_full_stat.resize(extruder_count);
+
+    for (size_t eid = 0; eid < extruder_count; ++eid) {
+        const int slot_count = eid < max_nozzle_count_opt->values.size() ? max_nozzle_count_opt->values[eid] : 0;
+
+        std::vector<std::pair<std::string, std::string>> slots;
+        slots.reserve(slot_count);
+        std::map<NozzleVolumeType, int> counts;
+        const std::vector<std::string> diameters = slot_diameters_for_preset(previous_full_stat.get_extruder_stats(eid), slot_count,
+                                                                             format_diameter_to_str(nozzle_diameter_opt->values[eid]));
+        for (int slot = 0; slot < slot_count; ++slot) {
+            NozzleVolumeType vt = volume_for_slot((int) eid, slot);
+            slots.emplace_back(diameters[slot], GetNozzleVolumeTypeStr(vt));
+            ++counts[vt];
+        }
+        extruder_full_stat.set_extruder_stats(eid, slots);
+
+        // Authoritative per-extruder count map (does not carry slot order).
+        bool first = true;
+        for (const auto &[vt, cnt] : counts) {
+            extruder_nozzle_stat.set_extruder_nozzle_count((int) eid, vt, cnt, first);
+            first = false;
+        }
+        nozzle_volume_type_option->values[eid] = counts.empty() ? nvtStandard : (counts.size() > 1 ? nvtHybrid : counts.begin()->first);
+    }
+
+    sync_per_slot_nozzle_options_from_full_stat(project_config, extruder_full_stat);
+}
+
+void PresetBundle::seed_default_nozzle_volume_types_from_preset(const Preset &printer_preset)
+{
+    apply_nozzle_volume_types(printer_preset, [&printer_preset](int extruder_id, int slot_id) {
+        return get_default_nozzle_volume_type(printer_preset.config, extruder_id, slot_id);
+    });
+}
+
+bool PresetBundle::load_nozzle_volume_types_from_app_config(AppConfig &config, const std::string &base_printer_name, const Preset &printer_preset)
+{
+    if (base_printer_name.empty()) return false;
+    const std::string value = config.get_nozzle_volume_types_from_config(base_printer_name);
+    if (value.empty()) return false;
+    const std::vector<std::vector<NozzleVolumeType>> grid = deserialize_nozzle_volume_types(value);
+    if (grid.empty()) return false;
+
+    apply_nozzle_volume_types(printer_preset, [&grid, &printer_preset](int extruder_id, int slot_id) {
+        // An extruder the saved entry does not cover (e.g. saved before a second extruder existed) takes the preset default.
+        if (extruder_id < 0 || extruder_id >= (int) grid.size() || grid[extruder_id].empty())
+            return get_default_nozzle_volume_type(printer_preset.config, extruder_id, slot_id);
+        const std::vector<NozzleVolumeType> &slots = grid[extruder_id];
+        // Broadcast: a legacy/short entry repeats its last token across the remaining physical slots.
+        return slot_id < (int) slots.size() ? slots[slot_id] : slots.back();
+    });
+    return true;
+}
+
+void PresetBundle::save_nozzle_volume_types_to_app_config(AppConfig &config, const std::string &base_printer_name) const
+{
+    if (base_printer_name.empty()) return;
+    std::vector<std::vector<NozzleVolumeType>> grid;
+    const auto &raw = extruder_full_stat.get_raw_stat();
+    grid.reserve(raw.size());
+    for (const auto &ext : raw) {
+        std::vector<NozzleVolumeType> slots;
+        slots.reserve(ext.size());
+        for (const auto &slot : ext) // slot = <diameter, volume>
+            slots.push_back(slot.second.empty() ? nvtStandard : nozzle_volume_type_from_string(slot.second));
+        grid.push_back(std::move(slots));
+    }
+    const std::string encoded = serialize_nozzle_volume_types(grid);
+    // Unchanged-guard: skip the write when the stored value already matches, so repeated funnel calls
+    // (per-extruder commits, repeated machine syncs with no change) don't churn app config.
+    if (encoded == config.get_nozzle_volume_types_from_config(base_printer_name)) return;
+    config.save_nozzle_volume_types_to_config(base_printer_name, encoded);
+}
+
+void PresetBundle::save_current_nozzle_volume_types_to_app_config(AppConfig &config)
+{
+    const Preset &current = printers.get_selected_preset();
+    const Preset *base    = printers.get_preset_base(current);
+    save_nozzle_volume_types_to_app_config(config, base ? base->name : current.name);
+}
+
+void PresetBundle::switch_extruder_nozzle_volume_type(int extruder_id, NozzleVolumeType type)
+{
+    extruder_nozzle_stat.on_volume_type_switch(extruder_id, type);
+
+    // Hybrid only summarises mixed slots, and machine data describes what is physically installed.
+    if (type == nvtHybrid || extruder_nozzle_stat.get_nozzle_data_flag() == ExtruderNozzleStat::ndfMachine) return;
+
+    const auto *nozzle_diameter_opt = printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!nozzle_diameter_opt || extruder_id < 0 || extruder_id >= int(nozzle_diameter_opt->values.size())) return;
+    auto slots = extruder_full_stat.get_extruder_stats(extruder_id);
+    if (slots.empty()) return;
+
+    // Slots of another diameter carry their own volume type and are left untouched.
+    const std::string diameter = format_diameter_to_str(nozzle_diameter_opt->values[extruder_id]);
+    for (auto &slot : slots)
+        if (slot.first == diameter) slot.second = GetNozzleVolumeTypeStr(type);
+    extruder_full_stat.set_extruder_stats(extruder_id, slots);
 }
 
 // Merge one vendor's presets with the other vendor's presets, report duplicates.
@@ -2515,27 +2710,9 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
 
     const Preset& current_printer = printers.get_selected_preset();
     const Preset* base_printer = printers.get_preset_base(current_printer);
-    bool use_default_nozzle_volume_type = true;
-    if (base_printer) {
-        std::string prev_nozzle_volume_type = config.get_nozzle_volume_types_from_config(base_printer->name);
-        if (!prev_nozzle_volume_type.empty()) {
-            ConfigOptionEnumsGeneric* nozzle_volume_type_option = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-            if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
-                for (size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid) {
-                    extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
-                }
-                use_default_nozzle_volume_type = false;
-            }
-        }
-    }
-
-    if (use_default_nozzle_volume_type) {
-        auto nozzle_volume_type_option = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-        nozzle_volume_type_option->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
-        for (size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid) {
-            extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
-        }
-    }
+    // Restore the per-slot nozzle volume types last saved for this printer; if none, seed the preset's per-slot defaults.
+    bool restored = base_printer && load_nozzle_volume_types_from_app_config(config, base_printer->name, current_printer);
+    if (!restored) seed_default_nozzle_volume_types_from_preset(current_printer);
 
     // Parse the initial physical printer name.
     std::string initial_physical_printer_name = remove_ini_suffix(config.get("presets", "physical_printer"));
@@ -4557,9 +4734,15 @@ void PresetBundle::reset_default_nozzle_volume_type()
 {
     Preset& current_printer = this->printers.get_edited_preset();
     auto nozzle_volume_type_option = this->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    nozzle_volume_type_option->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
-    for(size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid)
-        extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
+    const size_t extruder_count = current_printer.config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    nozzle_volume_type_option->values.resize(extruder_count);
+    for (size_t eid = 0; eid < extruder_count; ++eid) {
+        NozzleVolumeType vt = get_extruder_default_nozzle_volume_type(current_printer.config, (int) eid);
+        nozzle_volume_type_option->values[eid] = int(vt);
+        extruder_nozzle_stat.on_volume_type_switch(eid, vt);
+    }
+    // The coarse type above loses the per-slot mix (Hybrid); rebuild the slots from the preset defaults.
+    seed_default_nozzle_volume_types_from_preset(current_printer);
 }
 
 int PresetBundle::get_printer_extruder_count() const

@@ -111,21 +111,6 @@ size_t extruders_count(const Preset *printer)
     return nozzle_diameter->values.size();
 }
 
-// default or last used nozzle volume types will be used when switching to printer_name
-// restore last used if possible
-// ';' segmented if multiple, such as "High Flow;Standard"
-std::string default_nozzle_volume_types(const PresetBundle *preset_bundle, const Preset *printer)
-{
-    if (!printer) return {};
-    auto *base_printer = preset_bundle->printers.get_preset_base(*printer);
-    if (!base_printer) base_printer = printer;
-
-    auto nozzle_volume_type = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_printer->name);
-    if (!nozzle_volume_type.empty()) return nozzle_volume_type;
-
-    return printer->config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->serialize();
-}
-
 void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
     m_timer.SetOwner(owner, timerid);
@@ -6132,8 +6117,19 @@ void TabPrinter::on_preset_loaded()
     m_extruder_variant_list = m_config->option<ConfigOptionStrings>("printer_extruder_variant")->values;
 
     if (base_name != m_base_preset_name) {
-        bool use_default_nozzle_volume_type = true;
+        const bool model_changed                  = base_model != m_base_preset_model;
+        bool       use_default_nozzle_volume_type = true;
         m_base_preset_name = base_name;
+        if (model_changed) {
+            // Nozzle data synced from the previous machine no longer describes this one.
+            m_preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfNone);
+            // Start from the new model's nozzles so the per-slot types restored or seeded below don't keep the
+            // previous model's diameters. A prebuilt per-slot snapshot already belongs to the new model.
+            if (!m_full_stat_prebuilt_for_model_change) {
+                m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
+                m_preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
+            }
+        }
         auto plater_for_nvt = wxGetApp().plater();
         if (plater_for_nvt && plater_for_nvt->is_loading_project()) {
             // Loading project: nozzle_volume_type has already been applied from the 3mf project_config,
@@ -6141,29 +6137,27 @@ void TabPrinter::on_preset_loaded()
             use_default_nozzle_volume_type = false;
         }
         if (use_default_nozzle_volume_type) {
-            std::string prev_nozzle_volume_type = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_name);
-            if (!prev_nozzle_volume_type.empty()) {
-                ConfigOptionEnumsGeneric* nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-                if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
-                    for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
-                        NozzleVolumeType volume_type=NozzleVolumeType(nozzle_volume_type_option->values[idx]);
-                        m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, volume_type);
-                        if (wxGetApp().plater()) {
-                            wxGetApp().plater()->update_filament_volume_map(idx, volume_type);
-                        }
-                        updateNozzleCountDisplay(m_preset_bundle, idx, volume_type);
-                    };
-                    use_default_nozzle_volume_type = false;
+            // Restore the per-slot types last used on this printer, then reflect them into the UI.
+            if (m_preset_bundle->load_nozzle_volume_types_from_app_config(*wxGetApp().app_config, base_name, current_printer)) {
+                auto nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+                for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
+                    NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volume_type_option->values[idx]);
+                    if (wxGetApp().plater())
+                        wxGetApp().plater()->update_filament_volume_map(idx, volume_type);
+                    updateNozzleCountDisplay(m_preset_bundle, idx, volume_type);
                 }
+                use_default_nozzle_volume_type = false;
             }
         }
         if (use_default_nozzle_volume_type) {
-            auto default_nozzle_volume_type = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
-            for (size_t eid = 0; eid < default_nozzle_volume_type.size(); ++eid)
-                set_extruder_volume_type(eid, (NozzleVolumeType)(default_nozzle_volume_type[eid]));
+            // Per-slot defaults first: the per-extruder type below summarises a mixed layout as Hybrid and
+            // cannot rebuild it.
+            m_preset_bundle->seed_default_nozzle_volume_types_from_preset(current_printer);
+            for (size_t eid = 0; eid < extruders_count; ++eid)
+                apply_extruder_volume_type(eid, get_extruder_default_nozzle_volume_type(current_printer.config, (int) eid));
         }
 
-        if (base_model != m_base_preset_model) {
+        if (model_changed) {
             auto extruder_type = current_printer.config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
             bool update_extruder_title = extruder_type.size() != m_extruder_type.size();
             for (size_t idx = 0; idx < extruders_count; idx++) {
@@ -6183,7 +6177,7 @@ void TabPrinter::on_preset_loaded()
         }
 
         // only reset nozzle count when printer model is changed
-        if (base_model != m_base_preset_model) {
+        if (model_changed) {
             wxGetApp().plater()->sidebar().reset_fila_switch();
 
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
@@ -6191,13 +6185,10 @@ void TabPrinter::on_preset_loaded()
             bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
             if (extruder_max_nozzle_count && nozzle_volume_type) {
                 wxGetApp().plater()->sidebar().enable_nozzle_count_edit(has_multiple_nozzle);
-                if (!m_full_stat_prebuilt_for_model_change)
-                    m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
                 for (size_t idx = 0; idx < extruders_count; ++idx) {
                     updateNozzleCountDisplay(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]));
                 }
             }
-            m_preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfNone);
 
             // only trigger prime volume type for printers with multi nozzle
             auto support_fast_purge_opt = current_printer.config.option<ConfigOptionBool>("support_fast_purge_mode");
@@ -8050,6 +8041,12 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 
 void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type)
 {
+    apply_extruder_volume_type(extruder_id, type);
+    m_preset_bundle->save_current_nozzle_volume_types_to_app_config(*wxGetApp().app_config);
+}
+
+void TabPrinter::apply_extruder_volume_type(int extruder_id, NozzleVolumeType type)
+{
     // -1 means single extruder, so we should default use extruder id 0
     if (extruder_id == -1)
         extruder_id = 0;
@@ -8057,7 +8054,7 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
     assert(nozzle_volumes->values.size() > (size_t)extruder_id);
     nozzle_volumes->values[extruder_id] = type;
 
-    m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(extruder_id, type);
+    m_preset_bundle->switch_extruder_nozzle_volume_type(extruder_id, type);
     if (wxGetApp().plater()) {
         wxGetApp().plater()->update_filament_volume_map(extruder_id, int(type));
     }
@@ -8065,20 +8062,6 @@ void TabPrinter::set_extruder_volume_type(int extruder_id, NozzleVolumeType type
 
     on_value_change((boost::format("nozzle_volume_type#%1%") % extruder_id).str(), int(type));
     update_dirty();
-
-    //save to app config
-    if (!m_base_preset_name.empty()) {
-        // do not save hybrid flow status to config
-        ConfigOptionEnumsGeneric nozzle_volume_type_option = *m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-        for(size_t i = 0; i < nozzle_volume_type_option.values.size(); i++){
-            if(nozzle_volume_type_option.values[i] == (int)(nvtHybrid)){
-                nozzle_volume_type_option.values[i] = (int)(nvtStandard);
-            }
-        }
-        std::string nozzle_volume_type_str = nozzle_volume_type_option.serialize();
-        wxGetApp().app_config->save_nozzle_volume_types_to_config(m_base_preset_name, nozzle_volume_type_str);
-    }
-
 }
 
 // Return a callback to create a TabPrinter widget to edit bed shape

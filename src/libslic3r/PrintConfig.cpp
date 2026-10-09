@@ -8,6 +8,7 @@
 #include "LocalesUtils.hpp"
 
 #include <array>
+#include <cassert>
 #include <set>
 #include <cmath>
 #include <cstdlib>
@@ -1090,27 +1091,18 @@ void sync_nozzle_volume_type_to_extruder_count(DynamicPrintConfig &cfg, bool cli
     if (nvt->values.size() >= ec)
         return;
 
-    auto *def_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(cfg.option("default_nozzle_volume_type"));
+    auto coarse_default = [&cfg](size_t i) { return int(get_extruder_default_nozzle_volume_type(cfg, int(i))); };
 
     if (!cli_specified_nozzle_volume_type) {
         nvt->values.resize(ec);
-        for (size_t i = 0; i < ec; ++i) {
-            if (def_opt && !def_opt->values.empty())
-                nvt->values[i] = (i < def_opt->values.size()) ? def_opt->values[i] : def_opt->values.back();
-            else
-                nvt->values[i] = int(NozzleVolumeType::nvtStandard);
-        }
+        for (size_t i = 0; i < ec; ++i)
+            nvt->values[i] = coarse_default(i);
         BOOST_LOG_TRIVIAL(info) << boost::format("sync_nozzle_volume_type_to_extruder_count: nozzle_volume_type from default_nozzle_volume_type, extruders=%1%") % ec;
         return;
     }
 
-    while (nvt->values.size() < ec) {
-        const size_t i = nvt->values.size();
-        int           v  = int(NozzleVolumeType::nvtStandard);
-        if (def_opt && !def_opt->values.empty())
-            v = (i < def_opt->values.size()) ? def_opt->values[i] : def_opt->values.back();
-        nvt->values.push_back(v);
-    }
+    while (nvt->values.size() < ec)
+        nvt->values.push_back(coarse_default(nvt->values.size()));
     BOOST_LOG_TRIVIAL(info) << boost::format("sync_nozzle_volume_type_to_extruder_count: padded CLI nozzle_volume_type to extruder count %1%") % ec;
 }
 
@@ -1230,6 +1222,63 @@ NozzleVolumeType nozzle_volume_type_from_string(const std::string &name)
     if (iter != s_keys_map_NozzleVolumeType.end())
         return NozzleVolumeType(iter->second);
     return nvtStandard;
+}
+
+// Default volume types of one extruder's physical nozzle slots, in physical order. Lists no longer than
+// the extruder count hold one value per extruder (extruders past the list reuse its last value); a list
+// as long as all slots of all extruders holds one value per slot; any other length warns and yields Standard.
+static std::vector<NozzleVolumeType> default_nozzle_volume_slots(const ConfigBase &config, int extruder_id)
+{
+    const auto *diameters      = dynamic_cast<const ConfigOptionFloatsNullable *>(config.option("nozzle_diameter"));
+    const auto *max_counts     = dynamic_cast<const ConfigOptionIntsNullable *>(config.option("extruder_max_nozzle_count"));
+    const int   extruder_count = diameters ? int(diameters->values.size()) : 1;
+    if (extruder_id < 0 || extruder_id >= extruder_count) return {};
+
+    auto slot_count = [max_counts](int eid) {
+        if (!max_counts || eid >= int(max_counts->values.size()) || max_counts->is_nil(eid)) return 1;
+        return std::max(1, max_counts->values[eid]);
+    };
+
+    std::vector<NozzleVolumeType> slots(slot_count(extruder_id), nvtStandard);
+    const auto *opt   = dynamic_cast<const ConfigOptionEnumsGeneric *>(config.option("default_nozzle_volume_type"));
+    const int   count = opt ? int(opt->values.size()) : 0;
+    if (count == 0) return slots;
+
+    if (count <= extruder_count) {
+        std::fill(slots.begin(), slots.end(), NozzleVolumeType(opt->values[std::min(extruder_id, count - 1)]));
+        return slots;
+    }
+
+    int offset = 0, total = 0;
+    for (int eid = 0; eid < extruder_count; ++eid) {
+        if (eid == extruder_id) offset = total;
+        total += slot_count(eid);
+    }
+    if (count != total) {
+        const auto *model = dynamic_cast<const ConfigOptionString *>(config.option("printer_model"));
+        BOOST_LOG_TRIVIAL(warning) << boost::format("default_nozzle_volume_type has %1% values, expected 1, %2% or %3%, machine: %4%")
+                                          % count % extruder_count % total % (model ? model->value : std::string("unknown"));
+        return slots;
+    }
+    for (size_t slot = 0; slot < slots.size(); ++slot)
+        slots[slot] = NozzleVolumeType(opt->values[offset + slot]);
+    return slots;
+}
+
+// Coarse per-extruder default: the extruder's slot defaults collapsed to one type (uniform -> that type,
+// mixed -> Hybrid). Matches the coarse mirror PresetBundle::apply_nozzle_volume_types derives from the slots.
+NozzleVolumeType get_extruder_default_nozzle_volume_type(const ConfigBase &config, int extruder_id)
+{
+    const std::vector<NozzleVolumeType> slots = default_nozzle_volume_slots(config, extruder_id);
+    if (slots.empty()) return nvtStandard;
+    const bool uniform = std::all_of(slots.begin(), slots.end(), [&slots](NozzleVolumeType vt) { return vt == slots.front(); });
+    return uniform ? slots.front() : nvtHybrid;
+}
+
+NozzleVolumeType get_default_nozzle_volume_type(const ConfigBase &config, int extruder_id, int nozzle_id)
+{
+    const std::vector<NozzleVolumeType> slots = default_nozzle_volume_slots(config, extruder_id);
+    return nozzle_id >= 0 && nozzle_id < int(slots.size()) ? slots[nozzle_id] : nvtStandard;
 }
 
 NozzleVolumeType convert_to_nvt_type(const std::string &variant_str) {
@@ -5569,9 +5618,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtStandard });
 
+    // Length is not tied to the extruder count, so this key stays out of the extruder-sized option lists:
+    // one value for every nozzle, one per extruder, or one per physical nozzle slot with the extruders laid
+    // out back to back. Read it only through get_default_nozzle_volume_type / get_extruder_default_nozzle_volume_type.
     def = this->add("default_nozzle_volume_type", coEnums);
     def->label = L("Default Nozzle Volume Type");
-    def->tooltip = ("Default Nozzle volume type for extruders in this printer");
+    def->tooltip = ("Default nozzle volume type for the nozzles in this printer");
     def->enum_keys_map = &ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
     def->enum_values.push_back(L("Standard"));
     def->enum_values.push_back(L("High Flow"));
@@ -7470,7 +7522,7 @@ void PrintConfigDef::init_extruder_option_keys()
 {
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
-        "extruder_type", "nozzle_diameter", "default_nozzle_volume_type", "min_layer_height", "max_layer_height", "extruder_offset",
+        "extruder_type", "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
         "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "retract_lift_above", "retract_lift_below","deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
@@ -8462,7 +8514,6 @@ std::set<std::string> filament_options_with_variant = {
 std::set<std::string> printer_extruder_options = {
     "extruder_type",
     "nozzle_diameter",
-    "default_nozzle_volume_type",
     "extruder_printable_area",
     "extruder_printable_height",
     "min_layer_height",

@@ -553,6 +553,27 @@ extern std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::
 extern NozzleVolumeType legacy_fallback_nozzle_volume_type(NozzleVolumeType nozzle_volume_type);
 extern void split_nozzle_stats_for_export(DynamicPrintConfig &config);
 
+/**
+ * \brief Default volume type of one physical nozzle slot, from the printer's default_nozzle_volume_type
+ *
+ * The length of default_nozzle_volume_type is not the extruder count; read it only through this function
+ * or get_extruder_default_nozzle_volume_type().
+ *
+ * \param config       printer config holding default_nozzle_volume_type, nozzle_diameter and extruder_max_nozzle_count
+ * \param extruder_id  0-based extruder id
+ * \param nozzle_id    0-based physical slot of the extruder
+ * \return Standard for an out-of-range extruder or slot
+ */
+extern NozzleVolumeType get_default_nozzle_volume_type(const ConfigBase &config, int extruder_id, int nozzle_id);
+
+/**
+ * \brief Default volume type of one extruder: its slot defaults collapsed to one type, Hybrid if they differ
+ *
+ * \param config       printer config holding default_nozzle_volume_type, nozzle_diameter and extruder_max_nozzle_count
+ * \param extruder_id  0-based extruder id
+ */
+extern NozzleVolumeType get_extruder_default_nozzle_volume_type(const ConfigBase &config, int extruder_id);
+
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
     template<> const t_config_enum_values& ConfigOptionEnum<NAME>::get_enum_values();

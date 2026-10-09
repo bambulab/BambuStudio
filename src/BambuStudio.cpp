@@ -4348,6 +4348,16 @@ int CLI::run(int argc, char **argv)
             }
         }
         nozzle_stats_obj.on_printer_model_change_cli(curr_volume_map_value, max_nozzle_count);
+        // Hybrid only summarises mixed slots, so take the real mix from the preset's per-slot defaults.
+        for (size_t eid = 0; eid < slot_count; ++eid) {
+            if (curr_volume_map_value[eid] != int(NozzleVolumeType::nvtHybrid))
+                continue;
+            bool first = true;
+            for (const auto &[vt, cnt] : count_default_nozzle_volume_types(m_print_config, (int) eid, max_nozzle_count[eid])) {
+                nozzle_stats_obj.set_extruder_nozzle_count((int) eid, vt, cnt, first);
+                first = false;
+            }
+        }
     }
     else {
         const auto *nozzle_stats_opt = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats_new");

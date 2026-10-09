@@ -747,6 +747,13 @@ private:
     std::string          m_base_preset_model;
     bool                 m_full_stat_prebuilt_for_model_change = false;
 
+    /**
+     * \brief Switch one extruder's nozzle volume type without remembering it for the printer
+     *
+     * Used while loading a preset, where the type comes from defaults rather than the user.
+     */
+    void apply_extruder_volume_type(int extruder_id, NozzleVolumeType type);
+
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
 
@@ -789,6 +796,12 @@ public:
 	void		msw_rescale() override;
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
 
+	/**
+	 * \brief Switch one extruder's nozzle volume type and remember it for the current printer
+	 *
+	 * \param extruder_id  0-based extruder id, -1 for a single extruder printer
+	 * \param type         new volume type of the extruder
+	 */
 	void		set_extruder_volume_type(int extruder_id, NozzleVolumeType type);
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);

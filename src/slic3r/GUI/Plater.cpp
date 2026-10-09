@@ -2532,6 +2532,10 @@ void Sidebar::priv::update_extruder_full_stats(int extruder_id, wxString diamete
         full_stats.emplace_back(d, v);
     }
     preset_bundle->extruder_full_stat.set_extruder_stats(extruder_id, full_stats);
+
+    // extruder_full_stat is the source of truth for app_config[nozzle_volume_types]. This is the single
+    // write funnel for genuine changes (ExtruderSettings dialog OK + machine sync), so persist here.
+    preset_bundle->save_current_nozzle_volume_types_to_app_config(*wxGetApp().app_config);
 }
 
 void Sidebar::priv::reset_all_nozzle_status()
@@ -5566,7 +5570,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         };
 
         auto extruder_full_stat     = wxGetApp().preset_bundle->extruder_full_stat;
-        auto update_extruder_config = [extruder_full_stat, diameter, extruder_max_nozzle_count](std::vector<NozzleConfig> &cfg, int index) {
+        auto update_extruder_config = [extruder_full_stat, diameter, extruder_max_nozzle_count, &printer_preset](std::vector<NozzleConfig> &cfg, int index) {
             std::map<int, NozzleConfig> saved_statuses;
             for (size_t i = 0; i < cfg.size(); ++i) { saved_statuses[i] = cfg[i]; }
 
@@ -5577,7 +5581,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
                 int total = extruder_max_nozzle_count->values[index];
                 for (int i = 0; i < total; ++i) {
                     NozzleConfig nc;
-                    nc.volume   = nvtStandard;
+                    nc.volume   = get_default_nozzle_volume_type(printer_preset.config, index, (int)cfg.size());
                     nc.diameter = wxString(diameter);
                     if (saved_statuses.count(i)) { nc.status = saved_statuses[i].status; }
                     cfg.push_back(nc);
@@ -5597,7 +5601,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             int total = extruder_max_nozzle_count->values[index];
             while (cfg.size() < total) {
                 NozzleConfig nc;
-                nc.volume   = nvtStandard;
+                nc.volume   = get_default_nozzle_volume_type(printer_preset.config, index, (int)cfg.size());
                 nc.diameter = wxString(diameter);
                 nc.status   = NozzleStatus::nsNormal;
                 cfg.push_back(nc);

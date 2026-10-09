@@ -12,6 +12,7 @@
 #include <variant>
 #include <map>
 #include <set>
+#include <functional>
 #include <boost/filesystem/path.hpp>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
@@ -147,6 +148,7 @@ public:
     void set_raw_stat(const std::vector<std::map<NozzleVolumeType, int>>& data) { extruder_nozzle_counts = data; }
 
     void set_nozzle_data_flag(NozzleDataFlag flag){ data_flag = flag; }
+    NozzleDataFlag get_nozzle_data_flag() const { return data_flag; }
     void set_force_keep_flag(bool flag) { force_keep_stat = flag; }
     bool get_force_keep_flag() const { return force_keep_stat; }
 
@@ -204,6 +206,24 @@ void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, con
 bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config);
 std::vector<double> derive_nozzle_diameter_from_full_stat(const ExtruderFullStat   &full_stat,
                                                           const std::vector<double> &fallback);
+
+/**
+ * \brief Count one extruder's physical nozzle slots by their preset default volume type
+ *
+ * \param printer_config  printer config holding default_nozzle_volume_type
+ * \param extruder_id     0-based extruder id
+ * \param slot_count      number of physical nozzle slots of the extruder
+ * \return volume type -> slot count; never contains Hybrid
+ */
+std::map<NozzleVolumeType, int> count_default_nozzle_volume_types(const ConfigBase &printer_config, int extruder_id, int slot_count);
+
+// Single source of truth for the BambuStudio.conf "nozzle_volume_types" per-printer string:
+// extruders joined by ',', physical slots within an extruder joined by '|', each token a
+// NozzleVolumeType name. Legacy values have no '|' (one token per extruder) and decode to a single
+// slot the loader broadcasts across the physical slots; unknown tokens fall back to Standard.
+// Use the PresetBundle load/save API rather than hand-rolling this format at call sites.
+std::string                                serialize_nozzle_volume_types(const std::vector<std::vector<NozzleVolumeType>> &per_extruder_slots);
+std::vector<std::vector<NozzleVolumeType>> deserialize_nozzle_volume_types(const std::string &value);
 
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
@@ -546,6 +566,39 @@ public:
     void update_extruder_full_stats_from_config(const std::string &snapshot_printer_model = std::string());
     void generate_extruder_full_stats_from_nozzle_stats();
 
+    /**
+     * \brief Set every nozzle slot's volume type to the printer preset's per-slot default
+     *
+     * Slots keep their current diameter; reset the per-slot nozzle info first when the printer model
+     * changes. Does nothing for machine-synced or project-locked nozzle data.
+     */
+    void seed_default_nozzle_volume_types_from_preset(const Preset &printer_preset);
+
+    /**
+     * \brief Restore the per-slot nozzle volume types last saved in app config for one printer
+     *
+     * Same slot rules as seed_default_nozzle_volume_types_from_preset(); extruders missing from the saved
+     * entry take the preset defaults.
+     *
+     * \return false if nothing is saved for the printer
+     */
+    bool load_nozzle_volume_types_from_app_config(AppConfig &config, const std::string &base_printer_name, const Preset &printer_preset);
+    // Remember the current per-slot nozzle volume types in app config for one printer
+    void save_nozzle_volume_types_to_app_config(AppConfig &config, const std::string &base_printer_name) const;
+    // Convenience: save for the currently selected printer
+    void save_current_nozzle_volume_types_to_app_config(AppConfig &config);
+
+    /**
+     * \brief Switch one extruder's nozzle volume type and keep the per-slot nozzle info consistent with it
+     *
+     * Only nozzles of the extruder's current diameter take the new type. Hybrid and machine-synced data
+     * leave the per-slot info unchanged. Does not touch nozzle_volume_type in project_config.
+     *
+     * \param extruder_id  0-based extruder id
+     * \param type         new volume type of the extruder
+     */
+    void switch_extruder_nozzle_volume_type(int extruder_id, NozzleVolumeType type);
+
     // Call with raw 3mf config before FullPrintConfig defaults are merged in.
     void note_per_slot_nozzle_options_from_project_file(const DynamicPrintConfig &raw_file_config);
 
@@ -556,6 +609,11 @@ public:
 	static const char *BBL_DEFAULT_FILAMENT;
 private:
     bool m_project_file_has_per_slot_nozzle_options{false};
+
+    // Core builder shared by the default seed and the app-config load: for each (extruder, slot) the
+    // provider returns the volume type
+    void apply_nozzle_volume_types(const Preset &printer_preset,
+                                   const std::function<NozzleVolumeType(int extruder_id, int slot_id)> &volume_for_slot);
 
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic

@@ -41,6 +41,17 @@
     "extruder_max_nozzle_count": [
         "9"
     ],
+    "default_nozzle_volume_type": [
+        "Standard",
+        "Standard",
+        "Standard",
+        "Standard",
+        "Standard",
+        "Standard",
+        "Standard",
+        "TPU285",
+        "Standard"
+    ],
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow,Direct Drive TPU285"
     ],
