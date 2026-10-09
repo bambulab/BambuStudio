@@ -356,7 +356,7 @@ public:
 
         auto *main_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-        auto  icon        = create_scaled_bitmap("hotend_normal_unmounted", this, 24);
+        auto  icon        = create_scaled_bitmap("prepare_nozzle_normal", this, 24);
         auto *nozzle_icon = new wxStaticBitmap(this, wxID_ANY, icon);
 
         auto *label_sizer = new wxBoxSizer(wxVERTICAL);
