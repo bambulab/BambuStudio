@@ -821,7 +821,15 @@ if (UNIX AND NOT APPLE)
     )
 endif ()
 
-add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
+# MSVC+Ninja embeds debug info in every object (/Z7, see top-level CMakeLists),
+# which pushes a static libslic3r_gui.lib past the 4 GB .lib format limit
+# (LNK1248). An OBJECT library hands the objects straight to the linker and
+# never produces that archive.
+if (MSVC AND CMAKE_GENERATOR MATCHES "Ninja")
+    add_library(libslic3r_gui OBJECT ${SLIC3R_GUI_SOURCES})
+else ()
+    add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
+endif ()
 
 if (TARGET device_page_build)
     add_dependencies(libslic3r_gui device_page_build)

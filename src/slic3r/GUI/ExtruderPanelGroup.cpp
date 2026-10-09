@@ -14,6 +14,7 @@
 #include "GUI_App.hpp"
 #include "ExtruderHelpers.hpp"
 #include "wxExtensions.hpp"
+#include "Widgets/Button.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/StateColor.hpp"
@@ -143,8 +144,8 @@ void ExtruderPanelGroup::OnPaint(wxPaintEvent &evt)
 #endif
 }
 
-// Bind LEFT_DOWN on every non-interactive descendant so the whole card body opens the settings
-// dialog (mouse events don't bubble to parents, so each surface must carry its own handler).
+// Bind LEFT_DOWN on every non-interactive window under the ClickSurfaces so they open the settings
+// dialog (mouse events don't bubble to parents, so each window must carry its own handler).
 // Unbind first so re-arming after a content rebuild (RebindClick) can't stack duplicate handlers,
 // which would otherwise open the modal once per stacked bind.
 void ExtruderPanelGroup::BindClickEvents()
@@ -152,9 +153,10 @@ void ExtruderPanelGroup::BindClickEvents()
     std::function<void(wxWindow *)> bind_recursive = [this, &bind_recursive](wxWindow *window) {
         if (!window) return;
 
-        // ::ComboBox is a StaticBox, not a wxComboBox, so it needs its own test -- without it the
-        // mode pill would open the settings dialog instead of its own drop-down.
-        if (dynamic_cast<wxButton *>(window) || dynamic_cast<wxComboBox *>(window) || dynamic_cast<::ComboBox *>(window) ||
+        // ::ComboBox and ::Button are StaticBoxes, not their wx namesakes, so they need their own
+        // tests -- without them they would open the settings dialog instead of acting on their own click.
+        if (dynamic_cast<wxButton *>(window) || dynamic_cast<::Button *>(window) ||
+            dynamic_cast<wxComboBox *>(window) || dynamic_cast<::ComboBox *>(window) ||
             dynamic_cast<ScalableButton *>(window) || dynamic_cast<wxScrollBar *>(window) ||
             dynamic_cast<wxTextCtrl *>(window) || dynamic_cast<wxSpinCtrl *>(window)) {
             return;
@@ -166,7 +168,7 @@ void ExtruderPanelGroup::BindClickEvents()
         for (auto *child : window->GetChildren()) { bind_recursive(child); }
     };
 
-    bind_recursive(this);
+    for (auto *surface : ClickSurfaces()) bind_recursive(surface);
 }
 
 void ExtruderPanelGroup::OnPanelClick(wxMouseEvent &evt)
@@ -444,8 +446,8 @@ void SingleExtruderPanelGroup::Rescale()
 }
 
 // Two rows: the mode pill straddling the top border, then "Nozzle" on the left with the settings
-// entry (gear + label + arrow) on the right. The entry is not a control of its own -- BindClickEvents
-// already makes the whole card open the dialog, so this only has to read as the place to click.
+// entry (gear + label + arrow) on the right. The entry is not a control of its own; its three
+// windows are the card's only ClickSurfaces, so clicking any of them opens the dialog.
 bool SingleExtruderPanelGroup::CreateHeader(wxBoxSizer *outer)
 {
     // Only the widget is ours; DiameterButtonPanel::AttachModePill fills it in and owns the mode.
@@ -457,8 +459,7 @@ bool SingleExtruderPanelGroup::CreateHeader(wxBoxSizer *outer)
 
     auto *title = new Label(this, _L("Nozzle"));
     title->SetFont(Label::Body_12);
-    title->SetForegroundColour(ThemeColor::Grey500);
-    title->SetBackgroundColour(ThemeColor::Grey200);
+    title->SetForegroundColour(ThemeColor::TextPrimary);
     row->Add(title, 0, wxALIGN_CENTER_VERTICAL);
 
     row->AddStretchSpacer();
@@ -476,6 +477,8 @@ bool SingleExtruderPanelGroup::CreateHeader(wxBoxSizer *outer)
     // is a full shafted arrow.
     auto *arrow = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("right_arrow", this, 16));
     row->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
+
+    m_settings_entry = {gear, entry, arrow};
 
     // The design puts this row 20px below the card's top border. The pill above already accounts for
     // 12 of those -- its lower half sits inside the card -- so only the remainder is added here.

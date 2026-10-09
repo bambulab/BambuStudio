@@ -26,6 +26,7 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
+#include "slic3r/GUI/Widgets/PillView.hpp"
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include "slic3r/GUI/Widgets/PopupWindow.hpp"
 #include "slic3r/GUI/Widgets/RoundedPopupWindow.hpp"
@@ -42,7 +43,7 @@
 namespace Slic3r::GUI {
 namespace {
 
-constexpr int CARD_W   = 120;
+constexpr int CARD_W   = 100;
 constexpr int CARD_H   = 88; // header pill + the diameter and type rows; the combos that set it to 100 are gone
 constexpr int CARD_GAP = 16;
 
@@ -154,7 +155,7 @@ private:
     wxString         m_diameter; // empty means the slot carries no nozzle
     NozzleVolumeType m_volume{nvtStandard};
 
-    Label          *m_title{nullptr};
+    PillView         *m_title{nullptr};
     wxStaticBitmap *m_warning_icon{nullptr};
     wxStaticBitmap *m_edit_icon{nullptr};
     wxBitmap        m_badge_bmp;     // "badge" (synced check), drawn at the card's top-right corner
@@ -178,6 +179,8 @@ NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const N
     , m_volume(seed.volume)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
+    // The card body colour. OnPaint fills with it and every child copies it, so they blend into the body.
+    SetBackgroundColour(themed(ThemeColor::Grey250));
     SetMinSize(FromDIP(wxSize(CARD_W, CARD_H)));
     Bind(wxEVT_PAINT, &NozzleCard::OnPaint, this);
 
@@ -185,35 +188,35 @@ NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const N
     build_header(v, number);
     build_value_rows(v);
     SetSizer(v);
-
-    // The whole card opens the menu, not just the icon: the rows it edits are right there, and a
-    // 14px icon is a small target for what is the card's only action.
-    Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { show_edit_menu(); });
 }
 
 void NozzleCard::build_header(wxSizer *v, int number)
 {
     auto *row = new wxBoxSizer(wxHORIZONTAL);
 
-    // The title is the row's only flexible item, so it both pushes the icons to the right edge and
-    // is the one that gives way when a warning adds a second icon to a card this narrow. The icons
-    // keep their size either way -- losing the edit affordance costs the user the card's only action.
-    m_title = new Label(this, wxString::Format(_L("Nozzle %d"), number));
-    m_title->SetFont(Label::Body_13.Bold());
-    m_title->SetBackgroundColour(themed(ThemeColor::Grey250));
-    row->Add(m_title, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+    // The title pill keeps the size of its text. The stretch spacer after it pushes the icons to the right edge.
+    m_title = new PillView(this, GetBackgroundColour());
+    m_title->SetFont(Label::Body_12.Bold());
+    m_title->set_shape(PillView::Shape::Capsule);
+    m_title->set_text(wxString::Format(_L("%d"), number));
+    m_title->set_colors(themed(ThemeColor::TextPrimary), themed(ThemeColor::Grey400), wxTransparentColour);
+    row->Add(m_title, 0, wxALIGN_CENTER_VERTICAL);
+    row->AddStretchSpacer();
 
     m_warning_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning_serious", this, 14), wxDefaultPosition, FromDIP(wxSize(14, 14)), 0);
+    m_warning_icon->SetBackgroundColour(GetBackgroundColour());
     m_warning_icon->Hide();
     row->Add(m_warning_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
 
     m_edit_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("edit", this, 14), wxDefaultPosition, FromDIP(wxSize(14, 14)), 0);
+    m_edit_icon->SetBackgroundColour(GetBackgroundColour());
     m_edit_icon->SetCursor(wxCursor(wxCURSOR_HAND));
     m_edit_icon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { show_edit_menu(); });
     row->Add(m_edit_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(4));
 
     m_badge_bmp = create_scaled_bitmap("badge", this, 16); // drawn at the card's top-right corner in OnPaint
 
+    // No left margin here: the title's own inset is the header's whole left gap.
     v->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
 }
 
@@ -226,7 +229,7 @@ void NozzleCard::build_value_rows(wxSizer *v)
         auto *name = new Label(this, caption);
         name->SetFont(Label::Body_12);
         name->SetForegroundColour(themed(ThemeColor::TextMuted));
-        name->SetBackgroundColour(themed(ThemeColor::White));
+        name->SetBackgroundColour(GetBackgroundColour());
         row->Add(name, 0, wxALIGN_CENTER_VERTICAL);
 
         row->AddStretchSpacer();
@@ -234,7 +237,7 @@ void NozzleCard::build_value_rows(wxSizer *v)
         auto *value = new Label(this, wxEmptyString);
         value->SetFont(Label::Body_12);
         value->SetForegroundColour(themed(ThemeColor::TextPrimary));
-        value->SetBackgroundColour(themed(ThemeColor::White));
+        value->SetBackgroundColour(GetBackgroundColour());
         row->Add(value, 0, wxALIGN_CENTER_VERTICAL);
 
         v->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
@@ -405,13 +408,15 @@ void NozzleCard::UpdateWarning(const wxString &selected_diameter, bool show_diam
     if (m_warning_icon) {
         m_warning_icon->SetBitmap(create_scaled_bitmap(empty ? "warning_serious" : "warning", this, 14));
         m_warning_icon->Show(empty || mismatch);
+
+        // Explain the yellow mark on hover; only single-diameter mode flags a diameter mismatch.
+        if (mismatch)
+            m_warning_icon->SetToolTip(_L("Incompatible with the slice diameter"));
+        else
+            m_warning_icon->UnsetToolTip();
     }
     const wxColour new_title_color = themed((empty || mismatch) ? ThemeColor::Warning : ThemeColor::TextPrimary);
-    if (m_title) {
-        const wxColour prev_color = m_title->GetForegroundColour();
-        m_title->SetForegroundColour(new_title_color);
-        if (prev_color != new_title_color) m_title->Refresh(); // title color changed -> repaint it
-    }
+    if (m_title) m_title->set_colors(new_title_color, themed(ThemeColor::Grey400), wxTransparentColour);
 
     const bool synced = is_synced();
     if (m_warn != mismatch || m_synced != synced) { // border color / corner badge changed -> repaint
@@ -419,18 +424,6 @@ void NozzleCard::UpdateWarning(const wxString &selected_diameter, bool show_diam
         m_synced = synced;
         Refresh();
     }
-
-    // Explain the yellow mark on hover; only single-diameter mode flags a diameter mismatch.
-    auto set_tip = [mismatch](wxWindow *w) {
-        if (!w) return;
-        if (mismatch)
-            w->SetToolTip(_L("Incompatible with the slice diameter"));
-        else
-            w->UnsetToolTip();
-    };
-    set_tip(this);
-    set_tip(m_diameter_value);
-    set_tip(m_flow_value);
 
     Layout();
 }
@@ -441,7 +434,7 @@ void NozzleCard::Rescale()
     Layout();
 }
 
-// Rounded card: white body. Border is grey normally and yellow (Warning) when the nozzle's diameter
+// Rounded card body in the card's background colour. Border is grey normally and yellow (Warning) when the nozzle's diameter
 // differs from the selected one (single-diameter mode). The "Nozzle N" pill draws its own background.
 void NozzleCard::OnPaint(wxPaintEvent &)
 {
@@ -457,8 +450,8 @@ void NozzleCard::OnPaint(wxPaintEvent &)
     const double bw = FromDIP(1); // border thickness
 
     const wxColour outside = themed(wxColour("#F7F7F7"));
-    const wxColour card_bg = themed(ThemeColor::White);
-    const wxColour border  = m_warn ? themed(ThemeColor::Warning) : themed(ThemeColor::Grey300);
+    const wxColour card_bg = GetBackgroundColour();
+    const wxColour border  = m_warn ? themed(ThemeColor::Warning) : themed(ThemeColor::Grey400);
 
     // Fill the corners with the container color so the rounded card sits cleanly on it.
     gc->SetPen(*wxTRANSPARENT_PEN);
@@ -474,28 +467,109 @@ void NozzleCard::OnPaint(wxPaintEvent &)
     gc->SetBrush(wxBrush(card_bg));
     gc->DrawRoundedRectangle(bw, bw, w - 2 * bw, h - 2 * bw, std::max(0.0, r - bw));
 
-    // A rounded grey pill behind the "Nozzle N" label
-    if (m_title) {
-        // Width from the label text, not from the window: the title's sizer item stretches to hold
-        // the icons against the right edge, and the pill has to stay wrapped around the text.
-        const wxRect tr = m_title->GetRect();
-        const int    tw = m_title->GetTextExtent(m_title->GetLabel()).x;
-        if (tw > 0) {
-            const double px = FromDIP(6);
-            const double py = FromDIP(3);
-            gc->SetPen(*wxTRANSPARENT_PEN);
-            gc->SetBrush(wxBrush(themed(ThemeColor::Grey250)));
-            gc->DrawRoundedRectangle(tr.GetX() - px, tr.GetY() - py, tw + 2 * px, tr.GetHeight() + 2 * py, FromDIP(4));
-        }
-    }
-
     // Synced badge at the card's top-right corner.
     if (m_synced && m_badge_bmp.IsOk()) {
-        const double bw    = FromDIP(16);
-        const double inset = FromDIP(4);
-        gc->DrawBitmap(m_badge_bmp, w - bw - inset, inset, bw, bw);
+        const double bw = FromDIP(16);
+        gc->DrawBitmap(m_badge_bmp, w - bw, 0, bw, bw);
     }
 }
+
+// ---------------------------------------------------------------------------
+// NozzleRackView — the nozzle cards in two staggered rows, each wired by a dashed filament tube
+// down to its hotend. Every hotend sits on one shared baseline below the lower row.
+//   even numbers:      [2]     [4]
+//   odd numbers:   [1]  :  [3]  :  [5]
+//                   :   :   :   :   :
+//                   H   H   H   H   H
+// The upper row is offset by half a card pitch, so its tubes run down the gaps between lower cards.
+// ---------------------------------------------------------------------------
+namespace {
+
+class NozzleRackView : public wxPanel
+{
+public:
+    explicit NozzleRackView(wxWindow *parent);
+
+    /**
+     * \brief Place \p card in the rack. Cards are numbered 1..n in the order they are added.
+     *
+     * \param card  a card whose parent is this view
+     */
+    void add_card(wxWindow *card);
+
+private:
+    wxSizer *row(bool even) const;
+    void     draw_tube(wxDC &dc, int cx, int top, int bottom) const;
+    void     OnPaint(wxPaintEvent &evt);
+};
+
+constexpr int TUBE_MIN_H = 24; // tube length under a lower-row card
+constexpr int HOTEND_W   = 24;
+constexpr int HOTEND_H   = 48;
+
+NozzleRackView::NozzleRackView(wxWindow *parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+{
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    SetBackgroundColour(*wxWHITE);
+
+    auto *v = new wxBoxSizer(wxVERTICAL);
+    v->Add(new wxBoxSizer(wxHORIZONTAL), 0, wxLEFT, FromDIP((CARD_W + CARD_GAP) / 2)); // even numbers
+    v->Add(new wxBoxSizer(wxHORIZONTAL), 0, wxTOP, FromDIP(CARD_GAP));                 // odd numbers
+    v->AddSpacer(FromDIP(TUBE_MIN_H + HOTEND_H));
+    SetSizer(v);
+
+    Bind(wxEVT_PAINT, &NozzleRackView::OnPaint, this);
+}
+
+wxSizer *NozzleRackView::row(bool even) const { return GetSizer()->GetItem(size_t(even ? 0 : 1))->GetSizer(); }
+
+void NozzleRackView::add_card(wxWindow *card)
+{
+    wxASSERT(card->GetParent() == this);
+    const int number = int(row(true)->GetItemCount() + row(false)->GetItemCount()) + 1;
+    wxSizer  *r      = row(number % 2 == 0);
+    r->Add(card, 0, wxLEFT, r->IsEmpty() ? 0 : FromDIP(CARD_GAP));
+}
+
+// 2px dashes, 4 on / 4 off, phased from the bottom so the last dash runs on into the hotend's own.
+void NozzleRackView::draw_tube(wxDC &dc, int cx, int top, int bottom) const
+{
+    const int w = FromDIP(2), dash = FromDIP(4), period = FromDIP(8);
+    for (int y = bottom + FromDIP(2); y > top; y -= period) {
+        const int y0 = std::max(top, y - dash);
+        const int y1 = std::min(bottom, y);
+        if (y1 > y0) dc.DrawRectangle(cx - w / 2, y0, w, y1 - y0);
+    }
+}
+
+void NozzleRackView::OnPaint(wxPaintEvent &)
+{
+    wxAutoBufferedPaintDC dc(this);
+    dc.SetBackground(wxBrush(GetBackgroundColour()));
+    dc.Clear();
+
+    // The baseline follows the cards actually laid out, not a cached height.
+    int lowest = 0;
+    for (wxWindow *card : GetChildren())
+        if (card->IsShown()) lowest = std::max(lowest, card->GetRect().GetBottom() + 1);
+    const int hotend_top = lowest + FromDIP(TUBE_MIN_H);
+
+    // The asset runs a little past its 48px slot; the overhang is clipped as in the design.
+    const wxBitmap hotend = create_scaled_bitmap("prepare_nozzle_normal", this, 52);
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(themed(ThemeColor::Grey400)));
+    for (wxWindow *card : GetChildren()) {
+        if (!card->IsShown()) continue;
+        const wxRect rc = card->GetRect();
+        const int    cx = rc.GetLeft() + rc.GetWidth() / 2;
+        draw_tube(dc, cx, rc.GetBottom() + 1, hotend_top);
+
+        wxDCClipper clip(dc, wxRect(cx - FromDIP(HOTEND_W) / 2, hotend_top, FromDIP(HOTEND_W), FromDIP(HOTEND_H)));
+        dc.DrawBitmap(hotend, cx - hotend.GetWidth() / 2, hotend_top, true);
+    }
+}
+
+} // namespace
 
 // ---------------------------------------------------------------------------
 // NozzleSettingsCardDialog
@@ -546,11 +620,7 @@ void NozzleSettingsCardDialog::build_card_grid(wxBoxSizer *main_sizer, const std
     label->SetFont(Label::Body_14.Bold());
     main_sizer->Add(label, 0, wxALIGN_LEFT | wxLEFT | wxTOP, FromDIP(20));
 
-    auto *container = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    container->SetBackgroundColour(*wxWHITE);
-    auto *grid    = new wxBoxSizer(wxVERTICAL);
-    auto *top_row = new wxBoxSizer(wxHORIZONTAL); // even nozzle numbers
-    auto *bot_row = new wxBoxSizer(wxHORIZONTAL); // odd nozzle numbers
+    auto *rack = new NozzleRackView(this);
 
     auto on_changed = [this]() { update_state(); };
     auto diameters  = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
@@ -560,21 +630,15 @@ void NozzleSettingsCardDialog::build_card_grid(wxBoxSizer *main_sizer, const std
     const MachineNozzleBaseline baseline     = collect_machine_nozzle_baseline(false); // card dialog is single-extruder
     const auto                 &machine_cfgs = baseline.configs[0];
 
-    // Single extruder: nozzles number 1..n and are placed by parity — even on top, odd on the bottom.
+    // Single extruder: nozzles number 1..n in the order the rack receives them.
     for (int i = 0; i < (int) seeds.size(); ++i) {
-        const int           number      = i + 1;
         const NozzleConfig *machine_cfg = (baseline.synced && i < (int) machine_cfgs.size()) ? &machine_cfgs[i] : nullptr;
-        auto               *card        = new NozzleCard(container, number, 0, seeds[i], machine_cfg, diameters, on_changed);
+        auto               *card        = new NozzleCard(rack, i + 1, 0, seeds[i], machine_cfg, diameters, on_changed);
         m_cards.push_back(card);
-        auto *row = (number % 2 == 0) ? top_row : bot_row;
-        row->Add(card, 0, wxRIGHT | wxBOTTOM, FromDIP(CARD_GAP));
+        rack->add_card(card);
     }
 
-    if (top_row->GetItemCount() > 0) grid->Add(top_row, 0, wxLEFT | wxTOP | wxCENTER, FromDIP(CARD_GAP));
-    grid->Add(bot_row, 0, wxLEFT | wxTOP | wxCENTER, FromDIP(CARD_GAP));
-
-    container->SetSizer(grid);
-    main_sizer->Add(container, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+    main_sizer->Add(rack, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
 }
 
 void NozzleSettingsCardDialog::build_warning_panels(wxBoxSizer *main_sizer)

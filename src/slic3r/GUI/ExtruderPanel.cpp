@@ -356,7 +356,7 @@ public:
 
         auto *main_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-        auto  icon        = create_scaled_bitmap("dev_rack_nozzle_error", this, 24);
+        auto  icon        = create_scaled_bitmap("hotend_normal_unmounted", this, 24);
         auto *nozzle_icon = new wxStaticBitmap(this, wxID_ANY, icon);
 
         auto *label_sizer = new wxBoxSizer(wxVERTICAL);
@@ -400,7 +400,7 @@ private:
 // Prepare-page nozzle-slot tile geometry, taken from the design: a narrow card holding the
 // hotend icon with its slot number stamped on it, then the diameter over the flow type.
 constexpr int    TILE_W            = 37; // design minimum; overflow scrolls instead of shrinking tiles
-constexpr int    TILE_H            = 110;
+constexpr int    TILE_H            = 92;
 constexpr int    TILE_GAP          = 4;
 constexpr int    TILE_RADIUS       = 4;
 constexpr int    TILE_PAD_Y        = 4;
@@ -433,17 +433,6 @@ static wxBitmap faded_tile_bitmap(const wxBitmap &bitmap, const wxColour &backgr
     return wxBitmap(image, -1, bitmap.GetScaleFactor());
 }
 
-// The prepare page draws a lighter hotend than the device page's rack view, so the normal state has
-// its own asset. Only that state was in the design; the other two still borrow the rack icons.
-static std::string nozzle_icon_name(NozzleStatus status)
-{
-    switch (status) {
-    case NozzleStatus::nsNormal: return "prepare_nozzle_normal";
-    case NozzleStatus::nsError: return "dev_rack_nozzle_error";
-    default: return "dev_rack_nozzle_unknown";
-    }
-}
-
 /**
  * \brief One physical nozzle slot: the hotend icon carrying its slot number, then diameter + flow.
  *
@@ -458,7 +447,7 @@ class NozzleSlotTile : public wxPanel
 public:
     NozzleSlotTile(wxWindow *parent, int number, const wxString &diameter, const wxString &flow, NozzleStatus status)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
-        , m_icon(this, nozzle_icon_name(status), TILE_ICON_H)
+        , m_icon(this, "prepare_nozzle_normal", TILE_ICON_H)
         , m_number(number)
         , m_diameter(diameter)
         , m_flow(flow)

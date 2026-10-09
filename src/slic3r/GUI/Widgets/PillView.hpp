@@ -6,7 +6,8 @@
 namespace Slic3r::GUI {
 
 /**
- * \brief A small rounded text chip, filled and/or outlined. Sizes to its text.
+ * \brief A small rounded text chip, filled and/or outlined. Sizes to its text in the window font
+ * (Body_11 unless SetFont() changes it).
  *
  * Pass the colour of the surface it sits on: the parent's background colour is not reliable when the
  * parent paints its own fill (e.g. RoundedRectangle).
@@ -26,6 +27,9 @@ public:
      */
     void set_colors(const wxColour &fg, const wxColour &fill, const wxColour &border);
 
+    enum class Shape { Rounded, Capsule }; ///< Capsule: fully round ends at any height
+    void set_shape(Shape shape);
+
 protected:
     wxSize DoGetBestSize() const override;
 
@@ -34,6 +38,7 @@ private:
 
     wxString m_text;
     wxColour m_fg, m_fill, m_border;
+    Shape    m_shape{Shape::Rounded};
 };
 
 } // namespace Slic3r::GUI

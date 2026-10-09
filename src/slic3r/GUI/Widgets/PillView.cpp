@@ -24,6 +24,7 @@ PillView::PillView(wxWindow *parent, const wxColour &surface)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(surface);
+    SetFont(::Label::Body_11);
     Bind(wxEVT_PAINT, &PillView::on_paint, this);
 }
 
@@ -44,11 +45,18 @@ void PillView::set_colors(const wxColour &fg, const wxColour &fill, const wxColo
     Refresh();
 }
 
+void PillView::set_shape(Shape shape)
+{
+    if (m_shape == shape) return;
+    m_shape = shape;
+    Refresh();
+}
+
 wxSize PillView::DoGetBestSize() const
 {
     // Height comes from the font's line height, not the text, so an empty pill keeps its row height.
     wxClientDC dc(const_cast<PillView *>(this));
-    dc.SetFont(::Label::Body_11);
+    dc.SetFont(GetFont());
     const int w = m_text.empty() ? 0 : dc.GetTextExtent(m_text).x;
     return wxSize(w + FromDIP(kPadX), dc.GetCharHeight() + FromDIP(kPadY));
 }
@@ -61,11 +69,12 @@ void PillView::on_paint(wxPaintEvent &)
     wxGCDC       gdc(dc);
     const wxSize sz = GetClientSize();
     wxRect       r(0, 0, sz.x, sz.y);
-    r.Deflate(FromDIP(1)); // keep the stroke inside the widget
+    if (!is_clear(m_border)) r.Deflate(FromDIP(1)); // keep the stroke inside the widget
     gdc.SetBrush(is_clear(m_fill) ? *wxTRANSPARENT_BRUSH : wxBrush(m_fill));
     gdc.SetPen(is_clear(m_border) ? *wxTRANSPARENT_PEN : wxPen(m_border, FromDIP(1)));
-    gdc.DrawRoundedRectangle(r, FromDIP(kRadius));
-    gdc.SetFont(::Label::Body_11);
+    const double radius = m_shape == Shape::Capsule ? r.height / 2.0 : FromDIP(kRadius);
+    gdc.DrawRoundedRectangle(r, radius);
+    gdc.SetFont(GetFont());
     gdc.SetTextForeground(m_fg);
     const wxSize ts = gdc.GetTextExtent(m_text);
     gdc.DrawText(m_text, (sz.x - ts.x) / 2, (sz.y - ts.y) / 2);

@@ -12,8 +12,8 @@
 /**
  * \file ExtruderPanelGroup.hpp
  * \brief Sidebar composite that frames one (single) or two (dual) ExtruderPanel(s) plus their
- *        switch separator into a single rounded card, and turns the whole surface into one
- *        click / hover target for the nozzle-settings dialog and the read-only details tip.
+ *        switch separator into a single rounded card, routing its clicks to the nozzle-settings
+ *        dialog and its hover to the read-only details tip.
  *
  * The card comes in one variant per printer family. \ref ExtruderPanelGroup is the abstract base
  * that owns everything the variants share (border paint, badge, trailing arrow, click/hover
@@ -47,7 +47,7 @@ public:
      * \brief update the data, refresh UI and do all the needed house cleaning
      *
      * The panel rebuilds its summary tiles as fresh windows on every call, so the group re-binds
-     * click and hover across the whole surface here — callers never do it by hand.
+     * click and hover here — callers never do it by hand.
      *
      * \param index             which framed panel (0 = single / left, 1 = right)
      * \param configs           the extruder's nozzle configs; a no-op when empty
@@ -103,6 +103,13 @@ protected:
      */
     virtual wxWindow *BorderStraddlingWidget() const { return nullptr; }
 
+    /**
+     * \brief The windows that open the settings dialog when clicked, each with all its descendants.
+     *
+     * Defaults to the whole card. Interactive controls inside a surface keep their own click.
+     */
+    virtual std::vector<wxWindow *> ClickSurfaces() { return {this}; }
+
     std::vector<ExtruderPanel *> m_panels;
     wxBoxSizer                  *m_main_sizer{nullptr};
 
@@ -112,7 +119,7 @@ protected:
     void FitToPanels();
 
 private:
-    // Re-arm click / hover on the whole card after a panel rebuilt its summary tiles
+    // Re-arm click on the ClickSurfaces and hover on the whole card after a panel rebuilt its tiles
     void BindClickEvents();
     void BindHoverEvents();
 
@@ -192,13 +199,17 @@ protected:
     bool      CreateHeader(wxBoxSizer *outer) override;
     wxWindow *BorderStraddlingWidget() const override;
 
+    // Only the header's settings entry opens the dialog; the rest of the card is for picking diameters.
+    std::vector<wxWindow *> ClickSurfaces() override { return m_settings_entry; }
+
 private:
     // StaticBox keeps its colours rather than re-reading them at paint time, so the pill's theming
     // has to be re-applied whenever the card is rescaled or the system colours change.
     void StyleModePill();
 
-    ComboBox            *m_mode_pill{nullptr};
-    DiameterButtonPanel *m_diameter_panel{nullptr};
+    ComboBox               *m_mode_pill{nullptr};
+    std::vector<wxWindow *> m_settings_entry; // gear, label and chevron of the header's settings entry
+    DiameterButtonPanel    *m_diameter_panel{nullptr};
     wxBoxSizer          *m_diameter_sizer{nullptr};
 };
 
