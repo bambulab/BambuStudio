@@ -1075,7 +1075,7 @@ struct Sidebar::priv
     wxStaticLine *              m_staticline1;
     StaticBox* m_panel_filament_title;
     wxStaticText* m_staticText_filament_settings;
-    ScalableButton *  m_bpButton_add_filament;
+    ScalableButton *  m_bpButton_add_filament{nullptr};
     ScalableButton *  m_bpButton_del_filament;
     ScalableButton *  m_bpButton_ams_filament{nullptr};
     ScalableButton *  m_bpButton_set_filament{nullptr};
@@ -4724,12 +4724,12 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
 
     *combo = new PlaterPresetComboBox(filament_item, Slic3r::Preset::TYPE_FILAMENT);
     (*combo)->set_filament_idx(filament_idx);
-    // resources/images/badge.svg (the "synced with AMS" corner ribbon StaticBox::doRender draws at
-    // this combo's top-right) is cut with a 4px rounded top-right corner. TextInput defaults to
-    // square corners, which left that rounding as an unfilled notch. Round the combo to match
-    // rather than reshaping the shared asset -- its other hosts use 0, 2 and 8px radii, so no one
-    // shape fits them all.
-    (*combo)->SetCornerRadius(FromDIP(4));
+    // The "synced with AMS" corner ribbon StaticBox::doRender draws at this combo's top-right has to
+    // be cut like the combo itself. The shared resources/images/badge.svg is rounded 4px, which left
+    // an unfilled notch on a square combo, and the combo used to be rounded to match. The combo is
+    // square again, so point it at the square-cut copy instead: the asset's other hosts (printer and
+    // nozzle panels) stay rounded and keep using the original.
+    (*combo)->SetBadgeIcon("badge_square");
 
     auto combo_and_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -6274,7 +6274,10 @@ void Sidebar::on_filaments_delete(size_t filament_id)
 
 void Sidebar::add_filament() {
     // BBS: limit filament choices to ExtruderMax
-    if (p->combos_filament.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
+    // Counted over the whole filament list, not just the physical rows: mixed filaments occupy slots
+    // from the same pool, so counting only the physical ones let the list grow past the limit once
+    // any mixed filament existed (and left this button live while the mixed one had already gone dead).
+    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
     wxColour    new_col        = Plater::get_next_color_for_filament();
     add_custom_filament(new_col);
     // Reveal the just-added filament: it is appended at the end of the physical
@@ -7761,6 +7764,25 @@ static wxString mixed_slot_break_tooltip(unsigned reasons)
     return tip;
 }
 
+// Reflect "the filament list is full" on one of the "+" buttons.
+// Deliberately not Enable(false): MSW delivers no mouse messages to a disabled window, so a tooltip
+// set on one never appears -- exactly when the user most needs to be told why the button does
+// nothing. The bitmap is greyed to read as disabled while the button stays live enough to show the
+// tooltip; add_filament()/add_mixed_filament() both return early at the limit, so it is inert anyway.
+static void update_add_filament_button_limit(ScalableButton *button, bool at_limit, const wxString &normal_tooltip)
+{
+    if (button == nullptr)
+        return;
+    // A separate icon rather than ScalableBitmap's grayscale flag: that flag desaturates, and this
+    // icon is already a near-black stroke, so desaturating it changes nothing on screen. The disabled
+    // copy is the same glyph drawn in the dimmed grey the panel's own labels use.
+    button->SetBitmap_(ScalableBitmap(button->GetParent(),
+                                      at_limit ? "add_filament_disabled" : "add_filament", 16));
+    button->SetToolTip(at_limit ? wxString::Format(_L("Up to %d filaments can be created"),
+                                                   int(EnforcerBlockerType::ExtruderMax))
+                                : normal_tooltip);
+}
+
 void Sidebar::update_mixed_filament_list(bool reload_3d)
 {
     auto* plater = dynamic_cast<Plater*>(GetParent());
@@ -7802,8 +7824,10 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
     p->m_panel_mixed_title->Show(has_mixed);
     p->m_mixed_scroll_area->Show(has_mixed);
     p->m_panel_mixed_content->Show(has_mixed);
-    if (p->m_btn_mixed_add)
-        p->m_btn_mixed_add->Enable(!at_limit);
+    // Both lists draw from one pool of ExtruderMax slots, so the physical list's "+" has to go dead
+    // at the same point the mixed one does -- it was left live because nothing refreshed it here.
+    update_add_filament_button_limit(p->m_btn_mixed_add, at_limit, _L("Add mixed filament"));
+    update_add_filament_button_limit(p->m_bpButton_add_filament, at_limit, _L("Add one filament"));
     p->m_panel_mixed_warning->Show(false);
 
     if (has_mixed) {

@@ -9007,6 +9007,9 @@ msgstr "添加混色耗材"
 msgid "Remove last mixed filament"
 msgstr "删除最后一个混色耗材"
 
+msgid "Up to %d filaments can be created"
+msgstr "最多支持创建 %d 个耗材"
+
 msgid "Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."
 msgstr "不支持不同类型或不同喷嘴直径的耗材进行混色打印，请到软件左侧的耗材列表处理带！的混色耗材。"
 
