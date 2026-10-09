@@ -291,21 +291,55 @@
   width: 80px;
 }
 
+/* The chamber is laid out as two stacked concerns inside one background box:
+   `.dryer-chamber-zone` reserves the columns the dryer physically covers, and
+   `.dryer-info` trails it. The box hugs both (`width: max-content`) instead of
+   reserving a hard-coded tail, and `--chamber-cap` stops it at the next top
+   column so it can never reach the neighbouring slot card, which is opaque
+   and stacks above it. max() keeps the width valid when the columns are
+   packed tighter than the readout needs. */
 .dryer-chamber-bg {
   position: absolute;
   top: -4px;
   height: 138px;
   left: var(--chamber-left);
-  width: calc(var(--chamber-right) - var(--chamber-left) + 56px);
+  width: max-content;
+  max-width: max(0px, calc(var(--chamber-cap) - var(--chamber-left)));
   background: var(--ams-dryer-chamber-bg);
   border-radius: 8px;
   z-index: 0;
   pointer-events: none;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  overflow: hidden;
   padding-right: 6px;
   box-sizing: border-box;
+}
+
+.dryer-chamber-zone {
+  flex: 0 0 auto;
+  width: calc(var(--chamber-right) - var(--chamber-left));
+}
+
+.dryer-chamber-bg .dryer-info {
+  min-width: 0;
+  margin-left: 0;
+}
+
+.dryer-chamber-bg .dryer-info-row {
+  min-width: 0;
+}
+
+/* Humidity is short and must stay readable; only the status may be clipped. */
+.dryer-chamber-bg .dryer-value {
+  flex: 0 0 auto;
+}
+
+.dryer-chamber-bg .dryer-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dryer-info {

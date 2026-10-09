@@ -5,6 +5,9 @@ import { DryingIcon, HumidityIcon } from './AmsEnvIcons';
 
 const COL = 80;
 
+// Gap between the chamber background and the readout trailing it.
+const INFO_GAP = 6;
+
 export function DryerChamberDecoration({
   startIndex,
   endIndex,
@@ -28,6 +31,12 @@ export function DryerChamberDecoration({
   // Top columns sit at odd multiples of `--slot-pitch` (see Stage.tsx).
   const startStr = `calc(${1 + 2 * startIndex} * var(--slot-pitch) - 4px)`;
   const endStr = `calc(${1 + 2 * endIndex} * var(--slot-pitch) + ${COL + 4}px)`;
+  // Hard right boundary for the whole decoration: the next top column when the
+  // run has one, otherwise the end of the row. Everything past it belongs to
+  // an opaque card, so the readout must shrink rather than slide underneath.
+  const capStr = endIndex + 1 < totalSlots
+    ? `calc(${1 + 2 * (endIndex + 1)} * var(--slot-pitch) - ${INFO_GAP}px)`
+    : '100%';
 
   return (
     <div
@@ -36,8 +45,10 @@ export function DryerChamberDecoration({
       style={{
         ['--chamber-left' as never]: startStr,
         ['--chamber-right' as never]: endStr,
+        ['--chamber-cap' as never]: capStr,
       } as CSSProperties}
     >
+      <div className="dryer-chamber-zone" aria-hidden="true" />
       <DryerInfo humidity={humidity} status={status} amsId={amsId} onDry={onDry} />
     </div>
   );
