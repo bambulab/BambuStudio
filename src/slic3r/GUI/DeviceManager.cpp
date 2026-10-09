@@ -4796,6 +4796,14 @@ void MachineObject::parse_new_info(json print)
     if (!stat.empty()) {
         camera_recording = get_flag_bits(stat, 7);
         m_lamp->SetLampCloseRecheck((get_flag_bits(stat, 36) == 1));
+
+        if (get_flag_bits(stat, 30) == 0) {
+            DeviceManager* device_manager = GUI::wxGetApp().getDeviceManager();
+            MachineObject* local_machine = device_manager ? device_manager->get_local_machine(get_dev_id()) : nullptr;
+            if (local_machine && local_machine->is_lan_mode_printer()) {
+                device_manager->remove_local_machine_for_cloud_mode(get_dev_id(), "cloud status push");
+            }
+        }
     }
 
     m_dev_info->ParseInfo(print);

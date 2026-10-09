@@ -2265,7 +2265,7 @@ void GUI_App::init_networking_callbacks()
                         BOOST_LOG_TRIVIAL(warning) << "on_local_connect: m_device_manager is null, skip (is_closing=" << is_closing() << ")";
                         return;
                     }
-                    MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                    MachineObject* obj = m_device_manager->get_local_machine(dev_id);
                     wxCommandEvent event(EVT_CONNECT_LAN_MODE_PRINT);
 
                     if (obj) {
@@ -2405,7 +2405,7 @@ void GUI_App::init_networking_callbacks()
                     return;
                 }
 
-                if (MachineObject* obj = m_device_manager->get_my_machine(dev_id)) {
+                if (MachineObject* obj = m_device_manager->get_local_machine(dev_id)) {
                     obj->parse_json("lan", msg);
                     if (this->m_device_manager->get_selected_machine() == obj) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);

@@ -189,11 +189,13 @@ namespace Slic3r
             }
 
             /* update localMachineList */
+            bool remove_local_machine = false;
             it = localMachineList.find(dev_id);
             if (it != localMachineList.end()) {
                 // update properties
                 /* ip changed */
                 obj = it->second;
+                remove_local_machine = connect_type == "cloud" && obj->is_lan_mode_printer();
 
                 if (obj->get_dev_ip().compare(dev_ip) != 0) {
                     if ( connection_name.empty() ) {
@@ -290,13 +292,49 @@ namespace Slic3r
                     << ", con_type= " << connect_type <<", signal= " << printer_signal << ", bind_state= " << bind_state;
             }
 
-            if (obj && obj->is_cloud_mode_printer()) {
+            if (remove_local_machine) {
+                remove_local_machine_for_cloud_mode(dev_id, "SSDP");
+            } else if (obj && obj->is_cloud_mode_printer()) {
                 obj->erase_user_access_code();
                 obj->erase_user_access_dev_ip();
             }
         }
         catch (...) {
             ;
+        }
+    }
+
+    void DeviceManager::remove_local_machine_for_cloud_mode(const std::string& dev_id, const char* source)
+    {
+        auto it = localMachineList.find(dev_id);
+        if (it == localMachineList.end() || !it->second) {
+            return;
+        }
+
+        MachineObject* local_machine = it->second;
+        const bool     was_selected  = selected_machine == dev_id;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": remove LAN machine after " << source
+                                << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+
+        // NetworkAgent manages one local printer connection at a time.
+        if (was_selected) {
+            local_machine->disconnect();
+        }
+
+        local_machine->set_access_code("");
+        local_machine->erase_user_access_code();
+        local_machine->erase_user_access_dev_ip();
+        if (local_selected_machine == dev_id) {
+            local_selected_machine.clear();
+        }
+        localMachineList.erase(it);
+
+        if (was_selected) {
+            if (get_user_machine(dev_id)) {
+                OnSelectedMachineChanged(dev_id, dev_id);
+            } else {
+                set_selected_machine("");
+            }
         }
     }
 
