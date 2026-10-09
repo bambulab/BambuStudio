@@ -2648,7 +2648,10 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     // pre-processing
     // parse the gcode file to detect its producer
     {
-        m_parser.parse_file_raw(filename, [this](GCodeReader& reader, const char *begin, const char *end) {
+        const std::string &raw_layer_change_tag = reserved_tag(ETags::Layer_Change);
+        const std::string  layer_change_tag     = raw_layer_change_tag.substr(std::min(raw_layer_change_tag.find_first_not_of(' '), raw_layer_change_tag.size()));
+        bool has_layer_change_tag = false;
+        m_parser.parse_file_raw(filename, [this, &layer_change_tag, &has_layer_change_tag](GCodeReader& reader, const char *begin, const char *end) {
             begin = skip_whitespaces(begin, end);
             if (begin != end && *begin == ';') {
                 // Comment.
@@ -2656,7 +2659,10 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
                 end   = remove_eols(begin, end);
                 if (begin != end) {
                     if (m_producer == EProducer::Unknown) {
-                        if (detect_producer(std::string_view(begin, end - begin))) {
+                        const std::string_view comment(begin, end - begin);
+                        if (comment == layer_change_tag)
+                            has_layer_change_tag = true;
+                        if (detect_producer(comment)) {
                             m_parser.quit_parsing();
                         }
                     } else if (std::string(begin, end).find("CONFIG_BLOCK_END") != std::string::npos) {
@@ -2689,6 +2695,17 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
             apply_config_simplify3d(filename);
         else if (m_producer == EProducer::SuperSlicer)
             apply_config_superslicer(filename);
+
+        // G-codes from unknown producers never reach apply_config(), so the default nozzle group must be built here.
+        ensure_nozzle_group_result(static_cast<int>(m_result.filaments_count));
+        // The default group is a parsing fallback only; it must not be exposed to consumers such as send-to-printer nozzle mapping.
+        if (m_producer == EProducer::Unknown)
+            m_result.nozzle_group_result.reset();
+
+        // Non-planar G-codes change Z inside a layer; splitting layers on every Z change would create one layer per move.
+        // Trust the explicit layer change tags instead when the producer is unknown.
+        if (m_producer == EProducer::Unknown && has_layer_change_tag)
+            m_detect_layer_based_on_tag = true;
     }
 
     // process gcode
@@ -3457,7 +3474,9 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         return;
     }
 
-    if (!producers_enabled || m_producer == EProducer::BambuStudio) {
+    // Unknown producers may still emit BambuStudio-style height/width tags (e.g. non-planar generators); without them
+    // the height falls back to the Z delta between consecutive extrusions, which is near zero on non-planar paths.
+    if (!producers_enabled || m_producer == EProducer::BambuStudio || m_producer == EProducer::Unknown) {
         // height tag
         if (boost::starts_with(comment, reserved_tag(ETags::Height))) {
             if (!parse_number(comment.substr(reserved_tag(ETags::Height).size()), m_forced_height))
