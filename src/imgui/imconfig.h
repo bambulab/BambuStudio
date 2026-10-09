@@ -53,7 +53,10 @@
 //#define IMGUI_USE_BGRA_PACKED_COLOR
 
 //---- Use 32-bit for ImWchar (default is 16-bit) to support unicode planes 1-16. (e.g. point beyond 0xFFFF like emoticons, dingbats, symbols, shapes, ancient languages, etc...)
-//#define IMGUI_USE_WCHAR32
+// Needed by the text tool. With a 16-bit ImWchar every code point above U+FFFF
+// (emoji live in plane 1) is replaced by IM_UNICODE_CODEPOINT_INVALID on the way into
+// InputText, so the character is destroyed before it ever reaches the emboss pipeline.
+#define IMGUI_USE_WCHAR32
 
 //---- Avoid multiple STB libraries implementations, or redefine path/filenames to prioritize another version
 // By default the embedded implementations are declared static and not available outside of Dear ImGui sources files.
