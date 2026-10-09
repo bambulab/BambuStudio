@@ -1393,7 +1393,7 @@ void PreferencesDialog::Split(const std::string &src, const std::string &separat
 void PreferencesDialog::update_mcp_controls(const std::string &error)
 {
     std::string display_error = error;
-    if (m_mcp_enabled_checkbox) m_mcp_enabled_checkbox->SetValue(wxGetApp().mcp_enabled());
+    if (m_mcp_enabled_checkbox) m_mcp_enabled_checkbox->SetValue(wxGetApp().app_config->get_bool("mcp_server_enabled"));
     if (m_mcp_port_input) m_mcp_port_input->GetTextCtrl()->ChangeValue(std::to_string(wxGetApp().mcp_port()));
     const std::string address = wxGetApp().mcp_address();
     if (m_mcp_address_label) m_mcp_address_label->SetLabel(wxString::FromUTF8(address.empty() ? "Unavailable" : address));
@@ -1502,7 +1502,7 @@ wxWindow *PreferencesDialog::create_general_tab()
     auto item_downloads = create_item_downloads(scrolled, 50, "download_path");
 
     m_mcp_enabled_checkbox = new ::CheckBox(scrolled);
-    m_mcp_enabled_checkbox->SetValue(wxGetApp().mcp_enabled());
+    m_mcp_enabled_checkbox->SetValue(wxGetApp().app_config->get_bool("mcp_server_enabled"));
     auto item_mcp_enabled = new wxBoxSizer(wxHORIZONTAL);
     item_mcp_enabled->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
     item_mcp_enabled->AddSpacer(FromDIP(ITEM_LEFT_PADDING));

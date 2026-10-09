@@ -6833,20 +6833,21 @@ bool GUI_App::mcp_set_enabled(bool enabled, std::string &error)
         m_mcp_status = "Off";
         return true;
     }
+    if (!app_config->get_bool("mcp_server_enabled")) {
+        app_config->set_bool("mcp_server_enabled", true);
+        app_config->save();
+    }
     if (!is_editor() || !initialized() || is_closing() || m_is_recreating_gui || !plater()) {
         error = "The editor is not ready";
+        m_mcp_status = error;
         return false;
     }
     if (mcp_enabled()) return true;
     std::string token;
     if (!load_or_create_mcp_token(data_dir(), token, error) || !mcp_start_on_port(mcp_port(), token, error)) {
-        app_config->set_bool("mcp_server_enabled", false);
-        app_config->save();
         m_mcp_status = error;
         return false;
     }
-    app_config->set_bool("mcp_server_enabled", true);
-    app_config->save();
     return true;
 }
 
@@ -6858,10 +6859,13 @@ bool GUI_App::mcp_set_port(unsigned long port, std::string &error)
         return false;
     }
     const unsigned long old_port = mcp_port();
-    if (port == old_port) return true;
+    if (port == old_port && (mcp_enabled() || !app_config->get_bool("mcp_server_enabled"))) return true;
     if (!mcp_enabled()) {
-        app_config->set("mcp_server_port", std::to_string(port));
-        app_config->save();
+        if (port != old_port) {
+            app_config->set("mcp_server_port", std::to_string(port));
+            app_config->save();
+        }
+        if (app_config->get_bool("mcp_server_enabled")) return mcp_set_enabled(true, error);
         return true;
     }
     std::string token;
@@ -6892,8 +6896,6 @@ bool GUI_App::mcp_regenerate_token(std::string &error)
         if (was_running) {
             std::string rollback_error;
             if (!mcp_start_on_port(mcp_port(), old_token, rollback_error)) {
-                app_config->set_bool("mcp_server_enabled", false);
-                app_config->save();
                 error += "; the listener could not be restored: " + rollback_error;
             }
         }
@@ -6901,12 +6903,21 @@ bool GUI_App::mcp_regenerate_token(std::string &error)
         return false;
     }
     if (was_running && !mcp_start_on_port(mcp_port(), token, error)) {
-        app_config->set_bool("mcp_server_enabled", false);
-        app_config->save();
+        error = "Access token regenerated; update connected clients; listener could not start: " + error;
         m_mcp_status = error;
         return false;
     }
-    if (!was_running) m_mcp_status = "Off";
+    if (!was_running) {
+        if (app_config->get_bool("mcp_server_enabled")) {
+            if (!mcp_set_enabled(true, error)) {
+                error = "Access token regenerated; update connected clients; listener could not start: " + error;
+                m_mcp_status = error;
+                return false;
+            }
+            return true;
+        }
+        m_mcp_status = "Off";
+    }
     return true;
 }
 

@@ -307,13 +307,14 @@ def run_flow(port, token, workdir, do_slice):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["prepare", "off", "on", "flow", "settings"])
+    parser.add_argument("phase", choices=["prepare", "off", "on", "flow", "settings", "persisted"])
     parser.add_argument("--port", type=int, default=27183)
     parser.add_argument("--profile", type=Path, required=True)
     parser.add_argument("--workdir", type=Path, required=True)
     parser.add_argument("--slice", action="store_true", help="Only for flow, with a safe local preset")
     parser.add_argument("--old-port", type=int, help="Previous listener port, for settings phase")
     parser.add_argument("--old-token-file", type=Path, help="Owner-only snapshot of the previous disposable token")
+    parser.add_argument("--token-snapshot", type=Path, help="Owner-only token snapshot from this disposable profile")
     args = parser.parse_args()
     check(args.profile.is_absolute() and args.workdir.is_absolute(), "profile and workdir are absolute")
     check(args.profile != args.workdir and args.profile != Path.home(), "profile is isolated")
@@ -330,8 +331,21 @@ def main():
     if args.phase == "off":
         check(not reachable(args.port), "MCP listener is disabled on chosen port")
         return
-    check(reachable(args.port), "MCP listener is reachable on chosen port")
     token = token_from(args.profile)
+    if args.phase == "persisted":
+        check(args.token_snapshot is not None and args.token_snapshot.is_file()
+              and not args.token_snapshot.is_symlink()
+              and args.token_snapshot.parent == args.workdir
+              and stat.S_IMODE(args.token_snapshot.stat().st_mode) == 0o600,
+              "token snapshot is an owner-only work file")
+        check(args.token_snapshot.read_text(encoding="ascii").strip() == token,
+              "token is unchanged in the same disposable profile")
+        config = json.loads((args.profile / "BambuStudio.conf").read_text(encoding="utf-8"))
+        check(config["app"]["mcp_server_enabled"] is True
+              and config["app"]["mcp_server_port"] == str(args.port),
+              "requested enabled state and port remain saved")
+        return
+    check(reachable(args.port), "MCP listener is reachable on chosen port")
     if args.phase == "settings":
         check(args.old_port is not None and args.old_port != args.port and 1024 <= args.old_port <= 65535,
               "old and new ports are distinct and valid")
