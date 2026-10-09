@@ -1515,8 +1515,14 @@ namespace Slic3r
                     bool visible = true,
                     std::function<void()> callback = nullptr)
                     {
-                        // render icon
-                        ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y);
+                        // Tallest cell of the row (e.g. "x m\ny g" spans two lines); single-line cells are centered against it.
+                        float row_max_h = 0.f;
+                        for (const auto& col : columns_offsets)
+                            row_max_h = std::max(row_max_h, ImGui::CalcTextSize(col.first.c_str()).y);
+                        const float cell0_h = ImGui::CalcTextSize(columns_offsets[0].first.c_str()).y;
+                        const float offset_y = std::max(0.0f, (row_max_h - cell0_h) * 0.5f);
+                        // render icon, shifted with the first cell so it stays level with the filament index
+                        ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y + offset_y);
                         switch (type) {
                         default:
                         case EItemType::Rect: {
@@ -1574,15 +1580,10 @@ namespace Slic3r
                         {
                             if (callback && !checkbox && !visible)
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));
-                            // 本行最高单元格（如 "x m\ny g" 占 2 行）；单行单元格以它为基准垂直居中。
-                            float row_max_h = 0.f;
-                            for (const auto& col : columns_offsets)
-                                row_max_h = std::max(row_max_h, ImGui::CalcTextSize(col.first.c_str()).y);
                             float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + icon_size;
                             ImGui::SameLine(dummy_size);
                             const float row_top_y = ImGui::GetCursorPosY();
-                            const float cell0_h = ImGui::CalcTextSize(columns_offsets[0].first.c_str()).y;
-                            ImGui::SetCursorPosY(row_top_y + std::max(0.0f, (row_max_h - cell0_h) * 0.5f));
+                            ImGui::SetCursorPosY(row_top_y + offset_y);
                             imgui.text(columns_offsets[0].first);
                             for (auto i = 1; i < columns_offsets.size(); i++) {
                                 ImGui::SameLine(columns_offsets[i].second);
