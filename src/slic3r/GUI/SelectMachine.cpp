@@ -4856,7 +4856,11 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
             {
                 int chamber_temp = chamber_temperatures->values[item.id];
                 if (chamber_temp >= 40) {
-                    high_temp_filaments.insert(item.get_display_filament_type());// high printing chamber temperature
+                    const auto sliced = std::find_if(m_filaments.begin(), m_filaments.end(),
+                                                     [&item](const FilamentInfo& fila) { return fila.id == item.id; });
+                    if (sliced != m_filaments.end() && !sliced->type.empty()) {
+                        high_temp_filaments.insert(sliced->get_display_filament_type());// high printing chamber temperature
+                    }
                 }
 
                 for (const auto& extder : obj_->GetExtderSystem()->GetExtruders()) { // check vitrification
