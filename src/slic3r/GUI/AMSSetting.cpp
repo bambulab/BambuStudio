@@ -137,6 +137,15 @@ void AMSSetting::create()
     m_tip_Insert_material_line3->Hide();
     m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line3, 0, wxEXPAND, 0);
 
+    // extra tip line for the hotend rack machines whose own slots always read the filament
+    m_tip_Insert_material_external_ams = new Label(m_panel_Insert_material, _L("Only for AMS/AMS 2pro/AMS HT."));
+    m_tip_Insert_material_external_ams->SetFont(::Label::Body_13);
+    m_tip_Insert_material_external_ams->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_Insert_material_external_ams->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
+    m_tip_Insert_material_external_ams->Wrap(AMS_SETTING_BODY_WIDTH);
+    m_tip_Insert_material_external_ams->Hide();
+    m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_external_ams, 0, wxEXPAND | wxTOP, 8);
+
     m_sizer_Insert_material_tip->Add(m_sizer_Insert_material_tip_inline, 1, wxALIGN_CENTER, 0);
 
     m_sizer_main_Insert_material->Add(m_sizer_Insert_material, 0, wxEXPAND | wxTOP, FromDIP(4));
@@ -181,6 +190,16 @@ void AMSSetting::create()
     m_tip_starting_line2->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_starting_line2->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_starting_tip_inline->Add(m_tip_starting_line2, 0, wxEXPAND,0);
+
+    // extra tip line for the hotend rack machines whose own slots always read the filament
+    m_tip_starting_external_ams = new Label(m_panel_starting, _L("Only for AMS/AMS 2pro/AMS HT."));
+    m_tip_starting_external_ams->SetFont(::Label::Body_13);
+    m_tip_starting_external_ams->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_starting_external_ams->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
+    m_tip_starting_external_ams->Wrap(AMS_SETTING_BODY_WIDTH);
+    m_tip_starting_external_ams->Hide();
+    m_sizer_starting_tip_inline->Add(m_tip_starting_external_ams, 0, wxEXPAND | wxTOP, 8);
+
     m_sizer_starting_tip->Add(m_sizer_starting_tip_inline, 1, wxALIGN_CENTER, 0);
 
     wxBoxSizer* m_sizer_main_starting = new wxBoxSizer(wxVERTICAL);
@@ -476,6 +495,7 @@ void AMSSetting::update_insert_material_read_mode(MachineObject* obj)
 void AMSSetting::update_insert_material_read_mode(bool selected, std::string version)
 {
     bool hide_for_version = !version.empty() && version >= AMS_F1_SUPPORT_INSERTION_UPDATE_DEFAULT;
+    bool show_external_ams_text = m_obj && DevPrinterConfigUtil::support_ams_settings_hide_insert_power(m_obj->printer_type);
     bool state_changed;
 
     if (hide_for_version) {
@@ -486,11 +506,14 @@ void AMSSetting::update_insert_material_read_mode(bool selected, std::string ver
         m_tip_Insert_material_line1->Hide();
         m_tip_Insert_material_line2->Hide();
         m_tip_Insert_material_line3->Hide();
+        m_tip_Insert_material_external_ams->Hide();
         m_panel_Insert_material->Hide();
     }
     else {
         state_changed = !m_panel_Insert_material->IsShown() ||
-                         m_checkbox_Insert_material_auto_read->GetValue() != selected;
+                         m_checkbox_Insert_material_auto_read->GetValue() != selected ||
+                         m_tip_Insert_material_external_ams->IsShown() != show_external_ams_text;
+        m_tip_Insert_material_external_ams->Show(show_external_ams_text);
         m_panel_Insert_material->Show();
         m_checkbox_Insert_material_auto_read->SetValue(selected);
         m_checkbox_Insert_material_auto_read->Show();
@@ -567,10 +590,14 @@ void AMSSetting::update_starting_read_mode(bool selected)
         return;
     }
 
+    const bool show_external_ams_text = m_obj && DevPrinterConfigUtil::support_ams_settings_hide_insert_power(m_obj->printer_type);
+
     bool state_changed = !m_panel_starting->IsShown() ||
-                          m_checkbox_starting_auto_read->GetValue() != selected;
+                          m_checkbox_starting_auto_read->GetValue() != selected ||
+                          m_tip_starting_external_ams->IsShown() != show_external_ams_text;
 
     m_panel_starting->Show(true);
+    m_tip_starting_external_ams->Show(show_external_ams_text);
 
     m_checkbox_starting_auto_read->SetValue(selected);
     if (selected) { // selected
