@@ -1792,13 +1792,17 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
     {
         Points pos;
         Points pos_custom;
-        float  max_print_z;
-        float  max_print_z_custom;
+        float  max_print_z{0.0f};
+        float  max_print_z_custom{0.0f};
     };
     std::map<int, std::map<int, std::map<int, GCodePosInfo>>> gcode_path_pos; // object_id, layer_id, filament_id
     for (const GCodeProcessorResult::MoveVertex &move : m_result.moves) {
-        // sometimes, the start line extrude was outside the edge of plate a little, this is allowed, so do not include into the gcode_path_pos
-        if (move.type == EMoveType::Extrude && move.extrusion_role != ExtrusionRole::erFlush /* || move.type == EMoveType::Travel*/) {
+        // Machine/start/end/tool-change moves are tagged erCustom and use a different, deliberately wider
+        // motion envelope. Model travel, however, must obey the same active-nozzle XY envelope as extrusion:
+        // an out-of-range travel can still drive a physical nozzle into an end stop before any material is laid.
+        const bool is_model_extrusion = move.type == EMoveType::Extrude && move.extrusion_role != ExtrusionRole::erFlush;
+        const bool is_model_travel    = move.type == EMoveType::Travel && move.extrusion_role != ExtrusionRole::erCustom;
+        if (is_model_extrusion || is_model_travel) {
             int layer_id = static_cast<int>(move.layer_duration) - 1;
             if (move.extrusion_role == ExtrusionRole::erCustom) {
                 if (move.is_arc_move_with_interpolation_points()) {
@@ -1808,8 +1812,10 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
                 } else {
                     gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.position.cast<double>()));
                 }
-                gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z_custom =
-                    std::max(gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z_custom, move.print_z);
+                if (is_model_extrusion) {
+                    gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z_custom =
+                        std::max(gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z_custom, move.print_z);
+                }
             } else {
                 if (move.is_arc_move_with_interpolation_points()) {
                     for (int i = 0; i < move.interpolation_points.size(); i++) {
@@ -1818,8 +1824,10 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
                 } else {
                     gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.position.cast<double>()));
                 }
-                gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z =
-                    std::max(gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z, move.print_z);
+                if (is_model_extrusion) {
+                    gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z =
+                        std::max(gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z, move.print_z);
+                }
             }
         }
     }
