@@ -4535,7 +4535,7 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int imag
             std::tm* local_tm = std::localtime(&t);
             if (local_tm != nullptr)
             {
-                bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+                bool use_12h_format = wxGetApp().app_config->get_bool("use_12h_time_format");
 
                 // Format date and time: YYYY-MM-DD HH:MM[:SS][AM/PM]
                 std::wstringstream time_stream;
