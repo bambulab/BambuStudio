@@ -2651,8 +2651,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
     {
-        const bool support_material_on_wipe_tower = print.support_material_on_wipe_tower();
-        file.write_format("; support_material_on_wipe_tower: %d\n", int(support_material_on_wipe_tower));
+        file.write_format("; support_material_on_wipe_tower: %d\n", 0);
     }
 
     // BBS: legal and compliance notice (last lines of HEADER_BLOCK)
