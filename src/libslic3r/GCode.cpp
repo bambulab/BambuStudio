@@ -2869,8 +2869,20 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperatures.get_at(extruder.id()));
 
         int min_temperature_vitrification = std::numeric_limits<int>::max();
-        for (const auto& extruder : m_writer.extruders())
-            min_temperature_vitrification = std::min(min_temperature_vitrification, m_config.temperature_vitrification.get_at(extruder.id()));
+        int min_model_temperature_vitrification = std::numeric_limits<int>::max();
+        const auto filament_usage_types = print.get_filament_usage_type();
+        for (const auto& extruder : m_writer.extruders()) {
+            const int temperature_vitrification = m_config.temperature_vitrification.get_at(extruder.id());
+            min_temperature_vitrification = std::min(min_temperature_vitrification, temperature_vitrification);
+
+            // Support-only materials should not select the machine-wide cooling
+            // policy for a model printed with a different material. Keep hybrid
+            // materials because they are also used by the model itself.
+            if (extruder.id() >= filament_usage_types.size() || filament_usage_types[extruder.id()] != FilamentUsageType::SupportOnly)
+                min_model_temperature_vitrification = std::min(min_model_temperature_vitrification, temperature_vitrification);
+        }
+        if (min_model_temperature_vitrification != std::numeric_limits<int>::max())
+            min_temperature_vitrification = min_model_temperature_vitrification;
 
 
         std::string first_layer_bed_temp_str;
