@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1191,8 +1191,10 @@ msgstr "Aliniați placa"
 msgid "Align top-bottom center"
 msgstr "Aliniați centrul sus-jos"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Dacă țineți apăsată continuu tasta Ctrl și faceți clic cu butonul stâng al mouse-ului, puteți selecta mai multe obiecte, sau dacă țineți apăsată continuu tasta Alt și faceți clic cu butonul stâng al mouse-ului, puteți selecta mai multe părți."
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Aliniați"
@@ -5102,7 +5104,6 @@ msgstr ""
 "Duza se poate bloca când temperatura este în afara intervalului recomandat.\n"
 "Vă rugăm să confirmați dacă utilizați temperatura pentru imprimare.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -6892,8 +6893,9 @@ msgstr "Setați mouse-ul 3DConnexion"
 msgid "Services"
 msgstr "Servicii"
 
-msgid "Hide BambuStudio"
-msgstr "Ascunde BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Ascunde altele"
@@ -7312,7 +7314,6 @@ msgid ""
 msgstr ""
 "Fișier: %s\n"
 "Titlu: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Descărcarea este în așteptare..."
@@ -7764,7 +7765,6 @@ msgid ""
 msgstr ""
 "Următoarele probleme au apărut în timpul procesului de încărcare a imaginilor. Doriți să le ignorați?\n"
 "\n"
-""
 
 msgid "info"
 msgstr "informații"
@@ -11194,6 +11194,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "Răcire"
 
@@ -11273,6 +11277,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Ați selectat atât filamente externe, cât și AMS pentru un extruder. Va trebui să comutați manual filamentul extern în timpul imprimării."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -11532,7 +11539,6 @@ msgid ""
 msgstr ""
 "Materialele de suport insolubile nu sunt recomandate pentru baza de suport. \n"
 "Sigur doriți să le utilizați ca bază pentru suport? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -11570,7 +11576,6 @@ msgid ""
 msgstr ""
 "Înălțimea stratului este prea mică.\n"
 "Se va seta la min_layer_height\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "Înălțimea stratului depășește limita din Setări imprimantă -> Extruder -> Limite înălțime strat, acest lucru poate cauza probleme de calitate a imprimării."
@@ -13605,7 +13610,6 @@ msgid ""
 msgstr ""
 "Nu s-a putut genera G-code pentru G-code personalizat nevalid.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Vă rugăm să verificați codul G personalizat sau să utilizați codul G personalizat implicit.\n"
@@ -17792,7 +17796,6 @@ msgstr ""
 "Sfaturi pentru materialul de calibrare: \n"
 "- Materiale care pot avea aceeași temperatură a patului fierbinte\n"
 "- Mărci și familii de filamente diferite (Marcă = Bambu, Familie = Basic, Mat)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "(Aux) nu acceptă calibrarea automată a debitului."
@@ -19576,8 +19579,8 @@ msgstr "Imprimanta ta are instalate duze diferite. Vă rugăm să selectați o d
 msgid "Purge Mode Settings"
 msgstr "Setări pentru modul de purjare"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "Efectuați o purjare completă cu tranziție de viteză și temperatură pentru cea mai bună calitate a imprimării."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Folosește o temperatură de purjare optimizată, un multiplicator și o extrudare mai puternică pentru o purjare mai rapidă. Poate cauza o ușoară amestecare a culorilor în unele cazuri extreme."
@@ -19585,8 +19588,8 @@ msgstr "Folosește o temperatură de purjare optimizată, un multiplicator și o
 msgid "Prime Saving"
 msgstr "Economii Prime"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Reduce risipa de material brut și imprimă mai rapid. Poate cauza o ușoară amestecare a culorilor sau mici defecte de suprafață."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Află mai multe despre modul prime"
@@ -20304,3 +20307,15 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Dacă țineți apăsată continuu tasta Ctrl și faceți clic cu butonul stâng al mouse-ului, puteți selecta mai multe obiecte, sau dacă țineți apăsată continuu tasta Alt și faceți clic cu butonul stâng al mouse-ului, puteți selecta mai multe părți."
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "Ascunde BambuStudio"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "Efectuați o purjare completă cu tranziție de viteză și temperatură pentru cea mai bună calitate a imprimării."
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Reduce risipa de material brut și imprimă mai rapid. Poate cauza o ușoară amestecare a culorilor sau mici defecte de suprafață."

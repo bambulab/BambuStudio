@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1190,8 +1190,10 @@ msgstr "จัดแนวแผ่นฐาน"
 msgid "Align top-bottom center"
 msgstr "จัดกึ่งกลางบน-ล่าง"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "กดปุ่ม Ctrl ค้างไว้แล้วคลิกเมาส์ด้านซ้ายเพื่อเลือกหลายวัตถุ หรือกดปุ่ม Alt ค้างไว้แล้วคลิกเมาส์ด้านซ้ายเพื่อเลือกชิ้นส่วนหลายชิ้น"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "จัดแนว"
@@ -5091,7 +5093,6 @@ msgstr ""
 "หัวฉีดอาจถูกบล็อกเมื่ออุณหภูมิอยู่นอกช่วงที่แนะนำ\n"
 "โปรดยืนยันว่าจะใช้อุณหภูมินี้ในการพิมพ์หรือไม่\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -6881,8 +6882,9 @@ msgstr "ตั้งค่าเมาส์ 3DConnexion"
 msgid "Services"
 msgstr "บริการ"
 
-msgid "Hide BambuStudio"
-msgstr "ซ่อน Bambu Studio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "ซ่อนอื่น ๆ"
@@ -7295,7 +7297,6 @@ msgid ""
 msgstr ""
 "ไฟล์: %s\n"
 "ชื่อ: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "กำลังรอดาวน์โหลด..."
@@ -7747,7 +7748,6 @@ msgid ""
 msgstr ""
 "เกิดปัญหาดังต่อไปนี้ระหว่างการอัปโหลดรูปภาพ คุณต้องการเพิกเฉยหรือไม่?\n"
 "\n"
-""
 
 msgid "info"
 msgstr "ข้อมูล"
@@ -11169,6 +11169,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "อุณหภูมิต่ำ"
 
@@ -11248,6 +11252,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "คุณเลือกเส้นวัสดุทั้งแบบภายนอกและจาก AMS สำหรับเอ็กซ์ทรูเดอร์ คุณจะต้องเปลี่ยนเส้นวัสดุภายนอกด้วยตนเองระหว่างการพิมพ์"
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -11507,7 +11514,6 @@ msgid ""
 msgstr ""
 "ไม่แนะนำให้ใช้วัสดุรองรับที่ไม่ละลายน้ำกับฐานรองรับ \n"
 "คุณแน่ใจหรือไม่ว่าจะใช้กับฐานรองรับ? \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -11546,7 +11552,6 @@ msgid ""
 msgstr ""
 "ความหนาต่อชั้นน้อยเกินไป\n"
 "ระบบจะตั้งค่าเป็น min_layer_height\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "ความหนาต่อชั้นเกินขีดจำกัดที่ตั้งไว้ใน การตั้งค่าเครื่องพิมพ์ -> เอ็กซ์ทรูเดอร์ -> ขีดจำกัดความหนาต่อชั้น ซึ่งอาจทำให้เกิดปัญหาด้านคุณภาพการพิมพ์"
@@ -13575,7 +13580,6 @@ msgid ""
 msgstr ""
 "สร้าง G-code ล้มเหลว เนื่องจาก G-code ที่กำหนดเองไม่ถูกต้อง\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "โปรดตรวจสอบ G-code ที่กำหนดเองหรือใช้ G-code ที่กำหนดเองเริ่มต้น\n"
@@ -17762,7 +17766,6 @@ msgstr ""
 "เคล็ดลับสำหรับวัสดุการปรับเทียบ:\n"
 "- วัสดุที่สามารถใช้อุณหภูมิฐานความร้อนร่วมกัน\n"
 "- แบรนด์และตระกูลเส้นวัสดุที่ต่างกัน (แบรนด์ = Bambu, ตระกูล = Basic, Matte)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "(Aux) ไม่รองรับการปรับเทียบการไหลอัตโนมัติ"
@@ -19544,8 +19547,8 @@ msgstr "เครื่องพิมพ์ของคุณติดตั้
 msgid "Purge Mode Settings"
 msgstr "การตั้งค่าโหมดวัสดุส่วนเกิน"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "ทำการไล่เส้นทั้งหมดร่วมกับการปรับเปลี่ยนความเร็วและอุณหภูมิ เพื่อคุณภาพงานพิมพ์ที่ดีที่สุด"
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "ใช้อุณหภูมิไล่เส้น ตัวคูณ และแรงดันการฉีดที่เหมาะสมเพื่อให้ไล่เส้นได้เร็วขึ้น อาจเกิดการผสมสีเล็กน้อยในบางกรณีที่สีต่างกันมาก"
@@ -19553,8 +19556,8 @@ msgstr "ใช้อุณหภูมิไล่เส้น ตัวคู�
 msgid "Prime Saving"
 msgstr "ประหยัดเส้นเตรียมหัวฉีด"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "ช่วยลดเศษจากการเตรียมเส้นและพิมพ์ได้เร็วขึ้น แต่อาจทำให้เกิดการผสมกันของสีเล็กน้อยหรือมีจุดบกพร่องเล็กน้อยบนพื้นผิว"
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "เรียนรู้เพิ่มเติมเกี่ยวกับโหมดเตรียมเส้น"
@@ -20272,3 +20275,15 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "กดปุ่ม Ctrl ค้างไว้แล้วคลิกเมาส์ด้านซ้ายเพื่อเลือกหลายวัตถุ หรือกดปุ่ม Alt ค้างไว้แล้วคลิกเมาส์ด้านซ้ายเพื่อเลือกชิ้นส่วนหลายชิ้น"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "ซ่อน Bambu Studio"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "ทำการไล่เส้นทั้งหมดร่วมกับการปรับเปลี่ยนความเร็วและอุณหภูมิ เพื่อคุณภาพงานพิมพ์ที่ดีที่สุด"
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "ช่วยลดเศษจากการเตรียมเส้นและพิมพ์ได้เร็วขึ้น แต่อาจทำให้เกิดการผสมกันของสีเล็กน้อยหรือมีจุดบกพร่องเล็กน้อยบนพื้นผิว"

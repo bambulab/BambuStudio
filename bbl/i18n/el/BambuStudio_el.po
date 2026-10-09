@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1190,8 +1190,10 @@ msgstr "Ευθυγράμμιση πλάκας"
 msgid "Align top-bottom center"
 msgstr "Ευθυγράμμιση από πάνω προς τα κάτω στο κέντρο"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Με παρατεταμένο πάτημα του πλήκτρου Ctrl και αριστερό κλικ μπορείτε να επιλέξετε πολλαπλά αντικείμενα ή με παρατεταμένο πάτημα του πλήκτρου Alt και αριστερό κλικ μπορείτε να επιλέξετε πολλαπλά τμήματα"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Ευθυγράμμιση"
@@ -5096,7 +5098,6 @@ msgid ""
 msgstr ""
 "Το ακροφύσιο ενδέχεται να μπλοκαριστεί όταν η θερμοκρασία είναι εκτός του συνιστώμενου εύρους.\n"
 "Επιβεβαιώστε εάν θέλετε να χρησιμοποιήσετε αυτή τη θερμοκρασία για εκτύπωση.\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -6886,8 +6887,9 @@ msgstr "Ρύθμιση ποντικιού 3DConnexion"
 msgid "Services"
 msgstr "Υπηρεσίες"
 
-msgid "Hide BambuStudio"
-msgstr "Απόκρυψη BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Απόκρυψη άλλων"
@@ -7303,7 +7305,6 @@ msgid ""
 msgstr ""
 "Αρχείο: %s\n"
 "Τίτλος: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Αναμονή λήψης..."
@@ -7755,7 +7756,6 @@ msgid ""
 msgstr ""
 "Παρουσιάστηκαν τα ακόλουθα προβλήματα κατά τη διαδικασία μεταφόρτωσης εικόνων. Θέλετε να τα αγνοήσετε;\n"
 "\n"
-""
 
 msgid "info"
 msgstr "πληροφορίες"
@@ -11181,6 +11181,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "Ψύξη"
 
@@ -11260,6 +11264,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Έχετε επιλέξει εξωτερικά νήματα και νήματα AMS για έναν εξωθητήρα. Θα χρειαστεί να αλλάξετε χειροκίνητα το εξωτερικό νήμα κατά την εκτύπωση."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -11519,7 +11526,6 @@ msgid ""
 msgstr ""
 "Δεν συνιστώνται μη διαλυτά υλικά υποστήριξης για βάση στήριξης. \n"
 "Είστε βέβαιοι ότι θα τα χρησιμοποιήσετε ως βάση στήριξης; \n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -11558,7 +11564,6 @@ msgid ""
 msgstr ""
 "Το ύψος επιπέδου είναι πολύ μικρό.\n"
 "Θα οριστεί σε min_layer_height\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "Το ύψος επιπέδου υπερβαίνει το όριο στις Ρυθμίσεις εκτυπωτή -> Εξωθητήρας -> Όρια ύψους επιπέδου. Αυτό ενδέχεται να προκαλέσει προβλήματα στην ποιότητα εκτύπωσης."
@@ -13590,7 +13595,6 @@ msgid ""
 msgstr ""
 "Αποτυχία δημιουργίας κώδικα G για μη έγκυρο προσαρμοσμένο κώδικα G.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Ελέγξτε τον προσαρμοσμένο κώδικα G ή χρησιμοποιήστε τον προεπιλεγμένο προσαρμοσμένο κώδικα G.\n"
@@ -17777,7 +17781,6 @@ msgstr ""
 "Συμβουλές για τη βαθμονόμηση του υλικού: \n"
 "- Υλικά που μπορούν να μοιράζονται την ίδια θερμοκρασία κλίνης/επιφάνειας\n"
 "- Διαφορετική μάρκα και οικογένεια νημάτων (Μάρκα = Bambu, Οικογένεια = Basic, Matte)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "Το (Aux) δεν υποστηρίζει την αυτόματη βαθμονόμηση ροής."
@@ -19560,8 +19563,8 @@ msgstr "Ο εκτυπωτής σας έχει εγκατεστημένα δια�
 msgid "Purge Mode Settings"
 msgstr "Ρυθμίσεις λειτουργίας καθαρισμού"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "Εκτελέστε πλήρη καθαρισμό με μετάβαση ταχύτητας και θερμοκρασίας για την καλύτερη ποιότητα εκτύπωσης."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Χρησιμοποιεί βελτιστοποιημένη θερμοκρασία καθαρισμού, πολλαπλασιαστή και ισχυρότερη εξώθηση για ταχύτερο καθαρισμό. Ενδέχεται να προκαλέσει ελαφρά ανάμειξη χρωμάτων σε ορισμένες ακραίες περιπτώσεις."
@@ -19569,8 +19572,8 @@ msgstr "Χρησιμοποιεί βελτιστοποιημένη θερμοκρ
 msgid "Prime Saving"
 msgstr "Εξοικονόμηση πλήρωσης"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Μειώνει τη σπατάλη πλήρωσης και εκτυπώνει πιο γρήγορα. Μπορεί να προκαλέσει ελαφρά ανάμειξη χρωμάτων ή μικρά επιφανειακά ελαττώματα."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Μάθετε περισσότερα για τη λειτουργία πλήρωσης"
@@ -20288,3 +20291,15 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Με παρατεταμένο πάτημα του πλήκτρου Ctrl και αριστερό κλικ μπορείτε να επιλέξετε πολλαπλά αντικείμενα ή με παρατεταμένο πάτημα του πλήκτρου Alt και αριστερό κλικ μπορείτε να επιλέξετε πολλαπλά τμήματα"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "Απόκρυψη BambuStudio"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "Εκτελέστε πλήρη καθαρισμό με μετάβαση ταχύτητας και θερμοκρασίας για την καλύτερη ποιότητα εκτύπωσης."
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Μειώνει τη σπατάλη πλήρωσης και εκτυπώνει πιο γρήγορα. Μπορεί να προκαλέσει ελαφρά ανάμειξη χρωμάτων ή μικρά επιφανειακά ελαττώματα."

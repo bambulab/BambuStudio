@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -1187,8 +1187,10 @@ msgstr "Zarovnat podložku"
 msgid "Align top-bottom center"
 msgstr "Zarovnat na střed nahoře-dole"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Podržením klávesy Ctrl a kliknutím levým tlačítkem myši lze vybrat více objektů, případně podržením klávesy Alt a kliknutím levým tlačítkem myši více částí"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Zarovnat"
@@ -6921,8 +6923,9 @@ msgstr "Nastavit myš 3DConnexion"
 msgid "Services"
 msgstr "Služby"
 
-msgid "Hide BambuStudio"
-msgstr "Skrýt BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Skrýt ostatní"
@@ -11168,6 +11171,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "Chladná"
 
@@ -11247,6 +11254,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Pro jeden extruder jste zvolil(a) externí filament i filament AMS. Během tisku bude nutné ručně přepnout externí filament."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -19617,7 +19627,7 @@ msgstr "Vaše tiskárna má nainstalované různé trysky. Vyberte prosím trysk
 msgid "Purge Mode Settings"
 msgstr "Nastavení režimu čištění"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
 msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
@@ -19626,8 +19636,8 @@ msgstr ""
 msgid "Prime Saving"
 msgstr "Úspora materiálu pro věž pro oddělení trysek"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Snižuje počáteční odpad i dobu tisku. Může způsobit mírné prolínání barev nebo drobné povrchové vady."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Zjistit více o režimu přípravy"
@@ -20370,6 +20380,15 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Podržením klávesy Ctrl a kliknutím levým tlačítkem myši lze vybrat více objektů, případně podržením klávesy Alt a kliknutím levým tlačítkem myši více částí"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "Skrýt BambuStudio"
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Snižuje počáteční odpad i dobu tisku. Může způsobit mírné prolínání barev nebo drobné povrchové vady."
 
 #~ msgid ""
 #~ "Drag to move the cut plane\n"

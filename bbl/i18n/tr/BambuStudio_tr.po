@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -1186,8 +1186,10 @@ msgstr "Tablayı Hizala"
 msgid "Align top-bottom center"
 msgstr "Üst-alt ortasına hizala"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Ctrl tuşunu basılı tutup sol fare düğmesiyle tıklayarak birden fazla nesne seçebilir veya Alt tuşunu basılı tutup sol fare düğmesiyle tıklayarak birden fazla parça seçebilirsin."
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Hizala"
@@ -6880,8 +6882,9 @@ msgstr "3DConnexion faresini ayarla"
 msgid "Services"
 msgstr "Servisler"
 
-msgid "Hide BambuStudio"
-msgstr "BambuStudio'yu Gizle"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Diğerlerini Gizle"
@@ -11171,6 +11174,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "Soğutma"
 
@@ -11250,6 +11257,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Bir ekstrüder için hem harici filamenti hem de AMS filamentini seçtin. Yazdırma sırasında harici filamenti manuel olarak değiştirmen gerekecek."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -19541,8 +19551,8 @@ msgstr "Yazıcında farklı püskürtme uçları takılıdır. Lütfen bu baskı
 msgid "Purge Mode Settings"
 msgstr "Temizleme Modu Ayarları"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "En iyi baskı kalitesi için hız ve sıcaklık geçişiyle tam temizleme işlemi gerçekleştir."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Daha hızlı temizleme için optimize edilmiş temizleme sıcaklığı, çarpan ve daha güçlü ekstrüzyon kullanır. Bazı aşırı durumlarda hafif renk karışmasına neden olabilir."
@@ -19550,8 +19560,8 @@ msgstr "Daha hızlı temizleme için optimize edilmiş temizleme sıcaklığı, 
 msgid "Prime Saving"
 msgstr "Prime Tasarrufu"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Prime atığını azaltır ve baskıyı hızlandırır. Hafif renk karışmasına veya küçük yüzey kusurlarına neden olabilir."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Prime modu hakkında daha fazla bilgi edin."
@@ -20269,6 +20279,18 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Ctrl tuşunu basılı tutup sol fare düğmesiyle tıklayarak birden fazla nesne seçebilir veya Alt tuşunu basılı tutup sol fare düğmesiyle tıklayarak birden fazla parça seçebilirsin."
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "BambuStudio'yu Gizle"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "En iyi baskı kalitesi için hız ve sıcaklık geçişiyle tam temizleme işlemi gerçekleştir."
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Prime atığını azaltır ve baskıyı hızlandırır. Hafif renk karışmasına veya küçük yüzey kusurlarına neden olabilir."
 
 #~ msgid "Remark"
 #~ msgstr "Açıklama"

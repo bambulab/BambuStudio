@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1186,8 +1186,10 @@ msgstr "Alinear placa"
 msgid "Align top-bottom center"
 msgstr "Alinear el centro vertical superior-inferior"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Mantenga presionada la tecla Ctrl y haga clic con el botón izquierdo del ratón puede seleccionar múltiples objetos, o mantener presionada la tecla Alt y hacer clic con el botón izquierdo del ratón puede seleccionar múltiples partes"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Alinear"
@@ -6882,8 +6884,9 @@ msgstr "Configurar el ratón 3DConnexion"
 msgid "Services"
 msgstr "servicios"
 
-msgid "Hide BambuStudio"
-msgstr "Ocultar BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Ocultar otros"
@@ -11177,6 +11180,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "Genial"
 
@@ -11256,6 +11263,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Ha seleccionado filamentos externos y AMS para una extrusora. Tendrá que cambiar manualmente el filamento externo durante la impresión."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -19558,8 +19568,8 @@ msgstr "Su impresora tiene diferentes boquillas instaladas. Por favor, selecci
 msgid "Purge Mode Settings"
 msgstr "Configuración del Modo de Purga"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "Realizar la purga completa con la transición de velocidad y temperatura para la mejor calidad de impresión."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Utilizar temperatura de purga optimizada, multiplicador y extrusión más fuerte para una purga más rápida. Puede causar ligeras mezclas de color en algunos casos extremos."
@@ -19567,8 +19577,8 @@ msgstr "Utilizar temperatura de purga optimizada, multiplicador y extrusión má
 msgid "Prime Saving"
 msgstr "Ahorro Prime"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Reduce el desperdicio de imprimación e imprime más rápido. Puede causar ligeras mezclas de colores o pequeños defectos superficiales."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Aprenda más sobre el modo Prime"
@@ -20284,6 +20294,18 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Mantenga presionada la tecla Ctrl y haga clic con el botón izquierdo del ratón puede seleccionar múltiples objetos, o mantener presionada la tecla Alt y hacer clic con el botón izquierdo del ratón puede seleccionar múltiples partes"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "Ocultar BambuStudio"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "Realizar la purga completa con la transición de velocidad y temperatura para la mejor calidad de impresión."
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Reduce el desperdicio de imprimación e imprime más rápido. Puede causar ligeras mezclas de colores o pequeños defectos superficiales."
 
 #~ msgid ""
 #~ "Drag to move the cut plane\n"

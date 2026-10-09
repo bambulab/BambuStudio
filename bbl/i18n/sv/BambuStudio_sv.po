@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1183,8 +1183,10 @@ msgstr "Justera platta"
 msgid "Align top-bottom center"
 msgstr "Linjera topp-botten centrum"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Hålls ner Ctrl tangenten kontinuerligt och klicka med vänster musknapp kan välja flera objekt, eller hålls ner Alt tangenten kontinuerligt och klicka med vänster musknapp kan välja flera delar"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Linjera"
@@ -6871,8 +6873,9 @@ msgstr "Ställ in 3DConnexion mus"
 msgid "Services"
 msgstr "Tjänster"
 
-msgid "Hide BambuStudio"
-msgstr "Dölj BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Dölj andra"
@@ -11157,6 +11160,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -11236,6 +11243,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Du har valt både externa och AMS filament för en extruder. Du måste manuellt byta externt filament under utskrift."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -19536,8 +19546,8 @@ msgstr "Din printer har olika nozzle installerade. Välj en nozzle för denna ut
 msgid "Purge Mode Settings"
 msgstr "Inställningar för rensnings läge"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "Utför fullständig rensning med hastighet och temperaturövergång för bästa utskriftskvalitet."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Använder optimerad rensningstemperatur, multiplikator och starkare extrudering för snabbare rensning. Kan orsaka lätt färgblandning i vissa extrema fall."
@@ -19545,8 +19555,8 @@ msgstr "Använder optimerad rensningstemperatur, multiplikator och starkare extr
 msgid "Prime Saving"
 msgstr "Rensnings besparing"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Minskar rensnings avfall och printar snabbare. Kan orsaka liten färgblandning eller små yteffekter."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Läs mer om rensnings läge"
@@ -20262,6 +20272,18 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Hålls ner Ctrl tangenten kontinuerligt och klicka med vänster musknapp kan välja flera objekt, eller hålls ner Alt tangenten kontinuerligt och klicka med vänster musknapp kan välja flera delar"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "Dölj BambuStudio"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "Utför fullständig rensning med hastighet och temperaturövergång för bästa utskriftskvalitet."
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Minskar rensnings avfall och printar snabbare. Kan orsaka liten färgblandning eller små yteffekter."
 
 #~ msgid ""
 #~ "Drag to move the cut plane\n"

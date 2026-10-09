@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -530,7 +530,7 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
-msgstr ""
+msgstr "添加耗材组"
 
 msgid "Idling..."
 msgstr "空闲中"
@@ -1192,8 +1192,10 @@ msgstr "对齐盘"
 msgid "Align top-bottom center"
 msgstr "上下居中"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "持续按住Ctrl键并单击鼠标左键可以选择多个对象，或者持续按住Alt键并单击小鼠左键可以选中多个部分"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "对齐"
@@ -6858,8 +6860,9 @@ msgstr "设置3D鼠标"
 msgid "Services"
 msgstr "服务"
 
-msgid "Hide BambuStudio"
-msgstr "隐藏BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr "隐藏%s"
 
 msgid "Hide Others"
 msgstr "隐藏其他"
@@ -11118,6 +11121,10 @@ msgstr "%s号槽位耗材尚未进料，可能会导致打印暂停换料，请�
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
+
 msgid "Cool"
 msgstr ""
 
@@ -11198,6 +11205,9 @@ msgstr "您在一个挤出机中同时选择了使用外挂和AMS耗材，这将
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
 msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr "在热端中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
 msgstr "TPU 90A/TPU85A硬度过低，建议在‘校准’页面进行手动流量校准。若使用自动/打开动态流量校准，将使用上一次的校准值，跳过流量校准。"
@@ -20203,6 +20213,12 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "持续按住Ctrl键并单击鼠标左键可以选择多个对象，或者持续按住Alt键并单击小鼠左键可以选中多个部分"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "隐藏BambuStudio"
+
 #~ msgid "Calibrating Hotend Rack"
 #~ msgstr "校准热端架位置"
 
@@ -20541,15 +20557,8 @@ msgstr ""
 #~ msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
 #~ msgstr "AMS 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
 
-#, c-format, boost-format
-#~ msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-#~ msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
-
 #~ msgid "Filament on external spool is not loaded. Printing may pause for filament change. Please load the filament before printing."
 #~ msgstr "外挂料盘上的耗材未装载。打印可能会因换料而暂停。请在打印前装载耗材。"
-
-#~ msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
-#~ msgstr "在热端中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
 
 #~ msgid "The currently connected printer does not support printing supports in a different material from the model using the wipe tower. Please re-slice the model."
 #~ msgstr "当前连接的打印机不支持使用擦料塔以不同于模型的材料打印支撑。请重新切片。"

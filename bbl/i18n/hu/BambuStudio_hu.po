@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1186,8 +1186,10 @@ msgstr "Tálca igazítása"
 msgid "Align top-bottom center"
 msgstr "Függőleges igazítás"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "A Ctrl billentyű lenyomva tartása és az egér bal gombjának kattintása több objektum kiválasztását teszi lehetővé, míg az Alt billentyű lenyomva tartása és az egér bal gombjának kattintása több alkatrész kiválasztását eredményezi"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Igazítás"
@@ -6882,8 +6884,9 @@ msgstr "3DConnexion egér beállítása"
 msgid "Services"
 msgstr "Szolgáltatások"
 
-msgid "Hide BambuStudio"
-msgstr "BambuStudio elrejtése"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Többi elrejtése"
@@ -11170,6 +11173,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -11249,6 +11256,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Egy extruderhez külső és AMS-ben lévő filamentet is kiválasztottál. A nyomtatás során kézzel kell majd váltanod a külső filamentre."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -19542,8 +19552,8 @@ msgstr "A nyomtatóban különböző fúvókák vannak. Kérjük, válassz egy
 msgid "Purge Mode Settings"
 msgstr "Átöblítési mód beállításai"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "A legjobb nyomtatási minőség érdekében végezzen teljes tisztítást sebesség- és hőmérséklet-átmenettel."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Optimalizált tisztítási hőmérsékletet, szorzót és erősebb extrudálást használ a gyorsabb tisztítás érdekében. Szélsőséges esetekben enyhe színkeveredést okozhat."
@@ -19551,8 +19561,8 @@ msgstr "Optimalizált tisztítási hőmérsékletet, szorzót és erősebb extru
 msgid "Prime Saving"
 msgstr "Takarékos átöblítés"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Csökkenti a felesleges öblítést és gyorsabb nyomtatást tesz lehetővé. Enyhe színkeveredést vagy kisebb felületi hibákat okozhat."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Tudj meg többet az átöblítési módról"
@@ -20271,6 +20281,18 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "A Ctrl billentyű lenyomva tartása és az egér bal gombjának kattintása több objektum kiválasztását teszi lehetővé, míg az Alt billentyű lenyomva tartása és az egér bal gombjának kattintása több alkatrész kiválasztását eredményezi"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "BambuStudio elrejtése"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "A legjobb nyomtatási minőség érdekében végezzen teljes tisztítást sebesség- és hőmérséklet-átmenettel."
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Csökkenti a felesleges öblítést és gyorsabb nyomtatást tesz lehetővé. Enyhe színkeveredést vagy kisebb felületi hibákat okozhat."
 
 #~ msgid ""
 #~ "Drag to move the cut plane\n"

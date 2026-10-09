@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1185,7 +1185,9 @@ msgstr ""
 msgid "Align top-bottom center"
 msgstr ""
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
 msgstr ""
 
 msgid "Align"
@@ -6816,8 +6818,9 @@ msgstr ""
 msgid "Services"
 msgstr "Services"
 
-msgid "Hide BambuStudio"
-msgstr "Hide BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Hide Others"
@@ -10981,6 +10984,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -11060,6 +11067,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr ""
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -19239,7 +19249,7 @@ msgstr ""
 msgid "Purge Mode Settings"
 msgstr ""
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
 msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
@@ -19248,7 +19258,7 @@ msgstr ""
 msgid "Prime Saving"
 msgstr ""
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
 msgstr ""
 
 msgid "Learn more about prime mode"
@@ -19941,6 +19951,9 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "Hide BambuStudio"
 
 #~ msgid ""
 #~ "Drag to move the cut plane\n"

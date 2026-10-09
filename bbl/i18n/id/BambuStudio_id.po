@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1191,8 +1191,10 @@ msgstr "Sejajarkan Pelat"
 msgid "Align top-bottom center"
 msgstr "Rata tengah atas-bawah"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Tekan dan tahan tombol Ctrl secara terus-menerus lalu klik dengan tombol kiri mouse dapat pilih beberapa objek, atau tekan dan tahan tombol Alt secara terus-menerus lalu klik dengan tombol kiri mouse dapat pilih beberapa bagian"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Sejajarkan"
@@ -5092,7 +5094,6 @@ msgstr ""
 "Nosel mungkin tersumbat saat suhu di luar rentang yang direkomendasikan.\n"
 " Harap konfirmasi apakah akan menggunakan suhu ini untuk pencetakan.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -6882,8 +6883,9 @@ msgstr "Atur Mouse 3DConnexion"
 msgid "Services"
 msgstr "Layanan"
 
-msgid "Hide BambuStudio"
-msgstr "Sembunyikan BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Sembunyikan Lainnya"
@@ -7296,7 +7298,6 @@ msgid ""
 msgstr ""
 "File: %s\n"
 "Judul: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Menunggu unduhan..."
@@ -7748,7 +7749,6 @@ msgid ""
 msgstr ""
 "Masalah berikut terjadi selama proses pengunggahan gambar. Apakah Anda ingin mengabaikannya?\n"
 "\n"
-""
 
 msgid "info"
 msgstr ""
@@ -11168,6 +11168,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "Dingin"
 
@@ -11247,6 +11251,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Anda telah memilih filamen eksternal dan AMS untuk sebuah ekstruder. Anda perlu mengganti filamen eksternal secara manual selama pencetakan."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -11506,7 +11513,6 @@ msgid ""
 msgstr ""
 "Material penyangga non-larut tidak direkomendasikan untuk dasar penyangga.\n"
 "Apakah Anda yakin ingin menggunakannya sebagai dasar penyangga?\n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -11545,7 +11551,6 @@ msgid ""
 msgstr ""
 "Tinggi lapisan terlalu kecil.\n"
 " Akan diatur ke min_layer_height\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "Tinggi lapisan melebihi batas di Pengaturan Printer -> Ekstruder -> Batas tinggi lapisan, ini dapat menyebabkan masalah kualitas pencetakan."
@@ -13574,7 +13579,6 @@ msgid ""
 msgstr ""
 "Gagal membuat gcode karena G-code kustom tidak valid.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Harap periksa G-code kustom atau gunakan G-code kustom default.\n"
@@ -17761,7 +17765,6 @@ msgstr ""
 "Tips untuk material kalibrasi:\n"
 "- Material yang dapat berbagi suhu alas panas yang sama\n"
 "- Merek dan keluarga filamen yang berbeda (Merek = Bambu, Seri = Dasar, Matte)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "(Aux) tidak mendukung kalibrasi aliran otomatis."
@@ -19543,8 +19546,8 @@ msgstr "Printer Anda telah menginstal nosel yang berbeda. Harap pilih nosel untu
 msgid "Purge Mode Settings"
 msgstr "Pengaturan Mode Pembersihan"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "Lakukan pembersihan penuh dengan transisi kecepatan dan suhu untuk kualitas cetak terbaik."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Menggunakan suhu pembersihan, pengganda, dan ekstrusi yang lebih kuat yang dioptimalkan untuk pembersihan yang lebih cepat. Dapat menyebabkan sedikit pencampuran warna dalam beberapa kasus ekstrem."
@@ -19552,8 +19555,8 @@ msgstr "Menggunakan suhu pembersihan, pengganda, dan ekstrusi yang lebih kuat ya
 msgid "Prime Saving"
 msgstr "Penghematan Prime"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Mengurangi limbah pembersihan dan mencetak lebih cepat. Dapat menyebabkan sedikit pencampuran warna atau cacat permukaan kecil."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Pelajari lebih lanjut tentang mode pembersihan"
@@ -20271,3 +20274,15 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Tekan dan tahan tombol Ctrl secara terus-menerus lalu klik dengan tombol kiri mouse dapat pilih beberapa objek, atau tekan dan tahan tombol Alt secara terus-menerus lalu klik dengan tombol kiri mouse dapat pilih beberapa bagian"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "Sembunyikan BambuStudio"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "Lakukan pembersihan penuh dengan transisi kecepatan dan suhu untuk kualitas cetak terbaik."
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Mengurangi limbah pembersihan dan mencetak lebih cepat. Dapat menyebabkan sedikit pencampuran warna atau cacat permukaan kecil."

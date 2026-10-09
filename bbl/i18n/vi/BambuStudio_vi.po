@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -1191,8 +1191,10 @@ msgstr "Căn chỉnh tấm in"
 msgid "Align top-bottom center"
 msgstr "Căn giữa trên-dưới"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Giữ phím Ctrl liên tục và nhấp chuột trái có thể chọn nhiều vật thể, hoặc giữ phím Alt liên tục và nhấp chuột trái có thể chọn nhiều bộ phận"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "Căn chỉnh"
@@ -5092,7 +5094,6 @@ msgstr ""
 "Vòi phun có thể bị tắc khi nhiệt độ nằm ngoài phạm vi khuyến nghị.\n"
 "Vui lòng xác nhận xem có muốn sử dụng nhiệt độ này để in không.\n"
 "\n"
-""
 
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
@@ -6882,8 +6883,9 @@ msgstr "Thiết lập chuột 3DConnexion"
 msgid "Services"
 msgstr "Dịch vụ"
 
-msgid "Hide BambuStudio"
-msgstr "Ẩn Studio Bambu"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "Ẩn các ứng dụng khác"
@@ -7296,7 +7298,6 @@ msgid ""
 msgstr ""
 "Tệp: %s\n"
 "Tiêu đề: %s\n"
-""
 
 msgid "Download waiting..."
 msgstr "Đang chờ tải xuống..."
@@ -7748,7 +7749,6 @@ msgid ""
 msgstr ""
 "Các vấn đề sau đã xảy ra trong quá trình tải ảnh lên. Bạn có muốn bỏ qua chúng không?\n"
 "\n"
-""
 
 msgid "info"
 msgstr "thông tin"
@@ -11170,6 +11170,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "Làm mát"
 
@@ -11249,6 +11253,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Bạn đã chọn cả sợi nhựa bên ngoài và sợi nhựa AMS cho một vòi đùn nhựa. Bạn sẽ cần chuyển sợi nhựa bên ngoài thủ công trong quá trình in."
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -11508,7 +11515,6 @@ msgid ""
 msgstr ""
 "Vật liệu hỗ trợ không hòa tan không được khuyến nghị cho đế cấu trúc đỡ.\n"
 "Bạn có chắc chắn muốn sử dụng chúng cho đế cấu trúc đỡ không?\n"
-""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
@@ -11547,7 +11553,6 @@ msgid ""
 msgstr ""
 "Chiều cao lớp quá nhỏ.\n"
 " Nó sẽ được đặt thành chiều_cao_lớp_tối_thiểu\n"
-""
 
 msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "Chiều cao lớp vượt quá giới hạn trong Cài đặt máy in -> Vòi đùn nhựa -> Giới hạn chiều cao lớp, điều này có thể gây ra các vấn đề về chất lượng in."
@@ -13576,7 +13581,6 @@ msgid ""
 msgstr ""
 "Không thể tạo mã G do mã G tùy chỉnh không hợp lệ.\n"
 "\n"
-""
 
 msgid "Please check the custom G-code or use the default custom G-code.\n"
 msgstr "Vui lòng kiểm tra Mã G tùy chỉnh hoặc sử dụng Mã G tùy chỉnh mặc định.\n"
@@ -17763,7 +17767,6 @@ msgstr ""
 "Mẹo về vật liệu hiệu chuẩn:\n"
 " - Vật liệu có thể dùng chung nhiệt độ bàn gia nhiệt\n"
 "- Các loại sợi nhựa khác nhau theo thương hiệu và dòng sản phẩm (Thương hiệu = Bambu, Dòng sản phẩm = Basic, Matte)\n"
-""
 
 msgid "(Aux) does not support automatic flow calibration."
 msgstr "(Phụ) không hỗ trợ hiệu chuẩn lưu lượng tự động."
@@ -19545,8 +19548,8 @@ msgstr "Máy in của bạn có các vòi phun khác nhau được lắp đặt.
 msgid "Purge Mode Settings"
 msgstr "Cài đặt chế độ xả nhựa"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "Thực hiện xả nhựa hoàn chỉnh với chuyển đổi tốc độ và nhiệt độ để có chất lượng in tốt nhất."
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "Sử dụng nhiệt độ xả nhựa tối ưu, hệ số nhân và lực đùn mạnh hơn để xả nhựa nhanh hơn. Có thể gây lẫn màu nhẹ trong một số trường hợp cực đoan."
@@ -19554,8 +19557,8 @@ msgstr "Sử dụng nhiệt độ xả nhựa tối ưu, hệ số nhân và l�
 msgid "Prime Saving"
 msgstr "Tiết kiệm vật liệu đùn mồi"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Giảm lãng phí vật liệu đùn mồi và in nhanh hơn. Có thể gây lẫn màu nhẹ hoặc các khuyết tật nhỏ trên bề mặt."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "Tìm hiểu thêm về chế độ đùn mồi"
@@ -20273,3 +20276,15 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Giữ phím Ctrl liên tục và nhấp chuột trái có thể chọn nhiều vật thể, hoặc giữ phím Alt liên tục và nhấp chuột trái có thể chọn nhiều bộ phận"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "Ẩn Studio Bambu"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "Thực hiện xả nhựa hoàn chỉnh với chuyển đổi tốc độ và nhiệt độ để có chất lượng in tốt nhất."
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Giảm lãng phí vật liệu đùn mồi và in nhanh hơn. Có thể gây lẫn màu nhẹ hoặc các khuyết tật nhỏ trên bề mặt."

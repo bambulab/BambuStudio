@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1191,8 +1191,10 @@ msgstr "對齊盤"
 msgid "Align top-bottom center"
 msgstr "上下居中"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "持續按住Ctrl鍵並單擊滑鼠左鍵可以選擇多個物件，或者持續按住Alt鍵並單擊小鼠左鍵可以選中多個部分"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "對齊"
@@ -6859,8 +6861,9 @@ msgstr "設定3D滑鼠"
 msgid "Services"
 msgstr "服務"
 
-msgid "Hide BambuStudio"
-msgstr "隱藏BambuStudio"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "隱藏其他"
@@ -11125,6 +11128,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "冷卻"
 
@@ -11204,6 +11211,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "您在一個擠出機中同時選擇了使用外掛和AMS耗材，這將需要您在列印過程中手動進行換料，請謹慎選擇。"
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -19479,8 +19489,8 @@ msgstr "您的印表機安裝了不同的噴嘴。請選擇一個噴嘴進行本
 msgid "Purge Mode Settings"
 msgstr "沖刷模式"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "搭配速度與溫度轉換，執行完整清除，以獲得最佳列印品質。"
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "使用最佳化清除溫度、倍率與更高擠出量，以加快清除速度。在某些極端情況下可能造成輕微混色。"
@@ -19488,8 +19498,8 @@ msgstr "使用最佳化清除溫度、倍率與更高擠出量，以加快清除
 msgid "Prime Saving"
 msgstr "省料模式"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "減少衝刷量，加快列印速度，但可能出現輕微的顏色混合或表面瑕疵。"
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "瞭解更多衝刷模式資訊"
@@ -20207,6 +20217,18 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "持續按住Ctrl鍵並單擊滑鼠左鍵可以選擇多個物件，或者持續按住Alt鍵並單擊小鼠左鍵可以選中多個部分"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "隱藏BambuStudio"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "搭配速度與溫度轉換，執行完整清除，以獲得最佳列印品質。"
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "減少衝刷量，加快列印速度，但可能出現輕微的顏色混合或表面瑕疵。"
 
 #~ msgid ""
 #~ "Drag to move the cut plane\n"

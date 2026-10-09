@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 10:06+0800\n"
+"POT-Creation-Date: 2026-10-09 17:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1186,8 +1186,10 @@ msgstr "プレートを整列"
 msgid "Align top-bottom center"
 msgstr "上下中央揃え"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Ctrlキーを押しながら左クリックで複数のオブジェクトを選択できます。Altキーを押しながら左クリックすると、複数のパーツを選択できます。"
+msgid ""
+"Ctrl+left-click:select multiple objects.\n"
+"Alt+left-click:select multiple parts."
+msgstr ""
 
 msgid "Align"
 msgstr "整列"
@@ -6853,8 +6855,9 @@ msgstr "3DConnexionマウスを設定"
 msgid "Services"
 msgstr "サービス"
 
-msgid "Hide BambuStudio"
-msgstr "BambuStudioを非表示"
+#, c-format, boost-format
+msgid "Hide %s"
+msgstr ""
 
 msgid "Hide Others"
 msgstr "その他を非表示"
@@ -11124,6 +11127,10 @@ msgstr ""
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
 msgid "Cool"
 msgstr "クール"
 
@@ -11203,6 +11210,9 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "押出機の外部フィラメントと AMS フィラメントの両方を選択しました。造形中は、外部フィラメントを手動で切り替える必要があります。"
 
 msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
@@ -19503,8 +19513,8 @@ msgstr "プリンターには異なるノズルが取り付けられています
 msgid "Purge Mode Settings"
 msgstr "パージモード設定"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr "最適な印刷品質を得るためには、速度と温度変化を考慮した完全なパージ処理を実行します。"
+msgid "Perform a full prime tower purge with speed and temperature transitions for optimal print quality."
+msgstr ""
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr "最適化されたパージ温度、倍率、およびより強力な押出により、より高速なパージを実現します。極端な場合、わずかな色混じりが生じる可能性があります。"
@@ -19512,8 +19522,8 @@ msgstr "最適化されたパージ温度、倍率、およびより強力な押
 msgid "Prime Saving"
 msgstr "プライム節約"
 
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "プライムの無駄を減らし、造形を高速化します。わずかな色混じりや小さな表面欠陥が発生する場合があります。"
+msgid "Reduces prime waste and prints faster. May cause slight color mixing(only for H2C and H3C external 1st/2nd Gen AMS nozzles) or small surface defects."
+msgstr ""
 
 msgid "Learn more about prime mode"
 msgstr "プライムモードについて詳しく見る"
@@ -20228,6 +20238,18 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+#~ msgstr "Ctrlキーを押しながら左クリックで複数のオブジェクトを選択できます。Altキーを押しながら左クリックすると、複数のパーツを選択できます。"
+
+#~ msgid "Hide BambuStudio"
+#~ msgstr "BambuStudioを非表示"
+
+#~ msgid "Perform full purging with speed and temperature transition for the best print quality."
+#~ msgstr "最適な印刷品質を得るためには、速度と温度変化を考慮した完全なパージ処理を実行します。"
+
+#~ msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "プライムの無駄を減らし、造形を高速化します。わずかな色混じりや小さな表面欠陥が発生する場合があります。"
 
 #~ msgid ""
 #~ "Drag to move the cut plane\n"
