@@ -7459,8 +7459,10 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     }
 
-    if (!CheckWarningRackAmsNeedManualUnload(obj_)) {
-        show_status(PrintDialogStatus::PrintStatusRackAmsNeedManualUnloadWarning);
+    wxString rack_ams_unload_warning_msg;
+    if (!CheckWarningRackAmsNeedManualUnload(obj_, rack_ams_unload_warning_msg)) {
+        show_status(PrintDialogStatus::PrintStatusRackAmsNeedManualUnloadWarning,
+                    {rack_ams_unload_warning_msg});
     }
 
     wxString rack_ams_mix_warning_msg;
@@ -7904,14 +7906,15 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
     return false;
 }
 
-// Whether any mapped slot reports the given feed block. Uses the same predicate
-// as auto-mapping, so it also catches slots the manual panel allowed.
-static bool has_mapped_slot_blocked_by(MachineObject* obj_, const std::vector<FilamentInfo>& mapping_result, DevSlotFeedBlock block)
+// The hotend (nozzle addr id) of the first mapped slot that reports the given
+// feed block. Uses the same predicate as auto-mapping, so it also catches slots
+// the manual panel allowed.
+static std::optional<int> s_find_hotend_blocked_by(MachineObject* obj_, const std::vector<FilamentInfo>& mapping_result, DevSlotFeedBlock block)
 {
-    if (!obj_) return false;
+    if (!obj_) return std::nullopt;
 
     if (!obj_->GetNozzleRack()->IsDirectConnectedRack())
-        return false;
+        return std::nullopt;
 
     for (const auto& fila : mapping_result) {
         if (fila.tray_id < 0 || fila.ams_id.empty()) continue; // never mapped
@@ -7927,10 +7930,10 @@ static bool has_mapped_slot_blocked_by(MachineObject* obj_, const std::vector<Fi
         if (DevMappingUtil::QuerySlotFeedBlock(*nozzle_opt, tray_opt->ams_type,
                                                DevAmsSlotId{fila.get_ams_id(), fila.get_slot_id()})
             == block) {
-            return true;
+            return addr_opt;
         }
     }
-    return false;
+    return std::nullopt;
 }
 
 bool SelectMachineDialog::CheckWarningSlotNotLoaded(MachineObject* obj_, wxString& ext_spool_msg, wxString& ams_slot_msg)
@@ -7992,11 +7995,28 @@ bool SelectMachineDialog::CheckWarningSlotNotLoaded(MachineObject* obj_, wxStrin
     return false;
 }
 
-bool SelectMachineDialog::CheckWarningRackAmsNeedManualUnload(MachineObject* obj_)
+bool SelectMachineDialog::CheckWarningRackAmsNeedManualUnload(MachineObject* obj_, wxString& warning_msg)
 {
+    warning_msg.clear();
+
     // Rack AMS filament cannot be retracted by the printer, so anything else
     // mapped to that hotend needs the user to unload it by hand first.
-    return !has_mapped_slot_blocked_by(obj_, m_ams_mapping_result, DevSlotFeedBlock::BlockedByRackAms);
+    const auto addr_opt = s_find_hotend_blocked_by(obj_, m_ams_mapping_result, DevSlotFeedBlock::BlockedByRackAms);
+    if (!addr_opt.has_value()) return true;
+
+    wxString ams_name = "AMS";
+    if (auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(addr_opt.value()); nozzle_opt.has_value()) {
+        if (auto occupant = nozzle_opt->GetSlotNow(); occupant.has_value()) {
+            // GetDisplayName() already carries the "AMS" prefix ("AMS-H3", "AMS-B").
+            auto fila_sys = obj_->GetFilaSystem();
+            if (const DevAms* ams = fila_sys ? fila_sys->GetAmsById(occupant->ams_id) : nullptr) ams_name = ams->GetDisplayName();
+        }
+    }
+
+    warning_msg = wxString::Format(_L("PrintTool %d is loaded with %s filament and cannot unload automatically. "
+                                      "Please pull it out manually."),
+                                   addr_opt.value() + kNozzleDisplayOffset, ams_name);
+    return false;
 }
 
 bool SelectMachineDialog::CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxString& warning_msg)

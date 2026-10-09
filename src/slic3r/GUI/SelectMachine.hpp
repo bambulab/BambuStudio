@@ -541,8 +541,9 @@ public:
     bool CheckWarningSlotNotLoaded(MachineObject* obj_, wxString& ext_spool_msg, wxString& ams_slot_msg);
 
     // (RackType_A/B) rack AMS filament occupies a hotend that this print maps to
-    // another source. The printer cannot retract it. Returns true if no warning.
-    bool CheckWarningRackAmsNeedManualUnload(MachineObject* obj_);
+    // another source. The printer cannot retract it. Returns true if no warning;
+    // otherwise fills warning_msg.
+    bool CheckWarningRackAmsNeedManualUnload(MachineObject* obj_, wxString& warning_msg);
 
     // (RackType_A/B) one hotend is mapped to both its rack AMS and an external
     // AMS, which forces a manual swap mid-print because the rack AMS cannot
