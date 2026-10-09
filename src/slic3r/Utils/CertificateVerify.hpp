@@ -12,6 +12,7 @@ namespace Slic3r {
         std::array<uint8_t, 32> cert_sha256;
         std::array<uint8_t, 32> spki_sha256;
         std::string subject_dn;
+        std::string subject_cn;
         std::string issuer_dn;
 
         // macOS only
@@ -24,7 +25,7 @@ namespace Slic3r {
 
         std::string as_print() const {
             std::stringstream ss;
-            ss << " subject_dn: " << subject_dn << " issuer_dn: " << issuer_dn << " team_id: " << team_id;
+            ss << " subject_dn: " << subject_dn << " subject_cn: " << subject_cn << " issuer_dn: " << issuer_dn << " team_id: " << team_id;
             return ss.str();
         }
     };
