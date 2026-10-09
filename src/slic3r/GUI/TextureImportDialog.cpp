@@ -867,6 +867,7 @@ struct ColorPatch {
     int adj_longest_patch_id = -1;
     std::array<std::size_t, 3> color_label{};
 
+    // True when no adjacent patch is larger, so there is nothing to merge into.
     bool is_isolated() const { return adj_longest_patch_id == patch_id; }
 };
 
@@ -986,12 +987,30 @@ std::vector<ColorPatch> build_color_patches(
         }
     }
 
+    std::vector<int> order(npatches);
+    std::iota(order.begin(), order.end(), 0);
+    std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
+        if (patches[a].patch_area != patches[b].patch_area)
+            return patches[a].patch_area < patches[b].patch_area;
+        return a < b;
+    });
+
+    std::vector<int> old_to_new(npatches);
+    for (int ni = 0; ni < npatches; ++ni)
+        old_to_new[order[ni]] = ni;
+
+    // A patch may only merge into an adjacent patch ranked above it (larger
+    // area). This keeps every merge chain local and strictly increasing, so
+    // two patches can never depend on each other. Patches without a larger
+    // neighbor point at themselves and keep their own color.
     for (int pid = 0; pid < npatches; ++pid) {
         int best = pid;
         double best_len = -1.0;
         double best_area = -1.0;
         for (const auto& kv : shared[pid]) {
             const int qid = kv.first;
+            if (old_to_new[qid] <= old_to_new[pid])
+                continue;
             const double len = kv.second;
             const double qarea = patches[qid].patch_area;
             bool better = false;
@@ -1010,23 +1029,11 @@ std::vector<ColorPatch> build_color_patches(
             }
         }
         patches[pid].adj_longest_patch_id = best;
-        patches[pid].patch_id = pid;
     }
 
-    std::vector<int> order(npatches);
-    std::iota(order.begin(), order.end(), 0);
-    std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
-        if (patches[a].patch_area != patches[b].patch_area)
-            return patches[a].patch_area < patches[b].patch_area;
-        return a < b;
-    });
-
-    std::vector<int> old_to_new(npatches);
     std::vector<ColorPatch> sorted(npatches);
     for (int ni = 0; ni < npatches; ++ni) {
-        const int oi = order[ni];
-        old_to_new[oi] = ni;
-        sorted[ni] = std::move(patches[oi]);
+        sorted[ni] = std::move(patches[order[ni]]);
         sorted[ni].patch_id = ni;
     }
     for (auto& patch : sorted) {
@@ -1034,21 +1041,6 @@ std::vector<ColorPatch> build_color_patches(
             patch.adj_longest_patch_id = old_to_new[patch.adj_longest_patch_id];
         else
             patch.adj_longest_patch_id = patch.patch_id;
-        // Isolated patches keep their own color instead of jumping to a
-        // distant global-largest block.
-    }
-    // If this patch is larger than the neighbor it would merge into, that
-    // neighbor cannot absorb it. Point at the global largest patch instead;
-    // adj is only followed when the patch itself is below the gap threshold.
-    if (npatches >= 2) {
-        const int largest_id = npatches - 1;
-        for (auto& patch : sorted) {
-            const int adj = patch.adj_longest_patch_id;
-            if (adj < 0 || adj >= npatches || adj == largest_id || adj == patch.patch_id)
-                continue;
-            if (patch.patch_area > sorted[adj].patch_area)
-                patch.adj_longest_patch_id = largest_id;
-        }
     }
     return sorted;
 }
@@ -6885,7 +6877,12 @@ bool TextureImportDialog::remove_virtual_filament(int dialog_index)
                     changed = true;
                 }
             }
-            if (changed)
+            if (!changed)
+                continue;
+            const int sole = fold_new_mixed_components(entry.dialog_index);
+            if (sole >= 0)
+                retarget_filament_slot(entry.dialog_index, sole);
+            else
                 apply_mixed_color(entry);
         }
         for (auto& mixed : m_new_mixed_filaments) {
@@ -7401,6 +7398,8 @@ void TextureImportDialog::on_match_threshold_committed(int value)
 
 void TextureImportDialog::drop_unused_new_filaments_and_refresh()
 {
+    if (m_auto_merge_enabled)
+        merge_new_filaments_with_project_and_each_other();
     compact_used_virtual_filaments();
     refresh_mapping_target_panels();
     update_filament_color_map();
@@ -9107,8 +9106,11 @@ void TextureImportDialog::schedule_color_patches_rebuild()
         preview->simplified_cluster_colors = std::move(simplified_clusters);
         preview->display_face_colors = preview->simplified_face_colors;
         preview->color_patches = build_color_patches(mesh_copy, preview->simplified_face_colors);
-        for (const auto& patch : preview->color_patches)
+        for (const auto& patch : preview->color_patches) {
+            if (patch.is_isolated())
+                continue;
             preview->gap_total_area += patch.patch_area;
+        }
         preview->gap_split_index = 0;
         {
             std::lock_guard<std::mutex> lock(m_result_mutex);
@@ -9321,9 +9323,7 @@ void TextureImportDialog::on_auto_merge_toggled(wxCommandEvent& evt)
     if (m_state != TextureImportState::Ready)
         return;
 
-    if (auto_merge_enabled)
-        merge_new_filaments_with_project_and_each_other();
-    else
+    if (!auto_merge_enabled)
         replace_project_mapped_filaments_with_new();
     drop_unused_new_filaments_and_refresh();
 }
@@ -9340,12 +9340,12 @@ bool TextureImportDialog::filament_slots_mergeable(int lhs, int rhs) const
     if (texture_entry_is_physical(a.kind) && texture_entry_is_physical(b.kind)) {
         if (texture_normalize_color_hex(a.color_hex) != texture_normalize_color_hex(b.color_hex))
             return false;
-        return texture_entry_family_type(a, m_filament_entries) ==
-               texture_entry_family_type(b, m_filament_entries);
+        const std::string preset_a = texture_filament_preset_name_of(a);
+        return !preset_a.empty() && preset_a == texture_filament_preset_name_of(b);
     }
     if (texture_entry_is_mixed(a.kind) && texture_entry_is_mixed(b.kind)) {
         const auto recipe_a = texture_mixed_recipe_key(a);
-        if (recipe_a.empty())
+        if (recipe_a.size() < 2)
             return false;
         return recipe_a == texture_mixed_recipe_key(b);
     }
@@ -9358,12 +9358,52 @@ void TextureImportDialog::retarget_filament_slot(int from_index, int to_index)
         return;
     for (auto& match : m_current_matches) {
         if (match.filament_index == from_index)
-            bind_match_inplace(match, to_index);
+            bind_match_inplace(match, to_index, false);
     }
     for (auto& row : m_mapping_rows) {
         if (row.target_filament_idx == from_index)
             row.target_filament_idx = to_index;
     }
+}
+
+int TextureImportDialog::fold_new_mixed_components(int mixed_idx)
+{
+    if (mixed_idx < 0 || mixed_idx >= (int)m_filament_entries.size())
+        return -1;
+    TextureFilamentEntry& entry = m_filament_entries[mixed_idx];
+    if (entry.kind != TextureFilamentKind::NewMixed ||
+        entry.mixed_components.size() != entry.mixed_ratios.size())
+        return -1;
+
+    std::vector<unsigned int> components;
+    std::vector<int>          ratios;
+    components.reserve(entry.mixed_components.size());
+    ratios.reserve(entry.mixed_ratios.size());
+    for (size_t i = 0; i < entry.mixed_components.size(); ++i) {
+        const auto it = std::find(components.begin(), components.end(), entry.mixed_components[i]);
+        if (it != components.end()) {
+            ratios[it - components.begin()] += entry.mixed_ratios[i];
+            continue;
+        }
+        components.push_back(entry.mixed_components[i]);
+        ratios.push_back(entry.mixed_ratios[i]);
+    }
+    entry.mixed_components = std::move(components);
+    entry.mixed_ratios = std::move(ratios);
+
+    for (auto& mixed : m_new_mixed_filaments) {
+        if (mixed.dialog_index != mixed_idx)
+            continue;
+        mixed.ratios = entry.mixed_ratios;
+        mixed.component_dialog_indices.clear();
+        mixed.component_dialog_indices.reserve(entry.mixed_components.size());
+        for (unsigned int comp : entry.mixed_components)
+            mixed.component_dialog_indices.push_back(comp >= 1 ? (int)comp - 1 : -1);
+    }
+
+    if (entry.mixed_components.size() == 1 && entry.mixed_components.front() >= 1)
+        return (int)entry.mixed_components.front() - 1;
+    return -1;
 }
 
 int TextureImportDialog::clone_project_filament_as_new(int dialog_index)
@@ -9388,10 +9428,7 @@ int TextureImportDialog::clone_project_filament_as_new(int dialog_index)
 void TextureImportDialog::merge_new_filaments_with_project_and_each_other()
 {
     const int n = (int)m_filament_entries.size();
-    for (int src = 0; src < n; ++src) {
-        if (!texture_entry_is_new(m_filament_entries[src].kind))
-            continue;
-
+    auto find_keep = [this, n](int src) -> int {
         int keep = -1;
         for (int j = 0; j < n; ++j) {
             if (j == src || !texture_entry_is_existing(m_filament_entries[j].kind))
@@ -9411,6 +9448,45 @@ void TextureImportDialog::merge_new_filaments_with_project_and_each_other()
                 }
             }
         }
+        return keep;
+    };
+
+    // Physicals first: new mixed recipes reference physical dialog indices, so
+    // their components must be redirected before mixed slots can be compared.
+    for (int src = 0; src < n; ++src) {
+        if (m_filament_entries[src].kind != TextureFilamentKind::NewPhysical)
+            continue;
+        const int keep = find_keep(src);
+        if (keep < 0)
+            continue;
+        retarget_filament_slot(src, keep);
+        for (int mixed_idx = 0; mixed_idx < n; ++mixed_idx) {
+            TextureFilamentEntry& mixed = m_filament_entries[mixed_idx];
+            if (mixed.kind != TextureFilamentKind::NewMixed)
+                continue;
+            bool changed = false;
+            for (unsigned int& comp : mixed.mixed_components) {
+                if (comp == (unsigned int)(src + 1)) {
+                    comp = (unsigned int)(keep + 1);
+                    changed = true;
+                }
+            }
+            if (!changed)
+                continue;
+            const int sole = fold_new_mixed_components(mixed_idx);
+            if (sole >= 0) {
+                retarget_filament_slot(mixed_idx, sole);
+                continue;
+            }
+            texture_sync_mixed_filament_name(m_filament_entries, m_filament_names, mixed_idx,
+                                             texture_mixed_component_dialog_indices(mixed));
+        }
+    }
+
+    for (int src = 0; src < n; ++src) {
+        if (m_filament_entries[src].kind != TextureFilamentKind::NewMixed)
+            continue;
+        const int keep = find_keep(src);
         if (keep >= 0)
             retarget_filament_slot(src, keep);
     }
@@ -9745,6 +9821,10 @@ void TextureImportDialog::add_virtual_filaments_for_unmatched()
             m_mapping_rows[i].target_filament_idx = idx;
     }
 
+    if (m_auto_merge_enabled) {
+        merge_new_filaments_with_project_and_each_other();
+        compact_used_virtual_filaments();
+    }
     update_filament_color_map();
     if (m_mapping_scroll)
         rebuild_mapping_rows();

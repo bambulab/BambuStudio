@@ -410,13 +410,21 @@ private:
     void toggle_advanced_design();
     void on_auto_merge_toggled(wxCommandEvent& evt);
     // True when two slots are the same kind (physical vs mixed) and can share
-    // one mapping target: physicals need the same hex + family type; mixeds
+    // one mapping target: physicals need the same hex + preset name; mixeds
     // need the same component dialog indices and ratios.
     bool filament_slots_mergeable(int lhs, int rhs) const;
     void retarget_filament_slot(int from_index, int to_index);
+    // Fold duplicate components of a NewMixed slot (ratios are summed, first
+    // occurrence order kept) and mirror the result into m_new_mixed_filaments.
+    // Returns the remaining physical dialog index when only one component is
+    // left, otherwise -1.
+    int  fold_new_mixed_components(int mixed_idx);
     int  clone_project_filament_as_new(int dialog_index);
     // Merge NewPhysical / NewMixed into matching existing slots, then fold
-    // matching new slots into each other. Does not rematch color clusters.
+    // matching new slots into each other. Project slots are never merged away.
+    // Physicals go first so new mixed recipes see the redirected components.
+    // Runs on every mapping refresh while Auto merge is on. Does not rematch
+    // color clusters.
     void merge_new_filaments_with_project_and_each_other();
     // Replace every mapping that still points at an ExistingPhysical /
     // ExistingMixed slot with a cloned NewPhysical / NewMixed slot.
