@@ -98,6 +98,7 @@ public:
     static bool check_printable_status_before_cali(const MachineObject *obj, const std::vector<CalibInfo> &cali_infos, wxString &error_message);
 
     static bool check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message);
+    static bool check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const X1CCalibInfos& cali_infos, wxString& error_message);
 
     // Build filament/AMS map for the calibration pages.
     static std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);

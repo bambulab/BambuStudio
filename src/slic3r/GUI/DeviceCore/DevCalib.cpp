@@ -18,7 +18,6 @@
 #include "DevNozzleSystem.h"
 #include "DevConfig.h"
 #include "DevExtruderSystem.h"
-#include "DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceManager.hpp"
 
 namespace Slic3r {
@@ -497,7 +496,7 @@ void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
             std::vector<PACalibResult> new_rows = filaments_json.get<std::vector<PACalibResult>>();
 
             if (m_owner && m_owner->GetConfig() && m_owner->GetConfig()->SupportNozzlePosToNozzleAddr()) {
-                normalize_nozzle_pos_to_addr(m_pa_calib_tab, m_owner->GetNozzleSystem());
+                normalize_nozzle_pos_to_addr(new_rows, m_owner->GetNozzleSystem());
             }
 
             /* filter invalid pa_calib_tab */
