@@ -127,15 +127,59 @@ static std::string multi_nozzle_printer_preset_name(const Preset& preset)
     return name;
 }
 
+// Display-only rewrite: "0.08mm High Quality @BBL H3C" -> "Multi-diameter 0.08mm High Quality". Same stance
+// as the printer rewrite: a name without an "@<machine>" tail is returned untouched. Never touches
+// Preset::name itself.
+static std::string multi_nozzle_process_preset_name(const Preset& preset)
+{
+    const size_t at_pos = preset.name.find('@');
+    if (at_pos == std::string::npos)
+        return preset.name;
+    std::string quality = preset.name.substr(0, at_pos);
+    boost::algorithm::trim(quality);
+    return quality.empty() ? preset.name : "Multi-diameter " + quality;
+}
+
 // Only the printer gets relabelled, and only on the canonical variant: renaming every diameter would make
 // a printer that some path wrongly re-pointed indistinguishable from the baseline the mode is supposed to
-// slice against. Every other preset type - process included - keeps the name it actually has, so what a
-// list shows always matches the preset behind it. User copies keep their real name for the same reason.
+// slice against. User copies keep their real name for the same reason.
 static bool use_multi_nozzle_printer_display_name(const PresetBundle* preset_bundle, Preset::Type type, const Preset& preset)
 {
     return type == Preset::TYPE_PRINTER && preset_bundle != nullptr && preset.is_system &&
            multi_nozzle_diameter_mode_enabled(preset_bundle->project_config) &&
            is_canonical_multi_nozzle_diameter_printer_preset(preset_bundle->printers, preset);
+}
+
+// Process follows the printer: only system processes bound to the canonical printer are relabelled, and
+// only while that printer is the active one. Processes of the sibling diameters keep their real names -
+// with the machine tail stripped they would collapse onto the canonical ones ("... @BBL H3C 0.2 nozzle"
+// and "... @BBL H3C" both become "Multi-diameter ..."), and the lists key their items by label.
+static bool use_multi_nozzle_process_display_name(const PresetBundle* preset_bundle, Preset::Type type, const Preset& preset)
+{
+    if (type != Preset::TYPE_PRINT || preset_bundle == nullptr || !preset.is_system ||
+        !multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+        return false;
+
+    const PresetCollection& printers = preset_bundle->printers;
+    const Preset&           printer  = printers.get_edited_preset();
+    if (!is_canonical_multi_nozzle_diameter_printer_preset(printers, printer))
+        return false;
+
+    const Preset* printer_base        = printers.get_preset_base(printer);
+    const auto*   compatible_printers = preset.config.option<ConfigOptionStrings>("compatible_printers");
+    return compatible_printers != nullptr &&
+           std::find(compatible_printers->values.begin(), compatible_printers->values.end(), printer_base->name) !=
+               compatible_printers->values.end();
+}
+
+// Label multi-diameter mode gives a preset, or an empty string when the preset shows its real name.
+static std::string multi_nozzle_display_name(const PresetBundle* preset_bundle, Preset::Type type, const Preset& preset)
+{
+    if (use_multi_nozzle_printer_display_name(preset_bundle, type, preset))
+        return multi_nozzle_printer_preset_name(preset);
+    if (use_multi_nozzle_process_display_name(preset_bundle, type, preset))
+        return multi_nozzle_process_preset_name(preset);
+    return {};
 }
 
 // Multi-diameter slicing anchors the project on the canonical printer variant, so the sibling diameters
@@ -472,8 +516,9 @@ wxString PresetComboBox::get_preset_item_name(unsigned int index)
 
 wxString PresetComboBox::get_preset_name(const Preset & preset)
 {
-    if (use_multi_nozzle_printer_display_name(m_preset_bundle, m_type, preset))
-        return from_u8(multi_nozzle_printer_preset_name(preset));
+    const std::string display_name = multi_nozzle_display_name(m_preset_bundle, m_type, preset);
+    if (!display_name.empty())
+        return from_u8(display_name);
     return from_u8(preset.name/* + suffix(preset)*/);
 }
 
@@ -494,8 +539,9 @@ void PresetComboBox::update(std::string select_preset_name)
 
     const std::deque<Preset>& presets = m_collection->get_presets();
 
-    // The label is not always the preset name (multi-diameter mode rewrites the printer label), so the
-    // real name travels alongside the bitmap and lands in m_item_preset_names when the item is appended.
+    // The label is not always the preset name (multi-diameter mode rewrites the printer and process
+    // labels), so the real name travels alongside the bitmap and lands in m_item_preset_names when the
+    // item is appended.
     struct PresetItem {
         wxBitmap*   bitmap;
         bool        enabled;
@@ -579,8 +625,8 @@ void PresetComboBox::show_all(bool show_all)
 
 void PresetComboBox::update()
 {
-    // Never the displayed text: in multi-diameter mode the printer label is a rewrite that matches no
-    // preset, so re-selecting by label would drop the current selection.
+    // Never the displayed text: in multi-diameter mode the printer and process labels are rewrites that
+    // match no preset, so re-selecting by label would drop the current selection.
     this->update(preset_name_for_selection(this->GetSelection()));
 }
 
@@ -1964,10 +2010,11 @@ void TabPresetComboBox::OnSelect(wxCommandEvent &evt)
 
 wxString TabPresetComboBox::get_preset_name(const Preset& preset)
 {
-    // The "modified" mark is prepended by hand here, because the rewrite replaces the tail of the name
+    // The "modified" mark is prepended by hand here, because the rewrite replaces part of the name
     // and so cannot go through Preset::label(), which is what supplies the mark on the plain path.
-    if (use_multi_nozzle_printer_display_name(m_preset_bundle, m_type, preset))
-        return from_u8((preset.is_dirty ? Preset::suffix_modified() : "") + multi_nozzle_printer_preset_name(preset));
+    const std::string display_name = multi_nozzle_display_name(m_preset_bundle, m_type, preset);
+    if (!display_name.empty())
+        return from_u8((preset.is_dirty ? Preset::suffix_modified() : "") + display_name);
     return from_u8(preset.label(true));
 }
 

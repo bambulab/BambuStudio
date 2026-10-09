@@ -90,22 +90,13 @@ void OG_CustomCtrl::refresh_nozzle_mirror_context()
         return;
 
     if (m_multi_nozzle_mode_enabled) {
-        std::set<double> diameters;
-        const ExtruderFullStat& full_stat = preset_bundle->extruder_full_stat;
-        for (int extruder_id = 0; extruder_id < full_stat.get_extruder_count(); ++extruder_id) {
-            for (const auto& slot : full_stat.get_extruder_stats(extruder_id)) {
-                const double diameter = string_to_double_decimal_point(slot.first);
-                if (diameter > EPSILON)
-                    diameters.insert(diameter);
-            }
-        }
-
-        if (diameters.size() >= 2) {
-            m_nozzle_diameters.assign(diameters.begin(), diameters.end());
-            m_primary_nozzle_diameter =
-                primary_nozzle_diameter(preset_bundle->printers.get_edited_preset().config);
-            m_nozzle_mirror_enabled = m_primary_nozzle_diameter > EPSILON;
-        }
+        // Always list every supported diameter, independent of the nozzles currently installed or used.
+        m_nozzle_diameters = { 0.2, 0.4, 0.6, 0.8 };
+        m_primary_nozzle_diameter =
+            primary_nozzle_diameter(preset_bundle->printers.get_edited_preset().config);
+        m_nozzle_mirror_enabled = m_primary_nozzle_diameter > EPSILON;
+        if (!m_nozzle_mirror_enabled)
+            m_nozzle_diameters.clear();
     }
 
     for (CtrlLine& line : ctrl_lines)

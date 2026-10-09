@@ -2271,7 +2271,8 @@ private:
 };
 
 // The combo's item text is not the preset name in multi-diameter mode (the canonical printer is shown as
-// "... Multiple nozzle"), so the selection is resolved through the combo's own item -> name map.
+// "... Multiple nozzle", its processes as "Multi-diameter ..."), so the selection is resolved through the
+// combo's own item -> name map.
 static std::string get_selection(PresetComboBox* preset_combo)
 {
     return preset_combo->preset_name_for_selection(preset_combo->GetSelection());

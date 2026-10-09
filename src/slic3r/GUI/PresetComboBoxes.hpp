@@ -104,7 +104,7 @@ public:
 
     virtual wxString get_preset_name(const Preset& preset);
     // Real Preset::name behind a list item. The displayed label is not always the name (multi-diameter
-    // mode rewrites the printer label), so every selection -> preset lookup must go through here
+    // mode rewrites the printer and process labels), so every selection -> preset lookup must go through here
     // instead of GetString(). Falls back to the item text for items this combo did not fill in itself.
     std::string      preset_name_for_selection(int selection) const;
     Preset::Type     get_type() { return m_type; }
