@@ -2966,6 +2966,12 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         if (const auto *tray_diameters = ams.option<ConfigOptionFloats>("tray_nozzle_diameter");
             tray_diameters != nullptr && !tray_diameters->values.empty() && tray_diameters->values.front() > 0.)
             temp.nozzle_diameter = format_diameter_to_str(tray_diameters->values.front());
+        // Diameter alone does not name a nozzle on a rack carrying the same diameter in two flows,
+        // and the slot keeps whichever flow it already had -- so a tray on a high-flow nozzle synced
+        // onto a slot sitting at standard flow silently stayed standard. Take the flow here too.
+        if (const auto *tray_volume_types = ams.option<ConfigOptionInts>("tray_nozzle_volume_type");
+            tray_volume_types != nullptr && !tray_volume_types->values.empty())
+            temp.nozzle_volume_type = static_cast<NozzleVolumeType>(tray_volume_types->values.front());
         ams_infos.back().mapping = temp;
         ams_array_maps.push_back(temp);
         if (filament_id.empty()) {
@@ -3168,7 +3174,8 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             if (maps.find(i) != maps.end()) {//mapping exist
                 auto valid_index = get_map_index(ams_array_maps, maps[i]);
                 if (valid_index >= 0 && valid_index < ams_filament_presets.size()) {
-                    maps[i].nozzle_diameter = ams_array_maps[valid_index].nozzle_diameter;
+                    maps[i].nozzle_diameter    = ams_array_maps[valid_index].nozzle_diameter;
+                    maps[i].nozzle_volume_type = ams_array_maps[valid_index].nozzle_volume_type;
                     exist_colors[i]           = ams_filament_colors[valid_index];
                     exist_color_types[i]      = ams_filament_color_types[valid_index];
                     exist_filament_presets[i] = ams_filament_presets[valid_index];
@@ -4325,6 +4332,23 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         return std::string();
     };
 
+    // Companion of tray_diameter() on the flow axis, with the same fallback to the live tray list for
+    // mappings assembled before the flow was carried along.
+    auto tray_volume_type = [this](const AMSMapInfo &mapping) -> std::optional<NozzleVolumeType> {
+        if (mapping.nozzle_volume_type.has_value())
+            return mapping.nozzle_volume_type;
+        for (const auto &entry : filament_ams_list) {
+            const DynamicPrintConfig &tray = entry.second;
+            if (tray.opt_string("ams_id", 0u) != mapping.ams_id ||
+                tray.opt_string("slot_id", 0u) != mapping.slot_id)
+                continue;
+            const auto *volume_types = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
+            if (volume_types != nullptr && !volume_types->values.empty())
+                return static_cast<NozzleVolumeType>(volume_types->values.front());
+        }
+        return std::nullopt;
+    };
+
     for (size_t i = 0; i < filament_presets.size(); ++i) {
         if (is_mixed_filament(i)) {
             selected->values[i].clear();
@@ -4355,18 +4379,43 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         }
 
         std::string device_diameter;
+        std::optional<NozzleVolumeType> device_volume;
         if (device_maps != nullptr) {
             const auto mapped = device_maps->find(int(i));
-            if (mapped != device_maps->end() && !mapped->second.ams_id.empty() && !mapped->second.slot_id.empty())
+            if (mapped != device_maps->end() && !mapped->second.ams_id.empty() && !mapped->second.slot_id.empty()) {
                 device_diameter = tray_diameter(mapped->second);
+                device_volume   = tray_volume_type(mapped->second);
+            }
         }
 
         if (!device_diameter.empty()) {
             const std::string normalized_device = format_diameter_to_str(atof(device_diameter.c_str()));
             if (std::find(options.begin(), options.end(), normalized_device) != options.end() &&
                 ::Slic3r::set_filament_nozzle_diameter(
-                    *this, i, normalized_device, nullptr, printer_name_to_diameter, options))
+                    *this, i, normalized_device, nullptr, printer_name_to_diameter, options)) {
+                // The diameter stuck, so the flow the machine reports for the same nozzle applies too.
+                // volume_map is null outside multi-diameter mode, where this map is a grouping result
+                // the slicer owns rather than a per-slot selection (see where it is resolved above),
+                // so the flow is only ever written where the user owns it.
+                if (volume_map != nullptr && device_volume.has_value()) {
+                    const auto flows = ::Slic3r::get_filament_nozzle_flow_options(
+                        *this, i, normalized_device, installed);
+                    if (std::find(flows.begin(), flows.end(), *device_volume) != flows.end()) {
+                        volume_map->values[i] = static_cast<int>(*device_volume);
+                    } else {
+                        // Deliberately not flagged, unlike the diameter case below. There the slot is
+                        // left describing a nozzle it cannot print on; here the flow it already holds
+                        // is one this filament does serve, so the slot stays printable and only the
+                        // sync did not reach it. Marking it red would report a problem the user cannot
+                        // act on from the row.
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                                   << " has no preset for mapped nozzle flow "
+                                                   << int(*device_volume) << " at diameter "
+                                                   << normalized_device << ", keeping the slot's flow";
+                    }
+                }
                 continue;
+            }
 
             // Reaching here means the machine says this tray feeds a nozzle the slot's filament has
             // no preset for. Swapping the material out for that nozzle's default -- what this used to

@@ -31,6 +31,11 @@ struct AMSMapInfo
     std::string ams_id{""};
     std::string slot_id{""};
     std::string nozzle_diameter{""};
+    // Flow of the nozzle this tray feeds, as the machine reports it. Carried alongside the diameter
+    // because the two together identify a nozzle: a rack can hold the same diameter in two flows, so
+    // syncing only the diameter leaves a slot on whichever flow it happened to have. Empty when the
+    // machine said nothing about it -- nvtStandard is a real value and cannot stand in for "unknown".
+    std::optional<NozzleVolumeType> nozzle_volume_type;
 };
 struct AMSComboInfo
 {

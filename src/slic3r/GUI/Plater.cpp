@@ -1046,6 +1046,12 @@ struct Sidebar::priv
     bool                     m_saved_per_slot_valid = false;
     std::vector<std::string> m_saved_selected_nozzle_diameters;
     std::vector<int>         m_saved_filament_volume_map;
+    // printer_variant in effect when the snapshot above was taken. While the mode is OFF the user can
+    // still change the single diameter, and the snapshot then describes a nozzle layout that is no
+    // longer the one they are switching back from -- restoring it would put a slot back on a diameter
+    // the machine is no longer set to. Compared against the diameter captured on toggle-ON to decide
+    // between restoring the snapshot and seeding from the current diameter.
+    std::string              m_saved_diameter_at_snapshot;
     std::optional<bool>      m_previous_supports_multi_diameter;
     bool                     m_previous_multi_diameter_mode = false;
     void reposition_filament_nozzle_indicator(size_t idx);
@@ -1200,6 +1206,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
         m_saved_per_slot_valid = false;
         m_saved_selected_nozzle_diameters.clear();
         m_saved_filament_volume_map.clear();
+        m_saved_diameter_at_snapshot.clear();
         m_printer_preset_before_multi_diameter.reset();
     }
     m_previous_supports_multi_diameter = supports_multi_diameter;
@@ -3828,6 +3835,25 @@ Sidebar::Sidebar(Plater *parent)
                 p->m_saved_selected_nozzle_diameters = sel ? sel->values : std::vector<std::string>{};
                 p->m_saved_filament_volume_map       = vol ? vol->values : std::vector<int>{};
                 p->m_saved_per_slot_valid            = true;
+                // apply_multi_nozzle_diameter_mode(false) has already put the printer preset back on
+                // its single-diameter variant, so this reads the diameter the snapshot is leaving the
+                // project on -- the one a later toggle-ON must still find for the snapshot to apply.
+                p->m_saved_diameter_at_snapshot      = format_diameter_to_str(atof(
+                    preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant").c_str()));
+            }
+
+            // A snapshot only describes the project the user is coming back to if the single diameter
+            // has not moved since it was taken. Changing it while the mode was OFF makes the snapshot
+            // describe a different nozzle layout, and restoring it would park slots on a diameter the
+            // machine is no longer set to -- a slot whose filament cannot serve the new diameter would
+            // then show the old one while still being flagged, which reads as a contradiction. Drop a
+            // stale snapshot and seed from the current diameter instead, so the row shows what the
+            // machine is actually on and the red mark explains itself.
+            if (enabled && p->m_saved_per_slot_valid && !diameter_before.empty() &&
+                p->m_saved_diameter_at_snapshot != diameter_before) {
+                p->m_saved_per_slot_valid = false;
+                p->m_saved_selected_nozzle_diameters.clear();
+                p->m_saved_filament_volume_map.clear();
             }
 
             // First single -> multi toggle: there is no per-slot snapshot to restore, and
@@ -3882,6 +3908,7 @@ Sidebar::Sidebar(Plater *parent)
                 p->m_saved_per_slot_valid = false;
                 p->m_saved_selected_nozzle_diameters.clear();
                 p->m_saved_filament_volume_map.clear();
+                p->m_saved_diameter_at_snapshot.clear();
                 // Re-derive per-plate maps from the restored state (mirrors what the popup does on
                 // any user-driven change), so filament_maps / filament_volume_maps / filament_nozzle_maps
                 // reflect the restored diameters, not the transient cleared state.
