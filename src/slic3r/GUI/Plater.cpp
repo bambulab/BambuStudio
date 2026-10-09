@@ -5913,6 +5913,14 @@ void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
 #endif
 }
 
+int Sidebar::min_width() const
+{
+    int card_w = p->single_panel->MinWidth();
+    if (wxSizerItem *item = p->vsizer_printer->GetItem(p->single_panel))
+        card_w += 2 * item->GetBorder();
+    return std::max(15 * wxGetApp().em_unit(), card_w);
+}
+
 void Sidebar::msw_rescale()
 {
     SetMinSize(wxSize(42 * wxGetApp().em_unit(), -1));
@@ -9672,6 +9680,8 @@ public:
     void collapse_sidebar(bool collapse);
     void                  update_sidebar(bool force_update = false);
     void                  reset_window_layout(int width);
+    // A loaded perspective carries the minimum it was saved with, so this runs after every load.
+    void                  apply_sidebar_min_size();
     Sidebar::DockingState get_sidebar_docking_state();
 
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
@@ -10336,7 +10346,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                                    .BottomDockable(false)
                                    .Floatable(wxGetApp().app_config->get_bool("enable_sidebar_floatable"))
                                    .Resizable(true)
-                                   .MinSize(wxSize(15 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit()))
+                                   .MinSize(wxSize(sidebar->min_width(), 90 * wxGetApp().em_unit()))
                                    .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));
 
     auto *panel_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -10370,6 +10380,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             }
             if (is_new_window_layout) {
                 m_aui_mgr.LoadPerspective(layout, false);
+                apply_sidebar_min_size();
                 sidebar_layout.is_collapsed = !sidebar.IsShown();
             }
         }
@@ -11068,8 +11079,18 @@ void Plater::priv::reset_window_layout(int width)
         copy.Replace(str0, str1, false);
         m_aui_mgr.LoadPerspective(copy, false);
     }
+    apply_sidebar_min_size();
     sidebar_layout.is_collapsed = false;
     update_sidebar(true);
+}
+
+void Plater::priv::apply_sidebar_min_size()
+{
+    auto &pane = m_aui_mgr.GetPane(sidebar);
+    pane.MinSize(wxSize(sidebar->min_width(), pane.min_size.GetHeight()));
+    // A remembered width below the new minimum would otherwise reopen the sidebar clipped.
+    if (pane.best_size.GetWidth() < pane.min_size.GetWidth())
+        pane.BestSize(pane.min_size.GetWidth(), pane.best_size.GetHeight());
 }
 
 Sidebar::DockingState Plater::priv::get_sidebar_docking_state()

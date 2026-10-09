@@ -763,10 +763,12 @@ protected:
     ScalableBitmap m_four_slot_bitmap_dark;
     ScalableBitmap m_single_slot_bitmap;
     ScalableBitmap m_single_slot_bitmap_dark;
+    bool           m_bitmaps_dark = false; // theme the bitmaps above were recoloured for
 
     void         paintEvent(wxPaintEvent& evt);
     void         render(wxDC& dc);
     void         doRender(wxDC& dc);
+    void         load_bitmaps();
 };
 
 

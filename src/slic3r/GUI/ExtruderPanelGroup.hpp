@@ -189,10 +189,18 @@ public:
      */
     ComboBox *GetModePill() const { return m_mode_pill; }
 
+    /**
+     * \brief The narrowest card that still shows the mode pill's label in full, in either mode.
+     */
+    int MinWidth() const;
+
     void AttachDiameterPanel(DiameterButtonPanel *panel);
     void DetachDiameterPanel(wxWindow *new_parent);
     void ShowDiameterPanel(bool show);
     void Rescale() override;
+
+    // Every change to the body's content ends in a card layout, so the body is re-measured here.
+    bool Layout() override;
 
 protected:
     void      CreateExtruders(wxBoxSizer *content) override;
@@ -209,8 +217,9 @@ private:
 
     ComboBox               *m_mode_pill{nullptr};
     std::vector<wxWindow *> m_settings_entry; // gear, label and chevron of the header's settings entry
+    HorizontalScrollView   *m_body{nullptr};  // diameter buttons + nozzle panel, scrolled together
     DiameterButtonPanel    *m_diameter_panel{nullptr};
-    wxBoxSizer          *m_diameter_sizer{nullptr};
+    wxBoxSizer             *m_diameter_sizer{nullptr};
 };
 
 } // namespace Slic3r::GUI

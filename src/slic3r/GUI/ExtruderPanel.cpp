@@ -7,8 +7,11 @@
 #include <wx/settings.h>
 #include <wx/dcbuffer.h>
 #include <wx/timer.h>
+#include <wx/eventfilter.h>
+#include <wx/utils.h>
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 
 #include <boost/log/trivial.hpp>
@@ -164,8 +167,13 @@ void DiameterButtonPanel::SetMultiDiameterMode(bool enabled)
     if (m_multi_diameter_mode_combo)
         m_multi_diameter_mode_combo->SetSelection(enabled ? 1 : 0);
     UpdateSelectorVisibility();
-    if (auto *card = dynamic_cast<SingleExtruderPanelGroup *>(GetParent()))
-        card->ShowDiameterPanel(!enabled);
+    // A hosting card puts the panel inside its scrolling body, so the card is an ancestor, not the parent.
+    for (wxWindow *window = GetParent(); window && !window->IsTopLevel(); window = window->GetParent()) {
+        if (auto *card = dynamic_cast<SingleExtruderPanelGroup *>(window)) {
+            card->ShowDiameterPanel(!enabled);
+            break;
+        }
+    }
 }
 
 void DiameterButtonPanel::SetShowTitle(bool show)
@@ -400,14 +408,13 @@ private:
 // Prepare-page nozzle-slot tile geometry, taken from the design: a narrow card holding the
 // hotend icon with its slot number stamped on it, then the diameter over the flow type.
 constexpr int    TILE_W            = 37; // design minimum; overflow scrolls instead of shrinking tiles
-constexpr int    TILE_H            = 92;
+constexpr int    TILE_H            = 80;
 constexpr int    TILE_GAP          = 4;
 constexpr int    TILE_RADIUS       = 4;
-constexpr int    TILE_PAD_Y        = 4;
 constexpr int    TILE_ICON_H       = 48;
 constexpr int    TILE_BADGE_D      = 16;
 constexpr int    TILE_BADGE_Y      = 14; // badge top, measured down from the tile's top
-constexpr int    TILE_TEXT_GAP     = 9;  // icon bottom to the diameter line
+constexpr int    TILE_TEXT_GAP     = 2;  // icon bottom to the diameter line
 constexpr double TILE_DIM_OPACITY  = 0.3;
 
 static wxColour faded_tile_colour(const wxColour &colour, const wxColour &background)
@@ -431,6 +438,22 @@ static wxBitmap faded_tile_bitmap(const wxBitmap &bitmap, const wxColour &backgr
         }
     }
     return wxBitmap(image, -1, bitmap.GetScaleFactor());
+}
+
+/**
+ * \brief Set on \p gc the largest body font, 12 down to 8, at which \p text fits in \p max_width.
+ *
+ * Falls back to the smallest size when even that overflows.
+ */
+static void set_fitting_font(wxGraphicsContext &gc, const wxString &text, double max_width, const wxColour &colour)
+{
+    for (const wxFont *font : {&Label::Body_12, &Label::Body_11, &Label::Body_10, &Label::Body_9, &Label::Body_8}) {
+        gc.SetFont(*font, colour);
+        double width = 0.0;
+        gc.GetTextExtent(text, &width, nullptr);
+        if (width <= max_width)
+            return;
+    }
 }
 
 /**
@@ -508,7 +531,7 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
 
     const wxSize icon_size = m_icon.GetBmpSize();
     const double icon_x    = (size.x - icon_size.x) / 2.0;
-    const double icon_y    = FromDIP(TILE_PAD_Y);
+    const double   icon_y    = 0;
     const wxBitmap icon = m_dimmed ? faded_tile_bitmap(m_icon.bmp(), background) : m_icon.bmp();
     gc->DrawBitmap(icon, icon_x, icon_y, icon_size.x, icon_size.y);
 
@@ -524,41 +547,41 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
     double text_w = 0.0, text_h = 0.0, descent = 0.0, leading = 0.0;
     const wxString number = wxString::Format("%d", m_number);
     gc->GetTextExtent(number, &text_w, &text_h, &descent, &leading);
-    gc->DrawText(number, badge_x + (badge_d - text_w) / 2.0, badge_y + (badge_d - text_h) / 2.0);
+    // Digits have no descenders and start below the internal leading, so centring the line box
+    // leaves them visibly high; centre their ink band [internalLeading, ascent] instead.
+    dc.SetFont(Label::Body_12);
+    const wxFontMetrics metrics  = dc.GetFontMetrics();
+    const double        ink_mid  = (metrics.internalLeading + metrics.ascent) / 2.0;
+    gc->DrawText(number, badge_x + (badge_d - text_w) / 2.0, badge_y + badge_d / 2.0 - ink_mid);
 
-    double y = icon_y + icon_size.y + FromDIP(TILE_TEXT_GAP);
+    // Rows keep the 12px line height so a shrunk line does not shift the one below it.
+    const double line_h = metrics.height;
+    double       y      = icon_y + icon_size.y + FromDIP(TILE_TEXT_GAP);
     for (const wxString &line : {m_diameter, m_flow}) {
+        set_fitting_font(*gc, line, size.x, text_colour);
         gc->GetTextExtent(line, &text_w, &text_h, &descent, &leading);
-        gc->DrawText(line, (size.x - text_w) / 2.0, y);
-        y += text_h;
+        gc->DrawText(line, (size.x - text_w) / 2.0, y + (line_h - text_h) / 2.0);
+        y += line_h;
     }
 }
 
-class NozzleTileScrollbar : public wxPanel
+/**
+ * \brief Thin draggable track and thumb that scrolls \p target sideways, in place of the native bar.
+ */
+class SlimScrollbar : public wxPanel
 {
 public:
-    NozzleTileScrollbar(wxWindow *parent, wxScrolledWindow *target)
-        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
-        , m_target(target)
+    SlimScrollbar(wxWindow *parent, wxScrolledWindow *target) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_target(target)
     {
         SetMinSize(wxSize(-1, FromDIP(6)));
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         SetBackgroundColour(parent->GetBackgroundColour());
 
-        Bind(wxEVT_PAINT, &NozzleTileScrollbar::OnPaint, this);
-        Bind(wxEVT_LEFT_DOWN, &NozzleTileScrollbar::OnLeftDown, this);
-        Bind(wxEVT_LEFT_UP, &NozzleTileScrollbar::OnLeftUp, this);
-        Bind(wxEVT_MOTION, &NozzleTileScrollbar::OnMotion, this);
+        Bind(wxEVT_PAINT, &SlimScrollbar::OnPaint, this);
+        Bind(wxEVT_LEFT_DOWN, &SlimScrollbar::OnLeftDown, this);
+        Bind(wxEVT_LEFT_UP, &SlimScrollbar::OnLeftUp, this);
+        Bind(wxEVT_MOTION, &SlimScrollbar::OnMotion, this);
         Bind(wxEVT_MOUSE_CAPTURE_LOST, [this](wxMouseCaptureLostEvent &) { m_dragging = false; });
-    }
-
-    bool UpdateState()
-    {
-        const bool show = m_target->GetVirtualSize().x > m_target->GetClientSize().x;
-        const bool changed = IsShown() != show;
-        Show(show);
-        Refresh();
-        return changed;
     }
 
 private:
@@ -619,7 +642,7 @@ private:
         const ThumbGeometry thumb = GetThumbGeometry();
         const double radius = size.y / 2.0;
         gc->SetPen(*wxTRANSPARENT_PEN);
-        gc->SetBrush(wxBrush(StateColor::darkModeColorFor(ThemeColor::Grey300)));
+        gc->SetBrush(wxBrush(StateColor::darkModeColorFor(ThemeColor::Grey250)));
         gc->DrawRoundedRectangle(0, 0, size.x, size.y, radius);
         gc->SetBrush(wxBrush(StateColor::darkModeColorFor(ThemeColor::Grey400)));
         gc->DrawRoundedRectangle(thumb.x, 0, thumb.width, size.y, radius);
@@ -652,6 +675,118 @@ private:
     bool              m_dragging{false};
     int               m_drag_offset{0};
 };
+
+// ----------------------------------------------------------------------------
+// HorizontalScrollView
+// ----------------------------------------------------------------------------
+
+namespace {
+constexpr int SCROLLBAR_GAP     = 4;  // content bottom to the slim scrollbar
+constexpr int WHEEL_SCROLL_STEP = 40; // pixels per wheel notch
+
+/// \brief A scrolled window that never shows the native scrollbar; SlimScrollbar stands in for it.
+class BarlessScrolledWindow : public wxScrolledWindow
+{
+public:
+    explicit BarlessScrolledWindow(wxWindow *parent) : wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE) {}
+
+    // wxScrollHelper keeps the scroll state itself and only mirrors it onto the native bar here, so
+    // dropping the mirror hides the bar while scrolling keeps working. Hiding it through
+    // ShowScrollbars(wxSHOW_SB_NEVER) instead would also clamp the content to the client width.
+    void SetScrollbar(int, int, int, int, bool) override {}
+};
+
+/**
+ * \brief Hands every wheel turn made over \p window to \p handler, whichever window Windows sent it to.
+ *
+ * Windows sends the wheel to the focused window -- usually the 3D canvas -- or, depending on a system
+ * setting, to the innermost window under the pointer, so binding the event on one window catches it
+ * only some of the time. An app-wide filter sees it in every case. A window covering this one, such
+ * as a popup, keeps its wheel: only turns whose pointer is over this window or its children count.
+ */
+class WheelOverWindowFilter : public wxEventFilter
+{
+public:
+    WheelOverWindowFilter(wxWindow *window, std::function<bool(const wxMouseEvent &)> handler) : m_window(window), m_handler(std::move(handler))
+    { wxEvtHandler::AddFilter(this); }
+    ~WheelOverWindowFilter() override { wxEvtHandler::RemoveFilter(this); }
+
+    int FilterEvent(wxEvent &event) override
+    {
+        if (event.GetEventType() != wxEVT_MOUSEWHEEL || !m_window->IsShownOnScreen()) return Event_Skip;
+
+        for (wxWindow *hit = wxFindWindowAtPoint(wxGetMousePosition()); hit; hit = hit->GetParent()) {
+            if (hit == m_window) return m_handler(static_cast<const wxMouseEvent &>(event)) ? Event_Processed : Event_Skip;
+            if (hit->IsTopLevel()) break;
+        }
+        return Event_Skip;
+    }
+
+private:
+    wxWindow                                 *m_window;
+    std::function<bool(const wxMouseEvent &)> m_handler;
+};
+} // namespace
+
+HorizontalScrollView::HorizontalScrollView(wxWindow *parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+{
+    SetBackgroundColour(parent->GetBackgroundColour());
+
+    m_content = new BarlessScrolledWindow(this);
+    m_content->SetBackgroundColour(GetBackgroundColour());
+    m_content->SetSizer(new wxBoxSizer(wxVERTICAL));
+    m_content->SetScrollRate(1, 0); // horizontal only, so the content still sets the view's height
+
+    // A wheel the filter lets through while nothing overflows would be swallowed by wxScrollHelper
+    // once it reached the content; pass it on to the enclosing windows instead.
+    m_content->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent &evt) {
+        for (wxWindow *window = GetParent(); window && !window->IsTopLevel(); window = window->GetParent())
+            if (window->GetEventHandler()->ProcessEvent(evt)) return;
+    });
+    m_wheel_filter = std::make_unique<WheelOverWindowFilter>(this, [this](const wxMouseEvent &evt) { return ScrollByWheel(evt); });
+
+    m_scrollbar = new SlimScrollbar(this, m_content);
+    m_scrollbar->Hide();
+
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(m_content, 0, wxEXPAND);
+    sizer->Add(m_scrollbar, 0, wxEXPAND | wxTOP, FromDIP(SCROLLBAR_GAP));
+    SetSizer(sizer);
+}
+
+HorizontalScrollView::~HorizontalScrollView() = default;
+
+wxWindow *HorizontalScrollView::Content() const { return m_content; }
+
+wxBoxSizer *HorizontalScrollView::ContentSizer() const { return static_cast<wxBoxSizer *>(m_content->GetSizer()); }
+
+// Overflow is judged from the content's own minimum rather than from the scrolled window, whose
+// virtual size is only refreshed after it has been resized. Showing the bar here, before the view
+// is laid out, lets a parent that reads the view's height right after laying it out see the bar.
+bool HorizontalScrollView::Layout()
+{
+    m_scrollbar->Show(ContentSizer()->GetMinSize().x > GetClientSize().x);
+
+    const bool laid_out = wxPanel::Layout();
+    m_content->FitInside();
+    m_content->Layout();
+    m_scrollbar->Refresh();
+    return laid_out;
+}
+
+bool HorizontalScrollView::ScrollByWheel(const wxMouseEvent &evt)
+{
+    if (!m_scrollbar->IsShown()) return false;
+
+    const int notches = evt.GetWheelDelta() == 0 ? 0 : evt.GetWheelRotation() / evt.GetWheelDelta();
+    // A horizontal wheel turns positive towards the right, a vertical one positive away from the user.
+    const int direction = evt.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL ? 1 : -1;
+    int       view_x = 0, view_y = 0;
+    m_content->GetViewStart(&view_x, &view_y);
+    m_content->Scroll(std::max(0, view_x + direction * notches * FromDIP(WHEEL_SCROLL_STEP)), -1);
+    m_scrollbar->Refresh();
+    return true;
+}
 
 // ----------------------------------------------------------------------------
 // ExtruderPanel (abstract base)
@@ -1273,36 +1408,12 @@ void ExtruderPanel::sync_ams(
 // next to them. The base still appends the trailing warning icon to this sizer.
 void SingleExtruderPanel::CreateContent(wxBoxSizer * /*main_sizer*/) {}
 
-// The nozzle rack stays on one line at the design's minimum tile width. A horizontal scroll window
-// exposes the trailing slots when the sidebar is too narrow instead of shrinking or clipping them.
+// The nozzle rack stays on one line at the design's minimum tile width, so the panel is as wide as
+// the whole rack; the card scrolls it rather than shrinking or clipping the trailing slots.
 void SingleExtruderPanel::CreateExtraRows(wxBoxSizer *main_sizer)
 {
-    m_tile_scroll = new HorizontalScrollablePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_tile_scroll->SetBackgroundColour(GetBackgroundColour());
-    m_tile_scroll->SetMinSize(wxSize(-1, FromDIP(TILE_H)));
-    m_tile_row = static_cast<wxBoxSizer *>(m_tile_scroll->GetSizer());
-    main_sizer->Add(m_tile_scroll, 0, wxEXPAND | wxTOP, FromDIP(10));
-
-    m_tile_scrollbar = new NozzleTileScrollbar(this, m_tile_scroll);
-    m_tile_scrollbar->Hide();
-    main_sizer->Add(m_tile_scrollbar, 0, wxEXPAND | wxTOP, FromDIP(5));
-
-    m_tile_scroll->Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
-        event.Skip();
-        CallAfter([this]() { UpdateTileScrollLayout(); });
-    });
-    m_tile_scroll->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent &event) {
-        int unit_x = 0;
-        int unit_y = 0;
-        m_tile_scroll->GetScrollPixelsPerUnit(&unit_x, &unit_y);
-        unit_x = std::max(1, unit_x);
-        const int steps = event.GetWheelDelta() == 0 ? 0 : event.GetWheelRotation() / event.GetWheelDelta();
-        int view_x = 0;
-        int view_y = 0;
-        m_tile_scroll->GetViewStart(&view_x, &view_y);
-        m_tile_scroll->Scroll(std::max(0, view_x - steps * FromDIP(40) / unit_x), -1);
-        m_tile_scrollbar->Refresh();
-    });
+    m_tile_row = new wxBoxSizer(wxHORIZONTAL);
+    main_sizer->Add(m_tile_row, 0, wxEXPAND | wxTOP, FromDIP(10));
 
     m_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1313,6 +1424,9 @@ void SingleExtruderPanel::CreateExtraRows(wxBoxSizer *main_sizer)
             AMSinfo info;
             info.ams_type = type;
             auto *preview = new AMSPreview(this, wxID_ANY, info);
+            // The preview draws over whatever was erased beneath it, and a window never inherits its
+            // parent's colour, so without this nothing is erased and it renders on black.
+            preview->SetBackgroundColour(GetBackgroundColour());
             preview->Close();
             m_ams_previews.push_back(preview);
         }
@@ -1321,18 +1435,6 @@ void SingleExtruderPanel::CreateExtraRows(wxBoxSizer *main_sizer)
     seed_previews(MAX_AMS_1_SLOT, DevAmsType::N3S);
 
     main_sizer->Add(m_ams_sizer, 0, wxEXPAND | wxTOP, FromDIP(4));
-}
-
-void SingleExtruderPanel::UpdateTileScrollLayout()
-{
-    if (!m_tile_scroll || !m_tile_scrollbar) return;
-
-    m_tile_scroll->Layout();
-    m_tile_scroll->FitInside();
-    if (m_tile_scrollbar->UpdateState()) {
-        Layout();
-        if (GetParent()) GetParent()->Layout();
-    }
 }
 
 void SingleExtruderPanel::update_ams()
@@ -1384,14 +1486,16 @@ void SingleExtruderPanel::UpdateNozzles(const std::vector<NozzleConfig> &configs
         // Same copy as NozzleCard::refresh_values(): an empty slot has no diameter and no flow type.
         const wxString diameter = empty ? _L("Empty") : cfg.diameter;
         const wxString flow     = empty ? wxString("--") : volume_short(cfg.volume);
-        auto *tile = new NozzleSlotTile(m_tile_scroll, i + 1, diameter, flow, cfg.status);
+        auto          *tile     = new NozzleSlotTile(this, i + 1, diameter, flow, cfg.status);
         tile->SetDimmed(!multi_diameter && !on_selected_diameter);
         if (!m_nozzle_tiles.empty()) m_tile_row->AddSpacer(FromDIP(TILE_GAP));
         m_tile_row->Add(tile, 1, wxALIGN_CENTER_VERTICAL);
         wxGetApp().UpdateDarkUIWin(tile); // tiles are created after Build()'s one-time dark-mode pass
         m_nozzle_tiles.push_back(tile);
     }
-    UpdateTileScrollLayout();
+    // Place the new tiles now: the card re-lays itself out next, but a panel whose size it leaves
+    // unchanged is not laid out again.
+    Layout();
 
     // Every configured diameter is valid in multi-diameter mode, so the mixed-diameter warning
     // only applies once a single diameter has been picked for the whole plate.

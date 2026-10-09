@@ -2892,14 +2892,7 @@ void AMSPreview::Update(AMSinfo amsinfo)
 
 void AMSPreview::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
 {
-    m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 12);
-    m_ts_bitmap_cube_dark = ScalableBitmap(this, "ts_bitmap_cube_dark", 12);
-
-    m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
-    m_four_slot_bitmap_dark = ScalableBitmap(this, "four_slot_ams_item_dark", 32);
-
-    m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 32);
-    m_single_slot_bitmap_dark = ScalableBitmap(this, "single_slot_ams_item_dark", 32);
+    load_bitmaps();
 
     SetMinSize(size);
     SetMaxSize(size);
@@ -2965,8 +2958,25 @@ void AMSPreview::render(wxDC &dc)
 #endif
 }
 
+// SVG icons are recoloured for the theme active when they load, so a theme switch needs a reload.
+void AMSPreview::load_bitmaps()
+{
+    m_ts_bitmap_cube = ScalableBitmap(this, "ts_bitmap_cube", 12);
+    m_ts_bitmap_cube_dark = ScalableBitmap(this, "ts_bitmap_cube_dark", 12);
+
+    m_four_slot_bitmap = ScalableBitmap(this, "four_slot_ams_item", 32);
+    m_four_slot_bitmap_dark = ScalableBitmap(this, "four_slot_ams_item_dark", 32);
+
+    m_single_slot_bitmap = ScalableBitmap(this, "single_slot_ams_item", 32);
+    m_single_slot_bitmap_dark = ScalableBitmap(this, "single_slot_ams_item_dark", 32);
+
+    m_bitmaps_dark = wxGetApp().dark_mode();
+}
+
 void AMSPreview::doRender(wxDC &dc)
 {
+    if (m_bitmaps_dark != wxGetApp().dark_mode()) load_bitmaps();
+
     wxSize size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
@@ -3186,12 +3196,7 @@ void AMSPreview::doRender(wxDC &dc)
 
 void AMSPreview::msw_rescale()
 {
-    m_ts_bitmap_cube.msw_rescale();
-    m_ts_bitmap_cube_dark.msw_rescale();
-    m_four_slot_bitmap.msw_rescale();
-    m_four_slot_bitmap_dark.msw_rescale();
-    m_single_slot_bitmap.msw_rescale();
-    m_single_slot_bitmap_dark.msw_rescale();
+    load_bitmaps();
 
     Refresh();
 }

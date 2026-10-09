@@ -207,6 +207,10 @@ public:
     bool reset_bed_type_combox_choices(bool is_sidebar_init = false);
     bool use_default_bed_type(bool is_bbl_preset = true);
     void change_top_border_for_mode_sizer(bool increase_border);
+    /**
+     * \brief The narrowest the docked sidebar may be dragged without clipping its controls.
+     */
+    int  min_width() const;
     void msw_rescale();
     void sys_color_changed();
     void search();

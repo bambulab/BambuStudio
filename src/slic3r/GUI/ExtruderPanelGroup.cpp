@@ -23,6 +23,7 @@ namespace Slic3r::GUI {
 
 namespace {
 constexpr int HOVER_HIDE_DELAY_MS = 150; // grace after the pointer leaves, so a re-enter cancels the hide
+constexpr int MODE_PILL_MARGIN_X  = 16;  // gap between the mode pill and the card's left edge
 
 /**
  * \brief The single-/multi-diameter mode selector, drawn as the pill the design puts on the
@@ -366,18 +367,34 @@ CustomSeparator::State DualExtruderPanelGroup::GetSeparatorState() const { retur
 
 void SingleExtruderPanelGroup::CreateExtruders(wxBoxSizer *content)
 {
-    // The spacers widen the side inset to the header row's 6px (4 here plus the panel's own 2), so
+    // The spacers widen the side inset to the header row's 6px (4 here plus the body's own 2), so
     // the tiles line up under "Nozzle" instead of starting 4px further left. A wider border on the
     // item itself would push the top and bottom out with them, since a sizer item has only one.
-    auto single = new SingleExtruderPanel(this);
+    // The header stays put; everything below it scrolls as one when the sidebar gets too narrow.
+    m_body = new HorizontalScrollView(this);
     content->AddSpacer(FromDIP(4));
-    content->Add(single, 1, wxEXPAND | wxALL, FromDIP(2));
+    content->Add(m_body, 1, wxEXPAND | wxALL, FromDIP(2));
     content->AddSpacer(FromDIP(4));
+
+    auto single = new SingleExtruderPanel(m_body->Content());
+    m_body->ContentSizer()->Add(single, 0, wxEXPAND);
     m_panels.push_back(single);
+}
+
+bool SingleExtruderPanelGroup::Layout()
+{
+    if (m_body) m_body->Layout();
+    return ExtruderPanelGroup::Layout();
 }
 
 // The mode pill rides the card's top border, so OnPaint has to know how tall it is. Reported only
 // while it is shown: on a printer without the mode selector the card has an ordinary top border.
+// Measured even while the pill is hidden, so the minimum stays put when the printer changes.
+int SingleExtruderPanelGroup::MinWidth() const
+{
+    return m_mode_pill ? m_mode_pill->GetEffectiveMinSize().x + 2 * FromDIP(MODE_PILL_MARGIN_X) : 0;
+}
+
 wxWindow *SingleExtruderPanelGroup::BorderStraddlingWidget() const { return m_mode_pill && m_mode_pill->IsShown() ? m_mode_pill : nullptr; }
 
 // Fully rounded with the brand outline, and opaque in the card's own background so it hides the
@@ -398,14 +415,16 @@ void SingleExtruderPanelGroup::AttachDiameterPanel(DiameterButtonPanel *panel)
     if (!panel || m_diameter_panel == panel)
         return;
 
-    panel->Reparent(this);
+    panel->Reparent(m_body->Content());
     panel->SetShowTitle(false);
 
+    // Above the nozzle panel, inside the body so the buttons scroll with the tiles. The body already
+    // supplies the side inset.
     m_diameter_sizer = new wxBoxSizer(wxVERTICAL);
-    m_diameter_sizer->AddSpacer(FromDIP(10));
-    m_diameter_sizer->Add(panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
     m_diameter_sizer->AddSpacer(FromDIP(8));
-    m_main_sizer->Insert(m_main_sizer->GetItemCount() - 1, m_diameter_sizer, 0, wxEXPAND);
+    m_diameter_sizer->Add(panel, 0, wxEXPAND);
+    m_diameter_sizer->AddSpacer(FromDIP(8));
+    m_body->ContentSizer()->Insert(0, m_diameter_sizer, 0, wxEXPAND);
     m_diameter_panel = panel;
 
     ShowDiameterPanel(!panel->IsMultiDiameterMode());
@@ -416,7 +435,7 @@ void SingleExtruderPanelGroup::ShowDiameterPanel(bool show)
     if (!m_diameter_sizer)
         return;
 
-    m_main_sizer->Show(m_diameter_sizer, show);
+    m_body->ContentSizer()->Show(m_diameter_sizer, show);
     Layout();
     FitToPanels();
 }
@@ -427,7 +446,7 @@ void SingleExtruderPanelGroup::DetachDiameterPanel(wxWindow *new_parent)
         return;
 
     m_diameter_sizer->Detach(m_diameter_panel);
-    m_main_sizer->Detach(m_diameter_sizer);
+    m_body->ContentSizer()->Detach(m_diameter_sizer);
     delete m_diameter_sizer;
     m_diameter_sizer = nullptr;
 
@@ -453,7 +472,7 @@ bool SingleExtruderPanelGroup::CreateHeader(wxBoxSizer *outer)
     // Only the widget is ours; DiameterButtonPanel::AttachModePill fills it in and owns the mode.
     m_mode_pill = new ModePill(this);
     StyleModePill();
-    outer->Add(m_mode_pill, 0, wxLEFT, FromDIP(16));
+    outer->Add(m_mode_pill, 0, wxLEFT, FromDIP(MODE_PILL_MARGIN_X));
 
     auto *row = new wxBoxSizer(wxHORIZONTAL);
 

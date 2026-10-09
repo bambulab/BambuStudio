@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <wx/dialog.h>
 #include <wx/panel.h>
 #include <wx/wrapsizer.h>
@@ -12,6 +14,7 @@
 
 class wxStaticText;
 class wxBoxSizer;
+class wxEventFilter;
 class ComboBox;
 
 namespace Slic3r::GUI {
@@ -19,7 +22,7 @@ namespace Slic3r::GUI {
 struct NozzleConfig;
 class NozzleSummary;  // icon + diameter + flow + count tile; defined in ExtruderPanel.cpp
 class NozzleSlotTile; // one numbered nozzle slot: icon + diameter + flow; defined in ExtruderPanel.cpp
-class NozzleTileScrollbar;
+class SlimScrollbar;
 
 enum class NozzleStatus : int
 {
@@ -150,6 +153,37 @@ public:
 
 private:
     wxBoxSizer *m_content_sizer{nullptr};
+};
+
+/**
+ * \brief Content that scrolls sideways under a slim scrollbar once it is wider than the view.
+ *
+ * Parent children to \ref Content and add them to \ref ContentSizer. The view is as tall as its
+ * content, plus the scrollbar while the content overflows, and can be squeezed to any width: the
+ * content keeps its minimum width and scrolls instead of being clipped or shrunk. While it overflows,
+ * any mouse wheel scrolls it sideways; otherwise the wheel goes on to the enclosing window.
+ *
+ * Call \ref Layout after changing the content: a view whose own size did not change is not
+ * re-measured otherwise.
+ */
+class HorizontalScrollView : public wxPanel
+{
+public:
+    explicit HorizontalScrollView(wxWindow *parent);
+    ~HorizontalScrollView() override;
+
+    wxWindow   *Content() const;
+    wxBoxSizer *ContentSizer() const;
+
+    bool Layout() override;
+
+private:
+    // Scrolls sideways when the content overflows; returns false to let the wheel go elsewhere.
+    bool ScrollByWheel(const wxMouseEvent &evt);
+
+    wxScrolledWindow              *m_content{nullptr};
+    SlimScrollbar                 *m_scrollbar{nullptr};
+    std::unique_ptr<wxEventFilter> m_wheel_filter; // catches wheel turns over the view wherever they are sent
 };
 
 /**
@@ -337,12 +371,7 @@ protected:
     void CreateExtraRows(wxBoxSizer *main_sizer) override;
 
 private:
-    void UpdateTileScrollLayout();
-
-    // Slot tiles keep their design minimum width in one row; the scroll window exposes overflow
-    // when the sidebar becomes narrower than the complete rack.
-    HorizontalScrollablePanel *m_tile_scroll{nullptr};
-    NozzleTileScrollbar        *m_tile_scrollbar{nullptr};
+    // Slot tiles keep their design minimum width on one line; the card scrolls once it is narrower.
     wxBoxSizer                 *m_tile_row{nullptr};
     std::vector<NozzleSlotTile *> m_nozzle_tiles; // one per configured slot, rebuilt by UpdateNozzles
 
