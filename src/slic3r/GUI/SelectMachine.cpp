@@ -7719,7 +7719,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
             std::vector<wxString> tray_names;
             tray_names.reserve(tray_ids.size());
             for (int tray_id : tray_ids)
-                tray_names.emplace_back(wxGetApp().transition_tridid(tray_id));
+                tray_names.emplace_back(wxGetApp().transition_tridid(tray_id, std::nullopt, get_current_machine()));
 
             std::vector<wxString>& target_names = tray_names.size() == 1 ? slot_names : group_names;
             wxString display_name = join_names(tray_names, "+");

@@ -177,7 +177,8 @@ bool is_hotend_ready_for_filament(const std::string& op_state)
 
 nlohmann::json build_hotend_menu_actions(const std::string& op_state,
                                          const std::string& tool_kind,
-                                         bool has_hotend_slot)
+                                         bool has_hotend_slot,
+                                         bool is_on_extruder)
 {
     namespace SK = AmsHotendSchema::keys;
     namespace SV = AmsHotendSchema::values;
@@ -196,7 +197,7 @@ nlohmann::json build_hotend_menu_actions(const std::string& op_state,
 
     const bool can_read = can_move && is_nozzle;
     const bool can_detail = has_hotend_slot && !error;
-    const bool can_set_temp = can_operate && is_nozzle;
+    const bool can_set_temp = can_operate && is_nozzle && !is_on_extruder;
     const bool can_take_place = can_move;
 
     std::string disabled_reason;
@@ -475,7 +476,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     const auto hotend_tool_kind = hotend.value(SK::hotend::tool_kind, std::string(SV::tool_kind::empty));
     const auto hotend_op_state = hotend.value(SK::hotend::op_state, std::string(SV::hotend_op_state::none));
     const bool hotend_ready_for_filament = is_hotend_ready_for_filament(hotend_op_state);
-    const nlohmann::json hotend_menu_actions = build_hotend_menu_actions(hotend_op_state, hotend_tool_kind, has_hotend_slot);
+    const nlohmann::json hotend_menu_actions = build_hotend_menu_actions(hotend_op_state, hotend_tool_kind, has_hotend_slot, is_on_extruder);
 
     bool can_edit_filament = card_state != SV::card_state::empty;
     if (filament_changing && slot_id.has_value() && fila_sys->IsFilamentChangingSlot(slot_id->first, slot_id->second)) {
@@ -499,7 +500,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
                              card_state != SV::card_state::empty && card_state != SV::card_state::awaiting_tpu_read &&
                              hotend_ready_for_filament;
     bool can_unload_filament = !filament_changing && line_state == SV::line_state::loaded && hotend_ready_for_filament;
-    bool can_ams_operation = card_state != SV::card_state::empty && hotend_tool_kind == SV::tool_kind::nozzle && machine_obj->GetFilaSystem()->GetAmsList().size() > 0;
+    bool can_ams_operation = (card_state != SV::card_state::empty || bind_ams_count > 0) && hotend_tool_kind == SV::tool_kind::nozzle && machine_obj->GetFilaSystem()->GetAmsList().size() > 0;
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, can_edit_filament},
         {SK::menu_actions::can_load, can_load_filament },
