@@ -8,6 +8,7 @@
 #include <functional>
 #include <map>
 #include <utility>
+#include <vector>
 
 #include <boost/container/small_vector.hpp>
 #include "../FilamentGroup.hpp"
@@ -23,6 +24,17 @@ class PrintObject;
 class LayerTools;
 namespace CustomGCode { struct Item; }
 class PrintRegion;
+
+// One toolchange on a layer, with the purge volume required by the flush-volumes matrix
+// for that specific old->new filament pair. Used to size a proportional purge-object
+// allocation across every toolchange on a layer at once (see
+// WipingExtrusions::mark_wiping_extrusions_for_layer()).
+struct PurgeTransition
+{
+    unsigned int old_extruder;
+    unsigned int new_extruder;
+    float        required_volume;
+};
 
 // Object of this class holds information about whether an extrusion is printed immediately
 // after a toolchange (as part of infill/perimeter wiping) or not. One extrusion can be a part
@@ -45,6 +57,23 @@ public:
     // This function goes through all infill entities, decides which ones will be used for wiping and
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
     float mark_wiping_extrusions(const Print& print, unsigned int old_extruder, unsigned int new_extruder, float volume_to_wipe);
+
+    // Read-only: total volume of overridable (eligible and not yet marked) entities across
+    // every purge-eligible object on this layer, regardless of which transition they'd end
+    // up serving. Used to size proportional purge targets in mark_wiping_extrusions_for_layer().
+    float estimate_overridable_volume(const Print& print) const;
+
+    // Given every toolchange on this layer with its flush-matrix-required purge volume,
+    // proportionally allocates this layer's overridable capacity across them so that as much
+    // of it as possible always serves purge duty instead of being left at an object's own
+    // "clean" colour: when capacity is short of total demand every transition gets a
+    // proportionally short share (instead of the first transition draining it all); when
+    // capacity exceeds total demand every transition still gets a proportionally *larger*
+    // share so the whole pool ends up allocated. A transition touching a soluble or support
+    // filament is left untouched (matches mark_wiping_extrusions' own guard) and its full
+    // required volume is reported back as unmet. Returns, parallel to `transitions`, how much
+    // of each transition's required volume could not be covered (0 = fully covered).
+    std::vector<float> mark_wiping_extrusions_for_layer(const Print& print, const std::vector<PurgeTransition>& transitions);
 
     void ensure_perimeters_infills_order(const Print& print);
 
@@ -81,6 +110,21 @@ public:
 
     void set_layer_tools_ptr(const LayerTools* lt) { m_layer_tools = lt; }
 
+    // Used only by the no-wipe-tower purge-into-object path (Print::_mark_flush_into_objects_without_tower()):
+    // stashes, per (old_extruder, new_extruder) toolchange on this layer, how much purge volume
+    // mark_wiping_extrusions_for_layer() could NOT divert into object geometry - GCode::set_extruder()
+    // reads this back when emitting that toolchange's standalone flush G-code, so the flush length
+    // shrinks by whatever the objects already absorbed. Sentinel: absence means "not computed here"
+    // (tower path, multi-nozzle, or the feature unused on this plate) - caller falls back to the full
+    // flush-matrix volume, i.e. today's unchanged behaviour.
+    void remember_unmet_purge_volume(unsigned int old_extruder, unsigned int new_extruder, float volume) {
+        m_unmet_purge_volume[{old_extruder, new_extruder}] = volume;
+    }
+    float unmet_purge_volume(unsigned int old_extruder, unsigned int new_extruder) const {
+        auto it = m_unmet_purge_volume.find({old_extruder, new_extruder});
+        return it == m_unmet_purge_volume.end() ? -1.f : it->second;
+    }
+
 private:
     int first_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const;
     int last_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const;
@@ -104,6 +148,7 @@ private:
     bool something_overridable = false;
     bool something_overridden = false;
     const LayerTools* m_layer_tools = nullptr;    // so we know which LayerTools object this belongs to
+    std::map<std::pair<unsigned int, unsigned int>, float> m_unmet_purge_volume;  // see remember_/unmet_purge_volume() above
 };
 
 

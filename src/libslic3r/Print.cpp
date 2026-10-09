@@ -2365,6 +2365,10 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             m_tool_ordering.sort_and_build_data(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
                 throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
+            // No shared prime tower: flush_into_objects/infill/support otherwise do nothing at
+            // all, since mark_wiping_extrusions() is normally only ever called from inside
+            // _make_wipe_tower(). Give it the same chance here.
+            this->_mark_flush_into_objects_without_tower();
         }
         if (slice_time)
             (*slice_time)[TIME_WIPE_TOWER] +=
@@ -3945,6 +3949,16 @@ void Print::_make_wipe_tower()
         unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
         nozzle_recorder.set_nozzle_status(group_result->get_nozzle_for_filament(old_filament_id, layer_idx)->group_id, old_filament_id);
 
+        // Holds one layer's worth of pending toolchanges between the state-advancing pass
+        // (unchanged from before) and the purge-emitting pass, so mark_wiping_extrusions_for_layer()
+        // can see - and proportionally allocate across - every toolchange on the layer at once.
+        struct PendingToolchange {
+            unsigned int old_filament_id;
+            unsigned int new_filament_id;
+            int          extruder_id;
+            float        raw_purge_volume; // pre-allocation, post flush-matrix + multiplier; 0 if no purge needed
+        };
+
         for (auto& layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
             ++layer_idx;
 
@@ -3954,6 +3968,12 @@ void Print::_make_wipe_tower()
 
             used_filament_ids.insert(layer_tools.extruders.begin(), layer_tools.extruders.end());
 
+            // Pass 1: walk this layer's toolchanges, advancing nozzle-tracking state and
+            // computing each one's raw required purge volume exactly as before - just
+            // deferring the actual mark_wiping_extrusions() call until every transition on
+            // the layer is known.
+            std::vector<PendingToolchange> pending;
+            pending.reserve(layer_tools.extruders.size());
             for (const auto filament_id : layer_tools.extruders) {
                 if (filament_id == old_filament_id)
                     continue;
@@ -3964,32 +3984,45 @@ void Print::_make_wipe_tower()
                 int nozzle_id = nozzle_info->group_id;
                 int prev_nozzle_filament = nozzle_recorder.get_filament_in_nozzle(nozzle_id);
 
-                float volume_to_purge = 0;
-
+                float raw_purge_volume = 0.f;
                 if(!nozzle_recorder.is_nozzle_empty(nozzle_id) && filament_id != prev_nozzle_filament){
-                    volume_to_purge = multi_extruder_flush[extruder_id][prev_nozzle_filament][filament_id];
+                    raw_purge_volume = multi_extruder_flush[extruder_id][prev_nozzle_filament][filament_id];
                     float multiplier = (m_config.prime_volume_mode == PrimeVolumeMode::pvmFast) ? m_config.flush_multiplier_fast.get_at(extruder_id) :
                                                                                                   m_config.flush_multiplier.get_at(extruder_id);
-                    volume_to_purge *= multiplier;
-                    volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, old_filament_id, filament_id, volume_to_purge);
+                    raw_purge_volume *= multiplier;
                 }
 
+                pending.push_back({old_filament_id, filament_id, extruder_id, raw_purge_volume});
+                old_filament_id = filament_id;
+                nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);
+            }
+
+            // Proportionally allocate this layer's purge-eligible object capacity across
+            // every transition at once (see WipingExtrusions::mark_wiping_extrusions_for_layer()).
+            std::vector<PurgeTransition> transitions;
+            transitions.reserve(pending.size());
+            for (const auto& p : pending)
+                transitions.push_back({p.old_filament_id, p.new_filament_id, p.raw_purge_volume});
+            std::vector<float> unmet = layer_tools.wiping_extrusions().mark_wiping_extrusions_for_layer(*this, transitions);
+
+            // Pass 2: emit the tower toolchanges using the post-allocation purge volumes.
+            for (size_t i = 0; i < pending.size(); ++i) {
+                const PendingToolchange& p = pending[i];
+                float volume_to_purge = unmet[i];
+
                 //During the filament change, the extruder will extrude an extra length of grab_length for the corresponding detection, so the purge can reduce this length.
-                float grab_purge_volume = m_config.grab_length.get_at(extruder_id) * 2.4; //(diameter/2)^2*PI=2.4
+                float grab_purge_volume = m_config.grab_length.get_at(p.extruder_id) * 2.4; //(diameter/2)^2*PI=2.4
                 volume_to_purge = std::max(0.f, volume_to_purge - grab_purge_volume);
 
-                float wipe_volume_ec = m_config.filament_prime_volume.values[filament_id];
-                float wipe_volume_nc = m_config.filament_prime_volume_nc.values[filament_id];
+                float wipe_volume_ec = m_config.filament_prime_volume.values[p.new_filament_id];
+                float wipe_volume_nc = m_config.filament_prime_volume_nc.values[p.new_filament_id];
                 // special primte volume settings for H2C
                 if(m_config.prime_volume_mode == PrimeVolumeMode::pvmSaving){
                     wipe_volume_ec = 15.f;
                     wipe_volume_nc = 15.f;
                 }
-                wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, filament_id,
+                wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, p.old_filament_id, p.new_filament_id,
                                            wipe_volume_ec, wipe_volume_nc, volume_to_purge);
-                old_filament_id = filament_id;
-
-                nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);
             }
             layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 
@@ -4050,6 +4083,65 @@ void Print::_make_wipe_tower()
                                               m_wipe_tower_data.depth,
                                               m_wipe_tower_data.brim_width, {scale_(origin.x()), scale_(origin.y())});
     m_fake_wipe_tower.outer_wall = wipe_tower.get_outer_wall();
+}
+
+void Print::_mark_flush_into_objects_without_tower()
+{
+    // Scoped to single-nozzle machines for now: the multi-nozzle routing this would otherwise
+    // need (MultiNozzleUtils::NozzleStatusRecorder etc., see _make_wipe_tower() above) is a
+    // separate, larger piece of complexity. Multi-nozzle machines keep requiring a prime tower
+    // for flush_into_objects/infill/support to have any effect, same as today.
+    if (m_config.nozzle_diameter.values.size() != 1 || m_tool_ordering.empty())
+        return;
+
+    bool any_flush_object = std::any_of(m_objects.begin(), m_objects.end(), [](const PrintObject *object) {
+        return object->config().flush_into_objects || object->config().flush_into_infill || object->config().flush_into_support;
+    });
+    if (! any_flush_object)
+        return;
+
+    const unsigned int number_of_extruders = (unsigned int) (m_config.filament_colour.values.size());
+    std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(m_config.flush_volumes_matrix.values, 0, 1)));
+    std::vector<std::vector<float>> wipe_volumes;
+    for (unsigned int i = 0; i < number_of_extruders; ++i)
+        wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
+    float multiplier = (m_config.prime_volume_mode == PrimeVolumeMode::pvmFast) ? m_config.flush_multiplier_fast.get_at(0) : m_config.flush_multiplier.get_at(0);
+
+    // mm^3 is not a unit anyone has an intuition for at print-time scale (tens of thousands of
+    // mm^3 sounds alarming, but is a few tens of grams) - convert to mass using each transition's
+    // own *incoming* filament's density (that's the material actually being flushed), since a
+    // plate can easily mix filament types of quite different densities (PETG vs PLA vs TPU...).
+    float        total_unmet_mass_g = 0.f;
+    unsigned int old_filament_id    = m_tool_ordering.first_extruder();
+
+    for (auto &layer_tools : m_tool_ordering.layer_tools()) { // for all layers
+        std::vector<PurgeTransition> transitions;
+        transitions.reserve(layer_tools.extruders.size());
+        for (const auto filament_id : layer_tools.extruders) {
+            if (filament_id == old_filament_id)
+                continue;
+            float raw_purge_volume = wipe_volumes[old_filament_id][filament_id] * multiplier;
+            transitions.push_back({old_filament_id, filament_id, raw_purge_volume});
+            old_filament_id = filament_id;
+        }
+        if (transitions.empty())
+            continue;
+
+        std::vector<float> unmet = layer_tools.wiping_extrusions().mark_wiping_extrusions_for_layer(*this, transitions);
+        for (size_t i = 0; i < transitions.size(); ++i) {
+            layer_tools.wiping_extrusions().remember_unmet_purge_volume(transitions[i].old_extruder, transitions[i].new_extruder, unmet[i]);
+            // filament_density is g/cm^3; unmet[i] is mm^3 (1 cm^3 = 1000 mm^3).
+            total_unmet_mass_g += unmet[i] * m_config.filament_density.get_at(transitions[i].new_extruder) * 0.001f;
+        }
+        layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
+    }
+
+    if (total_unmet_mass_g > 0.f) {
+        std::string message = (boost::format(L("Flush-into-object/infill could not absorb about %1$.1f g of purge material on this plate; "
+                                                 "the shortfall will be purged through the printer's normal flush routine instead."))
+                                % total_unmet_mass_g).str();
+        this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, message, PrintStateBase::SlicingPurgeVolumeNotMet);
+    }
 }
 
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters
