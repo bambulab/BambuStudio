@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-22 15:53+0800\n"
+"POT-Creation-Date: 2026-10-09 10:06+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -196,6 +196,9 @@ msgstr "Bambu TPU 85A не поддерживает печать стандар�
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 msgstr "При использовании ABS/ASA/PETG HF в правом экструдере эти материалы можно использовать только как материал поддержки."
 
+msgid "PPA-CF does not support AMS feeding. Use an external spool instead."
+msgstr ""
+
 msgid "How to feed TPU filament."
 msgstr "Как загрузить филамент TPU."
 
@@ -220,8 +223,16 @@ msgstr "PPS-CF хрупкий и может сломаться в изогнут
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF хрупкий и может сломаться в изогнутой PTFE-трубке над печатающей головкой."
 
+#, c-format, boost-format
+msgid "%s filament is brittle. Use AMS feeding with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filament has a higher risk of clogging when printed with a 0.2mm hotend. Use another compatible hotend before printing."
+msgstr ""
+
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF пластиковые нити твердые и хрупкие, легко ломаются или застревают в АСПП, поэтому используйте их с осторожностью."
+msgstr "Филаменты CF/GF твердые и хрупкие, они могут сломаться или застрять в AMS, используйте с осторожностью."
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
 msgstr "PLA Glow может вызвать износ подающего механизма первой ступени AMS. Вместо этого используйте внешнюю катушку."
@@ -298,6 +309,9 @@ msgid "Standard"
 msgstr "Стандартный"
 
 msgid "TPU High Flow"
+msgstr ""
+
+msgid "TPU285"
 msgstr ""
 
 msgid "E3D High Flow"
@@ -424,6 +438,9 @@ msgstr "Версия:"
 msgid "Latest version"
 msgstr "Последняя версия"
 
+msgid "Auto-refill"
+msgstr "Автоматическое пополнение"
+
 msgid "Row A"
 msgstr "Ряд A"
 
@@ -505,6 +522,354 @@ msgstr "Необходимо считать информацию о сопле"
 
 msgid "Note:"
 msgstr "Примечание:"
+
+msgid "The embedded webpage could not be loaded."
+msgstr ""
+
+msgid "Reload"
+msgstr ""
+
+msgid "Copy diagnostic information"
+msgstr ""
+
+msgid "Add refill filament"
+msgstr ""
+
+msgid "Add material group"
+msgstr ""
+
+msgid "Idling..."
+msgstr "Простой..."
+
+msgid "Pause"
+msgstr "Пауза"
+
+# При выгрузке/загрузке прутка справа отображается процесс
+msgid "Heat the nozzle"
+msgstr "Нагреть сопло"
+
+msgid "Cut filament"
+msgstr "Обрезать филамент"
+
+msgid "Pull back current filament"
+msgstr "Втянуть текущий филамент"
+
+msgid "Push new filament into extruder"
+msgstr "Протолкнуть новый филамент в экструдер"
+
+msgid "Grab new filament"
+msgstr "Захватить новый филамент"
+
+msgid "Purge old filament"
+msgstr "Сброс старого филамента"
+
+msgid "Check filament location"
+msgstr "Проверить положение филамента"
+
+msgid "Switch extruder"
+msgstr ""
+
+msgid "Switch hotend"
+msgstr ""
+
+msgid "Wait for AMS cooling"
+msgstr "Ожидание охлаждения AMS"
+
+msgid "Switch current filament at Filament Track Switch"
+msgstr "Переключить текущий филамент на переключателе тракта филамента"
+
+msgid "Pull back current filament at Filament Track Switch"
+msgstr "Оттянуть текущий филамент назад на переключателе тракта филамента"
+
+msgid "Switch track at Filament Track Switch"
+msgstr "Переключить тракт на переключателе тракта филамента"
+
+msgid "Batch pull back the filaments"
+msgstr ""
+
+msgid "Nesting PrintTool"
+msgstr ""
+
+msgid "Purge filament"
+msgstr ""
+
+#, boost-format
+msgid "Please manually pull out the filament from slot %1%."
+msgstr ""
+
+#, boost-format
+msgid "Please manually pull out the filament from hotend %1% on the toolhead."
+msgstr ""
+
+#, boost-format
+msgid "Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further."
+msgstr ""
+
+#, boost-format
+msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
+msgstr ""
+
+msgid "Other filaments are info-only"
+msgstr ""
+
+msgid "Filament not removed"
+msgstr ""
+
+msgid "Hotend rack moving"
+msgstr ""
+
+msgid "Homing PrintTool Rack"
+msgstr ""
+
+msgid "Homing Toolhead"
+msgstr ""
+
+msgid "Calibrating PrintTool Rack Position"
+msgstr ""
+
+msgid "Heating Hotend"
+msgstr ""
+
+msgid "Cutting Filament"
+msgstr ""
+
+msgid "Unlocking Tool"
+msgstr ""
+
+msgid "Raising PrintTool Rack"
+msgstr ""
+
+msgid "Nesting Tool"
+msgstr ""
+
+msgid "Fetching Tool"
+msgstr ""
+
+msgid "Locking Tool"
+msgstr ""
+
+msgid "Moving PrintTool Rack"
+msgstr ""
+
+msgid "Refreshing Hotend"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+#, boost-format
+msgid "Reading (%1% / %2%)"
+msgstr ""
+
+#, boost-format
+msgid "Reading Hotend %1%"
+msgstr ""
+
+msgid "Please wait..."
+msgstr ""
+
+msgid "Empty slot"
+msgstr ""
+
+msgid "RFID is being read"
+msgstr ""
+
+msgid "Filament change in progress"
+msgstr ""
+
+msgid "Slot is in error state"
+msgstr ""
+
+msgid "Filament already loaded"
+msgstr ""
+
+msgid "Ready to load"
+msgstr ""
+
+msgid "Loaded"
+msgstr ""
+
+msgid "TPU pending read"
+msgstr ""
+
+msgid "Unknown filament"
+msgstr ""
+
+msgid "Other batch mode active"
+msgstr ""
+
+msgid "External filament already loaded into hotend"
+msgstr ""
+
+msgid "The current tool is not a nozzle"
+msgstr ""
+
+msgid "There are no nozzle installed"
+msgstr ""
+
+msgid "Nozzle is in error state"
+msgstr ""
+
+msgid "Nozzle has been detached"
+msgstr ""
+
+msgid "Nozzle type is unknown"
+msgstr ""
+
+msgid "Slot not loaded"
+msgstr ""
+
+msgid "No filament information available"
+msgstr ""
+
+msgid "Tip"
+msgstr "Совет"
+
+msgid "Cannot read all while printing or upgrading"
+msgstr ""
+
+msgid ""
+"Unable to read filament information.\n"
+"Filament is currently loaded in the feeding inlet. Please pull it out first and try again."
+msgstr ""
+
+msgid "The printer is busy on other job"
+msgstr ""
+
+msgid "Cannot stop filament change while printing or calibrating"
+msgstr ""
+
+msgid "No slots selected for batch run"
+msgstr ""
+
+msgid "All selected slots are invalid"
+msgstr ""
+
+msgid "MQTT publish failed for multi_slot_ams_change_filament"
+msgstr ""
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+# Вентилятор
+msgid "Fan"
+msgstr "Вентилятор"
+
+msgid "Hotend Details"
+msgstr ""
+
+msgid "PrintTool communication error. Please check the PrintTool cable and try again."
+msgstr ""
+
+msgid "PrintTool detached. Cannot load."
+msgstr ""
+
+msgid "PrintTool communication error. Cannot operate."
+msgstr ""
+
+msgid "The current filament may not be fully loaded into the PrintTool"
+msgstr ""
+
+msgid "Hotend type unknown"
+msgstr ""
+
+msgid "The current filament may not be fully loaded into the PrintTool, which may cause printing issues. Please pull the filament out of the PrintTool, then click \"Load\" to complete loading."
+msgstr ""
+
+msgid "Hotend type unknown. Please edit the hotend type on the printer and try again."
+msgstr ""
+
+msgid "View details"
+msgstr "Просмотреть подробности"
+
+msgid "Hotend rack is busy"
+msgstr ""
+
+msgid "Hotend rack cannot read all"
+msgstr ""
+
+msgid "Settings for CutTool and DrawTool are not supported yet."
+msgstr ""
+
+msgid "Invalid hotend display_index"
+msgstr ""
+
+msgid "Invalid hotend temperature payload"
+msgstr ""
+
+msgid "No hotend rack"
+msgstr ""
+
+msgid "Hotend cannot set temperature"
+msgstr ""
+
+msgid "Invalid hotend addr_id"
+msgstr ""
+
+msgid "Loading/Unloading"
+msgstr ""
+
+msgid "Checking"
+msgstr ""
+
+msgid "Cooling"
+msgstr "Охлаждение"
+
+msgid "Stopping"
+msgstr "Остановка"
+
+msgid "Heat fault"
+msgstr ""
+
+msgid "Self test"
+msgstr ""
+
+msgid "No selected machine"
+msgstr ""
+
+msgid "loading/unloading"
+msgstr ""
+
+#, boost-format
+msgid "Slot %1% filament %2% in progress"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove \"%s\" from this refill group?"
+msgstr ""
+
+msgid "The refill group will be automatically deleted after removal."
+msgstr ""
+
+msgid "Remove"
+msgstr "Удалить"
+
+msgid "This will delete all manually added filament in current group, please proceed with caution."
+msgstr ""
+
+msgid "Reset Refill Group"
+msgstr ""
+
+msgid "Reset"
+msgstr "Сброс"
+
+msgid "When the current spool runs out, the printer automatically continues with a spool of the same brand, type, and color. Refill relations can also be edited manually, so spools of the same type in a different color can be used for refilling."
+msgstr ""
+
+msgid "Drag spools to adjust their priority."
+msgstr ""
+
+msgid "The system has created auto-refill groups based on material type, color, and brand."
+msgstr ""
+
+msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
+msgstr ""
 
 msgid "Supports Painting"
 msgstr "Покраска поддержки"
@@ -1060,9 +1425,6 @@ msgstr "Автосегментация"
 msgid "Perform cut"
 msgstr "Выполнить разрез"
 
-msgid "Reset"
-msgstr "Сброс"
-
 msgid "Connectors"
 msgstr "Соединения"
 
@@ -1192,6 +1554,9 @@ msgstr "%d треугольников"
 msgid "Show wireframe"
 msgstr "Показать каркас"
 
+msgid "Preserve painted colors"
+msgstr ""
+
 #, boost-format
 msgid "%1%"
 msgstr "%1%"
@@ -1201,6 +1566,9 @@ msgstr "Невозможно применить в режиме предвари
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Отмена операции уже выполняется. Пожалуйста, подождите несколько секунд."
+
+msgid "Transferring painting to the simplified mesh..."
+msgstr ""
 
 msgid "Face recognition"
 msgstr "Распознавание граней"
@@ -1575,7 +1943,7 @@ msgstr ""
 "интервал"
 
 msgid "Line Gap"
-msgstr ""
+msgstr "Зазор между линиями"
 
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Предупреждение: Матрица текста содержит зеркальное преобразование; при перетаскивании текст будет полностью создан заново."
@@ -1648,7 +2016,7 @@ msgid "Alignment"
 msgstr "Выравнивание"
 
 msgid "Align center horizontally"
-msgstr ""
+msgstr "Выровнять центр по горизонтали"
 
 msgid "No symbol"
 msgstr "Без символа"
@@ -2491,10 +2859,10 @@ msgid "Add Primitive"
 msgstr "Добавить примитив"
 
 msgid "Add New Plate"
-msgstr ""
+msgstr "Добавить новую платформу"
 
 msgid "Add a new plate"
-msgstr ""
+msgstr "Добавить новую платформу"
 
 msgid "To objects"
 msgstr "На объекты"
@@ -2776,6 +3144,10 @@ msgstr "Сборка"
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
 msgstr "Совместное использование переменной высоты слоя и подслоёв смешанных цветов может ухудшить качество смешивания цветов."
 
+#, boost-format
+msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
+msgstr ""
+
 msgid "Cut Connectors information"
 msgstr "Информация о соединениях разреза"
 
@@ -2945,9 +3317,6 @@ msgstr "Тип линии"
 msgid "Color"
 msgstr "Цвет"
 
-msgid "Pause"
-msgstr "Пауза"
-
 msgid "Template"
 msgstr "Шаблон"
 
@@ -3051,9 +3420,6 @@ msgstr "Проверьте сетевое подключение принтер�
 msgid "Connecting..."
 msgstr "Подключение…"
 
-msgid "Auto-refill"
-msgstr "Автоматическое пополнение"
-
 # кнопка в интерфейсе? Extrude - Выдавить - Load
 msgid "Load"
 msgstr "Загрузить"
@@ -3094,6 +3460,16 @@ msgstr "Всё равно изменить"
 msgid "Off"
 msgstr "Выкл."
 
+msgid "Air Purifier"
+msgstr ""
+
+msgctxt "AirPurifier"
+msgid "Max"
+msgstr "Макс."
+
+msgid "Silent"
+msgstr "Тихий"
+
 msgid "Filter"
 msgstr "Фильтрация"
 
@@ -3105,9 +3481,6 @@ msgstr "Включение фильтрации во время печати м�
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
 msgstr "Выбранный материал поддерживает только текущий режим вентилятора, и изменить его во время печати нельзя."
-
-msgid "Cooling"
-msgstr "Охлаждение"
 
 msgid "Heating"
 msgstr "Нагрев"
@@ -3158,10 +3531,6 @@ msgstr "Режим нагрева подходит для печати %s мат
 msgid "Strong Cooling"
 msgstr "Интенсивное охлаждение"
 
-# Вентилятор
-msgid "Fan"
-msgstr "Вентилятор"
-
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "Правый (вспом.)"
@@ -3169,6 +3538,10 @@ msgstr "Правый (вспом.)"
 msgctxt "air_duct"
 msgid "Right(Filter)"
 msgstr "Правый (фильтр)"
+
+msgctxt "air_duct"
+msgid "Right(Heating)"
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
@@ -3179,6 +3552,10 @@ msgid "Left(Heating)"
 msgstr "Левый (нагрев)"
 
 msgctxt "air_duct"
+msgid "Chamber"
+msgstr "Камера"
+
+msgctxt "air_duct_chamber"
 msgid "Chamber"
 msgstr "Камера"
 
@@ -3202,51 +3579,14 @@ msgstr "MC-контроллер"
 msgid "Heat"
 msgstr "Нагрев"
 
-msgid "Idling..."
-msgstr "Простой..."
-
-# При выгрузке/загрузке прутка справа отображается процесс
-msgid "Heat the nozzle"
-msgstr "Нагреть сопло"
-
-msgid "Cut filament"
-msgstr "Обрезать филамент"
-
-msgid "Pull back current filament"
-msgstr "Втянуть текущий филамент"
-
-msgid "Push new filament into extruder"
-msgstr "Протолкнуть новый филамент в экструдер"
-
-msgid "Grab new filament"
-msgstr "Захватить новый филамент"
-
-msgid "Purge old filament"
-msgstr "Сброс старого филамента"
-
 msgid "Switch"
 msgstr "Переключить"
 
 msgid "hotend"
 msgstr "Хотенд"
 
-msgid "Wait for AMS cooling"
-msgstr "Ожидание охлаждения AMS"
-
-msgid "Switch current filament at Filament Track Switch"
-msgstr "Переключить текущий филамент на переключателе тракта филамента"
-
-msgid "Pull back current filament at Filament Track Switch"
-msgstr "Оттянуть текущий филамент назад на переключателе тракта филамента"
-
-msgid "Switch track at Filament Track Switch"
-msgstr "Переключить тракт на переключателе тракта филамента"
-
 msgid "Confirm extruded"
 msgstr "Подтвердить экструзию"
-
-msgid "Check filament location"
-msgstr "Проверить положение филамента"
 
 msgid "The maximum temperature cannot exceed "
 msgstr "Максимальная температура не может превышать "
@@ -3812,6 +4152,9 @@ msgstr "Заполнение пластины завершено."
 msgid "Emboss attribute change"
 msgstr "Изменение параметров рельефного текста"
 
+msgid "There is no valid surface for text projection."
+msgstr "Отсутствует подходящая поверхность для проецирования текста."
+
 msgid "Add Emboss text object"
 msgstr "Добавление рельефного текстового объекта"
 
@@ -3820,9 +4163,6 @@ msgstr "Добавление рельефного текстового объё�
 
 msgid "Font doesn't have any shape for given text."
 msgstr "У шрифта отсутствуют контуры для данного текста."
-
-msgid "There is no valid surface for text projection."
-msgstr "Отсутствует подходящая поверхность для проецирования текста."
 
 msgid "Text mesh ie empty."
 msgstr "Текстовая сетка пуста."
@@ -3917,6 +4257,9 @@ msgstr "Термическая подготовка нагревательной
 msgid "Remaining time: %dmin%ds"
 msgstr "Оставшееся время: %dмин%dс"
 
+msgid "No valid computation result. This parameter cannot be adjusted."
+msgstr ""
+
 msgid "Transition Smoothness (between color blocks): the higher, the smoother"
 msgstr ""
 
@@ -3924,7 +4267,7 @@ msgid "Auto Merge Small Fragments: the higher, the more merging"
 msgstr ""
 
 msgid "Add Filament"
-msgstr ""
+msgstr "Добавить филамент"
 
 msgid "More Colors"
 msgstr "Больше цветов"
@@ -3932,17 +4275,17 @@ msgstr "Больше цветов"
 msgid "Official Filament"
 msgstr "Официальный филамент"
 
-msgid "Filament matching color difference threshold"
+msgid "Set filament match color difference threshold"
 msgstr ""
 
-msgid "Color difference range allowed for automatic filament matching. A larger value tolerates more color difference and matches more easily."
+msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
 msgid "Decompose Color"
 msgstr "Разложить цвет"
 
 msgid "+ Add Filament"
-msgstr ""
+msgstr "+ Добавить филамент"
 
 msgid "Project Physical Filaments"
 msgstr "Физические филаменты проекта"
@@ -3958,25 +4301,25 @@ msgstr "Новые смешанные филаменты"
 
 #, boost-format
 msgid "The project supports up to %1% filaments. Extra filaments must be merged before importing."
-msgstr ""
+msgstr "Проект поддерживает до %1% филаментов. Перед импортом лишние филаменты необходимо объединить."
 
 msgid "Updating"
 msgstr "Обновление..."
 
 msgid "Simplify Colors"
-msgstr ""
+msgstr "Упростить цвета"
 
 msgid "Filament Matching"
-msgstr ""
+msgstr "Подбор филамента"
 
 msgid "Import Model: Simplify Colors"
-msgstr ""
+msgstr "Импортировать модель: Упростить цвета"
 
 msgid "Original"
 msgstr "Оригинал"
 
 msgid "Simplified"
-msgstr ""
+msgstr "Упрощенный"
 
 msgid "Color Count"
 msgstr "Количество цветов"
@@ -3985,34 +4328,34 @@ msgid "Advanced settings"
 msgstr "Расширенные настройки"
 
 msgid "Boundary Smoothness"
-msgstr ""
+msgstr "Гладкость границ"
 
 msgid "Gap Area"
-msgstr ""
+msgstr "Площадь зазора"
 
 msgid "Automatically determine the optimal color count"
-msgstr ""
+msgstr "Автоматически определять оптимальное количество цветов"
 
 msgid "Color mixing"
-msgstr ""
+msgstr "Смешивание цветов"
 
 msgid "Use official mixing kits →"
-msgstr ""
+msgstr "Используйте официальные наборы для смешивания →"
 
 msgid "Some colors have no matching filament. Please match them before importing."
-msgstr ""
+msgstr "Для некоторых цветов нет подходящего филамента. Пожалуйста, сопоставьте их перед импортом."
 
 msgid "Auto-Add All Filaments"
-msgstr ""
+msgstr "Автоматическое добавление всех филаментов"
 
 msgid "Fix now"
-msgstr ""
+msgstr "Исправить сейчас"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
 msgstr "Автоматически объединять идентичные филаменты с уже существующими филаментами проекта"
 
 msgid "Automatically merge filaments of the same color and type"
-msgstr ""
+msgstr "Автоматическое объединение филаментов одного цвета и типа"
 
 msgid "Skip"
 msgstr "Пропустить"
@@ -4028,24 +4371,24 @@ msgid "Previous"
 msgstr "Назад"
 
 msgid "Discard newly added filaments and re-run automatic matching"
-msgstr ""
+msgstr "Удалите только что добавленные филаменты и повторно запустите автоматическое сопоставление"
 
 msgid "Before matching"
-msgstr ""
+msgstr "Перед сопоставлением"
 
 msgid "After matching"
-msgstr ""
+msgstr "После сопоставления"
 
 #, c-format, boost-format
 msgid "Before simplification: %d colors"
-msgstr ""
+msgstr "До упрощения: %d цвета"
 
 #, c-format, boost-format
 msgid "After simplification: %d colors"
-msgstr ""
+msgstr "После упрощения: %d цвета"
 
 msgid "Import Model: Filament Matching"
-msgstr ""
+msgstr "Импортировать модель: Подбор филамента"
 
 msgid "Processing"
 msgstr "Обработка"
@@ -4058,24 +4401,24 @@ msgstr "Не удалось выполнить расчёт. Скорректи�
 
 #, c-format, boost-format
 msgid "The color count cannot exceed the original color count (%d)."
-msgstr ""
+msgstr "Количество цветов не может превышать исходное количество цветов (%d)."
 
 #, c-format, boost-format
 msgid "The color count cannot exceed the project's filament limit (%d)."
-msgstr ""
+msgstr "Количество цветов не может превышать лимит филамента, установленный для данного проекта (%d)."
 
-msgid "The current printer has no compatible PLA Basic filament."
+msgid "The current printer has no compatible PLA Palette filament."
 msgstr ""
 
 msgid "Click to select a matching filament"
-msgstr ""
+msgstr "Нажмите, чтобы выбрать подходящий филамент"
 
 #, boost-format
 msgid "The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."
-msgstr ""
+msgstr "Проект поддерживает до %1% филаментов. Текущее количество %2%, что превышает допустимый предел."
 
 msgid "Error Prompt"
-msgstr ""
+msgstr "Сообщение об ошибке"
 
 msgid "This plan cannot merge any filaments. Remaining filaments use different materials."
 msgstr ""
@@ -4104,25 +4447,25 @@ msgid "Prioritize merging small-area filaments"
 msgstr ""
 
 msgid "How to use standard mixing kits"
+msgstr "Как использовать стандартные наборы для смешивания"
+
+msgid "What is the CMYKW mixing kit?"
 msgstr ""
 
-msgid "What is the CMYW mixing kit?"
+msgid "After official print testing, you only need a standard CMYKW mixing kit to mix hundreds of color effects."
 msgstr ""
 
-msgid "After official print testing, you only need a standard CMYW mixing kit to mix hundreds of color effects."
+msgid "5-color CMYKW"
 msgstr ""
 
-msgid "4-color CMYW"
-msgstr ""
-
-msgid "Cyan · Magenta · Yellow · White"
+msgid "Cyan · Magenta · Yellow · Black · White"
 msgstr ""
 
 msgid "Therefore, when importing a model, you can match colors using these kit filaments and their mixes."
-msgstr ""
+msgstr "Таким образом, при импорте модели вы можете подобрать цвета, используя филаменты из этого набора и их смеси."
 
 msgid "Add to project filament list"
-msgstr ""
+msgstr "Добавить в список филаментов проекта"
 
 msgid "Choose SLA archive:"
 msgstr "Выберите архив SLA:"
@@ -4236,8 +4579,20 @@ msgstr "Многие компоненты программы являются р
 msgid "AMS Materials Setting"
 msgstr "Настройка материалов AMS"
 
+msgid "Reread"
+msgstr ""
+
 msgid "Colour"
 msgstr "Цвет"
+
+msgid "Weight"
+msgstr "Масса"
+
+msgid "Total Weight"
+msgstr "Общая масса"
+
+msgid "Remain Weight"
+msgstr ""
 
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Коэффициенты калибровки динамики потока"
@@ -4270,6 +4625,12 @@ msgstr "Совет: Изменение информации о слоте AMS в
 msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr "Совет: Изменение информации о виртуальном слоте во время печати не поддерживается"
 
+msgid "Please enter valid filament weights."
+msgstr ""
+
+msgid "Please enter valid filament weight within 1000g."
+msgstr ""
+
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Вы уверены, что хотите удалить информацию о филаменте?"
 
@@ -4297,8 +4658,8 @@ msgstr "Сначала необходимо выбрать тип материа
 msgid "Please select a color"
 msgstr "Выберите цвет"
 
-msgid "Remark"
-msgstr "Примечание"
+msgid "Nozzle Temperature"
+msgstr "Температура сопла"
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
@@ -4315,27 +4676,6 @@ msgid ""
 msgstr ""
 "Поток сопла не задан. Перед редактированием филамента задайте поток сопла.\n"
 "«Устройство -> Части принтера»"
-
-msgid "Matched filament"
-msgstr "Сопоставленный филамент"
-
-msgid "Add as new filament"
-msgstr "Добавить как новый филамент"
-
-msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr "AMS обнаружила новый филамент. Добавить его в менеджер филаментов?"
-
-msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr "В менеджере филаментов найден похожий филамент, который был сопоставлен автоматически."
-
-msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
-msgstr "В менеджере филаментов найдено несколько похожих филаментов. Подтвердите сопоставление."
-
-msgid "New Filament"
-msgstr "Новый филамент"
-
-msgid "New filament information has been recorded."
-msgstr "Информация о новом филаменте сохранена."
 
 msgid "Dynamic flow calibration"
 msgstr "Калибровка динамики потока"
@@ -4546,6 +4886,9 @@ msgstr "СУХОЙ"
 msgid "WET"
 msgstr "ВЛАЖНЫЙ"
 
+msgid "Please select the filament to match."
+msgstr ""
+
 msgid "AMS"
 msgstr "АСПП"
 
@@ -4570,6 +4913,9 @@ msgstr "Выбрать филамент && хотенды"
 
 msgid "Select Filament"
 msgstr "Выбрать филамент"
+
+msgid "Ext"
+msgstr "Внеш."
 
 msgid "AMS Settings"
 msgstr "Настройки AMS"
@@ -4596,6 +4942,12 @@ msgstr "При запуске AMS автоматически считает ин
 # ??? было При каждом включении принтера, считывание информации о вставленных материалах АСПП будет отключено. Будет использоваться информация, полученная перед последним выключением.
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
 msgstr "При запуске AMS не будет автоматически считывать данные установленного филамента и продолжит использовать информацию, сохранённую перед последним выключением."
+
+msgid "Automatically refresh unloaded filaments"
+msgstr ""
+
+msgid "For official filaments, the filament type is automatically refreshed when entering the Device page. To avoid frequent refreshes, automatic refreshes occur no more than once per minute."
+msgstr ""
 
 msgid "Update remaining capacity"
 msgstr "Обновлять оставшееся количество филамента"
@@ -4645,12 +4997,6 @@ msgstr "Сбросить последовательность ID подключ�
 
 msgid "Reset AMS Sequence"
 msgstr "Сбросить последовательность AMS"
-
-msgid "View wiki for details"
-msgstr "Подробнее см. в Wiki"
-
-msgid "Nozzle Temperature"
-msgstr "Температура сопла"
 
 msgid "File"
 msgstr "Файл"
@@ -4770,9 +5116,6 @@ msgstr "Настройки"
 
 msgid "Texture"
 msgstr "Текстура"
-
-msgid "Remove"
-msgstr "Удалить"
 
 msgid "Not found:"
 msgstr "Не найдено:"
@@ -5040,13 +5383,16 @@ msgstr ""
 "Нет - не использовать чередующуюся дополнительную стенку"
 
 msgid "Periodic modifier is incompatible with spiral vase mode. To enable periodic modifier, the following adjustments are recommended:"
-msgstr ""
+msgstr "Периодический модификатор несовместим с режимом спиральной вазы. Для включения периодического модификатора рекомендуется выполнить следующие настройки:"
 
 msgid ""
 "Change these settings automatically?\n"
 "Yes - Apply and keep periodic modifier enabled\n"
 "No  - Don't use periodic modifier"
 msgstr ""
+"Изменить эти настройки автоматически?\n"
+"Да — Применить и оставить периодический модификатор включенным\n"
+"Нет — Не использовать периодический модификатор"
 
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
 msgstr "Для корректной работы чередующейся дополнительной стенки рекомендуется изменить следующие параметры:"
@@ -5061,7 +5407,7 @@ msgstr ""
 "Нет - сохранить текущие настройки и оставить чередующуюся дополнительную стенку включённой"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false, alternate extra wall is disabled and periodic modifier is disabled."
-msgstr ""
+msgstr "Спиральный режим работает только при значении параметра wall loops равном 1, отключенном параметре support, отключенном параметре clumping detection by probing, значении параметра top shell layers равном 0, значении параметра sparse infill density равном 0, типе таймлапса — instant, значении параметра smoothing wall speed in z direction — false, отключенном параметре alternate extra wall и отключенном параметре periodic modifier."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Но принтеры с конструкцией I3 не будут создавать таймлапс-видео."
@@ -5428,10 +5774,10 @@ msgid "Resume"
 msgstr "Возобновить"
 
 msgid "Loading error details ..."
-msgstr ""
+msgstr "Загрузка сведений об ошибке..."
 
 msgid "Unable to load error details."
-msgstr ""
+msgstr "Не удалось загрузить подробности ошибки."
 
 msgid "Unknown error."
 msgstr "Неизвестная ошибка."
@@ -5704,6 +6050,9 @@ msgstr "Группировка филаментов"
 # длинно Почему такая группировка?
 msgid "Why this grouping"
 msgstr "Почему такая группировка"
+
+msgid "AMS nozzle"
+msgstr ""
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Разместите филаменты на принтере в соответствии с результатами группировки."
@@ -6090,6 +6439,9 @@ msgstr "Траектория G-кода выходит за границы пл�
 msgid "Not support printing 2 or more TPU filaments."
 msgstr "Печать двумя и более TPU-филаментами не поддерживается."
 
+msgid "The printer preset is missing a TPU285 nozzle."
+msgstr ""
+
 msgid "The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects."
 msgstr "Общая масса печатаемых моделей превышает рекомендуемую нагрузку для этого принтера, что может замедлить печать или привести к дефектам."
 
@@ -6123,6 +6475,9 @@ msgstr "Нельзя печатать филаментами %s непосред
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "В смеси обнаружены филаменты PLA и PETG. Настройте параметры в соответствии с рекомендациями Wiki, чтобы обеспечить качество печати."
 
+msgid "Generation of a prime tower is not supported on your printer if multiple materials and a support structure are used. Integrated Support is enabled for slicing."
+msgstr ""
+
 msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
 msgstr "Обнаружен хрупкий филамент (например, PPS-CF). Разместите модели в центре нагревательной плиты. При печати у края филамент может чрезмерно изгибаться и ломаться внутри трубки."
 
@@ -6133,7 +6488,7 @@ msgid "The prime tower extends beyond the plate boundary."
 msgstr "Башня очистки выходит за границы пластины."
 
 msgid "All objects on the plate are unprintable, please check the printable settings in the object list."
-msgstr ""
+msgstr "Все объекты на платформе не подлежат печати, пожалуйста, проверьте настройки печати в списке объектов."
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Частичный объём очистки установлен на 0. Многоцветная печать может привести к смешению цветов в модели. Измените настройки очистки."
@@ -6152,6 +6507,9 @@ msgstr "Включить обнаружение слипания"
 
 msgid "Click here to regroup"
 msgstr "Нажмите здесь, чтобы перегруппировать"
+
+msgid "Click to add a TPU285 nozzle"
+msgstr ""
 
 msgid "Flushing Volume"
 msgstr "Объём очистки"
@@ -6213,6 +6571,12 @@ msgstr "Автозапись мониторинга"
 msgid "Go Live"
 msgstr "Запустить трансляцию"
 
+msgid "Live Camera Recording"
+msgstr ""
+
+msgid "Visual Enhancement Camera Recording"
+msgstr ""
+
 # ??? Повторить попытку просмотра , Попробовать перезапустить видеотрансляцию
 msgid "Liveview Retry"
 msgstr "Перезапустить видеотрансляцию"
@@ -6248,10 +6612,10 @@ msgid "Invalid input."
 msgstr "Неверный ввод."
 
 msgid "Network error"
-msgstr ""
+msgstr "Ошибка сети"
 
 msgid "Unknown error"
-msgstr ""
+msgstr "Неизвестная ошибка"
 
 msgid "New Window"
 msgstr "Новое окно"
@@ -6822,6 +7186,18 @@ msgstr "Проигрыватель не загружен. Нажмите кно�
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Не удалось загрузить библиотеку плагинов. Нажмите здесь, чтобы посмотреть решение."
 
+msgid "Switch to the auxiliary live camera view"
+msgstr ""
+
+msgid "Switch to the main live camera view"
+msgstr ""
+
+msgid "Switch live camera view"
+msgstr ""
+
+msgid "Current camera is abnormal"
+msgstr ""
+
 msgid "Loading failed. Please check the network and try again."
 msgstr "Не удалось загрузить. Проверьте сеть и повторите попытку."
 
@@ -7218,9 +7594,6 @@ msgstr "Прогресс печати"
 msgid "Pausing"
 msgstr "Приостановка"
 
-msgid "Stopping"
-msgstr "Остановка"
-
 msgid "Parts Skip"
 msgstr "Пропуск объектов"
 
@@ -7308,6 +7681,9 @@ msgstr "Параметры безопасности"
 
 msgid "Hotends"
 msgstr "Хотенды"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "100%"
 msgstr "100%"
@@ -7416,9 +7792,6 @@ msgstr "Не удалось считать информацию о филаме�
 
 msgid "This only takes effect during printing"
 msgstr "Действует только во время печати."
-
-msgid "Silent"
-msgstr "Тихий"
 
 msgid "Sport"
 msgstr "Спортивный"
@@ -7579,6 +7952,9 @@ msgstr "Выполняется расчёт, пожалуйста, подожд�
 msgid "Status"
 msgstr "Статус"
 
+msgid "Print queue"
+msgstr ""
+
 msgctxt "Firmware"
 msgid "Update"
 msgstr "Обновить"
@@ -7607,9 +7983,6 @@ msgstr "%s предупреждение"
 #, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s содержит предупреждение"
-
-msgid "View details"
-msgstr "Просмотреть подробности"
 
 msgid "Execute"
 msgstr "Выполнить"
@@ -7808,6 +8181,9 @@ msgstr "Для вашей модели требуется поддержка! В
 msgid "Gcode path overlap"
 msgstr "Перекрытие траекторий G-кода"
 
+msgid "Please adjust the nozzle diameter/flow of the affected filament in the filament panel."
+msgstr ""
+
 msgid "Support painting"
 msgstr "Покраска поддержки"
 
@@ -7853,6 +8229,25 @@ msgstr "Верхний"
 msgctxt "Layers"
 msgid "Bottom"
 msgstr "Низ"
+
+msgid "Notify only"
+msgstr ""
+
+msgid "Slow down toolhead"
+msgstr ""
+
+# ???? Приостановить печать
+msgid "Pause printing"
+msgstr "Приостановить печать"
+
+msgid "When the door is opened during printing, the printer slows down the toolhead related moves for safety. This may increase the toolhead switching time and affect the print quality."
+msgstr ""
+
+msgid "Enable Slow Down Toolhead?"
+msgstr ""
+
+msgid "Enable Anyway"
+msgstr ""
 
 msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
 msgstr "В текущей задаче печати используется филамент, склонный к образованию нитей. Включение обнаружения слипания на сопле сейчас может ухудшить качество печати. Всё равно включить?"
@@ -7927,8 +8322,8 @@ msgstr "Обнаружение посторонних предметов"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "Перед началом печати проверяет наличие посторонних предметов на печатной пластине, чтобы избежать столкновений."
 
-msgid "Printed Part Displacement Detection"
-msgstr "Обнаружение смещения напечатанной детали"
+msgid "Print Loosening Detection"
+msgstr ""
 
 msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
 msgstr "Отслеживает напечатанную деталь во время печати и немедленно предупреждает о её смещении или падении."
@@ -7975,6 +8370,9 @@ msgstr "Проверяет наличие слипания филамента и
 msgid "On"
 msgstr "Вкл."
 
+msgid "Detects air printing caused by nozzle clogging, filament tangling, or filament grinding."
+msgstr ""
+
 msgid "Open Door Detection"
 msgstr "Обнаружение открытой двери"
 
@@ -7983,10 +8381,6 @@ msgstr "Выберите действие при открытии дверцы �
 
 msgid "Notification"
 msgstr "Уведомление"
-
-# ???? Приостановить печать
-msgid "Pause printing"
-msgstr "Приостановить печать"
 
 msgid "Print Status Snapshot"
 msgstr "Снимок состояния печати"
@@ -8710,44 +9104,22 @@ msgstr "AMS (4 слота)"
 msgid "AMS(1 slot)"
 msgstr "AMS (1 слот)"
 
+#, c-format, boost-format
+msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+msgstr ""
+
+msgid "Configure Nozzle diameter"
+msgstr ""
+
+msgid "Modify Nozzle Type"
+msgstr ""
+
 msgid "Not installed"
 msgstr "Не установлено"
-
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
-msgstr ""
-"Программное обеспечение не поддерживает использование сопел разного диаметра в одной задаче печати.\n"
-"Если диаметры левого и правого сопел различаются, можно продолжить только печать одним соплом.\n"
-"Выберите сопло, которое будет использоваться для этого проекта."
-
-msgid "Switch diameter"
-msgstr "Переключить диаметр"
 
 # ???22 Синхронизировать инф. с принтером, Синхронизировать информацию с принтером
 msgid "Sync printer information"
 msgstr "Синхронизировать информацию о принтере"
-
-msgid "Do you want to sync the preset printer with the connected printer, "
-msgstr "Синхронизировать предустановку принтера с подключённым принтером, "
-
-#, c-format, boost-format
-msgid "Current connected printer (Device page): %s (%s)"
-msgstr "Текущий подключённый принтер (страница «Устройство»): %s (%s)"
-
-#, c-format, boost-format
-msgid "Current printer preset (Prepare page): %s"
-msgstr "Текущая предустановка принтера (страница «Подготовка»): %s"
-
-msgid "Sync now"
-msgstr "Синхронизировать сейчас"
-
-msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
-msgstr "Для некоторых сопел не указан тип. Перед синхронизацией укажите типы сопел для всех экструдеров."
-
-msgid "Sync extruder information"
-msgstr "Синхронизировать информацию об экструдере"
 
 msgid ""
 "Tips:\n"
@@ -8781,18 +9153,18 @@ msgstr "Режим сброса"
 msgid "Flushing volumes"
 msgstr "Объёмы очистки"
 
-msgid "Add one filament"
-msgstr "Добавить один филамент"
-
-msgid "Remove last filament"
-msgstr "Удалить последний филамент"
-
 # ???? Синхронизироваться со списком материалов из АСПП, Обновить перечень материалов из
 msgid "Synchronize filament list from AMS"
 msgstr "Синхронизировать список филаментов из AMS"
 
 msgid "Set filaments to use"
 msgstr "Выбрать используемые филаменты"
+
+msgid "Add one filament"
+msgstr "Добавить один филамент"
+
+msgid "Remove last filament"
+msgstr "Удалить последний филамент"
 
 msgid "Add Mixed Filament"
 msgstr "Добавить смешанный филамент"
@@ -8806,19 +9178,34 @@ msgstr "Добавить смешанный филамент"
 msgid "Remove last mixed filament"
 msgstr "Удалить последний смешанный филамент"
 
-msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
-msgstr "Смешанный филамент содержит недопустимые или несоответствующие компоненты. Повторно отредактируйте затронутые записи."
+msgid "Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Поиск пластины, объекта и части."
 
-#, c-format, boost-format
-msgid ", and %d more"
+msgid "Change nozzle diameter"
+msgstr ""
+
+msgid "This filament does not support printing with the current nozzle."
+msgstr ""
+
+msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
+msgstr ""
+
+msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgstr ""
+
+msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
 msgstr ""
 
 #, c-format, boost-format
+msgid ", and %d more"
+msgstr ", и еще %d"
+
+#, c-format, boost-format
 msgid "model \"%s\""
-msgstr ""
+msgstr "модель \"%s\""
 
 #, c-format, boost-format
 msgid "The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."
@@ -8837,19 +9224,23 @@ msgstr "Целевой смешанный филамент использует 
 msgid "After completing your operation, %s project will be closed and create a new project."
 msgstr "После завершения операции проект %s будет закрыт и будет создан новый проект."
 
-msgid "There are no compatible filaments, and sync is not performed."
-msgstr "Совместимые филаменты отсутствуют, поэтому синхронизация не выполняется."
+#, c-format, boost-format
+msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgstr ""
+
+# ???
+msgid ""
+"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
+"Are you sure you want to continue?"
+msgstr ""
+"При синхронизации филаментов AMS изменённые, но несохранённые предустановки филамента будут отброшены.\n"
+"Вы уверены, что хотите продолжить?"
 
 msgid "Sync filaments with AMS"
 msgstr "Синхронизировать филаменты с AMS"
 
-# ?????
-msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset.\n"
-"Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
-msgstr ""
-"Некоторые неизвестные или несовместимые филаменты сопоставлены с универсальной предустановкой.\n"
-"Обновите или перезапустите Bambu Studio, чтобы проверить наличие обновлений системных предустановок."
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr "Совместимые филаменты отсутствуют, поэтому синхронизация не выполняется."
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Информация о типе и цвете филамента синхронизирована, но информация о слотах не включена."
@@ -8857,8 +9248,43 @@ msgstr "Информация о типе и цвете филамента син
 msgid "Mixed filament has broken component references"
 msgstr "В смешанном филаменте нарушены ссылки на компоненты"
 
+msgid "Cannot mix different filament types"
+msgstr "Нельзя смешивать филаменты разных типов"
+
+msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+msgid "Please modify the original project filament diameter."
+msgstr ""
+
 msgid "Edit / Delete / Merge"
 msgstr "Редактировать / Удалить / Объединить"
+
+#, c-format, boost-format
+msgid "Mixed filament %s has broken component references."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Mixed filament %s mixes different filament types, which is not supported."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Mixed filament %s mixes different nozzle diameters, which is not supported."
+msgstr ""
+
+msgid "Please fix the marked mixed filaments in the left filament list."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgstr ""
+
+msgid "Add a new preset"
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -9400,16 +9826,16 @@ msgid "Please resolve the slicing errors and publish again."
 msgstr "Исправьте ошибки нарезки и повторно опубликуйте."
 
 msgid "Send G-code file"
-msgstr ""
+msgstr "Отправить файл G-кода"
 
 msgid "Bambu Studio does not support sending .gcode files to print directly. You can send it to the printer and then start printing from the printer."
-msgstr ""
+msgstr "Bambu Studio не поддерживает прямую отправку файлов .gcode на печать. Вы можете отправить файл на принтер, а затем начать печать непосредственно с принтера."
 
 msgid "Note: Printing directly with G-code may cause printing errors. It is recommended to print with 3mf files."
-msgstr ""
+msgstr "Примечание: Печать непосредственно с использованием G-кода может привести к ошибкам печати. Рекомендуется печатать с использованием файлов формата 3mf."
 
 msgid "Send now"
-msgstr ""
+msgstr "Отправить сейчас"
 
 msgid "Failed to start Bambu Farm Manager Client."
 msgstr "Не удалось запустить клиент Bambu Farm Manager."
@@ -9436,31 +9862,15 @@ msgstr ""
 "После синхронизации программа сможет оптимизировать время печати и расход филамента при нарезке.\n"
 "Синхронизировать сейчас?"
 
+msgid "Sync now"
+msgstr "Синхронизировать сейчас"
+
 # ?????8 было Изменённые профили можно сохранить в новом проекте или сбросить изменения
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "Изменённые предустановки можно сохранить в новом проекте или удалить."
 
 msgid "Creating a new project"
 msgstr "Создание нового проекта"
-
-#, c-format, boost-format
-msgid ""
-"The currently connected printer '%s', is a %s model.\n"
-"To use this printer for printing, please switch the printer model of project file to %s."
-msgstr ""
-"Подключённый принтер '%s' — модель %s .\n"
-"Чтобы использовать этот принтер для печати, измените модель принтера в файле проекта на %s."
-
-#, c-format, boost-format
-msgid ""
-"The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
-"To use this printer for printing, please switch the preset first."
-msgstr ""
-"Подключённый принтер '%s' — модель %s , которая не соответствует предустановке в файле проекта.\n"
-"Чтобы использовать этот принтер для печати, сначала смените предустановку."
-
-msgid "Switch now"
-msgstr "Переключить сейчас"
 
 msgid "Load project"
 msgstr "Загрузить проект"
@@ -9608,7 +10018,7 @@ msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "Причина: \"%1%\" и другая часть не пересекаются."
 
 msgid "Reason: the meshes have face issues."
-msgstr ""
+msgstr "Причина: у сеток имеются проблемы с гранями."
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Обнаружены объёмы для вычитания. Выполнить булеву операцию над сеткой перед экспортом?"
@@ -9678,6 +10088,10 @@ msgstr "На принтере нет филаментов. Сначала заг
 # ???
 msgid "The filaments on the printer are all unknown types. Please go to the printer screen or software device page to set the filament type."
 msgstr "Типы всех филаментов на принтере неизвестны. Перейдите на экран принтера или на страницу устройства в программе и укажите тип филамента."
+
+#, c-format, boost-format
+msgid "The currently connected printer is not available, please check the status of %s before syncing."
+msgstr ""
 
 # ???9
 # принципиально устройства?
@@ -9806,25 +10220,6 @@ msgstr ""
 # ??? LOD - уровень проработки, уровень детализации
 msgid "Enable LOD"
 msgstr "Включить LOD"
-
-# ??? Не длинно?
-msgid "Bed Temperature Difference Warning"
-msgstr "Предупреждение о разнице температур плиты"
-
-msgid ""
-"Using filaments with significantly different temperatures may cause:\n"
-"• Extruder clogging\n"
-"• Nozzle damage\n"
-"• Layer adhesion issues\n"
-"\n"
-"Continue with enabling this feature?"
-msgstr ""
-"Использование филаментов с существенно различающимися температурами может привести к следующим проблемам:\n"
-"• Закупорка экструдера\n"
-"• Повреждение сопла\n"
-"• Проблемы с адгезией слоёв\n"
-"\n"
-"Всё равно включить эту функцию?"
 
 msgid "Download path"
 msgstr "Путь загрузки"
@@ -9979,12 +10374,6 @@ msgstr "Автоматически переносить изменённые з�
 msgid "After closing, a popup will appear to ask each time"
 msgstr "Если отключить эту функцию, при каждом переключении будет появляться окно подтверждения"
 
-msgid "Remove the restriction on mixed printing of high and low temperature filaments."
-msgstr "Снять ограничение на совместную печать высоко- и низкотемпературными филаментами"
-
-msgid "With this option enabled, you can print materials with a large temperature difference together."
-msgstr "Если эта опция включена, материалы с большой разницей температур можно печатать совместно."
-
 msgid "Automatically optimize wipe tower placement"
 msgstr "Автоматически оптимизировать расположение башни очистки"
 
@@ -10130,6 +10519,12 @@ msgstr "Максимальное количество недавних прое�
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "Не показывать предупреждения при загрузке 3MF с изменёнными G-кодами"
 
+msgid "Don't check printer information when loading 3MF"
+msgstr ""
+
+msgid "No prompt to migrate the preset when the loaded 3MF does not match the connected printer"
+msgstr ""
+
 msgid "10 seconds"
 msgstr "10 секунд"
 
@@ -10235,6 +10630,15 @@ msgstr "Включить SSL (MQTT)"
 msgid "Enable SSL(FTP)"
 msgstr "Включить SSL (FTP)"
 
+msgid "Import Texture Model"
+msgstr ""
+
+msgid "Color Tolerance of Filament Matching"
+msgstr ""
+
+msgid "CIEDE2000 difference used when matching imported texture colors to filaments. Filaments within this band are treated as equally close. This does not merge colors and does not change the match threshold in the texture import dialog."
+msgstr ""
+
 msgid "Host Setting"
 msgstr "Настройки хоста"
 
@@ -10283,6 +10687,13 @@ msgid ""
 "- Mixed color sublayer with variable layer height warning\n"
 "- Delete a filament used by a model"
 msgstr ""
+"- Синхронизация предустановок принтера после загрузки файла\n"
+"- Настройки диалогового окна «Загрузить 3MF»\n"
+"- Выполнение скриптов постобработки\n"
+"- Запрос с рекомендацией по структуре поддержки\n"
+"- Несохранённые проекты.\n"
+"- Предупреждение о смешанном цветовом подслое с переменной высотой слоя.\n"
+"- Удалить филамент, используемый моделью."
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Сбросить все настройки? Изменения вступят в силу после перезапуска."
@@ -10298,6 +10709,15 @@ msgstr "Несовместимые предустановки"
 
 msgid "My Printer"
 msgstr "Мой принтер"
+
+msgid "To select this filament, change the nozzle settings first."
+msgstr ""
+
+msgid "Available Nozzles"
+msgstr "Доступные сопла"
+
+msgid "Unavailable Nozzles"
+msgstr ""
 
 msgid "AMS filaments"
 msgstr "Филаменты AMS"
@@ -10348,6 +10768,9 @@ msgstr "Несовместимо"
 
 msgid "The selected preset is null!"
 msgstr "Предустановка не выбрана!"
+
+msgid "Color mixing only supports single-color filaments."
+msgstr ""
 
 # Так как в горячих клавишах нету( в отличие от орки) то переведено
 msgid "End"
@@ -10533,6 +10956,21 @@ msgstr "Сейчас недостаточно доступных хотендо�
 msgid "No hotends available."
 msgstr "Нет доступных хотендов."
 
+msgid "No PrintTool available. Please install a compatible tool and try again."
+msgstr ""
+
+msgid "PrintTool detached. Please install before printing."
+msgstr ""
+
+msgid "CutTool detached. Please install before printing."
+msgstr ""
+
+msgid "DrawTool detached. Please install before printing."
+msgstr ""
+
+msgid "None of the current tools have completed Docking Calibration. Please calibrate and try again."
+msgstr ""
+
 msgid "Please complete the hotend rack setup and try again."
 msgstr "Завершите настройку стойки индукционных хотендов и повторите попытку."
 
@@ -10623,6 +11061,9 @@ msgstr "Сопла и филаменты одного типа использу�
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Если филамент/сопло основного экструдера не изменились, будет повторно использовано последнее значение калибровки. Вспомогательный экструдер будет использовать системное значение по умолчанию."
 
+msgid "Add to queue"
+msgstr ""
+
 msgid "send completed"
 msgstr "Отправка завершена"
 
@@ -10685,6 +11126,9 @@ msgstr "Продолжить печать"
 msgid "Return to modify"
 msgstr "Вернуться к редактированию"
 
+msgid "Only the current sliced plate can be added to the print queue."
+msgstr ""
+
 # ???55
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Проверяет плоскостность нагревательной плиты. Выравнивание обеспечивает равномерную высоту экструзии."
@@ -10736,6 +11180,9 @@ msgstr "Выкл.: Приоритетно использовать значен�
 msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
 msgstr "Перед началом каждой печати будет выполняться калибровка основного экструдера. Вспомогательный экструдер будет использовать системное значение по умолчанию."
 
+msgid "The current filament mapping is invalid and the print would fail. Please select the filaments manually again."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Подготовка задачи печати"
 
@@ -10744,6 +11191,9 @@ msgstr "Некорректные данные файла печати. Повт�
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Задача печати уже успешно отправлена, поэтому отмена не остановит её выполнение. Чтобы остановить это задание, завершите его на странице «Устройство»."
+
+msgid "Print immediately"
+msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "Имя слишком длинное."
@@ -10775,6 +11225,9 @@ msgstr "Филамент в %s может размягчиться. Выгруз
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Тип филамента в %s неизвестен, и филамент может размягчиться. Укажите тип филамента."
 
+msgid "The print queue does not support the Filament Track Switch yet."
+msgstr ""
+
 msgid ""
 "Upper half area:  Original\n"
 "Middle  area:  Filament in AMS\n"
@@ -10798,6 +11251,9 @@ msgstr "Обновление информации о хотендах (%d/%d)."
 
 msgid "Please wait a moment..."
 msgstr "Подождите..."
+
+msgid "PrintToolRack moving, please wait."
+msgstr ""
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "На печатающей головке и стойке индукционных хотендов нет свободных мест. Перед печатью снимите хотя бы один хотенд."
@@ -10851,14 +11307,30 @@ msgstr "В этом файле используется филамент, скл
 
 #, c-format, boost-format
 msgid "The filament in %s may be insufficient for this print. Please refill or replace it."
-msgstr ""
+msgstr "Филамент в %s может быть недостаточно для этой печати. Пополните или замените филамент."
 
 #, c-format, boost-format
 msgid "The filament in auto refill group %s may be insufficient for this print. Please refill or replace it."
-msgstr ""
+msgstr "Филамент в группе автоматической заправки %s, возможно, будет недостаточным для данной печати. Пополните или замените филамент."
 
 #, c-format, boost-format
 msgid "The filament in auto refill groups %s may be insufficient for this print. Please refill or replace it."
+msgstr "Филамент в группах автоматического пополнения %s, возможно, будет недостаточным для данной печати. Пополните или замените филамент."
+
+#, c-format, boost-format
+msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament are not loaded in PrintTool %s. Printing may pause for filament change. Please load the filament before printing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament are not loaded in Slot %s. Printing may pause for filament change. Please load the filament before printing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
 msgid "Cool"
@@ -10931,12 +11403,18 @@ msgstr "Невозможно отправить задание на печать
 msgid "Cannot send the print job for empty plate"
 msgstr "Невозможно отправить задание на печать для пустой пластины"
 
+msgid "The slicing result of the current plate is invalid. Please re-slice and try again"
+msgstr ""
+
 msgid "Storage needs to be inserted to record timelapse."
 msgstr "Для записи таймлапса необходимо установить накопитель."
 
 # ???76 Вы выбрали для экструдера материалы как с внешней катушки, так и из АСПП. Во время печати потребуется вручную производить смену материала.
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Для одного экструдера выбраны и внешний филамент, и филамент AMS. Во время печати внешний филамент потребуется переключать вручную."
+
+msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
+msgstr ""
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
 msgstr "TPU 90A/TPU 85A слишком мягкие. Рекомендуется выполнить ручную калибровку потока на странице 'Калибровка'. Если для 'Калибровки динамики потока' выбрано 'Авто'/'Вкл.', система будет использовать предыдущее значение калибровки и пропустит калибровку потока."
@@ -10948,8 +11426,14 @@ msgstr "Чтобы использовать пользовательское з�
 msgid "This printer does not support printing all plates"
 msgstr "Этот принтер не поддерживает печать всех пластин"
 
+msgid "Printing a project that uses multiple nozzle diameters directly from storage is not supported yet. You can download the file and import it into Studio to print."
+msgstr ""
+
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Проверьте, соответствуют ли требуемые диаметр сопла и поток текущим отображаемым значениям."
+
+msgid "The sliced model is incompatible with this printer. You may have used an outdated or unsupported slicer or G-code. To print this model on this printer, please re-slice it using the latest version of Bambu Studio."
+msgstr ""
 
 msgid "How to install"
 msgstr "Как установить"
@@ -11149,32 +11633,6 @@ msgstr "Нажмите, чтобы узнать подробнее"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Нажмите, чтобы сбросить все настройки до последней сохранённой предустановки."
 
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
-"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"При использовании растворимого материала для поддержки рекомендуются следующие настройки:\n"
-"0 для верхнего зазора по Z, 0 для нижнего зазора по Z, 0 для расстояния между интерфейсами, 0 для расстояния по XY между поддержкой и объектом, чередующийся прямолинейный\n"
-"рисунок, отключить независимую высоту слоя поддержки и использовать растворимые материалы как для интерфейса поддержки, так и для основания поддержки"
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"При использовании растворимого материала для поддержки рекомендуются следующие настройки:\n"
-"0 для верхнего зазора по Z, 0 для расстояния между интерфейсами, 0 для расстояния по XY между поддержкой и объектом, чередующийся прямолинейный рисунок, отключить независимую высоту слоя поддержки и использовать растворимые материалы как для интерфейса поддержки, так и для основания поддержки"
-
-msgid "Support interface speed"
-msgstr "Скорость интерфейса поддержки"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "При использовании материала поддержки для интерфейса поддержки рекомендуются следующие настройки:"
-
-msgid "Do you want to apply these settings?"
-msgstr "Применить эти настройки?"
-
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Для смены сопла требуется башня очистки. Без башни очистки на модели могут появиться дефекты. Вы уверены, что хотите отключить башню очистки?"
 
@@ -11240,6 +11698,12 @@ msgstr "При использовании %s для поддержки %sрек�
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "При использовании PLA в качестве поддержки для TPU рекомендуются следующие настройки:"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "При использовании материала поддержки для интерфейса поддержки рекомендуются следующие настройки:"
+
+msgid "Do you want to apply these settings?"
+msgstr "Применить эти настройки?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -11323,6 +11787,9 @@ msgstr "Ускорение"
 msgid "Jerk(XY)"
 msgstr "Рывок (XY)"
 
+msgid "Support ring"
+msgstr ""
+
 msgid "Raft"
 msgstr "Рафт"
 
@@ -11353,8 +11820,14 @@ msgstr "Примечания"
 msgid "Frequent"
 msgstr "Часто используемые"
 
-msgid "Modifier cycle"
+msgid "Selected only"
 msgstr ""
+
+msgid "All objects"
+msgstr ""
+
+msgid "Modifier cycle"
+msgstr "Цикл модификаторов"
 
 #, c-format, boost-format
 msgid ""
@@ -11500,9 +11973,6 @@ msgstr "Порог максимальной скорости вентилято�
 msgid "Part cooling fan speed will be max when the estimated layer time is shorter than the setting value"
 msgstr "Вентилятор обдува модели будет работать на максимальной скорости, если расчётное время слоя меньше заданного значения."
 
-msgid "Auxiliary part cooling fan"
-msgstr "Вспомогательный вентилятор обдува модели"
-
 msgid "Set the auxiliary fan speed for the first few layers"
 msgstr "Задайте скорость вспомогательного вентилятора обдува модели для первых нескольких слоёв"
 
@@ -11517,6 +11987,12 @@ msgstr "На слое"
 
 msgid "ramp up to"
 msgstr "увеличить до"
+
+msgid "Auxiliary part cooling fan"
+msgstr "Вспомогательный вентилятор обдува модели"
+
+msgid "Auxiliary part cooling fan (left)"
+msgstr ""
 
 msgid "Exhaust fan"
 msgstr "Вентилятор вытяжки"
@@ -11535,6 +12011,9 @@ msgstr "Завершающий G-код филамента"
 
 msgid "Multi Filament"
 msgstr "Несколько филаментов"
+
+msgid "Auxiliary part cooling fan (right)"
+msgstr ""
 
 msgid "Purge Mode: Standard"
 msgstr "Режим сброса: Стандартный"
@@ -12030,14 +12509,6 @@ msgstr "Сбросить сопоставление экструдеров."
 msgid "—> "
 msgstr "—> "
 
-# ???
-msgid ""
-"Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
-"Are you sure you want to continue?"
-msgstr ""
-"При синхронизации филаментов AMS изменённые, но несохранённые предустановки филамента будут отброшены.\n"
-"Вы уверены, что хотите продолжить?"
-
 msgctxt "Sync_AMS"
 msgid "Original"
 msgstr "Оригинал"
@@ -12089,15 +12560,15 @@ msgstr ""
 msgid "Use AMS"
 msgstr "Использовать AMS"
 
-msgid "Tip"
-msgstr "Совет"
-
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "Синхронизировать только тип и цвет филамента без информации о слотах AMS."
 
 # ??? Заменить материалы проекта на материалы установленные в АСПП.
 msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
 msgstr "Последовательно заменить список филаментов проекта филаментами принтера. Неиспользуемые филаменты принтера будут автоматически добавлены в конец списка."
+
+msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
+msgstr ""
 
 msgid "Add unused AMS filaments to filaments list."
 msgstr "Добавить неиспользуемые филаменты AMS в список филаментов."
@@ -12153,12 +12624,8 @@ msgstr "Для одного экструдера одновременно выб
 msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr "Подсказки: Если вы недавно заменили сопло принтера, перейдите в «Устройство -> Компоненты принтера» и измените настройки сопла."
 
-msgid "Successfully synchronized nozzle information."
-msgstr "Информация о сопле успешно синхронизирована."
-
-# ????? Информация о соплах и количестве АСПП успешно синхронизирована.
-msgid "Successfully synchronized nozzle and AMS number information."
-msgstr "Информация о сопле и количестве AMS успешно синхронизирована."
+msgid "Successfully synchronized Printer information."
+msgstr ""
 
 # ??? Продолжить синхр. материал
 msgid "Continue to sync filaments"
@@ -13169,7 +13636,7 @@ msgid "Hotends on Rack"
 msgstr "Хотенды на стойке"
 
 msgid "Copy Device Info"
-msgstr ""
+msgstr "Скопировать информацию об устройстве"
 
 msgid "Beta version"
 msgstr "Бета-версия"
@@ -13261,6 +13728,14 @@ msgstr "Пакет конфигурации обновлён до "
 msgid "Open G-code file:"
 msgstr "Открыть файл G-кода:"
 
+#, c-format, boost-format
+msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Отправлено успешно. Автоматический переход на страницу устройства через %sс"
+
 msgid "Print task sending times out."
 msgstr "Истекло время ожидания отправки задания на печать."
 
@@ -13274,15 +13749,14 @@ msgid "Sending print configuration"
 msgstr "Отправка конфигурации печати"
 
 #, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Отправлено успешно. Автоматический переход на страницу устройства через %sс"
-
-#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Отправлено успешно. Автоматический переход на следующую страницу через %sс"
 
 msgid "Refreshing printer access code"
 msgstr "Обновление кода доступа к принтеру"
+
+msgid "Adding print job to queue"
+msgstr ""
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "У следующих объектов первый слой пуст, поэтому их невозможно напечатать. Обрежьте нижнюю часть модели или включите поддержки."
@@ -13354,6 +13828,18 @@ msgstr "Измените тип сопла или переназначьте ф�
 
 msgid "No valid nozzle found. Please check nozzle count."
 msgstr "Подходящее сопло не найдено. Проверьте количество сопел."
+
+msgid "Filament assigned to a nozzle of incompatible diameter. Please regroup so each filament stays on a nozzle whose diameter it supports."
+msgstr ""
+
+msgid "Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."
+msgstr ""
+
+msgid "Nozzle assignment error: no nozzle matches the diameter and flow selected for one of the filaments. Please check the nozzle setup."
+msgstr ""
+
+msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Ошибка группировки в ручном режиме. Проверьте количество сопел или выполните перегруппировку."
@@ -13534,20 +14020,8 @@ msgstr " находится слишком близко к запретной з
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " находится слишком близко к зоне обнаружения слипания; при печати произойдут столкновения.\n"
 
-msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
-msgstr "Совместная печать высокотемпературными и низкотемпературными филаментами может привести к закупорке сопла или повреждению принтера."
-
-msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
-msgstr "Совместная печать высокотемпературными и низкотемпературными филаментами может привести к закупорке сопла или повреждению принтера. Если вы всё же хотите продолжить печать, включите эту опцию в разделе «Настройки»."
-
-msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
-msgstr "Совместная печать филаментами с разными температурными диапазонами может привести к закупорке сопла или повреждению принтера."
-
-msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
-msgstr "Совместная печать высокотемпературными и среднетемпературными филаментами может привести к закупорке сопла или повреждению принтера."
-
-msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
-msgstr "Совместная печать среднетемпературными и низкотемпературными филаментами может привести к закупорке сопла или повреждению принтера."
+msgid "High-temperature filament is used on the current plate. Do not mix it with low-temperature filaments."
+msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "При текущих настройках экструзия отсутствует."
@@ -13573,14 +14047,26 @@ msgstr "Режим «Спиральная ваза» не работает, ес
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Переменная высота слоя не поддерживается при использовании органических поддержек."
 
-msgid "Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled."
-msgstr "При включённой башне очистки нельзя использовать сопла разного диаметра и филаменты разного диаметра."
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgstr ""
+
+msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
+msgstr ""
 
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
 msgstr "В настоящее время башня очистки поддерживается только при относительной адресации экструдера (use_relative_e_distances=1)."
 
+msgid "Ooze prevention is currently not supported with the support ring enabled."
+msgstr ""
+
 msgid "Ooze prevention is currently not supported with the prime tower enabled."
 msgstr "В настоящее время функция предотвращения подтекания не поддерживается при включённой башне очистки."
+
+msgid "The support ring is not supported in \"By object\" print. Switch to \"By layer\" or disable the support ring."
+msgstr ""
 
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
 msgstr "В настоящее время башня очистки поддерживается только для диалектов G-кода Marlin, RepRap/Sprinter, RepRapFirmware и Repetier."
@@ -13594,17 +14080,29 @@ msgstr "Башня очистки не поддерживается при вк�
 msgid "The prime tower requires \"support gap\" to be multiple of layer height"
 msgstr "Для башни очистки «зазор поддержки» должен быть кратен высоте слоя"
 
+msgid "The support ring requires that all objects have the same layer heights"
+msgstr ""
+
 msgid "The prime tower requires that all objects have the same layer heights"
 msgstr "Для башни очистки у всех объектов должна быть одинаковая высота слоя"
 
+msgid "The support ring requires that all objects are printed over the same number of raft layers"
+msgstr ""
+
 msgid "The prime tower requires that all objects are printed over the same number of raft layers"
 msgstr "Для башни очистки все объекты должны печататься с одинаковым количеством слоёв рафта"
+
+msgid "The support ring requires that all objects are sliced with the same layer heights."
+msgstr ""
 
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Для башни очистки все объекты должны быть нарезаны с одинаковой высотой слоя."
 
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "Башня очистки поддерживается только при одинаковом профиле переменной высоты слоя у всех объектов"
+
+msgid "The support ring is only supported if all objects have the same variable layer height"
+msgstr ""
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "Точная высота по Z создаёт для объектов разные высоты слоёв, что может значительно увеличить размер башни очистки."
@@ -13634,6 +14132,9 @@ msgstr "Пластина %d: %s не поддерживает печать фи�
 msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
 msgstr "Параметр «Точная внешняя стенка» будет игнорироваться, если порядок стенок не установлен на «внутренняя/внешняя»"
 
+msgid "Organic tree support cannot generate a support ring. Please switch to another support type."
+msgstr ""
+
 msgid "Generating skirt & brim"
 msgstr "Создание юбки и каймы"
 
@@ -13642,6 +14143,12 @@ msgstr "Генерация G-кода"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr "Взаимное расположение модели и башни очистки не соответствует требованиям функции \"Без разреженных слоёв\". Измените их взаимное расположение, уменьшите высоту модели или отключите \"Без разреженных слоёв\"."
+
+msgid "Failed to assign filaments to nozzles for the support ring."
+msgstr ""
+
+msgid "The support ring extends outside the area both nozzles can reach. Move the affected object closer to the center of the plate."
+msgstr ""
 
 msgid "Failed processing of the filename_format template."
 msgstr "Не удалось обработать шаблон filename_format."
@@ -14165,6 +14672,12 @@ msgstr "Слой выхода вентилятора на полную скор�
 msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
 msgstr "Скорость вспомогательного вентилятора будет линейно увеличиваться от слоя «Для первых» до максимума на слое «Полная скорость вентилятора на слое». Параметр «Полная скорость вентилятора на слое» будет проигнорирован, если его значение меньше «Для первых»; в этом случае вентилятор будет работать с максимально допустимой скоростью начиная со слоя «Для первых» + 1."
 
+msgid "Set special optional auxiliary cooling fan for the first certain layers."
+msgstr ""
+
+msgid "Optional auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr ""
+
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "Задать специальную скорость вентилятора обдува модели для первых нескольких слоёв. Вентилятор первого слоя обычно отключён для улучшения адгезии к печатной пластине и используется функцией автоматического охлаждения."
 
@@ -14173,6 +14686,9 @@ msgstr "Скорость вентилятора обдува модели для
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "Специальная скорость вспомогательного вентилятора охлаждения, действующая только для первых x слоёв"
+
+msgid "Special optional auxiliary cooling fan speed, effective only for the first x layers"
+msgstr ""
 
 msgid "Don't support bridges"
 msgstr "Не создавать поддержки под мостами"
@@ -14268,7 +14784,7 @@ msgid "Monotonic line"
 msgstr "Монотонные линии"
 
 msgid "Global monotonic line"
-msgstr ""
+msgstr "Глобальная монотонная линия"
 
 msgid "Aligned Rectilinear"
 msgstr "Выровненный прямолинейный"
@@ -14317,7 +14833,7 @@ msgid "Sub-top surface pattern"
 msgstr "Рисунок под верхней поверхностью"
 
 msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
-msgstr ""
+msgstr "Линейный узор сплошного слоя, поддерживающего видимую верхнюю поверхность. Его линии могут просвечивать насквозь и оставлять следы на верхней поверхности, поэтому монотонный узор дает наиболее гладкий результат. Этот узор применяется ко всей сплошной области, которую охватывает верхняя поверхность, а не только к участку непосредственно под ней."
 
 msgid "Line width of outer wall"
 msgstr "Ширина линии внешней стенки"
@@ -14710,6 +15226,12 @@ msgstr "При переключении экструдера рекоменду�
 msgid "When changing the hotend, it is recommended to extrude a certain length of filament from the original nozzle. This helps minimize nozzle oozing."
 msgstr "При смене хотенда рекомендуется экструдировать определённую длину филамента через исходное сопло. Это помогает свести к минимуму подтекание из сопла."
 
+msgid "Idle travel cooling"
+msgstr ""
+
+msgid "When filament change length is zero, perform idle travel cooling to help the nozzle cool down. Disabling this will turn off the heater directly without idle travel, which saves print time but may cause stringing for some materials."
+msgstr ""
+
 msgid "Support material"
 msgstr "Материал поддержки"
 
@@ -14739,6 +15261,12 @@ msgstr "Градиент смешанного филамента"
 
 msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
 msgstr "Включить режим градиента по оси Z для подслоёв смешанного филамента. При включении соотношения подслоёв линейно изменяются по слоям."
+
+msgid "Prime tower speed factor curve"
+msgstr ""
+
+msgid "Controls the speed factor ramp when priming on the wipe tower after a tool change. Enter comma-separated multipliers of the target speed, one per wipe line. For example: \"0.33,0.375,0.458,0.875,0.875\" means the 1st line runs at 33%, the 2nd at 37.5%, and so on. If fewer than 5 values are given, the last value is reused for remaining lines. Each value is clamped to 0.01 ~ 5.0. Leave empty to use the built-in default curve (0.33, 0.375, 0.458, 0.875, 0.875)."
+msgstr ""
 
 msgid "Mixed filament gradient range"
 msgstr "Диапазон градиента смешанного филамента"
@@ -14838,6 +15366,12 @@ msgstr "Температура размягчения"
 
 msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
 msgstr "При этой температуре материал размягчается. Если температура плиты равна ей или выше, настоятельно рекомендуется открыть переднюю дверцу и/или снять верхнее стекло, чтобы избежать закупорки."
+
+msgid "Fin extrude safe temperature"
+msgstr ""
+
+msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
 
 # ?????? в смысле сопло?
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
@@ -15202,6 +15736,12 @@ msgstr "Физическая компоновка и компоненты печ
 msgid "Undefine"
 msgstr "Не определено"
 
+msgid "Default wipe tower position"
+msgstr ""
+
+msgid "Normalized default position of the wipe tower, each axis in [0,1] relative to bed width/depth."
+msgstr ""
+
 msgid "Best object position"
 msgstr "Оптимальное положение объекта"
 
@@ -15211,14 +15751,32 @@ msgstr "Оптимальное положение при автоматичес�
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Включите эту опцию, если принтер оснащён вспомогательным вентилятором обдува модели."
 
+msgid "Sync auxiliary fan to second fan"
+msgstr ""
+
+msgid "Enable this if the printer has a second auxiliary part cooling fan that should use the same speed as the auxiliary fan"
+msgstr ""
+
+msgid "Independent optional auxiliary fan control"
+msgstr ""
+
+msgid "Enable this if the printer has an optional auxiliary part cooling fan that can be adjusted separately from the standard one"
+msgstr ""
+
+msgid "Standard auxiliary fan side"
+msgstr ""
+
+msgid "Physical side of the standard auxiliary part cooling fan. Only used to tell the two fans apart in the user interface"
+msgstr ""
+
+msgid "Both"
+msgstr "Оба"
+
 msgid "Fan direction"
 msgstr "Направление вентилятора"
 
 msgid "Cooling fan direction of the printer"
 msgstr "Направление вентилятора охлаждения принтера"
-
-msgid "Both"
-msgstr "Оба"
 
 msgid "Support control chamber temperature"
 msgstr "Поддержка управления температурой камеры"
@@ -15306,64 +15864,64 @@ msgid "Adjust the line width of the selected skeleton paths."
 msgstr "Регулирует ширину линии выбранных траекторий каркаса."
 
 msgid "Conformal infill"
-msgstr ""
+msgstr "Конформное заполнение"
 
 msgid "Make sparse infill follow each layer's outline instead of using one set of parallel lines. On elongated or curved shapes, lines radiate from a center. Applies to Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear, and Locked Zag skin."
-msgstr ""
+msgstr "Заставить разреженное заполнение повторять контур каждого слоя вместо использования одного набора параллельных линий. На вытянутых или изогнутых фигурах линии расходятся от центра. Применяется к скинам Zig Zag, Cross Zag, Rectilinear, Aligned Rectilinear и Locked Zag."
 
 msgid "Layer stagger"
-msgstr ""
+msgstr "Смещение слоев"
 
 msgid "How neighboring layers are offset. Off stacks the same layout. Alternate keeps the same line directions but connects each line to the neighboring one on the opposite side, which improves interlayer bonding."
-msgstr ""
+msgstr "Как происходит смещение соседних слоев. Выкл: слои укладываются с одинаковым узором. В варианте Alternate сохраняется то же направление линий, но каждая линия соединяется с соседней на противоположной стороне, что улучшает межслойное сцепление."
 
 msgid "Alternate"
-msgstr ""
+msgstr "Альтернативный"
 
 msgid "Forward layers"
-msgstr ""
+msgstr "Прямые слои"
 
 msgid "Conformal forward layers"
-msgstr ""
+msgstr "Конформные прямые слои"
 
 msgid "Number of consecutive layers that keep the forward zigzag. Together with Reverse layers this repeats: N forward, then M reversed. 0 means reverse from the first layer."
-msgstr ""
+msgstr "Количество последовательных слоев, сохраняющих зигзагообразное движение вперед. Вместе с обратными слоями это повторяется: Сначала N в прямом направлении, затем M в обратном. 0 означает разворот, начиная с первого слоя."
 
 msgid "Reverse layers"
-msgstr ""
+msgstr "Обратные слои"
 
 msgid "Conformal reverse layers"
-msgstr ""
+msgstr "Конформные обратные слои"
 
 msgid "Number of consecutive layers that reverse the zigzag (start from the opposite rim). 0 disables reversing. Forward 1 and Reverse 1 reverses every other layer."
-msgstr ""
+msgstr "Количество последовательных слоев, на которых зигзаг меняет направление (начинается с противоположного края). 0 отключает реверс. При значениях Forward 1 и Reverse 1 разворот выполняется для каждого второго слоя."
 
 msgid "Radial center"
-msgstr ""
+msgstr "Радиальный центр"
 
 msgid "Where the radial center comes from. Each layer picks a center on that slice. Axis fits one 3D line through those centers. Smooth curve fits a curve so the center does not jump between layers."
-msgstr ""
+msgstr "Источник радиального центра. Каждый слой выбирает центр для данного среза. Ось проходит через эти центры по одной трехмерной линии. Плавная кривая подгоняется так, чтобы центр не перескакивал между слоями."
 
 msgid "Each layer"
-msgstr ""
+msgstr "Каждый слой"
 
 msgid "Axis"
-msgstr ""
+msgstr "Ось"
 
 msgid "Smooth curve"
-msgstr ""
+msgstr "Плавная кривая"
 
 msgid "Radial line count"
-msgstr ""
+msgstr "Количество радиальных линий"
 
 msgid "How many radial lines around the center. 0 uses the count from sparse infill density. A positive value is the radial line count, rounded up to an even number of at least 4."
-msgstr ""
+msgstr "Количество радиальных линий вокруг центра. Значение 0 берёт количество линий из параметра плотности разреженного заполнения. Положительное значение — это количество радиальных линий, округленное до четного числа, равного не менее 4."
 
 msgid "Center region radius"
-msgstr ""
+msgstr "Радиус центральной области"
 
 msgid "Radius of the center region that uses ordinary rectilinear infill; outside this circle the infill stays radial. 0 chooses the radius automatically. A positive value is in millimeters."
-msgstr ""
+msgstr "Радиус центральной области, в которой используется обычное прямолинейное заполнение; за пределами этого круга заполнение остается радиальным. Значение 0 автоматически выбирает радиус. Положительное значение указывается в миллиметрах."
 
 msgid "Symmetric infill y axis"
 msgstr "Симметричное заполнение относительно оси Y"
@@ -15692,6 +16250,9 @@ msgstr "Минимальная скорость вентилятора обду�
 msgid "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers which are defined by no cooling layers"
 msgstr "Скорость вспомогательного вентилятора обдува модели. Вспомогательный вентилятор будет работать с этой скоростью во время печати, кроме первых нескольких слоёв, заданных параметром отсутствия охлаждения."
 
+msgid "Speed of the optional auxiliary part cooling fan. It will run at this speed during printing except the first several layers which are defined by no cooling layers"
+msgstr ""
+
 msgid "Min"
 msgstr "Мин."
 
@@ -15789,37 +16350,37 @@ msgid "Add an extra wall on alternating layers to improve layer bonding and part
 msgstr "Добавляет дополнительную стенку через слой, улучшая межслойное сцепление и прочность детали без расхода материала и времени на постоянную дополнительную стенку."
 
 msgid "Periodic modifier"
-msgstr ""
+msgstr "Периодический модификатор"
 
 msgid "Apply this modifier on a repeating layer cycle. On skipped layers it is ignored, as if this modifier were not there."
-msgstr ""
+msgstr "Примените этот модификатор к повторяющемуся циклу слоев. На пропущенных слоях этот модификатор игнорируется, как если бы его вообще не было."
 
 msgid "Skip for"
-msgstr ""
+msgstr "Пропустить для"
 
 msgid "Periodic modifier skip layers"
-msgstr ""
+msgstr "Пропускаемые слои периодического модификатора"
 
 msgid "Number of consecutive layers on which this modifier is not applied. 0 means the modifier is applied on every layer."
-msgstr ""
+msgstr "Количество последовательных слоев, к которым этот модификатор не применяется. 0 означает, что модификатор применяется ко всем слоям."
 
 msgid "Apply for"
-msgstr ""
+msgstr "Применить для"
 
 msgid "Periodic modifier apply layers"
-msgstr ""
+msgstr "Слои применения периодического модификатора"
 
 msgid "Number of consecutive layers in each cycle on which this modifier is fully applied. The cycle starts at layer 0: first Apply for, then Skip for."
-msgstr ""
+msgstr "Количество последовательных слоев в каждом цикле, к которым этот модификатор применяется полностью. Цикл начинается со слоя 0: сначала Применить для, затем Пропустить для."
 
 msgid "Ignore infill settings"
-msgstr ""
+msgstr "Игнорировать настройки заполнения"
 
 msgid "Modifier ignore infill settings"
-msgstr ""
+msgstr "Модификатор игнорирует настройки заполнения"
 
 msgid "Do not apply this modifier's infill settings (pattern, density, conformal infill, and related options). Walls and other overrides still apply. Infill is taken from the parent region."
-msgstr ""
+msgstr "Не применять настройки заполнения этого модификатора (узор, плотность, конформное заполнение и связанные с ними параметры). Настройки стен и другие переопределения по‑прежнему действуют. Заполнение берется из родительской области."
 
 msgid "Post-processing Scripts"
 msgstr "Скрипты постобработки"
@@ -16428,6 +16989,12 @@ msgstr "Угол изменения диаметра ветвей"
 msgid "The angle of the branches' diameter as they gradually become thicker towards the bottom. An angle of 0 will cause the branches to have uniform thickness over their length. A bit of an angle can increase stability of the tree support."
 msgstr "Угол, определяющий постепенное увеличение диаметра ветвей по направлению к основанию. При значении 0 ветви имеют одинаковую толщину по всей длине. Небольшое значение угла может повысить устойчивость древовидной поддержки."
 
+msgid "Tip diameter"
+msgstr ""
+
+msgid "Diameter a support branch starts with where it touches the overhang. A thicker tip is stronger and sticks to the overhang better, but leaves heavier marks on the surface and is harder to remove. Values below the support extrusion width or above the branch diameter are clamped. Applies to every tree support style."
+msgstr ""
+
 msgid "Support wall loops"
 msgstr "Контуры стенок поддержки"
 
@@ -16530,6 +17097,40 @@ msgstr "Включить разделение подслоёв смешанны�
 
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "Башня очистки используется для удаления остатков материала с сопла и стабилизации давления внутри сопла, что помогает избежать дефектов поверхности при печати объектов."
+
+msgid "Generate a ring around the object. Tree supports may land on the ring."
+msgstr ""
+
+msgid "Support ring object gap"
+msgstr ""
+
+msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
+msgstr ""
+
+msgid "Support ring notch width"
+msgstr ""
+
+msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgstr ""
+
+msgid "Support ring skip points"
+msgstr ""
+
+msgid "Leave gaps in the support ring outer wall at each wipe entry so the nozzle can reach the wipe path from outside the ring, and travel around the ring contour instead of crossing the model."
+msgstr ""
+
+msgid "Support ring infill gap"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Radial spacing between sparse wipe rings, as a percentage of line width. 100% packs neighbouring rings so they touch; larger values leave a gap."
+msgstr ""
+
+msgid "Support ring wall loops"
+msgstr ""
+
+msgid "Number of walls, inner wall included, in the support ring of each object whose ring does not carry the filament changes. The ring that carries them is not affected."
+msgstr ""
 
 msgid "Internal ribs"
 msgstr "Внутренние рёбра"
@@ -16655,6 +17256,45 @@ msgstr "Максимальная скорость"
 msgid "The maximum printing speed on the prime tower excluding ramming."
 msgstr "Максимальная скорость печати башни очистки без учёта продавливания."
 
+msgid "Prime tower feedrate factor"
+msgstr ""
+
+msgid "Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up."
+msgstr ""
+
+msgid "Tail speed factor"
+msgstr ""
+
+msgid "Scale the printing speed of the last section printed each time before the toolhead leaves the prime tower (the length is set by the tail slowdown volume) relative to the tower printing speed. That trailing section may be the outer wall, a tool-change wipe or infill, whichever comes last. Lower values slow it down to soften the flow change when moving back to the model. Does not affect the first layer."
+msgstr ""
+
+msgid "Tail slowdown volume"
+msgstr ""
+
+msgid "Only the final part printed each time before the toolhead leaves the prime tower, measured as this extruded volume, is slowed down by the tail speed factor; the rest keeps the normal tower speed. That trailing part may be the outer wall, a tool-change wipe or infill. Set to 0 to slow down the whole tower path of each visit. Does not affect the first layer."
+msgstr ""
+
+msgid "The acceleration used for prime tower extrusions. Does not affect the first layer. 0 means using the global default acceleration."
+msgstr ""
+
+msgid "Line width for prime tower normal wiping paths. 0 means auto-calculated from nozzle diameter."
+msgstr ""
+
+msgid "Ramming line width"
+msgstr ""
+
+msgid "Line width for prime tower nozzle-change (ramming) paths. 0 means using the default mapping table."
+msgstr ""
+
+msgid "The speed of wipe movement before printing on the prime tower during tool change. 0 means using prime tower max speed."
+msgstr ""
+
+msgid "Wipe distance"
+msgstr ""
+
+msgid "The wipe path distance during tool change. 0 means using the filament-level wipe distance."
+msgstr ""
+
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr "Ширина каймы башни очистки; отрицательное значение означает автоматический расчёт ширины по высоте башни очистки."
 
@@ -16677,6 +17317,75 @@ msgstr "Пропуск точек"
 # ???
 msgid "The wall of prime tower will skip the start points of wipe path"
 msgstr "Стенка башни очистки пропускает начальные точки траектории очистки."
+
+msgid "Flat ironing"
+msgstr ""
+
+msgid "Enable flat ironing for prime tower to smooth the top surface after wiping"
+msgstr ""
+
+msgid "Line ironing"
+msgstr ""
+
+msgid "Enable line ironing for prime tower wipe paths"
+msgstr ""
+
+msgid "Speed of prime tower ironing movements"
+msgstr ""
+
+msgid "Side scrape after tool change"
+msgstr ""
+
+msgid "After a tool change and before the wipe line, move the nozzle to the prime tower side wall and do a diagonal lift scrape (travel only, no extrusion). This scrapes the oozed filament stub onto the side wall instead of letting it pile up on the prime tower top surface."
+msgstr ""
+
+msgid "Side scrape walls"
+msgstr ""
+
+msgid "Which pair of opposite prime tower walls the diagonal scrape runs on. Note that enabling the side scrape always disables depth shrinkage of the prime tower (the outer wall stays at the full depth on every layer), regardless of this setting, so that the scrape can descend safely outside the walls."
+msgstr ""
+
+msgid "Left and right"
+msgstr ""
+
+msgid "Front and back"
+msgstr ""
+
+msgid "Side scrape length"
+msgstr ""
+
+msgid "Horizontal distance the nozzle travels inward from the prime tower side wall during the diagonal scrape."
+msgstr ""
+
+msgid "Side scrape lift height"
+msgstr ""
+
+msgid "How far the nozzle descends below the current wipe-tower top before the diagonal scrape. The actual descent is clamped so the nozzle stays above the wipe tower's brim and first layer (avoids hitting the brim or the bed when the tower is still short). Layers with no room left for a descent get no scrape."
+msgstr ""
+
+msgid "Side scrape speed"
+msgstr ""
+
+msgid "Movement speed of the diagonal side scrape."
+msgstr ""
+
+msgid "Side scrape wall gap"
+msgstr ""
+
+msgid "Distance kept between the diagonal side scrape line and the prime tower outer wall. A positive value keeps the scrape outside the wall; the outer wall position is taken as the outermost of the current and previous layer walls at the scrape location so the scrape never cuts into the tower."
+msgstr ""
+
+msgid "Side scrape point spacing"
+msgstr ""
+
+msgid "Target distance between consecutive side scrape start points along one side wall. Scrape starts are spread over both side walls so the ooze stubs do not pile up at a single spot. The number of points is derived from this spacing and the length of the straight part of the side wall, so the effective spacing can be smaller than requested when the straight part is short."
+msgstr ""
+
+msgid "Side scrape along-wall length"
+msgstr ""
+
+msgid "Upper bound for the empty travel along the side wall performed right after the diagonal scrape, before the nozzle moves to the wipe line start. It smears the ooze stub further along the wall. The travel never leaves the straight part of the side wall, so the actual length is only the room left between the scrape start and the end of that straight part. On a rib prime tower the straight part can be just a few millimetres, in which case the travel is much shorter than the value set here."
+msgstr ""
 
 msgid "Rib wall"
 msgstr "Ребристая стенка"
@@ -16771,6 +17480,9 @@ msgstr "Обнаруживать узкое внутреннее сплошно�
 msgid "This option will auto detect narrow internal solid infill area. If enabled, concentric pattern will be used for the area to speed printing up. Otherwise, rectilinear pattern is used defaultly."
 msgstr "Этот параметр автоматически обнаруживает узкие области внутреннего сплошного заполнения. Если параметр включён, в таких областях используется концентрический рисунок для ускорения печати. В противном случае по умолчанию используется прямолинейный рисунок."
 
+msgid "Mixed filament components must use the same nozzle diameter in multi-nozzle-diameter mode. Invalid slot: "
+msgstr ""
+
 msgid "invalid value "
 msgstr "Недопустимое значение "
 
@@ -16852,20 +17564,20 @@ msgstr ""
 "Обнаружены нависающие элементы без поддержки.\n"
 "Модель \"%1%\" содержит %2% область(и) нависающих элементов, для которых не удалось создать поддержку. Попробуйте изменить настройки поддержки или ориентацию объекта."
 
+msgid "Slicing mesh"
+msgstr "Нарезка сетки"
+
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Пустые слои в нижней части модели заменяются ближайшими обычными слоями."
 
 msgid "The model has too many empty layers."
 msgstr "В модели слишком много пустых слоёв."
 
-msgid "Slicing mesh"
-msgstr "Нарезка сетки"
-
 msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
 msgstr "Слои не обнаружены. Попробуйте исправить STL-файл(ы), проверить их размер или толщину и повторить попытку.\n"
 
 msgid "Shrinkage compensation does not take effect on color-painted models."
-msgstr ""
+msgstr "Компенсация усадки не действует для цветных раскрашенных моделей."
 
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
@@ -16930,7 +17642,7 @@ msgid "The file contains invalid vertex index."
 msgstr "Файл содержит недопустимый индекс вершины."
 
 msgid "The file contains invalid texture coordinate index."
-msgstr ""
+msgstr "Файл содержит недопустимый индекс текстурных координат."
 
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Не удалось прочитать этот OBJ-файл, поскольку он пуст."
@@ -16968,6 +17680,12 @@ msgstr "Калибровать"
 
 msgid "Finish"
 msgstr "Завершить"
+
+msgid "Nozzle Type and Diameter"
+msgstr ""
+
+msgid "Not Selected"
+msgstr ""
 
 msgid "How to use calibration result?"
 msgstr "Как использовать результаты калибровки?"
@@ -17180,14 +17898,14 @@ msgstr "*Рекомендуется указать в имени бренд, м�
 msgid "Failed"
 msgstr "Не удалось"
 
+msgid "Nozzle ID"
+msgstr "ID сопла"
+
 msgid "Please enter the name you want to save to printer."
 msgstr "Введите имя для сохранения на принтере."
 
 msgid "The name cannot exceed 40 characters."
 msgstr "Имя не должно превышать 40 символов."
-
-msgid "Nozzle ID"
-msgstr "ID сопла"
 
 msgid "Standard Flow"
 msgstr "Стандартный поток"
@@ -17422,6 +18140,9 @@ msgstr "Исторические результаты получены успе�
 
 msgid "Refreshing the historical Flow Dynamics Calibration records"
 msgstr "Обновление истории калибровки динамики потока"
+
+msgid "PrintTool"
+msgstr ""
 
 msgid "Action"
 msgstr "Действие"
@@ -18880,6 +19601,12 @@ msgstr "Группировка филаментов"
 msgid "Fila Saving"
 msgstr "Экономия филамента"
 
+msgid "Set filament placement"
+msgstr ""
+
+msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
+msgstr ""
+
 # Режим экономии материала
 msgid "Filament-Saving Mode"
 msgstr "Режим экономии филамента"
@@ -18915,8 +19642,24 @@ msgstr "Общие настройки"
 msgid "Video tutorial"
 msgstr "Видеоурок"
 
+msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
+msgstr ""
+
+msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
+msgstr ""
+
+msgid "Manually assign filaments by nozzle type"
+msgstr ""
+
 msgid "(Sync with printer)"
 msgstr "(Синхронизация с принтером)"
+
+#, c-format, boost-format
+msgid "Nozzle %s"
+msgstr ""
+
+msgid "Error: a filament is assigned to a nozzle of incompatible diameter. Please regroup so each filament stays on a nozzle whose diameter it supports."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -18933,6 +19676,27 @@ msgstr "Измените группировку или нажмите "
 
 msgid " to set nozzle count"
 msgstr " , чтобы задать количество сопел"
+
+msgid "We will slice according to this arrangement:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Nozzle (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Tips: Under a %smm nozzle diameter, there are no mixed nozzle types, so no custom settings are needed."
+msgstr ""
+
+msgid "Error: The nozzle type is not supported, so the filament cannot be moved."
+msgstr ""
+
+msgid "Error: the nozzle configuration changed. Please reopen the filament grouping dialog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Nozzle (%d) - %s"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
@@ -19015,10 +19779,13 @@ msgid "Recently used"
 msgstr "Недавно использованные"
 
 msgid "Set nozzle count"
-msgstr ""
+msgstr "Установить количество сопел"
 
 msgid "Please set nozzle count"
 msgstr "Задайте количество сопел"
+
+msgid "TPU"
+msgstr ""
 
 msgid "Error: Can not set both nozzle count to zero."
 msgstr "Ошибка: Количество обоих сопел не может быть равно 0."
@@ -19030,14 +19797,11 @@ msgstr "Ошибка: Количество сопел не может превы
 msgid "Nozzle Selection"
 msgstr "Выбор сопла"
 
-msgid "Available Nozzles"
-msgstr "Доступные сопла"
-
 msgid "Sync Nozzle status"
 msgstr "Синхронизировать состояние сопла"
 
-msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
-msgstr "Внимание: Использование сопел разных диаметров в одной печати не поддерживается. Если сопло выбранного диаметра доступно только на одном экструдере, будет принудительно использоваться печать одним экструдером."
+msgid "Caution: Printing with mixed nozzle diameters is experimental. Please verify your print settings (extrusion widths, layer height, etc.) are compatible with all selected nozzle sizes."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Refresh %d/%d..."
@@ -19097,9 +19861,6 @@ msgstr "Извлеките и уберите филамент на хранен�
 msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
 msgstr "AMS может вращать правильно установленную катушку с филаментом, обеспечивая более эффективную сушку."
 
-msgid "Rotate spool when drying"
-msgstr "Вращать катушку во время сушки"
-
 msgctxt "amsdrying"
 msgid "Back"
 msgstr "Сзади"
@@ -19121,9 +19882,6 @@ msgstr "Этот филамент может быть не полностью в
 
 msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
 msgstr "Этот AMS сейчас используется для печати. Для обеспечения качества печати температура сушки не должна превышать рекомендуемое значение."
-
-msgid "The temperature shall not exceed the filament's heat distortion temperature"
-msgstr "Температура не должна превышать температуру тепловой деформации филамента"
 
 #, c-format, boost-format
 msgid "Minimum time value cannot be less than %d."
@@ -19344,11 +20102,8 @@ msgstr "Предпросмотр эффекта"
 msgid "Select Mixed Materials"
 msgstr "Выбрать материалы для смешивания"
 
-msgid "+ Add Material"
-msgstr "+ Добавить материал"
-
-msgid "- Delete Material"
-msgstr "- Удалить материал"
+msgid "- Delete Filament"
+msgstr ""
 
 msgid "Ratio"
 msgstr "Соотношение"
@@ -19378,11 +20133,11 @@ msgstr "Слот %s (%s)"
 msgid "cannot be mixed. Please select the same filament type."
 msgstr "нельзя смешивать. Выберите филаменты одного типа."
 
+msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "Выберите филамент для каждого компонента"
-
-msgid "Cannot mix different filament types"
-msgstr "Нельзя смешивать филаменты разных типов"
 
 msgid "Maximum 3 materials for mixing"
 msgstr "Для смешивания можно использовать не более 3 материалов"
@@ -19423,6 +20178,9 @@ msgstr "Для разложения требуется как минимум д�
 
 msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
 msgstr "Более точная смесь рассчитывается на основе четырёх базовых цветов: голубого, пурпурного, жёлтого и белого. В настоящее время поддерживается только PLA Basic. Если подходящих филаментов нет в проекте, они будут добавлены автоматически."
+
+msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
 
 msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
 msgstr "Более точная смесь рассчитывается на основе четырёх базовых цветов: красного, жёлтого, синего и белого. В настоящее время поддерживается только PLA Basic. Если подходящих филаментов нет в проекте, они будут добавлены автоматически."
@@ -19476,6 +20234,26 @@ msgstr "Создать пользовательский филамент"
 #, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
 msgstr "Предустановка \"%s\" уже существует. Перезаписать?"
+
+msgid "Set nozzle diameter"
+msgstr ""
+
+msgid "Single-diameter mode"
+msgstr ""
+
+msgid "Multi-diameter mode"
+msgstr ""
+
+#, c-format, boost-format
+msgid "This filament does not support the %smm nozzle, or no matching nozzle is configured."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+msgstr ""
+
+msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -19773,6 +20551,180 @@ msgstr ""
 "Надёжный результат с первой попытки\n"
 "Меньше постоянного контроля — более предсказуемый результат. Например, небольшая ферма, печатающая детали из PETG, избегает неожиданных сбоев на шестом часу печати и выпускает партии по графику."
 
+#~ msgid "Remark"
+#~ msgstr "Примечание"
+
+#~ msgid "Matched filament"
+#~ msgstr "Сопоставленный филамент"
+
+#~ msgid "Add as new filament"
+#~ msgstr "Добавить как новый филамент"
+
+#~ msgid "AMS detected a new filament. Add it to Filament Manager?"
+#~ msgstr "AMS обнаружила новый филамент. Добавить его в менеджер филаментов?"
+
+#~ msgid "A similar filament was found in Filament Manager and matched automatically."
+#~ msgstr "В менеджере филаментов найден похожий филамент, который был сопоставлен автоматически."
+
+#~ msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
+#~ msgstr "В менеджере филаментов найдено несколько похожих филаментов. Подтвердите сопоставление."
+
+#~ msgid "New Filament"
+#~ msgstr "Новый филамент"
+
+#~ msgid "New filament information has been recorded."
+#~ msgstr "Информация о новом филаменте сохранена."
+
+#~ msgid "View wiki for details"
+#~ msgstr "Подробнее см. в Wiki"
+
+#~ msgid "Printed Part Displacement Detection"
+#~ msgstr "Обнаружение смещения напечатанной детали"
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "Программное обеспечение не поддерживает использование сопел разного диаметра в одной задаче печати.\n"
+#~ "Если диаметры левого и правого сопел различаются, можно продолжить только печать одним соплом.\n"
+#~ "Выберите сопло, которое будет использоваться для этого проекта."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Переключить диаметр"
+
+#~ msgid "Do you want to sync the preset printer with the connected printer, "
+#~ msgstr "Синхронизировать предустановку принтера с подключённым принтером, "
+
+#, c-format, boost-format
+#~ msgid "Current connected printer (Device page): %s (%s)"
+#~ msgstr "Текущий подключённый принтер (страница «Устройство»): %s (%s)"
+
+#, c-format, boost-format
+#~ msgid "Current printer preset (Prepare page): %s"
+#~ msgstr "Текущая предустановка принтера (страница «Подготовка»): %s"
+
+#~ msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
+#~ msgstr "Для некоторых сопел не указан тип. Перед синхронизацией укажите типы сопел для всех экструдеров."
+
+#~ msgid "Sync extruder information"
+#~ msgstr "Синхронизировать информацию об экструдере"
+
+#~ msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
+#~ msgstr "Смешанный филамент содержит недопустимые или несоответствующие компоненты. Повторно отредактируйте затронутые записи."
+
+# ?????
+#~ msgid ""
+#~ "There are some unknown or uncompatible filaments mapped to generic preset.\n"
+#~ "Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."
+#~ msgstr ""
+#~ "Некоторые неизвестные или несовместимые филаменты сопоставлены с универсальной предустановкой.\n"
+#~ "Обновите или перезапустите Bambu Studio, чтобы проверить наличие обновлений системных предустановок."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer '%s', is a %s model.\n"
+#~ "To use this printer for printing, please switch the printer model of project file to %s."
+#~ msgstr ""
+#~ "Подключённый принтер '%s' — модель %s .\n"
+#~ "Чтобы использовать этот принтер для печати, измените модель принтера в файле проекта на %s."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
+#~ "To use this printer for printing, please switch the preset first."
+#~ msgstr ""
+#~ "Подключённый принтер '%s' — модель %s , которая не соответствует предустановке в файле проекта.\n"
+#~ "Чтобы использовать этот принтер для печати, сначала смените предустановку."
+
+#~ msgid "Switch now"
+#~ msgstr "Переключить сейчас"
+
+# ??? Не длинно?
+#~ msgid "Bed Temperature Difference Warning"
+#~ msgstr "Предупреждение о разнице температур плиты"
+
+#~ msgid ""
+#~ "Using filaments with significantly different temperatures may cause:\n"
+#~ "• Extruder clogging\n"
+#~ "• Nozzle damage\n"
+#~ "• Layer adhesion issues\n"
+#~ "\n"
+#~ "Continue with enabling this feature?"
+#~ msgstr ""
+#~ "Использование филаментов с существенно различающимися температурами может привести к следующим проблемам:\n"
+#~ "• Закупорка экструдера\n"
+#~ "• Повреждение сопла\n"
+#~ "• Проблемы с адгезией слоёв\n"
+#~ "\n"
+#~ "Всё равно включить эту функцию?"
+
+#~ msgid "Remove the restriction on mixed printing of high and low temperature filaments."
+#~ msgstr "Снять ограничение на совместную печать высоко- и низкотемпературными филаментами"
+
+#~ msgid "With this option enabled, you can print materials with a large temperature difference together."
+#~ msgstr "Если эта опция включена, материалы с большой разницей температур можно печатать совместно."
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+#~ "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "При использовании растворимого материала для поддержки рекомендуются следующие настройки:\n"
+#~ "0 для верхнего зазора по Z, 0 для нижнего зазора по Z, 0 для расстояния между интерфейсами, 0 для расстояния по XY между поддержкой и объектом, чередующийся прямолинейный\n"
+#~ "рисунок, отключить независимую высоту слоя поддержки и использовать растворимые материалы как для интерфейса поддержки, так и для основания поддержки"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "При использовании растворимого материала для поддержки рекомендуются следующие настройки:\n"
+#~ "0 для верхнего зазора по Z, 0 для расстояния между интерфейсами, 0 для расстояния по XY между поддержкой и объектом, чередующийся прямолинейный рисунок, отключить независимую высоту слоя поддержки и использовать растворимые материалы как для интерфейса поддержки, так и для основания поддержки"
+
+#~ msgid "Support interface speed"
+#~ msgstr "Скорость интерфейса поддержки"
+
+#~ msgid "Successfully synchronized nozzle information."
+#~ msgstr "Информация о сопле успешно синхронизирована."
+
+# ????? Информация о соплах и количестве АСПП успешно синхронизирована.
+#~ msgid "Successfully synchronized nozzle and AMS number information."
+#~ msgstr "Информация о сопле и количестве AMS успешно синхронизирована."
+
+#~ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+#~ msgstr "Совместная печать высокотемпературными и низкотемпературными филаментами может привести к закупорке сопла или повреждению принтера."
+
+#~ msgid "Printing high-temp and low-temp filaments together may cause nozzle clogging or printer damage. If you still want to print, you can enable the option in Preferences."
+#~ msgstr "Совместная печать высокотемпературными и низкотемпературными филаментами может привести к закупорке сопла или повреждению принтера. Если вы всё же хотите продолжить печать, включите эту опцию в разделе «Настройки»."
+
+#~ msgid "Printing different-temp filaments together may cause nozzle clogging or printer damage."
+#~ msgstr "Совместная печать филаментами с разными температурными диапазонами может привести к закупорке сопла или повреждению принтера."
+
+#~ msgid "Printing high-temp and mid-temp filaments together may cause nozzle clogging or printer damage."
+#~ msgstr "Совместная печать высокотемпературными и среднетемпературными филаментами может привести к закупорке сопла или повреждению принтера."
+
+#~ msgid "Printing mid-temp and low-temp filaments together may cause nozzle clogging or printer damage."
+#~ msgstr "Совместная печать среднетемпературными и низкотемпературными филаментами может привести к закупорке сопла или повреждению принтера."
+
+#~ msgid "Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled."
+#~ msgstr "При включённой башне очистки нельзя использовать сопла разного диаметра и филаменты разного диаметра."
+
+#~ msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
+#~ msgstr "Внимание: Использование сопел разных диаметров в одной печати не поддерживается. Если сопло выбранного диаметра доступно только на одном экструдере, будет принудительно использоваться печать одним экструдером."
+
+#~ msgid "Rotate spool when drying"
+#~ msgstr "Вращать катушку во время сушки"
+
+#~ msgid "The temperature shall not exceed the filament's heat distortion temperature"
+#~ msgstr "Температура не должна превышать температуру тепловой деформации филамента"
+
+#~ msgid "+ Add Material"
+#~ msgstr "+ Добавить материал"
+
+#~ msgid "- Delete Material"
+#~ msgstr "- Удалить материал"
+
 #~ msgid "Previous"
 #~ msgstr "Назад"
 
@@ -19897,39 +20849,6 @@ msgstr ""
 
 #~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 #~ msgstr "Высота слоя не может превышать ограничения установленные в настройках принтера -> Экструдер -> Ограничение высоты слоя. Это может вызвать проблемы с качеством печати."
-
-msgid "The current printer preset does not match the connected printer. Please confirm the migration plan below."
-msgstr ""
-
-msgid "The nozzles used by the current project do not match the connected printer. Please confirm the migration plan below."
-msgstr ""
-
-msgid "Machine model"
-msgstr ""
-
-msgid "Current preset"
-msgstr ""
-
-msgid "Connected printer"
-msgstr ""
-
-msgid "Don't check again when loading 3MF"
-msgstr ""
-
-msgid "Don't check printer information when loading 3MF"
-msgstr ""
-
-msgid "No prompt to migrate the preset when the loaded 3MF does not match the connected printer"
-msgstr ""
-
-msgid "The connected printer only has a %s nozzle. Every filament will be switched to it after you confirm."
-msgstr ""
-
-msgid "%s only has a %s nozzle. Every filament will be switched to it after you confirm."
-msgstr ""
-
-msgid "The connected printer has not reported its nozzle information, so the nozzles are left unchanged. Only the printer preset will be switched."
-msgstr ""
 
 #~ msgid "Second"
 #~ msgstr "секунд"
@@ -20170,9 +21089,6 @@ msgstr ""
 
 #~ msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
 #~ msgstr "Отключает откат, когда перемещения полностью совершаются в области заполнения (и, таким образом, любые подтёки скорее всего будут не заметны). Это поможет снизить количество откатов при печати сложной модели и сэкономить время печати, но увеличит время нарезки и генерации G-кода."
-
-#~ msgid "Ext"
-#~ msgstr "Внеш."
 
 #~ msgid ""
 #~ "When using support material for the support interface, We recommend the following settings:\n"
