@@ -940,6 +940,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok_btn, this);
 
     auto* action_sizer = new wxBoxSizer(wxHORIZONTAL);
+#if STUDIO_ENABLE_PRINT_QUENE
     m_button_add_to_queue = new Button(m_panel_prepare, _L("Add to queue"));
     m_button_add_to_queue->SetCanFocus(false);
     m_button_add_to_queue->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE2);
@@ -947,6 +948,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_add_to_queue->EnableTooltipEvenDisabled();
     m_button_add_to_queue->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_add_to_queue_btn, this);
     action_sizer->Add(m_button_add_to_queue, 0, wxRIGHT, FromDIP(8));
+#endif
     action_sizer->Add(m_button_ensure, 0);
 
     m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);

@@ -361,7 +361,6 @@ export function AmsFilamentHotendPage() {
       ) : (
         <PageFooter
           actions={footerActions}
-          onAction={handleToolbarAction}
           showDebugButton={showDebugButton}
           debugOpening={debugOpening}
           onDebug={async () => {

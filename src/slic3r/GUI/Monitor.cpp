@@ -210,9 +210,11 @@ void MonitorPanel::init_tabpanel()
     m_status_info_panel        = new StatusPanel(m_tabpanel);
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
 
+#if STUDIO_ENABLE_PRINT_QUENE
     m_print_queue_panel = new DeviceWebHost(m_tabpanel, DeviceWebHostMode::PrintQueue,
                                             "/device_page/print_queue", true);
     m_tabpanel->AddPage(m_print_queue_panel, _L("Print queue"), "", false);
+#endif
 
     m_media_file_panel = new MediaFilePanel(m_tabpanel);
     m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), "", false);
@@ -597,8 +599,10 @@ std::string MonitorPanel::get_string_from_tab(PrinterTab tab)
         return "update";
     case PT_HMS:
         return "HMS";
+#if STUDIO_ENABLE_PRINT_QUENE
     case PT_PRINT_QUEUE:
         return "print_queue";
+#endif
     case PT_DEBUG:
         return "debug";
     default:
@@ -661,9 +665,12 @@ void MonitorPanel::jump_to_print_queue()
     if (m_tabpanel->GetCurrentPage() == m_print_queue_panel) {
         m_print_queue_panel->NavigateTo("/device_page/print_queue", true);
         update_print_queue_device(obj);
-    } else {
+    }
+#if STUDIO_ENABLE_PRINT_QUENE
+    else {
         m_tabpanel->SetSelection(PT_PRINT_QUEUE);
     }
+#endif
 }
 
 } // GUI

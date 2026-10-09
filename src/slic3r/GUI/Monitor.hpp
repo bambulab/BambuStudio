@@ -121,12 +121,14 @@ public:
     enum PrinterTab {
         // Must stay in the order the pages are added in init_tabpanel().
         PT_STATUS      = 0,
-        PT_PRINT_QUEUE = 1,
-        PT_MEDIA       = 2,
-        PT_UPDATE      = 3,
-        PT_HMS         = 4,
-        PT_DEBUG       = 5,
-        PT_MAX_NUM     = 6
+#if STUDIO_ENABLE_PRINT_QUENE
+        PT_PRINT_QUEUE,
+#endif
+        PT_MEDIA,
+        PT_UPDATE,
+        PT_HMS,
+        PT_DEBUG,
+        PT_MAX_NUM
     };
 
 	void init_bitmap();

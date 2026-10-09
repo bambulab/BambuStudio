@@ -18,6 +18,12 @@
 // Reserved for future usage
 #define DEV_RESERVED_FOR_FUTURE(...) /* stripped */
 
+// Gates every print queue entry: the "Add to queue" button in the send-print dialog
+// and the "Print queue" tab on the device page. Set to 1 at build time to bring them back.
+#ifndef STUDIO_ENABLE_PRINT_QUENE
+#define STUDIO_ENABLE_PRINT_QUENE 0
+#endif
+
 #define DEV_ASSERT_ONCE(level, message_expr) do { \
     static std::atomic_bool dev_assert_once_fired{ false }; \
     if (!dev_assert_once_fired.exchange(true)) { \

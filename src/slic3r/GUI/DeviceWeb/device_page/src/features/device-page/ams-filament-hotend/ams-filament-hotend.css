@@ -1546,14 +1546,6 @@
   background: var(--ams-footer-btn-hover-bg);
 }
 
-.page-footer button.dev-tips {
-  width: 24px;
-  padding: 0;
-  margin-left: auto;
-  color: var(--ams-text-weak);
-  font-weight: 600;
-}
-
 .footer-tip {
   color: var(--ams-brand);
   font-size: 13px;

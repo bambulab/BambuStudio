@@ -6271,6 +6271,9 @@ void StatusPanel::on_show_hotend_filament_web(wxCommandEvent &event)
 
 bool StatusPanel::CanShowHotendFilamentHtmlDialog(MachineObject* obj_) const
 {
+    // The standalone dialog entry is retired, the embedded panel on the status page covers it
+    return false;
+
     if (!obj_) {
         return false;
     }

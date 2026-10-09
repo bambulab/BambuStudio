@@ -582,14 +582,6 @@
         }));
       }
       if (tips) footer.appendChild(el('span', { class: 'footer-tip', text: tips }));
-      footer.appendChild(el('button', {
-        type: 'button',
-        class: 'dev-tips',
-        'data-testid': 'ams-hotend-action-tips',
-        title: 'Development hints (S2 placeholder)',
-        text: '?',
-        onClick: function () { handleToolbarAction('tips'); },
-      }));
       return footer;
     }
 
