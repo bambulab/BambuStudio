@@ -1209,6 +1209,20 @@ private:
 
     void                _make_skirt();
     void                _make_wipe_tower();
+    // Sequential (By Object) printing: one prime tower per object. Fills
+    // m_sequential_print_data->object_wipe_tower_map. Uses each object's own
+    // ToolOrdering (already in object_tool_ordering_map).
+    void                _make_sequential_wipe_towers();
+    // Core wipe-tower geometry generation from the ordering currently in
+    // m_wipe_tower_data.tool_ordering, writing the result into m_wipe_tower_data.
+    // `virtual_layer_object` receives inserted tower-only support layers when
+    // `insert_virtual_layers` is set (by-layer path; not yet supported for the
+    // per-object sequential path).
+    void                _make_wipe_tower_geometry(PrintObject *virtual_layer_object, bool insert_virtual_layers = true);
+    // Checks that each sequential object's prime tower is clear of every earlier
+    // object and its tower (and the bed exclusion area). Throws SlicingError on
+    // a hard conflict. MVP: axis-aligned boxes grown by the sequential clearance.
+    void                check_sequential_wipe_tower_clearance() const;
     // Vertical clearance against the compacted wipe tower, see wipe_tower_no_sparse_layers.
     void                validate_compacted_wipe_tower_clearance() const;
     void                finalize_first_layer_convex_hull();
@@ -1385,6 +1399,17 @@ Polygon compacted_wipe_tower_offender_outline(const Polygon &inst_hull, double b
 // bounding box up to extruder_clearance_height_to_lid, otherwise the tight near plane
 // (Camera::calc_tight_frustrum_zs_around) clips away the part of the box closest to the viewer.
 bool should_show_height_limit_lines(const Print &print);
+
+// Choose a plate-frame position (the tower footprint's min corner) for one
+// object's prime tower in By-Object printing: beside the object, on the bed,
+// clear of everything in `occupied` (earlier objects + towers) and of
+// `exclude_areas`. `fitted` = a non-overlapping spot was found (else the return
+// is the clamped fallback). Shared by the slicer and the plater preview.
+Vec2d place_one_wipe_tower(const BoundingBoxf &object_box, const Vec2d &tower_size,
+                           const BoundingBoxf &printable_area,
+                           const std::vector<BoundingBoxf> &occupied,
+                           const std::vector<BoundingBoxf> &exclude_areas,
+                           double clearance, bool &fitted);
 
 } /* slic3r_Print_hpp_ */
 

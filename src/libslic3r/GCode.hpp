@@ -116,6 +116,9 @@ public:
     void set_wipe_tower_depth(float depth) { m_wipe_tower_depth = depth; }
     void set_wipe_tower_bbx(const BoundingBoxf & bbx) { m_wipe_tower_bbx = bbx; }
     void set_rib_offset(const Vec2f &rib_offset) { m_rib_offset = rib_offset; }
+    // Sequential (By Object) printing places each object's tower independently,
+    // so the position from wipe_tower_x/y[plate] is overridden per object.
+    void set_wipe_tower_pos(const Vec2f &pos) { m_wipe_tower_pos = pos; }
 
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
@@ -128,7 +131,8 @@ private:
     // Left / right edges of the wipe tower, for the planning of wipe moves.
     const float                                                  m_left;
     const float                                                  m_right;
-    const Vec2f                                                  m_wipe_tower_pos;
+    // Not const: sequential printing overrides this per object via set_wipe_tower_pos().
+    Vec2f                                                        m_wipe_tower_pos;
     const float                                                  m_wipe_tower_rotation;
     std::vector<Vec2d>                                           m_extruder_offsets;
 
