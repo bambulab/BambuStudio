@@ -4581,6 +4581,16 @@ void FacetsAnnotation::shift_states_above(const ModelVolume &mv, EnforcerBlocker
     this->set(selector);
 }
 
+bool FacetsAnnotation::replace_state(const ModelVolume &mv, EnforcerBlockerType from, EnforcerBlockerType to)
+{
+    if (empty() || from == to || !has_facets(mv, from))
+        return false;
+    TriangleSelector selector(mv.mesh());
+    selector.deserialize(m_data, false);
+    selector.replace_state(from, to);
+    return this->set(selector);
+}
+
 void FacetsAnnotation::set_enforcer_block_type_limit(const ModelVolume  &mv,
                                                      EnforcerBlockerType max_type,
                                                      EnforcerBlockerType to_delete_filament,

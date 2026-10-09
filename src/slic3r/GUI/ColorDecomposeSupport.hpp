@@ -5,7 +5,6 @@
 #include <vector>
 #include <wx/string.h>
 #include <wx/colour.h>
-#include "ColorDecomposeDialog.hpp"
 
 class wxWindow;
 
@@ -27,20 +26,23 @@ inline constexpr const char* kDecomposeBambuPresetPrefix = "Bambu ";
 
 // ---- Types ----
 
+enum class DecomposeBaseColor {
+    None,
+    Cyan,
+    Magenta,
+    Yellow,
+    White,
+    Red,
+    Green,
+    Blue,
+    Black
+};
+
 struct DecomposeOfficialComponent {
     DecomposeBaseColor base_color{DecomposeBaseColor::None};
     std::string        color_hex;
     std::string        filament_id;
 };
-
-struct DecomposeMissingComponent {
-    size_t                     component_idx{0};
-    DecomposeOfficialComponent official_component;
-    std::string                preset_name;
-    wxString                   display_name;
-};
-
-struct MixedFilamentResult;
 
 enum class DecomposeColorBlockReason {
     None,
@@ -50,19 +52,12 @@ enum class DecomposeColorBlockReason {
 };
 
 DecomposeColorBlockReason decompose_color_block_reason(int filament_idx);
-wxString decompose_color_menu_label(DecomposeColorBlockReason reason);
 
 // ---- Functions ----
 
 std::string decompose_normalize_color_hex(std::string color);
 
 const char* decompose_base_color_en(DecomposeBaseColor color);
-
-wxString decompose_base_color_display(DecomposeBaseColor color);
-
-std::string decompose_basic_type_from_source(size_t source_config_idx,
-                                             size_t source_physical_idx,
-                                             const std::vector<std::string>& physical_types);
 
 std::string decompose_basic_filament_id(const std::string& basic_type);
 
@@ -98,40 +93,14 @@ int find_existing_decompose_component(
     const std::vector<std::string>& physical_colors,
     const std::vector<size_t>& physical_config_indices);
 
-bool prepare_decompose_mixed_result(
-    const ColorDecomposeResult& result,
-    size_t source_config_idx,
-    size_t source_physical_idx,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    const std::vector<size_t>& physical_config_indices,
-    MixedFilamentResult& out_result,
-    std::vector<DecomposeMissingComponent>& missing);
+// Official PLA Palette CMYKW mixing kit, one entry per base (white / cyan / magenta / yellow / black).
+std::vector<DecomposeOfficialComponent> pla_palette_cmykw_official_components();
 
-// For standard modes: how many base colors are not reusable from physical list.
-// MaterialList returns 0. When physical_config_indices is null, indices are 0..n-1.
-size_t count_decompose_new_physical_filaments(
-    const ColorDecomposeResult& result,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    size_t source_physical_idx,
-    const std::vector<size_t>* physical_config_indices);
-
-// Preview sidebar IDs that would be assigned if the current result were
-// confirmed. Matches prepare_decompose_mixed_result + add_custom_filament
-// (missing bases appended first) then create_mixed_filament_from_result
-// (mixed slot always last). Single-base 100% results do not create a mixed
-// filament; mixed_id then reuses that base's project-filament ID.
-DecomposePreviewIds preview_decompose_filament_ids(
-    const ColorDecomposeResult& result,
-    int source_physical_idx,
-    size_t current_filament_count,
-    const std::vector<std::string>& physical_colors,
-    const std::vector<std::string>& physical_types,
-    const std::vector<size_t>& physical_config_indices);
-
-bool confirm_create_decompose_missing_components(wxWindow* parent,
-    const std::vector<DecomposeMissingComponent>& missing);
+// Appends the kit filaments the project is missing as physical slots, keeping reserve_slots
+// free below the filament limit. Warns the user when not every missing filament fits. Returns
+// false, after telling the user, when the active printer has no compatible PLA Palette preset
+// or none of the missing filaments could be added.
+bool add_official_mixing_kit_to_project(wxWindow* parent, size_t reserve_slots = 0);
 
 }} // namespace Slic3r::GUI
 

@@ -28,7 +28,7 @@ const wxColour COLOR_TEXT_DARK("#262E30");
 const wxColour COLOR_TEXT_MUTED("#909090");
 const wxColour COLOR_DOT_BORDER("#DBDBDB");
 
-// PLA Palette / GFA20 bases, matching ColorDecomposeDialog.
+// PLA Palette / GFA20 bases, matching pla_palette_cmykw_official_components().
 const wxColour CMYKW_CYAN(0, 144, 218);
 const wxColour CMYKW_MAGENTA(226, 69, 133);
 const wxColour CMYKW_YELLOW(252, 227, 0);
@@ -57,11 +57,21 @@ wxPanel* create_color_dots(wxWindow* parent, const std::vector<wxColour>& colors
         dc.SetBackground(wxBrush(row->GetBackgroundColour()));
         dc.Clear();
         const int n_dots = static_cast<int>(colors.size());
+        const int border_w = row->FromDIP(1);
+        const double inset = border_w / 2.0;
+        // GDI ellipses are not antialiased; use a graphics context when available.
+        std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
         for (int i = 0; i < n_dots; ++i) {
             const int x = i * (d + gap);
-            dc.SetPen(wxPen(COLOR_DOT_BORDER, row->FromDIP(1)));
-            dc.SetBrush(wxBrush(colors[i]));
-            dc.DrawEllipse(x, 0, d, d);
+            if (gc) {
+                gc->SetPen(wxPen(COLOR_DOT_BORDER, border_w));
+                gc->SetBrush(wxBrush(colors[i]));
+                gc->DrawEllipse(x + inset, inset, d - 2 * inset, d - 2 * inset);
+            } else {
+                dc.SetPen(wxPen(COLOR_DOT_BORDER, border_w));
+                dc.SetBrush(wxBrush(colors[i]));
+                dc.DrawEllipse(x, 0, d, d);
+            }
         }
     });
     return row;

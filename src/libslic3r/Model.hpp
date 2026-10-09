@@ -779,6 +779,8 @@ public:
     // BBS
     void get_facets(const ModelVolume& mv, std::vector<indexed_triangle_set>& facets_per_type) const;
     void                 shift_states_above(const ModelVolume &mv, EnforcerBlockerType threshold, int delta);
+    // Returns true when any facet changed.
+    bool                 replace_state(const ModelVolume &mv, EnforcerBlockerType from, EnforcerBlockerType to);
     void                 set_enforcer_block_type_limit(const ModelVolume  &mv,
                                                        EnforcerBlockerType max_type,
                                                        EnforcerBlockerType to_delete_filament = EnforcerBlockerType::NONE,

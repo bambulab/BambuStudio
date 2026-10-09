@@ -64,6 +64,9 @@ class BitmapComboBox;
 // and the delete warning (models_using_filament), so detection and remap never drift apart.
 const std::vector<std::string>& filament_index_object_keys();
 
+// True when any part, color painting, height range or feature filament override of the object prints with a mixed filament.
+bool model_object_uses_mixed_filament(const ModelObject &object);
+
 struct ItemForDelete
 {
     ItemType    type;
@@ -269,6 +272,8 @@ public:
     void                sync_filament_from_model();
     void                update_filament_values_for_items(const size_t filaments_count);
     void                update_filament_values_for_items_when_delete_filament(const size_t filament_id, const int replace_id = -1);
+    // Point objects, parts and height ranges that print with from_id at to_id (0-based). Support filaments are kept.
+    void                update_filament_values_for_items_when_replace_filament(const size_t from_id, const size_t to_id);
 
     //BBS: update plate
     void                update_plate_values_for_items();

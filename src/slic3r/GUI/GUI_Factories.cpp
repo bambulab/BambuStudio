@@ -16,7 +16,6 @@
 #include "format.hpp"
 //BBS: add partplate related logic
 #include "PartPlate.hpp"
-#include "ColorDecomposeSupport.hpp"
 
 #include "Gizmos/GLGizmoSVG.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
@@ -1510,14 +1509,6 @@ void MenuFactory::create_filament_action_menu(wxMenu* menu, int active_filament_
 {
     m_filament_menu_active_id = active_filament_menu_id;
 
-    auto can_decompose = [this]() {
-        if (!plater())
-            return false;
-        if (plater()->sidebar().combos_filament().size() < 2)
-            return false;
-        return decompose_color_block_reason(m_filament_menu_active_id) == DecomposeColorBlockReason::None;
-    };
-
     append_menu_item(
         menu, wxID_ANY, _L("Edit"), "", [](wxCommandEvent&) {
             if (plater())
@@ -1530,14 +1521,6 @@ void MenuFactory::create_filament_action_menu(wxMenu* menu, int active_filament_
                 plater()->sidebar().delete_filament(kSidebarContextMenuFilamentId);
         }, "", nullptr, []() { return true; }, nullptr);
     delete_item->Enable(plater() && plater()->sidebar().combos_filament().size() > 1);
-
-    const auto reason = decompose_color_block_reason(active_filament_menu_id);
-    auto* decompose_item = append_menu_item(
-        menu, wxID_ANY, decompose_color_menu_label(reason), "", [](wxCommandEvent&) {
-            if (plater())
-                plater()->sidebar().decompose_filament_color(kSidebarContextMenuFilamentId);
-        }, "", nullptr, []() { return true; }, nullptr);
-    decompose_item->Enable(can_decompose());
 
     wxMenu* sub_menu = new wxMenu();
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
@@ -1908,8 +1891,8 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
 
 wxMenu *MenuFactory::filament_action_menu(int active_filament_menu_id) {
     // Recreate the whole popup each time so Windows does not keep the previous HMENU width
-    // after a long disabled "Decompose Color (...)" label. Keep the unique_ptr until the next
-    // popup so the menu is not destroyed while PopupMenu is running.
+    // (the "Merge with" submenu depends on the active filament). Keep the unique_ptr until the
+    // next popup so the menu is not destroyed while PopupMenu is running.
     m_filament_popup_menu = std::make_unique<wxMenu>();
     create_filament_action_menu(m_filament_popup_menu.get(), active_filament_menu_id);
     return m_filament_popup_menu.get();

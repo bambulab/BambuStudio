@@ -2366,6 +2366,16 @@ void TriangleSelector::shift_states_above(EnforcerBlockerType threshold, int del
     }
 }
 
+void TriangleSelector::replace_state(EnforcerBlockerType from, EnforcerBlockerType to)
+{
+    for (Triangle &triangle : m_triangles) {
+        if (triangle.is_split() || !triangle.valid())
+            continue;
+        if (triangle.get_state() == from)
+            triangle.set_state(to);
+    }
+}
+
 TriangleSelector::Cursor::Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
     : source{source_}, trafo{trafo_.cast<float>()}, clipping_plane{clipping_plane_}
 {

@@ -367,6 +367,9 @@ public:
     // Shift all triangle states >= threshold by delta (used when inserting filaments)
     void shift_states_above(EnforcerBlockerType threshold, int delta);
 
+    // Repaint every triangle in state `from` with state `to`; other states are left untouched.
+    void replace_state(EnforcerBlockerType from, EnforcerBlockerType to);
+
     // Set every unpainted (NONE) triangle to the given state, keeping painted detail.
     // Used when volumes with different filaments collapse into a single volume: an
     // unpainted area falls back to the merged volume's one extruder, so each source's

@@ -773,6 +773,42 @@ const std::vector<std::string>& filament_index_object_keys()
     return keys;
 }
 
+bool model_object_uses_mixed_filament(const ModelObject &object)
+{
+    const auto *is_mixed_opt = wxGetApp().preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
+    if (!is_mixed_opt)
+        return false;
+    const auto &is_mixed = is_mixed_opt->values;
+    auto mixed = [&is_mixed](int filament_id) {
+        return filament_id >= 1 && size_t(filament_id) <= is_mixed.size() && is_mixed[filament_id - 1];
+    };
+    auto config_uses_mixed = [&mixed](const ModelConfig &config) {
+        if (config.has("extruder") && mixed(config.extruder()))
+            return true;
+        for (const std::string &key : filament_index_object_keys())
+            if (config.has(key) && mixed(config.opt_int(key)))
+                return true;
+        return false;
+    };
+
+    if (config_uses_mixed(object.config))
+        return true;
+    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(
+        wxGetApp().preset_bundle->prints.get_edited_preset().config, wxGetApp().filaments_cnt());
+    for (const ModelVolume *volume : object.volumes) {
+        // get_extruders() covers the part's own / inherited filament, global feature filaments and its color painting.
+        for (int filament_id : volume->get_extruders(global_features))
+            if (mixed(filament_id))
+                return true;
+        if (volume->is_model_part() && config_uses_mixed(volume->config))
+            return true;
+    }
+    for (const auto &range : object.layer_config_ranges)
+        if (config_uses_mixed(range.second))
+            return true;
+    return false;
+}
+
 void ObjectList::update_filament_values_for_items_when_delete_filament(const size_t filament_id, const int replace_id)
 {
     int replace_filament_id = replace_id == -1 ? 1 : (replace_id + 1);
@@ -872,6 +908,67 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
                     }
                     m_objects_model->SetExtruder(extruder, layer_item);
                 }
+            }
+        }
+    }
+}
+
+void ObjectList::update_filament_values_for_items_when_replace_filament(const size_t from_id, const size_t to_id)
+{
+    if (!m_objects || from_id == to_id)
+        return;
+
+    const int from = int(from_id) + 1;
+    const int to   = int(to_id) + 1;
+    const wxString to_str = wxString::Format("%d", to);
+    // Support filaments have their own compatibility checks, so only model feature overrides follow the color.
+    static const std::vector<std::string> feature_keys = {"wall_filament", "sparse_infill_filament", "solid_infill_filament"};
+    auto replace_features = [&](ModelConfig &config) {
+        for (const std::string &key : feature_keys)
+            if (config.has(key) && config.opt_int(key) == from)
+                config.set_key_value(key, new ConfigOptionInt(to));
+    };
+
+    for (size_t i = 0; i < m_objects->size(); ++i) {
+        ModelObject *object = (*m_objects)[i];
+        const int obj_extruder = object->config.has("extruder") ? std::max(object->config.extruder(), 1) : 1;
+        if (obj_extruder == from) {
+            object->config.set_key_value("extruder", new ConfigOptionInt(to));
+            if (wxDataViewItem item = m_objects_model->GetItemById(i))
+                m_objects_model->SetExtruder(to_str, item);
+        }
+        replace_features(object->config);
+
+        for (size_t id = 0; id < object->volumes.size(); ++id) {
+            ModelVolume *volume = object->volumes[id];
+            replace_features(volume->config);
+            if (volume->config.has("extruder") && volume->config.extruder() == from) {
+                volume->config.set_key_value("extruder", new ConfigOptionInt(to));
+                if (wxDataViewItem item = m_objects_model->GetItemByVolumeId(i, id))
+                    m_objects_model->SetExtruder(to_str, item);
+            }
+        }
+
+        for (auto &range : object->layer_config_ranges) {
+            replace_features(range.second);
+            if (range.second.has("extruder") && range.second.option("extruder")->getInt() == from)
+                range.second.set("extruder", to);
+        }
+
+        wxDataViewItem obj_item = m_objects_model->GetItemById(i);
+        if (!obj_item)
+            continue;
+        ObjectDataViewModelNode *object_node = static_cast<ObjectDataViewModelNode *>(obj_item.GetID());
+        for (size_t c = 0; c < object_node->GetChildCount(); ++c) {
+            ObjectDataViewModelNode *layer_root_node = object_node->GetNthChild(c);
+            if (layer_root_node->GetType() != ItemType::itLayerRoot)
+                continue;
+            for (size_t j = 0; j < layer_root_node->GetChildCount(); ++j) {
+                ObjectDataViewModelNode *layer_node = layer_root_node->GetNthChild(j);
+                auto l_iter = object->layer_config_ranges.find(layer_node->GetLayerRange());
+                if (l_iter != object->layer_config_ranges.end() && l_iter->second.has("extruder") &&
+                    l_iter->second.option("extruder")->getInt() == to)
+                    m_objects_model->SetExtruder(to_str, wxDataViewItem((void *) layer_node));
             }
         }
     }
@@ -3546,11 +3643,16 @@ void ObjectList::merge_volumes()
 
 void ObjectList::layers_editing()
 {
+    const Selection& selection = scene_selection();
+    const int obj_idx = selection.get_object_idx();
+
     const auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    if (print_config.opt_bool("enable_mixed_color_sublayer")) {
+    const ModelObject* selected_object = object(obj_idx);
+    if (print_config.opt_bool("enable_mixed_color_sublayer") && selected_object
+        && model_object_uses_mixed_filament(*selected_object)) {
         if (wxGetApp().app_config->get("no_warn_mixed_sublayer_variable_layer") != "1") {
             MessageDialog dlg(nullptr,
-                _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
+                _L("Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."),
                 _L("Warning"), wxICON_WARNING | wxOK);
             dlg.show_dsa_button();
             dlg.ShowModal();
@@ -3559,8 +3661,6 @@ void ObjectList::layers_editing()
         }
     }
 
-    const Selection& selection = scene_selection();
-    const int obj_idx = selection.get_object_idx();
     wxDataViewItem item = obj_idx >= 0 && GetSelectedItemsCount() > 1 && selection.is_single_full_object() ?
                           m_objects_model->GetItemById(obj_idx) :
                           GetSelection();

@@ -410,6 +410,7 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     input_align = std::max(input_align, ImGui::GetCursorPosX());
     ImGui::SetCursorPosX(input_align);
     ImGui::BBLDragFloat("##adaptive_input", &m_adaptive_quality, 0.05f, 0.0f, 0.0f, "%.2f");
+    const float controls_right = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x;
 
     if (imgui.button(_L("Smooth")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params));
@@ -470,6 +471,14 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     ImGui::SameLine();
     if (imgui.button(_L("Reset")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), SimpleEvent(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE));
+
+    if (m_model_object && wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_bool("enable_mixed_color_sublayer")
+        && model_object_uses_mixed_filament(*m_model_object)) {
+        ImGui::Separator();
+        // Wrap at the widest control row so the auto-resized panel does not grow wider for the note.
+        imgui.warning_text_wrapped(_L("Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."),
+                                   std::max(controls_right - ImGui::GetCursorPosX(), imgui.scaled(10.0f)));
+    }
 
     GLCanvas3D::LayersEditing::s_overlay_window_width = ImGui::GetWindowSize().x;
     imgui.end();

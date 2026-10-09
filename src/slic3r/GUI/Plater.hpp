@@ -301,7 +301,6 @@ public:
     void add_mixed_filament();
     void edit_mixed_filament(size_t idx);
     void delete_mixed_filament_at(size_t idx);
-    void decompose_filament_color(int filament_idx);
     void recalc_filament_scroll_sizes();
     void update_mixed_filament_list(bool reload_3d = true);
     bool has_broken_mixed_filament() const;
@@ -633,6 +632,8 @@ public:
 
     void on_filament_count_change(size_t extruders_count);
     void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1, const std::vector<unsigned char>& is_mixed_before_delete = {});
+    // Repaint model usage (objects, parts, height ranges, color painting, tool changes) of from_id with to_id, both 0-based.
+    void replace_filament_on_model(size_t from_id, size_t to_id);
     std::vector<std::array<float, 4>> get_extruders_colors();
     // BBS
     void on_bed_type_change(BedType bed_type,bool is_gcode_file = false);

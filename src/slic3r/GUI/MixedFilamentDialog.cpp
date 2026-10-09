@@ -16,9 +16,16 @@
 #include <wx/tokenzr.h>
 #include <wx/control.h>
 #include <wx/display.h>
+#ifdef __WINDOWS__
+#include <wx/msw/wrapwin.h>
+#endif //__WINDOWS__
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/FilamentMixer.hpp"
+#include "libslic3r/ColorDecomposeRecipe.hpp"
+#include "libslic3r/PresetBundle.hpp"
+#include "ColorDecomposeSupport.hpp"
+#include "MixingKitsHelpDialog.hpp"
 #include "I18N.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -134,23 +141,17 @@ static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vec
 // ---- Constructors ----
 
 MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
-                                         const std::vector<std::string>& physical_colors,
-                                         const std::vector<std::string>& physical_names,
-                                         const std::vector<std::string>& physical_types,
-                                         const std::vector<std::string>& physical_diameters,
-                                         const std::vector<std::string>& physical_volume_shorts,
+                                         MixedFilamentPhysicalLoader physical_loader,
                                          bool enforce_nozzle_diameter)
     : DPIDialog(parent, wxID_ANY, _L("Add Mixed Filament"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_edit_mode(false)
-    , m_physical_colors(physical_colors)
-    , m_physical_names(physical_names)
-    , m_physical_types(physical_types)
-    , m_physical_diameters(physical_diameters)
-    , m_physical_volume_shorts(physical_volume_shorts)
     , m_enforce_nozzle_diameter(enforce_nozzle_diameter)
+    , m_physical_loader(std::move(physical_loader))
 {
-    m_result.components = {1, (physical_colors.size() >= 2) ? 2u : 1u};
+    if (m_physical_loader)
+        set_physical_info(m_physical_loader());
+    m_result.components = {1, (m_physical_colors.size() >= 2) ? 2u : 1u};
     m_result.ratios     = {50, 50};
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -312,6 +313,20 @@ void MixedFilamentDialog::append_material_row()
     m_combo_filaments.push_back(combo);
     m_combo_to_physical.push_back({});
     m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
+}
+
+void MixedFilamentDialog::remove_last_material_row()
+{
+    if (m_material_rows_sizer && m_material_rows_sizer->GetItemCount() > 0) {
+        auto* sizer_item = m_material_rows_sizer->GetItem(m_material_rows_sizer->GetItemCount() - 1);
+        if (sizer_item && sizer_item->GetSizer())
+            sizer_item->GetSizer()->Clear(true);
+        m_material_rows_sizer->Remove(m_material_rows_sizer->GetItemCount() - 1);
+    }
+    if (!m_combo_filaments.empty())
+        m_combo_filaments.pop_back();
+    if (!m_combo_to_physical.empty())
+        m_combo_to_physical.pop_back();
 }
 
 void MixedFilamentDialog::reset_manual_ratio_state()
@@ -639,7 +654,13 @@ void MixedFilamentDialog::build_ui()
 
     auto* main_sizer = new wxBoxSizer(wxVERTICAL);
 
+    if (!m_edit_mode) {
+        main_sizer->Add(create_mode_tabs(), 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(20));
+        main_sizer->Add(create_match_header(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+    }
+
     auto* top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_content_sizer = top_sizer;
     top_sizer->Add(create_preview_panel(), 0, wxALL, FromDIP(20));
 
     m_right_sizer = new wxBoxSizer(wxVERTICAL);
@@ -655,7 +676,8 @@ void MixedFilamentDialog::build_ui()
     top_sizer->Add(m_right_sizer, 1, wxTOP | wxRIGHT | wxBOTTOM, FromDIP(20));
     main_sizer->Add(top_sizer, 0, wxEXPAND);
 
-    main_sizer->Add(create_recommendation_grid(), 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
+    m_recommendation_sizer = create_recommendation_grid();
+    main_sizer->Add(m_recommendation_sizer, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
 
     // Warning panel: red bordered box with exclamation icon + text
     m_warning_sizer = new wxBoxSizer(wxVERTICAL);
@@ -667,11 +689,18 @@ void MixedFilamentDialog::build_ui()
     main_sizer->Add(m_warning_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(25));
     m_warning_panel->Hide();
 
-    main_sizer->Add(create_button_panel(), 0, wxALIGN_RIGHT | wxALL, FromDIP(20));
+    if (!m_edit_mode)
+        main_sizer->Add(create_replace_target_option(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+
+    auto* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    bottom_sizer->AddStretchSpacer(1);
+    bottom_sizer->Add(create_button_panel(), 0, wxALIGN_CENTER_VERTICAL);
+    main_sizer->Add(bottom_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 
     SetSizer(main_sizer);
 
     rebuild_all_combos();
+    update_mode_ui();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -697,6 +726,22 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
         dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
 
         if (n == 0) return;
+
+        if (m_match_mode) {
+            const int sw = FromDIP(100);
+            const int mx = (sz.GetWidth() - sw) / 2;
+            const int my = (sz.GetHeight() - sw) / 2;
+            const double r = FromDIP(8);
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.SetBrush(wxBrush(matched_colour()));
+            dc.DrawRoundedRectangle(mx, my, sw, sw, r);
+            {
+                wxDCClipper clip(dc, wxRect(mx, my, sw / 2, sw));
+                dc.SetBrush(wxBrush(match_target_colour()));
+                dc.DrawRoundedRectangle(mx, my, sw, sw, r);
+            }
+            return;
+        }
 
         int swatch_sz = FromDIP(80);
         int x0 = (sz.GetWidth() - swatch_sz) / 2;
@@ -759,6 +804,19 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
     label->SetForegroundColour(wxColour("#909090"));
     label->SetFont(::Label::Body_13);
     sizer->Add(label, 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
+    m_preview_label = label;
+
+    // Captions under the two halves of the color-matching swatch.
+    m_match_label_sizer = new wxBoxSizer(wxHORIZONTAL);
+    for (const wxString& caption : {_L("Target"), _L("Matched")}) {
+        auto* lbl = new wxStaticText(this, wxID_ANY, caption, wxDefaultPosition, wxSize(FromDIP(50), -1),
+                                     wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
+        lbl->SetForegroundColour(wxColour("#909090"));
+        lbl->SetFont(::Label::Body_13);
+        m_match_label_sizer->Add(lbl, 0);
+    }
+    sizer->Add(m_match_label_sizer, 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
+    m_match_label_sizer->ShowItems(false);
 
     return sizer;
 }
@@ -835,6 +893,7 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
     sel_label->SetForegroundColour(wxColour("#909090"));
     sel_label->SetFont(::Label::Body_12);
     sizer->Add(sel_label, 0, wxTOP, FromDIP(6));
+    m_sel_label = sel_label;
 
     m_material_rows_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -1294,6 +1353,22 @@ void MixedFilamentDialog::rebuild_recommendation_items()
         return;
 
     static constexpr int MAX_RECOMMENDATIONS = 100;
+
+    // Each swatch is a child window, so rebuilding up to 100 of them is slow and visibly
+    // repaints mid tab switch. The grid is hidden on the match tab, and unchanged inputs
+    // give the same swatches.
+    if (m_match_mode)
+        return;
+    std::string key = (num_components() >= 3 ? "3" : "2") + std::string(m_enforce_nozzle_diameter ? "d" : "-");
+    for (size_t i = 0; i < m_physical_colors.size(); ++i) {
+        key += '|' + m_physical_colors[i];
+        key += '|' + (i < m_physical_types.size() ? m_physical_types[i] : std::string());
+        key += '|' + (i < m_physical_diameters.size() ? m_physical_diameters[i] : std::string());
+        key += '|' + (i < m_physical_names.size() ? m_physical_names[i] : std::string());
+    }
+    if (key == m_recommendation_key)
+        return;
+    m_recommendation_key = std::move(key);
 
     m_recommendation_scroll->Freeze();
     m_recommendation_grid->Clear(true);
@@ -1761,6 +1836,20 @@ void MixedFilamentDialog::update_preview()
     if (m_summary_panel)   m_summary_panel->Refresh();
     if (m_ratio_bar)       m_ratio_bar->Refresh();
     if (m_triangle_panel)  m_triangle_panel->Refresh();
+    update_rematch_button();
+}
+
+void MixedFilamentDialog::update_rematch_button()
+{
+    if (!m_btn_rematch)
+        return;
+    // Only offer "match again" once the user has edited the recommended recipe.
+    const bool modified = m_match_mode && m_match_valid
+        && (m_result.components != m_match_recommended.components || m_result.ratios != m_match_recommended.ratios);
+    if (m_btn_rematch->IsShown() != modified) {
+        m_btn_rematch->Show(modified);
+        Layout();
+    }
 }
 
 void MixedFilamentDialog::paint_warning_panel(wxPaintEvent&)
@@ -1894,10 +1983,16 @@ void MixedFilamentDialog::update_ok_button_state()
         if (c == 0) { has_unselected = true; break; }
     }
 
-    bool can_confirm = !has_type_mismatch && !has_diameter_mismatch && !has_unselected;
+    const bool no_match = m_match_mode && !m_match_valid;
+
+    bool can_confirm = !has_type_mismatch && !has_diameter_mismatch && !has_unselected && !no_match;
     m_can_confirm = can_confirm;
     m_btn_ok->Enable(can_confirm);
-    if (has_unselected) {
+    if (no_match) {
+        m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
+        m_btn_ok->SetBorderColor(wxColour("#CECECE"));
+        m_btn_ok->SetToolTip(_L("No mix is available for the target color"));
+    } else if (has_unselected) {
         m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
         m_btn_ok->SetBorderColor(wxColour("#CECECE"));
         m_btn_ok->SetToolTip(_L("Please select a filament for all components"));
@@ -1915,8 +2010,11 @@ void MixedFilamentDialog::update_ok_button_state()
         m_btn_ok->SetToolTip(wxEmptyString);
     }
 
+    if (m_chk_replace_target)
+        m_chk_replace_target->Enable(!no_match);
+
     if (m_warning_panel) {
-        m_warning_panel->Show(has_type_mismatch || has_diameter_mismatch);
+        m_warning_panel->Show(!no_match && (has_type_mismatch || has_diameter_mismatch));
         // Force a repaint: when the panel is already visible and only the
         // mismatch text changes (e.g. PETG -> ABS), Show()/Layout() do not
         // generate a paint event, so paint_warning_panel keeps the stale text.
@@ -2084,6 +2182,16 @@ wxSize MixedFilamentDialog::compute_dialog_size() const
         w = FromDIP(470);
         h = FromDIP(720);
     }
+    if (m_mode_tabs_sizer)
+        h += FromDIP(52);
+    if (m_match_mode) {
+        // No stretchable recommendation list here, so follow the content height.
+        // Width stays the same as manual mixing so switching tabs does not resize horizontally.
+        if (wxSizer* sizer = GetSizer()) {
+            const wxSize content = ClientToWindowSize(sizer->CalcMin());
+            h = std::max(FromDIP(520), content.GetHeight());
+        }
+    }
 
     const int combo_needed = measure_needed_combo_width();
     const int label_w      = measure_filament_label_width();
@@ -2104,8 +2212,13 @@ wxSize MixedFilamentDialog::compute_dialog_size() const
     return wxSize(w, h);
 }
 
-void MixedFilamentDialog::apply_dialog_size()
+void MixedFilamentDialog::apply_dialog_size(bool keep_top)
 {
+    if (m_defer_dialog_resize) {
+        m_dialog_resize_pending = true;
+        return;
+    }
+
     const wxSize new_size      = compute_dialog_size();
     const int    combo_needed  = measure_needed_combo_width();
     const int    label_w       = measure_filament_label_width();
@@ -2123,9 +2236,18 @@ void MixedFilamentDialog::apply_dialog_size()
     const wxPoint center(old_rect.x + old_rect.width / 2,
                          old_rect.y + old_rect.height / 2);
     SetSize(new_size);
-    if (old_rect.width > 0 && old_rect.height > 0)
-        SetPosition(wxPoint(center.x - new_size.x / 2,
-                            center.y - new_size.y / 2));
+    if (old_rect.width > 0 && old_rect.height > 0) {
+        wxPoint pos(center.x - new_size.x / 2, keep_top ? old_rect.y : center.y - new_size.y / 2);
+        if (keep_top) {
+            const int display_idx = wxDisplay::GetFromWindow(this);
+            if (display_idx != wxNOT_FOUND) {
+                const wxRect work_area = wxDisplay(display_idx).GetClientArea();
+                if (pos.y + new_size.y > work_area.GetBottom() + 1)
+                    pos.y = std::max(work_area.GetTop(), work_area.GetBottom() + 1 - new_size.y);
+            }
+        }
+        SetPosition(pos);
+    }
     Layout();
     refresh_combo_suffixes();
 }
@@ -2141,9 +2263,9 @@ void MixedFilamentDialog::update_component_count_ui()
     if (m_triangle_sizer)
         m_triangle_sizer->ShowItems(is_three);
 
-    // 3-color: hide gradient entirely, force off
+    // 3-color: hide gradient entirely, force off. Color matching never produces a gradient.
     if (m_gradient_sizer) {
-        bool show_gradient = is_two;
+        bool show_gradient = is_two && !m_match_mode;
         m_chk_gradient->Show(show_gradient);
         if (m_label_gradient) m_label_gradient->Show(show_gradient);
         m_combo_gradient_dir->Show(show_gradient && m_result.gradient_enabled);
@@ -2152,7 +2274,7 @@ void MixedFilamentDialog::update_component_count_ui()
         if (m_curve_sizer)
             m_curve_sizer->ShowItems(show_gradient && m_result.gradient_enabled);
     }
-    if (is_three) {
+    if (is_three || m_match_mode) {
         m_result.gradient_enabled = false;
         if (m_chk_gradient) m_chk_gradient->SetValue(false);
         m_result.per_part_gradient = false;
@@ -2180,6 +2302,551 @@ void MixedFilamentDialog::update_component_count_ui()
     }
 
     apply_dialog_size();
+}
+
+// ---- Color matching tab ----
+
+int MixedFilamentDialog::match_target_config_index() const
+{
+    if (!m_match_mode || m_match_target < 0 || (size_t)m_match_target >= m_physical_config_indices.size())
+        return -1;
+    return (int)m_physical_config_indices[m_match_target];
+}
+
+bool MixedFilamentDialog::replace_target_on_model() const
+{
+    return m_match_mode && m_match_valid && m_chk_replace_target && m_chk_replace_target->GetValue()
+        && match_target_config_index() >= 0;
+}
+
+void MixedFilamentDialog::set_physical_info(const MixedFilamentPhysicalInfo& info)
+{
+    m_physical_colors         = info.colors;
+    m_physical_names          = info.names;
+    m_physical_types          = info.types;
+    m_physical_diameters      = info.diameters;
+    m_physical_volume_shorts  = info.volume_shorts;
+    m_physical_config_indices = info.config_indices;
+    if (m_physical_config_indices.size() != m_physical_colors.size()) {
+        m_physical_config_indices.resize(m_physical_colors.size());
+        for (size_t i = 0; i < m_physical_config_indices.size(); ++i)
+            m_physical_config_indices[i] = i;
+    }
+
+    m_match_types.clear();
+    m_match_target_allowed.clear();
+    PresetBundle* bundle = wxGetApp().preset_bundle;
+    for (size_t i = 0; i < m_physical_colors.size(); ++i) {
+        const size_t cfg_idx = m_physical_config_indices[i];
+        Preset* preset = (bundle && cfg_idx < bundle->filament_presets.size())
+            ? bundle->filaments.find_preset(bundle->filament_presets[cfg_idx]) : nullptr;
+        m_match_types.push_back(filament_type_for_color_decompose(preset));
+
+        const std::string type = i < m_physical_types.size() ? m_physical_types[i] : std::string();
+        const bool is_support = type.size() >= 2 && type.compare(type.size() - 2, 2, "-S") == 0;
+        m_match_target_allowed.push_back(!is_support &&
+            decompose_color_block_reason((int)cfg_idx) == DecomposeColorBlockReason::None);
+    }
+}
+
+wxBoxSizer* MixedFilamentDialog::create_mode_tabs()
+{
+    m_mode_tabs_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto make_tab = [this](const wxString& label, bool match_mode) {
+        auto* btn = new Button(this, label);
+        btn->SetFont(::Label::Body_14);
+        btn->SetMinSize(wxSize(FromDIP(130), FromDIP(36)));
+        btn->SetCornerRadius(FromDIP(6));
+        btn->SetCursor(wxCursor(wxCURSOR_HAND));
+        btn->Bind(wxEVT_BUTTON, [this, match_mode](wxCommandEvent&) { select_mode(match_mode); });
+        return btn;
+    };
+    m_btn_tab_manual = make_tab(_L("Manual Mixing"), false);
+    m_btn_tab_match  = make_tab(_L("Color Matching"), true);
+
+    m_mode_tabs_sizer->Add(m_btn_tab_manual, 0, wxRIGHT, FromDIP(20));
+    m_mode_tabs_sizer->Add(m_btn_tab_match, 0);
+    update_tab_styles();
+    return m_mode_tabs_sizer;
+}
+
+wxBoxSizer* MixedFilamentDialog::create_match_header()
+{
+    m_match_header_sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* target_label = new wxStaticText(this, wxID_ANY, _L("Select Target Color"));
+    target_label->SetForegroundColour(wxColour("#909090"));
+    target_label->SetFont(::Label::Body_13);
+    m_match_header_sizer->Add(target_label, 0);
+
+    m_combo_target = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                                  wxSize(-1, FromDIP(32)), 0, nullptr, wxCB_READONLY);
+    m_combo_target->SetKeepDropArrow(true);
+    m_combo_target->GetDropDown().SetUseContentWidth(true);
+    m_combo_target->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_target_changed(); });
+    m_match_header_sizer->Add(m_combo_target, 0, wxEXPAND | wxTOP, FromDIP(6));
+
+    auto* divider = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    divider->SetMinSize(wxSize(-1, 1));
+    divider->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#EEEEEE")));
+    m_match_header_sizer->Add(divider, 0, wxEXPAND | wxTOP, FromDIP(14));
+
+    auto* result_row = new wxBoxSizer(wxHORIZONTAL);
+    auto* result_label = new wxStaticText(this, wxID_ANY, _L("Match Result"));
+    result_label->SetForegroundColour(wxColour("#909090"));
+    result_label->SetFont(::Label::Body_13);
+    result_row->Add(result_label, 0, wxALIGN_CENTER_VERTICAL);
+
+    m_btn_rematch = new ScalableButton(this, wxID_ANY, "tree_reset", wxEmptyString, wxDefaultSize,
+                                       wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 16);
+    m_btn_rematch->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    m_btn_rematch->SetToolTip(_L("Discard changes and match again"));
+    m_btn_rematch->SetCursor(wxCursor(wxCURSOR_HAND));
+    m_btn_rematch->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { run_color_match(); });
+    result_row->Add(m_btn_rematch, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
+    result_row->AddStretchSpacer(1);
+
+    m_lbl_official_kit = new wxStaticText(this, wxID_ANY, _L("Use official mixing kits →"));
+    m_lbl_official_kit->SetForegroundColour(wxColour(0, 174, 66));
+    m_lbl_official_kit->SetFont(::Label::Body_13);
+    m_lbl_official_kit->SetCursor(wxCursor(wxCURSOR_HAND));
+    m_lbl_official_kit->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+        CallAfter([this]() { on_use_official_kit(); });
+    });
+    result_row->Add(m_lbl_official_kit, 0, wxALIGN_CENTER_VERTICAL);
+    m_match_header_sizer->Add(result_row, 0, wxEXPAND | wxTOP, FromDIP(14));
+
+    // Empty state shown instead of the recipe when no mix can be matched.
+    m_match_empty_sizer = new wxBoxSizer(wxVERTICAL);
+    auto* empty_bmp = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("diff_empty_state", this, 90));
+    m_match_empty_sizer->Add(empty_bmp, 0, wxALIGN_CENTER_HORIZONTAL);
+    m_match_status = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                      wxALIGN_CENTER_HORIZONTAL);
+    m_match_status->SetForegroundColour(wxColour("#909090"));
+    m_match_status->SetFont(::Label::Body_13);
+    m_match_empty_sizer->Add(m_match_status, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(8));
+    m_match_header_sizer->Add(m_match_empty_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(30));
+
+    rebuild_target_combo();
+    m_match_header_sizer->ShowItems(false);
+    return m_match_header_sizer;
+}
+
+wxBoxSizer* MixedFilamentDialog::create_replace_target_option()
+{
+    m_replace_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_chk_replace_target = new ::CheckBox(this);
+    m_chk_replace_target->SetValue(false);
+    m_replace_sizer->Add(m_chk_replace_target, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto* label = new wxStaticText(this, wxID_ANY, _L("Replace the target color on models with the mixed result"));
+    label->SetFont(::Label::Body_13);
+    // Wrap within the base dialog width so this option never widens the dialog.
+    label->Wrap(FromDIP(439 - 20 * 2 - 24));
+    label->SetCursor(wxCursor(wxCURSOR_HAND));
+    label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+        if (!m_chk_replace_target->IsEnabled())
+            return;
+        m_chk_replace_target->SetValue(!m_chk_replace_target->GetValue());
+    });
+    m_replace_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+
+    m_replace_sizer->ShowItems(false);
+    return m_replace_sizer;
+}
+
+void MixedFilamentDialog::update_tab_styles()
+{
+    auto style = [](Button* btn, bool selected) {
+        if (!btn)
+            return;
+        btn->SetBackgroundColor(selected ? wxColour("#E5F7EC") : wxColour("#FFFFFF"));
+        btn->SetBorderColor(selected ? wxColour("#00AE42") : wxColour("#CECECE"));
+        btn->SetTextColor(wxColour("#262E30"));
+        btn->Refresh();
+    };
+    style(m_btn_tab_manual, !m_match_mode);
+    style(m_btn_tab_match, m_match_mode);
+}
+
+void MixedFilamentDialog::update_mode_ui()
+{
+    update_tab_styles();
+    const bool match_failed = m_match_mode && !m_match_valid;
+    if (m_match_header_sizer)
+        m_match_header_sizer->ShowItems(m_match_mode);
+    if (m_match_empty_sizer)
+        m_match_empty_sizer->ShowItems(match_failed);
+    // ShowItems(true) also reveals children that are normally hidden (ratio slider vs.
+    // triangle, gradient rows); the caller restores them via update_component_count_ui().
+    if (m_content_sizer)
+        m_content_sizer->ShowItems(!match_failed);
+    if (m_recommendation_sizer)
+        m_recommendation_sizer->ShowItems(!m_match_mode);
+    if (m_sel_label)
+        m_sel_label->Show(!m_match_mode);
+    if (m_preview_label)
+        m_preview_label->Show(!m_match_mode);
+    if (m_match_label_sizer)
+        m_match_label_sizer->ShowItems(m_match_mode && !match_failed);
+    if (m_replace_sizer)
+        m_replace_sizer->ShowItems(m_match_mode);
+    update_rematch_button();
+    if (m_preview_canvas)
+        m_preview_canvas->Refresh();
+}
+
+void MixedFilamentDialog::select_mode(bool match_mode)
+{
+    if (m_edit_mode || match_mode == m_match_mode)
+        return;
+
+    // Freeze until the target page is fully laid out, and resize only once at the end:
+    // resizing a frozen top-level window still exposes its stale bitmap.
+#ifdef __WINDOWS__
+    // wx never freezes a top-level window itself on MSW, only its children shown at that time,
+    // so the dialog background and newly created / shown controls would still paint mid switch.
+    ::SendMessage((HWND)GetHWND(), WM_SETREDRAW, FALSE, 0);
+#endif //__WINDOWS__
+    Freeze();
+    m_defer_dialog_resize   = true;
+    m_dialog_resize_pending = false;
+    commit_ratio_editor(true);
+    if (match_mode) {
+        m_manual_result = m_result;
+        m_match_mode    = true;
+        if (m_has_match_result && m_match_valid) {
+            update_mode_ui();
+            apply_result(m_match_result);
+        } else {
+            run_color_match();
+        }
+    } else {
+        if (m_match_valid)
+            m_match_result = m_result;
+        m_has_match_result = m_match_valid;
+        m_match_mode       = false;
+        update_mode_ui();
+        apply_result(m_manual_result);
+    }
+
+    m_defer_dialog_resize = false;
+    if (m_dialog_resize_pending)
+        apply_dialog_size(true);
+    Thaw();
+#ifdef __WINDOWS__
+    ::SendMessage((HWND)GetHWND(), WM_SETREDRAW, TRUE, 0);
+    ::RedrawWindow((HWND)GetHWND(), nullptr, nullptr,
+                   RDW_ERASE | RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN | RDW_UPDATENOW);
+#else
+    Update();
+#endif //__WINDOWS__
+}
+
+void MixedFilamentDialog::rebuild_target_combo()
+{
+    if (!m_combo_target)
+        return;
+
+    m_combo_target->Clear();
+    m_target_combo_to_physical.clear();
+    int sel = -1;
+    for (size_t i = 0; i < m_physical_colors.size(); ++i) {
+        if (i >= m_match_target_allowed.size() || !m_match_target_allowed[i])
+            continue;
+        const int idx = m_combo_target->Append(combo_item_name(i), make_swatch_bitmap(i));
+        m_target_combo_to_physical.push_back((int)i);
+        if ((int)i == m_match_target)
+            sel = idx;
+    }
+    if (sel < 0 && !m_target_combo_to_physical.empty())
+        sel = 0;
+    m_match_target = sel >= 0 ? m_target_combo_to_physical[sel] : -1;
+    if (sel >= 0)
+        m_combo_target->SetSelection(sel);
+}
+
+void MixedFilamentDialog::on_target_changed()
+{
+    const int sel = m_combo_target ? m_combo_target->GetSelection() : -1;
+    if (sel < 0 || sel >= (int)m_target_combo_to_physical.size())
+        return;
+    if (m_target_combo_to_physical[sel] == m_match_target)
+        return;
+    m_match_target = m_target_combo_to_physical[sel];
+    run_color_match();
+}
+
+void MixedFilamentDialog::on_use_official_kit()
+{
+    MixingKitsHelpDialog dlg(this);
+    if (dlg.ShowModal() != wxID_APPLY)
+        return;
+    // Keep one slot for the mixed filament this dialog creates on OK.
+    if (!add_official_mixing_kit_to_project(this, 1))
+        return;
+    // Kit filaments are appended to the physical block, so existing 1-based
+    // component indices (including the stashed manual result) stay valid.
+    if (m_physical_loader)
+        set_physical_info(m_physical_loader());
+    rebuild_target_combo();
+    run_color_match();
+}
+
+void MixedFilamentDialog::set_match_status(const wxString& text)
+{
+    if (!m_match_status)
+        return;
+    m_match_status->SetLabel(text);
+    m_match_status->Wrap(std::max(FromDIP(300), GetClientSize().GetWidth() - FromDIP(80)));
+}
+
+void MixedFilamentDialog::run_color_match()
+{
+    commit_ratio_editor(false);
+
+    MixedFilamentResult result;
+    wxString error;
+
+    const int target = m_match_target;
+    if (target < 0 || target >= (int)m_physical_colors.size()) {
+        error = _L("No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported.");
+    } else {
+        const wxColour target_col(m_physical_colors[target]);
+        Slic3r::ColorDecomposeRgb target_rgb;
+        target_rgb.r = target_col.Red();
+        target_rgb.g = target_col.Green();
+        target_rgb.b = target_col.Blue();
+
+        const std::string target_type = (size_t)target < m_match_types.size()
+            ? m_match_types[target] : std::string(kDecomposePlaShortType);
+        const std::string target_diameter = (m_enforce_nozzle_diameter && (size_t)target < m_physical_diameters.size())
+            ? m_physical_diameters[target] : std::string();
+        auto mixable = [&](size_t i) {
+            if (i >= m_match_types.size() || !Slic3r::color_decompose_material_family_matches(m_match_types[i], target_type))
+                return false;
+            if (!target_diameter.empty() && i < m_physical_diameters.size() && !m_physical_diameters[i].empty()
+                && m_physical_diameters[i] != target_diameter)
+                return false;
+            return true;
+        };
+        auto physical_of_official = [this](const DecomposeOfficialComponent& official) -> int {
+            const int cfg_1based = find_existing_decompose_component(official, m_physical_colors, m_physical_config_indices);
+            if (cfg_1based <= 0)
+                return -1;
+            for (size_t i = 0; i < m_physical_config_indices.size(); ++i)
+                if (m_physical_config_indices[i] == (size_t)(cfg_1based - 1))
+                    return (int)i;
+            return -1;
+        };
+        auto display_id = [this](size_t phys) {
+            return phys < m_physical_config_indices.size() ? (int)m_physical_config_indices[phys] + 1 : (int)phys + 1;
+        };
+
+        const std::string target_hex = decompose_normalize_color_hex(m_physical_colors[target]);
+        for (size_t i = 0; i < m_physical_colors.size(); ++i) {
+            if ((int)i != target && mixable(i) && decompose_normalize_color_hex(m_physical_colors[i]) == target_hex) {
+                error = wxString::Format(_L("Filament %d has the same color as the target. No mixing is needed."), display_id(i));
+                break;
+            }
+        }
+
+        // With the complete official PLA Palette CMYKW kit, use the measured recipe table.
+        if (error.IsEmpty() && Slic3r::color_decompose_material_family_matches(target_type, kDecomposePlaShortType)) {
+            bool kit_complete = true;
+            for (const DecomposeOfficialComponent& official : pla_palette_cmykw_official_components()) {
+                const int phys = physical_of_official(official);
+                if (phys < 0 || !mixable((size_t)phys)) {
+                    kit_complete = false;
+                    break;
+                }
+            }
+            if (kit_complete) {
+                const Slic3r::ColorDecomposeRecipeResult recipe = Slic3r::lookup_standard_recipe(
+                    target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYKW, kDecomposePlaPaletteType);
+                if (recipe.valid) {
+                    for (const auto& comp : recipe.components) {
+                        DecomposeOfficialComponent official;
+                        official.color_hex   = decompose_normalize_color_hex(comp.color_hex);
+                        official.filament_id = kDecomposePlaPaletteFilamentId;
+                        const int phys = physical_of_official(official);
+                        if (phys < 0) {
+                            result = {};
+                            break;
+                        }
+                        result.components.push_back((unsigned int)(phys + 1));
+                        result.ratios.push_back(comp.ratio);
+                    }
+                }
+                if (result.components.size() < 2)
+                    result = {};
+            }
+        }
+
+        if (error.IsEmpty() && result.components.size() < 2) {
+            size_t same_type_count = 0;
+            std::vector<Slic3r::ColorDecomposePhysicalFilament> family;
+            for (size_t i = 0; i < m_physical_colors.size(); ++i) {
+                if ((int)i == target || i >= m_match_types.size()
+                    || !Slic3r::color_decompose_material_family_matches(m_match_types[i], target_type))
+                    continue;
+                ++same_type_count;
+                if (!mixable(i))
+                    continue;
+                Slic3r::ColorDecomposePhysicalFilament filament;
+                filament.color_hex      = m_physical_colors[i];
+                filament.name           = i < m_physical_names.size() ? m_physical_names[i] : std::string();
+                filament.type           = m_match_types[i];
+                filament.filament_index = (unsigned int)(i + 1);
+                family.push_back(std::move(filament));
+            }
+
+            if (same_type_count == 0) {
+                error = _L("There is no other filament of the same type as the target color in the project.");
+            } else if (same_type_count == 1) {
+                error = _L("At least two other filaments of the same type as the target color are required.");
+            } else if (family.size() < 2) {
+                error = _L("Fewer than two filaments of the same type use the target's nozzle diameter.");
+            } else {
+                const Slic3r::ColorDecomposeRecipeResult recipe =
+                    Slic3r::recommend_from_physical_filaments(target_rgb, family, std::string());
+                if (recipe.valid && recipe.components.size() >= 2) {
+                    for (const auto& comp : recipe.components) {
+                        result.components.push_back(comp.filament_index);
+                        result.ratios.push_back(comp.ratio);
+                    }
+                } else if (recipe.valid && recipe.components.size() == 1 && recipe.components.front().filament_index >= 1) {
+                    error = wxString::Format(_L("Filament %d has the same color as the target. No mixing is needed."),
+                                             display_id(recipe.components.front().filament_index - 1));
+                } else {
+                    error = _L("No available mixing recipe was found.");
+                }
+            }
+        }
+    }
+
+    if (error.IsEmpty() && (result.components.size() < 2 || result.ratios.size() != result.components.size()))
+        error = _L("No available mixing recipe was found.");
+
+    m_match_valid = error.IsEmpty();
+    set_match_status(error);
+    update_mode_ui();
+    if (!m_match_valid) {
+        // Keep the recipe rows hidden: apply_result() would re-show the ratio slider.
+        m_has_match_result = false;
+        update_ok_button_state();
+        apply_dialog_size();
+        Refresh();
+        return;
+    }
+
+    int sum = 0;
+    for (int r : result.ratios)
+        sum += r;
+    if (sum > 0 && sum != 100) {
+        int assigned = 0;
+        for (size_t i = 0; i + 1 < result.ratios.size(); ++i) {
+            result.ratios[i] = (int)std::lround(100.0 * result.ratios[i] / sum);
+            assigned += result.ratios[i];
+        }
+        result.ratios.back() = 100 - assigned;
+    }
+
+    m_has_match_result = true;
+    apply_result(result);
+    m_match_recommended = m_result;
+    update_rematch_button();
+}
+
+void MixedFilamentDialog::apply_result(const MixedFilamentResult& result)
+{
+    commit_ratio_editor(false);
+
+    m_result = result;
+    if (m_result.components.size() < 2) {
+        m_result.components = {1, (m_physical_colors.size() >= 2) ? 2u : 1u};
+        m_result.ratios     = {50, 50};
+    }
+    if (m_result.components.size() > (size_t)MAX_COMPONENTS)
+        m_result.components.resize(MAX_COMPONENTS);
+    const size_t n = m_result.components.size();
+    if (m_result.ratios.size() != n) {
+        m_result.ratios.assign(n, 100 / (int)n);
+        m_result.ratios[0] += 100 - (100 / (int)n) * (int)n;
+    }
+
+    while (m_combo_filaments.size() < n)
+        append_material_row();
+    while (m_combo_filaments.size() > n)
+        remove_last_material_row();
+
+    if (n >= 3) {
+        sync_triangle_weights_from_ratios();
+    } else {
+        m_tri_wx = 0.5;
+        m_tri_wy = 0.5;
+        m_tri_wz = 0.0;
+    }
+    reset_manual_ratio_state();
+    refresh_ratio_labels();
+
+    if (m_chk_gradient)
+        m_chk_gradient->SetValue(m_result.gradient_enabled);
+    if (m_chk_per_part_gradient)
+        m_chk_per_part_gradient->SetValue(m_result.per_part_gradient);
+    if (m_curve_editor) {
+        const std::vector<GradientAnchor> curve = m_result.gradient_curve;
+        if (!curve.empty())
+            m_curve_editor->set_points(curve);
+        else
+            m_curve_editor->reset_to_linear((m_result.gradient_direction == 0) ? 0.9 : 0.1,
+                                            (m_result.gradient_direction == 0) ? 0.1 : 0.9);
+        m_result.gradient_curve = curve;
+    }
+
+    rebuild_all_combos();
+    refresh_curve_editor_colors();
+    update_gradient_direction_items();
+    if (m_combo_gradient_dir && m_result.gradient_direction < (int)m_combo_gradient_dir->GetCount())
+        m_combo_gradient_dir->SetSelection(m_result.gradient_direction);
+    update_component_count_ui();
+    rebuild_recommendation_items();
+    update_preview();
+    update_ok_button_state();
+    Layout();
+    Refresh();
+}
+
+wxColour MixedFilamentDialog::match_target_colour() const
+{
+    if (m_match_target >= 0 && m_match_target < (int)m_physical_colors.size())
+        return wxColour(m_physical_colors[m_match_target]);
+    return wxColour("#D9D9D9");
+}
+
+wxColour MixedFilamentDialog::matched_colour() const
+{
+    std::vector<std::string> hexes;
+    std::vector<int>         ratios;
+    std::vector<wxColour>    cols;
+    std::vector<double>      weights;
+    for (size_t i = 0; i < num_components(); ++i) {
+        const wxColour c = comp_colour(i);
+        cols.push_back(c);
+        weights.push_back(ratio(i) / 100.0);
+        hexes.push_back(c.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+        ratios.push_back(ratio(i));
+    }
+    // Official kit blends were measured; prefer them over the mixing model.
+    const std::string measured = Slic3r::lookup_measured_blend_color(hexes, ratios);
+    if (!measured.empty()) {
+        const wxColour measured_col(measured);
+        if (measured_col.IsOk())
+            return measured_col;
+    }
+    return blend_n_colors(cols, weights);
 }
 
 } // namespace GUI

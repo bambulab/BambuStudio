@@ -128,8 +128,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/CascadeMenu.cpp
     GUI/MixedFilamentDialog.cpp
     GUI/MixedFilamentDialog.hpp
-    GUI/ColorDecomposeDialog.cpp
-    GUI/ColorDecomposeDialog.hpp
     GUI/MixingKitsHelpDialog.cpp
     GUI/MixingKitsHelpDialog.hpp
     GUI/MixSupplementFilamentDialog.cpp

@@ -93,7 +93,6 @@
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "MixedFilamentDialog.hpp"
-#include "ColorDecomposeDialog.hpp"
 #include "ColorDecomposeSupport.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -8765,14 +8764,6 @@ static std::vector<int> create_mixed_filaments_from_results(
     return created;
 }
 
-static bool create_mixed_filament_from_result(
-    Sidebar* sidebar,
-    const MixedFilamentResult& result,
-    const std::vector<std::string>& color_strs)
-{
-    const std::vector<int> created = create_mixed_filaments_from_results(sidebar, { result }, color_strs);
-    return !created.empty() && created.front() >= 0;}
-
 void Sidebar::add_mixed_filament()
 {
     auto* plater = dynamic_cast<Plater*>(GetParent());
@@ -8782,24 +8773,36 @@ void Sidebar::add_mixed_filament()
     if (num_physical < 2) return;
     if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
 
-    std::vector<std::string> color_strs, names, types, diameters, volume_shorts;
-    collect_physical_filament_info(color_strs, names, types, nullptr, &diameters, &volume_shorts);
+    // Re-read on demand: the color matching tab can add the official mixing kit while open.
+    auto load_physical = [this]() {
+        MixedFilamentPhysicalInfo info;
+        collect_physical_filament_info(info.colors, info.names, info.types, &info.config_indices,
+                                       &info.diameters, &info.volume_shorts);
+        return info;
+    };
 
     MixedFilamentResult result;
     int modal = wxID_CANCEL;
+    int replace_target_cfg = -1;
     {
-        MixedFilamentDialog dlg(this, color_strs, names, types, diameters, volume_shorts,
-                                multi_diameter_filament_selection_active());
+        MixedFilamentDialog dlg(this, load_physical, multi_diameter_filament_selection_active());
         modal = dlg.ShowModal();
-        if (modal == wxID_OK)
+        if (modal == wxID_OK) {
             result = dlg.get_result();
+            if (dlg.replace_target_on_model())
+                replace_target_cfg = dlg.match_target_config_index();
+        }
     }
-    if (modal == wxID_OK) {
-        create_mixed_filament_from_result(this, result, color_strs);
-        // Same courtesy the physical list gets in add_filament(): the new row is appended at the
-        // end of the mixed list, which the shared row budget can easily push below the fold.
-        scroll_mixed_filament_area_to_bottom();
-    }
+    if (modal != wxID_OK)
+        return;
+
+    const MixedFilamentPhysicalInfo physical = load_physical();
+    const std::vector<int> created = create_mixed_filaments_from_results(this, { result }, physical.colors);
+    // Same courtesy the physical list gets in add_filament(): the new row is appended at the
+    // end of the mixed list, which the shared row budget can easily push below the fold.
+    scroll_mixed_filament_area_to_bottom();
+    if (replace_target_cfg >= 0 && !created.empty() && created.front() >= 0)
+        plater->replace_filament_on_model(size_t(replace_target_cfg), size_t(created.front()));
 }
 
 void Sidebar::edit_mixed_filament(size_t panel_idx)
@@ -8976,85 +8979,6 @@ void Sidebar::delete_mixed_filament_at(size_t panel_idx)
     size_t cfg_idx = mixed_indices[panel_idx];
 
     delete_filament(cfg_idx, -1);
-}
-
-void Sidebar::decompose_filament_color(int filament_idx)
-{
-    if (filament_idx == kSidebarContextMenuFilamentId)
-        filament_idx = p->m_menu_filament_id;
-    if (filament_idx < 0)
-        return;
-    if (decompose_color_block_reason(filament_idx) != DecomposeColorBlockReason::None)
-        return;
-
-    auto& project_config = wxGetApp().preset_bundle->project_config;
-    auto* colours_opt = project_config.option<ConfigOptionStrings>("filament_colour");
-    if (!colours_opt || static_cast<size_t>(filament_idx) >= colours_opt->values.size())
-        return;
-
-    wxColour target_color(colours_opt->values[filament_idx]);
-
-    std::vector<std::string> color_strs, names, types;
-    std::vector<size_t> physical_config_indices;
-    collect_physical_filament_info(color_strs, names, types, &physical_config_indices);
-
-    // Build decompose-specific types: ColorDecomposeDialog needs "PLA Basic"
-    // distinction (for CMYW/RYBW card visibility), while collect_physical_filament_info
-    // now returns coarse filament_type (e.g. "PLA" for all PLA variants).
-    std::vector<std::string> decompose_types;
-    {
-        auto& pb = *wxGetApp().preset_bundle;
-        for (size_t i = 0; i < physical_config_indices.size(); ++i) {
-            const size_t ci = physical_config_indices[i];
-            Preset* pr = (ci < pb.filament_presets.size())
-                ? pb.filaments.find_preset(pb.filament_presets[ci]) : nullptr;
-            decompose_types.push_back(filament_type_for_color_decompose(pr));
-        }
-    }
-
-    size_t source_physical_idx = size_t(-1);
-    for (size_t i = 0; i < physical_config_indices.size(); ++i) {
-        if (physical_config_indices[i] == static_cast<size_t>(filament_idx)) {
-            source_physical_idx = i;
-            break;
-        }
-    }
-
-    ColorDecomposeDialog dlg(this,
-                             source_physical_idx == size_t(-1) ? -1 : static_cast<int>(source_physical_idx),
-                             target_color, color_strs, names, decompose_types,
-                             wxGetApp().preset_bundle->filament_presets.size(),
-                             static_cast<size_t>(EnforcerBlockerType::ExtruderMax),
-                             physical_config_indices);
-    int modal_res = dlg.ShowModal();
-    if (modal_res == wxID_OK) {
-        ColorDecomposeResult dialog_result = dlg.get_result();
-        MixedFilamentResult mixed_result;
-        std::vector<DecomposeMissingComponent> missing_components;
-        if (!prepare_decompose_mixed_result(dialog_result, static_cast<size_t>(filament_idx), source_physical_idx,
-                                            color_strs, decompose_types, physical_config_indices, mixed_result, missing_components))
-            return;
-
-        if (!confirm_create_decompose_missing_components(this, missing_components))
-            return;
-
-        for (const DecomposeMissingComponent& missing : missing_components) {
-            size_t before_count = p->combos_filament.size();
-            add_custom_filament(wxColour(missing.official_component.color_hex), missing.preset_name, true, filament_idx);
-            size_t after_count = p->combos_filament.size();
-            if (after_count <= before_count)
-                return;
-            set_created_standard_component_metadata(before_count, missing.official_component);
-            if (missing.component_idx < mixed_result.components.size())
-                mixed_result.components[missing.component_idx] = static_cast<unsigned int>(before_count + 1);
-        }
-
-        if (!missing_components.empty()) {
-            collect_physical_filament_info(color_strs, names, types, &physical_config_indices);
-        }
-
-        create_mixed_filament_from_result(this, mixed_result, color_strs);
-    }
 }
 
 // ---- End Mixed Filament sidebar methods ----
@@ -21445,20 +21369,6 @@ bool Plater::priv::can_layers_editing() const
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
-    if (!view3D->is_layers_editing_enabled()) {
-        const auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        if (print_config.opt_bool("enable_mixed_color_sublayer")) {
-            if (wxGetApp().app_config->get("no_warn_mixed_sublayer_variable_layer") != "1") {
-                MessageDialog dlg(q,
-                    _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
-                    _L("Warning"), wxICON_WARNING | wxOK);
-                dlg.show_dsa_button();
-                dlg.ShowModal();
-                if (dlg.get_checkbox_state())
-                    wxGetApp().app_config->set("no_warn_mixed_sublayer_variable_layer", "1");
-            }
-        }
-    }
     view3D->enable_layers_editing(!view3D->is_layers_editing_enabled());
     notification_manager->set_move_from_overlay(view3D->is_layers_editing_enabled());
 }
@@ -28357,6 +28267,30 @@ void Plater::on_filaments_delete(size_t num_filaments, size_t filament_id, int r
                 item.extruder--;
         }
     }
+}
+
+void Plater::replace_filament_on_model(size_t from_id, size_t to_id)
+{
+    if (from_id == to_id || to_id + 1 > size_t(EnforcerBlockerType::ExtruderMax))
+        return;
+
+    take_snapshot("Replace filament on models");
+
+    const EnforcerBlockerType from_state = EnforcerBlockerType(from_id + 1);
+    const EnforcerBlockerType to_state   = EnforcerBlockerType(to_id + 1);
+    for (ModelObject *mo : p->model.objects)
+        for (ModelVolume *mv : mo->volumes)
+            mv->mmu_segmentation_facets.replace_state(*mv, from_state, to_state);
+
+    sidebar().obj_list()->update_filament_values_for_items_when_replace_filament(from_id, to_id);
+
+    for (auto &plate_gcodes : p->model.plates_custom_gcodes)
+        for (Item &gcode_item : plate_gcodes.second.gcodes)
+            if (gcode_item.type == CustomGCode::Type::ToolChange && gcode_item.extruder == int(from_id) + 1)
+                gcode_item.extruder = int(to_id) + 1;
+
+    sidebar().obj_list()->update_filament_colors();
+    update();
 }
 
 std::vector<std::array<float, 4>> Plater::get_extruders_colors()
