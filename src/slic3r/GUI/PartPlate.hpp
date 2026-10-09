@@ -7,6 +7,7 @@
 #include <thread>
 #include <mutex>
 #include <memory>
+#include "McpJobs.hpp"
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -537,6 +538,7 @@ public:
     /*slice related functions*/
     //update current slice context into backgroud slicing process
     void update_slice_context(BackgroundSlicingProcess& process);
+    void mcp_set_status_run(std::uint64_t run, std::shared_ptr<McpWorkerLifetime> worker_lifetime = {});
     //return the fff print object
     Print* fff_print() { return m_print; }
     //return the slice result

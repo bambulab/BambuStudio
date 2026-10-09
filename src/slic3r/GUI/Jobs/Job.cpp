@@ -2,8 +2,10 @@
 #include <exception>
 
 #include "Job.hpp"
+#include "../McpTools.hpp"
 #include <libslic3r/Thread.hpp>
 #include <boost/log/trivial.hpp>
+#include <stdexcept>
 
 namespace Slic3r {
 
@@ -19,7 +21,7 @@ void GUI::Job::run(std::exception_ptr &eptr)
     m_running.store(false);
 
     // ensure to call the last status to finalize the job
-    update_status(status_range(), "");
+    update_status(status_range() + (m_mcp_run ? 1 : 0), "");
 }
 
 void GUI::Job::update_status(int st, const wxString &msg)
@@ -27,6 +29,7 @@ void GUI::Job::update_status(int st, const wxString &msg)
     auto evt = new wxThreadEvent(wxEVT_THREAD, m_thread_evt_id);
     evt->SetInt(st);
     evt->SetString(msg);
+    evt->SetExtraLong(static_cast<long>(m_mcp_run));
     wxQueueEvent(this, evt);
 }
 
@@ -46,6 +49,7 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
     m_thread_evt_id = wxNewId();
 
     Bind(wxEVT_THREAD, [this](const wxThreadEvent &evt) {
+        if (evt.GetExtraLong() != static_cast<long>(m_mcp_run)) return;
         if (m_finalizing)  return;
         if (this->is_print_job() && evt.GetInt() >= 100) { update_percent_finish(); }
 
@@ -55,8 +59,10 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
 
         if (m_finalized) return;
 
-        m_progress->set_progress(evt.GetInt());
-        if (evt.GetInt() == status_range() || m_worker_error) {
+        const bool mcp_terminal = m_mcp_run && evt.GetInt() == status_range() + 1;
+        m_progress->set_progress(std::min(evt.GetInt(), status_range()));
+        if (m_mcp_run && !mcp_terminal) return;
+        if (mcp_terminal || evt.GetInt() == status_range() || m_worker_error) {
             // set back the original range and cancel callback
             m_progress->set_range(m_range);
             // Make sure progress indicators get the last value of their range
@@ -68,7 +74,13 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
                 m_finalized = true;
                 m_progress->set_status_text("");
                 m_progress->set_progress(m_range);
-                on_exception(m_worker_error);
+                if (m_mcp_run) {
+                    std::string error = "Native UI job failed";
+                    try { std::rethrow_exception(m_worker_error); }
+                    catch (const std::exception& exception) { error = exception.what(); }
+                    catch (...) {}
+                    mcp_ui_job_completed(m_mcp_run, false, false, error);
+                } else on_exception(m_worker_error);
             }
             else {
                 // This is an RAII solution to remember that finalization is
@@ -84,7 +96,13 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
                     ~Finalizing() { flag = false; }
                 } fin(m_finalizing);
 
-                finalize();
+                try {
+                    finalize();
+                    if (m_mcp_run) mcp_ui_job_completed(m_mcp_run, true, m_canceled.load(), {});
+                } catch (...) {
+                    if (m_mcp_run) mcp_ui_job_completed(m_mcp_run, false, false, "Native UI job finalization failed");
+                    else throw;
+                }
             }
             wxEndBusyCursor();
             // dont do finalization again for the same process
@@ -98,7 +116,10 @@ void GUI::Job::start()
     if (!m_running.load()) {
         // Changing cursor to busy
         wxBeginBusyCursor();
-        prepare();
+        if (m_mcp_run) {
+            try { prepare(); }
+            catch (...) { m_finalized = true; wxEndBusyCursor(); throw; }
+        } else prepare();
 
         // Save the current status indicatior range and push the new one
         m_range = m_progress->get_range();
@@ -116,7 +137,8 @@ void GUI::Job::start()
             m_worker_error = nullptr;
             m_thread = create_thread([this] { this->run(m_worker_error); });
         } catch (std::exception &) {
-            update_status(status_range(),
+            m_worker_error = std::current_exception();
+            update_status(status_range() + (m_mcp_run ? 1 : 0),
                           _(L("Error! Unable to create thread!")));
         }
 
@@ -140,6 +162,27 @@ bool GUI::Job::join(int timeout_ms)
 void GUI::ExclusiveJobGroup::start(size_t jid) {
     assert(jid < m_jobs.size());
     stop_all();
+    if (is_any_running()) return;
+    if (std::any_of(m_jobs.begin(), m_jobs.end(), [](const auto& job) {
+        return job->mcp_run() && !job->is_finalized();
+    })) return;
+    for (auto& job : m_jobs) {
+        job->mcp_set_run(0);
+    }
+    m_jobs[jid]->start();
+}
+
+void GUI::ExclusiveJobGroup::mcp_start(size_t jid, std::uint64_t run) {
+    assert(jid < m_jobs.size());
+    stop_all();
+    if (is_any_running()) throw std::runtime_error("Previous UI job did not stop");
+    if (std::any_of(m_jobs.begin(), m_jobs.end(), [](const auto& job) {
+        return job->mcp_run() && !job->is_finalized();
+    })) throw std::runtime_error("Previous UI job has not finalized");
+    for (auto& job : m_jobs) {
+        job->mcp_set_run(0);
+    }
+    m_jobs[jid]->mcp_set_run(run);
     m_jobs[jid]->start();
 }
 
@@ -154,6 +197,15 @@ void GUI::ExclusiveJobGroup::join_all(int wait_ms)
         BOOST_LOG_TRIVIAL(error) << "Could not abort a job!";
 }
 
+void GUI::ExclusiveJobGroup::join_mcp_jobs()
+{
+    for (auto& job : m_jobs) {
+        if (!job->mcp_run()) continue;
+        job->cancel();
+        job->join();
+    }
+}
+
 bool GUI::ExclusiveJobGroup::is_any_running() const
 {
     return std::any_of(m_jobs.begin(), m_jobs.end(),
@@ -163,4 +215,3 @@ bool GUI::ExclusiveJobGroup::is_any_running() const
 }
 
 }
-

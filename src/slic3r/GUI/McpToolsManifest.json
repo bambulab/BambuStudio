@@ -1,0 +1,3293 @@
+[
+  {
+    "name": "app_get_capabilities",
+    "method": "app.get_capabilities",
+    "description": "Discover implemented native methods, versions and limits.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "app_get_state",
+    "method": "app.get_state",
+    "description": "Read current project, dirty, busy and workspace state.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "printer_get_state",
+    "method": "printer.get_state",
+    "description": "Read selected printer, process, filament and bed configuration plus each plate build volume.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "printer_select_nozzle",
+    "method": "printer.select_nozzle",
+    "description": "Select a visible FFF printer preset for the same printer model and exact nozzle diameter using the observed current preset; ambiguous diameters require presetName.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "diameter": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 2
+        },
+        "expectedPrinterPreset": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "presetName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        }
+      },
+      "required": [
+        "diameter",
+        "expectedPrinterPreset"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "preset_list",
+    "method": "preset.list",
+    "description": "List available visible printer, process or filament presets and compatibility.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "printer",
+            "process",
+            "filament"
+          ]
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "preset_select",
+    "method": "preset.select",
+    "description": "Select a compatible visible printer, process or filament preset using the observed current name. Printer changes with loaded objects may require native UI interaction.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "printer",
+            "process",
+            "filament"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "expectedCurrent": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "slot": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "expectedCurrent"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "model_list",
+    "method": "model.list",
+    "description": "List live objects, volumes, instances and absolute transforms. Use returned stable object and instance IDs for mutations.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_inspect",
+    "method": "object.inspect",
+    "description": "Read one object bounds, mesh statistics, volumes and instance plate assignments by stable ID.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "objectId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_list",
+    "method": "plate.list",
+    "description": "List current plates, names, order, locks and selected plate, with a revision guard required by plate index operations.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "project_new",
+    "method": "project.new",
+    "description": "Create an empty project. Save first or explicitly discard unsaved changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "discardChanges": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "project_open",
+    "method": "project.open",
+    "description": "Open a .3mf project, replacing the current workspace. Save first or explicitly discard unsaved changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "discardChanges": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "project_save",
+    "method": "project.save",
+    "description": "Save current project to an absolute .3mf destination. Overwrite requires an explicit flag.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "model_import",
+    "method": "model.import",
+    "description": "Add STL/OBJ/STEP/3MF geometry. 3MF import loads geometry; use project_open to load project settings.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32768
+          },
+          "minItems": 1,
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "paths"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "model_import_multipart",
+    "method": "model.import_multipart",
+    "description": "Import up to 100 bounded STL/OBJ meshes as volumes of one object on the selected unlocked plate, preserving relative geometry; requires a fresh plate revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32768
+          },
+          "minItems": 1,
+          "maxItems": 100
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "paths",
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_rename",
+    "method": "object.rename",
+    "description": "Rename an object using its stable ID from model_list.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        }
+      },
+      "required": [
+        "objectId",
+        "name"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_select",
+    "method": "object.select",
+    "description": "Select an object using its stable ID from model_list.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "objectId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_transform",
+    "method": "object.transform",
+    "description": "Set one instance absolute world position in mm, rotation in degrees, or scale factors using stable IDs from model_list.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "position": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1000000,
+            "maximum": 1000000
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "rotation": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1000000,
+            "maximum": 1000000
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "scale": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000
+          },
+          "minItems": 3,
+          "maxItems": 3
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_center",
+    "method": "object.center",
+    "description": "Center one instance on its assigned unlocked plate; rejects a result that does not fit.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_drop_to_bed",
+    "method": "object.drop_to_bed",
+    "description": "Lower one instance onto its assigned unlocked plate; rejects a result that does not fit.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_mirror",
+    "method": "object.mirror",
+    "description": "Toggle one instance mirror on the named axis of its assigned unlocked plate.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "axis": {
+          "type": "string",
+          "enum": [
+            "x",
+            "y",
+            "z"
+          ]
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId",
+        "axis"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_delete",
+    "method": "object.delete",
+    "description": "Delete an object and its instances using stable object ID and native undo.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "objectId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_duplicate",
+    "method": "object.duplicate",
+    "description": "Create copies of the object identified by its stable ID. Re-list the model to obtain copied object and instance IDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "copies": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "objectId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_reorder",
+    "method": "object.reorder",
+    "description": "Move an object in the object tree within the same plate, identifying both objects by stable ID. This changes tree order; it does not arrange geometry or set sequential print order.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "fromObjectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "toObjectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "fromObjectId",
+        "toObjectId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "selection_all",
+    "method": "selection.all",
+    "description": "Select all objects or all objects on the current plate.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "currentPlate": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "selection_clear",
+    "method": "selection.clear",
+    "description": "Clear current selection.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_select",
+    "method": "plate.select",
+    "description": "Select a plate by zero-based index guarded by the latest plate_list revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_create",
+    "method": "plate.create",
+    "description": "Create a new plate.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_delete",
+    "method": "plate.delete",
+    "description": "Delete a plate with a fresh revision. Defaults to requiring empty; contents=move requires a different empty unlocked target; contents=delete removes only objects wholly on the source plate. Never deletes the last plate.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "contents": {
+          "type": "string",
+          "enum": [
+            "require_empty",
+            "move",
+            "delete"
+          ],
+          "default": "require_empty"
+        },
+        "targetPlateIndex": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_rename",
+    "method": "plate.rename",
+    "description": "Rename a plate, guarded by the latest plate_list revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "name"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_reorder",
+    "method": "plate.reorder",
+    "description": "Move a plate to another zero-based position, guarded by the latest plate_list revision. Re-list afterwards.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "fromIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "toIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "fromIndex",
+        "toIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_lock",
+    "method": "plate.lock",
+    "description": "Lock or unlock a plate for native preparation operations, guarded by the latest plate_list revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "locked": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_move_instance",
+    "method": "plate.move_instance",
+    "description": "Move one instance between unlocked plates using the latest plate_list revision; re-list after moving.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId",
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_set_print_sequence",
+    "method": "plate.set_print_sequence",
+    "description": "Set one unlocked plate print sequence using the latest plate_list revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sequence": {
+          "type": "string",
+          "enum": [
+            "default",
+            "by_layer",
+            "by_object"
+          ]
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "sequence"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_clone",
+    "method": "plate.clone",
+    "description": "Clone an unlocked plate and its instances using the latest plate_list revision; re-list afterwards.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "plate_set_bed_type",
+    "method": "plate.set_bed_type",
+    "description": "Set a plate bed type using the latest plate_list revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "bedType": {
+          "type": "string",
+          "enum": [
+            "default",
+            "cool_plate",
+            "engineering_plate",
+            "high_temp",
+            "textured_pei",
+            "super_tack"
+          ]
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "bedType"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "arrange_start",
+    "method": "arrange.start",
+    "description": "Start native arrangement using current selection/options and return a tracked job. Inspect job_get for its terminal outcome.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "orient_start",
+    "method": "orient.start",
+    "description": "Start native orientation using current selection/options and return a tracked job. Inspect job_get for its terminal outcome.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "history_undo",
+    "method": "history.undo",
+    "description": "Apply native undo. Filesystem writes cannot be undone.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "history_redo",
+    "method": "history.redo",
+    "description": "Apply native redo.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "view_set",
+    "method": "view.set",
+    "description": "Set a named camera view.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "iso",
+            "top",
+            "bottom",
+            "front",
+            "rear",
+            "left",
+            "right"
+          ]
+        }
+      },
+      "required": [
+        "direction"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "view_capture",
+    "method": "view.capture",
+    "description": "Render the selected plate from a named native offscreen view to an absolute PNG file, guarded by the current plate revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 1024
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 1024
+        },
+        "view": {
+          "type": "string",
+          "enum": [
+            "iso",
+            "top",
+            "front",
+            "right"
+          ]
+        },
+        "overwrite": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "path"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "settings_get",
+    "method": "settings.get",
+    "description": "Read supported process settings as native serialized strings and writable key names.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "settings_effective",
+    "method": "settings.effective",
+    "description": "Read effective native serialized settings and their global, plate, object or volume source. A plate filter requires a fresh plate_list revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "minItems": 1,
+          "maxItems": 100
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "settings_update",
+    "method": "settings.update",
+    "description": "Update supported process settings with native serialized strings; native validation checks values before changes.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 1024
+          }
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "settings_override",
+    "method": "settings.override",
+    "description": "Set validated native serialized settings on one plate, object or volume; scope IDs and fresh plate revisions are required.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "enum": [
+            "plate",
+            "object",
+            "volume"
+          ]
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 1024
+          }
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "scope",
+        "values"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "filament_assign",
+    "method": "filament.assign",
+    "description": "Assign a selected filament preset index to one object or volume.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "filamentIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "objectId",
+        "filamentIndex"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "geometry_faces",
+    "method": "geometry.faces",
+    "description": "Read bounded face geometry and mesh revision for one object volume in volume-local coordinates.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "objectId",
+        "volumeId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "geometry_analyze",
+    "method": "geometry.analyze",
+    "description": "Measure printable surface, bed contact and downward overhang areas for one instance; results are geometric diagnostics, not support simulation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "overhangAngle": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 90
+        },
+        "contactTolerance": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId",
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_lay_on_face",
+    "method": "object.lay_on_face",
+    "description": "Place one instance on a selected face from a current geometry_faces revision.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "meshRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "faceIndex": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId",
+        "volumeId",
+        "meshRevision",
+        "faceIndex"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_cut",
+    "method": "object.cut",
+    "description": "Cut one instance by a world-coordinate plane. Discarding painted annotations requires an explicit flag.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "normal": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1000000,
+            "maximum": 1000000
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "offset": {
+          "type": "number",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "keep": {
+          "type": "string",
+          "enum": [
+            "both",
+            "upper",
+            "lower"
+          ]
+        },
+        "discardPaint": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId",
+        "normal",
+        "offset",
+        "keep"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_split",
+    "method": "object.split",
+    "description": "Split one object into independent native objects.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "objectId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "object_merge",
+    "method": "object.merge",
+    "description": "Merge two or more objects on the same plate into a multipart object.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 2,
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "objectIds"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "volume_add",
+    "method": "volume.add",
+    "description": "Add a native primitive volume to one object with explicit size, position and volume type.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "shape": {
+          "type": "string",
+          "enum": [
+            "box",
+            "cylinder",
+            "sphere"
+          ]
+        },
+        "size": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 10000
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "position": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1000000,
+            "maximum": 1000000
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "part",
+            "negative",
+            "modifier",
+            "support_enforcer",
+            "support_blocker"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        }
+      },
+      "required": [
+        "objectId",
+        "shape",
+        "size",
+        "position",
+        "type"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "volume_set_type",
+    "method": "volume.set_type",
+    "description": "Change one volume semantic type using stable object and volume IDs.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "part",
+            "negative",
+            "modifier",
+            "support_enforcer",
+            "support_blocker"
+          ]
+        }
+      },
+      "required": [
+        "objectId",
+        "volumeId",
+        "type"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "painting_set",
+    "method": "painting.set",
+    "description": "Apply support, seam or filament painting to selected face indices from a current mesh revision; state 0 erases.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "meshRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "support",
+            "seam",
+            "filament"
+          ]
+        },
+        "faceIndices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 1,
+          "maxItems": 10000
+        },
+        "state": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32
+        }
+      },
+      "required": [
+        "objectId",
+        "volumeId",
+        "meshRevision",
+        "kind",
+        "faceIndices",
+        "state"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "layers_get",
+    "method": "layers.get",
+    "description": "Read one object variable layer-height profile.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "objectId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "layers_set",
+    "method": "layers.set",
+    "description": "Set or clear one object variable layer-height profile using height/thickness pairs; an empty profile resets it.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "profile": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "objectId",
+        "profile"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "mesh_repair",
+    "method": "mesh.repair",
+    "description": "Run bounded native ADMesh import repair on one volume. Returns a new volume ID and mesh revision; re-list afterwards. Watertight output is not guaranteed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "meshRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "discardPaint": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "objectId",
+        "volumeId",
+        "meshRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "mesh_simplify",
+    "method": "mesh.simplify",
+    "description": "Simplify one volume mesh to fewer triangles. Returns a new volume ID and mesh revision; painted annotations require explicit discard.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "volumeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "meshRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "targetTriangles": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 200000
+        },
+        "discardPaint": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "objectId",
+        "volumeId",
+        "meshRevision",
+        "targetTriangles"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "export_geometry",
+    "method": "export.geometry",
+    "description": "Export one instance world geometry to an absolute STL or OBJ path; overwrite requires an explicit flag.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "overwrite": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "objectId",
+        "instanceId",
+        "path"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "slice_get_state",
+    "method": "slice.get_state",
+    "description": "Read selected FFF plate native validity, export readiness, tracked result, progress and available statistics. Idle alone does not prove a successful slice.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "preview_get_summary",
+    "method": "preview.get_summary",
+    "description": "Read a current completed plate slice summary, including counts and slicer warnings.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "preview_get_layers",
+    "method": "preview.get_layers",
+    "description": "Read a bounded page of layer heights and toolpath counts from a current plate slice.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "preview_get_toolpaths",
+    "method": "preview.get_toolpaths",
+    "description": "Read a bounded page of raw move geometry, role and extruder from a current plate slice.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "slice_validate",
+    "method": "slice.validate",
+    "description": "Validate the selected FFF plate using a fresh plate_list revision. Synchronizes native internal print state; valid=false reports errors without starting a slice. Does not change user settings.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "slice_start",
+    "method": "slice.start",
+    "description": "Start native slicing of the selected FFF plate using a fresh plate_list revision. Inspect the returned job with job_get until an observed terminal outcome; submission or progress 100 does not establish success.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "slice_start_batch",
+    "method": "slice.start_batch",
+    "description": "Slice up to 32 selected plates sequentially using a fresh plate_list revision, or all plates when indices are omitted. Inspect job_get for each observed completion or cancellation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "plateIndices": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 1,
+          "maxItems": 32
+        }
+      },
+      "required": [
+        "expectedPlateRevision"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "job_get",
+    "method": "job.get",
+    "description": "Inspect a tracked native job, including available progress, terminal outcome and errors. Old-session or expired IDs fail explicitly.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "required": [
+        "jobId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "job_cancel",
+    "method": "job.cancel",
+    "description": "Request cooperative cancellation of a tracked job. The request does not prove completion; inspect job_get for its correlated terminal outcome.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "required": [
+        "jobId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "export_gcode",
+    "method": "export.gcode",
+    "description": "Export the selected FFF plate completed native result to an absolute .gcode path in an existing directory. Requires current plate revision and sliceResultId; overwrite defaults to false. Returns a tracked job: inspect job_get for completion. Does not reslice, execute scripts, send or print.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "overwrite": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId",
+        "path"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "export_sliced_3mf",
+    "method": "export.sliced_3mf",
+    "description": "Export only the selected plate’s completed native slice as a .gcode.3mf package; requires its current slice result and explicit overwrite.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "overwrite": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId",
+        "path"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "device_list",
+    "method": "device.list",
+    "description": "List currently authorized native devices and safe status summaries without credentials.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_get_state",
+    "method": "device.get_state",
+    "description": "Read one device connection, active task identity, print progress, storage state and supported actions without credentials.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_select",
+    "method": "device.select",
+    "description": "Select one device already in the native authorized list; recheck its state before physical commands.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_pause",
+    "method": "device.pause",
+    "description": "Send an explicit pause command to the selected connected printer, guarded by its current print status and task ID. Acceptance is not completion.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedTaskId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "expectedTaskId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_resume",
+    "method": "device.resume",
+    "description": "Send an explicit resume command to the selected connected printer when native safety checks allow it, guarded by task ID. Acceptance is not completion.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedTaskId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "expectedTaskId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_stop",
+    "method": "device.stop",
+    "description": "Stop the selected printer’s current task only with matching status, task ID and confirm=STOP_PRINT. Acceptance is not completion.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedTaskId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "confirm": {
+          "type": "string",
+          "const": "STOP_PRINT"
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "expectedTaskId",
+        "confirm"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_upload_plan",
+    "method": "device.upload.plan",
+    "description": "Validate the selected plate’s completed G-code and selected connected LAN printer for SD-card upload; no upload or print starts.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "remoteName": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*\\.gcode$"
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId",
+        "remoteName"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_upload_start",
+    "method": "device.upload.start",
+    "description": "Upload only the selected plate’s completed G-code to the selected LAN printer SD card. Requires confirm=UPLOAD_TO_SDCARD; does not start printing. Inspect job_get for provider completion.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "remoteName": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*\\.gcode$"
+        },
+        "confirm": {
+          "type": "string",
+          "const": "UPLOAD_TO_SDCARD"
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId",
+        "remoteName",
+        "confirm"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_print_plan",
+    "method": "device.print.plan",
+    "description": "Validate selected printer, route, current plate slice, optional exact AMS slot mapping and explicit print options without starting a print.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "remoteName": {
+          "type": "string",
+          "minLength": 11,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*\\.gcode\\.3mf$"
+        },
+        "route": {
+          "type": "string",
+          "enum": [
+            "lan",
+            "cloud"
+          ]
+        },
+        "bedLeveling": {
+          "type": "boolean"
+        },
+        "flowCalibration": {
+          "type": "boolean"
+        },
+        "amsMapping": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "filamentIndex": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "amsId": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "slotId": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "filamentIndex",
+              "amsId",
+              "slotId"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 32
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId",
+        "remoteName",
+        "route",
+        "bedLeveling",
+        "flowCalibration"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "device_print_start",
+    "method": "device.print.start",
+    "description": "Submit the selected plate’s private native sliced 3MF package to the selected printer to start a physical print; AMS mappings must match current slots and sliced filaments. Requires confirm=START_PRINT. Provider submission is not observed physical printing.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "remoteName": {
+          "type": "string",
+          "minLength": 11,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*\\.gcode\\.3mf$"
+        },
+        "route": {
+          "type": "string",
+          "enum": [
+            "lan",
+            "cloud"
+          ]
+        },
+        "bedLeveling": {
+          "type": "boolean"
+        },
+        "flowCalibration": {
+          "type": "boolean"
+        },
+        "amsMapping": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "filamentIndex": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "amsId": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "slotId": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "filamentIndex",
+              "amsId",
+              "slotId"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "confirm": {
+          "type": "string",
+          "const": "START_PRINT"
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId",
+        "remoteName",
+        "route",
+        "bedLeveling",
+        "flowCalibration",
+        "confirm"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "ams_inventory",
+    "method": "ams.inventory",
+    "description": "Read the selected authorized printer’s current AMS units, slots, filament types and selected slicer filament presets without credentials.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "ams_mapping_plan",
+    "method": "ams.mapping.plan",
+    "description": "Validate explicit sliced-filament to current AMS-slot assignments for the selected printer and plate. Mapping is applied only by a confirmed device_print_start submission.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "plateIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expectedPlateRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "sliceResultId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "remoteName": {
+          "type": "string",
+          "minLength": 11,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*\\.gcode\\.3mf$"
+        },
+        "route": {
+          "type": "string",
+          "enum": [
+            "lan",
+            "cloud"
+          ]
+        },
+        "bedLeveling": {
+          "type": "boolean"
+        },
+        "flowCalibration": {
+          "type": "boolean"
+        },
+        "amsMapping": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "filamentIndex": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "amsId": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "slotId": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "filamentIndex",
+              "amsId",
+              "slotId"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 32
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "plateIndex",
+        "expectedPlateRevision",
+        "sliceResultId",
+        "remoteName",
+        "route",
+        "bedLeveling",
+        "flowCalibration"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "calibration_get_state",
+    "method": "calibration.get_state",
+    "description": "Read one device native calibration support and observed state.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "calibration_start",
+    "method": "calibration.start",
+    "description": "Start explicitly selected native printer calibration routines on the selected connected device; requires confirm=START_CALIBRATION. Poll calibration_get_state for observed status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "expectedPrintStatus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "confirm": {
+          "type": "string",
+          "const": "START_CALIBRATION"
+        },
+        "vibration": {
+          "type": "boolean"
+        },
+        "bedLeveling": {
+          "type": "boolean"
+        },
+        "camera": {
+          "type": "boolean"
+        },
+        "motorNoise": {
+          "type": "boolean"
+        },
+        "nozzle": {
+          "type": "boolean"
+        },
+        "bedCalibration": {
+          "type": "boolean"
+        },
+        "clumpPosition": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "deviceId",
+        "expectedPrintStatus",
+        "confirm"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "account_get_state",
+    "method": "account.get_state",
+    "description": "Read native networking plugin, login and server connection state without exposing account credentials.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "account_tasks_list",
+    "method": "account.tasks.list",
+    "description": "Start a bounded native cloud print-history query. Inspect job_get for a sanitized result; the provider read cannot be cancelled once started.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "account_presets_list",
+    "method": "account.presets.list",
+    "description": "Start a native cloud user-preset name query. Inspect job_get for a sanitized result; the provider read cannot be cancelled once started.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "preferences_get",
+    "method": "preferences.get",
+    "description": "Read a small whitelist of nonsecret application profile preferences.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "preferences_set",
+    "method": "preferences.set",
+    "description": "Save one whitelisted boolean preference in the isolated application profile.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "enum": [
+            "show_3d_navigator",
+            "use_12h_time_format",
+            "auto_calculate_flush",
+            "backup_switch"
+          ]
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key",
+        "value"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  }
+]

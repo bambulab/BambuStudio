@@ -1,4 +1,5 @@
 #include "Plater.hpp"
+#include "McpTools.hpp"
 #include "PerfTrace.hpp"
 #include <array>
 #include <boost/format/format_fwd.hpp>
@@ -6806,16 +6807,18 @@ public:
             m_print_id = add_job(std::make_unique<PrintJob>(m_pri, m->q));
         }
 
-        void arrange()
+        void arrange(std::uint64_t mcp_run = 0)
         {
             m->take_snapshot("Arrange");
-            start(m_arrange_id);
+            if (mcp_run) mcp_start(m_arrange_id, mcp_run);
+            else start(m_arrange_id);
         }
 
-        void orient()
+        void orient(std::uint64_t mcp_run = 0)
         {
             m->take_snapshot("Orient");
-            start(m_orient_id);
+            if (mcp_run) mcp_start(m_orient_id, mcp_run);
+            else start(m_orient_id);
         }
 
         void fill_bed()
@@ -8038,6 +8041,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
 Plater::priv::~priv()
 {
+    m_ui_jobs.join_mcp_jobs();
     if (config != nullptr)
         delete config;
     // Saves the database of visited (already shown) hints into hints.ini.
@@ -8485,6 +8489,15 @@ void read_binary_stl(const std::string& filename, std::string& model_id, std::st
 // BBS: backup & restore
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi)
 {
+
+    const int mcp_exception_count = std::uncaught_exceptions();
+    ScopeGuard mcp_import_cleanup([this, mcp_exception_count] {
+        if (mcp_noninteractive_import() && std::uncaught_exceptions() > mcp_exception_count) {
+            q->skip_thumbnail_invalid = false;
+            q->m_loading_project = false;
+            wxGetApp().preset_bundle->extruder_nozzle_stat.set_force_keep_flag(false);
+        }
+    });
     std::vector<size_t> empty_result;
     bool dlg_cont = true;
     bool is_user_cancel = false;
@@ -8521,6 +8534,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     wxBusyCursor busy;
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
+    ScopeGuard mcp_model_cleanup([&new_model] {
+        if (mcp_noninteractive_import() && new_model) delete new_model;
+    });
     std::vector<size_t> obj_idxs;
 
     std::string  designer_model_id;
@@ -8618,8 +8634,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                     // BBS: add part plate related logic
                     PlateDataPtrs             plate_data;
+                    ScopeGuard mcp_plate_cleanup([&plate_data] { if (mcp_noninteractive_import()) release_PlateData_list(plate_data); });
                     ConfigSubstitutionContext config_substitutions{ForwardCompatibilitySubstitutionRule::Enable};
                     std::vector<Preset *>     project_presets;
+                    ScopeGuard mcp_preset_cleanup([&project_presets] { if (mcp_noninteractive_import()) { for (auto* preset : project_presets) delete preset; } });
                     // BBS: backup & restore
                     q->skip_thumbnail_invalid = true;
                     // Used to store color group mapping information in standard 3MF files
@@ -8698,7 +8716,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         //load_config = false;
                         if (!load_model) {
                             // only load config case, return directly
-                            show_info(q, _L("The Config can not be loaded."), _L("Load 3mf"));
+                            (mcp_require_interactive_import("Native import requires configuration, color, texture or warning interaction"), show_info(q, _L("The Config can not be loaded."), _L("Load 3mf")));
                             q->skip_thumbnail_invalid = false;
                             return empty_result;
                         }
@@ -8709,7 +8727,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         //q->select_plate(0);
                         if (load_type != LoadType::LoadGeometry) {
                             if (en_3mf_file_type == En3mfType::From_BBS)
-                                show_info(q, _L("Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"), _L("Load 3mf"));
+                                (mcp_require_interactive_import("Native import requires configuration, color, texture or warning interaction"), show_info(q, _L("Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"), _L("Load 3mf")));
                             else
                                 q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
                                     NotificationManager::NotificationLevel::WarningNotificationLevel,
@@ -8749,13 +8767,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 }
                                 context += "\n\n";
                                 Newer3mfVersionDialog newer_dlg(q, &file_version, &cloud_ver, context);
-                                newer_dlg.ShowModal();
+                                (mcp_require_interactive_import("Native import requires a dialog"), newer_dlg.ShowModal());
                             }
                             else {
                                 //if the minor version is not matched
                                 //if (file_version.min() != app_version.min()) {
                                 Newer3mfVersionDialog newer_dlg(q, &file_version, &cloud_ver, "");
-                                    auto res = newer_dlg.ShowModal();
+                                    auto res = (mcp_require_interactive_import("Native import requires a dialog"), newer_dlg.ShowModal());
                                 //}
                             }
                         }
@@ -8836,7 +8854,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         PresetsConfigSubstitutions preset_substitutions;
                         PresetBundle &             preset_bundle = *wxGetApp().preset_bundle;
                         preset_substitutions                     = preset_bundle.load_project_embedded_presets(project_presets, ForwardCompatibilitySubstitutionRule::Enable);
-                        if (!preset_substitutions.empty()) show_substitutions_info(preset_substitutions);
+                        if (!preset_substitutions.empty()) (mcp_require_interactive_import("Native import requires configuration, color, texture or warning interaction"), show_substitutions_info(preset_substitutions));
                     }
                     if (project_presets.size() > 0) {
                         for (unsigned int i = 0; i < project_presets.size(); i++) { delete project_presets[i]; }
@@ -8874,7 +8892,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             notify_manager->bbl_show_3mf_warn_notification(error_message);
                         }
                     }
-                    if (!config_substitutions.empty()) show_substitutions_info(config_substitutions.substitutions, filename.string());
+                    if (!config_substitutions.empty()) (mcp_require_interactive_import("Native import requires configuration, color, texture or warning interaction"), show_substitutions_info(config_substitutions.substitutions, filename.string()));
 
                     // BBS
                     if (load_model && !load_config) {
@@ -8902,7 +8920,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             color_dialog_in_out.input_type = ObjDialogInOut::FormatType::Standard3mf;
                             color_dialog_in_out.volume_colors = volume_color_data;
                             ObjColorDialog color_dlg(nullptr, color_dialog_in_out, extruder_colours);
-                            if (color_dlg.ShowModal() == wxID_OK) {
+                            if ((mcp_require_interactive_import("Native import requires a dialog"), color_dlg.ShowModal()) == wxID_OK) {
                                 color_dialog_in_out.filament_ids.clear();
                             }
                         }
@@ -8994,7 +9012,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                                 MessageDialog dlg(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-codes"));
                                 dlg.show_dsa_button();
-                                auto  res = dlg.ShowModal();
+                                auto  res = (mcp_require_interactive_import("Native import requires a dialog"), dlg.ShowModal());
                                 if (dlg.get_checkbox_state())
                                     wxGetApp().app_config->set("no_warn_when_modified_gcodes", "true");
                             }
@@ -9007,7 +9025,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 //show_info(q, _L("The 3mf has following customized filament or printer presets:") + warning_message + _L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!"), _L("Customized Preset"));
                                 MessageDialog dlg(q, _L("The 3mf has following customized filament or printer presets:") + from_u8(warning_message)+ _L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!"), _L("Customized Preset"));
                                 dlg.show_dsa_button();
-                                auto  res = dlg.ShowModal();
+                                auto  res = (mcp_require_interactive_import("Native import requires a dialog"), dlg.ShowModal());
                                 if (dlg.get_checkbox_state())
                                     wxGetApp().app_config->set("no_warn_when_modified_gcodes", "true");
                             }
@@ -9239,8 +9257,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             } else {
                 // BBS: add plate data related logic
                 PlateDataPtrs plate_data;
+                    ScopeGuard mcp_plate_cleanup([&plate_data] { if (mcp_noninteractive_import()) release_PlateData_list(plate_data); });
                 // BBS: project embedded settings
                 std::vector<Preset *> project_presets;
+                    ScopeGuard mcp_preset_cleanup([&project_presets] { if (mcp_noninteractive_import()) { for (auto* preset : project_presets) delete preset; } });
                 bool                  is_xxx;
                 Semver                file_version;
 
@@ -9260,7 +9280,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             extruder_colours.push_back(all_colours[i]);
                     }
                     ObjColorDialog                 color_dlg(nullptr, in_out, extruder_colours);
-                    if (color_dlg.ShowModal() != wxID_OK) {
+                    if ((mcp_require_interactive_import("Native import requires a dialog"), color_dlg.ShowModal()) != wxID_OK) {
                         in_out.filament_ids.clear();
                     }
                 };
@@ -9283,13 +9303,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         },
                         [](int isUtf8StepFile) {
                             if (!isUtf8StepFile)
-                                Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
-                                                    _L("Attention!"));
+                                (mcp_require_interactive_import("Native import requires configuration, color, texture or warning interaction"), Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
+                                                    _L("Attention!")));
                         },
                         [this, &path, &is_user_cancel, &linear, &angle, &split_compound](Slic3r::Step& file, double& linear_value, double& angle_value, bool& is_split)-> int {
                             if (wxGetApp().app_config->get_bool("enable_step_mesh_setting")) {
                                 StepMeshDialog mesh_dlg(nullptr, file, linear, angle);
-                                if (mesh_dlg.ShowModal() == wxID_OK) {
+                                if ((mcp_require_interactive_import("Native import requires a dialog"), mesh_dlg.ShowModal()) == wxID_OK) {
                                     linear_value = mesh_dlg.get_linear_defletion();
                                     angle_value  = mesh_dlg.get_angle_defletion();
                                     is_split     = mesh_dlg.get_split_compound_value();
@@ -9309,7 +9329,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             for (const auto& name : names) {
                                 msg += wxString::FromUTF8(name) + "\n";
                             }
-                            Slic3r::GUI::show_info(nullptr, msg, _L("Unclosed Shell Warning"));
+                            (mcp_require_interactive_import("Native import requires configuration, color, texture or warning interaction"), Slic3r::GUI::show_info(nullptr, msg, _L("Unclosed Shell Warning")));
                         });
                 }else {
                     if (boost::algorithm::iends_with(path.string(), ".obj")) {
@@ -9360,17 +9380,19 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     PresetsConfigSubstitutions preset_substitutions;
                     PresetBundle &             preset_bundle = *wxGetApp().preset_bundle;
                     preset_substitutions                     = preset_bundle.load_project_embedded_presets(project_presets, ForwardCompatibilitySubstitutionRule::Enable);
-                    if (!preset_substitutions.empty()) show_substitutions_info(preset_substitutions);
+                    if (!preset_substitutions.empty()) (mcp_require_interactive_import("Native import requires configuration, color, texture or warning interaction"), show_substitutions_info(preset_substitutions));
 
                     for (unsigned int i = 0; i < project_presets.size(); i++) { delete project_presets[i]; }
                     project_presets.clear();
                 }
             }
         } catch (const ConfigurationError &e) {
+            if (mcp_noninteractive_import()) throw;
             std::string message = GUI::format(_L("Failed loading file \"%1%\". An invalid configuration was found."), filename.string()) + "\n\n" + e.what();
             GUI::show_error(q, message);
             continue;
         } catch (const std::exception &e) {
+            if (mcp_noninteractive_import()) throw;
             if (!is_user_cancel)
                 GUI::show_error(q, e.what());
             continue;
@@ -9398,6 +9420,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // texture-import dialog does not pop up over an empty model.
                     if (model.objects.empty())
                         model.texture_mesh.reset();
+                    mcp_require_interactive_import("Native import requires a warning acknowledgement");
                     MessageDialog(q, _L("Objects with zero volume removed"), _L("The volume of the object is zero"), wxICON_INFORMATION | wxOK).ShowModal();
                 }
                 if (imperial_units)
@@ -9440,7 +9463,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     "Instead of considering them as multiple objects, should \n"
                     "the file be loaded as a single object having multiple parts?") + "\n",
                     _L("Multi-part object detected"), wxICON_WARNING | wxYES | wxNO);
-                if (msg_dlg.ShowModal() == wxID_YES) {
+                if ((mcp_require_interactive_import("Native import requires a dialog"), msg_dlg.ShowModal()) == wxID_YES) {
                     model.convert_multipart_object(filaments_cnt);
                 }
             }
@@ -9621,11 +9644,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (visible)
                         dlg.Raise();
                 };
-                if (!run_textured_mesh_import_dialog(model, texture_import_result, cancel_cb, progress_cb, progress_visibility_cb)) {
+                if (!(mcp_require_interactive_import("Native import requires configuration, color, texture or warning interaction"), run_textured_mesh_import_dialog(model, texture_import_result, cancel_cb, progress_cb, progress_visibility_cb))) {
                     q->skip_thumbnail_invalid = false;
                     return empty_result;
                 }
                 if (texture_import_result.fallback_to_geometry_only && !texture_import_result.fallback_warning.empty()) {
+                    mcp_require_interactive_import("Native import requires a warning acknowledgement");
                     MessageDialog(q, texture_import_result.fallback_warning,
                                   _L("Texture Import Warning"),
                                   wxOK | wxICON_WARNING).ShowModal();
@@ -9787,7 +9811,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         if (ask_multi) {
             MessageDialog msg_dlg(q, _L("Load these files as a single object with multiple parts?\n"), _L("Object with multiple parts was detected"),
                                   wxICON_WARNING | wxYES | wxNO);
-            if (msg_dlg.ShowModal() == wxID_YES) { new_model->convert_multipart_object(filaments_cnt); }
+            if ((mcp_require_interactive_import("Native import requires a dialog"), msg_dlg.ShowModal()) == wxID_YES) { new_model->convert_multipart_object(filaments_cnt); }
         }
 
         auto loaded_idxs = load_model_objects(new_model->objects);
@@ -9800,7 +9824,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     }
 
 
-    if (new_model) delete new_model;
+    if (new_model) { delete new_model; new_model = nullptr; }
 
     //BBS: translate old 3mf to correct positions
     if (translate_old) {
@@ -9912,7 +9936,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         dlg.Hide();
         if (!is_user_cancel) {
             MessageDialog msg(wxGetApp().mainframe, _L("The file does not contain any geometry data."), _L("Warning"), wxYES | wxICON_WARNING);
-            if (msg.ShowModal() == wxID_YES) {}
+            if ((mcp_require_interactive_import("Native import requires a dialog"), msg.ShowModal()) == wxID_YES) {}
         }
     }
     std::chrono::system_clock::time_point default_time;
@@ -9958,6 +9982,11 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     if (!update_load_progress(0, _L("Importing model to project...")))
         return obj_idxs;
     for (ModelObject *model_object : model_objects) {
+        if (mcp_noninteractive_import()) {
+            const Vec3d size = model_object->bounding_box().size();
+            if (std::max(size.x() / bed_size.x(), size.y() / bed_size.y()) > 10)
+                mcp_require_interactive_import("Oversized geometry requires a scaling decision");
+        }
         auto *object = model.add_object(*model_object);
         object->sort_volumes(true);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
@@ -9989,7 +10018,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             if (max_ratio > 10000) {
                 MessageDialog dlg(q, _L("Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"), _L("Object too large"),
                                   wxICON_QUESTION | wxYES);
-                int           answer = dlg.ShowModal();
+                int           answer = (mcp_require_interactive_import("Native import requires a dialog"), dlg.ShowModal());
                 // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
                 // so scale down the mesh
                 object->scale_mesh_after_creation(1. / max_ratio);
@@ -10001,7 +10030,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             else if (max_ratio > 10) {
                 MessageDialog dlg(q, _L("Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"), _L("Object too large"),
                                   wxICON_QUESTION | wxYES_NO);
-                int           answer = dlg.ShowModal();
+                int           answer = (mcp_require_interactive_import("Native import requires a dialog"), dlg.ShowModal());
                 if (answer == wxID_YES) {
                     instance->set_scaling_factor(instance->get_scaling_factor() / max_ratio);
                     scaled_down = true;
@@ -12863,6 +12892,11 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
+    if (!mcp_accept_slice_event(evt.mcp_run_id)) return;
+    if (evt.mcp_run_id) {
+        mcp_slice_progress(evt.mcp_run_id, evt.status.percent);
+        if (evt.mcp_run_id != background_process.mcp_current_run()) return;
+    }
     if (evt.status.is_helio && !helio_background_process.is_action_current(evt.generation)) {
         return;
     }
@@ -12953,6 +12987,8 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 
 void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 {
+    if (!mcp_accept_slice_event(static_cast<std::uint64_t>(evt.GetExtraLong()))) return;
+    if (evt.GetExtraLong() && static_cast<std::uint64_t>(evt.GetExtraLong()) != background_process.mcp_current_run()) return;
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, string %2%") % evt.GetEventType() % evt.GetString();
     //BBS: add slice project logic
     if (m_slice_all && (m_cur_slice_plate < (partplate_list.get_plate_count() - 1))) {
@@ -13047,6 +13083,7 @@ void Plater::priv::clear_warnings()
 }
 bool Plater::priv::warnings_dialog()
 {
+    if (mcp_slice_active()) return false;
     if (current_warnings.empty())
         return true;
     std::string text = _u8L("There are warnings after slicing models:") + "\n";
@@ -13103,9 +13140,22 @@ void Plater::priv::track_slice_mesh_stat()
 //BBS: add project slice logic
 void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
+    if (!mcp_accept_slice_event(evt.mcp_run_id)) return;
+    if (evt.mcp_run_id && (evt.mcp_orphaned || !evt.mcp_worker_stopped || evt.mcp_run_id != background_process.mcp_current_run())) {
+        mcp_slice_completed(*q, evt.mcp_run_id, false, true, evt.mcp_worker_stopped, "Native run was interrupted");
+        if (evt.mcp_worker_stopped && evt.mcp_run_id == background_process.mcp_current_run()) {
+            m_is_slicing = false;
+            m_slice_all = false;
+            notification_manager->set_slicing_progress_canceled(_u8L("Slicing Canceled"));
+            q->SetDropTarget(new PlaterDropTarget(q));
+            main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true);
+        }
+        return;
+    }
+    if (evt.mcp_run_id) m_ignore_event = false;
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, m_ignore_event %1%, status %2%")%m_ignore_event %evt.status();
     //BBS:ignore cancel event for some special case
-    if (m_ignore_event)
+    if (m_ignore_event && !evt.mcp_run_id)
     {
         m_ignore_event = false;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": ignore this event %1%") % evt.status();
@@ -13141,12 +13191,12 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     if (evt.error()) {
         auto message = evt.format_error_message();
         if (evt.critical_error()) {
-            if (q->m_tracking_popup_menu) {
+            if (q->m_tracking_popup_menu && !evt.mcp_run_id) {
                 // We don't want to pop-up a message box when tracking a pop-up menu.
                 // We postpone the error message instead.
                 q->m_tracking_popup_menu_error_message = message.first;
             } else {
-                show_error(q, message.first, message.second.size() != 0 && message.second[0] != 0);
+                if (!evt.mcp_run_id) show_error(q, message.first, message.second.size() != 0 && message.second[0] != 0);
                 notification_manager->set_slicing_progress_hidden();
             }
         } else {
@@ -13180,6 +13230,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     //BBS: set the current plater's slice result to valid
     if (!this->background_process.empty())
         this->background_process.get_current_plate()->update_slice_result_valid_state(evt.success());
+    if (evt.mcp_run_id)
+        mcp_slice_completed(*q, evt.mcp_run_id, evt.success(), evt.cancelled(), true, evt.error() ? evt.format_error_message().first : std::string());
 
     // mesh stats per plate + GPU/OpenGL info
     if (!has_error && !evt.cancelled() && evt.success()) {
@@ -20371,8 +20423,17 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
 
 // BBS: FIXME, missing resotre logic
 int Plater::load_project(wxString const &filename2,
-    wxString const& originfile)
+    wxString const& originfile, bool no_dialogs)
 {
+    const bool mcp_loading_before = m_loading_project;
+    const bool mcp_thumbnails_before = skip_thumbnail_invalid;
+    ScopeGuard mcp_project_cleanup([this, mcp_loading_before, mcp_thumbnails_before] {
+        if (mcp_noninteractive_import()) {
+            m_loading_project = mcp_loading_before;
+            skip_thumbnail_invalid = mcp_thumbnails_before;
+            wxGetApp().preset_bundle->extruder_nozzle_stat.set_force_keep_flag(false);
+        }
+    });
     // The project path is rendered into the home page recent-file list as raw HTML, so quotes or
     // angle brackets anywhere in it - a parent directory name just as much as the file name - can
     // break out of the surrounding attribute. Refuse such files before anything is loaded or recorded.
@@ -20408,7 +20469,7 @@ int Plater::load_project(wxString const &filename2,
     };
 
     // BSS: save project, force close
-    int wx_dlg_id = close_with_confirm(check);
+    int wx_dlg_id = no_dialogs ? wxID_NO : close_with_confirm(check);
     if (wx_dlg_id == wxID_CANCEL) {
         return wx_dlg_id;
     }
@@ -20465,7 +20526,7 @@ int Plater::load_project(wxString const &filename2,
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
     // if res is empty no data has been loaded
-    if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
+    if (!res.empty() && (no_dialogs || load_restore || !(strategy & LoadStrategy::Silence))) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << load_restore ? originfile : filename;
         p->set_project_filename(load_restore ? originfile : filename);
         if (load_restore && originfile.IsEmpty()) {
@@ -20515,7 +20576,7 @@ int Plater::load_project(wxString const &filename2,
     m_loading_project = false;
 
     // only pop up in 3mf
-    if (!this->m_exported_file && !this->m_only_gcode){
+    if (!no_dialogs && !this->m_exported_file && !this->m_only_gcode){
         int nozzle_diameter = 1;
         auto ok = try_sync_preset_with_connected_printer(nozzle_diameter);
         if (ok && nozzle_diameter > 1) {
@@ -20524,8 +20585,8 @@ int Plater::load_project(wxString const &filename2,
     }
     statistics_burial_data(filename.utf8_string());
 
-    show_wrapping_detect_dialog_if_necessary();
-    return wx_dlg_id;
+    if (!no_dialogs) show_wrapping_detect_dialog_if_necessary();
+    return no_dialogs && res.empty() ? wxID_CANCEL : wx_dlg_id;
 }
 
 // BBS: save logic
@@ -22705,6 +22766,9 @@ void Plater::update(bool conside_update_flag, bool force_background_processing_u
 void Plater::object_list_changed() { p->object_list_changed(); }
 
 void Plater::stop_jobs() { p->m_ui_jobs.stop_all(); }
+void Plater::mcp_start_arrange(std::uint64_t run) { p->m_ui_jobs.arrange(run); }
+void Plater::mcp_start_orient(std::uint64_t run) { p->m_ui_jobs.orient(run); }
+void Plater::mcp_cancel_ui_job() { p->m_ui_jobs.cancel_all(); }
 
 bool Plater::is_any_job_running() const
 {
@@ -24189,8 +24253,37 @@ void plater_save_post_process_script_choice(bool skip)
 } // namespace
 
 //BBS: add multiple plate reslice logic
+StringObjectException Plater::mcp_validate_slice(StringObjectException* warning)
+{
+    p->background_process_timer.Stop();
+    p->update_background_process(true, true, true);
+    return p->background_process.validate(warning);
+}
+
+bool Plater::mcp_start_slice(std::uint64_t run)
+{
+    p->background_process_timer.Stop();
+    const unsigned int flags = priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART |
+        (p->background_process.finished() ? priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT : 0);
+    p->background_process.set_task(PrintBase::TaskParams());
+    p->background_process.mcp_prepare_run(run);
+    ScopeGuard mcp_pending_reset([this] { p->background_process.mcp_prepare_run(0); });
+    const bool started = p->restart_background_process(flags);
+    if (started) {
+        p->m_is_slicing = true;
+        p->m_slice_all = false;
+        p->preview->get_canvas3d()->on_back_slice_begin();
+        SetDropTarget(nullptr);
+        p->helio_background_process.clear_helio_file_cache();
+        p->preview->reload_print();
+        p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
+    }
+    return started;
+}
+
 void Plater::reslice()
 {
+    if (mcp_slice_active()) return;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: enter, process_completed_with_error=%2%")%__LINE__ %p->process_completed_with_error;
     // Nested wx event dispatch during PostProcessScriptDialog::ShowModal() can re-enter reslice(); ignore the inner call.
     if (p->m_inside_post_process_script_modal)
@@ -26057,6 +26150,7 @@ void Plater::show_seqprintinfo_notification(bool has_error)
     }
 }
 void Plater::mirror(Axis axis)      { p->mirror(axis); }
+std::vector<size_t> Plater::mcp_load_model_objects(const ModelObjectPtrs& objects) { return p->load_model_objects(objects, false, false); }
 void Plater::split_object(ModelObject *mo, bool ignore_warning) { p->split_object(mo, ignore_warning); }
 void Plater::set_suppress_assemble_delete_propagation(bool suppress) { p->set_suppress_assemble_delete_propagation(suppress); }
 void Plater::ensure_model_object_volume_assemble_initialized(ModelObject *object)
@@ -26411,6 +26505,25 @@ void Plater::apply_background_progress()
 }
 
 //BBS: select Plate
+int Plater::mcp_reorder_plate(int from_index, int to_index)
+{
+    auto& plates = p->partplate_list;
+    if (from_index < 0 || to_index < 0 || from_index >= plates.get_plate_count() || to_index >= plates.get_plate_count())
+        return -1;
+    if (from_index == to_index) return 0;
+    take_snapshot("MCP reorder plates");
+    m_force_ban_check_volume_bbox_state_with_extruder_area = true;
+    ScopeGuard reset_flag([this] { m_force_ban_check_volume_bbox_state_with_extruder_area = false; });
+    const int result = plates.move_plate_to_index(from_index, to_index);
+    if (result != 0) return result;
+    plates.update_slice_context_to_current_plate(p->background_process);
+    p->preview->update_gcode_result(plates.get_current_slice_result());
+    p->sidebar->obj_list()->reload_all_plates();
+    plates.update_plates();
+    update();
+    return 0;
+}
+
 int Plater::select_plate(int plate_index, bool need_slice)
 {
     int ret;
@@ -27103,6 +27216,18 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
 }
 
 //BBS: delete the plate, index= -1 means the current plate
+int Plater::mcp_delete_plate(int plate_index)
+{
+    if (plate_index < 0 || plate_index >= p->partplate_list.get_plate_count()) return -1;
+    const int result = p->partplate_list.delete_plate(plate_index);
+    if (result != 0) return result;
+    p->partplate_list.update_slice_context_to_current_plate(p->background_process);
+    p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
+    p->sidebar->obj_list()->reload_all_plates();
+    update();
+    return 0;
+}
+
 int Plater::delete_plate(int plate_index)
 {
     int index = plate_index, ret;

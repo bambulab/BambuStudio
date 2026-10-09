@@ -17,6 +17,7 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/LinkLabel.hpp"
+#include "Widgets/Label.hpp"
 namespace Slic3r { namespace GUI {
 
 class Selector
@@ -56,6 +57,15 @@ protected:
     bool m_recreate_GUI{false};
     bool m_use_12h_time_format_changed{false};
     std::string m_original_use_12h_time_format;
+    ::CheckBox *m_mcp_enabled_checkbox = nullptr;
+    ::TextInput *m_mcp_port_input = nullptr;
+    ::Label *m_mcp_status_label = nullptr;
+    ::Label *m_mcp_address_label = nullptr;
+    Button *m_mcp_copy_address_button = nullptr;
+    ::Label *m_mcp_token_label = nullptr;
+    Button *m_mcp_show_token_button = nullptr;
+    bool m_mcp_token_visible = false;
+    void update_mcp_controls(const std::string &error = {});
 
 public:
     bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }

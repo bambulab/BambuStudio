@@ -38,6 +38,8 @@
 #include "I18N.hpp"
 #include "GLCanvas3D.hpp"
 #include "Plater.hpp"
+#include "BackgroundSlicingProcess.hpp"
+#include "McpTools.hpp"
 #include "WebViewDialog.hpp"
 #include "../Utils/Process.hpp"
 #include "format.hpp"
@@ -488,6 +490,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": mainframe received close_widow event";
+        if (event.CanVeto() && (wxGetApp().mcp_call_active() || mcp_slice_active() || m_plater->background_process().running())) {
+            m_plater->show_status_message("An MCP operation or slice is still running. Cancel it or wait before closing.");
+            event.Veto();
+            return;
+        }
         if (event.CanVeto() && m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true)) {
             // prevents to open the save dirty project dialog
             event.Veto();
@@ -629,6 +636,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         MarkdownTip::ExitTip();
 
+        wxGetApp().mcp_pause_for_gui_shutdown();
         m_plater->reset();
         this->shutdown();
         // propagate event
@@ -1117,6 +1125,7 @@ void MainFrame::update_layout()
 void MainFrame::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown enter";
+    wxGetApp().mcp_pause_for_gui_shutdown();
 
     // The rich parameter tooltip is a wxPopupTransientWindow parented to this frame. Both teardown
     // paths funnel through here (app close, and the language-switch GUI rebuild via recreate_GUI),

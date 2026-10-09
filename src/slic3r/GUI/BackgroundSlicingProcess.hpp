@@ -2,6 +2,7 @@
 #define slic3r_GUI_BackgroundSlicingProcess_hpp_
 
 #include <cstdint>
+#include "McpJobs.hpp"
 #include <string>
 #include <condition_variable>
 #include <mutex>
@@ -58,6 +59,7 @@ public:
         wxEvent(winid, eventType), status(std::move(status)), generation(in_generation) {}
     virtual wxEvent *Clone() const { return new SlicingStatusEvent(*this); }
 
+    std::uint64_t mcp_run_id = 0;
     PrintBase::SlicingStatus status;
     std::uint64_t generation;
 };
@@ -72,10 +74,12 @@ public:
 		Error
 	};
 
-	SlicingProcessCompletedEvent(wxEventType eventType, int winid, StatusType status, std::exception_ptr exception) :
-		wxEvent(winid, eventType), m_status(status), m_exception(exception) {}
+	SlicingProcessCompletedEvent(wxEventType eventType, int winid, StatusType status, std::exception_ptr exception, std::uint64_t run = 0, bool stopped = true, bool orphaned = false) :
+		wxEvent(winid, eventType), mcp_run_id(run), mcp_worker_stopped(stopped), mcp_orphaned(orphaned), m_status(status), m_exception(exception) {}
 	virtual wxEvent* Clone() const { return new SlicingProcessCompletedEvent(*this); }
 
+    std::uint64_t mcp_run_id;
+    bool mcp_worker_stopped, mcp_orphaned;
 	StatusType 	status()    const { return m_status; }
 	bool 		finished()  const { return m_status == Finished; }
 	bool 		success()   const { return m_status == Finished; }
@@ -157,6 +161,11 @@ public:
 
 	// Start the background processing. Returns false if the background processing was already running.
 	bool start();
+    void mcp_prepare_run(std::uint64_t run) { m_mcp_pending_run = run; }
+    std::uint64_t mcp_current_run() const { return m_mcp_run; }
+    bool mcp_request_cancel(std::uint64_t run);
+    bool mcp_orphans_running() const { return m_mcp_worker_lifetime->orphans.load() != 0; }
+    void mcp_stop_publication() { m_mcp_worker_lifetime->stop(); }
 	// Cancel the background processing. Returns false if the background processing was not running.
 	// A stopped background processing may be restarted with start().
 	bool stop();
@@ -242,7 +251,7 @@ private:
 	void	stop_internal();
 
 	// Helper to wrap the FFF slicing & G-code generation.
-	void	process_fff();
+	void	process_fff(std::uint64_t mcp_run, const std::shared_ptr<GUI::McpWorkerLifetime>& worker_lifetime);
 
     // Temporary: for mimicking the fff file export behavior with the raster output
     void	process_sla();
@@ -250,15 +259,15 @@ private:
     // Call Print::process() and catch all exceptions into ex, thus no exception could be thrown
     // by this method. This exception behavior is required to combine C++ exceptions with Win32 SEH exceptions
     // on the same thread.
-	void    call_process(std::exception_ptr &ex) throw();
+	void    call_process(std::exception_ptr &ex, std::uint64_t run, const std::shared_ptr<GUI::McpWorkerLifetime>& worker_lifetime) throw();
 
 #ifdef _WIN32
 	// Wrapper for Win32 structured exceptions. Win32 structured exception blocks and C++ exception blocks cannot be mixed in the same function.
 	// Catch a SEH exception and return its ID or zero if no SEH exception has been catched.
-	unsigned long call_process_seh(std::exception_ptr &ex) throw();
+	unsigned long call_process_seh(std::exception_ptr &ex, std::uint64_t run, const std::shared_ptr<GUI::McpWorkerLifetime>& worker_lifetime) throw();
 	// Calls call_process_seh(), rethrows a Slic3r::HardCrash exception based on SEH exception
 	// returned by call_process_seh().
-	void    	  call_process_seh_throw(std::exception_ptr &ex) throw();
+	void    	  call_process_seh_throw(std::exception_ptr &ex, std::uint64_t run, const std::shared_ptr<GUI::McpWorkerLifetime>& worker_lifetime) throw();
 #endif // _WIN32
 
 	// Currently active print. It is one of m_fff_print and m_sla_print.
@@ -316,6 +325,8 @@ private:
 	PrinterTechnology m_printer_tech = ptUnknown;
 	bool m_internal_cancelled = false;
 	bool m_skip_post_process_once = false;
+    std::uint64_t m_mcp_pending_run = 0, m_mcp_run = 0;
+    std::shared_ptr<GUI::McpWorkerLifetime> m_mcp_worker_lifetime = std::make_shared<GUI::McpWorkerLifetime>();
 
     PrintState<BackgroundSlicingProcessStep, bspsCount>   	m_step_state;
 	bool                set_step_started(BackgroundSlicingProcessStep step);
@@ -325,7 +336,7 @@ private:
     bool                invalidate_all_steps();
     // If the background processing stop was requested, throw CanceledException.
     void                throw_if_canceled() const { if (m_print->canceled()) throw CanceledException(); }
-	void				finalize_gcode();
+	void				finalize_gcode(std::uint64_t mcp_run);
 	void				export_gcode();
     void                prepare_upload();
     // To be executed at the background thread.
