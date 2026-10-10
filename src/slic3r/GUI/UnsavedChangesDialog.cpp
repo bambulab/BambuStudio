@@ -998,7 +998,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     }
 
     if (params || (dependent_presets &&
-        ((dependent_presets->type() != Preset::Type::TYPE_FILAMENT && dependent_presets->type() != Preset::Type::TYPE_PRINTER) || !dependent_presets->find_preset(new_selected_preset)))) {
+        (dependent_presets->type() != Preset::Type::TYPE_PRINTER || !dependent_presets->find_preset(new_selected_preset)))) {
         m_panel_tab = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE.x, -1), wxTAB_TRAVERSAL);
         m_panel_tab->SetBackgroundColour(GREY200);
         wxBoxSizer *m_sizer_tab = new wxBoxSizer(wxVERTICAL);
@@ -1146,7 +1146,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
 
     { // "Don't save" / "Discard" button
         std::string btn_icon  = (ActionButtons::DONT_SAVE & m_buttons) ? "" : (dependent_presets || (ActionButtons::KEEP & m_buttons)) ? "blank_16" : "exit";
-        wxString    btn_label = (ActionButtons::TRANSFER & m_buttons) ? _L("Discard Modified Value") : is_copy ? _L("No") : _L("Don't save");
+        wxString    btn_label = is_copy ? _L("No") : _L("Discard Modified Value");
         add_btn(&m_discard_btn, m_continue_btn_id, Action::Discard, btn_label, false);
     }
 

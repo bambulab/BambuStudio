@@ -6941,23 +6941,8 @@ bool Tab::select_preset(
     bool no_transfer = false;
     bool technology_changed = false;
     m_dependent_tabs.clear();
-    if ((m_presets->type() == Preset::TYPE_FILAMENT) && !preset_name.empty())
-    {
-        Preset *to_be_selected = m_presets->find_preset(preset_name, false, true);
-        if (to_be_selected) {
-            std::string current_type, to_select_type;
-            ConfigOptionStrings* cur_opt = dynamic_cast <ConfigOptionStrings *>(m_presets->get_edited_preset().config.option("filament_type"));
-            ConfigOptionStrings* to_select_opt = dynamic_cast <ConfigOptionStrings *>(to_be_selected->config.option("filament_type"));
-            if (cur_opt && (cur_opt->values.size() > 0)) {
-                current_type =  cur_opt->values[0];
-            }
-            if (to_select_opt && (to_select_opt->values.size() > 0)) {
-                to_select_type =  to_select_opt->values[0];
-            }
-            if (current_type != to_select_type)
-                no_transfer = true;
-        }
-    }
+    if (m_presets->type() == Preset::TYPE_FILAMENT)
+        no_transfer = true;
     else if (printer_tab)
         no_transfer = true;
 
