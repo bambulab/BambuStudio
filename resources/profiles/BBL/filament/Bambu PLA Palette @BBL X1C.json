@@ -57,8 +57,6 @@
         "20"
     ],
     "compatible_printers": [
-        "Bambu Lab X1 Carbon 0.4 nozzle",
-        "Bambu Lab X1E 0.4 nozzle",
         "Bambu Lab X1E 0.6 nozzle"
     ],
     "filament_start_gcode": [
