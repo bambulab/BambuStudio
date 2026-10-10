@@ -33,16 +33,16 @@ struct NozzleSpec
     bool operator==(const NozzleSpec &other) const { return same_diameter(other) && volume == other.volume; }
 };
 
-// "0.4 Standard" when the flow type is part of the comparison, plain "0.4" when it is not.
+// "0.4 Standard" when the flow type is part of the comparison, "0.4 mm" when it is not.
 wxString format_nozzle_spec_label(const NozzleSpec &spec, bool with_flow_type);
 
 // What the nozzle section of the dialog shows. Confirm stays enabled in all four.
 enum class NozzleSectionKind
 {
     None,        // printer already carries everything; section hidden
-    Notice,      // one candidate only; a sentence states the forced outcome
+    Notice,      // one candidate only; a shared cell states the forced outcome
     Unavailable, // machine reported no usable nozzle; a sentence says so
-    Table,       // one row per project nozzle, each with a dropdown
+    Table,       // one row per project nozzle, each with a dropdown unless shared_choice
 };
 
 // Everything the dialog renders. The caller assembles it up front; the dialog itself neither reads
@@ -55,8 +55,7 @@ struct PrinterMigrationInfo
     std::string target_model_id;
     wxString target_model_name;
     wxString target_dev_name;
-    // The model table is hidden when both sides agree, since the preset would not move anyway. The
-    // sentences below then have to name the model themselves.
+    // The model table is hidden when both sides agree, since the preset would not move anyway.
     bool model_mismatch{false};
 
     // True only when the project runs multi-diameter AND the target has a nozzle rack; otherwise the
@@ -70,13 +69,16 @@ struct PrinterMigrationInfo
     std::vector<NozzleSpec> slot_nozzles;
 
     // Table rows, deduplicated in whatever unit compare_flow_type selects. Rows the printer already
-    // carries are left out, so the table only lists what still has to be decided. Collapses to a
-    // single row covering every slot when the flow type is out, since only one diameter can then be
-    // picked, and that row is kept even when the printer carries its diameter.
+    // carries are left out, so the table only lists what still has to be decided - except when the
+    // flow type is out and the project has several diameters: only one diameter can then be picked
+    // for all of them, so every diameter stays listed even when the printer carries it.
     std::vector<NozzleSpec> project_nozzles;
     // Slots behind each row, and each row's left-cell label. Both parallel to project_nozzles.
     std::vector<std::vector<size_t>> row_slots;
     std::vector<wxString> row_labels;
+    // One right-hand cell spans every row instead of a dropdown per row: either the printer has a
+    // single candidate (Notice), or a diameter-only migration can still land on one diameter only.
+    bool shared_choice{false};
 
     // Dropdown candidates: every nozzle the printer carries, both extruders merged (the project side
     // does not distinguish them). Empty when the machine reported nothing usable.
@@ -126,6 +128,7 @@ public:
     void on_dpi_changed(const wxRect &) override {}
 
     // The printer-side nozzle picked for each row, parallel to PrinterMigrationInfo::project_nozzles.
+    // A shared dropdown repeats its one choice for every row; empty when no dropdown is shown.
     std::vector<NozzleSpec> GetChosenNozzles() const;
 
     // The same choices spread onto the slots they apply to. Only meaningful after wxID_OK.
@@ -141,13 +144,16 @@ private:
     wxWindow *build_section(const wxString &label, const TableFactory &make_table);
     wxWindow *build_model_table(wxWindow *parent);
     wxWindow *build_nozzle_table(wxWindow *parent);
+    wxWindow *build_shared_nozzle_rows(wxWindow *parent);
     wxWindow *build_nozzle_notice(wxWindow *parent);
     wxWindow *build_footer(wxWindow *parent);
 
     wxWindow *make_model_cell(wxWindow *parent, const std::string &model_id, const wxString &model_name, const wxString &dev_name);
+    wxWindow *make_source_label(wxWindow *parent, size_t row) const;
+    wxWindow *make_nozzle_combo(wxWindow *parent, const NozzleSpec &want);
 
     PrinterMigrationInfo m_info;
-    // one per project nozzle row
+    // one per project nozzle row, or a single one behind a shared cell
     std::vector<ComboBox *> m_nozzle_combos;
     CheckBox *m_skip_check{nullptr};
     Button *m_confirm_btn{nullptr};
