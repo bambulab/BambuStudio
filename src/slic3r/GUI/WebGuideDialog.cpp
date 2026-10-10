@@ -1181,7 +1181,7 @@ bool GuideFrame::run(bool& config_applied)
         return false;
 }
 
-int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType)
+int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType, std::string &sIsSupport)
 {
     std::string VendorDir_safe = PathSanitizer::sanitize(VendorDirectory);
     std::string filepath_safe = PathSanitizer::sanitize(filepath);
@@ -1208,6 +1208,17 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
             }
         }
 
+        // filament_is_support is usually only declared on the "@base" profile a
+        // concrete per-printer preset inherits from (see "Bambu Support for ABS
+        // @base.json"), never on the leaf file itself, so this is captured
+        // opportunistically at whichever level in the inherits chain happens to
+        // carry it; it does not gate the recursion below (sVendor/sType still
+        // drive that), so it has no effect on existing resolution behavior.
+        if (sIsSupport == "") {
+            if (jLocal.contains("filament_is_support"))
+                sIsSupport = jLocal["filament_is_support"][0];
+        }
+
         if (sVendor == "" || sType == "")
         {
             if (jLocal.contains("inherits")) {
@@ -1225,7 +1236,7 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
 
                 //boost::filesystem::path nf(strNewFile.c_str());
                 if (boost::filesystem::exists(inherits_path))
-                    return GetFilamentInfo(VendorDirectory,pFilaList, inherits_path.string(), sVendor, sType);
+                    return GetFilamentInfo(VendorDirectory,pFilaList, inherits_path.string(), sVendor, sType, sIsSupport);
                 else {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " inherits File Not Exist: " << PathSanitizer::sanitize(inherits_path);
                     return -1;
@@ -1238,11 +1249,14 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
                 }
                 else
                     sVendor = "Generic";
+                    if (sIsSupport == "") sIsSupport = "0";
                     return 0;
             }
         }
-        else
+        else {
+            if (sIsSupport == "") sIsSupport = "0";
             return 0;
+        }
     }
     catch(nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << filepath_safe << " got a nlohmann::detail::parse_error, reason = " << err.what();
@@ -1610,15 +1624,17 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                     if (strInstant == "true") {
                         std::string sV;
                         std::string sT;
+                        std::string sIsSupport;
 
-                        int nRet = GetFilamentInfo(vendor_dir.string(), tFilaList, sub_file, sV, sT);
+                        int nRet = GetFilamentInfo(vendor_dir.string(), tFilaList, sub_file, sV, sT, sIsSupport);
                         if (nRet != 0) {
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",GetFilamentInfo Failed, Vendor:" << sV << ",Type:" << sT;
                             continue;
                         }
 
-                        OneFF["vendor"] = sV;
-                        OneFF["type"]   = sT;
+                        OneFF["vendor"]     = sV;
+                        OneFF["type"]       = sT;
+                        OneFF["is_support"] = sIsSupport;
 
                         OneFF["models"] = "";
 
@@ -1669,15 +1685,17 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                 if (strInstant == "true") {
                     std::string sV;
                     std::string sT;
+                    std::string sIsSupport;
 
-                    int nRet = GetFilamentInfo(vendor_dir.string(),tFilaList, sub_file, sV, sT);
+                    int nRet = GetFilamentInfo(vendor_dir.string(),tFilaList, sub_file, sV, sT, sIsSupport);
                     if (nRet != 0) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Load Filament:" << s1 << ",GetFilamentInfo Failed, Vendor:" << sV << ",Type:"<< sT;
                         continue;
                     }
 
-                    OneFF["vendor"] = sV;
-                    OneFF["type"]   = sT;
+                    OneFF["vendor"]     = sV;
+                    OneFF["type"]       = sT;
+                    OneFF["is_support"] = sIsSupport;
 
                     OneFF["models"]   = "";
 
