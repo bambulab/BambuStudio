@@ -460,6 +460,9 @@
         document.getElementById('multiplier_label').innerText = data.multiplier_label
         document.getElementById('ok_btn').innerText = data.ok_btn_label
         document.getElementById('cancel_btn').innerText = data.cancel_btn_label
+        // RTL languages (Hebrew): let each text block pick its direction/alignment from its own content
+        for (const id of ['volume_desp_panel', 'volume_range_panel', 'multiplier_range_panel', 'auto_flush_tip', 'multiplier_label'])
+          document.getElementById(id).dir = 'auto'
         updateVolumeRange(m_min_flush_volumes[m_curr_extruder_id],m_max_flush_volumes[m_curr_extruder_id]) 
         updateMultiplierRange(m_min_flush_multiplier,m_max_flush_multiplier)
       }

@@ -409,13 +409,28 @@ function maxScrollLeft() {
   return Math.max(0, $('#academy_Card_Content').outerWidth(true) - $('#academy_content').innerWidth());
 }
 
+// Carousel scroll helpers. In an RTL page Chromium reports scrollLeft as 0 (start, right edge) down to
+// negative values, so work with a logical offset from the start edge and flip the sign when scrolling.
+function IsRtlPage() {
+  return document.documentElement.getAttribute('dir') === 'rtl';
+}
+
+function getScrollPos(sel) {
+  const x = $(sel).scrollLeft();
+  return IsRtlPage() ? -x : x;
+}
+
+function scrollToPos(sel, pos, onDone) {
+  $(sel).stop(true, false).animate({ scrollLeft: IsRtlPage() ? -pos : pos }, 260, 'swing', onDone);
+}
+
 function clampScroll(x) {
   const max = maxScrollLeft();
   return Math.min(Math.max(0, x), max);
 }
 
 function updateButtons() {
-  const x = Math.round($('#academy_content').scrollLeft());
+  const x = Math.round(getScrollPos('#academy_content'));
   const max = Math.round(maxScrollLeft());
   if (max <= 0) {
     $prev.hide();
@@ -431,9 +446,9 @@ function updateButtons() {
 function scrollByStep(dir) {
   const step = stepCardSize();
   if (!step) return;
-  const current = $('#academy_content').scrollLeft();
+  const current = getScrollPos('#academy_content');
   const target = clampScroll(current + dir * step);
-  $('#academy_content').stop(true, false).animate({ scrollLeft: target }, 260, 'swing', updateButtons);
+  scrollToPos('#academy_content', target, updateButtons);
 }
 
 function openAcademyUrl(id)
@@ -495,7 +510,7 @@ function videoClampScroll(x) {
 }
 
 function updateVideoButtons() {
-  const x = Math.round($('#tutorial_content').scrollLeft());
+  const x = Math.round(getScrollPos('#tutorial_content'));
   const max = Math.round(maxVideoScrollLeft());
   $video_prev.prop('disabled', x <= 0);
   $video_next.prop('disabled', x >= max);
@@ -504,9 +519,9 @@ function updateVideoButtons() {
 function scrollVideoByStep(dir) {
   const step = stepVideoCardSize();
   if (!step) return;
-  const current = $('#tutorial_content').scrollLeft();
+  const current = getScrollPos('#tutorial_content');
   const target = videoClampScroll(current + dir * step);
-  $('#tutorial_content').stop(true, false).animate({ scrollLeft: target }, 260, 'swing', updateVideoButtons);
+  scrollToPos('#tutorial_content', target, updateVideoButtons);
 }
 
 function openVideoUrl(path)

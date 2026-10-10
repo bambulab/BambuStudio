@@ -1,0 +1,730 @@
+/*
+ * RTL (Hebrew / Arabic ...) support for the WebView pages.
+ *
+ * Loaded on demand by data/text.js (ApplyPageDirection) ONLY when the page language is RTL, after
+ * <html dir="rtl"> has been set. text.js also writes the list of stylesheets the page has loaded into
+ * <html data-rtl-sheets="...">, which scopes the generated rules below to the page that owns the sheet.
+ *
+ * Part 1 (hand-written): direction exceptions and direction-dependent images/transforms.
+ * Part 2 (generated):    mirrored margin/padding/border/left/right/float/text-align of every page sheet,
+ *                        produced by include/gen-rtl-css.js. Re-run the generator after editing page CSS.
+ */
+
+/* ---- 1. hand-written ------------------------------------------------------------------------ */
+
+/* Content that must stay left-to-right even in an RTL page: code, paths, URLs, numbers, passwords. */
+html[dir="rtl"] code,
+html[dir="rtl"] pre,
+html[dir="rtl"] kbd,
+html[dir="rtl"] samp,
+html[dir="rtl"] input[type="number"],
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="url"],
+html[dir="rtl"] input[type="password"] {
+	direction: ltr;
+}
+html[dir="rtl"] input[type="number"],
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="url"] {
+	text-align: right;   /* LTR text, but right-aligned like the rest of the RTL form */
+}
+
+/* Free text fields: follow the direction of what the user types (Hebrew or Latin). */
+html[dir="rtl"] input[type="text"],
+html[dir="rtl"] input[type="search"],
+html[dir="rtl"] textarea {
+	unicode-bidi: plaintext;
+}
+
+/* homepage3/left.html: collapse/expand arrow of the sidebar (arrow_*_left.svg points left = "collapse").
+   In RTL the sidebar sits at the right edge and collapses to the right, so the arrow is flipped;
+   in the narrow (collapsed) state the original sheet flips it, so flip it back. */
+html[dir="rtl"] #HideBtn {
+	transform: scaleX(-1);
+}
+@media screen and (max-width: 168px) {
+	html[dir="rtl"] #HideBtn {
+		transform: none;
+	}
+}
+
+/* homepage3/wiki.html: carousels. wiki.js handles the RTL scrollLeft semantics; the prev/next arrows
+   (switch_page.svg points right, .leftSwitch is rotated 180deg) swap sides, so swap the rotation too. */
+html[dir="rtl"] .leftSwitch {
+	transform: none;
+}
+html[dir="rtl"] .leftSwitch:active {
+	transform: translateY(-1px);
+}
+html[dir="rtl"] .rightSwitch {
+	transform: rotate(180deg);
+}
+html[dir="rtl"] .rightSwitch:active {
+	transform: rotate(180deg) translateY(1px);
+}
+
+/* "back" arrow of the model editor page (return.svg points left) */
+html[dir="rtl"] .returnBtn img {
+	transform: scaleX(-1);
+}
+
+/* Disclosure arrows: collapsed state points to the start edge, which is the left in RTL. */
+html[dir="rtl"] .fila-group-arrow.collapsed,
+html[dir="rtl"] .CFilament_GroupArrow.collapsed,
+html[dir="rtl"] .group-arrow.collapsed {
+	transform: rotate(90deg);
+}
+/* guide/22: pull.svg is a right-pointing chevron (rotated 90deg = down when collapsed) */
+html[dir="rtl"] .CArrow.active {
+	transform: rotate(180deg);
+}
+/* guide/23: the "›" glyph is bidi-mirrored to "‹" in RTL text, so "open" must rotate the other way */
+html[dir="rtl"] .filter-section.open .filter-arrow {
+	transform: rotate(-90deg);
+}
+
+/* guide/32 (UX program terms): list indent comes from an inline <style> block, which the generator cannot see */
+html[dir="rtl"] #C_List {
+	padding-left: 0;
+	padding-right: 1.2em;
+}
+
+/* ---- 2. generated --------------------------------------------------------------------------- */
+/* ==== BEGIN GENERATED (include/gen-rtl-css.js) - do not edit below ==== */
+
+/* --- homepage3/css/common.css --- */
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/common.css"] #MenuBtnBlock {
+	margin-right: 60px !important;
+	margin-left: 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/common.css"] .Menu_Btn {
+	margin-left: 10px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/common.css"] .Menu_Btn img {
+	margin-left: 6px;
+	margin-right: 0;
+}
+
+/* --- homepage3/css/rightcommon.css --- */
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/rightcommon.css"] .TitleSmallIcon {
+	margin-left: 10px;
+	margin-right: 0;
+}
+
+/* --- homepage3/css/recent.css --- */
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/recent.css"] #RecentClearAllBtn {
+	margin-right: 20px !important;
+	margin-left: 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/recent.css"] .Right_Title_Btn {
+	margin-left: 16px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/recent.css"] .Right_Title_Btn_Icon {
+	margin-left: 6px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/recent.css"] .FileCheckBox {
+	right: 14px;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/recent.css"] .FileTip {
+	right: 0px;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/recent.css"] .CT_Icon {
+	margin-left: 6px;
+	margin-right: 0;
+}
+
+/* --- homepage3/css/online.css --- */
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/online.css"] .HotModel_Author_HeadIcon {
+	margin-left: 6px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/online.css"] .HotModel_Author_Name {
+	margin-left: 4px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/online.css"] .searchBar {
+	padding-left: 12px;
+	padding-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/online.css"] .searchInputArea {
+	padding: 0px 0px 0px 22px;
+	border-radius: 0px 22px 22px 0px;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/online.css"] .searchBtn {
+	border-radius: 22px 0px 0px 22px;
+}
+
+/* --- homepage3/css/home.css --- */
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/home.css"] #PrintHistory_Refresh_Btn {
+	margin-right: 30px !important;
+	margin-left: 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/home.css"] .PrintHistory_Line2 img {
+	margin-left: 4px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/home.css"] .PH_PrintTime {
+	margin-left: 4px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/home.css"] .PH_PrintDate {
+	margin-right: 4px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/home.css"] .PrintHistoryStatus {
+	margin-right: 6px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/home.css"] .PH_Gcode_Icon {
+	right: 1px;
+	left: auto;
+	border-radius: 0px 0px 0px 4px;
+}
+
+/* --- homepage3/css/wiki.css --- */
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .searchBtn {
+	border-radius: 22px 0px 0px 22px;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .searchInputArea {
+	padding: 0px 0px 0px 22px;
+	border-radius: 0px 22px 22px 0px;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .searchResultArea {
+	left: 0;
+	right: 88px;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .academyBlock {
+	padding-right: 48px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .academyTabs {
+	padding-left: 48px;
+	padding-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .academyCardArea {
+	margin-left: 48px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .titleBlock {
+	padding-left: 48px;
+	padding-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .tutorialBlock {
+	padding-right: 48px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] ul {
+	padding-right: 18px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/wiki.css"] .rabbit {
+	left: 20%;
+	right: auto;
+}
+
+/* --- homepage3/css/left.css --- */
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] #LeftBoard {
+	border-left-width: 1px !important;
+	border-right-width: 0 !important;
+	border-left-style: solid !important;
+	border-right-style: none !important;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] #Icon1 {
+	margin-left: 10px !important;
+	margin-right: 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] #UserName {
+	margin-right: 12px !important;
+	margin-left: 0 !important;
+	text-align: right !important;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] .PullBtn {
+	margin-right: 10px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] .BtnIcon {
+	margin-left: 6px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] .BtnIcon-Right {
+	margin-right: auto;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] .BtnNewIcon {
+	left: 12px;
+	right: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] #DropdownWrapper {
+	right: 3px !important;
+	left: auto !important;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] .avatar {
+	margin-left: 16px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] .UserName {
+	text-align: right;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] .UserEmail {
+	text-align: right;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] .LogoutIcon {
+	margin-left: 8px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="homepage3/css/left.css"] #HideBtn {
+	left: 0px !important;
+	right: auto !important;
+	border-right: 1px solid rgba(238, 238, 238, 1) !important;
+	border-left: none !important;
+	border-radius: 0px 4px 4px 0px !important;
+}
+
+/* --- homepage3/css/left_mini.css --- */
+@media screen and (max-width: 168px) {
+	html[dir="rtl"][data-rtl-sheets~="homepage3/css/left_mini.css"] #Icon1 {
+		margin-left: 0px !important;
+		margin-right: 0 !important;
+	}
+	html[dir="rtl"][data-rtl-sheets~="homepage3/css/left_mini.css"] #HideBtn {
+		border-left: 1px solid rgba(238, 238, 238, 1) !important;
+		border-right: 0px solid rgba(238, 238, 238, 1) !important;
+		border-radius: 4px 0px 0px 4px !important;
+	}
+}
+
+/* --- guide/css/common.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/css/common.css"] #Content {
+	text-align: right !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/css/common.css"] #AcceptArea {
+	text-align: right !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/css/common.css"] .NormalBtn {
+	margin-right: 10px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/css/common.css"] .GrayBtn {
+	margin-right: 10px;
+	margin-left: 0;
+}
+
+/* --- guide/css/home.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/css/home.css"] #LoadProgress {
+	right: 0px !important;
+	left: auto !important;
+}
+
+/* --- guide/0/load.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/0/load.css"] #LoadingSvg {
+	margin-left: 8px !important;
+	margin-right: 0 !important;
+}
+
+/* --- guide/3/3.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/3/3.css"] #C_List li {
+	margin-right: 4em !important;
+	margin-left: 0 !important;
+}
+
+/* --- guide/5/5.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/5/5.css"] #RestartText {
+	padding-right: 30px !important;
+	padding-left: 0 !important;
+}
+
+/* --- guide/6/6.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/6/6.css"] #RetryBtn {
+	margin-right: 20px !important;
+	margin-left: 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/6/6.css"] #PercentTip {
+	float: right !important;
+}
+
+/* --- guide/11/11.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/11/11.css"] .RegionItem {
+	padding-right: 10px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/11/11.css"] .TipIcon {
+	margin-left: 5px;
+	margin-right: 0;
+}
+
+/* --- guide/21/21.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/21/21.css"] .BannerBtns {
+	margin-left: 10px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/21/21.css"] .BannerBtns .SmallBtn,
+html[dir="rtl"][data-rtl-sheets~="guide/21/21.css"] .SmallBtn_Green {
+	margin-right: 6px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/21/21.css"] .ModelCheckBox {
+	left: 10px;
+	right: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/21/21.css"] .PName {
+	text-align: right;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/21/21.css"] .pNozzel {
+	padding-right: 10px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/21/21.css"] .pNozzel input {
+	margin-left: 5px;
+	margin-right: 0;
+}
+
+/* --- guide/22/22.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/22/22.css"] #leftBlock {
+	border-left: 1px solid #EEEEEE !important;
+	border-right: none !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/22/22.css"] #rightBlock {
+	padding-left: 9px !important;
+	padding-right: 15px !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/22/22.css"] .CArrow {
+	float: left;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/22/22.css"] input {
+	margin-left: 8px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/22/22.css"] .inputIndent {
+	margin-right: 8px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/22/22.css"] .SelectAll {
+	text-align: left;
+}
+
+/* --- guide/22_remove/22.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/22_remove/22.css"] .CName {
+	text-align: left;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/22_remove/22.css"] input {
+	margin-left: 6px;
+	margin-right: 20px;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/22_remove/22.css"] #ItemSelectArea .SmallBtn {
+	margin-right: 5px !important;
+	margin-left: 0 !important;
+}
+
+/* --- guide/23/23.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] #Title div {
+	margin-left: 24px !important;
+	margin-right: 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] #filterPanel {
+	border-left: none !important;
+	border-right: none !important;
+	padding: 12px 0 12px 16px !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] #filterPanel::after {
+	left: 0 !important;
+	right: auto !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] .filter-arrow {
+	margin-right: 4px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] .filter-dropdown {
+	padding: 4px 22px 8px 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] .filter-dd-item:not(.select-all) {
+	padding-right: 12px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] #mainContent {
+	padding: 16px 16px 16px 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] .tag .tag-close {
+	margin-right: 2px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] .fila-group-items {
+	padding: 4px 18px 4px 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] .CFilament_GroupArrow {
+	margin-left: 4px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] .CFilament_Item {
+	padding: 10px 24px 10px 16px;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] .CFilament_DeleteBtn {
+	margin-right: 4px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] #AcceptArea .NormalBtn {
+	margin-right: 0 !important;
+	margin-left: 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/23/23.css"] #AcceptArea .GrayBtn {
+	margin-right: 0 !important;
+	margin-left: 0 !important;
+}
+
+/* --- guide/24/24.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/24/24.css"] .BannerBtns {
+	margin-left: 10px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/24/24.css"] .BannerBtns .SmallBtn,
+html[dir="rtl"][data-rtl-sheets~="guide/24/24.css"] .SmallBtn_Green {
+	margin-right: 6px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/24/24.css"] .ModelCheckBox {
+	left: 10px;
+	right: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/24/24.css"] .PName {
+	text-align: right;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/24/24.css"] .pNozzel {
+	padding-right: 10px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="guide/24/24.css"] .pNozzel input {
+	margin-left: 5px;
+	margin-right: 0;
+}
+
+/* --- guide/31/31.css --- */
+html[dir="rtl"][data-rtl-sheets~="guide/31/31.css"] #C_List li {
+	margin-right: 4em !important;
+	margin-left: 0 !important;
+}
+
+/* --- filament_create/style.css --- */
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .form-group {
+	padding-right: 0;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .select-arrow input {
+	padding-right: 24px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .select-arrow::before {
+	right: 8px;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .dropdown-list {
+	right: 0;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .add-btn {
+	text-align: right;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .radio-indicator {
+	margin-left: 12px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .footer-actions {
+	padding: 24px 0 24px 24px;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .dialog-input-wrapper input {
+	padding: 0 12px 0 50px;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .char-count {
+	left: 12px;
+	right: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/style.css"] .param-list {
+	padding-left: 12px;
+	padding-right: 0;
+}
+
+/* --- filament_create/step1.css --- */
+html[dir="rtl"][data-rtl-sheets~="filament_create/step1.css"] .form-group {
+	padding-right: 0;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step1.css"] .select-arrow input {
+	padding-right: 24px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step1.css"] .select-arrow::before {
+	right: 8px;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step1.css"] .dropdown-list {
+	right: 0;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step1.css"] .add-btn {
+	text-align: right;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step1.css"] .radio-indicator {
+	margin-left: 12px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step1.css"] .dialog-input-wrapper input {
+	padding: 0 12px 0 50px;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step1.css"] .char-count {
+	left: 12px;
+	right: auto;
+}
+
+/* --- filament_create/step2.css --- */
+html[dir="rtl"][data-rtl-sheets~="filament_create/step2.css"] .param-list {
+	padding-left: 12px;
+	padding-right: 0;
+}
+
+/* --- filament_create/step2_copy.css --- */
+html[dir="rtl"][data-rtl-sheets~="filament_create/step2_copy.css"] .printer-dropdown {
+	right: 0;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step2_copy.css"] .printer-dropdown .printer-list,
+html[dir="rtl"][data-rtl-sheets~="filament_create/step2_copy.css"] .printer-dropdown .nozzle-list {
+	border-left: 1px solid var(--color-border-light);
+	border-right: none;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step2_copy.css"] .printer-dropdown .nozzle-list {
+	border-left: none;
+	border-right: none;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step2_copy.css"] .preset-row .preset-select-wrapper::before {
+	right: 8px;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/step2_copy.css"] .preset-row input.preset-input,
+html[dir="rtl"][data-rtl-sheets~="filament_create/step2_copy.css"] .preset-row select.preset-input {
+	padding: 0 20px 0 8px;
+}
+
+/* --- filament_create/edit_filament.css --- */
+html[dir="rtl"][data-rtl-sheets~="filament_create/edit_filament.css"] .ef-btn-add {
+	margin-right: auto;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="filament_create/edit_filament.css"] .ef-item {
+	padding: 10px 24px 10px 16px;
+}
+
+/* --- login/css/login.css --- */
+html[dir="rtl"][data-rtl-sheets~="login/css/login.css"] .NormalBtn {
+	margin-right: 10px;
+	margin-left: 0;
+}
+
+/* --- model/model.css --- */
+html[dir="rtl"][data-rtl-sheets~="model/model.css"] #ModelName {
+	margin-right: 6px !important;
+	margin-left: 0 !important;
+}
+html[dir="rtl"][data-rtl-sheets~="model/model.css"] .LeftProcessBar {
+	border-right: 2px solid #DDDDDD;
+	border-left: none;
+}
+html[dir="rtl"][data-rtl-sheets~="model/model.css"] .LeftProcessBar img {
+	margin-right: 18px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="model/model.css"] .LeftProcessBar span {
+	margin-right: 20px;
+	margin-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="model/model.css"] .ProcessBarSelected {
+	border-right-color: #00AE42;
+	border-left-color: transparent;
+}
+html[dir="rtl"][data-rtl-sheets~="model/model.css"] .FileItem:nth-child(2n+1) {
+	margin-left: 16px;
+	margin-right: 0;
+}
+
+/* --- model_new/index.css --- */
+html[dir="rtl"][data-rtl-sheets~="model_new/index.css"] .topTool {
+	right: 0;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/index.css"] .attachment img {
+	margin-left: 12px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/index.css"] .attachment .attachment-thumb {
+	margin-left: 12px;
+	margin-right: 0;
+}
+
+/* --- model_new/css/editor.css --- */
+html[dir="rtl"][data-rtl-sheets~="model_new/css/editor.css"] .topTool {
+	right: 0;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/editor.css"] .required::before {
+	margin-left: 4px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/editor.css"] .editorInput {
+	padding-right: 16px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/editor.css"] .imagePreview img {
+	left: 0;
+	right: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/editor.css"] .ck-editor__editable_inline {
+	padding: 12px 36px 12px 16px !important;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/editor.css"] .attachment-icon {
+	margin-left: 12px;
+	margin-right: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/editor.css"] .attachment-delete {
+	margin-right: auto;
+	margin-left: 0;
+}
+
+/* --- model_new/css/navigation.css --- */
+html[dir="rtl"][data-rtl-sheets~="model_new/css/navigation.css"] .Navigation {
+	padding-right: 16px;
+	padding-left: 0;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/navigation.css"] .Navigation .rail {
+	right: 6px;
+	left: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/navigation.css"] .Navigation .indicator {
+	right: 6px;
+	left: auto;
+}
+
+/* --- model_new/css/gallery.css --- */
+html[dir="rtl"][data-rtl-sheets~="model_new/css/gallery.css"] .bs-gallery-counter {
+	left: 12px;
+	right: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/gallery.css"] .bs-gallery-thumbs {
+	padding-left: 4px;
+	padding-right: 0;
+}
+
+/* --- model_new/css/accessory_dropdown.css --- */
+html[dir="rtl"][data-rtl-sheets~="model_new/css/accessory_dropdown.css"] .accessory-rule-wrapper {
+	left: 0;
+	right: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/accessory_dropdown.css"] .accessory-rule-card::after {
+	left: 15px;
+	right: auto;
+}
+html[dir="rtl"][data-rtl-sheets~="model_new/css/accessory_dropdown.css"] .accessory-rule-meta dd {
+	text-align: left;
+}
+/* ==== END GENERATED ==== */
