@@ -53,9 +53,6 @@
         "0.4",
         "0.4"
     ],
-    "fins_extrude_safe_temp": [
-        "55"
-    ],
     "first_x_layer_optional_fan_speed": [
         "0"
     ],
@@ -79,7 +76,7 @@
         "230"
     ],
     "optional_cooling_fan_speed": [
-        "75"
+        "100"
     ],
     "optional_fan_full_speed_layer": [
         "0"

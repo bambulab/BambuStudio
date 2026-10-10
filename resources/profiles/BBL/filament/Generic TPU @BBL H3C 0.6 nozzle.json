@@ -27,7 +27,6 @@
         "1",
         "1"
     ],
-    "filament_idle_travel_cooling_enabled": "1",
     "filament_max_volumetric_speed": [
         "3.2",
         "3.2"
@@ -70,7 +69,7 @@
         "230"
     ],
     "optional_cooling_fan_speed": [
-        "75"
+        "100"
     ],
     "optional_fan_full_speed_layer": [
         "0"

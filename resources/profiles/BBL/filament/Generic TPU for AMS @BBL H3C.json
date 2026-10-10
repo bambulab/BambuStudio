@@ -36,7 +36,6 @@
         "1",
         "1"
     ],
-    "filament_idle_travel_cooling_enabled": "1",
     "filament_long_retractions_when_cut": [
         "nil",
         "0"

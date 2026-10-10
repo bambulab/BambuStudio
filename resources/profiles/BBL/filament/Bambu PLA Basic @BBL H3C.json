@@ -26,6 +26,10 @@
     "filament_change_length_nc": [
         "0"
     ],
+    "filament_cooling_before_tower": [
+        "0",
+        "0"
+    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -81,7 +85,7 @@
         "220"
     ],
     "optional_cooling_fan_speed": [
-        "75"
+        "80"
     ],
     "optional_fan_full_speed_layer": [
         "0"

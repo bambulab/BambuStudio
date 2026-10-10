@@ -20,6 +20,10 @@
     "filament_change_length_nc": [
         "0"
     ],
+    "filament_cooling_before_tower": [
+        "0",
+        "0"
+    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"

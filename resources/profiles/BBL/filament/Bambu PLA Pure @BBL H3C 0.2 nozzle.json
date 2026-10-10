@@ -66,7 +66,7 @@
         "220"
     ],
     "optional_cooling_fan_speed": [
-        "75"
+        "80"
     ],
     "optional_fan_full_speed_layer": [
         "0"

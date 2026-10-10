@@ -137,6 +137,9 @@
     "filament_z_hop_types": [
         "Auto Lift"
     ],
+    "fins_extrude_safe_temp": [
+        "65"
+    ],
     "first_x_layer_optional_fan_speed": [
         "0"
     ],
@@ -157,7 +160,7 @@
         "240"
     ],
     "optional_cooling_fan_speed": [
-        "75"
+        "100"
     ],
     "optional_fan_full_speed_layer": [
         "0"
