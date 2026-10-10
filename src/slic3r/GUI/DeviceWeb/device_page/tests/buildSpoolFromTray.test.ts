@@ -173,7 +173,36 @@ assert.doesNotMatch(vmSource, /t\["tag_uid"\]\s*=\s*tray->tag_uid\s*;/);
 assert.match(vmSource, /tag_uid\.size\(\)\s*==\s*16\s*&&\s*tag_uid\.substr\(12,\s*2\)\s*==\s*"01"/);
 assert.match(vmSource, /t\["tray_id_name"\]\s*=\s*tray->tray_id_name\s*;/);
 assert.match(filaSystemSource, /ParseVal\(j_tray,\s*"tray_id_name",\s*curr_tray->tray_id_name/);
-assert.match(cloudSyncSource, /j\["trayIdName"\]\s*=\s*s\.tray_id_name\s*;/);
+assert.match(
+  cloudSyncSource,
+  /const std::string tray_id_name\s*=\s*s\.tray_id_name\.empty\(\)\s*\?\s*tray_id_name_by_filament_color\(s\)\s*:\s*s\.tray_id_name\s*;/,
+  'cloud serialization preserves or derives trayIdName',
+);
+assert.match(
+  cloudSyncSource,
+  /j\["trayIdName"\]\s*=\s*tray_id_name\s*;/,
+  'cloud payload writes the resolved trayIdName',
+);
+assert.match(
+  cloudSyncSource,
+  /const bool has_known_net_weight\s*=\s*s\.net_weight\s*>\s*0\.0\s*\|\|\s*\(s\.net_weight\s*==\s*0\.0\s*&&\s*s\.remain_percent\s*==\s*0\)\s*;/,
+  'zero net weight is known only when remain_percent also reports empty',
+);
+assert.match(
+  cloudSyncSource,
+  /const double material_weight\s*=\s*has_known_net_weight\s*\?\s*s\.net_weight\s*:/,
+  'a known current net weight takes precedence over legacy fallback data',
+);
+assert.match(
+  cloudSyncSource,
+  /if \(has_known_net_weight \|\| material_weight > 0\.0\)\s*j\["netWeight"\]\s*=\s*static_cast<int64_t>\(material_weight \+ 0\.5\)\s*;/,
+  'confirmed empty spools emit netWeight zero while unknown values keep the fallback',
+);
+assert.match(
+  filaSystemSource,
+  /if \(remain_g >= 0\)\s*\{\s*\/\/ Zero is a valid, known value:[\s\S]*?return remain_g;\s*\}/,
+  'known firmware remain_g=0 must stay distinguishable from unknown',
+);
 
 // ---- 1. RFID tray + setting_id resolves the preset ----
 
@@ -257,6 +286,35 @@ assert.equal(built1.isMultiHex, false);
 assert.deepEqual(built1.payload.colors, []);
 assert.equal(built1.payload.color_type, 2);
 
+// ---- 3b. A firmware-confirmed empty spool must remain empty ----
+
+const emptyTray: AmsTray = {
+  ...rfidTray,
+  slot_id: '6',
+  tag_uid: 'TRAY-UUID-EMPTY',
+  remain: 0,
+  remain_weight: 0,
+};
+
+const builtEmpty = buildSpoolFromTray({
+  tray: emptyTray,
+  unit,
+  devId: 'dev-1',
+  presets,
+  spools,
+});
+assert.equal(builtEmpty.payload.initial_weight, 1000);
+assert.equal(
+  builtEmpty.payload.net_weight,
+  0,
+  'known remain_weight=0 must not fall back to the full initial weight',
+);
+assert.equal(
+  builtEmpty.payload.remain_percent,
+  0,
+  'known empty AMS spool must be persisted as 0 percent',
+);
+
 // ---- 4. partitionTraysForBatchCreate routes the right buckets ----
 
 const { creates, updates } = partitionTraysForBatchCreate([built1, built2, built3]);
@@ -314,13 +372,13 @@ assert.equal(
 );
 assert.equal(
   getTrayCurrentNetWeight({ slot_id: '0', is_exists: true, weight: 1000, remain: 50, remain_g: -1, remain_weight: null }),
-  0,
-  'null remain_weight (helper returned std::nullopt) reads as 0',
+  null,
+  'null remain_weight stays unknown',
 );
 assert.equal(
   getTrayCurrentNetWeight({ slot_id: '0', is_exists: true, weight: 1000, remain: 50 }),
-  0,
-  'absent remain_weight reads as 0 — no TS-side fallback computation',
+  null,
+  'absent remain_weight stays unknown',
 );
 assert.equal(
   getTrayCurrentNetWeight({ slot_id: '0', is_exists: true, weight: 1000, remain: 0, remain_weight: 0 }),
