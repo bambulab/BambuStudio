@@ -5494,6 +5494,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (!m_initialized || !_set_current(true))
         return;
 
+    if (evt.LeftDown() || evt.LeftDClick())
+        m_mouse.left_down_in_canvas = true;
+    else if (evt.LeftUp())
+        m_mouse.left_down_in_canvas = false;
+    if (evt.MiddleDown() || evt.MiddleDClick() || evt.RightDown() || evt.RightDClick())
+        m_mouse.pan_down_in_canvas = true;
+    else if ((evt.MiddleUp() || evt.RightUp()) && !evt.MiddleIsDown() && !evt.RightIsDown())
+        m_mouse.pan_down_in_canvas = false;
+
 #if defined(__WXOSX__)
     // macOS: keep the canvas redrawing during interaction even if wxEVT_IDLE is
     // currently starved by a busy WKWebView tab (no-op elsewhere).
@@ -5935,7 +5944,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
         // do not process the dragging if the left mouse was set down in another canvas
-        else if (evt.LeftIsDown()) {
+        else if (evt.LeftIsDown() && m_mouse.left_down_in_canvas) {
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
@@ -5993,7 +6002,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
             m_mouse.drag.move_start_threshold_position_2D = pos;
         }
-        else if (evt.MiddleIsDown() || evt.RightIsDown()) {
+        else if ((evt.MiddleIsDown() || evt.RightIsDown()) && m_mouse.pan_down_in_canvas) {
             // If dragging over blank area with right button, pan.
             if (m_mouse.is_start_position_2D_defined()) {
                 // get point in model space at Z = 0
