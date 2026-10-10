@@ -122,7 +122,9 @@ export interface AutoRefillAddRefillFilamentsViewModel {
   session_seq: number;
   mode: AutoRefillAddRefillFilamentsMode;
   mode_title: string;
+  /** Untranslated template; interpolate `notice_filament_type` as `{{type}}`. */
   notice: string;
+  notice_filament_type?: string;
   group_reference: RefillGroupReference;
   units: AutoRefillAddRefillFilamentsUnit[];
 }

@@ -150,7 +150,10 @@ struct State
     std::uint32_t    session_seq = 0;
     std::string      mode        = values::mode::create_group;
     std::string      mode_title;
+    // `notice` stays an untranslated template so Web can run it through t();
+    // the filament type is passed separately as the `{{type}}` value.
     std::string      notice;
+    std::string      notice_filament_type;
     GroupReference   group_reference;
     std::vector<Unit> units;
 };
@@ -229,6 +232,7 @@ inline void to_json(nlohmann::json& j, const State& v)
         {"mode",             v.mode},
         {"mode_title",       v.mode_title},
         {"notice",           v.notice},
+        {"notice_filament_type", v.notice_filament_type},
         {"group_reference",  v.group_reference},
         {"units",            v.units},
     };

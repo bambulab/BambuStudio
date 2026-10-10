@@ -208,7 +208,9 @@ export function AddRefillFilamentsPage({
     if (!slot.selectable) {
       if (!interaction) return;
       if (interaction.feedback === 'dialog') setBlockDialogSlot(slot);
-      else if (interaction.tooltip) onToast(interaction.tooltip);
+      // C++ sends the copy as the English source text; the dialog path also
+      // routes it through t(), so the toast must do the same.
+      else if (interaction.tooltip) onToast(t(interaction.tooltip));
       return;
     }
 
@@ -238,7 +240,11 @@ export function AddRefillFilamentsPage({
   return (
     <div className="add-refill-page" data-testid="add-refill-filaments-page">
       <div className="add-refill-page__body">
-        {state.notice && <div className="add-refill-page__notice">{t(state.notice)}</div>}
+        {state.notice && (
+          <div className="add-refill-page__notice">
+            {t(state.notice, { type: state.notice_filament_type ?? '' })}
+          </div>
+        )}
         {error && <div className="refill-page__error">{error}</div>}
         <div className="add-refill-page__units">
           {state.units.map((unit) => {

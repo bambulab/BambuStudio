@@ -527,7 +527,7 @@ msgid "Copy diagnostic information"
 msgstr ""
 
 msgid "Add refill filament"
-msgstr ""
+msgstr "添加续料耗材"
 
 msgid "Add material group"
 msgstr "添加耗材组"
@@ -581,10 +581,10 @@ msgid "Batch pull back the filaments"
 msgstr "批量抽回耗材"
 
 msgid "Nesting PrintTool"
-msgstr ""
+msgstr "放置打印头"
 
 msgid "Purge filament"
-msgstr ""
+msgstr "冲刷耗材"
 
 #, boost-format
 msgid "Please manually pull out the filament from slot %1%."
@@ -618,19 +618,19 @@ msgid "Homing Toolhead"
 msgstr "工具头回中"
 
 msgid "Calibrating PrintTool Rack Position"
-msgstr ""
+msgstr "校准打印头挂架的位置"
 
 msgid "Heating Hotend"
-msgstr ""
+msgstr "热端升温"
 
 msgid "Cutting Filament"
 msgstr "切料"
 
 msgid "Unlocking Tool"
-msgstr ""
+msgstr "解锁工具"
 
 msgid "Raising PrintTool Rack"
-msgstr ""
+msgstr "抬升打印头挂架"
 
 msgid "Nesting Tool"
 msgstr "放置工具"
@@ -645,7 +645,7 @@ msgid "Moving PrintTool Rack"
 msgstr "移动打印头挂架"
 
 msgid "Refreshing Hotend"
-msgstr ""
+msgstr "刷新热端"
 
 msgid "Running"
 msgstr "运行中"
@@ -683,7 +683,7 @@ msgid "Loaded"
 msgstr "已进料"
 
 msgid "TPU pending read"
-msgstr ""
+msgstr "待读取 TPU"
 
 msgid "Unknown filament"
 msgstr "未知耗材"
@@ -707,7 +707,7 @@ msgid "Nozzle has been detached"
 msgstr "喷嘴已卸下"
 
 msgid "Nozzle type is unknown"
-msgstr ""
+msgstr "喷嘴类型未知"
 
 msgid "Slot not loaded"
 msgstr "槽位未进料"
@@ -759,25 +759,25 @@ msgid "Hotend Details"
 msgstr "热端详情"
 
 msgid "PrintTool communication error. Please check the PrintTool cable and try again."
-msgstr ""
+msgstr "打印头通讯异常。请检查打印头连接线后重试。"
 
 msgid "PrintTool detached. Cannot load."
-msgstr ""
+msgstr "打印头脱落，无法发起进料。"
 
 msgid "PrintTool communication error. Cannot operate."
-msgstr ""
+msgstr "打印头通讯异常，无法操作。"
 
 msgid "The current filament may not be fully loaded into the PrintTool"
-msgstr ""
+msgstr "当前耗材可能未完全进入打印头"
 
 msgid "Hotend type unknown"
-msgstr ""
+msgstr "热端类型未知"
 
 msgid "The current filament may not be fully loaded into the PrintTool, which may cause printing issues. Please pull the filament out of the PrintTool, then click \"Load\" to complete loading."
-msgstr ""
+msgstr "当前耗材可能未完全进入打印头，可能会造成打印异常，请将耗材拉出打印头后，点击“进料”按钮完成进料流程。"
 
 msgid "Hotend type unknown. Please edit the hotend type on the printer and try again."
-msgstr ""
+msgstr "热端类型未知。请在打印机上编辑热端类型后重试。"
 
 msgid "View details"
 msgstr "查看详情"
@@ -789,7 +789,7 @@ msgid "Hotend rack cannot read all"
 msgstr "热端挂架无法全部读取"
 
 msgid "Settings for CutTool and DrawTool are not supported yet."
-msgstr ""
+msgstr "暂不支持刀切头和画笔头的设置。"
 
 msgid "Invalid hotend display_index"
 msgstr "热端序号无效"
@@ -804,7 +804,7 @@ msgid "Hotend cannot set temperature"
 msgstr "该热端不支持设置温度"
 
 msgid "Invalid hotend addr_id"
-msgstr ""
+msgstr "无效的热端 addr_id"
 
 msgid "Loading/Unloading"
 msgstr "进/退料"
@@ -836,25 +836,25 @@ msgstr "槽位 %1% 耗材%2%中"
 
 #, c-format, boost-format
 msgid "Remove \"%s\" from this refill group?"
-msgstr ""
+msgstr "是否确认从该续料组中移除“%s”？"
 
 msgid "The refill group will be automatically deleted after removal."
-msgstr ""
+msgstr "移除后耗材续料组将自动删除。"
 
 msgid "Remove"
 msgstr "移除"
 
 msgid "This will delete all manually added filament in current group, please proceed with caution."
-msgstr ""
+msgstr "将删除当前续料组中所有手动加入的耗材。请谨慎操作。"
 
 msgid "Reset Refill Group"
-msgstr ""
+msgstr "重置续料组"
 
 msgid "Reset"
 msgstr "重置"
 
 msgid "When the current spool runs out, the printer automatically continues with a spool of the same brand, type, and color. Refill relations can also be edited manually, so spools of the same type in a different color can be used for refilling."
-msgstr ""
+msgstr "当前耗材用尽时，系统将自动使用相同品牌、类型和颜色的耗材继续打印。同时支持手动编辑续料关系，相同类型的不同颜色耗材也可用于续料。"
 
 msgid "Drag spools to adjust their priority."
 msgstr "您可以拖动耗材调整使用优先级。"
@@ -4555,7 +4555,7 @@ msgid "Please enter valid filament weights."
 msgstr "请输入有效的耗材重量。"
 
 msgid "Please enter valid filament weight within 1000g."
-msgstr ""
+msgstr "请输入 1000g 以内的有效耗材重量。"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "您确定要清除耗材丝信息吗？"
@@ -10989,7 +10989,7 @@ msgid "As the print job has been successfully sent, the cancellation will not br
 msgstr "因打印任务已成功发送，此次取消操作未能中止本次任务。如需终止任务，请在“设备页面”停止打印。"
 
 msgid "Print immediately"
-msgstr ""
+msgstr "立即打印"
 
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
@@ -11021,7 +11021,7 @@ msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "%s中耗材未知，可能会软化，请设置耗材->"
 
 msgid "The print queue does not support the Filament Track Switch yet."
-msgstr ""
+msgstr "打印队列暂不支持耗材变轨器。"
 
 msgid ""
 "Upper half area:  Original\n"
@@ -11137,13 +11137,13 @@ msgid "Low-temperature filament residue detected in Hotend %s. High chamber temp
 msgstr "在热端 %s 中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
 
 msgid "Cool"
-msgstr ""
+msgstr "低温板"
 
 msgid "Engineering"
-msgstr ""
+msgstr "工程板"
 
 msgid "High Temp"
-msgstr ""
+msgstr "高温板"
 
 msgid "Cool(Supertack)"
 msgstr "增稳低温打印板"
@@ -20231,6 +20231,39 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
+msgid "Hotend & Filament"
+msgstr "热端与耗材"
+
+msgid "Lift Hotend Rack"
+msgstr "升起热端挂架"
+
+msgid "Recenter Hotend Rack"
+msgstr "热端挂架回中"
+
+msgid "Lower Hotend Rack"
+msgstr "降下热端挂架"
+
+msgid "Lowered"
+msgstr "已降下"
+
+msgid "Centered"
+msgstr "已回中"
+
+msgid "AMS Bridge Debug"
+msgstr "AMS 桥接调试"
+
+msgid "Confirm to exit this process?"
+msgstr "退出该流程？"
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr "若耗材未被拉出，后续打印可能导致换料暂停，请谨慎操作。"
+
+msgid "Exit"
+msgstr "退出"
+
+msgid "Still exit"
+msgstr "仍然退出"
+
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "建议仅在使用混色耗材时开启，获得更好的叠色效果"
 
@@ -20995,9 +21028,6 @@ msgstr ""
 
 #~ msgid "Disable fin extrude safe temperature"
 #~ msgstr "禁用鳍片挤出安全温度"
-
-#~ msgid "Exit"
-#~ msgstr "退出"
 
 #~ msgid "Second"
 #~ msgstr "秒"

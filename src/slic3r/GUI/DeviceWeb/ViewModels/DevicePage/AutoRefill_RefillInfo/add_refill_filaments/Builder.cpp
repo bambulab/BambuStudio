@@ -477,7 +477,8 @@ nlohmann::json AutoRefillAddRefillFilamentsBuilder::Build(MachineObject*        
     const auto selected_slots = parse_selected_slots(payload);
     const auto [reference_filament_id, reference_filament_type] = find_reference_filament(obj, selected_slots);
     if (!reference_filament_type.empty()) {
-        state.notice = "Please select " + reference_filament_type + " filament for the refill relation.";
+        state.notice               = "Please select {{type}} filament for the refill relation.";
+        state.notice_filament_type = reference_filament_type;
     }
 
     // ---- Step 2: overlay Query selected / selectable / warning / reason ----
