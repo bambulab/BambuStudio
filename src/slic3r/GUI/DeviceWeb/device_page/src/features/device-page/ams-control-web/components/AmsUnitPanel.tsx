@@ -29,7 +29,8 @@ import { SlotRefresh } from './SlotRefresh';
 export interface SlotHandlers {
   onSelect: (slot: SlotView) => void;
   onEdit: (slot: SlotView) => void;
-  onRead: (slot: SlotView) => void;
+  // Resolves false when C++ refused the read, so the spinner can stop at once.
+  onRead: (slot: SlotView) => Promise<boolean>;
   onView: (slot: SlotView) => void;
   onFilamentHint: (slot: SlotView) => void;
 }

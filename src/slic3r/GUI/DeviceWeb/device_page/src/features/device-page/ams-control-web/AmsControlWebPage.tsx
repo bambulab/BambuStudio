@@ -67,7 +67,6 @@ export function AmsControlWebPage() {
   useDeviceWebTheme();
   const {
     state,
-    error,
     selectSlot,
     switchAms,
     editSlot,
@@ -96,7 +95,7 @@ export function AmsControlWebPage() {
   const handlers: SlotHandlers = {
     onSelect: (slot: SlotView) => { void selectSlot(slot.ams_id, slot.slot_id); },
     onEdit: (slot: SlotView) => { void editSlot(slot.ams_id, slot.slot_id); },
-    onRead: (slot: SlotView) => { void readSlot(slot.ams_id, slot.slot_id); },
+    onRead: (slot: SlotView) => readSlot(slot.ams_id, slot.slot_id),
     onView: (slot: SlotView) => { void viewSlot(slot.ams_id, slot.slot_id); },
     onFilamentHint: (slot: SlotView) => { void openFilamentHint(slot.ams_id, slot.slot_id); },
   };
@@ -397,8 +396,6 @@ export function AmsControlWebPage() {
         <SwitcherSetupHint switcher={display.switcher_area} />
 
       </div>
-
-      {error ? <div className="mt-1 text-xs text-red-600">{error}</div> : null}
     </div>
   );
 }

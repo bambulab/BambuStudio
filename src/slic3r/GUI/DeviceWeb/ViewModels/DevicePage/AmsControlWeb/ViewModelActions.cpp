@@ -203,15 +203,24 @@ void command_unload(MachineObject* machine_obj, const std::string& ams_id, const
     }
 }
 
-void command_read_slot(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
+// Outcome of a read request, shaped like the bridge response so the Web side can
+// tell "the printer accepted it" from "the printer refused it" and stop its
+// optimistic reading animation instead of letting it run to the end.
+struct ReadSlotResult
+{
+    int         code{0};
+    std::string message;
+};
+
+ReadSlotResult command_read_slot(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
 {
     auto fila_system = machine_obj->GetFilaSystem();
-    if (!fila_system || devPrinterUtil::IsVirtualSlot(ams_id)) return;
+    if (!fila_system || fila_system->IsVirtualTrayId(ams_id)) return {1, "external slot has no rfid reader"};
 
     DevAms* ams = fila_system->GetAmsById(ams_id);
     if (!ams || ams->GetTrays().count(slot_id) == 0) {
         BOOST_LOG_TRIVIAL(trace) << "ams control web: read slot " << ams_id << ":" << slot_id << " not found";
-        return;
+        return {1, "read slot target not found"};
     }
 
     // Mirror StatusPanel::on_ams_refresh_rfid: the reader cannot work while
@@ -227,13 +236,13 @@ void command_read_slot(MachineObject* machine_obj, const std::string& ams_id, co
         has_filament_at_extruder = machine_obj->is_filament_at_extruder();
     }
     if (has_filament_at_extruder) {
+        const std::string tips = _u8L("Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again.");
         // Modal dialogs must run on the UI thread; the bridge may call us inline.
-        wxGetApp().CallAfter([]() {
-            MessageDialog msg_dlg(nullptr, _L("Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."), wxEmptyString,
-                                  wxICON_WARNING | wxYES);
+        wxGetApp().CallAfter([tips]() {
+            MessageDialog msg_dlg(nullptr, wxString::FromUTF8(tips.c_str()), wxEmptyString, wxICON_WARNING | wxYES);
             msg_dlg.ShowModal();
         });
-        return;
+        return {3, tips};
     }
 
     try {
@@ -243,7 +252,10 @@ void command_read_slot(MachineObject* machine_obj, const std::string& ams_id, co
             machine_obj->command_ams_refresh_rfid(std::to_string(ams->GetTrayId(std::stoi(slot_id))));
     } catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "ams control web: read slot failed: " << e.what();
+        return {2, e.what()};
     }
+
+    return {0, ""};
 }
 
 } // namespace
@@ -308,8 +320,8 @@ std::optional<nlohmann::json> AmsControlWebActionHandler::TryHandle(DevicePageAm
 
     if (action == "read_slot") {
         if (ams_id.empty() || slot_id.empty()) return respond(1, "read_slot needs ams_id and slot_id");
-        command_read_slot(machine_obj, ams_id, slot_id);
-        return respond(0, "");
+        const ReadSlotResult result = command_read_slot(machine_obj, ams_id, slot_id);
+        return respond(result.code, result.message);
     }
 
     if (action == "view_slot") {
