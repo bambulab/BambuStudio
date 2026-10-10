@@ -1,5 +1,6 @@
 #include <GL/glew.h> // must precede any gl.h
 
+#include <algorithm>
 #include <array>
 #include <set>
 #include <utility>
@@ -22,8 +23,10 @@
 #include "GLShader.hpp"
 #include "3DScene.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/PresetBundle.hpp"
 // clang-format on
 
+#include "FilamentBitmapUtils.hpp"
 #include "Widgets/StateColor.hpp"
 #include "ModelPreview.hpp"
 
@@ -97,6 +100,30 @@ private:
     std::vector<std::array<float, 4>> m_extruder_colors;
     std::set<std::pair<int, int>>     m_filter; // empty = every plate
 };
+
+/**
+ * \brief Re-derive mixed filaments from their components' colours in colors, so recoloured components show
+ *        through. Physical entries are left untouched.
+ */
+void reblend_mixed_colors(std::vector<std::array<float, 4>> &colors)
+{
+    const DynamicPrintConfig &cfg      = wxGetApp().preset_bundle->project_config;
+    const auto               *is_mixed = cfg.option<ConfigOptionBools>("filament_is_mixed");
+    if (!is_mixed || std::none_of(is_mixed->values.begin(), is_mixed->values.end(), [](unsigned char m) { return m; }))
+        return;
+
+    const auto to_byte = [](float v) { return static_cast<unsigned char>(std::clamp(v, 0.f, 1.f) * 255.f + .5f); };
+    std::vector<wxColour> palette;
+    palette.reserve(colors.size());
+    for (const auto &c : colors)
+        palette.emplace_back(to_byte(c[0]), to_byte(c[1]), to_byte(c[2]), to_byte(c[3]));
+    recompute_mixed_slot_colors(palette, cfg);
+
+    // Write back only mixed slots: the 8-bit round trip must not perturb physical colours.
+    for (size_t i = 0; i < colors.size() && i < is_mixed->values.size(); ++i)
+        if (is_mixed->values[i] && palette[i].IsOk())
+            colors[i] = {palette[i].Red() / 255.f, palette[i].Green() / 255.f, palette[i].Blue() / 255.f, palette[i].Alpha() / 255.f};
+}
 
 } // namespace
 
@@ -233,10 +260,12 @@ std::shared_ptr<PreviewScene> make_current_plate_scene(int plate_idx, const std:
     }
 
     // colours[i] is project filament i's colour (the extruder_id the volumes carry); recolour the mapped
-    // ones in place so the scene draws the after-mapping result through the same per-extruder path.
+    // ones in place so the scene draws the after-mapping result through the same per-extruder path, then
+    // re-blend mixed filaments so they follow their recoloured components.
     std::vector<std::array<float, 4>> colors = plater->get_extruders_colors();
     for (const auto &[extruder, rgba] : extruder_color_overrides)
         if (extruder >= 0 && extruder < (int) colors.size()) colors[extruder] = rgba;
+    reblend_mixed_colors(colors);
 
     return std::make_shared<PlateScene>(c3d->get_volumes(), plater->model().objects, std::move(colors), std::move(filter));
 }

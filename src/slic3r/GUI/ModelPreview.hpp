@@ -95,7 +95,8 @@ private:
  * \param plate_idx                 plate to show; < 0 shows every plate
  * \param extruder_color_overrides  0-based project filament id -> RGBA (0..1) drawn instead of the
  *                                  project colour, e.g. a mapped source's destination slot colour.
- *                                  Extruders left out keep their project colour.
+ *                                  Extruders left out keep their project colour. Mixed filaments always
+ *                                  follow their components' colours, so overriding a mixed id has no effect.
  */
 std::shared_ptr<PreviewScene> make_current_plate_scene(int plate_idx = -1,
                                                        const std::map<int, std::array<float, 4>> &extruder_color_overrides = {});
