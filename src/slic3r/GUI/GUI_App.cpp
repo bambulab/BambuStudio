@@ -176,8 +176,51 @@ typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS2)(
 #if defined(__WXGTK20__) || defined(__WXGTK3__)
     #include <gtk/gtk.h>
 #endif
+#if defined(__WXGTK3__) && defined(GDK_WINDOWING_WAYLAND)
+    #include <gdk/gdkwayland.h>
+#endif
 
 using namespace std::literals;
+
+#if defined(__WXGTK3__) && defined(GDK_WINDOWING_WAYLAND)
+static void on_splash_frame_painted(GdkFrameClock*, gpointer painted)
+{
+    *static_cast<bool*>(painted) = true;
+}
+#endif
+
+// Under Wayland a window only appears once the compositor has configured it
+// and a frame has been committed, which GDK does from its frame clock, i.e.
+// only while the event loop runs. Startup blocks the event loop right after
+// showing the splash screen, so pump events until a frame of it has actually
+// been painted. Does nothing on other platforms and backends.
+static void wait_until_presented_on_wayland(wxWindow* win, int timeout_ms)
+{
+#if defined(__WXGTK3__) && defined(GDK_WINDOWING_WAYLAND)
+    GtkWidget* widget = win ? win->GetHandle() : nullptr;
+    if (widget == nullptr || !GDK_IS_WAYLAND_DISPLAY(gtk_widget_get_display(widget)))
+        return;
+    GdkWindow* gdk_window = gtk_widget_get_window(widget);
+    GdkFrameClock* clock = gdk_window ? gdk_window_get_frame_clock(gdk_window) : nullptr;
+    if (clock == nullptr)
+        return;
+
+    bool painted = false;
+    const gulong handler = g_signal_connect(clock, "after-paint", G_CALLBACK(on_splash_frame_painted), &painted);
+    gtk_widget_queue_draw(widget);
+    const gint64 deadline = g_get_monotonic_time() + gint64(timeout_ms) * 1000;
+    while (!painted && g_get_monotonic_time() < deadline) {
+        wxYield();
+        if (!painted)
+            wxMilliSleep(1);
+    }
+    g_signal_handler_disconnect(clock, handler);
+    gdk_display_flush(gtk_widget_get_display(widget));
+#else
+    (void)win;
+    (void)timeout_ms;
+#endif
+}
 namespace pt = boost::property_tree;
 
 struct StaticBambuLib
@@ -346,6 +389,9 @@ public:
 #ifdef __WXOSX__
             // without this code splash screen wouldn't be updated under OSX
             wxYield();
+#else
+            // same for the native Wayland backend
+            wait_until_presented_on_wayland(this, 100);
 #endif
         }
     }
@@ -3411,6 +3457,8 @@ bool GUI_App::on_init_inner()
         // the heavy startup work begins.
         scrn->Refresh();
         scrn->Update();
+        // Under Wayland none of the above reaches the screen by itself.
+        wait_until_presented_on_wayland(scrn, 500);
     }
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
