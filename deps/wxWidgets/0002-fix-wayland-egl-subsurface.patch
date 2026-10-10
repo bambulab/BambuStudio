@@ -1,3 +1,27 @@
+diff --git a/include/wx/aui/framemanager.h b/include/wx/aui/framemanager.h
+index f910101..67a39db 100644
+--- a/include/wx/aui/framemanager.h
++++ b/include/wx/aui/framemanager.h
+@@ -543,6 +543,7 @@ protected:
+ 
+     /// Ends a resize action, or for live update, resizes the sash
+     bool DoEndResizeAction(wxMouseEvent& event);
++    void DoPendingLiveResize();
+ 
+     void SetActivePane(wxWindow* active_pane);
+ 
+@@ -606,6 +607,11 @@ protected:
+     bool m_skipping;
+     bool m_hasMaximized;
+ 
++    // Live resize under Wayland: the most recent motion event, applied by
++    // DoPendingLiveResize() at most once per event loop iteration.
++    wxMouseEvent m_pendingResizeEvent;
++    bool m_resizeUpdatePending;
++
+     double m_dockConstraintX;  // 0.0 .. 1.0; max pct of window width a dock can consume
+     double m_dockConstraintY;  // 0.0 .. 1.0; max pct of window height a dock can consume
+ 
 diff --git a/include/wx/unix/glegl.h b/include/wx/unix/glegl.h
 index ccdd302..21f8b1f 100644
 --- a/include/wx/unix/glegl.h
@@ -66,11 +90,130 @@ index ccdd302..21f8b1f 100644
  };
  
  // ----------------------------------------------------------------------------
+diff --git a/src/aui/framemanager.cpp b/src/aui/framemanager.cpp
+index 246a89e..8b3fb96 100644
+--- a/src/aui/framemanager.cpp
++++ b/src/aui/framemanager.cpp
+@@ -42,6 +42,25 @@
+ 
+ WX_CHECK_BUILD_OPTIONS("wxAUI")
+ 
++#ifdef __WXGTK3__
++    #include "wx/gtk/private/wrapgtk.h"
++    #ifdef GDK_WINDOWING_WAYLAND
++        #include <gdk/gdkwayland.h>
++    #endif
++#endif
++
++// Under Wayland, wxWindow::Update() is a blocking round trip to the
++// compositor and nothing drawn synchronously is shown before the next frame
++// anyhow, so live resizing must avoid it.
++static bool wxAuiIsWaylandDisplay()
++{
++#if defined(__WXGTK3__) && defined(GDK_WINDOWING_WAYLAND)
++    return GDK_IS_WAYLAND_DISPLAY(gdk_display_get_default());
++#else
++    return false;
++#endif
++}
++
+ #include "wx/arrimpl.cpp"
+ WX_DECLARE_OBJARRAY(wxRect, wxAuiRectArray);
+ WX_DEFINE_OBJARRAY(wxAuiRectArray)
+@@ -616,6 +635,7 @@ wxAuiManager::wxAuiManager(wxWindow* managed_wnd, unsigned int flags)
+     m_flags = flags;
+     m_skipping = false;
+     m_hasMaximized = false;
++    m_resizeUpdatePending = false;
+     m_frame = NULL;
+     m_dockConstraintX = 0.3;
+     m_dockConstraintY = 0.3;
+@@ -2675,7 +2695,8 @@ void wxAuiManager::Update()
+             if (p.rect != old_pane_rects[i])
+             {
+                 p.window->Refresh();
+-                p.window->Update();
++                if (!wxAuiIsWaylandDisplay())
++                    p.window->Update();
+             }
+         }
+     }
+@@ -4207,6 +4228,24 @@ void wxAuiManager::OnLeftDown(wxMouseEvent& event)
+ }
+ 
+ /// Ends a resize action, or for live update, resizes the sash
++void wxAuiManager::DoPendingLiveResize()
++{
++    m_resizeUpdatePending = false;
++
++    // The drag may have ended in the meantime; OnLeftUp() then already did
++    // the final resize.
++    if (m_action != actionResize)
++        return;
++
++    // m_actionPart is invalidated by the Update() done for the previous step.
++    if (m_currentDragItem != -1)
++        m_actionPart = & (m_uiParts.Item(m_currentDragItem));
++    if (!m_actionPart)
++        return;
++
++    DoEndResizeAction(m_pendingResizeEvent);
++}
++
+ bool wxAuiManager::DoEndResizeAction(wxMouseEvent& event)
+ {
+     // resize the dock or the pane
+@@ -4585,9 +4624,26 @@ void wxAuiManager::OnMotion(wxMouseEvent& event)
+ 
+             if (HasLiveResize())
+             {
+-                m_frame->ReleaseMouse();
+-                DoEndResizeAction(event);
+-                m_frame->CaptureMouse();
++                if (wxAuiIsWaylandDisplay())
++                {
++                    // Coalesce motion events: every resize step relayouts the
++                    // whole frame, and Wayland delivers far more motion events
++                    // than X11 (no motion hints). Keep the mouse captured, as
++                    // releasing it lets the events of this step reach the
++                    // window under the pointer.
++                    m_pendingResizeEvent = event;
++                    if (!m_resizeUpdatePending)
++                    {
++                        m_resizeUpdatePending = true;
++                        CallAfter(&wxAuiManager::DoPendingLiveResize);
++                    }
++                }
++                else
++                {
++                    m_frame->ReleaseMouse();
++                    DoEndResizeAction(event);
++                    m_frame->CaptureMouse();
++                }
+             }
+             else
+             {
 diff --git a/src/gtk/glcanvas.cpp b/src/gtk/glcanvas.cpp
-index 3887e30..a69cfd8 100644
+index 3887e30..0543a8d 100644
 --- a/src/gtk/glcanvas.cpp
 +++ b/src/gtk/glcanvas.cpp
-@@ -48,6 +48,45 @@ static gboolean draw(GtkWidget* widget, cairo_t* cr, wxGLCanvas* win)
+@@ -34,7 +34,14 @@ static gboolean draw(GtkWidget* widget, cairo_t* cr, wxGLCanvas* win)
+         // GLX buffers are apparently not reliably updated to the new size
+         // before the paint event occurs, resulting in newly exposed window
+         // areas sometimes not being painted at the end of a drag resize.
+-        gdk_display_sync(gtk_widget_get_display(widget));
++        //
++        // This is an X11 workaround only: under Wayland gdk_display_sync()
++        // is a blocking round trip to the compositor, done on every draw
++        // while the canvas grows, which makes interactive resizing sluggish.
++#ifdef GDK_WINDOWING_X11
++        if (GDK_IS_X11_DISPLAY(gtk_widget_get_display(widget)))
++#endif
++            gdk_display_sync(gtk_widget_get_display(widget));
+     }
+     win->m_size.Set(a.width, a.height);
+ 
+@@ -48,6 +55,45 @@ static gboolean draw(GtkWidget* widget, cairo_t* cr, wxGLCanvas* win)
  // emission hook for "parent-set"
  //-----------------------------------------------------------------------------
  
@@ -116,7 +259,7 @@ index 3887e30..a69cfd8 100644
  #if !wxUSE_GLCANVAS_EGL
  extern "C" {
  static gboolean
-@@ -250,6 +289,9 @@ bool wxGLCanvas::Create(wxWindow *parent,
+@@ -250,6 +296,9 @@ bool wxGLCanvas::Create(wxWindow *parent,
  #if !wxUSE_GLCANVAS_EGL
      unsigned sig_id = g_signal_lookup("parent-set", GTK_TYPE_WIDGET);
      g_signal_add_emission_hook(sig_id, 0, parent_set_hook, this, NULL);
