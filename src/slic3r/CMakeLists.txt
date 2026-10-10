@@ -447,8 +447,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/StepMeshDialog.hpp
     GUI/BaseTransparentDPIFrame.cpp
     GUI/BaseTransparentDPIFrame.hpp
-    GUI/SyncAmsInfoDialog.cpp
-    GUI/SyncAmsInfoDialog.hpp
+    GUI/SyncAmsToasts.cpp
+    GUI/SyncAmsToasts.hpp
     GUI/SurfaceDrag.cpp
     GUI/SurfaceDrag.hpp
     GUI/TextLines.cpp

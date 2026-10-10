@@ -143,7 +143,7 @@
 #include "PublishDialog.hpp"
 #include "ModelMall.hpp"
 #include "ConfigWizard.hpp"
-#include "SyncAmsInfoDialog.hpp"
+#include "SyncAmsToasts.hpp"
 #include "SyncAmsDialog.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
@@ -1162,7 +1162,6 @@ struct Sidebar::priv
     void sync_extruder_volume_type(MachineObject *obj, std::optional<float> synced_diameter, int extruder_nums);
 
     bool switch_diameter(bool single);
-    void update_right_extruder_group_color();
     void update_sync_status(const MachineObject* obj);
     void adjust_filament_title_layout();
     bool is_fila_switch_ready();
@@ -2861,11 +2860,7 @@ bool Sidebar::priv::switch_diameter(bool single)
         return false;
     }
     preset->is_visible = true; // force visible
-    bool result = wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
-    //if (result) {
-    //    update_right_extruder_group_color();
-    //}
-    return result;
+    return wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
 }
 
 // Write nozzle_volume_type into project_config for every extruder, derived from extruder_full_stat
@@ -4433,19 +4428,9 @@ Sidebar::Sidebar(Plater *parent)
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
     SetSizer(sizer);
-
-    //wxGetApp().CallAfter([this]() {
-    //    p->update_right_extruder_group_color();
-    //});
 }
 
-Sidebar::~Sidebar() {
-    if (m_extruder_warning_dialog) {
-        m_extruder_warning_dialog->Hide();
-        m_extruder_warning_dialog->Destroy();
-        m_extruder_warning_dialog = nullptr;
-    }
-}
+Sidebar::~Sidebar() {}
 
 void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
     p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
@@ -6811,36 +6796,6 @@ static void update_ams_sync_unmatched_notification()
     notified_text = text_u8;
 }
 
-SyncResult Sidebar::run_legacy_sync_dialog(MachineObject *obj, bool is_from_big_sync_btn)
-{
-    // The legacy dialog draws a static plate bitmap and recolours it per mapping, so refresh the plate
-    // thumbnails first. The new dialog renders live GL instead and needs no pre-render (see below).
-    wxGetApp().plater()->update_all_plate_thumbnails(true);
-
-    SyncAmsInfoDialog::SyncInfo info;
-    info.use_dialog_pos       = false;
-    info.cancel_text_to_later = is_from_big_sync_btn;
-    SyncAmsInfoDialog dlg(this, info);
-
-    int dlg_res = (int) wxID_CANCEL;
-    if (dlg.is_need_show()) {
-        dlg.deal_only_exist_ext_spool(obj);
-        if (dlg.is_dirty_filament()) {
-            wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0], false, "", false, true);
-            wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-            dynamic_filament_list.update();
-        }
-        dlg.set_check_dirty_fialment(false);
-        dlg_res = dlg.ShowModal();
-    } else {
-        dlg_res = (int) wxID_YES; // nothing to confirm: apply the current mapping as-is
-    }
-
-    SyncResult out = dlg.get_result();
-    out.dlg_res    = dlg_res;
-    return out;
-}
-
 namespace {
 
 bool any_plate_has_objects()
@@ -6873,7 +6828,7 @@ bool confirm_discard_filament_preset_edits(wxWindow *parent)
 
 } // namespace
 
-SyncResult Sidebar::run_multi_nozzle_sync_dialog()
+SyncResult Sidebar::run_sync_dialog(bool deferrable)
 {
     SyncResult out;
     if (!confirm_discard_filament_preset_edits(this)) {
@@ -6885,7 +6840,7 @@ SyncResult Sidebar::run_multi_nozzle_sync_dialog()
     if (!any_plate_has_objects())
         return out;
 
-    SyncAmsDialog dlg(this);
+    SyncAmsDialog dlg(this, deferrable);
     const int     dlg_res = dlg.ShowModal();
     out                   = dlg.get_result();
     out.dlg_res           = (dlg_res == wxID_CANCEL) ? (int) wxID_CANCEL : (int) wxID_YES;
@@ -6934,16 +6889,11 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     std::string ams_filament_ids = wxGetApp().app_config->get("ams_filament_ids", p->ams_list_device);
     std::vector<std::string> list2;
     if (!ams_filament_ids.empty()) { boost::algorithm::split(list2, ams_filament_ids, boost::algorithm::is_any_of(",")); }
-    // Single-extruder multi-nozzle printers and multi-diameter mode open the new native dialog; everything
-    // else keeps the legacy one. Each helper owns its dialog locally (the legacy one pre-renders plate
-    // thumbnails; the new one renders live GL) and returns the result with dlg_res embedded.
-    const auto &printer_cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    const bool  use_multi   = is_single_ext_multi_nozzle(printer_cfg) || multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->full_config());
-    // Both sync dialogs are interactive, so release the busy cursor this function set at the top for the
+    // The sync dialog is interactive, so release the busy cursor this function set at the top for the
     // modal dialog's lifetime — otherwise the wait cursor spins over it — then restore it for the heavy
     // apply phase below. The top-level wxBusyCursor still balances the count on return.
     wxEndBusyCursor();
-    SyncResult sync_result = use_multi ? run_multi_nozzle_sync_dialog() : run_legacy_sync_dialog(obj, is_from_big_sync_btn);
+    SyncResult sync_result = run_sync_dialog(is_from_big_sync_btn);
     wxBeginBusyCursor();
     if (sync_result.dlg_res == wxID_CANCEL)
         return;

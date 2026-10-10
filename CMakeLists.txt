@@ -176,6 +176,9 @@ if (MSVC)
         # limit (LNK1248), and plain Release omits debug info in standard
         # CMake semantics anyway.
         add_compile_options(-bigobj -Zm520 "$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/Z7>")
+        # The merged Debug PDB outgrows the 4 GB cap of the default 4 KB page
+        # size (LNK1140); 8 KB pages raise the cap to 8 GB.
+        add_link_options("$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/PDBPAGESIZE:8192>")
     else ()
         add_compile_options(-bigobj -Zm520 /Zi)
     endif ()

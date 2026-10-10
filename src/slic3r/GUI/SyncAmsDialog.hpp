@@ -1,19 +1,22 @@
 #pragma once
 
+#include <map>
 #include <memory>
 #include <utility>
 #include <vector>
 
-#include "GUI_Utils.hpp"    // DPIDialog
-#include "ISyncAmsDialog.hpp" // GUI::SyncResult
+#include <wx/defs.h> // wxID_CANCEL
+
+#include "GUI_Utils.hpp"              // DPIDialog
+#include "libslic3r/PresetBundle.hpp" // AMSMapInfo
+#include "libslic3r/ProjectTask.hpp"  // FilamentInfo
 
 class Label;
 class ComboBox;
+class ScalableButton;
 class wxStaticBitmap;
 
-namespace Slic3r {
-struct FilamentInfo;
-namespace GUI {
+namespace Slic3r::GUI {
 
 class CapsuleButton;
 class ModelPreview;
@@ -22,12 +25,29 @@ class MappingRow;
 class AmsSlotPopup;
 
 /**
+ * \brief The outcome the Plater applies after the Sync-AMS dialog closes.
+ *
+ * \ref dlg_res == \c wxID_CANCEL means the user cancelled and nothing should be applied.
+ */
+struct SyncResult
+{
+    int                       dlg_res         = wxID_CANCEL; ///< ShowModal outcome; wxID_CANCEL == user cancelled
+    bool                      direct_sync     = true;        ///< overwrite directly, no per-slot mapping
+    bool                      is_same_printer = true;
+    std::map<int, AMSMapInfo> sync_maps;                     ///< project filament id -> chosen slot
+};
+
+/**
  * \brief The new Sync-AMS dialog with 3D preview and new UI
  */
 class SyncAmsDialog : public DPIDialog
 {
 public:
-    explicit SyncAmsDialog(wxWindow *parent);
+    /**
+     * \param parent      the owning window
+     * \param deferrable  true when the app suggested the sync rather than the user asking for it; cancel then reads "Later"
+     */
+    explicit SyncAmsDialog(wxWindow *parent, bool deferrable = false);
     const SyncResult &get_result() const { return m_result; }
 
 protected:
@@ -44,7 +64,7 @@ private:
      */
     wxWindow *build_mapping_section();
     wxSizer  *build_advanced();
-    wxSizer  *build_footer();
+    wxSizer  *build_footer(bool deferrable);
 
     /**
      * \brief Switch the dialog's mode: capsule selection, description, and mapping section visibility.
@@ -85,14 +105,12 @@ private:
     void update_mapped_preview(bool reframe);
 
     /**
-     * \brief Show the rows for the plate combo's scope, matching only filaments that have no mapping yet.
-     *
-     * Earlier results, including manual picks, survive a plate switch.
+     * \brief Show the rows for the plate combo's scope. Results, including manual picks, survive a plate switch.
      */
     void rebuild_mapping();
 
     /**
-     * \brief Re-match every filament mapped so far with the current strategy and refill the rows.
+     * \brief Match every project filament with the current strategy and refill the rows.
      *
      * Discards manual picks.
      */
@@ -100,6 +118,8 @@ private:
 
     /**
      * \brief Match filaments against the selected machine and store the results in \ref m_mappings.
+     *
+     * Multi-nozzle printers rank slots by the strategy combo; every other printer uses the classic ranking.
      *
      * \param source  the filaments to (re)match; existing entries for them are replaced
      */
@@ -122,6 +142,16 @@ private:
     void open_slot_picker(MappingRow *row, const FilamentInfo &source, std::shared_ptr<FilamentInfo> current);
 
     /**
+     * \brief Show the "reset all" button exactly while some mapping differs from its auto-map result.
+     */
+    void update_reset_all();
+
+    /**
+     * \brief Restore every mapping to its auto-map result, discarding manual picks and resets.
+     */
+    void reset_all();
+
+    /**
      * \brief Fold the current rows into \ref m_result. Call on an OK close.
      *
      * Overwrite mode syncs directly; mapping mode records each mapped slot keyed by source filament id.
@@ -134,11 +164,12 @@ private:
     ::Label        *m_desc{nullptr};
     ::Label        *m_after_title{nullptr};
     ::ComboBox     *m_plate_combo{nullptr};
-    ::ComboBox     *m_policy{nullptr};
+    ::ComboBox     *m_policy{nullptr}; ///< matching strategy; only multi-nozzle printers have one
     ModelPreview   *m_preview_orig{nullptr};
     ModelPreview   *m_preview_mapped{nullptr};
     wxWindow       *m_mapping_panel{nullptr};
     MappingList    *m_mapping_list{nullptr};
+    ScalableButton *m_reset_all{nullptr};
     wxWindow       *m_advanced_body{nullptr};
     wxStaticBitmap *m_advanced_icon{nullptr};
     bool            m_overwrite{false};
@@ -146,10 +177,10 @@ private:
 
     SyncResult m_result; ///< produced by deal_ok(), read by the Plater after an OK close
 
-    /// Source filament id -> its destination, for every filament mapped in any plate scope so far. A row's
-    /// picker writes through the same shared_ptr, so this always reflects the latest pick.
+    /// Source filament id -> its destination, for every project filament. A row's picker writes through
+    /// the same shared_ptr, so this always reflects the latest pick.
     std::map<int, std::shared_ptr<FilamentInfo>> m_mappings;
+    std::map<int, FilamentInfo>                  m_auto_mappings; ///< the auto-map result per source, restored by reset_all()
 };
 
-} // namespace GUI
-} // namespace Slic3r
+} // namespace Slic3r::GUI

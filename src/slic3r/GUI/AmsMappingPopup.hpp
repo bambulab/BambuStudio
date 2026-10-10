@@ -183,20 +183,6 @@ public:
 
 
 
-class MaterialSyncItem : public MaterialItem
-{
-public:
-    MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id);
-    ~MaterialSyncItem();
-    int  get_real_offset();
-    void render(wxDC &dc) override;
-    void doRender(wxDC &dc) override;
-    void set_material_index_str(std::string str);
-    const std::string &get_material_index_str() { return m_material_index; }
-private:
-    std::string m_material_index;
-};
-
 class MappingItem : public wxPanel
 {
 public:
@@ -308,7 +294,7 @@ public:
     // Web side painted a frame for `seq`: reveals the masked window (macOS only).
     void OnHotendWebPresented(std::uint32_t seq);
 
-    MaterialItem* m_parent_item{ nullptr };
+    wxWindow* m_anchor{ nullptr }; ///< the cell the popup opens from; sizes, places and pre-checks against it
 
     wxWindow* send_win{ nullptr };
     std::vector<std::string> m_materials_list;
@@ -376,7 +362,18 @@ public:
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     void         paintEvent(wxPaintEvent &evt);
-    void         set_parent_item(MaterialItem* item) {m_parent_item = item;};
+    void         set_parent_item(MaterialItem* item) { set_anchor(item); };
+
+    /**
+     * \brief Open from a cell: on show the popup fits its content, then sits below the cell, or above when
+     *        there is no room. The current filament's slot is pre-checked.
+     *
+     * Set it before \c update() on every opening; closing the popup clears it. Without an anchor the popup
+     * keeps its last size and position.
+     *
+     * \param anchor  the cell to open from; nullptr clears it
+     */
+    void         set_anchor(wxWindow* anchor) { m_anchor = anchor; }
     void         set_show_type(ShowType type) { m_show_type = type; };
 
     // Slice snapshot of the job about to be sent. Forwarded to the hotend mapping VM

@@ -8,7 +8,7 @@
  *
  * Event contract is preserved verbatim: on action/select the VM posts
  * EVT_SET_FINISH_MAPPING to the original send_win (SelectMachineDialog
- * / SyncAmsInfoDialog), so the higher-level mapping pipeline is
+ * / the Sync-AMS slot picker), so the higher-level mapping pipeline is
  * untouched.
  *
  * \author xin.zhang

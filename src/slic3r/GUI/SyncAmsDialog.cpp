@@ -29,8 +29,11 @@
 #include "dark_mode.hpp"                // NppDarkMode::SetDarkTitleBar
 #endif
 #include "wxExtensions.hpp"             // create_scaled_bitmap
+#include "BitmapCache.hpp"              // parse_color4, to normalise source colours
+#include "DeviceManager.hpp"            // MachineObject external spools
 #include "DeviceCore/DevManager.h"      // selected machine
 #include "DeviceCore/DevMapping.h"      // ams_filament_mapping
+#include "DeviceCore/DevFilaSwitch.h"   // filament selector state
 #include "DeviceCore/DevFilaSystem.h"   // DevAmsTray::decode_color, for the mapped preview colours
 #include "DeviceCore/DevNozzleSystem.h" // DevNozzle flow-type strings, for the source volume type
 #include "Widgets/Button.hpp"
@@ -42,6 +45,7 @@
 #include "Widgets/PillView.hpp"
 #include "Widgets/RoundedRectangle.hpp" // shared fill+border card surface
 #include "Widgets/StateColor.hpp"
+#include "libslic3r/Print.hpp"        // filament temperature class, for the high-temperature tip
 #include "libslic3r/PresetBundle.hpp" // project filaments + config, for the source list
 #include "libslic3r/PrintConfig.hpp"  // nozzle diameter/volume options + primary_nozzle_diameter
 #include "libslic3r/ProjectTask.hpp"  // FilamentInfo
@@ -122,6 +126,18 @@ std::string source_volume_for(const DynamicPrintConfig &cfg, int extruder)
 }
 
 /**
+ * \brief A project colour in FilamentInfo's "#RRGGBBAA" form, so every source compares on the same footing.
+ *
+ * \param colour  the project colour, with or without alpha
+ */
+std::string normalized_colour(const std::string &colour)
+{
+    unsigned char rgba[4];
+    if (!BitmapCache::parse_color4(colour, rgba)) return colour;
+    return wxString::Format("#%02X%02X%02X%02X", rgba[0], rgba[1], rgba[2], rgba[3]).ToStdString();
+}
+
+/**
  * \brief The mapping source list: one FilamentInfo per project filament the scope uses, with its
  *        nozzle diameter and volume type. Mixed filaments are skipped, since they have no physical spool.
  *
@@ -173,12 +189,79 @@ std::vector<FilamentInfo> collect_scope_filaments(int plate_idx)
         info.type               = types[id];
         info.brand              = brands[id];
         info.filament_id        = filament_ids[id];
-        info.color              = preset_bundle->project_config.opt_string("filament_colour", (unsigned int) id);
+        info.color              = normalized_colour(preset_bundle->project_config.opt_string("filament_colour", (unsigned int) id));
         info.nozzle_diameter    = source_diameter_for(cfg, id);
         info.nozzle_volume_type = source_volume_for(cfg, id);
         out.push_back(info);
     }
     return out;
+}
+
+/**
+ * \brief Whether the selected printer profile is a single-extruder printer carrying several nozzles.
+ *
+ * Only these printers match by nozzle as well and let the user pick the matching strategy; every other
+ * printer keeps the classic matching.
+ */
+bool is_multi_nozzle_printer()
+{
+    auto *bundle = wxGetApp().preset_bundle;
+    return bundle && (is_single_ext_multi_nozzle(bundle->printers.get_edited_preset().config) ||
+                      multi_nozzle_diameter_mode_enabled(bundle->full_config()));
+}
+
+/**
+ * \brief How auto-map ranks the candidate slots of one source.
+ */
+struct MatchStrategy
+{
+    bool              color_over_subtype{false};               ///< colour outranks the filament sub-type
+    NozzleMatchWeight nozzle_weight{NozzleMatchWeight::Ignore}; ///< how much the slot's nozzle counts
+};
+
+/**
+ * \brief Which of a printer's slots take part in the sync. The only place that decides it.
+ *
+ * \param obj  the printer to sync from
+ */
+SyncSlots sync_slots_of(const MachineObject *obj)
+{
+    SyncSlots slots;
+    slots.dual_nozzle         = wxGetApp().preset_bundle->full_config().option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size() > 1;
+    const auto selector       = obj->GetFilaSwitch();
+    slots.selector_feeds_both =slots.dual_nozzle && selector && selector->IsInstalled() && selector->IsReady();
+    return slots;
+}
+
+/**
+ * \brief Match every source against the machine's slots in one pass, one result per source.
+ *
+ * A result whose slot is no longer on the machine comes back unmapped (tray_id < 0); when the matcher
+ * fails outright and its result is invalid, every result is unmapped.
+ *
+ * \param obj       the machine to map onto
+ * \param source    the project filaments to match
+ * \param strategy  how candidate slots are ranked
+ */
+std::vector<FilamentInfo> match_filaments(const MachineObject *obj, const std::vector<FilamentInfo> &source, const MatchStrategy &strategy)
+{
+    const SyncSlots slots   = sync_slots_of(obj);
+    const bool      use_ext = !slots.selector_feeds_both;
+    // {use_left_ams, use_right_ams, use_left_ext, use_right_ext}
+    const std::vector<bool> map_opt = slots.dual_nozzle ? std::vector<bool>{true, true, use_ext, use_ext} : std::vector<bool>{false, true, false, true};
+    const bool ignore_ext_if_ams = !wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist");
+
+    std::vector<FilamentInfo> result;
+    const int rc = DevMappingUtil::ams_filament_mapping(obj, source, result, map_opt, std::vector<int>(), ignore_ext_if_ams,
+                                                        strategy.color_over_subtype, strategy.nozzle_weight);
+    const bool valid = DevMappingUtil::is_valid_mapping_result(obj, result); // unmaps slots that left the machine
+    if (rc != 0 && rc != 1 && !valid) {
+        for (auto &r : result) {
+            r.tray_id  = -1;
+            r.distance = 99999;
+        }
+    }
+    return result;
 }
 
 /**
@@ -201,16 +284,81 @@ void backfill_nozzle_geometry(const std::vector<FilamentInfo> &slots, FilamentIn
 }
 
 /**
+ * \brief The printer the sync reads from, or nullptr when none is selected.
+ */
+MachineObject *selected_machine()
+{
+    auto *dm = wxGetApp().getDeviceManager();
+    return dm ? dm->get_selected_machine() : nullptr;
+}
+
+/**
  * \brief A destination slot's name on the selected printer, e.g. "A1".
  *
  * \param slot  the destination; empty when unmapped or no printer is selected
  */
 wxString slot_label(const FilamentInfo &slot)
 {
-    auto *dm  = wxGetApp().getDeviceManager();
-    auto *obj = dm ? dm->get_selected_machine() : nullptr;
+    auto *obj = selected_machine();
     if (!obj || slot.tray_id < 0) return {};
     return wxString::FromUTF8(slot_name(obj, slot.get_ams_id(), std::atoi(slot.slot_id.c_str())));
+}
+
+/**
+ * \brief Whether the selected printer syncs from external spools only. False when no printer is selected.
+ */
+bool syncs_ext_spools_only()
+{
+    auto *obj = selected_machine();
+    return obj && !obj->GetFilaSystem()->HasAms();
+}
+
+/**
+ * \brief Whether a printer holds a high-temperature filament in any slot that takes part in the sync.
+ *
+ * \param obj  the printer to inspect
+ */
+bool has_high_temp_filament(MachineObject *obj)
+{
+    auto is_high_temp = [](const DevAmsTray &tray) {
+        return tray.is_exists && Print::get_filament_temp_type(tray.m_fila_type) == FilamentTempType::HighTemp;
+    };
+    for (const auto &[ams_id, ams] : obj->GetFilaSystem()->GetAmsList())
+        for (const auto &[slot_id, tray] : ams->GetTrays())
+            if (tray && is_high_temp(*tray)) return true;
+
+    // External spools join the sync only when supported and not replaced by a filament selector.
+    if (!obj->ams_support_virtual_tray || sync_slots_of(obj).selector_feeds_both) return false;
+    return std::any_of(obj->vt_slot.begin(), obj->vt_slot.end(), is_high_temp);
+}
+
+/**
+ * \brief The warning that high- and low-temperature filaments must not be mixed, with a link to the help page.
+ *
+ * \param parent  the card to place it on
+ * \param bg      the card's background colour
+ */
+wxSizer *build_high_temp_tip(wxWindow *parent, const wxColour &bg)
+{
+    auto *text = new ::Label(parent, _L("High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."), LB_AUTO_WRAP);
+    auto *link = new ::Label(parent, _L("Click Wiki for help."));
+    for (::Label *l : {text, link}) {
+        l->SetFont(::Label::Body_12);
+        l->SetBackgroundColour(bg);
+    }
+    text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextMuted));
+    link->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::BrandGreen));
+    link->SetCursor(wxCursor(wxCURSOR_HAND));
+    link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) {
+        const bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+        wxLaunchDefaultBrowser(is_zh ? "https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit" :
+                                       "https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
+    });
+
+    auto *v = new wxBoxSizer(wxVERTICAL);
+    v->Add(text, 0, wxEXPAND);
+    v->Add(link, 0);
+    return v;
 }
 
 /**
@@ -274,8 +422,13 @@ private:
 
 } // namespace
 
-SyncAmsDialog::SyncAmsDialog(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, _L("Synchronize AMS Filament Information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+SyncAmsDialog::SyncAmsDialog(wxWindow *parent, bool deferrable)
+    : DPIDialog(parent,
+                wxID_ANY,
+                syncs_ext_spools_only() ? _L("Synchronize Filament Information") : _L("Synchronize AMS Filament Information"),
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetBackgroundColour(wxGetApp().get_window_default_clr());
 
@@ -292,7 +445,7 @@ SyncAmsDialog::SyncAmsDialog(wxWindow *parent)
     root->AddSpacer(spacing);
     root->Add(build_advanced(), 0, wxEXPAND | wxLEFT | wxRIGHT, inset);
     root->AddSpacer(spacing);
-    root->Add(build_footer(), 0, wxEXPAND | wxALL, inset);
+    root->Add(build_footer(deferrable), 0, wxEXPAND | wxALL, inset);
     SetSizer(root);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &) { EndModal(wxID_CANCEL); });
@@ -343,6 +496,8 @@ wxWindow *SyncAmsDialog::build_header()
     v->Add(modes, 0, wxALIGN_CENTER_HORIZONTAL);
     v->Add(m_desc, 0, wxEXPAND | wxTOP, FromDIP(10));
     v->Add(warn, 0, wxTOP, FromDIP(8));
+    if (auto *obj = selected_machine(); obj && has_high_temp_filament(obj))
+        v->Add(build_high_temp_tip(card, card_bg), 0, wxEXPAND | wxTOP, FromDIP(8));
 
     auto *pad = new wxBoxSizer(wxVERTICAL);
     pad->Add(v, 1, wxEXPAND | wxALL, FromDIP(12));
@@ -418,45 +573,31 @@ void SyncAmsDialog::update_mapped_preview(bool reframe)
     m_preview_mapped->set_scene(make_current_plate_scene(current_plate(), overrides), reframe);
 }
 
-void SyncAmsDialog::rebuild_mapping()
-{
-    // Filaments already mapped while another plate was shown keep their result (auto or picked); only the
-    // ones this scope brings in for the first time are matched.
-    const std::vector<FilamentInfo> source = collect_scope_filaments(current_plate());
-    std::vector<FilamentInfo>       unseen;
-    for (const auto &s : source)
-        if (m_mappings.find(s.id) == m_mappings.end()) unseen.push_back(s);
-    auto_map(unseen);
-    fill_rows(source);
-}
+void SyncAmsDialog::rebuild_mapping() { fill_rows(collect_scope_filaments(current_plate())); }
 
 void SyncAmsDialog::remap_all()
 {
-    // A strategy change re-matches every filament mapped so far, not only the shown scope, so the result
-    // never mixes two strategies; manual picks are discarded.
-    std::vector<FilamentInfo> known;
-    for (const auto &s : collect_scope_filaments(-1))
-        if (m_mappings.find(s.id) != m_mappings.end()) known.push_back(s);
-    auto_map(known);
-    fill_rows(collect_scope_filaments(current_plate()));
+    // The matcher shares slots across all sources, so every project filament is matched together; manual
+    // picks are discarded.
+    auto_map(collect_scope_filaments(-1));
+    rebuild_mapping();
+    if (m_reset_all) update_reset_all();
 }
 
 void SyncAmsDialog::auto_map(const std::vector<FilamentInfo> &source)
 {
     std::vector<FilamentInfo> result;
-    auto                     *dm  = wxGetApp().getDeviceManager();
-    auto                     *obj = dm ? dm->get_selected_machine() : nullptr;
+    auto                     *obj = selected_machine();
     if (obj && !source.empty()) {
-        const auto  &full_config = wxGetApp().preset_bundle->full_config();
-        const size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-        // {use_left_ams, use_right_ams, use_left_ext, use_right_ext}, mirroring SyncAmsInfoDialog::do_ams_mapping.
-        std::vector<bool> map_opt = nozzle_nums > 1 ? std::vector<bool>{true, true, true, true} : std::vector<bool>{false, true, false, true};
-        // Auto-map strategy from the policy combo: Precision-first requires a matching nozzle (diameter + flow),
-        // Color-first only prefers one. Colour always outranks filament sub-type in either strategy.
-        const bool              precision_first = m_policy && m_policy->GetSelection() == 1;
-        const NozzleMatchWeight nozzle_weight   = precision_first ? NozzleMatchWeight::Require : NozzleMatchWeight::Prefer;
-        DevMappingUtil::ams_filament_mapping(obj, source, result, map_opt, std::vector<int>(), /*nozzle_has_ams_then_ignore_ext*/ true,
-                                             /*color_over_subtype*/ true, nozzle_weight);
+        // Multi-nozzle printers follow the strategy combo: Precision first requires a matching nozzle
+        // (diameter + flow), Color first only prefers one, and colour outranks the filament sub-type in
+        // both. Other printers have no combo and keep the classic ranking.
+        MatchStrategy strategy;
+        if (m_policy) {
+            strategy.color_over_subtype = true;
+            strategy.nozzle_weight      = m_policy->GetSelection() == 1 ? NozzleMatchWeight::Require : NozzleMatchWeight::Prefer;
+        }
+        result = match_filaments(obj, source, strategy);
 
         // The matcher copies the slot's ids / colour / type but not its nozzle geometry — backfill it from
         // the machine's real slots (the same join the manual-pick path uses).
@@ -472,7 +613,8 @@ void SyncAmsDialog::auto_map(const std::vector<FilamentInfo> &source)
             dst = result[i];
         else
             dst.tray_id = -1;
-        m_mappings[source[i].id] = std::make_shared<FilamentInfo>(dst);
+        m_mappings[source[i].id]      = std::make_shared<FilamentInfo>(dst);
+        m_auto_mappings[source[i].id] = dst;
     }
 }
 
@@ -515,18 +657,56 @@ void SyncAmsDialog::open_slot_picker(MappingRow *row, const FilamentInfo &source
     SlotSelectionState st;
     st.source_id   = source.id;
     st.source_type = source.type;
-    st.match_all   = true; // TODO: drive from the advanced "match all" option once wired
+    st.match_all   = m_policy != nullptr; // multi-nozzle printers may pick across filament types
+    if (auto *obj = selected_machine()) st.slots = sync_slots_of(obj);
+    for (const auto &[src_id, dst] : m_mappings) {
+        st.mapping.push_back(*dst);
+        st.mapping.back().id = src_id;
+    }
     m_slot_popup->set_state(st);
-    m_slot_popup->set_current_slot(*current);
-    m_slot_popup->on_pick = [this, row, current](const FilamentInfo &chosen) {
-        // The popup resolves the clicked slot's full identity (incl. nozzle geometry) from the machine's
-        // live slots, so a manual pick already reads identically to an auto-matched one — take it as is.
-        *current = chosen;
-        row->set_dest(chosen, slot_label(chosen));
+
+    // Both callbacks write through the shared `current`, so m_mappings sees the change.
+    auto apply = [this, row, current](const FilamentInfo &dest) {
+        *current = dest;
+        row->set_dest(dest, slot_label(dest));
         row->set_selected(true);
         update_mapped_preview(/*reframe=*/false); // repaint the after-mapping preview with the new colour
+        update_reset_all();
+    };
+    // The popup resolves the clicked slot's full identity (incl. nozzle geometry) from the machine's live
+    // slots, so a manual pick already reads identically to an auto-matched one — take it as is.
+    m_slot_popup->on_pick  = apply;
+    m_slot_popup->on_reset = [apply] {
+        FilamentInfo unmapped;
+        unmapped.tray_id = -1;
+        apply(unmapped);
     };
     m_slot_popup->popup_at(row->dest_anchor());
+}
+
+void SyncAmsDialog::update_reset_all()
+{
+    bool edited = false;
+    for (const auto &[src_id, dst] : m_mappings) {
+        auto it = m_auto_mappings.find(src_id);
+        if (it == m_auto_mappings.end() || it->second.ams_id != dst->ams_id || it->second.slot_id != dst->slot_id) {
+            edited = true;
+            break;
+        }
+    }
+    if (m_reset_all->IsShown() == edited) return;
+    m_reset_all->Show(edited);
+    m_mapping_panel->Layout();
+}
+
+void SyncAmsDialog::reset_all()
+{
+    for (auto &[src_id, dst] : m_mappings) {
+        auto it = m_auto_mappings.find(src_id);
+        if (it != m_auto_mappings.end()) *dst = it->second; // in place: rows hold the same shared_ptr
+    }
+    rebuild_mapping();
+    update_reset_all();
 }
 
 void SyncAmsDialog::deal_ok()
@@ -542,15 +722,17 @@ void SyncAmsDialog::deal_ok()
 
     m_result.direct_sync = false;
     m_result.sync_maps.clear();
-    // Each row's dest already carries its slot's nozzle diameter (backfilled at pick / auto-map time),
-    // so record it straight. An unmapped dest leaves empty ids, which the preset bundle reads as unmapped.
+    // Each row's dest already carries its slot's nozzle diameter (backfilled at pick / auto-map time). Only
+    // multi-nozzle printers hand it on: elsewhere the diameter is the printer's own and must not re-pick
+    // the filament's nozzle variant. An unmapped dest leaves empty ids, which the preset bundle reads as unmapped.
+    const bool record_diameter = m_policy != nullptr;
     for (const auto &[src_id, dst] : m_mappings) {
         if (src_id < 0)
             continue;
         auto &slot   = m_result.sync_maps[src_id];
         slot.ams_id  = dst->ams_id;
         slot.slot_id = dst->slot_id;
-        if (dst->nozzle_diameter > 0.)
+        if (record_diameter && dst->nozzle_diameter > 0.)
             slot.nozzle_diameter = std::to_string(dst->nozzle_diameter);
     }
 }
@@ -614,19 +796,28 @@ wxWindow *SyncAmsDialog::build_mapping_section()
     auto *title = new ::Label(m_mapping_panel, _L("Filament matching"));
     title->SetFont(::Label::Head_14);
     title->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
-    m_policy = new ::ComboBox(m_mapping_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(124, 26)), 0, nullptr, wxCB_READONLY);
-    m_policy->Append(_L("Color first")); // matches the existing dialog's scheme text
-    m_policy->Append(_L("Precision first"));
-    m_policy->SetSelection(0);
-    m_policy->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) { remap_all(); }); // re-map with the new strategy
     auto *trow = new wxBoxSizer(wxHORIZONTAL);
     trow->Add(title, 0, wxALIGN_CENTER_VERTICAL);
-    trow->Add(m_policy, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12)); // right after the label
+    if (is_multi_nozzle_printer()) {
+        m_policy = new ::ComboBox(m_mapping_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(124, 26)), 0, nullptr, wxCB_READONLY);
+        m_policy->Append(_L("Color first"));
+        m_policy->Append(_L("Precision first"));
+        m_policy->SetSelection(0);
+        m_policy->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) { remap_all(); }); // re-map with the new strategy
+        trow->Add(m_policy, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));  // right after the label
+    }
     trow->AddStretchSpacer();
+    m_reset_all = new ScalableButton(m_mapping_panel, wxID_ANY, "reset_gray", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+                                     wxBU_EXACTFIT | wxNO_BORDER, true, 16);
+    m_reset_all->SetBackgroundColour(m_mapping_panel->GetBackgroundColour());
+    m_reset_all->SetToolTip(_L("Reset all filament mapping"));
+    m_reset_all->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { reset_all(); });
+    m_reset_all->Hide(); // shown only while a manual edit differs from the auto-map
+    trow->Add(m_reset_all, 0, wxALIGN_CENTER_VERTICAL);
 
     m_mapping_list = new MappingList(m_mapping_panel);
     m_mapping_list->SetBackgroundColour(m_mapping_panel->GetBackgroundColour()); // set before rows: cells theme off this
-    rebuild_mapping();                                                           // fills rows and sizes the list to them (width is left to wxEXPAND below)
+    remap_all(); // fills rows and sizes the list to them (width is left to wxEXPAND below)
 
     auto *v = new wxBoxSizer(wxVERTICAL);
     v->Add(trow, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
@@ -651,7 +842,8 @@ wxSizer *SyncAmsDialog::build_advanced()
     auto *bs = new wxBoxSizer(wxVERTICAL);
     // Each option is a persisted app preference that the sync itself reads, so the box mirrors and writes that key directly.
     const std::pair<std::string, wxString> options[] = {
-        {"enable_append_color_by_sync_ams", _L("Add unused AMS filaments to filaments list.")},
+        {"enable_append_color_by_sync_ams",
+         syncs_ext_spools_only() ? _L("Add unused filaments to filaments list.") : _L("Add unused AMS filaments to filaments list.")},
         {"enable_merge_color_by_sync_ams", _L("Automatically merge the same colors in the model after mapping.")},
     };
     for (const auto &[key, text] : options) {
@@ -686,9 +878,9 @@ void SyncAmsDialog::toggle_advanced()
     relayout(); // the shown body enlarges the content, so Fit grows the dialog to fit it
 }
 
-wxSizer *SyncAmsDialog::build_footer()
+wxSizer *SyncAmsDialog::build_footer(bool deferrable)
 {
-    auto *cancel = new ::Button(this, _L("Cancel"));
+    auto *cancel = new ::Button(this, deferrable ? _L("Later") : _L("Cancel"));
     auto *ok     = new ::Button(this, _L("Synchronize now"));
     for (::Button *b : {cancel, ok}) {
         b->SetMinSize(FromDIP(wxSize(96, 30)));

@@ -536,7 +536,7 @@ void AmsMapingPopup::update_rack_select(MachineObject* obj, bool use_dynamic_swi
 void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result)
 {
     /*update check states*/
-    if (m_parent_item) {
+    if (m_anchor) {
         auto update_item_check_state = [&ams_mapping_result, this](MappingItem* item) {
             if (item) {
                 for (const auto& mapping_res : ams_mapping_result) {

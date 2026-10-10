@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <wx/colour.h>
-#include <wx/display.h>
 #include <wx/tokenzr.h>
 
 #include "slic3r/GUI/AmsMappingPopup.hpp"     // AmsMapingPopup, EVT_SET_FINISH_MAPPING
@@ -12,7 +11,6 @@
 #include "slic3r/GUI/DeviceManager.hpp"       // MachineObject
 #include "slic3r/GUI/DeviceCore/DevManager.h" // DeviceManager::get_selected_machine
 #include "slic3r/GUI/DeviceCore/DevMapping.h" // DevMappingUtil::enumerate_dest_slots
-#include "libslic3r/ProjectTask.hpp"          // FilamentInfo
 
 namespace Slic3r::GUI {
 
@@ -28,6 +26,16 @@ std::string color_to_hex(const wxColour &c)
     return wxString::Format("#%02X%02X%02X%02X", c.Red(), c.Green(), c.Blue(), c.Alpha()).ToStdString();
 }
 
+/**
+ * \brief How the picker lays out the offered slots: both nozzles' slots on a two-nozzle printer (one shared
+ *        list behind a filament selector), otherwise the single nozzle's.
+ */
+ShowType show_type_for(const SyncSlots &slots)
+{
+    if (!slots.dual_nozzle) return ShowType::RIGHT;
+    return slots.selector_feeds_both ? ShowType::LEFT_AND_RIGHT_DYNAMIC : ShowType::LEFT_AND_RIGHT;
+}
+
 } // namespace
 
 AmsSlotPopup::AmsSlotPopup(wxWindow *parent) : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(0, 0))
@@ -38,15 +46,16 @@ AmsSlotPopup::AmsSlotPopup(wxWindow *parent) : wxWindow(parent, wxID_ANY, wxDefa
 
 void AmsSlotPopup::set_state(const SlotSelectionState &state) { m_state = state; }
 
-void AmsSlotPopup::set_current_slot(const FilamentInfo &current)
-{
-    m_current_ams  = current.ams_id;
-    m_current_slot = current.slot_id;
-}
-
 void AmsSlotPopup::ensure_impl()
 {
-    if (!m_impl) m_impl = new AmsMapingPopup(GetParent(), /*use_in_sync_dialog=*/true);
+    if (!m_impl) {
+        m_impl = new AmsMapingPopup(GetParent(), /*use_in_sync_dialog=*/true);
+        m_impl->show_reset_button();
+        m_impl->set_reset_callback([this](const std::string &) {
+            if (on_reset) on_reset();
+            if (m_impl) m_impl->Dismiss();
+        });
+    }
     m_impl->set_send_win(this);
 }
 
@@ -59,42 +68,15 @@ void AmsSlotPopup::popup_at(wxWindow *anchor)
     if (!obj) return;
 
     ensure_impl();
+    const ShowType show_type = show_type_for(m_state.slots);
+    m_impl->set_show_type(show_type);
     m_impl->set_current_filament_id(m_state.source_id);
     m_impl->set_tag_texture(m_state.source_type);
     m_impl->set_match_all(m_state.match_all);
-
-    // Hand the popup the current destination as a one-entry result so it can pre-check that slot. The
-    // check only lights up when a parent MaterialItem is set, which this seam has none of — the dest
-    // highlight is carried by the row instead, so its absence inside the popup is cosmetic.
-    std::vector<FilamentInfo> result;
-    if (!m_current_ams.empty()) {
-        FilamentInfo cur;
-        cur.id      = m_state.source_id;
-        cur.ams_id  = m_current_ams;
-        cur.slot_id = m_current_slot;
-        result.push_back(cur);
-    }
-    m_impl->update(obj, result, /*use_dynamic_switch=*/false, std::nullopt);
-
-    place_under(anchor);
+    m_impl->set_anchor(anchor); // before update(): the popup sizes, places and pre-checks against it
+    // The whole mapping lets the picker mark the source's current slot and see what the other sources took.
+    m_impl->update(obj, m_state.mapping, /*use_dynamic_switch=*/show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC, std::nullopt);
     m_impl->Popup();
-}
-
-void AmsSlotPopup::place_under(wxWindow *anchor)
-{
-    const wxSize  sz        = m_impl->GetSize(); // update() ends in Fit(), so the size is final here
-    const wxPoint anchor_tl = anchor->ClientToScreen(wxPoint(0, 0));
-    wxPoint       pos       = anchor_tl;
-    pos.y += anchor->GetSize().GetHeight(); // prefer just below the anchor cell
-
-    int disp = wxDisplay::GetFromPoint(anchor_tl);
-    if (disp == wxNOT_FOUND) disp = 0;
-    const wxRect area = wxDisplay(disp).GetClientArea();
-    if (pos.y + sz.y > area.GetBottom()) pos.y = anchor_tl.y - sz.y; // no room below: flip above
-    if (pos.x + sz.x > area.GetRight()) pos.x = area.GetRight() - sz.x;
-    if (pos.x < area.GetLeft()) pos.x = area.GetLeft();
-    if (pos.y < area.GetTop()) pos.y = area.GetTop();
-    m_impl->Move(pos);
 }
 
 void AmsSlotPopup::on_finish_mapping(wxCommandEvent &evt)

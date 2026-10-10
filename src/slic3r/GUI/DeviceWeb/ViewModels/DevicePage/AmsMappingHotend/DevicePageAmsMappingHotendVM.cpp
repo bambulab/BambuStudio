@@ -986,7 +986,7 @@ void DevicePageAmsMappingHotendVM::PostSelectEvent(const nlohmann::json& payload
 
     // Wire format: payload carries the same fields the C++ popup used to
     // pack into MappingItemHotend::send_event. We re-serialize here so the
-    // SelectMachineDialog / SyncAmsInfoDialog dispatcher sees a byte-
+    // SelectMachineDialog / Sync-AMS slot picker dispatcher sees a byte-
     // identical EVT_SET_FINISH_MAPPING command.
     namespace SK = AmsMappingHotendSchema::keys;
 

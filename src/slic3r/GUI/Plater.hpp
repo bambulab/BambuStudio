@@ -74,8 +74,7 @@ namespace UndoRedo {
 namespace GUI {
 struct PendingNozzleMigration;
 struct QueuePrintContext;
-class SyncAmsInfoDialog;
-struct SyncResult; // ISyncAmsDialog.hpp; returned by the sync-dialog helpers, defined for Plater.cpp
+struct SyncResult; // SyncAmsDialog.hpp; returned by the sync-dialog helper, defined for Plater.cpp
 class MainFrame;
 class ConfigOptionsGroup;
 class ObjectSettings;
@@ -93,7 +92,6 @@ class PlaterPresetComboBox;
 class PartPlateList;
 class SyncNozzleAndAmsDialog;
 class FinishSyncAmsDialog;
-class ExtruderWarningDialog;
 class Bed3D;
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -148,7 +146,6 @@ class Sidebar : public wxPanel
     bool                                    m_last_slice_state = false;
     SyncNozzleAndAmsDialog*                 m_sna_dialog{nullptr};
     FinishSyncAmsDialog*                    m_fna_dialog{nullptr};
-    ExtruderWarningDialog*                  m_extruder_warning_dialog{nullptr};
     std::vector<BedType>                    m_cur_combox_bed_types;
     std::string                             m_cur_image_bed_type;
     int                                     m_last_combo_bedtype_count{0};
@@ -157,23 +154,15 @@ class Sidebar : public wxPanel
     void update_sync_ams_btn_enable(wxUpdateUIEvent &e);
 
     /**
-     * \brief Run the legacy Sync-AMS dialog (non-multi-nozzle machines) modally and return its result.
-     *
-     * \param obj                   the machine to sync from
-     * \param is_from_big_sync_btn  true when started from the big sync button
-     * \return the result; \c dlg_res is \c wxID_CANCEL when the user cancels
-     */
-    SyncResult run_legacy_sync_dialog(MachineObject *obj, bool is_from_big_sync_btn);
-
-    /**
-     * \brief Run the new Sync-AMS dialog (single-extruder multi-nozzle machines or multi-diameter mode) modally and return its result.
+     * \brief Run the Sync-AMS dialog modally and return its result.
      *
      * Unsaved filament preset edits are discarded only after the user confirms. Without objects on any plate
      * there is nothing to map, so no dialog opens and the result asks for a direct sync.
      *
+     * \param deferrable  true when the app suggested the sync; the dialog then offers "Later" instead of "Cancel"
      * \return the result; \c dlg_res is \c wxID_CANCEL when the user cancels
      */
-    SyncResult run_multi_nozzle_sync_dialog();
+    SyncResult run_sync_dialog(bool deferrable);
 
 public:
     enum DockingState { None, Left, Right };
