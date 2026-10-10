@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.09.00.61",
+    "version": "02.09.00.63",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -5076,6 +5076,22 @@
             "sub_path": "filament/Bambu PLA Palette @BBL H2D 0.8 nozzle.json"
         },
         {
+            "name": "Bambu PLA Palette @BBL H2DP",
+            "sub_path": "filament/Bambu PLA Palette @BBL H2DP.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL H2DP 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL H2DP 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL H2DP 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL H2DP 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL H2DP 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL H2DP 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Palette @BBL H2S",
             "sub_path": "filament/Bambu PLA Palette @BBL H2S.json"
         },
@@ -5108,6 +5124,26 @@
             "sub_path": "filament/Bambu PLA Palette @BBL H3C 0.8 nozzle.json"
         },
         {
+            "name": "Bambu PLA Palette @BBL P1P",
+            "sub_path": "filament/Bambu PLA Palette @BBL P1P.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL P1P 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL P1P 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL P1S 0.4 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL P1S 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL P1S 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL P1S 0.6 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Palette @BBL P2S",
             "sub_path": "filament/Bambu PLA Palette @BBL P2S.json"
         },
@@ -5122,6 +5158,22 @@
         {
             "name": "Bambu PLA Palette @BBL P2S 0.8 nozzle",
             "sub_path": "filament/Bambu PLA Palette @BBL P2S 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL X1C",
+            "sub_path": "filament/Bambu PLA Palette @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL X1C 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL X1C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Palette @BBL X1C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Palette @BBL X1C 0.8 nozzle.json"
         },
         {
             "name": "Bambu PLA Palette @BBL X2D 0.2 nozzle",
