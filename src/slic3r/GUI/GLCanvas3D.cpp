@@ -1164,7 +1164,8 @@ void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas
     imgui.begin(wxString("canvas_tooltip"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    ImGui::TextUnformatted(m_text.c_str());
+    // Toolbar/gizmo hover tooltips bypass ImGuiWrapper::text(), so reorder RTL text here (no-op for LTR)
+    ImGui::TextUnformatted(bidi::vis(m_text).c_str());
     ImGui::PopStyleColor();
 
     // force re-render while the windows gets to its final size (it may take several frames) or while hidden
