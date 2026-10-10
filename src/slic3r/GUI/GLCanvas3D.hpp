@@ -675,6 +675,9 @@ private:
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
+    // A reload_scene() was skipped because OpenGL was not initialized yet;
+    // init() replays it.
+    bool m_reload_scene_pending{ false };
     //BBS: add flag to controll rendering
     bool m_render_preview{ true };
     bool m_enable_render { true };
