@@ -11,6 +11,8 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
+#include "FilamentBitmapUtils.hpp"
+#include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 
 #include <wx/dcgraph.h>
 #include <wx/image.h>
@@ -243,7 +245,8 @@ void MaterialItemHotend::doRender(wxDC& dc)
         dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), noz_x, up + (buttom_h - nozzle_bmp_h) / 2);
 
         // typography follows the design: 12px / weight 400 / #262E30 (gray-900).
-        dc.SetFont(::Label::Body_12);
+        const wxString tpu285_tag = wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(NozzleVolumeType::nvtTPU285));
+        dc.SetFont(m_nozzle_dia_and_type.EndsWith(tpu285_tag) ? ::Label::Body_10 : ::Label::Body_12);
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
         auto dia_and_type_sz = dc.GetTextExtent(m_nozzle_dia_and_type);
         dc.DrawText(m_nozzle_dia_and_type, content_left, up + (buttom_h - dia_and_type_sz.y) / 2);
