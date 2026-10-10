@@ -47,6 +47,7 @@
 #include "Widgets/ProgressDialog.hpp"
 #include "BindDialog.hpp"
 #include "../Utils/MacDarkMode.hpp"
+#include "../Utils/MacUtils.hpp"
 
 #include <fstream>
 #include <string_view>
@@ -227,6 +228,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
+    // set_miniaturizable() 把标题栏设成透明，会踩到 macOS 27.2 的 AppKit bug，必须紧跟着装上双击缩放的hook
+    install_titlebar_zoom_workaround(GetHandle());
 #endif
 
 #ifdef _WIN32
