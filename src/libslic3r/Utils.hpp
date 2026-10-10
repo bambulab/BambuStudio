@@ -1,6 +1,7 @@
 #ifndef slic3r_Utils_hpp_
 #define slic3r_Utils_hpp_
 
+#include <ctime>
 #include <iomanip>
 #include <locale>
 #include <utility>
@@ -728,6 +729,37 @@ inline std::string get_bbl_time_dhms(float time_in_secs)
 
     return buffer;
 }
+
+// Current UTC offset of the system time zone, in seconds east of UTC, daylight saving included.
+// wxDateTime::TimeZone(wxDateTime::Local).GetOffset() only reports the *standard* offset -- wxWidgets
+// states this itself in MakeTimezone(): "local time zone does not include the DST offset (as it varies
+// depending on the date)" -- so it is an hour short all summer. Diffing the UTC and local breakdowns of
+// the same instant instead lets the C runtime apply the OS time zone rules, DST transitions included.
+inline long get_local_utc_offset_seconds(std::time_t instant)
+{
+    std::tm utc_tm{};
+    std::tm local_tm{};
+#ifdef _WIN32
+    if (::gmtime_s(&utc_tm, &instant) != 0 || ::localtime_s(&local_tm, &instant) != 0)
+        return 0;
+#else
+    if (::gmtime_r(&instant, &utc_tm) == nullptr || ::localtime_r(&instant, &local_tm) == nullptr)
+        return 0;
+#endif
+
+    // mktime() reads both breakdowns as local wall clock; pinning the same tm_isdst on each makes their
+    // difference the offset at `instant` rather than a mix of a standard and a daylight reading.
+    utc_tm.tm_isdst   = 0;
+    local_tm.tm_isdst = 0;
+    const std::time_t utc_as_local   = std::mktime(&utc_tm);
+    const std::time_t local_as_local = std::mktime(&local_tm);
+    if (utc_as_local == (std::time_t) -1 || local_as_local == (std::time_t) -1)
+        return 0;
+
+    return (long) std::difftime(local_as_local, utc_as_local);
+}
+
+inline long get_local_utc_offset_seconds() { return get_local_utc_offset_seconds(std::time(nullptr)); }
 
 inline std::string get_timezone_utc_hm(long second)
 {

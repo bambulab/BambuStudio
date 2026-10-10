@@ -1315,8 +1315,9 @@ int MachineObject::command_get_access_code() {
 int MachineObject::command_set_sntp()
 {
     const auto us_since_epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    const wxDateTime::TimeZone local_tz(wxDateTime::Local);
-    const std::string          tz = get_timezone_utc_hm(local_tz.GetOffset());
+    // The printer stores this as a plain offset, so it has to be the offset in effect right now:
+    // a standard-time-only value leaves the printer clock an hour behind for the whole DST period.
+    const std::string tz = get_timezone_utc_hm(get_local_utc_offset_seconds());
 
     json j;
     j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
