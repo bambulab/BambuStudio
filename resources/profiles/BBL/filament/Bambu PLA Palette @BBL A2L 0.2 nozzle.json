@@ -20,8 +20,8 @@
     "fan_min_speed": [
         "60"
     ],
-    "filament_cooling_before_tower": [
-        "10"
+    "filament_flush_temp": [
+        "0"
     ],
     "filament_flush_temp_fast": [
         "220"
