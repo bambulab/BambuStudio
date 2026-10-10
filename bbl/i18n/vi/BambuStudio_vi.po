@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4860,6 +4860,9 @@ msgstr "Lưu ý: nếu một sợi nhựa mới được lắp vào trong quá t
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "Khi lắp sợi nhựa mới, AMS sẽ không tự động đọc thông tin của nó, để trống để bạn nhập thủ công."
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "Cập nhật khi bật nguồn"
 
@@ -8349,8 +8352,8 @@ msgstr ""
 "Khi tắt chế độ này, màu sắc sẽ thay đổi theo từng lớp hoàn chỉnh, màu pha trộn sẽ thô hơn và không đều hơn.\n"
 "Khi bật chế độ này, các lớp phụ sẽ xen kẽ nhau dày đặc hơn để tạo ra sự pha trộn đồng đều hơn, nhưng quá trình in sẽ mất nhiều thời gian hơn."
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "Chỉ nên sử dụng khi dùng sợi nhựa pha màu để có hiệu ứng màu phân tầng tốt hơn."
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Kiểm soát vị trí bắt đầu và kết thúc bức tường ngoài trên mỗi lớp."
@@ -9118,6 +9121,10 @@ msgid "Cannot mix different filament types"
 msgstr "Không thể phối trộn các loại sợi nhựa khác nhau"
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11167,6 +11174,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11251,9 +11262,6 @@ msgstr "Cần lắp bộ nhớ để quay phim Timelapse."
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Bạn đã chọn cả sợi nhựa bên ngoài và sợi nhựa AMS cho một vòi đùn nhựa. Bạn sẽ cần chuyển sợi nhựa bên ngoài thủ công trong quá trình in."
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11626,9 +11634,6 @@ msgstr "Gia tốc"
 
 msgid "Jerk(XY)"
 msgstr "Độ giật (XY)"
-
-msgid "Support ring"
-msgstr ""
 
 msgid "Raft"
 msgstr "Đế nổi"
@@ -13539,11 +13544,11 @@ msgstr "Việc gửi tác vụ in đã hết thời gian."
 msgid "Sending print job with LAN acceleration"
 msgstr "Đang gửi lệnh in với tăng tốc mạng LAN"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "Gửi qua dịch vụ đám mây thất bại. Đang gửi lệnh in qua mạng LAN mà không có lịch sử in."
-
 msgid "Sending print configuration"
 msgstr "Đang gửi cấu hình in"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Gửi qua dịch vụ đám mây thất bại. Đang gửi lệnh in qua mạng LAN mà không có lịch sử in."
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20276,6 +20281,9 @@ msgid ""
 msgstr ""
 "Độ tin cậy thành công ngay lần đầu\n"
 "Giảm bớt việc phải theo dõi liên tục, tăng tính dự đoán được của kết quả đầu ra. Ví dụ: một cụm máy in nhỏ in các bộ phận bằng PETG sẽ tránh được những sự cố bất ngờ như \"hỏng hóc sau 6 giờ\" và đảm bảo các lô sản phẩm được hoàn tất đúng tiến độ."
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "Chỉ nên sử dụng khi dùng sợi nhựa pha màu để có hiệu ứng màu phân tầng tốt hơn."
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "Giữ phím Ctrl liên tục và nhấp chuột trái có thể chọn nhiều vật thể, hoặc giữ phím Alt liên tục và nhấp chuột trái có thể chọn nhiều bộ phận"

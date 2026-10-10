@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4845,6 +4845,9 @@ msgstr "注記：印刷中に新しいフィラメントが挿入された場合
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "フィラメント情報を自動更新しません、手動で入力できます。"
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "起動時に更新"
 
@@ -8312,8 +8315,8 @@ msgstr ""
 "オフの場合、色はレイヤー全体ごとに変化するため、混ざりが粗く不均一になります。\n"
 "オンの場合、サブレイヤーがより密に交互配置され、混ざりがより均一になりますが、造形に時間がかかります。"
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "混色フィラメントを使用する場合にのみ推奨され、より良い層状カラー効果が得られます。"
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "各レイヤーの外壁の開始位置と終了位置を制御します。"
@@ -9081,6 +9084,10 @@ msgid "Cannot mix different filament types"
 msgstr "異なるフィラメント種類を混合できません。"
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11124,6 +11131,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11208,9 +11219,6 @@ msgstr "タイムラプスを記録するには、ストレージを挿入する
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "押出機の外部フィラメントと AMS フィラメントの両方を選択しました。造形中は、外部フィラメントを手動で切り替える必要があります。"
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11581,9 +11589,6 @@ msgstr "加速度"
 
 msgid "Jerk(XY)"
 msgstr "ジャーク (XY)"
-
-msgid "Support ring"
-msgstr ""
 
 msgid "Raft"
 msgstr "ラフト"
@@ -13488,11 +13493,11 @@ msgstr "印刷タスクの送信がタイムアウトしました。"
 msgid "Sending print job with LAN acceleration"
 msgstr "LANアクセラレーションでプリントジョブを送信中"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "クラウドサービスへの送信に失敗しました。造形履歴なしで、LAN経由で造形ジョブを送信します。"
-
 msgid "Sending print configuration"
 msgstr "構成を送信"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "クラウドサービスへの送信に失敗しました。造形履歴なしで、LAN経由で造形ジョブを送信します。"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20238,6 +20243,9 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "混色フィラメントを使用する場合にのみ推奨され、より良い層状カラー効果が得られます。"
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "Ctrlキーを押しながら左クリックで複数のオブジェクトを選択できます。Altキーを押しながら左クリックすると、複数のパーツを選択できます。"

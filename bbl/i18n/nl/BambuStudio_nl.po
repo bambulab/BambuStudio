@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4861,6 +4861,9 @@ msgstr "Opmerking: als er tijdens het printen een nieuw filament wordt geplaatst
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "Bij het laden van nieuw filament zal de informatie niet automatisch ingelezen worden door de AMS, de informatie kan door uzelf worden ingegeven."
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "Update gegevens bij aanzetten"
 
@@ -8351,8 +8354,8 @@ msgstr ""
 "Wanneer dit is uitgeschakeld, veranderen de kleuren per volledige laag, waardoor de overgang grover en minder egaal is.\n"
 "Wanneer dit is ingeschakeld, worden de sublagen dichter in elkaar geschoven voor een gelijkmatigere overgang, maar het afdrukproces duurt langer."
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "Alleen aanbevolen bij gebruik van meerkleurenfilament, voor een beter gelaagd kleureffect."
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Hiermee wordt bepaald waar de buitenwand van elke laag begint en eindigt."
@@ -9120,6 +9123,10 @@ msgid "Cannot mix different filament types"
 msgstr "Verschillende soorten filamenten kunnen niet door elkaar gebruikt worden."
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11165,6 +11172,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11249,9 +11260,6 @@ msgstr "Opslag moet worden ingevoegd om timelapse op te nemen."
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "U hebt zowel extern als AMS filament geselecteerd voor een extruder. U moet het externe filament handmatig omschakelen tijdens het printen."
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11623,9 +11631,6 @@ msgstr "Versnelling"
 
 msgid "Jerk(XY)"
 msgstr "Jerk(XY)"
-
-msgid "Support ring"
-msgstr ""
 
 msgid "Raft"
 msgstr "Vlot"
@@ -13541,11 +13546,11 @@ msgstr "Het verzenden van de printtaak loopt uit."
 msgid "Sending print job with LAN acceleration"
 msgstr "Printtaak versneld verzenden via LAN"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "Verzenden via cloudservice mislukt. Printtaak wordt via LAN verzonden, zonder de printgeschiedenis."
-
 msgid "Sending print configuration"
 msgstr "Print configuratie verzenden"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Verzenden via cloudservice mislukt. Printtaak wordt via LAN verzonden, zonder de printgeschiedenis."
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20281,6 +20286,9 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "Alleen aanbevolen bij gebruik van meerkleurenfilament, voor een beter gelaagd kleureffect."
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "Door de Ctrl-toets ingedrukt te houden en met de linkermuisknop te klikken, kunt u meerdere objecten selecteren, of door de Alt-toets ingedrukt te houden en met de linkermuisknop te klikken, kunt u meerdere onderdelen selecteren"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4865,6 +4865,9 @@ msgstr "Σημείωση: εάν εισαχθεί νέο νήμα κατά τη�
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "Κατά την εισαγωγή ενός νέου νήματος, το AMS δεν θα διαβάσει αυτόματα τις πληροφορίες του, αφήνοντάς τις κενές για χειροκίνητη εισαγωγή."
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "Ενημέρωση κατά την ενεργοποίηση"
 
@@ -8360,8 +8363,8 @@ msgstr ""
 "Όταν είναι απενεργοποιημένη αυτή η επιλογή, τα χρώματα αλλάζουν ανά πλήρες επίπεδο και, κατά συνέπεια, το μείγμα είναι πιο τραχύ και λιγότερο ομοιόμορφο.\n"
 "Όταν είναι ενεργοποιημένη αυτή η επιλογή, τα υπο-επίπεδα παρεμβάλλονται πιο πυκνά για πιο ομοιόμορφη ανάμειξη, αλλά η εκτύπωση διαρκεί περισσότερο."
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "Συνιστάται μόνο όταν χρησιμοποιείτε νήμα μικτού χρώματος, για να έχετε καλύτερο εφέ επιπέδων χρώματος."
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Ελέγχει πού ξεκινά και πού τελειώνει ο εξωτερικός τοίχος κάθε επιπέδου."
@@ -9129,6 +9132,10 @@ msgid "Cannot mix different filament types"
 msgstr "Δεν είναι δυνατή η ανάμειξη διαφορετικών τύπων νημάτων"
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11178,6 +11185,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11262,9 +11273,6 @@ msgstr "Απαιτείται εισαγωγή χώρου αποθήκευσης 
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Έχετε επιλέξει εξωτερικά νήματα και νήματα AMS για έναν εξωθητήρα. Θα χρειαστεί να αλλάξετε χειροκίνητα το εξωτερικό νήμα κατά την εκτύπωση."
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11637,9 +11645,6 @@ msgstr "Επιτάχυνση"
 
 msgid "Jerk(XY)"
 msgstr "Τράνταγμα (XY)"
-
-msgid "Support ring"
-msgstr ""
 
 msgid "Raft"
 msgstr "Σχεδία"
@@ -13553,11 +13558,11 @@ msgstr "Υπέρβαση χρονικού ορίου αποστολής εργα
 msgid "Sending print job with LAN acceleration"
 msgstr "Αποστολή εργασίας εκτύπωσης με επιτάχυνση LAN"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "Η αποστολή από την υπηρεσία cloud απέτυχε. Αποστολή εργασίας εκτύπωσης μέσω LAN χωρίς ιστορικό εκτυπώσεων."
-
 msgid "Sending print configuration"
 msgstr "Αποστολή διαμόρφωσης εκτύπωσης"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Η αποστολή από την υπηρεσία cloud απέτυχε. Αποστολή εργασίας εκτύπωσης μέσω LAN χωρίς ιστορικό εκτυπώσεων."
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20291,6 +20296,9 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "Συνιστάται μόνο όταν χρησιμοποιείτε νήμα μικτού χρώματος, για να έχετε καλύτερο εφέ επιπέδων χρώματος."
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "Με παρατεταμένο πάτημα του πλήκτρου Ctrl και αριστερό κλικ μπορείτε να επιλέξετε πολλαπλά αντικείμενα ή με παρατεταμένο πάτημα του πλήκτρου Alt και αριστερό κλικ μπορείτε να επιλέξετε πολλαπλά τμήματα"

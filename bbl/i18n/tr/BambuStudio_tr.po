@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4861,6 +4861,9 @@ msgstr "Not: Baskı sırasında yeni bir filament takılırsa, AMS baskı tamaml
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "Yeni bir filament takıldığında AMS, bilgilerini otomatik olarak okumaz ve manuel olarak girebilmen için bilgi alanını boş bırakır."
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "Açılışta güncelleme"
 
@@ -8353,8 +8356,8 @@ msgstr ""
 "Kapalıyken renkler her tam katmanda değişir; bu nedenle karışım daha kaba ve daha az homojen olur.\n"
 "Bu özellik etkinleştirildiğinde, alt katmanlar daha düzgün bir karışım için daha yoğun bir şekilde iç içe geçer, ancak baskı daha uzun sürer."
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "Daha iyi bir katmanlı renk efekti elde etmek için yalnızca karışık renkli filament kullanıldığında önerilir."
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Her katmanın dış duvarının nerede başlayıp nerede bittiğini kontrol eder."
@@ -9122,6 +9125,10 @@ msgid "Cannot mix different filament types"
 msgstr "Farklı filament türleri karıştırılamaz."
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11171,6 +11178,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11255,9 +11266,6 @@ msgstr "Hızlandırılmış çekim kaydı için depolama aygıtının takılmas�
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Bir ekstrüder için hem harici filamenti hem de AMS filamentini seçtin. Yazdırma sırasında harici filamenti manuel olarak değiştirmen gerekecek."
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11627,9 +11635,6 @@ msgstr "İvme"
 
 msgid "Jerk(XY)"
 msgstr "Sarsıntı (XY)"
-
-msgid "Support ring"
-msgstr ""
 
 msgid "Raft"
 msgstr "Raft"
@@ -13543,11 +13548,11 @@ msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
 msgid "Sending print job with LAN acceleration"
 msgstr "LAN hızlandırması ile yazdırma işi gönderiliyor."
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "Bulut hizmeti üzerinden gönderim başarısız oldu. Yazdırma geçmişi olmadan yerel ağ üzerinden yazdırma işi gönderiliyor."
-
 msgid "Sending print configuration"
 msgstr "Yazdırma yapılandırması gönderiliyor"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Bulut hizmeti üzerinden gönderim başarısız oldu. Yazdırma geçmişi olmadan yerel ağ üzerinden yazdırma işi gönderiliyor."
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20279,6 +20284,9 @@ msgid ""
 msgstr ""
 "İlk Seferde Başarı Güvenilirliği\n"
 "Daha az gözetim, daha öngörülebilir sonuçlar. Örnek: PETG parçaları üreten küçük bir yazıcı çiftliği, \"6. saatte baskının başarısız olması\" gibi sürprizlerden kaçınır ve partileri programa uygun şekilde tamamlar."
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "Daha iyi bir katmanlı renk efekti elde etmek için yalnızca karışık renkli filament kullanıldığında önerilir."
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "Ctrl tuşunu basılı tutup sol fare düğmesiyle tıklayarak birden fazla nesne seçebilir veya Alt tuşunu basılı tutup sol fare düğmesiyle tıklayarak birden fazla parça seçebilirsin."

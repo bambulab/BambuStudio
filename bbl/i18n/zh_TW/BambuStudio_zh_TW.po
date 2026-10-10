@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4848,6 +4848,9 @@ msgstr "注意：如果是在列印過程中插入新的耗材絲，AMS會在列
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "在插入一卷新料時，AMS將不會自動讀取料卷資訊，預留一個空的料卷資訊等待您手動輸入。"
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "開機時檢測"
 
@@ -8316,8 +8319,8 @@ msgstr ""
 "關閉時，顏色依完整層切換，因此混色較粗糙且較不均勻。\n"
 "開啟時，子層交錯更密集，混色更均勻，但列印時間較長。"
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "僅建議在使用混色線材時開啟，以獲得更佳的層次色彩效果。"
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "控制每一層外壁的起始與結束位置。"
@@ -9083,6 +9086,10 @@ msgid "Cannot mix different filament types"
 msgstr "無法混合不同的線材類型"
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11125,6 +11132,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11209,9 +11220,6 @@ msgstr "錄製延時攝影需要先插入儲存裝置。"
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "您在一個擠出機中同時選擇了使用外掛和AMS耗材，這將需要您在列印過程中手動進行換料，請謹慎選擇。"
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11581,9 +11589,6 @@ msgstr "加速度"
 
 msgid "Jerk(XY)"
 msgstr "抖動（XY軸）"
-
-msgid "Support ring"
-msgstr ""
 
 msgid "Raft"
 msgstr "筏層"
@@ -13493,11 +13498,11 @@ msgstr "傳送列印任務超時。"
 msgid "Sending print job with LAN acceleration"
 msgstr "正在以 LAN 加速傳送列印作業"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "雲端服務傳送失敗。正在透過 LAN 傳送列印工作，不包含列印歷史記錄。"
-
 msgid "Sending print configuration"
 msgstr "正在傳送列印配置"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "雲端服務傳送失敗。正在透過 LAN 傳送列印工作，不包含列印歷史記錄。"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20217,6 +20222,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "僅建議在使用混色線材時開啟，以獲得更佳的層次色彩效果。"
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "持續按住Ctrl鍵並單擊滑鼠左鍵可以選擇多個物件，或者持續按住Alt鍵並單擊小鼠左鍵可以選中多個部分"

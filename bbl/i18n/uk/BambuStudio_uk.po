@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -4852,6 +4852,9 @@ msgstr ""
 "При вставці нової нитки AMS не автоматично зчитуватиме її\n"
 "інформацію, залишивши поле порожнім для введення вручну."
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "Оновлення під час увімкнення"
 
@@ -8306,7 +8309,7 @@ msgid ""
 "When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
 msgstr ""
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
 msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
@@ -9019,6 +9022,10 @@ msgid "Cannot mix different filament types"
 msgstr ""
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11014,6 +11021,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11097,9 +11108,6 @@ msgid "Storage needs to be inserted to record timelapse."
 msgstr ""
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
-msgstr ""
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
 msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
@@ -11463,9 +11471,6 @@ msgstr "Прискорення"
 
 msgid "Jerk(XY)"
 msgstr "Ривок (XY)"
-
-msgid "Support ring"
-msgstr ""
 
 msgid "Raft"
 msgstr "Підкладка"
@@ -13361,11 +13366,11 @@ msgstr "Час відправлення завдання на друк закі�
 msgid "Sending print job with LAN acceleration"
 msgstr ""
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr ""
-
 msgid "Sending print configuration"
 msgstr "Надсилання конфігурації друку"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"

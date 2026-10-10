@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4860,6 +4860,9 @@ msgstr "Catatan: jika filamen baru dimasukkan selama pencetakan, AMS tidak akan 
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "Saat memasukkan filamen baru, AMS tidak akan secara otomatis membaca informasinya, membiarkannya kosong untuk Anda masukkan secara manual."
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "Pembaruan saat dinyalakan"
 
@@ -8349,8 +8352,8 @@ msgstr ""
 "Jika dinonaktifkan, perubahan warna terjadi pada setiap lapisan, sehingga perpaduan warna lebih kasar dan kurang merata.\n"
 "Jika diaktifkan, sub-lapisan akan berselang-seling dengan lebih rapat sehingga perpaduan warna lebih merata, tetapi waktu pencetakan menjadi lebih lama."
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "Disarankan hanya saat menggunakan filamen warna campuran untuk mendapatkan efek warna berlapis yang lebih baik."
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Mengatur posisi awal dan akhir dinding luar pada setiap lapisan."
@@ -9116,6 +9119,10 @@ msgid "Cannot mix different filament types"
 msgstr "Tidak dapat mencampur jenis filamen yang berbeda"
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11165,6 +11172,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11249,9 +11260,6 @@ msgstr "Penyimpanan perlu dimasukkan untuk merekam timelapse."
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Anda telah memilih filamen eksternal dan AMS untuk sebuah ekstruder. Anda perlu mengganti filamen eksternal secara manual selama pencetakan."
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11623,9 +11631,6 @@ msgid "Acceleration"
 msgstr "Akselerasi"
 
 msgid "Jerk(XY)"
-msgstr ""
-
-msgid "Support ring"
 msgstr ""
 
 msgid "Raft"
@@ -13537,11 +13542,11 @@ msgstr "Waktu pengiriman pekerjaan cetak habis."
 msgid "Sending print job with LAN acceleration"
 msgstr "Mengirim pekerjaan cetak dengan akselerasi LAN"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "Pengiriman layanan cloud gagal. Mengirim pekerjaan cetak melalui LAN tanpa riwayat cetak."
-
 msgid "Sending print configuration"
 msgstr "Mengirim konfigurasi cetak"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Pengiriman layanan cloud gagal. Mengirim pekerjaan cetak melalui LAN tanpa riwayat cetak."
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20274,6 +20279,9 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "Disarankan hanya saat menggunakan filamen warna campuran untuk mendapatkan efek warna berlapis yang lebih baik."
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "Tekan dan tahan tombol Ctrl secara terus-menerus lalu klik dengan tombol kiri mouse dapat pilih beberapa objek, atau tekan dan tahan tombol Alt secara terus-menerus lalu klik dengan tombol kiri mouse dapat pilih beberapa bagian"

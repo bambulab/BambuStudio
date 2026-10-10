@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: 2026-07-28 13:17+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4849,6 +4849,9 @@ msgstr "注意：如果是在打印过程中插入新的耗材丝，AMS会在打
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "在插入一卷新料时，AMS将不会自动读取料卷信息，预留一个空的料卷信息等待您手动输入。"
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "开机时检测"
 
@@ -8315,8 +8318,8 @@ msgstr ""
 "启用后，使用混色耗材的层会按比例拆分为更薄的子层，以实现更均匀的混色效果\n"
 "关闭时按整层换色，混色相对不细腻不均匀"
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "建议仅在使用混色耗材时开启，获得更好的叠色效果"
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "控制每层外墙打印的起止位置。"
@@ -9007,9 +9010,6 @@ msgstr "添加混色耗材"
 msgid "Remove last mixed filament"
 msgstr "删除最后一个混色耗材"
 
-msgid "Up to %d filaments can be created"
-msgstr "最多支持创建 %d 个耗材"
-
 msgid "Mixing filaments of different types or nozzle diameters is not supported. Please fix the marked mixed filaments in the left filament list."
 msgstr "不支持不同类型或不同喷嘴直径的耗材进行混色打印，请到软件左侧的耗材列表处理带！的混色耗材。"
 
@@ -9082,6 +9082,10 @@ msgstr "无法混合不同类型的耗材"
 
 msgid "Cannot mix filaments using different nozzle diameters"
 msgstr "无法混合使用不同喷嘴直径的耗材"
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
+msgstr "最多支持创建 %d 个耗材"
 
 msgid "Please modify the original project filament diameter."
 msgstr "请修改原始项目耗材的直径。"
@@ -11121,6 +11125,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr "%s号槽位耗材尚未进料，可能会导致打印暂停换料，请在打印前先进料。"
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11205,9 +11213,6 @@ msgstr "录制延时摄影需要先插入存储设备。"
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "您在一个挤出机中同时选择了使用外挂和AMS耗材，这将需要您在打印过程中手动进行换料，请谨慎选择。"
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr "在热端中检测到低温耗材残留。高腔温打印可能导致喷嘴堵塞。请先装载耗材。"
@@ -11577,9 +11582,6 @@ msgstr "加速度"
 
 msgid "Jerk(XY)"
 msgstr "抖动（XY轴）"
-
-msgid "Support ring"
-msgstr "支撑环"
 
 msgid "Raft"
 msgstr "筏层"
@@ -13489,11 +13491,11 @@ msgstr "发送打印任务超时。"
 msgid "Sending print job with LAN acceleration"
 msgstr "通过局域网加速发送打印任务"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "云服务发送失败。通过局域网发送打印任务，无打印历史记录。"
-
 msgid "Sending print configuration"
 msgstr "正在发送打印配置"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "云服务发送失败。通过局域网发送打印任务，无打印历史记录。"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20215,6 +20217,12 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "建议仅在使用混色耗材时开启，获得更好的叠色效果"
+
+#~ msgid "Support ring"
+#~ msgstr "支撑环"
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "持续按住Ctrl键并单击鼠标左键可以选择多个对象，或者持续按住Alt键并单击小鼠左键可以选中多个部分"

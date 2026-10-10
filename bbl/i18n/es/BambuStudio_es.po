@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4861,6 +4861,9 @@ msgstr "Nota: si se inserta un nuevo filamento durante la impresión, el AMS no 
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "Al insertar un nuevo filamento, el AMS no leerá automáticamente su información, dejándola en blanco para que usted la introduzca manualmente."
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "Actualización de encendido"
 
@@ -8357,8 +8360,8 @@ msgstr ""
 "Cuando está desactivada, los colores cambian con cada capa completa, por lo que la mezcla es más tosca y menos uniforme.\n"
 "Cuando está activada, las subcapas se entrelazan de forma más densa para lograr una mezcla más uniforme, pero la impresión tarda más tiempo."
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "Se recomienda únicamente cuando se utiliza filamento de colores mezclados, para obtener un mejor efecto de capas de color."
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Controla dónde comienza y termina la pared exterior de cada capa."
@@ -9126,6 +9129,10 @@ msgid "Cannot mix different filament types"
 msgstr "No se pueden mezclar diferentes tipos de filamento"
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11177,6 +11184,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11261,9 +11272,6 @@ msgstr "Es necesario insertar el almacenamiento para registrar el lapso de tiemp
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Ha seleccionado filamentos externos y AMS para una extrusora. Tendrá que cambiar manualmente el filamento externo durante la impresión."
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11634,9 +11642,6 @@ msgstr "Aceleración"
 
 msgid "Jerk(XY)"
 msgstr "Tirón (XY)"
-
-msgid "Support ring"
-msgstr ""
 
 msgid "Raft"
 msgstr "Balsa"
@@ -13554,11 +13559,11 @@ msgstr "Se agota el tiempo de envío de la tarea de impresión."
 msgid "Sending print job with LAN acceleration"
 msgstr "Enviando trabajo de impresión con aceleración LAN"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "Error al enviar el servicio en la nube. Enviando trabajo de impresión a través de LAN sin historial de impresión."
-
 msgid "Sending print configuration"
 msgstr "Enviando la configuración de impresión"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Error al enviar el servicio en la nube. Enviando trabajo de impresión a través de LAN sin historial de impresión."
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20294,6 +20299,9 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "Se recomienda únicamente cuando se utiliza filamento de colores mezclados, para obtener un mejor efecto de capas de color."
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "Mantenga presionada la tecla Ctrl y haga clic con el botón izquierdo del ratón puede seleccionar múltiples objetos, o mantener presionada la tecla Alt y hacer clic con el botón izquierdo del ratón puede seleccionar múltiples partes"

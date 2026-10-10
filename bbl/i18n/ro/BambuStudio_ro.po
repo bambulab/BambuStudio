@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 17:14+0800\n"
+"POT-Creation-Date: 2026-10-10 12:37+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4870,6 +4870,9 @@ msgstr "Notă: dacă se introduce un filament nou în timpul imprimării, AMS nu
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
 msgstr "Când introduceți un filament nou, AMS nu va citi automat informațiile acestuia, lăsându-le necompletate pentru a le putea introduce manual."
 
+msgid "Only for AMS/AMS 2pro/AMS HT."
+msgstr ""
+
 msgid "Power on update"
 msgstr "Actualizare la pornire"
 
@@ -8373,8 +8376,8 @@ msgstr ""
 "Când este dezactivată, culorile se schimbă pe strat complet, deci amestecul este mai grosier și mai puțin uniform.\n"
 "Când este activată, substraturile se intercalează mai dens pentru o amestecare mai uniformă, dar imprimarea durează mai mult."
 
-msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
-msgstr "Recomandat doar atunci când se utilizează filament cu culori mixte, pentru a obține un efect mai bun de stratificare a culorilor."
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect. This feature is disabled by default when variable layer height is enabled."
+msgstr ""
 
 msgid "Controls where each layer's outer wall starts and ends."
 msgstr "Controlează unde începe și se termină peretele exterior al fiecărui strat."
@@ -9142,6 +9145,10 @@ msgid "Cannot mix different filament types"
 msgstr "Nu se pot amesteca diferite tipuri de filament"
 
 msgid "Cannot mix filaments using different nozzle diameters"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d filaments can be created"
 msgstr ""
 
 msgid "Please modify the original project filament diameter."
@@ -11191,6 +11198,10 @@ msgid "Filament are not loaded in Slot %s. Printing may pause for filament chang
 msgstr ""
 
 #, c-format, boost-format
+msgid "PrintTool %d is loaded with %s filament and cannot unload automatically. Please pull it out manually."
+msgstr ""
+
+#, c-format, boost-format
 msgid "External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot unload automatically, you will need to change the filament manually."
 msgstr ""
 
@@ -11275,9 +11286,6 @@ msgstr "Trebuie introdus spațiu de stocare pentru a înregistra time-lapse."
 
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Ați selectat atât filamente externe, cât și AMS pentru un extruder. Va trebui să comutați manual filamentul extern în timpul imprimării."
-
-msgid "The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended."
-msgstr ""
 
 msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
 msgstr ""
@@ -11648,9 +11656,6 @@ msgid "Acceleration"
 msgstr "Accelerare"
 
 msgid "Jerk(XY)"
-msgstr ""
-
-msgid "Support ring"
 msgstr ""
 
 msgid "Raft"
@@ -13568,11 +13573,11 @@ msgstr "Trimiterea sarcinii de imprimare a expirat."
 msgid "Sending print job with LAN acceleration"
 msgstr "Trimiterea lucrării de imprimare cu accelerare LAN"
 
-msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "Trimiterea către serviciul cloud a eșuat. Trimiterea unei lucrări de imprimare prin LAN fără istoric de imprimare."
-
 msgid "Sending print configuration"
 msgstr "Se trimite configurația de imprimare"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Trimiterea către serviciul cloud a eșuat. Trimiterea unei lucrări de imprimare prin LAN fără istoric de imprimare."
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
@@ -20307,6 +20312,9 @@ msgid ""
 msgstr ""
 "Fiabilitate de la prima încercare\n"
 "Mai puțină supraveghere, rezultate mai previzibile. Exemplu: o fermă mică care produce piese PETG evită surprizele de tip „defecțiune la ora 6” și menține loturile la timp."
+
+#~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+#~ msgstr "Recomandat doar atunci când se utilizează filament cu culori mixte, pentru a obține un efect mai bun de stratificare a culorilor."
 
 #~ msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 #~ msgstr "Dacă țineți apăsată continuu tasta Ctrl și faceți clic cu butonul stâng al mouse-ului, puteți selecta mai multe obiecte, sau dacă țineți apăsată continuu tasta Alt și faceți clic cu butonul stâng al mouse-ului, puteți selecta mai multe părți."
