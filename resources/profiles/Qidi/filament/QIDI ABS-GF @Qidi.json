@@ -9,8 +9,11 @@
     "filament_flow_ratio": [
         "0.95"
     ],
+    "chamber_temperatures" : [
+        "0"
+    ],
     "filament_max_volumetric_speed": [
-        "17"
+        "12"
     ],
     "enable_pressure_advance": [
         "1"

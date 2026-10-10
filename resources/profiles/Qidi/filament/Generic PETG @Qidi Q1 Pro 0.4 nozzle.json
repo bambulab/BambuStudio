@@ -9,6 +9,9 @@
     "pressure_advance":[
         "0.086"
     ],
+    "nozzle_temperature_initial_layer": [
+        "245"
+    ],
     "compatible_printers": [
         "Qidi Q1 Pro 0.4 nozzle"
     ]

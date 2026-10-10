@@ -1,0 +1,21 @@
+{
+    "type": "filament",
+    "filament_id": "GFN04",
+    "setting_id": "GFSN04_Qidi_26",
+    "name": "QIDI UltraPA-CF25 @Qidi Q1 Pro 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI UltraPA-CF25 @Qidi",
+    "nozzle_temperature": [
+        "300"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "300"
+    ],
+    "pressure_advance": [
+        "0.026"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.4 nozzle"
+    ]
+}

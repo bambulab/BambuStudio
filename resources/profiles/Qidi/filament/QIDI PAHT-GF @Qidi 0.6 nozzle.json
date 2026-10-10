@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "filament_id": "GFN04",
+    "setting_id": "GFSN04_Qidi_21",
+    "name": "QIDI PAHT-GF @Qidi 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI PAHT-GF @Qidi",
+    "pressure_advance": [
+        "0.016"
+    ],
+    "compatible_printers": [
+        "Qidi X-Smart 3 0.6 nozzle",
+		"Qidi X-Plus 3 0.6 nozzle",
+		"Qidi X-Max 3 0.6 nozzle"
+    ]
+}

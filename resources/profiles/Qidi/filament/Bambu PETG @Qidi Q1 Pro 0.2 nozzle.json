@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+    "filament_id": "GFT01",
+    "setting_id": "GFST01_Qidi_28",
+    "name": "Bambu PETG @Qidi Q1 Pro 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PETG @Qidi",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.2 nozzle"
+    ]
+}

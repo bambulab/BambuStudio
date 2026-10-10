@@ -1,0 +1,24 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_85",
+    "name": "PolyLite ABS @Qidi X-Plus 4 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "PolyLite ABS @Qidi",
+    "hot_plate_temp_initial_layer": [
+        "90"
+    ],
+    "nozzle_temperature": [
+        "255"
+    ],
+    "pressure_advance": [
+        "0.02"
+    ],
+    "during_print_exhaust_fan_speed":[
+         "0"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.6 nozzle"
+	]
+}

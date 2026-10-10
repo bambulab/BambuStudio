@@ -1,0 +1,35 @@
+{
+    "type": "filament",
+    "filament_id": "GFA16",
+    "setting_id": "GFSA16_Qidi_00",
+    "name": "QIDI WOOD Rapido @Qidi",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+	"filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "enable_pressure_advance": [
+        "1"
+    ],
+    "pressure_advance": [
+        "0.03"
+    ],
+    "filament_density":[
+        "1.23"
+    ],
+	"compatible_printers": [
+        "Qidi X-Plus 0.4 nozzle",
+        "Qidi X-Max 0.4 nozzle",
+        "Qidi X-CF Pro 0.4 nozzle",
+		"Qidi X-Smart 3 0.4 nozzle",
+		"Qidi X-Plus 3 0.4 nozzle",
+		"Qidi X-Max 3 0.4 nozzle"
+	]
+}
