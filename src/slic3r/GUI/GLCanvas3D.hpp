@@ -366,6 +366,11 @@ class GLCanvas3D
         bool ignore_right_up;
         bool rotating{ false };
         bool panning{ false };
+        // The button driving a drag was pressed inside this canvas. Drags
+        // started elsewhere (e.g. on the sidebar sash) may still deliver
+        // motion events here and must not rotate or pan the scene.
+        bool left_down_in_canvas{ false };
+        bool pan_down_in_canvas{ false };
 
         Mouse();
 
@@ -675,6 +680,9 @@ private:
     // Screen is only refreshed from the OnIdle handler if it is dirty.
     bool m_dirty;
     bool m_initialized;
+    // A reload_scene() was skipped because OpenGL was not initialized yet;
+    // init() replays it.
+    bool m_reload_scene_pending{ false };
     //BBS: add flag to controll rendering
     bool m_render_preview{ true };
     bool m_enable_render { true };
