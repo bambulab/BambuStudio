@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <wx/bitmap.h>
 #include <wx/colour.h>
 #include <wx/panel.h>
@@ -146,13 +148,73 @@ public:
     void ShowTip(const wxWindow *anchor, const wxString &text);
     void HideTip();
 
+    void Popup(wxWindow *focus = nullptr) override;
     void Dismiss() override;
     void OnDismiss() override;
 
+    /**
+     * \brief Hand a click on the other level of the cascade to that level.
+     *
+     * wx calls this before its own click-outside dismissal, which is the only place the two can
+     * still be told apart: a click on the submenu is outside the first-level window and would
+     * otherwise be read as the user clicking away from the menu.
+     */
+    bool ProcessLeftDown(wxMouseEvent &evt) override;
+
+    /**
+     * \brief Close the whole cascade: both levels down, wx's mouse capture handed back, and the
+     *        pair destroyed when the owner asked for that.
+     *
+     * The single exit every close goes through, because the order is load-bearing and not obvious.
+     * The capture has to be drained while both windows are still alive: wx releases a capture by
+     * handing it to the next window on its stack, nothing in the destructor releases one (after a
+     * Dismiss() the handler is unlinked, so ~wxPopupTransientWindow skips PopHandlers()), and a
+     * stale entry is read on the next mouse event -- cocoa's WX_filterSendEvent forwards every
+     * mouse event in the application to wxWindow::GetCapture() without checking that it is still
+     * shown, or alive.
+     */
+    void CloseCascade();
+
+    /**
+     * \brief Destroy both levels when the cascade closes instead of keeping them for reuse.
+     *
+     * Off by default: a menu whose owner builds a fresh pair per gesture wants the old one gone,
+     * one that keeps a pair for the life of its owner does not.
+     */
+    void SetDestroyOnClose(bool on) { m_destroy_on_close = on; }
+
+    /** \brief Run after CloseCascade(), so the owner can drop its own pointers to the pair. */
+    void SetOnClosed(std::function<void()> on_closed) { m_on_closed = std::move(on_closed); }
+
 private:
-    CascadeMenuPopup        *m_sub{nullptr};  // set on the first-level menu only
-    CascadeMenuPopup        *m_main{nullptr}; // set on the second-level menu only
-    wxWeakRef<CascadeMenuTip> m_tip;
+    /** \brief Pop every mouse capture this cascade still holds off wx's capture stack. */
+    void ReleaseCascadeCapture(wxWindow *sub);
+
+    /** \brief The level this one is paired with: the submenu on a first level, the menu on a second. */
+    CascadeMenuPopup *OtherLevel() const;
+
+    /**
+     * \brief Re-dispatch \p evt to the other level when the pointer is over it, hover included.
+     *
+     * Returns whether it did. Only one level holds the mouse capture at a time, and on macOS that
+     * means the other one receives nothing at all from the system -- see SetHovered(). The levels
+     * are separate windows, so PopupWindow's own hit test cannot reach across; this does.
+     */
+    bool RouteToOtherLevel(wxMouseEvent &evt);
+
+#ifdef __WXOSX__
+    void OnCascadeMouse(wxMouseEvent &evt);
+    void OnIdleNoop(wxIdleEvent &evt);
+#endif
+
+    // Weak on both sides. The two levels are children of the same window and are destroyed in
+    // creation order, so the first level goes while the second still points back at it.
+    wxWeakRef<CascadeMenuPopup> m_sub;  // set on the first-level menu only
+    wxWeakRef<CascadeMenuPopup> m_main; // set on the second-level menu only
+    wxWeakRef<CascadeMenuTip>   m_tip;
+    bool                        m_destroy_on_close{false}; // see SetDestroyOnClose()
+    bool                        m_routed_in{false};        // handling an event the other level passed over
+    std::function<void()>       m_on_closed;
 };
 
 } // namespace Slic3r::GUI

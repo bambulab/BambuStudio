@@ -124,6 +124,7 @@ public:
     // machine_cfg: what the connected printer reports for this nozzle slot right now, or nullptr when
     // no printer is connected. The synced badge compares the card against this, never against the seed.
     NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, std::function<void()> on_changed);
+    ~NozzleCard() override;
 
     NozzleConfig GetConfig() const;
     wxString     GetDiameter() const; // parsed value ("" when Empty)
@@ -162,8 +163,10 @@ private:
     bool            m_synced{false}; // whether this nozzle still matches the machine-seeded config
     Label          *m_diameter_value{nullptr};
     Label          *m_flow_value{nullptr};
-    CascadeMenuPopup *m_menu{nullptr};     // the open diameter menu, if any
-    CascadeMenuPopup *m_sub_menu{nullptr}; // the open flow menu, if any
+    // Weak: the pair destroys itself when the cascade closes, and is destroyed with the card when
+    // it does not. Either way these must not be left pointing at a window that is already gone.
+    wxWeakRef<CascadeMenuPopup> m_menu;     // the open diameter menu, if any
+    wxWeakRef<CascadeMenuPopup> m_sub_menu; // the open flow menu, if any
 };
 
 NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, std::function<void()> on_changed)
@@ -188,6 +191,15 @@ NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const N
     build_header(v, number);
     build_value_rows(v);
     SetSizer(v);
+}
+
+// Closing the dialog with a menu still up would otherwise leave the pair to DestroyChildren(),
+// which deletes them in creation order and with wx's mouse capture still parked on one of them.
+// Nothing in their destructors hands that capture back, and the stale entry is read on the next
+// mouse event anywhere in the application.
+NozzleCard::~NozzleCard()
+{
+    if (m_menu) m_menu->CloseCascade();
 }
 
 void NozzleCard::build_header(wxSizer *v, int number)
@@ -274,19 +286,24 @@ void NozzleCard::apply_pick(const wxString &diameter, NozzleVolumeType volume)
 // the two linked dropdowns this replaced could only avoid by rebuilding each other on every change.
 void NozzleCard::show_edit_menu()
 {
-    auto dismiss = [](CascadeMenuPopup *&popup) {
-        if (!popup) return;
-        popup->Dismiss();
-        popup->Destroy();
-        popup = nullptr;
-    };
-    if (m_menu) m_menu->SetSubMenu(nullptr); // drop the guard before tearing the pair down
-    dismiss(m_sub_menu);
-    dismiss(m_menu);
+    // Normally the previous pair closed and destroyed itself; this covers a path that left one up.
+    if (m_menu) m_menu->CloseCascade();
+    m_menu     = nullptr;
+    m_sub_menu = nullptr;
 
     auto *menu  = new CascadeMenuPopup(this);
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     m_menu      = menu;
+
+    // A fresh pair is built for every gesture, so the outgoing one is of no further use: let it go
+    // with the cascade rather than linger as a hidden child of the card until the next open -- a
+    // dismissed popup keeps whatever wx parked on it, and is destroyed by DestroyChildren() at the
+    // worst possible moment if the dialog closes first.
+    menu->SetDestroyOnClose(true);
+    menu->SetOnClosed([this] {
+        m_menu     = nullptr;
+        m_sub_menu = nullptr;
+    });
 
     // One flow menu for the whole gesture, refilled as the pointer moves between diameters, exactly
     // as DropDown reuses its own submenu. Destroying a popup and building a new one on every hover
@@ -307,7 +324,7 @@ void NozzleCard::show_edit_menu()
         // Hover opens the submenu, click does too: the chevron reads as hover-to-open, but a user
         // who clicks the row instead should not be met with nothing happening.
         auto open_sub = [this, item, diameter] {
-            auto *sub = m_sub_menu;
+            auto *sub = m_sub_menu.get();
             if (!sub) return;
 
             // Refill in place. The sizer goes before its items do, so it never holds dead rows.
@@ -366,13 +383,12 @@ void NozzleCard::show_edit_menu()
     menu->Popup();
 }
 
-// Order matters: the diameter menu refuses to dismiss while the flow menu is still up, so release
-// the guard and close that one first.
+// Both levels, in the order the guard requires and with wx's mouse capture handed back before the
+// windows go. CloseCascade() owns all of that; this is the pick path, while a click outside the
+// cascade arrives through CascadeMenuPopup::OnDismiss() and ends in the same place.
 void NozzleCard::close_menus()
 {
-    if (m_menu) m_menu->SetSubMenu(nullptr);
-    if (m_sub_menu) m_sub_menu->Dismiss();
-    if (m_menu) m_menu->Dismiss();
+    if (m_menu) m_menu->CloseCascade();
 }
 
 wxString NozzleCard::GetDiameter() const { return m_diameter; }

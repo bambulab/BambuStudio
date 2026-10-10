@@ -230,7 +230,104 @@ CascadeMenuPopup::CascadeMenuPopup(wxWindow *parent) : RoundedPopupWindow(parent
     SetBorderColour(CascadeMenu::Hairline);
     SetBorderWidthPx(HAIRLINE_PX);
     m_shadow.SetParams(WindowShadowParams{2, 4, 0, 0.25});
+
+#ifdef __WXOSX__
+    // Take wx's capture juggling off this window and route between the levels ourselves.
+    //
+    // wxPopupTransientWindow::OnIdle releases the mouse capture while the pointer is over the
+    // popup and takes it back when it leaves -- fine for one popup, ruinous for two. With both
+    // levels up, the level the pointer is NOT on ends up holding the capture (idle events reach
+    // the levels in creation order and the handler's position gate is a shared static, so only the
+    // first level ever acts), and since cocoa forwards every mouse event in the application to
+    // whatever holds the capture, the level under the pointer receives nothing: no hover on either
+    // level once the submenu opens. The capture also accumulates, because CaptureMouse() happily
+    // pushes a window that is already on wx's capture stack -- the guard against that is a debug
+    // assert -- and those entries outlive the windows.
+    //
+    // A dynamic binding is searched before the class's own event table, so not skipping the event
+    // here means wxPopupTransientWindow::OnIdle never runs. The capture then stays where Popup()
+    // and Dismiss() put it, strictly last-in-first-out, and the routing below carries the events
+    // from whichever level holds it to the one the pointer is actually on.
+    Bind(wxEVT_IDLE, &CascadeMenuPopup::OnIdleNoop, this);
+    for (auto evt : {wxEVT_MOTION, wxEVT_LEFT_UP, wxEVT_LEFT_DCLICK, wxEVT_MOUSEWHEEL})
+        Bind(evt, &CascadeMenuPopup::OnCascadeMouse, this);
+#endif
 }
+
+CascadeMenuPopup *CascadeMenuPopup::OtherLevel() const
+{
+    // Exactly one of the two is ever set: m_sub on a first-level menu, m_main on a second.
+    return m_sub ? m_sub.get() : m_main.get();
+}
+
+bool CascadeMenuPopup::RouteToOtherLevel(wxMouseEvent &evt)
+{
+    // An event that got here by being routed is handled where it landed, never handed back.
+    if (m_routed_in) return false;
+
+    auto *other = OtherLevel();
+    if (other == nullptr || !other->IsShown()) return false;
+
+    // Coordinates are relative to whatever wx delivered the event to. Popup() keeps that this
+    // popup, but ProcessLeftDown() is called on behalf of wx's own handler, so translate from the
+    // window the event actually names rather than assuming it is this one.
+    auto *source = dynamic_cast<wxWindow *>(evt.GetEventObject());
+    if (source == nullptr) source = this;
+
+    const wxPoint screen = source->ClientToScreen(evt.GetPosition());
+
+    // The levels normally sit side by side, but wxPopupWindowBase::Position() flips a popup that
+    // does not fit on the display back over its origin, shifted by its own width -- so a cascade
+    // opened near the right edge has its submenu lying on top of the first level instead of beside
+    // it. A point in that overlap is inside both rectangles and geometry cannot say whose it is;
+    // the submenu's, being the level on top and the one holding the capture. Leaving such a point
+    // where it arrived is also what stops the two levels routing it to each other for ever.
+    const bool route = other->GetScreenRect().Contains(screen) && !GetScreenRect().Contains(screen);
+
+#ifdef __WXOSX__
+    // Whichever level the pointer is not on has to drop its highlight: it will not get a leave
+    // event of its own, having stopped receiving events the moment the pointer left it. Only macOS
+    // needs this -- it is the only port where a popup synthesizes the hover at all, the others
+    // letting the rows get their own native enter and leave events.
+    if (evt.GetEventType() == wxEVT_MOTION) (route ? this : other)->ClearHovered();
+#endif
+
+    if (!route) return false;
+
+    wxMouseEvent copy(evt);
+    copy.SetPosition(other->ScreenToClient(screen));
+    copy.SetEventObject(other);
+
+    // Scoped, so a handler that throws cannot leave the other level refusing to route for good.
+    struct Routed {
+        CascadeMenuPopup *level;
+        explicit Routed(CascadeMenuPopup *l) : level(l) { level->m_routed_in = true; }
+        ~Routed() { level->m_routed_in = false; }
+    } routed(other);
+
+    // Locally: this bypasses the popup handlers wx pushed onto the other level, whose click
+    // handling would read a routed click as a click outside itself.
+    other->ProcessEventLocally(copy);
+    return true;
+}
+
+bool CascadeMenuPopup::ProcessLeftDown(wxMouseEvent &evt)
+{
+    return RouteToOtherLevel(evt);
+}
+
+#ifdef __WXOSX__
+
+void CascadeMenuPopup::OnCascadeMouse(wxMouseEvent &evt)
+{
+    // Not routed means the pointer is over this level, or over neither: let PopupWindow's own
+    // hit test have it. It is bound earlier, so skipping here passes the event straight to it.
+    if (!RouteToOtherLevel(evt)) evt.Skip();
+}
+
+void CascadeMenuPopup::OnIdleNoop(wxIdleEvent &) {} // deliberately not skipped; see the ctor
+
+#endif
 
 void CascadeMenuPopup::ShowTip(const wxWindow *anchor, const wxString &text)
 {
@@ -242,6 +339,29 @@ void CascadeMenuPopup::ShowTip(const wxWindow *anchor, const wxString &text)
 void CascadeMenuPopup::HideTip()
 {
     if (m_tip != nullptr) m_tip->Hide();
+}
+
+void CascadeMenuPopup::Popup(wxWindow *focus)
+{
+    // wxPopupTransientWindow::Popup() hands the mouse capture, and the event handler that drives
+    // dismissal, to the popup's single child when it has exactly one. Here that is a plain row,
+    // which carries none of the cascade's routing: cocoa would deliver every mouse event in the
+    // application to that row, where a motion event is handled by nobody and does not propagate,
+    // so neither level sees another one. Nothing recovers from that either -- the enter event that
+    // opens the next submenu is itself synthesized from a motion event this popup no longer gets.
+    // It would also misplace wx's own click test, which reads the child's rectangle as the popup's
+    // and so treats a click on any other row as a click outside the menu.
+    //
+    // A flow menu with a single row is ordinary (a diameter made in one flow type only), so rather
+    // than handle the one-child case, make sure it never arises. The filler is outside the sizer,
+    // so it changes no layout, and hidden, so PopupWindow's hit test skips it.
+    // Windows runs a different wxPopupTransientWindow that has no m_child and never moves the
+    // capture off the popup, so it neither needs this nor should pay for an extra window.
+#ifndef __WXMSW__
+    if (GetChildren().GetCount() == 1) (new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(0, 0)))->Hide();
+#endif
+
+    RoundedPopupWindow::Popup(focus);
 }
 
 void CascadeMenuPopup::Dismiss()
@@ -256,17 +376,86 @@ void CascadeMenuPopup::OnDismiss()
     HideTip();
     if (m_main) {
         // Closing the submenu either returns the user to the level that opened it or ends the
-        // whole interaction; only the pointer's position tells the two apart.
+        // whole interaction; only the pointer's position tells the two apart. Ending it goes
+        // through the one exit, so that this direction cleans up exactly like the other one --
+        // with the submenu holding the capture, a click outside the cascade lands here.
         if (!m_main->GetScreenRect().Contains(wxGetMousePosition()))
-            m_main->DismissAndNotify();
+            m_main->CloseCascade();
 #ifdef __WIN32__
         else
             ::SetActiveWindow((HWND) m_main->GetHandle()); // take activation back off this popup
 #endif
         return;
     }
-    if (m_sub && m_sub->IsShown()) return;
+    if (m_sub && m_sub->IsShown()) {
+        // Dismiss() has just refused, and that refusal is meant for one caller only: the dismissal
+        // wx sends this level when the submenu takes the activation (Windows) or the focus (macOS)
+        // off it. The pointer is on this level's own row then, since that row is what opened the
+        // submenu, so a pointer outside both levels means something else -- the user clicked away
+        // from the whole cascade, and both levels have to go.
+        //
+        // This level cannot leave that to the click itself. On macOS the first level keeps the
+        // mouse capture while the submenu is up, so a click outside arrives here, as a dismissal
+        // the guard then swallows, and the submenu never hears about it at all. Windows only works
+        // today because the click lands on the submenu instead, which does propagate upwards --
+        // the branch above. This is that propagation in the other direction.
+        const wxPoint pos = wxGetMousePosition();
+        if (GetScreenRect().Contains(pos) || m_sub->GetScreenRect().Contains(pos)) return;
+
+        CloseCascade();
+        return;
+    }
     RoundedPopupWindow::OnDismiss();
+}
+
+void CascadeMenuPopup::CloseCascade()
+{
+    auto *sub = m_sub.get();
+
+    SetSubMenu(nullptr);     // release the guard, or neither Dismiss() below does anything
+    if (sub) sub->Dismiss(); // the submenu popped last, so it goes first
+    Dismiss();
+
+    // Both levels are hidden now, but hidden is not enough -- see ReleaseCascadeCapture().
+    ReleaseCascadeCapture(sub);
+
+    if (m_destroy_on_close) {
+        // Deferred to idle by wxPopupTransientWindowBase::Destroy(), so this is safe to call from
+        // inside the click handler that brought us here. The capture is already clean, which it
+        // has to be: the destructor will not clean it, and a freed window left on wx's capture
+        // stack takes the whole application's mouse input down with it.
+        if (sub) sub->Destroy();
+        Destroy();
+    } else {
+        SetSubMenu(sub); // kept for the next gesture, so re-arm the guard
+    }
+
+    if (m_on_closed) m_on_closed();
+}
+
+// wx releases a capture by handing it to the next window on its stack, and on macOS
+// wxPopupTransientWindow::OnIdle pushes a level back onto that stack every time the pointer leaves
+// it -- so by the time a two-level menu closes, the stack holds several entries for the two levels
+// and one Dismiss() per level pops at most one each. Whatever is left holding the capture swallows
+// every mouse event in the application, shown or not: cocoa's WX_filterSendEvent forwards them all
+// to wxWindow::GetCapture() and marks them handled.
+void CascadeMenuPopup::ReleaseCascadeCapture(wxWindow *sub)
+{
+    // A level with a single row hands its capture to that row rather than keeping it, so what is
+    // on the stack may be a descendant of either level, not the level itself.
+    auto ours = [this, sub](wxWindow *win) {
+        for (; win != nullptr; win = win->GetParent())
+            if (win == this || win == sub) return true;
+        return false;
+    };
+
+    // Each pass pops one entry, so the stack bounds the loop; the count is only a backstop against
+    // an entry wx refuses to pop.
+    for (int i = 0; i < 64; ++i) {
+        wxWindow *captured = wxWindow::GetCapture();
+        if (captured == nullptr || !ours(captured)) break;
+        captured->ReleaseMouse();
+    }
 }
 
 // ---------------------------------------------------------------------------

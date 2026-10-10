@@ -40,7 +40,15 @@ PopupWindow::~PopupWindow()
 
 #ifdef __WXOSX__
 
-static wxEvtHandler * HitTest(wxWindow * parent, wxMouseEvent &evt)
+// wxWindow re-declares wxEvtHandler::ProcessEventLocally as protected, and the static type is what
+// the access check looks at. Local dispatch is what we want: a synthesized enter/leave must reach
+// the row and stop there, not carry on up to the popup's parent.
+static void SendLocally(wxWindow *win, wxEvent &evt)
+{
+    static_cast<wxEvtHandler *>(win)->ProcessEventLocally(evt);
+}
+
+static wxWindow * HitTest(wxWindow * parent, wxMouseEvent &evt)
 {
     auto pt = evt.GetPosition();
     const wxWindowList &children = parent->GetChildren();
@@ -57,25 +65,35 @@ static wxEvtHandler * HitTest(wxWindow * parent, wxMouseEvent &evt)
     return nullptr;
 }
 
+void PopupWindow::SetHovered(wxWindow *win)
+{
+    // A reference that went null means the row was destroyed under us -- a refilled popup does
+    // that -- so there is nothing left to send a leave event to; carry on from the popup itself.
+    wxWindow *const previous = hovered ? hovered.get() : this;
+    if (previous == win) return;
+
+    wxMouseEvent leave(wxEVT_LEAVE_WINDOW);
+    leave.SetEventObject(previous);
+    leave.SetId(previous->GetId());
+    SendLocally(previous, leave);
+
+    hovered = win;
+
+    wxMouseEvent enter(wxEVT_ENTER_WINDOW);
+    enter.SetEventObject(win);
+    enter.SetId(win->GetId());
+    SendLocally(win, enter);
+}
+
+void PopupWindow::ClearHovered() { SetHovered(this); }
+
 void PopupWindow::OnMouseEvent2(wxMouseEvent &evt)
 {
-    auto child = ::HitTest(this, evt);
-    if (evt.GetEventType() == wxEVT_MOTION) {
-        auto h = child ? child : this;
-        if (hovered != h) {
-            wxMouseEvent leave(wxEVT_LEAVE_WINDOW);
-            leave.SetEventObject(hovered);
-            leave.SetId(static_cast<wxWindow*>(hovered)->GetId());
-            hovered->ProcessEventLocally(leave);
-            hovered = h;
-            wxMouseEvent enter(wxEVT_ENTER_WINDOW);
-            enter.SetEventObject(hovered);
-            enter.SetId(static_cast<wxWindow*>(hovered)->GetId());
-            hovered->ProcessEventLocally(enter);
-        }
-    }
+    auto *child = ::HitTest(this, evt);
+    if (evt.GetEventType() == wxEVT_MOTION)
+        SetHovered(child ? child : this);
     if (child) {
-        child->ProcessEventLocally(evt);
+        SendLocally(child, evt);
     } else {
         evt.Skip();
     }
