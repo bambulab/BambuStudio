@@ -63,7 +63,7 @@ struct FrameBuffer
     FrameBuffer(const FrameBufferParams& params);
     ~FrameBuffer();
 
-    void bind();
+    bool bind();
     void unbind();
 
     uint32_t get_color_texture() const noexcept;
@@ -94,6 +94,7 @@ private:
     void create_msaa_fbo();
     bool check_frame_buffer_status() const;
     void resolve();
+    void release();
     void mark_needs_to_resolve();
 private:
     uint32_t m_width{ 0 };

@@ -560,8 +560,13 @@ void OpenGLManager::_bind_frame_buffer(const std::string& name, EMSAAType msaa_t
             current_framebuffer->unbind();
         }
     }
-    m_name_to_framebuffer[name]->bind();
-    m_current_binded_framebuffer = m_name_to_framebuffer[name];
+    const auto& target_framebuffer = m_name_to_framebuffer[name];
+    if (target_framebuffer->bind()) {
+        m_current_binded_framebuffer = target_framebuffer;
+    }
+    else {
+        m_current_binded_framebuffer.reset();
+    }
 }
 
 void OpenGLManager::_unbind_frame_buffer(const std::string& name)
@@ -728,31 +733,36 @@ void OpenGLManager::blit_framebuffer(const std::string& source, const std::strin
     if (source == target) {
         return;
     }
-    if (s_back_frame == source) {
-        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_READ_FRAMEBUFFER), 0));
-    }
-    else
-    {
+    uint32_t source_id = 0;
+    if (s_back_frame != source) {
         const auto& iter = m_name_to_framebuffer.find(source);
         if (iter == m_name_to_framebuffer.end()) {
             return;
         }
-        const uint32_t source_id = iter->second->get_gl_id();
-        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_READ_FRAMEBUFFER), source_id));
+        source_id = iter->second->get_gl_id();
+        if (UINT32_MAX == source_id) {
+            return;
+        }
     }
 
-    if (s_back_frame == target) {
-        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_DRAW_FRAMEBUFFER), 0));
-    }
-    else
-    {
+    uint32_t target_id = 0;
+    if (s_back_frame != target) {
         const auto& iter = m_name_to_framebuffer.find(target);
         if (iter == m_name_to_framebuffer.end()) {
             return;
         }
-        const uint32_t target_id = iter->second->get_gl_id();
-        glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_DRAW_FRAMEBUFFER), target_id));
+        target_id = iter->second->get_gl_id();
+        if (UINT32_MAX == target_id) {
+            return;
+        }
     }
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(
+        BBS_GL_EXTENSION_PARAMETER(GL_READ_FRAMEBUFFER),
+        source_id));
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(
+        BBS_GL_EXTENSION_PARAMETER(GL_DRAW_FRAMEBUFFER),
+        target_id));
 
     glsafe(::glBlitFramebuffer(0, 0, m_viewport_width, m_viewport_height, 0, 0, m_viewport_width, m_viewport_height, GL_COLOR_BUFFER_BIT, GL_LINEAR));
 }
@@ -1058,6 +1068,11 @@ FrameBuffer::FrameBuffer(const FrameBufferParams& params)
 
 FrameBuffer::~FrameBuffer()
 {
+    release();
+}
+
+void FrameBuffer::release()
+{
     if (UINT32_MAX != m_gl_id)
     {
         glsafe(BBS_GL_EXTENSION_FUNC(::glDeleteFramebuffers)(1, &m_gl_id));
@@ -1080,24 +1095,36 @@ FrameBuffer::~FrameBuffer()
     {
         glsafe(BBS_GL_EXTENSION_FUNC(::glDeleteFramebuffers)(1, &m_gl_id_for_back_fbo));
         m_gl_id_for_back_fbo = UINT32_MAX;
-
-        glsafe(BBS_GL_EXTENSION_FUNC(::glDeleteRenderbuffers)(2, m_msaa_back_buffer_rbos));
-        m_msaa_back_buffer_rbos[0] = UINT32_MAX;
-        m_msaa_back_buffer_rbos[1] = UINT32_MAX;
     }
+
+    for (uint32_t &rbo_id : m_msaa_back_buffer_rbos)
+    {
+        if (UINT32_MAX != rbo_id)
+        {
+            glsafe(BBS_GL_EXTENSION_FUNC(::glDeleteRenderbuffers)(1, &rbo_id));
+            rbo_id = UINT32_MAX;
+        }
+    }
+
+    m_needs_to_solve = false;
 }
 
-void FrameBuffer::bind()
+bool FrameBuffer::bind()
 {
     const OpenGLManager::EFramebufferType framebuffer_type = OpenGLManager::get_framebuffers_type();
     if (OpenGLManager::EFramebufferType::Unknown == framebuffer_type) {
-        return;
+        return false;
     }
     if (0 == m_width || 0 == m_height)
     {
-        return;
+        return false;
     }
-    if (UINT32_MAX == m_gl_id)
+
+    const bool needs_to_create = 0 == m_msaa
+        ? UINT32_MAX == m_gl_id
+        : UINT32_MAX == m_gl_id_for_back_fbo;
+
+    if (needs_to_create)
     {
         if (0 == m_msaa)
         {
@@ -1115,16 +1142,31 @@ void FrameBuffer::bind()
             GLenum bufs[1]{ GL_COLOR_ATTACHMENT0 };
             glsafe(::glDrawBuffers((GLsizei)1, bufs));
         }
-        const bool rt = check_frame_buffer_status();
-        if (!rt)
+        if (!check_frame_buffer_status())
         {
-            return;
+            release();
+            return false;
         }
         BOOST_LOG_TRIVIAL(trace) << "Successfully created framebuffer: width = " << m_width << ", heihgt = " << m_height;
     }
 
     mark_needs_to_resolve();
-    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), (UINT32_MAX == m_gl_id_for_back_fbo ? m_gl_id : m_gl_id_for_back_fbo)));
+
+    const uint32_t framebuffer_id = UINT32_MAX == m_gl_id_for_back_fbo
+        ? m_gl_id
+        : m_gl_id_for_back_fbo;
+
+    if (UINT32_MAX == framebuffer_id)
+    {
+        release();
+        return false;
+    }
+
+    glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(
+        BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER),
+        framebuffer_id));
+
+    return true;
 }
 
 void FrameBuffer::unbind()
@@ -1168,6 +1210,11 @@ void FrameBuffer::read_pixel(uint32_t x, uint32_t y, uint32_t width, uint32_t he
         unbind();
         m_blit_option_type = old_blit_type;
     }
+
+    if (UINT32_MAX == m_gl_id) {
+        return;
+    }
+
     glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), m_gl_id));
     glsafe(::glReadPixels(x, y, width, height, gl_format, gl_type, pixels));
     glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
@@ -1311,10 +1358,10 @@ void FrameBuffer::resolve()
             glsafe(::glDrawBuffers((GLsizei)1, bufs));
         }
 
-        const bool rt = check_frame_buffer_status();
-        if (!rt)
+        if (!check_frame_buffer_status())
         {
-            glsafe(BBS_GL_EXTENSION_FUNC(::glBindFramebuffer)(BBS_GL_EXTENSION_PARAMETER(GL_FRAMEBUFFER), 0));
+            release();
+            return;
         }
     }
 
