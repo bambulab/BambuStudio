@@ -2599,7 +2599,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                 if(layer_tools.empty())
                     continue;
 
-                auto object_first_layer_filaments = layer_tools.front().extruders;
+                auto object_first_layer_filaments = ordering.first_layer_extruders();
                 first_layer_filaments.insert(first_layer_filaments.end(),object_first_layer_filaments.begin(),object_first_layer_filaments.end());
                 used_filaments.insert(used_filaments.end(), ordering.all_extruders().begin(), ordering.all_extruders().end());
                 used_mixed_filaments.insert(used_mixed_filaments.end(),
@@ -2625,9 +2625,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             tool_ordering = this->tool_ordering();
             tool_ordering.assign_custom_gcodes(*this);
 
-            std::vector<unsigned int> first_layer_used_filaments;
-            if (!tool_ordering.layer_tools().empty())
-                first_layer_used_filaments = tool_ordering.layer_tools().front().extruders;
+            std::vector<unsigned int> first_layer_used_filaments = tool_ordering.first_layer_extruders();
 
             this->set_slice_used_filaments(first_layer_used_filaments, tool_ordering.all_extruders());
             this->set_slice_used_mixed_filaments(tool_ordering.used_mixed_filaments());

@@ -305,6 +305,7 @@ public:
         m_stats_by_single_extruder.clear();
         m_stats_by_multi_extruder_best.clear();
         m_stats_by_multi_extruder_curr.clear();
+        m_bed_contact_filaments.clear();
     }
 
     // Only valid for non-sequential print:
@@ -329,6 +330,11 @@ public:
     // 0-based physical filament slots used directly (not via mixed virtual slots) before
     // resolve_mixed_filaments() expanded mixed slots to their components.
     const std::vector<unsigned int> &directly_used_filaments() const { return m_directly_used_filaments; }
+
+    // 0-based filaments that extrude onto the bed: the first print layer plus every multi-diameter first band,
+    // which is extruded on its group top above the first print layer yet rests on the bed. Mixed slots are
+    // resolved to their components, so this is only valid after sort_and_build_data().
+    std::vector<unsigned int> first_layer_extruders() const;
 
     // Find LayerTools with the closest print_z.
     const LayerTools&	tools_for_layer(coordf_t print_z) const;
@@ -443,6 +449,9 @@ private:
     std::vector<unsigned int> m_used_mixed_filaments;
     // 0-based physical slots used directly before mixed slots are expanded to components.
     std::vector<unsigned int> m_directly_used_filaments;
+    // (print_z, 1-based slot) of extrusions whose height reaches down to the bed. Keyed by print_z
+    // because wipe tower partitioning inserts layers and shifts indices. Mixed slots stay unresolved here.
+    std::vector<std::pair<coordf_t, unsigned int>> m_bed_contact_filaments;
 
     // All layer indices (in m_layer_tools) where each object has actual extrusion.
     // Used by gradient run detection to distinguish real gaps from layers belonging

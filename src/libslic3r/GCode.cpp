@@ -16,6 +16,7 @@
 #include "libslic3r/format.hpp"
 #include "MultiNozzleUtils.hpp"
 #include "GCodeReader.hpp"
+#include "FilamentMixer.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -3455,6 +3456,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
                 m_second_layer_things_done = false;
+                m_bed_temp_transition_done = false;
                 prev_object                = object;
             }
         } else {
@@ -4829,6 +4831,19 @@ bool GCode::filament_in_first_layer_phase(unsigned int filament_id) const
     if (m_layer == nullptr || m_print == nullptr)
         return false;
 
+    // Regions and supports are configured with mixed slots, while filament_id is a physical component.
+    const PrintConfig &print_config = m_print->config();
+    std::vector<unsigned char> mixed_slot_prints_filament(print_config.filament_is_mixed.values.size(), 0);
+    for (size_t slot = 0; slot < mixed_slot_prints_filament.size(); ++slot) {
+        if (! print_config.filament_is_mixed.values[slot] || slot >= print_config.filament_mixed_components.values.size())
+            continue;
+        const std::vector<unsigned int> components = parse_mixed_components(print_config.filament_mixed_components.values[slot]);
+        mixed_slot_prints_filament[slot] = std::find(components.begin(), components.end(), filament_id + 1) != components.end();
+    }
+    auto slot_prints_filament = [filament_id, &mixed_slot_prints_filament](unsigned int slot) {
+        return slot == filament_id || (slot < mixed_slot_prints_filament.size() && mixed_slot_prints_filament[slot]);
+    };
+
     double last_contact_z = 0.;
     for (const PrintObject *object : m_print->objects()) {
         if (object->layers().empty() ||
@@ -4838,7 +4853,7 @@ bool GCode::filament_in_first_layer_phase(unsigned int filament_id) const
             for (const LayerRegion *region : layer->regions()) {
                 const unsigned int configured_wall = region->region().config().wall_filament.value;
                 const unsigned int wall_filament = configured_wall > 0 ? configured_wall - 1 : 0;
-                if (wall_filament == filament_id &&
+                if (slot_prints_filament(wall_filament) &&
                     std::any_of(region->adaptive_merge_patches.begin(), region->adaptive_merge_patches.end(),
                                 [](const AdaptiveMergePatch &patch) {
                                     return patch.group_top && patch.bottom_idx == 0;
@@ -4854,7 +4869,7 @@ bool GCode::filament_in_first_layer_phase(unsigned int filament_id) const
                     const unsigned int configured_filament = region->region().extruder(role);
                     const unsigned int surface_filament =
                         configured_filament > 0 ? configured_filament - 1 : 0;
-                    if (surface_filament == filament_id)
+                    if (slot_prints_filament(surface_filament))
                         last_contact_z = std::max(last_contact_z, layer->print_z);
                 }
             }
@@ -4867,7 +4882,7 @@ bool GCode::filament_in_first_layer_phase(unsigned int filament_id) const
             if (support_layer->print_z - support_layer->effective_print_height() > EPSILON)
                 continue;
             auto consider = [&](int filament_1based) {
-                if (filament_1based > 0 && unsigned(filament_1based - 1) == filament_id)
+                if (filament_1based > 0 && slot_prints_filament(unsigned(filament_1based - 1)))
                     last_contact_z = std::max(last_contact_z, support_layer->print_z);
             };
             consider(object->config().support_filament.value);
@@ -5132,15 +5147,26 @@ GCode::LayerResult GCode::process_layer(
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
             gcode += m_writer.set_jerk_xy(m_config.default_jerk.value);
 
-        // BBS
-        int bed_temp = 0;
-        if (m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp)
-            bed_temp = get_highest_bed_temperature(false,print);
-        else
-            bed_temp = get_bed_temperature(first_extruder_id, false, m_config.curr_bed_type);
-        gcode += m_writer.set_bed_temperature(bed_temp);
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
+    }
+
+    // Keep the first layer bed temperature until every bed-contact filament has finished its first band.
+    // Without adaptive merging the first layer is the only bed contact, so switch on the second layer.
+    if (! first_layer && ! m_bed_temp_transition_done) {
+        const std::vector<unsigned int> bed_filaments = print.get_slice_used_filaments(true);
+        if (! print.uses_multiple_nozzle_diameters() ||
+            std::none_of(bed_filaments.begin(), bed_filaments.end(),
+                         [this](unsigned int filament) { return this->filament_in_first_layer_phase(filament); })) {
+            // BBS
+            int bed_temp = 0;
+            if (m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp)
+                bed_temp = get_highest_bed_temperature(false,print);
+            else
+                bed_temp = get_bed_temperature(first_extruder_id, false, m_config.curr_bed_type);
+            gcode += m_writer.set_bed_temperature(bed_temp);
+            m_bed_temp_transition_done = true;
+        }
     }
 
     // A merged bed-contact band may end above the second physical layer. Transition each filament

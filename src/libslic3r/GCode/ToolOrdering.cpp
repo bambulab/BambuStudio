@@ -56,6 +56,22 @@ namespace Slic3r {
 const static bool g_wipe_into_objects = false;
 constexpr double similar_color_threshold_de2000 = 20.0;
 
+// Same test as GCode::path_touches_bed(): the extrusion height reaches down to the bed.
+static bool extrusion_touches_bed(const ExtrusionEntity &entity, coordf_t print_z)
+{
+    auto path_touches_bed = [print_z](const ExtrusionPath &path) { return print_z - path.height <= EPSILON; };
+    if (const auto *path = dynamic_cast<const ExtrusionPath *>(&entity))
+        return path_touches_bed(*path);
+    if (const auto *multipath = dynamic_cast<const ExtrusionMultiPath *>(&entity))
+        return std::any_of(multipath->paths.begin(), multipath->paths.end(), path_touches_bed);
+    if (const auto *loop = dynamic_cast<const ExtrusionLoop *>(&entity))
+        return std::any_of(loop->paths.begin(), loop->paths.end(), path_touches_bed);
+    if (const auto *collection = dynamic_cast<const ExtrusionEntityCollection *>(&entity))
+        return std::any_of(collection->entities.begin(), collection->entities.end(),
+                           [print_z](const ExtrusionEntity *child) { return child != nullptr && extrusion_touches_bed(*child, print_z); });
+    return false;
+}
+
 static std::set<int>get_filament_by_type(const std::vector<unsigned int>& used_filaments, const PrintConfig* print_config, const std::string& type)
 {
     std::set<int> target_filaments;
@@ -825,10 +841,26 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     // Only filaments actually emitted on the first print layer may schedule a brim-layer tower visit.
     std::vector<unsigned int> bed_contact_extruders;
 
+    // Only adaptive merging moves bed contact above the physical first layer; without it the first layer stays
+    // the only bed contact. Above max_contact_z no path can reach the bed: a first band is at most 1.0 x nozzle
+    // tall, thick bridges sqrt(bridge_flow) x nozzle and support bottom interfaces bridge_flow x nozzle.
+    coordf_t max_contact_z = -1.;
+    if (object.print()->uses_multiple_nozzle_diameters()) {
+        const PrintConfig &print_config = object.print()->config();
+        double max_nozzle = 0.;
+        for (size_t filament = 0; filament < print_config.filament_diameter.values.size(); ++filament)
+            max_nozzle = std::max(max_nozzle, double(nozzle_diameter_for_filament(print_config, unsigned(filament + 1))));
+        double max_bridge_flow = 1.;
+        for (size_t region_id = 0; region_id < object.num_printing_regions(); ++region_id)
+            max_bridge_flow = std::max(max_bridge_flow, object.printing_region(region_id).config().bridge_flow.value);
+        max_contact_z = max_nozzle * max_bridge_flow + EPSILON;
+    }
+
     // Collect the object extruders.
     for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
         const size_t layer_idx = static_cast<size_t>(&layer_tools - m_layer_tools.data());
+        const bool may_touch_bed = layer->print_z <= max_contact_z;
         auto record_mixed_height = [&](unsigned int filament_1based, const LayerRegion &region) {
             if (!mixed_slots_1based.count(filament_1based))
                 return;
@@ -888,6 +920,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                         (extruder_override == 0) ? region.config().wall_filament.value : extruder_override;
                     layer_tools.extruders.emplace_back(wall_filament);
                     record_mixed_height(wall_filament, *layerm);
+                    if (may_touch_bed && wall_filament > 0 && extrusion_touches_bed(layerm->perimeters, layer->print_z))
+                        m_bed_contact_filaments.emplace_back(layer->print_z, wall_filament);
                     if (layerCount == 0 || starts_at_object_base) {
                         firstLayerExtruders.emplace_back(wall_filament);
                         // Only a band starting on the bed is as tall as its print_z, e.g. not the first layer above a raft.
@@ -919,11 +953,15 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             // same region register that filament anyway on an ordinary layer, which is why this only
             // surfaces once adaptive merging has decimated them away and the fill stands there alone.
             std::vector<unsigned int> fill_slots;
+            std::vector<unsigned int> bed_fill_slots;
             for (const ExtrusionEntity *ee : layerm->fills.entities) {
                 // fill represents infill extrusions of a single island.
                 const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-                if (! fill->entities.empty())
+                if (! fill->entities.empty()) {
                     fill_slots.emplace_back(layer_tools.filament_slot(*fill, region));
+                    if (may_touch_bed && fill_slots.back() > 0 && extrusion_touches_bed(*fill, layer->print_z))
+                        bed_fill_slots.emplace_back(fill_slots.back());
+                }
 
                 if (m_print_config_ptr) {
                     if (! layer_tools.wiping_extrusions().is_overriddable_and_mark(*fill, *m_print_config_ptr, object, region))
@@ -939,6 +977,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     layer_tools.extruders.emplace_back(slot);
                     record_mixed_height(slot, *layerm);
                 }
+                for (unsigned int slot : bed_fill_slots)
+                    m_bed_contact_filaments.emplace_back(layer->print_z, slot);
             }
             if (! fill_slots.empty())
                 layer_tools.has_object = true;
@@ -1039,11 +1079,20 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         ExtrusionRole role          = support_layer->support_fills.role();
         bool          has_support   = false;
         bool          has_interface = false;
+        bool          support_touches_bed   = false;
+        bool          interface_touches_bed = false;
+        const bool    may_touch_bed         = support_layer->print_z <= max_contact_z;
         for (const ExtrusionEntity *ee : support_layer->support_fills.entities) {
             ExtrusionRole er = ee->role();
-            if (er == erSupportMaterial || er == erSupportTransition) has_support = true;
-            if (er == erSupportMaterialInterface) has_interface = true;
-            if (has_support && has_interface) break;
+            if (er == erSupportMaterial || er == erSupportTransition) {
+                has_support = true;
+                support_touches_bed |= may_touch_bed && extrusion_touches_bed(*ee, support_layer->print_z);
+            }
+            if (er == erSupportMaterialInterface) {
+                has_interface = true;
+                interface_touches_bed |= may_touch_bed && extrusion_touches_bed(*ee, support_layer->print_z);
+            }
+            if (has_support && has_interface && ! may_touch_bed) break;
         }
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
@@ -1090,8 +1139,14 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 };
                 layer_tools.extruders.push_back(get_next_extruder(interface_not_for_body ? extruder_interface - 1 : -1, all_extruders) + 1);
             }
+            if (support_touches_bed && layer_tools.extruders.back() > 0)
+                m_bed_contact_filaments.emplace_back(support_layer->print_z, layer_tools.extruders.back());
         }
-        if (has_interface) layer_tools.extruders.push_back(extruder_interface);
+        if (has_interface) {
+            layer_tools.extruders.push_back(extruder_interface);
+            if (interface_touches_bed && extruder_interface > 0)
+                m_bed_contact_filaments.emplace_back(support_layer->print_z, extruder_interface);
+        }
         if (has_support || has_interface) {
             layer_tools.has_support = true;
             layer_tools.wiping_extrusions().is_support_overriddable_and_mark(role, object);
@@ -3676,6 +3731,24 @@ const LayerTools& ToolOrdering::tools_for_layer(coordf_t print_z) const
     -- it_layer_tools;
     assert(dist_min < EPSILON);
     return *it_layer_tools;
+}
+
+std::vector<unsigned int> ToolOrdering::first_layer_extruders() const
+{
+    std::vector<unsigned int> extruders;
+    if (m_layer_tools.empty())
+        return extruders;
+    extruders = m_layer_tools.front().extruders;
+    for (const auto &[print_z, filament_1based] : m_bed_contact_filaments) {
+        const LayerTools  &layer_tools = this->tools_for_layer(print_z);
+        const unsigned int filament    = filament_1based - 1;
+        if (const LayerTools::MixedSubLayerGroup *group = layer_tools.mixed_group_by_slot(filament))
+            append(extruders, group->components_0based);
+        else
+            extruders.emplace_back(layer_tools.resolve_mixed(filament));
+    }
+    sort_remove_duplicates(extruders);
+    return extruders;
 }
 
 // This function is called from Print::mark_wiping_extrusions and sets extruder this entity should be printed with (-1 .. as usual)

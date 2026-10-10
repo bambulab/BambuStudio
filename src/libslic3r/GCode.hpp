@@ -632,6 +632,9 @@ private:
     bool                                m_brim_done;
     // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
     bool                                m_second_layer_things_done;
+    // Whether the bed has switched from its first layer temperature. Multi-diameter first bands rest on the
+    // bed above the second physical layer, so this can happen later than m_second_layer_things_done.
+    bool                                m_bed_temp_transition_done = false;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
     //BBS
