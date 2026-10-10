@@ -639,6 +639,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
         }
     }
 
+    gcode << m_writer.reset_e();
     gcode << m_writer.set_pressure_advance(m_is_bbl_bowden ? 0.4 : m_params.start, m_is_bbl_bowden);
     gcode << "; end pressure advance pattern for layer\n";
 
