@@ -79,6 +79,7 @@ public:
     std::function<bool()> is_async_enabled;
     std::function<bool()> is_async_busy;
     std::function<float()> get_async_progress;
+    std::function<std::string()> get_async_status; // current phase; empty = derive it from the progress
     std::function<void()> on_cancel_async_operation;
 
     // UI state queries

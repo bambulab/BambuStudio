@@ -17335,6 +17335,19 @@ msgstr "正在恢复绒毛表面"
 msgid "Restoring painting"
 msgstr "正在恢复绘制"
 
+msgid "Keep all painting"
+msgstr "保留所有绘制"
+
+msgid ""
+"Includes color, seam, support and fuzzy skin painting. If unchecked, all "
+"painting will be removed from the result."
+msgstr "包括颜色绘制、Z缝绘制、支撑绘制和绒毛表面绘制。不勾选时，布尔结果不保留任何绘制。"
+
+msgid ""
+"Another mesh boolean operation is running. Please try again after it "
+"finishes."
+msgstr "另一个网格布尔操作正在进行，请在其完成后重试。"
+
 msgid "load_obj: failed to parse"
 msgstr "加载对象：无法分析"
 

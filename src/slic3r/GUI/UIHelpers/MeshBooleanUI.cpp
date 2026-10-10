@@ -346,13 +346,20 @@ void MeshBooleanUI::draw_control_buttons()
         }
     }
 
-    // "Preserve painted colors" checkbox on its own line. When on (default) the painted
+    // "Keep all painting" checkbox on its own line. When on (default) the painted
     // color/MMU, supports, seam and fuzzy-skin are reprojected onto the boolean result and
     // the real multi-color painting is shown while editing; when off, the operation falls
     // back to the original single-color boolean behaviour.
     bool previous_preserve_color = m_preserve_color;
     ImGui::SetCursorPosX(checkbox_pos_x);
-    render_checkbox(_L("Preserve painted colors"), m_preserve_color, !b_async_working_or_cancelling);
+    render_checkbox(_L("Keep all painting"), m_preserve_color, !b_async_working_or_cancelling);
+    if (ImGui::IsItemHovered()) {
+        const std::string tip = _u8L("Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result.");
+        if (m_imgui)
+            m_imgui->tooltip(tip, ImGui::GetFontSize() * 20.0f);
+        else
+            ImGui::SetTooltip("%s", tip.c_str());
+    }
     if (previous_preserve_color != m_preserve_color && on_apply_color_overrides)
         on_apply_color_overrides(m_operation_mode);
 }
@@ -1298,16 +1305,17 @@ void MeshBooleanUI::draw_progress_bar()
     // === Second line: Status text ===
     ImGui::SetCursorPosX(ctrl_start_x);
 
-    // Determine status text and color based on progress
-    std::string status_text;
+    // Status text: the phase reported by the job, or one derived from the progress
+    std::string status_text = get_async_status ? get_async_status() : std::string();
     ImVec4 text_color = ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
 
-    if (progress < 10.0f) {
-        status_text = _u8L("Preparing data...");
-    } else if (progress < 90.0f) {
-        status_text = _u8L("Computing...");
-    } else {
-        status_text = _u8L("Applying result..");
+    if (status_text.empty()) {
+        if (progress < 10.0f)
+            status_text = _u8L("Preparing data...");
+        else if (progress < 90.0f)
+            status_text = _u8L("Computing...");
+        else
+            status_text = _u8L("Applying result..");
     }
 
     ImGui::TextColored(text_color, status_text.c_str());

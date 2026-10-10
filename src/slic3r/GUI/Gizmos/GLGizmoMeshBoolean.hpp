@@ -16,6 +16,8 @@
 #include <array>
 #include <optional>
 #include <mutex>
+#include <atomic>
+#include <memory>
 
 namespace Slic3r {
 class GLVolume; // forward declaration in the correct namespace
@@ -227,6 +229,9 @@ struct BooleanJobData {
         ObjectID object_id;          // For locating object
         int object_index;
         std::string name;            // For debugging
+        // World matrix of the volume create_result_volume() builds from this operand's result;
+        // the result mesh is stored as result_frame^-1 * world_mesh.
+        Transform3d result_frame = Transform3d::Identity();
     };
 
     std::vector<VolumeData> volumes_a;  // Group A data
@@ -249,6 +254,19 @@ struct BooleanJobData {
     // Progress tracking
     int current_step = 0;
     int total_steps = 0;
+
+    // Paint reprojection done in process() (worker thread) instead of finalize(), so applying
+    // the result does no heavy work on the UI thread. Operand paint is copied on the UI thread
+    // when the job is prepared; the worker never touches live ModelVolumes.
+    struct PaintOperand {
+        std::shared_ptr<PaintKeepPrepared> paint;  // volume-local mesh + its 4 paint layers
+        Transform3d world = Transform3d::Identity();
+        int base_filament = 0;
+    };
+    // Empty when nothing is to be carried ("Keep all painting" off, or no paint and one filament).
+    std::vector<PaintOperand> paint_operands;
+    // Paint for result_meshes[i], on its mesh in volumes_a[i].result_frame. Null = nothing to carry.
+    std::vector<std::shared_ptr<PaintKeepPrepared>> result_paints;
 };
 
 class BooleanOperationEngine {
@@ -306,7 +324,10 @@ private:
         std::function<void(float)> progress_cb = nullptr) const;
 
     // ========================== MODEL MANIPULATION HELPERS ==========================
-    ModelVolume* create_result_volume(ModelObject* target_object, const TriangleMesh& result_mesh, ModelVolume* source_volume);
+    // source_world: world matrix the source volume was baked with (its instance * volume matrix).
+    // Null = instance 0 of target_object, which is only right when the operand came from it.
+    ModelVolume* create_result_volume(ModelObject* target_object, const TriangleMesh& result_mesh, ModelVolume* source_volume,
+                                      const Transform3d* source_world = nullptr);
     void delete_volumes_from_model(const std::vector<ModelVolume*>& volumes_to_delete);
     void update_delete_list(BooleanOperationResult& result, const std::vector<VolumeInfo>& volumes, const BooleanOperationSettings& settings) const;
 
@@ -389,6 +410,11 @@ public:
     std::string get_icon_filename(bool b_dark_mode) const override;
     void apply_color_overrides_for_mode(MeshBooleanOperation mode);
 
+    // Right-click "Mesh boolean": union every model part of the object in the background,
+    // keeping all painting, without opening the gizmo. Progress and cancel are shown in the
+    // plater progress notification. Returns false if the job could not be started.
+    bool run_object_union_async(ModelObject *object);
+
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
@@ -431,16 +457,19 @@ private:
     BooleanOperationResult perform_boolean_operation_async(BooleanJobData& data, JobNew::Ctl& ctl);
     void apply_boolean_result_from_job(const BooleanJobData& job_data);
 
-    // Helper: Group volumes by object and union within each object (for Object mode)
+    // Helper: Group volumes by object and union within each object (for Object mode).
+    // Returns an empty vector on failure or cancellation.
     std::vector<TriangleMesh> group_and_union_by_object(
         const std::vector<BooleanJobData::VolumeData>& volumes,
-        std::function<bool()> cancel_cb);
+        std::function<bool()> cancel_cb,
+        std::function<void(float)> progress_cb = nullptr);
 
     // Helper: Prepare meshes for operation (group by object if in Object mode, otherwise extract directly)
     std::vector<TriangleMesh> prepare_meshes_for_operation(
         const std::vector<BooleanJobData::VolumeData>& volumes,
         BooleanTargetMode target_mode,
-        std::function<bool()> cancel_cb);
+        std::function<bool()> cancel_cb,
+        std::function<void(float)> progress_cb = nullptr);
 
     // Helper: Accumulate boolean operations on a list of meshes (for Union/Intersection)
     std::optional<TriangleMesh> accumulate_boolean_operations(
@@ -448,7 +477,12 @@ private:
         const std::string& operation,
         BooleanJobData& data,
         JobNew::Ctl& ctl,
-        BooleanOperationResult& result);
+        BooleanOperationResult& result,
+        const std::function<void(float)>& progress_cb);
+
+    // Thread-safe: stores the progress (0-100) and status shown in the panel and asks the UI
+    // thread for a redraw. Callable from the worker thread.
+    void set_async_progress(float percent, const std::string& status);
 
     // ========================== UI LAYER ==========================
     std::unique_ptr<MeshBooleanUI> m_ui;
@@ -462,9 +496,12 @@ private:
     // ========================== ASYNC JOB TRACKING ==========================
     std::shared_ptr<BooleanJobData> m_current_job_data;  // Shared data with running job
     bool m_async_job_running = false;
-    bool m_async_job_cancel_requested = false;
+    std::atomic<bool> m_async_job_cancel_requested{false};  // read by the worker thread
+    bool m_object_union_job_running = false;  // run_object_union_async() in flight
     float m_async_boolean_operation_progress = 0.0f;  // Progress percentage (0-100)
-    mutable std::mutex m_async_mutex;  // Mutex for thread-safe progress updates
+    std::string m_async_status;                        // Current phase shown under the progress bar
+    std::atomic<bool> m_async_redraw_pending{false};   // a redraw request is already queued on the UI thread
+    mutable std::mutex m_async_mutex;  // Guards m_async_boolean_operation_progress and m_async_status
 
     // ================= VISUAL ELEMENTS ==========================
     // Helper methods to apply / restore color overrides for lists of volumes
@@ -482,6 +519,14 @@ private:
     // Helper methods for visability management
     void apply_object_visibility(const Selection& selection) const;
     void apply_part_visibility(const Selection& selection) const;
+    // Hides every object one by one. toggle_model_objects_visibility(false) without an object
+    // raises the "Only the object being edited is visible" notification, which nothing in
+    // this gizmo ever clears.
+    void hide_all_model_objects() const;
+    void close_from_render();
+    // Results created next to their kept operands while the gizmo stays open (part mode);
+    // apply_part_visibility() keeps them visible beside the edited object.
+    std::set<ObjectID> m_kept_result_objects;
 
 
 };

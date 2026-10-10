@@ -2013,6 +2013,15 @@ bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh
 
     const int dst_nf = int(dst_mesh.its.indices.size());
 
+    // Progress: the coverage scan below takes the first CoverSpan percent (only with more
+    // than one operand), the per-operand reprojection the rest up to 99.
+    const int CoverSpan = ops.size() > 1 ? 20 : 0;
+    auto report = [&progress](int percent) {
+        if (progress)
+            progress(std::clamp(percent, 0, 99), nullptr);
+    };
+    report(0);
+
     // Distance from every destination face to every operand surface, so a face can be
     // resolved against the operand it actually lies on, nearest first.
     std::vector<std::vector<float>> op_distance(ops.size(), std::vector<float>(size_t(dst_nf), 0.f));
@@ -2027,6 +2036,11 @@ bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh
                 AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
                     ops[i].mesh.its.vertices, ops[i].mesh.its.indices);
             for (int f = 0; f < dst_nf; ++f) {
+                if ((f & 0x3fff) == 0 && f > 0) {
+                    if (cancel && cancel())
+                        return false;
+                    report(int((i * size_t(dst_nf) + size_t(f)) * CoverSpan / (ops.size() * size_t(dst_nf))));
+                }
                 const Vec3i &tri = dst_mesh.its.indices[f];
                 const Vec3f  centroid = (dst_mesh.its.vertices[tri[0]] + dst_mesh.its.vertices[tri[1]] +
                                          dst_mesh.its.vertices[tri[2]]) / 3.0f;
@@ -2108,13 +2122,22 @@ bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh
         // operand's colour overwrite another's where they overlap; a single source per
         // call has no such conflict, and faces out of this operand's reach are simply
         // left unpainted for the nearer operand to fill in below.
+        const int op_base = CoverSpan + int(i) * (99 - CoverSpan) / int(ops.size());
+        const int op_span = (99 - CoverSpan) / int(ops.size());
+        PaintReprojectProgressCallback op_progress;
+        if (progress)
+            op_progress = [&report, op_base, op_span](int percent, const char *) {
+                report(op_base + std::clamp(percent, 0, 100) * op_span / 100);
+            };
+        report(op_base);
         if (! reproject_paint_geometric(
                 ops[i].mesh, ops[i].ann.supported, ops[i].ann.seam, ops[i].ann.mmu, ops[i].ann.fuzzy,
                 dst_mesh, Transform3d::Identity(),
                 per_op[i].supported, per_op[i].seam, per_op[i].mmu, per_op[i].fuzzy,
-                nullptr, cancel, dst_world_matrix))
+                op_progress, cancel, dst_world_matrix))
             return false;
     }
+    report(99);
 
     // Take, per destination face, only its attributed operand's reprojected paint.
     // Where that operand produced nothing for a face it owns (the sampler culls faces

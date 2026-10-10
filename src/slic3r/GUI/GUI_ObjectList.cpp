@@ -3598,12 +3598,14 @@ void ObjectList::layers_editing()
     Expand(layers_item);
 }
 
-// BBS: merge parts of a single object into one volume, similar to export_stl, but no need to export and then import
+// Union every model part of the selected object into one part, keeping all painting.
+// Runs as a background job of the Mesh Boolean gizmo (progress and cancel in the progress
+// notification); negative volumes and modifiers are kept as they are.
 void ObjectList::boolean()
 {
     std::vector<int> obj_idxs, vol_idxs;
     get_selection_indexes(obj_idxs, vol_idxs);
-    if (obj_idxs.empty() && vol_idxs.empty())
+    if (obj_idxs.empty() || obj_idxs.front() < 0 || obj_idxs.front() >= int(m_objects->size()))
         return;
 
     ModelObject* object = (*m_objects)[obj_idxs.front()];
@@ -3625,69 +3627,10 @@ void ObjectList::boolean()
         return;
     }
 
-    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "boolean");
-    TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1, [this](const std::string &msg) { return wxGetApp().notification_manager()->push_plater_warning_notification(msg); });
-
-    // add mesh to model as a new object, keep the original object's name and config
-    Model* model = object->get_model();
-    ModelObject* new_object = model->add_object();
-    new_object->name = object->name;
-    new_object->config.assign_config(object->config);
-    if (new_object->instances.empty())
-        new_object->add_instance();
-    ModelVolume* new_volume = new_object->add_volume(mesh);
-
-    // Carry the painting onto the boolean result. combine_mesh_fff() unions the object's
-    // parts in world frame, so each part is mapped through its own volume matrix and the
-    // instance transform; add_volume() above would otherwise leave the result unpainted.
-    //
-    // combine_mesh_fff(mo, -1) replicates the merged part geometry once per instance (each
-    // placed by its own instance matrix), so the result mesh holds every instance's copy.
-    // Emit one paint source per (instance, part): mapping only through instances.front()
-    // left every copy past the first instance unpainted (its surface has no source nearby).
-    {
-        std::vector<PaintSourceVolume> sources;
-        const bool has_instances = ! object->instances.empty();
-        const size_t instance_count = has_instances ? object->instances.size() : 1;
-        for (size_t inst = 0; inst < instance_count; ++inst) {
-            const Transform3d instance_matrix = has_instances ?
-                object->instances[inst]->get_matrix() : Transform3d::Identity();
-            for (const ModelVolume *v : object->volumes) {
-                if (v == nullptr || ! v->is_model_part())
-                    continue;
-                PaintSourceVolume source;
-                source.mesh                  = &v->mesh();
-                source.supported             = &v->supported_facets;
-                source.seam                  = &v->seam_facets;
-                source.mmu                   = &v->mmu_segmentation_facets;
-                source.fuzzy                 = &v->fuzzy_skin_facets;
-                source.source_to_destination = instance_matrix * v->get_matrix();
-                source.base_filament         = v->extruder_id();
-                sources.push_back(source);
-            }
-        }
-        // Result of a cancelled reprojection is discarded, leaving the paint unset.
-        (void) reproject_paint_from_volumes(new_volume->mesh(), sources,
-                                            new_volume->supported_facets, new_volume->seam_facets,
-                                            new_volume->mmu_segmentation_facets, new_volume->fuzzy_skin_facets);
-    }
-
-    // BBS: ensure on bed but no need to ensure locate in the center around origin
-    new_object->ensure_on_bed();
-    new_object->center_around_origin();
-    new_object->translate_instances(-new_object->origin_translation);
-    new_object->origin_translation = Vec3d::Zero();
-
-    // BBS: notify it before move
-    notify_instance_updated(m_objects->size() - 1);
-
-    // remove selected objects
-    remove();
-
-    // Add new object(UNION) to the object_list
-    add_object_to_list(m_objects->size() - 1);
-    select_item(m_objects_model->GetItemById(m_objects->size() - 1));
-    update_selections_on_canvas();
+    auto *gizmo = dynamic_cast<GLGizmoMeshBoolean *>(
+        wxGetApp().plater()->canvas3D()->get_gizmos_manager().get_gizmo(GLGizmosManager::MeshBoolean));
+    if (gizmo != nullptr)
+        gizmo->run_object_union_async(object);
 }
 
 wxDataViewItem ObjectList::add_layer_root_item(const wxDataViewItem obj_item)

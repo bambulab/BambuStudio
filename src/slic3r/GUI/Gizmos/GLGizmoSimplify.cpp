@@ -60,6 +60,11 @@ static ModelVolume* get_model_volume(const Selection& selection, Model& model)
     return obj->volumes[cid.volume_id];
 }
 
+static bool has_any_painting(const ModelVolume& mv)
+{
+    return mv.is_mm_painted() || mv.is_fdm_support_painted() || mv.is_seam_painted() || mv.is_fuzzy_skin_facets_painted();
+}
+
 GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D & parent, unsigned int sprite_id)
     : GLGizmoBase(parent, sprite_id)
     , m_volume(nullptr)
@@ -354,14 +359,21 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::Text(_u8L("%d triangles").c_str(), m_configuration.wanted_count);
     m_imgui->disabled_end(); // use_count
 
-    m_imgui->bbl_checkbox(_L("Show wireframe").c_str(), m_show_wireframe);
+    // Same checkbox look as the Mesh Boolean panel: wider gap between box and label.
+    const ImVec2 original_inner_spacing = ImGui::GetStyle().ItemInnerSpacing;
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(original_inner_spacing.x + 4.0f, original_inner_spacing.y));
+    m_imgui->bbl_checkbox(_L("Show wireframe"), m_show_wireframe);
 
-    // Only offer paint preservation when the model actually has painted color. When it has
-    // none, keep the old fast behavior (no checkbox, paint dropped - there is nothing to keep).
-    if (m_volume != nullptr && m_volume->is_mm_painted())
-        m_imgui->bbl_checkbox(_L("Preserve painted colors").c_str(), m_preserve_color);
-    else
+    // Only offer paint preservation when the model actually has painting. When it has
+    // none, keep the old fast behavior (no checkbox, nothing to keep).
+    if (m_volume != nullptr && has_any_painting(*m_volume)) {
+        m_imgui->bbl_checkbox(_L("Keep all painting"), m_preserve_color);
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_u8L("Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."),
+                             ImGui::GetFontSize() * 20.0f);
+    } else
         m_preserve_color = false;
+    ImGui::PopStyleVar(1);
 
      // draw progress bar
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,12);
@@ -576,9 +588,9 @@ void GLGizmoSimplify::apply_simplify() {
         return;
     assert(mv == m_volume);
 
-    // Preserve painting only when the user opted in AND the model actually has painted
-    // color (the checkbox is hidden otherwise). Everything else keeps the old fast path.
-    const bool keep_paint = m_preserve_color && mv->is_mm_painted();
+    // Preserve painting only when the user opted in AND the model actually has painting
+    // (the checkbox is hidden otherwise). Everything else keeps the old fast path.
+    const bool keep_paint = m_preserve_color && has_any_painting(*mv);
 
     if (keep_paint) {
         // Re-projecting the painted color/MMU/supports/seam/fuzzy-skin onto the decimated
