@@ -11917,6 +11917,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                     proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values     = resolved_nozzle_stats;
                                     proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats_new", true)->values = resolved_nozzle_stats;
                                 }
+                                // load_current_presets() skipped the per-slot rebuild while force_keep_stat
+                                // was set. The count summary above does not record which slot is which type,
+                                // so rebuild extruder_full_stat from the four per-slot arrays before the
+                                // nozzle settings UI copies that snapshot. Count is already restored, so an
+                                // incomplete snapshot can still fall back to it.
+                                preset_bundle->update_extruder_full_stats_from_config();
                                 if (file_selected_nozzle_diameters)
                                     *proj_cfg.opt<ConfigOptionStrings>("filament_diameter_map", true) =
                                         *file_selected_nozzle_diameters;
