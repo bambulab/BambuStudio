@@ -460,8 +460,11 @@ namespace Slic3r
         constexpr float kMismatchDistance    = 999999.f; // hard fail (type / alpha mismatch)
         constexpr float kColorTieBreak       = 0.25f;    // color_over_subtype: below one DeltaE step, so it never overrides a visible colour gap
         constexpr float kNozzleMismatchWeight = 1.0f;    // NozzleMatchWeight::Prefer soft penalty: ~1 DeltaE, so it outranks the product-identity tie term yet loses to any real colour gap
+        constexpr float kMultiColorPenalty   = 2000.f;   // single colour wins over a gradient slot, which is only a dominant-colour fallback
         static_assert(kColorDistanceMax < kClassDistanceOffset, "color distance must not override sub-class / class match priority");
-        static_assert(kTypeDistanceOffset - kClassDistanceOffset > kColorDistanceMax, "class-vs-type gap must exceed the color distance range");
+        static_assert(kMultiColorPenalty > kColorDistanceMax, "single-colour preference must outrank any color distance");
+        static_assert(kColorDistanceMax + kMultiColorPenalty < kClassDistanceOffset, "single-colour preference must not override sub-class / class match priority");
+        static_assert(kTypeDistanceOffset - kClassDistanceOffset > kColorDistanceMax + kMultiColorPenalty, "class-vs-type gap must exceed the penalised color distance range");
         static_assert(kNozzleMismatchWeight > 2.f * kColorTieBreak, "nozzle weight must outrank the product-identity tie term");
 
         if (filaments.empty() || !obj)
@@ -614,6 +617,10 @@ namespace Slic3r
                         const float type_step  = color_over_subtype ? kColorTieBreak * 2.f : kTypeDistanceOffset;
                         val.distance += is_class_match ? class_step : type_step;
                     }
+
+                    // Project filaments are always single colour, so any gradient slot is a fallback.
+                    if (tray->second.colors.size() > 1)
+                        val.distance += kMultiColorPenalty;
 
                     val.is_type_match = true;
                 }
