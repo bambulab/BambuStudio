@@ -21,6 +21,8 @@ namespace GUI {
 
 SkipPartCanvas::SkipPartCanvas(wxWindow *parent, const wxGLAttributes& dispAttrs)
     : wxGLCanvas(parent, dispAttrs) {
+    // GL content and mouse coordinates must not be mirrored by an RTL parent layout.
+    SetLayoutDirection(wxLayout_LeftToRight);
     context_ = new wxGLContext(this);
     this->Bind(wxEVT_PAINT, &SkipPartCanvas::OnPaint, this);
     this->Bind(wxEVT_MOUSEWHEEL, &SkipPartCanvas::OnMouseWheel, this);

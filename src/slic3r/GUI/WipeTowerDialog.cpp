@@ -271,6 +271,8 @@ WipingDialog::WipingDialog(wxWindow* parent, const int max_flush_volume) :
         applied_size,
         wxWebViewBackendDefault,
         wxNO_BORDER);
+    // Web content handles its own direction; keep the host window LTR (see WebView::CreateWebView).
+    m_webview->SetLayoutDirection(wxLayout_LeftToRight);
 
     m_webview->AddScriptMessageHandler("wipingDialog");
     main_sizer->Add(m_webview, 1, wxEXPAND);
