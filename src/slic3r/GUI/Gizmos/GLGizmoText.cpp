@@ -809,9 +809,9 @@ void GLGizmoText::draw_style_list(float caption_size)
     ImGui::AlignTextToFramePadding();
     std::string title = _u8L("Style");
     if (m_style_manager.exist_stored_style())
-        ImGui::Text("%s", title.c_str());
+        ImGui::Text("%s", bidi::vis(title).c_str());
     else
-        ImGui::TextColored(ImGuiWrapper::COL_BAMBU, "%s", title.c_str());
+        ImGui::TextColored(ImGuiWrapper::COL_BAMBU, "%s", bidi::vis(title).c_str());
     if (ImGui::IsItemHovered()) {
         m_imgui->tooltip(_u8L("Save the parameters of the current text tool as a style for easy subsequent use."), m_gui_cfg->max_tooltip_width);
     }
@@ -979,7 +979,7 @@ void GLGizmoText::draw_style_save_as_popup()
         save_style = true;
 
     ImGui::SameLine();
-    if (ImGui::Button(_u8L("Cancel").c_str())) {
+    if (ImGui::Button(bidi::vis(_u8L("Cancel")).c_str())) {
         // write original name to volume TextConfiguration
         //new_name = m_style_manager.get_style().name;
         ImGui::CloseCurrentPopup();
@@ -1137,7 +1137,7 @@ void GLGizmoText::draw_model_type(int caption_width)
         ImVec4 color{.5f, .5f, .5f, 1.f};
         m_imgui->text_colored(color, title.c_str());
     } else {
-        ImGui::Text("%s", title.c_str());
+        ImGui::Text("%s", bidi::vis(title).c_str());
     }
 
     std::optional<ModelVolumeType> new_type;
@@ -1148,14 +1148,14 @@ void GLGizmoText::draw_model_type(int caption_width)
     ImGui::SameLine(caption_width);
     // TRN EmbossOperation
     ImGuiWrapper::push_radio_style();
-    if (ImGui::RadioButton(_u8L("Part").c_str(), type == part))
+    if (ImGui::RadioButton(bidi::vis(_u8L("Part")).c_str(), type == part))
         new_type = part;
     else if (ImGui::IsItemHovered())
         m_imgui->tooltip(_L("Click to change text into object part."), m_gui_cfg->max_tooltip_width);
     ImGui::SameLine();
 
     auto last_solid_part_hint = _L("You can't change a type of the last solid part of the object.");
-    if (ImGui::RadioButton(_CTX_utf8(L_CONTEXT("Cut", "EmbossOperation"), "EmbossOperation").c_str(), type == negative))
+    if (ImGui::RadioButton(bidi::vis(_CTX_utf8(L_CONTEXT("Cut", "EmbossOperation"), "EmbossOperation")).c_str(), type == negative))
         new_type = negative;
     else if (ImGui::IsItemHovered()) {
         if (is_last_solid_part)
@@ -1167,7 +1167,7 @@ void GLGizmoText::draw_model_type(int caption_width)
     // In simple mode are not modifiers
     if (wxGetApp().plater()->printer_technology() != ptSLA) {
         ImGui::SameLine();
-        if (ImGui::RadioButton(_u8L("Modifier").c_str(), type == modifier))
+        if (ImGui::RadioButton(bidi::vis(_u8L("Modifier")).c_str(), type == modifier))
             new_type = modifier;
         else if (ImGui::IsItemHovered()) {
             if (is_last_solid_part)
@@ -4099,7 +4099,7 @@ void draw_font_preview(FaceName& face, const std::string& text, CurFacenames& fa
 
     if (!state_text.empty()) {
         ImGui::SameLine(cfg.face_name_texture_offset_x);
-        ImGui::Text("%s", state_text.c_str());
+        ImGui::Text("%s", bidi::vis(state_text).c_str());
     }
 
     ImGui::SameLine(cfg.face_name_texture_offset_x);

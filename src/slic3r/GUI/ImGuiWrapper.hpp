@@ -8,6 +8,7 @@
 
 #include <wx/string.h>
 
+#include "Bidi.hpp" // bidi::vis() for call sites that pass translated strings straight to ImGui::
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Color.hpp"
 #include "libslic3r/Polygon.hpp"
@@ -53,6 +54,9 @@ class ImGuiWrapper
     bool m_is_korean{ false };
     // Thai glyphs are absent from every bundled font, so a Thai-only font is merged on top.
     bool m_is_thai{ false };
+    // Hebrew glyphs are absent from every bundled font (checked: HarmonyOS Sans SC, NanumGothic, Symbola),
+    // so NotoSansHebrew is merged on top. Text is reordered to visual order by the bidi module.
+    bool m_is_hebrew{ false };
     float m_font_size{ 18.0 };
     unsigned m_font_texture{ 0 };
     unsigned m_font_another_texture{ 0 };
@@ -84,6 +88,8 @@ public:
 
     // True when the UI font set was loaded for Korean (NanumGothic instead of HarmonyOS).
     bool is_korean() const { return m_is_korean; }
+    // True when the UI font set was loaded for Hebrew (RTL text is reordered by Slic3r::GUI::bidi before drawing).
+    bool is_hebrew() const { return m_is_hebrew; }
 
     void read_glsl_version();
 

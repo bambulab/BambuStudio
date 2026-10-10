@@ -201,7 +201,7 @@ void MeshBooleanUI::draw_volume_lists()
 
         // Header line: Selected Objects [A-B] : (with [A-B] in bold)
         ImGui::BeginGroup();
-        ImGui::TextUnformatted(title_text.c_str());
+        ImGui::TextUnformatted(bidi::vis(title_text).c_str());
         ImGui::SameLine(0, 0);
         if (m_imgui) m_imgui->push_bold_font();
         ImGui::TextUnformatted(" [A - B]");
@@ -514,7 +514,7 @@ void MeshBooleanUI::draw_only_entity_checkbox()
             if (m_imgui) {
                 m_imgui->tooltip(_u8L("Perform Boolean operations on entities only."), ImGui::GetFontSize() * 20.0f);
             } else {
-                ImGui::SetTooltip("%s", _u8L("Perform Boolean operations on entities only.").c_str());
+                ImGui::SetTooltip("%s", bidi::vis(_u8L("Perform Boolean operations on entities only.")).c_str());
             }
         }
     }
@@ -855,7 +855,7 @@ void MeshBooleanUI::draw_object_list(const std::string& table_name, ImVec2 size,
     ImGui::SetCursorPos(ImVec2(start_pos.x - ImGui::GetWindowPos().x,
                                start_pos.y - ImGui::GetWindowPos().y));
     ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255));
-    ImGui::Text(title.c_str());
+    ImGui::Text("%s", bidi::vis(title).c_str());
 
     // Draw count text (smaller size) with some spacing
     ImGui::SameLine(0, MeshBooleanConfig::SPACING_LIST_TITLE); // Add 4 pixels spacing between title and count
@@ -1111,7 +1111,7 @@ void MeshBooleanUI::render_checkbox(const wxString& label, bool& value, bool ena
     } else {
         // Fallback if m_imgui is not available
         std::string label_str = label.ToStdString();
-        ImGui::Checkbox(label_str.c_str(), &value);
+        ImGui::Checkbox(bidi::vis(label_str).c_str(), &value);
     }
     ImGui::PopStyleVar(1);
     ImGui::PopItemFlag();
@@ -1299,7 +1299,7 @@ void MeshBooleanUI::draw_progress_bar()
         status_text = _u8L("Applying result..");
     }
 
-    ImGui::TextColored(text_color, status_text.c_str());
+    ImGui::TextColored(text_color, "%s", bidi::vis(status_text).c_str());
 
     ImGui::Spacing();
 }

@@ -10835,7 +10835,7 @@ void GLCanvas3D::_render_assemble_control()
                     selection_out = line_idx;
 
                 ImGui::SameLine();
-                ImGui::Text("%s", modes[line_idx].c_str());
+                ImGui::Text("%s", bidi::vis(modes[line_idx]).c_str());
                 ImGui::PopID();
             }
             ImGui::EndCombo();
@@ -10895,9 +10895,9 @@ void GLCanvas3D::_render_assemble_info() const
     double size1 = m_selection.get_bounding_box().size()(1);
     double size2 = m_selection.get_bounding_box().size()(2);
     if (!m_selection.is_empty()) {
-        ImGui::Text(_L("Volume:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Text("%s", bidi::vis(std::string(_L("Volume:").ToUTF8().data())).c_str()); ImGui::SameLine(caption_max);
         ImGui::Text("%.2f", size0 * size1 * size2);
-        ImGui::Text(_L("Size:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Text("%s", bidi::vis(std::string(_L("Size:").ToUTF8().data())).c_str()); ImGui::SameLine(caption_max);
         ImGui::Text("%.2f x %.2f x %.2f", size0, size1, size2);
     }
     imgui->end();
