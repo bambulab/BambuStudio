@@ -3790,13 +3790,12 @@ static std::set<std::pair<std::string, NozzleVolumeType>> collect_installed_nozz
     std::set<std::pair<std::string, NozzleVolumeType>> result;
     const Preset &printer = bundle.printers.get_edited_preset();
 
-    // Same gate as collect_configured_nozzle_diameters(): with the project-level gate off the machine
-    // offers exactly its printer preset's diameter, paired with the per-extruder project flow setting.
-    if (!multi_nozzle_diameter_mode_enabled(bundle.project_config) ||
-        !uses_per_slot_nozzle_diameters(printer.config)) {
+    // The machine's own diameter paired with the per-extruder project flow setting. Serves both the
+    // gate below and the fallback for an empty per-slot snapshot.
+    auto fill_from_printer_preset = [&bundle, &printer, &result]() {
         const double primary_diameter = string_to_double_decimal_point(printer.config.opt_string("printer_variant").c_str());
         if (primary_diameter <= 0.0)
-            return result;
+            return;
         const std::string diameter = format_diameter_to_str(primary_diameter);
         const auto *volume_types = bundle.project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
         if (volume_types == nullptr || volume_types->values.empty())
@@ -3804,6 +3803,13 @@ static std::set<std::pair<std::string, NozzleVolumeType>> collect_installed_nozz
         else
             for (int value : volume_types->values)
                 result.emplace(diameter, static_cast<NozzleVolumeType>(value));
+    };
+
+    // Same gate as collect_configured_nozzle_diameters(): with the project-level gate off the machine
+    // offers exactly its printer preset's diameter, paired with the per-extruder project flow setting.
+    if (!multi_nozzle_diameter_mode_enabled(bundle.project_config) ||
+        !uses_per_slot_nozzle_diameters(printer.config)) {
+        fill_from_printer_preset();
         return result;
     }
 
@@ -3826,6 +3832,15 @@ static std::set<std::pair<std::string, NozzleVolumeType>> collect_installed_nozz
             }
             result.emplace(format_diameter_to_str(diameter), volume_type);
         }
+
+    // extruder_full_stat is only rebuilt at a few specific moments (printer model change, nozzle
+    // settings dialog, grouping popup), so an untouched project reaches here with an empty one.
+    // collect_configured_nozzle_diameters() falls back to the printer preset in that case and this
+    // did not, leaving the diameter axis populated while the flow axis was empty -- every caller
+    // asking "which flows can this filament use" then got nothing, for every filament. The two
+    // describe the same rack, so they have to bottom out the same way.
+    if (result.empty())
+        fill_from_printer_preset();
     return result;
 }
 
@@ -4248,6 +4263,20 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                     *this, i, printer_name_to_diameter, configured);
 
                 if (multi_diameter_mode) {
+                    // Same question single-diameter mode asks below -- can this filament use the
+                    // diameter the rack carries -- just answered differently: there the preset is
+                    // replaced with a default for that diameter, here the per-slot selection belongs
+                    // to the user, so the slot is flagged instead. An empty `options` means no preset
+                    // of this filament covers any installed diameter; the branches below only compare
+                    // the stored diameter against the installed one and would let that through.
+                    if (options.empty()) {
+                        incompatible_nozzle_diameter_slots.push_back(i);
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                                   << " has no preset for any installed nozzle diameter"
+                                                   << ", flagging the slot";
+                        continue;
+                    }
+
                     // Only ever assign a diameter here when the slot never had one (a brand-new
                     // slot). An already-selected slot is left exactly as it was, even when the
                     // remaining nozzle would also work for this filament -- the Nozzle Settings
@@ -4260,8 +4289,19 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                                 *this, i, target, nullptr, printer_name_to_diameter, options);
                         continue;
                     }
-                    if (format_diameter_to_str(string_to_double_decimal_point(current_value.c_str())) == target)
+                    if (format_diameter_to_str(string_to_double_decimal_point(current_value.c_str())) == target) {
+                        // The diameter matching is not enough: a rack can carry that diameter only in
+                        // a flow this filament has no variant for (a 2.85mm TPU among all-Standard
+                        // nozzles). `options` above is a diameter-only check and passes such a slot.
+                        if (volume_map != nullptr &&
+                            ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed).empty()) {
+                            incompatible_nozzle_diameter_slots.push_back(i);
+                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                                       << " has no printable nozzle flow at installed diameter "
+                                                       << target << ", flagging the slot";
+                        }
                         continue; // the nozzle for this slot's diameter is still installed
+                    }
 
                     // The nozzle for this slot's previously-selected diameter was removed. Flag
                     // the slot instead of silently moving it onto the sole remaining diameter.
@@ -4456,11 +4496,22 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         // preset-switched "0.4 Standard" survives on a slot whose 2.85mm TPU only fits a TPU285 nozzle.
         if (volume_map != nullptr &&
             ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed).empty()) {
+            bool moved_to_printable_diameter = false;
             for (const std::string &candidate : options)
                 if (!::Slic3r::get_filament_nozzle_flow_options(*this, i, candidate, installed).empty()) {
                     target = candidate;
+                    moved_to_printable_diameter = true;
                     break;
                 }
+            // No installed nozzle can print this filament at any of its diameters. Diameter-only
+            // matching called the slot fine, so it kept a flow it cannot print and nothing marked it.
+            if (!moved_to_printable_diameter) {
+                incompatible_nozzle_diameter_slots.push_back(i);
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                           << " has no printable nozzle flow at any installed diameter"
+                                           << ", flagging the slot";
+                continue;
+            }
         }
         if (!::Slic3r::set_filament_nozzle_diameter(
                 *this, i, target, nullptr, printer_name_to_diameter, options))

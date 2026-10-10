@@ -8491,10 +8491,20 @@ void Sidebar::update_incompatible_nozzle_notifications()
         _L("Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."),
         missing.slots, nozzle_list(missing)));
 
-    // Push/close only when the rendered message actually changes -- this runs far more often (any
-    // sidebar refresh, plate switch or object change) than the messages themselves change.
+    // Push/close only when something actually changed -- this runs far more often (any sidebar
+    // refresh, plate switch or object change) than the messages themselves do. "Changed" also covers
+    // the user having dismissed the card by hand: the text alone would still match what was last
+    // pushed, so the problem would stay unreported until its wording happened to change. Asking the
+    // manager whether the card is still on screen makes any of the actions that recompute this --
+    // switching plates, repointing an object, editing the filament list -- bring it back.
     auto *notify = plater->get_notification_manager();
-    if (unsupported_text != p->m_notified_nozzle_unsupported_text) {
+    const bool unsupported_dismissed =
+        notify != nullptr && !unsupported_text.empty() &&
+        !notify->has_notification_of_type(NotificationType::BBLFilamentNozzleDiameterMismatch);
+    const bool missing_dismissed =
+        notify != nullptr && !missing_text.empty() &&
+        !notify->has_notification_of_type(NotificationType::BBLFilamentNozzleNotInstalled);
+    if (unsupported_text != p->m_notified_nozzle_unsupported_text || unsupported_dismissed) {
         if (notify) {
             if (!unsupported_text.empty())
                 // The hypertext lands on the custom filament list, the same page
@@ -8509,7 +8519,7 @@ void Sidebar::update_incompatible_nozzle_notifications()
         }
         p->m_notified_nozzle_unsupported_text = unsupported_text;
     }
-    if (missing_text != p->m_notified_nozzle_missing_text) {
+    if (missing_text != p->m_notified_nozzle_missing_text || missing_dismissed) {
         if (notify) {
             if (!missing_text.empty())
                 notify->push_error_border_notification(NotificationType::BBLFilamentNozzleNotInstalled, missing_text);

@@ -7072,6 +7072,13 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
     wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
     wxGetApp().plater()->update();
 
+    // The flagged-slot notifications only name slots the current plate actually prints with, so the
+    // answer changes the moment an object is pointed at a different one. Nothing here went through
+    // object_list_changed(), which is where that refresh normally hangs, so the message stayed as it
+    // was until the next plate switch. Re-running it is cheap: with no flagged slot it does nothing,
+    // and it only pushes when the resulting text differs from what is already on screen.
+    wxGetApp().plater()->sidebar().update_incompatible_nozzle_notifications();
+
     // BBS: update extruder/filament column
     Refresh();
 }
