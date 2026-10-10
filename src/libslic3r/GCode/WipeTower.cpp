@@ -2010,7 +2010,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
 
 
 
-void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
+void WipeTower::set_extruder(size_t idx, const PrintConfig& config, size_t config_idx)
 {
     //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
     m_filpar.push_back(FilamentParameters());
@@ -2019,8 +2019,8 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     m_filpar[idx].is_soluble = config.filament_soluble.get_at(idx);
     // BBS
     m_filpar[idx].is_support = config.filament_is_support.get_at(idx);
-    m_filpar[idx].nozzle_temperature = config.nozzle_temperature.get_at(idx);
-    m_filpar[idx].nozzle_temperature_initial_layer = config.nozzle_temperature_initial_layer.get_at(idx);
+    m_filpar[idx].nozzle_temperature = config.nozzle_temperature.get_at(config_idx);
+    m_filpar[idx].nozzle_temperature_initial_layer = config.nozzle_temperature_initial_layer.get_at(config_idx);
     m_filpar[idx].category = config.filament_adhesiveness_category.get_at(idx);
     m_filpar[idx].flat_iron_area = config.filament_tower_ironing_area.get_at(idx);
 
@@ -2070,18 +2070,18 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     }
     const float idx_filament_area = m_filpar[idx].filament_area;
 
-    float max_vol_speed = float(config.filament_max_volumetric_speed.get_at(idx));
+    float max_vol_speed = float(config.filament_max_volumetric_speed.get_at(config_idx));
     if (max_vol_speed!= 0.f)
         m_filpar[idx].max_e_speed = (max_vol_speed / idx_filament_area);
 
     //set extruder change and nozzle change ramming speed
     {
-        float ramming_vol_speed = float(config.filament_ramming_volumetric_speed.get_at(idx));
-        if (config.filament_ramming_volumetric_speed.is_nil(idx) || is_approx(config.filament_ramming_volumetric_speed.get_at(idx), -1.)) ramming_vol_speed = max_vol_speed;
+        float ramming_vol_speed = float(config.filament_ramming_volumetric_speed.get_at(config_idx));
+        if (config.filament_ramming_volumetric_speed.is_nil(config_idx) || is_approx(config.filament_ramming_volumetric_speed.get_at(config_idx), -1.)) ramming_vol_speed = max_vol_speed;
         m_filpar[idx].max_e_ramming_speed.first = (ramming_vol_speed / idx_filament_area);
 
-        float ramming_vol_speed_nc = float(config.filament_ramming_volumetric_speed_nc.get_at(idx));
-        if (config.filament_ramming_volumetric_speed_nc.is_nil(idx) || is_approx(config.filament_ramming_volumetric_speed_nc.get_at(idx), -1.))
+        float ramming_vol_speed_nc = float(config.filament_ramming_volumetric_speed_nc.get_at(config_idx));
+        if (config.filament_ramming_volumetric_speed_nc.is_nil(config_idx) || is_approx(config.filament_ramming_volumetric_speed_nc.get_at(config_idx), -1.))
             ramming_vol_speed_nc = max_vol_speed;
         m_filpar[idx].max_e_ramming_speed.second = (ramming_vol_speed_nc / idx_filament_area);
     }
@@ -2095,39 +2095,39 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
         m_filpar[idx].precool_t_first_layer.second.resize(extruder_count, 0.f);
         m_filpar[idx].precool_target_temp.first     = 0;
         m_filpar[idx].precool_target_temp.second     = 0;
-        float nozzle_temp_first_layer = config.nozzle_temperature_initial_layer.is_nil(idx) ? -1.f : float(config.nozzle_temperature_initial_layer.get_at(idx));
-        float nozzle_temp_other_layer = config.nozzle_temperature.is_nil(idx) ? -1.f : float(config.nozzle_temperature.get_at(idx));
+        float nozzle_temp_first_layer = config.nozzle_temperature_initial_layer.is_nil(config_idx) ? -1.f : float(config.nozzle_temperature_initial_layer.get_at(config_idx));
+        float nozzle_temp_other_layer = config.nozzle_temperature.is_nil(config_idx) ? -1.f : float(config.nozzle_temperature.get_at(config_idx));
         std::vector<double> hotend_cooling_rates    = config.hotend_cooling_rate.values;
         auto  is_need_precooling      = [&](bool extruder_change) -> bool
         {
             bool res = config.enable_pre_heating.value; 
-            if (extruder_change) return res &&!config.filament_pre_cooling_temperature.is_nil(idx) && config.filament_pre_cooling_temperature.get_at(idx) != 0;
-            return res &&!config.filament_pre_cooling_temperature_nc.is_nil(idx) && config.filament_pre_cooling_temperature_nc.get_at(idx) != 0;
+            if (extruder_change) return res &&!config.filament_pre_cooling_temperature.is_nil(config_idx) && config.filament_pre_cooling_temperature.get_at(config_idx) != 0;
+            return res &&!config.filament_pre_cooling_temperature_nc.is_nil(config_idx) && config.filament_pre_cooling_temperature_nc.get_at(config_idx) != 0;
         };
         if (is_need_precooling(true)) {
             for (int i = 0; i < m_filpar[idx].precool_t.first.size(); i++) {
                 if (config.hotend_cooling_rate.is_nil(i)) continue;
-                m_filpar[idx].precool_t.first[i] = std::max(0.f, nozzle_temp_other_layer - float(config.filament_pre_cooling_temperature.get_at(idx))) / float(hotend_cooling_rates[i]);
-                m_filpar[idx].precool_t_first_layer.first[i] = std::max(0.f, nozzle_temp_first_layer -float(config.filament_pre_cooling_temperature.get_at(idx))) /float(hotend_cooling_rates[i]);
+                m_filpar[idx].precool_t.first[i] = std::max(0.f, nozzle_temp_other_layer - float(config.filament_pre_cooling_temperature.get_at(config_idx))) / float(hotend_cooling_rates[i]);
+                m_filpar[idx].precool_t_first_layer.first[i] = std::max(0.f, nozzle_temp_first_layer -float(config.filament_pre_cooling_temperature.get_at(config_idx))) /float(hotend_cooling_rates[i]);
             }
-            m_filpar[idx].precool_target_temp.first = config.filament_pre_cooling_temperature.get_at(idx);
+            m_filpar[idx].precool_target_temp.first = config.filament_pre_cooling_temperature.get_at(config_idx);
         }
 
         if (is_need_precooling(false)) {
             for (int i = 0; i < m_filpar[idx].precool_t.second.size(); i++) {
                 if (config.hotend_cooling_rate.is_nil(i)) continue;
-                m_filpar[idx].precool_t.second[i] = std::max(0.f, nozzle_temp_other_layer - float(config.filament_pre_cooling_temperature_nc.get_at(idx))) / float(hotend_cooling_rates[i]);
-                m_filpar[idx].precool_t_first_layer.second[i] = std::max(0.f, nozzle_temp_first_layer -float(config.filament_pre_cooling_temperature_nc.get_at(idx))) /float(hotend_cooling_rates[i]);
+                m_filpar[idx].precool_t.second[i] = std::max(0.f, nozzle_temp_other_layer - float(config.filament_pre_cooling_temperature_nc.get_at(config_idx))) / float(hotend_cooling_rates[i]);
+                m_filpar[idx].precool_t_first_layer.second[i] = std::max(0.f, nozzle_temp_first_layer -float(config.filament_pre_cooling_temperature_nc.get_at(config_idx))) /float(hotend_cooling_rates[i]);
             }
-            m_filpar[idx].precool_target_temp.second = config.filament_pre_cooling_temperature_nc.get_at(idx);
+            m_filpar[idx].precool_target_temp.second = config.filament_pre_cooling_temperature_nc.get_at(config_idx);
         }
 
     }
     //set ramming reverse travel time during extruder change and nozzle change
     {
         m_filpar[idx].ramming_travel_time = {0, 0};
-        if (!config.filament_ramming_travel_time.is_nil(idx)) m_filpar[idx].ramming_travel_time.first = float(config.filament_ramming_travel_time.get_at(idx));
-        if (!config.filament_ramming_travel_time_nc.is_nil(idx)) m_filpar[idx].ramming_travel_time.second = float(config.filament_ramming_travel_time_nc.get_at(idx));
+        if (!config.filament_ramming_travel_time.is_nil(config_idx)) m_filpar[idx].ramming_travel_time.first = float(config.filament_ramming_travel_time.get_at(config_idx));
+        if (!config.filament_ramming_travel_time_nc.is_nil(config_idx)) m_filpar[idx].ramming_travel_time.second = float(config.filament_ramming_travel_time_nc.get_at(config_idx));
     }
     m_filpar[idx].idle_travel_cooling_enabled = config.filament_idle_travel_cooling_enabled.get_at(idx);
     std::string filament_curve_str = config.filament_prime_tower_speed_factor_curve.get_at(idx);
@@ -2148,10 +2148,10 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
 
     m_used_filament_length.resize(std::max(m_used_filament_length.size(), idx + 1)); // makes sure that the vector is big enough so we don't have to check later
 
-    m_filpar[idx].retract_length = config.retraction_length.get_at(idx);
-    m_filpar[idx].retract_speed  = config.retraction_speed.get_at(idx);
-    m_filpar[idx].wipe_dist      = config.wipe_distance.get_at(idx);
-    m_filpar[idx].filament_cooling_before_tower = config.filament_cooling_before_tower.get_at(idx);
+    m_filpar[idx].retract_length = config.retraction_length.get_at(config_idx);
+    m_filpar[idx].retract_speed  = config.retraction_speed.get_at(config_idx);
+    m_filpar[idx].wipe_dist      = config.wipe_distance.get_at(config_idx);
+    m_filpar[idx].filament_cooling_before_tower = config.filament_cooling_before_tower.get_at(config_idx);
     m_filpar[idx].filament_petg_pre_extrusion_offset_dist = config.filament_tower_interface_pre_extrusion_dist.get_at(idx);
     if (config.enable_tower_interface_features.value) {
         m_filpar[idx].filament_tower_interface_print_temp = config.filament_tower_interface_print_temp.get_at(idx) == -1 ? config.nozzle_temperature_range_high.get_at(idx) :
@@ -2159,7 +2159,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
         m_filpar[idx].filament_tower_interface_pre_extrusion_dist = config.filament_tower_interface_pre_extrusion_dist.get_at(idx);
         m_filpar[idx].filament_tower_interface_pre_extrusion_length = config.filament_tower_interface_pre_extrusion_length.get_at(idx);
     } else {
-        m_filpar[idx].filament_tower_interface_print_temp = config.nozzle_temperature.get_at(idx);
+        m_filpar[idx].filament_tower_interface_print_temp = config.nozzle_temperature.get_at(config_idx);
         m_filpar[idx].filament_tower_interface_pre_extrusion_dist = 0.f;
         m_filpar[idx].filament_tower_interface_pre_extrusion_length = 0.f;
     }

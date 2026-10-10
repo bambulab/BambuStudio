@@ -200,7 +200,9 @@ public:
 
 
 	// Set the extruder properties.
-    void set_extruder(size_t idx, const PrintConfig& config);
+    // config_idx addresses the filament_options_with_variant arrays, which no longer line up with idx once a
+    // filament is split across nozzles of different variants.
+    void set_extruder(size_t idx, const PrintConfig& config, size_t config_idx);
 
     void set_shared_print_bed(const Polygons &bed) { m_shared_print_bed = bed; }
 	// Appends into internal structure m_plan containing info about the future wipe tower
