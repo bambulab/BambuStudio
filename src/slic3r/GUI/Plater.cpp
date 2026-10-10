@@ -16239,6 +16239,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
                 if (print_object) { ptrs.push_back(print_object->model_object()); }
             }
             notification_manager->push_slicing_error_notification(message.first, ptrs);
+            // Reslicing the unchanged plate would fail the same way. Validation clears this
+            // once the model or config changes.
+            if (PartPlate *plate = background_process.get_current_plate())
+                plate->update_apply_result_invalid(true);
         }
         if (evt.invalidate_plater())
         {
@@ -16397,6 +16401,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":finished, reload print soon");
         m_is_slicing = false;
         m_slice_all = false;
+        if (has_error)
+            this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate);
         this->preview->reload_print(false);
         q->mark_plate_toolbar_image_dirty();
         /* BBS if in publishing progress */
