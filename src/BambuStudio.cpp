@@ -1531,11 +1531,9 @@ int CLI::run(int argc, char **argv)
     save_main_thread_id();
 
 #ifdef __WXGTK__
-    // On Linux, default to the X11 backend (XWayland on Wayland sessions)
-    // for stability, but honor a user-provided GDK_BACKEND so that
-    // GDK_BACKEND=wayland opts into native Wayland, which the EGL-enabled
-    // wxWidgets build supports.
-    ::setenv("GDK_BACKEND", "x11", /* replace */ false);
+    // On Linux, GDK_BACKEND is deliberately left alone: GTK uses native
+    // Wayland in Wayland sessions (supported by the EGL-enabled wxWidgets
+    // build) and X11 otherwise. GDK_BACKEND=x11 still forces XWayland.
 
     ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
 
