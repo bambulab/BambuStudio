@@ -5722,22 +5722,82 @@ static constexpr double MIN_SUPPORTED_OVERHANG_RATIO = 0.05;
 // How much uncovered overhang has to pile up across the object before the user is worth interrupting.
 static constexpr double MIN_TOTAL_UNCOVERED_AREA_MM2 = 20.;
 
-ExPolygons PrintObject::collected_support_areas(const SupportLayer *support_layer) const
+// Only the parts of a support layer that can reach an overhang island are worth unioning: one tree
+// support layer of a tall object holds hundreds of branch cross sections, while the islands tested
+// against it cover a small part of the plate. Discarding the rest by bounding box before the union
+// keeps both the Clipper input and the cached result proportional to the overhangs.
+ExPolygons PrintObject::collected_support_areas(const SupportLayer *support_layer, const BoundingBox &roi) const
 {
+    if (! roi.defined)
+        return {};
+
+    auto append_overlapping = [&roi](ExPolygons &dst, const ExPolygons &src) {
+        for (const ExPolygon &expoly : src) {
+            const BoundingBox bbox = get_extents(expoly);
+            if (bbox.defined && roi.overlap(bbox))
+                dst.emplace_back(expoly);
+        }
+    };
+
     // Islands are only filled up to brim/skirt height and may miss trunks that live in
     // base/roof/floor, so always union every source that still has geometry.
-    ExPolygons areas;
-    append(areas, support_layer->support_islands);
-    append(areas, support_layer->base_areas);
-    append(areas, support_layer->roof_areas);
-    append(areas, support_layer->roof_1st_layer);
-    append(areas, support_layer->floor_areas);
-    if (areas.empty()) {
-        if (support_layer->support_fills.empty())
-            return {};
-        return union_ex(support_layer->support_fills.polygons_covered_by_spacing(float(SCALED_EPSILON)));
+    const bool has_areas = ! support_layer->support_islands.empty() || ! support_layer->base_areas.empty() ||
+                           ! support_layer->roof_areas.empty() || ! support_layer->roof_1st_layer.empty() ||
+                           ! support_layer->floor_areas.empty();
+    if (has_areas) {
+        ExPolygons areas;
+        append_overlapping(areas, support_layer->support_islands);
+        append_overlapping(areas, support_layer->base_areas);
+        append_overlapping(areas, support_layer->roof_areas);
+        append_overlapping(areas, support_layer->roof_1st_layer);
+        append_overlapping(areas, support_layer->floor_areas);
+        // Empty here means "no support near roi", not "no support at all", so the extrusion
+        // fallback below must not take over.
+        return areas.empty() ? ExPolygons{} : union_ex(areas);
     }
-    return union_ex(areas);
+
+    // No area geometry at all: the generator left only extrusions behind. Rebuilding polygons from
+    // them is expensive, hence the fallback position, and the bounding box filter only pays off
+    // afterwards because the spacing coverage is computed for the whole collection at once.
+    if (support_layer->support_fills.empty())
+        return {};
+    // Cheap rejection before rebuilding polygons: walk the fill paths once and bail out when their
+    // bounding box cannot touch the roi. polygons_covered_by_spacing() has to offset+union the whole
+    // collection, which only pays off when some part of it is actually visible. The coverage offsets
+    // every path by half its spacing plus epsilon, so inflate the reject box by the largest such
+    // margin before comparing: the bare centerline box would discard fills whose inflated coverage
+    // still reaches the roi. get_extents<true> keeps a degenerate (single vertical/horizontal line)
+    // fill defined, instead of mistaking it for "no support".
+    Points       fill_points;
+    support_layer->support_fills.collect_points(fill_points);
+    coordf_t     max_half_spacing = 0;
+    auto         path_half_spacing = [](const ExtrusionPath &path) {
+        const Flow flow = is_bridge(path.role()) ? Flow::bridging_flow(path.width, 0.f)
+                                                 : Flow(path.width, path.height, 0.f);
+        return coordf_t(0.5f * float(flow.scaled_spacing()));
+    };
+    std::function<void(const ExtrusionEntity *)> walk_fill_spacing = [&](const ExtrusionEntity *entity) {
+        if (entity->is_collection())
+            for (const ExtrusionEntity *child : static_cast<const ExtrusionEntityCollection *>(entity)->entities)
+                walk_fill_spacing(child);
+        else if (auto *path = dynamic_cast<const ExtrusionPath *>(entity))
+            max_half_spacing = std::max(max_half_spacing, path_half_spacing(*path));
+        else if (auto *multi = dynamic_cast<const ExtrusionMultiPath *>(entity))
+            for (const ExtrusionPath &path : multi->paths)
+                max_half_spacing = std::max(max_half_spacing, path_half_spacing(path));
+        else if (auto *loop = dynamic_cast<const ExtrusionLoop *>(entity))
+            for (const ExtrusionPath &path : loop->paths)
+                max_half_spacing = std::max(max_half_spacing, path_half_spacing(path));
+    };
+    walk_fill_spacing(&support_layer->support_fills);
+    BoundingBox fill_bbox = get_extents<true>(fill_points);
+    fill_bbox.offset(max_half_spacing + SCALED_EPSILON);
+    if (! fill_bbox.defined || ! roi.overlap(fill_bbox))
+        return {};
+    const ExPolygons fills = union_ex(support_layer->support_fills.polygons_covered_by_spacing(float(SCALED_EPSILON)));
+    ExPolygons       areas;
+    append_overlapping(areas, fills);
+    return areas;
 }
 
 // Supports can legitimately fail to grow, most visibly when "Support on build plate only" leaves the
@@ -5749,8 +5809,7 @@ ExPolygons PrintObject::collected_support_areas(const SupportLayer *support_laye
 void PrintObject::warn_uncovered_overhangs()
 {
     // draw_circles() marks the support layers it left empty with a zero print_z and height, which would
-    // break a search over print_z, so index only the layers that carry geometry. Only the heights are
-    // cached here; materializing every layer's areas up front would duplicate the whole support geometry.
+    // break a search over print_z, so index only the layers that carry geometry.
     std::vector<coordf_t> support_zs;
     std::vector<size_t>   support_layer_indices;
     support_zs.reserve(m_support_layers.size());
@@ -5770,44 +5829,172 @@ void PrintObject::warn_uncovered_overhangs()
     const coordf_t search_depth = m_slicing_params.gap_support_object +
         2. * std::max(m_slicing_params.max_suport_layer_height, m_slicing_params.layer_height);
 
-    struct LayerStat {
-        double uncovered_area  = 0.;
-        size_t num_uncovered   = 0;
-        size_t num_significant = 0;
+    // One overhang island worth reporting, with everything the passes below need from it.
+    struct Island {
+        const ExPolygon *expoly;
+        double           area_mm2;
+        BoundingBox      bbox;
     };
-    std::vector<LayerStat> stats(m_layers.size());
+    struct LayerWork {
+        std::vector<Island> islands;
+        // Union of the island bounding boxes: the only part of the support that can cover this layer.
+        BoundingBox         roi;
+        // Range into support_zs of the support layers sitting close enough below to count.
+        size_t              support_begin  = 0;
+        size_t              support_end    = 0;
+        double              uncovered_area = 0.;
+        size_t              num_uncovered  = 0;
+    };
+    std::vector<LayerWork> work(m_layers.size());
 
+    // Pass 1: pick the islands worth reporting and the support window each layer has to look at.
+    // This only walks geometry that already exists, and it lets the two passes below skip the layers -
+    // usually the vast majority - with nothing left to check.
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()),
-        [this, &support_zs, &support_layer_indices, search_depth, &stats](const tbb::blocked_range<size_t> &range) {
+        [this, &support_zs, search_depth, &work](const tbb::blocked_range<size_t> &range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                 m_print->throw_if_canceled();
                 const Layer *layer = m_layers[layer_idx];
                 if (layer->loverhangs.empty())
                     continue;
 
-                const coordf_t bottom_z = layer->bottom_z();
-                const auto     it_end   = std::upper_bound(support_zs.begin(), support_zs.end(), bottom_z + EPSILON);
-                const auto     it_begin = std::lower_bound(support_zs.begin(), it_end, bottom_z - search_depth);
-                ExPolygons     support_below;
-                for (auto it = it_begin; it != it_end; ++ it) {
-                    const size_t support_layer_idx = support_layer_indices[it - support_zs.begin()];
-                    append(support_below, this->collected_support_areas(m_support_layers[support_layer_idx]));
-                }
-                if (! support_below.empty())
-                    support_below = union_ex(support_below);
-
-                LayerStat &stat = stats[layer_idx];
+                LayerWork &w = work[layer_idx];
                 for (const ExPolygon &island : layer->loverhangs) {
                     const double island_area = area(island) * SCALING_FACTOR * SCALING_FACTOR;
                     if (island_area < MIN_REPORTED_OVERHANG_AREA_MM2)
                         continue;
-                    ++ stat.num_significant;
+                    const BoundingBox bbox = get_extents(island);
+                    if (! bbox.defined)
+                        continue;
+                    w.islands.push_back({ &island, island_area, bbox });
+                    w.roi.merge(bbox);
+                }
+                if (w.islands.empty())
+                    continue;
+
+                const coordf_t bottom_z = layer->bottom_z();
+                const auto     it_end   = std::upper_bound(support_zs.begin(), support_zs.end(), bottom_z + EPSILON);
+                const auto     it_begin = std::lower_bound(support_zs.begin(), it_end, bottom_z - search_depth);
+                w.support_begin = it_begin - support_zs.begin();
+                w.support_end   = it_end - support_zs.begin();
+            }
+        });
+    m_print->throw_if_canceled();
+
+    // Pass 2: consecutive model layers share most of their support window, so union each support layer
+    // once instead of once per model layer, and only the part overlapping the islands that will query
+    // it. Both the work and the extra memory then scale with the overhangs, not with the support.
+    std::vector<int>         cache_slot(support_zs.size(), -1);
+    std::vector<size_t>      cached_support_zs;
+    std::vector<BoundingBox> cached_rois;
+    for (const LayerWork &w : work) {
+        if (w.islands.empty())
+            continue;
+        for (size_t i = w.support_begin; i < w.support_end; ++ i) {
+            if (cache_slot[i] < 0) {
+                cache_slot[i] = int(cached_support_zs.size());
+                cached_support_zs.emplace_back(i);
+                cached_rois.emplace_back();
+            }
+            cached_rois[cache_slot[i]].merge(w.roi);
+        }
+    }
+
+    std::vector<ExPolygons>               support_cache(cached_support_zs.size());
+    std::vector<std::vector<BoundingBox>> support_cache_bboxes(cached_support_zs.size());
+    std::vector<BoundingBox>              support_cache_extents(cached_support_zs.size());
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, cached_support_zs.size()),
+        [this, &support_layer_indices, &cached_support_zs, &cached_rois, &support_cache,
+         &support_cache_bboxes, &support_cache_extents](const tbb::blocked_range<size_t> &range) {
+            for (size_t i = range.begin(); i < range.end(); ++ i) {
+                m_print->throw_if_canceled();
+                const size_t support_layer_idx = support_layer_indices[cached_support_zs[i]];
+                ExPolygons &cached = support_cache[i];
+                cached = this->collected_support_areas(m_support_layers[support_layer_idx], cached_rois[i]);
+                support_cache_bboxes[i].reserve(cached.size());
+                for (const ExPolygon &expoly : cached) {
+                    const BoundingBox bbox = get_extents(expoly);
+                    support_cache_bboxes[i].emplace_back(bbox);
+                    support_cache_extents[i].merge(bbox);
+                }
+            }
+        });
+    m_print->throw_if_canceled();
+
+    // Pass 3: the coverage test itself.
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()),
+        [this, &work, &cache_slot, &support_cache, &support_cache_bboxes, &support_cache_extents](const tbb::blocked_range<size_t> &range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                m_print->throw_if_canceled();
+                LayerWork &w = work[layer_idx];
+                if (w.islands.empty())
+                    continue;
+
+                // Each cached layer is already unioned and already clipped to this layer's islands, so
+                // a lone one is used as is and only several of them still have to be merged.
+                const ExPolygons *support_below    = nullptr;
+                ExPolygons        support_merged;
+                size_t            num_nonempty     = 0;
+                size_t            single_cache_idx = 0;
+                for (size_t i = w.support_begin; i < w.support_end; ++ i) {
+                    const ExPolygons &cached = support_cache[cache_slot[i]];
+                    if (cached.empty())
+                        continue;
+                    ++ num_nonempty;
+                    support_below = &cached;
+                    single_cache_idx = i;
+                }
+                if (num_nonempty > 1) {
+                    // Only the layers that actually carry geometry contribute to the merged set, which
+                    // keeps the union input proportional to the overhangs.
+                    for (size_t i = w.support_begin; i < w.support_end; ++ i) {
+                        const ExPolygons &cached = support_cache[cache_slot[i]];
+                        if (! cached.empty())
+                            append(support_merged, cached);
+                    }
+                    support_merged = union_ex(support_merged);
+                    support_below  = &support_merged;
+                }
+
+                // Per-branch bounding boxes for the clipping step below. A single cached layer already
+                // has them computed by Pass 2; only a merged set has to be re-measured here.
+                const std::vector<BoundingBox> *support_bboxes = nullptr;
+                std::vector<BoundingBox>        merged_bboxes;
+                if (support_below != nullptr) {
+                    if (num_nonempty == 1) {
+                        support_bboxes = &support_cache_bboxes[cache_slot[single_cache_idx]];
+                    } else {
+                        merged_bboxes.reserve(support_below->size());
+                        for (const ExPolygon &expoly : *support_below)
+                            merged_bboxes.emplace_back(get_extents(expoly));
+                        support_bboxes = &merged_bboxes;
+                    }
+                }
+
+                for (const Island &island : w.islands) {
                     double covered_area = 0.;
-                    if (! support_below.empty())
-                        covered_area = area(intersection_ex(island, support_below)) * SCALING_FACTOR * SCALING_FACTOR;
-                    if (covered_area < MIN_SUPPORTED_OVERHANG_RATIO * island_area) {
-                        stat.uncovered_area += island_area;
-                        ++ stat.num_uncovered;
+                    if (support_below != nullptr) {
+                        // Whole-cache rejection: a single supporting layer whose overall bounds cannot
+                        // reach this island has nothing left to clip.
+                        bool may_touch = true;
+                        if (num_nonempty == 1) {
+                            const BoundingBox &extent = support_cache_extents[cache_slot[single_cache_idx]];
+                            may_touch = extent.defined && island.bbox.defined && extent.overlap(island.bbox);
+                        }
+                        if (may_touch) {
+                            // Clipper's cost grows faster than linearly in the edge count, so hand it only
+                            // the branches whose bounding box can touch this island.
+                            ExPolygons clip;
+                            for (size_t i = 0; i < support_below->size(); ++ i)
+                                if ((*support_bboxes)[i].defined && island.bbox.overlap((*support_bboxes)[i]))
+                                    clip.emplace_back((*support_below)[i]);
+                            if (! clip.empty())
+                                covered_area = area(intersection_ex(*island.expoly, clip)) * SCALING_FACTOR * SCALING_FACTOR;
+                        }
+                    }
+                    if (covered_area < MIN_SUPPORTED_OVERHANG_RATIO * island.area_mm2) {
+                        w.uncovered_area += island.area_mm2;
+                        ++ w.num_uncovered;
                     }
                 }
             }
@@ -5817,15 +6004,15 @@ void PrintObject::warn_uncovered_overhangs()
     size_t   total_uncovered      = 0;
     size_t   total_significant    = 0;
     coordf_t lowest_z             = 0.;
-    for (size_t layer_idx = 0; layer_idx < stats.size(); ++ layer_idx) {
-        const LayerStat &stat = stats[layer_idx];
-        total_significant += stat.num_significant;
-        if (stat.num_uncovered == 0)
+    for (size_t layer_idx = 0; layer_idx < work.size(); ++ layer_idx) {
+        const LayerWork &w = work[layer_idx];
+        total_significant += w.islands.size();
+        if (w.num_uncovered == 0)
             continue;
         if (total_uncovered == 0)
             lowest_z = m_layers[layer_idx]->print_z;
-        total_uncovered_area += stat.uncovered_area;
-        total_uncovered      += stat.num_uncovered;
+        total_uncovered_area += w.uncovered_area;
+        total_uncovered      += w.num_uncovered;
     }
 
     if (total_uncovered > 0)
