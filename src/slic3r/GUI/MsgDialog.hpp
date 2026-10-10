@@ -81,7 +81,7 @@ protected:
 
 	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style = wxOK, wxBitmap bitmap = wxNullBitmap, const wxString &forward_str = "");
 	// returns pointer to created button
-	Button* add_button(wxWindowID btn_id, bool set_focus = false, const wxString& label = wxString());
+	Button* add_button(wxWindowID btn_id, bool set_focus = false, const wxString& label = wxString(), bool end_modal = true);
 	// returns pointer to found button or NULL
 	Button* get_button(wxWindowID btn_id);
 	void apply_style(long style);
