@@ -118,12 +118,20 @@ export function findDryerRuns(
   const runs: Array<{ start: number; end: number; humidity: number; status: string; isDrying: boolean; amsId: string }> = [];
 
   for (const zone of zones) {
-    const ids = (zone.zone_slots ?? []).map((v) => Number(v)).filter((n) => !Number.isNaN(n));
-    if (!ids.length) continue;
-    const idSet = new Set(ids);
+    const toIds = (v?: Array<number | string>) => (v ?? []).map(Number).filter((n) => !Number.isNaN(n));
+    // Rack positions first: a slot reports whatever is feeding it, so an
+    // external spool in a dryer bay would drop that column out of its zone.
+    const addrIds = toIds(zone.zone_addrs);
+    const byAddr = addrIds.length > 0;
+    const idSet = new Set(byAddr ? addrIds : toIds(zone.zone_slots));
+    if (!idSet.size) continue;
 
     const matchedCols: number[] = [];
     slots.forEach((slot, idx) => {
+      if (byAddr) {
+        if (idSet.has(Number(slot.addr_id))) matchedCols.push(idx);
+        return;
+      }
       if (zone.ams_id && slot.ams_id && zone.ams_id !== slot.ams_id) return;
       if (idSet.has(Number(slot.slot_id))) matchedCols.push(idx);
     });

@@ -356,6 +356,19 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         // `zone_slots.size() == 2`). Non-drying zones (e.g. the "everything
         // else" bucket some AMS units report) MUST be filtered out or the
         // DryerChamber decoration would wrap unrelated columns.
+
+        // (ams_id, slot_id) -> rack addr_id, for `zone_addrs` below.
+        std::map<std::pair<int, int>, int> ams_slot_to_addr;
+        if (auto rack = machine_obj->GetNozzleRack(); rack && rack->IsDirectConnectedRack()) {
+            for (int addr_id : rack->GetTotalRackNozzleAddIdSet()) {
+                const auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
+                if (!nozzle_opt.has_value()) continue;
+                if (const auto related = nozzle_opt->GetRelatedAmsSlot(); related.has_value()) {
+                    ams_slot_to_addr[{related->first, related->second}] = addr_id;
+                }
+            }
+        }
+
         bool can_dry = false;
         for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
             if (!ams_unit || !ams_unit->SupportDrying()) {
@@ -383,9 +396,17 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
                 can_dry = true;
                 const std::string dry_status_enum = zone.dry_status.has_value() ? dry_status_short_name(*zone.dry_status) : std::string();
                 const std::string dry_status_label = zone.dry_status.has_value() ? dry_status_display_label(*zone.dry_status) : _u8L("Idle");
+                nlohmann::json zone_addrs = nlohmann::json::array();
+                for (int zone_slot : zone.zone_slots) {
+                    const auto it = ams_slot_to_addr.find({ams_unit->GetAmdIdInt(), zone_slot});
+                    if (it != ams_slot_to_addr.end()) {
+                        zone_addrs.push_back(it->second);
+                    }
+                }
                 fp[SK::filament_page::ams_dry_zones].push_back({
                     {SK::dryer_zone::ams_id,          ams_unit->GetAmsId()},
                     {SK::dryer_zone::zone_slots,      zone.zone_slots},
+                    {SK::dryer_zone::zone_addrs,      zone_addrs},
                     {SK::dryer_zone::temp,            zone.current_temperature},
                     {SK::dryer_zone::humidity_raw,    zone.humidity_percent},
                     {SK::dryer_zone::dry_time,        zone.left_dry_time},

@@ -407,6 +407,9 @@ export interface AmsUnitInfo {
 export interface AmsFilamentHotendDryerZone {
   ams_id?: string;
   zone_slots?: Array<number | string>;  // native AMS slot_id values
+  /** Rack positions of `zone_slots`, matched against `slot.addr_id`. Empty
+   *  when the rack cannot be resolved; see Schema.hpp `dryer_zone`. */
+  zone_addrs?: Array<number | string>;
   humidity_raw?: number;
   dry_time?: number;
   dry_status?: string;

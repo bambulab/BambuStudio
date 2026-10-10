@@ -178,10 +178,10 @@ namespace tray_actions {
 // a chamber over unrelated columns.
 //
 // Each zone fully describes a dryer chamber: which slots it contains
-// (`zone_slots`, native AMS slot_id values), the live humidity / dry status,
-// plus a translated display label. The DryerChamber component matches
-// `zone_slots` against filament slots' `(ams_id, slot_id)` to know which
-// columns to wrap.
+// (`zone_slots`, native AMS slot_id values; `zone_addrs`, the rack positions
+// they sit in), the live humidity / dry status, plus a translated display
+// label. The DryerChamber component wraps the columns whose `addr_id` is in
+// `zone_addrs`, falling back to `zone_slots` vs `(ams_id, slot_id)`.
 //
 // `dry_status` MUST stay an untranslated English enum (Web compares it
 // against literal "Idle"/"Off"); `dry_status_text` is the user-visible
@@ -189,6 +189,10 @@ namespace tray_actions {
 namespace dryer_zone {
     inline constexpr const char* ams_id          = "ams_id";
     inline constexpr const char* zone_slots      = "zone_slots";
+    // A slot reports whatever is feeding it, so an external spool in a dryer
+    // bay hides the AMS slot behind it; the rack position stays put. Empty
+    // when DevNozzle::GetRelatedAmsSlot() cannot resolve the rack.
+    inline constexpr const char* zone_addrs      = "zone_addrs";
     inline constexpr const char* temp            = "temp";
     inline constexpr const char* humidity_raw    = "humidity_raw";
     inline constexpr const char* dry_time        = "dry_time";
