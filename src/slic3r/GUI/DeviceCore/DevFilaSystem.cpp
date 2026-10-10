@@ -614,7 +614,7 @@ bool DevAms::IsExist() const
             m_ams_type == DevAmsType::N3F) {
             return DevUtil::get_flag_bits(obj_->ams_exist_bits, ams_id_int);
         } else if (m_ams_type == DevAmsType::N3S) {
-            return DevUtil::get_flag_bits(obj_->ams_exist_bits, ams_id_int - 128);
+            return DevUtil::get_flag_bits(obj_->ams_exist_bits, 4 + (ams_id_int - 128));
         } else if (m_ams_type == DevAmsType::AMS_LITE_MIXED) {
             return DevUtil::get_flag_bits(obj_->ams_exist_bits, 12);
         } else if (m_ams_type == DevAmsType::ZMULTI_A) {
@@ -1183,7 +1183,7 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
     if (jj.contains("ams")) {
         if (jj["ams"].contains("ams")) {
             if (jj["ams"].contains("ams_exist_bits")) {
-                obj->ams_exist_bits = stol(jj["ams"]["ams_exist_bits"].get<std::string>(), nullptr, 32);
+                obj->ams_exist_bits = stol(jj["ams"]["ams_exist_bits"].get<std::string>(), nullptr, 16);
             }
 
             if (jj["ams"].contains("tray_exist_bits")) {
