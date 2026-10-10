@@ -116,6 +116,9 @@ static bool match_delta_accepted(double delta, int threshold)
 using Slic3r::GUI::texture_import_is_dark;
 using Slic3r::GUI::texture_import_dark_or;
 using Slic3r::GUI::texture_import_paint;
+using Slic3r::GUI::texture_import_needs_swatch_border;
+using Slic3r::GUI::texture_import_swatch_border_colour;
+using Slic3r::GUI::texture_import_draw_swatch_border;
 
 static bool is_dark() { return texture_import_is_dark(); }
 
@@ -474,39 +477,19 @@ private:
     int m_suspended_count = 0;
 };
 
-static bool needs_filament_swatch_border(const wxColour& colour)
-{
-    if (is_dark())
-        return colour.Red() < 45 && colour.Green() < 45 && colour.Blue() < 45;
-    return colour.Red() > 224 && colour.Green() > 224 && colour.Blue() > 224;
-}
-
-static wxColour filament_swatch_border_colour()
-{
-    return is_dark() ? wxColour(207, 207, 207) : wxColour(130, 130, 128);
-}
-
 static void draw_filament_swatch_border(wxDC& dc, const wxColour& colour,
                                         int x, int y, int w, int h, int radius = 0)
 {
-    if (!needs_filament_swatch_border(colour))
-        return;
-
-    dc.SetPen(wxPen(filament_swatch_border_colour(), 1));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    if (radius > 0)
-        dc.DrawRoundedRectangle(x, y, w, h, radius);
-    else
-        dc.DrawRectangle(x, y, w, h);
+    texture_import_draw_swatch_border(dc, colour, x, y, w, h, radius);
 }
 
 static void draw_filament_swatch_ellipse_border(wxDC& dc, const wxColour& colour,
                                                 int x, int y, int w, int h)
 {
-    if (!needs_filament_swatch_border(colour))
+    if (!texture_import_needs_swatch_border(colour))
         return;
 
-    dc.SetPen(wxPen(filament_swatch_border_colour(), 1));
+    dc.SetPen(wxPen(texture_import_swatch_border_colour(), 1));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawEllipse(x, y, w, h);
 }
@@ -6163,7 +6146,6 @@ void TextureImportDialog::update_ui_for_state()
     bool computing = (m_state == TextureImportState::Computing);
     bool ready     = (m_state == TextureImportState::Ready);
     bool idle      = (m_state == TextureImportState::Idle);
-    bool valid     = has_valid_result();
     const bool step1 = (m_wizard_step == TextureImportWizardStep::SimplifyColors);
 
     if (m_color_slider) m_color_slider->Enable(true);
@@ -6181,7 +6163,7 @@ void TextureImportDialog::update_ui_for_state()
         m_lbl_mix_help->Enable(!computing);
 
     if (m_btn_ok)
-        m_btn_ok->Enable(!step1 && ready && valid);
+        m_btn_ok->Enable(can_confirm());
     if (m_unmatched_add_link)
         m_unmatched_add_link->Enable(!computing);
     if (m_overlimit_fix_link)
@@ -6213,7 +6195,7 @@ void TextureImportDialog::update_ui_for_state()
     if (in_dialog_recompute)
         recenter_preview_tags();
 
-    if (m_btn_ok && !step1 && ready && valid)
+    if (m_btn_ok && can_confirm())
         style_primary_button(m_btn_ok);
     Layout();
     recenter_preview_tags();
@@ -9707,6 +9689,8 @@ void TextureImportDialog::update_overlimit_warning_visibility()
     if (!m_overlimit_warning) return;
     const bool show = (m_wizard_step == TextureImportWizardStep::FilamentMatching)
         && (m_state == TextureImportState::Ready) && filament_count_exceeded();
+    if (m_btn_ok)
+        m_btn_ok->Enable(can_confirm());
     const bool was_shown = m_overlimit_warning->IsShown();
     if (show)
         wrap_overlimit_warning_label();
@@ -9727,6 +9711,24 @@ bool TextureImportDialog::open_overlimit_dialog()
     input.colors_rgba = m_filament_colors_rgba;
     input.matches = build_matches_from_rows();
     input.display_numbers = compute_display_numbers();
+    std::array<std::string, 5> kit_hexes;
+    for (size_t i = 0; i < kit_hexes.size(); ++i)
+        kit_hexes[i] = texture_normalize_color_hex(lookup_decompose_official_component(
+            kDecomposePlaPaletteType, kPaletteCmykwBases[i], kPaletteCmykwFallbacks[i]).color_hex);
+    input.kit_slots.assign(m_filament_entries.size(), -1);
+    for (size_t i = 0; i < m_filament_entries.size(); ++i) {
+        const TextureFilamentEntry& entry = m_filament_entries[i];
+        if (!texture_entry_is_physical(entry.kind) ||
+            !texture_entry_matches_series(entry, kDecomposePlaPaletteType))
+            continue;
+        const std::string hex = texture_normalize_color_hex(entry.color_hex);
+        for (size_t k = 0; k < kit_hexes.size(); ++k) {
+            if (hex == kit_hexes[k]) {
+                input.kit_slots[i] = (int)k;
+                break;
+            }
+        }
+    }
     input.painted = m_painted;
     input.max_count = max_filament_count();
     input.mix_enabled = m_mix_enabled;
@@ -9836,6 +9838,14 @@ void TextureImportDialog::add_virtual_filaments_for_unmatched()
     Layout();
 }
 
+bool TextureImportDialog::can_confirm() const
+{
+    return m_wizard_step == TextureImportWizardStep::FilamentMatching &&
+           m_state == TextureImportState::Ready &&
+           has_valid_result() &&
+           !filament_count_exceeded();
+}
+
 void TextureImportDialog::update_confirm_button_state()
 {
     update_ui_for_state();
@@ -9847,21 +9857,10 @@ void TextureImportDialog::on_ok_clicked(wxCommandEvent&)
         return;
     if (m_state != TextureImportState::Ready)
         return;
-    if (filament_count_exceeded()) {
-        if (!open_overlimit_dialog())
-            return;
-    }
-    if (has_unmatched_mapping() || filament_count_exceeded()) {
-        wxString msg;
-        if (filament_count_exceeded()) {
-            msg = format_wxstr(
-                _L("The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."),
-                (int)max_filament_count(), (int)m_filament_entries.size());
-            if (has_unmatched_mapping())
-                msg += "\n" + _L("Some colors have no matching filament. Please match them before importing.");
-        } else {
-            msg = _L("Some colors have no matching filament. Please match them before importing.");
-        }
+    if (filament_count_exceeded())
+        return;
+    if (has_unmatched_mapping()) {
+        const wxString msg = _L("Some colors have no matching filament. Please match them before importing.");
         Slic3r::GUI::MessageDialog dlg(this, msg, _L("Error Prompt"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;

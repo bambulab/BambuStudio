@@ -24,6 +24,7 @@ struct TextureOverLimitChip {
     int                  display_number  = 0;
     std::array<float, 4> rgba            = {0.f, 0.f, 0.f, 1.f};
     double               area_ratio      = 0.0;
+    int                  kit_slot        = -1;
 };
 
 struct TextureOverLimitPlan {
@@ -40,6 +41,8 @@ struct TextureOverLimitInput {
     std::vector<std::array<float, 4>>  colors_rgba;
     std::vector<Slic3r::FilamentMatch> matches;
     std::vector<int>                   display_numbers;
+    // Aligned with entries: 0..4 is the PLA Palette CMYKW kit slot, -1 otherwise.
+    std::vector<int>                   kit_slots;
     Slic3r::PaintedMesh                painted;
     TexturePreviewCanvas::ViewState    view;
     size_t                             max_count      = 32;
@@ -73,6 +76,15 @@ private:
                                   const wxString& title,
                                   RadioBox*& radio);
     wxPanel* create_plan_card(wxWindow* parent, TextureOverLimitMode mode);
+    wxPanel* create_existing_card(wxWindow* parent);
+    wxPanel* make_chip_section(wxWindow* parent,
+                               const wxString& title,
+                               const std::vector<TextureOverLimitChip>& chips,
+                               bool show_percent,
+                               bool with_rule);
+    void fill_chip_wrap(wxWindow* parent, wxSizer* sizer,
+                        const std::vector<TextureOverLimitChip>& chips, bool show_percent);
+    void restyle_kit_groups();
     wxWindow* create_preview_card(wxWindow* parent,
                                   const wxString& tag,
                                   TexturePreviewCanvas*& canvas,
@@ -94,14 +106,17 @@ private:
     Label*    m_discard_status = nullptr;
     wxStaticText* m_merge_title   = nullptr;
     wxStaticText* m_discard_title = nullptr;
+    wxPanel*  m_existing_card = nullptr;
     wxPanel*  m_merge_card    = nullptr;
     wxPanel*  m_discard_card  = nullptr;
+    std::vector<wxPanel*> m_kit_groups;
     wxScrolledWindow* m_merge_scroll   = nullptr;
     wxScrolledWindow* m_discard_scroll = nullptr;
     TexturePreviewCanvas* m_preview_merge   = nullptr;
     TexturePreviewCanvas* m_preview_discard = nullptr;
     PreviewTagPanel*      m_tag_merge       = nullptr;
     PreviewTagPanel*      m_tag_discard     = nullptr;
+    Button* m_btn_back = nullptr;
     Button* m_btn_ok = nullptr;
 };
 

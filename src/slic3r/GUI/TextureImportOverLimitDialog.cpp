@@ -145,9 +145,13 @@ TextureOverLimitChip make_chip(const TextureOverLimitInput& input, int idx)
     chip.display_number = display_number_of(input, idx);
     if (idx >= 0 && idx < (int)input.colors_rgba.size())
         chip.rgba = input.colors_rgba[idx];
+    if (idx >= 0 && idx < (int)input.kit_slots.size())
+        chip.kit_slot = input.kit_slots[idx];
     return chip;
 }
 
+// Plan lists only show slots created in this dialog; project slots are listed
+// once in the existing filaments card.
 std::vector<TextureOverLimitChip> chips_from_alive(const TextureOverLimitInput& input,
                                                    const std::vector<char>& alive,
                                                    const std::vector<double>& areas,
@@ -155,7 +159,7 @@ std::vector<TextureOverLimitChip> chips_from_alive(const TextureOverLimitInput& 
 {
     std::vector<TextureOverLimitChip> chips;
     for (size_t i = 0; i < alive.size(); ++i) {
-        if (!alive[i])
+        if (!alive[i] || i >= input.entries.size() || !is_new_entry(input.entries[i]))
             continue;
         TextureOverLimitChip chip = make_chip(input, (int)i);
         if (total_area > 0.0 && i < areas.size())
@@ -248,19 +252,47 @@ bool mixed_uses_index(const TextureFilamentEntry& entry, int dialog_index)
     return false;
 }
 
-void drop_dependent_mixed(int absorbed,
-                          std::vector<char>& alive,
-                          std::vector<Slic3r::FilamentMatch>& matches,
-                          const TextureOverLimitInput& input,
-                          const std::vector<std::string>& families)
+// A slot used as a component by any alive mixed slot must stay until that
+// mixed slot is gone, so the mixed recipe stays valid.
+bool used_by_alive_mixed(int dialog_index,
+                         const std::vector<char>& alive,
+                         const TextureOverLimitInput& input)
 {
     for (size_t i = 0; i < alive.size() && i < input.entries.size(); ++i) {
-        if (!alive[i] || !mixed_uses_index(input.entries[i], absorbed))
-            continue;
-        const int dest = find_closest_alive((int)i, alive, input, families);
-        if (dest >= 0)
-            remap_matches(matches, (int)i, dest, input.colors_rgba);
-        alive[i] = 0;
+        if (alive[i] && (int)i != dialog_index && mixed_uses_index(input.entries[i], dialog_index))
+            return true;
+    }
+    return false;
+}
+
+bool has_direct_match(int dialog_index, const std::vector<Slic3r::FilamentMatch>& matches)
+{
+    return std::any_of(matches.begin(), matches.end(), [dialog_index](const Slic3r::FilamentMatch& m) {
+        return m.filament_index == dialog_index;
+    });
+}
+
+// Only slots created in this dialog are removed; project slots always stay.
+// Removing a mixed slot can orphan its components, so repeat until stable.
+// Mirrors compact_used_virtual_filaments() so remaining_count matches the result.
+void drop_orphan_new_slots(std::vector<char>& alive,
+                           const std::vector<Slic3r::FilamentMatch>& matches,
+                           const TextureOverLimitInput& input,
+                           std::vector<char>* discarded)
+{
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (size_t i = 0; i < alive.size() && i < input.entries.size(); ++i) {
+            if (!alive[i] || !is_new_entry(input.entries[i]))
+                continue;
+            if (has_direct_match((int)i, matches) || used_by_alive_mixed((int)i, alive, input))
+                continue;
+            alive[i] = 0;
+            if (discarded && i < discarded->size())
+                (*discarded)[i] = 1;
+            changed = true;
+        }
     }
 }
 
@@ -269,7 +301,6 @@ void absorb_filament(int absorbed,
                      std::vector<char>& alive,
                      std::vector<Slic3r::FilamentMatch>& matches,
                      const TextureOverLimitInput& input,
-                     const std::vector<std::string>& families,
                      std::vector<double>* areas)
 {
     remap_matches(matches, absorbed, survivor, input.colors_rgba);
@@ -277,7 +308,7 @@ void absorb_filament(int absorbed,
         absorbed < (int)areas->size() && survivor < (int)areas->size())
         (*areas)[survivor] += (*areas)[absorbed];
     alive[absorbed] = 0;
-    drop_dependent_mixed(absorbed, alive, matches, input, families);
+    drop_orphan_new_slots(alive, matches, input, nullptr);
 }
 
 void finish_plan(TextureOverLimitPlan& plan, size_t max_count, int remaining)
@@ -286,13 +317,15 @@ void finish_plan(TextureOverLimitPlan& plan, size_t max_count, int remaining)
     plan.fully_resolved = remaining >= 0 && (size_t)remaining <= max_count;
 }
 
-// Color mixing off: leftover matches on mixed slots must move to a still-alive
-// physical so the preview and selected_matches() stay consistent. Mixed slots
-// remain alive and keep occupying quota.
+// Color mixing off: matches on mixed slots must move to a still-alive physical
+// so the preview and selected_matches() stay consistent. Runs before solving,
+// since no color is remapped onto a mixed slot while mixing is off. Project
+// mixed slots remain alive and keep occupying quota.
 void peel_mixed_match_targets(std::vector<Slic3r::FilamentMatch>& matches,
                               const std::vector<char>& alive,
                               const TextureOverLimitInput& input,
-                              const std::vector<std::string>& families)
+                              const std::vector<std::string>& families,
+                              std::vector<double>* areas)
 {
     if (input.mix_enabled)
         return;
@@ -307,6 +340,10 @@ void peel_mixed_match_targets(std::vector<Slic3r::FilamentMatch>& matches,
         const int dest = find_closest_alive(from, alive, input, families);
         if (dest >= 0) {
             remap_matches(matches, from, dest, input.colors_rgba);
+            if (areas && from < (int)areas->size() && dest < (int)areas->size()) {
+                (*areas)[dest] += (*areas)[from];
+                (*areas)[from] = 0.0;
+            }
             continue;
         }
         for (auto& m : matches) {
@@ -367,6 +404,7 @@ private:
             dc.SetBrush(wxBrush(fill));
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.DrawRoundedRectangle(sq_x, 0, sq, sq, r);
+            texture_import_draw_swatch_border(dc, fill, sq_x, 0, sq, sq, r);
 
             wxFont font = Label::Body_12;
             dc.SetFont(font);
@@ -389,41 +427,56 @@ private:
     bool m_show_percent = false;
 };
 
-void fill_chip_wrap(wxWindow* parent, wxSizer* sizer,
-                    const std::vector<TextureOverLimitChip>& chips, bool show_percent)
+void bind_card_paint(wxPanel* card)
 {
-    for (const auto& chip : chips) {
-        auto* panel = new NumberedChipPanel(parent, chip, show_percent);
-        sizer->Add(panel, 0, wxRIGHT | wxBOTTOM, parent->FromDIP(8));
+    card->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    card->Bind(wxEVT_PAINT, [](wxPaintEvent& e) {
+        auto* p = static_cast<wxPanel*>(e.GetEventObject());
+        texture_import_paint(p, [p](wxDC& dc) {
+            const wxSize sz = p->GetClientSize();
+            const wxColour bg = dark_or(wxColour(0xF8, 0xF8, 0xF8), wxColour(0x2D, 0x2D, 0x31));
+            const wxColour bd = dark_or(wxColour(0xEE, 0xEE, 0xEE), wxColour(0x54, 0x54, 0x5B));
+            dc.SetBrush(wxBrush(p->GetParent()->GetBackgroundColour()));
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.DrawRectangle(0, 0, sz.x, sz.y);
+            dc.SetBrush(wxBrush(bg));
+            dc.SetPen(wxPen(bd, 1));
+            dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, p->FromDIP(8));
+        });
+    });
+}
+
+wxColour kit_group_bg()
+{
+    return dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31));
+}
+
+// Dashed brand-green frame around a complete PLA Palette CMYKW kit.
+class KitGroupPanel : public wxPanel
+{
+public:
+    explicit KitGroupPanel(wxWindow* parent)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE)
+    {
+        SetBackgroundColour(kit_group_bg());
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        Bind(wxEVT_PAINT, &KitGroupPanel::on_paint, this);
     }
-}
 
-wxPanel* make_chip_section(wxWindow* parent,
-                           const wxString& title,
-                           const std::vector<TextureOverLimitChip>& chips,
-                           bool show_percent)
-{
-    auto* block = new wxPanel(parent, wxID_ANY);
-    block->SetBackgroundColour(parent->GetBackgroundColour());
-    auto* sizer = new wxBoxSizer(wxVERTICAL);
-
-    auto* header = new wxBoxSizer(wxHORIZONTAL);
-    auto* label = new wxStaticText(block, wxID_ANY, title);
-    label->SetFont(Label::Body_13);
-    label->SetForegroundColour(dark_or(wxColour(0xAC, 0xAC, 0xAC), wxColour(0x81, 0x81, 0x83)));
-    label->SetBackgroundColour(block->GetBackgroundColour());
-    header->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, parent->FromDIP(8));
-    auto* line = new StaticLine(block);
-    line->SetLineColour(dark_or(wxColour(0xEE, 0xEE, 0xEE), wxColour(0x54, 0x54, 0x5B)));
-    header->Add(line, 1, wxALIGN_CENTER_VERTICAL);
-    sizer->Add(header, 0, wxEXPAND | wxBOTTOM, parent->FromDIP(8));
-
-    auto* wrap = new wxWrapSizer(wxHORIZONTAL);
-    fill_chip_wrap(block, wrap, chips, show_percent);
-    sizer->Add(wrap, 0, wxEXPAND);
-    block->SetSizer(sizer);
-    return block;
-}
+private:
+    void on_paint(wxPaintEvent&)
+    {
+        texture_import_paint(this, [this](wxDC& dc) {
+            const wxSize sz = GetClientSize();
+            dc.SetBrush(wxBrush(GetParent()->GetBackgroundColour()));
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.DrawRectangle(0, 0, sz.x, sz.y);
+            dc.SetBrush(wxBrush(GetBackgroundColour()));
+            dc.SetPen(wxPen(wxColour(0x00, 0xAE, 0x42), 1, wxPENSTYLE_SHORT_DASH));
+            dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, FromDIP(4));
+        });
+    }
+};
 
 struct OverLimitSolveContext {
     std::vector<double>      areas;
@@ -457,6 +510,8 @@ TextureOverLimitPlan compute_merge_plan(const TextureOverLimitInput& input, Over
     plan.matches = input.matches;
     const size_t n = input.colors_rgba.size();
     std::vector<char> alive(n, 1);
+    peel_mixed_match_targets(plan.matches, alive, input, ctx.families, &ctx.areas);
+    drop_orphan_new_slots(alive, plan.matches, input, nullptr);
 
     const size_t max_count = input.max_count;
     while ((size_t)count_alive(alive) > max_count) {
@@ -464,7 +519,7 @@ TextureOverLimitPlan compute_merge_plan(const TextureOverLimitInput& input, Over
         int best_other = -1;
         double best_de = std::numeric_limits<double>::max();
         for (size_t i = 0; i < n && i < input.entries.size(); ++i) {
-            if (!alive[i] || !is_new_entry(input.entries[i]))
+            if (!alive[i] || !is_new_entry(input.entries[i]) || used_by_alive_mixed((int)i, alive, input))
                 continue;
             for (size_t j = 0; j < n; ++j) {
                 if (!alive[j] || j == i || !same_family(ctx.families, (int)i, (int)j))
@@ -485,9 +540,10 @@ TextureOverLimitPlan compute_merge_plan(const TextureOverLimitInput& input, Over
 
         int survivor = best_other;
         int absorbed = best_new;
-        const bool other_is_new = best_other < (int)input.entries.size() &&
-                                  is_new_entry(input.entries[best_other]);
-        if (other_is_new) {
+        const bool other_removable = best_other < (int)input.entries.size() &&
+                                     is_new_entry(input.entries[best_other]) &&
+                                     !used_by_alive_mixed(best_other, alive, input);
+        if (other_removable) {
             const double area_new = best_new < (int)ctx.areas.size() ? ctx.areas[best_new] : 0.0;
             const double area_other = best_other < (int)ctx.areas.size() ? ctx.areas[best_other] : 0.0;
             if (area_new > area_other ||
@@ -503,9 +559,8 @@ TextureOverLimitPlan compute_merge_plan(const TextureOverLimitInput& input, Over
         }
         if (!can_receive_merge(survivor, input))
             break;
-        absorb_filament(absorbed, survivor, alive, plan.matches, input, ctx.families, &ctx.areas);
+        absorb_filament(absorbed, survivor, alive, plan.matches, input, &ctx.areas);
     }
-    peel_mixed_match_targets(plan.matches, alive, input, ctx.families);
 
     std::vector<char> discarded(n, 0);
     for (size_t i = 0; i < n; ++i)
@@ -524,6 +579,8 @@ TextureOverLimitPlan compute_discard_plan(const TextureOverLimitInput& input, Ov
     const size_t n = input.colors_rgba.size();
     std::vector<char> alive(n, 1);
     std::vector<char> discarded(n, 0);
+    peel_mixed_match_targets(plan.matches, alive, input, ctx.families, &ctx.areas);
+    drop_orphan_new_slots(alive, plan.matches, input, &discarded);
 
     const size_t max_count = input.max_count;
     while ((size_t)count_alive(alive) > max_count) {
@@ -531,7 +588,7 @@ TextureOverLimitPlan compute_discard_plan(const TextureOverLimitInput& input, Ov
         double best_area = std::numeric_limits<double>::max();
         int best_display = std::numeric_limits<int>::max();
         for (size_t i = 0; i < n && i < input.entries.size(); ++i) {
-            if (!alive[i] || !is_new_entry(input.entries[i]))
+            if (!alive[i] || !is_new_entry(input.entries[i]) || used_by_alive_mixed((int)i, alive, input))
                 continue;
             if (find_closest_alive((int)i, alive, input, ctx.families) < 0)
                 continue;
@@ -551,13 +608,8 @@ TextureOverLimitPlan compute_discard_plan(const TextureOverLimitInput& input, Ov
         remap_matches(plan.matches, victim, dest, input.colors_rgba);
         alive[victim] = 0;
         discarded[victim] = 1;
-        drop_dependent_mixed(victim, alive, plan.matches, input, ctx.families);
-        for (size_t i = 0; i < alive.size(); ++i) {
-            if (!alive[i] && !discarded[i] && i < input.entries.size() && is_new_entry(input.entries[i]))
-                discarded[i] = 1;
-        }
+        drop_orphan_new_slots(alive, plan.matches, input, &discarded);
     }
-    peel_mixed_match_targets(plan.matches, alive, input, ctx.families);
 
     plan.kept_chips = chips_from_alive(input, alive, ctx.areas, ctx.total_area);
     plan.discarded_chips = chips_from_alive(input, discarded, ctx.areas, ctx.total_area);
@@ -580,13 +632,14 @@ TextureOverLimitPlan compute_texture_overlimit_discard_plan(const TextureOverLim
 
 TextureImportOverLimitDialog::TextureImportOverLimitDialog(wxWindow* parent, TextureOverLimitInput input)
     : DPIDialog(parent, wxID_ANY, _L("Error Prompt"), wxDefaultPosition, wxDefaultSize,
-                wxCAPTION)
+                wxDEFAULT_DIALOG_STYLE)
     , m_input(std::move(input))
 {
-    SetEscapeId(wxID_NONE);
-    Bind(wxEVT_CLOSE_WINDOW, [](wxCloseEvent& e) {
-        if (e.CanVeto())
-            e.Veto();
+    // Back, Esc and the close box all return to the state before this dialog opened.
+    SetEscapeId(wxID_CANCEL);
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) {
+        if (IsModal())
+            EndModal(wxID_CANCEL);
         else
             e.Skip();
     });
@@ -612,8 +665,13 @@ void TextureImportOverLimitDialog::on_dpi_changed(const wxRect&)
         m_radio_merge->Rescale();
     if (m_radio_discard)
         m_radio_discard->Rescale();
+    if (m_btn_back) {
+        m_btn_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+        m_btn_back->SetCornerRadius(FromDIP(12));
+        texture_import_style_secondary_button(m_btn_back);
+    }
     if (m_btn_ok) {
-        m_btn_ok->SetMinSize(wxSize(FromDIP(60), FromDIP(24)));
+        m_btn_ok->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
         m_btn_ok->SetCornerRadius(FromDIP(12));
         style_primary_button(m_btn_ok);
     }
@@ -663,8 +721,10 @@ void TextureImportOverLimitDialog::apply_theme()
         for (wxWindow* child : w->GetChildren())
             self(self, child, bg);
     };
+    set_bg_recursive(set_bg_recursive, m_existing_card, card_bg);
     set_bg_recursive(set_bg_recursive, m_merge_card, card_bg);
     set_bg_recursive(set_bg_recursive, m_discard_card, card_bg);
+    restyle_kit_groups();
     const wxColour caption_fg = dark_or(wxColour(0xAC, 0xAC, 0xAC), wxColour(0x81, 0x81, 0x83));
     auto restyle_caption_labels = [&](auto&& self, wxWindow* w) -> void {
         if (!w)
@@ -677,6 +737,7 @@ void TextureImportOverLimitDialog::apply_theme()
         for (wxWindow* child : w->GetChildren())
             self(self, child);
     };
+    restyle_caption_labels(restyle_caption_labels, m_existing_card);
     restyle_caption_labels(restyle_caption_labels, m_merge_card);
     restyle_caption_labels(restyle_caption_labels, m_discard_card);
     auto restyle_title = [&](wxStaticText* label) {
@@ -691,6 +752,7 @@ void TextureImportOverLimitDialog::apply_theme()
         m_tag_merge->set_theme(tag_bg, tag_fg, preview_bg);
     if (m_tag_discard)
         m_tag_discard->set_theme(tag_bg, tag_fg, preview_bg);
+    texture_import_style_secondary_button(m_btn_back);
     style_primary_button(m_btn_ok);
     const int radius = FromDIP(8);
     const wxColour preview_bd = dark_or(wxColour(206, 206, 206), wxColour(0x54, 0x54, 0x5B));
@@ -815,37 +877,140 @@ wxWindow* TextureImportOverLimitDialog::create_preview_card(wxWindow* parent,
     return half;
 }
 
+void TextureImportOverLimitDialog::fill_chip_wrap(wxWindow* parent, wxSizer* sizer,
+                                                  const std::vector<TextureOverLimitChip>& chips,
+                                                  bool show_percent)
+{
+    // The kit is framed and moved to the front only when all five slots are in this list.
+    std::array<int, 5> kit_pos;
+    kit_pos.fill(-1);
+    for (size_t i = 0; i < chips.size(); ++i) {
+        const int slot = chips[i].kit_slot;
+        if (slot >= 0 && slot < (int)kit_pos.size() && kit_pos[slot] < 0)
+            kit_pos[slot] = (int)i;
+    }
+    const bool full_kit = std::all_of(kit_pos.begin(), kit_pos.end(), [](int pos) { return pos >= 0; });
+
+    std::vector<char> in_kit(chips.size(), 0);
+    if (full_kit) {
+        std::vector<int> order(kit_pos.begin(), kit_pos.end());
+        std::sort(order.begin(), order.end(), [&chips](int a, int b) {
+            return chips[a].display_number < chips[b].display_number;
+        });
+        const wxString kit_tip = _L("Mixing kits");
+        auto* group = new KitGroupPanel(parent);
+        group->SetToolTip(kit_tip);
+        auto* row = new wxBoxSizer(wxHORIZONTAL);
+        for (size_t k = 0; k < order.size(); ++k) {
+            in_kit[order[k]] = 1;
+            auto* panel = new NumberedChipPanel(group, chips[order[k]], show_percent);
+            // Child windows do not inherit the parent's tooltip.
+            panel->SetToolTip(kit_tip);
+            row->Add(panel, 0, k + 1 < order.size() ? wxRIGHT : 0, parent->FromDIP(8));
+        }
+        auto* group_sizer = new wxBoxSizer(wxVERTICAL);
+        group_sizer->AddSpacer(parent->FromDIP(3));
+        group_sizer->Add(row, 0, wxLEFT | wxRIGHT, parent->FromDIP(4));
+        group_sizer->AddSpacer(parent->FromDIP(3));
+        group->SetSizer(group_sizer);
+        sizer->Add(group, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, parent->FromDIP(8));
+        m_kit_groups.push_back(group);
+    }
+
+    for (size_t i = 0; i < chips.size(); ++i) {
+        if (in_kit[i])
+            continue;
+        auto* panel = new NumberedChipPanel(parent, chips[i], show_percent);
+        // The kit frame is taller than a chip; center the row so chips line up with the framed ones.
+        sizer->Add(panel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, parent->FromDIP(8));
+    }
+}
+
+wxPanel* TextureImportOverLimitDialog::make_chip_section(wxWindow* parent,
+                                                         const wxString& title,
+                                                         const std::vector<TextureOverLimitChip>& chips,
+                                                         bool show_percent,
+                                                         bool with_rule)
+{
+    auto* block = new wxPanel(parent, wxID_ANY);
+    block->SetBackgroundColour(parent->GetBackgroundColour());
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* header = new wxBoxSizer(wxHORIZONTAL);
+    auto* label = new wxStaticText(block, wxID_ANY, title);
+    label->SetFont(Label::Body_13);
+    label->SetForegroundColour(dark_or(wxColour(0xAC, 0xAC, 0xAC), wxColour(0x81, 0x81, 0x83)));
+    label->SetBackgroundColour(block->GetBackgroundColour());
+    header->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, parent->FromDIP(8));
+    if (with_rule) {
+        auto* line = new StaticLine(block);
+        line->SetLineColour(dark_or(wxColour(0xEE, 0xEE, 0xEE), wxColour(0x54, 0x54, 0x5B)));
+        header->Add(line, 1, wxALIGN_CENTER_VERTICAL);
+    }
+    sizer->Add(header, 0, wxEXPAND | wxBOTTOM, parent->FromDIP(8));
+
+    auto* wrap = new wxWrapSizer(wxHORIZONTAL);
+    fill_chip_wrap(block, wrap, chips, show_percent);
+    sizer->Add(wrap, 0, wxEXPAND);
+    block->SetSizer(sizer);
+    return block;
+}
+
+void TextureImportOverLimitDialog::restyle_kit_groups()
+{
+    const wxColour bg = kit_group_bg();
+    for (wxPanel* group : m_kit_groups) {
+        group->SetBackgroundColour(bg);
+        for (wxWindow* child : group->GetChildren())
+            child->SetBackgroundColour(bg);
+        group->Refresh();
+    }
+}
+
+wxPanel* TextureImportOverLimitDialog::create_existing_card(wxWindow* parent)
+{
+    std::vector<TextureOverLimitChip> chips;
+    for (size_t i = 0; i < m_input.entries.size(); ++i) {
+        if (!is_new_entry(m_input.entries[i]))
+            chips.push_back(make_chip(m_input, (int)i));
+    }
+    if (chips.empty())
+        return nullptr;
+    std::sort(chips.begin(), chips.end(), [](const TextureOverLimitChip& a, const TextureOverLimitChip& b) {
+        return a.display_number < b.display_number;
+    });
+
+    auto* card = new wxPanel(parent, wxID_ANY);
+    card->SetBackgroundColour(dark_or(wxColour(0xF8, 0xF8, 0xF8), wxColour(0x2D, 0x2D, 0x31)));
+    bind_card_paint(card);
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(make_chip_section(card, _L("Existing project filaments"), chips, false, false),
+               0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
+    sizer->AddSpacer(FromDIP(3));
+    card->SetSizer(sizer);
+    m_existing_card = card;
+    return card;
+}
+
 wxPanel* TextureImportOverLimitDialog::create_plan_card(wxWindow* parent, TextureOverLimitMode mode)
 {
     const TextureOverLimitPlan& plan =
         mode == TextureOverLimitMode::MergeSimilar ? m_merge_plan : m_discard_plan;
+    // Area matters only when choosing which filaments to discard.
+    const bool show_percent = mode == TextureOverLimitMode::DiscardSmallArea;
     auto* card = new wxPanel(parent, wxID_ANY);
     card->SetBackgroundColour(dark_or(wxColour(0xF8, 0xF8, 0xF8), wxColour(0x2D, 0x2D, 0x31)));
     card->SetMinSize(wxSize(FromDIP(363), FromDIP(222)));
-    card->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    card->Bind(wxEVT_PAINT, [](wxPaintEvent& e) {
-        auto* p = static_cast<wxPanel*>(e.GetEventObject());
-        texture_import_paint(p, [p](wxDC& dc) {
-            const wxSize sz = p->GetClientSize();
-            const wxColour bg = dark_or(wxColour(0xF8, 0xF8, 0xF8), wxColour(0x2D, 0x2D, 0x31));
-            const wxColour bd = dark_or(wxColour(0xEE, 0xEE, 0xEE), wxColour(0x54, 0x54, 0x5B));
-            dc.SetBrush(wxBrush(p->GetParent()->GetBackgroundColour()));
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.DrawRectangle(0, 0, sz.x, sz.y);
-            dc.SetBrush(wxBrush(bg));
-            dc.SetPen(wxPen(bd, 1));
-            dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, p->FromDIP(8));
-        });
-    });
+    bind_card_paint(card);
     card->Bind(wxEVT_LEFT_DOWN, [this, mode](wxMouseEvent&) { select_mode(mode); });
 
     auto* scroll = new wxScrolledWindow(card, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     scroll->SetBackgroundColour(card->GetBackgroundColour());
     scroll->SetScrollRate(0, FromDIP(8));
     auto* inner = new wxBoxSizer(wxVERTICAL);
-    inner->Add(make_chip_section(scroll, _L("Kept filaments"), plan.kept_chips, true),
+    inner->Add(make_chip_section(scroll, _L("Kept filaments"), plan.kept_chips, show_percent, true),
                0, wxEXPAND | wxBOTTOM, FromDIP(12));
-    inner->Add(make_chip_section(scroll, _L("Deleted filaments"), plan.discarded_chips, true),
+    inner->Add(make_chip_section(scroll, _L("Deleted filaments"), plan.discarded_chips, show_percent, true),
                0, wxEXPAND);
     scroll->SetSizer(inner);
     scroll->Bind(wxEVT_SIZE, [scroll](wxSizeEvent& e) {
@@ -932,8 +1097,10 @@ void TextureImportOverLimitDialog::select_mode(TextureOverLimitMode mode)
 
 void TextureImportOverLimitDialog::apply_dialog_geometry(bool center)
 {
-    const wxSize min_client(FromDIP(738), FromDIP(680));
-    const wxSize target_client(FromDIP(738), FromDIP(680));
+    // The existing filaments card adds its height plus the gaps around it.
+    const int client_h = m_existing_card ? 744 : 668;
+    const wxSize min_client(FromDIP(738), FromDIP(client_h));
+    const wxSize target_client(FromDIP(738), FromDIP(client_h));
     SetMinClientSize(min_client);
 
     // Before the native window exists (macOS pre-SHOW), SetClientSize is a no-op.
@@ -968,19 +1135,30 @@ void TextureImportOverLimitDialog::build_ui()
             (int)m_input.max_count, count));
     m_hint_label->SetForegroundColour(dark_or(wxColour(0x26, 0x2E, 0x30), wxColour(0xEF, 0xEF, 0xF0)));
     m_hint_label->SetBackgroundColour(GetBackgroundColour());
-    main->Add(m_hint_label, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(24));
+    main->Add(m_hint_label, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(12));
+
+    if (wxPanel* existing_card = create_existing_card(this)) {
+        main->AddSpacer(FromDIP(8));
+        main->Add(existing_card, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(24));
+    }
 
     main->Add(create_option_block(this, TextureOverLimitMode::MergeSimilar,
                                   _L("Prioritize merging similar-color filaments"), m_radio_merge),
-              1, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(24));
+              1, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, m_existing_card ? FromDIP(12) : FromDIP(24));
     main->Add(create_option_block(this, TextureOverLimitMode::DiscardSmallArea,
                                   _L("Prioritize merging small-area filaments"), m_radio_discard),
               1, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
 
     auto* btns = new wxBoxSizer(wxHORIZONTAL);
     btns->AddStretchSpacer();
-    m_btn_ok = new Button(this, _L("OK"));
-    m_btn_ok->SetMinSize(wxSize(FromDIP(60), FromDIP(24)));
+    m_btn_back = new Button(this, _L("Back"));
+    m_btn_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_btn_back->SetCornerRadius(FromDIP(12));
+    texture_import_style_secondary_button(m_btn_back);
+    m_btn_back->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); });
+    btns->Add(m_btn_back, 0, wxRIGHT, FromDIP(16));
+    m_btn_ok = new Button(this, _L("Apply now"));
+    m_btn_ok->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
     m_btn_ok->SetCornerRadius(FromDIP(12));
     style_primary_button(m_btn_ok);
     m_btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); });

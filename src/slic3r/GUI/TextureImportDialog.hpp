@@ -376,8 +376,8 @@ private:
     void wrap_overlimit_warning_label();
     // Screen Y of the matching-page hint bar bottom; used to dock the filament popup.
     int  filament_popup_align_bottom() const;
-    // Shows the over-limit plan dialog. Closing it requires OK; the chosen
-    // plan is applied and the function returns true.
+    // Shows the over-limit plan dialog. Apply now applies the chosen plan and
+    // returns true; Back / close leaves the mapping untouched and returns false.
     bool open_overlimit_dialog();
     void apply_overlimit_matches(const std::vector<Slic3r::FilamentMatch>& matches);
     void compact_used_virtual_filaments();
@@ -457,6 +457,9 @@ private:
     int  gap_split_index_for_threshold(double threshold) const;
 
     bool has_valid_result() const;
+    // Confirm stays disabled while the filament count exceeds the limit; only
+    // Fix now or removing filaments re-enables it.
+    bool can_confirm() const;
     void update_confirm_button_state();
 
     Slic3r::TexturedMesh               m_textured_mesh;
