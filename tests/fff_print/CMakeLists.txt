@@ -10,6 +10,7 @@ add_executable(${_TEST_NAME}_tests
 	test_gcodewriter.cpp
 	test_gcodewriter_travel.cpp
 	test_model.cpp
+	test_output_filename.cpp
 	test_print.cpp
 	test_printgcode.cpp
 	test_printobject.cpp
