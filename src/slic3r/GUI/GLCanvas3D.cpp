@@ -8496,7 +8496,21 @@ void GLCanvas3D::_update_camera_zoom(double target_zoom, const Point& anchor)
 {
     Camera& camera = get_active_camera();
     if (!wxGetApp().app_config->get_bool("zoom_to_mouse")) {
-        camera.set_zoom(target_zoom);
+        PartPlate* plate = m_canvas_type == CanvasPreview ?
+                           wxGetApp().plater()->get_partplate_list().get_curr_plate() : nullptr;
+        if (plate == nullptr) {
+            camera.set_zoom(target_zoom);
+        } else {
+            // Zoom around the plate center: pan within the view plane so the center keeps its screen position.
+            Vec3d plate_center = plate->get_bounding_box().center();
+            plate_center.z() = 0.0;
+            const Vec3d forward = camera.get_dir_forward();
+            Vec3d offset = plate_center - camera.get_target();
+            offset -= offset.dot(forward) * forward;
+            const double origin_zoom = camera.get_zoom();
+            camera.set_zoom(target_zoom);
+            camera.translate(offset * (1.0 - origin_zoom / camera.get_zoom()));
+        }
     } else {
         auto cnv_size = get_canvas_size();
         auto screen_center_3d_pos = _mouse_to_3d(camera, { cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
