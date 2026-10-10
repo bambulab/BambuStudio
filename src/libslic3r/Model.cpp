@@ -42,6 +42,7 @@
 #include "MeshBoolean.hpp"
 #include "Format/3mf.hpp"
 #include "Format/AssimpImport.hpp"
+#include "Format/SLDPRT.hpp"
 
 // Transtltion
 #include "I18N.hpp"
@@ -335,6 +336,8 @@ Model Model::read_from_file(const std::string&                                  
     std::string message;
     if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
+    else if (boost::algorithm::iends_with(input_file, ".sldprt"))
+        result = load_sldprt(input_file.c_str(), &model, is_cb_cancel, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".oltp"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
     else if (boost::algorithm::iends_with(input_file, ".obj")) {
@@ -437,7 +440,7 @@ Model Model::read_from_file(const std::string&                                  
     }
 #endif
     else
-        throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."));
+        throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx, .sldprt extension."));
 
     if (is_cb_cancel) {
         Model empty_model;
