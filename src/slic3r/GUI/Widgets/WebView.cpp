@@ -680,6 +680,16 @@ class WebViewWebKit : public wxWebViewWebKit
     {
         RemoveScriptMessageHandler("wx");
     }
+
+    // Register the handler without a blocking wait. RunScriptSync waits in
+    // a loop for evaluateJavaScript. The loop blocks the main thread when
+    // the WebContent process is slow, and the app hangs (seen in Print
+    // plate -> ShowModal). Async injection still registers the handler and
+    // the alias for all new pages.
+    bool AddScriptMessageHandler(const wxString& name) override
+    {
+        return wxWebViewWebKit::AddScriptMessageHandler(name, /*runScriptSync=*/false);
+    }
 };
 
 #endif
