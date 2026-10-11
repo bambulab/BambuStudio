@@ -129,6 +129,17 @@ struct SupportNode
     bool           need_extra_wall = false;
     bool           is_sharp_tail   = false;
     bool           valid = true;
+
+    // BBS multi-diameter: set by fold_nodes_multi_diameter(). A coarse nozzle prints several node layers as
+    // one slab, so the chain is folded onto that grid before any area exists. slab_height > 0 marks a node
+    // that carries a whole slab: its disk is one extrusion spanning [print_z - slab_height, print_z] and has
+    // to clear the object over that entire span, not only at its own layer.
+    coordf_t       slab_height { 0. };
+    // Lowest object layer the slab covers, for the span collision lookup.
+    size_t         slab_bottom_obj_layer { 0 };
+    // Position of this node on the folded grid, counted from the bed. Drives the interface pattern
+    // alternation that used to be derived from the object layer number.
+    int            slab_index { -1 };
     bool           fading          = false;
     double         overhang_degree = 0.0;  // overhang degree for cooling just like perimeter
     ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
@@ -470,6 +481,19 @@ private:
     // has to clear MIN_CARRIED_RATIO, the same bar as a base standing on that ledge.
     const double MIN_CARRIED_RATIO_INTERFACE = 0.02;
     float        top_z_distance = 0.0;
+    // BBS multi-diameter: the top gap follows the nozzle printing the overhang instead of support_top_z_distance.
+    // Per object layer, the model outlines grouped by that gap, ascending. Empty when the gap is global: single
+    // nozzle diameter, soluble interface (gap 0) or independent support layer heights.
+    std::vector<std::vector<std::pair<float, ExPolygons>>> m_top_z_outlines;
+    // The largest gap in m_top_z_outlines, top_z_distance when the gap is global.
+    float m_top_z_max = 0.0;
+    void  init_top_z_by_nozzle();
+    // Largest gap of the material on an object layer.
+    float top_z_at(size_t obj_layer_nr) const;
+    // Gap under an overhang: the largest gap of the material it overlaps.
+    float top_z_for_overhang(size_t obj_layer_nr, const ExPolygon &overhang) const;
+    // Union into collision the outlines that lie within their own gap above obj_layer_nr.
+    void  union_outlines_within_top_z(ExPolygons &collision, size_t obj_layer_nr) const;
 
     bool  is_strong = false;
     bool  is_slim                            = false;
@@ -552,9 +576,18 @@ private:
      */
     void insert_dropped_node(std::vector<SupportNode*>& nodes_layer, SupportNode* node);
     void create_tree_support_layers();
-    // BBS multi-diameter: merge the sparse base into slabs a coarse nozzle can extrude, leaving the roof and
-    // floor at the layer height. Runs between draw_circles() and generate_toolpaths().
-    void merge_base_areas_multi_diameter();
+    // BBS multi-diameter: fold the node chains onto the slab grid a coarse nozzle can extrude, and renumber
+    // the per node layer counters into printed layers so draw_circles() classifies roof / roof_1st_layer /
+    // base from them unchanged. Runs between smooth_nodes() and generate_support_ring_struts().
+    void fold_nodes_multi_diameter();
+    // Carrier support layers of every slab that folded, ascending: one per node column, at the column's own
+    // top inside the slab. Each carrier's extrusion spans from the slab bottom up to the carrier.
+    std::vector<std::vector<size_t>> m_fold_carriers;
+    // Per support layer, the index into m_fold_carriers of the folded slab covering it, -1 for none.
+    // Both are filled by fold_nodes_multi_diameter() and empty when nothing folded.
+    std::vector<int>                 m_fold_slab_of_layer;
+    // Carriers whose extrusion spans layer_nr from above, i.e. the carriers of its slab higher than it.
+    std::vector<size_t> fold_carriers_above(size_t layer_nr) const;
     void generate_toolpaths();
     // get unscaled radius of node
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);

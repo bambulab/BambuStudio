@@ -860,6 +860,28 @@ static ExPolygons make_brim_ears(const PrintObject* object, const double& flowWi
     return mouse_ears_ex;
 }
 
+// Support islands extruded onto the bed. With multiple nozzle diameters a merged band reaches the bed from its
+// top layer, which need not be the first support layer: the layers it swallowed have no height and no islands.
+static ExPolygons bed_support_islands(const Print& print, const PrintObject& object)
+{
+    const ConstSupportLayerPtrsAdaptor support_layers = object.support_layers();
+    if (support_layers.empty())
+        return {};
+    if (! print.uses_multiple_nozzle_diameters())
+        return support_layers.front()->support_islands;
+
+    ExPolygons islands;
+    size_t     num_layers = 0;
+    for (const SupportLayer* support_layer : support_layers) {
+        const coordf_t height = support_layer->effective_print_height();
+        if (height < EPSILON || support_layer->print_z - height > EPSILON)
+            continue;
+        append(islands, support_layer->support_islands);
+        ++num_layers;
+    }
+    return num_layers > 1 ? union_ex(islands) : islands;
+}
+
 //BBS: create all brims
 static ExPolygons outer_inner_brim_area(const Print& print,
     const float no_brim_offset, std::map<ObjectID, ExPolygons>& brimAreaMap,
@@ -1050,13 +1072,14 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                 else
                     support_material_extruder = printExtruders.front() + 1;
             }
-            if (support_material_extruder == extruderNo && brimToWrite.at(object->id()).sup) {
+            // With multiple nozzle diameters a coarse support filament reaches the bed from a band top, so it is not
+            // among the first layer filaments looped over here. Only the support islands are collected in this
+            // branch, keep them off the brim whatever filament prints them.
+            const bool support_filament_visited =
+                support_material_extruder == extruderNo || print.uses_multiple_nozzle_diameters();
+            if (support_filament_visited && brimToWrite.at(object->id()).sup) {
 
-                if (!object->support_layers().empty()) {
-                    for (const auto &support_contour : object->support_layers().front()->support_islands) {
-                        no_brim_area_support.emplace_back(support_contour);
-                    }
-                }
+                append(no_brim_area_support, bed_support_islands(print, *object));
 
                 brimToWrite.at(object->id()).sup = false;
                 for (const PrintInstance& instance : object->instances()) {

@@ -16,13 +16,20 @@ class PrintObject;
 //
 // With support_filament == 0 the support filament is only resolved while exporting G-code. The support layer
 // heights are fixed long before that, so a large nozzle picked at that point would have to extrude the base
-// layer height, which is below what it can physically do. This plan is queried after the support areas exist
-// but before they are installed as support layers, which is where merging happens.
+// layer height, which is below what it can physically do.
 //
-// Sparse support base reaches for the coarsest nozzle whose fixed model band ends at its print Z, while
-// contact/interface keeps the finest matching nozzle to preserve narrow support paths. A nozzle is never
-// allowed to grow a slab merely because its generic layer height window accepts it: support and model must
-// share the same Z ladder.
+// Two consumers query this plan, and they need different things:
+//   - normal support merges finished areas layer by layer and asks per slab: candidates_for_slab() and
+//     friends. There the sparse base reaches for the coarsest nozzle whose fixed model band ends at its
+//     print Z while contact/interface keeps the finest matching one, to preserve narrow support paths.
+//   - tree support folds its node chains onto the grid before any area exists, and asks for the whole
+//     partition at once: slabs / slab_for_layer(). There base and interface share one ladder, because a
+//     single node chain cannot obey two of them - the roof would end mid band and the transition below it
+//     could never be folded.
+// For normal support a nozzle is never allowed to grow a slab merely because its generic layer height window
+// accepts it: support and model must share the same Z ladder. Tree support relaxes this for a column whose top
+// sits inside a slab: the column folds onto a shorter slab ending at its own top as long as the nozzle's window
+// accepts that height, at the cost of a tool change on a layer the model may print with another nozzle.
 struct SupportMergePlan
 {
     struct Candidate
@@ -68,6 +75,34 @@ struct SupportMergePlan
     double                 fixed_band_height_at(const Candidate &candidate, double top_z) const;
     // Coarsest candidate whose fixed band contains print_z. band_height receives that band's full height.
     Candidate              coarsest_band_containing(double print_z, double &band_height) const;
+
+    // One printable slab of the fixed grid: the object layers [bottom_idx, top_idx] that a single extrusion
+    // replaces. The support node chain is folded onto this partition, so every stage after the fold works on
+    // the geometry that is actually extruded instead of the fine grid the tree was planned on.
+    struct Slab
+    {
+        size_t bottom_idx { 0 };
+        size_t top_idx { 0 };
+        double top_z { 0. };
+        double height { 0. };
+        int    filament_id { 0 };
+        double nozzle_diameter { 0. };
+        // The first slab rests on the bed, so its bed face - not its top face - is the representative cross
+        // section, the same way the model band planner treats its own first band.
+        bool   bottom_anchor { false };
+    };
+
+    // The fixed grid partition, ascending and non overlapping. Layers above the last closed band are covered
+    // by no slab at all: those stay on the fine grid.
+    std::vector<Slab> slabs;
+    // Index into slabs per object layer, -1 for a layer no slab covers.
+    std::vector<int>  slab_index_per_layer;
+    // False when an explicitly pinned interface filament cannot print the slabs this object folds onto. The
+    // contact/interface chains then stay on the fine grid while the sparse base still folds.
+    bool              interface_fold_enabled { true };
+
+    // The slab covering that object layer, or nullptr when the layer stays on the fine grid.
+    const Slab *slab_for_layer(size_t layer_idx) const;
 };
 
 SupportMergePlan make_support_merge_plan(const PrintObject &object);

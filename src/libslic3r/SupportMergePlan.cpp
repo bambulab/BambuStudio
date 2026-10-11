@@ -171,6 +171,74 @@ SupportMergePlan::Candidate SupportMergePlan::coarsest_band_containing(
     return best;
 }
 
+const SupportMergePlan::Slab *SupportMergePlan::slab_for_layer(size_t layer_idx) const
+{
+    if (layer_idx >= slab_index_per_layer.size())
+        return nullptr;
+    const int slab_idx = slab_index_per_layer[layer_idx];
+    return slab_idx < 0 ? nullptr : &slabs[size_t(slab_idx)];
+}
+
+// Cut the object layers into the slab partition the support folds onto. Every nozzle anchors its bands at
+// the object base, so walking up from the bed and always taking the band that starts exactly here and
+// reaches highest follows the coarsest ladder without ever stepping off it. Picking the coarsest band per
+// top layer independently would not: a fine band closing early moves the cursor off the coarse ladder and
+// the rest of the stack could never rejoin it.
+static void expand_slabs(SupportMergePlan &plan)
+{
+    const size_t num_layers = plan.layer_print_z.size();
+    plan.slab_index_per_layer.assign(num_layers, -1);
+    if (plan.fixed_bands_per_filament.empty())
+        return;
+
+    size_t next_bottom = 0;
+    while (next_bottom < num_layers) {
+        const SupportMergePlan::Candidate *best      = nullptr;
+        const AdaptiveLayerBand           *best_band = nullptr;
+        for (const auto &entry : plan.fixed_bands_per_filament) {
+            const std::vector<AdaptiveLayerBand> &bands = entry.second;
+            auto band_it = std::lower_bound(bands.begin(), bands.end(), next_bottom,
+                [](const AdaptiveLayerBand &band, size_t idx) { return band.bottom_idx < idx; });
+            if (band_it == bands.end() || band_it->bottom_idx != next_bottom || band_it->top_idx >= num_layers)
+                continue;
+            // The nozzle has to be one the object actually prints with where the band ends, or the support
+            // would borrow a tool from a height nothing else uses there.
+            const std::vector<SupportMergePlan::Candidate> &at_top = plan.candidates_per_layer[band_it->top_idx];
+            auto cand_it = std::find_if(at_top.begin(), at_top.end(),
+                [&entry](const SupportMergePlan::Candidate &candidate) { return candidate.filament_id == entry.first; });
+            if (cand_it == at_top.end())
+                continue;
+            // Reaching higher wins, and on a tie the coarser nozzle does: two filaments can share a ladder
+            // while only one of them saves a tool change here.
+            if (best_band == nullptr || band_it->top_idx > best_band->top_idx ||
+                (band_it->top_idx == best_band->top_idx && cand_it->nozzle_diameter > best->nozzle_diameter)) {
+                best      = &*cand_it;
+                best_band = &*band_it;
+            }
+        }
+        if (best_band == nullptr) {
+            // Nothing starts here, so this layer stays on the fine grid and the cursor moves up by one.
+            ++ next_bottom;
+            continue;
+        }
+
+        SupportMergePlan::Slab slab;
+        slab.bottom_idx        = next_bottom;
+        slab.top_idx           = best_band->top_idx;
+        slab.top_z             = plan.layer_print_z[slab.top_idx];
+        slab.height            = best_band->merged_height;
+        slab.filament_id       = best->filament_id;
+        slab.nozzle_diameter   = best->nozzle_diameter;
+        slab.bottom_anchor     = slab.bottom_idx == 0;
+
+        const int slab_id = int(plan.slabs.size());
+        for (size_t idx = slab.bottom_idx; idx <= slab.top_idx; ++ idx)
+            plan.slab_index_per_layer[idx] = slab_id;
+        plan.slabs.emplace_back(slab);
+        next_bottom = slab.top_idx + 1;
+    }
+}
+
 SupportMergePlan make_support_merge_plan(const PrintObject &object)
 {
     SupportMergePlan plan;
@@ -285,6 +353,22 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
         }
     } else {
         plan.interface_candidates_per_layer = std::move(object_candidates);
+    }
+
+    expand_slabs(plan);
+
+    // The roof is printed with the pinned interface filament, so it may only be folded onto a slab that
+    // filament can actually extrude. Nothing can make a 0.4 nozzle lay down a band only a 0.8 one reaches,
+    // so an object whose slabs do not all match the pinned nozzle keeps its contact chains on the fine grid.
+    if (interface_filament > 0) {
+        const double interface_nozzle =
+            nozzle_diameter_for_filament(print_config, (unsigned int) interface_filament);
+        plan.interface_fold_enabled = ! plan.slabs.empty() && interface_nozzle > EPSILON;
+        for (const SupportMergePlan::Slab &slab : plan.slabs)
+            if (std::abs(slab.nozzle_diameter - interface_nozzle) > EPSILON) {
+                plan.interface_fold_enabled = false;
+                break;
+            }
     }
 
     plan.enabled = true;
