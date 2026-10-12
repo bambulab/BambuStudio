@@ -14,6 +14,14 @@
 #include "slic3r/Utils/FileTransferUtils.hpp"
 #include "slic3r/Utils/CertificateVerify.hpp"
 
+#if defined(FULLY_OPEN_BUILD) && !defined(_MSC_VER) && !defined(_WIN32)
+#if defined(__WXMAC__)
+#include <mach-o/dyld.h>
+#else
+#include <unistd.h>
+#endif
+#endif
+
 using namespace BBL;
 
 namespace Slic3r {
@@ -185,6 +193,36 @@ std::string NetworkAgent::get_libpath_in_current_directory(std::string library_n
     return lib_path;
 }
 
+#ifdef FULLY_OPEN_BUILD
+// Fully-open build: the open-source network plugin and camera library are
+// bundled next to the application executable. Return the directory containing
+// the running executable so the loader can find them without relying on
+// anything downloaded into the user data directory.
+static boost::filesystem::path get_bundled_plugin_directory()
+{
+#if defined(_MSC_VER) || defined(_WIN32)
+    wchar_t file_name[1024];
+    DWORD ret = GetModuleFileNameW(NULL, file_name, 1024);
+    if (!ret || ret >= sizeof(file_name) / sizeof(file_name[0]))
+        return {};
+    return boost::filesystem::path(file_name).parent_path();
+#elif defined(__WXMAC__)
+    char exe_path[4096];
+    uint32_t size = sizeof(exe_path);
+    if (_NSGetExecutablePath(exe_path, &size) != 0)
+        return {};
+    return boost::filesystem::path(exe_path).parent_path();
+#else
+    char exe_path[4096];
+    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (len <= 0)
+        return {};
+    exe_path[len] = '\0';
+    return boost::filesystem::path(exe_path).parent_path();
+#endif
+}
+#endif // FULLY_OPEN_BUILD
+
 
 int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cert)
 {
@@ -197,6 +235,18 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     if (using_backup) {
         plugin_folder = plugin_folder/"backup";
     }
+#ifdef FULLY_OPEN_BUILD
+    // Fully-open build: load only the copy bundled next to the executable and
+    // skip the publisher signature check — the open-source implementation is
+    // not signed with Bambu Lab's certificate, and plugins downloaded into the
+    // user data directory must not be picked up.
+    plugin_folder = get_bundled_plugin_directory();
+    validate_cert = false;
+    if (plugin_folder.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": fully-open build, cannot locate the application directory";
+        return -1;
+    }
+#endif
     std::optional<SignerSummary> self_cert_summary, module_cert_summary;
     if (validate_cert)
         self_cert_summary = SummarizeSelf();
@@ -551,6 +601,10 @@ void* NetworkAgent::get_bambu_source_entry()
     std::string data_dir_str = data_dir();
     boost::filesystem::path data_dir_path(data_dir_str);
     auto plugin_folder = data_dir_path / "plugins";
+#ifdef FULLY_OPEN_BUILD
+    // Fully-open build: load the camera library bundled next to the executable.
+    plugin_folder = get_bundled_plugin_directory();
+#endif
 #if defined(_MSC_VER) || defined(_WIN32)
     wchar_t lib_wstr[128];
 
