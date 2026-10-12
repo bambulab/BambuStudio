@@ -1803,6 +1803,9 @@ bool MainFrame::confirm_project_page_can_leave(std::function<void()> retry)
                       _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
                       _L("Save"),
                       wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
+    dlg.SetButtonLabel(wxID_YES, _L("Save"));
+    dlg.SetButtonLabel(wxID_NO, _L("Discard"));
+    dlg.SetButtonLabel(wxID_CANCEL, _L("Stay on this page"));
     const int ret = dlg.ShowModal();
     if (ret == wxID_YES) {
         m_project->save_project([this, retry] {
