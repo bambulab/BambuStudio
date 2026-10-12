@@ -6703,7 +6703,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     if ((!pre_cooling && !pre_heating) || block.free_upper_gcode_id <= block.free_lower_gcode_id)
         return;
 
-    // Cooling starts after skippable blocks; heating is moved before them.
+    // Both heating and the cooling emission are moved before skippable blocks.
     const bool apply_cooling_when_partial_free =
         is_pre_cooling_valid(block.last_filament_id) && pre_cooling &&
         block.partial_free_upper_id > block.partial_free_lower_id;
@@ -6712,6 +6712,17 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     if (pre_cooling &&
         (free_lower_gcode_id == 0 || free_lower_gcode_id >= block.free_upper_gcode_id))
         return;
+
+    // The cooling has to reach the firmware before the change-filament macro, which rebinds the
+    // current/next hotend pair that "M104 I<filament>" is resolved against. Only the emission point
+    // moves; the thresholds below keep measuring the idle window from free_lower_gcode_id. Gated on
+    // handle_hotend_as_extruder because only those printers register the macro as a skippable block.
+    unsigned int cooling_insert_gcode_id = free_lower_gcode_id;
+    if (pre_cooling && handle_hotend_as_extruder) {
+        const unsigned int before_skip_blocks = adjust_insert_gcode_id_backward(block.free_lower_gcode_id);
+        if (before_skip_blocks != 0)
+            cooling_insert_gcode_id = before_skip_blocks;
+    }
 
     auto move_iter_lower = std::lower_bound(moves.begin(), moves.end(), free_lower_gcode_id, gcode_move_comp);
     auto move_iter_upper = std::lower_bound(moves.begin(), moves.end(), block.free_upper_gcode_id, gcode_move_comp); // closed iter
@@ -6849,7 +6860,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         if (target_temp >= curr_temp)
             return;
         int clamped_target = std::max((int)get_filament_min_temperature_when_ec(block.last_filament_id), (int)target_temp);
-        add_M104_lines(free_lower_gcode_id,extruder_id,clamped_target, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
+        add_M104_lines(cooling_insert_gcode_id,extruder_id,clamped_target, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
         return;
     }
     if (!pre_cooling && pre_heating) {
@@ -6903,7 +6914,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     if(max_temperature_drop >= 0)
         real_delta_temp = std::min(real_delta_temp, (int)(max_temperature_drop));
     int cooling_temp = std::max((int)cooling_thres, (int)curr_temp - real_delta_temp);
-    add_M104_lines(free_lower_gcode_id, extruder_id, cooling_temp, block.last_filament_id, false, block.next_filament_id,block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
+    add_M104_lines(cooling_insert_gcode_id, extruder_id, cooling_temp, block.last_filament_id, false, block.next_filament_id,block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
     add_M104_lines(heating_gcode_id, extruder_id, target_temp, block.next_filament_id, true, block.next_filament_id, block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");
 }
 
