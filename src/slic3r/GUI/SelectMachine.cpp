@@ -45,6 +45,8 @@
 
 #include "DeviceCore/DevUtilBackend.h"
 
+#include "DeviceTab/wgtDeviceAutoRefillWebDialog.h"
+
 #include "libslic3r/Print.hpp"
 
 #include "../Utils/BBLUtil.hpp"
@@ -1233,11 +1235,10 @@ void SelectMachineDialog::popup_filament_backup()
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
-    if (dev->get_selected_machine()/* && dev->get_selected_machine()->filam_bak.size() > 0*/) {
-        AmsReplaceMaterialDialog* m_replace_material_popup = new AmsReplaceMaterialDialog(this);
-        m_replace_material_popup->update_machine_obj(dev->get_selected_machine());
-        m_replace_material_popup->ShowModal();
-    }
+    // Route through the shared entry so this page follows the printer's refill
+    // version like the filament/hotend web page does, instead of always showing
+    // the legacy FilaBackup dialog.
+    ShowAutoRefillDialog(this, dev->get_selected_machine());
 }
 
 void SelectMachineDialog::update_select_layout(MachineObject *obj)
@@ -4300,7 +4301,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
 void SelectMachineDialog::update_ams_backup(MachineObject* obj_)
 {
-    bool to_show = obj_ && obj_->GetFilaSystem()->GetAutoRefillMgr().CanShow() && _HasAms(m_ams_mapping_result);
+    bool to_show = obj_ && obj_->GetFilaSystem()->GetAutoRefillMgr().CanShow();
     if (to_show != m_ams_backup_tip->IsShown() || to_show != img_ams_backup->IsShown()) {
         m_ams_backup_tip->Show(to_show);
         img_ams_backup->Show(to_show);
