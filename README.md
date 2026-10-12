@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img alt="License: AGPL v3" src="https://img.shields.io/badge/license-AGPL--3.0-blue"></a>
   <a href="docs/STATUS.md"><img alt="Status: source preview" src="https://img.shields.io/badge/status-source_preview-orange"></a>
-  <a href="https://github.com/Nickx777/bambu-open-studio/actions/workflows/source-checks.yml"><img alt="Source checks" src="https://github.com/Nickx777/bambu-open-studio/actions/workflows/source-checks.yml/badge.svg"></a>
+  <a href="docs/STATUS.md#repository-checks"><img alt="Local helper checks: passed" src="https://img.shields.io/badge/local_helper_checks-passed-23c88b"></a>
   <a href="https://github.com/ClusterM/open-bamboo-networking"><img alt="Networking: Open Bamboo" src="https://img.shields.io/badge/networking-Open_Bamboo-23c88b"></a>
 </p>
 

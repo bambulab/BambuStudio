@@ -53,6 +53,8 @@ The phrase “fully open” in the build option refers to replacing the closed B
 
 ## Repository checks
 
-The Source checks workflow parses the PowerShell helpers and checks shell syntax. A green badge means those checks passed. It does not mean Studio was compiled, a printer was tested, or a distributable installer is ready.
+For publication, both PowerShell helpers parsed successfully, shell syntax passed, documentation links resolved, and the SVG banner parsed. Mocked-process checks confirmed that a failed plugin build stops staging, the launcher quotes a profile path with spaces, and the calling shell's environment is restored after both successful and failed launches. No new full Studio build or printer test was performed.
+
+The README's helper-check badge records those local checks; it is not live CI. An optional [GitHub Actions setup file](ci-source-checks.example.yml) can be copied to `.github/workflows/source-checks.yml` by a maintainer with workflow-write permission. It checks script syntax only.
 
 The inherited upstream build and package-publishing workflows are preserved but disabled in this fork. They do not stage the fork's open plugin and should not be used to produce its releases without adaptation.

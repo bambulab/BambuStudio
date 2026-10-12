@@ -4,7 +4,7 @@ The description below is preserved from Bambu Studio. Its release links point to
 
 ![image](https://user-images.githubusercontent.com/106916061/179006347-497d24c0-9bd6-45b7-8c49-d5cc8ecfe5d7.png)
 # BambuStudio
-Bambu Studio is a cutting-edge, feature-rich slicing software.  
+Bambu Studio is a cutting-edge, feature-rich slicing software.
 It contains project-based workflows, systematically optimized slicing algorithms, and an easy-to-use graphic interface, bringing users an incredibly smooth printing experience.
 
 Prebuilt Windows, macOS 64-bit and Linux releases are available through the [github releases page](https://github.com/bambulab/BambuStudio/releases/).
@@ -54,4 +54,3 @@ The GNU Affero General Public License, version 3 ensures that if you use any par
 
 The bambu networking plugin is based on non-free libraries. It is optional to the Bambu Studio and provides extended networking functionalities for users.
 By default, after installing Bambu Studio without the networking plugin, you can initiate printing through the SD card after slicing is completed.
-
