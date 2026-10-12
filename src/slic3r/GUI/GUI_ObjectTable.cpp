@@ -70,7 +70,7 @@ void GridCellIconRenderer::Draw(wxGrid& grid,
         ObjectGridTable::ObjectGridRow* grid_row = table->get_grid_row(row - 1);
         ConfigOption& orig_option = (*grid_row)[(ObjectGridTable::GridColType)col];
         ConfigOption& cur_option = (*grid_row)[(ObjectGridTable::GridColType)(col-1)];
-        if (cur_option == orig_option) {
+        if (cur_option == orig_option || table->is_multi_nozzle_auto_col(col - 1)) {
             //not changed
             return;
         }
@@ -1276,6 +1276,8 @@ bool ObjectGridTable::CanGetValueAs(int row, int col, const wxString& typeName)
         return false;
     if (col_object->b_for_object && (row_object->row_type == row_volume))
         return false;
+    if (is_multi_nozzle_auto_col(col))
+        return typeName == wxGRID_VALUE_STRING;
 
     if ( typeName == wxGRID_VALUE_STRING )
     {
@@ -1363,6 +1365,8 @@ wxString ObjectGridTable::GetValue (int row, int col)
     ObjectGridCol* grid_col = m_col_data[(GridColType)col];
     if (grid_col->b_for_object && (grid_row->row_type == row_volume))
         return wxString();
+    if (is_multi_nozzle_auto_col(col))
+        return _L("Auto");
 
     ConfigOption& option = (*grid_row)[(GridColType)col];
     if (grid_col->type == coEnum) {
@@ -1839,6 +1843,15 @@ wxString ObjectGridTable::convert_filament_string(int index, wxString& filament_
 
     //result_str = "";
     return result_str;
+}
+
+bool ObjectGridTable::is_multi_nozzle_auto_col(int col) const
+{
+    if (col < 0 || col >= int(m_col_data.size()))
+        return false;
+    const ObjectGridCol *grid_col = m_col_data[col];
+    return !grid_col->b_icon && grid_col->b_from_config && is_multi_nozzle_auto_option(grid_col->key) &&
+           multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
 }
 
 void ObjectGridTable::init_cols(ObjectGrid *object_grid)
@@ -2534,7 +2547,7 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
             ConfigOption& orig_option = (*grid_row)[(GridColType)col];
             ConfigOption& cur_option = (*grid_row)[(GridColType)(col-1)];
             //reset the value to original one
-            if (cur_option != orig_option) {
+            if (cur_option != orig_option && !is_multi_nozzle_auto_col(col - 1)) {
                 cur_option.set(&orig_option);
                 if (grid_col_2->b_from_config) {
                     if (col == col_filaments_reset) {
@@ -2988,7 +3001,7 @@ void ObjectTablePanel::load_data()
             //    m_object_grid->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());*/
             //}
             else {
-                if (!grid_col->b_editable)
+                if (!grid_col->b_editable || m_object_grid_table->is_multi_nozzle_auto_col(col))
                     m_object_grid->SetReadOnly(row, col);
                 //set editor
                 switch (grid_col->type)

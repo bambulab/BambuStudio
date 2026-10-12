@@ -207,6 +207,27 @@ double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value)
     return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 32.0, 125.9, 125.9, 125.9 });
 }
 
+bool is_multi_nozzle_auto_option(const std::string &opt_key)
+{
+    static const std::set<std::string> auto_options {
+        "retraction_length",
+        "min_layer_height",
+        "max_layer_height",
+        "nozzle_volume",
+        "ironing_inset",
+        "wall_loops",
+        "top_shell_layers",
+        "bottom_shell_layers",
+        "top_shell_thickness",
+        "bottom_shell_thickness",
+        "top_color_penetration_layers",
+        "bottom_color_penetration_layers",
+        "support_top_z_distance",
+        "support_bottom_z_distance"
+    };
+    return auto_options.count(opt_key.substr(0, opt_key.find('#'))) > 0;
+}
+
 // The diameters that describe what the machine offers: per-slot where that data is authoritative,
 // per-extruder otherwise. Per-slot diameters describe the capability of both single-extruder multi-nozzle
 // machines and H2C-class multi-extruder machines. The "offers more than one diameter" query reads this.

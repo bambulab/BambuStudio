@@ -2220,6 +2220,10 @@ int    multi_nozzle_bottom_color_penetration_layers(double nozzle_diameter, int 
 double multi_nozzle_support_z_distance(double nozzle_diameter, double preset_value);
 double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value);
 
+// Options shown as "Auto" while multi_nozzle_diameter_mode is on: their preset value is not editable there
+// and slicing resolves them per nozzle diameter. Accepts both "key" and "key#idx".
+bool is_multi_nozzle_auto_option(const std::string &opt_key);
+
 // Whether the printer offers more than one nozzle diameter to pick from. This is the machine capability,
 // not what a print uses: with a single diameter available nothing downstream may behave as multi-diameter.
 // Always false while multi_nozzle_diameter_mode is off.

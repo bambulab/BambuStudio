@@ -9,6 +9,7 @@
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
+#include "Widgets/TextInput.hpp"
 
 #include <boost/algorithm/string.hpp>
 
@@ -243,13 +244,28 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         };
 
         const bool is_extruders_cat = cat.first == "Extruders";
+        const bool multi_nozzle_mode = multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config);
         for (auto& opt : cat.second)
         {
             Option option = optgroup->get_option(opt.name);
             option.opt.width = 18;
             if (is_extruders_cat)
                 option.opt.max = wxGetApp().extruders_edited_cnt();
-            optgroup->append_single_option_line(option);
+            if (multi_nozzle_mode && is_multi_nozzle_auto_option(opt.name)) {
+                // No field is built for this line, so the value can be neither shown nor edited here.
+                Line line = optgroup->create_single_option_line(option);
+                line.widget = [width = option.opt.width](wxWindow *parent) {
+                    auto *auto_input = new ::TextInput(parent, _L("Auto"), "", "", wxDefaultPosition,
+                                                       wxSize(width * wxGetApp().em_unit(), wxDefaultCoord));
+                    auto_input->Enable(false);
+                    wxGetApp().UpdateDarkUI(auto_input);
+                    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+                    sizer->Add(auto_input, 0, wxALIGN_CENTER_VERTICAL);
+                    return sizer;
+                };
+                optgroup->append_line(line);
+            } else
+                optgroup->append_single_option_line(option);
 
             if (!opt.label.empty()) {
                 auto line = optgroup->get_line(opt.name);
@@ -259,11 +275,12 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         }
         optgroup->activate();
         for (auto& opt : cat.second)
-            optgroup->get_field(opt.name)->m_on_change = [weak_optgroup](const std::string& opt_id, const boost::any& value) {
-                // first of all take a snapshot and then change value in configuration
-                wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % opt_id).str());
-                weak_optgroup.lock()->on_change_OG(opt_id, value);
-            };
+            if (Field *field = optgroup->get_field(opt.name))
+                field->m_on_change = [weak_optgroup](const std::string& opt_id, const boost::any& value) {
+                    // first of all take a snapshot and then change value in configuration
+                    wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % opt_id).str());
+                    weak_optgroup.lock()->on_change_OG(opt_id, value);
+                };
 
         optgroup->reload_config();
         different_count = update_extra_column_visible_status(optgroup.get(), cat.second, config);

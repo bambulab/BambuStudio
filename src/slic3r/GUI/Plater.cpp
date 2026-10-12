@@ -989,11 +989,24 @@ struct Sidebar::priv
     // return point, so its first switch to single-diameter still lands on that fallback.
     std::optional<std::string> m_printer_preset_before_multi_diameter;
 
+    // Unsaved process edits of options multi-diameter mode shows as "Auto", taken out of the edited
+    // process preset when the mode is turned ON and put back when it is turned OFF on the same preset.
+    // Session-local, like m_printer_preset_before_multi_diameter.
+    struct MultiNozzleAutoProcessCache
+    {
+        std::string              preset_name;
+        std::vector<std::string> keys;
+        DynamicPrintConfig       values;
+    };
+    std::optional<MultiNozzleAutoProcessCache> m_process_auto_cache;
+
     int  FromDIP(int n) { return plater->FromDIP(n); }
     void layout_printer(bool isBBL, bool isDual, bool isMultiNozzle);
     void update_extruder_panel();
     void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
     bool apply_multi_nozzle_diameter_mode(bool enabled);
+    void stash_multi_nozzle_auto_process_edits();
+    void restore_multi_nozzle_auto_process_edits();
     void apply_migration_diameter_mode(const PendingNozzleMigration &migration);
     void update_extruder_full_stats(int extruder_id, wxString diameter, const std::vector<NozzleConfig> &configs);
     NozzleVolumeType get_volume_type_from_configs(wxString diameter, const std::vector<NozzleConfig> &configs);
@@ -2017,6 +2030,79 @@ static void refresh_multi_nozzle_preset_choices()
     }
 }
 
+static void reload_print_tab_from_edited_preset()
+{
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+        print_tab->reload_config();
+        print_tab->update_dirty();
+    }
+}
+
+// Turning the mode on from a non-canonical single-diameter printer moves the project onto the canonical
+// printer variant, which the edited process was not tuned for. Its unsaved edits are saved or dropped
+// first instead of being offered for transfer (or silently transferred by auto_transfer_when_switch_preset).
+// Returns false when the user cancels.
+static bool save_or_discard_process_before_multi_nozzle_mode()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle->prints.current_is_dirty())
+        return true;
+    const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
+    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config) ||
+        base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant())
+        return true;
+
+    Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+    if (print_tab == nullptr)
+        return true;
+    if (!print_tab->may_discard_current_dirty_preset(nullptr, "", true, ForceOption::fopNone, true))
+        return false;
+    if (preset_bundle->prints.current_is_dirty()) {
+        preset_bundle->prints.discard_current_changes();
+        reload_print_tab_from_edited_preset();
+    }
+    return true;
+}
+
+// Auto options keep their single-diameter edits out of the multi-diameter process: there they are
+// neither shown nor undoable, yet would still mark the preset dirty and be written on save.
+void Sidebar::priv::stash_multi_nozzle_auto_process_edits()
+{
+    m_process_auto_cache.reset();
+
+    PresetCollection &prints = wxGetApp().preset_bundle->prints;
+    std::set<std::string> keys;
+    for (const std::string &opt_key : prints.current_dirty_options(true))
+        if (is_multi_nozzle_auto_option(opt_key))
+            keys.insert(opt_key.substr(0, opt_key.find('#')));
+    if (keys.empty())
+        return;
+
+    MultiNozzleAutoProcessCache cache;
+    cache.preset_name = prints.get_edited_preset().name;
+    cache.keys.assign(keys.begin(), keys.end());
+    cache.values.apply_only(prints.get_edited_preset().config, cache.keys);
+    prints.get_edited_preset().config.apply_only(prints.get_selected_preset().config, cache.keys);
+    m_process_auto_cache = std::move(cache);
+    reload_print_tab_from_edited_preset();
+}
+
+// The stash only belongs to the process preset it was taken from; a different one drops it.
+void Sidebar::priv::restore_multi_nozzle_auto_process_edits()
+{
+    if (!m_process_auto_cache)
+        return;
+
+    MultiNozzleAutoProcessCache cache = std::move(*m_process_auto_cache);
+    m_process_auto_cache.reset();
+
+    PresetCollection &prints = wxGetApp().preset_bundle->prints;
+    if (prints.get_edited_preset().name != cache.preset_name)
+        return;
+    prints.get_edited_preset().config.apply_only(cache.values, cache.keys);
+    reload_print_tab_from_edited_preset();
+}
+
 // Writes the multi-nozzle-diameter gate together with the printer preset that mode requires.
 // The preset combos hide every non-canonical printer while the gate is on, so "gate on + default
 // single-diameter printer" is a state they cannot render. Ordering the two writes by direction keeps
@@ -2033,12 +2119,15 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
         return true;
 
     if (enabled) {
+        if (!save_or_discard_process_before_multi_nozzle_mode())
+            return false;
         // Capture the return point before select_preset() moves the project onto the canonical printer.
         const std::string preset_before = wxGetApp().preset_bundle->printers.get_edited_preset().name;
         if (!select_printer_preset_for_multi_nozzle_mode(true))
             return false;
         option->value = true;
         m_printer_preset_before_multi_diameter = preset_before;
+        stash_multi_nozzle_auto_process_edits();
     } else {
         option->value = false;
         if (!select_printer_preset_for_multi_nozzle_mode(false, m_printer_preset_before_multi_diameter)) {
@@ -2050,6 +2139,7 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
             return false;
         }
         m_printer_preset_before_multi_diameter.reset();
+        restore_multi_nozzle_auto_process_edits();
     }
 
     refresh_multi_nozzle_preset_choices();
@@ -2169,6 +2259,7 @@ void Sidebar::priv::apply_migration_diameter_mode(const PendingNozzleMigration &
     // apply_multi_nozzle_diameter_mode(false) insists on a rack's 0.4 variant and rolls the gate
     // back on if that select fails. A fixed-extruder target must clear the flag regardless.
     clear_multi_nozzle_diameter_mode();
+    m_process_auto_cache.reset();
     refresh_after_multi_nozzle_diameter_mode_cleared();
 }
 
@@ -2956,8 +3047,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         if (model_mismatch) {
             // Drop the gate first when the destination has no canonical multi-diameter variant.
             const bool cleared_multi_diameter_mode = clears_multi_nozzle_diameter_mode(*machine_preset);
-            if (cleared_multi_diameter_mode)
+            if (cleared_multi_diameter_mode) {
                 clear_multi_nozzle_diameter_mode();
+                m_process_auto_cache.reset();
+            }
 
             // Multi-diameter must not adopt get_printer_preset()'s first-nozzle diameter.
             Preset *target_preset = machine_preset;
@@ -2985,6 +3078,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         // because picking another model in the printer combo is not blocked by it, and it would send
         // the sync below down the multi-diameter branch on a machine that has no variant for it.
         clear_multi_nozzle_diameter_mode();
+        m_process_auto_cache.reset();
         refresh_after_multi_nozzle_diameter_mode_cleared();
     }
     // A confirmed migration without any target diameter means the printer had no usable nozzle to
@@ -5156,6 +5250,7 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
     // return point and its first switch to single-diameter must land on the default-single fallback. Clearing
     // here also drops a stale return point left by a previously open project.
     p->m_printer_preset_before_multi_diameter.reset();
+    p->m_process_auto_cache.reset();
 
     p->diameter_btns->SetMultiDiameterMode(enabled);
     if (!enabled || current_diameter == canonical_multi_nozzle_printer_variant()) {

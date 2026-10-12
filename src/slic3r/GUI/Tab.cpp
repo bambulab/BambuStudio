@@ -3144,7 +3144,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_surface_density");
         append_multi_nozzle_auto_line(optgroup, "bottom_shell_layers");
-        optgroup->append_single_option_line("bottom_shell_thickness");
+        append_multi_nozzle_auto_line(optgroup, "bottom_shell_thickness");
         append_multi_nozzle_auto_line(optgroup, "bottom_color_penetration_layers");
         optgroup->append_single_option_line("infill_instead_top_bottom_surfaces");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
@@ -3582,7 +3582,7 @@ void TabPrintModel::build()
         auto optgroup = page->new_optgroup("");
             optgroup->append_single_option_line("layer_height");
             optgroup->append_single_option_line("sparse_infill_density");
-            optgroup->append_single_option_line("wall_loops");
+            append_multi_nozzle_auto_line(optgroup, "wall_loops", "wall-generator");
             optgroup->append_single_option_line("enable_support", "support");
     m_pages.pop_back();
     m_pages.insert(m_pages.begin(), page);
@@ -7203,7 +7203,7 @@ bool Tab::select_preset(
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
-bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer, ForceOption force_op)
+bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer, ForceOption force_op, bool allow_save)
 {
     if (presets == nullptr) presets = m_presets;
 
@@ -7224,7 +7224,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     } searcher_mode_guard;
     wxGetApp().sidebar().update_searcher(comDevelop);
 
-    UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer);
+    UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer, allow_save);
 
     auto handle_save_action = [&dlg, this, presets]() {
         const std::vector<std::string>& unselected_options = dlg.get_unselected_options(presets->type());
