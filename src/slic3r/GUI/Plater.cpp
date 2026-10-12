@@ -11223,6 +11223,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         std::map<int, std::vector<std::string>> color_group_map;
         VolumeColorInfoMap volume_color_data;
         bool has_3mf_textures = false;
+        bool has_3mf_unit = false;
         // BBS: add auxiliary files related logic
         bool load_aux = strategy & LoadStrategy::LoadAuxiliary, load_old_project = false;
         if (load_model && load_config && type_3mf) {
@@ -11260,7 +11261,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  cancel        = !cont;
                                                                  if (cancel)
                                                                      is_user_cancel = cancel;
-                                                             }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures);
+                                                             }, nullptr, &color_group_map, &volume_color_data, &has_3mf_textures, &has_3mf_unit);
                     if (const auto *mode = config_loaded.option<ConfigOptionBool>("multi_nozzle_diameter_mode"))
                         loaded_multi_nozzle_diameter_mode = mode->value;
                     const ConfigOption *selected_diameters =
@@ -12081,7 +12082,30 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (imperial_units)
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
-                else if (model.looks_like_saved_in_meters()) {
+                // A 3MF with a unit was already converted by the reader. Without one, guess from the
+                // total volume and scale all objects together, so thin parts keep their size and place.
+                else if (type_3mf) {
+                    if (!has_3mf_unit) {
+                        double total_volume = 0.;
+                        for (const ModelObject *object : model.objects)
+                            total_volume += object->get_object_stl_stats().volume;
+                        // Same thresholds as Model::looks_like_saved_in_meters() / looks_like_imperial_units().
+                        double scale = 1.;
+                        if (total_volume < 0.008) {
+                            BOOST_LOG_TRIVIAL(warning) << "3mf without unit seems in meter units, convert to millimeters:" << filename;
+                            model.convert_from_meters(false);
+                            scale = 1000.;
+                        } else if (total_volume < 8.) {
+                            BOOST_LOG_TRIVIAL(warning) << "3mf without unit seems in imperial units, convert to millimeters:" << filename;
+                            convert_from_imperial_units(model, false);
+                            scale = 25.4;
+                        }
+                        if (scale != 1.)
+                            for (ModelObject *object : model.objects)
+                                for (ModelInstance *instance : object->instances)
+                                    instance->set_offset(instance->get_offset() * scale);
+                    }
+                } else if (model.looks_like_saved_in_meters()) {
                     BOOST_LOG_TRIVIAL(warning) << "object loaded seems in meter units, convert to millimeters:" << filename;
                     model.convert_from_meters(true);
                 } else if (model.looks_like_imperial_units()) {

@@ -293,7 +293,7 @@ struct StoreParams
 extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
         bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn = nullptr, LoadStrategy strategy = LoadStrategy::Default, BBLProject *project = nullptr, int plate_id = 0,
         std::map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr,
-        bool* has_textures = nullptr);
+        bool* has_textures = nullptr, bool* has_unit = nullptr);
 
 extern std::string bbs_3mf_get_thumbnail(const char * path);
 

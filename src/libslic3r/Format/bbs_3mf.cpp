@@ -1409,6 +1409,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string m_parse_error_message;
         Model* m_model;
         float m_unit_factor;
+        bool m_has_unit{false};
         CurrentObject* m_curr_object{nullptr};
         IdToCurrentObjectMap m_current_objects;
         IndexToPathMap       m_index_paths;
@@ -1481,6 +1482,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         // True when the file declares textures, which the color import ignores.
         bool has_texture_resources() const { return m_material_colors.has_textures(); }
+
+        // True when the root model declares its unit; without it the reader falls back to millimeters.
+        bool has_unit() const { return m_has_unit; }
 
         // Get volume color data
         const std::unordered_map<int, VolumeColorInfo>& get_volume_color_data() const { return m_volume_color_data; }
@@ -1715,6 +1719,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_load_config = strategy & LoadStrategy::LoadConfig;
         m_model = &model;
         m_unit_factor = 1.0f;
+        m_has_unit = false;
         m_curr_object = nullptr;
         m_current_objects.clear();
         m_index_paths.clear();
@@ -4024,6 +4029,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_start_model(const char** attributes, unsigned int num_attributes)
     {
         m_unit_factor = bbs_get_unit_factor(bbs_get_attribute_value_string(attributes, num_attributes, UNIT_ATTR));
+        if (m_sub_model_path.empty())
+            m_has_unit = !bbs_get_attribute_value_string(attributes, num_attributes, UNIT_ATTR).empty();
 
         return true;
     }
@@ -9912,7 +9919,7 @@ private:
 bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
                     bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project, int plate_id,
                     std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data,
-                    bool* has_textures)
+                    bool* has_textures, bool* has_unit)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -9936,6 +9943,9 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     if (has_textures != nullptr) {
         *has_textures = importer.has_texture_resources() && !(is_bbl_3mf && *is_bbl_3mf);
     }
+
+    if (has_unit != nullptr)
+        *has_unit = importer.has_unit();
 
     //BBS: remove legacy project logic currently
     //handle_legacy_project_loaded(importer.version(), *config);

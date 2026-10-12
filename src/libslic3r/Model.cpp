@@ -476,7 +476,7 @@ Model Model::read_from_file(const std::string&                                  
 Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type, LoadStrategy options,
         PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project,
         std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data,
-        bool* has_textures)
+        bool* has_textures, bool* has_unit)
 {
     PERF_TRACE(std::string("read archive ") + input_file);
     assert(config != nullptr);
@@ -492,10 +492,13 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
             // for Prusa 3mf
             result = load_3mf(input_file.c_str(), *config, *config_substitutions, &model, true);
             out_file_type = En3mfType::From_Prusa;
+            // PrusaSlicer always writes the unit, and load_3mf() converts by it.
+            if (has_unit != nullptr)
+                *has_unit = true;
         } else {
             // BBS: add part plate related logic
             // BBS: backup & restore
-            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project, 0, color_group_map, volume_color_data, has_textures);
+            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project, 0, color_group_map, volume_color_data, has_textures, has_unit);
         }
     }
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
