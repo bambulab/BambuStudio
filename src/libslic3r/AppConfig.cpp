@@ -527,6 +527,17 @@ void AppConfig::set_defaults()
     if (get("ignore_module_cert").empty()) {
         set_bool("ignore_module_cert", false);
     }
+#ifdef FULLY_OPEN_BUILD
+    // Fully-open build: the open-source network plugin is bundled with the
+    // application, so it counts as installed and must never be updated from
+    // the closed-source OTA channel.
+    if (get("installed_networking").empty()) {
+        set("installed_networking", "1");
+    }
+    if (get("update_network_plugin").empty()) {
+        set("update_network_plugin", "false");
+    }
+#endif
     if (get("webview_auto_fill").empty()) {
         set_bool("webview_auto_fill", true);
     }

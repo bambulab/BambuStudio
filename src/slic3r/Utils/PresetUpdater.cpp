@@ -1178,6 +1178,12 @@ bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version
 
 void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_version, bool is_arm64)
 {
+#ifdef FULLY_OPEN_BUILD
+    // Fully-open build: never fetch the closed-source network plugin package
+    // from Bambu Lab's OTA service.
+    BOOST_LOG_TRIVIAL(info) << "sync_plugins is disabled in fully-open build";
+    return;
+#endif
     if (cancel) return;
 
     if (plugin_version == "00.00.00.00") {
