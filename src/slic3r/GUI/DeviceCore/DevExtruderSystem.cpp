@@ -223,10 +223,10 @@ namespace Slic3r
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
         : m_owner(obj)
     {
-        // default to have one extruder
-        m_total_extder_count = 1;
-        DevExtder ext(this, MAIN_EXTRUDER_ID);
-        m_extders.emplace_back(ext);
+        m_total_extder_count = DevPrinterConfigUtil::get_default_extruder_count(obj ? obj->printer_type : "");
+        for (int ext_id = 0; ext_id < m_total_extder_count; ext_id++) {
+            m_extders.emplace_back(this, ext_id);
+        }
     }
 
     bool DevExtderSystem::CanQuitSwitching() const

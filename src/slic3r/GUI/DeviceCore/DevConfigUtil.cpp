@@ -597,6 +597,16 @@ std::string DevPrinterConfigUtil::get_toolhead_display_name(
     return result;
 }
 
+int DevPrinterConfigUtil::get_default_extruder_count(const std::string& type_str)
+{
+    int val = get_value_from_config<int>(type_str, "print", "default_extruder_count");
+    if (val > 0) {
+        return val;
+    }
+
+    return 1;
+}
+
 int DevPrinterConfigUtil::get_default_nozzle_count(const std::string& type_str)
 {
     int val = get_value_from_config<int>(type_str, "print", "default_nozzle_count");

@@ -142,6 +142,9 @@ public:
     /*bed*/
     static int get_bed_temperature_limit(const std::string &type_str) { return get_value_from_config<int>(type_str, "print", "bed_temperature_limit"); }
 
+    /*extruder*/
+    static int get_default_extruder_count(const std::string& type_str);//Defaults to 1 when the printer config omits it.
+
     /*nozzle*/
     static int get_default_nozzle_count(const std::string& type_str);
     // Auto tool-changing racks reuse a single hotend across many slots, so the per-slot
