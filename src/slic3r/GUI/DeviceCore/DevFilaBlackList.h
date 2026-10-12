@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <optional>
 #include <wx/string.h>
 #include "slic3r/Utils/json_diff.hpp"
@@ -35,13 +36,34 @@ public:
         std::optional<int> ams_type;// optional, DevAmsType id of the slot's AMS
     };
 
+    // Severity of a matched item, from the strongest to the weakest:
+    // prohibition blocks the print, critical warning and warning only inform the user.
+    static constexpr const char* ACTION_PROHIBITION      = "prohibition";
+    static constexpr const char* ACTION_CRITICAL_WARNING = "critical_warning";
+    static constexpr const char* ACTION_WARNING          = "warning";
+
+    // Severity of an action, the greater the stricter. Used to pick a verdict when the preset and
+    // the blacklist both judge the same filament.
+    static int GetSeverity(const std::string& action)
+    {
+        if (action == ACTION_PROHIBITION) { return 3; }
+        if (action == ACTION_CRITICAL_WARNING) { return 2; }
+        if (action == ACTION_WARNING) { return 1; }
+        return 0;
+    }
+
     struct CheckResultItem
     {
-        std::string action;// warning/prohibition
+        std::string action;// prohibition/critical_warning/warning
         wxString    info_msg;
         wxString    wiki_url;
         std::string group;
         int         priority = 0;
+
+        bool IsProhibition() const { return action == ACTION_PROHIBITION; }
+        bool IsCriticalWarning() const { return action == ACTION_CRITICAL_WARNING; }
+        bool IsWarning() const { return action == ACTION_WARNING; }
+        int  GetSeverity() const { return DevFilaBlacklist::GetSeverity(action); }
     };
 
     struct CheckResult
@@ -54,6 +76,23 @@ public:
                 return it->second;
             }
             return std::vector<CheckResultItem>();
+        }
+
+        std::vector<CheckResultItem> get_prohibition_items() const { return get_items_by_action(ACTION_PROHIBITION); }
+        std::vector<CheckResultItem> get_critical_items() const { return get_items_by_action(ACTION_CRITICAL_WARNING); }
+        std::vector<CheckResultItem> get_warning_items() const { return get_items_by_action(ACTION_WARNING); }
+
+        bool empty() const { return action_items.empty(); }
+        int  GetMaxSeverity() const
+        {
+            int severity = 0;
+            for (const auto& action_pair : action_items) {
+                if (!action_pair.second.empty()) {
+                    severity = std::max(severity, DevFilaBlacklist::GetSeverity(action_pair.first));
+                }
+            }
+
+            return severity;
         }
     };
 

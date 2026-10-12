@@ -2260,7 +2260,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusWarningKvalueNotUsed) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
-    } else if (status == PrintStatusHasFilamentInBlackListWarning) {
+    } else if (status == PrintStatusHasFilamentInBlackListWarning || status == PrintStatusHasFilamentInBlackListCriticalWarning) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintStatusFilamentWarningHighChamberTempCloseDoor || status == PrintStatusFilamentWarningHighChamberTemp) {
@@ -2571,12 +2571,15 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
             // here are only warnings level, the errors have been blocked before
             const auto& result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
-            if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
-                for (auto item : warning_items) {
+            const auto& collect_warnings = [&confirm_text, &has_slice_warnings](const std::vector<DevFilaBlacklist::CheckResultItem>& items) {
+                for (const auto& item : items) {
                     confirm_text.push_back(ConfirmBeforeSendInfo(item.info_msg, item.wiki_url));
                     has_slice_warnings = true;
                 }
-            }
+            };
+
+            collect_warnings(result.get_critical_items());
+            collect_warnings(result.get_warning_items());
         }
     }
 
@@ -7373,15 +7376,21 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
             check_info.extruder_id     = nozzle.GetExtruderId();
             check_info.nozzle_flow     = DevNozzle::GetNozzleFlowTypeString(nozzle.GetNozzleFlowType());
             check_info.nozzle_diameter = nozzle.GetNozzleDiameter();
-            auto result                = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
-            if (const auto &prohibition_items = result.get_items_by_action("prohibition"); !prohibition_items.empty()) {
-                for (auto item : prohibition_items) { show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListError, {item.info_msg}, item.wiki_url); }
+            auto result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
+            if (const auto& prohibition_items = result.get_prohibition_items(); !prohibition_items.empty()) {
+                for (auto item : prohibition_items) {
+                    show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListError, { item.info_msg }, item.wiki_url);
+                }
 
                 return false;
             }
 
-            if (const auto &warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
-                for (auto item : warning_items) { show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, {item.info_msg}, item.wiki_url); }
+            for (auto item : result.get_critical_items()) {
+                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListCriticalWarning, { item.info_msg }, item.wiki_url);
+            }
+
+            for (auto item : result.get_warning_items()) {
+                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, { item.info_msg }, item.wiki_url);
             }
 
             // Check nozzle hardness check

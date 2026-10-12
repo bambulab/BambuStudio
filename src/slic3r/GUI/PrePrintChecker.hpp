@@ -164,6 +164,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusFilamentWarningBegin,
     PrintStatusWarningKvalueNotUsed,
     PrintStatusHasFilamentInBlackListWarning,
+    PrintStatusHasFilamentInBlackListCriticalWarning,
     PrintStatusFilamentWarningHighChamberTemp,
     PrintStatusFilamentWarningHighChamberTempCloseDoor,
     PrintStatusFilamentWarningHighChamberTempSoft,

@@ -29187,3 +29187,51 @@ msgstr "仍然退出"
 
 #~ msgid "Start the application"
 #~ msgstr "启动应用程序"
+
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr "%s使用辅助挤出机打印时，可能影响模型质量。"
+
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr "%s用于标准%s喷嘴打印，可能存在漏料风险。"
+
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr "%s用于高流量%s喷嘴打印，可能存在漏料风险。"
+
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr "%s用于高流量%s喷嘴打印，可能导致堵头，影响打印质量。"
+
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr "%s使用辅助挤出机打印时存在较高风险，可能导致打印失败或设备异常。"
+
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr "%s用于标准%s喷嘴打印，可能影响打印质量。"
+
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr "%s通过辅助挤出机供料时，使用标准%s喷嘴打印可能影响模型质量。"
+
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr "%s用于高流量%s喷嘴打印，可能导致模型的悬垂及桥接区域质量不佳。"
+
+msgid "%s is only supported for printing with the main extruder."
+msgstr "%s仅支持使用主挤出机打印。"
+
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr "%s用于标准%s喷嘴打印，可能导致耗材难以挤出，影响打印质量。"
+
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr "%s用于高流量%s喷嘴打印，可能影响打印质量。"
+
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr "%s通过辅助挤出机供料时，使用高流量%s喷嘴打印可能影响模型质量。"
+
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr "%s用于高流量%s喷嘴打印，可能导致耗材难以挤出，影响打印质量。"
+
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr "%s通过辅助挤出机供料时，使用高流量%s喷嘴打印可能导致堵头，影响打印质量。"
+
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr "受耗材变轨器影响，%s可能进退料失败。若仍要继续使用，请查看详细使用指南。"
+
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr "受耗材变轨器影响，%s可能断裂在料管中。若仍要继续使用，请查看详细使用指南。"

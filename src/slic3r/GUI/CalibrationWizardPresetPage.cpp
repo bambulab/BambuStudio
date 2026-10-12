@@ -1791,7 +1791,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         }
         result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
 
-        if (const auto& prohibition_items = result.get_items_by_action("prohibition"); !prohibition_items.empty()) {
+        if (const auto& prohibition_items = result.get_prohibition_items(); !prohibition_items.empty()) {
             wxString combined_msg;
             for (auto item : prohibition_items) {
                 combined_msg += item.info_msg + "\n";
@@ -1801,14 +1801,17 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
             return false;
         }
 
-        if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
-            wxString combined_msg;
-            for (auto item : warning_items) {
-                combined_msg += item.info_msg + "\n";
-            }
+        wxString combined_msg;
+        for (const auto& item : result.get_critical_items()) {
+            combined_msg += item.info_msg + "\n";
+        }
 
+        for (const auto& item : result.get_warning_items()) {
+            combined_msg += item.info_msg + "\n";
+        }
+
+        if (!combined_msg.IsEmpty()) {
             error_tips = combined_msg.ToUTF8().data();
-            return true;
         }
 
         return true;

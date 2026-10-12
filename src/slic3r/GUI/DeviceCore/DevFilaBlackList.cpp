@@ -150,6 +150,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             std::string type_suffix = filament_item.contains("type_suffix") ? filament_item["type_suffix"].get<std::string>() : "";
             std::string name_suffix = filament_item.contains("name_suffix") ? filament_item["name_suffix"].get<std::string>() : "";
             std::string name = filament_item.contains("name") ? filament_item["name"].get<std::string>() : "";
+            std::vector<std::string> filament_id_vec = filament_item.contains("filament_id_vec") ? filament_item["filament_id_vec"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::string slot = filament_item.contains("slot") ? filament_item["slot"].get<std::string>() : "";
             std::optional<bool> used_for_print_support = filament_item.contains("used_for_print_support") ? filament_item["used_for_print_support"].get<bool>() : std::optional<bool>();
             std::optional<bool> used_for_print_object = filament_item.contains("used_for_print_object") ? filament_item["used_for_print_object"].get<bool>() : std::optional<bool>();
@@ -165,9 +166,12 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             if (!nozzle_flows.empty() && std::find(nozzle_flows.begin(), nozzle_flows.end(), check_info.nozzle_flow.value_or("")) == nozzle_flows.end()) { continue; }
 
             // check nozzle diameter
+            // A diameter scoped item cannot be judged when the slot's nozzle is unknown, so skip it
+            // instead of letting it match every diameter.
             const std::vector<float> nozzle_diameters = filament_item.contains("nozzle_diameters") ? filament_item["nozzle_diameters"].get<std::vector<float>>() : std::vector<float>();
-            if (!nozzle_diameters.empty() && check_info.nozzle_diameter.has_value() &&
-                std::find(nozzle_diameters.begin(), nozzle_diameters.end(), check_info.nozzle_diameter.value()) == nozzle_diameters.end()) {
+            if (!nozzle_diameters.empty() &&
+                (!check_info.nozzle_diameter.has_value() ||
+                 std::find(nozzle_diameters.begin(), nozzle_diameters.end(), check_info.nozzle_diameter.value()) == nozzle_diameters.end())) {
                 continue;
             }
 
@@ -227,6 +231,11 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             if (!name_suffix.empty()) {
                 if (tag_name.length() < name_suffix.length()) { continue; }
                 if ((tag_name.substr(tag_name.length() - name_suffix.length()) != name_suffix)) { continue; }
+            }
+
+            // check filament id: lets one item cover a group of filaments that share the same message
+            if (!filament_id_vec.empty() && std::find(filament_id_vec.begin(), filament_id_vec.end(), check_info.fila_id) == filament_id_vec.end()) {
+                continue;
             }
 
             // check filament used for print support
@@ -354,6 +363,17 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else if (description == "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
+            } else if (const size_t first_pos = description.find("%s"); first_pos != std::string::npos) {
+                // Generic case: the message takes the filament name and, with a second placeholder,
+                // the nozzle diameter. Data driven messages need no dedicated branch here.
+                const std::string& fila_desc = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
+                const wxString& fila_str = wxString::FromUTF8(fila_desc);
+                if (description.find("%s", first_pos + 2) != std::string::npos) {
+                    result_item.info_msg = wxString::Format(_L(description), fila_str,
+                                                            wxString::Format("%gmm", check_info.nozzle_diameter.value_or(0.f)));
+                } else {
+                    result_item.info_msg = wxString::Format(_L(description), fila_str);
+                }
             } else {
                 result_item.info_msg = _L(description);
             }
@@ -392,6 +412,28 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
             L("%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.");
             L("%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.");
+
+            // Error in description, X2D filament compatibility
+            L("%s is only supported for printing with the main extruder.");
+
+            // Critical warning in description, X2D filament compatibility
+            L("%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction.");
+            L("Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide.");
+
+            // Warning in description, X2D filament compatibility
+            L("%s is used with the auxiliary extruder and may impact print quality.");
+            L("%s used with a high-flow %s nozzle may affect print quality.");
+            L("%s used with a high-flow %s nozzle may cause a clog.");
+            L("%s used with a high-flow %s nozzle may cause oozing.");
+            L("%s used with a high-flow %s nozzle may lead to difficult extrusion.");
+            L("%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model.");
+            L("%s used with a standard %s nozzle may affect print quality.");
+            L("%s used with a standard %s nozzle may cause oozing.");
+            L("%s used with a standard %s nozzle may lead to difficult extrusion.");
+            L("Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide.");
+            L("When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality.");
+            L("When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog.");
+            L("When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality.");
         };
     }
 }
@@ -432,7 +474,7 @@ void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_
         std::string  fila_name = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
         if (!(filament_info->filament_printable >> extruder_idx & 1)) {
             DevFilaBlacklist::CheckResultItem item;
-            item.action = "prohibition";
+            item.action = DevFilaBlacklist::ACTION_PROHIBITION;
             item.info_msg = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
             result.action_items[item.action].push_back(item);
             return;
@@ -451,12 +493,12 @@ void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_
         if (compatibale_val == 0) {
         } else if (compatibale_val == 1) {
             DevFilaBlacklist::CheckResultItem item;
-            item.action = "prohibition";
+            item.action = DevFilaBlacklist::ACTION_PROHIBITION;
             item.info_msg = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
             result.action_items[item.action].push_back(item);
         } else if (compatibale_val == 2) {
             DevFilaBlacklist::CheckResultItem item;
-            item.action = "warning";
+            item.action = DevFilaBlacklist::ACTION_WARNING;
             if (is_bowden_extruder) {
                 item.info_msg = wxString::Format(_L("There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"), fila_name, extruder_name);
             } else {
@@ -466,7 +508,7 @@ void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_
             result.action_items[item.action].push_back(item);
         } else if (compatibale_val == 3) {
             DevFilaBlacklist::CheckResultItem item;
-            item.action = "warning";
+            item.action = DevFilaBlacklist::ACTION_WARNING;
             if (is_bowden_extruder) {
                 item.info_msg = wxString::Format(_L("There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."), fila_name, extruder_name);
             } else {
@@ -486,19 +528,34 @@ DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(con
         return result;
     }
 
-    // check the filaments in preset
-    check_filaments_printable(info, result);
+    // The preset and the blacklist file can both judge the same filament. Keep the stricter verdict,
+    // and prefer the blacklist when both are equally strict, so that the config file can refine what
+    // the preset says without having to edit every preset.
+    CheckResult preset_result;
+    check_filaments_printable(info, preset_result);
 
-    // check the filaments in blacklist file
-    check_filaments(info, result);
+    CheckResult blacklist_result;
+    check_filaments(info, blacklist_result);
 
-    // if skip_ams_blacklist_check is true, change prohibition to warning
+    if (blacklist_result.empty()) {
+        result = preset_result;
+    } else if (preset_result.empty() || blacklist_result.GetMaxSeverity() >= preset_result.GetMaxSeverity()) {
+        result = blacklist_result;
+    } else {
+        result = preset_result;
+    }
+
+    // if skip_ams_blacklist_check is true, change prohibition to critical warning so that the print
+    // is no longer blocked while the message keeps the highest non-blocking severity
     if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
-        const auto &prohibit_items = result.get_items_by_action("prohibition");
+        const auto& prohibit_items = result.get_prohibition_items();
         if (!prohibit_items.empty()) {
-            for (const auto &prohibit_item : prohibit_items) { result.action_items["warning"].push_back(prohibit_item); }
+            for (auto prohibit_item : prohibit_items) {
+                prohibit_item.action = ACTION_CRITICAL_WARNING;
+                result.action_items[ACTION_CRITICAL_WARNING].push_back(prohibit_item);
+            }
 
-            result.action_items.erase("prohibition");
+            result.action_items.erase(ACTION_PROHIBITION);
         }
     }
 

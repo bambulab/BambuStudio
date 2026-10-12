@@ -1244,7 +1244,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
     // check filament info
     const auto& fila_check_res = sCheckFilamentInfo(preset_bundle, obj, ams_id, slot_id, filament_item.filament_id, ams_filament_id, ams_setting_id);
-    bool can_set_fila = fila_check_res.get_items_by_action("prohibition").empty();
+    bool can_set_fila = fila_check_res.get_prohibition_items().empty();
 
     // check if need to set usr_has_setup_tpu
     auto fila_item = preset_bundle ? preset_bundle->get_filament_by_filament_id(filament_item.filament_id) : std::nullopt;
@@ -1271,7 +1271,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     }
 
     if (!fila_check_res.action_items.empty()) {
-        if (const auto& prohibit_items = fila_check_res.get_items_by_action("prohibition"); !prohibit_items.empty()) {
+        if (const auto& prohibit_items = fila_check_res.get_prohibition_items(); !prohibit_items.empty()) {
             wxString info_msg;
             for (auto item : prohibit_items) {
                 info_msg += item.info_msg + "\n";
@@ -1282,16 +1282,20 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
             return;
         }
 
-        if (const auto& warning_items = fila_check_res.get_items_by_action("warning"); !warning_items.empty()) {
-            std::vector<FilamentWarningInfo> infos;
-
-            for (auto item : warning_items) {
+        std::vector<FilamentWarningInfo> infos;
+        const auto& collect_warnings = [&infos](const std::vector<DevFilaBlacklist::CheckResultItem>& items) {
+            for (const auto& item : items) {
                 FilamentWarningInfo info;
                 info.info_msg = item.info_msg;
                 info.wiki_url = item.wiki_url;
                 infos.emplace_back(info);
             }
+        };
 
+        collect_warnings(fila_check_res.get_critical_items());
+        collect_warnings(fila_check_res.get_warning_items());
+
+        if (!infos.empty()) {
             FilamentWarningDialog msg_window(nullptr, _("Warning"), infos);
             msg_window.ShowModal();
         }
