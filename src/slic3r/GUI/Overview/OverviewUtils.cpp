@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 
 namespace Slic3r {
 namespace GUI {
@@ -300,6 +301,8 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
     plater->take_snapshot("Move isolated volumes", UndoRedo::SnapshotType::GizmoAction);
 
     std::vector<int> moved_object_idxs;
+    // Several isolated parts can share one instance. An instance-level fallback must run only once.
+    std::unordered_set<const ModelInstance *> moved_instances;
 
     for (const auto &iv : GLCanvas3D::s_isolated_volumes) {
         const AssembleTargetRef ref = resolve_assemble_target(primary_model, iv);
@@ -366,6 +369,8 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
             }
         }
         if (!moved) {
+            if (!moved_instances.insert(inst).second)
+                continue;
             Geometry::Transformation new_trafo = inst->get_assemble_transformation();
             new_trafo.set_offset(new_trafo.get_offset() + delta);
             inst->set_assemble_transformation(new_trafo);
@@ -387,11 +392,15 @@ bool OverviewUtils::move_isolated_volumes_closer(wxEvtHandler *)
             if (oi >= 0 && oi < (int) primary_model.objects.size())
                 sel.add_object((unsigned int) oi, false);
         }
+        // do_move is not on this path, so the allow_sync callback never runs. Rebuild after the
+        // GLVolumes carry the new assemble offsets, or the red box and isolated list stay stale.
+        canvas->_rebuild_assembly_bvh_from_canvas();
+    } else {
+        GLCanvas3D::s_isolated_volumes.clear();
+        if (canvas)
+            canvas->refresh_isolated_volumes_notification();
     }
 
-    GLCanvas3D::s_isolated_volumes.clear();
-    GLCanvas3D::s_isolated_notification_shown   = false;
-    GLCanvas3D::s_intersects_notification_shown = false;
     plater->get_partplate_list().reset_thumbnail_assembly_view_data();
     plater->update();
     return false;

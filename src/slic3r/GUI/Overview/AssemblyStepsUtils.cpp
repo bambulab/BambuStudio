@@ -6148,6 +6148,7 @@ bool AssemblyStepsUtils::allow_sync_in_assemble_view()
 {
     if (m_only_final_assembly_endframe_effect_real_assembly) {
         if (!has_selected_node()) {
+            do_commond_callback("rebuild_assembly_bvh");
             return true;
         }
         if (!has_selected_final_assembly_end_keyframe()) {
@@ -6155,6 +6156,8 @@ bool AssemblyStepsUtils::allow_sync_in_assemble_view()
             return false;
         }
     }
+    // This edit is written onto the real assemble pose. The prepare-view BVH is then stale.
+    do_commond_callback("rebuild_assembly_bvh");
     return true;
 }
 

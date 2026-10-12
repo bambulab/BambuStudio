@@ -10848,11 +10848,9 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
     }
     else if (name == "Assemble") {
         BOOST_LOG_TRIVIAL(info) << "select assemble view";
-        // set_current_panel binds the assembly canvas to m_assemble_model (derive / sync on real enter).
-        // active_view() must run AFTER that so deal_once_when_enter_assembly_view() rebuilds the assembly
-        // tree on m_assemble_model, not on the still-bound prepare model (would leave a_model tree empty).
+        // active_view() runs inside set_current_panel before the first paint. It only raises or
+        // closes the isolated-volume notification from the prepare-view BVH cache; it does not rebuild bounds.
         set_current_panel(assemble_view, no_slice);
-        assemble_view->get_canvas3d()->active_view();
     }
 
     //BBS update selection
@@ -12398,6 +12396,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!m_assemble_model_valid)
                         derive_assemble_model();//reload existed 3mf
                 }
+                // assembly_model.json can arrive without a steps tree. Derive before the prepare
+                // view paints its assembly thumbnail, then drop any BVH cached against the
+                // not-yet-derived model.
+                if (!m_assemble_model_valid && !q->model().get_assembly_model_json_str().empty())
+                    derive_assemble_model();
+                if (m_assemble_model_valid)
+                    partplate_list.reset_thumbnail_assembly_view_data();
                 const bool step_position_compensated = apply_step_object_position_compensations(loaded_idxs, step_object_position_compensations);
                 bool       need_show_sole_text_notice = false;
                 if (type_step && !model.step_import_tree_nodes.empty() && !loaded_idxs.empty()) {
@@ -15689,6 +15694,10 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         // Reset the cached size to force a resize on the next render() so the GL
         assemble_view->get_canvas3d()->reset_old_size();
         assemble_view->set_as_dirty();
+        // Raise or close the isolated-volume notification before the first paint, using the BVH
+        // cache computed on the prepare view. Bounds are not rebuilt here.
+        if (real_enter_assemble)
+            assemble_view->get_canvas3d()->active_view();
         // Paint the prepared scene now so the first presented GL frame is the
         assemble_view->get_canvas3d()->render();
         // BBS

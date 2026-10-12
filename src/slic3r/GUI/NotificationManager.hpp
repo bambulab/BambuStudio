@@ -185,7 +185,6 @@ enum class NotificationType
     AssemblyInfo,
     BBLIsolatedVolumeInfo,
     BBLAssemblyFarFromOrigin,
-    BBLIntersectsVolumeInfo,
 	BBLArcFittingInfo,
     BBLCalibExtruderMismatch,
     NotificationTypeCount

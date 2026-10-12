@@ -84,6 +84,9 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <map>
+#include <tuple>
+#include <unordered_map>
 
 #define TINYBVH_NO_SIMD
 #ifdef _WINDOWS_
@@ -151,7 +154,6 @@ bool                                        GLCanvas3D::s_enable_bvh = true;
 std::vector<GLCanvas3D::IsolatedVolumeInfo> GLCanvas3D::s_isolated_volumes;
 int                                         GLCanvas3D::s_assemble_candidate_volumes_size;
 bool                                        GLCanvas3D::s_isolated_notification_shown = false;
-bool                                        GLCanvas3D::s_intersects_notification_shown = false;
 int                                         GLCanvas3D::s_assemble_ratio = 0;
 int                                         GLCanvas3D::s_assemble_volume_ratio = 0;
 bool                                        GLCanvas3D::s_far_from_origin_notification_shown = false;
@@ -1607,6 +1609,9 @@ void GLCanvas3D::set_type(ECanvasType type)
                     wxGetApp().plater()->mark_assemble_view_requires_zoom_to_volumes();
                     m_dirty = true;
                     request_extra_frame();
+                } else if (cmd == "rebuild_assembly_bvh") {
+                    _rebuild_assembly_bvh_from_canvas();
+                    m_dirty = true;
                 } else if (cmd == "update_gizmos_on_off_state") {
                     update_gizmos_on_off_state();
                 } else if (cmd == "deselect_all") {
@@ -2191,10 +2196,99 @@ void GLCanvas3D::set_model(Model* model)
     m_selection.set_model(m_model);
 }
 
+void GLCanvas3D::_rebuild_assembly_bvh_from_canvas()
+{
+    if (m_canvas_type != ECanvasType::CanvasAssembleView || m_model == nullptr)
+        return;
+
+    s_enable_bvh = wxGetApp().app_config->get_bool("enable_bvh");
+
+    std::vector<GLVolume *>             volumes;
+    std::vector<BoundingBoxf3>          boxes;
+    std::vector<AssemblePoseTarget>     targets;
+    volumes.reserve(m_volumes.volumes.size());
+    boxes.reserve(m_volumes.volumes.size());
+    targets.reserve(m_volumes.volumes.size());
+
+    for (GLVolume *vol : m_volumes.volumes) {
+        if (vol == nullptr || vol->is_modifier || vol->is_wipe_tower || !vol->printable)
+            continue;
+        const int oi = vol->object_idx();
+        const int vi = vol->volume_idx();
+        if (oi < 0 || oi >= (int) m_model->objects.size())
+            continue;
+        ModelObject *obj = m_model->objects[oi];
+        if (obj == nullptr || vi < 0 || vi >= (int) obj->volumes.size() || obj->volumes[vi] == nullptr)
+            continue;
+        ModelVolume *mv = obj->volumes[vi];
+        if (!mv->is_model_part())
+            continue;
+        const int ii = vol->instance_idx();
+        ModelInstance *inst = (ii >= 0 && ii < (int) obj->instances.size()) ? obj->instances[ii] : nullptr;
+        if (inst == nullptr && !obj->instances.empty())
+            inst = obj->instances.front();
+        if (inst == nullptr)
+            continue;
+
+        volumes.push_back(vol);
+        boxes.push_back(vol->transformed_bounding_box());
+        AssemblePoseTarget target;
+        target.object_id   = obj->id().id;
+        target.instance_id = inst->id().id;
+        target.part_guid   = !mv->assembly_src_guid().empty() ? mv->assembly_src_guid() : mv->part_guid();
+        targets.push_back(std::move(target));
+    }
+
+    s_assemble_candidate_volumes_size = (int) volumes.size();
+    if (!s_enable_bvh || volumes.size() <= 1) {
+        s_isolated_volumes.clear();
+        s_bvh_primary_bounds.reset();
+        s_bvh_expanded_bounds.reset();
+        s_first_primary_bounds.reset();
+        s_assemble_ratio        = 0;
+        s_assemble_volume_ratio = 0;
+        refresh_isolated_volumes_notification();
+        return;
+    }
+
+    std::vector<bool> include(volumes.size(), true);
+    _filter_assembly_thumbnail_candidates_by_bvh(volumes, boxes, targets, false, true, include);
+    s_assemble_ratio = s_assemble_candidate_volumes_size == 0 ? 0
+                       : 100 - (int) (s_isolated_volumes.size() * 100 / s_assemble_candidate_volumes_size);
+    refresh_isolated_volumes_notification();
+}
+
+void GLCanvas3D::refresh_isolated_volumes_notification()
+{
+    auto *notify_mgr = wxGetApp().plater() ? wxGetApp().plater()->get_notification_manager() : nullptr;
+    if (s_isolated_volumes.empty()) {
+        if (notify_mgr)
+            notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
+        s_isolated_notification_shown = false;
+        return;
+    }
+    // The click handler returns false, so the old popup stays up with the pre-move names.
+    if (notify_mgr)
+        notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
+    _show_isolated_volumes_notification();
+    s_isolated_notification_shown = true;
+}
+
 void GLCanvas3D::active_view() {
     if (m_assembly_steps) { // enter CanvasAssembleView
         m_assembly_steps->set_input(wxGetApp().imgui(), m_model, &get_active_camera(), &m_selection, &m_volumes, m_gizmos.get_current_type() != GLGizmosManager::Undefined);
         m_assembly_steps->deal_once_when_enter_assembly_view();
+        //show imgui message
+        if (s_isolated_volumes.empty()) {
+            auto *notify_mgr = wxGetApp().plater() ? wxGetApp().plater()->get_notification_manager() : nullptr;
+            if (notify_mgr)
+                notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
+            s_isolated_notification_shown = false;
+        } else if (!s_isolated_notification_shown) {
+            _show_isolated_volumes_notification();
+            s_isolated_notification_shown = true;
+        }
+        _check_assembly_far_from_origin();
     }
 }
 
@@ -8306,6 +8400,14 @@ bool GLCanvas3D::_update_assembly_view_thumbnail()
     }
 
     if (volume_count > 1) {
+        // load_files derives the assembly model only after every object is loaded, then drops this
+        // thumbnail. A progress-dialog Yield can paint before that. Do not derive here: a partial
+        // object list would set m_assemble_model_valid and the load-site restore would never run.
+        const Model &prepare = plater->model();
+        const bool persisted_assembly = !prepare.get_assembly_model_json_str().empty()
+            || !prepare.get_assembly_steps_json_str().empty();
+        if (persisted_assembly && plater->assemble_model().objects.empty())
+            return false;
         if (thumbnail_assembly_view_data.is_valid()) {
             return false;
         }
@@ -9999,7 +10101,6 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         if (notify_mgr) {
             notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
             notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
-            notify_mgr->close_notification_of_type(NotificationType::BBLIntersectsVolumeInfo);
         }
     };
     const std::string  current_enable_assemble_view_preview = GUI::wxGetApp().app_config->get("enable_assemble_view_preview");
@@ -10007,26 +10108,12 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         close_assembly_notifications();
         return;
     }
-    static ECanvasType last_canvas_type = ECanvasType::CanvasView3D;
-    if (m_canvas_type == ECanvasType::CanvasView3D || m_canvas_type == ECanvasType::CanvasAssembleView) {
-        if (!s_isolated_volumes.empty() && !s_isolated_notification_shown) {
-            _show_isolated_volumes_notification();
-            s_isolated_notification_shown = true;
-        } else if (s_isolated_volumes.empty()) {
-            auto *notify_mgr            = wxGetApp().plater() ? wxGetApp().plater()->get_notification_manager() : nullptr;
-            if (notify_mgr) {
-                notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
-            }
-        }
-
-        if (!s_far_from_origin_notification_shown) {
-            _check_assembly_far_from_origin();
-        }
-        if (last_canvas_type == ECanvasType::CanvasView3D && m_canvas_type == ECanvasType::CanvasAssembleView) {//enter CanvasAssembleView
-            _show_isolated_volumes_notification();
-            _check_assembly_far_from_origin();
-        }
-        last_canvas_type = m_canvas_type;
+    // Popup itself is raised in active_view(). Close it once the canvas is no longer the assembly view.
+    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        auto *notify_mgr = wxGetApp().plater() ? wxGetApp().plater()->get_notification_manager() : nullptr;
+        if (notify_mgr)
+            notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
+        s_isolated_notification_shown = false;
     }
     if (m_canvas_type == ECanvasType::CanvasAssembleView && !s_bvh_primary_bounds.defined) {
         close_assembly_notifications();
@@ -12715,7 +12802,6 @@ void GLCanvas3D::clear_isolated_volumes_cache()
 {
     s_isolated_volumes.clear();
     s_isolated_notification_shown        = false;
-    s_intersects_notification_shown      = false;
     s_far_from_origin_notification_shown = false;
     s_bvh_primary_bounds.reset();
     s_bvh_expanded_bounds.reset();
@@ -12729,7 +12815,6 @@ void GLCanvas3D::clear_isolated_volumes_cache()
         if (auto *notify_mgr = plater->get_notification_manager()) {
             notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
             notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
-            notify_mgr->close_notification_of_type(NotificationType::BBLIntersectsVolumeInfo);
         }
     }
 }
@@ -12963,9 +13048,12 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                 if (pi < candidate_volumes.size()) {
                     GLVolume *vol     = candidate_volumes[pi];
                     const int oid     = vol->object_idx();
+                    const int iid     = vol->instance_idx();
+                    const int vid     = vol->volume_idx();
                     bool      already = false;
+                    // One ModelObject holds many parts. Keep each isolated part, not one entry per object.
                     for (const auto &iv : GLCanvas3D::s_isolated_volumes) {
-                        if (iv.obj_idx == oid) {
+                        if (iv.obj_idx == oid && iv.instance_idx == iid && iv.volume_idx == vid) {
                             already = true;
                             break;
                         }
@@ -12973,7 +13061,8 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                     if (!already) {
                         GLCanvas3D::IsolatedVolumeInfo info;
                         info.obj_idx            = oid;
-                        info.instance_idx       = vol->instance_idx();
+                        info.instance_idx       = iid;
+                        info.volume_idx         = vid;
                         info.name               = vol->name;
                         info.world_box_assembly = candidate_boxes[pi];
                         if (pi < candidate_targets.size())
@@ -12993,11 +13082,20 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
     _check_and_exclude_bvh_node(bvh, node.leftFirst + 1, primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, candidate_targets, include_flags);
 }
 constexpr double c_bvh_expand_dist = 3.0;
+using IsolatedPartKey = std::tuple<int, int, int>; // (object_idx, instance_idx, volume_idx)
+struct IsolatedPartKeyHash {
+    size_t operator()(const IsolatedPartKey &key) const {
+        size_t h = std::hash<int>{}(std::get<0>(key));
+        h ^= std::hash<int>{}(std::get<1>(key)) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        h ^= std::hash<int>{}(std::get<2>(key)) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        return h;
+    }
+};
 static void _reclaim_isolated_volumes_by_bvh(
     const std::vector<GLVolume*>&                    candidate_volumes,
     const std::vector<BoundingBoxf3>&                candidate_boxes,
     std::vector<bool>&                               include_flags,
-    const std::unordered_map<int, std::vector<size_t>>& obj_to_candidates,
+    const std::unordered_map<IsolatedPartKey, std::vector<size_t>, IsolatedPartKeyHash>& part_to_candidates,
     int&                                             out_iterations)
 {
     constexpr int    max_reclaim_iters  = 3;
@@ -13049,9 +13147,11 @@ static void _reclaim_isolated_volumes_by_bvh(
 
                     reclaimed[pi]  = true;
                     reclaimed_any  = true;
-                    const int oid  = GLCanvas3D::s_isolated_volumes[pi].obj_idx;
-                    auto map_it    = obj_to_candidates.find(oid);
-                    if (map_it != obj_to_candidates.end()) {
+                    const auto &iv = GLCanvas3D::s_isolated_volumes[pi];
+                    const int   oid = iv.obj_idx;
+                    // Reclaim only this part. Sibling volumes of the same object stay isolated.
+                    auto map_it    = part_to_candidates.find(IsolatedPartKey(oid, iv.instance_idx, iv.volume_idx));
+                    if (map_it != part_to_candidates.end()) {
                         for (size_t j : map_it->second) {
                             include_flags[j] = true;
                             GLCanvas3D::s_bvh_primary_bounds.merge(candidate_boxes[j]);
@@ -13177,7 +13277,6 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
 
     s_isolated_volumes.clear();
     s_isolated_notification_shown = false;
-    s_intersects_notification_shown = false;
     s_far_from_origin_notification_shown = false;
     s_isolated_volumes.reserve(assemble_candidate_volumes.size());
     s_bvh_primary_bounds = primary_bounds;
@@ -13187,15 +13286,16 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
                                 assemble_candidate_volumes, assemble_candidate_boxes, assemble_candidate_targets, include_candidate_volumes);
 
     if (!s_isolated_volumes.empty()) {
-        std::unordered_map<int, std::vector<size_t>> obj_to_candidates;
-        obj_to_candidates.reserve(assemble_candidate_volumes.size());
-        for (size_t j = 0; j < assemble_candidate_volumes.size(); ++j)
-            obj_to_candidates[assemble_candidate_volumes[j]->object_idx()].push_back(j);
+        std::unordered_map<IsolatedPartKey, std::vector<size_t>, IsolatedPartKeyHash> part_to_candidates;
+        for (size_t j = 0; j < assemble_candidate_volumes.size(); ++j) {
+            const GLVolume *gv = assemble_candidate_volumes[j];
+            part_to_candidates[IsolatedPartKey(gv->object_idx(), gv->instance_idx(), gv->volume_idx())].push_back(j);
+        }
 
         int reclaim_iters = 0;
         const auto reclaim_t0 = std::chrono::steady_clock::now();
         _reclaim_isolated_volumes_by_bvh(assemble_candidate_volumes, assemble_candidate_boxes,
-                                         include_candidate_volumes, obj_to_candidates, reclaim_iters);
+                                         include_candidate_volumes, part_to_candidates, reclaim_iters);
         const auto reclaim_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - reclaim_t0).count();
         BOOST_LOG_TRIVIAL(info) << boost::format("assembly BVH: reclaim_isolated_by_bvh done in %1%ms, iterations=%2%, remaining_isolated=%3%")
             % reclaim_ms % reclaim_iters % s_isolated_volumes.size();

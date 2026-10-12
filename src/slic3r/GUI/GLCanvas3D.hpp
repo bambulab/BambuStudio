@@ -903,6 +903,11 @@ public:
     void set_model(Model* model);
 
     void active_view();
+    // Recompute primary/isolated bounds from the volumes currently posed on this canvas,
+    // then close or replace the isolated-volume notification to match.
+    void _rebuild_assembly_bvh_from_canvas();
+    // Close the isolated-volume popup when the list is empty, otherwise replace it with the current names.
+    void refresh_isolated_volumes_notification();
     bool is_assembly_guide_node_selected() const;
     AssemblyStepsUtils *get_assembly_steps() { return m_assembly_steps.get(); }
     const AssemblyStepsUtils *get_assembly_steps() const { return m_assembly_steps.get(); }
@@ -1067,6 +1072,7 @@ public:
         // Identify volumes by index / name only: GLVolume* would dangle after reload/reset.
         int                obj_idx      = -1;
         int                instance_idx = -1;
+        int                volume_idx   = -1;
         std::string        name;
         BoundingBoxf3      world_box_assembly;
         AssemblePoseTarget target;
@@ -1077,7 +1083,6 @@ public:
     static void                            clear_isolated_volumes_cache();
     static int                             s_assemble_candidate_volumes_size;
     static bool                            s_isolated_notification_shown;
-    static bool                            s_intersects_notification_shown;
     static int                             s_assemble_ratio;
     static int                             s_assemble_volume_ratio;
     static bool                            s_far_from_origin_notification_shown;
