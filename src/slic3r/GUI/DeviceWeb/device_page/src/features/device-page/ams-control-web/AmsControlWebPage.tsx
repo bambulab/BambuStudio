@@ -2,12 +2,18 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
 import { useSendToCpp } from '../../../hooks/Bridge';
 import { useAmsControlWebBridge } from './useAmsControlWebBridge';
+import { useAutoScaleToViewport } from './useAutoScaleToViewport';
+import { useMeasuredHeight } from './useMeasuredHeight';
 import './ams-control-web.css';
 import { COLORS, CONTENT_WIDTH, DOWN_ROAD, MIXED_EXT_WIDTH, MIXED_LITE_WIDTH, PREVIEW_BODY_GAP, PREVIEW_STRIP, UNIT_BODY, px } from './dip';
 import { extruderIconName, extrudersLeftToRight, unitSlotLayout } from './displayAdapters';
 import { SINGLE_EXT_ELBOW, amsControlWebContentHeight, extPanelWidth, isFilamentRoadActive, nozzleIconLefts, nozzleInletX, overlayStageHeight, roadExtruderId, snapRoadX, unitWidth } from './geometry';
+// Nothing imports amsControlWebContentHeight anymore from this file: it is
+// kept only as the first-paint estimate for the host height. The live
+// measurement from useMeasuredHeight supersedes it after mount.
+
 import type { PanelView, PreviewItem, SlotLink, SlotView, UnitView } from './types';
-import { columnExtSlots, columnPreviewItems, columnShowsPreviewStrip, columnUnits, isLiteMixedBodyRow, isLiteMixedMachine, panelColumns, splitMixedPreview } from './layout';
+import { columnExtSlots, columnPreviewItems, columnUnits, computePreviewStripVisibility, isLiteMixedBodyRow, isLiteMixedMachine, panelColumns, splitMixedPreview } from './layout';
 import { buildRoadOverlay, type RoadBlock, type RoadBlockDraft } from './roadPaths';
 import { AmsFooter } from './components/AmsFooter';
 import { AmsPreviewBar } from './components/AmsPreviewBar';
@@ -110,22 +116,34 @@ export function AmsControlWebPage() {
   };
 
   const dualNozzle = extruders.length >= 2;
+  const previewStripEntries = columns.map((column) => ({ column, previewItems: columnPreviewItems(column, preview.items) }));
+  const showsPreviewStrip = computePreviewStripVisibility(previewStripEntries, dualNozzle);
   const hasPreview = preview.visible && (
     mixedMachine
-    || columns.some((column) =>
-      columnShowsPreviewStrip(column, columnPreviewItems(column, preview.items), dualNozzle),
-    )
+    || previewStripEntries.some((entry) => showsPreviewStrip(entry.column))
   );
-  useReportAmsControlWebHostSize(
-    display.visible
-      ? amsControlWebContentHeight({
-          hasPreview,
-          slotAreaVisible: amsExt.visible,
-          hasSwitcher: display.switcher_area.visible,
-          hasSetupHint: Boolean(display.switcher_area.show_setup_hint && display.switcher_area.setup_hint),
-        })
-      : 0,
-  );
+
+  // Live DOM height measurement feeds the host size report. The constant-sum
+  // fallback below only matters for the first paint before `measuredBody.ref`
+  // attaches.
+  const measuredBody = useMeasuredHeight();
+  const estimatedHeight = display.visible
+    ? amsControlWebContentHeight({
+        hasPreview,
+        slotAreaVisible: amsExt.visible,
+        hasSwitcher: display.switcher_area.visible,
+        hasSetupHint: Boolean(display.switcher_area.show_setup_hint && display.switcher_area.setup_hint),
+      })
+    : 0;
+  const reportedHostHeight = display.visible
+    ? (measuredBody.height > 0 ? measuredBody.height : estimatedHeight)
+    : 0;
+  useReportAmsControlWebHostSize(reportedHostHeight);
+
+  // Auto-scale wrapper measurements. Hooks must run on every render regardless
+  // of `display.visible` so the hook count stays stable; the early return
+  // below renders a minimal placeholder that keeps the hook chain alive.
+  const { viewportRef, contentRef, scale, contentWidth, contentHeight } = useAutoScaleToViewport();
 
   if (!display.visible) {
     return <div data-testid="ams-control-web-page" className="hidden" />;
@@ -222,6 +240,10 @@ export function AmsControlWebPage() {
 
   const splitColumns = columnBlocks.length > 1;
   const columnWidth = splitColumns ? CONTENT_WIDTH / columnBlocks.length : CONTENT_WIDTH;
+  // Split layout gives each column the same full-width plate below (see the
+  // plate comment further down), so the strip above it matches that width
+  // instead of AmsPreviewBar's single-AMS default.
+  const columnPlateWidth = columnWidth - COLUMN_GAP;
 
   const laidOut: ColumnLayout[] = columnBlocks.map((entry, index) => {
     const innerWidth =
@@ -256,19 +278,43 @@ export function AmsControlWebPage() {
     nozzleXOf,
   });
 
-  const previewEntries = laidOut.filter(
-    (entry) =>
-      preview.visible &&
-      columnShowsPreviewStrip(entry.column, entry.previewItems, extruders.length >= 2),
-  );
+  const previewEntries = laidOut.filter((entry) => preview.visible && showsPreviewStrip(entry.column));
   const mixedPreview = mixedMachine ? splitMixedPreview(preview.items, extAmsIds) : null;
+
+  // Scale-aware placeholder: `transform: scale` leaves the layout box at its
+  // natural size, so without this wrapper WebView2 would mint scrollbars based
+  // on CONTENT_WIDTH / the natural content height whenever the viewport is
+  // narrower than the design. The viewport sentinel clips (overflow: hidden)
+  // and the placeholder reserves exactly the *scaled* footprint so no other
+  // ancestor sees overflow either.
+  const placeholderWidth = contentWidth > 0 ? contentWidth * scale : undefined;
+  const placeholderHeight = contentHeight > 0 ? contentHeight * scale : undefined;
 
   return (
     <div
+      ref={viewportRef}
       data-testid="ams-control-web-page"
-      className="ams-control-web-page relative flex w-full flex-col items-center py-[4px]"
+      className="ams-control-web-page relative flex w-full flex-col items-center overflow-hidden"
+      style={{ width: '100%', height: '100%' }}
     >
-      <div className="relative flex flex-col" style={{ width: px(CONTENT_WIDTH) }}>
+      <div
+        className="relative"
+        style={{
+          width: placeholderWidth !== undefined ? px(placeholderWidth) : undefined,
+          height: placeholderHeight !== undefined ? px(placeholderHeight) : undefined,
+        }}
+      >
+        <div
+          ref={contentRef}
+          className="relative flex flex-col items-center py-[4px]"
+          data-testid="ams-control-web-scale"
+          style={{
+            transform: scale === 1 ? undefined : `scale(${scale})`,
+            transformOrigin: 'top left',
+            width: px(CONTENT_WIDTH),
+          }}
+        >
+      <div ref={measuredBody.ref} className="relative flex flex-col" style={{ width: px(CONTENT_WIDTH) }}>
         {preview.visible && mixedPreview ? (
           <>
             <div
@@ -292,14 +338,13 @@ export function AmsControlWebPage() {
               }
             >
               {(splitColumns ? laidOut : previewEntries).map((entry) => {
-                const showStrip =
-                  preview.visible &&
-                  columnShowsPreviewStrip(entry.column, entry.previewItems, extruders.length >= 2);
+                const showStrip = preview.visible && showsPreviewStrip(entry.column);
                 const bar = showStrip ? (
                   <AmsPreviewBar
                     items={entry.previewItems}
                     extAmsIds={extAmsIds}
                     onSelect={onPreview}
+                    width={splitColumns ? columnPlateWidth : undefined}
                   />
                 ) : null;
                 if (!splitColumns) {
@@ -348,7 +393,7 @@ export function AmsControlWebPage() {
                       background: COLORS.unitBg,
                       ...(splitColumns
                         ? {
-                            width: px(columnWidth - COLUMN_GAP),
+                            width: px(columnPlateWidth),
                             marginLeft: px(COLUMN_GAP / 2),
                             // Half the seam comes off each side, so the pad has
                             // to shed the same amount or the blocks would slide
@@ -400,6 +445,8 @@ export function AmsControlWebPage() {
       </div>
 
       {error ? <div className="mt-1 text-xs text-red-600">{error}</div> : null}
+        </div>
+      </div>
     </div>
   );
 }
