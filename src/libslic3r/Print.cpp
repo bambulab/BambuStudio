@@ -1460,6 +1460,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
     }
 
+<<<<<<< HEAD   (13aef1 ENH: 添加混色弹窗默认沿用最后一个混色耗材)
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         // Different nozzle diameters are supported by the prime tower's per-filament extrusion planning.
         double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders.front());
@@ -1470,6 +1471,55 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     warning->string = L("Printing with different nozzle diameters and prime tower is experimental. "
                                         "The prime tower may not work correctly with mismatched nozzle sizes.");
                     warning->is_warning = true;
+=======
+    if (this->has_tool_change_structure() && ! m_objects.empty()) {
+        // The two structures are mutually exclusive (see has_wipe_tower), so this flag alone tells
+        // which one is active. Messages are kept structure-specific rather than merged into one
+        // wording: the prime tower strings stay byte-identical to before, so their translations
+        // remain valid, and the ring gets its own text.
+        const bool is_support_ring = this->support_ring_config_allows();
+
+        // The high-temp filament reminder must stay visible together with its own links, so the nozzle
+        // diameter warning is appended to it instead of replacing it.
+        auto set_nozzle_diameter_warning = [warning](const std::string &text) {
+            if (warning->hypetext == "filament_mix_print") {
+                if (!warning->string.empty() && warning->string.back() != '\n')
+                    warning->string += "\n";
+                warning->string += text;
+                return;
+            }
+            warning->string     = text;
+            warning->is_warning = true;
+        };
+
+        // Whether merge planning runs is decided by Print::uses_multiple_nozzle_diameters() (handed to the
+        // structures via set_multi_diameter_print), which also covers a single coarse filament on a finer
+        // grid. The prompt below only fires when the plate truly mixes nozzle diameters, resolved through
+        // nozzle_diameter_for_filament() like the flows and the merge plans behind it. extruders() holds
+        // 0-based filament ids, so unlike the old per-slot get_at() it also sees a filament whose nozzle
+        // differs from its slot default.
+        if (multi_nozzle_diameter_mode_enabled(m_full_print_config)) {
+            if (has_multiple_used_nozzle_diameters(m_config, extruders) && warning) {
+                set_nozzle_diameter_warning(is_support_ring ?
+                    L("Printing with different nozzle diameters and support ring is experimental. "
+                      "The support ring may not work correctly with mismatched nozzle sizes.") :
+                    L("Printing with different nozzle diameters and prime tower is experimental. "
+                      "The prime tower may not work correctly with mismatched nozzle sizes."));
+            }
+        } else {
+            // Mode off: compare the slot nozzles, no merge planning runs.
+            double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders.front());
+            for (const auto& extruder_idx : extruders) {
+                double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
+                if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam) {
+                    if (is_support_ring)
+                        return { L("Different nozzle diameters are not allowed when the support ring is enabled.") };
+                    if (warning) {
+                        set_nozzle_diameter_warning(L("Printing with different nozzle diameters and prime tower is experimental. "
+                                                      "The prime tower may not work correctly with mismatched nozzle sizes."));
+                    }
+                    break;
+>>>>>>> CHANGE (54c914 ENH: Remind high-temp filament when syncing AMS)
                 }
                 break;
             }
