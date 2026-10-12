@@ -21,14 +21,6 @@ param(
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-# --- derive the plugin version from version.inc (first 8 chars must match) ---
-$versionInc = Get-Content (Join-Path $root "version.inc") -Raw
-if ($versionInc -notmatch 'SLIC3R_VERSION\s+"([^"]+)"') {
-    throw "cannot parse SLIC3R_VERSION from version.inc"
-}
-$studioVersion = $Matches[1]
-Write-Host "Studio version: $studioVersion"
-
 $obn = Join-Path $root "open-bamboo-networking"
 if (-not (Test-Path (Join-Path $obn "configure.ps1"))) {
     throw "submodule missing — run: git submodule update --init --recursive"
@@ -38,13 +30,25 @@ if (-not (Test-Path (Join-Path $obn "configure.ps1"))) {
 if ($BuildStudio) {
     Push-Location $root
     try {
-        Write-Host "Building Bambu Studio (upstream build_win.bat)..."
-        cmd /c build_win.bat
-        if ($LASTEXITCODE -ne 0) { throw "build_win.bat failed with exit code $LASTEXITCODE" }
+        Write-Host "Building Bambu Studio (upstream build_win.bat, deps + app)..."
+        $studioLog = Join-Path $root 'build_win.out.log'
+        # stderr redirected inside cmd (PowerShell 5.1 treats redirected native
+        # stderr as a terminating error under $ErrorActionPreference='Stop')
+        cmd /c "build_win.bat -d deps\build\out_deps > `"$studioLog`" 2>&1"
+        if ($LASTEXITCODE -ne 0) { throw "build_win.bat failed (exit $LASTEXITCODE) — see $studioLog" }
     } finally {
         Pop-Location
     }
 }
+
+# --- derive the plugin version from version.inc (first 8 chars must match) ---
+# Read after the Studio build in case the build refreshed version.inc.
+$versionInc = Get-Content (Join-Path $root "version.inc") -Raw
+if ($versionInc -notmatch 'SLIC3R_VERSION\s+"([^"]+)"') {
+    throw "cannot parse SLIC3R_VERSION from version.inc"
+}
+$studioVersion = $Matches[1]
+Write-Host "Studio version: $studioVersion"
 
 # --- 2) build the open plugin from source ---
 Push-Location $obn
