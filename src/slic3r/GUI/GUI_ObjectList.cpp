@@ -974,6 +974,32 @@ void ObjectList::update_filament_values_for_items_when_replace_filament(const si
     }
 }
 
+void ObjectList::update_layer_range_filament_values()
+{
+    if (!m_objects)
+        return;
+
+    for (size_t i = 0; i < m_objects->size(); ++i) {
+        ModelObject   *object   = (*m_objects)[i];
+        wxDataViewItem obj_item = m_objects_model->GetItemById(i);
+        if (!obj_item || object->layer_config_ranges.empty())
+            continue;
+        ObjectDataViewModelNode *object_node = static_cast<ObjectDataViewModelNode *>(obj_item.GetID());
+        for (size_t c = 0; c < object_node->GetChildCount(); ++c) {
+            ObjectDataViewModelNode *layer_root_node = object_node->GetNthChild(c);
+            if (layer_root_node->GetType() != ItemType::itLayerRoot)
+                continue;
+            for (size_t j = 0; j < layer_root_node->GetChildCount(); ++j) {
+                ObjectDataViewModelNode *layer_node = layer_root_node->GetNthChild(j);
+                auto l_iter = object->layer_config_ranges.find(layer_node->GetLayerRange());
+                if (l_iter != object->layer_config_ranges.end() && l_iter->second.has("extruder"))
+                    m_objects_model->SetExtruder(wxString::Format("%d", l_iter->second.option("extruder")->getInt()),
+                                                 wxDataViewItem((void *) layer_node));
+            }
+        }
+    }
+}
+
 
 void ObjectList::update_plate_values_for_items()
 {

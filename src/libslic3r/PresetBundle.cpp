@@ -3410,7 +3410,8 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 return -1;
             };
             for (size_t i = 0; i < need_append_colors.size(); i++){
-                if (exist_filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)){
+                // Mixed slots are re-appended after the sync and count towards the limit as well.
+                if (exist_filament_presets.size() + mixed_snapshots.size() >= size_t(EnforcerBlockerType::ExtruderMax)){
                     break;
                 }
                 auto idx = get_idx_in_array(exist_filament_presets, exist_colors, need_append_colors[i].filament_preset, need_append_colors[i].filament_color);

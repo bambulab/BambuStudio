@@ -44,6 +44,9 @@ namespace GUI {
 
 static constexpr int MAX_COMPONENTS = 3;
 static constexpr int MIN_COMPONENT_RATIO = 10;
+// Shared by the manual preview and the color-matching swatch so both tabs look the same.
+static constexpr int kPreviewSwatchSize   = 80;
+static constexpr int kPreviewSwatchRadius = 6;
 
 // Lightweight self-painting label used for both dual-color and triple-color
 // ratio percentage display.  Hover shows a rounded-rect background; click
@@ -754,10 +757,10 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
         if (n == 0) return;
 
         if (m_match_mode) {
-            const int sw = FromDIP(100);
+            const int sw = FromDIP(kPreviewSwatchSize);
             const int mx = (sz.GetWidth() - sw) / 2;
             const int my = (sz.GetHeight() - sw) / 2;
-            const double r = FromDIP(8);
+            const double r = FromDIP(kPreviewSwatchRadius);
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(wxBrush(matched_colour()));
             dc.DrawRoundedRectangle(mx, my, sw, sw, r);
@@ -769,10 +772,10 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
             return;
         }
 
-        int swatch_sz = FromDIP(80);
+        int swatch_sz = FromDIP(kPreviewSwatchSize);
         int x0 = (sz.GetWidth() - swatch_sz) / 2;
         int y0 = (sz.GetHeight() - swatch_sz) / 2;
-        double radius = FromDIP(6);
+        double radius = FromDIP(kPreviewSwatchRadius);
 
         if (m_result.gradient_enabled && n == 2) {
             Slic3r::GradientCurve curve;
@@ -834,11 +837,20 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
 
     // Captions under the two halves of the color-matching swatch.
     m_match_label_sizer = new wxBoxSizer(wxHORIZONTAL);
+    // Each caption sits under one half of the swatch, but grows (symmetrically) when the
+    // text is wider than that half so it is never clipped.
+    std::vector<wxStaticText*> captions;
+    int caption_w = FromDIP(kPreviewSwatchSize) / 2;
     for (const wxString& caption : {_L("Target"), _L("Matched")}) {
-        auto* lbl = new wxStaticText(this, wxID_ANY, caption, wxDefaultPosition, wxSize(FromDIP(50), -1),
+        auto* lbl = new wxStaticText(this, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize,
                                      wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
         lbl->SetForegroundColour(wxColour("#909090"));
-        lbl->SetFont(::Label::Body_13);
+        lbl->SetFont(::Label::Body_12);
+        caption_w = std::max(caption_w, lbl->GetTextExtent(caption).GetWidth());
+        captions.push_back(lbl);
+    }
+    for (wxStaticText* lbl : captions) {
+        lbl->SetMinSize(wxSize(caption_w, -1));
         m_match_label_sizer->Add(lbl, 0);
     }
     sizer->Add(m_match_label_sizer, 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
@@ -2409,6 +2421,10 @@ wxBoxSizer* MixedFilamentDialog::create_match_header()
     m_combo_target = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
                                   wxSize(-1, FromDIP(32)), 0, nullptr, wxCB_READONLY);
     m_combo_target->SetKeepDropArrow(true);
+    m_combo_target->SetBackgroundColor(StateColor(
+        std::make_pair(0xF0F0F1, (int) StateColor::Disabled),
+        std::make_pair(0xEDFAF2, (int) StateColor::Focused),
+        std::make_pair(StateColor::darkModeColorFor(wxColour("#F8F8F8")), (int) StateColor::Normal)));
     m_combo_target->GetDropDown().SetUseContentWidth(true);
     m_combo_target->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_target_changed(); });
     m_match_header_sizer->Add(m_combo_target, 0, wxEXPAND | wxTOP, FromDIP(6));
@@ -2431,6 +2447,8 @@ wxBoxSizer* MixedFilamentDialog::create_match_header()
     m_btn_rematch->SetCursor(wxCursor(wxCURSOR_HAND));
     m_btn_rematch->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { run_color_match(); });
     result_row->Add(m_btn_rematch, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
+    // Reserve the button's height so showing / hiding it does not shift the rows below.
+    result_row->SetMinSize(wxSize(-1, m_btn_rematch->GetBestSize().GetHeight()));
     result_row->AddStretchSpacer(1);
 
     m_lbl_official_kit = new wxStaticText(this, wxID_ANY, _L("Use official mixing kits →"));
@@ -2490,7 +2508,7 @@ void MixedFilamentDialog::update_tab_styles()
             return;
         btn->SetBackgroundColor(selected ? wxColour("#E5F7EC") : wxColour("#FFFFFF"));
         btn->SetBorderColor(selected ? wxColour("#00AE42") : wxColour("#CECECE"));
-        btn->SetTextColor(wxColour("#262E30"));
+        btn->SetTextColor(selected ? wxColour("#00AE42") : wxColour("#262E30"));
         btn->Refresh();
     };
     style(m_btn_tab_manual, !m_match_mode);

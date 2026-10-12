@@ -274,6 +274,8 @@ public:
     void                update_filament_values_for_items_when_delete_filament(const size_t filament_id, const int replace_id = -1);
     // Point objects, parts and height ranges that print with from_id at to_id (0-based). Support filaments are kept.
     void                update_filament_values_for_items_when_replace_filament(const size_t from_id, const size_t to_id);
+    // Show each height range row's current "extruder" value from its layer config.
+    void                update_layer_range_filament_values();
 
     //BBS: update plate
     void                update_plate_values_for_items();

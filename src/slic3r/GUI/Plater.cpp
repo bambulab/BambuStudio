@@ -6683,25 +6683,7 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
         if (ams_mc.size() > total)
             std::rotate(ams_mc.begin() + insert_pos, ams_mc.begin() + total, ams_mc.end());
 
-        // Remap object/volume extruder IDs and paint data: anything >= insert_pos+1 (1-based) shifts up by k.
-        const int threshold_1based = (int)(insert_pos + 1);
-        const int shift = (int)k;
-        const auto ebt_threshold = EnforcerBlockerType(threshold_1based);
-        for (auto* obj : wxGetApp().plater()->model().objects) {
-            if (obj->config.has("extruder")) {
-                int ext = obj->config.extruder();
-                if (ext >= threshold_1based)
-                    obj->config.set("extruder", ext + shift);
-            }
-            for (auto* vol : obj->volumes) {
-                if (vol->config.has("extruder")) {
-                    int ext = vol->config.extruder();
-                    if (ext >= threshold_1based)
-                        vol->config.set("extruder", ext + shift);
-                }
-                vol->mmu_segmentation_facets.shift_states_above(*vol, ebt_threshold, shift);
-            }
-        }
+        wxGetApp().plater()->remap_mixed_filament_ids(insert_pos, insert_pos + k);
     }
 
     auto& project_config = wxGetApp().preset_bundle->project_config;
@@ -7205,6 +7187,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     MergeFilamentInfo merge_info;
     std::vector<std::pair<DynamicPrintConfig *,std::string>> unknowns;
     auto enable_append = wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams");
+    const size_t physical_before_sync = wxGetApp().preset_bundle->physical_filament_config_indices().size();
     auto     n = wxGetApp().preset_bundle->sync_ams_list(unknowns, !sync_result.direct_sync, sync_result.sync_maps, enable_append, merge_info, skip_ext);
     wxString detail;
     for (auto & uk : unknowns) {
@@ -7219,6 +7202,9 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         dlg.ShowModal();
         return;
     }
+    // Sync re-appends mixed slots after the new physical list; must run before on_filament_count_change()
+    // and before the merge below, which both assume model ids already match the new slot layout.
+    wxGetApp().plater()->remap_mixed_filament_ids(physical_before_sync, wxGetApp().preset_bundle->physical_filament_config_indices().size());
     wxGetApp().preset_bundle->validate_filament_nozzle_diameter_selections(&sync_result.sync_maps);
     // Diameter-variant switch above does not recompute is_compatible. Refresh it now so a
     // sibling such as "PLA Basic @ 0.8" is treated as compatible with the active 0.4 printer
@@ -8149,6 +8135,9 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
                 nozzle_lbl->SetCursor(wxCursor(wxCURSOR_ARROW));
                 nozzle_lbl->SetCanFocus(false);
                 nozzle_lbl->Bind(wxEVT_BUTTON, [](wxCommandEvent &) {});
+                // Swallow the press too: Button::mouseDown captures the mouse, and with LEFT_UP
+                // swallowed below nothing would ever release it, freezing all mouse input.
+                nozzle_lbl->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) {});
                 nozzle_lbl->Bind(wxEVT_LEFT_UP, [](wxMouseEvent &e) { e.Skip(false); });
                 nozzle_divider->Bind(wxEVT_LEFT_UP, [](wxMouseEvent &e) { e.Skip(false); });
                 cp_nozzle_reserve = nozzle_lbl->GetMinSize().GetWidth() + cp_chip_right +
@@ -28601,6 +28590,103 @@ void Plater::replace_filament_on_model(size_t from_id, size_t to_id)
 
     sidebar().obj_list()->update_filament_colors();
     update();
+}
+
+// Physical filaments always precede mixed ones, so a change in the physical count moves every mixed
+// filament id (1-based, above old_physical_count) by the difference. Physical ids in
+// (new_physical_count, old_physical_count] no longer exist and fall back to the default filament.
+// Must run before on_filament_count_change(), which clears ids above the new total.
+void Plater::remap_mixed_filament_ids(size_t old_physical_count, size_t new_physical_count)
+{
+    if (old_physical_count == new_physical_count)
+        return;
+    const int old_n        = int(old_physical_count);
+    const int new_n        = int(new_physical_count);
+    const int delta        = new_n - old_n;
+    const int total_after  = int(wxGetApp().preset_bundle->filament_presets.size());
+    const int total_before = total_after - delta;
+    if (total_before <= old_n || total_after <= new_n)
+        return;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": physical " << old_n << " -> " << new_n << ", total " << total_before << " -> " << total_after;
+
+    // old_to_new[i] is the new 1-based id of old filament i + 1; 0 means it no longer exists.
+    // Ids pushed beyond ExtruderMax cannot be painted or selected, so they are dropped as well.
+    const int max_id = int(EnforcerBlockerType::ExtruderMax);
+    std::vector<int> old_to_new(total_before);
+    for (int id = 1; id <= total_before; ++id) {
+        const int new_id   = id > old_n ? id + delta : (id > new_n ? 0 : id);
+        old_to_new[id - 1] = new_id > max_id ? 0 : new_id;
+    }
+    auto remap = [&old_to_new](int id) { return (id >= 1 && id <= int(old_to_new.size())) ? old_to_new[id - 1] : id; };
+
+    auto remap_option = [&remap](ModelConfig &cfg, const std::string &key, bool erase_removed) {
+        if (!cfg.has(key))
+            return;
+        const int v  = cfg.opt_int(key);
+        const int nv = remap(v);
+        if (nv == v)
+            return;
+        if (nv == 0 && erase_removed)
+            cfg.erase(key);
+        else
+            cfg.set_key_value(key, new ConfigOptionInt(nv));
+    };
+    // Height range modifiers always carry "extruder", so a removed id becomes 0 (Default) there instead of being erased.
+    auto remap_model_config = [&remap_option](ModelConfig &cfg, bool erase_removed_extruder) {
+        remap_option(cfg, "extruder", erase_removed_extruder);
+        for (const std::string &key : filament_index_object_keys())
+            remap_option(cfg, key, true);
+    };
+
+    for (ModelObject *mo : p->model.objects) {
+        remap_model_config(mo->config, true);
+        for (ModelVolume *mv : mo->volumes) {
+            remap_model_config(mv->config, true);
+            if (mv->mmu_segmentation_facets.empty())
+                continue;
+            // Clear dropped ids first so the shift below cannot land surviving states on them.
+            for (int id = 1; id <= total_before; ++id)
+                if (old_to_new[id - 1] == 0)
+                    mv->mmu_segmentation_facets.replace_state(*mv, EnforcerBlockerType(id), EnforcerBlockerType::NONE);
+            mv->mmu_segmentation_facets.shift_states_above(*mv, EnforcerBlockerType(old_n + 1), delta);
+        }
+        for (auto &range : mo->layer_config_ranges)
+            remap_model_config(range.second, false);
+    }
+    // Object / part rows are refreshed by on_filament_count_change(), height range rows are not.
+    sidebar().obj_list()->update_layer_range_filament_values();
+
+    bool support_changed        = false;
+    auto remap_support_filament = [&remap, &support_changed](DynamicPrintConfig &cfg) {
+        for (const char *key : {"support_filament", "support_interface_filament"}) {
+            if (!cfg.has(key))
+                continue;
+            const int v  = cfg.opt_int(key);
+            const int nv = remap(v);
+            if (nv != v) {
+                cfg.set_key_value(key, new ConfigOptionInt(nv));
+                support_changed = true;
+            }
+        }
+    };
+    remap_support_filament(*p->config);
+    remap_support_filament(wxGetApp().preset_bundle->prints.get_edited_preset().config);
+    if (support_changed)
+        if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+            print_tab->reload_config();
+
+    for (auto &plate_gcodes : p->model.plates_custom_gcodes) {
+        auto &gcodes = plate_gcodes.second.gcodes;
+        gcodes.erase(std::remove_if(gcodes.begin(), gcodes.end(),
+                                    [&remap](const CustomGCode::Item &item) {
+                                        return item.type == CustomGCode::Type::ToolChange && item.extruder > 0 && remap(item.extruder) == 0;
+                                    }),
+                     gcodes.end());
+        for (CustomGCode::Item &item : gcodes)
+            if (item.type == CustomGCode::Type::ToolChange)
+                item.extruder = remap(item.extruder);
+    }
 }
 
 std::vector<std::array<float, 4>> Plater::get_extruders_colors()

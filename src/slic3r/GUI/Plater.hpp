@@ -634,6 +634,7 @@ public:
     void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1, const std::vector<unsigned char>& is_mixed_before_delete = {});
     // Repaint model usage (objects, parts, height ranges, color painting, tool changes) of from_id with to_id, both 0-based.
     void replace_filament_on_model(size_t from_id, size_t to_id);
+    void remap_mixed_filament_ids(size_t old_physical_count, size_t new_physical_count);
     std::vector<std::array<float, 4>> get_extruders_colors();
     // BBS
     void on_bed_type_change(BedType bed_type,bool is_gcode_file = false);

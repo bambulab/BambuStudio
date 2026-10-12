@@ -4,7 +4,6 @@
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "PartPlate.hpp"
-#include "GUI_ObjectList.hpp"
 #include "format.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -651,35 +650,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
     }
 #endif
-
-    {
-        static bool s_mixed_sublayer_warned = false;
-        bool sublayer_on = config->opt_bool("enable_mixed_color_sublayer");
-        if (sublayer_on && !s_mixed_sublayer_warned &&
-            wxGetApp().app_config->get("no_warn_mixed_sublayer_variable_layer") != "1") {
-            bool has_variable_layer = false;
-            for (const auto* obj : wxGetApp().model().objects) {
-                if (obj->layer_height_profile.get().size() > 4 && model_object_uses_mixed_filament(*obj)) {
-                    has_variable_layer = true;
-                    break;
-                }
-            }
-            if (has_variable_layer) {
-                MessageDialog dialog(m_msg_dlg_parent,
-                    _L("Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."),
-                    "", wxICON_WARNING | wxOK);
-                dialog.show_dsa_button();
-                is_msg_dlg_already_exist = true;
-                dialog.ShowModal();
-                is_msg_dlg_already_exist = false;
-                if (dialog.get_checkbox_state())
-                    wxGetApp().app_config->set("no_warn_mixed_sublayer_variable_layer", "1");
-                s_mixed_sublayer_warned = true;
-            }
-        }
-        if (!sublayer_on)
-            s_mixed_sublayer_warned = false;
-    }
 
     // Removed: legacy "develop mode" auto-restore that forced detect_overhang_wall back
     // to true whenever enable_support was on. It silently overrode user intent across
