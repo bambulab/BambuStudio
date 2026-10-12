@@ -14,6 +14,7 @@
       "type": "PET-CF",
       "action": "prohibition",
       "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 5],
       "description": "AMS does not support 'Bambu Lab PET-CF'."
     },
     {
@@ -162,6 +163,22 @@
       "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
     },
     {
+      "type": "PPS-CF",
+      "model_id":["N10"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "PPS-CF is brittle and could break in bended PTFE tube above Toolhead.",
+      "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
+    },
+    {
+      "type": "PPA-CF",
+      "model_id":["N10"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "PPA-CF is brittle and could break in bended PTFE tube above Toolhead.",
+      "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
+    },
+    {
       "type_suffix": "CF",
       "action": "warning",
       "slot": "ams",
@@ -190,6 +207,7 @@
       "model_id": ["N10"],
       "action": "prohibition",
       "slot": "ams",
+      "ams_type_id": [6],
       "group": "cf_gf_ams",
       "priority": 2,
       "description": "PPA-CF does not support AMS feeding. Use an external spool instead."
@@ -199,6 +217,17 @@
       "model_id": ["N10"],
       "action": "warning",
       "slot": "ams",
+      "ams_type_id": [6],
+      "description": "%s filament is brittle. Use AMS feeding with caution."
+    },
+    {
+      "vendor": "Bambu Lab",
+      "type": "PLA",
+      "name": "Bambu PLA Translucent",
+      "model_id": ["N10"],
+      "action": "warning",
+      "slot": "ams",
+      "ams_type_id": [6],
       "description": "%s filament is brittle. Use AMS feeding with caution."
     },
     {
