@@ -1,4 +1,4 @@
-# Fully-open build driver (Windows).
+﻿# Fully-open build driver (Windows).
 #
 # Builds the open-bamboo-networking plugin from the vendored submodule sources
 # and stages it next to the Bambu Studio executable, where the FULLY_OPEN_BUILD
@@ -23,7 +23,7 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $obn = Join-Path $root "open-bamboo-networking"
 if (-not (Test-Path (Join-Path $obn "configure.ps1"))) {
-    throw "submodule missing — run: git submodule update --init --recursive"
+    throw "submodule missing - run: git submodule update --init --recursive"
 }
 
 # --- 1) optional: build Studio with the upstream script ---
@@ -35,7 +35,7 @@ if ($BuildStudio) {
         # stderr redirected inside cmd (PowerShell 5.1 treats redirected native
         # stderr as a terminating error under $ErrorActionPreference='Stop')
         cmd /c "build_win.bat -d deps\build\out_deps > `"$studioLog`" 2>&1"
-        if ($LASTEXITCODE -ne 0) { throw "build_win.bat failed (exit $LASTEXITCODE) — see $studioLog" }
+        if ($LASTEXITCODE -ne 0) { throw "build_win.bat failed (exit $LASTEXITCODE) - see $studioLog" }
     } finally {
         Pop-Location
     }
@@ -67,7 +67,7 @@ try {
 $exe = Get-ChildItem (Join-Path $root "build") -Recurse -Filter "bambu-studio.exe" -ErrorAction SilentlyContinue |
        Select-Object -First 1
 if (-not $exe) {
-    throw "bambu-studio.exe not found under build\ — build Studio first (or pass -BuildStudio)"
+    throw "bambu-studio.exe not found under build\ - build Studio first (or pass -BuildStudio)"
 }
 $exeDir = $exe.DirectoryName
 
