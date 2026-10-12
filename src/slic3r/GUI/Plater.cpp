@@ -8764,61 +8764,9 @@ static std::vector<int> create_mixed_filaments_from_results(
     return created;
 }
 
-void Sidebar::add_mixed_filament()
+// Parses one mixed filament slot of the project config back into the dialog's result.
+static MixedFilamentResult read_mixed_filament_slot(const DynamicPrintConfig& project_config, size_t cfg_idx)
 {
-    auto* plater = dynamic_cast<Plater*>(GetParent());
-    if (!plater) return;
-
-    size_t num_physical = p->combos_filament.size();
-    if (num_physical < 2) return;
-    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
-
-    // Re-read on demand: the color matching tab can add the official mixing kit while open.
-    auto load_physical = [this]() {
-        MixedFilamentPhysicalInfo info;
-        collect_physical_filament_info(info.colors, info.names, info.types, &info.config_indices,
-                                       &info.diameters, &info.volume_shorts);
-        return info;
-    };
-
-    MixedFilamentResult result;
-    int modal = wxID_CANCEL;
-    int replace_target_cfg = -1;
-    {
-        MixedFilamentDialog dlg(this, load_physical, multi_diameter_filament_selection_active());
-        modal = dlg.ShowModal();
-        if (modal == wxID_OK) {
-            result = dlg.get_result();
-            if (dlg.replace_target_on_model())
-                replace_target_cfg = dlg.match_target_config_index();
-        }
-    }
-    if (modal != wxID_OK)
-        return;
-
-    const MixedFilamentPhysicalInfo physical = load_physical();
-    const std::vector<int> created = create_mixed_filaments_from_results(this, { result }, physical.colors);
-    // Same courtesy the physical list gets in add_filament(): the new row is appended at the
-    // end of the mixed list, which the shared row budget can easily push below the fold.
-    scroll_mixed_filament_area_to_bottom();
-    if (replace_target_cfg >= 0 && !created.empty() && created.front() >= 0)
-        plater->replace_filament_on_model(size_t(replace_target_cfg), size_t(created.front()));
-}
-
-void Sidebar::edit_mixed_filament(size_t panel_idx)
-{
-    auto* plater = dynamic_cast<Plater*>(GetParent());
-    if (!plater) return;
-
-    auto mixed_indices = plater->mixed_filament_config_indices();
-    if (panel_idx >= mixed_indices.size())
-        return;
-    size_t cfg_idx = mixed_indices[panel_idx];
-
-    std::vector<std::string> color_strs, names, types, diameters, volume_shorts;
-    collect_physical_filament_info(color_strs, names, types, nullptr, &diameters, &volume_shorts);
-
-    auto& project_config = wxGetApp().preset_bundle->project_config;
     MixedFilamentResult existing;
     auto* components_opt = project_config.option<ConfigOptionStrings>("filament_mixed_components");
     auto* ratios_opt = project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios");
@@ -8878,6 +8826,73 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
     auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
     if (existing.gradient_enabled && per_part_opt && cfg_idx < per_part_opt->values.size())
         existing.per_part_gradient = per_part_opt->values[cfg_idx];
+    return existing;
+}
+
+void Sidebar::add_mixed_filament()
+{
+    auto* plater = dynamic_cast<Plater*>(GetParent());
+    if (!plater) return;
+
+    size_t num_physical = p->combos_filament.size();
+    if (num_physical < 2) return;
+    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
+
+    // Re-read on demand: the color matching tab can add the official mixing kit while open.
+    auto load_physical = [this]() {
+        MixedFilamentPhysicalInfo info;
+        collect_physical_filament_info(info.colors, info.names, info.types, &info.config_indices,
+                                       &info.diameters, &info.volume_shorts);
+        return info;
+    };
+
+    // Start from the most recently listed mixed filament instead of 1+2 50:50.
+    MixedFilamentResult initial;
+    const std::vector<size_t> mixed_indices = plater->mixed_filament_config_indices();
+    if (!mixed_indices.empty())
+        initial = read_mixed_filament_slot(wxGetApp().preset_bundle->project_config, mixed_indices.back());
+
+    MixedFilamentResult result;
+    int modal = wxID_CANCEL;
+    int replace_target_cfg = -1;
+    {
+        MixedFilamentDialog dlg(this, load_physical, multi_diameter_filament_selection_active(), initial);
+        modal = dlg.ShowModal();
+        if (modal == wxID_OK) {
+            result = dlg.get_result();
+            if (dlg.replace_target_on_model())
+                replace_target_cfg = dlg.match_target_config_index();
+        }
+    }
+    if (modal != wxID_OK)
+        return;
+
+    const MixedFilamentPhysicalInfo physical = load_physical();
+    const std::vector<int> created = create_mixed_filaments_from_results(this, { result }, physical.colors);
+    // Same courtesy the physical list gets in add_filament(): the new row is appended at the
+    // end of the mixed list, which the shared row budget can easily push below the fold.
+    scroll_mixed_filament_area_to_bottom();
+    if (replace_target_cfg >= 0 && !created.empty() && created.front() >= 0)
+        plater->replace_filament_on_model(size_t(replace_target_cfg), size_t(created.front()));
+}
+
+void Sidebar::edit_mixed_filament(size_t panel_idx)
+{
+    auto* plater = dynamic_cast<Plater*>(GetParent());
+    if (!plater) return;
+
+    auto mixed_indices = plater->mixed_filament_config_indices();
+    if (panel_idx >= mixed_indices.size())
+        return;
+    size_t cfg_idx = mixed_indices[panel_idx];
+
+    std::vector<std::string> color_strs, names, types, diameters, volume_shorts;
+    collect_physical_filament_info(color_strs, names, types, nullptr, &diameters, &volume_shorts);
+
+    auto& project_config = wxGetApp().preset_bundle->project_config;
+    auto* components_opt = project_config.option<ConfigOptionStrings>("filament_mixed_components");
+    auto* ratios_opt = project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios");
+    const MixedFilamentResult existing = read_mixed_filament_slot(project_config, cfg_idx);
 
     MixedFilamentResult result;
     int edit_modal = wxID_CANCEL;

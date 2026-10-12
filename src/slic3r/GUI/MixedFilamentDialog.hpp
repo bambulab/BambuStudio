@@ -59,9 +59,11 @@ class MixedFilamentDialog : public DPIDialog
 {
 public:
     // Add mode: offers the "Manual Mixing" and "Color Matching" tabs.
+    // `initial` seeds the manual tab; it is ignored when it does not fit the current physical filaments.
     MixedFilamentDialog(wxWindow* parent,
                         MixedFilamentPhysicalLoader physical_loader,
-                        bool enforce_nozzle_diameter = false);
+                        bool enforce_nozzle_diameter = false,
+                        const MixedFilamentResult& initial = {});
 
     MixedFilamentDialog(wxWindow* parent,
                         const MixedFilamentResult& existing,

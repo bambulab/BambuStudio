@@ -142,7 +142,8 @@ static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vec
 
 MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
                                          MixedFilamentPhysicalLoader physical_loader,
-                                         bool enforce_nozzle_diameter)
+                                         bool enforce_nozzle_diameter,
+                                         const MixedFilamentResult& initial)
     : DPIDialog(parent, wxID_ANY, _L("Add Mixed Filament"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_edit_mode(false)
@@ -151,8 +152,33 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
 {
     if (m_physical_loader)
         set_physical_info(m_physical_loader());
-    m_result.components = {1, (m_physical_colors.size() >= 2) ? 2u : 1u};
-    m_result.ratios     = {50, 50};
+
+    const size_t n_init = initial.components.size();
+    bool initial_valid = n_init >= 2 && n_init <= (size_t)MAX_COMPONENTS && initial.ratios.size() == n_init;
+    int initial_sum = 0;
+    std::set<unsigned int> initial_seen;
+    for (size_t i = 0; initial_valid && i < n_init; ++i) {
+        const unsigned int c = initial.components[i];
+        initial_valid = c >= 1 && c <= m_physical_colors.size() && initial_seen.insert(c).second && initial.ratios[i] >= 0;
+        initial_sum += initial.ratios[i];
+    }
+    if (initial_valid && initial_sum > 0) {
+        m_result = initial;
+        // Gradient only applies to two-color mixes.
+        if (n_init != 2) {
+            m_result.gradient_enabled  = false;
+            m_result.per_part_gradient = false;
+            m_result.gradient_curve.clear();
+        }
+        if (n_init >= 3) {
+            m_tri_wx = (double)m_result.ratios[0] / initial_sum;
+            m_tri_wy = (double)m_result.ratios[1] / initial_sum;
+            m_tri_wz = (double)m_result.ratios[2] / initial_sum;
+        }
+    } else {
+        m_result.components = {1, (m_physical_colors.size() >= 2) ? 2u : 1u};
+        m_result.ratios     = {50, 50};
+    }
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
     refresh_combo_suffixes();
