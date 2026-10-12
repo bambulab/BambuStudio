@@ -3898,6 +3898,8 @@ WipeTower::NozzleChangeResult WipeTower::heater_off_nozzle_change(int old_filame
 
     NozzleChangeResult result;
     result.heater_off_only     = true;
+    // This path is only entered when the nozzles differ.
+    result.is_extruder_change  = true;
     result.precool_filament_id = old_filament_id;
     result.gcode              = format_nozzle_change_line(true, old_filament_id, new_filament_id) +
                                 format_nozzle_change_line(false, old_filament_id, new_filament_id);
