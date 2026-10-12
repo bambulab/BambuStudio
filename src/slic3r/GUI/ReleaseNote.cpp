@@ -168,10 +168,13 @@ void ReleaseNoteDialog::show_release_note()
     if (!m_page_loaded || m_mkdown_text.empty()) return;
 
     WebView::RunScript(m_vebview_release_note, "window.showMarkdown('" + url_encode(m_mkdown_text) + "', true);");
-    // tooltip/main.css defaults body text to white, set colors explicitly to follow app theme
+    // tooltip/main.css defaults body text to white, set colors explicitly to follow app theme.
+    // It also sets html font-size to 10px and body font to -apple-system-body, which Chromium ignores,
+    // so body text falls back to 10px; set it explicitly.
     bool is_dark = wxGetApp().dark_mode();
     std::string theme_script = std::string("document.body.style.backgroundColor='") + (is_dark ? "#36363C" : "#F8F8F8") + "';"
-                             + "document.body.style.color='" + (is_dark ? "#FFFFFF" : "#000000") + "';";
+                             + "document.body.style.color='" + (is_dark ? "#FFFFFF" : "#000000") + "';"
+                             + "document.body.style.fontSize='14px';";
     WebView::RunScript(m_vebview_release_note, theme_script);
 }
 
