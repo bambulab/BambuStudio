@@ -78,6 +78,24 @@ a Studio release with a new ABI series, update the `open-bamboo-networking`
 submodule to a release that supports it (their releases ship one prebuilt
 series per Studio ABI, and building from source auto-matches).
 
+### Build provenance (what compiles from source)
+
+The `deps/` superbuild compiles Bambu Studio's dependencies from upstream
+open-source releases (wxWidgets, Boost, OpenCASCADE/OCCT, OpenCV, OpenEXR,
+OpenVDB, TBB, GMP/MPFR, Assimp, and more). Exceptions, called out for honesty:
+
+- **FFmpeg (Windows)** is consumed as a prebuilt binary package
+  (`bambulab/ffmpeg_prebuilts`) — upstream's Windows deps path does not build
+  FFmpeg from source. It is a build of open-source FFmpeg; the Linux/macOS
+  deps paths build it from source in-tree.
+- **WebView2** is a closed Microsoft platform component (like the OS itself)
+  required for Studio's WebViews; it cannot be open-sourced, only redistributed
+  under Microsoft's terms.
+- MSVC runtime redistributables are likewise Microsoft platform components.
+
+Everything else in the build output is produced from source by this tree or by
+the `open-bamboo-networking` submodule.
+
 ## What remains non-open (feature scope, not code)
 
 - The bundled open plugin covers the full LAN workflow (discovery, telemetry,
