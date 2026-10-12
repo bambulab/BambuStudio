@@ -110,7 +110,7 @@ namespace Slic3r
 
     // calc distance map
     struct DisValue {
-        int  tray_id;
+        DevAmsSlotId slot_key{-1, -1}; // identifies the candidate slot, and keys tray_filaments
         float distance;
         bool  is_same_color = true;
         bool  is_type_match = true;
@@ -159,6 +159,8 @@ namespace Slic3r
         else
         {
             if (type == DevAmsType::N3S) {
+                // Display-side numbering (DevFilaSystem::GetTrayIndexMap(), GUI_App::transition_tridid),
+                // which differs from the tray_xxx_bits index returned by DevAms::GetTrayId().
                 result.id = ams_id + slot_id;
             } else if (type == DevAmsType::AMS_LITE_MIXED) {
                 result.id = AMS_LITE_MIXED_TRAY_INDEX_OFFSET + slot_id;
@@ -172,13 +174,13 @@ namespace Slic3r
         }
     }
 
-    static void _collect_mapping_hotend_item_candidates(const MachineObject*                     obj,
-                                                        bool                                     collect_nozzles,
-                                                        std::map<int, FilamentInfo>&             tray_filaments,
-                                                        std::map<int, std::optional<DevNozzle>>& tray_nozzles,
-                                                        std::set<int>&                           ext_tray_keys,
-                                                        std::set<int>&                           no_auto_feed_keys,
-                                                        std::set<int>&                           sub_ams_keys)
+    static void _collect_mapping_hotend_item_candidates(const MachineObject*                              obj,
+                                                        bool                                              collect_nozzles,
+                                                        std::map<DevAmsSlotId, FilamentInfo>&             tray_filaments,
+                                                        std::map<DevAmsSlotId, std::optional<DevNozzle>>& tray_nozzles,
+                                                        std::set<DevAmsSlotId>&                           ext_tray_keys,
+                                                        std::set<DevAmsSlotId>&                           no_auto_feed_keys,
+                                                        std::set<DevAmsSlotId>&                           sub_ams_keys)
     {
         auto  fila_sys   = obj->GetFilaSystem();
         auto* nozzle_sys = obj->GetNozzleSystem();
@@ -197,7 +199,7 @@ namespace Slic3r
                 return;
             FilamentInfo info;
             _parse_tray_info(ams_id, slot_id, type, *tray, info);
-            const int key = (type == DevAmsType::EXT_SPOOL) ? info.tray_id : info.id;
+            const DevAmsSlotId key = tray->get_ams_slot_id();
             if (!tray_filaments.emplace(key, info).second)
                 return; // same slot reachable from multiple nozzles: keep the first
             if (collect_nozzles)
@@ -280,11 +282,11 @@ namespace Slic3r
         return cur_sub_ams && !new_sub_ams;
     }
 
-    static void _assign_mapping_result_from_tray(FilamentInfo&                              dst,
-                                                 const std::map<int, FilamentInfo>::iterator& tray,
-                                                 float                                        distance)
+    static void _assign_mapping_result_from_tray(FilamentInfo&                                         dst,
+                                                 const std::map<DevAmsSlotId, FilamentInfo>::iterator& tray,
+                                                 float                                                 distance)
     {
-        dst.tray_id     = tray->first;
+        dst.tray_id     = tray->second.id;
         dst.color       = tray->second.color;
         dst.type        = tray->second.type;
         dst.distance    = distance;
@@ -305,10 +307,10 @@ namespace Slic3r
 
     // Hotend-rack: each slicing filament independently picks the closest-color
     // slot. Slots may be shared across filaments.
-    static void _run_hotend_rack_color_mapping(const std::vector<FilamentInfo>&           filaments,
-                                               std::map<int, FilamentInfo>&               tray_filaments,
-                                               const std::vector<std::vector<DisValue>>&   distance_map,
-                                               std::vector<FilamentInfo>&                 result)
+    static void _run_hotend_rack_color_mapping(const std::vector<FilamentInfo>&          filaments,
+                                               std::map<DevAmsSlotId, FilamentInfo>&     tray_filaments,
+                                               const std::vector<std::vector<DisValue>>& distance_map,
+                                               std::vector<FilamentInfo>&                result)
     {
         for (int i = 0; i < (int) distance_map.size(); i++) {
             float min_val = INT_MAX;
@@ -325,8 +327,8 @@ namespace Slic3r
                     const bool new_ext = dv.is_ext;
                     const bool cur_sub_ams = distance_map[i][best_j].is_sub_ams;
                     const bool new_sub_ams = dv.is_sub_ams;
-                    auto       cur_tray = tray_filaments.find(distance_map[i][best_j].tray_id);
-                    auto       new_tray = tray_filaments.find(dv.tray_id);
+                    auto       cur_tray = tray_filaments.find(distance_map[i][best_j].slot_key);
+                    auto       new_tray = tray_filaments.find(dv.slot_key);
                     const bool cur_id_match = cur_tray != tray_filaments.end()
                         && filaments[i].filament_id == cur_tray->second.filament_id;
                     const bool new_id_match = new_tray != tray_filaments.end()
@@ -342,7 +344,7 @@ namespace Slic3r
             if (best_j < 0)
                 continue;
 
-            auto tray = tray_filaments.find(distance_map[i][best_j].tray_id);
+            auto tray = tray_filaments.find(distance_map[i][best_j].slot_key);
             if (tray == tray_filaments.end())
                 continue;
 
@@ -353,11 +355,18 @@ namespace Slic3r
 
     // Legacy AMS: greedy bipartite matching; a tray is reserved per round unless an
     // exact color match allows reuse.
-    static void _run_legacy_greedy_ams_mapping(const std::vector<FilamentInfo>&           filaments,
-                                               std::map<int, FilamentInfo>&               tray_filaments,
-                                               const std::vector<std::vector<DisValue>>&   distance_map,
-                                               std::vector<FilamentInfo>&                 result)
+    static void _run_legacy_greedy_ams_mapping(const std::vector<FilamentInfo>&          filaments,
+                                               std::map<DevAmsSlotId, FilamentInfo>&     tray_filaments,
+                                               const std::vector<std::vector<DisValue>>& distance_map,
+                                               std::vector<FilamentInfo>&                result)
     {
+        // A distance_map column is a candidate slot, not an index into tray_filaments:
+        // the slots are keyed by <ams_id, slot_id> and the column order only mirrors
+        // the map iteration order.
+        auto slot_at = [&tray_filaments, &distance_map](int i, int j) {
+            return tray_filaments.find(distance_map[i][j].slot_key);
+        };
+
         std::set<int> picked_src;
         std::set<int> picked_tar;
         for (int k = 0; k < (int) distance_map.size(); k++) {
@@ -378,7 +387,8 @@ namespace Slic3r
                             min_val        = distance_map[i][j].distance;
                             picked_src_idx = i;
                             picked_tar_idx = j;
-                            tray_filaments[picked_tar_idx].distance = min_val;
+                            if (auto slot = slot_at(i, j); slot != tray_filaments.end())
+                                slot->second.distance = min_val;
                         }
                         continue;
                     }
@@ -390,15 +400,20 @@ namespace Slic3r
                             min_val        = distance_map[i][j].distance;
                             picked_src_idx = i;
                             picked_tar_idx = j;
-                            tray_filaments[picked_tar_idx].distance = min_val;
+                            if (auto slot = slot_at(i, j); slot != tray_filaments.end())
+                                slot->second.distance = min_val;
                         } else if (min_val == distance_map[i][j].distance) {
+                            auto cur_tray = slot_at(picked_src_idx, picked_tar_idx);
+                            auto new_tray = slot_at(i, j);
+                            if (cur_tray == tray_filaments.end() || new_tray == tray_filaments.end())
+                                continue;
                             const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
                             const bool new_ext      = distance_map[i][j].is_ext;
-                            const bool cur_id_match = filaments[picked_src_idx].filament_id == tray_filaments[picked_tar_idx].filament_id;
-                            const bool new_id_match = filaments[i].filament_id == tray_filaments[j].filament_id;
+                            const bool cur_id_match = filaments[picked_src_idx].filament_id == cur_tray->second.filament_id;
+                            const bool new_id_match = filaments[i].filament_id == new_tray->second.filament_id;
                             if (_prefer_mapping_tie_break(cur_ext, new_ext, cur_id_match, new_id_match)
                                 || (cur_ext == new_ext
-                                    && _prefer_tray_by_remain(filaments[i], tray_filaments[j], tray_filaments[picked_tar_idx]))) {
+                                    && _prefer_tray_by_remain(filaments[i], new_tray->second, cur_tray->second))) {
                                 picked_src_idx = i;
                                 picked_tar_idx = j;
                             }
@@ -414,15 +429,20 @@ namespace Slic3r
                                 min_val        = distance_map[i][j].distance;
                                 picked_src_idx = i;
                                 picked_tar_idx = j;
-                                tray_filaments[picked_tar_idx].distance = min_val;
+                                if (auto slot = slot_at(i, j); slot != tray_filaments.end())
+                                    slot->second.distance = min_val;
                             } else if (min_val == distance_map[i][j].distance) {
+                                auto cur_tray = slot_at(picked_src_idx, picked_tar_idx);
+                                auto new_tray = slot_at(i, j);
+                                if (cur_tray == tray_filaments.end() || new_tray == tray_filaments.end())
+                                    continue;
                                 const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
                                 const bool new_ext      = distance_map[i][j].is_ext;
-                                const bool cur_id_match = filaments[picked_src_idx].filament_id == tray_filaments[picked_tar_idx].filament_id;
-                                const bool new_id_match = filaments[i].filament_id == tray_filaments[j].filament_id;
+                                const bool cur_id_match = filaments[picked_src_idx].filament_id == cur_tray->second.filament_id;
+                                const bool new_id_match = filaments[i].filament_id == new_tray->second.filament_id;
                                 if (_prefer_mapping_tie_break(cur_ext, new_ext, cur_id_match, new_id_match)
                                     || (cur_ext == new_ext
-                                        && _prefer_tray_by_remain(filaments[i], tray_filaments[j], tray_filaments[picked_tar_idx]))) {
+                                        && _prefer_tray_by_remain(filaments[i], new_tray->second, cur_tray->second))) {
                                     picked_src_idx = i;
                                     picked_tar_idx = j;
                                 }
@@ -433,7 +453,7 @@ namespace Slic3r
             }
 
             if (picked_src_idx >= 0 && picked_tar_idx >= 0) {
-                auto tray = tray_filaments.find(distance_map[k][picked_tar_idx].tray_id);
+                auto tray = slot_at(picked_src_idx, picked_tar_idx);
 
                 if (tray != tray_filaments.end())
                     _assign_mapping_result_from_tray(result[picked_src_idx], tray, tray->second.distance);
@@ -476,11 +496,11 @@ namespace Slic3r
 
         /////////////////////////
         // Step 1: collect filaments in machine
-        std::map<int, FilamentInfo> tray_filaments; // tray_index : tray_color
-        std::map<int, std::optional<DevNozzle>> tray_nozzles;
-        std::set<int> ext_tray_keys; // candidate keys that are external spools (rack path)
-        std::set<int> no_auto_feed_keys; // candidate keys the printer cannot feed on its own (rack path)
-        std::set<int> sub_ams_keys; // candidate keys on an attached sub AMS (rack path)
+        std::map<DevAmsSlotId, FilamentInfo> tray_filaments; // <ams_id, slot_id> : tray_color
+        std::map<DevAmsSlotId, std::optional<DevNozzle>> tray_nozzles;
+        std::set<DevAmsSlotId> ext_tray_keys; // candidate keys that are external spools (rack path)
+        std::set<DevAmsSlotId> no_auto_feed_keys; // candidate keys the printer cannot feed on its own (rack path)
+        std::set<DevAmsSlotId> sub_ams_keys; // candidate keys on an attached sub AMS (rack path)
         bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
 
         const bool is_mapping_hotend_item = obj->GetNozzleRack()->IsDirectConnectedRack();
@@ -525,9 +545,10 @@ namespace Slic3r
                 bool left_ams_valid = (ams->second->GetBindedExtruderSet().count(DEPUTY_EXTRUDER_ID) != 0) && map_opt[MappingOption::USE_LEFT_AMS];
                 if (right_ams_valid || left_ams_valid)
                 {
-                    tray_filaments.emplace(std::make_pair(tray_index, info));
+                    const DevAmsSlotId slot_key = tray->second->get_ams_slot_id();
+                    tray_filaments.emplace(slot_key, info);
                     if (collect_slot_nozzles)
-                        tray_nozzles.emplace(tray_index, _query_slot_nozzle(obj, tray->second));
+                        tray_nozzles.emplace(slot_key, _query_slot_nozzle(obj, tray->second));
                     if (right_ams_valid)
                     {
                         right_nozzle_has_ams = true;
@@ -561,9 +582,10 @@ namespace Slic3r
                     }
                     FilamentInfo info;
                     _parse_tray_info(atoi(tray.id.c_str()), 0, DevAmsType::EXT_SPOOL, tray, info);
-                    tray_filaments.emplace(std::make_pair(info.tray_id, info));
+                    const DevAmsSlotId slot_key = tray.get_ams_slot_id();
+                    tray_filaments.emplace(slot_key, info);
                     if (collect_slot_nozzles)
-                        tray_nozzles.emplace(info.tray_id, _query_slot_nozzle(obj, &tray));
+                        tray_nozzles.emplace(slot_key, _query_slot_nozzle(obj, &tray));
                 }
             }
         }
@@ -592,7 +614,7 @@ namespace Slic3r
             for (auto tray = tray_filaments.begin(); tray != tray_filaments.end(); tray++)
             {
                 DisValue val;
-                val.tray_id = tray->second.id;
+                val.slot_key = tray->first;
                 val.is_ext  = ext_tray_keys.count(tray->first) > 0;
                 val.is_sub_ams = sub_ams_keys.count(tray->first) > 0;
                 wxColour c = wxColour(filaments[i].color);
@@ -709,9 +731,9 @@ namespace Slic3r
         };
 
         if (obj->GetNozzleRack()->IsDirectConnectedRack()) {
-            std::map<int, FilamentInfo>             tray_filaments;
-            std::map<int, std::optional<DevNozzle>> tray_nozzles;
-            std::set<int>                           ext_keys, not_loaded_keys, sub_ams_keys;
+            std::map<DevAmsSlotId, FilamentInfo>             tray_filaments;
+            std::map<DevAmsSlotId, std::optional<DevNozzle>> tray_nozzles;
+            std::set<DevAmsSlotId>                           ext_keys, not_loaded_keys, sub_ams_keys;
             _collect_mapping_hotend_item_candidates(obj, true, tray_filaments, tray_nozzles, ext_keys, not_loaded_keys, sub_ams_keys);
             for (auto& kv : tray_filaments) {
                 FilamentInfo info = kv.second;
