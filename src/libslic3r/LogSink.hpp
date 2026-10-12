@@ -2,13 +2,14 @@
 
 #include <string>
 #include <ctime>
+#include <mutex>
 #include <unordered_set>
 
 #include <boost/log/sinks/basic_sink_backend.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/utility/setup.hpp>
 
-#include "Utils.hpp"
+#include "Log.hpp"
 
 namespace Slic3r
 {
@@ -65,7 +66,7 @@ class LogSinkUtil
 {
 public:
     LogSinkUtil() = delete;
-    static std::string get_log_filaname_format(const LogEncOptions& enc_opts);
+    static std::string get_log_filename_format(const std::string& log_dir, const LogEncOptions& enc_opts);
 };
 
 typedef boost::log::sinks::synchronous_sink<LogSinkBackend> LogSink;

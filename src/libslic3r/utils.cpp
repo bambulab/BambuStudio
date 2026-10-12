@@ -42,16 +42,8 @@
 	#endif
 #endif
 
-#include "LogSink.hpp"
-
-#include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/support/date_time.hpp>
+#include "Log.hpp"
 
 #include <boost/locale.hpp>
 
@@ -89,93 +81,6 @@
 #endif
 
 namespace Slic3r {
-
-static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
-
-static boost::log::trivial::severity_level level_to_boost(unsigned level)
-{
-    switch (level) {
-    // Report fatal errors only.
-    case 0: return boost::log::trivial::fatal;
-    // Report fatal errors and errors.
-    case 1: return boost::log::trivial::error;
-    // Report fatal errors, errors and warnings.
-    case 2: return boost::log::trivial::warning;
-    // Report all errors, warnings and infos.
-    case 3: return boost::log::trivial::info;
-    // Report all errors, warnings, infos and debugging.
-    case 4: return boost::log::trivial::debug;
-    // Report everyting including fine level tracing information.
-    default: return boost::log::trivial::trace;
-    }
-}
-
-void set_logging_level(unsigned int level)
-{
-    logSeverity = level_to_boost(level);
-
-    boost::log::core::get()->set_filter
-    (
-        boost::log::trivial::severity >= logSeverity
-    );
-}
-
-unsigned int level_string_to_boost(std::string level)
-{
-    std::map<std::string, int> Control_Param;
-    Control_Param["fatal"] = 0;
-    Control_Param["error"] = 1;
-    Control_Param["warning"] = 2;
-    Control_Param["info"] = 3;
-    Control_Param["debug"] = 4;
-    Control_Param["trace"] = 5;
-
-    return Control_Param[level];
-}
-
-std::string get_string_logging_level(unsigned level)
-{
-    switch (level) {
-    case 0: return "fatal";
-    case 1: return "error";
-    case 2: return "warning";
-    case 3: return "info";
-    case 4: return "debug";
-    case 5: return "trace";
-    default: return "error";
-    }
-}
-
-unsigned get_logging_level()
-{
-    switch (logSeverity) {
-    case boost::log::trivial::fatal : return 0;
-    case boost::log::trivial::error : return 1;
-    case boost::log::trivial::warning : return 2;
-    case boost::log::trivial::info : return 3;
-    case boost::log::trivial::debug : return 4;
-    case boost::log::trivial::trace : return 5;
-    default: return 1;
-    }
-}
-
-// Force set_logging_level(<=error) after loading of the DLL.
-// This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
-// to perform unit and integration tests.
-static struct RunOnInit {
-    RunOnInit() {
-        set_logging_level(1);
-
-    }
-} g_RunOnInit;
-
-void trace(unsigned int level, const char *message)
-{
-    boost::log::trivial::severity_level severity = level_to_boost(level);
-
-    BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
-        (::boost::log::keywords::severity = severity)) << message;
-}
 
 void disable_multi_threading()
 {
@@ -303,59 +208,6 @@ std::string debug_out_path(const char *name, ...)
 		std::filesystem::create_directory(svg_folder.string() + sub_dir);
 	}
 	return svg_folder.string() + std::string(buffer);
-}
-
-boost::shared_ptr<LogSink> g_log_sink;
-boost::shared_ptr<LogSinkBackend> g_log_sink_backend;
-bool is_log_trivival_valid()
-{
-    return g_log_sink != nullptr;
-}
-
-namespace logging = boost::log;
-namespace src = boost::log::sources;
-namespace expr = boost::log::expressions;
-namespace keywords = boost::log::keywords;
-namespace attrs = boost::log::attributes;
-void set_log_path_and_level(const std::string& file, unsigned int level, const LogEncOptions& enc_options)
-{
-#ifdef __APPLE__
-	//currently on old macos, the boost::log::add_file_log will crash
-	//TODO: need to be fixed
-	if (!is_macos_support_boost_add_file_log()) {
-		return;
-	}
-#endif
-
-	g_log_sink_backend = boost::make_shared<LogSinkBackend>(file, enc_options);
-    g_log_sink = boost::make_shared<LogSink>(g_log_sink_backend);
-	g_log_sink->set_formatter(
-		expr::stream
-		<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-		<< "[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
-		<< ":" << expr::smessage
-	);
-	boost::log::core::get()->add_sink(g_log_sink);
-
-	logging::add_common_attributes();
-
-	set_logging_level(level);
-	return;
-}
-
-void update_log_sink(const std::string& file, const LogEncOptions& enc_options)
-{
-    if (g_log_sink_backend) {
-        g_log_sink_backend->update_enc_option(file, enc_options);
-    }
-}
-
-void flush_logs()
-{
-	if (g_log_sink)
-		g_log_sink->flush();
-
-	return;
 }
 
 #ifdef _WIN32
@@ -1360,7 +1212,7 @@ std::string format_diameter_to_str(double diameter, int precision)
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
-    if (ignore_loglevel || logSeverity <= boost::log::trivial::info) {
+    if (ignore_loglevel || get_logging_level() >= 3) {
 #ifdef WIN32
     #ifndef PROCESS_MEMORY_COUNTERS_EX
         // MingW32 doesn't have this struct in psapi.h

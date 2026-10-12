@@ -1,0 +1,36 @@
+#pragma once
+
+#include <string_view>
+
+/**
+ * \brief Field names for KV in log records
+ *
+ * Use these instead of string literals so the same value is always logged under the same name.
+ * Values of sensitive fields are masked in public builds; see KV.
+ */
+namespace Slic3r::log_key {
+
+// Sensitive: masked in public builds
+inline constexpr std::string_view dev_id      = "dev_id";
+inline constexpr std::string_view sn          = "sn";
+inline constexpr std::string_view dev_ip      = "dev_ip";
+inline constexpr std::string_view dev_name    = "dev_name";
+inline constexpr std::string_view uid         = "uid";
+inline constexpr std::string_view access_code = "access_code";
+inline constexpr std::string_view token       = "token";
+inline constexpr std::string_view password    = "password";
+inline constexpr std::string_view authkey     = "authkey";
+inline constexpr std::string_view ttcode_enc  = "ttcode_enc";
+inline constexpr std::string_view url         = "url";
+inline constexpr std::string_view region      = "region";
+inline constexpr std::string_view model_id    = "model_id";
+
+// Not sensitive
+inline constexpr std::string_view seq         = "seq";
+inline constexpr std::string_view ret         = "ret";
+inline constexpr std::string_view task_id     = "task_id";
+inline constexpr std::string_view subtask_id  = "subtask_id";
+inline constexpr std::string_view job_id      = "job_id";
+inline constexpr std::string_view plate       = "plate";
+
+} // namespace Slic3r::log_key

@@ -80,11 +80,6 @@ namespace boost { namespace filesystem { class directory_entry; }}
 
 namespace Slic3r {
 
-extern void set_logging_level(unsigned int level);
-extern unsigned int level_string_to_boost(std::string level);
-extern std::string  get_string_logging_level(unsigned level);
-extern unsigned get_logging_level();
-extern void trace(unsigned int level, const char *message);
 // Format memory allocated, separate thousands by comma.
 extern std::string format_memsize_MB(size_t n);
 // Return string to be added to the boost::log output to inform about the current process memory allocation.
@@ -363,25 +358,6 @@ bool makedir(const std::string path);
 // Writes out the output path prefix to the console for the first time the function is called,
 // so the user knows where to search for the debugging output.
 std::string debug_out_path(const char *name, ...);
-
-// smaller level means less log. level=5 means saving all logs.
-struct LogEncOptions
-{
-    enum LogEncType : unsigned char
-    {
-        LOG_ENC_NONE = 0,
-        LOG_ENC_AES_256_CBC = 1,
-        //ENC_RSA_2048 = 2, maybe supported in future
-    };
-
-    LogEncType enc_type = LOG_ENC_AES_256_CBC;
-    std::string enc_key_url;
-    std::string enc_key_host_env;
-};
-bool is_log_trivival_valid();
-void set_log_path_and_level(const std::string& file, unsigned int level, const LogEncOptions& enc_options);
-void update_log_sink(const std::string& file, const LogEncOptions& enc_options);
-void flush_logs();
 
 // A special type for strings encoded in the local Windows 8-bit code page.
 // This type is only needed for Perl bindings to relay to Perl that the string is raw, not UTF-8 encoded.

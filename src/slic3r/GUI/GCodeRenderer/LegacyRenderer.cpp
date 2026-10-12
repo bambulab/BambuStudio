@@ -24,6 +24,7 @@
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
 #include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 #include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>

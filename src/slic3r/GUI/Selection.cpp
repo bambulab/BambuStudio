@@ -23,6 +23,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Min_sphere_of_spheres_d.h>

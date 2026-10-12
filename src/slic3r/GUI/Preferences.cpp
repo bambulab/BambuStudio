@@ -35,6 +35,7 @@
 #include "dark_mode.hpp"
 #endif // _MSW_DARK_MODE
 #endif //__WINDOWS__
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

@@ -42,6 +42,11 @@ set(lisbslic3r_sources
     Algorithm/LineSegmentation/LineSegmentation.hpp
     AnyPtr.hpp
     AStar.hpp
+    Desensitize.cpp
+    Desensitize.hpp
+    Log.cpp
+    Log.hpp
+    LogKeys.hpp
     LogSink.hpp
     LogSink.cpp
     BoundingBox.cpp

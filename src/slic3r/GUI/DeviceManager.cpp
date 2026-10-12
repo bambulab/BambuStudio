@@ -65,6 +65,7 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevMcTask.hpp"
 #include "DeviceCore/DevUtil.h"
+#include "libslic3r/Log.hpp"
 
 
 #define CALI_DEBUG

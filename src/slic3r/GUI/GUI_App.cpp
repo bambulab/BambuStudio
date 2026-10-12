@@ -71,7 +71,7 @@
 #include "libslic3r/Debounce.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
-#include "libslic3r/LogSink.hpp"
+#include "libslic3r/Log.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/miniz_extension.hpp"
@@ -2679,12 +2679,12 @@ void GUI_App::init_app_config()
 
     // start log here
     const auto& enc_opts = s_get_log_enc_opts();
-    const auto& log_filename = LogSinkUtil::get_log_filaname_format(enc_opts);
+    const std::string log_dir = (boost::filesystem::path(data_dir()) / "log").string();
 
 #if !BBL_RELEASE_TO_PUBLIC  && defined(__WINDOWS__)
-    set_log_path_and_level(log_filename, 5, enc_opts);
+    set_log_path_and_level(log_dir, 5, enc_opts);
 #else
-    set_log_path_and_level(log_filename, 3, enc_opts);
+    set_log_path_and_level(log_dir, 3, enc_opts);
 #endif
 
     //BBS: remove GCodeViewer as seperate APP logic
@@ -2732,8 +2732,7 @@ void GUI_App::update_log_sink_region()
 
     const auto& enc_opts = s_get_log_enc_opts();
     if (enc_opts.enc_type != LogEncOptions::LOG_ENC_NONE) {
-        const auto& log_filename = LogSinkUtil::get_log_filaname_format(enc_opts);
-        update_log_sink(log_filename, enc_opts);
+        update_log_sink(enc_opts);
     }
 }
 

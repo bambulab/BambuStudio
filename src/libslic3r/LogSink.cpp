@@ -15,6 +15,12 @@
 
 #include <fstream>
 
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 //#define DEBUG_LOG_ENC
 
 #define HEADER_BEGIN_MARKER "BEGIN_HEADER\n"
@@ -405,15 +411,26 @@ bool LogSinkBackend::DecodeAES256LogFile(const std::string& file_path, const std
     return true;
 }
 
+namespace {
+unsigned current_pid()
+{
+#ifdef _WIN32
+    return static_cast<unsigned>(_getpid());
+#else
+    return static_cast<unsigned>(::getpid());
+#endif
+}
+} // namespace
+
 // rules
 // studio_%a_%b_%d_%H_%M_%S_<pid>[_enc][_cn].log.%N
-std::string LogSinkUtil::get_log_filaname_format(const LogEncOptions& enc_opts)
+std::string LogSinkUtil::get_log_filename_format(const std::string& log_dir, const LogEncOptions& enc_opts)
 {
     std::time_t       t = std::time(0);
     std::tm* now_time = std::localtime(&t);
     std::stringstream buf;
     buf << std::put_time(now_time, "studio_%a_%b_%d_%H_%M_%S_");
-    buf << get_current_pid();
+    buf << current_pid();
     if (enc_opts.enc_type == LogEncOptions::LOG_ENC_NONE) {
         buf << ".log.%N";
     } else {
@@ -432,7 +449,7 @@ std::string LogSinkUtil::get_log_filaname_format(const LogEncOptions& enc_opts)
 
     //BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\BambuStudio\\log\\[log_filename].log
     try {
-        auto log_folder = boost::filesystem::path(Slic3r::data_dir()) / "log";
+        auto log_folder = boost::filesystem::path(log_dir);
         if (!boost::filesystem::exists(log_folder)) {
             boost::filesystem::create_directories(log_folder);
         }
