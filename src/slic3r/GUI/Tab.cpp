@@ -4797,6 +4797,9 @@ void TabFilament::build()
             if (!m_postpone_update_ui && (opt_key == "nozzle_temperature_range_low" || opt_key == "nozzle_temperature_range_high")) {
                 m_config_manipulation.check_nozzle_recommended_temperature_range(&filament_config);
             }
+            else if (!m_postpone_update_ui && opt_key == "filament_tower_interface_print_temp") {
+                m_config_manipulation.check_tower_interface_print_temp(&filament_config, m_variant_combo ? m_variant_combo->GetSelection() : 0);
+            }
             on_value_change(opt_key, value);
         };
 
@@ -4853,6 +4856,9 @@ void TabFilament::build()
             else if (opt_key == "nozzle_temperature_initial_layer") {
                 m_config_manipulation.check_nozzle_temperature_initial_layer_range(&filament_config);
             }
+            // Variant fields keep their registration suffix, e.g. "nozzle_temperature#0".
+            if (!m_postpone_update_ui && opt_key.substr(0, opt_key.find('#')) == "nozzle_temperature")
+                m_config_manipulation.check_tower_interface_print_temp(&filament_config, m_variant_combo ? m_variant_combo->GetSelection() : 0);
 
             on_value_change(opt_key, value);
         };

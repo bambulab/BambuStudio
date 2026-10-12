@@ -78,6 +78,7 @@ public:
     void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config);
     void    check_nozzle_temperature_range(DynamicPrintConfig* config);
     void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
+    void    check_tower_interface_print_temp(DynamicPrintConfig* config, int variant_idx);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
     void    check_filament_scarf_setting(DynamicPrintConfig *config);
     //BBS: keep the painted top/bottom color inside the solid shell, out of the sparse infill

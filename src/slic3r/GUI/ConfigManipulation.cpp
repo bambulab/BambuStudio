@@ -124,6 +124,30 @@ void ConfigManipulation::check_nozzle_temperature_initial_layer_range(DynamicPri
     }
 }
 
+void ConfigManipulation::check_tower_interface_print_temp(DynamicPrintConfig *config, int variant_idx)
+{
+    if (is_msg_dlg_already_exist)
+        return;
+
+    auto *interface_temps = config->option<ConfigOptionInts>("filament_tower_interface_print_temp");
+    auto *nozzle_temps    = config->option<ConfigOptionIntsNullable>("nozzle_temperature");
+    if (!interface_temps || !nozzle_temps || interface_temps->empty() || nozzle_temps->empty())
+        return;
+
+    // -1 means "use the max recommended nozzle temperature", which is not a user-set value.
+    const int interface_temp = interface_temps->get_at(variant_idx);
+    const int nozzle_temp    = nozzle_temps->get_at(variant_idx);
+    if (interface_temp < 0 || nozzle_temp == ConfigOptionIntsNullable::nil_value() || interface_temp >= nozzle_temp)
+        return;
+
+    MessageDialog dialog(m_msg_dlg_parent,
+                         _L("To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."),
+                         "", wxICON_WARNING | wxOK);
+    is_msg_dlg_already_exist = true;
+    dialog.ShowModal();
+    is_msg_dlg_already_exist = false;
+}
+
 
 void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig *config)
 {
