@@ -1647,6 +1647,8 @@ int CLI::run(int argc, char **argv)
     bool translate_old = false, regenerate_thumbnails = false, keep_old_params = false, remove_wrapping_detect = false, filament_color_changed = false, downward_check = false, skirt_per_object_reset = false;
     int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
+    int old_shared_center_x = 0, old_shared_center_y = 0;
+    bool has_old_shared_center = false;
     Pointfs old_printable_area, old_exclude_area;
     float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f, old_filament_prime_volume = 0.f, old_distance_to_rod = 0.f;
     std::vector<double> old_max_layer_height, old_min_layer_height;
@@ -2127,6 +2129,37 @@ int CLI::run(int argc, char **argv)
                         old_printable_depth = (int)(old_printable_area[2].y() - old_printable_area[0].y());
                     }
                     old_printable_height = (int)(config.opt_float("printable_height"));
+                    // Intersection of every extruder printable area. Its center is the region both
+                    // nozzles can reach; printable_area's own center includes single-nozzle strips.
+                    if (config.option<ConfigOptionPointsGroups>("extruder_printable_area") && old_printable_width > 0 && old_printable_depth > 0) {
+                        const std::vector<Pointfs> &old_extruder_areas = config.option<ConfigOptionPointsGroups>("extruder_printable_area")->values;
+                        if (!old_extruder_areas.empty()) {
+                            BoundingBox old_shared_bbox({0, 0}, {old_printable_width, old_printable_depth});
+                            bool old_shared_valid = true;
+                            for (const Pointfs &temp_extruder_shape : old_extruder_areas) {
+                                if (temp_extruder_shape.empty()) {
+                                    old_shared_valid = false;
+                                    break;
+                                }
+                                BoundingBox temp_bbox;
+                                for (const Vec2d &pt : temp_extruder_shape)
+                                    temp_bbox.merge({pt.x(), pt.y()});
+                                if (old_shared_bbox.min.x() < temp_bbox.min.x())
+                                    old_shared_bbox.min.x() = temp_bbox.min.x();
+                                if (old_shared_bbox.min.y() < temp_bbox.min.y())
+                                    old_shared_bbox.min.y() = temp_bbox.min.y();
+                                if (old_shared_bbox.max.x() > temp_bbox.max.x())
+                                    old_shared_bbox.max.x() = temp_bbox.max.x();
+                                if (old_shared_bbox.max.y() > temp_bbox.max.y())
+                                    old_shared_bbox.max.y() = temp_bbox.max.y();
+                            }
+                            if (old_shared_valid && old_shared_bbox.min.x() < old_shared_bbox.max.x() && old_shared_bbox.min.y() < old_shared_bbox.max.y()) {
+                                has_old_shared_center = true;
+                                old_shared_center_x = old_shared_bbox.center().x();
+                                old_shared_center_y = old_shared_bbox.center().y();
+                            }
+                        }
+                    }
 
                     if (config.option<ConfigOptionFloat>("extruder_clearance_height_to_rod"))
                         old_height_to_rod = config.opt_float("extruder_clearance_height_to_rod");
@@ -2140,7 +2173,8 @@ int CLI::run(int argc, char **argv)
                         old_max_layer_height = config.option<ConfigOptionFloatsNullable>("max_layer_height")->values;
                     if (config.option<ConfigOptionFloatsNullable>("min_layer_height"))
                         old_min_layer_height = config.option<ConfigOptionFloatsNullable>("min_layer_height")->values;
-                    BOOST_LOG_TRIVIAL(info) << boost::format("old printable size from 3mf: {%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("old printable size from 3mf: {%1%, %2%, %3%}, old shared center {%4%, %5%}, has_old_shared_center %6%")
+                        %old_printable_width %old_printable_depth %old_printable_height %old_shared_center_x %old_shared_center_y %(int)has_old_shared_center;
                     BOOST_LOG_TRIVIAL(info) << boost::format("old extruder_clearance_height_to_rod %1%, extruder_clearance_height_to_lid %2%, extruder_clearance_max_radius %3% extruder_clearance_dist_to_rod %4%}")%old_height_to_rod %old_height_to_lid %old_max_radius %old_distance_to_rod;
                 }
                 else
@@ -4436,6 +4470,7 @@ int CLI::run(int argc, char **argv)
     double cleareance_radius = m_print_config.opt_float("extruder_clearance_max_radius");
     double distance_to_rod = m_print_config.opt_float("extruder_clearance_dist_to_rod");
     int shared_printable_width = 0, shared_printable_depth = 0, shared_printable_height = 0, shared_center_x = 0, shared_center_y = 0;
+    bool has_shared_center = false;
     //double plate_stride;
     std::string bed_texture;
 
@@ -4481,6 +4516,7 @@ int CLI::run(int argc, char **argv)
         shared_printable_height = temp_height;
         shared_center_x = current_bbox.center().x();
         shared_center_y = current_bbox.center().y();
+        has_shared_center = current_bbox.min.x() < current_bbox.max.x() && current_bbox.min.y() < current_bbox.max.y();
 
         BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: shared_printable_size {%2%, %3%, %4%}, shared_center {%5%, %6%}")
                     %__LINE__ %shared_printable_width %shared_printable_depth %shared_printable_height %shared_center_x %shared_center_y;
@@ -4701,7 +4737,7 @@ int CLI::run(int argc, char **argv)
     };
 
     auto translate_models = [machine_switch, is_bbl_3mf, translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height,
-        shared_center_x, shared_center_y, shared_printable_width, shared_printable_depth, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
+        has_old_shared_center, old_shared_center_x, old_shared_center_y, has_shared_center, shared_center_x, shared_center_y, shared_printable_width, shared_printable_depth, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
         //BBS: translate old 3mf to correct positions
         if (translate_old) {
             //translate the objects
@@ -4742,9 +4778,14 @@ int CLI::run(int argc, char **argv)
 
 
                 if (shrink_to_new_bed == 1) {
-                    Vec3d cur_center_offset { ((double)old_printable_width)/2, ((double)old_printable_depth)/2, 0}, new_center_offset { ((double)current_printable_width)/2, ((double)current_printable_depth)/2, 0};
-                    Vec3d cur_center = cur_origin + cur_center_offset;
-                    Vec3d new_center = new_origin + new_center_offset;
+                    // Align the shared extruder printable center, not the printable_area rectangle.
+                    // The rectangle includes strips only one nozzle can reach.
+                    const double old_cx = has_old_shared_center ? (double) old_shared_center_x : ((double) old_printable_width) / 2.0;
+                    const double old_cy = has_old_shared_center ? (double) old_shared_center_y : ((double) old_printable_depth) / 2.0;
+                    const double new_cx = has_shared_center ? (double) shared_center_x : ((double) current_printable_width) / 2.0;
+                    const double new_cy = has_shared_center ? (double) shared_center_y : ((double) current_printable_depth) / 2.0;
+                    Vec3d cur_center = cur_origin + Vec3d(old_cx, old_cy, 0);
+                    Vec3d new_center = new_origin + Vec3d(new_cx, new_cy, 0);
 
                     offset  = new_center - cur_center;
 
