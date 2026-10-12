@@ -469,14 +469,18 @@ void SyncPresetWithPrinterDialog::build_layout()
     else if (m_info.section_kind == NozzleSectionKind::Notice || m_info.section_kind == NozzleSectionKind::Table)
         add_block(build_section(_L("Nozzle type"), [this](wxWindow *parent) { return build_nozzle_table(parent); }));
 
-    root->AddSpacer(FromDIP(34));
+    m_detail_loss_hint = build_detail_loss_hint(this);
+    root->Add(m_detail_loss_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
+    m_footer_gap = root->AddSpacer(FromDIP(34));
+    update_detail_loss_hint(false);
     root->Add(build_footer(this), 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
     root->AddSpacer(FromDIP(23));
 
     SetSizer(root);
     // Width follows the mock-up; height follows the content, since the row count is driven by the
-    // project rather than fixed at the two rows the mock-up happens to show.
-    SetMinSize(wxSize(FromDIP(kDialogWidth), -1));
+    // project rather than fixed at the two rows the mock-up happens to show. The width is pinned on the
+    // sizer, not the dialog: SetSizeHints() replaces the dialog's min size with the sizer's own.
+    root->SetMinSize(wxSize(FromDIP(kDialogWidth), -1));
     root->SetSizeHints(this);
     Layout();
 }
@@ -660,6 +664,10 @@ wxWindow *SyncPresetWithPrinterDialog::make_nozzle_combo(wxWindow *parent, const
     if (matched >= 0)
         combo->SetSelection(matched);
     combo->Enable(!m_info.printer_nozzles.empty());
+    combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &evt) {
+        evt.Skip();
+        update_detail_loss_hint(true);
+    });
     m_nozzle_combos.push_back(combo);
     return combo;
 }
@@ -672,6 +680,49 @@ wxWindow *SyncPresetWithPrinterDialog::build_nozzle_notice(wxWindow *parent)
     label->SetForegroundColour(C(ThemeColor::Grey700));
     label->Wrap(FromDIP(kDialogWidth) - 2 * FromDIP(kSidePadding));
     return label;
+}
+
+wxWindow *SyncPresetWithPrinterDialog::build_detail_loss_hint(wxWindow *parent)
+{
+    auto *panel = new wxPanel(parent);
+    panel->SetBackgroundColour(parent->GetBackgroundColour());
+
+    auto *icon = new wxStaticBitmap(panel, wxID_ANY, create_scaled_bitmap("warning", panel, 16));
+    auto *label = new Label(panel, _L("After synchronization, switching to a larger nozzle may reduce model detail. Proceed with caution."));
+    label->SetFont(Label::Body_14);
+    label->SetForegroundColour(C(ThemeColor::Warning));
+    label->Wrap(FromDIP(kDialogWidth) - 2 * FromDIP(kSidePadding) - FromDIP(16 + 6));
+
+    auto *row = new wxBoxSizer(wxHORIZONTAL);
+    // Centred on the first text line rather than the whole label, so a wrapped hint keeps it beside line one.
+    row->Add(icon, 0, wxTOP, std::max(0, (label->GetCharHeight() - icon->GetBestSize().GetHeight()) / 2));
+    row->AddSpacer(FromDIP(6));
+    row->Add(label, 1);
+
+    // The gap to the table above belongs to the hint, so it goes away with it.
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(14));
+    panel->SetSizer(sizer);
+    return panel;
+}
+
+void SyncPresetWithPrinterDialog::update_detail_loss_hint(bool refit)
+{
+    const PendingNozzleMigration migration = GetConfirmedMigration();
+    bool loses_detail = false;
+    for (size_t slot = 0; !loses_detail && slot < migration.per_slot.size() && slot < m_info.slot_nozzles.size(); ++slot)
+        loses_detail = nozzle_loses_detail(m_info.slot_nozzles[slot].diameter, migration.per_slot[slot].diameter);
+
+    const bool changed = m_detail_loss_hint->IsShown() != loses_detail;
+    m_detail_loss_hint->Show(loses_detail);
+    // Mock-up: table, 14, hint, 21, footer; without the hint the table keeps its 34 to the footer.
+    m_footer_gap->AssignSpacer(0, FromDIP(loses_detail ? 21 : 34));
+    if (!refit || !changed) return;
+
+    // Height only: the width stays pinned on the sizer (see build_layout), and SetSizeHints() replaces the
+    // min height too, so the dialog shrinks back once the hint hides.
+    GetSizer()->SetSizeHints(this);
+    Layout();
 }
 
 wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)

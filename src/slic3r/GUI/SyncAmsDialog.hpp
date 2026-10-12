@@ -147,6 +147,13 @@ private:
     void update_reset_all();
 
     /**
+     * \brief Show the coarser-nozzle hint exactly while some mapping moves a filament off a 0.2 nozzle or onto a 0.8 one.
+     *
+     * \return whether the hint's visibility changed, i.e. the dialog needs a relayout
+     */
+    bool update_detail_loss_hint();
+
+    /**
      * \brief Restore every mapping to its auto-map result, discarding manual picks and resets.
      */
     void reset_all();
@@ -170,6 +177,7 @@ private:
     wxWindow       *m_mapping_panel{nullptr};
     MappingList    *m_mapping_list{nullptr};
     ScalableButton *m_reset_all{nullptr};
+    wxWindow       *m_detail_loss_hint{nullptr};
     wxWindow       *m_advanced_body{nullptr};
     wxStaticBitmap *m_advanced_icon{nullptr};
     bool            m_overwrite{false};

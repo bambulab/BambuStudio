@@ -51,6 +51,11 @@ wxString format_nozzle_spec(const NozzleConfig &cfg);
 
 std::string get_diameter_string(float diameter);
 
+// Whether printing a filament on the `to` nozzle instead of the `from` one is coarse enough to warn the
+// user about lost detail: leaving a 0.2 nozzle, or landing on a 0.8 one. A diameter <= 0 is unknown and
+// never warns.
+bool nozzle_loses_detail(double from, double to);
+
 // "0.4 mm" -> "0.4": keep leading digits/dot, stop at the first other character.
 inline wxString parse_diameter_value(const wxString &label)
 {

@@ -16,6 +16,7 @@
 class ComboBox;
 class CheckBox;
 class Button;
+class wxSizerItem;
 
 namespace Slic3r {
 class MachineObject;
@@ -131,7 +132,8 @@ public:
     // A shared dropdown repeats its one choice for every row; empty when no dropdown is shown.
     std::vector<NozzleSpec> GetChosenNozzles() const;
 
-    // The same choices spread onto the slots they apply to. Only meaningful after wxID_OK.
+    // The same choices spread onto the slots they apply to. Follows the dropdowns live; the caller only
+    // applies it after wxID_OK.
     PendingNozzleMigration GetConfirmedMigration() const;
 
     // Always false on the manual sync path, which does not show the checkbox.
@@ -146,7 +148,12 @@ private:
     wxWindow *build_nozzle_table(wxWindow *parent);
     wxWindow *build_shared_nozzle_rows(wxWindow *parent);
     wxWindow *build_nozzle_notice(wxWindow *parent);
+    wxWindow *build_detail_loss_hint(wxWindow *parent);
     wxWindow *build_footer(wxWindow *parent);
+
+    // Shows the coarser-nozzle hint exactly while the current picks move some slot off a 0.2 nozzle or
+    // onto a 0.8 one. `refit` resizes the dialog, which only a live change needs.
+    void update_detail_loss_hint(bool refit);
 
     wxWindow *make_model_cell(wxWindow *parent, const std::string &model_id, const wxString &model_name, const wxString &dev_name);
     wxWindow *make_source_label(wxWindow *parent, size_t row) const;
@@ -155,6 +162,9 @@ private:
     PrinterMigrationInfo m_info;
     // one per project nozzle row, or a single one behind a shared cell
     std::vector<ComboBox *> m_nozzle_combos;
+    wxWindow *m_detail_loss_hint{nullptr};
+    // gap above the footer; the hint takes part of it while shown
+    wxSizerItem *m_footer_gap{nullptr};
     CheckBox *m_skip_check{nullptr};
     Button *m_confirm_btn{nullptr};
 };

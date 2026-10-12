@@ -30,6 +30,13 @@ std::string get_diameter_string(float diameter)
     return stream.str();
 }
 
+bool nozzle_loses_detail(double from, double to)
+{
+    if (from <= 0. || to <= 0.) return false;
+    const auto is = [](double diameter, double value) { return std::abs(diameter - value) < EPSILON; };
+    return (is(from, 0.2) && !is(to, 0.2)) || (is(to, 0.8) && !is(from, 0.8));
+}
+
 wxString format_nozzle_spec(const NozzleConfig &cfg)
 {
     if (cfg.diameter.IsEmpty()) return _L("Empty");

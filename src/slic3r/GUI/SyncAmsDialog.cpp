@@ -18,7 +18,7 @@
 #include <wx/statbmp.h>
 
 #include "CapsuleButton.hpp"
-#include "ExtruderHelpers.hpp"          // slot_name
+#include "ExtruderHelpers.hpp"          // slot_name, nozzle_loses_detail
 #include "ModelPreview.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/AppConfig.hpp"
@@ -647,6 +647,7 @@ void SyncAmsDialog::fill_rows(const std::vector<FilamentInfo> &source)
     const int     list_h          = row_count > kMaxVisibleRows ? content_h * kMaxVisibleRows / row_count : content_h;
     m_mapping_list->SetMinSize(wxSize(-1, list_h));
     update_mapped_preview(/*reframe=*/false); // auto-map/policy change: colours only, keep the camera
+    update_detail_loss_hint();
     relayout();
 }
 
@@ -672,6 +673,7 @@ void SyncAmsDialog::open_slot_picker(MappingRow *row, const FilamentInfo &source
         row->set_selected(true);
         update_mapped_preview(/*reframe=*/false); // repaint the after-mapping preview with the new colour
         update_reset_all();
+        if (update_detail_loss_hint()) relayout();
     };
     // The popup resolves the clicked slot's full identity (incl. nozzle geometry) from the machine's live
     // slots, so a manual pick already reads identically to an auto-matched one — take it as is.
@@ -697,6 +699,22 @@ void SyncAmsDialog::update_reset_all()
     if (m_reset_all->IsShown() == edited) return;
     m_reset_all->Show(edited);
     m_mapping_panel->Layout();
+}
+
+bool SyncAmsDialog::update_detail_loss_hint()
+{
+    // Every project filament counts, not just the shown plate's, since the sync applies all.
+    bool loses_detail = false;
+    for (const FilamentInfo &src : collect_scope_filaments(-1)) {
+        auto it = m_mappings.find(src.id);
+        if (it != m_mappings.end() && it->second->tray_id >= 0 && nozzle_loses_detail(src.nozzle_diameter, it->second->nozzle_diameter)) {
+            loses_detail = true;
+            break;
+        }
+    }
+    if (m_detail_loss_hint->IsShown() == loses_detail) return false;
+    m_detail_loss_hint->Show(loses_detail);
+    return true;
 }
 
 void SyncAmsDialog::reset_all()
@@ -802,7 +820,7 @@ wxWindow *SyncAmsDialog::build_mapping_section()
         m_policy = new ::ComboBox(m_mapping_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(124, 26)), 0, nullptr, wxCB_READONLY);
         m_policy->Append(_L("Color first"));
         m_policy->Append(_L("Precision first"));
-        m_policy->SetSelection(0);
+        m_policy->SetSelection(1); // default: Precision first
         m_policy->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) { remap_all(); }); // re-map with the new strategy
         trow->Add(m_policy, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));  // right after the label
     }
@@ -817,11 +835,29 @@ wxWindow *SyncAmsDialog::build_mapping_section()
 
     m_mapping_list = new MappingList(m_mapping_panel);
     m_mapping_list->SetBackgroundColour(m_mapping_panel->GetBackgroundColour()); // set before rows: cells theme off this
+
+    m_detail_loss_hint = new wxPanel(m_mapping_panel);
+    m_detail_loss_hint->SetBackgroundColour(m_mapping_panel->GetBackgroundColour());
+    auto *hint_icon = new wxStaticBitmap(m_detail_loss_hint, wxID_ANY, create_scaled_bitmap("warning", m_detail_loss_hint, 16));
+    auto *hint_text = new ::Label(m_detail_loss_hint, _L("After synchronization, switching to a larger nozzle may reduce model detail. Proceed with caution."),
+                                  LB_AUTO_WRAP);
+    hint_text->SetFont(::Label::Body_14);
+    hint_text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::Warning));
+    hint_text->SetMinSize(FromDIP(wxSize(640, -1))); // a long translation wraps instead of widening the dialog
+    auto *hint = new wxBoxSizer(wxHORIZONTAL);
+    // Centred on the first text line rather than the whole label, so a wrapped hint keeps it beside line one.
+    hint->Add(hint_icon, 0, wxTOP, std::max(0, (hint_text->GetCharHeight() - hint_icon->GetBestSize().GetHeight()) / 2));
+    hint->AddSpacer(FromDIP(6));
+    hint->Add(hint_text, 1);
+    m_detail_loss_hint->SetSizer(hint);
+    m_detail_loss_hint->Hide(); // remap_all below decides whether it shows
+
     remap_all(); // fills rows and sizes the list to them (width is left to wxEXPAND below)
 
     auto *v = new wxBoxSizer(wxVERTICAL);
     v->Add(trow, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
     v->Add(m_mapping_list, 1, wxEXPAND);
+    v->Add(m_detail_loss_hint, 0, wxEXPAND | wxTOP, FromDIP(16));
     m_mapping_panel->SetSizer(v);
     return m_mapping_panel;
 }
