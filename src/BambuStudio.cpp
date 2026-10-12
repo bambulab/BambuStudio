@@ -6826,8 +6826,7 @@ int CLI::run(int argc, char **argv)
                                     mode = part_plate->get_real_filament_map_mode(m_print_config);
                                 BOOST_LOG_TRIVIAL(info) << boost::format("%1% :filament map mode is %2% ") % __LINE__ %(int)mode;
 
-                                // 所有模式通用：若 CLI 传入了 extruder_nozzle_count + extruder_nozzle_volume_type，
-                                // 以此为准构造 extruder_nozzle_stats，优先级高于 on_volume_type_switch
+                                // 显式 CLI 喷嘴参数优先级最高。
                                 if (m_extra_config.has("extruder_nozzle_count") && m_extra_config.has("extruder_nozzle_volume_type")) {
                                     std::vector<std::map<NozzleVolumeType, int>> extruder_nozzle_stats_maps(new_extruder_count, std::map<NozzleVolumeType, int>{});
                                     std::vector<int> extruder_nozzle_counts = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count")->values;
@@ -6848,15 +6847,13 @@ int CLI::run(int argc, char **argv)
                                     if (m_extra_config.has("extruder_nozzle_slot"))
                                         m_print_config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_slot")->values;
                                 } else {
-                                    // 未传入精细喷嘴配置时，退回到 nozzle_volume_type 同步
-                                    for (size_t eid = 0; eid < new_nozzle_volume_type.size(); ++eid) {
-                                        nozzle_stats_obj.on_volume_type_switch(eid, new_nozzle_volume_type[eid]);
-                                    }
+                                    // 工程中的完整逐槽布局是权威数据，数量可以多于只统计当前口径的 nozzle_stats。
+                                    if (!per_slot_nozzle_options_consistent(m_print_config)) {
+                                        // 旧工程缺少完整逐槽布局时，仍按代表喷嘴类型和聚合统计兜底。
+                                        for (size_t eid = 0; eid < new_nozzle_volume_type.size(); ++eid) {
+                                            nozzle_stats_obj.on_volume_type_switch(eid, new_nozzle_volume_type[eid]);
+                                        }
 
-                                    // Keep CLI reconciliation aligned with PresetBundle::update_extruder_full_stats_from_config.
-                                    // Preserve a complete per-slot snapshot even when the legacy aggregate nozzle stats are stale.
-                                    if (!m_print_config.has("extruder_nozzle_count") ||
-                                        !per_slot_nozzle_options_consistent(m_print_config)) {
                                         const std::string diameter_str   = m_print_config.opt_string("printer_variant");
                                         const auto* max_nozzle_count_opt = m_print_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
                                         const std::vector<int> max_nozzle_count = max_nozzle_count_opt ? max_nozzle_count_opt->values : std::vector<int>{};
@@ -7173,9 +7170,11 @@ int CLI::run(int argc, char **argv)
                         if (final_volume_maps.size() < filament_count)
                             final_volume_maps.resize(filament_count, new_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values[default_extruder_id - 1]); // default use volume type for left extruder
                         if (new_extruder_count == 1) {
+                            const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(new_print_config);
                             for (int index = 0; index < filament_count; index++) {
                                 final_filament_maps[index] = default_extruder_id;
-                                final_volume_maps[index] = new_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values[default_extruder_id - 1];
+                                if (!single_ext_multi_nozzle)
+                                    final_volume_maps[index] = new_print_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values[default_extruder_id - 1];
                             }
                             part_plate->set_filament_maps(final_filament_maps);
                             part_plate->set_filament_volume_maps(final_volume_maps);

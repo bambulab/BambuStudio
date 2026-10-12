@@ -4973,7 +4973,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (m_curr_plater){
                     auto filament_volume_map = get_vector_from_string(value);
                     for (size_t idx = 0; idx < filament_volume_map.size(); ++idx) {
-                        if (filament_volume_map[idx] > 1) {
+                        // 保留合法的新喷嘴类型，仅将越界值回退为标准流量。
+                        if (filament_volume_map[idx] < nvtStandard || filament_volume_map[idx] >= nvtCount) {
                             filament_volume_map[idx] = 0;
                         }
                     }
