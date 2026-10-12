@@ -242,6 +242,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     // user data directory must not be picked up.
     plugin_folder = get_bundled_plugin_directory();
     validate_cert = false;
+    BOOST_LOG_TRIVIAL(info) << "fully-open build: loading network plugin from " << plugin_folder.string();
     if (plugin_folder.empty()) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": fully-open build, cannot locate the application directory";
         return -1;
