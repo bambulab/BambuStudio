@@ -23,6 +23,7 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Thread.hpp"
 
 #include "Tab.hpp"
 #include "ProgressStatusBar.hpp"
@@ -50,7 +51,9 @@
 #include "../Utils/MacUtils.hpp"
 
 #include <fstream>
+#include <mutex>
 #include <string_view>
+#include <thread>
 
 #include "GUI_App.hpp"
 #include "libslic3r/PerfTrace.hpp"
@@ -3068,7 +3071,7 @@ void MainFrame::init_menubar_as_editor()
         {
             m_recent_projects.AddFileToHistory(from_u8(project));
         }
-        m_recent_projects.LoadThumbnails();
+        m_recent_projects.LoadThumbnailsAsync();
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_open_project() && (m_recent_projects.GetCount() > 0)); }, recent_projects_submenu->GetId());
 
@@ -4544,17 +4547,77 @@ size_t MainFrame::FileHistory::FindFileInHistory(const wxString & file)
     return m_fileHistory.Index(file);
 }
 
-void MainFrame::FileHistory::LoadThumbnails()
+void MainFrame::FileHistory::LoadThumbnailsAsync()
 {
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, GetCount()), [this](tbb::blocked_range<size_t> range) {
-        for (size_t i = range.begin(); i < range.end(); ++i) {
-            auto thumbnail = bbs_3mf_get_thumbnail(into_u8(GetHistoryFile(i)).c_str());
-            if (!thumbnail.empty()) {
-                m_thumbnails[i] = thumbnail;
-            }
-        }
-    });
+    // Snapshot on the main thread. GetCount() / GetHistoryFile() read wxFileHistory's own array,
+    // which AddFileToHistory / RemoveFileFromHistory may reshape at any time, so a worker holding
+    // indices into it would read out of bounds.
+    std::vector<wxString> files;
+    files.reserve(GetCount());
+    for (size_t i = 0; i < GetCount(); ++i)
+        files.push_back(GetHistoryFile(i));
+
+    // Set this up front: entries added while the scan is still running then take the synchronous
+    // path in AddFileToHistory, instead of getting an empty thumbnail that nothing ever fills in.
     m_load_called = true;
+
+    if (files.empty())
+        return;
+
+    auto state = m_state;
+    std::thread([this, state, files = std::move(files)]() mutable {
+        set_current_thread_name("recent_thumb");
+
+        // Nothing may escape into a detached thread: an exception reaching this frame would be an
+        // immediate std::terminate with no context. bbs_3mf_get_thumbnail() swallows its own
+        // parse and allocation failures, but the conversions and allocations around it do not.
+        try {
+            // Touches nothing but its own stack, so there is no race against the main thread
+            // reading m_thumbnails through GetThumbnailUrl() while this runs.
+            std::vector<std::string> data(files.size());
+            tbb::parallel_for(tbb::blocked_range<size_t>(0, files.size()), [&files, &data, &state](const tbb::blocked_range<size_t> &range) {
+                for (size_t i = range.begin(); i < range.end(); ++i) {
+                    // A single file can block for a long time when it lives in iCloud Drive and
+                    // its contents have been evicted, so stop fetching the rest once the frame
+                    // is on its way out.
+                    if (state->cancelled) return;
+                    data[i] = bbs_3mf_get_thumbnail(into_u8(files[i]).c_str());
+                }
+            });
+
+            // wxGetApp() dereferences wxApp::GetInstance(), which wxEntryCleanup() clears on the
+            // way out, so the check and the post have to be atomic with respect to cancel(). The
+            // lock is held only for the CallAfter, which just queues an event. ~FileHistory runs
+            // from DeleteAllTLWs(), before the instance is cleared, so cancelled covers that on
+            // its own; the second test only guards a teardown that skips the frame destructor.
+            std::lock_guard<std::mutex> lock(state->mutex);
+            if (state->cancelled || wxTheApp == nullptr) return;
+            wxGetApp().CallAfter([this, state, files = std::move(files), data = std::move(data)]() {
+                // Main thread, same thread that cancels, so a plain check is enough here.
+                if (state->cancelled) return;
+                ApplyThumbnails(files, data);
+                if (wxGetApp().mainframe && wxGetApp().mainframe->m_webview) wxGetApp().mainframe->m_webview->SendRecentList(-1);
+            });
+        } catch (const std::exception &ex) {
+            BOOST_LOG_TRIVIAL(error) << "LoadThumbnailsAsync failed: " << ex.what();
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "LoadThumbnailsAsync failed";
+        }
+    }).detach();
+}
+
+void MainFrame::FileHistory::ApplyThumbnails(const std::vector<wxString> &files, const std::vector<std::string> &data)
+{
+    // Main thread. The history may have been added to or trimmed while the scan ran, which shifts
+    // every index, so look each file up again by path. FindFileInHistory returns (size_t)wxNOT_FOUND
+    // when the entry is gone, which the size check below rejects along with any stale index.
+    for (size_t i = 0; i < files.size(); ++i) {
+        if (data[i].empty())
+            continue;
+        size_t idx = FindFileInHistory(files[i]);
+        if (idx < m_thumbnails.size())
+            m_thumbnails[idx] = data[i];
+    }
 }
 
 inline void MainFrame::FileHistory::SetMaxFiles(int max)
