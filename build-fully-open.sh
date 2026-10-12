@@ -33,10 +33,9 @@ fi
 # --- 1) build the open plugin from source ---
 (
     cd "$obn"
-    if [ ! -d build ]; then
-        echo "Configuring open-bamboo-networking for ABI $studio_version..."
-        ./configure --client-type=bambu_studio --with-version="$studio_version"
-    fi
+    echo "Configuring open-bamboo-networking for ABI $studio_version..."
+    ./configure --client-type=bambu_studio --with-version="$studio_version" \
+        --prefix="$root/.bambu-open/plugin-prefix" --no-conf-patch
     echo "Building open-bamboo-networking..."
     cmake --build build --parallel
 )
@@ -50,13 +49,23 @@ fi
 exe_dir=$(dirname "$exe")
 
 # --- 3) stage the plugin next to the executable ---
+network_staged=0
+camera_staged=0
 for lib in libbambu_networking.so libBambuSource.so liblive555.so libbambu_networking.dylib libBambuSource.dylib; do
     found=$(find "$obn/build" -type f -name "$lib" 2>/dev/null | head -n 1)
     if [ -n "$found" ]; then
         cp -f "$found" "$exe_dir/"
         echo "staged $lib -> $exe_dir"
+        case "$lib" in
+            libbambu_networking.*) network_staged=1 ;;
+            libBambuSource.*) camera_staged=1 ;;
+        esac
     fi
 done
+if [ "$network_staged" -ne 1 ] || [ "$camera_staged" -ne 1 ]; then
+    echo "required networking/camera libraries missing from plugin build output" >&2
+    exit 1
+fi
 
 echo ""
 echo "Fully-open build staged. Run: $exe_dir/bambu-studio"

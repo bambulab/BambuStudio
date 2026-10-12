@@ -14,7 +14,8 @@
 
 [CmdletBinding()]
 param(
-    [string]$Configuration = "Release",
+    [ValidateSet("Release", "Debug", "RelWithDebInfo", "MinSizeRel")]
+    [string]$Configuration = "RelWithDebInfo",
     [switch]$BuildStudio
 )
 
@@ -34,7 +35,7 @@ if ($BuildStudio) {
         $studioLog = Join-Path $root 'build_win.out.log'
         # stderr redirected inside cmd (PowerShell 5.1 treats redirected native
         # stderr as a terminating error under $ErrorActionPreference='Stop')
-        cmd /c "build_win.bat -d deps\build\out_deps > `"$studioLog`" 2>&1"
+        cmd /c "build_win.bat -c $Configuration -r none -d deps\build\out_deps > `"$studioLog`" 2>&1"
         if ($LASTEXITCODE -ne 0) { throw "build_win.bat failed (exit $LASTEXITCODE) - see $studioLog" }
     } finally {
         Pop-Location
@@ -53,33 +54,38 @@ Write-Host "Studio version: $studioVersion"
 # --- 2) build the open plugin from source ---
 Push-Location $obn
 try {
-    if (-not (Test-Path "build")) {
-        Write-Host "Configuring open-bamboo-networking for ABI $studioVersion..."
-        ./configure.ps1 -ClientType bambu_studio -WithVersion $studioVersion
-    }
+    Write-Host "Configuring open-bamboo-networking for ABI $studioVersion..."
+    ./configure.ps1 -ClientType bambu_studio -WithVersion $studioVersion `
+        -BuildType $Configuration -Prefix (Join-Path $root '.bambu-open\plugin-prefix') `
+        -PatchConf:$false -RegisterDShowFilter:$false
+    if ($LASTEXITCODE -ne 0) { throw "plugin configure failed (exit $LASTEXITCODE)" }
     Write-Host "Building open-bamboo-networking..."
     cmake --build build --config $Configuration
+    if ($LASTEXITCODE -ne 0) { throw "plugin build failed (exit $LASTEXITCODE)" }
 } finally {
     Pop-Location
 }
 
 # --- 3) stage the plugin next to the built executable ---
-$exe = Get-ChildItem (Join-Path $root "build") -Recurse -Filter "bambu-studio.exe" -ErrorAction SilentlyContinue |
-       Select-Object -First 1
+$executables = @(Get-ChildItem (Join-Path $root "build") -Recurse -Filter "bambu-studio.exe" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Directory.Name -eq $Configuration })
+$exe = $null
+if ($executables.Count -eq 1) { $exe = $executables[0] }
+if ($executables.Count -gt 1) { throw "Multiple $Configuration executables found under build\; stage the plugin into the intended tree manually." }
 if (-not $exe) {
-    throw "bambu-studio.exe not found under build\ - build Studio first (or pass -BuildStudio)"
+    throw "bambu-studio.exe ($Configuration) not found under build\ - build Studio first (or pass -BuildStudio)"
 }
 $exeDir = $exe.DirectoryName
 
 foreach ($dll in @("bambu_networking.dll", "BambuSource.dll", "live555.dll")) {
     $found = Get-ChildItem (Join-Path $obn "build") -Recurse -Filter $dll -ErrorAction SilentlyContinue |
-             Where-Object { $_.FullName -notmatch '\\CMakeFiles\\' } |
+             Where-Object { $_.FullName -notmatch '\\CMakeFiles\\' -and $_.Directory.Name -eq $Configuration } |
              Select-Object -First 1
     if ($found) {
         Copy-Item $found.FullName (Join-Path $exeDir $dll) -Force
         Write-Host "staged $dll -> $exeDir"
     } elseif ($dll -ne "live555.dll") {
-        Write-Warning "$dll not found in the plugin build output"
+        throw "$dll not found in the $Configuration plugin build output"
     }
 }
 
