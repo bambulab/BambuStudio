@@ -1651,12 +1651,12 @@ bool AMSControl::Enable(bool enable)
         item->Enable(enable);
     }
 
-    m_button_extruder_feed->Enable(enable);
-    m_button_extruder_back->Enable(enable);
-    m_button_auto_refill->Enable(enable);
-    m_button_ams_setting->Enable(enable);
+    if (m_button_extruder_feed) m_button_extruder_feed->Enable(enable);
+    if (m_button_extruder_back) m_button_extruder_back->Enable(enable);
+    if (m_button_auto_refill) m_button_auto_refill->Enable(enable);
+    if (m_button_ams_setting) m_button_ams_setting->Enable(enable);
 
-    m_filament_load_step->Enable(enable);
+    if (m_filament_load_step) m_filament_load_step->Enable(enable);
     return wxWindow::Enable(enable);
 }
 

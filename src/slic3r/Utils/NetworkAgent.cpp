@@ -157,6 +157,7 @@ func_sync_slot_mappings             NetworkAgent::sync_slot_mappings_ptr     = n
 func_get_soft_match_pending         NetworkAgent::get_soft_match_pending_ptr  = nullptr;
 func_post_soft_match_pending        NetworkAgent::post_soft_match_pending_ptr = nullptr;
 func_post_device_region             NetworkAgent::post_device_region_ptr       = nullptr;
+func_get_minors_decisions           NetworkAgent::get_minors_decisions_ptr     = nullptr;
 
 NetworkAgent::NetworkAgent(std::string log_dir)
 {
@@ -428,6 +429,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     get_soft_match_pending_ptr     = reinterpret_cast<func_get_soft_match_pending>(get_network_function("bambu_network_get_soft_match_pending"));
     post_soft_match_pending_ptr    = reinterpret_cast<func_post_soft_match_pending>(get_network_function("bambu_network_post_soft_match_pending"));
     post_device_region_ptr         = reinterpret_cast<func_post_device_region>(get_network_function("bambu_network_post_device_region"));
+    get_minors_decisions_ptr       = reinterpret_cast<func_get_minors_decisions>(get_network_function("bambu_network_get_minors_decisions"));
 
     return 0;
 }
@@ -575,6 +577,7 @@ int NetworkAgent::unload_network_module()
     get_soft_match_pending_ptr        = nullptr;
     post_soft_match_pending_ptr       = nullptr;
     post_device_region_ptr            = nullptr;
+    get_minors_decisions_ptr          = nullptr;
 
     return 0;
 }
@@ -1770,6 +1773,18 @@ int NetworkAgent::post_device_region(DeviceRegionParams params, std::string* htt
     }
     int ret = post_device_region_ptr(network_agent, params, http_body);
     BOOST_LOG_TRIVIAL(debug) << KV(log_key::network_agent, network_agent) << KV(log_key::ret, ret);
+    return ret;
+}
+
+int NetworkAgent::get_minors_decisions(const std::vector<std::string>& scene_codes, std::vector<MinorsDecisionResult>* decisions)
+{
+    if (!network_agent || !get_minors_decisions_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)get_minors_decisions_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    }
+    int ret = get_minors_decisions_ptr(network_agent, scene_codes, decisions);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
     return ret;
 }
 

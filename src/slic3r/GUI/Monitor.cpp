@@ -462,6 +462,8 @@ bool MonitorPanel::Show(bool show)
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (show) {
         start_update();
+        if (StatusPanel* sp = get_status_panel())
+            sp->update_ctrl_area_masks();
 
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
@@ -481,6 +483,8 @@ bool MonitorPanel::Show(bool show)
     } else {
         stop_update();
         m_refresh_timer->Stop();
+        if (StatusPanel* sp = get_status_panel())
+            sp->hide_ctrl_area_overlays();
     }
     return wxPanel::Show(show);
 }

@@ -1,6 +1,7 @@
 #include "DevAxis.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "libslic3r/Log.hpp"
 
@@ -9,6 +10,8 @@ namespace Slic3r
 
 int DevAxis::Ctrl_GoHome()
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::AxisMove)) return -1;
+
     if (m_is_support_mqtt_homing) {
         json j;
         j["print"]["command"] = "back_to_center";
@@ -22,6 +25,8 @@ int DevAxis::Ctrl_GoHome()
 
 int DevAxis::Ctrl_Axis(std::string axis, double unit, double input_val, int speed)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::AxisMove)) return -1;
+
     if (m_is_support_mqtt_axis_ctrl) {
         int dir = input_val > 0 ? 1 : -1;
         if (!IsArchCoreXY()) {

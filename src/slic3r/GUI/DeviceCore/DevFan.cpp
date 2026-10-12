@@ -61,6 +61,8 @@ static std::string _get_string_from_fantype(int type)
 // Old protocol
 int Slic3r::DevFan::command_control_fan(int fan_type, int val)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::Fan)) return -1;
+
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int) fan_type % (val)).str();
     try {
         json j;
@@ -78,6 +80,8 @@ int Slic3r::DevFan::command_control_fan(int fan_type, int val)
 // New protocol
 int Slic3r::DevFan::command_control_fan_new(int fan_id, int val)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::Fan)) return -1;
+
     BOOST_LOG_TRIVIAL(info) << "New protocol of fan setting(set speed), fan_id = " << fan_id;
     json j;
     j["print"]["command"]     = "set_fan";
@@ -108,6 +112,8 @@ int Slic3r::DevFan::command_handle_response(const json &response)
 
 int Slic3r::DevFan::command_control_air_duct(int mode_id, int submode, const CommandCallBack& cb)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::Fan)) return -1;
+
     BOOST_LOG_TRIVIAL(info) << "set air duct, d = " << mode_id;
     m_callback_list[std::to_string(m_owner->m_sequence_id)] = cb;
     json j;

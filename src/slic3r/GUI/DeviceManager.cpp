@@ -1617,6 +1617,8 @@ int MachineObject::command_stop_buzzer()
 
 int MachineObject::command_set_bed(int temp)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::BedTemp)) return -1;
+
     if (m_support_mqtt_bet_ctrl)
     {
         json j;
@@ -1644,6 +1646,8 @@ int MachineObject::command_set_bed(int temp)
 
 int MachineObject::command_set_nozzle(int temp)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::NozzleTemp)) return -1;
+
     std::string gcode_str = (boost::format("M104 S%1%\n") % temp).str();
     try {
         json j;
@@ -1661,6 +1665,8 @@ int MachineObject::command_set_nozzle(int temp)
 
 int MachineObject::command_set_nozzle_new(int nozzle_id, int temp)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::NozzleTemp)) return -1;
+
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "set_nozzle_temp";
@@ -1969,6 +1975,8 @@ int MachineObject::command_extrusion_cali_set(int tray_index, std::string settin
 
 int MachineObject::command_set_printing_speed(DevPrintingSpeedLevel lvl)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::PrintSpeed)) return -1;
+
     json j;
     j["print"]["command"] = "print_speed";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2018,6 +2026,8 @@ int MachineObject::command_ams_air_print_detect(bool air_print_detect)
 
 int MachineObject::command_extruder_control(int nozzle_id, double val)
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::Extrude)) return -1;
+
     json j;
     j["print"]["command"]     = "set_extrusion_length";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);

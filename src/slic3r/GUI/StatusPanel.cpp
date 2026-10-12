@@ -22,7 +22,15 @@
 #include "MsgDialog.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/Utils.hpp"
 #include "DeviceErrorDialog.hpp"
+#include <wx/html/htmlwin.h>
+#include <boost/algorithm/string/replace.hpp>
+#include "WindowShadow.hpp"
+#include "Widgets/StateColor.hpp"
+#ifdef __WIN32__
+#include <wx/msw/wrapwin.h>
+#endif
 
 #include "EncodedFilament.hpp"
 #include "RecenterDialog.hpp"
@@ -33,7 +41,9 @@
 #include <wx/display.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
+#include <wx/graphics.h>
 #include <wx/frame.h>
+#include <wx/region.h>
 #include <wx/mstream.h>
 #include <wx/sstream.h>
 #include <wx/zstream.h>
@@ -2049,8 +2059,254 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     this->Layout();
 }
 
+static const char* MONITOR_CTRL_AGE_REQUIREMENTS_URL = "https://portal-qa.bambulab.net/zh/policies/page/age-requirements-for-bambulab-account";
+static const char* MONITOR_CTRL_PRIVACY_NOTICE_URL    = "https://bambulab.com/en/policies/privacy";
+static const char* MONITOR_CTRL_LINK_COLOR = "#00AE42";
+
+class CtrlAreaMaskOverlay : public wxFrame
+{
+public:
+    CtrlAreaMaskOverlay(wxWindow *parent, StatusBasePanel *owner)
+        : wxFrame(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                  wxFRAME_NO_TASKBAR | wxFRAME_FLOAT_ON_PARENT | wxFRAME_TOOL_WINDOW | wxBORDER_NONE)
+        , m_owner(owner)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetCursor(wxCursor(wxCURSOR_ARROW));
+        SetTransparent(m_alpha);
+        Hide();
+        Bind(wxEVT_PAINT, &CtrlAreaMaskOverlay::OnPaint, this);
+        Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) {});
+        Bind(wxEVT_LEFT_UP, [](wxMouseEvent &) {});
+        Bind(wxEVT_LEFT_DCLICK, [](wxMouseEvent &) {});
+        Bind(wxEVT_RIGHT_DOWN, [](wxMouseEvent &) {});
+        Bind(wxEVT_RIGHT_UP, [](wxMouseEvent &) {});
+        Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &) { if (m_owner) m_owner->show_ctrl_area_mask_hint(this); });
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &) { if (m_owner) m_owner->schedule_hide_ctrl_area_mask_hint(); });
+    }
+
+    void ShowOver(const wxRect &screen_rect)
+    {
+        if (GetSize() != screen_rect.GetSize()) SetSize(screen_rect.GetSize());
+        if (GetScreenPosition() != screen_rect.GetPosition()) Move(screen_rect.GetPosition());
+        if (!IsShown()) ShowWithoutActivating();
+    }
+
+#ifdef __WIN32__
+    WXLRESULT MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lParam) override
+    {
+        if (message == WM_MOUSEACTIVATE)
+            return MA_NOACTIVATE;
+        return wxFrame::MSWWindowProc(message, wParam, lParam);
+    }
+#endif
+
+private:
+    void OnPaint(wxPaintEvent &)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(wxGetApp().dark_mode() ? m_veil_dark : m_veil_light));
+        dc.Clear();
+    }
+
+    StatusBasePanel *m_owner{nullptr};
+    const wxColour m_veil_light{255, 255, 255};
+    const wxColour m_veil_dark{37, 37, 42};
+    const int      m_alpha{170};
+};
+
+class CtrlAreaMaskHint : public wxFrame
+{
+public:
+    CtrlAreaMaskHint(wxWindow *parent, StatusBasePanel *owner)
+        : wxFrame(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                  wxFRAME_NO_TASKBAR | wxFRAME_FLOAT_ON_PARENT | wxFRAME_TOOL_WINDOW | wxBORDER_NONE)
+        , m_owner(owner)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetCursor(wxCursor(wxCURSOR_ARROW));
+        Hide();
+        m_hide_timer.SetOwner(this);
+        Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &) { m_hide_timer.Stop(); });
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &) { HideSoon(); });
+        Bind(wxEVT_TIMER, &CtrlAreaMaskHint::OnTimer, this);
+        Bind(wxEVT_PAINT, &CtrlAreaMaskHint::OnPaint, this);
+        Bind(wxEVT_SIZE, [this](wxSizeEvent &event) { ApplyShape(); event.Skip(); });
+
+        wxBoxSizer *root = new wxBoxSizer(wxVERTICAL);
+
+        wxBoxSizer *title_row = new wxBoxSizer(wxHORIZONTAL);
+        m_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("warning", this, 17));
+        title_row->Add(m_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
+        m_title = new Label(this, Label::Head_14, _L("Attention!"));
+        title_row->Add(m_title, 0, wxALIGN_CENTER_VERTICAL);
+        root->Add(title_row, 0, wxALL, FromDIP(12));
+
+        m_sep = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(1)));
+        root->Add(m_sep, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
+
+        m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
+        m_html->SetBorders(0);
+        m_html->Bind(wxEVT_HTML_LINK_CLICKED, [](wxHtmlLinkEvent &event) {
+            wxLaunchDefaultBrowser(event.GetLinkInfo().GetHref());
+        });
+        root->Add(m_html, 1, wxEXPAND | wxALL, FromDIP(12));
+
+        SetSizer(root);
+        SetSize(FromDIP(CARD_WIDTH_DIP), FromDIP(CARD_HEIGHT_DIP));
+        Layout();
+        ApplyShape();
+    }
+
+    void ShowNear(const wxRect &card_screen_rect)
+    {
+        apply_theme();
+
+        const wxSize sz = GetSize();
+        const int    x  = card_screen_rect.GetLeft() + (card_screen_rect.GetWidth() - sz.GetWidth()) / 2;
+        const int    y  = card_screen_rect.GetTop();
+        const wxPoint target_pos(x, y);
+        if (GetPosition() != target_pos)
+            Move(target_pos);
+        if (!IsShown()) ShowWithoutActivating();
+        m_hide_timer.Stop();
+        m_shadow.Sync(this, true);
+    }
+
+    void HideSoon() { m_hide_timer.Start(HIDE_DELAY_MS, wxTIMER_ONE_SHOT); }
+
+    void ForceHide()
+    {
+        m_hide_timer.Stop();
+        if (IsShown()) {
+            Hide();
+            m_shadow.Sync(this, false);
+        }
+    }
+
+private:
+    void OnTimer(wxTimerEvent &)
+    {
+        const wxPoint pos = wxGetMousePosition();
+        if (GetScreenRect().Contains(pos)) return;
+        if (m_owner && m_owner->is_mouse_over_ctrl_area_mask(pos)) return;
+        Hide();
+        m_shadow.Sync(this, false);
+    }
+
+    void ApplyShape()
+    {
+#ifdef __WXGTK__
+        return;
+#else
+        const wxSize sz = GetSize();
+        if (sz.GetWidth() <= 0 || sz.GetHeight() <= 0) return;
+        const int d = FromDIP(CARD_RADIUS * 2);
+
+#ifdef __WIN32__
+        if (HWND hwnd = (HWND) GetHWND()) {
+            HRGN body = CreateRoundRectRgn(0, 0, sz.GetWidth() + 1, sz.GetHeight() + 1, d, d);
+            SetWindowRgn(hwnd, body, TRUE);
+        }
+#else
+        wxBitmap mask(sz.GetWidth(), sz.GetHeight());
+        {
+            wxMemoryDC dc(mask);
+            dc.SetBackground(*wxBLACK_BRUSH);
+            dc.Clear();
+            dc.SetBrush(*wxWHITE_BRUSH);
+            dc.SetPen(*wxWHITE_PEN);
+            dc.DrawRoundedRectangle(0, 0, sz.GetWidth(), sz.GetHeight(), d / 2);
+        }
+        SetShape(wxRegion(mask, *wxBLACK));
+#endif
+#endif
+    }
+
+    void OnPaint(wxPaintEvent &)
+    {
+        wxBufferedPaintDC dc(this);
+        wxGCDC            gdc(dc);
+
+        gdc.SetBackground(wxBrush(m_border));
+        gdc.Clear();
+
+        wxGraphicsContext *gc = gdc.GetGraphicsContext();
+        if (gc == nullptr) return;
+        gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+
+        const double r  = FromDIP(CARD_RADIUS);
+        const double bw = FromDIP(1);
+        const wxSize sz = GetClientSize();
+        const double ir = r > bw ? r - bw : 0.0;
+
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->SetBrush(wxBrush(m_card_bg));
+        gc->DrawRoundedRectangle(bw, bw, sz.GetWidth() - 2.0 * bw, sz.GetHeight() - 2.0 * bw, ir);
+    }
+
+    void apply_theme()
+    {
+        const bool dark = wxGetApp().dark_mode();
+        m_border  = dark ? StateColor::darkModeColorFor(ThemeColor::Grey350) : ThemeColor::Grey350;
+        m_card_bg = dark ? StateColor::darkModeColorFor(ThemeColor::White) : ThemeColor::White;
+        const wxColour fg = wxGetApp().get_label_clr_default();
+
+        m_icon->SetBackgroundColour(m_card_bg);
+        m_title->SetBackgroundColour(m_card_bg);
+        m_title->SetForegroundColour(fg);
+        m_sep->SetBackgroundColour(m_border);
+        rebuild_html(m_card_bg, fg);
+        Refresh();
+    }
+
+    void rebuild_html(const wxColour &bg, const wxColour &fg)
+    {
+        std::string msg = xml_escape(into_u8(_L(
+            "For users under the age of majority, some services will be restricted. "
+            "See our {0} for Bambu Lab Account. To understand our privacy practices, see {1}.")));
+        const std::string link_style = std::string("style=\"color:") + MONITOR_CTRL_LINK_COLOR + "; text-decoration:underline;\"";
+        const std::string age_link = "<a href=\"" + std::string(MONITOR_CTRL_AGE_REQUIREMENTS_URL) + "\" " + link_style + ">"
+            + xml_escape(into_u8(_L("Age Requirements"))) + "</a>";
+        const std::string privacy_link = "<a href=\"" + std::string(MONITOR_CTRL_PRIVACY_NOTICE_URL) + "\" " + link_style + ">"
+            + xml_escape(into_u8(_L("Privacy Notice"))) + "</a>";
+        boost::replace_all(msg, "{0}", age_link);
+        boost::replace_all(msg, "{1}", privacy_link);
+
+        const wxFont body_font = Label::Body_13;
+        const int    body_size = body_font.GetPointSize();
+        int          sizes[7]  = {body_size, body_size, body_size, body_size, body_size, body_size, body_size};
+        m_html->SetFonts(body_font.GetFaceName(), body_font.GetFaceName(), sizes);
+
+        auto clr_str = [](const wxColour &c) {
+            return wxString::Format(wxT("#%02X%02X%02X"), c.Red(), c.Green(), c.Blue());
+        };
+        m_html->SetPage("<html><body bgcolor=\"" + clr_str(bg) + "\"><font color=\"" + clr_str(fg) + "\">"
+            + wxString::FromUTF8(msg.data()) + "</font></body></html>");
+    }
+
+    StatusBasePanel *m_owner{nullptr};
+    wxStaticBitmap  *m_icon{nullptr};
+    Label           *m_title{nullptr};
+    wxPanel         *m_sep{nullptr};
+    wxHtmlWindow    *m_html{nullptr};
+    wxTimer          m_hide_timer;
+    WindowShadow     m_shadow;
+    wxColour         m_border{ThemeColor::Grey350};
+    wxColour         m_card_bg{ThemeColor::White};
+    static constexpr int HIDE_DELAY_MS   = 200;
+    static constexpr int CARD_RADIUS     = 4;
+    static constexpr int CARD_WIDTH_DIP  = 365;
+    static constexpr int CARD_HEIGHT_DIP = 148;
+};
+
 StatusBasePanel::~StatusBasePanel()
 {
+    if (wxWindow *tlw = wxGetTopLevelParent(this))
+        tlw->Unbind(wxEVT_MOVE, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    for (auto *mask : m_ctrl_area_masks)
+        if (mask) mask->Destroy();
+    if (m_ctrl_area_mask_hint) m_ctrl_area_mask_hint->Destroy();
     close_camera_fullscreen();
     delete m_media_play_ctrl;
 }
@@ -2425,6 +2681,8 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
     auto box   = new StaticBox(parent);
+    m_temp_axis_ctrl_box = box;
+    bind_ctrl_area_mask_tracking(parent);
 
 #ifdef __WINDOWS__
     // Double-buffer this self-drawn control group (temp / axis / bed / extruder) at the leaf
@@ -2445,6 +2703,8 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
 
     wxBoxSizer *content_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_temp_ctrl   = create_temp_control(box);
+
+    if (m_switch_lamp) m_ctrl_area_mask_excludes.push_back(m_switch_lamp);
 
     m_temp_temp_line = new wxPanel(box);
     m_temp_temp_line->SetMaxSize(wxSize(FromDIP(1), -1));
@@ -2477,6 +2737,107 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
     box->SetSizer(content_sizer);
     sizer->Add(box, 0, wxEXPAND | wxALL, FromDIP(0));
     return sizer;
+}
+
+void StatusBasePanel::bind_ctrl_area_mask_tracking(wxWindow *machine_ctrl_panel)
+{
+    Bind(wxEVT_SCROLLWIN_TOP, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_SCROLLWIN_BOTTOM, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_SCROLLWIN_LINEUP, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_SCROLLWIN_LINEDOWN, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_SCROLLWIN_PAGEUP, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_SCROLLWIN_PAGEDOWN, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_SCROLLWIN_THUMBTRACK, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_SCROLLWIN_THUMBRELEASE, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_MOUSEWHEEL, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    Bind(wxEVT_SHOW, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    if (machine_ctrl_panel)
+        machine_ctrl_panel->Bind(wxEVT_SIZE, &StatusBasePanel::on_ctrl_area_mask_event, this);
+    if (wxWindow *tlw = wxGetTopLevelParent(this))
+        tlw->Bind(wxEVT_MOVE, &StatusBasePanel::on_ctrl_area_mask_event, this);
+}
+
+void StatusBasePanel::on_ctrl_area_mask_event(wxEvent &event)
+{
+    update_ctrl_area_masks();
+    event.Skip();
+}
+
+void StatusBasePanel::ensure_ctrl_area_mask_pool(size_t n)
+{
+    if (m_ctrl_area_masks.size() >= n) return;
+    wxWindow *tlw = wxGetTopLevelParent(this);
+    if (!tlw) return;
+    while (m_ctrl_area_masks.size() < n)
+        m_ctrl_area_masks.push_back(new CtrlAreaMaskOverlay(tlw, this));
+}
+
+void StatusBasePanel::show_ctrl_area_mask_hint(CtrlAreaMaskOverlay* from)
+{
+    if (!from || !m_temp_axis_ctrl_box) return;
+    wxWindow *tlw = wxGetTopLevelParent(this);
+    if (!tlw) return;
+    if (!m_ctrl_area_mask_hint)
+        m_ctrl_area_mask_hint = new CtrlAreaMaskHint(tlw, this);
+    m_ctrl_area_mask_hint->ShowNear(m_temp_axis_ctrl_box->GetScreenRect());
+}
+
+void StatusBasePanel::schedule_hide_ctrl_area_mask_hint()
+{
+    if (m_ctrl_area_mask_hint) m_ctrl_area_mask_hint->HideSoon();
+}
+
+bool StatusBasePanel::is_mouse_over_ctrl_area_mask(const wxPoint &screen_pt) const
+{
+    for (auto *mask : m_ctrl_area_masks)
+        if (mask && mask->IsShown() && mask->GetScreenRect().Contains(screen_pt))
+            return true;
+    return false;
+}
+
+void StatusBasePanel::hide_ctrl_area_overlays()
+{
+    for (auto *mask : m_ctrl_area_masks)
+        if (mask && mask->IsShown()) mask->Hide();
+    if (m_ctrl_area_mask_hint)
+        m_ctrl_area_mask_hint->ForceHide();
+}
+
+void StatusBasePanel::update_ctrl_area_masks()
+{
+    if (!m_temp_axis_ctrl_box)
+        return;
+
+    const bool disabled = wxGetApp().is_monitor_ctrl_force_disabled();
+    const bool on_screen = m_temp_axis_ctrl_box->IsShownOnScreen();
+    const wxRect viewport = GetScreenRect();
+    const wxRect base     = m_temp_axis_ctrl_box->GetScreenRect().Intersect(viewport);
+
+    std::vector<wxRect> targets;
+    if (disabled && on_screen && !base.IsEmpty()) {
+        wxRegion reg(base);
+        for (wxWindow *w : m_ctrl_area_mask_excludes)
+            if (w && w->IsShownOnScreen())
+                reg.Subtract(w->GetScreenRect().Inflate(FromDIP(2)));
+        for (wxRegionIterator it(reg); it; ++it) {
+            const wxRect piece = it.GetRect();
+            if (!piece.IsEmpty()) targets.push_back(piece);
+        }
+    }
+
+    const bool theme_dark = wxGetApp().dark_mode();
+    const bool theme_flip = theme_dark != m_ctrl_area_mask_dark;
+    m_ctrl_area_mask_dark = theme_dark;
+
+    ensure_ctrl_area_mask_pool(targets.size());
+    for (size_t i = 0; i < m_ctrl_area_masks.size(); ++i) {
+        if (i < targets.size()) {
+            m_ctrl_area_masks[i]->ShowOver(targets[i]);
+            if (theme_flip) m_ctrl_area_masks[i]->Refresh();
+        } else if (m_ctrl_area_masks[i]->IsShown()) {
+            m_ctrl_area_masks[i]->Hide();
+        }
+    }
 }
 
 wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
@@ -3705,6 +4066,8 @@ bool StatusPanel::is_task_changed(MachineObject *obj)
 
 void StatusPanel::update(MachineObject *obj)
 {
+    update_ctrl_area_masks();
+
     if (!obj || !obj->is_info_ready()) {
         m_nozzle_btn_panel->Disable();
         return;
@@ -3855,8 +4218,11 @@ void StatusPanel::update(MachineObject *obj)
 
     update_camera_state(obj);
 
+    apply_control_area_force_disable();
+
     // m_machine_ctrl_panel->Thaw();
     Layout();
+    update_ctrl_area_masks();
 }
 
 void StatusPanel::show_recenter_dialog()
@@ -3984,6 +4350,38 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_switch_cham_fan->Enable();*/
         m_switch_fan->Enable();
     }
+}
+
+void StatusPanel::apply_control_area_force_disable()
+{
+    const bool disabled = wxGetApp().is_monitor_ctrl_force_disabled();
+
+    if (disabled) {
+        if (m_tempCtrl_nozzle) m_tempCtrl_nozzle->Enable(false);
+        if (m_tempCtrl_nozzle_deputy) m_tempCtrl_nozzle_deputy->Enable(false);
+        if (m_tempCtrl_bed) m_tempCtrl_bed->Enable(false);
+        if (m_tempCtrl_chamber) m_tempCtrl_chamber->Enable(false);
+        if (m_bpButton_xy) m_bpButton_xy->Enable(false);
+        if (m_bpButton_z_10) m_bpButton_z_10->Enable(false);
+        if (m_bpButton_z_1) m_bpButton_z_1->Enable(false);
+        if (m_bpButton_z_down_1) m_bpButton_z_down_1->Enable(false);
+        if (m_bpButton_z_down_10) m_bpButton_z_down_10->Enable(false);
+        if (m_bpButton_e_10) m_bpButton_e_10->Enable(false);
+        if (m_bpButton_e_down_10) m_bpButton_e_down_10->Enable(false);
+
+        if (m_switch_speed) m_switch_speed->Enable(false);
+        if (m_switch_fan) m_switch_fan->Enable(false);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+        if (m_ams_control_web_switch) m_ams_control_web_switch->Disable();
+#endif
+
+        if (m_ams_control) m_ams_control->Enable(false);
+        if (m_hotend_rack_control) m_hotend_rack_control->SetControlEnabled(false);
+        if (m_rack_extruder_panel) m_rack_extruder_panel->SetControlEnabled(false);
+        if (m_legacy_extruder_panel) m_legacy_extruder_panel->Enable(false);
+    }
+
+    update_ctrl_area_masks();
 }
 
 void StatusPanel::update_temp_ctrl(MachineObject *obj)
@@ -6669,6 +7067,7 @@ void StatusPanel::msw_rescale()
 
     Layout();
     Refresh();
+    update_ctrl_area_masks();
 }
 
 void StatusPanel::update_rack(MachineObject *obj)

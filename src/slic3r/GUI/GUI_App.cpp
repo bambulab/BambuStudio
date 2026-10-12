@@ -1431,8 +1431,7 @@ void GUI_App::post_init()
             //BBS: check privacy version
             if (is_user_login()) {
                 this->check_privacy_version(0);
-
-                this->check_track_enable();
+                this->fetch_minors_decisions();
             }
 
             this->check_cert();
@@ -2942,6 +2941,9 @@ int GUI_App::OnExit()
     // network library's 10s timeout).
     if (m_check_cert_thread.joinable())
         m_check_cert_thread.join();
+
+    if (m_minors_decisions_thread.joinable())
+        m_minors_decisions_thread.join();
 
     if (m_fila_manager_cloud_disp) {
         delete m_fila_manager_cloud_disp;
@@ -4957,6 +4959,121 @@ bool GUI_App::is_user_login()
     return false;
 }
 
+bool GUI_App::is_monitor_ctrl_blocked(MonitorCtrlId which)
+{
+    if (!is_monitor_ctrl_force_disabled())
+        return false;
+    switch (which) {
+    case MonitorCtrlId::Lamp: return false;
+    default:                  return true;
+    }
+}
+
+// Master switch for the "minors decision" feature: device-page control-area
+// disabling + the Preferences "User Experience Program" gate.
+// Override with -DBBL_ENABLE_MINORS_DECISION=0 to disable the whole feature.
+#ifndef BBL_ENABLE_MINORS_DECISION
+#define BBL_ENABLE_MINORS_DECISION 1
+#endif
+
+bool GUI_App::is_monitor_ctrl_force_disabled()
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    return false;
+#else
+    return m_remote_control_minor_decision.load() != MinorDecision::Allow;
+#endif
+}
+
+bool GUI_App::is_uep_force_disabled()
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    return false;
+#else
+    return m_uep_family_gate.load() != UepFamilyGate::Free;
+#endif
+}
+
+bool GUI_App::is_uep_force_checked()
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    return false;
+#else
+    return m_uep_family_gate.load() == UepFamilyGate::ForceOn;
+#endif
+}
+
+void GUI_App::refresh_monitor_ctrl_area_ui()
+{
+    if (!mainframe || !mainframe->m_monitor) return;
+    auto* sp = mainframe->m_monitor->get_status_panel();
+    if (sp) sp->apply_control_area_force_disable();
+}
+
+void GUI_App::fetch_minors_decisions()
+{
+#if !BBL_ENABLE_MINORS_DECISION
+    check_track_enable();            // feature off: enable telemetry per config, as before
+    return;
+#else
+    if (!m_agent) { check_track_enable(); return; }   // no agent: fall back to old behavior
+
+    m_agent->track_enable(false);
+
+    if (m_minors_decisions_thread.joinable())
+        m_minors_decisions_thread.join();
+    m_minors_decisions_thread = Slic3r::create_thread(
+        [this] {
+            std::vector<MinorsDecisionResult> decisions;
+            int ret = m_agent->get_minors_decisions(
+                {MINORS_SCENE_REMOTE_CONTROL_PRINTER, MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM}, &decisions);
+
+            // REMOTE_CONTROL_PRINTER uses `decision`; JOIN_USER_EXPERIENCE_PROGRAM uses
+            // `family_link_decision`. Request failure or a missing result is the safe default
+            // (Allow / Free, i.e. not restricted).
+            MinorDecision remote_ctrl = MinorDecision::Allow;
+            UepFamilyGate uep_gate    = UepFamilyGate::Free;
+            if (ret != 0) {
+                BOOST_LOG_TRIVIAL(warning) << "fetch_minors_decisions: request failed, ret=" << ret << ", treat as not restricted";
+            } else {
+                for (const auto& d : decisions) {
+                    if (d.scene_code == MINORS_SCENE_REMOTE_CONTROL_PRINTER) {
+                        if (d.decision == MinorDecision::Allow || d.decision == MinorDecision::Deny || d.decision == MinorDecision::NeedIdv)
+                                remote_ctrl = d.decision;
+                        else
+                            BOOST_LOG_TRIVIAL(warning) << "fetch_minors_decisions: illegal decision for REMOTE_CONTROL_PRINTER="
+                                << static_cast<int>(d.decision) << ", treat as Allow";
+                    } else if (d.scene_code == MINORS_SCENE_JOIN_USER_EXPERIENCE_PROGRAM) {
+                        if (d.family_link_decision == FAMILY_LINK_DECISION_ALLOW)
+                            uep_gate = UepFamilyGate::ForceOn;
+                        else if (d.family_link_decision == FAMILY_LINK_DECISION_DENY)
+                            uep_gate = UepFamilyGate::ForceOff;
+                        else
+                            uep_gate = UepFamilyGate::Free; // no_config / empty (adult) / unknown
+                    }
+                }
+            }
+            CallAfter([this, remote_ctrl, uep_gate] {
+                m_remote_control_minor_decision.store(remote_ctrl);
+                m_uep_family_gate.store(uep_gate);
+                refresh_monitor_ctrl_area_ui();
+                if (uep_gate == UepFamilyGate::ForceOff) {
+                    if (app_config && app_config->get("firstguide", "privacyuse") == "true") {
+                        app_config->set("firstguide", "privacyuse", false);
+                        app_config->save();
+                    }
+                } else if (uep_gate == UepFamilyGate::ForceOn) {
+                    if (app_config && app_config->get("firstguide", "privacyuse") != "true") {
+                        app_config->set("firstguide", "privacyuse", true);
+                        app_config->save();
+                    }
+                }
+                check_track_enable();
+            });
+        });
+#endif
+}
+
 
 bool GUI_App::check_login()
 {
@@ -4995,6 +5112,9 @@ void GUI_App::request_user_logout()
         m_load_last_machine.is_mqtt_ok = false;
         // Update data first before showing dialogs
         m_agent->user_logout(true);
+        m_remote_control_minor_decision.store(MinorDecision::Allow);
+        m_uep_family_gate.store(UepFamilyGate::Free);
+        refresh_monitor_ctrl_area_ui();
         WebView::ClearBambulabTokenCookies();
         if (auto obj = m_device_manager->get_selected_machine();
             obj && obj->is_cloud_mode_printer()) {
@@ -5743,7 +5863,7 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     int online_login = evt.GetInt();
     // check privacy before handle
     check_privacy_version(online_login);
-    check_track_enable();
+    fetch_minors_decisions();
 }
 
 bool GUI_App::is_studio_active()

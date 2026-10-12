@@ -423,6 +423,9 @@ private:
     void paint(wxPaintEvent&);
 };
 
+class CtrlAreaMaskOverlay;
+class CtrlAreaMaskHint;
+
 class StatusBasePanel : public wxScrolledWindow
 {
 protected:
@@ -609,6 +612,11 @@ protected:
     StepIndicator*  m_calibration_flow;
 
     wxPanel *       m_machine_ctrl_panel;
+    StaticBox*                        m_temp_axis_ctrl_box{nullptr};
+    std::vector<CtrlAreaMaskOverlay*> m_ctrl_area_masks;
+    std::vector<wxWindow*>            m_ctrl_area_mask_excludes;
+    bool                              m_ctrl_area_mask_dark{false};
+    CtrlAreaMaskHint*                 m_ctrl_area_mask_hint{nullptr};
     wxPanel *       m_scale_panel;
     wxStaticBitmap* m_img_filament_loading;
     PrintingTaskPanel *       m_project_task_panel;
@@ -656,6 +664,14 @@ public:
     wxBoxSizer *create_machine_control_page(wxWindow *parent);
 
     wxBoxSizer *create_temp_axis_group(wxWindow *parent);
+    void        bind_ctrl_area_mask_tracking(wxWindow *machine_ctrl_panel);
+    void        on_ctrl_area_mask_event(wxEvent &event);
+    void        update_ctrl_area_masks();
+    void        ensure_ctrl_area_mask_pool(size_t n);
+    void        show_ctrl_area_mask_hint(CtrlAreaMaskOverlay* from);
+    void        schedule_hide_ctrl_area_mask_hint();
+    bool        is_mouse_over_ctrl_area_mask(const wxPoint &screen_pt) const;
+    void        hide_ctrl_area_overlays();
     wxBoxSizer *create_temp_control(wxWindow *parent);
     wxBoxSizer *create_misc_control(wxWindow *parent);
     wxBoxSizer *create_axis_control(wxWindow *parent);
@@ -898,6 +914,7 @@ public:
     void update_error_message();
     void show_ams_filament_hint(const std::string& ams_id, const std::string& slot_id);
     void open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id);
+    void apply_control_area_force_disable();
 
 public:
     StatusPanel(wxWindow *      parent,

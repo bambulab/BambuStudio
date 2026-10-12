@@ -3,6 +3,7 @@
 #include "DevExtruderSystem.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
@@ -46,6 +47,8 @@ void DevNozzleRack::CtrlRackPosMove(RackABPos new_pos) const
 
 void DevNozzleRack::CtrlRackPosMove(DirectRackPos new_pos) const
 {
+    if (GUI::wxGetApp().is_monitor_ctrl_blocked(GUI::MonitorCtrlId::NozzleRack)) return;
+
     if (CheckRackMoveWarningDlg()) {
         int action_id = -1;
         if (new_pos == DirectRackPos::RACK_POS_UP) {

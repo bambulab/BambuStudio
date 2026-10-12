@@ -71,6 +71,12 @@ static ::Label *make_row_title(wxWindow *parent, const wxString &text, int wrap_
     return title;
 }
 
+static wxString minor_restricted_tip()
+{
+    return _L("For users under the age of majority, some services will be restricted. "
+              "This is managed by your parent or guardian in Family Hub.");
+}
+
 // One option row wrapped in a real window so it can paint a hover background.
 class OptionRow : public wxPanel
 {
@@ -1149,6 +1155,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
 
     checkbox->SetToolTip(tooltip);
+    if (param == "privacyuse" && wxGetApp().is_uep_force_disabled()) {
+        checkbox->SetValue(wxGetApp().is_uep_force_checked());
+        checkbox->Enable(false);
+        checkbox_title->SetToolTip(minor_restricted_tip());
+    }
     return m_sizer_checkbox;
 }
 
@@ -1497,7 +1508,10 @@ wxWindow *PreferencesDialog::create_general_tab()
     sizer->Add(wrap_option_row(scrolled, item_fila_manager), flags);
     sizer->Add(wrap_option_row(scrolled, item_multi_machine), flags);
     sizer->Add(wrap_option_row(scrolled, item_beta_version_update), flags);
-    sizer->Add(wrap_option_row(scrolled, item_priv_policy), flags);
+    auto *priv_row = wrap_option_row(scrolled, item_priv_policy);
+    if (wxGetApp().is_uep_force_disabled())
+        priv_row->SetToolTip(minor_restricted_tip());
+    sizer->Add(priv_row, flags);
     sizer->Add(wrap_option_row(scrolled, item_downloads), flags);
     scrolled->SetSizer(sizer);
     scrolled->FitInside();

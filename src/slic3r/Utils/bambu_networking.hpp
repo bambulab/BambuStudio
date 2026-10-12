@@ -482,6 +482,11 @@ inline constexpr const char* MINORS_SCENE_ACCESS_MAKER_SUPPLY = "ACCESS_MAKER_SU
 inline constexpr const char* MINORS_SCENE_FORUM_LOGIN_VIA_EMAIL = "FORUM_LOGIN_VIA_EMAIL"; // Forum email login
 inline constexpr const char* MINORS_SCENE_FORUM_LOGIN_VIA_3P = "FORUM_LOGIN_VIA_3P"; // Forum third-party login
 
+// MinorsDecisionResult::family_link_decision values (guardian control via Family Hub).
+inline constexpr const char* FAMILY_LINK_DECISION_NO_CONFIG = "no_config";
+inline constexpr const char* FAMILY_LINK_DECISION_ALLOW = "allow";
+inline constexpr const char* FAMILY_LINK_DECISION_DENY = "deny";
+
 struct MinorsDecisionResult {
     std::string   scene_code;
     bool          family_link_enable = false;

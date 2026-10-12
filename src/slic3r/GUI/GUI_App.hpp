@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_App_hpp_
 #define slic3r_GUI_App_hpp_
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
@@ -258,6 +259,13 @@ struct TryLoadLastMachine
     boost::thread local_bind_thread;
 };
 
+enum class MonitorCtrlId {
+    NozzleTemp, BedTemp, ChamberTemp, AxisMove, Extrude,
+    PrintSpeed, Fan, Lamp, NozzleRack, SelectExtruder
+};
+
+enum class UepFamilyGate : int { Free = 0, ForceOn = 1, ForceOff = 2 };
+
 class GUI_App : public wxApp
 {
 public:
@@ -380,6 +388,9 @@ private:
 #endif
 
     boost::thread    m_check_cert_thread;
+    boost::thread    m_minors_decisions_thread;
+    std::atomic<MinorDecision> m_remote_control_minor_decision{MinorDecision::Allow};
+    std::atomic<UepFamilyGate> m_uep_family_gate{UepFamilyGate::Free};
     TryLoadLastMachine m_load_last_machine;
 
 public:
@@ -545,6 +556,12 @@ public:
     void            get_login_info();
     void            sync_left_server_connect_status();
     bool            is_user_login();
+    bool            is_monitor_ctrl_blocked(MonitorCtrlId which);
+    bool            is_monitor_ctrl_force_disabled();
+    bool            is_uep_force_disabled();   // Join User Experience Program (Preferences): locked (allow/deny)
+    bool            is_uep_force_checked();    // Join User Experience Program: guardian-enabled (allow) -> checked
+    void            fetch_minors_decisions();
+    void            refresh_monitor_ctrl_area_ui();
 
     void            request_user_login(int online_login = 0);
     void            request_user_handle(int online_login = 0);
