@@ -998,7 +998,7 @@ int find_printer_variant_index(const DynamicPrintConfig &printer_config, const s
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
 {
-    if (nozzle_volume_type >= nvtCount) {
+    if (int(nozzle_volume_type) < 0 || nozzle_volume_type >= nvtCount) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", unsupported NozzleVolumeType=%1%") % nozzle_volume_type;
         return "";
     }

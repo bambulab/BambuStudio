@@ -1968,11 +1968,11 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
         NozzleVolumeType volume_type = nvtStandard;
         if (filament_idx < filament_volume_map.size())
             volume_type = static_cast<NozzleVolumeType>(filament_volume_map[filament_idx]);
-        if (volume_type == nvtHybrid || volume_type >= nvtCount) {
+        if (int(volume_type) < 0 || volume_type == nvtHybrid || volume_type >= nvtCount) {
             const int extruder_idx = (filament_idx < filament_map.size()) ? filament_map[filament_idx] - 1 : 0;
             if (extruder_idx >= 0 && extruder_idx < static_cast<int>(volume_type_opt->values.size()))
                 volume_type = static_cast<NozzleVolumeType>(volume_type_opt->values[extruder_idx]);
-            if (volume_type == nvtHybrid || volume_type >= nvtCount)
+            if (int(volume_type) < 0 || volume_type == nvtHybrid || volume_type >= nvtCount)
                 continue;
         }
 
