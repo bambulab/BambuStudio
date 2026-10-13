@@ -3274,10 +3274,8 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     ConfigOptionInts* filament_volume_map_opt = out.option<ConfigOptionInts>("filament_volume_map");
     if (filament_maps_new.has_value())
         filament_maps = *filament_maps_new;
-    if (filament_volume_maps_new.has_value()) {
+    if (filament_volume_maps_new.has_value())
         filament_volume_maps = *filament_volume_maps_new;
-        out.option<ConfigOptionInts>("filament_volume_map", true)->values = filament_volume_maps;
-    }
     else if (filament_volume_map_opt && filament_volume_map_opt->values.size() == num_filaments)
         filament_volume_maps = filament_volume_map_opt->values;
     //in some middle state, they may be different
@@ -3528,6 +3526,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_ids", true)->values = filament_ids;
     out.option<ConfigOptionInts>("filament_map", true)->values = filament_maps;
+    out.option<ConfigOptionInts>("filament_volume_map", true)->values = filament_volume_maps;
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
     // The vector will not be stored if all fields are empty strings.

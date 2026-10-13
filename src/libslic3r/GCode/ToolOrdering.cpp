@@ -1183,7 +1183,9 @@ void ToolOrdering::calc_most_used_extruder(const PrintConfig &config)
 
         //record
         for (int extruder_id : layer_extruder_count) {
-            extruder_count[extruder_id]++;
+            // -1 means the filament has no nozzle in the group result
+            if (extruder_id >= 0 && extruder_id < (int)extruder_count.size())
+                extruder_count[extruder_id]++;
         }
     }
 
@@ -1326,14 +1328,19 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> build_nozzle_groups(
                                        print_config.extruder_max_nozzle_count.values[idx]);
         }
         else {
+            // extruder_nozzle_stats comes from the project and can disagree with the printer model
+            // (e.g. "Standard#2" on an H2D). Never offer more nozzles than the extruder can hold,
+            // otherwise grouping can assign filaments to nozzles that don't exist.
+            int max_count = idx < print_config.extruder_max_nozzle_count.values.size() ? print_config.extruder_max_nozzle_count.values[idx] : 0;
+            auto clamp_count = [max_count](int count) { return max_count > 0 ? std::min(count, max_count) : count; };
             NozzleVolumeType type = NozzleVolumeType(nozzle_volume_types[idx]);
             if (type == nvtHybrid) {
                 for (auto [volume_type, count] : extruder_nozzle_counts[idx]) {
-                    nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), volume_type, idx, count);
+                    nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), volume_type, idx, clamp_count(count));
                 }
             }
             else
-                nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), type, idx, extruder_nozzle_counts[idx][type]);
+                nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), type, idx, clamp_count(extruder_nozzle_counts[idx][type]));
         }
     }
     return nozzle_groups;

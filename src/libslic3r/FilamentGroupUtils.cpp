@@ -335,8 +335,12 @@ namespace FilamentGroupUtils
     std::vector<int> update_used_filament_values(const std::vector<int>& old_values, const std::vector<int>& new_values, const std::vector<unsigned int>& used_filaments)
     {
         std::vector<int> res = old_values;
-        for (size_t i = 0; i < used_filaments.size(); ++i) {
-            res[used_filaments[i]] = new_values[used_filaments[i]];
+        // old_values may come from a stale config with fewer filaments
+        if (res.size() < new_values.size())
+            res.insert(res.end(), new_values.begin() + res.size(), new_values.end());
+        for (unsigned int filament : used_filaments) {
+            if (filament < new_values.size())
+                res[filament] = new_values[filament];
         }
         return res;
     }
