@@ -6723,15 +6723,9 @@ void ObjectList::fix_through_netfabb()
             return false;
 
         const std::string& model_name = model_names[model_idx];
-        wxString msg = _L("Repairing model object");
-        if (model_names.size() == 1)
-            msg += ": " + from_u8(model_name) + "\n";
-        else {
-            msg += ":\n";
-            for (int i = 0; i < int(model_names.size()); ++i)
-                msg += (i == model_idx ? " > " : "   ") + from_u8(model_names[i]) + "\n";
-            msg += "\n";
-        }
+        wxString msg = wxString::Format(_L("Repair object: %s"), from_u8(model_name));
+        if (model_names.size() > 1)
+            msg += wxString::Format(" (%d/%d)", model_idx + 1, int(model_names.size()));
 
         // BBS: do NOT wipe painting here; the repair below re-projects it
         // (best-effort) via set_mesh_keep_paint instead.
@@ -6761,7 +6755,7 @@ void ObjectList::fix_through_netfabb()
 
     // Open a progress dialog.
     ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater),
-                                    wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT, true);
+                                    wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_SHOW_PERCENT);
     int model_idx{ 0 };
     if (vol_idxs.empty()) {
         int vol_idx{ -1 };

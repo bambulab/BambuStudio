@@ -444,13 +444,19 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 	std::condition_variable			condition;
 	std::unique_lock<std::mutex>	lock(mutex);
 	struct Progress {
-		std::string 				message;
+		// Start with the first stage so the message line is never blank before the worker reports.
+		std::string 				message = L("Exporting objects");
 		int 						percent  = 0;
 		bool						updated = false;
 	} progress;
 	std::atomic<bool>				canceled = false;
 	std::atomic<bool>				finished = false;
 	progress_dialog.EnableYield(true);
+	const bool						percent_layout = progress_dialog.ShowsPercent();
+	if (percent_layout) {
+		progress_dialog.SetSubject(msg_header);
+		progress_dialog.SetGaugeTitle(_L("Repairing"));
+	}
 
 	std::vector<ModelVolume*> volumes;
 	if (volume_idx == -1)
@@ -562,9 +568,10 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 		lock.unlock();
 		// decrease progress.percent value to avoid closing of the progress dialog
 		const int dialog_progress = progress_percent > 0 ? progress_percent - 1 : 0;
-		if (progress_dialog.WasCancelled() || !progress_dialog.Update(dialog_progress, msg_header + _(progress_message)))
+		const wxString stage_message = _(progress_message);
+		if (progress_dialog.WasCancelled() || !progress_dialog.Update(dialog_progress, percent_layout ? stage_message : msg_header + stage_message))
 			canceled = true;
-		else
+		else if (!percent_layout)
 			progress_dialog.Fit();
 		lock.lock();
 		condition.wait_for(lock, std::chrono::milliseconds(50), [&progress, &finished]{ return progress.updated || finished.load(); });

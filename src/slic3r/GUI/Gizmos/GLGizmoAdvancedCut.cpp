@@ -1472,14 +1472,13 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
                         auto                                             plater = wxGetApp().plater();
                         auto fix_and_update_progress = [this, plater](ModelObject *model_object, const int vol_idx, const string &model_name, ProgressDialog &progress_dlg,
                                                                       std::vector<std::string> &succes_models, std::vector<std::pair<std::string, std::string>> &failed_models) {
-                            wxString msg = _L("Repairing model object");
-                            msg += ": " + from_u8(model_name) + "\n";
+                            wxString msg = wxString::Format(_L("Repair object: %s"), from_u8(model_name));
                             std::string res;
                             if (!fix_model_by_win10_sdk_gui(*model_object, vol_idx, progress_dlg, msg, res))
                                 return false;
                             return true;
                         };
-                        ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater), wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT, true);
+                        ProgressDialog progress_dlg(_L("Repairing model object"), "", 100, find_toplevel_parent(plater), wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_SHOW_PERCENT);
 
                         auto model_name = new_objects[i]->name;
                         if (!fix_and_update_progress(new_objects[i], j, model_name, progress_dlg, succes_models, failed_models)) {
