@@ -170,6 +170,10 @@ double compute_delta_e(
     const std::array<std::size_t,3>& rgb1,
     const std::array<float,4>& rgba2);
 
+double compute_delta_e(
+    const std::array<std::size_t,3>& rgb1,
+    const std::array<std::size_t,3>& rgb2);
+
 bool apply_painted_mesh_to_volume(
     const PaintedMesh& painted,
     const std::vector<FilamentMatch>& matches,

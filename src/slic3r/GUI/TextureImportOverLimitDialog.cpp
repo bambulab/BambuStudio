@@ -1151,7 +1151,7 @@ void TextureImportOverLimitDialog::build_ui()
 
     auto* btns = new wxBoxSizer(wxHORIZONTAL);
     btns->AddStretchSpacer();
-    m_btn_back = new Button(this, _L("Back"));
+    m_btn_back = new Button(this, _L("Cancel"));
     m_btn_back->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_btn_back->SetCornerRadius(FromDIP(12));
     texture_import_style_secondary_button(m_btn_back);

@@ -11,6 +11,7 @@ using TextureImportOutsideClickCallback = void (*)(void *);
 // Watch mouse-down events anywhere on screen and invoke callback when the
 // click is outside popup's screen rect. Returns an opaque handle; pass it to
 // uninstall_texture_import_outside_click_monitor().
+// macOS invokes callback only once every mouse button is released again.
 void *install_texture_import_outside_click_monitor(wxWindow *popup,
                                                    TextureImportOutsideClickCallback callback,
                                                    void *context);

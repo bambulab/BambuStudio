@@ -310,10 +310,9 @@ private:
     void match_clusters_to_physical_filaments();
     // Rebind each color with select_filament_for_color(). Mixed slots are
     // compared by their display color only while Color Mixing is on; otherwise
-    // they stay out of the pool at every threshold. Auto merge on: project
-    // filaments and ones created in this dialog. Auto merge off: only filaments
-    // created in this dialog. drop_unused removes created filaments that no
-    // color references; live edits pass false. Keeps row order.
+    // they stay out of the pool at every threshold. Candidates are project
+    // filaments and ones created in this dialog. drop_unused removes created
+    // filaments that no color references; live edits pass false. Keeps row order.
     void reapply_match_threshold(bool drop_unused);
     void show_match_threshold_popup();
     void hide_match_threshold_popup();
@@ -322,7 +321,7 @@ private:
     void on_match_threshold_committed(int value);
     // Drop NewPhysical / NewMixed slots created in this dialog, then rebuild
     // the baseline mapping with do_auto_match(). Used by a fresh compute when
-    // Color Mixing is off (still respects Auto merge).
+    // Color Mixing is off.
     void drop_virtual_filaments_keep_project();
     void reset_to_project_filaments_and_auto_match();
     // Reorder m_current_matches into a canonical, predictable order (ascending
@@ -411,27 +410,12 @@ private:
     void on_gap_slider_changed(wxCommandEvent& evt);
     void on_gap_spin_commit();
     void toggle_advanced_design();
-    void on_auto_merge_toggled(wxCommandEvent& evt);
-    // True when two slots are the same kind (physical vs mixed) and can share
-    // one mapping target: physicals need the same hex + preset name; mixeds
-    // need the same component dialog indices and ratios.
-    bool filament_slots_mergeable(int lhs, int rhs) const;
     void retarget_filament_slot(int from_index, int to_index);
     // Fold duplicate components of a NewMixed slot (ratios are summed, first
     // occurrence order kept) and mirror the result into m_new_mixed_filaments.
     // Returns the remaining physical dialog index when only one component is
     // left, otherwise -1.
     int  fold_new_mixed_components(int mixed_idx);
-    int  clone_project_filament_as_new(int dialog_index);
-    // Merge NewPhysical / NewMixed into matching existing slots, then fold
-    // matching new slots into each other. Project slots are never merged away.
-    // Physicals go first so new mixed recipes see the redirected components.
-    // Runs on every mapping refresh while Auto merge is on. Does not rematch
-    // color clusters.
-    void merge_new_filaments_with_project_and_each_other();
-    // Replace every mapping that still points at an ExistingPhysical /
-    // ExistingMixed slot with a cloned NewPhysical / NewMixed slot.
-    void replace_project_mapped_filaments_with_new();
     void on_skip_clicked(wxCommandEvent& evt);
     void on_next_clicked(wxCommandEvent& evt);
     void on_prev_clicked(wxCommandEvent& evt);
@@ -449,15 +433,16 @@ private:
     // Rebuild same-color connected patches from the last simplified mesh.
     void update_color_patches();
     void schedule_color_patches_rebuild();
-    // Preview only: recolor smallest patches until their combined area reaches the gap percent.
+    // Preview only: replay or undo region merges so every region smaller than the
+    // gap percent of the mesh is absorbed by its neighbor.
     void apply_gap_area();
     // Write gap preview colors into m_painted for filament matching. Does not
     // overwrite the last simplified face colors or reset the gap slider.
     void commit_gap_area_to_painted();
     void clear_color_patches();
-    int  resolve_visible_patch_id(int patch_id) const;
     void refresh_gap_preview();
-    int  gap_split_index_for_threshold(double threshold) const;
+    // Number of merge events whose absorbed region area is below area_threshold.
+    int  gap_event_count_for_threshold(double area_threshold) const;
 
     bool has_valid_result() const;
     // Confirm stays disabled while the filament count exceeds the limit; only
@@ -488,7 +473,6 @@ private:
     bool                               m_geometry_centered = false;
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
-    bool                               m_auto_merge_enabled = true;
     bool                               m_mix_enabled = false;
     // CIEDE2000 ΔE accepted by automatic filament matching. Slider range 0..50.
     // The right end (50) is unlimited: every color binds to the closest candidate.
@@ -568,8 +552,6 @@ private:
     wxPanel*              m_preview_container = nullptr;
     wxPanel*              m_stepper_panel  = nullptr;
 
-    CheckBox*             m_auto_merge_cb = nullptr;
-    wxWindow*             m_auto_merge_row = nullptr;
     CheckBox*             m_mix_cb = nullptr;
     wxStaticText*         m_lbl_mix_help = nullptr;
     wxScrolledWindow*     m_mapping_scroll = nullptr;
@@ -613,7 +595,7 @@ private:
 
     int    m_param_color_count = 4;
     int    m_param_smooth      = 5;
-    double m_param_gap_area    = 0.0; // percent of total mesh area, 0..10
+    double m_param_gap_area    = 0.0; // percent of total mesh area, 0..5
 
     std::unique_ptr<GapPreviewState> m_gap_preview;
 

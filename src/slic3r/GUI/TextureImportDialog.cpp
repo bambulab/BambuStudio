@@ -70,6 +70,7 @@
 #include <chrono>
 #include <cstring>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -841,21 +842,37 @@ wxDEFINE_EVENT(EVT_TEXTURE_COMPUTE_PROGRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TEXTURE_COMPUTE_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TEXTURE_PATCH_DONE, wxCommandEvent);
 
+// Right end of the gap area slider, in percent of the total patch area.
+static constexpr double kGapAreaMaxPercent = 5.0;
+// CIEDE2000 difference at which a neighbor's boundary counts half when the gap
+// merge picks the region a fragment is absorbed into.
+static constexpr double kGapMergeColorSigma = 10.0;
+
 struct ColorPatch {
-    bool is_filtered = false;
     int  patch_id    = -1;
     double patch_area = 0.0;
     std::vector<int> patch_faces;
-    int adj_longest_patch_id = -1;
     std::array<std::size_t, 3> color_label{};
+};
 
-    // True when no adjacent patch is larger, so there is nothing to merge into.
-    bool is_isolated() const { return adj_longest_patch_id == patch_id; }
+// One step of the gap area region merge: the patches in
+// [member_begin, member_end) of GapPreviewState::merge_members formed a region
+// that was absorbed by a neighbor and recolored from from_color to to_color.
+struct GapMergeEvent {
+    double key_area = 0.0; // area of the absorbed region at the time it was absorbed
+    std::array<std::size_t, 3> from_color{};
+    std::array<std::size_t, 3> to_color{};
+    int member_begin = 0;
+    int member_end   = 0;
 };
 
 struct GapPreviewState {
     std::vector<ColorPatch> color_patches;
-    int    gap_split_index = 0;
+    // key_area never decreases along merge_events, so a threshold selects a prefix.
+    std::vector<GapMergeEvent> merge_events;
+    std::vector<int>           merge_members;
+    // Number of merge_events currently reflected in display_face_colors.
+    int    applied_events  = 0;
     double gap_total_area  = 0.0;
     std::vector<std::array<std::size_t, 3>> simplified_face_colors;
     std::vector<std::array<std::size_t, 3>> simplified_cluster_colors;
@@ -876,11 +893,14 @@ indexed_triangle_set painted_mesh_to_its(const PaintedMesh& painted)
     return its;
 }
 
-// Same-color edge-connected components on the simplified mesh, sorted by area.
+// Same-color edge-connected components on the simplified mesh. shared_out[p][q]
+// receives the boundary length shared by patches p and q.
 std::vector<ColorPatch> build_color_patches(
     const PaintedMesh& painted,
-    const std::vector<std::array<std::size_t, 3>>& face_colors)
+    const std::vector<std::array<std::size_t, 3>>& face_colors,
+    std::vector<std::unordered_map<int, double>>& shared_out)
 {
+    shared_out.clear();
     std::vector<ColorPatch> patches;
     const size_t nfaces = painted.indices.size();
     if (nfaces == 0 || face_colors.size() != nfaces)
@@ -913,8 +933,8 @@ std::vector<ColorPatch> build_color_patches(
             continue;
 
         ColorPatch patch;
+        patch.patch_id = (int)patches.size();
         patch.color_label = face_colors[start];
-        patch.adj_longest_patch_id = (int)patches.size();
 
         std::queue<int> q;
         q.push((int)start);
@@ -944,7 +964,8 @@ std::vector<ColorPatch> build_color_patches(
     }
 
     const int npatches = (int)patches.size();
-    std::vector<std::unordered_map<int, double>> shared(npatches);
+    std::vector<std::unordered_map<int, double>>& shared = shared_out;
+    shared.assign(npatches, {});
     for (int fi = 0; fi < (int)nfaces; ++fi) {
         if (fi >= (int)neighbors.size())
             continue;
@@ -968,63 +989,170 @@ std::vector<ColorPatch> build_color_patches(
             shared[qid][pid] += len;
         }
     }
+    return patches;
+}
 
-    std::vector<int> order(npatches);
-    std::iota(order.begin(), order.end(), 0);
-    std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
-        if (patches[a].patch_area != patches[b].patch_area)
-            return patches[a].patch_area < patches[b].patch_area;
-        return a < b;
-    });
+// Greedy region merge on the patch adjacency graph. The smallest live region is
+// absorbed into the neighbor with the best shared boundary length weighted by
+// color affinity 1 / (1 + (dE00 / sigma)^2), so a close color wins over a longer
+// contact with a contrasting one. The absorbed region takes that neighbor's
+// color, the merged region keeps the summed area, and every other former
+// neighbor of the absorbed region with that same color joins it too, so
+// adjacent live regions never share a color. All other regions only grow, so
+// the recorded key areas never decrease. Merging stops at max_key_area.
+void build_gap_merge_events(
+    GapPreviewState& state,
+    std::vector<std::unordered_map<int, double>> shared,
+    double max_key_area)
+{
+    using FaceColor = std::array<std::size_t, 3>;
+    state.merge_events.clear();
+    state.merge_members.clear();
+    state.applied_events = 0;
 
-    std::vector<int> old_to_new(npatches);
-    for (int ni = 0; ni < npatches; ++ni)
-        old_to_new[order[ni]] = ni;
+    const int n = (int)state.color_patches.size();
+    if (n == 0 || (int)shared.size() != n)
+        return;
 
-    // A patch may only merge into an adjacent patch ranked above it (larger
-    // area). This keeps every merge chain local and strictly increasing, so
-    // two patches can never depend on each other. Patches without a larger
-    // neighbor point at themselves and keep their own color.
-    for (int pid = 0; pid < npatches; ++pid) {
-        int best = pid;
-        double best_len = -1.0;
-        double best_area = -1.0;
-        for (const auto& kv : shared[pid]) {
-            const int qid = kv.first;
-            if (old_to_new[qid] <= old_to_new[pid])
+    // Region colors always stay within the simplified palette, so regions carry a
+    // palette index and the color affinity is looked up from a K x K table.
+    std::vector<FaceColor>   palette;
+    std::map<FaceColor, int> palette_index;
+    std::vector<double>           area(n);
+    std::vector<int>              color(n);
+    std::vector<std::vector<int>> members(n);
+    std::vector<int>              version(n, 0);
+    std::vector<char>             alive(n, 1);
+    for (int i = 0; i < n; ++i) {
+        const FaceColor& label = state.color_patches[i].color_label;
+        auto [it, inserted] = palette_index.emplace(label, (int)palette.size());
+        if (inserted)
+            palette.push_back(label);
+        area[i]    = state.color_patches[i].patch_area;
+        color[i]   = it->second;
+        members[i] = {i};
+    }
+
+    const int k = (int)palette.size();
+    std::vector<double> affinity((size_t)k * k, 1.0);
+    for (int i = 0; i < k; ++i) {
+        for (int j = i + 1; j < k; ++j) {
+            const double de = compute_delta_e(palette[i], palette[j]) / kGapMergeColorSigma;
+            const double w  = 1.0 / (1.0 + de * de);
+            affinity[(size_t)i * k + j] = w;
+            affinity[(size_t)j * k + i] = w;
+        }
+    }
+
+    struct HeapItem {
+        double area;
+        int    region;
+        int    version;
+        bool operator>(const HeapItem& rhs) const {
+            if (area != rhs.area)
+                return area > rhs.area;
+            return region > rhs.region;
+        }
+    };
+    std::priority_queue<HeapItem, std::vector<HeapItem>, std::greater<HeapItem>> heap;
+    for (int i = 0; i < n; ++i) {
+        if (!shared[i].empty())
+            heap.push({area[i], i, version[i]});
+    }
+
+    // Fold two regions into one carrying merged_color. The side with more
+    // neighbors survives so adjacency updates stay small-to-large.
+    auto fold = [&](int keep, int drop, int merged_color) -> int {
+        if (shared[keep].size() < shared[drop].size())
+            std::swap(keep, drop);
+        area[keep] += area[drop];
+        if (members[keep].size() < members[drop].size())
+            members[keep].swap(members[drop]);
+        members[keep].insert(members[keep].end(), members[drop].begin(), members[drop].end());
+        std::vector<int>().swap(members[drop]);
+
+        shared[keep].erase(drop);
+        for (const auto& [nb, len] : shared[drop]) {
+            if (nb == keep)
                 continue;
-            const double len = kv.second;
-            const double qarea = patches[qid].patch_area;
-            bool better = false;
-            if (len > best_len)
-                better = true;
-            else if (len == best_len) {
-                if (qarea > best_area)
-                    better = true;
-                else if (qarea == best_area && qid < best)
-                    better = true;
-            }
-            if (better) {
-                best = qid;
-                best_len = len;
-                best_area = qarea;
+            shared[keep][nb] += len;
+            auto& nb_shared = shared[nb];
+            nb_shared.erase(drop);
+            nb_shared[keep] += len;
+        }
+        std::unordered_map<int, double>().swap(shared[drop]);
+
+        color[keep] = merged_color;
+        alive[drop] = 0;
+        return keep;
+    };
+
+    std::vector<int> same_color;
+    while (!heap.empty()) {
+        const HeapItem top = heap.top();
+        heap.pop();
+        const int a = top.region;
+        if (!alive[a] || top.version != version[a])
+            continue;
+        if (area[a] >= max_key_area)
+            break;
+        if (shared[a].empty())
+            continue;
+
+        int    b          = -1;
+        double best_score = -1.0;
+        double best_area  = -1.0;
+        const double* affinity_row = affinity.data() + (size_t)color[a] * k;
+        for (const auto& [q, len] : shared[a]) {
+            const double score = len * affinity_row[color[q]];
+            const double qarea = area[q];
+            if (score > best_score ||
+                (score == best_score && (qarea > best_area || (qarea == best_area && q < b)))) {
+                b          = q;
+                best_score = score;
+                best_area  = qarea;
             }
         }
-        patches[pid].adj_longest_patch_id = best;
-    }
+        if (b < 0)
+            continue;
 
-    std::vector<ColorPatch> sorted(npatches);
-    for (int ni = 0; ni < npatches; ++ni) {
-        sorted[ni] = std::move(patches[order[ni]]);
-        sorted[ni].patch_id = ni;
+        const int target_color = color[b];
+        GapMergeEvent ev;
+        ev.key_area     = area[a];
+        ev.from_color   = palette[color[a]];
+        ev.to_color     = palette[target_color];
+        ev.member_begin = (int)state.merge_members.size();
+        state.merge_members.insert(state.merge_members.end(), members[a].begin(), members[a].end());
+        ev.member_end   = (int)state.merge_members.size();
+        state.merge_events.push_back(ev);
+
+        same_color.clear();
+        for (const auto& [q, len] : shared[a]) {
+            if (q != b && color[q] == target_color)
+                same_color.push_back(q);
+        }
+
+        int merged = fold(b, a, target_color);
+        for (int c : same_color)
+            merged = fold(merged, c, target_color);
+        ++version[merged];
+        if (!shared[merged].empty())
+            heap.push({area[merged], merged, version[merged]});
     }
-    for (auto& patch : sorted) {
-        if (patch.adj_longest_patch_id >= 0 && patch.adj_longest_patch_id < npatches)
-            patch.adj_longest_patch_id = old_to_new[patch.adj_longest_patch_id];
-        else
-            patch.adj_longest_patch_id = patch.patch_id;
-    }
-    return sorted;
+}
+
+void build_gap_preview_regions(
+    GapPreviewState& state,
+    const PaintedMesh& painted,
+    const std::vector<std::array<std::size_t, 3>>& face_colors)
+{
+    std::vector<std::unordered_map<int, double>> shared;
+    state.color_patches = build_color_patches(painted, face_colors, shared);
+    state.gap_total_area = 0.0;
+    for (const auto& patch : state.color_patches)
+        state.gap_total_area += patch.patch_area;
+    build_gap_merge_events(state, std::move(shared),
+                           (kGapAreaMaxPercent / 100.0) * state.gap_total_area);
 }
 
 std::unique_ptr<GapPreviewState> make_gap_preview_state(const PaintedMesh& painted)
@@ -1033,13 +1161,7 @@ std::unique_ptr<GapPreviewState> make_gap_preview_state(const PaintedMesh& paint
     state->simplified_face_colors = painted.face_colors;
     state->simplified_cluster_colors = painted.cluster_colors;
     state->display_face_colors = painted.face_colors;
-    state->color_patches = build_color_patches(painted, painted.face_colors);
-    for (const auto& patch : state->color_patches) {
-        if (patch.is_isolated())
-            continue;
-        state->gap_total_area += patch.patch_area;
-    }
-    state->gap_split_index = 0;
+    build_gap_preview_regions(*state, painted, painted.face_colors);
     return state;
 }
 
@@ -1144,16 +1266,6 @@ static bool texture_entry_is_mixed(TextureFilamentKind kind)
     return kind == TextureFilamentKind::ExistingMixed || kind == TextureFilamentKind::NewMixed;
 }
 
-static bool texture_entry_is_existing(TextureFilamentKind kind)
-{
-    return kind == TextureFilamentKind::ExistingPhysical || kind == TextureFilamentKind::ExistingMixed;
-}
-
-static bool texture_entry_is_new(TextureFilamentKind kind)
-{
-    return kind == TextureFilamentKind::NewPhysical || kind == TextureFilamentKind::NewMixed;
-}
-
 static std::string texture_entry_official_series(const TextureFilamentEntry& entry)
 {
     if (!texture_entry_is_physical(entry.kind))
@@ -1195,21 +1307,6 @@ static std::vector<int> texture_mixed_component_dialog_indices(const TextureFila
             comps.push_back((int)c - 1);
     }
     return comps;
-}
-
-static std::vector<std::pair<int, int>> texture_mixed_recipe_key(const TextureFilamentEntry& entry)
-{
-    std::vector<std::pair<int, int>> key;
-    const size_t n = std::min(entry.mixed_components.size(), entry.mixed_ratios.size());
-    key.reserve(n);
-    for (size_t i = 0; i < n; ++i) {
-        const unsigned int comp = entry.mixed_components[i];
-        if (comp < 1)
-            continue;
-        key.emplace_back((int)comp - 1, entry.mixed_ratios[i]);
-    }
-    std::sort(key.begin(), key.end());
-    return key;
 }
 
 static std::string texture_mixed_filament_display_name(
@@ -3181,8 +3278,8 @@ private:
             return;
         m_outside_click_monitor = install_texture_import_outside_click_monitor(
             this, &FilamentSelectPopup::on_outside_click, this);
-        // Both monitors are scoped to this application, so a click that lands in
-        // another app never reaches them; app deactivation covers that case.
+        // Windows' hook only sees this thread; app deactivation covers clicks
+        // in other processes. The macOS monitor already sees those.
         if (wxTheApp && !m_activate_app_bound) {
             wxTheApp->Bind(wxEVT_ACTIVATE_APP, &FilamentSelectPopup::on_activate_app, this);
             m_activate_app_bound = true;
@@ -5316,7 +5413,7 @@ void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
     init_advanced_hint(m_lbl_gap_hint);
 
     wxBoxSizer* gap_slider_row = new wxBoxSizer(wxHORIZONTAL);
-    m_gap_slider = new GreenDoubleSlider(gap_panel, m_param_gap_area, 0.0, 10.0);
+    m_gap_slider = new GreenDoubleSlider(gap_panel, m_param_gap_area, 0.0, kGapAreaMaxPercent);
     m_gap_slider->SetMinSize(wxSize(FromDIP(80), FromDIP(24)));
     m_gap_spin = new TextInput(gap_panel, wxString::Format("%.2f", m_param_gap_area),
                                "", "", wxDefaultPosition,
@@ -5501,31 +5598,6 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
     sizer->Add(m_overlimit_warning, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
 
     wxBoxSizer* footer = new wxBoxSizer(wxHORIZONTAL);
-    wxColour secondary_fg = dark_or(wxColour(107, 107, 107), wxColour(0x81, 0x81, 0x83));
-
-    auto* merge_row = new wxPanel(this, wxID_ANY);
-    merge_row->SetBackgroundColour(GetBackgroundColour());
-    wxBoxSizer* merge_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_auto_merge_cb = new CheckBox(merge_row);
-    m_auto_merge_cb->SetValue(true);
-    m_auto_merge_cb->SetToolTip(_L("Automatically merge identical filaments into existing filaments in the project"));
-    m_auto_merge_cb->Bind(wxEVT_TOGGLEBUTTON, &TextureImportDialog::on_auto_merge_toggled, this);
-    auto* merge_label = new Label(merge_row, _L("Automatically merge filaments of the same color and type"));
-    merge_label->SetForegroundColour(secondary_fg);
-    merge_label->SetToolTip(_L("Automatically merge identical filaments into existing filaments in the project"));
-    merge_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
-        if (!m_auto_merge_cb || !m_auto_merge_cb->IsEnabled())
-            return;
-        m_auto_merge_cb->SetValue(!m_auto_merge_cb->GetValue());
-        wxCommandEvent evt(wxEVT_TOGGLEBUTTON, m_auto_merge_cb->GetId());
-        on_auto_merge_toggled(evt);
-    });
-    merge_sizer->Add(m_auto_merge_cb, 0, wxALIGN_CENTER_VERTICAL);
-    merge_sizer->Add(merge_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
-    merge_row->SetSizer(merge_sizer);
-    merge_row->Hide();
-    m_auto_merge_row = merge_row;
-    footer->Add(merge_row, 0, wxALIGN_CENTER_VERTICAL);
     footer->AddStretchSpacer();
 
     m_footer_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -5751,20 +5823,6 @@ void TextureImportDialog::apply_theme()
     }
     if (m_mapping_scroll)
         m_mapping_scroll->SetBackgroundColour(dialog_bg);
-    if (m_auto_merge_row) {
-        m_auto_merge_row->SetBackgroundColour(dialog_bg);
-        for (wxWindow* child : m_auto_merge_row->GetChildren()) {
-            if (!child)
-                continue;
-            child->SetBackgroundColour(dialog_bg);
-            if (auto* st = dynamic_cast<wxStaticText*>(child))
-                st->SetForegroundColour(caption_fg);
-        }
-    }
-    if (m_auto_merge_cb) {
-        m_auto_merge_cb->SetBackgroundColour(dialog_bg);
-        m_auto_merge_cb->Rescale();
-    }
     if (m_mix_cb) {
         m_mix_cb->SetBackgroundColour(dialog_bg);
         m_mix_cb->Rescale();
@@ -6098,8 +6156,6 @@ void TextureImportDialog::update_wizard_ui()
         m_preview_container->SetMinSize(wxSize(-1, FromDIP(351)));
     if (m_mapping_scroll)
         m_mapping_scroll->SetMinSize(wxSize(-1, step1 ? -1 : FromDIP(252)));
-    if (m_auto_merge_row)
-        m_auto_merge_row->Show(!step1);
     if (m_caption_row)
         m_caption_row->Show(step1);
     update_unmatched_warning_visibility();
@@ -6249,8 +6305,6 @@ void TextureImportDialog::update_ui_for_state()
         m_btn_prev->Enable(!step1);
     if (m_btn_reset)
         m_btn_reset->Enable(!step1 && !computing);
-    if (m_auto_merge_cb)
-        m_auto_merge_cb->Enable(!computing);
 
     const bool in_dialog_recompute = computing && !m_current_computation_initial;
     if (m_preview_canvas)
@@ -7335,7 +7389,6 @@ void TextureImportDialog::reapply_match_threshold(bool drop_unused)
     // Same family vote as the initial auto-match. Empty family is kept in the
     // typed pass; a filament is skipped only when its family is known and differs.
     // Mixed slots use their display color, and only while Color Mixing is on.
-    const bool merge_on = m_auto_merge_enabled;
     const std::string match_type = pick_auto_match_filament_type(m_filament_entries, m_existing_filament_count);
     const size_t filament_count = std::min(m_filament_entries.size(), m_filament_colors_rgba.size());
 
@@ -7346,12 +7399,8 @@ void TextureImportDialog::reapply_match_threshold(bool drop_unused)
             const TextureFilamentKind kind = m_filament_entries[i].kind;
             if (!m_mix_enabled && texture_entry_is_mixed(kind))
                 continue;
-            if (merge_on) {
-                if (!texture_entry_is_physical(kind) && !texture_entry_is_mixed(kind))
-                    continue;
-            } else if (!texture_entry_is_new(kind)) {
+            if (!texture_entry_is_physical(kind) && !texture_entry_is_mixed(kind))
                 continue;
-            }
             if (same_type_only) {
                 const std::string ft = texture_entry_family_type(m_filament_entries[i], m_filament_entries);
                 if (!ft.empty() && ft != match_type)
@@ -7454,8 +7503,6 @@ void TextureImportDialog::on_match_threshold_committed(int value)
 
 void TextureImportDialog::drop_unused_new_filaments_and_refresh()
 {
-    if (m_auto_merge_enabled)
-        merge_new_filaments_with_project_and_each_other();
     compact_used_virtual_filaments();
     refresh_mapping_target_panels();
     update_filament_color_map();
@@ -8279,22 +8326,7 @@ void TextureImportDialog::do_auto_match()
     // references, so they do not inflate the slot count for a later add.
     compact_used_virtual_filaments();
 
-    if (m_auto_merge_cb && m_auto_merge_cb->GetValue()) {
-        match_clusters_to_physical_filaments();
-    } else {
-        // Auto-merge off: do not match existing filaments and do not create
-        // virtual ones. Every cluster stays unmatched until the user picks
-        // a slot or uses one-click add.
-        m_current_matches.clear();
-        m_current_matches.reserve(m_painted.cluster_colors.size());
-        for (size_t i = 0; i < m_painted.cluster_colors.size(); ++i) {
-            Slic3r::FilamentMatch fm;
-            fm.cluster_index = (int)i;
-            fm.cluster_color = m_painted.cluster_colors[i];
-            fm.filament_index = -1;
-            m_current_matches.push_back(fm);
-        }
-    }
+    match_clusters_to_physical_filaments();
 
     update_filament_color_map();
 }
@@ -8798,7 +8830,7 @@ void TextureImportDialog::set_smooth_value(int value, bool update_spin)
 void TextureImportDialog::set_gap_value(double value, bool update_spin)
 {
     double minv = 0.0;
-    double maxv = 10.0;
+    double maxv = kGapAreaMaxPercent;
     if (m_gap_slider) {
         minv = m_gap_slider->GetMin();
         maxv = m_gap_slider->GetMax();
@@ -8830,51 +8862,19 @@ void TextureImportDialog::clear_color_patches()
 {
     GapPreviewState& state = gap_preview();
     state.color_patches.clear();
-    state.gap_split_index = 0;
+    state.merge_events.clear();
+    state.merge_members.clear();
+    state.applied_events = 0;
     state.gap_total_area = 0.0;
     state.display_face_colors.clear();
 }
 
-int TextureImportDialog::gap_split_index_for_threshold(double budget) const
+int TextureImportDialog::gap_event_count_for_threshold(double area_threshold) const
 {
     const GapPreviewState& state = gap_preview();
-    const int n = (int)state.color_patches.size();
-    int i = 0;
-    double sum = 0.0;
-    while (i < n) {
-        const ColorPatch& patch = state.color_patches[i];
-        if (patch.is_isolated()) {
-            ++i;
-            continue;
-        }
-        const double next = sum + patch.patch_area;
-        // Do not include a patch that would push the eaten area past the budget.
-        if (next > budget)
-            break;
-        sum = next;
-        ++i;
-    }
-    return i;
-}
-
-int TextureImportDialog::resolve_visible_patch_id(int patch_id) const
-{
-    const GapPreviewState& state = gap_preview();
-    const int n = (int)state.color_patches.size();
-    if (patch_id < 0 || patch_id >= n)
-        return patch_id;
-
-    int id = patch_id;
-    int steps = 0;
-    while (id >= 0 && id < n && state.color_patches[id].is_filtered) {
-        const int next = state.color_patches[id].adj_longest_patch_id;
-        if (next == id || next < 0 || next >= n)
-            break;
-        if (++steps > n)
-            break;
-        id = next;
-    }
-    return id;
+    auto it = std::lower_bound(state.merge_events.begin(), state.merge_events.end(), area_threshold,
+        [](const GapMergeEvent& ev, double threshold) { return ev.key_area < threshold; });
+    return (int)std::distance(state.merge_events.begin(), it);
 }
 
 void TextureImportDialog::refresh_gap_preview()
@@ -8889,44 +8889,32 @@ void TextureImportDialog::apply_gap_area()
     GapPreviewState& state = gap_preview();
     if (state.color_patches.empty())
         return;
-    if (state.display_face_colors.size() != state.simplified_face_colors.size())
+    if (state.display_face_colors.size() != state.simplified_face_colors.size()) {
         state.display_face_colors = state.simplified_face_colors;
+        state.applied_events = 0;
+    }
     if (state.display_face_colors.size() != m_painted.indices.size())
         return;
 
-    const int old_split = state.gap_split_index;
-    // Eat smallest patches first until their combined area reaches this share of the mesh.
-    const double area_budget = (m_param_gap_area / 100.0) * state.gap_total_area;
-    const int new_split = gap_split_index_for_threshold(area_budget);
-
-    if (new_split > old_split) {
-        for (int i = old_split; i < new_split; ++i) {
-            if (state.color_patches[i].is_isolated())
-                continue;
-            state.color_patches[i].is_filtered = true;
+    // Regions whose merged area is below this share of the mesh are absorbed by a neighbor.
+    const double area_threshold = (m_param_gap_area / 100.0) * state.gap_total_area;
+    const int target = gap_event_count_for_threshold(area_threshold);
+    const int npatches = (int)state.color_patches.size();
+    auto write_event = [&](const GapMergeEvent& ev, const std::array<std::size_t, 3>& color) {
+        for (int m = ev.member_begin; m < ev.member_end; ++m) {
+            const int pid = state.merge_members[m];
+            if (pid >= 0 && pid < npatches)
+                write_patch_display_color(state, state.color_patches[pid], color);
         }
-    } else if (new_split < old_split) {
-        for (int i = new_split; i < old_split; ++i) {
-            if (state.color_patches[i].is_isolated())
-                continue;
-            state.color_patches[i].is_filtered = false;
-        }
-    }
-    state.gap_split_index = new_split;
+    };
 
-    for (int i = new_split; i < old_split; ++i) {
-        if (state.color_patches[i].is_isolated())
-            continue;
-        write_patch_display_color(state, state.color_patches[i], state.color_patches[i].color_label);
-    }
-
-    for (int i = 0; i < new_split; ++i) {
-        if (state.color_patches[i].is_isolated())
-            continue;
-        const int visible = resolve_visible_patch_id(i);
-        if (visible >= 0 && visible < (int)state.color_patches.size())
-            write_patch_display_color(state, state.color_patches[i], state.color_patches[visible].color_label);
-    }
+    // Replay forward when the threshold grows and undo in reverse when it shrinks,
+    // so any threshold reproduces the same colors regardless of slider history.
+    for (int i = state.applied_events; i < target; ++i)
+        write_event(state.merge_events[i], state.merge_events[i].to_color);
+    for (int i = state.applied_events - 1; i >= target; --i)
+        write_event(state.merge_events[i], state.merge_events[i].from_color);
+    state.applied_events = target;
 
     refresh_gap_preview();
     if (m_wizard_step == TextureImportWizardStep::SimplifyColors)
@@ -8940,9 +8928,11 @@ void TextureImportDialog::install_gap_preview(std::unique_ptr<GapPreviewState> p
         m_gap_preview = std::move(preview);
     else if (!m_gap_preview)
         m_gap_preview = std::make_unique<GapPreviewState>();
-    gap_preview().gap_split_index = 0;
-    for (auto& patch : gap_preview().color_patches)
-        patch.is_filtered = false;
+    GapPreviewState& state = gap_preview();
+    if (!state.simplified_face_colors.empty()) {
+        state.display_face_colors = state.simplified_face_colors;
+        state.applied_events = 0;
+    }
     apply_gap_area();
 }
 
@@ -8989,13 +8979,7 @@ void TextureImportDialog::schedule_color_patches_rebuild()
         preview->simplified_face_colors = std::move(simplified_colors);
         preview->simplified_cluster_colors = std::move(simplified_clusters);
         preview->display_face_colors = preview->simplified_face_colors;
-        preview->color_patches = build_color_patches(mesh_copy, preview->simplified_face_colors);
-        for (const auto& patch : preview->color_patches) {
-            if (patch.is_isolated())
-                continue;
-            preview->gap_total_area += patch.patch_area;
-        }
-        preview->gap_split_index = 0;
+        build_gap_preview_regions(*preview, mesh_copy, preview->simplified_face_colors);
         {
             std::lock_guard<std::mutex> lock(m_result_mutex);
             m_pending_gap_preview = std::move(preview);
@@ -9198,44 +9182,6 @@ void TextureImportDialog::on_gap_spin_commit()
     apply_gap_area();
 }
 
-void TextureImportDialog::on_auto_merge_toggled(wxCommandEvent& evt)
-{
-    evt.Skip();
-    bool auto_merge_enabled = !m_auto_merge_cb || m_auto_merge_cb->GetValue();
-    m_auto_merge_enabled = auto_merge_enabled;
-
-    if (m_state != TextureImportState::Ready)
-        return;
-
-    if (!auto_merge_enabled)
-        replace_project_mapped_filaments_with_new();
-    drop_unused_new_filaments_and_refresh();
-}
-
-bool TextureImportDialog::filament_slots_mergeable(int lhs, int rhs) const
-{
-    if (lhs == rhs || lhs < 0 || rhs < 0)
-        return false;
-    if (lhs >= (int)m_filament_entries.size() || rhs >= (int)m_filament_entries.size())
-        return false;
-
-    const TextureFilamentEntry& a = m_filament_entries[lhs];
-    const TextureFilamentEntry& b = m_filament_entries[rhs];
-    if (texture_entry_is_physical(a.kind) && texture_entry_is_physical(b.kind)) {
-        if (texture_normalize_color_hex(a.color_hex) != texture_normalize_color_hex(b.color_hex))
-            return false;
-        const std::string preset_a = texture_filament_preset_name_of(a);
-        return !preset_a.empty() && preset_a == texture_filament_preset_name_of(b);
-    }
-    if (texture_entry_is_mixed(a.kind) && texture_entry_is_mixed(b.kind)) {
-        const auto recipe_a = texture_mixed_recipe_key(a);
-        if (recipe_a.size() < 2)
-            return false;
-        return recipe_a == texture_mixed_recipe_key(b);
-    }
-    return false;
-}
-
 void TextureImportDialog::retarget_filament_slot(int from_index, int to_index)
 {
     if (from_index < 0 || from_index == to_index)
@@ -9288,131 +9234,6 @@ int TextureImportDialog::fold_new_mixed_components(int mixed_idx)
     if (entry.mixed_components.size() == 1 && entry.mixed_components.front() >= 1)
         return (int)entry.mixed_components.front() - 1;
     return -1;
-}
-
-int TextureImportDialog::clone_project_filament_as_new(int dialog_index)
-{
-    if (dialog_index < 0 || dialog_index >= (int)m_filament_entries.size())
-        return -1;
-
-    const TextureFilamentEntry src = m_filament_entries[dialog_index];
-    if (src.kind == TextureFilamentKind::ExistingPhysical) {
-        std::array<float, 4> rgba = {0.5f, 0.5f, 0.5f, 1.f};
-        if (dialog_index < (int)m_filament_colors_rgba.size())
-            rgba = m_filament_colors_rgba[dialog_index];
-        return add_virtual_filament(rgba, src.color_hex, texture_filament_preset_name_of(src));
-    }
-    if (src.kind == TextureFilamentKind::ExistingMixed)
-        return add_virtual_mixed_filament(src.color_hex,
-                                          texture_mixed_component_dialog_indices(src),
-                                          src.mixed_ratios);
-    return -1;
-}
-
-void TextureImportDialog::merge_new_filaments_with_project_and_each_other()
-{
-    const int n = (int)m_filament_entries.size();
-    auto find_keep = [this, n](int src) -> int {
-        int keep = -1;
-        for (int j = 0; j < n; ++j) {
-            if (j == src || !texture_entry_is_existing(m_filament_entries[j].kind))
-                continue;
-            if (filament_slots_mergeable(src, j)) {
-                keep = j;
-                break;
-            }
-        }
-        if (keep < 0) {
-            for (int j = 0; j < src; ++j) {
-                if (!texture_entry_is_new(m_filament_entries[j].kind))
-                    continue;
-                if (filament_slots_mergeable(src, j)) {
-                    keep = j;
-                    break;
-                }
-            }
-        }
-        return keep;
-    };
-
-    // Physicals first: new mixed recipes reference physical dialog indices, so
-    // their components must be redirected before mixed slots can be compared.
-    for (int src = 0; src < n; ++src) {
-        if (m_filament_entries[src].kind != TextureFilamentKind::NewPhysical)
-            continue;
-        const int keep = find_keep(src);
-        if (keep < 0)
-            continue;
-        retarget_filament_slot(src, keep);
-        for (int mixed_idx = 0; mixed_idx < n; ++mixed_idx) {
-            TextureFilamentEntry& mixed = m_filament_entries[mixed_idx];
-            if (mixed.kind != TextureFilamentKind::NewMixed)
-                continue;
-            bool changed = false;
-            for (unsigned int& comp : mixed.mixed_components) {
-                if (comp == (unsigned int)(src + 1)) {
-                    comp = (unsigned int)(keep + 1);
-                    changed = true;
-                }
-            }
-            if (!changed)
-                continue;
-            const int sole = fold_new_mixed_components(mixed_idx);
-            if (sole >= 0) {
-                retarget_filament_slot(mixed_idx, sole);
-                continue;
-            }
-            texture_sync_mixed_filament_name(m_filament_entries, m_filament_names, mixed_idx,
-                                             texture_mixed_component_dialog_indices(mixed));
-        }
-    }
-
-    for (int src = 0; src < n; ++src) {
-        if (m_filament_entries[src].kind != TextureFilamentKind::NewMixed)
-            continue;
-        const int keep = find_keep(src);
-        if (keep >= 0)
-            retarget_filament_slot(src, keep);
-    }
-}
-
-void TextureImportDialog::replace_project_mapped_filaments_with_new()
-{
-    std::map<int, int> existing_to_new;
-    auto clone_mapped = [this, &existing_to_new](int existing_idx) -> int {
-        auto it = existing_to_new.find(existing_idx);
-        if (it != existing_to_new.end())
-            return it->second;
-        const int cloned = clone_project_filament_as_new(existing_idx);
-        if (cloned >= 0)
-            existing_to_new.emplace(existing_idx, cloned);
-        return cloned;
-    };
-
-    for (auto& match : m_current_matches) {
-        const int idx = match.filament_index;
-        if (idx < 0 || idx >= (int)m_filament_entries.size())
-            continue;
-        if (!texture_entry_is_existing(m_filament_entries[idx].kind))
-            continue;
-        const int cloned = clone_mapped(idx);
-        if (cloned >= 0)
-            bind_match_inplace(match, cloned);
-    }
-
-    for (auto& row : m_mapping_rows) {
-        const int idx = row.target_filament_idx;
-        if (idx < 0 || idx >= (int)m_filament_entries.size())
-            continue;
-        if (!texture_entry_is_existing(m_filament_entries[idx].kind))
-            continue;
-        const int cloned = clone_mapped(idx);
-        if (cloned < 0)
-            continue;
-        row.target_filament_idx = cloned;
-        if (row.target_panel)
-            row.target_panel->Refresh();
-    }
 }
 
 void TextureImportDialog::on_skip_clicked(wxCommandEvent&)
@@ -9481,9 +9302,6 @@ void TextureImportDialog::on_reset_clicked(wxCommandEvent&)
     m_mix_enabled = false;
     if (m_mix_cb)
         m_mix_cb->SetValue(false);
-    m_auto_merge_enabled = true;
-    if (m_auto_merge_cb)
-        m_auto_merge_cb->SetValue(true);
     reset_to_project_filaments_and_auto_match();
     update_confirm_button_state();
     if (GetSizer())
@@ -9725,10 +9543,7 @@ void TextureImportDialog::add_virtual_filaments_for_unmatched()
             m_mapping_rows[i].target_filament_idx = idx;
     }
 
-    if (m_auto_merge_enabled) {
-        merge_new_filaments_with_project_and_each_other();
-        compact_used_virtual_filaments();
-    }
+    compact_used_virtual_filaments();
     update_filament_color_map();
     if (m_mapping_scroll)
         rebuild_mapping_rows();
@@ -9890,8 +9705,6 @@ void TextureImportDialog::on_dpi_changed(const wxRect&)
         warning->Rescale();
     set_color_spin_error_border(m_color_spin, m_color_count_exceeded
         && m_wizard_step == TextureImportWizardStep::SimplifyColors);
-    if (m_auto_merge_cb)
-        m_auto_merge_cb->Rescale();
 }
 
 }} // namespace Slic3r::GUI

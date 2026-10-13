@@ -626,6 +626,13 @@ double compute_delta_e(
         });
 }
 
+double compute_delta_e(
+    const std::array<std::size_t,3>& rgb1,
+    const std::array<std::size_t,3>& rgb2)
+{
+    return tex2color::color_utils::calc_rgb_color_difference_by_ciede2000(rgb1, rgb2);
+}
+
 std::vector<FilamentMatch> match_clusters_to_filaments(
     const std::vector<std::array<std::size_t,3>>& cluster_colors,
     const std::vector<std::array<float,4>>& filament_colors,
