@@ -6,7 +6,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif ()
     set(_wx_toolkit "-DwxBUILD_TOOLKIT=gtk${_gtk_ver}")
     set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=1")
-    set(_wx_egl "-DwxUSE_GLCANVAS_EGL=OFF")
+    set(_wx_egl "-DwxUSE_GLCANVAS_EGL=ON")
 else ()
     set(_wx_egl "")
 endif()
@@ -23,9 +23,30 @@ endif ()
 #     set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch && touch WXWIDGETS_PATCHED)
 # endif ()
 
+set(_wx_git_tag master)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Native Wayland support for wxGLCanvas: port of the wxWidgets 3.2 EGL
+    # canvas (Wayland subsurface handling), EGL visual selection on X11, and
+    # Wayland fixes for live resizing.
+    #
+    # The patch needs a known base, so the fork is pinned on Linux until these
+    # changes are part of bambulab/wxWidgets itself. The marker file carries
+    # the patch hash: a changed patch is applied again to a clean tree instead
+    # of being skipped in an existing dependency build.
+    set(_wx_git_tag e2fa9bda52f720242e35def30ac4a01fbe75f5a8)
+    set(_wx_patch ${CMAKE_CURRENT_LIST_DIR}/0002-fix-wayland-egl-subsurface.patch)
+    file(SHA256 ${_wx_patch} _wx_patch_hash)
+    string(SUBSTRING ${_wx_patch_hash} 0 16 _wx_patch_hash)
+    set(_wx_patch_marker WXWIDGETS_PATCHED_${_wx_patch_hash})
+    set(_patch_cmd PATCH_COMMAND sh -c "test -f ${_wx_patch_marker} || (${GIT_EXECUTABLE} reset -q --hard && ${GIT_EXECUTABLE} apply --verbose ${_wx_patch} && touch ${_wx_patch_marker})")
+else ()
+    set(_patch_cmd "")
+endif ()
+
 bambustudio_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/bambulab/wxWidgets"
-    GIT_TAG master
+    GIT_TAG ${_wx_git_tag}
+    ${_patch_cmd}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5

@@ -247,6 +247,7 @@ public:
     ~OpenGLManager();
 
     bool init_gl(bool popup_error = true);
+    bool is_gl_initialized() const { return m_gl_initialized; }
     wxGLContext* init_glcontext(wxGLCanvas& canvas);
 
     const std::shared_ptr<GLShaderProgram>& get_shader(const std::string& shader_name) const { return m_shaders_manager.get_shader(shader_name); }
