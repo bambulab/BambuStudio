@@ -16,7 +16,6 @@
 class ComboBox;
 class CheckBox;
 class Button;
-class wxSizerItem;
 
 namespace Slic3r {
 class MachineObject;
@@ -163,8 +162,6 @@ private:
     // one per project nozzle row, or a single one behind a shared cell
     std::vector<ComboBox *> m_nozzle_combos;
     wxWindow *m_detail_loss_hint{nullptr};
-    // gap above the footer; the hint takes part of it while shown
-    wxSizerItem *m_footer_gap{nullptr};
     CheckBox *m_skip_check{nullptr};
     Button *m_confirm_btn{nullptr};
 };

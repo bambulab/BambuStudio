@@ -469,10 +469,17 @@ void SyncPresetWithPrinterDialog::build_layout()
     else if (m_info.section_kind == NozzleSectionKind::Notice || m_info.section_kind == NozzleSectionKind::Table)
         add_block(build_section(_L("Nozzle type"), [this](wxWindow *parent) { return build_nozzle_table(parent); }));
 
+    root->AddSpacer(FromDIP(23));
+    auto *migration_note = new Label(this, _L("Note: After migration, some print parameters will be automatically adapted to the new printer model."));
+    migration_note->SetFont(Label::Body_14);
+    migration_note->SetForegroundColour(C(ThemeColor::TextPrimary));
+    migration_note->Wrap(content_width);
+    root->Add(migration_note, 0, wxLEFT | wxRIGHT, FromDIP(kSidePadding));
+
     m_detail_loss_hint = build_detail_loss_hint(this);
     root->Add(m_detail_loss_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
-    m_footer_gap = root->AddSpacer(FromDIP(34));
     update_detail_loss_hint(false);
+    root->AddSpacer(FromDIP(26));
     root->Add(build_footer(this), 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
     root->AddSpacer(FromDIP(23));
 
@@ -492,7 +499,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_section(const wxString &label, cons
 
     auto *title = new Label(panel, label);
     title->SetFont(Label::Body_12);
-    title->SetForegroundColour(C(ThemeColor::Grey450));
+    title->SetForegroundColour(C(ThemeColor::Grey500));
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(title, 0, wxTOP | wxBOTTOM, FromDIP(3));
@@ -699,9 +706,9 @@ wxWindow *SyncPresetWithPrinterDialog::build_detail_loss_hint(wxWindow *parent)
     row->AddSpacer(FromDIP(6));
     row->Add(label, 1);
 
-    // The gap to the table above belongs to the hint, so it goes away with it.
+    // The gap to the note above belongs to the hint, so it goes away with it.
     auto *sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(14));
+    sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(12));
     panel->SetSizer(sizer);
     return panel;
 }
@@ -715,8 +722,6 @@ void SyncPresetWithPrinterDialog::update_detail_loss_hint(bool refit)
 
     const bool changed = m_detail_loss_hint->IsShown() != loses_detail;
     m_detail_loss_hint->Show(loses_detail);
-    // Mock-up: table, 14, hint, 21, footer; without the hint the table keeps its 34 to the footer.
-    m_footer_gap->AssignSpacer(0, FromDIP(loses_detail ? 21 : 34));
     if (!refit || !changed) return;
 
     // Height only: the width stays pinned on the sizer (see build_layout), and SetSizeHints() replaces the
@@ -736,7 +741,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
         m_skip_check = new CheckBox(panel);
         auto *label = new Label(panel, _L("Don't check again when loading 3MF"));
         label->SetFont(Label::Body_14);
-        label->SetForegroundColour(C(ThemeColor::Grey450));
+        label->SetForegroundColour(C(ThemeColor::Grey500));
         // The bitmap button has no label of its own, so the text has to forward the click.
         label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { m_skip_check->SetValue(!m_skip_check->GetValue()); });
 
@@ -767,7 +772,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
                               std::pair<wxColour, int>(C(ThemeColor::BrandGreenHovered), StateColor::Hovered), std::pair<wxColour, int>(C(ThemeColor::BrandGreen), StateColor::Normal));
     StateColor confirm_text(std::pair<wxColour, int>(C(ThemeColor::White), StateColor::Normal));
 
-    m_confirm_btn = new Button(panel, _L("Confirm"), "", 0, 0, wxID_ANY);
+    m_confirm_btn = new Button(panel, _L("Apply migration"), "", 0, 0, wxID_ANY);
     m_confirm_btn->SetFont(Label::Body_12);
     m_confirm_btn->SetPaddingSize(wxSize(FromDIP(12), FromDIP(6)));
     m_confirm_btn->SetMinSize(wxSize(-1, FromDIP(24)));

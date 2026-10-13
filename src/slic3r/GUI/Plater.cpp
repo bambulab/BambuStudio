@@ -11548,16 +11548,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         auto tex_mesh = std::make_shared<TexturedMesh>();
                         bool has_uncolored = false;
                         if (!has_painting() && standard_3mf_to_textured_meshes(model, color_group_map, volume_color_data, *tex_mesh, has_uncolored)) {
-                            // Shown by the import dialog instead of a notification.
-                            auto append = [&](const wxString& text) {
-                                standard_3mf_hint += (standard_3mf_hint.empty() ? "" : " ") + text;
-                            };
+                            // Shown by the import dialog instead of a notification; the source warning takes a line of its own.
                             if (show_source_warning)
-                                append(source_warning);
+                                standard_3mf_hint = source_warning + "\n";
                             if (has_3mf_textures)
-                                append(_L("3MF textures are unsupported and have been discarded."));
+                                standard_3mf_hint += _L("3MF textures are unsupported and have been discarded.") + " ";
                             if (has_uncolored)
-                                append(_L("Parts without color will default to gray."));
+                                standard_3mf_hint += _L("Parts without color will default to gray.");
+                            standard_3mf_hint.Trim(); // drops the separator a missing later part leaves behind
                             standard_3mf_color_mesh = std::move(tex_mesh);
                         } else if (show_source_warning) {
                             q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
