@@ -4119,6 +4119,9 @@ void Print::_make_wipe_tower()
     wipe_tower.set_multi_diameter_print(this->uses_multiple_nozzle_diameters());
     wipe_tower.set_tower_grid_reference_nozzle(float(layer_grid_nozzle_diameter(m_full_print_config)));
     wipe_tower.set_tower_grid_layer_height(float(m_objects.front()->slicing_parameters().layer_height));
+    // Same gate as the gray "Auto" fields: multi-diameter mode always uses the hardcoded defaults,
+    // including when only one diameter is currently installed.
+    wipe_tower.set_per_nozzle_tower_params(multi_nozzle_diameter_mode_enabled(m_full_print_config));
     wipe_tower.set_nozzle_group_result(*group_result);
     wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());
     // Set the extruder & material properties at the wipe tower object.

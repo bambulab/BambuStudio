@@ -394,6 +394,8 @@ public:
 	virtual void	build() = 0;
 	virtual void	update() = 0;
 	virtual void	toggle_options() = 0;
+	// For lines whose visibility depends on state outside this tab's config, such as the nozzle setup.
+	void			update_toggled_lines();
 	virtual void	init_options_list();
     virtual void    update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) {}
 	void			load_initial_data();

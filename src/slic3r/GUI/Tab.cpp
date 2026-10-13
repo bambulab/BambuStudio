@@ -1764,6 +1764,15 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/*
         field->toggle(toggle);
 }
 
+void Tab::update_toggled_lines()
+{
+    if (!m_active_page)
+        return;
+    toggle_options();
+    m_active_page->update_visibility(m_mode, true);
+    m_page_view->GetParent()->Layout();
+}
+
 void Tab::toggle_line(const std::string &opt_key, bool toggle, int opt_index)
 {
     if (!m_active_page) return;
@@ -3356,7 +3365,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_enable_framework", "parameter/prime-tower#internal-ribs");
         optgroup->append_single_option_line("prime_tower_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_max_speed","parameter/prime-tower#max-speed");
-        optgroup->append_single_option_line("prime_tower_feedrate_factor","parameter/prime-tower#max-speed");
+        append_multi_nozzle_auto_line(optgroup, "prime_tower_feedrate_factor", "parameter/prime-tower#max-speed");
         optgroup->append_single_option_line("prime_tower_tail_speed_factor","parameter/prime-tower#max-speed");
         optgroup->append_single_option_line("prime_tower_tail_slowdown_volume","parameter/prime-tower#max-speed");
         optgroup->append_single_option_line("prime_tower_brim_width","parameter/prime-tower");
@@ -3366,8 +3375,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_rib_width","parameter/prime-tower#rib-wall");
         optgroup->append_single_option_line("prime_tower_fillet_wall","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_acceleration","parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_line_width","parameter/prime-tower");
-        optgroup->append_single_option_line("prime_tower_ramming_line_width","parameter/prime-tower");
+        append_multi_nozzle_auto_line(optgroup, "prime_tower_line_width", "parameter/prime-tower");
+        append_multi_nozzle_auto_line(optgroup, "prime_tower_ramming_line_width", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_wipe_speed","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_wipe_distance","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_flat_ironing", "parameter/prime-tower");

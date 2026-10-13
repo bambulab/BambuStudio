@@ -20,6 +20,7 @@
 #include "CommonDefs.hpp"
 #include "Config.hpp"
 #include "Polygon.hpp"
+#include <array>
 #include <atomic>
 #include <set>
 #include <boost/preprocessor/facilities/empty.hpp>
@@ -2223,6 +2224,16 @@ double multi_nozzle_nozzle_volume(double nozzle_diameter, double preset_value);
 // Options shown as "Auto" while multi_nozzle_diameter_mode is on: their preset value is not editable there
 // and slicing resolves them per nozzle diameter. Accepts both "key" and "key#idx".
 bool is_multi_nozzle_auto_option(const std::string &opt_key);
+
+// Multi-diameter prime tower defaults. These live in code, like the other multi_nozzle_* tables:
+// the process preset is not editable per nozzle, and slicing applies the value for the filament's
+// nozzle. Unknown diameters keep preset_value.
+// 0.2 mm nozzle: line width 0.4, feedrate factor 1, ramming line width 0.
+// 0.4 / 0.6 / 0.8 mm nozzles: line width 0.8, feedrate factor 1, ramming line width 0.
+// Ramming line width 0 keeps the built-in diameter table.
+double multi_nozzle_prime_tower_line_width(double nozzle_diameter, double preset_value);
+double multi_nozzle_prime_tower_ramming_line_width(double nozzle_diameter, double preset_value);
+double multi_nozzle_prime_tower_feedrate_factor(double nozzle_diameter, double preset_value);
 
 // Whether the printer offers more than one nozzle diameter to pick from. This is the machine capability,
 // not what a print uses: with a single diameter available nothing downstream may behave as multi-diameter.

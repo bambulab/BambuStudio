@@ -526,6 +526,16 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
             recalculate_and_refresh();
             return;
         }
+        if (!line.rect_nozzle_group.IsEmpty() && is_point_in_rect(pos, line.rect_nozzle_group) &&
+            line.nozzle_group_active()) {
+            line.nozzle_group_expanded = !line.nozzle_group_expanded;
+            const std::string& opt_key = line.og_line.get_options().front().opt_id;
+            for (CtrlLine& child : ctrl_lines)
+                if (child.og_line.nozzle_group_parent == opt_key)
+                    child.update_visibility(m_mode);
+            recalculate_and_refresh();
+            return;
+        }
         if (line.launch_browser())
             return;
 
@@ -578,8 +588,17 @@ void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
     event.Skip();
 }
 
+const OG_CustomCtrl::CtrlLine* OG_CustomCtrl::find_nozzle_group_header(const std::string& opt_key) const
+{
+    const auto it = std::find_if(ctrl_lines.begin(), ctrl_lines.end(), [&opt_key](const CtrlLine& line) {
+        return line.og_line.nozzle_group_header && line.og_line.get_options().front().opt_id == opt_key;
+    });
+    return it == ctrl_lines.end() ? nullptr : &*it;
+}
+
 bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 {
+    m_mode = mode;
     refresh_nozzle_mirror_context();
 
     // BBS: new layout
@@ -979,6 +998,10 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
 
     const ConfigOptionMode& line_mode = option_set.front().opt.mode;
     is_visible = og_line.toggle_visible && line_mode <= mode;
+    if (is_visible && !og_line.nozzle_group_parent.empty()) {
+        const CtrlLine* header = ctrl->find_nozzle_group_header(og_line.nozzle_group_parent);
+        is_visible = header == nullptr || header->nozzle_group_expanded;
+    }
 
     if (draw_just_act_buttons)
         return;
@@ -999,12 +1022,54 @@ bool OG_CustomCtrl::CtrlLine::multi_nozzle_auto_active() const
     return og_line.multi_nozzle_auto && ctrl->m_multi_nozzle_mode_enabled;
 }
 
+bool OG_CustomCtrl::CtrlLine::nozzle_group_active() const
+{
+    if (!og_line.nozzle_group_header)
+        return false;
+    const std::string& opt_key = og_line.get_options().front().opt_id;
+    return std::any_of(ctrl->ctrl_lines.begin(), ctrl->ctrl_lines.end(), [&opt_key](const CtrlLine& line) {
+        return line.og_line.nozzle_group_parent == opt_key && line.og_line.toggle_visible;
+    });
+}
+
+void OG_CustomCtrl::CtrlLine::render_nozzle_group_arrow(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
+{
+    if (!nozzle_group_active()) {
+        rect_nozzle_group = wxRect();
+        return;
+    }
+
+    const int arrow_size = std::max(4, ctrl->m_em_unit / 3);
+    const int arrow_x = h_pos - lround(1.2 * ctrl->m_em_unit);
+    const int arrow_y = v_pos + (height - arrow_size) / 2;
+    rect_nozzle_group = wxRect(arrow_x - 4, arrow_y - 4, arrow_size + 8, arrow_size + 8);
+
+    wxPoint arrow[3];
+    if (nozzle_group_expanded) {
+        arrow[0] = wxPoint(arrow_x, arrow_y);
+        arrow[1] = wxPoint(arrow_x + arrow_size, arrow_y);
+        arrow[2] = wxPoint(arrow_x + arrow_size / 2, arrow_y + arrow_size);
+    } else {
+        arrow[0] = wxPoint(arrow_x, arrow_y);
+        arrow[1] = wxPoint(arrow_x, arrow_y + arrow_size);
+        arrow[2] = wxPoint(arrow_x + arrow_size, arrow_y + arrow_size / 2);
+    }
+    const wxBrush old_brush = dc.GetBrush();
+    const wxPen old_pen = dc.GetPen();
+    const wxColour arrow_color = StateColor::darkModeColorFor(ThemeColor::TextMuted);
+    dc.SetBrush(wxBrush(arrow_color));
+    dc.SetPen(wxPen(arrow_color));
+    dc.DrawPolygon(3, arrow);
+    dc.SetBrush(old_brush);
+    dc.SetPen(old_pen);
+}
+
 void OG_CustomCtrl::CtrlLine::update_field_visibility()
 {
     if (og_line.is_separator() || draw_just_act_buttons)
         return;
 
-    const bool show_field = is_visible && !multi_nozzle_auto_active();
+    const bool show_field = is_visible && !multi_nozzle_auto_active() && !nozzle_group_active();
     if (!show_field) {
         std::fill(rects_undo_icon.begin(), rects_undo_icon.end(), wxRect());
         std::fill(rects_undo_to_sys_icon.begin(), rects_undo_to_sys_icon.end(), wxRect());
@@ -1224,6 +1289,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 
     Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
     render_nozzle_mirrors(dc, h_pos, v_pos, field);
+    render_nozzle_group_arrow(dc, h_pos, v_pos);
     render_multi_nozzle_auto(dc, field);
 
     auto *multi_variant_field = dynamic_cast<MultiVariantTextCtrl *>(field);
@@ -1352,6 +1418,8 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         h_pos = draw_text(dc, wxPoint(h_pos + indent, v_pos), label /* + ":" */, text_clr, icon_pos + ctrl->opt_group->label_width * ctrl->m_em_unit - h_pos, is_url_string, true);
         h_pos -= indent;
     }
+    if (nozzle_group_active())
+        return;
 
     // If there's a widget, build it and set result to the correct position.
 #ifndef DISABLE_BLINKING

@@ -64,6 +64,10 @@ public:
     bool        subline {false};
     bool        nozzle_diameter_mirror {false};
     bool        multi_nozzle_auto {false};
+    // A header collapses the lines naming its option in nozzle_group_parent. While any of them is
+    // toggled visible, the header shows no field of its own and those lines only show when expanded.
+    bool        nozzle_group_header {false};
+    std::string nozzle_group_parent;
     widget_t	widget {nullptr};
     std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 	wxWindow*	near_label_widget_win {nullptr};

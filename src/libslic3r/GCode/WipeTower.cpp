@@ -1,4 +1,5 @@
 #include "WipeTower.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -1901,7 +1902,6 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f),
     m_tower_framework(config.prime_tower_enable_framework.value),
     m_max_speed((float)config.prime_tower_max_speed.value*60.f),
-    m_feedrate_factor(std::max(0.01f, (float)config.prime_tower_feedrate_factor.value)),
     m_tail_speed_factor(std::clamp((float)config.prime_tower_tail_speed_factor.value / 100.f, 0.1f, 1.f)),
     m_tail_slowdown_volume(std::max(0.f, (float)config.prime_tower_tail_slowdown_volume.value)),
     m_accel_to_decel_enable(config.accel_to_decel_enable.value),
@@ -2045,12 +2045,24 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     if (nozzle_diameter <= 0.f)
         nozzle_diameter = float(config.nozzle_diameter.get_at(idx));
     m_filpar[idx].nozzle_diameter = nozzle_diameter;
-    m_filpar[idx].perimeter_width = config.prime_tower_line_width.value > 0 ?
-        float(config.prime_tower_line_width.value) : nozzle_diameter * Width_To_Nozzle_Ratio;
-    m_filpar[idx].nozzle_change_perimeter_width = config.prime_tower_ramming_line_width.value > 0 ?
-        float(config.prime_tower_ramming_line_width.value) : nozzle_change_width_for_diameter(nozzle_diameter);
+    // Multi-diameter mode uses the hardcoded per-diameter defaults. The process values stay
+    // editable only while that mode is off.
+    const float line_width = m_per_nozzle_tower_params ?
+        float(multi_nozzle_prime_tower_line_width(nozzle_diameter, config.prime_tower_line_width.value)) :
+        float(config.prime_tower_line_width.value);
+    const float ramming_line_width = m_per_nozzle_tower_params ?
+        float(multi_nozzle_prime_tower_ramming_line_width(nozzle_diameter, config.prime_tower_ramming_line_width.value)) :
+        float(config.prime_tower_ramming_line_width.value);
+    const float feedrate_factor = m_per_nozzle_tower_params ?
+        float(multi_nozzle_prime_tower_feedrate_factor(nozzle_diameter, config.prime_tower_feedrate_factor.value)) :
+        float(config.prime_tower_feedrate_factor.value);
+    m_filpar[idx].perimeter_width = line_width > 0 ? line_width : nozzle_diameter * Width_To_Nozzle_Ratio;
+    m_filpar[idx].nozzle_change_perimeter_width = ramming_line_width > 0 ?
+        ramming_line_width : nozzle_change_width_for_diameter(nozzle_diameter);
+    m_filpar[idx].feedrate_factor = std::max(0.01f, feedrate_factor);
     // Shared tower line widths follow the finest filament nozzle in use. The fixed Z-grid reference is set
     // separately from the machine's layer-grid nozzle, so an unused fine nozzle still anchors band sizes.
+    // Per-filament widths and the feedrate factor live in m_filpar.
     if (m_tower_grid_nozzle_diameter <= 0.f || nozzle_diameter < m_tower_grid_nozzle_diameter) {
         m_tower_grid_nozzle_diameter    = nozzle_diameter;
         m_perimeter_width               = m_filpar[idx].perimeter_width;
@@ -7911,12 +7923,28 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         // Soften the flow discontinuity when the toolhead leaves the wipe tower for the model:
         // slow down the last m_tail_slowdown_volume mm3 of every visit (whatever the trailing
         // toolpath is: outer wall / wipe line / grid). Only for single-extruder multi-nozzle
-        // machines (N1x, handle_hotend_as_extruder) and never on the first layer.
-        if (m_handle_hotend_as_extruder && !is_first_layer() && m_tail_speed_factor < 1.f) {
-            for (auto &tcr : layer_result) {
+        // machines (handle_hotend_as_extruder) and never on an extrusion that sits on the bed.
+        if (m_handle_hotend_as_extruder && m_tail_speed_factor < 1.f) {
+            auto slow_visit = [&](ToolChangeResult &tcr) {
                 size_t tail_tool = tcr.new_tool < m_filpar.size() ? tcr.new_tool : m_current_tool;
                 float  area      = tail_tool < m_filpar.size() ? m_filpar[tail_tool].filament_area : 0.f;
                 apply_wipe_tower_tail_slowdown(tcr.gcode, m_tail_slowdown_volume, m_tail_speed_factor, area);
+            };
+            // Single-diameter: the nominal layer height is the extrusion height.
+            if (!has_multiple_nozzle_diameters()) {
+                if (!is_first_layer()) {
+                    for (auto &tcr : layer_result)
+                        slow_visit(tcr);
+                }
+            } else {
+                // Multi-diameter: current Z minus this nozzle's own slab. A merged slab can land on
+                // the bed while the nominal layer height does not; that visit keeps its feedrate.
+                for (auto &tcr : layer_result) {
+                    size_t tail_tool = tcr.new_tool < m_filpar.size() ? tcr.new_tool : m_current_tool;
+                    if (is_first_layer_for_slab(filament_extrusion_height(int(tail_tool))))
+                        continue;
+                    slow_visit(tcr);
+                }
             }
         }
 

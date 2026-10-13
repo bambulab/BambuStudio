@@ -41,6 +41,7 @@ class OG_CustomCtrl :public wxPanel
     bool    m_nozzle_mirror_refresh_pending{false};
     double  m_primary_nozzle_diameter{0.0};
     std::vector<double> m_nozzle_diameters;
+    ConfigOptionMode m_mode{comSimple};
 
     struct CtrlLine {
         wxCoord           width{ wxDefaultCoord };
@@ -54,6 +55,7 @@ class OG_CustomCtrl :public wxPanel
         bool is_visible             { true };
         bool is_focused             { false };
         bool nozzle_mirror_expanded { false };
+        bool nozzle_group_expanded  { false };
 
         CtrlLine(   wxCoord         height,
                     OG_CustomCtrl*  ctrl,
@@ -75,6 +77,8 @@ class OG_CustomCtrl :public wxPanel
         void    render_nozzle_mirrors(wxDC& dc, wxCoord h_pos, wxCoord v_pos, Field* field);
         void    update_nozzle_mirror_height();
         bool    multi_nozzle_auto_active() const;
+        bool    nozzle_group_active() const;
+        void    render_nozzle_group_arrow(wxDC& dc, wxCoord h_pos, wxCoord v_pos);
         wxCoord content_height() const;
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url = false, bool is_main = false);
         wxPoint draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking);
@@ -88,10 +92,12 @@ class OG_CustomCtrl :public wxPanel
         std::vector<wxRect> rects_undo_to_sys_icon;
         wxRect              rect_label;
         wxRect              rect_nozzle_mirror;
+        wxRect              rect_nozzle_group;
     };
 
     std::vector<CtrlLine> ctrl_lines;
     void refresh_nozzle_mirror_context();
+    const CtrlLine* find_nozzle_group_header(const std::string& opt_key) const;
 
 public:
     OG_CustomCtrl(  wxWindow* parent,

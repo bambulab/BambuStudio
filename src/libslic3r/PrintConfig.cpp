@@ -223,9 +223,31 @@ bool is_multi_nozzle_auto_option(const std::string &opt_key)
         "top_color_penetration_layers",
         "bottom_color_penetration_layers",
         "support_top_z_distance",
-        "support_bottom_z_distance"
+        "support_bottom_z_distance",
+        "prime_tower_feedrate_factor",
+        "prime_tower_line_width",
+        "prime_tower_ramming_line_width"
     };
     return auto_options.count(opt_key.substr(0, opt_key.find('#'))) > 0;
+}
+
+// 0.2 mm nozzle uses 0.4 mm; 0.4 / 0.6 / 0.8 mm nozzles keep the historical 0.8 mm tower line.
+double multi_nozzle_prime_tower_line_width(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.4, 0.8, 0.8, 0.8 });
+}
+
+// 0 keeps the built-in ramming-width table (nozzle_change_width_for_diameter). Presets stored 0
+// for every diameter; do not replace that with an explicit width.
+double multi_nozzle_prime_tower_ramming_line_width(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 0.0, 0.0, 0.0, 0.0 });
+}
+
+// Feedrate factor is 1 on every standard nozzle. It is not scaled from the process value.
+double multi_nozzle_prime_tower_feedrate_factor(double nozzle_diameter, double preset_value)
+{
+    return multi_nozzle_value(nozzle_diameter, preset_value, std::array<double, 4> { 1.0, 1.0, 1.0, 1.0 });
 }
 
 // The diameters that describe what the machine offers: per-slot where that data is authoritative,
@@ -7055,6 +7077,7 @@ void PrintConfigDef::init_fff_params()
     def->min      = 10;
     def->set_default_value(new ConfigOptionFloat(90.));
 
+    // Each variant takes over the label, unit, mode, range and default of opt_key.
     def           = this->add("prime_tower_feedrate_factor", coFloat);
     def->label    = L("Prime tower feedrate factor");
     def->tooltip  = L("Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. "
@@ -8418,6 +8441,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
+        "prime_tower_feedrate_factor_nozzle_0_2", "prime_tower_feedrate_factor_nozzle_0_4",
+        "prime_tower_feedrate_factor_nozzle_0_6", "prime_tower_feedrate_factor_nozzle_0_8",
+        "prime_tower_line_width_nozzle_0_2", "prime_tower_line_width_nozzle_0_4",
+        "prime_tower_line_width_nozzle_0_6", "prime_tower_line_width_nozzle_0_8",
+        "prime_tower_ramming_line_width_nozzle_0_2", "prime_tower_ramming_line_width_nozzle_0_4",
+        "prime_tower_ramming_line_width_nozzle_0_6", "prime_tower_ramming_line_width_nozzle_0_8",
         "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top","bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
         "prime_volume",

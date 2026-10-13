@@ -366,6 +366,8 @@ public:
         // nozzle still purges and rams with widths appropriate for that nozzle.
         float               perimeter_width{0.f};
         float               nozzle_change_perimeter_width{0.f};
+        // Feedrate scale factor for tower extrusions when hotends are handled as extruders.
+        float               feedrate_factor{1.f};
         float               filament_area;
         float               retract_length;
         float               retract_speed;
@@ -392,10 +394,14 @@ public:
     void set_multi_diameter_print(bool multi_diameter) { m_multi_diameter_print = multi_diameter; }
     void set_tower_grid_reference_nozzle(float nozzle_diameter) { m_tower_grid_reference_nozzle = nozzle_diameter; }
     void set_tower_grid_layer_height(float layer_height) { m_tower_grid_layer_height = layer_height; }
+    // Multi-diameter mode: feedrate factor and line widths come from the hardcoded per-diameter
+    // defaults (multi_nozzle_prime_tower_*). Must be set before set_extruder().
+    void set_per_nozzle_tower_params(bool per_nozzle) { m_per_nozzle_tower_params = per_nozzle; }
     void set_filament_categories(const std::vector<int> & filament_categories) { m_filament_categories = filament_categories;};
     void set_nozzle_group_result(const MultiNozzleUtils::LayeredNozzleGroupResult &multi_nozzle_group_result) { m_multi_nozzle_group_result = &multi_nozzle_group_result; };
     std::vector<int> m_used_filament_ids;
     bool m_multi_diameter_print{false};
+    bool m_per_nozzle_tower_params{false};
     std::vector<int> m_filament_categories;
     const MultiNozzleUtils::LayeredNozzleGroupResult *m_multi_nozzle_group_result{nullptr};
 
@@ -576,6 +582,12 @@ public:
                 return iter->second;
         }
         return layer_slab_height(layer_id, fallback);
+    }
+    // Tail slowdown asks this instead of the nominal layer height, so a merged slab that
+    // reaches the bed is treated as a first layer for that nozzle only.
+    float filament_extrusion_height(int filament_id) const
+    {
+        return slab_height_for(filament_id, int(m_cur_layer_id), m_layer_height);
     }
 	void generate_wipe_tower_blocks(bool add_solid_flag);
     void update_all_layer_depth(float wipe_tower_depth);
@@ -770,7 +782,6 @@ private:
 	float			m_extra_spacing   = 1.f;
 	float           m_tpu_fixed_spacing = 2;
     float           m_max_speed = 5400.f;  // the maximum printing speed on the prime tower.
-    float           m_feedrate_factor = 1.f;  // feedrate scale factor for tower extrusions when hotends are handled as extruders.
     float           m_tail_speed_factor = 1.f;  // speed scale factor applied to the tail of each wipe-tower visit.
     float           m_tail_slowdown_volume = 10.f;  // only the last N mm3 of each wipe-tower visit is slowed down; 0 = whole visit.
     std::vector<std::vector<Vec2f>> m_wall_skip_points;
@@ -800,7 +811,7 @@ private:
             return std::min(m_first_layer_speed * 60.f, m_max_speed);
         if (m_handle_hotend_as_extruder) {
             float feedrate = 60.0f * m_filpar[filament_id].max_e_speed / extrusion_flow;
-            feedrate *= m_feedrate_factor;
+            feedrate *= m_filpar[filament_id].feedrate_factor;
             return std::min(feedrate, m_machine_max_speed);
         }
         return std::min(60.0f * m_filpar[filament_id].max_e_speed / extrusion_flow, m_max_speed);

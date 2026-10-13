@@ -2239,8 +2239,10 @@ static void refresh_after_multi_nozzle_diameter_mode_cleared()
         printer_tab->toggle_options();
         printer_tab->update_extruder_variants(-1, false);
     }
-    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+    if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
         print_tab->update_extruder_variants(-1, false);
+        print_tab->update_toggled_lines();
+    }
     if (Tab *filament_tab = wxGetApp().get_tab(Preset::TYPE_FILAMENT))
         filament_tab->update_nozzle_status_display();
     if (auto *plater = wxGetApp().plater())
@@ -2667,6 +2669,10 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         // is done, so that re-run stays guarded too and doesn't silently substitute the
         // incompatible slot back to a default preset. (No-op if the branch above never set it.)
         wxGetApp().preset_bundle->block_filament_fallback_substitution = false;
+
+        // The per-nozzle prime tower options list the diameters of the nozzle setup edited above.
+        if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+            print_tab->update_toggled_lines();
         wxGetApp().plater()->sidebar().refresh_filament_diameter_buttons();
 
         if (plater) {
@@ -4119,6 +4125,10 @@ Sidebar::Sidebar(Plater *parent)
             wxGetApp().plater()->update_project_dirty_from_presets();
             wxGetApp().plater()->on_config_change(preset_bundle->full_config());
             preset_bundle->block_filament_fallback_substitution = false;
+
+            // The per-nozzle prime tower options are only listed in multi-diameter mode.
+            if (Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT))
+                print_tab->update_toggled_lines();
         });
         p->diameter_btns->SetNozzleQueryCallback([this](const wxString &query_diameter) -> bool {
             PresetBundle *preset_bundle     = wxGetApp().preset_bundle;
