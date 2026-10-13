@@ -29235,3 +29235,9 @@ msgstr "受耗材变轨器影响，%s可能进退料失败。若仍要继续使�
 
 msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
 msgstr "受耗材变轨器影响，%s可能断裂在料管中。若仍要继续使用，请查看详细使用指南。"
+
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr "受耗材变轨器影响，%s不可使用，请改用外挂料盘。"
+
+msgid "%s is not supported with a standard %s nozzle."
+msgstr "%s不支持使用标准%s喷嘴打印。"

@@ -415,7 +415,7 @@
     {
       "model_id": ["N6"],
       "extruder_id": [0],
-      "filament_id_vec": ["GFB51", "GFN05", "GFG50", "GFS03", "GFU02"],
+      "filament_id_vec": ["GFB51", "GFN05", "GFG50", "GFS03", "GFU02", "GFA05"],
       "action": "critical_warning",
       "description": "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction.",
       "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
@@ -496,14 +496,6 @@
       "nozzle_diameters": [0.6, 0.8],
       "action": "warning",
       "description": "%s used with a high-flow %s nozzle may affect print quality.",
-      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
-    },
-    {
-      "model_id": ["N6"],
-      "extruder_id": [0],
-      "filament_id_vec": ["GFA05"],
-      "action": "warning",
-      "description": "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction.",
       "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
     },
     {
@@ -602,6 +594,39 @@
       "group": "fila_switcher",
       "priority": 30,
       "description": "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "has_filament_switch": true,
+      "slot": "ams",
+      "filament_id_vec": ["GFN05", "GFN06"],
+      "action": "prohibition",
+      "group": "cf_gf_ams",
+      "priority": 10,
+      "description": "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "has_filament_switch": true,
+      "slot": "ams",
+      "filament_id_vec": ["GFA15"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.2],
+      "action": "prohibition",
+      "group": "fila_switcher",
+      "priority": 50,
+      "description": "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead.",
+      "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
+    },
+    {
+      "model_id": ["N6"],
+      "filament_id_vec": ["GFA12"],
+      "nozzle_flows": ["Standard"],
+      "nozzle_diameters": [0.2],
+      "action": "prohibition",
+      "description": "%s is not supported with a standard %s nozzle.",
       "wiki": "https://wiki.bambulab.com/zh/x2d/manual/filament-compatibility"
     }
   ]

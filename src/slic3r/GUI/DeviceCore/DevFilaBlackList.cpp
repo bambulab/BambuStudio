@@ -414,6 +414,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.");
 
             // Error in description, X2D filament compatibility
+            L("Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead.");
+            L("%s is not supported with a standard %s nozzle.");
             L("%s is only supported for printing with the main extruder.");
 
             // Critical warning in description, X2D filament compatibility
