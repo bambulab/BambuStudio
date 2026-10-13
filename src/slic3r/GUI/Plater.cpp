@@ -49,6 +49,7 @@
 #include <wx/gauge.h>
 #include <wx/wupdlock.h>
 #include <wx/numdlg.h>
+#include <wx/textdlg.h>
 #include <wx/debug.h>
 #include <wx/busyinfo.h>
 #include <wx/event.h>
@@ -26197,7 +26198,26 @@ void Plater::clone_selection()
 {
     if (is_selection_empty())
         return;
-    long res = wxGetNumberFromUser("",
+
+    // macOS 27 crashes in wxNumberEntryDialog while AppKit lays out the native
+    // numeric control (BambuStudio#12285). Ask with a plain text dialog here only.
+    long res = -1;
+#ifdef __APPLE__
+    wxString entered("1");
+    for (;;) {
+        wxTextEntryDialog dialog(this, _L("Clone"), _L("Number of copies:"), entered);
+        if (dialog.ShowModal() != wxID_OK)
+            return;
+
+        entered = dialog.GetValue();
+        if (entered.ToLong(&res) && res >= 0 && res <= 1000)
+            break;
+
+        MessageDialog invalid(this, _L("Invalid number"), _L("Number of copies:"), wxOK | wxICON_WARNING);
+        invalid.ShowModal();
+    }
+#else
+    res = wxGetNumberFromUser("",
         _L("Clone"),
         _L("Number of copies:"),
         1, 0, 1000, this);
@@ -26206,6 +26226,7 @@ void Plater::clone_selection()
         msg = _L("Invalid number");
         return;
     }
+#endif
     Selection& selection = p->get_selection();
     selection.clone(res);
 }
