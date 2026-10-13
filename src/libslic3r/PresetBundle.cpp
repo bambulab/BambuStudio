@@ -3108,7 +3108,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                                          bool                                                       skip_ext)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "use_map:" << use_map << " enable_append:" << enable_append;
-    ams_sync_unmatched_slots.clear();
+    ams_sync_substitutions.clear();
     std::vector<std::string> ams_filament_presets;
     std::vector<std::string> ams_filament_colors;
     std::vector<std::string> ams_filament_color_types;
@@ -3184,10 +3184,37 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             has_type |= f.config.opt_string("filament_type", 0u) == filament_type;
             return f.is_compatible && filaments.get_preset_base(f) == &f && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
+            // Why it failed, not just that it did: the three conditions above fail for very different
+            // reasons (no such material locally / the material exists but not for the printer in use /
+            // only non-base variants) and the message is the same for all of them.
+            int         presets_with_id = 0, incompatible = 0, non_base = 0;
+            std::string incompatible_sample;
+            for (auto it = filaments.begin(); it != filaments.end(); ++it) {
+                if (it->filament_id != filament_id)
+                    continue;
+                ++presets_with_id;
+                if (!it->is_compatible) {
+                    ++incompatible;
+                    if (incompatible_sample.empty())
+                        incompatible_sample = it->name;
+                } else if (filaments.get_preset_base(*it) != &*it) {
+                    ++non_base;
+                }
+            }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": tray " << tray_name
+                                    << " type=" << filament_type
+                                    << " filament_id=" << filament_id
+                                    << " -> no usable preset."
+                                    << " presets_with_this_id=" << presets_with_id
+                                    << " of_which_incompatible=" << incompatible
+                                    << " non_base=" << non_base
+                                    << " first_incompatible=\"" << incompatible_sample << "\""
+                                    << " active_printer=\"" << printers.get_edited_preset().name << "\""
+                                    << " printer_variant=" << printers.get_edited_preset().config.opt_string("printer_variant");
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
-            // Every stand-in picked below is provisional: which slot a tray finally lands on is only known
-            // after the append/overwrite merge, and a tray that lands on a slot the user already configured
-            // has its stand-in undone there (see presets_before_sync at the end of this function).
+            // Every stand-in picked below is approximate by definition -- it is chosen by material type,
+            // not by the tray's own id. Which slot a tray finally lands on is only known after the
+            // append/overwrite merge, so the slot is flagged at the end of this function rather than here.
             if (!filament_type.empty()) {
                 filament_type = "Generic " + filament_type;
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
@@ -3473,25 +3500,46 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             if (mapping.first < 0 || mapping.second.ams_id != ams_id || mapping.second.slot_id != slot_id)
                 continue;
             const size_t slot = static_cast<size_t>(mapping.first);
-            // A slot this sync appended had no material of its own, so its stand-in is all there is and
-            // there is nothing for the user to restore -- leave it alone and stay quiet about it.
+            // A slot this sync appended did not exist before it, so there was no earlier choice of the
+            // user's for the stand-in to be standing in for -- leave it alone and stay quiet about it.
             if (slot >= presets_before_sync.size() || slot >= this->filament_presets.size())
                 continue;
-            // Deliberately reached even when the stand-in already equals what the slot had. That
-            // happens when nothing at all could be found for the tray and the pass above simply kept
-            // the slot's own preset (a filament with no profile for the diameter in use, say). Nothing
-            // was taken away there, but nothing was applied either: the tray never made it into the
-            // list, and the slot goes on naming a material the machine is not feeding from it. It is
-            // the same mismatch as the substituted case below and the more dangerous of the two,
-            // because without this nothing on screen would hint that a tray had been skipped.
-            this->filament_presets[slot] = presets_before_sync[slot];
-            if (std::find(ams_sync_unmatched_slots.begin(), ams_sync_unmatched_slots.end(), slot) ==
-                ams_sync_unmatched_slots.end())
-                ams_sync_unmatched_slots.push_back(slot);
+            // The stand-in stays. It is the same fallback the AMS dropdown offers for this tray, so
+            // sync and that list now agree on what this tray maps to; the user is told about the swap
+            // below instead of finding the slot silently reverted to whatever was there before.
+            if (std::any_of(ams_sync_substitutions.begin(), ams_sync_substitutions.end(),
+                            [slot](const AmsSyncSubstitution &s) { return s.slot == slot; }))
+                continue;
+            AmsSyncSubstitution record;
+            record.slot = slot;
+            record.tray = unknown.first->opt_string("tray_name", 0u);
+            // What the tray actually holds. Its presets are all incompatible with this printer -- that
+            // is why we are here -- so the name is read off any of them rather than from a usable one.
+            const std::string tray_filament_id = unknown.first->opt_string("filament_id", 0u);
+            for (auto it = filaments.begin(); it != filaments.end(); ++it)
+                if (!tray_filament_id.empty() && it->filament_id == tray_filament_id) {
+                    record.wanted = it->alias.empty() ? it->name : it->alias;
+                    break;
+                }
+            if (record.wanted.empty())
+                record.wanted = unknown.first->opt_string("filament_type", 0u);
+            // Whatever the slot ends up on, including the case where no stand-in was found and it
+            // simply kept what it had: from the user's side the tray's material was not applied and
+            // this is what got used instead, which is the same sentence either way.
+            record.applied = this->filament_presets[slot];
+            // The display name, to match `wanted` -- the stored name carries a printer/nozzle suffix
+            // that says nothing the user needs here.
+            if (const Preset *applied = filaments.find_preset(record.applied, false))
+                record.applied = applied->alias.empty() ? applied->name : applied->alias;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": ams sync substituted slot " << record.slot
+                                    << " tray=" << record.tray << " wanted=" << record.wanted
+                                    << " applied=" << (record.applied.empty() ? "<kept>" : record.applied);
+            ams_sync_substitutions.push_back(std::move(record));
         }
     }
     // Filled in tray order, but it is read out as a list of slot numbers for the user.
-    std::sort(ams_sync_unmatched_slots.begin(), ams_sync_unmatched_slots.end());
+    std::sort(ams_sync_substitutions.begin(), ams_sync_substitutions.end(),
+              [](const AmsSyncSubstitution &a, const AmsSyncSubstitution &b) { return a.slot < b.slot; });
 
     // Re-append mixed filament slots that were stripped before AMS sync
     if (!mixed_snapshots.empty()) {
@@ -3983,11 +4031,38 @@ static std::set<std::pair<std::string, NozzleVolumeType>> collect_installed_nozz
                 result.emplace(diameter, static_cast<NozzleVolumeType>(value));
     };
 
-    // Same gate as collect_configured_nozzle_diameters(): with the project-level gate off the machine
-    // offers exactly its printer preset's diameter, paired with the per-extruder project flow setting.
+    // Same gate as collect_configured_nozzle_diameters(), but only the diameter axis collapses with
+    // the project-level gate off: every slot then prints at the printer preset's single diameter.
+    // The flow axis does not collapse with it -- the slots can carry different flows at that one
+    // diameter, and the grouping is free to put a filament on whichever slot has the flow it needs.
+    // So the diameter comes from the printer preset while the flows are still read off the rack.
+    // Pairing that diameter with the project's single flow setting instead, as this used to do, hides
+    // every other flow the machine has mounted: a filament that can only print in one of them looks
+    // unprintable, and a wrong setting makes every filament look that way at once.
     if (!multi_nozzle_diameter_mode_enabled(bundle.project_config) ||
         !uses_per_slot_nozzle_diameters(printer.config)) {
-        fill_from_printer_preset();
+        const double primary_diameter =
+            string_to_double_decimal_point(printer.config.opt_string("printer_variant").c_str());
+        if (primary_diameter > 0.0) {
+            const std::string diameter = format_diameter_to_str(primary_diameter);
+            for (int extruder_id = 0; extruder_id < bundle.extruder_full_stat.get_extruder_count(); ++extruder_id)
+                for (const auto &slot : bundle.extruder_full_stat.get_extruder_stats(extruder_id)) {
+                    if (slot.first.empty() || slot.second.empty())
+                        continue;
+                    const double slot_diameter = string_to_double_decimal_point(slot.first.c_str());
+                    if (slot_diameter <= 0.0 || format_diameter_to_str(slot_diameter) != diameter)
+                        continue;
+                    const NozzleVolumeType volume_type = nozzle_volume_type_from_string(slot.second);
+                    // Same round-trip as the per-slot pass below: the conversion falls back to
+                    // Standard, which would invent a nozzle out of a corrupted snapshot.
+                    if (GetNozzleVolumeTypeStr(volume_type) != slot.second)
+                        continue;
+                    result.emplace(diameter, volume_type);
+                }
+        }
+        // Nothing mounted to read -- the printer preset and the project's flow setting are all there is.
+        if (result.empty())
+            fill_from_printer_preset();
         return result;
     }
 
@@ -4356,7 +4431,8 @@ static const Preset *find_default_filament_for_nozzle_diameter(
     return first_pla;
 }
 
-void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<int, AMSMapInfo> *device_maps)
+void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<int, AMSMapInfo> *device_maps,
+                                                                bool device_maps_are_user_chosen)
 {
     auto *selected = project_config.option<ConfigOptionStrings>("filament_diameter_map");
     selected->values.resize(filament_presets.size());
@@ -4468,15 +4544,25 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                         continue;
                     }
                     if (format_diameter_to_str(string_to_double_decimal_point(current_value.c_str())) == target) {
-                        // The diameter matching is not enough: a rack can carry that diameter only in
-                        // a flow this filament has no variant for (a 2.85mm TPU among all-Standard
-                        // nozzles). `options` above is a diameter-only check and passes such a slot.
-                        if (volume_map != nullptr &&
-                            ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed).empty()) {
-                            incompatible_nozzle_diameter_slots.push_back(i);
-                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
-                                                       << " has no printable nozzle flow at installed diameter "
-                                                       << target << ", flagging the slot";
+                        // The diameter matching is not enough -- the slot names a flow too, and the
+                        // rack may not carry that diameter in that flow -- a filament whose only flow
+                        // is one no nozzle on the rack provides, or a slot left on a flow after the
+                        // last nozzle of that flow was retyped. `options` above is a diameter-only
+                        // check and passes both.
+                        // Asking about the slot's own flow rather than "is any flow usable here" is
+                        // what keeps the mark: repair_filament_nozzle_flows() silently moves a slot
+                        // onto whatever flow the rack does have, and skips the slots flagged here, so
+                        // the selection the user is being told about is the one that survives.
+                        if (volume_map != nullptr) {
+                            const auto flows = ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed);
+                            const NozzleVolumeType current_flow = i < volume_map->values.size()
+                                ? static_cast<NozzleVolumeType>(volume_map->values[i]) : nvtStandard;
+                            if (flows.empty() || std::find(flows.begin(), flows.end(), current_flow) == flows.end()) {
+                                incompatible_nozzle_diameter_slots.push_back(i);
+                                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                                           << " cannot print on the " << target << " nozzle in flow "
+                                                           << int(current_flow) << ", flagging the slot";
+                            }
                         }
                         continue; // the nozzle for this slot's diameter is still installed
                     }
@@ -4487,6 +4573,32 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                     BOOST_LOG_TRIVIAL(warning) << boost::format(
                         "validate_filament_nozzle_diameter_selections: slot %1% nozzle diameter %2% "
                         "no longer installed, fallback substitution blocked") % i % current_value;
+                    continue;
+                }
+
+                // One flow is not interchangeable with the others: a filament declaring nvtTPU285 can
+                // print on nothing else, and no other filament can use such a nozzle. That makes it a
+                // yes/no question -- does the rack carry one at this diameter -- and answering it needs
+                // the rack itself, not the project's settings.
+                //
+                // Only this one direction is asked. The mirror question -- such a nozzle cannot print
+                // anything else -- is deliberately left out: where no rack has been read, `installed`
+                // falls back to the project's own flow setting, and asking it there would flag every
+                // filament at once whenever that setting is off. The direction kept here reads a
+                // requirement off the filament preset, so a filament without that requirement is
+                // never touched by it.
+                std::vector<std::string> filament_variants;
+                if (const Preset *preset = filaments.find_preset(filament_presets[i], false))
+                    if (const auto *opt = preset->config.option<ConfigOptionStrings>("filament_extruder_variant"))
+                        filament_variants = opt->values;
+                const bool needs_dedicated_flow = !filament_variants.empty() &&
+                    std::all_of(filament_variants.begin(), filament_variants.end(),
+                                [](const std::string &variant) { return convert_to_nvt_type(variant) == nvtTPU285; });
+                if (needs_dedicated_flow && installed.count({target, nvtTPU285}) == 0) {
+                    incompatible_nozzle_diameter_slots.push_back(i);
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                               << " needs a dedicated nozzle flow the rack does not carry at "
+                                               << target << ", flagging the slot";
                     continue;
                 }
 
@@ -4621,12 +4733,21 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
                         *this, i, normalized_device, installed);
                     if (std::find(flows.begin(), flows.end(), *device_volume) != flows.end()) {
                         volume_map->values[i] = static_cast<int>(*device_volume);
+                    } else if (device_maps_are_user_chosen) {
+                        // The user paired this tray with this slot in the matching dialog, so the
+                        // pairing is carried out even though the filament has no preset for that
+                        // nozzle, and the slot is flagged. Quietly declining a pairing that was asked
+                        // for would leave the dialog looking like it had no effect.
+                        volume_map->values[i] = static_cast<int>(*device_volume);
+                        incompatible_nozzle_diameter_slots.push_back(i);
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                                   << " has no preset for user-mapped nozzle flow "
+                                                   << int(*device_volume) << " at diameter "
+                                                   << normalized_device << ", applying it and flagging the slot";
                     } else {
-                        // Deliberately not flagged, unlike the diameter case below. There the slot is
-                        // left describing a nozzle it cannot print on; here the flow it already holds
-                        // is one this filament does serve, so the slot stays printable and only the
-                        // sync did not reach it. Marking it red would report a problem the user cannot
-                        // act on from the row.
+                        // Nobody asked for this pairing -- it came out of the positional merge -- so
+                        // the slot keeps the flow it had and stays printable. The mismatch belongs to
+                        // the tray, and the AMS list already marks such trays unusable.
                         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
                                                    << " has no preset for mapped nozzle flow "
                                                    << int(*device_volume) << " at diameter "
@@ -4672,22 +4793,35 @@ void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<i
         // `options` only says a filament preset exists for that diameter. The rack still has to carry a
         // nozzle of that diameter whose flow this slot's filament can print, otherwise an inherited or
         // preset-switched "0.4 Standard" survives on a slot whose 2.85mm TPU only fits a TPU285 nozzle.
-        if (volume_map != nullptr &&
-            ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed).empty()) {
-            bool moved_to_printable_diameter = false;
-            for (const std::string &candidate : options)
-                if (!::Slic3r::get_filament_nozzle_flow_options(*this, i, candidate, installed).empty()) {
-                    target = candidate;
-                    moved_to_printable_diameter = true;
-                    break;
+        if (volume_map != nullptr) {
+            const auto flows = ::Slic3r::get_filament_nozzle_flow_options(*this, i, target, installed);
+            const NozzleVolumeType current_flow = i < volume_map->values.size()
+                ? static_cast<NozzleVolumeType>(volume_map->values[i]) : nvtStandard;
+            if (flows.empty()) {
+                // Nothing printable at this diameter at all, so moving the slot to a diameter that does
+                // work is still an improvement rather than a rewrite of a usable choice.
+                bool moved_to_printable_diameter = false;
+                for (const std::string &candidate : options)
+                    if (!::Slic3r::get_filament_nozzle_flow_options(*this, i, candidate, installed).empty()) {
+                        target = candidate;
+                        moved_to_printable_diameter = true;
+                        break;
+                    }
+                // No installed nozzle can print this filament at any of its diameters.
+                if (!moved_to_printable_diameter) {
+                    incompatible_nozzle_diameter_slots.push_back(i);
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                               << " has no printable nozzle flow at any installed diameter"
+                                               << ", flagging the slot";
+                    continue;
                 }
-            // No installed nozzle can print this filament at any of its diameters. Diameter-only
-            // matching called the slot fine, so it kept a flow it cannot print and nothing marked it.
-            if (!moved_to_printable_diameter) {
+            } else if (std::find(flows.begin(), flows.end(), current_flow) == flows.end()) {
+                // The diameter is fine, only the flow the slot names is not on the rack. Flagged
+                // rather than quietly moved to the flow that is -- see the single-diameter branch.
                 incompatible_nozzle_diameter_slots.push_back(i);
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
-                                           << " has no printable nozzle flow at any installed diameter"
-                                           << ", flagging the slot";
+                                           << " cannot print on the " << target << " nozzle in flow "
+                                           << int(current_flow) << ", flagging the slot";
                 continue;
             }
         }

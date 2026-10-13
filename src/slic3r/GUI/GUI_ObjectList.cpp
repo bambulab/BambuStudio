@@ -1635,6 +1635,12 @@ void ObjectList::paste_objects_into_list(const std::vector<size_t>& object_idxs)
 
     select_items(items);
     selection_changed();
+
+    // Objects arriving this way (a primitive added from the plate menu, a paste) can print with a
+    // slot the project cannot use, and nothing else on this path tells the sidebar. Without this the
+    // corner notification waits for an unrelated refresh -- selecting a plate, say -- so the problem
+    // stays hidden until the user happens to click something.
+    wxGetApp().plater()->sidebar().update_incompatible_nozzle_notifications();
 }
 
 #ifdef __WXOSX__

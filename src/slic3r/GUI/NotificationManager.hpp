@@ -173,6 +173,7 @@ enum class NotificationType
     // places, so they are separate types and can be on screen at the same time.
     BBLFilamentNozzleDiameterMismatch,
     BBLFilamentNozzleNotInstalled,
+    BBLFilamentNozzleNoPreset,
     BBLAmsSyncFilamentUnmatched,
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,

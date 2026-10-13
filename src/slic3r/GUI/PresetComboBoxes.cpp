@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <tuple>
 #include <boost/algorithm/string.hpp>
 
 #include <wx/sizer.h>
@@ -732,7 +733,8 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
         }
     }
 
-    auto append_one = [&](int entry_key, const DynamicPrintConfig &tray, bool is_incompatible_row) {
+    auto append_one = [&](int entry_key, const DynamicPrintConfig &tray, bool is_incompatible_row,
+                          bool flow_mismatch) {
         std::string filament_id = tray.opt_string("filament_id", 0u);
         auto        name        = tray.opt_string("tray_name", 0u);
         if (filament_id.empty()) {
@@ -831,18 +833,61 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
         // can't be mounted on the current extruder right now.
         int item_style = 0;
         if (!is_incompatible_row && printer_connected_and_matched && row_matches_current) item_style |= DD_ITEM_STYLE_SYNCED;
-        // A tray under "Unavailable Nozzles" sits on a nozzle whose diameter this print does not
-        // use, so it is greyed and refuses the click instead of accepting a selection that could
-        // not be printed. The tooltip points at the one setting that makes it selectable.
+        // A tray in the unavailable section cannot be printed from as things stand -- either it sits
+        // at a diameter this print is not using, or its material does not go with the nozzle it is
+        // loaded on. Greyed and refusing the click either way, rather than accepting a selection the
+        // slot would reject straight afterwards; the tooltip below says which of the two it is.
         if (is_incompatible_row) item_style |= DD_ITEM_STYLE_DISABLED;
 
         const int index = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry_key, item_style);
         SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
-        if (is_incompatible_row) SetItemTooltip(index, _L("To select this filament, change the nozzle settings first."));
+        // Two ways a tray can be unusable, and they need different answers: a flow mismatch is about
+        // this tray's own material and nozzle, which the nozzle settings cannot reconcile, while a
+        // diameter mismatch only means the project is printing at another diameter right now.
+        if (is_incompatible_row)
+            SetItemTooltip(index, flow_mismatch
+                ? _L("This filament is not compatible with the nozzle it is loaded on")
+                : _L("To select this filament, change the nozzle settings first."));
         if (row_matches_current) selected_in_ams = true;
     };
 
-    auto is_incompatible = [cur_nozzle_dia, multi_diameter_mode](const DynamicPrintConfig &tray) -> bool {
+    // Can the material in this tray print on the nozzle the tray is actually loaded on? Asked of the
+    // tray alone, independent of which slot the list is being opened for, because selecting the tray
+    // would bring both halves along. A tray that fails this cannot be used however the project is
+    // configured -- offering it as selectable only leads to a slot that flags itself immediately
+    // after the pick.
+    auto tray_fits_its_own_nozzle = [this, &filaments](const DynamicPrintConfig &tray) -> bool {
+        const auto *tray_vt = tray.option<ConfigOptionInts>("tray_nozzle_volume_type");
+        if (tray_vt == nullptr || tray_vt->values.empty())
+            return true; // the machine said nothing about the flow; no grounds to rule the tray out
+        const NozzleVolumeType tray_flow = static_cast<NozzleVolumeType>(tray_vt->values.front());
+
+        // Same two-step lookup the row's own label goes through, so the verdict describes the preset
+        // the user would actually end up with rather than one that was never offered.
+        const std::string filament_id = tray.opt_string("filament_id", 0u);
+        if (filament_id.empty())
+            return true;
+        auto iter = std::find_if(filaments.begin(), filaments.end(),
+                                 [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
+        if (iter == filaments.end()) {
+            auto filament_type = tray.opt_string("filament_type", 0u);
+            if (!filament_type.empty()) {
+                filament_type = "Generic " + filament_type;
+                iter          = std::find_if(filaments.begin(), filaments.end(),
+                                             [&filament_type](auto &f) { return f.is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
+            }
+        }
+        if (iter == filaments.end())
+            return true; // nothing to judge against; the row itself will not be listed either
+
+        std::vector<std::string> filament_variants;
+        if (const auto *opt = iter->config.option<ConfigOptionStrings>("filament_extruder_variant"))
+            filament_variants = opt->values;
+        const bool variants_complete = m_collection->is_bbl_brand_filament(*iter);
+        return is_nozzle_printable_for_filament(tray_flow, filament_variants, variants_complete);
+    };
+
+    auto diameter_mismatch = [cur_nozzle_dia, multi_diameter_mode](const DynamicPrintConfig &tray) -> bool {
         if (multi_diameter_mode) return false;
         if (cur_nozzle_dia <= 0.0) return false;
         const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
@@ -854,11 +899,13 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
     set_label_marker(Append(_L("Available Nozzles"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
     m_first_ams_filament = GetCount();
 
-    std::vector<std::pair<int, const DynamicPrintConfig *>> incompatible_entries;
-    std::vector<std::pair<int, const DynamicPrintConfig *>> compatible_entries;
+    // Third element records which of the two reasons applies, so the row can say the right thing.
+    std::vector<std::tuple<int, const DynamicPrintConfig *, bool>> incompatible_entries;
+    std::vector<std::pair<int, const DynamicPrintConfig *>>        compatible_entries;
     for (auto &entry : m_preset_bundle->filament_ams_list) {
-        if (is_incompatible(entry.second))
-            incompatible_entries.emplace_back(entry.first, &entry.second);
+        const bool flow_mismatch = !tray_fits_its_own_nozzle(entry.second);
+        if (flow_mismatch || diameter_mismatch(entry.second))
+            incompatible_entries.emplace_back(entry.first, &entry.second, flow_mismatch);
         else
             compatible_entries.emplace_back(entry.first, &entry.second);
     }
@@ -866,13 +913,16 @@ bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, b
     std::sort(compatible_entries.begin(), compatible_entries.end(),
               [](const auto &a, const auto &b) { return a.second->opt_string("tray_name", 0u) < b.second->opt_string("tray_name", 0u); });
     std::sort(incompatible_entries.begin(), incompatible_entries.end(),
-              [](const auto &a, const auto &b) { return a.second->opt_string("tray_name", 0u) < b.second->opt_string("tray_name", 0u); });
+              [](const auto &a, const auto &b) {
+                  return std::get<1>(a)->opt_string("tray_name", 0u) < std::get<1>(b)->opt_string("tray_name", 0u);
+              });
 
-    for (auto &entry : compatible_entries) { append_one(entry.first, *entry.second, false); }
+    for (auto &entry : compatible_entries) { append_one(entry.first, *entry.second, false, false); }
 
     if (!incompatible_entries.empty()) {
         set_label_marker(Append(_L("Unavailable Nozzles"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-        for (auto &kv : incompatible_entries) append_one(kv.first, *kv.second, true);
+        for (auto &kv : incompatible_entries)
+            append_one(std::get<0>(kv), *std::get<1>(kv), true, std::get<2>(kv));
     }
 
     m_last_ams_filament = GetCount();

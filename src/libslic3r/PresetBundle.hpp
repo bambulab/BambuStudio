@@ -383,8 +383,13 @@ public:
     void                        seed_filament_nozzles_for_multi_diameter(const std::string &fallback_diameter);
     // Resizes selections and fills missing or invalid values with a deterministic supported default.
     // Device mappings, when supplied, take precedence and bind a filament to its physical slot diameter.
+    // `device_maps_are_user_chosen` says whether those mappings came from the matching dialog, where
+    // the user picked each pairing by hand, rather than from the positional merge an overwrite sync
+    // does on its own. A pairing the user chose is applied even when it does not fit, and the slot is
+    // flagged; one the program chose is left alone instead, since nobody asked for it.
     void                        validate_filament_nozzle_diameter_selections(
-                                    const std::map<int, AMSMapInfo> *device_maps = nullptr);
+                                    const std::map<int, AMSMapInfo> *device_maps = nullptr,
+                                    bool device_maps_are_user_chosen = false);
     // When true, update_compatible() and validate_filament_nozzle_diameter_selections() skip their
     // silent fallback substitution of incompatible filament presets, recording the affected slots into
     // incompatible_nozzle_diameter_slots instead of replacing them. Used by the single-diameter-mode
@@ -392,11 +397,17 @@ public:
     bool                        block_filament_fallback_substitution = false;
     std::vector<size_t>         incompatible_nozzle_diameter_slots;
 
-    // Slots whose AMS tray carries a filament no installed preset matches, and whose already-configured
-    // material sync_ams_list() therefore kept instead of substituting a "Generic <type>" or an arbitrary
-    // compatible preset. Marked in the filament list the same way as the nozzle-diameter mismatches
-    // above; cleared per slot once the user picks a material for it themselves.
-    std::vector<size_t>         ams_sync_unmatched_slots;
+    // A tray whose material the current printer has no preset for. Sync falls back the same way the
+    // AMS dropdown does -- to a "Generic <type>" of the same material class -- and records it here so
+    // the user is told what was swapped for what, rather than finding a material they did not pick.
+    struct AmsSyncSubstitution
+    {
+        size_t      slot = 0;
+        std::string tray;    // the tray it came from, labelled as the machine reports it
+        std::string wanted;  // the material that tray holds, by its display name
+        std::string applied; // what went into the slot; empty when nothing could be applied at all
+    };
+    std::vector<AmsSyncSubstitution> ams_sync_substitutions;
 
     /**
      * \brief Set the ams count for extruder \p index

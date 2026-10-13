@@ -448,8 +448,18 @@ void apply_nozzle_manual_maps_to_plates()
 
     for (PartPlate *plate : wxGetApp().plater()->get_partplate_list().get_plate_list()) {
         if (plate == nullptr) continue;
-        // 只写停在自定义模式的盘。自动模式下这三个 map 是切片器算完写回来的结果
-        // （见 BackgroundSlicingProcess），每次侧边栏刷新都重推一遍会和那个回写来回覆盖。
+        // Which flow a slot prints on is not a grouping result -- it is picked in the nozzle popup or
+        // taken from the AMS tray during a sync, and automatic grouping never rewrites it. So it is
+        // pushed to every plate that carries a per-slot copy, whatever mode the plate is in. Leaving
+        // it to the branch below meant a plate in an automatic mode kept a stale flow forever: the
+        // sidebar chip reads the per-plate copy while everything else reads the project one, so the
+        // row went on naming a nozzle the slot had already moved off.
+        if (!plate->get_filament_volume_maps().empty())
+            plate->set_filament_volume_maps(volume_map_all_slots);
+
+        // filament_map / nozzle_map are a different matter: in an automatic mode the slicer computes
+        // and writes them back (see BackgroundSlicingProcess), so re-pushing them on every sidebar
+        // refresh would fight that write-back. Only plates parked in the manual mode take them.
         if (plate->get_filament_map_mode() != fmmNozzleManual) continue;
         plate->set_filament_maps(filament_map_all_slots);
         plate->set_filament_volume_maps(volume_map_all_slots);

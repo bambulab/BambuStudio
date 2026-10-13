@@ -19,7 +19,9 @@
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
 
+#include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/ExtruderHelpers.hpp"
@@ -126,6 +128,10 @@ public:
     NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, std::function<void()> on_changed);
     ~NozzleCard() override;
 
+    // Consulted by apply_pick() before the card changes. Returning false abandons the pick, leaving
+    // the card exactly as the user found it.
+    void SetConfirmChange(std::function<bool(const NozzleConfig &)> cb) { m_confirm_change = std::move(cb); }
+
     NozzleConfig GetConfig() const;
     wxString     GetDiameter() const; // parsed value ("" when Empty)
     // show_diameter_warning is false in multi-diameter mode, where every configured diameter is valid.
@@ -147,6 +153,7 @@ private:
     std::optional<NozzleConfig>      m_machine_cfg; // connected printer's config for this slot; unset when disconnected
     std::vector<std::string>         m_diameters;
     std::function<void()>            m_on_changed;
+    std::function<bool(const NozzleConfig &)> m_confirm_change;
     NozzleStatus                     m_status{NozzleStatus::nsUnknown};
     std::vector<std::pair<int, int>> m_ams_slots;   // preserved and passed back through GetConfig
     bool                             m_warn{false}; // diameter mismatch -> yellow border (single mode)
@@ -275,6 +282,10 @@ void NozzleCard::refresh_values()
 void NozzleCard::apply_pick(const wxString &diameter, NozzleVolumeType volume)
 {
     if (m_diameter == diameter && m_volume == volume) return;
+    // Ask before the value moves, not when the dialog is confirmed: by then the user has made
+    // several picks and would be told, at the end, that some of them displace project filaments --
+    // with no way to tell which pick caused what. Declining here just abandons this one pick.
+    if (m_confirm_change && !m_confirm_change(GetConfig())) return;
     m_diameter = diameter;
     m_volume   = volume;
     refresh_values();
@@ -337,8 +348,13 @@ void NozzleCard::show_edit_menu()
                 const bool checked  = diameter == m_diameter && flow.volume == m_volume;
                 auto      *sub_item = new CascadeMenuItem(sub, flow.label, true, checked, false);
                 sub_item->Bind(wxEVT_LEFT_DOWN, [this, diameter, flow](wxMouseEvent &) {
-                    apply_pick(diameter, flow.volume);
+                    // Tear the menus down first and let this handler return before applying: the pick
+                    // can raise a modal confirmation, and a modal loop entered from inside a menu
+                    // item's own handler lets the popup lose focus and destroy itself (it is created
+                    // with SetDestroyOnClose) while that handler is still on the stack.
                     close_menus();
+                    const NozzleVolumeType volume = flow.volume;
+                    CallAfter([this, diameter, volume]() { apply_pick(diameter, volume); });
                 });
                 CascadeMenu::AddItem(sub_box, sub_item, first);
                 first = false;
@@ -368,8 +384,10 @@ void NozzleCard::show_edit_menu()
     // Clearing the slot needs no flow type, so it stays a leaf rather than a diameter row.
     auto *empty_item = new CascadeMenuItem(menu, _L("Empty"), true, m_diameter.IsEmpty(), false);
     empty_item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
-        apply_pick(wxEmptyString, m_volume);
+        // Same ordering as the flow items above -- see the comment there.
         close_menus();
+        const NozzleVolumeType volume = m_volume;
+        CallAfter([this, volume]() { apply_pick(wxEmptyString, volume); });
     });
     CascadeMenu::AddItem(sizer, empty_item, first_row);
 
@@ -650,6 +668,7 @@ void NozzleSettingsCardDialog::build_card_grid(wxBoxSizer *main_sizer, const std
     for (int i = 0; i < (int) seeds.size(); ++i) {
         const NozzleConfig *machine_cfg = (baseline.synced && i < (int) machine_cfgs.size()) ? &machine_cfgs[i] : nullptr;
         auto               *card        = new NozzleCard(rack, i + 1, 0, seeds[i], machine_cfg, diameters, on_changed);
+        card->SetConfirmChange([this](const NozzleConfig &from) { return confirm_nozzle_change(from); });
         m_cards.push_back(card);
         rack->add_card(card);
     }
@@ -741,6 +760,63 @@ void NozzleSettingsCardDialog::build_button_bar(wxBoxSizer *main_sizer)
     btn_sizer->Add(m_confirm_btn, 0, wxRIGHT, FromDIP(12));
     btn_sizer->Add(m_cancel_btn, 0);
     main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
+}
+
+// The nozzle a project filament slot is pointing at, in multi-diameter mode. Outside that mode the
+// per-slot map is not what drives printing, so editing the rack cannot strand an individual slot.
+static bool project_filament_uses_nozzle(const NozzleConfig &nozzle)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle == nullptr || !multi_nozzle_diameter_mode_enabled(preset_bundle->project_config))
+        return false;
+    const auto *diameters = preset_bundle->project_config.option<ConfigOptionStrings>("filament_diameter_map");
+    const auto *volumes   = preset_bundle->project_config.option<ConfigOptionInts>("filament_volume_map");
+    if (diameters == nullptr)
+        return false;
+    const std::string wanted = into_u8(nozzle.diameter);
+    for (size_t i = 0; i < diameters->values.size(); ++i) {
+        if (preset_bundle->is_mixed_filament(i))
+            continue;
+        if (diameters->values[i] != wanted)
+            continue;
+        const NozzleVolumeType volume = (volumes != nullptr && i < volumes->values.size())
+            ? static_cast<NozzleVolumeType>(volumes->values[i]) : nvtStandard;
+        if (volume == nozzle.volume)
+            return true;
+    }
+    return false;
+}
+
+bool NozzleSettingsCardDialog::confirm_nozzle_change(const NozzleConfig &from)
+{
+    // An empty slot carries nothing for a filament to be pointing at.
+    if (from.diameter.IsEmpty())
+        return true;
+
+    // Still another nozzle of the same kind after this edit, so the filaments keep a home and
+    // nothing has to move.
+    int same_kind = 0;
+    for (const NozzleCard *card : m_cards) {
+        const NozzleConfig cfg = card->GetConfig();
+        if (cfg.diameter == from.diameter && cfg.volume == from.volume)
+            ++same_kind;
+    }
+    if (same_kind > 1)
+        return true;
+
+    if (!project_filament_uses_nozzle(from))
+        return true;
+
+    // flow_label() is what the cards and the picker already show, so the question names the nozzle
+    // the same way the user just read it ("0.4 mm / 标准"), not an abbreviation that appears nowhere
+    // else in this dialog.
+    const wxString nozzle_name = from.diameter + " " + flow_label(from.volume);
+    MessageDialog confirm(this,
+        wxString::Format(_L("The %s nozzle is in use by project filaments. Changing it will move them to 0.4 Standard. Change it anyway?"), nozzle_name),
+        _L("Nozzle Settings"), wxYES | wxNO);
+    confirm.SetButtonLabel(wxID_YES, _L("Confirm"));
+    confirm.SetButtonLabel(wxID_NO, _L("Cancel"));
+    return confirm.ShowModal() == wxID_YES;
 }
 
 void NozzleSettingsCardDialog::update_state()

@@ -43,6 +43,12 @@ private:
     void build_button_bar(wxBoxSizer *main_sizer);
     void update_state();
 
+    // Asked before a card takes a new diameter/flow. Returns false to leave that card untouched.
+    // Only speaks up for the case the user cannot see coming: the nozzle being edited is the last
+    // one of its kind on the rack and project filaments are pointing at it, so confirming here will
+    // move them elsewhere. Everything else passes through silently.
+    bool confirm_nozzle_change(const NozzleConfig &from);
+
     bool     m_multi_diameter_mode{false};
     wxString m_selected_diameter; ///< the diameter the plate slices at, as the caller passed it in
 
