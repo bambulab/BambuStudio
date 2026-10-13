@@ -162,7 +162,19 @@ void CaliPresetCaliStagePanel::set_cali_stage(CaliPresetStage stage, float value
 void CaliPresetCaliStagePanel::get_cali_stage(CaliPresetStage& stage, float& value)
 {
     stage = m_stage;
-    value = (m_stage == CALI_MANUAL_STAGE_2) ? m_flow_ratio_value : value;
+    if (m_stage != CALI_MANUAL_STAGE_2)
+        return;
+
+    float flow_ratio = 0.0f;
+    if (!CalibUtils::validate_input_flow_ratio(flow_ratio_input->GetTextCtrl()->GetValue(), &flow_ratio)) {
+        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (0.0 < flow ratio < 2.0)"), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        value = NAN;
+        return;
+    }
+
+    m_flow_ratio_value = flow_ratio;
+    value = flow_ratio;
 }
 
 void CaliPresetCaliStagePanel::set_flow_ratio_value(float flow_ratio)

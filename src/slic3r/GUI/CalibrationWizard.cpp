@@ -1194,6 +1194,8 @@ void FlowRateWizard::on_cali_action(wxCommandEvent& evt)
             CaliPresetStage stage = CaliPresetStage::CALI_MANULA_STAGE_NONE;
             float cali_value = 0.0f;
             static_cast<CalibrationPresetPage*>(preset_step->page)->get_cali_stage(stage, cali_value);
+            if (stage == CaliPresetStage::CALI_MANUAL_STAGE_2 && std::isnan(cali_value))
+                return;
             on_cali_start(stage, cali_value, FlowRatioCaliSource::FROM_PRESET_PAGE);
             if (stage == CaliPresetStage::CALI_MANUAL_STAGE_2) {
                 // set next step page
