@@ -1243,6 +1243,12 @@ private:
         if (mesh.facets_count() > 1)
             calculate_convex_hull();
     }
+	ModelVolume(ModelObject *object, TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART) :
+		ModelVolume(object, std::make_shared<const TriangleMesh>(std::move(mesh)), type)
+	{
+		if (m_mesh->facets_count() > 1)
+			calculate_convex_hull();
+	}
     ModelVolume(ModelObject *object, const std::shared_ptr<const TriangleMesh> &mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART) : m_mesh(mesh), m_type(type), object(object)
     {
 		assert(this->id().valid());

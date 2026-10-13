@@ -7,6 +7,8 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/filesystem.hpp>
 
+#include <utility>
+
 #include "test_data.hpp"
 
 using namespace Slic3r;
@@ -58,4 +60,20 @@ SCENARIO("Model construction", "[Model]") {
 			}
         }
     }
+}
+
+TEST_CASE("ModelObject moves rvalue mesh storage into a volume", "[Model]")
+{
+    Model model;
+    ModelObject *object = model.add_object();
+    TriangleMesh mesh = make_cube(20, 20, 20);
+
+    const Vec3f *vertices = mesh.its.vertices.data();
+    const Vec3i *indices  = mesh.its.indices.data();
+
+    const ModelVolume *volume = object->add_volume(std::move(mesh), ModelVolumeType::MODEL_PART, false);
+
+    REQUIRE(volume->mesh().its.vertices.data() == vertices);
+    REQUIRE(volume->mesh().its.indices.data() == indices);
+    REQUIRE(!volume->get_convex_hull().empty());
 }
