@@ -1462,14 +1462,26 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         // Different nozzle diameters are supported by the prime tower's per-filament extrusion planning.
+        // The high-temp filament reminder must stay visible together with its own links, so the nozzle
+        // diameter warning is appended to it instead of replacing it.
+        auto set_nozzle_diameter_warning = [warning](const std::string &text) {
+            if (warning->hypetext == "filament_mix_print") {
+                if (!warning->string.empty() && warning->string.back() != '\n')
+                    warning->string += "\n";
+                warning->string += text;
+                return;
+            }
+            warning->string     = text;
+            warning->is_warning = true;
+        };
+
         double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders.front());
         for (const auto& extruder_idx : extruders) {
             double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
             if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam) {
                 if (warning) {
-                    warning->string = L("Printing with different nozzle diameters and prime tower is experimental. "
-                                        "The prime tower may not work correctly with mismatched nozzle sizes.");
-                    warning->is_warning = true;
+                    set_nozzle_diameter_warning(L("Printing with different nozzle diameters and prime tower is experimental. "
+                                                  "The prime tower may not work correctly with mismatched nozzle sizes."));
                 }
                 break;
             }

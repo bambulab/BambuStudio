@@ -14427,28 +14427,30 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
 		    return false;
 	    };
         auto        action_fn = (mo || !warning.opt_key.empty()) ? obj_call_fn : std::function<bool(wxEvtHandler *)>();
-        std::string hypertext;
-        std::string second_hypertext;
-        std::function<bool(wxEvtHandler *)> second_action_fn;
         // hack code
         if (warning.hypetext == "filament_mix_print") {
-            second_hypertext = _u8L("Don't show again");
-            second_action_fn = [](wxEvtHandler *) -> bool {
-                wxGetApp().app_config->set("no_warn_high_temp_filament", "true");
-                wxGetApp().app_config->save();
-                return true;
-            };
-            hypertext = _u8L("Click Wiki for help.");
-            action_fn = [](wxEvtHandler *)->bool {
-                bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-                if (is_zh) {
-                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit");
-                } else {
-                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
-                }
-                return false;
-            };
-        } else if (!warning.hypetext.empty()) {
+            notification_manager->push_validate_serious_warning_notification(
+                text, _u8L("Click Wiki for help."),
+                [](wxEvtHandler *) -> bool {
+                    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+                    if (is_zh) {
+                        wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit");
+                    } else {
+                        wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
+                    }
+                    return false;
+                },
+                _u8L("Don't show again"),
+                [](wxEvtHandler *) -> bool {
+                    wxGetApp().app_config->set("no_warn_high_temp_filament", "true");
+                    wxGetApp().app_config->save();
+                    return true;
+                });
+            return;
+        }
+
+        std::string hypertext;
+        if (!warning.hypetext.empty()) {
             hypertext = warning.hypetext;
         } else {
             if (mo || !warning.opt_key.empty()) hypertext = _u8L("Jump to");
@@ -14477,7 +14479,7 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
         notification_manager->push_notification(
             NotificationType::ValidateWarning,
             NotificationManager::NotificationLevel::WarningNotificationLevel,
-            _u8L("WARNING:") + "\n" + text, hypertext, action_fn, 0, second_hypertext, second_action_fn
+            _u8L("WARNING:") + "\n" + text, hypertext, action_fn
         );
     }
 }

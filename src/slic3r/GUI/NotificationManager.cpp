@@ -688,7 +688,20 @@ void NotificationManager::PopNotification::bbl_render_block_notif_text(ImGuiWrap
         //if (imgui.button(_L("Jump"), button_size.x, button_size.y)) { if (on_text_click()) { close(); } }
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar(2);
-		render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x, starting_y + (m_endlines.size() - 1) * shift_y, m_hypertext);
+		float first_hypertext_x = x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x;
+		float hypertext_y       = starting_y + (m_endlines.size() - 1) * shift_y;
+		render_hypertext(imgui, first_hypertext_x, hypertext_y, m_hypertext);
+
+		if (!m_second_hypertext.empty()) {
+			float second_hypertext_x = first_hypertext_x + ImGui::CalcTextSize(m_hypertext.c_str()).x + ImGui::CalcTextSize("   ").x;
+			float second_hypertext_y = hypertext_y;
+			// count_lines() reserved an extra line when the second link does not fit behind the first one.
+			if (second_hypertext_x + ImGui::CalcTextSize(m_second_hypertext.c_str()).x > m_window_width - m_window_width_offset) {
+				second_hypertext_x = x_offset;
+				second_hypertext_y += shift_y;
+			}
+			render_hypertext(imgui, second_hypertext_x, second_hypertext_y, m_second_hypertext, false, true);
+		}
 	}
 
 	// text2 (text after hypertext) is not rendered for regular notifications
@@ -1696,15 +1709,10 @@ void NotificationManager::push_notification(NotificationType type,
                                             const std::string& text,
                                             const std::string& hypertext,
                                             std::function<bool(wxEvtHandler*)> callback,
-                                            int timestamp,
-                                            const std::string& second_hypertext,
-                                            std::function<bool(wxEvtHandler*)> second_callback)
+                                            int timestamp)
 {
 	int duration = get_standard_duration(level);
-    NotificationData data{ type, level, duration, text, hypertext, callback };
-    data.second_hypertext = second_hypertext;
-    data.second_callback  = second_callback;
-    push_notification_data(data, timestamp);
+    push_notification_data({ type, level, duration, text, hypertext, callback }, timestamp);
 }
 
 void NotificationManager::push_error_border_notification(NotificationType type,
@@ -1717,6 +1725,18 @@ void NotificationManager::push_error_border_notification(NotificationType type,
     // swaps the colour the left bar and border are painted in.
     NotificationData data{type, NotificationLevel::WarningNotificationLevel, 0, text, hypertext, callback};
     data.use_error_color = true;
+    push_notification_data(data, 0);
+}
+
+void NotificationManager::push_validate_serious_warning_notification(const std::string                 &text,
+                                                                     const std::string                 &hypertext,
+                                                                     std::function<bool(wxEvtHandler *)> callback,
+                                                                     const std::string                 &second_hypertext,
+                                                                     std::function<bool(wxEvtHandler *)> second_callback)
+{
+    NotificationData data{NotificationType::ValidateWarning, NotificationLevel::SeriousWarningNotificationLevel, 0, _u8L("Serious warning:") + "\n" + text, hypertext, callback};
+    data.second_hypertext = second_hypertext;
+    data.second_callback  = second_callback;
     push_notification_data(data, 0);
 }
 
@@ -2626,8 +2646,9 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 		if (ui_ready) { // ignore update action until both notification manager and GUI/ImGui are ready
 			// SlicingWarning duplicates are suppressed in activate_existing(): one notification
 			// per warning category; the jump-to hyperlink can only target one object.
+			// The single ValidateWarning slot is shared by warnings of different levels.
 			if (notification->get_type() != NotificationType::SlicingWarning)
-                m_pop_notifications.back()->update(notification->get_data());
+                m_pop_notifications.back()->update(notification->get_data(), notification->get_type() == NotificationType::ValidateWarning);
 		}
 	} else {
 		m_pop_notifications.emplace_back(std::move(notification));
