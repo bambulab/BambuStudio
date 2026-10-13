@@ -94,6 +94,7 @@ struct FilamentMappingRow {
 };
 
 struct GapPreviewState;
+struct TextureMixPool;
 
 class FilamentSelectPopup;
 class MatchThresholdGear;
@@ -338,6 +339,9 @@ private:
     void on_mix_toggled(wxCommandEvent& evt);
     void apply_mix_from_existing_filaments();
     void add_pla_palette_cmykw_to_project();
+    // NewPhysical slots a row still uses. reload_existing_filaments_from_project()
+    // keeps exactly these, so filaments added to the project must leave room for them.
+    size_t pending_physical_filament_count() const;
     // True when the mixing family has fewer than two distinct physical colors,
     // no complete CMYKW kit exists, and the project still has free filament slots.
     bool mix_needs_supplement_filaments() const;
@@ -348,6 +352,14 @@ private:
     void rematch_after_project_filament_change();
     bool has_complete_pla_palette_cmykw() const;
     std::string preferred_mix_family() const;
+    // Physical filaments and family that apply_mix_from_existing_filaments() mixes from.
+    void build_mix_pool(TextureMixPool& pool) const;
+    // Mixed recipe for one color from the pool. Returns the reused or created mixed
+    // slot, or the single physical component, or -1 when there is no usable recipe.
+    // When the recipe needs a new mixed slot and allow_create is false, returns -1
+    // with needs_slot set.
+    int  resolve_mix_color(const TextureMixPool& pool, const std::array<std::size_t, 3>& color,
+                           bool allow_create, bool& created, bool& needs_slot);
     void reset_auto_mix();
     int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
                               const std::string& preset_name = std::string(),
@@ -369,19 +381,26 @@ private:
     bool filament_count_exceeded() const;
     // True when at least one mapping row / match has no filament assigned.
     bool has_unmatched_mapping() const;
-    // Create NewPhysical filaments for every unmatched cluster color, using the
-    // same family type / preset vote as auto-match. Same color shares one slot.
-    void add_virtual_filaments_for_unmatched();
+    // Bind every unmatched color without changing matched rows or exceeding
+    // max_filament_count(). Larger colors get the free slots first: a NewPhysical
+    // slot of the auto-match family, or with Color Mixing on a mixed recipe before
+    // that. Colors left without a slot take closest_filament_ignoring_threshold().
+    void complete_unmatched_filaments();
     void update_unmatched_warning_visibility();
     void wrap_unmatched_warning_label();
-    void update_overlimit_warning_visibility();
-    void wrap_overlimit_warning_label();
     // Screen Y of the matching-page hint bar bottom; used to dock the filament popup.
     int  filament_popup_align_bottom() const;
-    // Shows the over-limit plan dialog. Apply now applies the chosen plan and
-    // returns true; Back / close leaves the mapping untouched and returns false.
-    bool open_overlimit_dialog();
-    void apply_overlimit_matches(const std::vector<Slic3r::FilamentMatch>& matches);
+    // Total triangle area of each simplified color in m_painted.
+    std::map<std::array<std::size_t, 3>, double> cluster_color_areas() const;
+    // Indices into m_current_matches with no filament, larger color area first.
+    std::vector<size_t> unmatched_match_indices_by_area() const;
+    // Drops created filaments no color references, then returns the free slots.
+    size_t remaining_filament_capacity();
+    // Closest filament of family_type by CIEDE2000, ignoring m_match_delta_threshold.
+    // Mixed slots are candidates only while Color Mixing is on. Falls back to any
+    // family when none matches.
+    int  closest_filament_ignoring_threshold(const std::array<std::size_t, 3>& color,
+                                             const std::string& family_type) const;
     void compact_used_virtual_filaments();
     // Drop NewPhysical / NewMixed slots that no mapping row references, then
     // refresh target cards in place (no rebuild_mapping_rows).
@@ -446,7 +465,7 @@ private:
 
     bool has_valid_result() const;
     // Confirm stays disabled while the filament count exceeds the limit; only
-    // Fix now or removing filaments re-enables it.
+    // removing filaments re-enables it.
     bool can_confirm() const;
     void update_confirm_button_state();
 
@@ -585,10 +604,6 @@ private:
     wxStaticBitmap* m_unmatched_warning_icon = nullptr;
     Label*        m_unmatched_warning_label = nullptr;
     wxStaticText* m_unmatched_add_link = nullptr;
-    wxPanel*      m_overlimit_warning  = nullptr;
-    wxStaticBitmap* m_overlimit_warning_icon = nullptr;
-    Label*        m_overlimit_warning_label = nullptr;
-    wxStaticText* m_overlimit_fix_link = nullptr;
     ScalableBitmap m_bmp_unmatched;
     ScalableBitmap m_bmp_brand;
     wxBoxSizer*   m_footer_btn_sizer   = nullptr;

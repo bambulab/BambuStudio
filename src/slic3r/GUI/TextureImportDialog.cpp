@@ -1,7 +1,6 @@
 #include <GL/glew.h>
 
 #include "TextureImportDialog.hpp"
-#include "TextureImportOverLimitDialog.hpp"
 #include "TextureImportPopupDismiss.hpp"
 #include "TextureImportUi.hpp"
 #include "MixingKitsHelpDialog.hpp"
@@ -2957,6 +2956,8 @@ public:
         m_add_label->SetFont(Label::Body_12);
         m_add_label->SetBackgroundColour(pop_bg);
         bind_click(m_add_label, [this]() {
+            if (add_filament_at_limit())
+                return;
             auto on_add_filament = m_on_add_filament;
             m_closing_from_action = true;
             Dismiss();
@@ -3180,17 +3181,23 @@ private:
         m_content->SetMaxSize(wxSize(m_pop_w, list_h));
         m_content->Scroll(scroll_x, scroll_y);
 
-        const bool over_limit = m_entries.size() > (size_t)EnforcerBlockerType::ExtruderMax;
         if (m_add_label) {
-            m_add_label->SetForegroundColour(wxColour(0x00, 0xAE, 0x42));
-            m_add_label->SetCursor(wxCursor(wxCURSOR_HAND));
-            if (over_limit)
+            const bool at_limit = add_filament_at_limit();
+            m_add_label->SetForegroundColour(at_limit ? m_header_clr : wxColour(0x00, 0xAE, 0x42));
+            m_add_label->SetCursor(wxCursor(at_limit ? wxCURSOR_ARROW : wxCURSOR_HAND));
+            if (at_limit)
                 m_add_label->SetToolTip(format_wxstr(
-                    _L("The project supports up to %1% filaments. Extra filaments must be merged before importing."),
+                    _L("The project supports up to %1% filaments."),
                     (int)EnforcerBlockerType::ExtruderMax));
             else
                 m_add_label->SetToolTip(wxString());
+            m_add_label->Refresh();
         }
+    }
+
+    bool add_filament_at_limit() const
+    {
+        return m_entries.size() >= (size_t)EnforcerBlockerType::ExtruderMax;
     }
 
     void on_paint_border(wxPaintEvent&)
@@ -5553,14 +5560,14 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
         _L("Some colors have no matching filament. Please match them before importing."));
     m_unmatched_warning_label->SetForegroundColour(wxColour(225, 71, 71));
     m_unmatched_add_link = new wxStaticText(m_unmatched_warning, wxID_ANY,
-        _L("Auto-Add All Filaments"));
+        _L("Complete All Filaments"));
     m_unmatched_add_link->SetForegroundColour(wxColour(0, 174, 66));
     m_unmatched_add_link->SetFont(texture_import_action_link_font(this));
     m_unmatched_add_link->SetCursor(wxCursor(wxCURSOR_HAND));
     m_unmatched_add_link->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
         if (!m_unmatched_add_link || !m_unmatched_add_link->IsEnabled())
             return;
-        add_virtual_filaments_for_unmatched();
+        complete_unmatched_filaments();
     });
     unmatched_row->Add(m_unmatched_warning_icon, 0, wxALIGN_TOP | wxRIGHT, FromDIP(4));
     unmatched_row->Add(m_unmatched_warning_label, 0, wxALIGN_TOP);
@@ -5569,33 +5576,6 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
     m_unmatched_warning->SetSizer(unmatched_sizer);
     m_unmatched_warning->Hide();
     sizer->Add(m_unmatched_warning, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
-
-    m_overlimit_warning = new wxPanel(this, wxID_ANY);
-    m_overlimit_warning->SetBackgroundColour(GetBackgroundColour());
-    auto* overlimit_sizer = new wxBoxSizer(wxVERTICAL);
-    auto* overlimit_row = new wxBoxSizer(wxHORIZONTAL);
-    m_overlimit_warning_icon = new wxStaticBitmap(m_overlimit_warning, wxID_ANY,
-        m_bmp_unmatched.bmp());
-    m_overlimit_warning_icon->SetBackgroundColour(GetBackgroundColour());
-    m_overlimit_warning_label = new Label(m_overlimit_warning,
-        texture_import_warning_body_font(this), wxEmptyString);
-    m_overlimit_warning_label->SetForegroundColour(wxColour(225, 71, 71));
-    m_overlimit_fix_link = new wxStaticText(m_overlimit_warning, wxID_ANY, _L("Fix now"));
-    m_overlimit_fix_link->SetForegroundColour(wxColour(0, 174, 66));
-    m_overlimit_fix_link->SetFont(texture_import_action_link_font(this));
-    m_overlimit_fix_link->SetCursor(wxCursor(wxCURSOR_HAND));
-    m_overlimit_fix_link->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
-        if (!m_overlimit_fix_link || !m_overlimit_fix_link->IsEnabled())
-            return;
-        open_overlimit_dialog();
-    });
-    overlimit_row->Add(m_overlimit_warning_icon, 0, wxALIGN_TOP | wxRIGHT, FromDIP(4));
-    overlimit_row->Add(m_overlimit_warning_label, 0, wxALIGN_TOP);
-    overlimit_row->Add(m_overlimit_fix_link, 0, wxALIGN_TOP | wxLEFT, FromDIP(4));
-    overlimit_sizer->Add(overlimit_row, 0, wxEXPAND);
-    m_overlimit_warning->SetSizer(overlimit_sizer);
-    m_overlimit_warning->Hide();
-    sizer->Add(m_overlimit_warning, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
 
     wxBoxSizer* footer = new wxBoxSizer(wxHORIZONTAL);
     footer->AddStretchSpacer();
@@ -5860,18 +5840,6 @@ void TextureImportDialog::apply_theme()
         m_unmatched_add_link->SetForegroundColour(wxColour(0, 174, 66));
         m_unmatched_add_link->SetBackgroundColour(dialog_bg);
     }
-    if (m_overlimit_warning)
-        m_overlimit_warning->SetBackgroundColour(dialog_bg);
-    if (m_overlimit_warning_icon)
-        m_overlimit_warning_icon->SetBackgroundColour(dialog_bg);
-    if (m_overlimit_warning_label) {
-        m_overlimit_warning_label->SetForegroundColour(wxColour(225, 71, 71));
-        m_overlimit_warning_label->SetBackgroundColour(dialog_bg);
-    }
-    if (m_overlimit_fix_link) {
-        m_overlimit_fix_link->SetForegroundColour(wxColour(0, 174, 66));
-        m_overlimit_fix_link->SetBackgroundColour(dialog_bg);
-    }
 
     m_bmp_unmatched.msw_rescale();
     m_bmp_brand.msw_rescale();
@@ -5880,8 +5848,6 @@ void TextureImportDialog::apply_theme()
     hide_match_threshold_popup();
     if (m_unmatched_warning_icon)
         m_unmatched_warning_icon->SetBitmap(m_bmp_unmatched.bmp());
-    if (m_overlimit_warning_icon)
-        m_overlimit_warning_icon->SetBitmap(m_bmp_unmatched.bmp());
     if (auto* warning = dynamic_cast<ColorCountWarningPanel*>(m_color_count_warning))
         warning->Rescale();
 
@@ -6159,7 +6125,6 @@ void TextureImportDialog::update_wizard_ui()
     if (m_caption_row)
         m_caption_row->Show(step1);
     update_unmatched_warning_visibility();
-    update_overlimit_warning_visibility();
     update_color_count_warning();
 
     if (m_btn_skip) m_btn_skip->Show(step1);
@@ -6293,10 +6258,7 @@ void TextureImportDialog::update_ui_for_state()
         m_btn_ok->Enable(can_confirm());
     if (m_unmatched_add_link)
         m_unmatched_add_link->Enable(!computing);
-    if (m_overlimit_fix_link)
-        m_overlimit_fix_link->Enable(!computing);
     update_unmatched_warning_visibility();
-    update_overlimit_warning_visibility();
     if (m_btn_next)
         m_btn_next->Enable(step1 && ready && !m_painted.face_colors.empty() && !m_color_count_exceeded && !m_patch_building);
     if (m_btn_skip)
@@ -7429,7 +7391,6 @@ void TextureImportDialog::reapply_match_threshold(bool drop_unused)
         refresh_mapping_target_panels();
         update_filament_color_map();
         update_unmatched_warning_visibility();
-        update_overlimit_warning_visibility();
         update_confirm_button_state();
     }
 }
@@ -7507,7 +7468,6 @@ void TextureImportDialog::drop_unused_new_filaments_and_refresh()
     refresh_mapping_target_panels();
     update_filament_color_map();
     update_unmatched_warning_visibility();
-    update_overlimit_warning_visibility();
     update_confirm_button_state();
     if (m_filament_popup && m_filament_popup->IsShown()) {
         m_filament_popup->refresh_filaments(
@@ -7692,9 +7652,22 @@ void TextureImportDialog::rematch_after_project_filament_change()
     Refresh();
 }
 
+size_t TextureImportDialog::pending_physical_filament_count() const
+{
+    std::set<int> referenced;
+    for (const auto& m : m_current_matches)
+        referenced.insert(m.filament_index);
+    size_t count = 0;
+    for (const auto& entry : m_filament_entries) {
+        if (entry.kind == TextureFilamentKind::NewPhysical && referenced.count(entry.dialog_index) > 0)
+            ++count;
+    }
+    return count;
+}
+
 void TextureImportDialog::add_pla_palette_cmykw_to_project()
 {
-    if (!add_official_mixing_kit_to_project(this))
+    if (!add_official_mixing_kit_to_project(this, pending_physical_filament_count()))
         return;
 
     wxBusyCursor wait;
@@ -7707,7 +7680,8 @@ void TextureImportDialog::add_pla_palette_cmykw_to_project()
 
 bool TextureImportDialog::mix_needs_supplement_filaments() const
 {
-    if (!wxGetApp().preset_bundle || wxGetApp().preset_bundle->filament_presets.size() >= max_filament_count())
+    if (!wxGetApp().preset_bundle ||
+        wxGetApp().preset_bundle->filament_presets.size() + pending_physical_filament_count() >= max_filament_count())
         return false;
     if (has_complete_pla_palette_cmykw())
         return false;
@@ -7796,7 +7770,10 @@ bool TextureImportDialog::prompt_supplement_filaments_for_mix()
         rows.push_back(std::move(row));
     }
 
-    const size_t capacity = max_filament_count() - pb.filament_presets.size();
+    const size_t used = pb.filament_presets.size() + pending_physical_filament_count();
+    if (used >= max_filament_count())
+        return false;
+    const size_t capacity = max_filament_count() - used;
     MixSupplementFilamentDialog dlg(this, rows, capacity, fallback_preset, used_colors, !family_colors.empty());
     if (dlg.ShowModal() != wxID_OK)
         return false;
@@ -7846,6 +7823,217 @@ bool TextureImportDialog::has_complete_pla_palette_cmykw() const
     return true;
 }
 
+struct TextureMixPool {
+    bool                                                kit_complete = false;
+    std::string                                         family;
+    std::vector<int>                                    allowed_dialog_indices;
+    std::vector<Slic3r::ColorDecomposePhysicalFilament> family_filaments;
+};
+
+static int find_texture_mixed_by_recipe(const std::vector<TextureFilamentEntry>& entries,
+                                        const std::vector<int>& component_indices,
+                                        const std::vector<int>& ratios)
+{
+    for (const auto& entry : entries) {
+        if (!texture_entry_is_mixed(entry.kind) || entry.mixed_components.size() != component_indices.size() ||
+            entry.mixed_ratios.size() != ratios.size())
+            continue;
+        bool same = true;
+        for (size_t i = 0; i < component_indices.size(); ++i) {
+            if (entry.mixed_components[i] != (unsigned int)(component_indices[i] + 1) ||
+                entry.mixed_ratios[i] != ratios[i]) {
+                same = false;
+                break;
+            }
+        }
+        if (same)
+            return entry.dialog_index;
+    }
+    return -1;
+}
+
+void TextureImportDialog::build_mix_pool(TextureMixPool& pool) const
+{
+    pool.kit_complete = has_complete_pla_palette_cmykw();
+    pool.family = pool.kit_complete ? std::string(kDecomposePlaShortType) : preferred_mix_family();
+    pool.allowed_dialog_indices.clear();
+    pool.family_filaments.clear();
+    for (const auto& entry : m_filament_entries) {
+        if (entry.kind != TextureFilamentKind::ExistingPhysical)
+            continue;
+        if (pool.kit_complete) {
+            if (texture_entry_official_series(entry) != kDecomposePlaPaletteType)
+                continue;
+        } else if (texture_entry_family_type(entry, m_filament_entries) != pool.family) {
+            continue;
+        }
+        pool.allowed_dialog_indices.push_back(entry.dialog_index);
+        Slic3r::ColorDecomposePhysicalFilament filament;
+        filament.color_hex = entry.color_hex;
+        filament.name = entry.name;
+        filament.type = texture_entry_material_type(entry);
+        filament.filament_index = (unsigned int)(entry.dialog_index + 1);
+        pool.family_filaments.push_back(std::move(filament));
+    }
+}
+
+int TextureImportDialog::resolve_mix_color(const TextureMixPool& pool,
+                                           const std::array<std::size_t, 3>& color,
+                                           bool allow_create, bool& created, bool& needs_slot)
+{
+    created = false;
+    needs_slot = false;
+
+    Slic3r::ColorDecomposeRgb target_rgb;
+    target_rgb.r = (unsigned char)color[0];
+    target_rgb.g = (unsigned char)color[1];
+    target_rgb.b = (unsigned char)color[2];
+
+    Slic3r::ColorDecomposeRecipeResult recipe;
+    if (pool.kit_complete)
+        recipe = Slic3r::lookup_standard_recipe(target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYKW,
+                                                kDecomposePlaPaletteType);
+    else
+        recipe = Slic3r::recommend_from_physical_filaments(target_rgb, pool.family_filaments, pool.family);
+
+    std::vector<int> component_dialog_indices;
+    std::vector<int> ratios;
+    if (recipe.valid) {
+        for (const auto& comp : recipe.components) {
+            int dialog_idx = -1;
+            if (pool.kit_complete) {
+                dialog_idx = find_texture_decompose_reuse_by_color(
+                    m_filament_entries, comp.color_hex, kDecomposePlaPaletteType);
+            } else if (comp.filament_index >= 1) {
+                dialog_idx = (int)comp.filament_index - 1;
+                if (dialog_idx < 0 || dialog_idx >= (int)m_filament_entries.size() ||
+                    m_filament_entries[dialog_idx].kind != TextureFilamentKind::ExistingPhysical) {
+                    dialog_idx = -1;
+                }
+            }
+            if (dialog_idx < 0) {
+                component_dialog_indices.clear();
+                break;
+            }
+            component_dialog_indices.push_back(dialog_idx);
+            ratios.push_back(comp.ratio);
+        }
+    }
+
+    if (component_dialog_indices.size() >= 2 && component_dialog_indices.size() == ratios.size()) {
+        int mixed_idx = find_texture_mixed_by_recipe(m_filament_entries, component_dialog_indices, ratios);
+        if (mixed_idx < 0) {
+            if (!allow_create) {
+                needs_slot = true;
+                return -1;
+            }
+            std::string mix_hex = recipe.matched_color_hex;
+            if (mix_hex.empty()) {
+                std::vector<std::string> hexes;
+                hexes.reserve(component_dialog_indices.size());
+                for (int idx : component_dialog_indices)
+                    hexes.push_back(m_filament_entries[idx].color_hex);
+                mix_hex = Slic3r::lookup_measured_blend_color(hexes, ratios);
+            }
+            if (mix_hex.empty())
+                mix_hex = rgb_to_hex(color).ToStdString();
+            mixed_idx = add_virtual_mixed_filament(mix_hex, component_dialog_indices, ratios);
+            created = mixed_idx >= 0;
+        }
+        if (mixed_idx >= 0) {
+            texture_sync_mixed_filament_name(m_filament_entries, m_filament_names,
+                                             mixed_idx, component_dialog_indices);
+            return mixed_idx;
+        }
+    }
+
+    if (component_dialog_indices.size() == 1)
+        return component_dialog_indices.front();
+    return -1;
+}
+
+std::map<std::array<std::size_t, 3>, double> TextureImportDialog::cluster_color_areas() const
+{
+    std::map<std::array<std::size_t, 3>, double> areas;
+    const auto& mesh = m_painted;
+    const size_t face_n = std::min(mesh.indices.size(), mesh.face_colors.size());
+    for (size_t fi = 0; fi < face_n; ++fi) {
+        const auto& idx = mesh.indices[fi];
+        if (idx[0] < 0 || idx[1] < 0 || idx[2] < 0 ||
+            (size_t)idx[0] >= mesh.vertices.size() ||
+            (size_t)idx[1] >= mesh.vertices.size() ||
+            (size_t)idx[2] >= mesh.vertices.size())
+            continue;
+        const auto& a = mesh.vertices[idx[0]];
+        const auto& b = mesh.vertices[idx[1]];
+        const auto& c = mesh.vertices[idx[2]];
+        const double ux = double(b[0]) - a[0], uy = double(b[1]) - a[1], uz = double(b[2]) - a[2];
+        const double vx = double(c[0]) - a[0], vy = double(c[1]) - a[1], vz = double(c[2]) - a[2];
+        const double nx = uy * vz - uz * vy;
+        const double ny = uz * vx - ux * vz;
+        const double nz = ux * vy - uy * vx;
+        areas[mesh.face_colors[fi]] += 0.5 * std::sqrt(nx * nx + ny * ny + nz * nz);
+    }
+    return areas;
+}
+
+std::vector<size_t> TextureImportDialog::unmatched_match_indices_by_area() const
+{
+    const auto areas = cluster_color_areas();
+    auto area_of = [&areas](const std::array<std::size_t, 3>& color) {
+        const auto it = areas.find(color);
+        return it != areas.end() ? it->second : 0.0;
+    };
+    std::vector<std::pair<size_t, double>> unmatched;
+    for (size_t i = 0; i < m_current_matches.size(); ++i) {
+        if (m_current_matches[i].filament_index < 0)
+            unmatched.emplace_back(i, area_of(m_current_matches[i].cluster_color));
+    }
+    std::stable_sort(unmatched.begin(), unmatched.end(),
+                     [](const auto& lhs, const auto& rhs) { return lhs.second > rhs.second; });
+    std::vector<size_t> indices;
+    indices.reserve(unmatched.size());
+    for (const auto& item : unmatched)
+        indices.push_back(item.first);
+    return indices;
+}
+
+size_t TextureImportDialog::remaining_filament_capacity()
+{
+    compact_used_virtual_filaments();
+    const size_t max_count = max_filament_count();
+    return m_filament_entries.size() >= max_count ? 0 : max_count - m_filament_entries.size();
+}
+
+int TextureImportDialog::closest_filament_ignoring_threshold(const std::array<std::size_t, 3>& color,
+                                                             const std::string& family_type) const
+{
+    auto search = [&](bool same_family_only) -> int {
+        int best_idx = -1;
+        double best_delta = std::numeric_limits<double>::max();
+        const size_t filament_count = std::min(m_filament_entries.size(), m_filament_colors_rgba.size());
+        for (size_t i = 0; i < filament_count; ++i) {
+            const TextureFilamentKind kind = m_filament_entries[i].kind;
+            if (texture_entry_is_mixed(kind) ? !m_mix_enabled : !texture_entry_is_physical(kind))
+                continue;
+            if (same_family_only) {
+                const std::string ft = texture_entry_family_type(m_filament_entries[i], m_filament_entries);
+                if (!ft.empty() && ft != family_type)
+                    continue;
+            }
+            const double delta = Slic3r::compute_delta_e(color, m_filament_colors_rgba[i]);
+            if (delta < best_delta) {
+                best_delta = delta;
+                best_idx = (int)i;
+            }
+        }
+        return best_idx;
+    };
+
+    const int idx = search(true);
+    return idx >= 0 ? idx : search(false);
+}
+
 void TextureImportDialog::apply_mix_from_existing_filaments()
 {
     if (m_painted.cluster_colors.empty())
@@ -7872,52 +8060,16 @@ void TextureImportDialog::apply_mix_from_existing_filaments()
         rebuilt_matches = true;
     }
 
-    const bool kit_complete = has_complete_pla_palette_cmykw();
-    const std::string family = kit_complete ? std::string(kDecomposePlaShortType) : preferred_mix_family();
+    // Compact first: the pool and the dialog indices below must not shift afterwards.
+    size_t capacity = remaining_filament_capacity();
 
-    std::vector<int> allowed_dialog_indices;
-    std::vector<Slic3r::ColorDecomposePhysicalFilament> family_filaments;
-    for (const auto& entry : m_filament_entries) {
-        if (entry.kind != TextureFilamentKind::ExistingPhysical)
-            continue;
-        if (kit_complete) {
-            if (texture_entry_official_series(entry) != kDecomposePlaPaletteType)
-                continue;
-        } else if (texture_entry_family_type(entry, m_filament_entries) != family) {
-            continue;
-        }
-        allowed_dialog_indices.push_back(entry.dialog_index);
-        Slic3r::ColorDecomposePhysicalFilament filament;
-        filament.color_hex = entry.color_hex;
-        filament.name = entry.name;
-        filament.type = texture_entry_material_type(entry);
-        filament.filament_index = (unsigned int)(entry.dialog_index + 1);
-        family_filaments.push_back(std::move(filament));
-    }
+    TextureMixPool pool;
+    build_mix_pool(pool);
 
-    auto find_existing_mixed = [this](const std::vector<int>& component_indices, const std::vector<int>& ratios) -> int {
-        for (const auto& entry : m_filament_entries) {
-            if (!texture_entry_is_mixed(entry.kind) || entry.mixed_components.size() != component_indices.size() ||
-                entry.mixed_ratios.size() != ratios.size())
-                continue;
-            bool same = true;
-            for (size_t i = 0; i < component_indices.size(); ++i) {
-                if (entry.mixed_components[i] != (unsigned int)(component_indices[i] + 1) ||
-                    entry.mixed_ratios[i] != ratios[i]) {
-                    same = false;
-                    break;
-                }
-            }
-            if (same)
-                return entry.dialog_index;
-        }
-        return -1;
-    };
-
-    auto closest_allowed = [this, &allowed_dialog_indices](const std::array<std::size_t, 3>& color) -> int {
+    auto closest_allowed = [this, &pool](const std::array<std::size_t, 3>& color) -> int {
         int best_idx = -1;
         double best_delta = 1e9;
-        for (int idx : allowed_dialog_indices) {
+        for (int idx : pool.allowed_dialog_indices) {
             if (idx < 0 || idx >= (int)m_filament_colors_rgba.size())
                 continue;
             const double delta = Slic3r::compute_delta_e(color, m_filament_colors_rgba[idx]);
@@ -7929,81 +8081,37 @@ void TextureImportDialog::apply_mix_from_existing_filaments()
         return best_idx;
     };
 
-    // Indexed loop: add_virtual_mixed_filament() below can grow m_filament_entries
-    // and, through the refresh it triggers, m_current_matches.
-    for (size_t match_idx = 0; match_idx < m_current_matches.size(); ++match_idx) {
+    // Larger colors get the free slots for new mixed filaments first. Colors whose
+    // recipe needs a slot after they run out take the closest filament once every
+    // new mixed slot is placed, so they can reuse those.
+    std::vector<size_t> deferred;
+    for (size_t match_idx : unmatched_match_indices_by_area()) {
         // Already-matched rows stay as the user left them.
-        if (m_current_matches[match_idx].filament_index >= 0)
+        if (match_idx >= m_current_matches.size() || m_current_matches[match_idx].filament_index >= 0)
             continue;
         const std::array<std::size_t, 3> cluster_color = m_current_matches[match_idx].cluster_color;
 
-        Slic3r::ColorDecomposeRgb target_rgb;
-        target_rgb.r = (unsigned char)cluster_color[0];
-        target_rgb.g = (unsigned char)cluster_color[1];
-        target_rgb.b = (unsigned char)cluster_color[2];
-
-        Slic3r::ColorDecomposeRecipeResult recipe;
-        if (kit_complete)
-            recipe = Slic3r::lookup_standard_recipe(target_rgb, Slic3r::ColorDecomposeRecipeMode::CMYKW,
-                                                    kDecomposePlaPaletteType);
-        else
-            recipe = Slic3r::recommend_from_physical_filaments(target_rgb, family_filaments, family);
-
-        std::vector<int> component_dialog_indices;
-        std::vector<int> ratios;
-        if (recipe.valid) {
-            for (const auto& comp : recipe.components) {
-                int dialog_idx = -1;
-                if (kit_complete) {
-                    dialog_idx = find_texture_decompose_reuse_by_color(
-                        m_filament_entries, comp.color_hex, kDecomposePlaPaletteType);
-                } else if (comp.filament_index >= 1) {
-                    dialog_idx = (int)comp.filament_index - 1;
-                    if (dialog_idx < 0 || dialog_idx >= (int)m_filament_entries.size() ||
-                        m_filament_entries[dialog_idx].kind != TextureFilamentKind::ExistingPhysical) {
-                        dialog_idx = -1;
-                    }
-                }
-                if (dialog_idx < 0) {
-                    component_dialog_indices.clear();
-                    break;
-                }
-                component_dialog_indices.push_back(dialog_idx);
-                ratios.push_back(comp.ratio);
-            }
+        bool created = false;
+        bool needs_slot = false;
+        int bind_idx = resolve_mix_color(pool, cluster_color, capacity > 0, created, needs_slot);
+        if (created && capacity > 0)
+            --capacity;
+        if (needs_slot) {
+            deferred.push_back(match_idx);
+            continue;
         }
-
-        int bind_idx = -1;
-        if (component_dialog_indices.size() >= 2 && component_dialog_indices.size() == ratios.size()) {
-            int mixed_idx = find_existing_mixed(component_dialog_indices, ratios);
-            if (mixed_idx < 0) {
-                std::string mix_hex = recipe.matched_color_hex;
-                if (mix_hex.empty()) {
-                    std::vector<std::string> hexes;
-                    hexes.reserve(component_dialog_indices.size());
-                    for (int idx : component_dialog_indices)
-                        hexes.push_back(m_filament_entries[idx].color_hex);
-                    mix_hex = Slic3r::lookup_measured_blend_color(hexes, ratios);
-                }
-                if (mix_hex.empty())
-                    mix_hex = rgb_to_hex(cluster_color).ToStdString();
-                mixed_idx = add_virtual_mixed_filament(mix_hex, component_dialog_indices, ratios);
-            }
-            if (mixed_idx >= 0) {
-                texture_sync_mixed_filament_name(m_filament_entries, m_filament_names,
-                                                 mixed_idx, component_dialog_indices);
-                bind_idx = mixed_idx;
-            }
-        }
-
-        if (bind_idx < 0 && component_dialog_indices.size() == 1)
-            bind_idx = component_dialog_indices.front();
         if (bind_idx < 0)
             bind_idx = closest_allowed(cluster_color);
 
         if (match_idx >= m_current_matches.size())
             break;
         bind_match_inplace(m_current_matches[match_idx], bind_idx);
+    }
+    for (size_t match_idx : deferred) {
+        if (match_idx >= m_current_matches.size())
+            continue;
+        Slic3r::FilamentMatch& m = m_current_matches[match_idx];
+        bind_match_inplace(m, closest_filament_ignoring_threshold(m.cluster_color, pool.family));
     }
 
     drop_unused_new_filaments_and_refresh();
@@ -8068,8 +8176,7 @@ int TextureImportDialog::filament_popup_align_bottom() const
         const wxRect r = w->GetScreenRect();
         return r.GetY() + r.GetHeight();
     };
-    int y = std::max({bottom_of(m_overlimit_warning),
-                      bottom_of(m_unmatched_warning)});
+    int y = bottom_of(m_unmatched_warning);
     if (y > 0)
         return y;
     wxWindow* footer_btn = nullptr;
@@ -8120,6 +8227,8 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         // orderOut) runs, so the filament list stays on screen until the dialog ends.
         CallAfter([this, row_index]() {
             if (IsBeingDeleted())
+                return;
+            if (m_filament_entries.size() >= max_filament_count())
                 return;
 
             wxWindow* color_anchor = nullptr;
@@ -9376,110 +9485,7 @@ void TextureImportDialog::update_unmatched_warning_visibility()
     Layout();
 }
 
-void TextureImportDialog::wrap_overlimit_warning_label()
-{
-    if (!m_overlimit_warning_label)
-        return;
-    const wxSize old_best = m_overlimit_warning_label->GetBestSize();
-    const wxString old_label = m_overlimit_warning_label->GetLabel();
-    const wxString text = format_wxstr(
-        _L("The project supports up to %1% filaments. Current count is %2%, which exceeds the limit."),
-        (int)max_filament_count(), (int)m_filament_entries.size());
-    m_overlimit_warning_label->SetLabel(text);
-    int wrap_width = GetClientSize().x - FromDIP(48);
-    if (m_overlimit_warning_icon)
-        wrap_width -= m_overlimit_warning_icon->GetBestSize().x + FromDIP(4);
-    if (m_overlimit_fix_link)
-        wrap_width -= m_overlimit_fix_link->GetBestSize().x + FromDIP(4);
-    wrap_width = std::max(wrap_width, FromDIP(200));
-    m_overlimit_warning_label->Wrap(wrap_width);
-    m_overlimit_warning_label->InvalidateBestSize();
-    m_overlimit_warning_label->SetMinSize(wxDefaultSize);
-    m_overlimit_warning_label->SetMinSize(m_overlimit_warning_label->GetBestSize());
-    if (m_overlimit_warning)
-        m_overlimit_warning->Layout();
-    const wxSize new_best = m_overlimit_warning_label->GetBestSize();
-    if (m_overlimit_warning && m_overlimit_warning->IsShown() &&
-        (new_best != old_best || old_label != m_overlimit_warning_label->GetLabel()))
-        Layout();
-}
-
-void TextureImportDialog::update_overlimit_warning_visibility()
-{
-    if (!m_overlimit_warning) return;
-    const bool show = (m_wizard_step == TextureImportWizardStep::FilamentMatching)
-        && (m_state == TextureImportState::Ready) && filament_count_exceeded();
-    if (m_btn_ok)
-        m_btn_ok->Enable(can_confirm());
-    const bool was_shown = m_overlimit_warning->IsShown();
-    if (show)
-        wrap_overlimit_warning_label();
-    if (was_shown == show) return;
-    m_overlimit_warning->Show(show);
-    Layout();
-}
-
-bool TextureImportDialog::open_overlimit_dialog()
-{
-    if (!filament_count_exceeded())
-        return false;
-    if (m_state != TextureImportState::Ready)
-        return false;
-
-    TextureOverLimitInput input;
-    input.entries = m_filament_entries;
-    input.colors_rgba = m_filament_colors_rgba;
-    input.matches = build_matches_from_rows();
-    input.display_numbers = compute_display_numbers();
-    std::array<std::string, 5> kit_hexes;
-    const std::vector<DecomposeOfficialComponent> kit_components = pla_palette_cmykw_official_components();
-    for (size_t i = 0; i < kit_hexes.size() && i < kit_components.size(); ++i)
-        kit_hexes[i] = texture_normalize_color_hex(kit_components[i].color_hex);
-    input.kit_slots.assign(m_filament_entries.size(), -1);
-    for (size_t i = 0; i < m_filament_entries.size(); ++i) {
-        const TextureFilamentEntry& entry = m_filament_entries[i];
-        if (!texture_entry_is_physical(entry.kind) ||
-            !texture_entry_matches_series(entry, kDecomposePlaPaletteType))
-            continue;
-        const std::string hex = texture_normalize_color_hex(entry.color_hex);
-        for (size_t k = 0; k < kit_hexes.size(); ++k) {
-            if (hex == kit_hexes[k]) {
-                input.kit_slots[i] = (int)k;
-                break;
-            }
-        }
-    }
-    input.painted = m_painted;
-    input.max_count = max_filament_count();
-    input.mix_enabled = m_mix_enabled;
-    if (m_preview_canvas_right)
-        input.view = m_preview_canvas_right->get_view_state();
-    else if (m_preview_canvas)
-        input.view = m_preview_canvas->get_view_state();
-
-    TextureImportOverLimitDialog dlg(this, std::move(input));
-    if (dlg.ShowModal() != wxID_OK)
-        return false;
-    apply_overlimit_matches(dlg.selected_matches());
-    return true;
-}
-
-void TextureImportDialog::apply_overlimit_matches(const std::vector<Slic3r::FilamentMatch>& matches)
-{
-    m_current_matches = matches;
-    compact_used_virtual_filaments();
-    update_filament_color_map();
-    rebuild_mapping_rows();
-    update_unmatched_warning_visibility();
-    update_overlimit_warning_visibility();
-    update_confirm_button_state();
-    if (GetSizer())
-        GetSizer()->Layout();
-    Layout();
-    recenter_preview_tags();
-}
-
-void TextureImportDialog::add_virtual_filaments_for_unmatched()
+void TextureImportDialog::complete_unmatched_filaments()
 {
     if (m_wizard_step != TextureImportWizardStep::FilamentMatching)
         return;
@@ -9487,6 +9493,13 @@ void TextureImportDialog::add_virtual_filaments_for_unmatched()
         return;
     if (!has_unmatched_mapping())
         return;
+    if (m_mix_applying)
+        return;
+    m_mix_applying = true;
+    Slic3r::ScopeGuard mix_guard([this]() { m_mix_applying = false; });
+
+    // Compact first: the pool and the dialog indices below must not shift afterwards.
+    size_t capacity = remaining_filament_capacity();
 
     const std::string match_type = pick_auto_match_filament_type(m_filament_entries, m_existing_filament_count);
     const std::string match_preset = resolve_auto_match_preset_name(
@@ -9503,44 +9516,52 @@ void TextureImportDialog::add_virtual_filaments_for_unmatched()
         return -1;
     };
 
-    std::map<std::array<std::size_t, 3>, int> virtual_color_index;
-    auto get_or_add_virtual = [&](const std::array<std::size_t, 3>& color) -> int {
-        auto it = virtual_color_index.find(color);
-        if (it != virtual_color_index.end())
-            return it->second;
+    TextureMixPool mix_pool;
+    if (m_mix_enabled)
+        build_mix_pool(mix_pool);
 
-        const int existing_idx = find_virtual_filament_by_color(color);
-        if (existing_idx >= 0) {
-            virtual_color_index[color] = existing_idx;
-            return existing_idx;
-        }
-
-        const std::array<float, 4> rgba = {
-            color[0] / 255.f,
-            color[1] / 255.f,
-            color[2] / 255.f,
-            1.f
-        };
-        const int new_idx = add_virtual_filament(rgba, rgb_to_hex(color).ToStdString(), match_preset);
-        if (new_idx >= 0)
-            virtual_color_index[color] = new_idx;
-        return new_idx;
-    };
-
-    for (size_t i = 0; i < m_current_matches.size(); ++i) {
-        auto& m = m_current_matches[i];
+    // Larger colors get the free slots first. With Color Mixing on a color tries a
+    // mixed recipe before a new physical slot. Colors left without a slot take the
+    // closest filament once every slot is placed, so they can reuse the new ones.
+    std::vector<size_t> deferred;
+    for (size_t match_idx : unmatched_match_indices_by_area()) {
+        if (match_idx >= m_current_matches.size())
+            continue;
+        Slic3r::FilamentMatch& m = m_current_matches[match_idx];
         if (m.filament_index >= 0)
             continue;
-        const int idx = get_or_add_virtual(m.cluster_color);
-        if (idx < 0)
-            continue;
-        m.filament_index = idx;
-        if (idx < (int)m_filament_colors_rgba.size()) {
-            m.filament_color = m_filament_colors_rgba[idx];
-            m.delta_e = 0.0;
+        const std::array<std::size_t, 3> color = m.cluster_color;
+
+        int idx = find_virtual_filament_by_color(color);
+        if (idx < 0 && m_mix_enabled) {
+            bool created = false;
+            bool needs_slot = false;
+            idx = resolve_mix_color(mix_pool, color, capacity > 0, created, needs_slot);
+            if (created && capacity > 0)
+                --capacity;
         }
-        if (i < m_mapping_rows.size())
-            m_mapping_rows[i].target_filament_idx = idx;
+        if (idx < 0 && capacity > 0) {
+            const std::array<float, 4> rgba = {
+                color[0] / 255.f,
+                color[1] / 255.f,
+                color[2] / 255.f,
+                1.f
+            };
+            idx = add_virtual_filament(rgba, rgb_to_hex(color).ToStdString(), match_preset);
+            if (idx >= 0)
+                --capacity;
+        }
+        if (idx < 0) {
+            deferred.push_back(match_idx);
+            continue;
+        }
+        bind_match_inplace(m, idx, false);
+    }
+    for (size_t match_idx : deferred) {
+        if (match_idx >= m_current_matches.size())
+            continue;
+        Slic3r::FilamentMatch& m = m_current_matches[match_idx];
+        bind_match_inplace(m, closest_filament_ignoring_threshold(m.cluster_color, match_type), false);
     }
 
     compact_used_virtual_filaments();
@@ -9548,7 +9569,6 @@ void TextureImportDialog::add_virtual_filaments_for_unmatched()
     if (m_mapping_scroll)
         rebuild_mapping_rows();
     update_unmatched_warning_visibility();
-    update_overlimit_warning_visibility();
     update_confirm_button_state();
     if (GetSizer())
         GetSizer()->Layout();
@@ -9687,20 +9707,6 @@ void TextureImportDialog::on_dpi_changed(const wxRect&)
         m_unmatched_add_link->SetFont(texture_import_action_link_font(this));
     }
     wrap_unmatched_warning_label();
-    if (m_overlimit_warning_icon) {
-        m_overlimit_warning_icon->SetBitmap(m_bmp_unmatched.bmp());
-        m_overlimit_warning_icon->SetBackgroundColour(
-            m_overlimit_warning ? m_overlimit_warning->GetBackgroundColour() : GetBackgroundColour());
-    }
-    if (m_overlimit_warning_label) {
-        m_overlimit_warning_label->SetFont(texture_import_warning_body_font(this));
-        m_overlimit_warning_label->SetForegroundColour(wxColour(225, 71, 71));
-    }
-    if (m_overlimit_fix_link) {
-        m_overlimit_fix_link->SetForegroundColour(wxColour(0, 174, 66));
-        m_overlimit_fix_link->SetFont(texture_import_action_link_font(this));
-    }
-    wrap_overlimit_warning_label();
     if (auto* warning = dynamic_cast<ColorCountWarningPanel*>(m_color_count_warning))
         warning->Rescale();
     set_color_spin_error_border(m_color_spin, m_color_count_exceeded
