@@ -499,10 +499,15 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         bool modes_changed = (m_available_modes != new_available_modes);
         m_available_modes = new_available_modes;
 
+        // The dual-extruder slice video does not apply to single-extruder multi-nozzle machines, hide it for now.
+        const bool show_video = !single_ext_multi_nozzle;
+        const bool video_changed = video_link->IsShown() != show_video;
+        video_link->Show(show_video);
+
         if (m_active) {
             const bool connection_changed = m_connected != connect_status;
             m_connected = connect_status;
-            if (connection_changed || modes_changed) { Init(m_available_modes); }
+            if (connection_changed || modes_changed || video_changed) { Init(m_available_modes); }
             ResetTimer();
         }
         else {
