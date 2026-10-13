@@ -26,15 +26,11 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_cooling_before_tower": [
-        "0",
-        "0"
-    ],
     "filament_flow_ratio": [
         "1",
         "1"
     ],
-    "filament_idle_travel_cooling_enabled": "0",
+    "filament_idle_travel_cooling_enabled": "1",
     "filament_long_retractions_when_cut": [
         "1",
         "1"
@@ -44,7 +40,7 @@
         "6"
     ],
     "filament_pre_cooling_temperature": [
-        "220",
+        "190",
         "220"
     ],
     "filament_pre_cooling_temperature_nc": [
@@ -59,8 +55,8 @@
         "0.5,1"
     ],
     "filament_ramming_travel_time": [
-        "0",
-        "0"
+        "12",
+        "12"
     ],
     "filament_ramming_volumetric_speed": [
         "10",
@@ -107,6 +103,9 @@
     "slow_down_min_speed": [
         "20",
         "20"
+    ],
+    "temperature_vitrification": [
+        "45"
     ],
     "compatible_printers": [
         "Bambu Lab H3C 0.4 nozzle",
