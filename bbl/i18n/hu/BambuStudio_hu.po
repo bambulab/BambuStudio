@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 12:37+0800\n"
+"POT-Creation-Date: 2026-10-13 23:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,6 +27,21 @@ msgstr "Előfordulhat, hogy a filament nem kompatibilis a gép beállításaival
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "A filament modellje ismeretlen. Egy véletlenszerű filamentbeállítást fogunk használni."
+
+msgid "This calibration does not support the currently selected nozzle diameter"
+msgstr "Ezt a kalibrálást nem lehet elvégezni a kiválasztott fúvókaátmérővel"
+
+msgid "Current flowrate cali param is invalid"
+msgstr "Az anyagáramlás kalibrációs paramétere érvénytelen"
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr "A kiválasztott átmérő és a nyomtatóban megadott átmérő nem egyezik"
+
+msgid "Failed to generate cali gcode"
+msgstr "Nem sikerült létrehozni a kalibrációs G-kódot"
+
+msgid "Calibration error"
+msgstr "Kalibrációs hiba"
 
 msgid "Main Extruder"
 msgstr "Fő extruder"
@@ -249,6 +264,78 @@ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wi
 msgstr "%s betöltése vagy eltávolítása sikertelen lehet a Filamentváltó miatt. Ha folytatni szeretnéd,"
 
 #, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported with a standard %s nozzle."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is only supported for printing with the main extruder."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s-t nem támogatja a(z) %s extruder."
 
@@ -267,6 +354,15 @@ msgstr "Nyomtatási minőségi problémák merülhetnek fel, ha „%s“ nyomtat
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "Nyomtatási minőségi problémák merülhetnek fel, ha „%s“ nyomtatsz %s extruderrel. Óvatosan használd."
+
+msgid "The total weight must bigger than remain weight."
+msgstr ""
+
+msgid "Please enter a valid remaining weight from 1g to 10000g."
+msgstr ""
+
+msgid "Please enter a valid total weight from 1g to 10000g."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Előfordulhat, hogy a szerszámfej és a hotendtartó megmozdul. Kérjük, ne nyúlj a kamrába."
@@ -333,6 +429,36 @@ msgstr "Sikertelen ellenőrzés."
 
 msgid "Update failed."
 msgstr "A frissítés sikertelen."
+
+msgid "Hotend & Filament"
+msgstr ""
+
+msgid "Lift Hotend Rack"
+msgstr ""
+
+msgid "Recenter Hotend Rack"
+msgstr ""
+
+msgid "Lower Hotend Rack"
+msgstr ""
+
+msgid "Hotend Rack"
+msgstr "Hotendtartó"
+
+msgid "Reading"
+msgstr "Beolvasás"
+
+msgid "Running"
+msgstr ""
+
+msgid "Raised"
+msgstr "Felemelve"
+
+msgid "Lowered"
+msgstr ""
+
+msgid "Centered"
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr "Jelenlegi AMS-páratartalom"
@@ -461,14 +587,8 @@ msgstr "Beolvasás "
 msgid "Please wait"
 msgstr "Kérjük, várj"
 
-msgid "Reading"
-msgstr "Beolvasás"
-
 msgid "Running..."
 msgstr "Futtatás..."
-
-msgid "Raised"
-msgstr "Felemelve"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr "A hotend állapota rendellenes, és jelenleg nem elérhető. Kérjük, lépj az „Eszköz -> Frissítés“ oldalra a firmware frissítéséhez."
@@ -501,9 +621,6 @@ msgstr "Felhasznált idő: %s"
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "A dinamikus fúvókák a jelenlegi tálcához vannak kiosztva. A hotend kiválasztása nem támogatott."
 
-msgid "Hotend Rack"
-msgstr "Hotendtartó"
-
 msgid "ToolHead"
 msgstr "Szerszámfej"
 
@@ -512,6 +629,21 @@ msgstr "A fúvókainformációkat be kell olvasni"
 
 msgid "Note:"
 msgstr "Megjegyzés:"
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+msgid "Fan"
+msgstr "Ventilátor"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "The embedded webpage could not be loaded."
 msgstr ""
@@ -526,6 +658,9 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
+msgstr ""
+
+msgid "AMS Bridge Debug"
 msgstr ""
 
 msgid "Idling..."
@@ -643,9 +778,6 @@ msgstr ""
 msgid "Refreshing Hotend"
 msgstr ""
 
-msgid "Running"
-msgstr ""
-
 #, boost-format
 msgid "Reading (%1% / %2%)"
 msgstr ""
@@ -656,6 +788,24 @@ msgstr ""
 
 msgid "Please wait..."
 msgstr ""
+
+msgid "Edit Filament"
+msgstr "Filament szerkesztése"
+
+msgid "Confirm to exit this process?"
+msgstr ""
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr ""
+
+msgid "Exit"
+msgstr "Kilépés"
+
+msgid "Still exit"
+msgstr ""
+
+msgid "Tip"
+msgstr "Tipp"
 
 msgid "Empty slot"
 msgstr ""
@@ -711,9 +861,6 @@ msgstr ""
 msgid "No filament information available"
 msgstr ""
 
-msgid "Tip"
-msgstr "Tipp"
-
 msgid "Cannot read all while printing or upgrading"
 msgstr ""
 
@@ -736,18 +883,6 @@ msgstr ""
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
 msgstr ""
-
-msgid "Pen"
-msgstr ""
-
-msgid "Cutter"
-msgstr ""
-
-msgid "Laser"
-msgstr ""
-
-msgid "Fan"
-msgstr "Ventilátor"
 
 msgid "Hotend Details"
 msgstr ""
@@ -1326,6 +1461,9 @@ msgstr "Modell javítása"
 msgid "Connector"
 msgstr "Összekötő"
 
+msgid "Preparing data..."
+msgstr "Adatok előkészítése..."
+
 msgid "Flip cut plane"
 msgstr "Vágási sík megfordítása"
 
@@ -1533,7 +1671,10 @@ msgstr "%d háromszög"
 msgid "Show wireframe"
 msgstr "Drótváz megjelenítése"
 
-msgid "Preserve painted colors"
+msgid "Keep all painting"
+msgstr ""
+
+msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr ""
 
 #, boost-format
@@ -3093,8 +3234,8 @@ msgstr "A kijelölt objektum csak egy tárgyat tartalmaz, ezért nem lehet tová
 msgid "Assembly"
 msgstr "Összeállítás"
 
-msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "A változó rétegmagasság és a színkevert alréteg együttes használata rossz színkeverési minőséget eredményezhet."
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
@@ -3208,6 +3349,9 @@ msgstr "a több cellás másolás nem támogatott"
 msgid "Outside"
 msgstr "Kívül"
 
+msgid "Auto"
+msgstr "Auto"
+
 msgid " "
 msgstr ""
 
@@ -3222,9 +3366,6 @@ msgstr "Kitöltési sűrűség (%)"
 
 msgid "Auto Brim"
 msgstr "Automatikus perem"
-
-msgid "Auto"
-msgstr "Auto"
 
 msgid "Painted"
 msgstr "Festett"
@@ -4219,9 +4360,6 @@ msgstr ""
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
-msgid "Decompose Color"
-msgstr "Szín lebontása"
-
 msgid "+ Add Filament"
 msgstr "+ Filament hozzáadása"
 
@@ -4289,12 +4427,6 @@ msgstr "Az összes filament automatikus hozzáadása"
 msgid "Fix now"
 msgstr "Javítsd meg most"
 
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "Azonos filamentek automatikus egyesítése a projektben már meglévő filamentekkel"
-
-msgid "Automatically merge filaments of the same color and type"
-msgstr "Az azonos színű és típusú filamentek automatikus egyesítése"
-
 msgid "Skip"
 msgstr "Kihagyás"
 
@@ -4345,9 +4477,6 @@ msgstr "A színek száma nem haladhatja meg az eredeti színek számát (%d)."
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "A színek száma nem haladhatja meg a projekt filamentkorlátját (%d)."
 
-msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
 msgid "Click to select a matching filament"
 msgstr "Kattintson a megfelelő filament kiválasztásához"
 
@@ -4363,6 +4492,12 @@ msgstr ""
 
 #, boost-format
 msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Mixing kits"
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "Kept filaments"
@@ -4382,6 +4517,9 @@ msgid "Prioritize merging similar-color filaments"
 msgstr ""
 
 msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -4670,36 +4808,6 @@ msgstr "%s nem támogatja %s"
 
 msgid "Dynamic flow Calibration"
 msgstr "Dinamikus anyagáramlás-kalibráció"
-
-msgid "Unmapped"
-msgstr "Nincs kiosztva"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area: The filament from original project will be used when unmapped.\n"
-"And you can click it to modify"
-msgstr ""
-"Felső terület:  Eredeti\n"
-"Alsó terület: Az eredeti projektből származó filament kerül felhasználásra, ha nem adsz meg új kiosztást.\n"
-"Rákattintva módosíthatod ezt"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you can click it to modify"
-msgstr ""
-"Felső terület:  Eredeti\n"
-"Alsó terület:  Filament az AMS-ben\n"
-"Rákattintva módosíthatod"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you cannot click it to modify"
-msgstr ""
-"Felső terület:  Eredeti\n"
-"Alsó terület:  Filament az AMS-ben\n"
-"Rákattintva módosíthatod"
 
 msgid "AMS Slots"
 msgstr "AMS férőhelyek"
@@ -5102,6 +5210,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "Az ajánlott fúvóka hőmérséklet ehhez a filament típushoz [%d, %d] Celsius-fok"
+
+msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
+msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6241,6 +6352,18 @@ msgstr "Kattints az összecsukáshoz"
 msgid "Overview"
 msgstr "Áttekintés"
 
+#, boost-format
+msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support ring of %2% overlaps %3%."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support rings of %2% and %3% overlap."
+msgstr ""
+
 msgid "Select Plate"
 msgstr "Tálca kiválasztása"
 
@@ -6494,8 +6617,20 @@ msgstr "Élő nézet újra próbálása"
 msgid "Resolution"
 msgstr "Felbontás"
 
+msgid "External Storage"
+msgstr "Külső tárhely"
+
 msgid "Show \"Live Video\" guide page."
 msgstr "Az „Élő videó” útmutató oldal megjelenítése."
+
+msgid "Not Installed"
+msgstr ""
+
+msgid "Abnormal"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Nyomtató csatlakoztatása (LAN)"
@@ -6573,6 +6708,12 @@ msgstr "bezáródik az új modell létrehozása előtt. Folytatod?"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "A jelenlegi oldalon mentetlen változtatások vannak. Folytathatod a szerkesztést, vagy elmentheted/elvetheted a módosításokat kilépés előtt."
+
+msgid "Discard"
+msgstr "Elvetés"
+
+msgid "Stay on this page"
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Gyorsabb, megbízhatóbb és vetemedésmentes nyomatok a Helio Additive segítségével."
@@ -7179,8 +7320,12 @@ msgstr "Információ"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "Az élő közvetítési funkció a Bambu Studio alkalmazásban fut, és a stream az alkalmazás bezárását követően meg fog szakadni."
 
-msgid "Printer Preview"
-msgstr "Nyomtató előnézet"
+msgid "Not live"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Captured at %s"
+msgstr ""
 
 msgid "Playing..."
 msgstr "Lejátszás..."
@@ -7554,9 +7699,6 @@ msgstr "Majdnem kész"
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "Storage"
-msgstr "Tárhely"
-
 msgid "Camera Setting"
 msgstr "Kamera beállítása"
 
@@ -7575,9 +7717,6 @@ msgstr "Biztonsági opciók"
 msgid "Hotends"
 msgstr "Hotendek"
 
-msgid "Unclamped"
-msgstr ""
-
 msgid "100%"
 msgstr "100%"
 
@@ -7590,11 +7729,20 @@ msgstr "Asztal"
 msgid "Filament loading..."
 msgstr "Filament betöltése..."
 
-msgid "No Storage"
-msgstr "Nincs tárhely"
+msgid "Live Camera Recording in progress"
+msgstr ""
 
-msgid "Storage Abnormal"
-msgstr "Tárhely hiba"
+msgid "Visual Enhancement Camera Recording in progress"
+msgstr ""
+
+msgid "Recording in progress"
+msgstr ""
+
+msgid "Timelapse in progress"
+msgstr ""
+
+msgid "Go Live in progress"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "Nyomtatás megszakítása"
@@ -7803,6 +7951,12 @@ msgstr ""
 "At least one successful print record of this print profile is required \n"
 "to give a positive rating (4 or 5 stars)."
 
+msgid "This device is performing the following operations"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "STEP-fájl importálási paraméterek"
 
@@ -7838,6 +7992,9 @@ msgstr "Ne mutasd újra"
 
 msgid "Calculating, please wait..."
 msgstr "Számítás folyamatban, kérjük várj..."
+
+msgid "Storage"
+msgstr "Tárhely"
 
 msgid "Status"
 msgstr "Állapot"
@@ -8024,6 +8181,9 @@ msgstr "KÉSZ"
 msgid "Cancel upload"
 msgstr "Feltöltés megszakítása"
 
+msgid "Serious warning:"
+msgstr "Fontos figyelmeztetés:"
+
 msgid "Jump to"
 msgstr "Ugrás ide:"
 
@@ -8050,9 +8210,6 @@ msgstr "Sikeresen exportálva."
 
 msgid "Model file downloaded."
 msgstr "Modellfájl letöltve."
-
-msgid "Serious warning:"
-msgstr "Fontos figyelmeztetés:"
 
 msgid " Click here to install it."
 msgstr " Kattints ide a telepítéshez."
@@ -8998,6 +9155,18 @@ msgstr ""
 msgid "Not installed"
 msgstr "Nincs telepítve"
 
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"A szoftver nem támogatja a különböző átmérőjű fúvókák használatát egy nyomtatáshoz.\n"
+"Ha a bal és jobb oldali fúvókák nem egyeznek, csak egy fejjel lehet nyomtatni.\n"
+"Kérjük, erősítsd meg, hogy melyik fúvókát szeretnéd használni ehhez a projekthez."
+
+msgid "Switch diameter"
+msgstr "Átmérő váltása"
+
 msgid "Sync printer information"
 msgstr "Nyomtatóadatok szinkronizálása"
 
@@ -9065,16 +9234,11 @@ msgstr "Tálca, objektum és tárgy keresése."
 msgid "Change nozzle diameter"
 msgstr ""
 
-msgid "This filament does not support printing with the current nozzle."
+msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
-msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
-msgstr ""
-
-msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
-msgstr ""
-
-msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
+#, c-format, boost-format
+msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -9103,7 +9267,11 @@ msgid "After completing your operation, %s project will be closed and create a n
 msgstr "A művelet befejezése után a(z) %s projekt bezárásra kerül, és egy új projekt nyílik meg."
 
 #, c-format, boost-format
-msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgid "filament slot %d %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
 msgid ""
@@ -9157,11 +9325,23 @@ msgid "Please fix the marked mixed filaments in the left filament list."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
 msgid "Add a new preset"
@@ -9242,6 +9422,12 @@ msgstr "Érvénytelen értékek a 3mf-ben:"
 msgid "Please correct them in the param tabs"
 msgstr "Kérjük, javítsd ki őket a Paraméter fülön"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "The 3mf has following modified G-code in filament or printer presets:"
 
@@ -9281,17 +9467,6 @@ msgstr "Nulla térfogatú objektumok eltávolítva"
 
 msgid "The volume of the object is zero"
 msgstr "Az objektum térfogata nulla"
-
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
-"Instead of considering them as multiple objects, should \n"
-"the file be loaded as a single object having multiple parts?"
-msgstr ""
-"Ez a fájl több objektumot is tartalmaz különböző magasságban.\n"
-"Szeretnéd több objektum helyett több részből álló egyetlen objektumként betölteni?"
-
-msgid "Multi-part object detected"
-msgstr "Több részből álló objektum észlelve"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -10566,6 +10741,9 @@ msgstr "Nem kompatibilis beállítások"
 msgid "My Printer"
 msgstr "Saját nyomtató"
 
+msgid "This filament is not compatible with the nozzle it is loaded on"
+msgstr ""
+
 msgid "To select this filament, change the nozzle settings first."
 msgstr ""
 
@@ -11086,6 +11264,15 @@ msgstr ""
 "Alsó terület:  Kiválasztott fúvóka\n"
 "Rákattintva módosíthatod"
 
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you can click it to modify"
+msgstr ""
+"Felső terület:  Eredeti\n"
+"Alsó terület:  Filament az AMS-ben\n"
+"Rákattintva módosíthatod"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Nem lehet automatikusan hozzárendelni a megfelelő filamentet. Kérjük, kattints a kézi beállításra."
 
@@ -11485,6 +11672,9 @@ msgstr "Kattints a további információért"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Kattints az összes beállítás utolsó mentett változatának visszaállításához."
 
+msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A fúvókacsere miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Biztos, hogy kikapcsolod a törlőtornyot?"
 
@@ -11634,6 +11824,9 @@ msgstr "Gyorsulás"
 
 msgid "Jerk(XY)"
 msgstr "Jerk(XY)"
+
+msgid "Support ring"
+msgstr ""
 
 msgid "Raft"
 msgstr "Tutaj"
@@ -12060,9 +12253,6 @@ msgstr "Módosított érték"
 msgid "Discard Modified Value"
 msgstr "Módosított érték elvetése"
 
-msgid "Don't save"
-msgstr "Ne mentsd"
-
 msgid "Use Modified Value"
 msgstr "Módosított érték használata"
 
@@ -12251,210 +12441,6 @@ msgstr "Nincs elérhető frissítés."
 
 msgid "The configuration is up to date."
 msgstr "A konfiguráció naprakész."
-
-msgid "Open Wiki for more information >"
-msgstr "Nyisd meg a Wikit további információkért >"
-
-msgid "Obj file Import color"
-msgstr "Obj fájl szín importálása"
-
-msgid "Standard 3mf Import color"
-msgstr "Standard 3mf szín importálása"
-
-msgid "Some faces don't have color defined."
-msgstr "Néhány felületnek nincs definiált színe."
-
-msgid "mtl file exist error,could not find the material:"
-msgstr ""
-
-msgid "Please check obj or mtl file."
-msgstr "Kérjük, ellenőrizd az obj vagy mtl fájlt."
-
-msgid "Specify number of colors:"
-msgstr "Add meg a színek számát:"
-
-msgid "Enter or click the adjustment button to modify number again"
-msgstr "Írd be vagy kattints a beállítás gombra a módosításhoz"
-
-msgid "Recommended "
-msgstr "Ajánlott "
-
-msgid "view"
-msgstr "nézet"
-
-msgid "Current filament colors"
-msgstr "Aktuális filamentszínek"
-
-msgid "Matching"
-msgstr "Egyezés"
-
-msgid "Quick set"
-msgstr "Gyors beállítás"
-
-msgid "There are color input errors."
-msgstr "Színbeviteli hiba."
-
-msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr "A textúra importálása átmenetileg nem érhető el, a részleges színezés automatikusan az alapértelmezett színre cserélődik."
-
-msgid " And "
-msgstr " és "
-
-msgid "Note"
-msgstr "Megjegyzés"
-
-msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr "A szín kiválasztása megtörtént, az OK gombbal folytathatod vagy beállíthatod kézzel."
-
-msgctxt "ObjImport"
-msgid "Original"
-msgstr "Eredeti"
-
-msgid "After mapping"
-msgstr "Kiosztás után"
-
-msgid "Color match"
-msgstr "Színegyeztetés"
-
-msgid "Approximate color matching."
-msgstr "Hozzávetőleges színegyezés."
-
-msgid "Append"
-msgstr "Hozzáad"
-
-msgid "Append to existing filaments"
-msgstr "Hozzáfűzés a meglévő filamentekhez"
-
-msgid "Reset mapped extruders."
-msgstr "Extruder-kiosztás visszaállítása."
-
-msgid "—> "
-msgstr ""
-
-msgctxt "Sync_AMS"
-msgid "Original"
-msgstr "Eredeti"
-
-msgid "After overwriting"
-msgstr "Felülírást követően"
-
-msgctxt "Sync_AMS"
-msgid "Plate"
-msgstr "Tálca"
-
-msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
-msgstr "A csatlakoztatott nyomtató nem felel meg a kiválasztott nyomtatónak. Kérjük, változtasd meg a kiválasztott nyomtatót."
-
-msgid "Mapping"
-msgstr "Kiosztás"
-
-msgid "Overwriting"
-msgstr "Felülírás"
-
-msgid "Reset all filament mapping"
-msgstr "Összes filamentkiosztás törlése"
-
-msgid "(Recommended filament)"
-msgstr "(Ajánlott filament)"
-
-msgid "Advanced Options"
-msgstr "Haladó beállítások"
-
-msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
-msgstr ""
-"Ellenőrzi az asztal szintjét. A szintezés egyenletessé teszi az extrudált magasságot.\n"
-"*Automatikus mód: Először szintez (kb. 10 másodperc). Kihagyhatod, ha a felületet megfelelőnek találod."
-
-msgid ""
-"Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
-msgstr ""
-"Kalibrálja a fúvókák közötti eltérést a nyomtatási minőség javítása érdekében.\n"
-"*Automatikus mód: Kalibrálás ellenőrzése a nyomtatás előtt; kihagyás, ha nem szükséges."
-
-msgid "Use AMS"
-msgstr "AMS használata"
-
-msgid "Only synchronize filament type and color, not including AMS slot information."
-msgstr "Csak a filament típusát és színét szinkronizálja, az AMS-helyekre vonatkozó információkat nem."
-
-msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr "A projektben megadott filamentek cseréje a nyomtató filamentjeivel. A nem használt filamentek automatikusan a lista végére kerülnek."
-
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Add unused AMS filaments to filaments list."
-msgstr "Nem használt AMS-filamentek hozzáadása a listához."
-
-msgid "Automatically merge the same colors in the model after mapping."
-msgstr "Automatikusan egyesíti az azonos színeket a modellben a kiosztás után."
-
-msgid "After being synced, this action cannot be undone."
-msgstr "A szinkronizálás után ez a művelet nem vonható vissza."
-
-msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
-msgstr "A szinkronizálás után a projekt filamentbeállításai és színei a kiosztott filamentek típusaira és színeire cserélődnek. Ez a művelet nem vonható vissza."
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "Biztos, hogy szinkronizálod a filamenteket?"
-
-msgid "Synchronize now"
-msgstr "Szinkronizálás"
-
-msgid "Synchronize Filament Information"
-msgstr "Filamentinformációk szinkronizálása"
-
-msgid "Add unused filaments to filaments list."
-msgstr "Nem használt filamentek hozzáadása a listához."
-
-msgid "Only synchronize filament type and color, not including slot information."
-msgstr "Csak a filament típusát és színét szinkronizálja, az AMS-helyekre vonatkozó információkat nem."
-
-msgid "Ext spool"
-msgstr "Kül. tekercs"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "A(z) %s(%s) fúvóka anyagáramlási beállítása nem egyezik a szeletelt fájlban lévővel (%s). Kérjük, ellenőrizd, hogy a beszerelt fúvóka megfelel-e a nyomtató beállításainak, majd szeletelés közben használd a megfelelő nyomtatóbeállítást."
-
-msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
-msgstr "Ellenőrizd, hogy a készülék fúvóka típusa megegyezik-e a beállításokban megadott fúvóka típusával."
-
-#, c-format, boost-format
-msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "A kiválasztott nyomtató (%s) nem kompatibilis a szeletelőben kiválasztott nyomtatóprofillal (%s)."
-
-msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "A timelapse nem támogatott ebben a módban, mert a nyomtatási sorrend „Tárgyanként” értékre van állítva."
-
-msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr "Külső filament és az AMS használatát is kiválasztottad egy extruderhez, kézzel kell majd kicserélned a filamentet."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "Tipp: Kérjük, lépj be az 'Eszköz -> Nyomtató részei' menüpontba a fúvóka beállításának módosításához."
-
-msgid "Successfully synchronized Printer information."
-msgstr ""
-
-msgid "Continue to sync filaments"
-msgstr "Filamentek szinkronizálása"
-
-msgctxt "Sync_Nozzle_AMS"
-msgid "Cancel"
-msgstr "Mégsem"
-
-msgid "Successfully synchronized color and type of filament from printer."
-msgstr "A nyomtató filamentjei és azok színei sikeresen szinkronizálva."
-
-msgctxt "FinishSyncAms"
-msgid "OK"
-msgstr ""
-
-msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr "A bovden típusú extruder nem támogatja a 0,2 mm átmérőjű fúvókát. Csak egyfejes nyomtatással folytathatod a feladatot."
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "A Studio újraszámítja az öblítési mennyiségeket minden szín- vagy filamentcserekor. Az automatikus újraszámítást letilthatod a beállításokban."
@@ -13854,10 +13840,13 @@ msgstr "A spirál (váza) mód nem működik, ha egy objektum eltérő nyomtatá
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "A változó rétegmagasság nem működik az organikus támaszokkal."
 
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr ""
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
@@ -13905,11 +13894,11 @@ msgstr ""
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "A törlőtorony használatához minden objektumnak azonos rétegmagassággal kell rendelkeznie."
 
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "A törlőtorony használatához minden objektumnak azonos változó rétegmagassággal kell rendelkeznie."
-
 msgid "The support ring is only supported if all objects have the same variable layer height"
 msgstr ""
+
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "A törlőtorony használatához minden objektumnak azonos változó rétegmagassággal kell rendelkeznie."
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "A Pontos Z-magasság különböző rétegmagasságokat ad az objektumoknak, ami jelentősen megnövelheti a törlőtorony méretét."
@@ -16878,10 +16867,10 @@ msgstr ""
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
 msgstr ""
 
-msgid "Support ring notch width"
+msgid "Support ring angle"
 msgstr ""
 
-msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
 msgstr ""
 
 msgid "Support ring skip points"
@@ -18140,6 +18129,15 @@ msgstr "- Objektum mód: Kérjük, válassz ki legalább két objektumot."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Tárgy mód: Válassz ki egy objektumot, amely legalább két hálóval rendelkezik."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "Computing..."
+msgstr "Számítás folyamatban..."
+
+msgid "Applying result.."
+msgstr "Eredmény alkalmazása.."
+
 msgid "Union"
 msgstr "Egyesítés"
 
@@ -18166,15 +18164,6 @@ msgstr "Csak objektumokon végez logikai műveletet."
 
 msgid "This object contains non-part components."
 msgstr "Ez az objektum nem tartalmaz nem-tárgy részeket."
-
-msgid "Preparing data..."
-msgstr "Adatok előkészítése..."
-
-msgid "Computing..."
-msgstr "Számítás folyamatban..."
-
-msgid "Applying result.."
-msgstr "Eredmény alkalmazása.."
 
 msgid "Network Test"
 msgstr "Hálózati teszt"
@@ -18612,9 +18601,6 @@ msgstr "Válaszd ki az exportálandó beállítás típusát"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "Nem sikerült létrehozni az ideiglenes mappát."
-
-msgid "Edit Filament"
-msgstr "Filament szerkesztése"
 
 msgid "Filament presets under this filament"
 msgstr "A filamenthez tartozó beállítások"
@@ -19182,6 +19168,9 @@ msgstr "Az egyidejűleg használt nyomtatók száma nem lehet 0."
 
 msgid "Use External Spool"
 msgstr "Külső tekercs használata"
+
+msgid "Use AMS"
+msgstr "AMS használata"
 
 msgid "Select Printers"
 msgstr "Nyomtatók kiválasztása"
@@ -19834,6 +19823,12 @@ msgstr "Vegyes filament szerkesztése"
 msgid "Effect Preview"
 msgstr "Effekt előnézet"
 
+msgid "Target"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
 msgid "Select Mixed Materials"
 msgstr "Vegyes anyagok kiválasztása"
 
@@ -19871,6 +19866,9 @@ msgstr "nem keverhető. Kérjük, válassz azonos típusú filamentet."
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr ""
 
+msgid "No mix is available for the target color"
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "Kérjük, válassz egy filamentet az összes komponenshez"
 
@@ -19883,73 +19881,49 @@ msgstr "Elérted a komponensek maximális számát"
 msgid "Remove the third material"
 msgstr "Harmadik anyag eltávolítása"
 
+msgid "Manual Mixing"
+msgstr ""
+
+msgid "Color Matching"
+msgstr ""
+
+msgid "Select Target Color"
+msgstr ""
+
+msgid "Match Result"
+msgstr ""
+
+msgid "Discard changes and match again"
+msgstr ""
+
+msgid "Replace the target color on models with the mixed result"
+msgstr ""
+
+msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
+msgstr ""
+
 #, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
+msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
-msgid "Decomposition result for this combination"
-msgstr "A kombináció színbontási eredménye"
-
-msgid "Filament Color"
-msgstr "Filamentszín"
-
-msgid "Decomposed Colors"
-msgstr "Felbontott színek"
-
-msgid "Select Color Decomposition"
-msgstr "Színbontás kiválasztása"
-
-msgid "Project Filament"
-msgstr "Projektfilament"
-
-msgid "Material List"
-msgstr "Anyaglista"
-
-msgid "Standard Palette"
-msgstr "Standard paletta"
-
-msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "A lebontáshoz legalább két azonos anyagtípusú filament szükséges"
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "A célhoz közelebb álló színkeveréket négy alapszínből számítja ki a rendszer: cián, bíbor, sárga és fehér. Jelenleg csak a PLA Basic támogatott. Ha a projektben nincsenek megfelelő filamentek, azok automatikusan hozzáadódnak."
-
-msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgid "There is no other filament of the same type as the target color in the project."
 msgstr ""
 
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "A célhoz közelebb álló színkeveréket négy alapszínből számítja ki a rendszer: piros, sárga, kék és fehér. Jelenleg csak a PLA Basic támogatott. Ha a projektben nincsenek megfelelő filamentek, azok automatikusan hozzáadódnak."
+msgid "At least two other filaments of the same type as the target color are required."
+msgstr ""
+
+msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+msgstr ""
+
+msgid "No available mixing recipe was found."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
 
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "Az anyaglista legfeljebb %1% színt támogat. %2% lebontást követően az anyagmennyiség meghaladná a következőt:%1%. A lebontás előtt törölje a fel nem használt filamenteket a főképernyőn."
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "Színbontás (színátmenet nem támogatott)"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "Színbontás (az átlátszóság nem támogatott)"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "Színbontás (többszínű esetben nem támogatott)"
-
-msgid "Cyan"
-msgstr "Ciánkék"
-
-msgid "Magenta"
-msgstr "Bíbor"
-
-msgid "Yellow"
-msgstr "Sárga"
-
-msgid ", "
+msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
 msgstr ""
-
-msgid "The current filament list does not contain "
-msgstr "A jelenlegi filamentlista nem tartalmazza "
-
-msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ". A vegyes filament által igényelt projektfilament automatikusan létrejön a lebontás után."
 
 msgid "Material Ratio"
 msgstr "Anyagarány"
@@ -20287,6 +20261,305 @@ msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
 
+#~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+#~ msgstr "A változó rétegmagasság és a színkevert alréteg együttes használata rossz színkeverési minőséget eredményezhet."
+
+#~ msgid "Decompose Color"
+#~ msgstr "Szín lebontása"
+
+#~ msgid "Automatically merge identical filaments into existing filaments in the project"
+#~ msgstr "Azonos filamentek automatikus egyesítése a projektben már meglévő filamentekkel"
+
+#~ msgid "Automatically merge filaments of the same color and type"
+#~ msgstr "Az azonos színű és típusú filamentek automatikus egyesítése"
+
+#~ msgid "Unmapped"
+#~ msgstr "Nincs kiosztva"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area: The filament from original project will be used when unmapped.\n"
+#~ "And you can click it to modify"
+#~ msgstr ""
+#~ "Felső terület:  Eredeti\n"
+#~ "Alsó terület: Az eredeti projektből származó filament kerül felhasználásra, ha nem adsz meg új kiosztást.\n"
+#~ "Rákattintva módosíthatod ezt"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area:  Filament in AMS\n"
+#~ "And you cannot click it to modify"
+#~ msgstr ""
+#~ "Felső terület:  Eredeti\n"
+#~ "Alsó terület:  Filament az AMS-ben\n"
+#~ "Rákattintva módosíthatod"
+
+#~ msgid "Printer Preview"
+#~ msgstr "Nyomtató előnézet"
+
+#~ msgid "No Storage"
+#~ msgstr "Nincs tárhely"
+
+#~ msgid "Storage Abnormal"
+#~ msgstr "Tárhely hiba"
+
+#~ msgid ""
+#~ "This file contains several objects positioned at multiple heights.\n"
+#~ "Instead of considering them as multiple objects, should \n"
+#~ "the file be loaded as a single object having multiple parts?"
+#~ msgstr ""
+#~ "Ez a fájl több objektumot is tartalmaz különböző magasságban.\n"
+#~ "Szeretnéd több objektum helyett több részből álló egyetlen objektumként betölteni?"
+
+#~ msgid "Multi-part object detected"
+#~ msgstr "Több részből álló objektum észlelve"
+
+#~ msgid "Don't save"
+#~ msgstr "Ne mentsd"
+
+#~ msgid "Open Wiki for more information >"
+#~ msgstr "Nyisd meg a Wikit további információkért >"
+
+#~ msgid "Obj file Import color"
+#~ msgstr "Obj fájl szín importálása"
+
+#~ msgid "Standard 3mf Import color"
+#~ msgstr "Standard 3mf szín importálása"
+
+#~ msgid "Some faces don't have color defined."
+#~ msgstr "Néhány felületnek nincs definiált színe."
+
+#~ msgid "Please check obj or mtl file."
+#~ msgstr "Kérjük, ellenőrizd az obj vagy mtl fájlt."
+
+#~ msgid "Specify number of colors:"
+#~ msgstr "Add meg a színek számát:"
+
+#~ msgid "Enter or click the adjustment button to modify number again"
+#~ msgstr "Írd be vagy kattints a beállítás gombra a módosításhoz"
+
+#~ msgid "Recommended "
+#~ msgstr "Ajánlott "
+
+#~ msgid "view"
+#~ msgstr "nézet"
+
+#~ msgid "Current filament colors"
+#~ msgstr "Aktuális filamentszínek"
+
+#~ msgid "Matching"
+#~ msgstr "Egyezés"
+
+#~ msgid "Quick set"
+#~ msgstr "Gyors beállítás"
+
+#~ msgid "There are color input errors."
+#~ msgstr "Színbeviteli hiba."
+
+#~ msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+#~ msgstr "A textúra importálása átmenetileg nem érhető el, a részleges színezés automatikusan az alapértelmezett színre cserélődik."
+
+#~ msgid " And "
+#~ msgstr " és "
+
+#~ msgid "Note"
+#~ msgstr "Megjegyzés"
+
+#~ msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+#~ msgstr "A szín kiválasztása megtörtént, az OK gombbal folytathatod vagy beállíthatod kézzel."
+
+#~ msgctxt "ObjImport"
+#~ msgid "Original"
+#~ msgstr "Eredeti"
+
+#~ msgid "After mapping"
+#~ msgstr "Kiosztás után"
+
+#~ msgid "Color match"
+#~ msgstr "Színegyeztetés"
+
+#~ msgid "Approximate color matching."
+#~ msgstr "Hozzávetőleges színegyezés."
+
+#~ msgid "Append"
+#~ msgstr "Hozzáad"
+
+#~ msgid "Append to existing filaments"
+#~ msgstr "Hozzáfűzés a meglévő filamentekhez"
+
+#~ msgid "Reset mapped extruders."
+#~ msgstr "Extruder-kiosztás visszaállítása."
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Original"
+#~ msgstr "Eredeti"
+
+#~ msgid "After overwriting"
+#~ msgstr "Felülírást követően"
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Plate"
+#~ msgstr "Tálca"
+
+#~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
+#~ msgstr "A csatlakoztatott nyomtató nem felel meg a kiválasztott nyomtatónak. Kérjük, változtasd meg a kiválasztott nyomtatót."
+
+#~ msgid "Mapping"
+#~ msgstr "Kiosztás"
+
+#~ msgid "Overwriting"
+#~ msgstr "Felülírás"
+
+#~ msgid "Reset all filament mapping"
+#~ msgstr "Összes filamentkiosztás törlése"
+
+#~ msgid "(Recommended filament)"
+#~ msgstr "(Ajánlott filament)"
+
+#~ msgid "Advanced Options"
+#~ msgstr "Haladó beállítások"
+
+#~ msgid ""
+#~ "Check heatbed flatness. Leveling makes extruded height uniform.\n"
+#~ "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+#~ msgstr ""
+#~ "Ellenőrzi az asztal szintjét. A szintezés egyenletessé teszi az extrudált magasságot.\n"
+#~ "*Automatikus mód: Először szintez (kb. 10 másodperc). Kihagyhatod, ha a felületet megfelelőnek találod."
+
+#~ msgid ""
+#~ "Calibrate nozzle offsets to enhance print quality.\n"
+#~ "*Automatic mode: Check for calibration before printing; skip if unnecessary."
+#~ msgstr ""
+#~ "Kalibrálja a fúvókák közötti eltérést a nyomtatási minőség javítása érdekében.\n"
+#~ "*Automatikus mód: Kalibrálás ellenőrzése a nyomtatás előtt; kihagyás, ha nem szükséges."
+
+#~ msgid "Only synchronize filament type and color, not including AMS slot information."
+#~ msgstr "Csak a filament típusát és színét szinkronizálja, az AMS-helyekre vonatkozó információkat nem."
+
+#~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
+#~ msgstr "A projektben megadott filamentek cseréje a nyomtató filamentjeivel. A nem használt filamentek automatikusan a lista végére kerülnek."
+
+#~ msgid "Add unused AMS filaments to filaments list."
+#~ msgstr "Nem használt AMS-filamentek hozzáadása a listához."
+
+#~ msgid "Automatically merge the same colors in the model after mapping."
+#~ msgstr "Automatikusan egyesíti az azonos színeket a modellben a kiosztás után."
+
+#~ msgid "After being synced, this action cannot be undone."
+#~ msgstr "A szinkronizálás után ez a művelet nem vonható vissza."
+
+#~ msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
+#~ msgstr "A szinkronizálás után a projekt filamentbeállításai és színei a kiosztott filamentek típusaira és színeire cserélődnek. Ez a művelet nem vonható vissza."
+
+#~ msgid "Are you sure to synchronize the filaments?"
+#~ msgstr "Biztos, hogy szinkronizálod a filamenteket?"
+
+#~ msgid "Synchronize now"
+#~ msgstr "Szinkronizálás"
+
+#~ msgid "Synchronize Filament Information"
+#~ msgstr "Filamentinformációk szinkronizálása"
+
+#~ msgid "Add unused filaments to filaments list."
+#~ msgstr "Nem használt filamentek hozzáadása a listához."
+
+#~ msgid "Only synchronize filament type and color, not including slot information."
+#~ msgstr "Csak a filament típusát és színét szinkronizálja, az AMS-helyekre vonatkozó információkat nem."
+
+#~ msgid "Ext spool"
+#~ msgstr "Kül. tekercs"
+
+#, c-format, boost-format
+#~ msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+#~ msgstr "A(z) %s(%s) fúvóka anyagáramlási beállítása nem egyezik a szeletelt fájlban lévővel (%s). Kérjük, ellenőrizd, hogy a beszerelt fúvóka megfelel-e a nyomtató beállításainak, majd szeletelés közben használd a megfelelő nyomtatóbeállítást."
+
+#~ msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
+#~ msgstr "Ellenőrizd, hogy a készülék fúvóka típusa megegyezik-e a beállításokban megadott fúvóka típusával."
+
+#, c-format, boost-format
+#~ msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
+#~ msgstr "A kiválasztott nyomtató (%s) nem kompatibilis a szeletelőben kiválasztott nyomtatóprofillal (%s)."
+
+#~ msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
+#~ msgstr "A timelapse nem támogatott ebben a módban, mert a nyomtatási sorrend „Tárgyanként” értékre van állítva."
+
+#~ msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+#~ msgstr "Külső filament és az AMS használatát is kiválasztottad egy extruderhez, kézzel kell majd kicserélned a filamentet."
+
+#~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+#~ msgstr "Tipp: Kérjük, lépj be az 'Eszköz -> Nyomtató részei' menüpontba a fúvóka beállításának módosításához."
+
+#~ msgid "Continue to sync filaments"
+#~ msgstr "Filamentek szinkronizálása"
+
+#~ msgctxt "Sync_Nozzle_AMS"
+#~ msgid "Cancel"
+#~ msgstr "Mégsem"
+
+#~ msgid "Successfully synchronized color and type of filament from printer."
+#~ msgstr "A nyomtató filamentjei és azok színei sikeresen szinkronizálva."
+
+#~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+#~ msgstr "A bovden típusú extruder nem támogatja a 0,2 mm átmérőjű fúvókát. Csak egyfejes nyomtatással folytathatod a feladatot."
+
+#~ msgid "Decomposition result for this combination"
+#~ msgstr "A kombináció színbontási eredménye"
+
+#~ msgid "Filament Color"
+#~ msgstr "Filamentszín"
+
+#~ msgid "Decomposed Colors"
+#~ msgstr "Felbontott színek"
+
+#~ msgid "Select Color Decomposition"
+#~ msgstr "Színbontás kiválasztása"
+
+#~ msgid "Project Filament"
+#~ msgstr "Projektfilament"
+
+#~ msgid "Material List"
+#~ msgstr "Anyaglista"
+
+#~ msgid "Standard Palette"
+#~ msgstr "Standard paletta"
+
+#~ msgid "At least two filaments of the same material type are required for decomposition"
+#~ msgstr "A lebontáshoz legalább két azonos anyagtípusú filament szükséges"
+
+#~ msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "A célhoz közelebb álló színkeveréket négy alapszínből számítja ki a rendszer: cián, bíbor, sárga és fehér. Jelenleg csak a PLA Basic támogatott. Ha a projektben nincsenek megfelelő filamentek, azok automatikusan hozzáadódnak."
+
+#~ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "A célhoz közelebb álló színkeveréket négy alapszínből számítja ki a rendszer: piros, sárga, kék és fehér. Jelenleg csak a PLA Basic támogatott. Ha a projektben nincsenek megfelelő filamentek, azok automatikusan hozzáadódnak."
+
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "Az anyaglista legfeljebb %1% színt támogat. %2% lebontást követően az anyagmennyiség meghaladná a következőt:%1%. A lebontás előtt törölje a fel nem használt filamenteket a főképernyőn."
+
+#~ msgid "Decompose Color (gradient not supported)"
+#~ msgstr "Színbontás (színátmenet nem támogatott)"
+
+#~ msgid "Decompose Color (transparent not supported)"
+#~ msgstr "Színbontás (az átlátszóság nem támogatott)"
+
+#~ msgid "Decompose Color (multi-color not supported)"
+#~ msgstr "Színbontás (többszínű esetben nem támogatott)"
+
+#~ msgid "Cyan"
+#~ msgstr "Ciánkék"
+
+#~ msgid "Magenta"
+#~ msgstr "Bíbor"
+
+#~ msgid "Yellow"
+#~ msgstr "Sárga"
+
+#~ msgid "The current filament list does not contain "
+#~ msgstr "A jelenlegi filamentlista nem tartalmazza "
+
+#~ msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+#~ msgstr ". A vegyes filament által igényelt projektfilament automatikusan létrejön a lebontás után."
+
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "Csak vegyes színű filament használata esetén ajánlott a jobb réteges színhatás elérése érdekében."
 
@@ -20489,18 +20762,6 @@ msgstr ""
 
 #~ msgid "Printed Part Displacement Detection"
 #~ msgstr "Nyomtatott tárgy elmozdulásának érzékelése"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "A szoftver nem támogatja a különböző átmérőjű fúvókák használatát egy nyomtatáshoz.\n"
-#~ "Ha a bal és jobb oldali fúvókák nem egyeznek, csak egy fejjel lehet nyomtatni.\n"
-#~ "Kérjük, erősítsd meg, hogy melyik fúvókát szeretnéd használni ehhez a projekthez."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Átmérő váltása"
 
 #~ msgid "Do you want to sync the preset printer with the connected printer, "
 #~ msgstr "Szeretnéd szinkronizálni a beállított nyomtatót a csatlakoztatott nyomtatóval? "
@@ -20740,9 +21001,6 @@ msgstr ""
 
 #~ msgid "X-Ray Other Objects"
 #~ msgstr "Egyéb objektumok röntgenezése"
-
-#~ msgid "Exit"
-#~ msgstr "Kilépés"
 
 #~ msgid "Second"
 #~ msgstr "Másodperc"
@@ -21099,9 +21357,6 @@ msgstr ""
 
 #~ msgid "Internal Storage"
 #~ msgstr "Belső tárhely"
-
-#~ msgid "External Storage"
-#~ msgstr "Külső tárhely"
 
 #~ msgid "Modify paramters of right nozzle"
 #~ msgstr "A jobb oldali fúvóka paramétereinek módosítása"
@@ -21507,21 +21762,6 @@ msgstr ""
 
 #~ msgid " Preparing Hotend"
 #~ msgstr " Hotend előkészítése"
-
-#~ msgid "This calibration does not support the currently selected nozzle diameter"
-#~ msgstr "Ezt a kalibrálást nem lehet elvégezni a kiválasztott fúvókaátmérővel"
-
-#~ msgid "Current flowrate cali param is invalid"
-#~ msgstr "Az anyagáramlás kalibrációs paramétere érvénytelen"
-
-#~ msgid "Selected diameter and machine diameter do not match"
-#~ msgstr "A kiválasztott átmérő és a nyomtatóban megadott átmérő nem egyezik"
-
-#~ msgid "Failed to generate cali gcode"
-#~ msgstr "Nem sikerült létrehozni a kalibrációs G-kódot"
-
-#~ msgid "Calibration error"
-#~ msgstr "Kalibrációs hiba"
 
 #~ msgid "Allow Prompt Sound"
 #~ msgstr "Hangjelzés engedélyezése"
@@ -23041,9 +23281,6 @@ msgstr ""
 #~ "Kikapcsolod a túlnyúlásoknál való lassítást?\n"
 #~ "Igen - Engedélyezd az Arachnét és kapcsold ki a lassítást\n"
 #~ "Nem - Ne használd az Arachnét ennél a nyomtatásnál"
-
-#~ msgid "Discard"
-#~ msgstr "Elvetés"
 
 #~ msgid "Discard or Keep changes"
 #~ msgstr "Változások elvetése vagy megtartása"

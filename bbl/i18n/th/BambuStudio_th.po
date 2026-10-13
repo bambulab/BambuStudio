@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 12:37+0800\n"
+"POT-Creation-Date: 2026-10-13 23:32+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -31,6 +31,21 @@ msgstr "เส้นวัสดุอาจไม่เข้ากันกั
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "ไม่รู้จักรุ่นเส้นวัสดุ ระบบจะสุ่มใช้ค่าที่ตั้งไว้ล่วงหน้าของเส้นวัสดุ"
+
+msgid "This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
+msgstr ""
+
+msgid "Calibration error"
+msgstr ""
 
 msgid "Main Extruder"
 msgstr "เอ็กซ์ทรูเดอร์หลัก"
@@ -253,6 +268,78 @@ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wi
 msgstr "%s อาจป้อนเข้าหรือลำเลียงออกล้มเหลว เนื่องจากชุดสับรางเส้นวัสดุ หากคุณต้องการดำเนินการต่อ"
 
 #, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported with a standard %s nozzle."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is only supported for printing with the main extruder."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s ไม่รองรับการใช้งานกับ %s เอ็กซ์ทรูเดอร์"
 
@@ -271,6 +358,15 @@ msgstr "อาจมีปัญหาคุณภาพงานพิมพ์
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "อาจมีปัญหาคุณภาพงานพิมพ์เมื่อพิมพ์ '%s' ด้วยเอ็กซ์ทรูเดอร์ %s โปรดใช้ด้วยความระมัดระวัง"
+
+msgid "The total weight must bigger than remain weight."
+msgstr ""
+
+msgid "Please enter a valid remaining weight from 1g to 10000g."
+msgstr ""
+
+msgid "Please enter a valid total weight from 1g to 10000g."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "ชุดหัวจ่ายและรางชุดหัวพิมพ์อาจมีการเคลื่อนที่ โปรดอย่านำมือเข้าไปในห้องพิมพ์"
@@ -337,6 +433,36 @@ msgstr "ตรวจสอบล้มเหลว"
 
 msgid "Update failed."
 msgstr "อัปเดตล้มเหลว"
+
+msgid "Hotend & Filament"
+msgstr ""
+
+msgid "Lift Hotend Rack"
+msgstr ""
+
+msgid "Recenter Hotend Rack"
+msgstr ""
+
+msgid "Lower Hotend Rack"
+msgstr ""
+
+msgid "Hotend Rack"
+msgstr "ชั้นวางชุดหัวพิมพ์"
+
+msgid "Reading"
+msgstr "กำลังอ่าน"
+
+msgid "Running"
+msgstr ""
+
+msgid "Raised"
+msgstr "ยกขึ้น"
+
+msgid "Lowered"
+msgstr ""
+
+msgid "Centered"
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr "ความชื้น AMS ปัจจุบัน"
@@ -465,14 +591,8 @@ msgstr "กำลังอ่าน "
 msgid "Please wait"
 msgstr "โปรดรอสักครู่"
 
-msgid "Reading"
-msgstr "กำลังอ่าน"
-
 msgid "Running..."
 msgstr "กำลังทำงาน..."
-
-msgid "Raised"
-msgstr "ยกขึ้น"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr "ชุดหัวพิมพ์อยู่ในสถานะผิดปกติและไม่พร้อมใช้งานในขณะนี้ โปรดไปที่ 'อุปกรณ์ -> อัปเกรด' เพื่ออัปเกรดเฟิร์มแวร์"
@@ -505,9 +625,6 @@ msgstr "เวลาที่ใช้: %s"
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "หัวฉีดแบบไดนามิกถูกจัดสรรบนแผ่นฐานปัจจุบัน ไม่รองรับการเลือกชุดหัวพิมพ์"
 
-msgid "Hotend Rack"
-msgstr "ชั้นวางชุดหัวพิมพ์"
-
 msgid "ToolHead"
 msgstr "ชุดหัวจ่าย"
 
@@ -516,6 +633,21 @@ msgstr "ต้องอ่านข้อมูลหัวฉีด"
 
 msgid "Note:"
 msgstr "หมายเหตุ:"
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+msgid "Fan"
+msgstr "พัดลม"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "The embedded webpage could not be loaded."
 msgstr ""
@@ -530,6 +662,9 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
+msgstr ""
+
+msgid "AMS Bridge Debug"
 msgstr ""
 
 msgid "Idling..."
@@ -647,9 +782,6 @@ msgstr ""
 msgid "Refreshing Hotend"
 msgstr ""
 
-msgid "Running"
-msgstr ""
-
 #, boost-format
 msgid "Reading (%1% / %2%)"
 msgstr ""
@@ -660,6 +792,24 @@ msgstr ""
 
 msgid "Please wait..."
 msgstr ""
+
+msgid "Edit Filament"
+msgstr "แก้ไขเส้นวัสดุ"
+
+msgid "Confirm to exit this process?"
+msgstr ""
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
+msgid "Still exit"
+msgstr ""
+
+msgid "Tip"
+msgstr "เคล็ดลับ"
 
 msgid "Empty slot"
 msgstr ""
@@ -715,9 +865,6 @@ msgstr ""
 msgid "No filament information available"
 msgstr ""
 
-msgid "Tip"
-msgstr "เคล็ดลับ"
-
 msgid "Cannot read all while printing or upgrading"
 msgstr ""
 
@@ -740,18 +887,6 @@ msgstr ""
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
 msgstr ""
-
-msgid "Pen"
-msgstr ""
-
-msgid "Cutter"
-msgstr ""
-
-msgid "Laser"
-msgstr ""
-
-msgid "Fan"
-msgstr "พัดลม"
 
 msgid "Hotend Details"
 msgstr ""
@@ -1330,6 +1465,9 @@ msgstr "กำลังซ่อมแซมโมเดลวัตถุ"
 msgid "Connector"
 msgstr "ตัวเชื่อมต่อ"
 
+msgid "Preparing data..."
+msgstr "กำลังเตรียมข้อมูล..."
+
 msgid "Flip cut plane"
 msgstr "พลิกระนาบตัด"
 
@@ -1537,7 +1675,10 @@ msgstr "รูปสามเหลี่ยม %d รูป"
 msgid "Show wireframe"
 msgstr "แสดงโครงร่างเส้น"
 
-msgid "Preserve painted colors"
+msgid "Keep all painting"
+msgstr ""
+
+msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr ""
 
 #, boost-format
@@ -3093,8 +3234,8 @@ msgstr "วัตถุเป้าหมายมีเพียงชิ้น
 msgid "Assembly"
 msgstr "ชิ้นส่วนประกอบ"
 
-msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "การใช้ความหนาต่อชั้นแบบแปรผันร่วมกับชั้นย่อยสีผสม อาจทำให้คุณภาพการผสมสีไม่ดี"
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
@@ -3206,6 +3347,9 @@ msgstr "ไม่รองรับการคัดลอกหลายเซ
 msgid "Outside"
 msgstr "ภายนอก"
 
+msgid "Auto"
+msgstr "อัตโนมัติ"
+
 msgid " "
 msgstr ""
 
@@ -3220,9 +3364,6 @@ msgstr "ความหนาแน่นของโครงสร้างเ
 
 msgid "Auto Brim"
 msgstr "ปีกอัตโนมัติ"
-
-msgid "Auto"
-msgstr "อัตโนมัติ"
 
 msgid "Painted"
 msgstr "ระบายสีแล้ว"
@@ -4217,9 +4358,6 @@ msgstr ""
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
-msgid "Decompose Color"
-msgstr "แยกสี"
-
 msgid "+ Add Filament"
 msgstr "+เพิ่มเส้นวัสดุ"
 
@@ -4287,12 +4425,6 @@ msgstr "เพิ่มเส้นวัสดุทั้งหมดโดย
 msgid "Fix now"
 msgstr "แก้ไขทันที"
 
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "ผสานเส้นวัสดุที่เหมือนกันเข้ากับเส้นวัสดุที่มีอยู่ในโปรเจกต์อัตโนมัติ"
-
-msgid "Automatically merge filaments of the same color and type"
-msgstr "ผสานเส้นวัสดุที่มีสีและชนิดเดียวกันโดยอัตโนมัติ"
-
 msgid "Skip"
 msgstr "ข้าม"
 
@@ -4343,9 +4475,6 @@ msgstr "จำนวนสีต้องไม่เกินจำนวนส
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "จำนวนสีต้องไม่เกินขีดจำกัดของเส้นวัสดุที่ใช้ในโครงการ (%d)"
 
-msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
 msgid "Click to select a matching filament"
 msgstr "คลิกเพื่อเลือกเส้นวัสดุที่ตรงกัน"
 
@@ -4361,6 +4490,12 @@ msgstr ""
 
 #, boost-format
 msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Mixing kits"
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "Kept filaments"
@@ -4380,6 +4515,9 @@ msgid "Prioritize merging similar-color filaments"
 msgstr ""
 
 msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -4668,36 +4806,6 @@ msgstr "%s ไม่รองรับ %s"
 
 msgid "Dynamic flow Calibration"
 msgstr "การปรับเทียบพลศาสตร์การไหล"
-
-msgid "Unmapped"
-msgstr "ไม่ได้จับคู่"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area: The filament from original project will be used when unmapped.\n"
-"And you can click it to modify"
-msgstr ""
-"พื้นที่ครึ่งบน: ต้นฉบับ\n"
-"พื้นที่ครึ่งล่าง: ใช้เส้นวัสดุจากโปรเจกต์ต้นฉบับเมื่อไม่ได้จับคู่\n"
-"คุณสามารถคลิกเพื่อแก้ไขได้"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you can click it to modify"
-msgstr ""
-"พื้นที่ครึ่งบน:  ต้นฉบับ\n"
-"พื้นที่ครึ่งล่าง:  เส้นวัสดุใน AMS\n"
-"คุณสามารถคลิกเพื่อแก้ไขได้"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you cannot click it to modify"
-msgstr ""
-"พื้นที่ครึ่งบน:  ต้นฉบับ\n"
-"พื้นที่ครึ่งล่าง:  เส้นวัสดุใน AMS\n"
-"คุณไม่สามารถคลิกเพื่อแก้ไข"
 
 msgid "AMS Slots"
 msgstr "ช่อง AMS"
@@ -5100,6 +5208,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "อุณหภูมิหัวฉีดที่แนะนำสำหรับเส้นวัสดุประเภทนี้คือ [%d, %d] องศาเซลเซียส"
+
+msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
+msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6239,6 +6350,18 @@ msgstr "คลิกเพื่อยุบ"
 msgid "Overview"
 msgstr "ภาพรวม"
 
+#, boost-format
+msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support ring of %2% overlaps %3%."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support rings of %2% and %3% overlap."
+msgstr ""
+
 msgid "Select Plate"
 msgstr "เลือกแผ่นฐาน"
 
@@ -6492,8 +6615,20 @@ msgstr "ลองโหลดมุมมองสดอีกครั้ง"
 msgid "Resolution"
 msgstr "ความละเอียด"
 
+msgid "External Storage"
+msgstr ""
+
 msgid "Show \"Live Video\" guide page."
 msgstr "แสดงหน้าคู่มือ \"วิดีโอสด\""
+
+msgid "Not Installed"
+msgstr ""
+
+msgid "Abnormal"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "เชื่อมต่อเครื่องพิมพ์ (LAN)"
@@ -6571,6 +6706,12 @@ msgstr "จะถูกปิดก่อนสร้างโมเดลให
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "หน้าปัจจุบันมีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก คุณสามารถแก้ไขต่อ หรือเลือกที่จะบันทึก/ละทิ้งก่อนออกจากหน้านี้ได้"
+
+msgid "Discard"
+msgstr ""
+
+msgid "Stay on this page"
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "ปลดล็อกงานพิมพ์ที่เร็วขึ้น เสถียรขึ้น และไร้การบิดงอด้วย Helio Additive"
@@ -7175,8 +7316,12 @@ msgstr "ข้อมูล"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "ฟีเจอร์ไลฟ์สตรีมต้องใช้ Bambu Studio และการสตรีมจะสิ้นสุดลงหลังจากปิดแอปไปแล้วสักครู่"
 
-msgid "Printer Preview"
-msgstr "แสดงตัวอย่างก่อนพิมพ์"
+msgid "Not live"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Captured at %s"
+msgstr ""
 
 msgid "Playing..."
 msgstr "กำลังเล่น..."
@@ -7549,9 +7694,6 @@ msgstr "ใกล้เสร็จสมบูรณ์แล้ว"
 msgid "Camera"
 msgstr "กล้อง"
 
-msgid "Storage"
-msgstr "พื้นที่เก็บข้อมูล"
-
 msgid "Camera Setting"
 msgstr "การตั้งค่ากล้อง"
 
@@ -7570,9 +7712,6 @@ msgstr "ตัวเลือกความปลอดภัย"
 msgid "Hotends"
 msgstr "ชุดหัวพิมพ์"
 
-msgid "Unclamped"
-msgstr ""
-
 msgid "100%"
 msgstr ""
 
@@ -7585,11 +7724,20 @@ msgstr "ฐานพิมพ์"
 msgid "Filament loading..."
 msgstr "กำลังป้อนเส้นวัสดุ..."
 
-msgid "No Storage"
-msgstr "ไม่มีพื้นที่จัดเก็บข้อมูล"
+msgid "Live Camera Recording in progress"
+msgstr ""
 
-msgid "Storage Abnormal"
-msgstr "พื้นที่จัดเก็บข้อมูลผิดปกติ"
+msgid "Visual Enhancement Camera Recording in progress"
+msgstr ""
+
+msgid "Recording in progress"
+msgstr ""
+
+msgid "Timelapse in progress"
+msgstr ""
+
+msgid "Go Live in progress"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "ยกเลิกการพิมพ์"
@@ -7798,6 +7946,12 @@ msgstr ""
 "จำเป็นต้องมีบันทึกการพิมพ์ที่สำเร็จอย่างน้อยหนึ่งรายการสำหรับโปรไฟล์การพิมพ์นี้\n"
 "เพื่อที่จะให้คะแนนในเชิงบวก (4 หรือ 5 ดาว)"
 
+msgid "This device is performing the following operations"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "พารามิเตอร์การนำเข้าไฟล์ Step"
 
@@ -7833,6 +7987,9 @@ msgstr "ไม่ต้องแสดงอีก"
 
 msgid "Calculating, please wait..."
 msgstr "กำลังคำนวณ โปรดรอ..."
+
+msgid "Storage"
+msgstr "พื้นที่เก็บข้อมูล"
 
 msgid "Status"
 msgstr "สถานะ"
@@ -8015,6 +8172,9 @@ msgstr "เสร็จสมบูรณ์"
 msgid "Cancel upload"
 msgstr "ยกเลิกการอัปโหลด"
 
+msgid "Serious warning:"
+msgstr "คำเตือนร้ายแรง:"
+
 msgid "Jump to"
 msgstr "ข้ามไปยัง"
 
@@ -8041,9 +8201,6 @@ msgstr "ส่งออกเรียบร้อย"
 
 msgid "Model file downloaded."
 msgstr "ดาวน์โหลดไฟล์โมเดลแล้ว"
-
-msgid "Serious warning:"
-msgstr "คำเตือนร้ายแรง:"
 
 msgid " Click here to install it."
 msgstr " คลิกที่นี่เพื่อติดตั้ง"
@@ -8989,6 +9146,15 @@ msgstr ""
 msgid "Not installed"
 msgstr "ยังไม่ได้ติดตั้ง"
 
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+
+msgid "Switch diameter"
+msgstr ""
+
 msgid "Sync printer information"
 msgstr "ซิงค์ข้อมูลเครื่องพิมพ์"
 
@@ -9056,16 +9222,11 @@ msgstr "ค้นหาแผ่นฐาน วัตถุ และชิ้�
 msgid "Change nozzle diameter"
 msgstr ""
 
-msgid "This filament does not support printing with the current nozzle."
+msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
-msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
-msgstr ""
-
-msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
-msgstr ""
-
-msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
+#, c-format, boost-format
+msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -9094,7 +9255,11 @@ msgid "After completing your operation, %s project will be closed and create a n
 msgstr "หลังจากดำเนินการเสร็จสิ้น โปรเจกต์ %s จะปิดลงและสร้างโปรเจกต์ใหม่"
 
 #, c-format, boost-format
-msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgid "filament slot %d %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
 msgid ""
@@ -9148,11 +9313,23 @@ msgid "Please fix the marked mixed filaments in the left filament list."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
 msgid "Add a new preset"
@@ -9235,6 +9412,12 @@ msgstr "พบค่าที่ไม่ถูกต้องใน 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "โปรดแก้ไขในแท็บพารามิเตอร์"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "3mf มี G-code ที่แก้ไขดังต่อไปนี้ในค่าที่ตั้งไว้ล่วงหน้าของเส้นวัสดุหรือเครื่องพิมพ์:"
 
@@ -9274,18 +9457,6 @@ msgstr "ลบวัตถุที่มีปริมาตรเป็นศ
 
 msgid "The volume of the object is zero"
 msgstr "ปริมาตรของวัตถุเป็นศูนย์"
-
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
-"Instead of considering them as multiple objects, should \n"
-"the file be loaded as a single object having multiple parts?"
-msgstr ""
-"ไฟล์นี้มีวัตถุหลายชิ้นวางอยู่ที่ความสูงต่างกัน\n"
-"คุณต้องการโหลดไฟล์นี้เป็นวัตถุเดียวที่มีหลายชิ้นส่วน\n"
-"แทนที่จะแยกเป็นวัตถุหลายชิ้นส่วนหรือไม่?"
-
-msgid "Multi-part object detected"
-msgstr "ตรวจพบวัตถุหลายชิ้นส่วน"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -10564,6 +10735,9 @@ msgstr "ค่าที่ตั้งไว้ล่วงหน้าที่
 msgid "My Printer"
 msgstr "เครื่องพิมพ์ของฉัน"
 
+msgid "This filament is not compatible with the nozzle it is loaded on"
+msgstr ""
+
 msgid "To select this filament, change the nozzle settings first."
 msgstr ""
 
@@ -11082,6 +11256,15 @@ msgstr ""
 "พื้นที่ครึ่งล่าง: หัวฉีดที่เลือก\n"
 "และคุณคลิกเพื่อแก้ไขได้"
 
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you can click it to modify"
+msgstr ""
+"พื้นที่ครึ่งบน:  ต้นฉบับ\n"
+"พื้นที่ครึ่งล่าง:  เส้นวัสดุใน AMS\n"
+"คุณสามารถคลิกเพื่อแก้ไขได้"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "ไม่สามารถจับคู่เส้นวัสดุที่เหมาะสมได้โดยอัตโนมัติ โปรดคลิกเพื่อจับคู่ด้วยตนเอง"
 
@@ -11481,6 +11664,9 @@ msgstr "คลิกเพื่อเรียนรู้เพิ่มเต
 msgid "Click to reset all settings to the last saved preset."
 msgstr "คลิกเพื่อรีเซ็ตการตั้งค่าทั้งหมดกลับเป็นค่าที่ตั้งไว้ล่วงหน้าที่บันทึกไว้ล่าสุด"
 
+msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "จำเป็นต้องใช้ทาวเวอร์สลับสีในการเปลี่ยนหัวฉีด หากไม่มีทาวเวอร์สลับสีอาจเกิดข้อบกพร่องบนโมเดลได้ คุณแน่ใจหรือไม่ที่จะปิดใช้งานทาวเวอร์สลับสี?"
 
@@ -11633,6 +11819,9 @@ msgstr "ความเร่ง"
 
 msgid "Jerk(XY)"
 msgstr "ความเร็วเปลี่ยนทิศ (XY)"
+
+msgid "Support ring"
+msgstr ""
 
 msgid "Raft"
 msgstr "ฐานรองรับ"
@@ -12052,9 +12241,6 @@ msgstr "ค่าที่แก้ไข (ใหม่)"
 msgid "Discard Modified Value"
 msgstr "ละทิ้งค่าที่แก้ไข"
 
-msgid "Don't save"
-msgstr "ไม่บันทึก"
-
 msgid "Use Modified Value"
 msgstr "ใช้ค่าที่แก้ไข"
 
@@ -12243,210 +12429,6 @@ msgstr "ไม่มีการอัปเดตพร้อมใช้งา
 
 msgid "The configuration is up to date."
 msgstr "การกำหนดค่าเป็นปัจจุบันแล้ว"
-
-msgid "Open Wiki for more information >"
-msgstr "เปิด Wiki สำหรับข้อมูลเพิ่มเติม >"
-
-msgid "Obj file Import color"
-msgstr "นำเข้าสีจากไฟล์ Obj"
-
-msgid "Standard 3mf Import color"
-msgstr "สีนำเข้า 3mf มาตรฐาน"
-
-msgid "Some faces don't have color defined."
-msgstr "บางหน้าไม่ได้กำหนดสีไว้"
-
-msgid "mtl file exist error,could not find the material:"
-msgstr "เกิดข้อผิดพลาดกับไฟล์ MTL ไม่พบข้อมูลวัสดุ:"
-
-msgid "Please check obj or mtl file."
-msgstr "โปรดตรวจสอบไฟล์ obj หรือ mtl"
-
-msgid "Specify number of colors:"
-msgstr "ระบุจำนวนสี:"
-
-msgid "Enter or click the adjustment button to modify number again"
-msgstr "ป้อนหรือคลิกปุ่มปรับเพื่อแก้ไขตัวเลขอีกครั้ง"
-
-msgid "Recommended "
-msgstr "ข้อแนะนำ "
-
-msgid "view"
-msgstr "ดู"
-
-msgid "Current filament colors"
-msgstr "สีเส้นวัสดุปัจจุบัน"
-
-msgid "Matching"
-msgstr "การจับคู่"
-
-msgid "Quick set"
-msgstr "ตั้งค่าด่วน"
-
-msgid "There are color input errors."
-msgstr "เกิดข้อผิดพลาดในการป้อนสี"
-
-msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr "การนำเข้าลวดลายไม่พร้อมใช้งานชั่วคราว การลงสีบางส่วนจะถูกแทนที่ด้วยสีเริ่มต้นโดยอัตโนมัติ"
-
-msgid " And "
-msgstr " และ "
-
-msgid "Note"
-msgstr "หมายเหตุ"
-
-msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr "เลือกสีเรียบร้อยแล้ว คุณสามารถเลือกตกลงเพื่อดำเนินการต่อ หรือปรับแต่งด้วยตนเอง"
-
-msgctxt "ObjImport"
-msgid "Original"
-msgstr "ต้นฉบับ"
-
-msgid "After mapping"
-msgstr "หลังจับคู่"
-
-msgid "Color match"
-msgstr "จับคู่สี"
-
-msgid "Approximate color matching."
-msgstr "การจับคู่สีโดยประมาณ"
-
-msgid "Append"
-msgstr "เพิ่มต่อท้าย"
-
-msgid "Append to existing filaments"
-msgstr "เพิ่มต่อท้ายเส้นวัสดุที่มีอยู่"
-
-msgid "Reset mapped extruders."
-msgstr "รีเซ็ตเอ็กซ์ทรูเดอร์ที่จับคู่ไว้"
-
-msgid "—> "
-msgstr "-> "
-
-msgctxt "Sync_AMS"
-msgid "Original"
-msgstr "ต้นฉบับ"
-
-msgid "After overwriting"
-msgstr "หลังเขียนทับ"
-
-msgctxt "Sync_AMS"
-msgid "Plate"
-msgstr "แผ่นฐาน"
-
-msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
-msgstr "เครื่องพิมพ์ที่เชื่อมต่อไม่ตรงกับเครื่องพิมพ์ที่เลือกในปัจจุบัน โปรดเปลี่ยนเครื่องพิมพ์ที่เลือก"
-
-msgid "Mapping"
-msgstr "การจับคู่"
-
-msgid "Overwriting"
-msgstr "การเขียนทับ"
-
-msgid "Reset all filament mapping"
-msgstr "รีเซ็ตการจับคู่เส้นวัสดุทั้งหมด"
-
-msgid "(Recommended filament)"
-msgstr "(เส้นวัสดุที่แนะนำ)"
-
-msgid "Advanced Options"
-msgstr "ตัวเลือกขั้นสูง"
-
-msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
-msgstr ""
-"ตรวจสอบความเรียบของฐานความร้อน การชดเชยระดับจะช่วยให้ความสูงสม่ำเสมอ\n"
-"*โหมดอัตโนมัติ: ชดเชยระดับก่อน (ประมาณ 10 วินาที) และจะข้ามขั้นตอนนี้หากพื้นผิวปกติ"
-
-msgid ""
-"Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
-msgstr ""
-"ปรับเทียบระยะห่างหัวฉีดเพื่อปรับปรุงคุณภาพงานพิมพ์\n"
-"*โหมดอัตโนมัติ: ตรวจสอบการปรับเทียบก่อนพิมพ์ ข้ามไปได้หากไม่จำเป็น"
-
-msgid "Use AMS"
-msgstr "ใช้ AMS"
-
-msgid "Only synchronize filament type and color, not including AMS slot information."
-msgstr "ซิงโครไนซ์เฉพาะประเภทและสีของเส้นวัสดุ ไม่รวมข้อมูลช่อง AMS"
-
-msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr "แทนที่รายการเส้นวัสดุของโปรเจกต์ตามลำดับจากเส้นวัสดุของเครื่องพิมพ์ และเส้นวัสดุเครื่องพิมพ์ที่ไม่ได้ใช้จะถูกเพิ่มต่อท้ายรายการโดยอัตโนมัติ"
-
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Add unused AMS filaments to filaments list."
-msgstr "เพิ่มเส้นวัสดุ AMS ที่ไม่ได้ใช้ไปยังรายการเส้นวัสดุ"
-
-msgid "Automatically merge the same colors in the model after mapping."
-msgstr "ผสานสีเดียวกันในโมเดลโดยอัตโนมัติหลังจับคู่"
-
-msgid "After being synced, this action cannot be undone."
-msgstr "หลังจากการซิงค์แล้ว การดำเนินการนี้จะย้อนกลับไม่ได้"
-
-msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
-msgstr "หลังซิงค์ ค่าที่ตั้งไว้ล่วงหน้าและสีของเส้นวัสดุในโปรเจกต์จะแทนที่ด้วยประเภทและสีของเส้นวัสดุที่จับคู่ไว้ การดำเนินการนี้ย้อนกลับไม่ได้"
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "คุณแน่ใจหรือไม่ที่จะซิงโครไนซ์เส้นวัสดุ?"
-
-msgid "Synchronize now"
-msgstr "ซิงโครไนซ์ตอนนี้"
-
-msgid "Synchronize Filament Information"
-msgstr "ซิงโครไนซ์ข้อมูลเส้นวัสดุ"
-
-msgid "Add unused filaments to filaments list."
-msgstr "เพิ่มเส้นวัสดุที่ไม่ได้ใช้ไปยังรายการเส้นวัสดุ"
-
-msgid "Only synchronize filament type and color, not including slot information."
-msgstr "ซิงโครไนซ์เฉพาะประเภทและสีของเส้นวัสดุ ไม่รวมข้อมูลช่อง"
-
-msgid "Ext spool"
-msgstr "ม้วนวัสดุจากภายนอก"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "การตั้งค่าการไหลของหัวฉีดของ %s(%s) ไม่ตรงกับไฟล์ตัดแบ่ง (%s) โปรดตรวจสอบให้แน่ใจว่าหัวฉีดที่ติดตั้งตรงกับการตั้งค่าในเครื่องพิมพ์ จากนั้นตั้งค่าที่ตั้งไว้ล่วงหน้าของเครื่องพิมพ์ที่เกี่ยวข้องขณะตัดแบ่ง"
-
-msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
-msgstr "โปรดตรวจสอบว่าชนิดหัวฉีดของอุปกรณ์ตรงกับประเภทหัวฉีดที่ตั้งค่าไว้ล่วงหน้าหรือไม่"
-
-#, c-format, boost-format
-msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "เครื่องพิมพ์ที่เลือก (%s) ไม่รองรับโปรไฟล์เครื่องพิมพ์ที่เลือกในตัวตัดแบ่ง (%s)"
-
-msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "ไม่รองรับการพิมพ์แบบไทม์แลปส์ เนื่องจากลำดับการพิมพ์ถูกตั้งค่าเป็น \"ตามวัตถุ\""
-
-msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr "คุณเลือกเส้นวัสดุจากภายนอกและเส้นวัสดุ AMS พร้อมกันในเอ็กซ์ทรูเดอร์เครื่องเดียว คุณจะต้องเปลี่ยนเส้นวัสดุจากภายนอกด้วยตนเอง"
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "เคล็ดลับ: หากคุณเพิ่งเปลี่ยนหัวฉีดของเครื่องพิมพ์ โปรดไปที่ 'อุปกรณ์ -> ชิ้นส่วนเครื่องพิมพ์' เพื่อเปลี่ยนการตั้งค่าหัวฉีด"
-
-msgid "Successfully synchronized Printer information."
-msgstr ""
-
-msgid "Continue to sync filaments"
-msgstr "ซิงค์เส้นวัสดุต่อ"
-
-msgctxt "Sync_Nozzle_AMS"
-msgid "Cancel"
-msgstr "ยกเลิก"
-
-msgid "Successfully synchronized color and type of filament from printer."
-msgstr "ซิงโครไนซ์สีและประเภทของเส้นวัสดุจากเครื่องพิมพ์สำเร็จ"
-
-msgctxt "FinishSyncAms"
-msgid "OK"
-msgstr "ตกลง"
-
-msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr "เอ็กซ์ทรูเดอร์ Bowden ไม่รองรับหัวฉีดเส้นผ่านศูนย์กลาง 0.2 มม. เราจะพิมพ์ด้วยหัวพิมพ์เดียวเท่านั้น"
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "สตูดิโอจะคำนวณปริมาณการไล่เส้นใหม่ทุกครั้งที่สีหรือเส้นวัสดุเปลี่ยนแปลง คุณสามารถปิดการคำนวณอัตโนมัติได้ที่ Bambu Studio > การตั้งค่าส่วนบุคคล"
@@ -13846,10 +13828,13 @@ msgstr "โหมดแจกันเกลียวไม่สามารถ
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "ไม่รองรับความหนาต่อชั้นแบบแปรผันเมื่อใช้โครงสร้างรองรับแบบออร์แกนิก"
 
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr ""
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
@@ -13897,11 +13882,11 @@ msgstr ""
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "ทาวเวอร์สลับสีต้องกำหนดให้วัตถุทั้งหมดถูกตัดแบ่งด้วยความหนาต่อชั้นเท่ากัน"
 
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "ทาวเวอร์สลับสีรองรับเฉพาะในกรณีที่วัตถุทั้งหมดมีความหนาต่อชั้นแบบแปรผันเท่ากัน"
-
 msgid "The support ring is only supported if all objects have the same variable layer height"
 msgstr ""
+
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "ทาวเวอร์สลับสีรองรับเฉพาะในกรณีที่วัตถุทั้งหมดมีความหนาต่อชั้นแบบแปรผันเท่ากัน"
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "การกำหนดความสูง Z ที่แม่นยำจะทำให้โมเดลมีระดับความสูงเลเยอร์ที่แตกต่างกัน ซึ่งอาจทำให้ขนาดของไพรม์ทาวเวอร์เพิ่มขึ้นอย่างมาก"
@@ -16870,10 +16855,10 @@ msgstr ""
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
 msgstr ""
 
-msgid "Support ring notch width"
+msgid "Support ring angle"
 msgstr ""
 
-msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
 msgstr ""
 
 msgid "Support ring skip points"
@@ -18136,6 +18121,15 @@ msgstr "- โหมดวัตถุ: โปรดเลือกวัตถ�
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- โหมดชิ้นส่วน: โปรดเลือกวัตถุหนึ่งชิ้นที่มีอย่างน้อยสองเมช"
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "Computing..."
+msgstr "กำลังประมวลผล..."
+
+msgid "Applying result.."
+msgstr "กำลังปรับใช้ผลลัพธ์..."
+
 msgid "Union"
 msgstr "รวม"
 
@@ -18162,15 +18156,6 @@ msgstr "ดำเนินการบูลีนกับเอนทิตี
 
 msgid "This object contains non-part components."
 msgstr "วัตถุนี้มีส่วนประกอบที่ไม่ใช่ชิ้นส่วน"
-
-msgid "Preparing data..."
-msgstr "กำลังเตรียมข้อมูล..."
-
-msgid "Computing..."
-msgstr "กำลังประมวลผล..."
-
-msgid "Applying result.."
-msgstr "กำลังปรับใช้ผลลัพธ์..."
 
 msgid "Network Test"
 msgstr "ทดสอบเครือข่าย"
@@ -18608,9 +18593,6 @@ msgstr "โปรดเลือกประเภทที่คุณต้อ
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "สร้างโฟลเดอร์ชั่วคราวล้มเหลว โปรดลองส่งออกการกำหนดค่าอีกครั้ง"
-
-msgid "Edit Filament"
-msgstr "แก้ไขเส้นวัสดุ"
 
 msgid "Filament presets under this filament"
 msgstr "ค่าที่ตั้งไว้ล่วงหน้าของเส้นวัสดุภายใต้เส้นวัสดุนี้"
@@ -19177,6 +19159,9 @@ msgstr "จำนวนเครื่องพิมพ์ที่ใช้ง
 
 msgid "Use External Spool"
 msgstr "ใช้ม้วนวัสดุจากภายนอก"
+
+msgid "Use AMS"
+msgstr "ใช้ AMS"
 
 msgid "Select Printers"
 msgstr "เลือกเครื่องพิมพ์"
@@ -19829,6 +19814,12 @@ msgstr "แก้ไขเส้นวัสดุผสม"
 msgid "Effect Preview"
 msgstr "ตัวอย่างแสดงผล"
 
+msgid "Target"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
 msgid "Select Mixed Materials"
 msgstr "เลือกวัสดุผสม"
 
@@ -19866,6 +19857,9 @@ msgstr "ผสมไม่ได้ โปรดเลือกเส้นว�
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr ""
 
+msgid "No mix is available for the target color"
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "โปรดเลือกเส้นวัสดุสำหรับส่วนประกอบทั้งหมด"
 
@@ -19878,73 +19872,49 @@ msgstr "ถึงจำนวนส่วนประกอบสูงสุด
 msgid "Remove the third material"
 msgstr "ลบวัสดุชนิดที่สามออก"
 
+msgid "Manual Mixing"
+msgstr ""
+
+msgid "Color Matching"
+msgstr ""
+
+msgid "Select Target Color"
+msgstr ""
+
+msgid "Match Result"
+msgstr ""
+
+msgid "Discard changes and match again"
+msgstr ""
+
+msgid "Replace the target color on models with the mixed result"
+msgstr ""
+
+msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
+msgstr ""
+
 #, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
+msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
-msgid "Decomposition result for this combination"
-msgstr "ผลลัพธ์การแยกสีสำหรับชุดค่าผสมนี้"
-
-msgid "Filament Color"
-msgstr "สีของเส้นวัสดุ"
-
-msgid "Decomposed Colors"
-msgstr "สีที่ถูกแยกออก"
-
-msgid "Select Color Decomposition"
-msgstr "เลือกการแยกสี"
-
-msgid "Project Filament"
-msgstr "เส้นวัสดุในโปรเจกต์"
-
-msgid "Material List"
-msgstr "รายการวัสดุ"
-
-msgid "Standard Palette"
-msgstr "พาเลทมาตรฐาน"
-
-msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "ต้องมีเส้นวัสดุประเภทเดียวกันอย่างน้อยสองเส้นสำหรับการแยก"
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "การผสมสีที่ใกล้เคียงยิ่งขึ้นจะคำนวณจากสีพื้นฐานสี่สี ได้แก่ Cyan (ฟ้า), Magenta (ม่วงแดง), Yellow (เหลือง) และ White (ขาว) ขณะนี้รองรับเฉพาะ PLA Basic เท่านั้น หากไม่มีเส้นวัสดุที่ตรงกันในโปรเจกต์ ระบบจะเพิ่มเส้นวัสดุเหล่านั้นให้โดยอัตโนมัติ"
-
-msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgid "There is no other filament of the same type as the target color in the project."
 msgstr ""
 
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "การผสมสีที่ใกล้เคียงยิ่งขึ้นจะคำนวณจากสีพื้นฐานสี่สี ได้แก่ Red (แดง), Yellow (เหลือง), Blue (น้ำเงิน) และ White (ขาว) ขณะนี้รองรับเฉพาะ PLA Basic เท่านั้น หากไม่มีเส้นวัสดุที่ตรงกันในโปรเจกต์ ระบบจะเพิ่มเส้นวัสดุเหล่านั้นให้โดยอัตโนมัติ"
+msgid "At least two other filaments of the same type as the target color are required."
+msgstr ""
+
+msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+msgstr ""
+
+msgid "No available mixing recipe was found."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
 
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "รายการวัสดุรองรับได้สูงสุด %1% สี หลังจากแยก %2% แล้ว จำนวนวัสดุจะเกิน %1% โปรดลบเส้นวัสดุที่ไม่ได้ใช้งานบนหน้าจอหลักก่อนแยก"
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "แยกองค์ประกอบสี (ไม่รองรับการไล่ระดับสี)"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "แยกองค์ประกอบสี (ไม่รองรับวัสดุโปร่งแสง)"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "แยกองค์ประกอบสี (ไม่รองรับหลากสี)"
-
-msgid "Cyan"
-msgstr "สีฟ้าอมเขียว"
-
-msgid "Magenta"
-msgstr "สีม่วงแดง"
-
-msgid "Yellow"
-msgstr "เหลือง"
-
-msgid ", "
+msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
 msgstr ""
-
-msgid "The current filament list does not contain "
-msgstr "รายการเส้นวัสดุปัจจุบันไม่มี "
-
-msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr " ระบบจะสร้างเส้นวัสดุของโปรเจกต์ที่จำเป็นสำหรับเส้นวัสดุผสมโดยอัตโนมัติหลังจากแยกสีเสร็จสิ้น"
 
 msgid "Material Ratio"
 msgstr "อัตราส่วนวัสดุ"
@@ -20280,6 +20250,316 @@ msgid ""
 msgstr ""
 "ความน่าเชื่อถือแบบสำเร็จตั้งแต่ครั้งแรก\n"
 "ไม่ต้องคอยเฝ้า ได้ผลลัพธ์ที่คาดเดาได้มากขึ้น ตัวอย่าง: ฟาร์มพิมพ์ขนาดเล็กที่ผลิตชิ้นส่วน PETG สามารถหลีกเลี่ยงปัญหา 'งานเสียในชั่วโมงที่ 6' และส่งมอบงานได้ตรงตามกำหนด"
+
+#~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+#~ msgstr "การใช้ความหนาต่อชั้นแบบแปรผันร่วมกับชั้นย่อยสีผสม อาจทำให้คุณภาพการผสมสีไม่ดี"
+
+#~ msgid "Decompose Color"
+#~ msgstr "แยกสี"
+
+#~ msgid "Automatically merge identical filaments into existing filaments in the project"
+#~ msgstr "ผสานเส้นวัสดุที่เหมือนกันเข้ากับเส้นวัสดุที่มีอยู่ในโปรเจกต์อัตโนมัติ"
+
+#~ msgid "Automatically merge filaments of the same color and type"
+#~ msgstr "ผสานเส้นวัสดุที่มีสีและชนิดเดียวกันโดยอัตโนมัติ"
+
+#~ msgid "Unmapped"
+#~ msgstr "ไม่ได้จับคู่"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area: The filament from original project will be used when unmapped.\n"
+#~ "And you can click it to modify"
+#~ msgstr ""
+#~ "พื้นที่ครึ่งบน: ต้นฉบับ\n"
+#~ "พื้นที่ครึ่งล่าง: ใช้เส้นวัสดุจากโปรเจกต์ต้นฉบับเมื่อไม่ได้จับคู่\n"
+#~ "คุณสามารถคลิกเพื่อแก้ไขได้"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area:  Filament in AMS\n"
+#~ "And you cannot click it to modify"
+#~ msgstr ""
+#~ "พื้นที่ครึ่งบน:  ต้นฉบับ\n"
+#~ "พื้นที่ครึ่งล่าง:  เส้นวัสดุใน AMS\n"
+#~ "คุณไม่สามารถคลิกเพื่อแก้ไข"
+
+#~ msgid "Printer Preview"
+#~ msgstr "แสดงตัวอย่างก่อนพิมพ์"
+
+#~ msgid "No Storage"
+#~ msgstr "ไม่มีพื้นที่จัดเก็บข้อมูล"
+
+#~ msgid "Storage Abnormal"
+#~ msgstr "พื้นที่จัดเก็บข้อมูลผิดปกติ"
+
+#~ msgid ""
+#~ "This file contains several objects positioned at multiple heights.\n"
+#~ "Instead of considering them as multiple objects, should \n"
+#~ "the file be loaded as a single object having multiple parts?"
+#~ msgstr ""
+#~ "ไฟล์นี้มีวัตถุหลายชิ้นวางอยู่ที่ความสูงต่างกัน\n"
+#~ "คุณต้องการโหลดไฟล์นี้เป็นวัตถุเดียวที่มีหลายชิ้นส่วน\n"
+#~ "แทนที่จะแยกเป็นวัตถุหลายชิ้นส่วนหรือไม่?"
+
+#~ msgid "Multi-part object detected"
+#~ msgstr "ตรวจพบวัตถุหลายชิ้นส่วน"
+
+#~ msgid "Don't save"
+#~ msgstr "ไม่บันทึก"
+
+#~ msgid "Open Wiki for more information >"
+#~ msgstr "เปิด Wiki สำหรับข้อมูลเพิ่มเติม >"
+
+#~ msgid "Obj file Import color"
+#~ msgstr "นำเข้าสีจากไฟล์ Obj"
+
+#~ msgid "Standard 3mf Import color"
+#~ msgstr "สีนำเข้า 3mf มาตรฐาน"
+
+#~ msgid "Some faces don't have color defined."
+#~ msgstr "บางหน้าไม่ได้กำหนดสีไว้"
+
+#~ msgid "mtl file exist error,could not find the material:"
+#~ msgstr "เกิดข้อผิดพลาดกับไฟล์ MTL ไม่พบข้อมูลวัสดุ:"
+
+#~ msgid "Please check obj or mtl file."
+#~ msgstr "โปรดตรวจสอบไฟล์ obj หรือ mtl"
+
+#~ msgid "Specify number of colors:"
+#~ msgstr "ระบุจำนวนสี:"
+
+#~ msgid "Enter or click the adjustment button to modify number again"
+#~ msgstr "ป้อนหรือคลิกปุ่มปรับเพื่อแก้ไขตัวเลขอีกครั้ง"
+
+#~ msgid "Recommended "
+#~ msgstr "ข้อแนะนำ "
+
+#~ msgid "view"
+#~ msgstr "ดู"
+
+#~ msgid "Current filament colors"
+#~ msgstr "สีเส้นวัสดุปัจจุบัน"
+
+#~ msgid "Matching"
+#~ msgstr "การจับคู่"
+
+#~ msgid "Quick set"
+#~ msgstr "ตั้งค่าด่วน"
+
+#~ msgid "There are color input errors."
+#~ msgstr "เกิดข้อผิดพลาดในการป้อนสี"
+
+#~ msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+#~ msgstr "การนำเข้าลวดลายไม่พร้อมใช้งานชั่วคราว การลงสีบางส่วนจะถูกแทนที่ด้วยสีเริ่มต้นโดยอัตโนมัติ"
+
+#~ msgid " And "
+#~ msgstr " และ "
+
+#~ msgid "Note"
+#~ msgstr "หมายเหตุ"
+
+#~ msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+#~ msgstr "เลือกสีเรียบร้อยแล้ว คุณสามารถเลือกตกลงเพื่อดำเนินการต่อ หรือปรับแต่งด้วยตนเอง"
+
+#~ msgctxt "ObjImport"
+#~ msgid "Original"
+#~ msgstr "ต้นฉบับ"
+
+#~ msgid "After mapping"
+#~ msgstr "หลังจับคู่"
+
+#~ msgid "Color match"
+#~ msgstr "จับคู่สี"
+
+#~ msgid "Approximate color matching."
+#~ msgstr "การจับคู่สีโดยประมาณ"
+
+#~ msgid "Append"
+#~ msgstr "เพิ่มต่อท้าย"
+
+#~ msgid "Append to existing filaments"
+#~ msgstr "เพิ่มต่อท้ายเส้นวัสดุที่มีอยู่"
+
+#~ msgid "Reset mapped extruders."
+#~ msgstr "รีเซ็ตเอ็กซ์ทรูเดอร์ที่จับคู่ไว้"
+
+#~ msgid "—> "
+#~ msgstr "-> "
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Original"
+#~ msgstr "ต้นฉบับ"
+
+#~ msgid "After overwriting"
+#~ msgstr "หลังเขียนทับ"
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Plate"
+#~ msgstr "แผ่นฐาน"
+
+#~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
+#~ msgstr "เครื่องพิมพ์ที่เชื่อมต่อไม่ตรงกับเครื่องพิมพ์ที่เลือกในปัจจุบัน โปรดเปลี่ยนเครื่องพิมพ์ที่เลือก"
+
+#~ msgid "Mapping"
+#~ msgstr "การจับคู่"
+
+#~ msgid "Overwriting"
+#~ msgstr "การเขียนทับ"
+
+#~ msgid "Reset all filament mapping"
+#~ msgstr "รีเซ็ตการจับคู่เส้นวัสดุทั้งหมด"
+
+#~ msgid "(Recommended filament)"
+#~ msgstr "(เส้นวัสดุที่แนะนำ)"
+
+#~ msgid "Advanced Options"
+#~ msgstr "ตัวเลือกขั้นสูง"
+
+#~ msgid ""
+#~ "Check heatbed flatness. Leveling makes extruded height uniform.\n"
+#~ "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+#~ msgstr ""
+#~ "ตรวจสอบความเรียบของฐานความร้อน การชดเชยระดับจะช่วยให้ความสูงสม่ำเสมอ\n"
+#~ "*โหมดอัตโนมัติ: ชดเชยระดับก่อน (ประมาณ 10 วินาที) และจะข้ามขั้นตอนนี้หากพื้นผิวปกติ"
+
+#~ msgid ""
+#~ "Calibrate nozzle offsets to enhance print quality.\n"
+#~ "*Automatic mode: Check for calibration before printing; skip if unnecessary."
+#~ msgstr ""
+#~ "ปรับเทียบระยะห่างหัวฉีดเพื่อปรับปรุงคุณภาพงานพิมพ์\n"
+#~ "*โหมดอัตโนมัติ: ตรวจสอบการปรับเทียบก่อนพิมพ์ ข้ามไปได้หากไม่จำเป็น"
+
+#~ msgid "Only synchronize filament type and color, not including AMS slot information."
+#~ msgstr "ซิงโครไนซ์เฉพาะประเภทและสีของเส้นวัสดุ ไม่รวมข้อมูลช่อง AMS"
+
+#~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
+#~ msgstr "แทนที่รายการเส้นวัสดุของโปรเจกต์ตามลำดับจากเส้นวัสดุของเครื่องพิมพ์ และเส้นวัสดุเครื่องพิมพ์ที่ไม่ได้ใช้จะถูกเพิ่มต่อท้ายรายการโดยอัตโนมัติ"
+
+#~ msgid "Add unused AMS filaments to filaments list."
+#~ msgstr "เพิ่มเส้นวัสดุ AMS ที่ไม่ได้ใช้ไปยังรายการเส้นวัสดุ"
+
+#~ msgid "Automatically merge the same colors in the model after mapping."
+#~ msgstr "ผสานสีเดียวกันในโมเดลโดยอัตโนมัติหลังจับคู่"
+
+#~ msgid "After being synced, this action cannot be undone."
+#~ msgstr "หลังจากการซิงค์แล้ว การดำเนินการนี้จะย้อนกลับไม่ได้"
+
+#~ msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
+#~ msgstr "หลังซิงค์ ค่าที่ตั้งไว้ล่วงหน้าและสีของเส้นวัสดุในโปรเจกต์จะแทนที่ด้วยประเภทและสีของเส้นวัสดุที่จับคู่ไว้ การดำเนินการนี้ย้อนกลับไม่ได้"
+
+#~ msgid "Are you sure to synchronize the filaments?"
+#~ msgstr "คุณแน่ใจหรือไม่ที่จะซิงโครไนซ์เส้นวัสดุ?"
+
+#~ msgid "Synchronize now"
+#~ msgstr "ซิงโครไนซ์ตอนนี้"
+
+#~ msgid "Synchronize Filament Information"
+#~ msgstr "ซิงโครไนซ์ข้อมูลเส้นวัสดุ"
+
+#~ msgid "Add unused filaments to filaments list."
+#~ msgstr "เพิ่มเส้นวัสดุที่ไม่ได้ใช้ไปยังรายการเส้นวัสดุ"
+
+#~ msgid "Only synchronize filament type and color, not including slot information."
+#~ msgstr "ซิงโครไนซ์เฉพาะประเภทและสีของเส้นวัสดุ ไม่รวมข้อมูลช่อง"
+
+#~ msgid "Ext spool"
+#~ msgstr "ม้วนวัสดุจากภายนอก"
+
+#, c-format, boost-format
+#~ msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+#~ msgstr "การตั้งค่าการไหลของหัวฉีดของ %s(%s) ไม่ตรงกับไฟล์ตัดแบ่ง (%s) โปรดตรวจสอบให้แน่ใจว่าหัวฉีดที่ติดตั้งตรงกับการตั้งค่าในเครื่องพิมพ์ จากนั้นตั้งค่าที่ตั้งไว้ล่วงหน้าของเครื่องพิมพ์ที่เกี่ยวข้องขณะตัดแบ่ง"
+
+#~ msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
+#~ msgstr "โปรดตรวจสอบว่าชนิดหัวฉีดของอุปกรณ์ตรงกับประเภทหัวฉีดที่ตั้งค่าไว้ล่วงหน้าหรือไม่"
+
+#, c-format, boost-format
+#~ msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
+#~ msgstr "เครื่องพิมพ์ที่เลือก (%s) ไม่รองรับโปรไฟล์เครื่องพิมพ์ที่เลือกในตัวตัดแบ่ง (%s)"
+
+#~ msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
+#~ msgstr "ไม่รองรับการพิมพ์แบบไทม์แลปส์ เนื่องจากลำดับการพิมพ์ถูกตั้งค่าเป็น \"ตามวัตถุ\""
+
+#~ msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+#~ msgstr "คุณเลือกเส้นวัสดุจากภายนอกและเส้นวัสดุ AMS พร้อมกันในเอ็กซ์ทรูเดอร์เครื่องเดียว คุณจะต้องเปลี่ยนเส้นวัสดุจากภายนอกด้วยตนเอง"
+
+#~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+#~ msgstr "เคล็ดลับ: หากคุณเพิ่งเปลี่ยนหัวฉีดของเครื่องพิมพ์ โปรดไปที่ 'อุปกรณ์ -> ชิ้นส่วนเครื่องพิมพ์' เพื่อเปลี่ยนการตั้งค่าหัวฉีด"
+
+#~ msgid "Continue to sync filaments"
+#~ msgstr "ซิงค์เส้นวัสดุต่อ"
+
+#~ msgctxt "Sync_Nozzle_AMS"
+#~ msgid "Cancel"
+#~ msgstr "ยกเลิก"
+
+#~ msgid "Successfully synchronized color and type of filament from printer."
+#~ msgstr "ซิงโครไนซ์สีและประเภทของเส้นวัสดุจากเครื่องพิมพ์สำเร็จ"
+
+#~ msgctxt "FinishSyncAms"
+#~ msgid "OK"
+#~ msgstr "ตกลง"
+
+#~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+#~ msgstr "เอ็กซ์ทรูเดอร์ Bowden ไม่รองรับหัวฉีดเส้นผ่านศูนย์กลาง 0.2 มม. เราจะพิมพ์ด้วยหัวพิมพ์เดียวเท่านั้น"
+
+#~ msgid "Decomposition result for this combination"
+#~ msgstr "ผลลัพธ์การแยกสีสำหรับชุดค่าผสมนี้"
+
+#~ msgid "Filament Color"
+#~ msgstr "สีของเส้นวัสดุ"
+
+#~ msgid "Decomposed Colors"
+#~ msgstr "สีที่ถูกแยกออก"
+
+#~ msgid "Select Color Decomposition"
+#~ msgstr "เลือกการแยกสี"
+
+#~ msgid "Project Filament"
+#~ msgstr "เส้นวัสดุในโปรเจกต์"
+
+#~ msgid "Material List"
+#~ msgstr "รายการวัสดุ"
+
+#~ msgid "Standard Palette"
+#~ msgstr "พาเลทมาตรฐาน"
+
+#~ msgid "At least two filaments of the same material type are required for decomposition"
+#~ msgstr "ต้องมีเส้นวัสดุประเภทเดียวกันอย่างน้อยสองเส้นสำหรับการแยก"
+
+#~ msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "การผสมสีที่ใกล้เคียงยิ่งขึ้นจะคำนวณจากสีพื้นฐานสี่สี ได้แก่ Cyan (ฟ้า), Magenta (ม่วงแดง), Yellow (เหลือง) และ White (ขาว) ขณะนี้รองรับเฉพาะ PLA Basic เท่านั้น หากไม่มีเส้นวัสดุที่ตรงกันในโปรเจกต์ ระบบจะเพิ่มเส้นวัสดุเหล่านั้นให้โดยอัตโนมัติ"
+
+#~ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "การผสมสีที่ใกล้เคียงยิ่งขึ้นจะคำนวณจากสีพื้นฐานสี่สี ได้แก่ Red (แดง), Yellow (เหลือง), Blue (น้ำเงิน) และ White (ขาว) ขณะนี้รองรับเฉพาะ PLA Basic เท่านั้น หากไม่มีเส้นวัสดุที่ตรงกันในโปรเจกต์ ระบบจะเพิ่มเส้นวัสดุเหล่านั้นให้โดยอัตโนมัติ"
+
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "รายการวัสดุรองรับได้สูงสุด %1% สี หลังจากแยก %2% แล้ว จำนวนวัสดุจะเกิน %1% โปรดลบเส้นวัสดุที่ไม่ได้ใช้งานบนหน้าจอหลักก่อนแยก"
+
+#~ msgid "Decompose Color (gradient not supported)"
+#~ msgstr "แยกองค์ประกอบสี (ไม่รองรับการไล่ระดับสี)"
+
+#~ msgid "Decompose Color (transparent not supported)"
+#~ msgstr "แยกองค์ประกอบสี (ไม่รองรับวัสดุโปร่งแสง)"
+
+#~ msgid "Decompose Color (multi-color not supported)"
+#~ msgstr "แยกองค์ประกอบสี (ไม่รองรับหลากสี)"
+
+#~ msgid "Cyan"
+#~ msgstr "สีฟ้าอมเขียว"
+
+#~ msgid "Magenta"
+#~ msgstr "สีม่วงแดง"
+
+#~ msgid "Yellow"
+#~ msgstr "เหลือง"
+
+#~ msgid "The current filament list does not contain "
+#~ msgstr "รายการเส้นวัสดุปัจจุบันไม่มี "
+
+#~ msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+#~ msgstr " ระบบจะสร้างเส้นวัสดุของโปรเจกต์ที่จำเป็นสำหรับเส้นวัสดุผสมโดยอัตโนมัติหลังจากแยกสีเสร็จสิ้น"
 
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "แนะนำให้ใช้เฉพาะเมื่อใช้เส้นวัสดุผสมสี เพื่อให้ได้เอฟเฟกต์การไล่เลเยอร์สีที่ดีขึ้น"

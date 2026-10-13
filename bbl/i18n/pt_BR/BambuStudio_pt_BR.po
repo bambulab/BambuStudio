@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 12:37+0800\n"
+"POT-Creation-Date: 2026-10-13 23:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -31,6 +31,21 @@ msgstr "O filamento pode não ser compatível com as configurações atuais da m
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "O modelo do filamento é desconhecido. Uma predefinição de filamento aleatório será usada."
+
+msgid "This calibration does not support the currently selected nozzle diameter"
+msgstr "Essa calibração não suporta o diâmetro do bico atualmente selecionado."
+
+msgid "Current flowrate cali param is invalid"
+msgstr "O parâmetro de cali da taxa de fluxo atual é inválido"
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr "O diâmetro selecionado e o diâmetro da máquina não coincidem"
+
+msgid "Failed to generate cali gcode"
+msgstr "Falha ao gerar cali gcode"
+
+msgid "Calibration error"
+msgstr "Erro de calibração"
 
 msgid "Main Extruder"
 msgstr "Extrusora Principal"
@@ -253,6 +268,78 @@ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wi
 msgstr "%s pode não carregar ou descarregar devido ao interruptor de trilha de filamento. Se desejar continuar."
 
 #, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported with a standard %s nozzle."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is only supported for printing with the main extruder."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s não é suportado pelo extrusor %s."
 
@@ -271,6 +358,15 @@ msgstr "Pode haver problemas de qualidade de impressão ao imprimir '%s' com ext
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "Pode haver problemas de qualidade de impressão ao imprimir '%s' com a extrusora %s . Use com cautela."
+
+msgid "The total weight must bigger than remain weight."
+msgstr ""
+
+msgid "Please enter a valid remaining weight from 1g to 10000g."
+msgstr ""
+
+msgid "Please enter a valid total weight from 1g to 10000g."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "O toolhead e o suporte do hotend podem se mover. Por favor, mantenha suas mãos afastadas da câmara."
@@ -337,6 +433,36 @@ msgstr "A verificação falhou"
 
 msgid "Update failed."
 msgstr "A atualização falhou"
+
+msgid "Hotend & Filament"
+msgstr ""
+
+msgid "Lift Hotend Rack"
+msgstr ""
+
+msgid "Recenter Hotend Rack"
+msgstr ""
+
+msgid "Lower Hotend Rack"
+msgstr ""
+
+msgid "Hotend Rack"
+msgstr "Rack para Hotend"
+
+msgid "Reading"
+msgstr "Leitura"
+
+msgid "Running"
+msgstr ""
+
+msgid "Raised"
+msgstr "Elevado"
+
+msgid "Lowered"
+msgstr ""
+
+msgid "Centered"
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr "Umidade atual do AMS"
@@ -465,14 +591,8 @@ msgstr "Leitura "
 msgid "Please wait"
 msgstr "Por favor, aguarde"
 
-msgid "Reading"
-msgstr "Leitura"
-
 msgid "Running..."
 msgstr "Executando..."
-
-msgid "Raised"
-msgstr "Elevado"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr "O hotend está em um estado anormal e atualmente indisponível. Por favor, vá em 'Dispositivo -> Atualizar' para atualizar o firmware."
@@ -505,9 +625,6 @@ msgstr "Tempo de uso: %s"
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "Os bicos dinâmicos são alocados na placa atual. A seleção do hotend não é suportada."
 
-msgid "Hotend Rack"
-msgstr "Rack para Hotend"
-
 msgid "ToolHead"
 msgstr "Cabeça de ferramenta"
 
@@ -516,6 +633,21 @@ msgstr "As informações do bico precisam ser lidas"
 
 msgid "Note:"
 msgstr "Nota:"
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+msgid "Fan"
+msgstr "Ventilador"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "The embedded webpage could not be loaded."
 msgstr ""
@@ -530,6 +662,9 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
+msgstr ""
+
+msgid "AMS Bridge Debug"
 msgstr ""
 
 msgid "Idling..."
@@ -647,9 +782,6 @@ msgstr ""
 msgid "Refreshing Hotend"
 msgstr ""
 
-msgid "Running"
-msgstr ""
-
 #, boost-format
 msgid "Reading (%1% / %2%)"
 msgstr ""
@@ -660,6 +792,24 @@ msgstr ""
 
 msgid "Please wait..."
 msgstr ""
+
+msgid "Edit Filament"
+msgstr "Editar filamento"
+
+msgid "Confirm to exit this process?"
+msgstr ""
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr ""
+
+msgid "Exit"
+msgstr "Sair"
+
+msgid "Still exit"
+msgstr ""
+
+msgid "Tip"
+msgstr "Dica"
 
 msgid "Empty slot"
 msgstr ""
@@ -715,9 +865,6 @@ msgstr ""
 msgid "No filament information available"
 msgstr ""
 
-msgid "Tip"
-msgstr "Dica"
-
 msgid "Cannot read all while printing or upgrading"
 msgstr ""
 
@@ -740,18 +887,6 @@ msgstr ""
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
 msgstr ""
-
-msgid "Pen"
-msgstr ""
-
-msgid "Cutter"
-msgstr ""
-
-msgid "Laser"
-msgstr ""
-
-msgid "Fan"
-msgstr "Ventilador"
 
 msgid "Hotend Details"
 msgstr ""
@@ -1330,6 +1465,9 @@ msgstr "Reparando objeto de modelo"
 msgid "Connector"
 msgstr "Conector"
 
+msgid "Preparing data..."
+msgstr "Preparando dados..."
+
 msgid "Flip cut plane"
 msgstr "Plano de corte giratório"
 
@@ -1537,7 +1675,10 @@ msgstr "%d triângulos"
 msgid "Show wireframe"
 msgstr "Mostrar wireframe"
 
-msgid "Preserve painted colors"
+msgid "Keep all painting"
+msgstr ""
+
+msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr ""
 
 #, boost-format
@@ -3097,8 +3238,8 @@ msgstr "O objeto alvo contém apenas uma parte e não pode ser dividido."
 msgid "Assembly"
 msgstr "Montagem"
 
-msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "O uso de altura de camada variável em conjunto com uma subcamada de cores misturadas pode resultar em baixa qualidade na mistura de cores."
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
@@ -3212,6 +3353,9 @@ msgstr "A cópia de várias células não é suportada."
 msgid "Outside"
 msgstr "Exterior"
 
+msgid "Auto"
+msgstr "Automático"
+
 msgid " "
 msgstr ""
 
@@ -3226,9 +3370,6 @@ msgstr "Densidade de preenchimento (%)"
 
 msgid "Auto Brim"
 msgstr "Brim automático"
-
-msgid "Auto"
-msgstr "Automático"
 
 msgid "Painted"
 msgstr "Pintado"
@@ -4223,9 +4364,6 @@ msgstr ""
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
-msgid "Decompose Color"
-msgstr "Separar cores"
-
 msgid "+ Add Filament"
 msgstr "+ Adicionar filamento"
 
@@ -4293,12 +4431,6 @@ msgstr "Adicionar todos os filamentos automaticamente"
 msgid "Fix now"
 msgstr "Corrigir agora"
 
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "Mesclar automaticamente filamentos idênticos aos filamentos existentes no projeto"
-
-msgid "Automatically merge filaments of the same color and type"
-msgstr "Mesclar automaticamente filamentos da mesma cor e tipo"
-
 msgid "Skip"
 msgstr "Pular"
 
@@ -4349,9 +4481,6 @@ msgstr "A contagem de cores não pode exceder a contagem de cores original (%d).
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "A quantidade de cores não pode exceder o limite de filamento do projeto (%d)."
 
-msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
 msgid "Click to select a matching filament"
 msgstr "Clique para selecionar um filamento correspondente"
 
@@ -4367,6 +4496,12 @@ msgstr ""
 
 #, boost-format
 msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Mixing kits"
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "Kept filaments"
@@ -4386,6 +4521,9 @@ msgid "Prioritize merging similar-color filaments"
 msgstr ""
 
 msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -4674,36 +4812,6 @@ msgstr "%s não suporta %s"
 
 msgid "Dynamic flow Calibration"
 msgstr "Calibração de fluxo dinâmico"
-
-msgid "Unmapped"
-msgstr "Não mapeado"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area: The filament from original project will be used when unmapped.\n"
-"And you can click it to modify"
-msgstr ""
-"Área da metade superior: Original\n"
-"Área da metade inferior: O filamento do projeto original será usado quando não mapeado.\n"
-"E você pode clicar nele para modificar"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you can click it to modify"
-msgstr ""
-"Área da metade superior: Original\n"
-"Área da metade inferior: Filamento em AMS\n"
-"E você pode clicar para modificar"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you cannot click it to modify"
-msgstr ""
-"Área da metade superior: Original\n"
-"Área da metade inferior: Filamento em AMS\n"
-"E você não pode clicar para modificar"
 
 msgid "AMS Slots"
 msgstr "Slots AMS"
@@ -5105,6 +5213,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "A temperatura recomendada do bico para este tipo de filamento é [%d ,%d ] graus centígrados"
+
+msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
+msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6244,6 +6355,18 @@ msgstr "Clique para recolher"
 msgid "Overview"
 msgstr "Visão Geral"
 
+#, boost-format
+msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support ring of %2% overlaps %3%."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support rings of %2% and %3% overlap."
+msgstr ""
+
 msgid "Select Plate"
 msgstr "Selecione a placa"
 
@@ -6497,8 +6620,20 @@ msgstr "Repetição do Liveview"
 msgid "Resolution"
 msgstr "Resolução"
 
+msgid "External Storage"
+msgstr "Armazenamento Externo"
+
 msgid "Show \"Live Video\" guide page."
 msgstr "Mostre a página do guia “Vídeo ao vivo”."
+
+msgid "Not Installed"
+msgstr ""
+
+msgid "Abnormal"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Conectar impressora (LAN)"
@@ -6576,6 +6711,12 @@ msgstr " será fechado antes de criar um novo modelo. Você quer continuar?"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "A página atual contém alterações não salvas. Você pode continuar editando ou escolher salvar/descartar antes de sair."
+
+msgid "Discard"
+msgstr "Descartar"
+
+msgid "Stay on this page"
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Desbloqueie impressões mais rápidas, confiáveis e sem empenamento com Helio Additive."
@@ -7182,8 +7323,12 @@ msgstr "Informações"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "O recurso de transmissão ao vivo depende do Bambu Studio para funcionar, e a transmissão será encerrada algum tempo após o fechamento do aplicativo."
 
-msgid "Printer Preview"
-msgstr "Pré-visualização de impressão"
+msgid "Not live"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Captured at %s"
+msgstr ""
 
 msgid "Playing..."
 msgstr "Reproduzindo"
@@ -7557,9 +7702,6 @@ msgstr "Quase concluído"
 msgid "Camera"
 msgstr "Câmera"
 
-msgid "Storage"
-msgstr "Armazenamento"
-
 msgid "Camera Setting"
 msgstr "Configuração da câmera"
 
@@ -7578,9 +7720,6 @@ msgstr "Opções de segurança"
 msgid "Hotends"
 msgstr ""
 
-msgid "Unclamped"
-msgstr ""
-
 msgid "100%"
 msgstr "100%"
 
@@ -7593,11 +7732,20 @@ msgstr "Mesa"
 msgid "Filament loading..."
 msgstr "Carregando filamento..."
 
-msgid "No Storage"
-msgstr "Sem armazenamento"
+msgid "Live Camera Recording in progress"
+msgstr ""
 
-msgid "Storage Abnormal"
-msgstr "Armazenamento anormal"
+msgid "Visual Enhancement Camera Recording in progress"
+msgstr ""
+
+msgid "Recording in progress"
+msgstr ""
+
+msgid "Timelapse in progress"
+msgstr ""
+
+msgid "Go Live in progress"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "Cancelar impressão"
@@ -7806,6 +7954,12 @@ msgstr ""
 "É necessário pelo menos um registro de impressão bem-sucedido desse perfil de impressão \n"
 "para dar uma avaliação positiva (4 ou 5 estrelas)."
 
+msgid "This device is performing the following operations"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "Parâmetros de importação do arquivo de etapas"
 
@@ -7841,6 +7995,9 @@ msgstr "Não mostrar novamente"
 
 msgid "Calculating, please wait..."
 msgstr "Calculando; aguarde..."
+
+msgid "Storage"
+msgstr "Armazenamento"
 
 msgid "Status"
 msgstr "Estado"
@@ -8027,6 +8184,9 @@ msgstr "Concluído"
 msgid "Cancel upload"
 msgstr "Cancelar carregamento"
 
+msgid "Serious warning:"
+msgstr "Aviso sério:"
+
 msgid "Jump to"
 msgstr "Ir para"
 
@@ -8053,9 +8213,6 @@ msgstr "Exporte com sucesso."
 
 msgid "Model file downloaded."
 msgstr "Arquivo de modelo baixado."
-
-msgid "Serious warning:"
-msgstr "Aviso sério:"
 
 msgid " Click here to install it."
 msgstr " Clique aqui para instalá-lo."
@@ -9001,6 +9158,18 @@ msgstr ""
 msgid "Not installed"
 msgstr "Não instalado"
 
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"O software não suporta o uso de diferentes diâmetros de bicos para uma impressão.\n"
+"Se os bicos esquerdo e direito forem inconsistentes, só podemos prosseguir com a impressão de cabeça única.\n"
+"Por favor, confirme qual bico você gostaria de usar para este projeto."
+
+msgid "Switch diameter"
+msgstr "Diâmetro do interruptor"
+
 msgid "Sync printer information"
 msgstr "Sincronizar informações da impressora"
 
@@ -9068,16 +9237,11 @@ msgstr "Placa de busca, objeto e peça."
 msgid "Change nozzle diameter"
 msgstr ""
 
-msgid "This filament does not support printing with the current nozzle."
+msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
-msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
-msgstr ""
-
-msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
-msgstr ""
-
-msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
+#, c-format, boost-format
+msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -9106,7 +9270,11 @@ msgid "After completing your operation, %s project will be closed and create a n
 msgstr "Após concluir sua operação, o projeto %s será fechado e criará um novo projeto."
 
 #, c-format, boost-format
-msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgid "filament slot %d %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
 msgid ""
@@ -9160,11 +9328,23 @@ msgid "Please fix the marked mixed filaments in the left filament list."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
 msgid "Add a new preset"
@@ -9245,6 +9425,12 @@ msgstr "Valores inválidos encontrados no 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Corrija-os nas guias Parâmetros"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "O 3mf tem os seguintes códigos G modificados em predefinições de filamento ou impressora:"
 
@@ -9284,18 +9470,6 @@ msgstr "Objetos com volume zero removidos"
 
 msgid "The volume of the object is zero"
 msgstr "O volume do objeto é zero"
-
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
-"Instead of considering them as multiple objects, should \n"
-"the file be loaded as a single object having multiple parts?"
-msgstr ""
-"Esse arquivo contém vários objetos posicionados em várias alturas.\n"
-"Em vez de considerá-los como vários objetos, deveria \n"
-"o arquivo deve ser carregado como um único objeto com várias partes?"
-
-msgid "Multi-part object detected"
-msgstr "Objeto de várias partes detectado"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -10574,6 +10748,9 @@ msgstr "Predefinições incompatíveis"
 msgid "My Printer"
 msgstr "Minha impressora"
 
+msgid "This filament is not compatible with the nozzle it is loaded on"
+msgstr ""
+
 msgid "To select this filament, change the nozzle settings first."
 msgstr ""
 
@@ -11092,6 +11269,15 @@ msgstr ""
 "Área da metade inferior: Bico selecionado\n"
 "E você pode clicar para modificar"
 
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you can click it to modify"
+msgstr ""
+"Área da metade superior: Original\n"
+"Área da metade inferior: Filamento em AMS\n"
+"E você pode clicar para modificar"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Não foi possível encontrar o filamento adequado automaticamente. Clique para encontrar o filamento manualmente."
 
@@ -11491,6 +11677,9 @@ msgstr "Clique para saber mais"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Clique para redefinir todas as configurações para a última predefinição salva."
 
+msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A torre principal é necessária para a troca do bico. Pode haver falhas no modelo sem a torre principal. Tem certeza de que deseja desativar a torre principal?"
 
@@ -11643,6 +11832,9 @@ msgstr "Aceleração"
 
 msgid "Jerk(XY)"
 msgstr "Jerk (XY)"
+
+msgid "Support ring"
+msgstr ""
 
 msgid "Raft"
 msgstr "Jangada"
@@ -12069,9 +12261,6 @@ msgstr "Valor modificado (novo)"
 msgid "Discard Modified Value"
 msgstr "Descartar valor modificado"
 
-msgid "Don't save"
-msgstr "Não salvar"
-
 msgid "Use Modified Value"
 msgstr "Usar valor modificado"
 
@@ -12260,210 +12449,6 @@ msgstr "Nenhuma atualização disponível"
 
 msgid "The configuration is up to date."
 msgstr "A configuração está atualizada."
-
-msgid "Open Wiki for more information >"
-msgstr "Abra o Wiki para mais informações >"
-
-msgid "Obj file Import color"
-msgstr "Cor de importação do arquivo Obj"
-
-msgid "Standard 3mf Import color"
-msgstr "Cor padrão 3mf Importada"
-
-msgid "Some faces don't have color defined."
-msgstr "Algumas faces não possuem cor definida."
-
-msgid "mtl file exist error,could not find the material:"
-msgstr "erro de arquivo mtl existente, não foi possível encontrar o material:"
-
-msgid "Please check obj or mtl file."
-msgstr "Por favor, verifique o arquivo obj ou mtl."
-
-msgid "Specify number of colors:"
-msgstr "Especifique o número de cores:"
-
-msgid "Enter or click the adjustment button to modify number again"
-msgstr "Insira ou clique no botão de ajuste para modificar o número novamente"
-
-msgid "Recommended "
-msgstr "Recomendadas"
-
-msgid "view"
-msgstr "Visualizar"
-
-msgid "Current filament colors"
-msgstr "Cores atuais do filamento:"
-
-msgid "Matching"
-msgstr "Coincidindo"
-
-msgid "Quick set"
-msgstr "Configuração rápida:"
-
-msgid "There are color input errors."
-msgstr "Existem erros na entrada de cores."
-
-msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr "A importação de texturas está temporariamente indisponível; a coloração parcial será automaticamente substituída pela cor padrão."
-
-msgid " And "
-msgstr "Y"
-
-msgid "Note"
-msgstr "Nota"
-
-msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr "A cor foi selecionada; você pode escolher OKpara continuar ou ajustá-lo manualmente."
-
-msgctxt "ObjImport"
-msgid "Original"
-msgstr ""
-
-msgid "After mapping"
-msgstr "Após o mapeamento"
-
-msgid "Color match"
-msgstr "Combinação de cores"
-
-msgid "Approximate color matching."
-msgstr "Correspondência aproximada de cores."
-
-msgid "Append"
-msgstr "Anexar"
-
-msgid "Append to existing filaments"
-msgstr "Anexar aos filamentos existentes"
-
-msgid "Reset mapped extruders."
-msgstr "Redefina as extrusoras mapeadas."
-
-msgid "—> "
-msgstr ""
-
-msgctxt "Sync_AMS"
-msgid "Original"
-msgstr ""
-
-msgid "After overwriting"
-msgstr "Após sobrescrever"
-
-msgctxt "Sync_AMS"
-msgid "Plate"
-msgstr "Placa"
-
-msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
-msgstr "A impressora conectada não corresponde à impressora selecionada no momento. Por favor, altere a impressora selecionada."
-
-msgid "Mapping"
-msgstr "Mapeamento"
-
-msgid "Overwriting"
-msgstr "Sobrescrevendo"
-
-msgid "Reset all filament mapping"
-msgstr "Redefinir todo o mapeamento de filamentos"
-
-msgid "(Recommended filament)"
-msgstr "(Filamento recomendado)"
-
-msgid "Advanced Options"
-msgstr "Opções Avançadas"
-
-msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
-msgstr ""
-"Verifique o nivelamento da mesa de aquecimento. O nivelamento torna a altura extrudada uniforme.\n"
-"*Modo automático: nivele primeiro (cerca de 10 segundos). Pule se a superfície estiver boa."
-
-msgid ""
-"Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
-msgstr ""
-"Calibrar deslocamento de bico para melhorar a qualidade da impressão.\n"
-"*Modo automático: Verificar calibração antes da impressão; pule se não for necessário."
-
-msgid "Use AMS"
-msgstr "Usar AMS"
-
-msgid "Only synchronize filament type and color, not including AMS slot information."
-msgstr "Sincronize apenas o tipo e a cor do filamento, sem incluir as informações do slot AMS."
-
-msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr "Substitua a lista de filamentos do projeto sequencialmente com base nos filamentos da impressora. E os filamentos da impressora não utilizados serão automaticamente adicionados ao final da lista."
-
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Add unused AMS filaments to filaments list."
-msgstr "Adicione filamentos AMS não utilizados à lista de filamentos."
-
-msgid "Automatically merge the same colors in the model after mapping."
-msgstr "Mescle automaticamente as mesmas cores no modelo após o mapeamento."
-
-msgid "After being synced, this action cannot be undone."
-msgstr "Após a sincronização, esta ação não pode ser desfeita."
-
-msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
-msgstr "Após a sincronização, as predefinições e cores de filamentos do projeto serão substituídas pelos tipos e cores de filamentos mapeados. Esta ação não pode ser desfeita."
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "Tem certeza de que sincronizou os filamentos?"
-
-msgid "Synchronize now"
-msgstr "SINCRONIZAR AGORA"
-
-msgid "Synchronize Filament Information"
-msgstr "Sincronizar informações do filamento"
-
-msgid "Add unused filaments to filaments list."
-msgstr "Adicione filamentos não utilizados à lista de filamentos."
-
-msgid "Only synchronize filament type and color, not including slot information."
-msgstr "Sincronize apenas o tipo e a cor do filamento, sem incluir as informações do slot."
-
-msgid "Ext spool"
-msgstr "Carretel Externo"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "A configuração do fluxo do bico de %s(%s) não corresponde ao arquivo de fatiamento(%s). Certifique-se de que o bico instalado corresponde às configurações na impressora e, em seguida, defina a predefinição da impressora correspondente durante o fatiamento."
-
-msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
-msgstr "Por favor, verifique se o bico do dispositivo é o mesmo que esta predefinido nos ajustes."
-
-#, c-format, boost-format
-msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "A impressora selecionada (%s) é incompatível com o perfil de impressora escolhido no cortador de dados (). %s"
-
-msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "O lapso de tempo não é suportado porque a sequência de impressão está definida como “Por objeto”."
-
-msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr "Você selecionou filamento externo e AMS ao mesmo tempo em uma extrusora; você precisará trocar manualmente o filamento externo."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "Dicas: Se você trocou o bico da sua impressora recentemente, vá em 'Dispositivo -> Peças da impressora' para alterar a configuração do bico."
-
-msgid "Successfully synchronized Printer information."
-msgstr ""
-
-msgid "Continue to sync filaments"
-msgstr "Continue a sincronizar os filamentos"
-
-msgctxt "Sync_Nozzle_AMS"
-msgid "Cancel"
-msgstr "Cancelar"
-
-msgid "Successfully synchronized color and type of filament from printer."
-msgstr "Cor e tipo de filamento da impressora sincronizados com sucesso."
-
-msgctxt "FinishSyncAms"
-msgid "OK"
-msgstr "Ok"
-
-msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr "Extrusoras do tipo Bowden não suportam bicos de 0,2 mm de diâmetro. Só podemos prosseguir com a impressão de uma única cabeça de extrusão."
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "O Studio recalculava seus volumes de descarga sempre que a cor dos filamentos mudava ou os filamentos mudavam. Você pode desativar o cálculo automático no Bambu Studio > Preferências"
@@ -13863,10 +13848,13 @@ msgstr "O modo vaso em espiral não funciona quando o objeto contém regiões co
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "A altura variável da camada não é suportada com suportes orgânicos."
 
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr ""
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
@@ -13914,11 +13902,11 @@ msgstr ""
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "A torre de purga requer que todos os objetos sejam cortados com as mesmas alturas de camada."
 
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "A torre principal só é suportada se todos os objetos tiverem a mesma altura de camada variável"
-
 msgid "The support ring is only supported if all objects have the same variable layer height"
 msgstr ""
+
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "A torre principal só é suportada se todos os objetos tiverem a mesma altura de camada variável"
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "A altura Z precisa confere aos objetos diferentes alturas de camada, o que pode aumentar significativamente o tamanho da torre de purga."
@@ -16885,10 +16873,10 @@ msgstr ""
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
 msgstr ""
 
-msgid "Support ring notch width"
+msgid "Support ring angle"
 msgstr ""
 
-msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
 msgstr ""
 
 msgid "Support ring skip points"
@@ -18151,6 +18139,15 @@ msgstr "- Modo de objeto: selecione pelo menos dois objetos."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Modo de parte: Selecione um objeto com pelo menos duas malhas."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "Computing..."
+msgstr "Calculando..."
+
+msgid "Applying result.."
+msgstr "Aplicando resultado.."
+
 msgid "Union"
 msgstr "União"
 
@@ -18177,15 +18174,6 @@ msgstr "Realize operações booleanas apenas nas entidades."
 
 msgid "This object contains non-part components."
 msgstr "Este objeto contém componentes que não são partes."
-
-msgid "Preparing data..."
-msgstr "Preparando dados..."
-
-msgid "Computing..."
-msgstr "Calculando..."
-
-msgid "Applying result.."
-msgstr "Aplicando resultado.."
 
 msgid "Network Test"
 msgstr "Teste de rede"
@@ -18627,9 +18615,6 @@ msgstr "Selecione um tipo que você deseja exportar"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "Falha ao criar a pasta temporária. Tente exportar configurações novamente."
-
-msgid "Edit Filament"
-msgstr "Editar filamento"
 
 msgid "Filament presets under this filament"
 msgstr "Predefinições de filamento sob este filamento"
@@ -19199,6 +19184,9 @@ msgstr "O número de impressoras em uso simultaneamente não pode ser igual a 0.
 
 msgid "Use External Spool"
 msgstr "Usar bobina externa"
+
+msgid "Use AMS"
+msgstr "Usar AMS"
 
 msgid "Select Printers"
 msgstr "Selecionar impressoras"
@@ -19851,6 +19839,12 @@ msgstr "Editar Filamento Misto"
 msgid "Effect Preview"
 msgstr "Pré-visualização de efeito"
 
+msgid "Target"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
 msgid "Select Mixed Materials"
 msgstr "Selecione Materiais Mistos"
 
@@ -19888,6 +19882,9 @@ msgstr "não podem ser misturados. Por favor, selecione o mesmo tipo de filament
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr ""
 
+msgid "No mix is available for the target color"
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "Selecione um filamento para todos os componentes"
 
@@ -19900,73 +19897,49 @@ msgstr "Número máximo de componentes atingido"
 msgid "Remove the third material"
 msgstr "Remover o terceiro material"
 
+msgid "Manual Mixing"
+msgstr ""
+
+msgid "Color Matching"
+msgstr ""
+
+msgid "Select Target Color"
+msgstr ""
+
+msgid "Match Result"
+msgstr ""
+
+msgid "Discard changes and match again"
+msgstr ""
+
+msgid "Replace the target color on models with the mixed result"
+msgstr ""
+
+msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
+msgstr ""
+
 #, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
+msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
-msgid "Decomposition result for this combination"
-msgstr "Resultado da decomposição para esta combinação"
-
-msgid "Filament Color"
-msgstr "Cor do filamento"
-
-msgid "Decomposed Colors"
-msgstr "Cores Decompostas"
-
-msgid "Select Color Decomposition"
-msgstr "Selecionar decomposição de cores"
-
-msgid "Project Filament"
-msgstr "Filamento do projeto"
-
-msgid "Material List"
-msgstr "Lista de materiais"
-
-msgid "Standard Palette"
-msgstr "Paleta padrão"
-
-msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "São necessários pelo menos dois filamentos do mesmo tipo de material para a decomposição"
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "Uma mistura mais precisa é calculada a partir de quatro cores básicas: ciano, magenta, amarelo e branco. Atualmente, apenas o PLA Basic é suportado. Se os filamentos correspondentes não estiverem no projeto, eles serão adicionados automaticamente."
-
-msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgid "There is no other filament of the same type as the target color in the project."
 msgstr ""
 
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "Uma mistura mais precisa é calculada a partir de quatro cores básicas: vermelho, amarelo, azul e branco. Atualmente, apenas o PLA Basic é suportado. Se os filamentos correspondentes não estiverem no projeto, eles serão adicionados automaticamente."
+msgid "At least two other filaments of the same type as the target color are required."
+msgstr ""
+
+msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+msgstr ""
+
+msgid "No available mixing recipe was found."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
 
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "A lista de materiais suporta no máximo %1% cores. Após %2% decomposição, a quantidade de materiais excederá %1%. Por favor, exclua os filamentos não utilizados na tela principal antes de realizar a decomposição."
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "Separar cores (gradiente não suportado)"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "Separar cores (transparência não suportada)"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "Separar cores (multicolorido não suportado)"
-
-msgid "Cyan"
-msgstr "Ciano"
-
-msgid "Magenta"
+msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
 msgstr ""
-
-msgid "Yellow"
-msgstr "Amarelo"
-
-msgid ", "
-msgstr ""
-
-msgid "The current filament list does not contain "
-msgstr "A lista atual de filamentos não contém "
-
-msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ". Um filamento de projeto necessário para o filamento misto será criado automaticamente após a decomposição."
 
 msgid "Material Ratio"
 msgstr "Proporção do material"
@@ -20303,6 +20276,302 @@ msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
 
+#~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+#~ msgstr "O uso de altura de camada variável em conjunto com uma subcamada de cores misturadas pode resultar em baixa qualidade na mistura de cores."
+
+#~ msgid "Decompose Color"
+#~ msgstr "Separar cores"
+
+#~ msgid "Automatically merge identical filaments into existing filaments in the project"
+#~ msgstr "Mesclar automaticamente filamentos idênticos aos filamentos existentes no projeto"
+
+#~ msgid "Automatically merge filaments of the same color and type"
+#~ msgstr "Mesclar automaticamente filamentos da mesma cor e tipo"
+
+#~ msgid "Unmapped"
+#~ msgstr "Não mapeado"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area: The filament from original project will be used when unmapped.\n"
+#~ "And you can click it to modify"
+#~ msgstr ""
+#~ "Área da metade superior: Original\n"
+#~ "Área da metade inferior: O filamento do projeto original será usado quando não mapeado.\n"
+#~ "E você pode clicar nele para modificar"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area:  Filament in AMS\n"
+#~ "And you cannot click it to modify"
+#~ msgstr ""
+#~ "Área da metade superior: Original\n"
+#~ "Área da metade inferior: Filamento em AMS\n"
+#~ "E você não pode clicar para modificar"
+
+#~ msgid "Printer Preview"
+#~ msgstr "Pré-visualização de impressão"
+
+#~ msgid "No Storage"
+#~ msgstr "Sem armazenamento"
+
+#~ msgid "Storage Abnormal"
+#~ msgstr "Armazenamento anormal"
+
+#~ msgid ""
+#~ "This file contains several objects positioned at multiple heights.\n"
+#~ "Instead of considering them as multiple objects, should \n"
+#~ "the file be loaded as a single object having multiple parts?"
+#~ msgstr ""
+#~ "Esse arquivo contém vários objetos posicionados em várias alturas.\n"
+#~ "Em vez de considerá-los como vários objetos, deveria \n"
+#~ "o arquivo deve ser carregado como um único objeto com várias partes?"
+
+#~ msgid "Multi-part object detected"
+#~ msgstr "Objeto de várias partes detectado"
+
+#~ msgid "Don't save"
+#~ msgstr "Não salvar"
+
+#~ msgid "Open Wiki for more information >"
+#~ msgstr "Abra o Wiki para mais informações >"
+
+#~ msgid "Obj file Import color"
+#~ msgstr "Cor de importação do arquivo Obj"
+
+#~ msgid "Standard 3mf Import color"
+#~ msgstr "Cor padrão 3mf Importada"
+
+#~ msgid "Some faces don't have color defined."
+#~ msgstr "Algumas faces não possuem cor definida."
+
+#~ msgid "mtl file exist error,could not find the material:"
+#~ msgstr "erro de arquivo mtl existente, não foi possível encontrar o material:"
+
+#~ msgid "Please check obj or mtl file."
+#~ msgstr "Por favor, verifique o arquivo obj ou mtl."
+
+#~ msgid "Specify number of colors:"
+#~ msgstr "Especifique o número de cores:"
+
+#~ msgid "Enter or click the adjustment button to modify number again"
+#~ msgstr "Insira ou clique no botão de ajuste para modificar o número novamente"
+
+#~ msgid "Recommended "
+#~ msgstr "Recomendadas"
+
+#~ msgid "view"
+#~ msgstr "Visualizar"
+
+#~ msgid "Current filament colors"
+#~ msgstr "Cores atuais do filamento:"
+
+#~ msgid "Matching"
+#~ msgstr "Coincidindo"
+
+#~ msgid "Quick set"
+#~ msgstr "Configuração rápida:"
+
+#~ msgid "There are color input errors."
+#~ msgstr "Existem erros na entrada de cores."
+
+#~ msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+#~ msgstr "A importação de texturas está temporariamente indisponível; a coloração parcial será automaticamente substituída pela cor padrão."
+
+#~ msgid " And "
+#~ msgstr "Y"
+
+#~ msgid "Note"
+#~ msgstr "Nota"
+
+#~ msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+#~ msgstr "A cor foi selecionada; você pode escolher OKpara continuar ou ajustá-lo manualmente."
+
+#~ msgid "After mapping"
+#~ msgstr "Após o mapeamento"
+
+#~ msgid "Color match"
+#~ msgstr "Combinação de cores"
+
+#~ msgid "Approximate color matching."
+#~ msgstr "Correspondência aproximada de cores."
+
+#~ msgid "Append"
+#~ msgstr "Anexar"
+
+#~ msgid "Append to existing filaments"
+#~ msgstr "Anexar aos filamentos existentes"
+
+#~ msgid "Reset mapped extruders."
+#~ msgstr "Redefina as extrusoras mapeadas."
+
+#~ msgid "After overwriting"
+#~ msgstr "Após sobrescrever"
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Plate"
+#~ msgstr "Placa"
+
+#~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
+#~ msgstr "A impressora conectada não corresponde à impressora selecionada no momento. Por favor, altere a impressora selecionada."
+
+#~ msgid "Mapping"
+#~ msgstr "Mapeamento"
+
+#~ msgid "Overwriting"
+#~ msgstr "Sobrescrevendo"
+
+#~ msgid "Reset all filament mapping"
+#~ msgstr "Redefinir todo o mapeamento de filamentos"
+
+#~ msgid "(Recommended filament)"
+#~ msgstr "(Filamento recomendado)"
+
+#~ msgid "Advanced Options"
+#~ msgstr "Opções Avançadas"
+
+#~ msgid ""
+#~ "Check heatbed flatness. Leveling makes extruded height uniform.\n"
+#~ "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+#~ msgstr ""
+#~ "Verifique o nivelamento da mesa de aquecimento. O nivelamento torna a altura extrudada uniforme.\n"
+#~ "*Modo automático: nivele primeiro (cerca de 10 segundos). Pule se a superfície estiver boa."
+
+#~ msgid ""
+#~ "Calibrate nozzle offsets to enhance print quality.\n"
+#~ "*Automatic mode: Check for calibration before printing; skip if unnecessary."
+#~ msgstr ""
+#~ "Calibrar deslocamento de bico para melhorar a qualidade da impressão.\n"
+#~ "*Modo automático: Verificar calibração antes da impressão; pule se não for necessário."
+
+#~ msgid "Only synchronize filament type and color, not including AMS slot information."
+#~ msgstr "Sincronize apenas o tipo e a cor do filamento, sem incluir as informações do slot AMS."
+
+#~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
+#~ msgstr "Substitua a lista de filamentos do projeto sequencialmente com base nos filamentos da impressora. E os filamentos da impressora não utilizados serão automaticamente adicionados ao final da lista."
+
+#~ msgid "Add unused AMS filaments to filaments list."
+#~ msgstr "Adicione filamentos AMS não utilizados à lista de filamentos."
+
+#~ msgid "Automatically merge the same colors in the model after mapping."
+#~ msgstr "Mescle automaticamente as mesmas cores no modelo após o mapeamento."
+
+#~ msgid "After being synced, this action cannot be undone."
+#~ msgstr "Após a sincronização, esta ação não pode ser desfeita."
+
+#~ msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
+#~ msgstr "Após a sincronização, as predefinições e cores de filamentos do projeto serão substituídas pelos tipos e cores de filamentos mapeados. Esta ação não pode ser desfeita."
+
+#~ msgid "Are you sure to synchronize the filaments?"
+#~ msgstr "Tem certeza de que sincronizou os filamentos?"
+
+#~ msgid "Synchronize now"
+#~ msgstr "SINCRONIZAR AGORA"
+
+#~ msgid "Synchronize Filament Information"
+#~ msgstr "Sincronizar informações do filamento"
+
+#~ msgid "Add unused filaments to filaments list."
+#~ msgstr "Adicione filamentos não utilizados à lista de filamentos."
+
+#~ msgid "Only synchronize filament type and color, not including slot information."
+#~ msgstr "Sincronize apenas o tipo e a cor do filamento, sem incluir as informações do slot."
+
+#~ msgid "Ext spool"
+#~ msgstr "Carretel Externo"
+
+#, c-format, boost-format
+#~ msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+#~ msgstr "A configuração do fluxo do bico de %s(%s) não corresponde ao arquivo de fatiamento(%s). Certifique-se de que o bico instalado corresponde às configurações na impressora e, em seguida, defina a predefinição da impressora correspondente durante o fatiamento."
+
+#~ msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
+#~ msgstr "Por favor, verifique se o bico do dispositivo é o mesmo que esta predefinido nos ajustes."
+
+#, c-format, boost-format
+#~ msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
+#~ msgstr "A impressora selecionada (%s) é incompatível com o perfil de impressora escolhido no cortador de dados (). %s"
+
+#~ msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
+#~ msgstr "O lapso de tempo não é suportado porque a sequência de impressão está definida como “Por objeto”."
+
+#~ msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+#~ msgstr "Você selecionou filamento externo e AMS ao mesmo tempo em uma extrusora; você precisará trocar manualmente o filamento externo."
+
+#~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+#~ msgstr "Dicas: Se você trocou o bico da sua impressora recentemente, vá em 'Dispositivo -> Peças da impressora' para alterar a configuração do bico."
+
+#~ msgid "Continue to sync filaments"
+#~ msgstr "Continue a sincronizar os filamentos"
+
+#~ msgctxt "Sync_Nozzle_AMS"
+#~ msgid "Cancel"
+#~ msgstr "Cancelar"
+
+#~ msgid "Successfully synchronized color and type of filament from printer."
+#~ msgstr "Cor e tipo de filamento da impressora sincronizados com sucesso."
+
+#~ msgctxt "FinishSyncAms"
+#~ msgid "OK"
+#~ msgstr "Ok"
+
+#~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+#~ msgstr "Extrusoras do tipo Bowden não suportam bicos de 0,2 mm de diâmetro. Só podemos prosseguir com a impressão de uma única cabeça de extrusão."
+
+#~ msgid "Decomposition result for this combination"
+#~ msgstr "Resultado da decomposição para esta combinação"
+
+#~ msgid "Filament Color"
+#~ msgstr "Cor do filamento"
+
+#~ msgid "Decomposed Colors"
+#~ msgstr "Cores Decompostas"
+
+#~ msgid "Select Color Decomposition"
+#~ msgstr "Selecionar decomposição de cores"
+
+#~ msgid "Project Filament"
+#~ msgstr "Filamento do projeto"
+
+#~ msgid "Material List"
+#~ msgstr "Lista de materiais"
+
+#~ msgid "Standard Palette"
+#~ msgstr "Paleta padrão"
+
+#~ msgid "At least two filaments of the same material type are required for decomposition"
+#~ msgstr "São necessários pelo menos dois filamentos do mesmo tipo de material para a decomposição"
+
+#~ msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "Uma mistura mais precisa é calculada a partir de quatro cores básicas: ciano, magenta, amarelo e branco. Atualmente, apenas o PLA Basic é suportado. Se os filamentos correspondentes não estiverem no projeto, eles serão adicionados automaticamente."
+
+#~ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "Uma mistura mais precisa é calculada a partir de quatro cores básicas: vermelho, amarelo, azul e branco. Atualmente, apenas o PLA Basic é suportado. Se os filamentos correspondentes não estiverem no projeto, eles serão adicionados automaticamente."
+
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "A lista de materiais suporta no máximo %1% cores. Após %2% decomposição, a quantidade de materiais excederá %1%. Por favor, exclua os filamentos não utilizados na tela principal antes de realizar a decomposição."
+
+#~ msgid "Decompose Color (gradient not supported)"
+#~ msgstr "Separar cores (gradiente não suportado)"
+
+#~ msgid "Decompose Color (transparent not supported)"
+#~ msgstr "Separar cores (transparência não suportada)"
+
+#~ msgid "Decompose Color (multi-color not supported)"
+#~ msgstr "Separar cores (multicolorido não suportado)"
+
+#~ msgid "Cyan"
+#~ msgstr "Ciano"
+
+#~ msgid "Yellow"
+#~ msgstr "Amarelo"
+
+#~ msgid "The current filament list does not contain "
+#~ msgstr "A lista atual de filamentos não contém "
+
+#~ msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+#~ msgstr ". Um filamento de projeto necessário para o filamento misto será criado automaticamente após a decomposição."
+
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "Recomendado apenas ao usar filamento de cores misturadas, para obter um melhor efeito de cores em camadas."
 
@@ -20505,18 +20774,6 @@ msgstr ""
 
 #~ msgid "Printed Part Displacement Detection"
 #~ msgstr "Detecção de deslocamento de peças impressas"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "O software não suporta o uso de diferentes diâmetros de bicos para uma impressão.\n"
-#~ "Se os bicos esquerdo e direito forem inconsistentes, só podemos prosseguir com a impressão de cabeça única.\n"
-#~ "Por favor, confirme qual bico você gostaria de usar para este projeto."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Diâmetro do interruptor"
 
 #~ msgid "Do you want to sync the preset printer with the connected printer, "
 #~ msgstr "Deseja sincronizar a impressora predefinida com a impressora conectada, "
@@ -20759,9 +21016,6 @@ msgstr ""
 
 #~ msgid "X-Ray Other Objects"
 #~ msgstr "Exibir outros objetos em raio X"
-
-#~ msgid "Exit"
-#~ msgstr "Sair"
 
 #~ msgid "Second"
 #~ msgstr "Segundo"
@@ -21152,9 +21406,6 @@ msgstr ""
 
 #~ msgid "Internal Storage"
 #~ msgstr "Armazenamento Interno"
-
-#~ msgid "External Storage"
-#~ msgstr "Armazenamento Externo"
 
 #~ msgid "Modify paramters of right nozzle"
 #~ msgstr "Modifique os parâmetros do bocal direito"
@@ -21552,21 +21803,6 @@ msgstr ""
 
 #~ msgid " Preparing Hotend"
 #~ msgstr " Preparando Hotend"
-
-#~ msgid "This calibration does not support the currently selected nozzle diameter"
-#~ msgstr "Essa calibração não suporta o diâmetro do bico atualmente selecionado."
-
-#~ msgid "Current flowrate cali param is invalid"
-#~ msgstr "O parâmetro de cali da taxa de fluxo atual é inválido"
-
-#~ msgid "Selected diameter and machine diameter do not match"
-#~ msgstr "O diâmetro selecionado e o diâmetro da máquina não coincidem"
-
-#~ msgid "Failed to generate cali gcode"
-#~ msgstr "Falha ao gerar cali gcode"
-
-#~ msgid "Calibration error"
-#~ msgstr "Erro de calibração"
 
 #~ msgid "Allow Prompt Sound"
 #~ msgstr "Permitir som imediato"
@@ -23090,9 +23326,6 @@ msgstr ""
 #~ "Desativar a desaceleração da saliência automaticamente? \n"
 #~ "Sim - Ative o Arachne e desative a desaceleração da saliência\n"
 #~ "Não - Não use Arachne para esta impressão"
-
-#~ msgid "Discard"
-#~ msgstr "Descartar"
 
 #~ msgid "Discard or Keep changes"
 #~ msgstr "Descarte ou mantenha as alterações"

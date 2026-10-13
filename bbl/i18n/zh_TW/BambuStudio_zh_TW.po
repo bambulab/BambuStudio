@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 12:37+0800\n"
+"POT-Creation-Date: 2026-10-13 23:32+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -32,6 +32,21 @@ msgstr "該材料與當前機器設定不相容，將使用隨機的材料預設
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "未知的材料型號，將使用隨機的材料預設。"
+
+msgid "This calibration does not support the currently selected nozzle diameter"
+msgstr "該標定不支援當前選中噴嘴直徑"
+
+msgid "Current flowrate cali param is invalid"
+msgstr "當前流量標定引數非法"
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr "選擇的直徑和機器直徑不匹配"
+
+msgid "Failed to generate cali gcode"
+msgstr "生成標定GCode失敗"
+
+msgid "Calibration error"
+msgstr "校準錯誤"
 
 msgid "Main Extruder"
 msgstr "主擠出機"
@@ -254,6 +269,78 @@ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wi
 msgstr "因線材路徑切換器異常，%s 可能無法進料或退料。若您仍要繼續。"
 
 #, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported with a standard %s nozzle."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is only supported for printing with the main extruder."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s 不支援在 %s 擠出機列印。"
 
@@ -272,6 +359,15 @@ msgstr "使用 %s Bowden 擠出機列印「%s」時，可能會有列印品質�
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "使用 %s 擠出機列印「%s」時，可能會有列印品質問題。請謹慎使用。"
+
+msgid "The total weight must bigger than remain weight."
+msgstr ""
+
+msgid "Please enter a valid remaining weight from 1g to 10000g."
+msgstr ""
+
+msgid "Please enter a valid total weight from 1g to 10000g."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "工具頭和熱端架可能會運動，請勿將手伸入機箱。"
@@ -338,6 +434,36 @@ msgstr "驗證失敗。"
 
 msgid "Update failed."
 msgstr "更新失敗。"
+
+msgid "Hotend & Filament"
+msgstr ""
+
+msgid "Lift Hotend Rack"
+msgstr ""
+
+msgid "Recenter Hotend Rack"
+msgstr ""
+
+msgid "Lower Hotend Rack"
+msgstr ""
+
+msgid "Hotend Rack"
+msgstr "熱端掛架"
+
+msgid "Reading"
+msgstr "讀取中"
+
+msgid "Running"
+msgstr ""
+
+msgid "Raised"
+msgstr "已升起"
+
+msgid "Lowered"
+msgstr ""
+
+msgid "Centered"
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr "艙內乾燥程度"
@@ -466,14 +592,8 @@ msgstr "讀取中 "
 msgid "Please wait"
 msgstr "請稍候"
 
-msgid "Reading"
-msgstr "讀取中"
-
 msgid "Running..."
 msgstr "執行中..."
-
-msgid "Raised"
-msgstr "已升起"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr "熱端狀態異常，當前不可用。請前往“裝置 -> 升級”升級韌體。"
@@ -506,9 +626,6 @@ msgstr "已使用時間：%s"
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "目前列印板上已分配動態噴嘴。不支援拾取熱端。"
 
-msgid "Hotend Rack"
-msgstr "熱端掛架"
-
 msgid "ToolHead"
 msgstr "工具頭"
 
@@ -517,6 +634,21 @@ msgstr "需要讀取噴嘴資訊"
 
 msgid "Note:"
 msgstr "請注意："
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+msgid "Fan"
+msgstr "風扇"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "The embedded webpage could not be loaded."
 msgstr ""
@@ -531,6 +663,9 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
+msgstr ""
+
+msgid "AMS Bridge Debug"
 msgstr ""
 
 msgid "Idling..."
@@ -648,9 +783,6 @@ msgstr ""
 msgid "Refreshing Hotend"
 msgstr ""
 
-msgid "Running"
-msgstr ""
-
 #, boost-format
 msgid "Reading (%1% / %2%)"
 msgstr ""
@@ -661,6 +793,24 @@ msgstr ""
 
 msgid "Please wait..."
 msgstr ""
+
+msgid "Edit Filament"
+msgstr "編輯材料"
+
+msgid "Confirm to exit this process?"
+msgstr ""
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
+msgid "Still exit"
+msgstr ""
+
+msgid "Tip"
+msgstr "提示"
 
 msgid "Empty slot"
 msgstr ""
@@ -716,9 +866,6 @@ msgstr ""
 msgid "No filament information available"
 msgstr ""
 
-msgid "Tip"
-msgstr "提示"
-
 msgid "Cannot read all while printing or upgrading"
 msgstr ""
 
@@ -741,18 +888,6 @@ msgstr ""
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
 msgstr ""
-
-msgid "Pen"
-msgstr ""
-
-msgid "Cutter"
-msgstr ""
-
-msgid "Laser"
-msgstr ""
-
-msgid "Fan"
-msgstr "風扇"
 
 msgid "Hotend Details"
 msgstr ""
@@ -1331,6 +1466,9 @@ msgstr "修復模型物件"
 msgid "Connector"
 msgstr "連線件"
 
+msgid "Preparing data..."
+msgstr "正在準備資料…"
+
 msgid "Flip cut plane"
 msgstr "翻轉剖切面"
 
@@ -1538,7 +1676,10 @@ msgstr "%d 個三角形"
 msgid "Show wireframe"
 msgstr "顯示線框"
 
-msgid "Preserve painted colors"
+msgid "Keep all painting"
+msgstr ""
+
+msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr ""
 
 #, boost-format
@@ -3086,8 +3227,8 @@ msgstr "目標物件僅包含一個零件，無法被拆分。"
 msgid "Assembly"
 msgstr "組合體"
 
-msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "同時使用可變層高與混色子層可能導致混色品質不佳。"
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
@@ -3199,6 +3340,9 @@ msgstr "不支援多個單元格的複製"
 msgid "Outside"
 msgstr "盤外"
 
+msgid "Auto"
+msgstr "自動"
+
 msgid " "
 msgstr " "
 
@@ -3213,9 +3357,6 @@ msgstr "填充密度(%)"
 
 msgid "Auto Brim"
 msgstr "自動Brim"
-
-msgid "Auto"
-msgstr "自動"
 
 msgid "Painted"
 msgstr "繪製"
@@ -4208,9 +4349,6 @@ msgstr ""
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
-msgid "Decompose Color"
-msgstr "分解色彩"
-
 msgid "+ Add Filament"
 msgstr "+ 新增線材"
 
@@ -4278,12 +4416,6 @@ msgstr "自動新增所有線材"
 msgid "Fix now"
 msgstr "立即修復"
 
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "自動將相同線材合併至專案中現有的線材"
-
-msgid "Automatically merge filaments of the same color and type"
-msgstr "自動合併相同顏色與類型的線材"
-
 msgid "Skip"
 msgstr "跳過"
 
@@ -4334,9 +4466,6 @@ msgstr "顏色數量不能超過原始顏色數量（%d）。"
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "顏色數量不能超過專案的線材限制（%d）。"
 
-msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
 msgid "Click to select a matching filament"
 msgstr "按一下以選擇匹配的線材"
 
@@ -4352,6 +4481,12 @@ msgstr ""
 
 #, boost-format
 msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Mixing kits"
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "Kept filaments"
@@ -4371,6 +4506,9 @@ msgid "Prioritize merging similar-color filaments"
 msgstr ""
 
 msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -4657,36 +4795,6 @@ msgstr "%s 不支援 %s"
 
 msgid "Dynamic flow Calibration"
 msgstr "動態流量校準"
-
-msgid "Unmapped"
-msgstr "未匹配"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area: The filament from original project will be used when unmapped.\n"
-"And you can click it to modify"
-msgstr ""
-"上半部分：原專案耗材\n"
-"下半部分：未匹配則使用原專案耗材\n"
-"您可以單擊它進行修改"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you can click it to modify"
-msgstr ""
-"上半部分：原專案耗材\n"
-"下半部分：AMS中的耗材\n"
-"您可以單擊它進行修改"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you cannot click it to modify"
-msgstr ""
-"上半部分：原專案耗材\n"
-"下半部分：AMS中的耗材\n"
-"您不能單擊它進行修改"
 
 msgid "AMS Slots"
 msgstr "AMS艙內材料"
@@ -5089,6 +5197,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "該耗材的推薦噴嘴溫度是[%d, %d]攝氏度"
+
+msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
+msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6218,6 +6329,18 @@ msgstr "點選摺疊"
 msgid "Overview"
 msgstr "總覽"
 
+#, boost-format
+msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support ring of %2% overlaps %3%."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support rings of %2% and %3% overlap."
+msgstr ""
+
 msgid "Select Plate"
 msgstr "選擇盤"
 
@@ -6471,8 +6594,20 @@ msgstr "實時預覽重試"
 msgid "Resolution"
 msgstr "解析度"
 
+msgid "External Storage"
+msgstr "外接儲存"
+
 msgid "Show \"Live Video\" guide page."
 msgstr "顯示\"直播影片流\"指南。"
+
+msgid "Not Installed"
+msgstr ""
+
+msgid "Abnormal"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "連線印表機（區域網）"
@@ -6550,6 +6685,12 @@ msgstr "將會被關閉以建立新模型，是否繼續?"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "當前頁面有未儲存的更改。您可以繼續編輯，或選擇儲存/放棄後離開。"
+
+msgid "Discard"
+msgstr "放棄"
+
+msgid "Stay on this page"
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "使用 Helio Additive 解鎖更快、更可靠、更不易翹曲的列印。"
@@ -7151,8 +7292,12 @@ msgstr "資訊"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "直播功能依賴 Bambu Studio 執行，關閉軟體後直播將在一段時間後結束。"
 
-msgid "Printer Preview"
-msgstr "印表機預覽"
+msgid "Not live"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Captured at %s"
+msgstr ""
 
 msgid "Playing..."
 msgstr "正在播放中……"
@@ -7521,9 +7666,6 @@ msgstr "即將完成"
 msgid "Camera"
 msgstr "攝像機"
 
-msgid "Storage"
-msgstr "儲存介質"
-
 msgid "Camera Setting"
 msgstr "相機設定"
 
@@ -7542,9 +7684,6 @@ msgstr "安全選項"
 msgid "Hotends"
 msgstr "熱端"
 
-msgid "Unclamped"
-msgstr ""
-
 msgid "100%"
 msgstr "100%"
 
@@ -7557,11 +7696,20 @@ msgstr "熱床"
 msgid "Filament loading..."
 msgstr "換料中..."
 
-msgid "No Storage"
-msgstr "無儲存"
+msgid "Live Camera Recording in progress"
+msgstr ""
 
-msgid "Storage Abnormal"
-msgstr "儲存異常"
+msgid "Visual Enhancement Camera Recording in progress"
+msgstr ""
+
+msgid "Recording in progress"
+msgstr ""
+
+msgid "Timelapse in progress"
+msgstr ""
+
+msgid "Go Live in progress"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "取消列印"
@@ -7768,6 +7916,12 @@ msgid ""
 "to give a positive rating(4 or 5stars)."
 msgstr "至少需要一個成功的列印記錄，才能給出積極的評價（4星或5星）。"
 
+msgid "This device is performing the following operations"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "匯入step檔案選項"
 
@@ -7803,6 +7957,9 @@ msgstr "不再顯示"
 
 msgid "Calculating, please wait..."
 msgstr "計算中，請等待..."
+
+msgid "Storage"
+msgstr "儲存介質"
 
 msgid "Status"
 msgstr "裝置狀態"
@@ -7985,6 +8142,9 @@ msgstr "已完成"
 msgid "Cancel upload"
 msgstr "取消上傳"
 
+msgid "Serious warning:"
+msgstr "嚴重警告："
+
 msgid "Jump to"
 msgstr "跳轉到"
 
@@ -8011,9 +8171,6 @@ msgstr "傳送成功。"
 
 msgid "Model file downloaded."
 msgstr "已下載模型檔案。"
-
-msgid "Serious warning:"
-msgstr "嚴重警告："
 
 msgid " Click here to install it."
 msgstr "點選此處安裝。"
@@ -8957,6 +9114,18 @@ msgstr ""
 msgid "Not installed"
 msgstr "未安裝"
 
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"軟體暫不支援使用兩種不同直徑的噴嘴同時列印。\n"
+"由於您設定的左右噴嘴直徑不一致，我們只能採用單頭列印。\n"
+"請確認使用哪個噴嘴列印當前專案。"
+
+msgid "Switch diameter"
+msgstr "設定噴嘴直徑"
+
 msgid "Sync printer information"
 msgstr "同步印表機資訊"
 
@@ -9024,16 +9193,11 @@ msgstr "搜尋盤、模型和零件。"
 msgid "Change nozzle diameter"
 msgstr ""
 
-msgid "This filament does not support printing with the current nozzle."
+msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
-msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
-msgstr ""
-
-msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
-msgstr ""
-
-msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
+#, c-format, boost-format
+msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -9062,7 +9226,11 @@ msgid "After completing your operation, %s project will be closed and create a n
 msgstr "執行完成該操作後，%s 專案將會被關閉並建立一個新專案。"
 
 #, c-format, boost-format
-msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgid "filament slot %d %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
 msgid ""
@@ -9114,11 +9282,23 @@ msgid "Please fix the marked mixed filaments in the left filament list."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
 msgid "Add a new preset"
@@ -9201,6 +9381,12 @@ msgstr "在3mf檔案中發現無效值："
 msgid "Please correct them in the param tabs"
 msgstr "請在引數頁更正它們"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "該3mf檔案中的材料或者印表機預設包含以下修改過的G-codes:"
 
@@ -9240,17 +9426,6 @@ msgstr "體積為零的物件已被移除"
 
 msgid "The volume of the object is zero"
 msgstr "物件的體積為零"
-
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
-"Instead of considering them as multiple objects, should \n"
-"the file be loaded as a single object having multiple parts?"
-msgstr ""
-"該檔案包含多個位於不同高度的物件。\n"
-"是否將檔案載入為一個由多個零件組合而成的物件，而非多個單零件的物件？"
-
-msgid "Multi-part object detected"
-msgstr "檢測到多部分物件"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -10523,6 +10698,9 @@ msgstr "不相容的預設"
 msgid "My Printer"
 msgstr "我的印表機"
 
+msgid "This filament is not compatible with the nozzle it is loaded on"
+msgstr ""
+
 msgid "To select this filament, change the nozzle settings first."
 msgstr ""
 
@@ -11041,6 +11219,15 @@ msgstr ""
 "下半部分：選定的噴嘴\n"
 "您可以單擊它進行修改"
 
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you can click it to modify"
+msgstr ""
+"上半部分：原專案耗材\n"
+"下半部分：AMS中的耗材\n"
+"您可以單擊它進行修改"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "無法自動匹配到合適的材料，請點選進行手動匹配"
 
@@ -11438,6 +11625,9 @@ msgstr "點選瞭解更多"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "點選以將所有設定還原到最後一次儲存的版本。"
 
+msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "切換噴嘴需要擦料塔，否則列印件上可能會有瑕疵。您確定要關閉擦料塔嗎？"
 
@@ -11589,6 +11779,9 @@ msgstr "加速度"
 
 msgid "Jerk(XY)"
 msgstr "抖動（XY軸）"
+
+msgid "Support ring"
+msgstr ""
 
 msgid "Raft"
 msgstr "筏層"
@@ -12010,9 +12203,6 @@ msgstr "修改值（新）"
 msgid "Discard Modified Value"
 msgstr "丟棄修改值"
 
-msgid "Don't save"
-msgstr "不儲存"
-
 msgid "Use Modified Value"
 msgstr "使用修改值"
 
@@ -12201,210 +12391,6 @@ msgstr "沒有可用的更新。"
 
 msgid "The configuration is up to date."
 msgstr "當前配置已經是最新版本。"
-
-msgid "Open Wiki for more information >"
-msgstr "開啟Wiki瞭解更多資訊 >"
-
-msgid "Obj file Import color"
-msgstr "Obj檔案匯入顏色"
-
-msgid "Standard 3mf Import color"
-msgstr "標準3mf匯入顏色"
-
-msgid "Some faces don't have color defined."
-msgstr "有些面片未定義顏色。"
-
-msgid "mtl file exist error,could not find the material:"
-msgstr "mtl檔案存在錯誤，找不到材料："
-
-msgid "Please check obj or mtl file."
-msgstr "請檢查obj或mtl檔案。"
-
-msgid "Specify number of colors:"
-msgstr "指定顏色數量:"
-
-msgid "Enter or click the adjustment button to modify number again"
-msgstr "輸入或單擊調整按鈕可再次修改數字"
-
-msgid "Recommended "
-msgstr "推薦"
-
-msgid "view"
-msgstr "檢視"
-
-msgid "Current filament colors"
-msgstr "當前材料顏色"
-
-msgid "Matching"
-msgstr "匹配"
-
-msgid "Quick set"
-msgstr "快捷設定"
-
-msgid "There are color input errors."
-msgstr "存在顏色輸入錯誤。"
-
-msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr "紋理匯入暫時不可用，部分著色將自動替換為預設顏色。"
-
-msgid " And "
-msgstr " 並且"
-
-msgid "Note"
-msgstr "提示"
-
-msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr "顏色已經預設匹配好了，您可以選中確認繼續或手動修改它。"
-
-msgctxt "ObjImport"
-msgid "Original"
-msgstr "原專案"
-
-msgid "After mapping"
-msgstr "匹配後"
-
-msgid "Color match"
-msgstr "顏色匹配"
-
-msgid "Approximate color matching."
-msgstr "近似的顏色匹配。"
-
-msgid "Append"
-msgstr "追加"
-
-msgid "Append to existing filaments"
-msgstr "在已有耗材後面追加耗材"
-
-msgid "Reset mapped extruders."
-msgstr "重置匹配的耗材絲。"
-
-msgid "—> "
-msgstr "—> "
-
-msgctxt "Sync_AMS"
-msgid "Original"
-msgstr "原專案"
-
-msgid "After overwriting"
-msgstr "覆蓋後"
-
-msgctxt "Sync_AMS"
-msgid "Plate"
-msgstr "盤"
-
-msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
-msgstr "連線的印表機與當前選擇的印表機不匹配。請更改所選印表機。"
-
-msgid "Mapping"
-msgstr "匹配"
-
-msgid "Overwriting"
-msgstr "覆蓋"
-
-msgid "Reset all filament mapping"
-msgstr "重置所有耗材對映"
-
-msgid "(Recommended filament)"
-msgstr "(推薦的材料)"
-
-msgid "Advanced Options"
-msgstr "高階選項"
-
-msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
-msgstr ""
-"檢查加熱床的平整度。找平使擠壓高度均勻。\n"
-"*自動模式：先調平（約10秒）。如果表面良好，則跳過。"
-
-msgid ""
-"Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
-msgstr ""
-"校準不同噴嘴的偏移量，提升列印質量。\n"
-"*自動模式：發起列印前檢測是否需要校準，無需校準則跳過校準。"
-
-msgid "Use AMS"
-msgstr "使用AMS"
-
-msgid "Only synchronize filament type and color, not including AMS slot information."
-msgstr "僅同步耗材型別和顏色，不包含AMS槽位資訊。"
-
-msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr "使用印表機內的耗材，依次替換專案耗材列表。未使用的印表機耗材將自動新增至列表末尾。"
-
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Add unused AMS filaments to filaments list."
-msgstr "將未使用的 AMS 耗材新增到耗材列表中。"
-
-msgid "Automatically merge the same colors in the model after mapping."
-msgstr "匹配後自動合併模型中的相同顏色。"
-
-msgid "After being synced, this action cannot be undone."
-msgstr "同步後，此操作不可撤銷。"
-
-msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
-msgstr "同步後，專案耗材列表的預設和顏色將被對映後的耗材型別和顏色替代，此操作不可撤銷。"
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "確定要同步AMS中耗材資訊嗎？"
-
-msgid "Synchronize now"
-msgstr "立即同步"
-
-msgid "Synchronize Filament Information"
-msgstr "同步耗材資訊"
-
-msgid "Add unused filaments to filaments list."
-msgstr "將未使用的耗材新增到耗材列表中。"
-
-msgid "Only synchronize filament type and color, not including slot information."
-msgstr "僅同步耗材型別和顏色，不包含槽位資訊。"
-
-msgid "Ext spool"
-msgstr "外掛"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "%s的流量設定（%s）和切片檔案（%s）不一致，無法發起列印。請確保印表機上安裝噴嘴型別和機器設定中一致，並在切片時設定對應的噴嘴型別。"
-
-msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
-msgstr "請檢查裝置的噴嘴型別是否與預設的噴嘴型別相同。"
-
-#, c-format, boost-format
-msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "所選印表機（%s）與切片軟體中選擇的印表機配置檔案（%s）不相容。"
-
-msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "切片引數中開啟了逐件列印，無法支援延時攝影。"
-
-msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr "您在同一擠出機中同時選擇了外部和AMS耗材，您需要手動更換外部耗材。"
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "注意: 如果您最近更換了噴嘴，請去“裝置-印表機零件”更改設定"
-
-msgid "Successfully synchronized Printer information."
-msgstr ""
-
-msgid "Continue to sync filaments"
-msgstr "繼續同步耗材"
-
-msgctxt "Sync_Nozzle_AMS"
-msgid "Cancel"
-msgstr "取消"
-
-msgid "Successfully synchronized color and type of filament from printer."
-msgstr "成功從印表機同步耗材顏色和型別。"
-
-msgctxt "FinishSyncAms"
-msgid "OK"
-msgstr "確認"
-
-msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr "Bowden 型擠出機不支援 0.2 直徑噴嘴。我們僅能進行單頭列印。"
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio 將會在每一次更換耗材或顏色時重新計算您的沖刷體積，您可以在Bambu Studio > 偏好設定 中關閉自動計算"
@@ -13801,10 +13787,13 @@ msgstr "當物件包含不同列印設定的區域時，螺旋花瓶模式無法
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "不支援同時使用可變層高和有機樹支撐。"
 
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr ""
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
@@ -13852,11 +13841,11 @@ msgstr ""
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "擦料塔要求各個物件擁有同樣的層高。"
 
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "各個物件的層高存在差異，無法啟用擦料塔"
-
 msgid "The support ring is only supported if all objects have the same variable layer height"
 msgstr ""
+
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "各個物件的層高存在差異，無法啟用擦料塔"
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "精確 Z 高度會使物件具有不同層高，可能大幅增加填充塔的尺寸。"
@@ -16828,10 +16817,10 @@ msgstr ""
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
 msgstr ""
 
-msgid "Support ring notch width"
+msgid "Support ring angle"
 msgstr ""
 
-msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
 msgstr ""
 
 msgid "Support ring skip points"
@@ -18092,6 +18081,15 @@ msgstr "- 物件模式：請至少選擇兩個物件。"
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- 零件模式：請選擇一個包含至少兩個零件的物件。"
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "Computing..."
+msgstr "正在執行網格布林運算…"
+
+msgid "Applying result.."
+msgstr "正在應用結果…"
+
 msgid "Union"
 msgstr "並集"
 
@@ -18118,15 +18116,6 @@ msgstr "僅對實體執行布林運算。"
 
 msgid "This object contains non-part components."
 msgstr "該物件包含非實體零件。"
-
-msgid "Preparing data..."
-msgstr "正在準備資料…"
-
-msgid "Computing..."
-msgstr "正在執行網格布林運算…"
-
-msgid "Applying result.."
-msgstr "正在應用結果…"
 
 msgid "Network Test"
 msgstr "網路測試"
@@ -18561,9 +18550,6 @@ msgstr "請選擇一個您想匯出的型別"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "無法建立臨時資料夾，請再次嘗試匯出配置。"
-
-msgid "Edit Filament"
-msgstr "編輯材料"
 
 msgid "Filament presets under this filament"
 msgstr "此材料下的所有材料預設"
@@ -19119,6 +19105,9 @@ msgstr "同時使用的印表機數量不能等於0。"
 
 msgid "Use External Spool"
 msgstr "使用外掛料卷"
+
+msgid "Use AMS"
+msgstr "使用AMS"
 
 msgid "Select Printers"
 msgstr "選擇印表機"
@@ -19771,6 +19760,12 @@ msgstr "編輯混合線材"
 msgid "Effect Preview"
 msgstr "效果預覽"
 
+msgid "Target"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
 msgid "Select Mixed Materials"
 msgstr "選擇混合材料"
 
@@ -19808,6 +19803,9 @@ msgstr "無法混合。請選擇相同的線材類型。"
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr ""
 
+msgid "No mix is available for the target color"
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "請為所有組件選擇線材"
 
@@ -19820,73 +19818,49 @@ msgstr "已達最大組件數量"
 msgid "Remove the third material"
 msgstr "移除第三種材料"
 
+msgid "Manual Mixing"
+msgstr ""
+
+msgid "Color Matching"
+msgstr ""
+
+msgid "Select Target Color"
+msgstr ""
+
+msgid "Match Result"
+msgstr ""
+
+msgid "Discard changes and match again"
+msgstr ""
+
+msgid "Replace the target color on models with the mixed result"
+msgstr ""
+
+msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
+msgstr ""
+
 #, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
+msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
-msgid "Decomposition result for this combination"
-msgstr "此組合的分解結果"
-
-msgid "Filament Color"
-msgstr "線材顏色"
-
-msgid "Decomposed Colors"
-msgstr "分解色彩"
-
-msgid "Select Color Decomposition"
-msgstr "選擇色彩分解"
-
-msgid "Project Filament"
-msgstr "專案線材"
-
-msgid "Material List"
-msgstr "材料清單"
-
-msgid "Standard Palette"
-msgstr "標準調色盤"
-
-msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "分解至少需要兩種相同材料類型的線材"
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "從青色、洋紅色、黃色及白色四種基礎色計算出更接近的混合色。目前僅支援 PLA Basic。若專案中沒有相符的線材，將自動新增。"
-
-msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgid "There is no other filament of the same type as the target color in the project."
 msgstr ""
 
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "從紅色、黃色、藍色及白色四種基礎色計算出更接近的混合色。目前僅支援 PLA Basic。若專案中沒有相符的線材，將自動新增。"
+msgid "At least two other filaments of the same type as the target color are required."
+msgstr ""
+
+msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+msgstr ""
+
+msgid "No available mixing recipe was found."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
 
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "材料清單最多支援 %1% 種顏色。%2% 分解後，材料數量將超過 %1%。分解前請先在主畫面刪除未使用的線材。"
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "分解顏色（不支援漸層）"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "分解顏色（不支援透明）"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "分解顏色（不支援多色）"
-
-msgid "Cyan"
-msgstr "青色"
-
-msgid "Magenta"
-msgstr "洋紅色"
-
-msgid "Yellow"
-msgstr "黃色"
-
-msgid ", "
-msgstr "， "
-
-msgid "The current filament list does not contain "
-msgstr "目前的線材清單不包含 "
-
-msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr "。混合線材所需的專案線材將在分解後自動建立。"
+msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
+msgstr ""
 
 msgid "Material Ratio"
 msgstr "材料比例"
@@ -20223,6 +20197,318 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
 
+#~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+#~ msgstr "同時使用可變層高與混色子層可能導致混色品質不佳。"
+
+#~ msgid "Decompose Color"
+#~ msgstr "分解色彩"
+
+#~ msgid "Automatically merge identical filaments into existing filaments in the project"
+#~ msgstr "自動將相同線材合併至專案中現有的線材"
+
+#~ msgid "Automatically merge filaments of the same color and type"
+#~ msgstr "自動合併相同顏色與類型的線材"
+
+#~ msgid "Unmapped"
+#~ msgstr "未匹配"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area: The filament from original project will be used when unmapped.\n"
+#~ "And you can click it to modify"
+#~ msgstr ""
+#~ "上半部分：原專案耗材\n"
+#~ "下半部分：未匹配則使用原專案耗材\n"
+#~ "您可以單擊它進行修改"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area:  Filament in AMS\n"
+#~ "And you cannot click it to modify"
+#~ msgstr ""
+#~ "上半部分：原專案耗材\n"
+#~ "下半部分：AMS中的耗材\n"
+#~ "您不能單擊它進行修改"
+
+#~ msgid "Printer Preview"
+#~ msgstr "印表機預覽"
+
+#~ msgid "No Storage"
+#~ msgstr "無儲存"
+
+#~ msgid "Storage Abnormal"
+#~ msgstr "儲存異常"
+
+#~ msgid ""
+#~ "This file contains several objects positioned at multiple heights.\n"
+#~ "Instead of considering them as multiple objects, should \n"
+#~ "the file be loaded as a single object having multiple parts?"
+#~ msgstr ""
+#~ "該檔案包含多個位於不同高度的物件。\n"
+#~ "是否將檔案載入為一個由多個零件組合而成的物件，而非多個單零件的物件？"
+
+#~ msgid "Multi-part object detected"
+#~ msgstr "檢測到多部分物件"
+
+#~ msgid "Don't save"
+#~ msgstr "不儲存"
+
+#~ msgid "Open Wiki for more information >"
+#~ msgstr "開啟Wiki瞭解更多資訊 >"
+
+#~ msgid "Obj file Import color"
+#~ msgstr "Obj檔案匯入顏色"
+
+#~ msgid "Standard 3mf Import color"
+#~ msgstr "標準3mf匯入顏色"
+
+#~ msgid "Some faces don't have color defined."
+#~ msgstr "有些面片未定義顏色。"
+
+#~ msgid "mtl file exist error,could not find the material:"
+#~ msgstr "mtl檔案存在錯誤，找不到材料："
+
+#~ msgid "Please check obj or mtl file."
+#~ msgstr "請檢查obj或mtl檔案。"
+
+#~ msgid "Specify number of colors:"
+#~ msgstr "指定顏色數量:"
+
+#~ msgid "Enter or click the adjustment button to modify number again"
+#~ msgstr "輸入或單擊調整按鈕可再次修改數字"
+
+#~ msgid "Recommended "
+#~ msgstr "推薦"
+
+#~ msgid "view"
+#~ msgstr "檢視"
+
+#~ msgid "Current filament colors"
+#~ msgstr "當前材料顏色"
+
+#~ msgid "Matching"
+#~ msgstr "匹配"
+
+#~ msgid "Quick set"
+#~ msgstr "快捷設定"
+
+#~ msgid "There are color input errors."
+#~ msgstr "存在顏色輸入錯誤。"
+
+#~ msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+#~ msgstr "紋理匯入暫時不可用，部分著色將自動替換為預設顏色。"
+
+#~ msgid " And "
+#~ msgstr " 並且"
+
+#~ msgid "Note"
+#~ msgstr "提示"
+
+#~ msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+#~ msgstr "顏色已經預設匹配好了，您可以選中確認繼續或手動修改它。"
+
+#~ msgctxt "ObjImport"
+#~ msgid "Original"
+#~ msgstr "原專案"
+
+#~ msgid "After mapping"
+#~ msgstr "匹配後"
+
+#~ msgid "Color match"
+#~ msgstr "顏色匹配"
+
+#~ msgid "Approximate color matching."
+#~ msgstr "近似的顏色匹配。"
+
+#~ msgid "Append"
+#~ msgstr "追加"
+
+#~ msgid "Append to existing filaments"
+#~ msgstr "在已有耗材後面追加耗材"
+
+#~ msgid "Reset mapped extruders."
+#~ msgstr "重置匹配的耗材絲。"
+
+#~ msgid "—> "
+#~ msgstr "—> "
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Original"
+#~ msgstr "原專案"
+
+#~ msgid "After overwriting"
+#~ msgstr "覆蓋後"
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Plate"
+#~ msgstr "盤"
+
+#~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
+#~ msgstr "連線的印表機與當前選擇的印表機不匹配。請更改所選印表機。"
+
+#~ msgid "Mapping"
+#~ msgstr "匹配"
+
+#~ msgid "Overwriting"
+#~ msgstr "覆蓋"
+
+#~ msgid "Reset all filament mapping"
+#~ msgstr "重置所有耗材對映"
+
+#~ msgid "(Recommended filament)"
+#~ msgstr "(推薦的材料)"
+
+#~ msgid "Advanced Options"
+#~ msgstr "高階選項"
+
+#~ msgid ""
+#~ "Check heatbed flatness. Leveling makes extruded height uniform.\n"
+#~ "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+#~ msgstr ""
+#~ "檢查加熱床的平整度。找平使擠壓高度均勻。\n"
+#~ "*自動模式：先調平（約10秒）。如果表面良好，則跳過。"
+
+#~ msgid ""
+#~ "Calibrate nozzle offsets to enhance print quality.\n"
+#~ "*Automatic mode: Check for calibration before printing; skip if unnecessary."
+#~ msgstr ""
+#~ "校準不同噴嘴的偏移量，提升列印質量。\n"
+#~ "*自動模式：發起列印前檢測是否需要校準，無需校準則跳過校準。"
+
+#~ msgid "Only synchronize filament type and color, not including AMS slot information."
+#~ msgstr "僅同步耗材型別和顏色，不包含AMS槽位資訊。"
+
+#~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
+#~ msgstr "使用印表機內的耗材，依次替換專案耗材列表。未使用的印表機耗材將自動新增至列表末尾。"
+
+#~ msgid "Add unused AMS filaments to filaments list."
+#~ msgstr "將未使用的 AMS 耗材新增到耗材列表中。"
+
+#~ msgid "Automatically merge the same colors in the model after mapping."
+#~ msgstr "匹配後自動合併模型中的相同顏色。"
+
+#~ msgid "After being synced, this action cannot be undone."
+#~ msgstr "同步後，此操作不可撤銷。"
+
+#~ msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
+#~ msgstr "同步後，專案耗材列表的預設和顏色將被對映後的耗材型別和顏色替代，此操作不可撤銷。"
+
+#~ msgid "Are you sure to synchronize the filaments?"
+#~ msgstr "確定要同步AMS中耗材資訊嗎？"
+
+#~ msgid "Synchronize now"
+#~ msgstr "立即同步"
+
+#~ msgid "Synchronize Filament Information"
+#~ msgstr "同步耗材資訊"
+
+#~ msgid "Add unused filaments to filaments list."
+#~ msgstr "將未使用的耗材新增到耗材列表中。"
+
+#~ msgid "Only synchronize filament type and color, not including slot information."
+#~ msgstr "僅同步耗材型別和顏色，不包含槽位資訊。"
+
+#~ msgid "Ext spool"
+#~ msgstr "外掛"
+
+#, c-format, boost-format
+#~ msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+#~ msgstr "%s的流量設定（%s）和切片檔案（%s）不一致，無法發起列印。請確保印表機上安裝噴嘴型別和機器設定中一致，並在切片時設定對應的噴嘴型別。"
+
+#~ msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
+#~ msgstr "請檢查裝置的噴嘴型別是否與預設的噴嘴型別相同。"
+
+#, c-format, boost-format
+#~ msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
+#~ msgstr "所選印表機（%s）與切片軟體中選擇的印表機配置檔案（%s）不相容。"
+
+#~ msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
+#~ msgstr "切片引數中開啟了逐件列印，無法支援延時攝影。"
+
+#~ msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+#~ msgstr "您在同一擠出機中同時選擇了外部和AMS耗材，您需要手動更換外部耗材。"
+
+#~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+#~ msgstr "注意: 如果您最近更換了噴嘴，請去“裝置-印表機零件”更改設定"
+
+#~ msgid "Continue to sync filaments"
+#~ msgstr "繼續同步耗材"
+
+#~ msgctxt "Sync_Nozzle_AMS"
+#~ msgid "Cancel"
+#~ msgstr "取消"
+
+#~ msgid "Successfully synchronized color and type of filament from printer."
+#~ msgstr "成功從印表機同步耗材顏色和型別。"
+
+#~ msgctxt "FinishSyncAms"
+#~ msgid "OK"
+#~ msgstr "確認"
+
+#~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+#~ msgstr "Bowden 型擠出機不支援 0.2 直徑噴嘴。我們僅能進行單頭列印。"
+
+#~ msgid "Decomposition result for this combination"
+#~ msgstr "此組合的分解結果"
+
+#~ msgid "Filament Color"
+#~ msgstr "線材顏色"
+
+#~ msgid "Decomposed Colors"
+#~ msgstr "分解色彩"
+
+#~ msgid "Select Color Decomposition"
+#~ msgstr "選擇色彩分解"
+
+#~ msgid "Project Filament"
+#~ msgstr "專案線材"
+
+#~ msgid "Material List"
+#~ msgstr "材料清單"
+
+#~ msgid "Standard Palette"
+#~ msgstr "標準調色盤"
+
+#~ msgid "At least two filaments of the same material type are required for decomposition"
+#~ msgstr "分解至少需要兩種相同材料類型的線材"
+
+#~ msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "從青色、洋紅色、黃色及白色四種基礎色計算出更接近的混合色。目前僅支援 PLA Basic。若專案中沒有相符的線材，將自動新增。"
+
+#~ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "從紅色、黃色、藍色及白色四種基礎色計算出更接近的混合色。目前僅支援 PLA Basic。若專案中沒有相符的線材，將自動新增。"
+
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "材料清單最多支援 %1% 種顏色。%2% 分解後，材料數量將超過 %1%。分解前請先在主畫面刪除未使用的線材。"
+
+#~ msgid "Decompose Color (gradient not supported)"
+#~ msgstr "分解顏色（不支援漸層）"
+
+#~ msgid "Decompose Color (transparent not supported)"
+#~ msgstr "分解顏色（不支援透明）"
+
+#~ msgid "Decompose Color (multi-color not supported)"
+#~ msgstr "分解顏色（不支援多色）"
+
+#~ msgid "Cyan"
+#~ msgstr "青色"
+
+#~ msgid "Magenta"
+#~ msgstr "洋紅色"
+
+#~ msgid "Yellow"
+#~ msgstr "黃色"
+
+#~ msgid ", "
+#~ msgstr "， "
+
+#~ msgid "The current filament list does not contain "
+#~ msgstr "目前的線材清單不包含 "
+
+#~ msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+#~ msgstr "。混合線材所需的專案線材將在分解後自動建立。"
+
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "僅建議在使用混色線材時開啟，以獲得更佳的層次色彩效果。"
 
@@ -20318,18 +20604,6 @@ msgstr ""
 
 #~ msgid "Printed Part Displacement Detection"
 #~ msgstr "列印件位移檢測"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "軟體暫不支援使用兩種不同直徑的噴嘴同時列印。\n"
-#~ "由於您設定的左右噴嘴直徑不一致，我們只能採用單頭列印。\n"
-#~ "請確認使用哪個噴嘴列印當前專案。"
-
-#~ msgid "Switch diameter"
-#~ msgstr "設定噴嘴直徑"
 
 #~ msgid "Do you want to sync the preset printer with the connected printer, "
 #~ msgstr "是否將預設機型同步為當前已連線印表機型， "
@@ -20859,9 +21133,6 @@ msgstr ""
 #~ msgid "Internal Storage"
 #~ msgstr "內建儲存"
 
-#~ msgid "External Storage"
-#~ msgstr "外接儲存"
-
 #~ msgid "Modify paramters of right nozzle"
 #~ msgstr "修改右噴嘴下的引數"
 
@@ -21346,21 +21617,6 @@ msgstr ""
 
 #~ msgid " Preparing Hotend"
 #~ msgstr " 熱端準備中"
-
-#~ msgid "This calibration does not support the currently selected nozzle diameter"
-#~ msgstr "該標定不支援當前選中噴嘴直徑"
-
-#~ msgid "Current flowrate cali param is invalid"
-#~ msgstr "當前流量標定引數非法"
-
-#~ msgid "Selected diameter and machine diameter do not match"
-#~ msgstr "選擇的直徑和機器直徑不匹配"
-
-#~ msgid "Failed to generate cali gcode"
-#~ msgstr "生成標定GCode失敗"
-
-#~ msgid "Calibration error"
-#~ msgstr "校準錯誤"
 
 #~ msgid "Allow Prompt Sound"
 #~ msgstr "支援提示音"
@@ -23592,9 +23848,6 @@ msgstr ""
 
 #~ msgid "Transfer"
 #~ msgstr "遷移"
-
-#~ msgid "Discard"
-#~ msgstr "放棄"
 
 #~ msgid ""
 #~ "You have changed some settings of preset \"%1%\". \n"

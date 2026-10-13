@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 12:37+0800\n"
+"POT-Creation-Date: 2026-10-13 23:32+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -32,6 +32,21 @@ msgstr "Filamen mungkin tidak kompatibel dengan pengaturan mesin saat ini. Prese
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Model filamen tidak diketahui. Preset filamen acak akan digunakan."
+
+msgid "This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
+msgstr ""
+
+msgid "Calibration error"
+msgstr ""
 
 msgid "Main Extruder"
 msgstr "Ekstruder Utama"
@@ -254,6 +269,78 @@ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wi
 msgstr "%s mungkin gagal memuat atau membongkar karena Sakelar Jalur Filamen. Jika Anda ingin melanjutkan."
 
 #, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported with a standard %s nozzle."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is only supported for printing with the main extruder."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s tidak didukung oleh ekstruder %s."
 
@@ -272,6 +359,15 @@ msgstr "Mungkin ada masalah kualitas cetak saat mencetak '%s' dengan ekstruder B
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "Mungkin ada masalah kualitas cetak saat mencetak '%s' dengan ekstruder %s. Gunakan dengan hati-hati."
+
+msgid "The total weight must bigger than remain weight."
+msgstr ""
+
+msgid "Please enter a valid remaining weight from 1g to 10000g."
+msgstr ""
+
+msgid "Please enter a valid total weight from 1g to 10000g."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Toolhead dan rak hotend mungkin bergerak. Mohon jauhkan tangan Anda dari ruangan."
@@ -338,6 +434,36 @@ msgstr "Verifikasi gagal."
 
 msgid "Update failed."
 msgstr "Pembaruan gagal."
+
+msgid "Hotend & Filament"
+msgstr ""
+
+msgid "Lift Hotend Rack"
+msgstr ""
+
+msgid "Recenter Hotend Rack"
+msgstr ""
+
+msgid "Lower Hotend Rack"
+msgstr ""
+
+msgid "Hotend Rack"
+msgstr "Rak Hotend"
+
+msgid "Reading"
+msgstr "Sedang membaca"
+
+msgid "Running"
+msgstr ""
+
+msgid "Raised"
+msgstr "Terangkat"
+
+msgid "Lowered"
+msgstr ""
+
+msgid "Centered"
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr "Kelembapan AMS saat ini"
@@ -466,14 +592,8 @@ msgstr "Membaca"
 msgid "Please wait"
 msgstr "Mohon tunggu"
 
-msgid "Reading"
-msgstr "Sedang membaca"
-
 msgid "Running..."
 msgstr "Sedang berjalan..."
-
-msgid "Raised"
-msgstr "Terangkat"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr "Hotend dalam keadaan tidak normal dan saat ini tidak tersedia. Harap buka 'Perangkat -> Peningkatan' untuk memperbarui firmware."
@@ -506,9 +626,6 @@ msgstr "Waktu Penggunaan: %s"
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "Nosel dinamika dialokasikan pada pelat saat ini. Pengambilan hotend tidak didukung."
 
-msgid "Hotend Rack"
-msgstr "Rak Hotend"
-
 msgid "ToolHead"
 msgstr "Toolhead"
 
@@ -517,6 +634,21 @@ msgstr "Informasi nosel perlu dibaca"
 
 msgid "Note:"
 msgstr "Catatan:"
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+msgid "Fan"
+msgstr "Kipas"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "The embedded webpage could not be loaded."
 msgstr ""
@@ -531,6 +663,9 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
+msgstr ""
+
+msgid "AMS Bridge Debug"
 msgstr ""
 
 msgid "Idling..."
@@ -648,9 +783,6 @@ msgstr ""
 msgid "Refreshing Hotend"
 msgstr ""
 
-msgid "Running"
-msgstr ""
-
 #, boost-format
 msgid "Reading (%1% / %2%)"
 msgstr ""
@@ -661,6 +793,24 @@ msgstr ""
 
 msgid "Please wait..."
 msgstr ""
+
+msgid "Edit Filament"
+msgstr "Edit Filamen"
+
+msgid "Confirm to exit this process?"
+msgstr ""
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
+msgid "Still exit"
+msgstr ""
+
+msgid "Tip"
+msgstr "Tips"
 
 msgid "Empty slot"
 msgstr ""
@@ -716,9 +866,6 @@ msgstr ""
 msgid "No filament information available"
 msgstr ""
 
-msgid "Tip"
-msgstr "Tips"
-
 msgid "Cannot read all while printing or upgrading"
 msgstr ""
 
@@ -741,18 +888,6 @@ msgstr ""
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
 msgstr ""
-
-msgid "Pen"
-msgstr ""
-
-msgid "Cutter"
-msgstr ""
-
-msgid "Laser"
-msgstr ""
-
-msgid "Fan"
-msgstr "Kipas"
 
 msgid "Hotend Details"
 msgstr ""
@@ -1331,6 +1466,9 @@ msgstr "Memperbaiki objek model"
 msgid "Connector"
 msgstr "Konektor"
 
+msgid "Preparing data..."
+msgstr "Menyiapkan data..."
+
 msgid "Flip cut plane"
 msgstr "Balik bidang potong"
 
@@ -1538,7 +1676,10 @@ msgstr "%d segitiga"
 msgid "Show wireframe"
 msgstr "Tampilkan kerangka kawat"
 
-msgid "Preserve painted colors"
+msgid "Keep all painting"
+msgstr ""
+
+msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr ""
 
 #, boost-format
@@ -3094,8 +3235,8 @@ msgstr "Objek target hanya berisi satu bagian dan tidak dapat dipisah."
 msgid "Assembly"
 msgstr "Rakitan"
 
-msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "Menggunakan tinggi lapisan variabel bersama dengan sublapisan warna campuran dapat menyebabkan kualitas pencampuran warna yang buruk."
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
@@ -3207,6 +3348,9 @@ msgstr "Penyalinan beberapa sel tidak didukung"
 msgid "Outside"
 msgstr "Di Luar"
 
+msgid "Auto"
+msgstr "Otomatis"
+
 msgid " "
 msgstr ""
 
@@ -3221,9 +3365,6 @@ msgstr "Kepadatan isian (%)"
 
 msgid "Auto Brim"
 msgstr "Brim Otomatis"
-
-msgid "Auto"
-msgstr "Otomatis"
 
 msgid "Painted"
 msgstr "Tercat"
@@ -4218,9 +4359,6 @@ msgstr ""
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
-msgid "Decompose Color"
-msgstr "Urai Warna"
-
 msgid "+ Add Filament"
 msgstr "+ Tambah Filamen"
 
@@ -4288,12 +4426,6 @@ msgstr "Tambah Otomatis Semua Filamen"
 msgid "Fix now"
 msgstr "Perbaiki sekarang"
 
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "Secara otomatis menggabungkan filamen identik ke filamen yang sudah ada dalam proyek"
-
-msgid "Automatically merge filaments of the same color and type"
-msgstr "Secara otomatis menggabungkan filamen dengan warna dan jenis yang sama"
-
 msgid "Skip"
 msgstr "Lewati"
 
@@ -4344,9 +4476,6 @@ msgstr "Jumlah warna tidak boleh melebihi jumlah warna asli (%d)."
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "Jumlah warna tidak boleh melebihi batas filamen proyek (%d)."
 
-msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
 msgid "Click to select a matching filament"
 msgstr "Klik untuk memilih filamen yang cocok"
 
@@ -4362,6 +4491,12 @@ msgstr ""
 
 #, boost-format
 msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Mixing kits"
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "Kept filaments"
@@ -4381,6 +4516,9 @@ msgid "Prioritize merging similar-color filaments"
 msgstr ""
 
 msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -4669,36 +4807,6 @@ msgstr "%s tidak mendukung %s"
 
 msgid "Dynamic flow Calibration"
 msgstr "Kalibrasi aliran Dinamika"
-
-msgid "Unmapped"
-msgstr "Tidak Cocok"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area: The filament from original project will be used when unmapped.\n"
-"And you can click it to modify"
-msgstr ""
-"Area bagian atas: Asli\n"
-"Area bagian bawah: Filamen dari proyek asli akan digunakan jika tidak terpetakan.\n"
-"Dan Anda dapat mengekliknya untuk mengubah"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you can click it to modify"
-msgstr ""
-"Area bagian atas: Asli\n"
-"Area bagian bawah: Filamen di AMS\n"
-"Dan Anda dapat klik untuk mengubah"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you cannot click it to modify"
-msgstr ""
-"Area bagian atas: Asli\n"
-" Area bagian bawah: Filamen di AMS\n"
-"Dan Anda tidak dapat klik untuk mengubah"
 
 msgid "AMS Slots"
 msgstr "Material dalam Slot AMS"
@@ -5101,6 +5209,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "Suhu nosel yang direkomendasikan untuk jenis filamen ini adalah [%d, %d] derajat Celsius"
+
+msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
+msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6240,6 +6351,18 @@ msgstr "Klik untuk Melipat"
 msgid "Overview"
 msgstr "Ikhtisar"
 
+#, boost-format
+msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support ring of %2% overlaps %3%."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support rings of %2% and %3% overlap."
+msgstr ""
+
 msgid "Select Plate"
 msgstr "Pilih Pelat"
 
@@ -6493,8 +6616,20 @@ msgstr "Coba Lagi Tampilan Langsung"
 msgid "Resolution"
 msgstr "Resolusi"
 
+msgid "External Storage"
+msgstr ""
+
 msgid "Show \"Live Video\" guide page."
 msgstr "Tampilkan halaman panduan \"Video Langsung\"."
+
+msgid "Not Installed"
+msgstr ""
+
+msgid "Abnormal"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Sambungkan Printer (LAN)"
@@ -6572,6 +6707,12 @@ msgstr "akan ditutup sebelum membuat model baru. Apakah Anda ingin melanjutkan?"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "Halaman saat ini memiliki perubahan yang belum disimpan. Anda dapat melanjutkan pengeditan atau pilih untuk menyimpan/membuang sebelum keluar."
+
+msgid "Discard"
+msgstr ""
+
+msgid "Stay on this page"
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Dapatkan hasil cetak yang lebih cepat, lebih andal, dan bebas lengkung dengan Helio Additive."
@@ -7176,8 +7317,12 @@ msgstr "Informasi"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "Fitur siaran langsung bergantung pada Bambu Studio untuk beroperasi, dan siaran akan berakhir beberapa saat setelah aplikasi ditutup."
 
-msgid "Printer Preview"
-msgstr "Pratinjau Printer"
+msgid "Not live"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Captured at %s"
+msgstr ""
 
 msgid "Playing..."
 msgstr "Sedang memutar..."
@@ -7550,9 +7695,6 @@ msgstr "Hampir selesai"
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "Storage"
-msgstr "Penyimpanan"
-
 msgid "Camera Setting"
 msgstr "Pengaturan Kamera"
 
@@ -7571,9 +7713,6 @@ msgstr "Opsi Keamanan"
 msgid "Hotends"
 msgstr "Hotend"
 
-msgid "Unclamped"
-msgstr ""
-
 msgid "100%"
 msgstr ""
 
@@ -7586,11 +7725,20 @@ msgstr "Alas"
 msgid "Filament loading..."
 msgstr "Memuat filamen..."
 
-msgid "No Storage"
-msgstr "Tidak Ada Penyimpanan"
+msgid "Live Camera Recording in progress"
+msgstr ""
 
-msgid "Storage Abnormal"
-msgstr "Penyimpanan Abnormal"
+msgid "Visual Enhancement Camera Recording in progress"
+msgstr ""
+
+msgid "Recording in progress"
+msgstr ""
+
+msgid "Timelapse in progress"
+msgstr ""
+
+msgid "Go Live in progress"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "Batalkan cetak"
@@ -7799,6 +7947,12 @@ msgstr ""
 "Setidaknya diperlukan satu catatan cetak yang berhasil dari profil cetak ini \n"
 "untuk memberikan penilaian positif (4 atau 5 bintang)."
 
+msgid "This device is performing the following operations"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "Parameter impor file langkah"
 
@@ -7834,6 +7988,9 @@ msgstr "Jangan tampilkan lagi"
 
 msgid "Calculating, please wait..."
 msgstr "Menghitung, harap tunggu..."
+
+msgid "Storage"
+msgstr "Penyimpanan"
 
 msgid "Status"
 msgstr "Status Perangkat"
@@ -8016,6 +8173,9 @@ msgstr "SELESAI"
 msgid "Cancel upload"
 msgstr "Batalkan unggahan"
 
+msgid "Serious warning:"
+msgstr "Peringatan Serius:"
+
 msgid "Jump to"
 msgstr "Lompat ke"
 
@@ -8042,9 +8202,6 @@ msgstr "Ekspor berhasil."
 
 msgid "Model file downloaded."
 msgstr "File model diunduh."
-
-msgid "Serious warning:"
-msgstr "Peringatan Serius:"
 
 msgid " Click here to install it."
 msgstr "Klik di sini untuk menginstal."
@@ -8988,6 +9145,15 @@ msgstr ""
 msgid "Not installed"
 msgstr "Tidak terpasang"
 
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+
+msgid "Switch diameter"
+msgstr ""
+
 msgid "Sync printer information"
 msgstr "Sinkronkan informasi printer"
 
@@ -9055,16 +9221,11 @@ msgstr "Cari pelat, objek, dan komponen."
 msgid "Change nozzle diameter"
 msgstr ""
 
-msgid "This filament does not support printing with the current nozzle."
+msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
-msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
-msgstr ""
-
-msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
-msgstr ""
-
-msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
+#, c-format, boost-format
+msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -9093,7 +9254,11 @@ msgid "After completing your operation, %s project will be closed and create a n
 msgstr "Setelah menyelesaikan operasi Anda, proyek %s akan ditutup dan proyek baru akan dibuat."
 
 #, c-format, boost-format
-msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgid "filament slot %d %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
 msgid ""
@@ -9147,11 +9312,23 @@ msgid "Please fix the marked mixed filaments in the left filament list."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
 msgid "Add a new preset"
@@ -9234,6 +9411,12 @@ msgstr "Ditemukan nilai tidak valid dalam 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Harap perbaikinya di tab parameter"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "File 3mf ini memiliki G-code berikut yang dimodifikasi dalam preset filamen atau printer:"
 
@@ -9273,18 +9456,6 @@ msgstr "Objek dengan volume nol telah dihapus"
 
 msgid "The volume of the object is zero"
 msgstr "Volume objek adalah nol"
-
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
-"Instead of considering them as multiple objects, should \n"
-"the file be loaded as a single object having multiple parts?"
-msgstr ""
-"File ini berisi beberapa objek yang diposisikan pada ketinggian berbeda.\n"
-"Alih-alih menganggapnya sebagai beberapa objek, apakah \n"
-"file harus dimuat sebagai satu objek yang terdiri dari beberapa bagian?"
-
-msgid "Multi-part object detected"
-msgstr "Terdeteksi objek multi-bagian"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -10563,6 +10734,9 @@ msgstr "Preset tidak kompatibel"
 msgid "My Printer"
 msgstr "Printer Saya"
 
+msgid "This filament is not compatible with the nozzle it is loaded on"
+msgstr ""
+
 msgid "To select this filament, change the nozzle settings first."
 msgstr ""
 
@@ -11081,6 +11255,15 @@ msgstr ""
 "Area bagian bawah: Nosel yang dipilih\n"
 "Dan Anda dapat mengekliknya untuk mengubah"
 
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you can click it to modify"
+msgstr ""
+"Area bagian atas: Asli\n"
+"Area bagian bawah: Filamen di AMS\n"
+"Dan Anda dapat klik untuk mengubah"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Tidak dapat mencocokkan filamen yang sesuai secara otomatis. Harap klik untuk mencocokkan secara manual."
 
@@ -11480,6 +11663,9 @@ msgstr "Klik untuk mempelajari lebih lanjut"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klik untuk mengatur ulang semua pengaturan ke preset terakhir yang disimpan."
 
+msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Menukar nosel memerlukan menara prime. Mungkin ada cacat pada model tanpa menara prime. Apakah Anda yakin ingin menonaktifkan menara prime?"
 
@@ -11631,6 +11817,9 @@ msgid "Acceleration"
 msgstr "Akselerasi"
 
 msgid "Jerk(XY)"
+msgstr ""
+
+msgid "Support ring"
 msgstr ""
 
 msgid "Raft"
@@ -12051,9 +12240,6 @@ msgstr "Nilai Dimodifikasi (Baru)"
 msgid "Discard Modified Value"
 msgstr "Buang Nilai yang Dimodifikasi"
 
-msgid "Don't save"
-msgstr "Jangan Simpan"
-
 msgid "Use Modified Value"
 msgstr "Gunakan Nilai yang Dimodifikasi"
 
@@ -12242,210 +12428,6 @@ msgstr "Tidak ada pembaruan yang tersedia."
 
 msgid "The configuration is up to date."
 msgstr "Konfigurasi saat ini adalah versi terbaru."
-
-msgid "Open Wiki for more information >"
-msgstr "Buka Wiki untuk informasi lebih lanjut >"
-
-msgid "Obj file Import color"
-msgstr "Warna Impor file Obj"
-
-msgid "Standard 3mf Import color"
-msgstr "Warna Impor 3mf Standar"
-
-msgid "Some faces don't have color defined."
-msgstr "Beberapa permukaan tidak memiliki warna yang ditentukan."
-
-msgid "mtl file exist error,could not find the material:"
-msgstr "File mtl terdapat kesalahan, tidak dapat menemukan material:"
-
-msgid "Please check obj or mtl file."
-msgstr "Harap periksa file obj atau mtl."
-
-msgid "Specify number of colors:"
-msgstr "Tentukan jumlah warna:"
-
-msgid "Enter or click the adjustment button to modify number again"
-msgstr "Masukkan atau klik tombol penyesuaian untuk mengubah angka lagi"
-
-msgid "Recommended "
-msgstr "Direkomendasikan"
-
-msgid "view"
-msgstr "Lihat"
-
-msgid "Current filament colors"
-msgstr "Warna filamen saat ini"
-
-msgid "Matching"
-msgstr "Pencocokan"
-
-msgid "Quick set"
-msgstr "Pengaturan cepat"
-
-msgid "There are color input errors."
-msgstr "Terdapat kesalahan masukan warna."
-
-msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr "Impor tekstur sementara tidak tersedia, pewarnaan parsial akan secara otomatis diganti dengan warna default."
-
-msgid " And "
-msgstr " Dan "
-
-msgid "Note"
-msgstr "Catatan"
-
-msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr "Warna telah dipilih, Anda dapat memilih \"OK\" untuk melanjutkan atau menyesuaikannya secara manual."
-
-msgctxt "ObjImport"
-msgid "Original"
-msgstr "Asli"
-
-msgid "After mapping"
-msgstr "Setelah pemetaan"
-
-msgid "Color match"
-msgstr "Pencocokan warna"
-
-msgid "Approximate color matching."
-msgstr "Pencocokan warna perkiraan."
-
-msgid "Append"
-msgstr "Tambahkan"
-
-msgid "Append to existing filaments"
-msgstr "Tambahkan ke filamen yang sudah ada"
-
-msgid "Reset mapped extruders."
-msgstr "Setel ulang filamen yang dipetakan."
-
-msgid "—> "
-msgstr ""
-
-msgctxt "Sync_AMS"
-msgid "Original"
-msgstr "Asli"
-
-msgid "After overwriting"
-msgstr "Setelah penimpaan"
-
-msgctxt "Sync_AMS"
-msgid "Plate"
-msgstr "Pelat"
-
-msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
-msgstr "Printer yang terhubung tidak cocok dengan printer yang saat ini dipilih. Harap ubah printer yang dipilih."
-
-msgid "Mapping"
-msgstr "Pemetaan"
-
-msgid "Overwriting"
-msgstr "Penimpaan"
-
-msgid "Reset all filament mapping"
-msgstr "Setel ulang semua pemetaan filamen"
-
-msgid "(Recommended filament)"
-msgstr "(Filamen yang direkomendasikan)"
-
-msgid "Advanced Options"
-msgstr "Opsi Lanjutan"
-
-msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
-msgstr ""
-"Periksa kerataan heatbed. Perataan membuat tinggi ekstrusi seragam.\n"
-"*Mode otomatis: Ratakan terlebih dahulu (sekitar 10 detik). Lewati jika permukaan baik-baik saja."
-
-msgid ""
-"Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
-msgstr ""
-"Kalibrasi offset nosel untuk meningkatkan kualitas cetak.\n"
-"*Mode otomatis: Periksa kalibrasi sebelum mencetak; lewati jika tidak diperlukan."
-
-msgid "Use AMS"
-msgstr "Gunakan AMS"
-
-msgid "Only synchronize filament type and color, not including AMS slot information."
-msgstr "Hanya menyinkronkan jenis dan warna filamen, tidak termasuk informasi slot AMS."
-
-msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr "Ganti daftar filamen proyek secara berurutan berdasarkan filamen printer. Dan filamen printer yang tidak digunakan akan ditambahkan secara otomatis ke akhir daftar."
-
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Add unused AMS filaments to filaments list."
-msgstr "Tambahkan filamen AMS yang tidak digunakan ke daftar filamen."
-
-msgid "Automatically merge the same colors in the model after mapping."
-msgstr "Secara otomatis menggabungkan warna yang sama dalam model setelah pemetaan."
-
-msgid "After being synced, this action cannot be undone."
-msgstr "Setelah disinkronkan, tindakan ini tidak dapat dibatalkan."
-
-msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
-msgstr "Setelah disinkronkan, prasetel dan warna filamen proyek akan diganti dengan jenis dan warna filamen yang dipetakan. Tindakan ini tidak dapat dibatalkan."
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "Apakah Anda yakin ingin menyinkronkan filamen?"
-
-msgid "Synchronize now"
-msgstr "Sinkronkan sekarang"
-
-msgid "Synchronize Filament Information"
-msgstr "Sinkronkan Informasi Filamen"
-
-msgid "Add unused filaments to filaments list."
-msgstr "Tambahkan filamen yang tidak digunakan ke daftar filamen."
-
-msgid "Only synchronize filament type and color, not including slot information."
-msgstr "Hanya menyinkronkan jenis dan warna filamen, tidak termasuk informasi slot."
-
-msgid "Ext spool"
-msgstr "Gulungan Ekst"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "Pengaturan aliran nosel %s(%s) tidak cocok dengan file yang dipotong (%s). Harap pastikan nosel yang terinstal cocok dengan pengaturan di printer, lalu atur preset printer yang sesuai saat memotong."
-
-msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
-msgstr "Harap periksa apakah jenis nosel perangkat sama dengan jenis nosel preset."
-
-#, c-format, boost-format
-msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "Printer yang dipilih (%s) tidak kompatibel dengan profil printer (%s) yang dipilih di perangkat lunak slicer."
-
-msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "Timelapse tidak didukung karena urutan Cetak diatur ke \"Berdasarkan Objek\"."
-
-msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr "Anda memilih filamen eksternal dan AMS secara bersamaan di sebuah ekstruder, Anda perlu mengganti filamen eksternal secara manual."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "Tips: Jika Anda baru saja mengganti nosel printer Anda, harap buka 'Perangkat -> Komponen Printer' untuk mengubah pengaturan nosel Anda."
-
-msgid "Successfully synchronized Printer information."
-msgstr ""
-
-msgid "Continue to sync filaments"
-msgstr "Lanjutkan sinkronisasi filamen"
-
-msgctxt "Sync_Nozzle_AMS"
-msgid "Cancel"
-msgstr "Batalkan"
-
-msgid "Successfully synchronized color and type of filament from printer."
-msgstr "Warna dan jenis filamen berhasil disinkronkan dari printer."
-
-msgctxt "FinishSyncAms"
-msgid "OK"
-msgstr "Oke"
-
-msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr "Ekstruder tipe Bowden tidak mendukung nosel berdiameter 0,2 mm. Kami hanya dapat melanjutkan dengan pencetakan kepala tunggal."
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio akan menghitung ulang volume pembilasan Anda setiap kali warna filamen berubah atau filamen diganti. Anda dapat menonaktifkan penghitungan otomatis di Bambu Studio > Preferensi"
@@ -13845,10 +13827,13 @@ msgstr "Mode vas spiral tidak berfungsi ketika sebuah objek berisi area dengan p
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Tinggi lapisan variabel tidak didukung dengan penyangga organik."
 
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr ""
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
@@ -13896,11 +13881,11 @@ msgstr ""
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Menara prime mensyaratkan semua objek dipotong dengan tinggi lapisan yang sama."
 
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "Menara prime hanya didukung jika semua objek memiliki tinggi lapisan variabel yang sama"
-
 msgid "The support ring is only supported if all objects have the same variable layer height"
 msgstr ""
+
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "Menara prime hanya didukung jika semua objek memiliki tinggi lapisan variabel yang sama"
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "Ketinggian Z yang presisi membuat setiap objek memiliki tinggi lapisan yang berbeda, yang dapat meningkatkan ukuran prime tower secara signifikan."
@@ -16869,10 +16854,10 @@ msgstr ""
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
 msgstr ""
 
-msgid "Support ring notch width"
+msgid "Support ring angle"
 msgstr ""
 
-msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
 msgstr ""
 
 msgid "Support ring skip points"
@@ -18135,6 +18120,15 @@ msgstr "- Mode Objek: Harap pilih setidaknya dua objek."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Mode Bagian: Harap pilih satu objek dengan setidaknya dua mesh."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "Computing..."
+msgstr "Sedang melakukan operasi boolean mesh..."
+
+msgid "Applying result.."
+msgstr "Menerapkan hasil..."
+
 msgid "Union"
 msgstr "Gabungan"
 
@@ -18161,15 +18155,6 @@ msgstr "Lakukan operasi Boolean hanya pada entitas."
 
 msgid "This object contains non-part components."
 msgstr "Objek ini mengandung komponen non-bagian."
-
-msgid "Preparing data..."
-msgstr "Menyiapkan data..."
-
-msgid "Computing..."
-msgstr "Sedang melakukan operasi boolean mesh..."
-
-msgid "Applying result.."
-msgstr "Menerapkan hasil..."
 
 msgid "Network Test"
 msgstr "Uji Jaringan"
@@ -18607,9 +18592,6 @@ msgstr "Harap pilih jenis yang ingin Anda ekspor"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "Gagal membuat folder sementara, harap coba lagi Ekspor Konfigurasi."
-
-msgid "Edit Filament"
-msgstr "Edit Filamen"
 
 msgid "Filament presets under this filament"
 msgstr "Preset filamen di bawah filamen ini"
@@ -19176,6 +19158,9 @@ msgstr "Jumlah printer yang digunakan secara bersamaan tidak boleh sama dengan 0
 
 msgid "Use External Spool"
 msgstr "Gunakan Spul Eksternal"
+
+msgid "Use AMS"
+msgstr "Gunakan AMS"
 
 msgid "Select Printers"
 msgstr "Pilih Printer"
@@ -19828,6 +19813,12 @@ msgstr "Edit Filamen Campuran"
 msgid "Effect Preview"
 msgstr "Pratinjau Efek"
 
+msgid "Target"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
 msgid "Select Mixed Materials"
 msgstr "Pilih Material Campuran"
 
@@ -19865,6 +19856,9 @@ msgstr "tidak dapat dicampur. Harap pilih jenis filamen yang sama."
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr ""
 
+msgid "No mix is available for the target color"
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "Harap pilih filamen untuk semua komponen"
 
@@ -19877,73 +19871,49 @@ msgstr "Jumlah komponen maksimal telah tercapai"
 msgid "Remove the third material"
 msgstr "Hapus material ketiga"
 
+msgid "Manual Mixing"
+msgstr ""
+
+msgid "Color Matching"
+msgstr ""
+
+msgid "Select Target Color"
+msgstr ""
+
+msgid "Match Result"
+msgstr ""
+
+msgid "Discard changes and match again"
+msgstr ""
+
+msgid "Replace the target color on models with the mixed result"
+msgstr ""
+
+msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
+msgstr ""
+
 #, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
+msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
-msgid "Decomposition result for this combination"
-msgstr "Hasil penguraian untuk kombinasi ini"
-
-msgid "Filament Color"
-msgstr "Warna Filamen"
-
-msgid "Decomposed Colors"
-msgstr "Warna yang Diurai"
-
-msgid "Select Color Decomposition"
-msgstr "Pilih Dekomposisi Warna"
-
-msgid "Project Filament"
-msgstr "Filamen Proyek"
-
-msgid "Material List"
-msgstr "Daftar Material"
-
-msgid "Standard Palette"
-msgstr "Palet Standar"
-
-msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "Setidaknya dua filamen dengan jenis material yang sama diperlukan untuk dekomposisi"
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "Kombinasi warna yang lebih mendekati dihitung dari empat warna dasar: sian, magenta, kuning, dan putih. Saat ini hanya PLA Basic yang didukung. Jika filamen yang cocok tidak ada dalam proyek, filamen tersebut akan ditambahkan secara otomatis."
-
-msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgid "There is no other filament of the same type as the target color in the project."
 msgstr ""
 
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "Kombinasi empat warna dasar dihitung untuk menghasilkan warna yang lebih mendekati warna target: merah, kuning, biru, dan putih. Saat ini hanya PLA Basic yang didukung. Jika filamen yang cocok tidak ada dalam proyek, filamen tersebut akan ditambahkan secara otomatis."
+msgid "At least two other filaments of the same type as the target color are required."
+msgstr ""
+
+msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+msgstr ""
+
+msgid "No available mixing recipe was found."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
 
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "Daftar material mendukung paling banyak %1% warna. Setelah %2% dekomposisi, jumlah material akan melebihi %1%. Harap hapus filamen yang tidak terpakai di layar utama sebelum melakukan dekomposisi."
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "Mengurai Warna (gradasi tidak didukung)"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "Mengurai Warna (transparan tidak didukung)"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "Mengurai Warna (multi-warna tidak didukung)"
-
-msgid "Cyan"
-msgstr "Sian"
-
-msgid "Magenta"
+msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
 msgstr ""
-
-msgid "Yellow"
-msgstr "Kuning"
-
-msgid ", "
-msgstr ""
-
-msgid "The current filament list does not contain "
-msgstr "Daftar filamen saat ini tidak mengandung "
-
-msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ". Sebuah filamen proyek yang dibutuhkan oleh filamen campuran akan dibuat secara otomatis setelah dekomposisi."
 
 msgid "Material Ratio"
 msgstr "Rasio Filamen"
@@ -20279,6 +20249,310 @@ msgid ""
 msgstr ""
 "Keandalan Tepat di Percobaan Pertama \n"
 "Lebih sedikit pengawasan, hasil yang lebih terprediksi. Contoh: fasilitas print farm kecil yang mencetak komponen PETG menghindari kejutan 'gagal pada jam ke-6' dan menjaga produksi tetap sesuai jadwal."
+
+#~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+#~ msgstr "Menggunakan tinggi lapisan variabel bersama dengan sublapisan warna campuran dapat menyebabkan kualitas pencampuran warna yang buruk."
+
+#~ msgid "Decompose Color"
+#~ msgstr "Urai Warna"
+
+#~ msgid "Automatically merge identical filaments into existing filaments in the project"
+#~ msgstr "Secara otomatis menggabungkan filamen identik ke filamen yang sudah ada dalam proyek"
+
+#~ msgid "Automatically merge filaments of the same color and type"
+#~ msgstr "Secara otomatis menggabungkan filamen dengan warna dan jenis yang sama"
+
+#~ msgid "Unmapped"
+#~ msgstr "Tidak Cocok"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area: The filament from original project will be used when unmapped.\n"
+#~ "And you can click it to modify"
+#~ msgstr ""
+#~ "Area bagian atas: Asli\n"
+#~ "Area bagian bawah: Filamen dari proyek asli akan digunakan jika tidak terpetakan.\n"
+#~ "Dan Anda dapat mengekliknya untuk mengubah"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area:  Filament in AMS\n"
+#~ "And you cannot click it to modify"
+#~ msgstr ""
+#~ "Area bagian atas: Asli\n"
+#~ " Area bagian bawah: Filamen di AMS\n"
+#~ "Dan Anda tidak dapat klik untuk mengubah"
+
+#~ msgid "Printer Preview"
+#~ msgstr "Pratinjau Printer"
+
+#~ msgid "No Storage"
+#~ msgstr "Tidak Ada Penyimpanan"
+
+#~ msgid "Storage Abnormal"
+#~ msgstr "Penyimpanan Abnormal"
+
+#~ msgid ""
+#~ "This file contains several objects positioned at multiple heights.\n"
+#~ "Instead of considering them as multiple objects, should \n"
+#~ "the file be loaded as a single object having multiple parts?"
+#~ msgstr ""
+#~ "File ini berisi beberapa objek yang diposisikan pada ketinggian berbeda.\n"
+#~ "Alih-alih menganggapnya sebagai beberapa objek, apakah \n"
+#~ "file harus dimuat sebagai satu objek yang terdiri dari beberapa bagian?"
+
+#~ msgid "Multi-part object detected"
+#~ msgstr "Terdeteksi objek multi-bagian"
+
+#~ msgid "Don't save"
+#~ msgstr "Jangan Simpan"
+
+#~ msgid "Open Wiki for more information >"
+#~ msgstr "Buka Wiki untuk informasi lebih lanjut >"
+
+#~ msgid "Obj file Import color"
+#~ msgstr "Warna Impor file Obj"
+
+#~ msgid "Standard 3mf Import color"
+#~ msgstr "Warna Impor 3mf Standar"
+
+#~ msgid "Some faces don't have color defined."
+#~ msgstr "Beberapa permukaan tidak memiliki warna yang ditentukan."
+
+#~ msgid "mtl file exist error,could not find the material:"
+#~ msgstr "File mtl terdapat kesalahan, tidak dapat menemukan material:"
+
+#~ msgid "Please check obj or mtl file."
+#~ msgstr "Harap periksa file obj atau mtl."
+
+#~ msgid "Specify number of colors:"
+#~ msgstr "Tentukan jumlah warna:"
+
+#~ msgid "Enter or click the adjustment button to modify number again"
+#~ msgstr "Masukkan atau klik tombol penyesuaian untuk mengubah angka lagi"
+
+#~ msgid "Recommended "
+#~ msgstr "Direkomendasikan"
+
+#~ msgid "view"
+#~ msgstr "Lihat"
+
+#~ msgid "Current filament colors"
+#~ msgstr "Warna filamen saat ini"
+
+#~ msgid "Matching"
+#~ msgstr "Pencocokan"
+
+#~ msgid "Quick set"
+#~ msgstr "Pengaturan cepat"
+
+#~ msgid "There are color input errors."
+#~ msgstr "Terdapat kesalahan masukan warna."
+
+#~ msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+#~ msgstr "Impor tekstur sementara tidak tersedia, pewarnaan parsial akan secara otomatis diganti dengan warna default."
+
+#~ msgid " And "
+#~ msgstr " Dan "
+
+#~ msgid "Note"
+#~ msgstr "Catatan"
+
+#~ msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+#~ msgstr "Warna telah dipilih, Anda dapat memilih \"OK\" untuk melanjutkan atau menyesuaikannya secara manual."
+
+#~ msgctxt "ObjImport"
+#~ msgid "Original"
+#~ msgstr "Asli"
+
+#~ msgid "After mapping"
+#~ msgstr "Setelah pemetaan"
+
+#~ msgid "Color match"
+#~ msgstr "Pencocokan warna"
+
+#~ msgid "Approximate color matching."
+#~ msgstr "Pencocokan warna perkiraan."
+
+#~ msgid "Append"
+#~ msgstr "Tambahkan"
+
+#~ msgid "Append to existing filaments"
+#~ msgstr "Tambahkan ke filamen yang sudah ada"
+
+#~ msgid "Reset mapped extruders."
+#~ msgstr "Setel ulang filamen yang dipetakan."
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Original"
+#~ msgstr "Asli"
+
+#~ msgid "After overwriting"
+#~ msgstr "Setelah penimpaan"
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Plate"
+#~ msgstr "Pelat"
+
+#~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
+#~ msgstr "Printer yang terhubung tidak cocok dengan printer yang saat ini dipilih. Harap ubah printer yang dipilih."
+
+#~ msgid "Mapping"
+#~ msgstr "Pemetaan"
+
+#~ msgid "Overwriting"
+#~ msgstr "Penimpaan"
+
+#~ msgid "Reset all filament mapping"
+#~ msgstr "Setel ulang semua pemetaan filamen"
+
+#~ msgid "(Recommended filament)"
+#~ msgstr "(Filamen yang direkomendasikan)"
+
+#~ msgid "Advanced Options"
+#~ msgstr "Opsi Lanjutan"
+
+#~ msgid ""
+#~ "Check heatbed flatness. Leveling makes extruded height uniform.\n"
+#~ "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+#~ msgstr ""
+#~ "Periksa kerataan heatbed. Perataan membuat tinggi ekstrusi seragam.\n"
+#~ "*Mode otomatis: Ratakan terlebih dahulu (sekitar 10 detik). Lewati jika permukaan baik-baik saja."
+
+#~ msgid ""
+#~ "Calibrate nozzle offsets to enhance print quality.\n"
+#~ "*Automatic mode: Check for calibration before printing; skip if unnecessary."
+#~ msgstr ""
+#~ "Kalibrasi offset nosel untuk meningkatkan kualitas cetak.\n"
+#~ "*Mode otomatis: Periksa kalibrasi sebelum mencetak; lewati jika tidak diperlukan."
+
+#~ msgid "Only synchronize filament type and color, not including AMS slot information."
+#~ msgstr "Hanya menyinkronkan jenis dan warna filamen, tidak termasuk informasi slot AMS."
+
+#~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
+#~ msgstr "Ganti daftar filamen proyek secara berurutan berdasarkan filamen printer. Dan filamen printer yang tidak digunakan akan ditambahkan secara otomatis ke akhir daftar."
+
+#~ msgid "Add unused AMS filaments to filaments list."
+#~ msgstr "Tambahkan filamen AMS yang tidak digunakan ke daftar filamen."
+
+#~ msgid "Automatically merge the same colors in the model after mapping."
+#~ msgstr "Secara otomatis menggabungkan warna yang sama dalam model setelah pemetaan."
+
+#~ msgid "After being synced, this action cannot be undone."
+#~ msgstr "Setelah disinkronkan, tindakan ini tidak dapat dibatalkan."
+
+#~ msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
+#~ msgstr "Setelah disinkronkan, prasetel dan warna filamen proyek akan diganti dengan jenis dan warna filamen yang dipetakan. Tindakan ini tidak dapat dibatalkan."
+
+#~ msgid "Are you sure to synchronize the filaments?"
+#~ msgstr "Apakah Anda yakin ingin menyinkronkan filamen?"
+
+#~ msgid "Synchronize now"
+#~ msgstr "Sinkronkan sekarang"
+
+#~ msgid "Synchronize Filament Information"
+#~ msgstr "Sinkronkan Informasi Filamen"
+
+#~ msgid "Add unused filaments to filaments list."
+#~ msgstr "Tambahkan filamen yang tidak digunakan ke daftar filamen."
+
+#~ msgid "Only synchronize filament type and color, not including slot information."
+#~ msgstr "Hanya menyinkronkan jenis dan warna filamen, tidak termasuk informasi slot."
+
+#~ msgid "Ext spool"
+#~ msgstr "Gulungan Ekst"
+
+#, c-format, boost-format
+#~ msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+#~ msgstr "Pengaturan aliran nosel %s(%s) tidak cocok dengan file yang dipotong (%s). Harap pastikan nosel yang terinstal cocok dengan pengaturan di printer, lalu atur preset printer yang sesuai saat memotong."
+
+#~ msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
+#~ msgstr "Harap periksa apakah jenis nosel perangkat sama dengan jenis nosel preset."
+
+#, c-format, boost-format
+#~ msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
+#~ msgstr "Printer yang dipilih (%s) tidak kompatibel dengan profil printer (%s) yang dipilih di perangkat lunak slicer."
+
+#~ msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
+#~ msgstr "Timelapse tidak didukung karena urutan Cetak diatur ke \"Berdasarkan Objek\"."
+
+#~ msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+#~ msgstr "Anda memilih filamen eksternal dan AMS secara bersamaan di sebuah ekstruder, Anda perlu mengganti filamen eksternal secara manual."
+
+#~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+#~ msgstr "Tips: Jika Anda baru saja mengganti nosel printer Anda, harap buka 'Perangkat -> Komponen Printer' untuk mengubah pengaturan nosel Anda."
+
+#~ msgid "Continue to sync filaments"
+#~ msgstr "Lanjutkan sinkronisasi filamen"
+
+#~ msgctxt "Sync_Nozzle_AMS"
+#~ msgid "Cancel"
+#~ msgstr "Batalkan"
+
+#~ msgid "Successfully synchronized color and type of filament from printer."
+#~ msgstr "Warna dan jenis filamen berhasil disinkronkan dari printer."
+
+#~ msgctxt "FinishSyncAms"
+#~ msgid "OK"
+#~ msgstr "Oke"
+
+#~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+#~ msgstr "Ekstruder tipe Bowden tidak mendukung nosel berdiameter 0,2 mm. Kami hanya dapat melanjutkan dengan pencetakan kepala tunggal."
+
+#~ msgid "Decomposition result for this combination"
+#~ msgstr "Hasil penguraian untuk kombinasi ini"
+
+#~ msgid "Filament Color"
+#~ msgstr "Warna Filamen"
+
+#~ msgid "Decomposed Colors"
+#~ msgstr "Warna yang Diurai"
+
+#~ msgid "Select Color Decomposition"
+#~ msgstr "Pilih Dekomposisi Warna"
+
+#~ msgid "Project Filament"
+#~ msgstr "Filamen Proyek"
+
+#~ msgid "Material List"
+#~ msgstr "Daftar Material"
+
+#~ msgid "Standard Palette"
+#~ msgstr "Palet Standar"
+
+#~ msgid "At least two filaments of the same material type are required for decomposition"
+#~ msgstr "Setidaknya dua filamen dengan jenis material yang sama diperlukan untuk dekomposisi"
+
+#~ msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "Kombinasi warna yang lebih mendekati dihitung dari empat warna dasar: sian, magenta, kuning, dan putih. Saat ini hanya PLA Basic yang didukung. Jika filamen yang cocok tidak ada dalam proyek, filamen tersebut akan ditambahkan secara otomatis."
+
+#~ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "Kombinasi empat warna dasar dihitung untuk menghasilkan warna yang lebih mendekati warna target: merah, kuning, biru, dan putih. Saat ini hanya PLA Basic yang didukung. Jika filamen yang cocok tidak ada dalam proyek, filamen tersebut akan ditambahkan secara otomatis."
+
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "Daftar material mendukung paling banyak %1% warna. Setelah %2% dekomposisi, jumlah material akan melebihi %1%. Harap hapus filamen yang tidak terpakai di layar utama sebelum melakukan dekomposisi."
+
+#~ msgid "Decompose Color (gradient not supported)"
+#~ msgstr "Mengurai Warna (gradasi tidak didukung)"
+
+#~ msgid "Decompose Color (transparent not supported)"
+#~ msgstr "Mengurai Warna (transparan tidak didukung)"
+
+#~ msgid "Decompose Color (multi-color not supported)"
+#~ msgstr "Mengurai Warna (multi-warna tidak didukung)"
+
+#~ msgid "Cyan"
+#~ msgstr "Sian"
+
+#~ msgid "Yellow"
+#~ msgstr "Kuning"
+
+#~ msgid "The current filament list does not contain "
+#~ msgstr "Daftar filamen saat ini tidak mengandung "
+
+#~ msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+#~ msgstr ". Sebuah filamen proyek yang dibutuhkan oleh filamen campuran akan dibuat secara otomatis setelah dekomposisi."
 
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "Disarankan hanya saat menggunakan filamen warna campuran untuk mendapatkan efek warna berlapis yang lebih baik."

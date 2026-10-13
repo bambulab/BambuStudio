@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 12:37+0800\n"
+"POT-Creation-Date: 2026-10-13 23:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -27,6 +27,21 @@ msgstr "필라멘트가 현재 기기 설정과 호환되지 않을 수 있습�
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "미지의 필라멘트 모델. 무작위 필라멘트 사전 설정이 사용됩니다."
+
+msgid "This calibration does not support the currently selected nozzle diameter"
+msgstr "이 보정은 현재 선택된 노즐 직경을 지원하지 않습니다"
+
+msgid "Current flowrate cali param is invalid"
+msgstr "현재 유량 캘리 매개 변수가 유효하지 않습니다"
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr "선택한 직경과 기계 직경이 일치하지 않습니다"
+
+msgid "Failed to generate cali gcode"
+msgstr "캘리 G코드 생성에 실패했습니다"
+
+msgid "Calibration error"
+msgstr "보정 오류"
 
 msgid "Main Extruder"
 msgstr "메인 압출기"
@@ -249,6 +264,78 @@ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wi
 msgstr "%s 필라멘트 트랙 스위치로 인해 로드 또는 언로드가 실패할 수 있습니다. 계속하려면."
 
 #, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported with a standard %s nozzle."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is only supported for printing with the main extruder."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s은 %s 압출기에서 지원되지 않습니다."
 
@@ -267,6 +354,15 @@ msgstr "%s 보우덴 압출기를 사용하여 '%s'를 출력할 때 출력품�
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "%s 압출기를 사용하여 '%s'를 출력할 때 출력품질 문제가 발생할 수 있습니다. 주의해서 사용하십시오."
+
+msgid "The total weight must bigger than remain weight."
+msgstr ""
+
+msgid "Please enter a valid remaining weight from 1g to 10000g."
+msgstr ""
+
+msgid "Please enter a valid total weight from 1g to 10000g."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "툴헤드와 핫엔드 랙이 움직일 수 있습니다. 챔버에 손을 대지 마십시오."
@@ -333,6 +429,36 @@ msgstr "인증 실패"
 
 msgid "Update failed."
 msgstr "업데이트 실패"
+
+msgid "Hotend & Filament"
+msgstr ""
+
+msgid "Lift Hotend Rack"
+msgstr ""
+
+msgid "Recenter Hotend Rack"
+msgstr ""
+
+msgid "Lower Hotend Rack"
+msgstr ""
+
+msgid "Hotend Rack"
+msgstr "핫엔드 랙"
+
+msgid "Reading"
+msgstr "읽는 중"
+
+msgid "Running"
+msgstr ""
+
+msgid "Raised"
+msgstr "상승함"
+
+msgid "Lowered"
+msgstr ""
+
+msgid "Centered"
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr "현재 AMS 습도"
@@ -461,14 +587,8 @@ msgstr "읽는 중 "
 msgid "Please wait"
 msgstr "잠시 기다려 주세요"
 
-msgid "Reading"
-msgstr "읽는 중"
-
 msgid "Running..."
 msgstr "실행 중..."
-
-msgid "Raised"
-msgstr "상승함"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr "이 핫엔드에 이상 상태가 발생하여 현재 사용할 수 없습니다. '장치 -> 업그레이드'로 이동하여 펌웨어를 업그레이드해 주세요."
@@ -501,9 +621,6 @@ msgstr "사용 시간: %s"
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "다이내믹 노즐은 현재 플레이트에 할당됩니다. 핫엔드 선택은 지원되지 않습니다."
 
-msgid "Hotend Rack"
-msgstr "핫엔드 랙"
-
 msgid "ToolHead"
 msgstr "툴헤드"
 
@@ -512,6 +629,21 @@ msgstr "노즐 정보를 읽어야 합니다"
 
 msgid "Note:"
 msgstr "참고:"
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+msgid "Fan"
+msgstr "팬"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "The embedded webpage could not be loaded."
 msgstr ""
@@ -526,6 +658,9 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
+msgstr ""
+
+msgid "AMS Bridge Debug"
 msgstr ""
 
 msgid "Idling..."
@@ -643,9 +778,6 @@ msgstr ""
 msgid "Refreshing Hotend"
 msgstr ""
 
-msgid "Running"
-msgstr ""
-
 #, boost-format
 msgid "Reading (%1% / %2%)"
 msgstr ""
@@ -656,6 +788,24 @@ msgstr ""
 
 msgid "Please wait..."
 msgstr ""
+
+msgid "Edit Filament"
+msgstr "필라멘트 수정"
+
+msgid "Confirm to exit this process?"
+msgstr ""
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr ""
+
+msgid "Exit"
+msgstr "종료"
+
+msgid "Still exit"
+msgstr ""
+
+msgid "Tip"
+msgstr "도움말"
 
 msgid "Empty slot"
 msgstr ""
@@ -711,9 +861,6 @@ msgstr ""
 msgid "No filament information available"
 msgstr ""
 
-msgid "Tip"
-msgstr "도움말"
-
 msgid "Cannot read all while printing or upgrading"
 msgstr ""
 
@@ -736,18 +883,6 @@ msgstr ""
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
 msgstr ""
-
-msgid "Pen"
-msgstr ""
-
-msgid "Cutter"
-msgstr ""
-
-msgid "Laser"
-msgstr ""
-
-msgid "Fan"
-msgstr "팬"
 
 msgid "Hotend Details"
 msgstr ""
@@ -1326,6 +1461,9 @@ msgstr "모델 객체 오류수정"
 msgid "Connector"
 msgstr "커넥터"
 
+msgid "Preparing data..."
+msgstr "데이터 준비 중..."
+
 msgid "Flip cut plane"
 msgstr "플립 컷 평면"
 
@@ -1533,7 +1671,10 @@ msgstr "%d개의 삼각형"
 msgid "Show wireframe"
 msgstr "와이어프레임 보기"
 
-msgid "Preserve painted colors"
+msgid "Keep all painting"
+msgstr ""
+
+msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr ""
 
 #, boost-format
@@ -3089,8 +3230,8 @@ msgstr "대상 객체는 하나의 부분만 포함하며 분할할 수 없습�
 msgid "Assembly"
 msgstr "결합"
 
-msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "가변 레이어 높이를 혼합 색상 하위 레이어와 함께 사용하면 색상 혼합 품질이 저하될 수 있습니다."
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
@@ -3202,6 +3343,9 @@ msgstr "여러 셀 복사는 지원되지 않습니다."
 msgid "Outside"
 msgstr "외부"
 
+msgid "Auto"
+msgstr "자동"
+
 msgid " "
 msgstr ""
 
@@ -3216,9 +3360,6 @@ msgstr "내부채움 밀도(%)"
 
 msgid "Auto Brim"
 msgstr "자동 브림"
-
-msgid "Auto"
-msgstr "자동"
 
 msgid "Painted"
 msgstr "페인트"
@@ -4213,9 +4354,6 @@ msgstr ""
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
-msgid "Decompose Color"
-msgstr "색상 분해"
-
 msgid "+ Add Filament"
 msgstr "+ 필라멘트 추가"
 
@@ -4283,12 +4421,6 @@ msgstr "모든 필라멘트 자동 추가"
 msgid "Fix now"
 msgstr "지금 수정"
 
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "동일한 필라멘트를 프로젝트 내 기존 필라멘트에 자동으로 병합합니다."
-
-msgid "Automatically merge filaments of the same color and type"
-msgstr "같은 색상과 종류의 필라멘트를 자동으로 병합합니다"
-
 msgid "Skip"
 msgstr "건너뛰기"
 
@@ -4339,9 +4471,6 @@ msgstr "색상 개수는 원래 색상 개수(%d)를 초과할 수 없습니다.
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "색상 개수는 프로젝트의 필라멘트 제한(%d)을 초과할 수 없습니다."
 
-msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
 msgid "Click to select a matching filament"
 msgstr "클릭하여 매칭할 필라멘트를 선택하세요"
 
@@ -4357,6 +4486,12 @@ msgstr ""
 
 #, boost-format
 msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Mixing kits"
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "Kept filaments"
@@ -4376,6 +4511,9 @@ msgid "Prioritize merging similar-color filaments"
 msgstr ""
 
 msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -4664,36 +4802,6 @@ msgstr "%s는 %s를 지원하지 않습니다."
 
 msgid "Dynamic flow Calibration"
 msgstr "동적 압출량 캘리브레이션"
-
-msgid "Unmapped"
-msgstr "매핑되지 않음"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area: The filament from original project will be used when unmapped.\n"
-"And you can click it to modify"
-msgstr ""
-"상반신 영역:  원본\n"
-"아래쪽 절반 영역: 매핑을 해제하면 원본 프로젝트의 필라멘트가 사용됩니다.\n"
-"그리고 클릭하여 수정할 수 있습니다"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you can click it to modify"
-msgstr ""
-"상반신 영역:  원본\n"
-"아래쪽 절반 영역:  AMS의 필라멘트\n"
-"클릭하여 수정할 수 있습니다"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you cannot click it to modify"
-msgstr ""
-"상반신 영역:  원본\n"
-"아래쪽 절반 영역:  AMS의 필라멘트\n"
-"클릭하여 수정할 수 없습니다"
 
 msgid "AMS Slots"
 msgstr "AMS 슬롯"
@@ -5096,6 +5204,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "이 필라멘트 타입에 권장되는 노즐 온도는 [%d, %d]도입니다."
+
+msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
+msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6235,6 +6346,18 @@ msgstr "접을려면 클릭"
 msgid "Overview"
 msgstr "개요"
 
+#, boost-format
+msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support ring of %2% overlaps %3%."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support rings of %2% and %3% overlap."
+msgstr ""
+
 msgid "Select Plate"
 msgstr "빌드 플레이트 선택"
 
@@ -6488,8 +6611,20 @@ msgstr "라이브뷰 재시도"
 msgid "Resolution"
 msgstr "해상도"
 
+msgid "External Storage"
+msgstr "외부 스토리지"
+
 msgid "Show \"Live Video\" guide page."
 msgstr "'라이브 동영상' 안내 페이지를 표시합니다."
+
+msgid "Not Installed"
+msgstr ""
+
+msgid "Abnormal"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "프린터 연결 (LAN)"
@@ -6567,6 +6702,12 @@ msgstr "새 모델을 생성하기 전에 닫힙니다. 계속하시겠습니까
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "현재 페이지에 저장되지 않은 변경 사항이 있습니다. 계속 편집하거나, 나가기 전에 저장 또는 취소를 선택할 수 있습니다."
+
+msgid "Discard"
+msgstr ""
+
+msgid "Stay on this page"
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Helio Additive를 사용하면 더 빠르고 안정적이며 뒤틀림 없는 출력을 경험할 수 있습니다."
@@ -7171,8 +7312,12 @@ msgstr "정보"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "라이브 스트리밍 기능을 사용하려면 Bambu Studio를 실행해야 하며, 앱을 닫은 후 일정 시간이 지나면 스트리밍이 종료됩니다."
 
-msgid "Printer Preview"
-msgstr "프린터 미리보기"
+msgid "Not live"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Captured at %s"
+msgstr ""
 
 msgid "Playing..."
 msgstr "출력 중..."
@@ -7545,9 +7690,6 @@ msgstr "거의 완료"
 msgid "Camera"
 msgstr "카메라"
 
-msgid "Storage"
-msgstr "저장고"
-
 msgid "Camera Setting"
 msgstr "카메라 설정"
 
@@ -7566,9 +7708,6 @@ msgstr "안전 옵션"
 msgid "Hotends"
 msgstr "핫엔드"
 
-msgid "Unclamped"
-msgstr ""
-
 msgid "100%"
 msgstr "100%"
 
@@ -7581,11 +7720,20 @@ msgstr "베드"
 msgid "Filament loading..."
 msgstr "필라멘트 로딩 중..."
 
-msgid "No Storage"
-msgstr "저장소 없음"
+msgid "Live Camera Recording in progress"
+msgstr ""
 
-msgid "Storage Abnormal"
-msgstr "저장소 비정상"
+msgid "Visual Enhancement Camera Recording in progress"
+msgstr ""
+
+msgid "Recording in progress"
+msgstr ""
+
+msgid "Timelapse in progress"
+msgstr ""
+
+msgid "Go Live in progress"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "출력 취소"
@@ -7794,6 +7942,12 @@ msgstr ""
 "이 출력 프로필의 출력 성공 기록이 하나 이상 필요합니다\n"
 "긍정적 평가(별 4개 또는 5개)를 받으려면."
 
+msgid "This device is performing the following operations"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "스텝 파일 가져오기 매개변수"
 
@@ -7829,6 +7983,9 @@ msgstr "다시 표시하지 않음"
 
 msgid "Calculating, please wait..."
 msgstr "계산 중, 잠시만 기다려주세요..."
+
+msgid "Storage"
+msgstr "저장고"
 
 msgid "Status"
 msgstr "상태"
@@ -8011,6 +8168,9 @@ msgstr "완료"
 msgid "Cancel upload"
 msgstr "업로드 취소"
 
+msgid "Serious warning:"
+msgstr "심각한 경고입니다:"
+
 msgid "Jump to"
 msgstr "위치로 가기"
 
@@ -8037,9 +8197,6 @@ msgstr "내보내기 성공"
 
 msgid "Model file downloaded."
 msgstr "모델 파일이 다운로드되었습니다."
-
-msgid "Serious warning:"
-msgstr "심각한 경고입니다:"
 
 msgid " Click here to install it."
 msgstr " 설치하려면 여기를 클릭하십시오."
@@ -8985,6 +9142,18 @@ msgstr ""
 msgid "Not installed"
 msgstr "설치되지 않음"
 
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"이 소프트웨어는 한 번의 출력에 서로 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다.\n"
+"좌우 노즐의 직경이 다를 경우, 단일 헤드 출력만 가능합니다.\n"
+"이 프로젝트에 사용할 노즐을 확인해 주십시오."
+
+msgid "Switch diameter"
+msgstr "직경 스위치"
+
 msgid "Sync printer information"
 msgstr "프린터 정보 동기화"
 
@@ -9052,16 +9221,11 @@ msgstr "플레이트, 개체 및 부품을 검색합니다."
 msgid "Change nozzle diameter"
 msgstr ""
 
-msgid "This filament does not support printing with the current nozzle."
+msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
-msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
-msgstr ""
-
-msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
-msgstr ""
-
-msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
+#, c-format, boost-format
+msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -9090,7 +9254,11 @@ msgid "After completing your operation, %s project will be closed and create a n
 msgstr "작업을 완료하면 %s 프로젝트가 닫히고 새 프로젝트가 만들어집니다."
 
 #, c-format, boost-format
-msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgid "filament slot %d %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
 msgid ""
@@ -9144,11 +9312,23 @@ msgid "Please fix the marked mixed filaments in the left filament list."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
 msgid "Add a new preset"
@@ -9229,6 +9409,12 @@ msgstr "3mf에서 잘못된 값이 발견됨:"
 msgid "Please correct them in the param tabs"
 msgstr "매개변수 탭에서 수정하세요."
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "3mf에는 필라멘트 또는 프린터 프리셋에 다음과 같이 수정된 G 코드가 있습니다:"
 
@@ -9268,18 +9454,6 @@ msgstr "부피가 0인 객체가 제거되었습니다."
 
 msgid "The volume of the object is zero"
 msgstr "객체의 체적이 0입니다."
-
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
-"Instead of considering them as multiple objects, should \n"
-"the file be loaded as a single object having multiple parts?"
-msgstr ""
-"이 파일에는 여러 높이에 위치한 여러 객체가 포함되어 있습니다.\n"
-"여러 객체로 다루지 않고 \n"
-"여러 부품으로 구성된 단일 객체로 로드하시겠습니까?"
-
-msgid "Multi-part object detected"
-msgstr "멀티 부품 객체가 감지됨"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -10558,6 +10732,9 @@ msgstr "호환되지 않는 프리셋"
 msgid "My Printer"
 msgstr "내 프린터"
 
+msgid "This filament is not compatible with the nozzle it is loaded on"
+msgstr ""
+
 msgid "To select this filament, change the nozzle settings first."
 msgstr ""
 
@@ -11078,6 +11255,15 @@ msgstr ""
 "하반신 영역:  선택한 노즐\n"
 "클릭하여 수정할 수 있습니다"
 
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you can click it to modify"
+msgstr ""
+"상반신 영역:  원본\n"
+"아래쪽 절반 영역:  AMS의 필라멘트\n"
+"클릭하여 수정할 수 있습니다"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "적합한 필라멘트와 자동으로 일치시킬 수 없습니다. 수동으로 일치시키려면 클릭하십시오."
 
@@ -11477,6 +11663,9 @@ msgstr "더 알아보려면 클릭하세요"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "모든 설정을 마지막으로 저장한 프리셋으로 재설정하려면 클릭합니다."
 
+msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "노즐 교체를 위해 프라임 타워가 필요합니다. 프라임 타워가 없으면 모델에 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
 
@@ -11628,6 +11817,9 @@ msgstr "가속"
 
 msgid "Jerk(XY)"
 msgstr "저크(XY)"
+
+msgid "Support ring"
+msgstr ""
 
 msgid "Raft"
 msgstr "라프트"
@@ -12049,9 +12241,6 @@ msgstr "수정된 값 (신규)"
 msgid "Discard Modified Value"
 msgstr "수정된 값 삭제"
 
-msgid "Don't save"
-msgstr "저장 안함"
-
 msgid "Use Modified Value"
 msgstr "수정된 값 사용"
 
@@ -12240,210 +12429,6 @@ msgstr "사용 가능한 업데이트가 없습니다."
 
 msgid "The configuration is up to date."
 msgstr "설정이 최신 상태입니다."
-
-msgid "Open Wiki for more information >"
-msgstr "자세한 내용은 Wiki 열기 >"
-
-msgid "Obj file Import color"
-msgstr "오브젝트 파일 색상 가져오기"
-
-msgid "Standard 3mf Import color"
-msgstr "표준 3mf 가져오기 색상"
-
-msgid "Some faces don't have color defined."
-msgstr "일부 면에는 색상이 정의되어 있지 않습니다."
-
-msgid "mtl file exist error,could not find the material:"
-msgstr "mtl 파일 존재 오류, 자료를 찾을 수 없습니다:"
-
-msgid "Please check obj or mtl file."
-msgstr "오브젝트 또는 MTL 파일을 확인하세요."
-
-msgid "Specify number of colors:"
-msgstr "색상 수를 지정합니다:"
-
-msgid "Enter or click the adjustment button to modify number again"
-msgstr "숫자를 다시 수정하려면 입력하거나 조정 버튼을 클릭하세요."
-
-msgid "Recommended "
-msgstr "왼쪽 권장"
-
-msgid "view"
-msgstr "보기"
-
-msgid "Current filament colors"
-msgstr "현재 필라멘트 색상"
-
-msgid "Matching"
-msgstr "매칭"
-
-msgid "Quick set"
-msgstr "빠른 설정"
-
-msgid "There are color input errors."
-msgstr "색상 입력 오류가 있습니다."
-
-msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr "텍스처 가져오기가 일시적으로 불가능하며, 부분 색칠은 자동으로 기본 색상으로 대체됩니다."
-
-msgid " And "
-msgstr " 및 "
-
-msgid "Note"
-msgstr "메모"
-
-msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr "색상이 선택되었으면 계속하려면 확인을 선택하거나 수동으로 조정할 수 있습니다."
-
-msgctxt "ObjImport"
-msgid "Original"
-msgstr "원본"
-
-msgid "After mapping"
-msgstr "매핑 후"
-
-msgid "Color match"
-msgstr "색상 일치"
-
-msgid "Approximate color matching."
-msgstr "대략적인 색상 일치."
-
-msgid "Append"
-msgstr "덧붙이기"
-
-msgid "Append to existing filaments"
-msgstr "기존 필라멘트에 추가"
-
-msgid "Reset mapped extruders."
-msgstr "매핑된 압출기를 재설정합니다."
-
-msgid "—> "
-msgstr ""
-
-msgctxt "Sync_AMS"
-msgid "Original"
-msgstr "원본"
-
-msgid "After overwriting"
-msgstr "덮어쓰기 후"
-
-msgctxt "Sync_AMS"
-msgid "Plate"
-msgstr "접시"
-
-msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
-msgstr "연결된 프린터가 현재 선택한 프린터와 일치하지 않습니다. 선택한 프린터를 변경하세요."
-
-msgid "Mapping"
-msgstr "맵핑"
-
-msgid "Overwriting"
-msgstr "덮어쓰기"
-
-msgid "Reset all filament mapping"
-msgstr "모든 필라멘트 매핑 재설정"
-
-msgid "(Recommended filament)"
-msgstr "(권장 필라멘트)"
-
-msgid "Advanced Options"
-msgstr "고급 옵션"
-
-msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
-msgstr ""
-"열판 평탄도를 확인합니다. 수평을 맞추면 압출 높이가 균일해집니다.\n"
-"*자동 모드: 먼저 수평을 맞춥니다(약 10초). 표면이 평탄하면 건너뜁니다."
-
-msgid ""
-"Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
-msgstr ""
-"노즐 오프셋을 보정하여 출력 품질을 향상시킵니다.\n"
-"*자동 모드: 출력하기 전에 보정 여부를 확인하고 불필요한 경우 건너뜁니다."
-
-msgid "Use AMS"
-msgstr "AMS 사용"
-
-msgid "Only synchronize filament type and color, not including AMS slot information."
-msgstr "필라멘트 유형과 색상만 동기화하며, AMS 슬롯 정보는 포함하지 않습니다."
-
-msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr "프린터 필라멘트를 기준으로 프로젝트 필라멘트 목록을 순차적으로 교체합니다. 사용하지 않는 프린터 필라멘트는 자동으로 목록 끝에 추가됩니다."
-
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Add unused AMS filaments to filaments list."
-msgstr "미사용 AMS 필라멘트를 필라멘트 목록에 추가하기."
-
-msgid "Automatically merge the same colors in the model after mapping."
-msgstr "매핑 후 모델에서 동일한 색상을 자동으로 병합합니다."
-
-msgid "After being synced, this action cannot be undone."
-msgstr "동기화 후에는 이 작업을 취소할 수 없습니다."
-
-msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
-msgstr "동기화되면 프로젝트의 필라멘트 사전 설정과 색상이 매핑된 필라멘트 유형과 색상으로 바뀝니다. 이 작업은 실행 취소할 수 없습니다."
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "필라멘트를 동기화하시겠습니까?"
-
-msgid "Synchronize now"
-msgstr "지금 동기화"
-
-msgid "Synchronize Filament Information"
-msgstr "필라멘트 정보 동기화"
-
-msgid "Add unused filaments to filaments list."
-msgstr "미사용 필라멘트를 필라멘트 목록에 추가하기."
-
-msgid "Only synchronize filament type and color, not including slot information."
-msgstr "슬롯 정보는 포함하지 않고 필라멘트 유형과 색상만 동기화합니다."
-
-msgid "Ext spool"
-msgstr "외부 스풀"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "%s(%s)의 노즐 유량 설정이 슬라이싱 파일(%s)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱하는 동안 해당 프린터 프리셋을 설정하세요."
-
-msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
-msgstr "장치의 노즐 유형이 사전 설정된 노즐 유형과 동일한지 확인하세요."
-
-#, c-format, boost-format
-msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "선택한 프린터(%s)가 슬라이서(%s에서 선택한 프린터 프로필과 호환되지 않습니다.)"
-
-msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "출력 순서가 \"개체별\"로 설정되어 있으므로 타임랩스가 지원되지 않습니다."
-
-msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr "압출기에서 외부 필라멘트와 AMS 필라멘트를 동시에 선택한 경우 외부 필라멘트를 수동으로 변경해야 합니다."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "팁: 최근에 프린터의 노즐을 변경한 경우 '장치 -> 프린터 부품'으로 이동하여 노즐 설정을 변경하세요."
-
-msgid "Successfully synchronized Printer information."
-msgstr ""
-
-msgid "Continue to sync filaments"
-msgstr "필라멘트 동기화 계속하기"
-
-msgctxt "Sync_Nozzle_AMS"
-msgid "Cancel"
-msgstr "취소"
-
-msgid "Successfully synchronized color and type of filament from printer."
-msgstr "프린터에서 색상과 필라멘트 유형을 성공적으로 동기화했습니다."
-
-msgctxt "FinishSyncAms"
-msgid "OK"
-msgstr "확인"
-
-msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr "Bowden 타입 압출기는 0.2 직경 노즐을 지원하지 않습니다. 단일 헤드 출력만 진행할 수 있습니다."
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio는 필라멘트 색상이 변경되거나 필라멘트가 변경될 때마다 플러싱 볼륨을 다시 계산합니다. Bambu Studio > 환경설정에서 자동 계산을 비활성화할 수 있습니다"
@@ -13843,10 +13828,13 @@ msgstr "나선형 꽃병 모드는 객체에 서로 다른 출력 설정이 적�
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "유기적 지원에서는 가변 레이어 높이가 지원되지 않습니다."
 
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr ""
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
@@ -13894,11 +13882,11 @@ msgstr ""
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "프라임 타워를 사용하려면 모든 물체가 동일한 레이어 높이로 슬라이스되어야 합니다."
 
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "프라임 타워는 모든 객체의 가변 레이어 높이가 동일한 경우에만 지원됩니다."
-
 msgid "The support ring is only supported if all objects have the same variable layer height"
 msgstr ""
+
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "프라임 타워는 모든 객체의 가변 레이어 높이가 동일한 경우에만 지원됩니다."
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "정밀 Z 높이를 사용하면 객체마다 서로 다른 레이어 높이가 적용되어 프라임 타워의 크기가 크게 증가할 수 있습니다."
@@ -16868,10 +16856,10 @@ msgstr ""
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
 msgstr ""
 
-msgid "Support ring notch width"
+msgid "Support ring angle"
 msgstr ""
 
-msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
 msgstr ""
 
 msgid "Support ring skip points"
@@ -18134,6 +18122,15 @@ msgstr "- 객체 모드: 최소 두 개의 객체를 선택하세요."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- 부품 모드: 메시가 두 개 이상인 객체 하나를 선택하세요."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "Computing..."
+msgstr "계산 중..."
+
+msgid "Applying result.."
+msgstr "결과 적용 중.."
+
 msgid "Union"
 msgstr "결합"
 
@@ -18160,15 +18157,6 @@ msgstr "엔티티에 대해서만 불리언 연산 수행."
 
 msgid "This object contains non-part components."
 msgstr "이 객체에는 비부품 구성 요소가 포함되어 있습니다."
-
-msgid "Preparing data..."
-msgstr "데이터 준비 중..."
-
-msgid "Computing..."
-msgstr "계산 중..."
-
-msgid "Applying result.."
-msgstr "결과 적용 중.."
 
 msgid "Network Test"
 msgstr "개방형 네트워크 테스트"
@@ -18610,9 +18598,6 @@ msgstr "내보내려는 프리셋 유형을 선택하세요"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "임시 폴더를 만들지 못했습니다. 설정 내보내기를 다시 시도하세요."
-
-msgid "Edit Filament"
-msgstr "필라멘트 수정"
 
 msgid "Filament presets under this filament"
 msgstr "아래의 필라멘트 프리셋"
@@ -19179,6 +19164,9 @@ msgstr "동시에 사용 중인 프린터 수는 0이 될 수 없습니다."
 
 msgid "Use External Spool"
 msgstr "외부 스풀 사용"
+
+msgid "Use AMS"
+msgstr "AMS 사용"
 
 msgid "Select Printers"
 msgstr "프린터 선택"
@@ -19831,6 +19819,12 @@ msgstr "혼합 필라멘트 편집"
 msgid "Effect Preview"
 msgstr "효과 미리보기"
 
+msgid "Target"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
 msgid "Select Mixed Materials"
 msgstr "혼합 재료 선택"
 
@@ -19868,6 +19862,9 @@ msgstr "혼합할 수 없습니다. 동일한 필라멘트 종류를 선택해 �
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr ""
 
+msgid "No mix is available for the target color"
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "모든 부품에 필라멘트를 선택하세요."
 
@@ -19880,73 +19877,49 @@ msgstr "최대 구성 요소 수에 도달했습니다."
 msgid "Remove the third material"
 msgstr "세 번째 재료를 제거하세요"
 
+msgid "Manual Mixing"
+msgstr ""
+
+msgid "Color Matching"
+msgstr ""
+
+msgid "Select Target Color"
+msgstr ""
+
+msgid "Match Result"
+msgstr ""
+
+msgid "Discard changes and match again"
+msgstr ""
+
+msgid "Replace the target color on models with the mixed result"
+msgstr ""
+
+msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
+msgstr ""
+
 #, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
+msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
-msgid "Decomposition result for this combination"
-msgstr "이 조합에 대한 분해 결과"
-
-msgid "Filament Color"
-msgstr "필라멘트 색상"
-
-msgid "Decomposed Colors"
-msgstr "분해된 색상"
-
-msgid "Select Color Decomposition"
-msgstr "색상 분해 선택"
-
-msgid "Project Filament"
-msgstr "프로젝트 필라멘트"
-
-msgid "Material List"
-msgstr "재료 목록"
-
-msgid "Standard Palette"
-msgstr "표준 팔레트"
-
-msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "분해하려면 동일한 재료 유형의 필라멘트가 두 개 이상 필요합니다."
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "보다 정확한 혼합색은 시안, 마젠타, 옐로우, 화이트의 네 가지 기본색을 사용하여 계산됩니다. 현재는 PLA Basic만 지원됩니다. 프로젝트에 맞는 필라멘트가 없는 경우 자동으로 추가됩니다."
-
-msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgid "There is no other filament of the same type as the target color in the project."
 msgstr ""
 
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "보다 정확한 색상 배합은 빨강, 노랑, 파랑, 흰색의 네 가지 기본 색상을 사용하여 계산됩니다. 현재는 PLA Basic만 지원됩니다. 프로젝트에 맞는 필라멘트가 없는 경우 자동으로 추가됩니다."
+msgid "At least two other filaments of the same type as the target color are required."
+msgstr ""
+
+msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+msgstr ""
+
+msgid "No available mixing recipe was found."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
 
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "재료 목록은 최대 %1%가지 색상을 지원합니다. %2% 분해 후 재료 수가 %1%을 초과하게 됩니다. 분해하기 전에 메인 스크린에서 사용하지 않는 필라멘트를 삭제해 주세요."
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "색상 분해 (그라디언트는 지원되지 않음)"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "색상 분해 (투명 색상은 지원되지 않음)"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "색상 분해 (다색은 지원되지 않음)"
-
-msgid "Cyan"
-msgstr "시안"
-
-msgid "Magenta"
-msgstr "마젠타"
-
-msgid "Yellow"
-msgstr "옐로우"
-
-msgid ", "
+msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
 msgstr ""
-
-msgid "The current filament list does not contain "
-msgstr "현재 필라멘트 목록에 포함되어 있지 않습니다. "
-
-msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ". 혼합 필라멘트에 필요한 프로젝트 필라멘트는 분해 후 자동으로 생성됩니다."
 
 msgid "Material Ratio"
 msgstr "재료 비율"
@@ -20283,6 +20256,313 @@ msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
 
+#~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+#~ msgstr "가변 레이어 높이를 혼합 색상 하위 레이어와 함께 사용하면 색상 혼합 품질이 저하될 수 있습니다."
+
+#~ msgid "Decompose Color"
+#~ msgstr "색상 분해"
+
+#~ msgid "Automatically merge identical filaments into existing filaments in the project"
+#~ msgstr "동일한 필라멘트를 프로젝트 내 기존 필라멘트에 자동으로 병합합니다."
+
+#~ msgid "Automatically merge filaments of the same color and type"
+#~ msgstr "같은 색상과 종류의 필라멘트를 자동으로 병합합니다"
+
+#~ msgid "Unmapped"
+#~ msgstr "매핑되지 않음"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area: The filament from original project will be used when unmapped.\n"
+#~ "And you can click it to modify"
+#~ msgstr ""
+#~ "상반신 영역:  원본\n"
+#~ "아래쪽 절반 영역: 매핑을 해제하면 원본 프로젝트의 필라멘트가 사용됩니다.\n"
+#~ "그리고 클릭하여 수정할 수 있습니다"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area:  Filament in AMS\n"
+#~ "And you cannot click it to modify"
+#~ msgstr ""
+#~ "상반신 영역:  원본\n"
+#~ "아래쪽 절반 영역:  AMS의 필라멘트\n"
+#~ "클릭하여 수정할 수 없습니다"
+
+#~ msgid "Printer Preview"
+#~ msgstr "프린터 미리보기"
+
+#~ msgid "No Storage"
+#~ msgstr "저장소 없음"
+
+#~ msgid "Storage Abnormal"
+#~ msgstr "저장소 비정상"
+
+#~ msgid ""
+#~ "This file contains several objects positioned at multiple heights.\n"
+#~ "Instead of considering them as multiple objects, should \n"
+#~ "the file be loaded as a single object having multiple parts?"
+#~ msgstr ""
+#~ "이 파일에는 여러 높이에 위치한 여러 객체가 포함되어 있습니다.\n"
+#~ "여러 객체로 다루지 않고 \n"
+#~ "여러 부품으로 구성된 단일 객체로 로드하시겠습니까?"
+
+#~ msgid "Multi-part object detected"
+#~ msgstr "멀티 부품 객체가 감지됨"
+
+#~ msgid "Don't save"
+#~ msgstr "저장 안함"
+
+#~ msgid "Open Wiki for more information >"
+#~ msgstr "자세한 내용은 Wiki 열기 >"
+
+#~ msgid "Obj file Import color"
+#~ msgstr "오브젝트 파일 색상 가져오기"
+
+#~ msgid "Standard 3mf Import color"
+#~ msgstr "표준 3mf 가져오기 색상"
+
+#~ msgid "Some faces don't have color defined."
+#~ msgstr "일부 면에는 색상이 정의되어 있지 않습니다."
+
+#~ msgid "mtl file exist error,could not find the material:"
+#~ msgstr "mtl 파일 존재 오류, 자료를 찾을 수 없습니다:"
+
+#~ msgid "Please check obj or mtl file."
+#~ msgstr "오브젝트 또는 MTL 파일을 확인하세요."
+
+#~ msgid "Specify number of colors:"
+#~ msgstr "색상 수를 지정합니다:"
+
+#~ msgid "Enter or click the adjustment button to modify number again"
+#~ msgstr "숫자를 다시 수정하려면 입력하거나 조정 버튼을 클릭하세요."
+
+#~ msgid "Recommended "
+#~ msgstr "왼쪽 권장"
+
+#~ msgid "view"
+#~ msgstr "보기"
+
+#~ msgid "Current filament colors"
+#~ msgstr "현재 필라멘트 색상"
+
+#~ msgid "Matching"
+#~ msgstr "매칭"
+
+#~ msgid "Quick set"
+#~ msgstr "빠른 설정"
+
+#~ msgid "There are color input errors."
+#~ msgstr "색상 입력 오류가 있습니다."
+
+#~ msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+#~ msgstr "텍스처 가져오기가 일시적으로 불가능하며, 부분 색칠은 자동으로 기본 색상으로 대체됩니다."
+
+#~ msgid " And "
+#~ msgstr " 및 "
+
+#~ msgid "Note"
+#~ msgstr "메모"
+
+#~ msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+#~ msgstr "색상이 선택되었으면 계속하려면 확인을 선택하거나 수동으로 조정할 수 있습니다."
+
+#~ msgctxt "ObjImport"
+#~ msgid "Original"
+#~ msgstr "원본"
+
+#~ msgid "After mapping"
+#~ msgstr "매핑 후"
+
+#~ msgid "Color match"
+#~ msgstr "색상 일치"
+
+#~ msgid "Approximate color matching."
+#~ msgstr "대략적인 색상 일치."
+
+#~ msgid "Append"
+#~ msgstr "덧붙이기"
+
+#~ msgid "Append to existing filaments"
+#~ msgstr "기존 필라멘트에 추가"
+
+#~ msgid "Reset mapped extruders."
+#~ msgstr "매핑된 압출기를 재설정합니다."
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Original"
+#~ msgstr "원본"
+
+#~ msgid "After overwriting"
+#~ msgstr "덮어쓰기 후"
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Plate"
+#~ msgstr "접시"
+
+#~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
+#~ msgstr "연결된 프린터가 현재 선택한 프린터와 일치하지 않습니다. 선택한 프린터를 변경하세요."
+
+#~ msgid "Mapping"
+#~ msgstr "맵핑"
+
+#~ msgid "Overwriting"
+#~ msgstr "덮어쓰기"
+
+#~ msgid "Reset all filament mapping"
+#~ msgstr "모든 필라멘트 매핑 재설정"
+
+#~ msgid "(Recommended filament)"
+#~ msgstr "(권장 필라멘트)"
+
+#~ msgid "Advanced Options"
+#~ msgstr "고급 옵션"
+
+#~ msgid ""
+#~ "Check heatbed flatness. Leveling makes extruded height uniform.\n"
+#~ "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+#~ msgstr ""
+#~ "열판 평탄도를 확인합니다. 수평을 맞추면 압출 높이가 균일해집니다.\n"
+#~ "*자동 모드: 먼저 수평을 맞춥니다(약 10초). 표면이 평탄하면 건너뜁니다."
+
+#~ msgid ""
+#~ "Calibrate nozzle offsets to enhance print quality.\n"
+#~ "*Automatic mode: Check for calibration before printing; skip if unnecessary."
+#~ msgstr ""
+#~ "노즐 오프셋을 보정하여 출력 품질을 향상시킵니다.\n"
+#~ "*자동 모드: 출력하기 전에 보정 여부를 확인하고 불필요한 경우 건너뜁니다."
+
+#~ msgid "Only synchronize filament type and color, not including AMS slot information."
+#~ msgstr "필라멘트 유형과 색상만 동기화하며, AMS 슬롯 정보는 포함하지 않습니다."
+
+#~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
+#~ msgstr "프린터 필라멘트를 기준으로 프로젝트 필라멘트 목록을 순차적으로 교체합니다. 사용하지 않는 프린터 필라멘트는 자동으로 목록 끝에 추가됩니다."
+
+#~ msgid "Add unused AMS filaments to filaments list."
+#~ msgstr "미사용 AMS 필라멘트를 필라멘트 목록에 추가하기."
+
+#~ msgid "Automatically merge the same colors in the model after mapping."
+#~ msgstr "매핑 후 모델에서 동일한 색상을 자동으로 병합합니다."
+
+#~ msgid "After being synced, this action cannot be undone."
+#~ msgstr "동기화 후에는 이 작업을 취소할 수 없습니다."
+
+#~ msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
+#~ msgstr "동기화되면 프로젝트의 필라멘트 사전 설정과 색상이 매핑된 필라멘트 유형과 색상으로 바뀝니다. 이 작업은 실행 취소할 수 없습니다."
+
+#~ msgid "Are you sure to synchronize the filaments?"
+#~ msgstr "필라멘트를 동기화하시겠습니까?"
+
+#~ msgid "Synchronize now"
+#~ msgstr "지금 동기화"
+
+#~ msgid "Synchronize Filament Information"
+#~ msgstr "필라멘트 정보 동기화"
+
+#~ msgid "Add unused filaments to filaments list."
+#~ msgstr "미사용 필라멘트를 필라멘트 목록에 추가하기."
+
+#~ msgid "Only synchronize filament type and color, not including slot information."
+#~ msgstr "슬롯 정보는 포함하지 않고 필라멘트 유형과 색상만 동기화합니다."
+
+#~ msgid "Ext spool"
+#~ msgstr "외부 스풀"
+
+#, c-format, boost-format
+#~ msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+#~ msgstr "%s(%s)의 노즐 유량 설정이 슬라이싱 파일(%s)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱하는 동안 해당 프린터 프리셋을 설정하세요."
+
+#~ msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
+#~ msgstr "장치의 노즐 유형이 사전 설정된 노즐 유형과 동일한지 확인하세요."
+
+#, c-format, boost-format
+#~ msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
+#~ msgstr "선택한 프린터(%s)가 슬라이서(%s에서 선택한 프린터 프로필과 호환되지 않습니다.)"
+
+#~ msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
+#~ msgstr "출력 순서가 \"개체별\"로 설정되어 있으므로 타임랩스가 지원되지 않습니다."
+
+#~ msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+#~ msgstr "압출기에서 외부 필라멘트와 AMS 필라멘트를 동시에 선택한 경우 외부 필라멘트를 수동으로 변경해야 합니다."
+
+#~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+#~ msgstr "팁: 최근에 프린터의 노즐을 변경한 경우 '장치 -> 프린터 부품'으로 이동하여 노즐 설정을 변경하세요."
+
+#~ msgid "Continue to sync filaments"
+#~ msgstr "필라멘트 동기화 계속하기"
+
+#~ msgctxt "Sync_Nozzle_AMS"
+#~ msgid "Cancel"
+#~ msgstr "취소"
+
+#~ msgid "Successfully synchronized color and type of filament from printer."
+#~ msgstr "프린터에서 색상과 필라멘트 유형을 성공적으로 동기화했습니다."
+
+#~ msgctxt "FinishSyncAms"
+#~ msgid "OK"
+#~ msgstr "확인"
+
+#~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+#~ msgstr "Bowden 타입 압출기는 0.2 직경 노즐을 지원하지 않습니다. 단일 헤드 출력만 진행할 수 있습니다."
+
+#~ msgid "Decomposition result for this combination"
+#~ msgstr "이 조합에 대한 분해 결과"
+
+#~ msgid "Filament Color"
+#~ msgstr "필라멘트 색상"
+
+#~ msgid "Decomposed Colors"
+#~ msgstr "분해된 색상"
+
+#~ msgid "Select Color Decomposition"
+#~ msgstr "색상 분해 선택"
+
+#~ msgid "Project Filament"
+#~ msgstr "프로젝트 필라멘트"
+
+#~ msgid "Material List"
+#~ msgstr "재료 목록"
+
+#~ msgid "Standard Palette"
+#~ msgstr "표준 팔레트"
+
+#~ msgid "At least two filaments of the same material type are required for decomposition"
+#~ msgstr "분해하려면 동일한 재료 유형의 필라멘트가 두 개 이상 필요합니다."
+
+#~ msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "보다 정확한 혼합색은 시안, 마젠타, 옐로우, 화이트의 네 가지 기본색을 사용하여 계산됩니다. 현재는 PLA Basic만 지원됩니다. 프로젝트에 맞는 필라멘트가 없는 경우 자동으로 추가됩니다."
+
+#~ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "보다 정확한 색상 배합은 빨강, 노랑, 파랑, 흰색의 네 가지 기본 색상을 사용하여 계산됩니다. 현재는 PLA Basic만 지원됩니다. 프로젝트에 맞는 필라멘트가 없는 경우 자동으로 추가됩니다."
+
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "재료 목록은 최대 %1%가지 색상을 지원합니다. %2% 분해 후 재료 수가 %1%을 초과하게 됩니다. 분해하기 전에 메인 스크린에서 사용하지 않는 필라멘트를 삭제해 주세요."
+
+#~ msgid "Decompose Color (gradient not supported)"
+#~ msgstr "색상 분해 (그라디언트는 지원되지 않음)"
+
+#~ msgid "Decompose Color (transparent not supported)"
+#~ msgstr "색상 분해 (투명 색상은 지원되지 않음)"
+
+#~ msgid "Decompose Color (multi-color not supported)"
+#~ msgstr "색상 분해 (다색은 지원되지 않음)"
+
+#~ msgid "Cyan"
+#~ msgstr "시안"
+
+#~ msgid "Magenta"
+#~ msgstr "마젠타"
+
+#~ msgid "Yellow"
+#~ msgstr "옐로우"
+
+#~ msgid "The current filament list does not contain "
+#~ msgstr "현재 필라멘트 목록에 포함되어 있지 않습니다. "
+
+#~ msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+#~ msgstr ". 혼합 필라멘트에 필요한 프로젝트 필라멘트는 분해 후 자동으로 생성됩니다."
+
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "더 나은 레이어드 컬러 효과를 위해 혼합 색상 필라멘트를 사용할 때만 권장합니다."
 
@@ -20485,18 +20765,6 @@ msgstr ""
 
 #~ msgid "Printed Part Displacement Detection"
 #~ msgstr "출력 부품 변위 감지"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "이 소프트웨어는 한 번의 출력에 서로 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다.\n"
-#~ "좌우 노즐의 직경이 다를 경우, 단일 헤드 출력만 가능합니다.\n"
-#~ "이 프로젝트에 사용할 노즐을 확인해 주십시오."
-
-#~ msgid "Switch diameter"
-#~ msgstr "직경 스위치"
 
 #~ msgid "Do you want to sync the preset printer with the connected printer, "
 #~ msgstr ""
@@ -20741,9 +21009,6 @@ msgstr ""
 
 #~ msgid "X-Ray Other Objects"
 #~ msgstr "X선 기타 객체"
-
-#~ msgid "Exit"
-#~ msgstr "종료"
 
 #~ msgid "Second"
 #~ msgstr "초"
@@ -21098,9 +21363,6 @@ msgstr ""
 
 #~ msgid "Internal Storage"
 #~ msgstr "내부 스토리지"
-
-#~ msgid "External Storage"
-#~ msgstr "외부 스토리지"
 
 #~ msgid "Modify paramters of right nozzle"
 #~ msgstr "오른쪽 노즐의 매개변수 수정하기"
@@ -21493,21 +21755,6 @@ msgstr ""
 
 #~ msgid " Preparing Hotend"
 #~ msgstr " 핫엔드 준비 중"
-
-#~ msgid "This calibration does not support the currently selected nozzle diameter"
-#~ msgstr "이 보정은 현재 선택된 노즐 직경을 지원하지 않습니다"
-
-#~ msgid "Current flowrate cali param is invalid"
-#~ msgstr "현재 유량 캘리 매개 변수가 유효하지 않습니다"
-
-#~ msgid "Selected diameter and machine diameter do not match"
-#~ msgstr "선택한 직경과 기계 직경이 일치하지 않습니다"
-
-#~ msgid "Failed to generate cali gcode"
-#~ msgstr "캘리 G코드 생성에 실패했습니다"
-
-#~ msgid "Calibration error"
-#~ msgstr "보정 오류"
 
 #~ msgid "Allow Prompt Sound"
 #~ msgstr "프롬프트 사운드 허용"

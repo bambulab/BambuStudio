@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 12:37+0800\n"
+"POT-Creation-Date: 2026-10-13 23:32+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -31,6 +31,21 @@ msgstr "Το νήμα ενδέχεται να μην είναι συμβατό �
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Το μοντέλο του νήματος είναι άγνωστο. Θα χρησιμοποιηθεί μια τυχαία προεπιλογή νήματος."
+
+msgid "This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
+msgstr ""
+
+msgid "Calibration error"
+msgstr ""
 
 msgid "Main Extruder"
 msgstr "Κύριος εξωθητήρας"
@@ -253,6 +268,78 @@ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wi
 msgstr "Το %s ενδέχεται να μην είναι μπορεί να φορτωθεί ή εκφορτωθεί, λόγω του Διακόπτη γραμμής νήματος. Αν θέλετε να συνεχίσετε."
 
 #, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported with a standard %s nozzle."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is only supported for printing with the main extruder."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "Το %s δεν υποστηρίζεται από τον εξωθητήρα %s."
 
@@ -271,6 +358,15 @@ msgstr "Ενδέχεται να παρουσιαστούν προβλήματα 
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "Ενδέχεται να παρουσιαστούν προβλήματα ποιότητας εκτύπωσης κατά την εκτύπωση «%s» με εξωθητήρα %s. Χρησιμοποιήστε με προσοχή."
+
+msgid "The total weight must bigger than remain weight."
+msgstr ""
+
+msgid "Please enter a valid remaining weight from 1g to 10000g."
+msgstr ""
+
+msgid "Please enter a valid total weight from 1g to 10000g."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Η κεφαλή εργαλείου και η σχάρα θερμού άκρου ενδέχεται να μετακινηθούν. Διατηρείτε τα χέρια σας μακριά από τον θάλαμο."
@@ -337,6 +433,36 @@ msgstr "Αποτυχία επαλήθευσης."
 
 msgid "Update failed."
 msgstr "Αποτυχία ενημέρωσης."
+
+msgid "Hotend & Filament"
+msgstr ""
+
+msgid "Lift Hotend Rack"
+msgstr ""
+
+msgid "Recenter Hotend Rack"
+msgstr ""
+
+msgid "Lower Hotend Rack"
+msgstr ""
+
+msgid "Hotend Rack"
+msgstr "Βάση θερμών άκρων"
+
+msgid "Reading"
+msgstr "Ένδειξη"
+
+msgid "Running"
+msgstr ""
+
+msgid "Raised"
+msgstr "Ανυψωμένο"
+
+msgid "Lowered"
+msgstr ""
+
+msgid "Centered"
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr "Τρέχουσα υγρασία AMS"
@@ -465,14 +591,8 @@ msgstr "Ένδειξη "
 msgid "Please wait"
 msgstr "Περιμένετε"
 
-msgid "Reading"
-msgstr "Ένδειξη"
-
 msgid "Running..."
 msgstr "Εκτέλεση..."
-
-msgid "Raised"
-msgstr "Ανυψωμένο"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr "Το θερμό άκρο βρίσκεται σε μη φυσιολογική κατάσταση και δεν είναι διαθέσιμο αυτήν τη στιγμή. Μεταβείτε στην ενότητα 'Συσκευή -> Αναβάθμιση' για να αναβαθμίσετε το υλικολογισμικό."
@@ -505,9 +625,6 @@ msgstr "Χρόνος χρήσης: %s"
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "Τα δυναμικά ακροφύσια εκχωρούνται στην τρέχουσα πλάκα. Η επιλογή θερμού άκρου δεν υποστηρίζεται."
 
-msgid "Hotend Rack"
-msgstr "Βάση θερμών άκρων"
-
 msgid "ToolHead"
 msgstr "Κεφαλή εργαλείου"
 
@@ -516,6 +633,21 @@ msgstr "Οι πληροφορίες για το ακροφύσιο πρέπει 
 
 msgid "Note:"
 msgstr "Σημείωση:"
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+msgid "Fan"
+msgstr "Ανεμιστήρας"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "The embedded webpage could not be loaded."
 msgstr ""
@@ -530,6 +662,9 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
+msgstr ""
+
+msgid "AMS Bridge Debug"
 msgstr ""
 
 msgid "Idling..."
@@ -647,9 +782,6 @@ msgstr ""
 msgid "Refreshing Hotend"
 msgstr ""
 
-msgid "Running"
-msgstr ""
-
 #, boost-format
 msgid "Reading (%1% / %2%)"
 msgstr ""
@@ -660,6 +792,24 @@ msgstr ""
 
 msgid "Please wait..."
 msgstr ""
+
+msgid "Edit Filament"
+msgstr "Επεξεργασία νήματος"
+
+msgid "Confirm to exit this process?"
+msgstr ""
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
+msgid "Still exit"
+msgstr ""
+
+msgid "Tip"
+msgstr "Συμβουλή"
 
 msgid "Empty slot"
 msgstr ""
@@ -715,9 +865,6 @@ msgstr ""
 msgid "No filament information available"
 msgstr ""
 
-msgid "Tip"
-msgstr "Συμβουλή"
-
 msgid "Cannot read all while printing or upgrading"
 msgstr ""
 
@@ -740,18 +887,6 @@ msgstr ""
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
 msgstr ""
-
-msgid "Pen"
-msgstr ""
-
-msgid "Cutter"
-msgstr ""
-
-msgid "Laser"
-msgstr ""
-
-msgid "Fan"
-msgstr "Ανεμιστήρας"
 
 msgid "Hotend Details"
 msgstr ""
@@ -1330,6 +1465,9 @@ msgstr "Επιδιόρθωση αντικειμένου μοντέλου"
 msgid "Connector"
 msgstr "Σύνδεσμος"
 
+msgid "Preparing data..."
+msgstr "Προετοιμασία δεδομένων..."
+
 msgid "Flip cut plane"
 msgstr "Αντιστροφή επιπέδου κοπής"
 
@@ -1537,7 +1675,10 @@ msgstr "%d τρίγωνα"
 msgid "Show wireframe"
 msgstr "Εμφάνιση πλαισίου καλωδίωσης"
 
-msgid "Preserve painted colors"
+msgid "Keep all painting"
+msgstr ""
+
+msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr ""
 
 #, boost-format
@@ -3097,8 +3238,8 @@ msgstr "Το αντικείμενο-στόχος περιέχει μόνο έν�
 msgid "Assembly"
 msgstr "Συναρμολόγηση"
 
-msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "Η χρήση μεταβλητού ύψους επιπέδου μαζί με υπο-επίπεδο μικτού χρώματος ενδέχεται να προκαλέσει κακή ποιότητα ανάμειξης χρωμάτων."
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
@@ -3212,6 +3353,9 @@ msgstr "Η αντιγραφή πολλαπλών κελιών δεν υποστ�
 msgid "Outside"
 msgstr "Εκτός"
 
+msgid "Auto"
+msgstr "Αυτόματο"
+
 msgid " "
 msgstr ""
 
@@ -3226,9 +3370,6 @@ msgstr "Πυκνότητα πλήρωσης (%)"
 
 msgid "Auto Brim"
 msgstr "Αυτόματο χείλος"
-
-msgid "Auto"
-msgstr "Αυτόματο"
 
 msgid "Painted"
 msgstr "Βαμμένο"
@@ -4223,9 +4364,6 @@ msgstr ""
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
-msgid "Decompose Color"
-msgstr "Αποσύνθεση χρώματος"
-
 msgid "+ Add Filament"
 msgstr "+ Προσθήκη νήματος"
 
@@ -4293,12 +4431,6 @@ msgstr "Αυτόματη προσθήκη όλων των νημάτων"
 msgid "Fix now"
 msgstr "Διόρθωση τώρα"
 
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "Αυτόματη συγχώνευση πανομοιότυπων νημάτων σε υφιστάμενα νήματα στο έργο"
-
-msgid "Automatically merge filaments of the same color and type"
-msgstr "Αυτόματη συγχώνευση νημάτων του ίδιου χρώματος και τύπου"
-
 msgid "Skip"
 msgstr "Παράλειψη"
 
@@ -4349,9 +4481,6 @@ msgstr "Ο αριθμός χρωμάτων δεν μπορεί να υπερβα
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "Ο αριθμός χρωμάτων δεν μπορεί να υπερβαίνει το όριο νημάτων του έργου (%d)."
 
-msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
 msgid "Click to select a matching filament"
 msgstr "Κάντε κλικ για να επιλέξετε ένα νήμα που αντιστοιχεί"
 
@@ -4367,6 +4496,12 @@ msgstr ""
 
 #, boost-format
 msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Mixing kits"
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "Kept filaments"
@@ -4386,6 +4521,9 @@ msgid "Prioritize merging similar-color filaments"
 msgstr ""
 
 msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -4674,36 +4812,6 @@ msgstr "Το %s δεν υποστηρίζει %s"
 
 msgid "Dynamic flow Calibration"
 msgstr "Βαθμονόμηση δυναμικής ροής"
-
-msgid "Unmapped"
-msgstr "Χωρίς χαρτογράφηση"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area: The filament from original project will be used when unmapped.\n"
-"And you can click it to modify"
-msgstr ""
-"Άνω μισό τμήμα:  Πρωτότυπο\n"
-"Κάτω μισό τμήμα: Το νήμα από το αρχικό έργο θα χρησιμοποιηθεί όταν δεν χαρτογραφηθεί.\n"
-"Μπορείτε να κάνετε κλικ σε αυτό για να το τροποποιήσετε"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you can click it to modify"
-msgstr ""
-"Άνω μισό τμήμα:  Πρωτότυπο\n"
-"Κάτω μισό τμήμα:  Νήμα σε AMS\n"
-"Μπορείτε να κάνετε κλικ σε αυτό για να το τροποποιήσετε"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you cannot click it to modify"
-msgstr ""
-"Άνω μισό τμήμα:  Πρωτότυπο\n"
-"Κάτω μισό τμήμα:  Νήμα σε AMS\n"
-"Δεν μπορείτε να κάνετε κλικ σε αυτό για να το τροποποιήσετε"
 
 msgid "AMS Slots"
 msgstr "Υποδοχές AMS"
@@ -5105,6 +5213,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "Η συνιστώμενη θερμοκρασία ακροφυσίου αυτού του τύπου νήματος είναι [%d, %d] βαθμοί Κελσίου"
+
+msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
+msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6244,6 +6355,18 @@ msgstr "Κάντε κλικ για σύμπτυξη"
 msgid "Overview"
 msgstr "Επισκόπηση"
 
+#, boost-format
+msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support ring of %2% overlaps %3%."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support rings of %2% and %3% overlap."
+msgstr ""
+
 msgid "Select Plate"
 msgstr "Επιλέξτε πλακέτα"
 
@@ -6497,8 +6620,20 @@ msgstr "Επανάληψη ζωντανής προβολής"
 msgid "Resolution"
 msgstr "Ανάλυση"
 
+msgid "External Storage"
+msgstr ""
+
 msgid "Show \"Live Video\" guide page."
 msgstr "Εμφάνιση σελίδας οδηγού «Ζωντανό βίντεο»."
+
+msgid "Not Installed"
+msgstr ""
+
+msgid "Abnormal"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Σύνδεση εκτυπωτή(LAN)"
@@ -6576,6 +6711,12 @@ msgstr "θα κλείσει πριν από τη δημιουργία ενός �
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "Η τρέχουσα σελίδα περιέχει μη αποθηκευμένες αλλαγές. Μπορείτε να συνεχίσετε την επεξεργασία ή να επιλέξετε αποθήκευση/απόρριψη προτού αποχωρήσετε."
+
+msgid "Discard"
+msgstr ""
+
+msgid "Stay on this page"
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Ξεκλειδώστε ταχύτερες, πιο αξιόπιστες εκτυπώσεις χωρίς παραμόρφωση με το Helio Additive."
@@ -7182,8 +7323,12 @@ msgstr "Πληροφορίες"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "Η λειτουργία ζωντανής ροής βασίζεται στο Bambu Studio για να εκτελεστεί και η ροή τερματίζεται κάποια στιγμή μετά το κλείσιμο της εφαρμογής."
 
-msgid "Printer Preview"
-msgstr "Προεπισκόπηση εκτυπωτή"
+msgid "Not live"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Captured at %s"
+msgstr ""
 
 msgid "Playing..."
 msgstr "Αναπαραγωγή..."
@@ -7557,9 +7702,6 @@ msgstr "Σχεδόν ολοκληρώθηκε"
 msgid "Camera"
 msgstr "Κάμερα"
 
-msgid "Storage"
-msgstr "Αποθηκευτικός χώρος"
-
 msgid "Camera Setting"
 msgstr "Ρύθμιση κάμερας"
 
@@ -7578,9 +7720,6 @@ msgstr "Επιλογές ασφάλειας"
 msgid "Hotends"
 msgstr "Θερμά άκρα"
 
-msgid "Unclamped"
-msgstr ""
-
 msgid "100%"
 msgstr ""
 
@@ -7593,11 +7732,20 @@ msgstr "Θερμαινόμενη επιφάνεια"
 msgid "Filament loading..."
 msgstr "Φόρτωση νήματος..."
 
-msgid "No Storage"
-msgstr "Δεν υπάρχει μέσο αποθήκευσης"
+msgid "Live Camera Recording in progress"
+msgstr ""
 
-msgid "Storage Abnormal"
-msgstr "Μη φυσιολογικός αποθηκευτικός χώρος"
+msgid "Visual Enhancement Camera Recording in progress"
+msgstr ""
+
+msgid "Recording in progress"
+msgstr ""
+
+msgid "Timelapse in progress"
+msgstr ""
+
+msgid "Go Live in progress"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "Ακύρωση εκτύπωσης"
@@ -7806,6 +7954,12 @@ msgstr ""
 "Απαιτείται τουλάχιστον μία επιτυχημένη εγγραφή εκτύπωσης αυτού του προφίλ εκτύπωσης \n"
 "για παροχή θετικής βαθμολογίας (4 ή 5 αστέρια)."
 
+msgid "This device is performing the following operations"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "Παράμετροι εισαγωγής αρχείου STEP"
 
@@ -7841,6 +7995,9 @@ msgstr "Να μην εμφανιστεί ξανά"
 
 msgid "Calculating, please wait..."
 msgstr "Υπολογισμός, περιμένετε..."
+
+msgid "Storage"
+msgstr "Αποθηκευτικός χώρος"
 
 msgid "Status"
 msgstr "Κατάσταση"
@@ -8027,6 +8184,9 @@ msgstr "ΟΛΟΚΛΗΡΏΘΗΚΕ"
 msgid "Cancel upload"
 msgstr "Ακύρωση μεταφόρτωσης"
 
+msgid "Serious warning:"
+msgstr "Σοβαρή προειδοποίηση:"
+
 msgid "Jump to"
 msgstr "Μετάβαση σε"
 
@@ -8053,9 +8213,6 @@ msgstr "Η εξαγωγή ήταν επιτυχής."
 
 msgid "Model file downloaded."
 msgstr "Το αρχείο μοντέλου λήφθηκε."
-
-msgid "Serious warning:"
-msgstr "Σοβαρή προειδοποίηση:"
 
 msgid " Click here to install it."
 msgstr " Κάντε κλικ εδώ για εγκατάσταση."
@@ -9001,6 +9158,15 @@ msgstr ""
 msgid "Not installed"
 msgstr "Δεν έχει εγκατασταθεί"
 
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+
+msgid "Switch diameter"
+msgstr ""
+
 msgid "Sync printer information"
 msgstr "Συγχρονισμός πληροφοριών εκτυπωτή"
 
@@ -9068,16 +9234,11 @@ msgstr "Αναζήτηση πλακέτας, αντικειμένου και τ�
 msgid "Change nozzle diameter"
 msgstr ""
 
-msgid "This filament does not support printing with the current nozzle."
+msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
-msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
-msgstr ""
-
-msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
-msgstr ""
-
-msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
+#, c-format, boost-format
+msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -9106,7 +9267,11 @@ msgid "After completing your operation, %s project will be closed and create a n
 msgstr "Αφού ολοκληρώσετε τη λειτουργία σας, το έργο %s θα κλείσει και θα δημιουργηθεί ένα νέο έργο."
 
 #, c-format, boost-format
-msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgid "filament slot %d %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
 msgid ""
@@ -9160,11 +9325,23 @@ msgid "Please fix the marked mixed filaments in the left filament list."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
 msgid "Add a new preset"
@@ -9247,6 +9424,12 @@ msgstr "Βρέθηκαν μη έγκυρες τιμές στο 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Διορθώστε τις στις καρτέλες παραμέτρων"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "Το 3mf έχει τους ακόλουθους τροποποιημένους κώδικες G στις προεπιλογές νήματος ή εκτυπωτή:"
 
@@ -9286,18 +9469,6 @@ msgstr "Αφαιρέθηκαν αντικείμενα με μηδενικό όγ
 
 msgid "The volume of the object is zero"
 msgstr "Ο όγκος του αντικειμένου είναι μηδενικός"
-
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
-"Instead of considering them as multiple objects, should \n"
-"the file be loaded as a single object having multiple parts?"
-msgstr ""
-"Το αρχείο περιέχει πολλά αντικείμενα τοποθετημένα σε πολλαπλά ύψη.\n"
-"Αντί να θεωρηθούν πολλαπλά αντικείμενα,\n"
-"να φορτωθεί το αρχείο ως ενιαίο αντικείμενο με πολλαπλά τμήματα;"
-
-msgid "Multi-part object detected"
-msgstr "Εντοπίστηκε αντικείμενο με πολλαπλά τμήματα"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -10576,6 +10747,9 @@ msgstr "Μη συμβατές προεπιλογές"
 msgid "My Printer"
 msgstr "Ο εκτυπωτής μου"
 
+msgid "This filament is not compatible with the nozzle it is loaded on"
+msgstr ""
+
 msgid "To select this filament, change the nozzle settings first."
 msgstr ""
 
@@ -11094,6 +11268,15 @@ msgstr ""
 "Κάτω μισό τμήμα:  Επιλεγμένο ακροφύσιο\n"
 "Μπορείτε να κάνετε κλικ σε αυτό για να το τροποποιήσετε"
 
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you can click it to modify"
+msgstr ""
+"Άνω μισό τμήμα:  Πρωτότυπο\n"
+"Κάτω μισό τμήμα:  Νήμα σε AMS\n"
+"Μπορείτε να κάνετε κλικ σε αυτό για να το τροποποιήσετε"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Δεν είναι δυνατή η αυτόματη αντιστοίχιση με το κατάλληλο νήμα. Κάντε κλικ για χειροκίνητη αντιστοίχιση."
 
@@ -11493,6 +11676,9 @@ msgstr "Κάντε κλικ για να μάθετε περισσότερα"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Κάντε κλικ για να επαναφέρετε όλες τις ρυθμίσεις στην τελευταία αποθηκευμένη προεπιλογή."
 
+msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Απαιτείται πύργος πλήρωσης για την αλλαγή ακροφυσίου. Ενδέχεται να υπάρχουν ελαττώματα στο μοντέλο χωρίς πύργο πλήρωσης. Είστε βέβαιοι ότι θέλετε να απενεργοποιήσετε τον πύργο πλήρωσης;"
 
@@ -11645,6 +11831,9 @@ msgstr "Επιτάχυνση"
 
 msgid "Jerk(XY)"
 msgstr "Τράνταγμα (XY)"
+
+msgid "Support ring"
+msgstr ""
 
 msgid "Raft"
 msgstr "Σχεδία"
@@ -12067,9 +12256,6 @@ msgstr "Τροποποιημένη τιμή (Νέα)"
 msgid "Discard Modified Value"
 msgstr "Απόρριψη τροποποιημένης τιμής"
 
-msgid "Don't save"
-msgstr "Να μη γίνει αποθήκευση"
-
 msgid "Use Modified Value"
 msgstr "Χρήση τροποποιημένης τιμής"
 
@@ -12258,210 +12444,6 @@ msgstr "Δεν υπάρχουν διαθέσιμες ενημερώσεις."
 
 msgid "The configuration is up to date."
 msgstr "Η διαμόρφωση είναι ενημερωμένη."
-
-msgid "Open Wiki for more information >"
-msgstr "Ανοίξτε το Wiki για περισσότερες πληροφορίες >"
-
-msgid "Obj file Import color"
-msgstr "Χρώμα εισαγωγής αρχείου Obj"
-
-msgid "Standard 3mf Import color"
-msgstr "Τυπικό χρώμα εισαγωγής 3mf"
-
-msgid "Some faces don't have color defined."
-msgstr "Σε ορισμένες υπάρχει καθορισμένο χρώμα."
-
-msgid "mtl file exist error,could not find the material:"
-msgstr "Σφάλμα ύπαρξης αρχείου mtl, δεν ήταν δυνατή η εύρεση του υλικού:"
-
-msgid "Please check obj or mtl file."
-msgstr "Ελέγξτε το αρχείο obj ή mtl."
-
-msgid "Specify number of colors:"
-msgstr "Προσδιορίστε τον αριθμό των χρωμάτων:"
-
-msgid "Enter or click the adjustment button to modify number again"
-msgstr "Εισαγάγετε ή κάντε κλικ στο κουμπί προσαρμογής για να τροποποιήσετε ξανά τον αριθμό"
-
-msgid "Recommended "
-msgstr "Προτεινόμενη "
-
-msgid "view"
-msgstr "προβολή"
-
-msgid "Current filament colors"
-msgstr "Τρέχοντα χρώματα νημάτων"
-
-msgid "Matching"
-msgstr "Αντιστοίχιση"
-
-msgid "Quick set"
-msgstr "Γρήγορη ρύθμιση"
-
-msgid "There are color input errors."
-msgstr "Υπάρχουν σφάλματα εισαγωγής χρώματος."
-
-msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr "Η εισαγωγή υφής είναι προσωρινά μη διαθέσιμη, ο μερικός χρωματισμός αντικαθίσταται αυτόματα με το προεπιλεγμένο χρώμα."
-
-msgid " And "
-msgstr " Και "
-
-msgid "Note"
-msgstr "Σημείωση"
-
-msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr "Το χρώμα έχει επιλεγεί, μπορείτε να επιλέξετε OK για να συνεχίσετε ή να το προσαρμόσετε χειροκίνητα."
-
-msgctxt "ObjImport"
-msgid "Original"
-msgstr "Πρωτότυπο"
-
-msgid "After mapping"
-msgstr "Μετά τη χαρτογράφηση"
-
-msgid "Color match"
-msgstr "Αντιστοίχιση χρωμάτων"
-
-msgid "Approximate color matching."
-msgstr "Κατά προσέγγιση αντιστοίχιση χρωμάτων."
-
-msgid "Append"
-msgstr "Προσάρτηση"
-
-msgid "Append to existing filaments"
-msgstr "Προσάρτηση σε υφιστάμενα νήματα"
-
-msgid "Reset mapped extruders."
-msgstr "Επαναφορά χαρτογραφημένων εξωθητήρων."
-
-msgid "—> "
-msgstr ""
-
-msgctxt "Sync_AMS"
-msgid "Original"
-msgstr "Πρωτότυπο"
-
-msgid "After overwriting"
-msgstr "Μετά την αντικατάσταση"
-
-msgctxt "Sync_AMS"
-msgid "Plate"
-msgstr "Πλάκα εκτύπωσης"
-
-msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
-msgstr "Ο συνδεδεμένος εκτυπωτής δεν αντιστοιχεί με τον τρέχοντα επιλεγμένο εκτυπωτή. Αλλάξτε τον επιλεγμένο εκτυπωτή."
-
-msgid "Mapping"
-msgstr "Χαρτογράφηση"
-
-msgid "Overwriting"
-msgstr "Αντικατάσταση"
-
-msgid "Reset all filament mapping"
-msgstr "Επαναφορά όλων των χαρτογραφήσεων νημάτων"
-
-msgid "(Recommended filament)"
-msgstr "(Προτεινόμενο νήμα)"
-
-msgid "Advanced Options"
-msgstr "Σύνθετες επιλογές"
-
-msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
-msgstr ""
-"Ελέγξτε την επιπεδότητα της θερμαινόμενης επιφάνειας. Η ισοπέδωση καθιστά το ύψος της εξώθησης ενιαίο.\n"
-"*Αυτόματη λειτουργία: Πραγματοποιήστε πρώτα επιπέδωση (περίπου 10 δευτερόλεπτα). Παραλείψτε το αν η επιφάνεια είναι λεπτή."
-
-msgid ""
-"Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
-msgstr ""
-"Βαθμονομήστε τις μετατοπίσεις των ακροφυσίων για να βελτιώσετε την ποιότητα εκτύπωσης.\n"
-"*Αυτόματη λειτουργία: Ελέγξτε για βαθμονόμηση πριν από την εκτύπωση. Παραλείψτε την εάν δεν είναι απαραίτητο."
-
-msgid "Use AMS"
-msgstr "Χρήση AMS"
-
-msgid "Only synchronize filament type and color, not including AMS slot information."
-msgstr "Συγχρονίστε μόνο τον τύπο και το χρώμα του νήματος, χωρίς να συμπεριλαμβάνονται οι πληροφορίες υποδοχής AMS."
-
-msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr "Αντικαταστήστε τη λίστα νημάτων έργου διαδοχικά με βάση τα νήματα του εκτυπωτή. Αχρησιμοποίητα νήματα εκτυπωτή θα προστεθούν αυτόματα στο τέλος της λίστας."
-
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Add unused AMS filaments to filaments list."
-msgstr "Προσθέστε τα αχρησιμοποίητα νήματα AMS στη λίστα νημάτων."
-
-msgid "Automatically merge the same colors in the model after mapping."
-msgstr "Αυτόματη συγχώνευση των ίδιων χρωμάτων στο μοντέλο μετά τη χαρτογράφηση."
-
-msgid "After being synced, this action cannot be undone."
-msgstr "Μετά τον συγχρονισμό, αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
-
-msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
-msgstr "Μετά τον συγχρονισμό, οι προεπιλογές και τα χρώματα των νημάτων του έργου θα αντικατασταθούν με τους αντιστοιχισμένους τύπους και χρώματα νημάτων. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "Είστε βέβαιοι ότι θέλετε να συγχρονίσετε τα νήματα;"
-
-msgid "Synchronize now"
-msgstr "Συγχρονισμός τώρα"
-
-msgid "Synchronize Filament Information"
-msgstr "Συγχρονισμός πληροφοριών νήματος"
-
-msgid "Add unused filaments to filaments list."
-msgstr "Προσθέστε τα αχρησιμοποίητα νήματα στη λίστα νημάτων."
-
-msgid "Only synchronize filament type and color, not including slot information."
-msgstr "Συγχρονίστε μόνο τον τύπο και το χρώμα του νήματος, χωρίς να συμπεριλαμβάνονται οι πληροφορίες υποδοχής."
-
-msgid "Ext spool"
-msgstr "Καρούλι επέκτασης"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "Η ρύθμιση ροής ακροφυσίου του %s (%s) δεν αντιστοιχεί με το αρχείο τεμαχισμού (%s). Βεβαιωθείτε ότι το εγκατεστημένο ακροφύσιο αντιστοιχεί με τις ρυθμίσεις στον εκτυπωτή και, στη συνέχεια, ορίστε την αντίστοιχη προεπιλογή εκτυπωτή κατά τον τεμαχισμό."
-
-msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
-msgstr "Ελέγξτε εάν ο τύπος ακροφυσίου της συσκευής είναι ο ίδιος με τον προκαθορισμένο τύπο ακροφυσίου."
-
-#, c-format, boost-format
-msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "Ο επιλεγμένος εκτυπωτής (%s) δεν είναι συμβατός με το επιλεγμένο προφίλ εκτυπωτή στον τεμαχιστή (%s)."
-
-msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "Η χρονική πάροδος (timelapse) δεν υποστηρίζεται επειδή η ακολουθία εκτύπωσης έχει οριστεί σε «Ανά αντικείμενο»."
-
-msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr "Εάν επιλέξατε εξωτερικό νήμα και νήμα AMS ταυτόχρονα σε έναν εξωθητήρα, θα χρειαστεί να αλλάξετε χειροκίνητα το εξωτερικό νήμα."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "Συμβουλές: Εάν αλλάξατε πρόσφατα το ακροφύσιο του εκτυπωτή σας, μεταβείτε στην ενότητα «Συσκευή -> Εξαρτήματα εκτυπωτή» για να αλλάξετε τη ρύθμιση του ακροφυσίου."
-
-msgid "Successfully synchronized Printer information."
-msgstr ""
-
-msgid "Continue to sync filaments"
-msgstr "Συνέχεια σε συγχρονισμό νημάτων"
-
-msgctxt "Sync_Nozzle_AMS"
-msgid "Cancel"
-msgstr "Ακύρωση"
-
-msgid "Successfully synchronized color and type of filament from printer."
-msgstr "Ο συγχρονισμός χρώματος και τύπου νήματος από τον εκτυπωτή ολοκληρώθηκε με επιτυχία."
-
-msgctxt "FinishSyncAms"
-msgid "OK"
-msgstr "ΟΚ"
-
-msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr "Ο εξωθητήρας τύπου Bowden δεν υποστηρίζει ακροφύσιο διαμέτρου 0,2. Μπορούμε να προχωρήσουμε μόνο με εκτύπωση σε μία κεφαλή."
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Το Studio θα υπολογίσει ξανά τους όγκους έκπλυσης για κάθε αλλαγή του χρώματος ή των νημάτων. Μπορείτε να απενεργοποιήσετε τον αυτόματο υπολογισμό στο Bambu Studio > Προτιμήσεις"
@@ -13861,10 +13843,13 @@ msgstr "Η λειτουργία σπειροειδούς βάζου δεν εκ�
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Το μεταβλητό ύψος επιπέδου δεν υποστηρίζεται με οργανικά υποστηρίγματα."
 
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr ""
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
@@ -13912,11 +13897,11 @@ msgstr ""
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Ο πύργος πλήρωσης απαιτεί όλα τα αντικείμενα να τεμαχίζονται με τα ίδια ύψη επιπέδων."
 
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "Ο πύργος πλήρωσης υποστηρίζεται μόνο εάν όλα τα αντικείμενα έχουν το ίδιο μεταβλητό ύψος επιπέδου"
-
 msgid "The support ring is only supported if all objects have the same variable layer height"
 msgstr ""
+
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "Ο πύργος πλήρωσης υποστηρίζεται μόνο εάν όλα τα αντικείμενα έχουν το ίδιο μεταβλητό ύψος επιπέδου"
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "Το ακριβές ύψος Z προσφέρει στα αντικείμενα διαφορετικά ύψη επιπέδων, τα οποία ενδέχεται να αυξήσουν σημαντικά το μέγεθος του πύργου πλήρωσης."
@@ -16885,10 +16870,10 @@ msgstr ""
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
 msgstr ""
 
-msgid "Support ring notch width"
+msgid "Support ring angle"
 msgstr ""
 
-msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
 msgstr ""
 
 msgid "Support ring skip points"
@@ -18151,6 +18136,15 @@ msgstr "- Λειτουργία αντικειμένου: Επιλέξτε του
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Λειτουργία τμημάτων: Επιλέξτε ένα αντικείμενο με τουλάχιστον δύο πλέγματα."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "Computing..."
+msgstr "Υπολογισμός..."
+
+msgid "Applying result.."
+msgstr "Εφαρμογή αποτελέσματος.."
+
 msgid "Union"
 msgstr "Ένωση"
 
@@ -18177,15 +18171,6 @@ msgstr "Εκτέλεση λογικών πράξεων μόνο σε οντότ�
 
 msgid "This object contains non-part components."
 msgstr "Αυτό το αντικείμενο περιέχει στοιχεία εκτός τμημάτων."
-
-msgid "Preparing data..."
-msgstr "Προετοιμασία δεδομένων..."
-
-msgid "Computing..."
-msgstr "Υπολογισμός..."
-
-msgid "Applying result.."
-msgstr "Εφαρμογή αποτελέσματος.."
 
 msgid "Network Test"
 msgstr "Δοκιμή δικτύου"
@@ -18623,9 +18608,6 @@ msgstr "Επιλέξτε έναν τύπο που θέλετε να εξαγάγ
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "Αποτυχία δημιουργίας προσωρινού φακέλου. Επαναλάβετε την Εξαγωγή διαμορφώσεων."
-
-msgid "Edit Filament"
-msgstr "Επεξεργασία νήματος"
 
 msgid "Filament presets under this filament"
 msgstr "Προεπιλογές νήματος σε αυτό το νήμα"
@@ -19193,6 +19175,9 @@ msgstr "Ο αριθμός των εκτυπωτών που χρησιμοποι�
 
 msgid "Use External Spool"
 msgstr "Χρήση εξωτερικού καρουλιού"
+
+msgid "Use AMS"
+msgstr "Χρήση AMS"
 
 msgid "Select Printers"
 msgstr "Επιλέξτε εκτυπωτές"
@@ -19845,6 +19830,12 @@ msgstr "Επεξεργασία μικτού νήματος"
 msgid "Effect Preview"
 msgstr "Προεπισκόπηση εφέ"
 
+msgid "Target"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
 msgid "Select Mixed Materials"
 msgstr "Επιλέξτε Μικτά υλικά"
 
@@ -19882,6 +19873,9 @@ msgstr "δεν μπορούν να αναμειχθούν. Επιλέξτε το
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr ""
 
+msgid "No mix is available for the target color"
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "Επιλέξτε ένα νήμα για όλα τα στοιχεία"
 
@@ -19894,73 +19888,49 @@ msgstr "Ο μέγιστος αριθμός στοιχείων έχει επιτ�
 msgid "Remove the third material"
 msgstr "Αφαιρέστε το τρίτο υλικό"
 
+msgid "Manual Mixing"
+msgstr ""
+
+msgid "Color Matching"
+msgstr ""
+
+msgid "Select Target Color"
+msgstr ""
+
+msgid "Match Result"
+msgstr ""
+
+msgid "Discard changes and match again"
+msgstr ""
+
+msgid "Replace the target color on models with the mixed result"
+msgstr ""
+
+msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
+msgstr ""
+
 #, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
+msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
-msgid "Decomposition result for this combination"
-msgstr "Αποτέλεσμα αποσύνθεσης για αυτόν τον συνδυασμό"
-
-msgid "Filament Color"
-msgstr "Χρώμα νήματος"
-
-msgid "Decomposed Colors"
-msgstr "Αποσυντεθειμένα χρώματα"
-
-msgid "Select Color Decomposition"
-msgstr "Επιλογή Αποσύνθεσης χρωμάτων"
-
-msgid "Project Filament"
-msgstr "Νήμα έργου"
-
-msgid "Material List"
-msgstr "Λίστα υλικών"
-
-msgid "Standard Palette"
-msgstr "Τυπική παλέτα"
-
-msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "Για την αποσύνθεση απαιτούνται τουλάχιστον δύο νημάτια του ίδιου τύπου υλικού"
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "Ένα πιο κοντινό μείγμα υπολογίζεται από τέσσερα βασικά χρώματα: κυανό, ματζέντα, κίτρινο και λευκό. Προς το παρόν υποστηρίζεται μόνο το PLA Basic. Εάν τα αντίστοιχα νήματα δεν υπάρχουν στο έργο, θα προστεθούν αυτόματα."
-
-msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgid "There is no other filament of the same type as the target color in the project."
 msgstr ""
 
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "Ένα πιο κοντινό μείγμα υπολογίζεται από τέσσερα βασικά χρώματα: κόκκινο, κίτρινο, μπλε και λευκό. Προς το παρόν υποστηρίζεται μόνο το PLA Basic. Εάν τα αντίστοιχα νήματα δεν υπάρχουν στο έργο, θα προστεθούν αυτόματα."
+msgid "At least two other filaments of the same type as the target color are required."
+msgstr ""
+
+msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+msgstr ""
+
+msgid "No available mixing recipe was found."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
 
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "Η λίστα υλικών υποστηρίζει έως %1% χρώματα. Μετά την αποσύνθεση %2%, ο αριθμός των υλικών θα υπερέβαινε τα %1%. Διαγράψτε τα αχρησιμοποίητα νήματα από την κύρια οθόνη πριν από την αποσύνθεση."
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "Αποσύνθεση χρώματος (δεν υποστηρίζεται η διαβάθμιση)"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "Αποσύνθεση χρώματος (δεν υποστηρίζεται η διαφανής λειτουργία)"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "Αποσύνθεση χρώματος (δεν υποστηρίζεται η πολυχρωμία)"
-
-msgid "Cyan"
-msgstr "Κυανό"
-
-msgid "Magenta"
-msgstr "Ματζέντα"
-
-msgid "Yellow"
-msgstr "Κίτρινο"
-
-msgid ", "
+msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
 msgstr ""
-
-msgid "The current filament list does not contain "
-msgstr "Η τρέχουσα λίστα νημάτων δεν περιέχει "
-
-msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ". Ένα νήμα έργου που απαιτείται από το μικτό νήμα θα δημιουργηθεί αυτόματα μετά την αποσύνθεση."
 
 msgid "Material Ratio"
 msgstr "Αναλογία υλικού"
@@ -20296,6 +20266,313 @@ msgid ""
 msgstr ""
 "Αξιοπιστία με την πρώτη\n"
 "Λιγότερη ταλαιπωρία, πιο προβλέψιμη απόδοση. Παράδειγμα: μια μικρή εταιρεία που εκτυπώνει τμήματα PETG αποφεύγει τις εκπλήξεις που προκαλούνται από «αστοχίες την 6η ώρα» και διατηρεί τις παρτίδες εντός χρονοδιαγράμματος."
+
+#~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+#~ msgstr "Η χρήση μεταβλητού ύψους επιπέδου μαζί με υπο-επίπεδο μικτού χρώματος ενδέχεται να προκαλέσει κακή ποιότητα ανάμειξης χρωμάτων."
+
+#~ msgid "Decompose Color"
+#~ msgstr "Αποσύνθεση χρώματος"
+
+#~ msgid "Automatically merge identical filaments into existing filaments in the project"
+#~ msgstr "Αυτόματη συγχώνευση πανομοιότυπων νημάτων σε υφιστάμενα νήματα στο έργο"
+
+#~ msgid "Automatically merge filaments of the same color and type"
+#~ msgstr "Αυτόματη συγχώνευση νημάτων του ίδιου χρώματος και τύπου"
+
+#~ msgid "Unmapped"
+#~ msgstr "Χωρίς χαρτογράφηση"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area: The filament from original project will be used when unmapped.\n"
+#~ "And you can click it to modify"
+#~ msgstr ""
+#~ "Άνω μισό τμήμα:  Πρωτότυπο\n"
+#~ "Κάτω μισό τμήμα: Το νήμα από το αρχικό έργο θα χρησιμοποιηθεί όταν δεν χαρτογραφηθεί.\n"
+#~ "Μπορείτε να κάνετε κλικ σε αυτό για να το τροποποιήσετε"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area:  Filament in AMS\n"
+#~ "And you cannot click it to modify"
+#~ msgstr ""
+#~ "Άνω μισό τμήμα:  Πρωτότυπο\n"
+#~ "Κάτω μισό τμήμα:  Νήμα σε AMS\n"
+#~ "Δεν μπορείτε να κάνετε κλικ σε αυτό για να το τροποποιήσετε"
+
+#~ msgid "Printer Preview"
+#~ msgstr "Προεπισκόπηση εκτυπωτή"
+
+#~ msgid "No Storage"
+#~ msgstr "Δεν υπάρχει μέσο αποθήκευσης"
+
+#~ msgid "Storage Abnormal"
+#~ msgstr "Μη φυσιολογικός αποθηκευτικός χώρος"
+
+#~ msgid ""
+#~ "This file contains several objects positioned at multiple heights.\n"
+#~ "Instead of considering them as multiple objects, should \n"
+#~ "the file be loaded as a single object having multiple parts?"
+#~ msgstr ""
+#~ "Το αρχείο περιέχει πολλά αντικείμενα τοποθετημένα σε πολλαπλά ύψη.\n"
+#~ "Αντί να θεωρηθούν πολλαπλά αντικείμενα,\n"
+#~ "να φορτωθεί το αρχείο ως ενιαίο αντικείμενο με πολλαπλά τμήματα;"
+
+#~ msgid "Multi-part object detected"
+#~ msgstr "Εντοπίστηκε αντικείμενο με πολλαπλά τμήματα"
+
+#~ msgid "Don't save"
+#~ msgstr "Να μη γίνει αποθήκευση"
+
+#~ msgid "Open Wiki for more information >"
+#~ msgstr "Ανοίξτε το Wiki για περισσότερες πληροφορίες >"
+
+#~ msgid "Obj file Import color"
+#~ msgstr "Χρώμα εισαγωγής αρχείου Obj"
+
+#~ msgid "Standard 3mf Import color"
+#~ msgstr "Τυπικό χρώμα εισαγωγής 3mf"
+
+#~ msgid "Some faces don't have color defined."
+#~ msgstr "Σε ορισμένες υπάρχει καθορισμένο χρώμα."
+
+#~ msgid "mtl file exist error,could not find the material:"
+#~ msgstr "Σφάλμα ύπαρξης αρχείου mtl, δεν ήταν δυνατή η εύρεση του υλικού:"
+
+#~ msgid "Please check obj or mtl file."
+#~ msgstr "Ελέγξτε το αρχείο obj ή mtl."
+
+#~ msgid "Specify number of colors:"
+#~ msgstr "Προσδιορίστε τον αριθμό των χρωμάτων:"
+
+#~ msgid "Enter or click the adjustment button to modify number again"
+#~ msgstr "Εισαγάγετε ή κάντε κλικ στο κουμπί προσαρμογής για να τροποποιήσετε ξανά τον αριθμό"
+
+#~ msgid "Recommended "
+#~ msgstr "Προτεινόμενη "
+
+#~ msgid "view"
+#~ msgstr "προβολή"
+
+#~ msgid "Current filament colors"
+#~ msgstr "Τρέχοντα χρώματα νημάτων"
+
+#~ msgid "Matching"
+#~ msgstr "Αντιστοίχιση"
+
+#~ msgid "Quick set"
+#~ msgstr "Γρήγορη ρύθμιση"
+
+#~ msgid "There are color input errors."
+#~ msgstr "Υπάρχουν σφάλματα εισαγωγής χρώματος."
+
+#~ msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+#~ msgstr "Η εισαγωγή υφής είναι προσωρινά μη διαθέσιμη, ο μερικός χρωματισμός αντικαθίσταται αυτόματα με το προεπιλεγμένο χρώμα."
+
+#~ msgid " And "
+#~ msgstr " Και "
+
+#~ msgid "Note"
+#~ msgstr "Σημείωση"
+
+#~ msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+#~ msgstr "Το χρώμα έχει επιλεγεί, μπορείτε να επιλέξετε OK για να συνεχίσετε ή να το προσαρμόσετε χειροκίνητα."
+
+#~ msgctxt "ObjImport"
+#~ msgid "Original"
+#~ msgstr "Πρωτότυπο"
+
+#~ msgid "After mapping"
+#~ msgstr "Μετά τη χαρτογράφηση"
+
+#~ msgid "Color match"
+#~ msgstr "Αντιστοίχιση χρωμάτων"
+
+#~ msgid "Approximate color matching."
+#~ msgstr "Κατά προσέγγιση αντιστοίχιση χρωμάτων."
+
+#~ msgid "Append"
+#~ msgstr "Προσάρτηση"
+
+#~ msgid "Append to existing filaments"
+#~ msgstr "Προσάρτηση σε υφιστάμενα νήματα"
+
+#~ msgid "Reset mapped extruders."
+#~ msgstr "Επαναφορά χαρτογραφημένων εξωθητήρων."
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Original"
+#~ msgstr "Πρωτότυπο"
+
+#~ msgid "After overwriting"
+#~ msgstr "Μετά την αντικατάσταση"
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Plate"
+#~ msgstr "Πλάκα εκτύπωσης"
+
+#~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
+#~ msgstr "Ο συνδεδεμένος εκτυπωτής δεν αντιστοιχεί με τον τρέχοντα επιλεγμένο εκτυπωτή. Αλλάξτε τον επιλεγμένο εκτυπωτή."
+
+#~ msgid "Mapping"
+#~ msgstr "Χαρτογράφηση"
+
+#~ msgid "Overwriting"
+#~ msgstr "Αντικατάσταση"
+
+#~ msgid "Reset all filament mapping"
+#~ msgstr "Επαναφορά όλων των χαρτογραφήσεων νημάτων"
+
+#~ msgid "(Recommended filament)"
+#~ msgstr "(Προτεινόμενο νήμα)"
+
+#~ msgid "Advanced Options"
+#~ msgstr "Σύνθετες επιλογές"
+
+#~ msgid ""
+#~ "Check heatbed flatness. Leveling makes extruded height uniform.\n"
+#~ "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+#~ msgstr ""
+#~ "Ελέγξτε την επιπεδότητα της θερμαινόμενης επιφάνειας. Η ισοπέδωση καθιστά το ύψος της εξώθησης ενιαίο.\n"
+#~ "*Αυτόματη λειτουργία: Πραγματοποιήστε πρώτα επιπέδωση (περίπου 10 δευτερόλεπτα). Παραλείψτε το αν η επιφάνεια είναι λεπτή."
+
+#~ msgid ""
+#~ "Calibrate nozzle offsets to enhance print quality.\n"
+#~ "*Automatic mode: Check for calibration before printing; skip if unnecessary."
+#~ msgstr ""
+#~ "Βαθμονομήστε τις μετατοπίσεις των ακροφυσίων για να βελτιώσετε την ποιότητα εκτύπωσης.\n"
+#~ "*Αυτόματη λειτουργία: Ελέγξτε για βαθμονόμηση πριν από την εκτύπωση. Παραλείψτε την εάν δεν είναι απαραίτητο."
+
+#~ msgid "Only synchronize filament type and color, not including AMS slot information."
+#~ msgstr "Συγχρονίστε μόνο τον τύπο και το χρώμα του νήματος, χωρίς να συμπεριλαμβάνονται οι πληροφορίες υποδοχής AMS."
+
+#~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
+#~ msgstr "Αντικαταστήστε τη λίστα νημάτων έργου διαδοχικά με βάση τα νήματα του εκτυπωτή. Αχρησιμοποίητα νήματα εκτυπωτή θα προστεθούν αυτόματα στο τέλος της λίστας."
+
+#~ msgid "Add unused AMS filaments to filaments list."
+#~ msgstr "Προσθέστε τα αχρησιμοποίητα νήματα AMS στη λίστα νημάτων."
+
+#~ msgid "Automatically merge the same colors in the model after mapping."
+#~ msgstr "Αυτόματη συγχώνευση των ίδιων χρωμάτων στο μοντέλο μετά τη χαρτογράφηση."
+
+#~ msgid "After being synced, this action cannot be undone."
+#~ msgstr "Μετά τον συγχρονισμό, αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
+
+#~ msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
+#~ msgstr "Μετά τον συγχρονισμό, οι προεπιλογές και τα χρώματα των νημάτων του έργου θα αντικατασταθούν με τους αντιστοιχισμένους τύπους και χρώματα νημάτων. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
+
+#~ msgid "Are you sure to synchronize the filaments?"
+#~ msgstr "Είστε βέβαιοι ότι θέλετε να συγχρονίσετε τα νήματα;"
+
+#~ msgid "Synchronize now"
+#~ msgstr "Συγχρονισμός τώρα"
+
+#~ msgid "Synchronize Filament Information"
+#~ msgstr "Συγχρονισμός πληροφοριών νήματος"
+
+#~ msgid "Add unused filaments to filaments list."
+#~ msgstr "Προσθέστε τα αχρησιμοποίητα νήματα στη λίστα νημάτων."
+
+#~ msgid "Only synchronize filament type and color, not including slot information."
+#~ msgstr "Συγχρονίστε μόνο τον τύπο και το χρώμα του νήματος, χωρίς να συμπεριλαμβάνονται οι πληροφορίες υποδοχής."
+
+#~ msgid "Ext spool"
+#~ msgstr "Καρούλι επέκτασης"
+
+#, c-format, boost-format
+#~ msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+#~ msgstr "Η ρύθμιση ροής ακροφυσίου του %s (%s) δεν αντιστοιχεί με το αρχείο τεμαχισμού (%s). Βεβαιωθείτε ότι το εγκατεστημένο ακροφύσιο αντιστοιχεί με τις ρυθμίσεις στον εκτυπωτή και, στη συνέχεια, ορίστε την αντίστοιχη προεπιλογή εκτυπωτή κατά τον τεμαχισμό."
+
+#~ msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
+#~ msgstr "Ελέγξτε εάν ο τύπος ακροφυσίου της συσκευής είναι ο ίδιος με τον προκαθορισμένο τύπο ακροφυσίου."
+
+#, c-format, boost-format
+#~ msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
+#~ msgstr "Ο επιλεγμένος εκτυπωτής (%s) δεν είναι συμβατός με το επιλεγμένο προφίλ εκτυπωτή στον τεμαχιστή (%s)."
+
+#~ msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
+#~ msgstr "Η χρονική πάροδος (timelapse) δεν υποστηρίζεται επειδή η ακολουθία εκτύπωσης έχει οριστεί σε «Ανά αντικείμενο»."
+
+#~ msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+#~ msgstr "Εάν επιλέξατε εξωτερικό νήμα και νήμα AMS ταυτόχρονα σε έναν εξωθητήρα, θα χρειαστεί να αλλάξετε χειροκίνητα το εξωτερικό νήμα."
+
+#~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+#~ msgstr "Συμβουλές: Εάν αλλάξατε πρόσφατα το ακροφύσιο του εκτυπωτή σας, μεταβείτε στην ενότητα «Συσκευή -> Εξαρτήματα εκτυπωτή» για να αλλάξετε τη ρύθμιση του ακροφυσίου."
+
+#~ msgid "Continue to sync filaments"
+#~ msgstr "Συνέχεια σε συγχρονισμό νημάτων"
+
+#~ msgctxt "Sync_Nozzle_AMS"
+#~ msgid "Cancel"
+#~ msgstr "Ακύρωση"
+
+#~ msgid "Successfully synchronized color and type of filament from printer."
+#~ msgstr "Ο συγχρονισμός χρώματος και τύπου νήματος από τον εκτυπωτή ολοκληρώθηκε με επιτυχία."
+
+#~ msgctxt "FinishSyncAms"
+#~ msgid "OK"
+#~ msgstr "ΟΚ"
+
+#~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+#~ msgstr "Ο εξωθητήρας τύπου Bowden δεν υποστηρίζει ακροφύσιο διαμέτρου 0,2. Μπορούμε να προχωρήσουμε μόνο με εκτύπωση σε μία κεφαλή."
+
+#~ msgid "Decomposition result for this combination"
+#~ msgstr "Αποτέλεσμα αποσύνθεσης για αυτόν τον συνδυασμό"
+
+#~ msgid "Filament Color"
+#~ msgstr "Χρώμα νήματος"
+
+#~ msgid "Decomposed Colors"
+#~ msgstr "Αποσυντεθειμένα χρώματα"
+
+#~ msgid "Select Color Decomposition"
+#~ msgstr "Επιλογή Αποσύνθεσης χρωμάτων"
+
+#~ msgid "Project Filament"
+#~ msgstr "Νήμα έργου"
+
+#~ msgid "Material List"
+#~ msgstr "Λίστα υλικών"
+
+#~ msgid "Standard Palette"
+#~ msgstr "Τυπική παλέτα"
+
+#~ msgid "At least two filaments of the same material type are required for decomposition"
+#~ msgstr "Για την αποσύνθεση απαιτούνται τουλάχιστον δύο νημάτια του ίδιου τύπου υλικού"
+
+#~ msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "Ένα πιο κοντινό μείγμα υπολογίζεται από τέσσερα βασικά χρώματα: κυανό, ματζέντα, κίτρινο και λευκό. Προς το παρόν υποστηρίζεται μόνο το PLA Basic. Εάν τα αντίστοιχα νήματα δεν υπάρχουν στο έργο, θα προστεθούν αυτόματα."
+
+#~ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "Ένα πιο κοντινό μείγμα υπολογίζεται από τέσσερα βασικά χρώματα: κόκκινο, κίτρινο, μπλε και λευκό. Προς το παρόν υποστηρίζεται μόνο το PLA Basic. Εάν τα αντίστοιχα νήματα δεν υπάρχουν στο έργο, θα προστεθούν αυτόματα."
+
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "Η λίστα υλικών υποστηρίζει έως %1% χρώματα. Μετά την αποσύνθεση %2%, ο αριθμός των υλικών θα υπερέβαινε τα %1%. Διαγράψτε τα αχρησιμοποίητα νήματα από την κύρια οθόνη πριν από την αποσύνθεση."
+
+#~ msgid "Decompose Color (gradient not supported)"
+#~ msgstr "Αποσύνθεση χρώματος (δεν υποστηρίζεται η διαβάθμιση)"
+
+#~ msgid "Decompose Color (transparent not supported)"
+#~ msgstr "Αποσύνθεση χρώματος (δεν υποστηρίζεται η διαφανής λειτουργία)"
+
+#~ msgid "Decompose Color (multi-color not supported)"
+#~ msgstr "Αποσύνθεση χρώματος (δεν υποστηρίζεται η πολυχρωμία)"
+
+#~ msgid "Cyan"
+#~ msgstr "Κυανό"
+
+#~ msgid "Magenta"
+#~ msgstr "Ματζέντα"
+
+#~ msgid "Yellow"
+#~ msgstr "Κίτρινο"
+
+#~ msgid "The current filament list does not contain "
+#~ msgstr "Η τρέχουσα λίστα νημάτων δεν περιέχει "
+
+#~ msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+#~ msgstr ". Ένα νήμα έργου που απαιτείται από το μικτό νήμα θα δημιουργηθεί αυτόματα μετά την αποσύνθεση."
 
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "Συνιστάται μόνο όταν χρησιμοποιείτε νήμα μικτού χρώματος, για να έχετε καλύτερο εφέ επιπέδων χρώματος."

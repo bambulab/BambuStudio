@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 12:37+0800\n"
+"POT-Creation-Date: 2026-10-13 23:32+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -24,6 +24,21 @@ msgstr "Filamentet kanske inte är kompatibelt med maskinens aktuella inställni
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament typen är okänd. En slumpmässig filament inställning kommer att användas."
+
+msgid "This calibration does not support the currently selected nozzle diameter"
+msgstr "Denna kalibrering stöder inte den för tillfället valda nozzle diametern"
+
+msgid "Current flowrate cali param is invalid"
+msgstr "Aktuell flödeshastighets kalibrerings parameter är ogiltig"
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr "Vald diameter och maskinens diameter stämmer inte överens"
+
+msgid "Failed to generate cali gcode"
+msgstr "Misslyckades med att generera cali G kod"
+
+msgid "Calibration error"
+msgstr "Fel vid kalibrering"
 
 msgid "Main Extruder"
 msgstr "Huvud extruder"
@@ -246,6 +261,78 @@ msgid "%s may fail to load or unload due to the Filament Track Switch. If you wi
 msgstr "%s kan misslyckas med att ladda eller lossa på grund av filament spår bytaren. Om du vill fortsätta."
 
 #, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s cannot be used. Use an external spool instead."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not supported with a standard %s nozzle."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is only supported for printing with the main extruder."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and carries a higher risk, which may result in print failure or equipment malfunction."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may break inside the filament tube. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is used with the auxiliary extruder and may impact print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a high-flow %s nozzle may result in poor quality in overhang and bridge areas of the model."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may affect print quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may cause oozing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s used with a standard %s nozzle may lead to difficult extrusion."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Affected by the Filament Track Switch, %s may fail to load or unload. To continue, see the detailed user guide."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a high-flow %s nozzle may cause a clog."
+msgstr ""
+
+#, c-format, boost-format
+msgid "When using an auxiliary extruder, printing %s with a standard %s nozzle may affect model quality."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s stöds inte av %s extruder."
 
@@ -264,6 +351,15 @@ msgstr "Det kan finnas problem med utskrifts kvalitet vid utskrift '%s' med %s B
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "Det kan finnas problem med utskrifts kvalitet när du skriver ut '%s' med %s extruder. Använd med försiktighet."
+
+msgid "The total weight must bigger than remain weight."
+msgstr ""
+
+msgid "Please enter a valid remaining weight from 1g to 10000g."
+msgstr ""
+
+msgid "Please enter a valid total weight from 1g to 10000g."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Verktygs huvudet och hotend stället kan röra sig. Håll händerna borta från kammaren."
@@ -330,6 +426,36 @@ msgstr "Verifikation misslyckade."
 
 msgid "Update failed."
 msgstr "Uppdatering misslyckades."
+
+msgid "Hotend & Filament"
+msgstr ""
+
+msgid "Lift Hotend Rack"
+msgstr ""
+
+msgid "Recenter Hotend Rack"
+msgstr ""
+
+msgid "Lower Hotend Rack"
+msgstr ""
+
+msgid "Hotend Rack"
+msgstr "Hotend Ställning"
+
+msgid "Reading"
+msgstr "Läser"
+
+msgid "Running"
+msgstr ""
+
+msgid "Raised"
+msgstr "Upphöjd"
+
+msgid "Lowered"
+msgstr ""
+
+msgid "Centered"
+msgstr ""
 
 msgid "Current AMS humidity"
 msgstr "Aktuell AMS fuktighet"
@@ -458,14 +584,8 @@ msgstr "Läser "
 msgid "Please wait"
 msgstr "Vänligen vänta"
 
-msgid "Reading"
-msgstr "Läser"
-
 msgid "Running..."
 msgstr "Kör..."
-
-msgid "Raised"
-msgstr "Upphöjd"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr "Hotend är i ett onormalt tillstånd och är inte tillgängligt. Gå till 'Enhet -> Uppgradera' för att uppgradera firmware."
@@ -498,9 +618,6 @@ msgstr "Använd tid: %s"
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "Dynamiska nozzles är tilldelade på den aktuella plattan. Val av hotend stöds inte."
 
-msgid "Hotend Rack"
-msgstr "Hotend Ställning"
-
 msgid "ToolHead"
 msgstr "Verktygshuvud"
 
@@ -509,6 +626,21 @@ msgstr "Nozzle information måste läsas"
 
 msgid "Note:"
 msgstr "Notering:"
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+msgid "Fan"
+msgstr "Fläkt"
+
+msgid "Unclamped"
+msgstr ""
 
 msgid "The embedded webpage could not be loaded."
 msgstr ""
@@ -523,6 +655,9 @@ msgid "Add refill filament"
 msgstr ""
 
 msgid "Add material group"
+msgstr ""
+
+msgid "AMS Bridge Debug"
 msgstr ""
 
 msgid "Idling..."
@@ -640,9 +775,6 @@ msgstr ""
 msgid "Refreshing Hotend"
 msgstr ""
 
-msgid "Running"
-msgstr ""
-
 #, boost-format
 msgid "Reading (%1% / %2%)"
 msgstr ""
@@ -653,6 +785,24 @@ msgstr ""
 
 msgid "Please wait..."
 msgstr ""
+
+msgid "Edit Filament"
+msgstr "Redigera filament"
+
+msgid "Confirm to exit this process?"
+msgstr ""
+
+msgid "If the filament is not pulled out, subsequent printing may pause due to filament switching. Please operate carefully."
+msgstr ""
+
+msgid "Exit"
+msgstr "Avsluta"
+
+msgid "Still exit"
+msgstr ""
+
+msgid "Tip"
+msgstr "Tips"
 
 msgid "Empty slot"
 msgstr ""
@@ -708,9 +858,6 @@ msgstr ""
 msgid "No filament information available"
 msgstr ""
 
-msgid "Tip"
-msgstr "Tips"
-
 msgid "Cannot read all while printing or upgrading"
 msgstr ""
 
@@ -733,18 +880,6 @@ msgstr ""
 
 msgid "MQTT publish failed for multi_slot_ams_change_filament"
 msgstr ""
-
-msgid "Pen"
-msgstr ""
-
-msgid "Cutter"
-msgstr ""
-
-msgid "Laser"
-msgstr ""
-
-msgid "Fan"
-msgstr "Fläkt"
 
 msgid "Hotend Details"
 msgstr ""
@@ -1323,6 +1458,9 @@ msgstr "Reparerar modell objektet"
 msgid "Connector"
 msgstr "Kontakt"
 
+msgid "Preparing data..."
+msgstr "Förbereder data..."
+
 msgid "Flip cut plane"
 msgstr "Vänd skärplanet"
 
@@ -1530,7 +1668,10 @@ msgstr "%d trianglar"
 msgid "Show wireframe"
 msgstr "Visa trådram"
 
-msgid "Preserve painted colors"
+msgid "Keep all painting"
+msgstr ""
+
+msgid "Includes color, seam, support and fuzzy skin painting. If unchecked, all painting will be removed from the result."
 msgstr ""
 
 #, boost-format
@@ -3090,8 +3231,8 @@ msgstr "Målobjektet innehåller endast en del och kan inte delas."
 msgid "Assembly"
 msgstr "Montering"
 
-msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "Att använda variabel lagerhöjd tillsammans med ett underlager med blandade färger kan resultera i dålig färgblandnings kvalitet."
+msgid "Mixed color sublayer is enabled. Using it with variable layer height may affect print quality."
+msgstr ""
 
 #, boost-format
 msgid "The mesh boolean operation supports at most %1% parts, but the selected object contains %2% parts. Please reduce the number of parts and try again."
@@ -3205,6 +3346,9 @@ msgstr "kopiering av flertalet celler stöds ej"
 msgid "Outside"
 msgstr "Utsida"
 
+msgid "Auto"
+msgstr "Auto"
+
 msgid " "
 msgstr ""
 
@@ -3219,9 +3363,6 @@ msgstr "Ifyllnads densitet(%)"
 
 msgid "Auto Brim"
 msgstr "Auto Brim"
-
-msgid "Auto"
-msgstr "Auto"
 
 msgid "Painted"
 msgstr "Målad"
@@ -4216,9 +4357,6 @@ msgstr ""
 msgid "Color tolerance for automatic filament matching. Higher value = easier to match."
 msgstr ""
 
-msgid "Decompose Color"
-msgstr "Separera färg"
-
 msgid "+ Add Filament"
 msgstr "+ Lägg till filament"
 
@@ -4286,12 +4424,6 @@ msgstr "Lägg till alla filament automatiskt"
 msgid "Fix now"
 msgstr "Åtgärda nu"
 
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr "Sammanfoga identiska filament automatiskt med befintliga filament i projektet"
-
-msgid "Automatically merge filaments of the same color and type"
-msgstr "Sammanfoga automatiskt filament av samma färg och typ"
-
 msgid "Skip"
 msgstr "Hoppa över"
 
@@ -4342,9 +4474,6 @@ msgstr "Antalet färger får inte överstiga det ursprungliga antalet färger (%
 msgid "The color count cannot exceed the project's filament limit (%d)."
 msgstr "Antalet färger får inte överstiga projektets filamentgräns (%d)."
 
-msgid "The current printer has no compatible PLA Palette filament."
-msgstr ""
-
 msgid "Click to select a matching filament"
 msgstr "Klicka för att välja ett matchande filament"
 
@@ -4360,6 +4489,12 @@ msgstr ""
 
 #, boost-format
 msgid "This plan reduces to %1% filaments (limit %2%). Remaining filaments cannot be merged because they use different materials."
+msgstr ""
+
+msgid "Mixing kits"
+msgstr ""
+
+msgid "Existing project filaments"
 msgstr ""
 
 msgid "Kept filaments"
@@ -4379,6 +4514,9 @@ msgid "Prioritize merging similar-color filaments"
 msgstr ""
 
 msgid "Prioritize merging small-area filaments"
+msgstr ""
+
+msgid "Apply now"
 msgstr ""
 
 msgid "How to use standard mixing kits"
@@ -4667,36 +4805,6 @@ msgstr "%s stöder inte %s"
 
 msgid "Dynamic flow Calibration"
 msgstr "Dynamisk flödeskalibrering"
-
-msgid "Unmapped"
-msgstr "Ej kartlagd"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area: The filament from original project will be used when unmapped.\n"
-"And you can click it to modify"
-msgstr ""
-"Övre halvan av området: Original\n"
-"Nedre halvan  av området: Filamentet från originalprojektet kommer att användas när det inte är mappat.\n"
-"Och du kan klicka på den för att modifiera"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you can click it to modify"
-msgstr ""
-"Övre halvan  av området: Original\n"
-"Nedre halvan  av området: Filament i AMS\n"
-"Och du kan klicka på den för att ändra"
-
-msgid ""
-"Upper half area:  Original\n"
-"Lower half area:  Filament in AMS\n"
-"And you cannot click it to modify"
-msgstr ""
-"Övre halvan  av området: Original\n"
-"Nedre halvan  av området: Filament i AMS\n"
-"Och du kan inte klicka på den för att ändra"
 
 msgid "AMS Slots"
 msgstr "AMS Fack"
@@ -5097,6 +5205,9 @@ msgstr ""
 #, c-format, boost-format
 msgid "Recommended nozzle temperature of this filament type is [%d, %d] degree centigrade"
 msgstr "Rekommenderad nozzel temperatur med denna filament typ är [%d, %d] grader celius"
+
+msgid "To ensure the print quality of the prime tower interface layer, the interface layer print temperature should preferably be greater than or equal to the nozzle temperature."
+msgstr ""
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -6230,6 +6341,18 @@ msgstr "Klicka för att kollapsa"
 msgid "Overview"
 msgstr "Översikt"
 
+#, boost-format
+msgid "Plate %1%: the support ring of %2% extends beyond the plate boundary."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support ring of %2% overlaps %3%."
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%: the support rings of %2% and %3% overlap."
+msgstr ""
+
 msgid "Select Plate"
 msgstr "Välj Byggplatta"
 
@@ -6483,8 +6606,20 @@ msgstr "Försök igen med Liveview"
 msgid "Resolution"
 msgstr "Upplösning"
 
+msgid "External Storage"
+msgstr "Extern lagring"
+
 msgid "Show \"Live Video\" guide page."
 msgstr "Visa sidan \"Live Video\"."
+
+msgid "Not Installed"
+msgstr ""
+
+msgid "Abnormal"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Anslut skrivare (LAN)"
@@ -6562,6 +6697,12 @@ msgstr "avslutas innan en ny modell skapas. Vill du fortsätta?"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "Den aktuella sidan har osparade ändringar. Du kan fortsätta redigera eller välja att spara/ignorera innan du lämnar."
+
+msgid "Discard"
+msgstr "Överge"
+
+msgid "Stay on this page"
+msgstr ""
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
 msgstr "Lås upp snabbare, mer pålitliga och warp fria utskrifter med Helio Additive."
@@ -7168,8 +7309,12 @@ msgstr "information"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "Livestreaming funktionen är beroende av Bambu Studio för att köras, och streamen avslutas en stund efter att appen stängts."
 
-msgid "Printer Preview"
-msgstr "Förhandsgranskning av printer"
+msgid "Not live"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Captured at %s"
+msgstr ""
 
 msgid "Playing..."
 msgstr "Spelar..."
@@ -7543,9 +7688,6 @@ msgstr "Nästan klart"
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "Storage"
-msgstr "Lagring"
-
 msgid "Camera Setting"
 msgstr "Kamerainställning"
 
@@ -7564,9 +7706,6 @@ msgstr "Säkerhets alternativ"
 msgid "Hotends"
 msgstr ""
 
-msgid "Unclamped"
-msgstr ""
-
 msgid "100%"
 msgstr "100%"
 
@@ -7579,11 +7718,20 @@ msgstr "Byggplattan"
 msgid "Filament loading..."
 msgstr "Laddar filament..."
 
-msgid "No Storage"
-msgstr "Ingen lagring"
+msgid "Live Camera Recording in progress"
+msgstr ""
 
-msgid "Storage Abnormal"
-msgstr "Lagring onormal"
+msgid "Visual Enhancement Camera Recording in progress"
+msgstr ""
+
+msgid "Recording in progress"
+msgstr ""
+
+msgid "Timelapse in progress"
+msgstr ""
+
+msgid "Go Live in progress"
+msgstr ""
 
 msgid "Cancel print"
 msgstr "Avbryt utskrift"
@@ -7792,6 +7940,12 @@ msgstr ""
 "At least one successful print record of this print profile is required \n"
 "to give a positive rating (4 or 5 stars)."
 
+msgid "This device is performing the following operations"
+msgstr ""
+
+msgid "Live"
+msgstr ""
+
 msgid "Step file import parameters"
 msgstr "Parametrar för import av step filer"
 
@@ -7827,6 +7981,9 @@ msgstr "Visa inte igen"
 
 msgid "Calculating, please wait..."
 msgstr "Beräknar; vänta..."
+
+msgid "Storage"
+msgstr "Lagring"
 
 msgid "Status"
 msgstr "Status"
@@ -8013,6 +8170,9 @@ msgstr "Klar"
 msgid "Cancel upload"
 msgstr "Avbryt uppladdning"
 
+msgid "Serious warning:"
+msgstr "Allvarlig varning:"
+
 msgid "Jump to"
 msgstr "Hoppa till"
 
@@ -8039,9 +8199,6 @@ msgstr "Exporten lyckades."
 
 msgid "Model file downloaded."
 msgstr "Modellfil nedladdad."
-
-msgid "Serious warning:"
-msgstr "Allvarlig varning:"
 
 msgid " Click here to install it."
 msgstr " Klicka här för att installera den."
@@ -8987,6 +9144,18 @@ msgstr ""
 msgid "Not installed"
 msgstr "Inte installerad"
 
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"Programvaran stöder inte användning av olika diameter på nozzle för en utskrift.\n"
+"Om vänster och höger nozzle är inkonsekventa kan vi bara fortsätta utskriften med en nozzle.\n"
+"Bekräfta vilken nozzle du vill använda för detta projekt."
+
+msgid "Switch diameter"
+msgstr "Byt diameter"
+
 msgid "Sync printer information"
 msgstr "Synkronisera printer information"
 
@@ -9054,16 +9223,11 @@ msgstr "Sök platta, objekt och del."
 msgid "Change nozzle diameter"
 msgstr ""
 
-msgid "This filament does not support printing with the current nozzle."
+msgid "This filament does not support printing with the current nozzle"
 msgstr ""
 
-msgid "No installed filament preset matches the AMS tray for this filament. The material already set for the slot has been kept -- please check it before printing."
-msgstr ""
-
-msgid "This filament has no matching nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
-msgstr ""
-
-msgid "This filament has no preset supporting the current nozzle. Please change the filament, or add a new preset before use."
+#, c-format, boost-format
+msgid "This filament does not support printing with the %s nozzle"
 msgstr ""
 
 #, c-format, boost-format
@@ -9092,7 +9256,11 @@ msgid "After completing your operation, %s project will be closed and create a n
 msgstr "När du har slutfört din operation kommer %s -projektet att stängas och skapa ett nytt projekt."
 
 #, c-format, boost-format
-msgid "No installed filament preset matches the AMS tray for filament slot %s. The material already set for the slot has been kept -- please check it before printing."
+msgid "filament slot %d %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current printer configuration does not support %s from the AMS. It has been replaced with %s by default."
 msgstr ""
 
 msgid ""
@@ -9146,11 +9314,23 @@ msgid "Please fix the marked mixed filaments in the left filament list."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no preset supporting the %s nozzle. Please change the filament, or add a new preset before use."
+msgid "Filament %s is not configured for the %s nozzle. Please change the nozzle or the filament before use."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Filament %s has no matching %s nozzle in the current printer configuration. Please change the nozzle of the filament in the list before use."
+msgid "Filament %s is not configured for the current nozzle settings. Please change the nozzle or the filament before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no %s nozzle in the nozzle settings. Please add that nozzle type before use."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the %s nozzle. Please create the matching filament preset."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament %s has no preset for the current nozzle settings. Please create the matching filament preset."
 msgstr ""
 
 msgid "Add a new preset"
@@ -9231,6 +9411,12 @@ msgstr "Ogiltiga värden hittades i 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Vänligen korrigera dem i Parameter flikarna"
 
+msgid "3MF textures are unsupported and have been discarded."
+msgstr ""
+
+msgid "Parts without color will default to gray."
+msgstr ""
+
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr "The 3mf has following modified G-code in filament or printer presets:"
 
@@ -9270,18 +9456,6 @@ msgstr "Objekt utan volym raderade"
 
 msgid "The volume of the object is zero"
 msgstr "Objektet är utan volym"
-
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
-"Instead of considering them as multiple objects, should \n"
-"the file be loaded as a single object having multiple parts?"
-msgstr ""
-"Filen innehåller flera objekt som är placerade på olika höjder.\n"
-"Istället för att betrakta dem som flera objekt, ska\n"
-"filen laddas som ett enda objekt med flera delar?"
-
-msgid "Multi-part object detected"
-msgstr "Objekt i flera delar har upptäckts"
 
 #, c-format, boost-format
 msgid "Computing model colors: %s"
@@ -10553,6 +10727,9 @@ msgstr "Ej giltliga förinställningar"
 msgid "My Printer"
 msgstr "Min printer"
 
+msgid "This filament is not compatible with the nozzle it is loaded on"
+msgstr ""
+
 msgid "To select this filament, change the nozzle settings first."
 msgstr ""
 
@@ -11073,6 +11250,15 @@ msgstr ""
 "Nedre halva: Vald nozzle\n"
 "Och du kan klicka på den för att ändra"
 
+msgid ""
+"Upper half area:  Original\n"
+"Lower half area:  Filament in AMS\n"
+"And you can click it to modify"
+msgstr ""
+"Övre halvan  av området: Original\n"
+"Nedre halvan  av området: Filament i AMS\n"
+"Och du kan klicka på den för att ändra"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Det går inte att automatiskt matcha till lämpligt filament. Klicka för att matcha manuellt."
 
@@ -11472,6 +11658,9 @@ msgstr "Klicka för mer information"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klicka för att återställa alla inställningar till den senast sparade förinställningen."
 
+msgid "Variable layer height has been applied. Using it with mixed color sublayer may result in poor print quality."
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower krävs för nozzle byte. Det kan bli brister på modellen utan prime tower. Är du säker på att du vill inaktivera prime tower?"
 
@@ -11622,6 +11811,9 @@ msgstr "Acceleration"
 
 msgid "Jerk(XY)"
 msgstr "Jerk(XY)"
+
+msgid "Support ring"
+msgstr ""
 
 msgid "Raft"
 msgstr "Raft"
@@ -12048,9 +12240,6 @@ msgstr "Ändrat Värde (nytt)"
 msgid "Discard Modified Value"
 msgstr "Ignorera ändrat värde"
 
-msgid "Don't save"
-msgstr "Spara inte"
-
 msgid "Use Modified Value"
 msgstr "Använd modifierat värde"
 
@@ -12239,210 +12428,6 @@ msgstr "Inga uppdateringar tillgängliga."
 
 msgid "The configuration is up to date."
 msgstr "Konfigurationen är aktuell."
-
-msgid "Open Wiki for more information >"
-msgstr "Öppna Wiki för mer information >"
-
-msgid "Obj file Import color"
-msgstr "Obj fil Importera färg"
-
-msgid "Standard 3mf Import color"
-msgstr "Standard 3mf Importfärg"
-
-msgid "Some faces don't have color defined."
-msgstr "Vissa ytor har ingen färg definierad."
-
-msgid "mtl file exist error,could not find the material:"
-msgstr "mtl filen existerar fel, kunde inte hitta materialet:"
-
-msgid "Please check obj or mtl file."
-msgstr "Kontrollera obj eller mtl filen."
-
-msgid "Specify number of colors:"
-msgstr "Ange antal färger:"
-
-msgid "Enter or click the adjustment button to modify number again"
-msgstr "Ange eller klicka på justeringsknappen för att ändra numret igen"
-
-msgid "Recommended "
-msgstr "Rekommenderad "
-
-msgid "view"
-msgstr "visa"
-
-msgid "Current filament colors"
-msgstr "Aktuella filament färger"
-
-msgid "Matching"
-msgstr "Matchning"
-
-msgid "Quick set"
-msgstr "Snabb inställning"
-
-msgid "There are color input errors."
-msgstr "Det finns fel på färginmatningen."
-
-msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr "Texturimport är tillfälligt inte tillgänglig, partiell färg ersätts automatiskt med standardfärg."
-
-msgid " And "
-msgstr " Och "
-
-msgid "Note"
-msgstr "Notera"
-
-msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr "Färgen har valts, du kan välja OK för att fortsätta eller manuellt justera den."
-
-msgctxt "ObjImport"
-msgid "Original"
-msgstr ""
-
-msgid "After mapping"
-msgstr "Efter mappning"
-
-msgid "Color match"
-msgstr "Färgmatchning"
-
-msgid "Approximate color matching."
-msgstr "Ungefärlig färgmatchning."
-
-msgid "Append"
-msgstr "Lägg till"
-
-msgid "Append to existing filaments"
-msgstr "Lägg till befintliga filament"
-
-msgid "Reset mapped extruders."
-msgstr "Återställ mappade extrudrar."
-
-msgid "—> "
-msgstr ""
-
-msgctxt "Sync_AMS"
-msgid "Original"
-msgstr ""
-
-msgid "After overwriting"
-msgstr "Efter överskrivning"
-
-msgctxt "Sync_AMS"
-msgid "Plate"
-msgstr "Platta"
-
-msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
-msgstr "Den anslutna printern matchar inte med den printer som för närvarande är vald. Vänligen ändra den valda skrivaren."
-
-msgid "Mapping"
-msgstr "Kartläggning"
-
-msgid "Overwriting"
-msgstr "Skriver över"
-
-msgid "Reset all filament mapping"
-msgstr "Återställ all filament mappning"
-
-msgid "(Recommended filament)"
-msgstr "(Rekommenderat filament)"
-
-msgid "Advanced Options"
-msgstr "Avancerade alternativ"
-
-msgid ""
-"Check heatbed flatness. Leveling makes extruded height uniform.\n"
-"*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
-msgstr ""
-"Kontrollera värmebäddens planhet. Nivellering gör extruderad höjd enhetlig.\n"
-"*Automatiskt läge: Nivellera först (ca 10 sekunder). Hoppa över om ytan är fin."
-
-msgid ""
-"Calibrate nozzle offsets to enhance print quality.\n"
-"*Automatic mode: Check for calibration before printing; skip if unnecessary."
-msgstr ""
-"Kalibrera nozzle offset för att förbättra utskriftskvaliteten. \n"
-"*Automatiskt läge: Kontrollera efter kalibrering före utskrift; hoppa över om det är onödigt."
-
-msgid "Use AMS"
-msgstr "Använd AMS"
-
-msgid "Only synchronize filament type and color, not including AMS slot information."
-msgstr "Synkroniserar endast filament typ och färg, inte AMS fack information."
-
-msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
-msgstr "Byt ut listan med projekt filament i tur och ordning baserat på printer filament. Och oanvända printer filament kommer automatiskt att läggas till i slutet av listan."
-
-msgid "High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."
-msgstr ""
-
-msgid "Add unused AMS filaments to filaments list."
-msgstr "Lägg till oanvända AMS filament i filamentlistan."
-
-msgid "Automatically merge the same colors in the model after mapping."
-msgstr "Sammanfoga automatiskt samma färger i modellen efter mappning."
-
-msgid "After being synced, this action cannot be undone."
-msgstr "Efter synkronisering kan denna åtgärd inte ångras."
-
-msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
-msgstr "Efter synkroniseringen kommer projektets inställningar och färger för filament att ersättas med de mappade filament typerna och färgerna. Denna åtgärd kan inte ångras."
-
-msgid "Are you sure to synchronize the filaments?"
-msgstr "Är du säker på att synkronisera filamenten?"
-
-msgid "Synchronize now"
-msgstr "Synkronisera nu"
-
-msgid "Synchronize Filament Information"
-msgstr "Synkronisera filament information"
-
-msgid "Add unused filaments to filaments list."
-msgstr "Lägg till oanvända filament i filamentlistan."
-
-msgid "Only synchronize filament type and color, not including slot information."
-msgstr "Synkronisera endast filament typ och färg, inkluderar inte fack information."
-
-msgid "Ext spool"
-msgstr "Ext spole"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "Nozzle flödes inställning av %s(%s) stämmer inte överens med berednings fil(%s). Vänligen kontrollera att nozzle som installerats stämmer överens med inställningarna i printern och ställ sedan in motsvarande inställning i beredning."
-
-msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
-msgstr "Kontrollera om enhetens nozzle typ är densamma som den inställda nozzle typen."
-
-#, c-format, boost-format
-msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
-msgstr "Den valda printern (%s) är inte kompatibel med den valda printer profilen i beredningen (%s)."
-
-msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
-msgstr "Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per objekt\"."
-
-msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
-msgstr "Du valde externt och AMS filament samtidigt i en extruder; du måste manuellt byta externt filament."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "Tips och råd: Om du har bytt ut din nozzle på din printer nyligen, gå till \"Enhet -> Printer delar\" för att byta din nozzle inställning."
-
-msgid "Successfully synchronized Printer information."
-msgstr ""
-
-msgid "Continue to sync filaments"
-msgstr "Fortsätt att synkronisera filament"
-
-msgctxt "Sync_Nozzle_AMS"
-msgid "Cancel"
-msgstr "Avbryt"
-
-msgid "Successfully synchronized color and type of filament from printer."
-msgstr "Framgångsrik synkronisering av färg och typ av filament från printern."
-
-msgctxt "FinishSyncAms"
-msgid "OK"
-msgstr ""
-
-msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr "Extruder av Bowden typ stöder inte nozzle med 0,2 diameter. Vi kan bara fortsätta med utskrift med ett enda huvud."
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio skulle beräkna dina rensnings volymer varje gång filamentens färg ändrades eller filamenten ändrades. Du kan inaktivera automatisk beräkning i Bambu Studio > Inställningar"
@@ -13839,10 +13824,13 @@ msgstr "Spiral vas-läget fungerar inte när ett objekt innehåller regioner med
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Variabel lagerhöjd stöds inte med organiska support."
 
-msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgid "Printing with different nozzle diameters and support ring is experimental. The support ring may not work correctly with mismatched nozzle sizes."
 msgstr ""
 
 msgid "Printing with different nozzle diameters and prime tower is experimental. The prime tower may not work correctly with mismatched nozzle sizes."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
 msgstr ""
 
 msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
@@ -13890,11 +13878,11 @@ msgstr ""
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "Ett prime torn kräver att alla object är beredda med samma lagerhöjd."
 
-msgid "The prime tower is only supported if all objects have the same variable layer height"
-msgstr "Prime Tower stöds endast om alla objekt har samma variabla lagerhöjd."
-
 msgid "The support ring is only supported if all objects have the same variable layer height"
 msgstr ""
+
+msgid "The prime tower is only supported if all objects have the same variable layer height"
+msgstr "Prime Tower stöds endast om alla objekt har samma variabla lagerhöjd."
 
 msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
 msgstr "Exakt Z-höjd ger objekten olika lagerhöjder, vilket kan öka storleken på prime-tornet avsevärt."
@@ -16864,10 +16852,10 @@ msgstr ""
 msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
 msgstr ""
 
-msgid "Support ring notch width"
+msgid "Support ring angle"
 msgstr ""
 
-msgid "Arc length of the gap left in the support ring so the chamber camera can see the object. Measured along the inner wall. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value."
+msgid "Angle the support ring keeps around the object, measured from the centre of the ring. The rest is left open, centred on the direction of the chamber camera, so it can see the object. Every ring of the structure is opened along the same two directions, and tree supports keep branches out of the opening. A smaller angle leaves less wipe length per ring, so the ring grows wider."
 msgstr ""
 
 msgid "Support ring skip points"
@@ -18132,6 +18120,15 @@ msgstr "- Objektläge: Välj minst två objekt."
 msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- Delläge: Välj ett objekt med minst två meshes."
 
+msgid "Another mesh boolean operation is running. Please try again after it finishes."
+msgstr ""
+
+msgid "Computing..."
+msgstr "Beräknar..."
+
+msgid "Applying result.."
+msgstr "Tillämpar resultat.."
+
 msgid "Union"
 msgstr "Union"
 
@@ -18158,15 +18155,6 @@ msgstr "Utför booleska operationer enbart på enheter."
 
 msgid "This object contains non-part components."
 msgstr "Detta objekt innehåller komponenter som inte är delar."
-
-msgid "Preparing data..."
-msgstr "Förbereder data..."
-
-msgid "Computing..."
-msgstr "Beräknar..."
-
-msgid "Applying result.."
-msgstr "Tillämpar resultat.."
 
 msgid "Network Test"
 msgstr "Nätverkstest"
@@ -18608,9 +18596,6 @@ msgstr "Välj en inställningstyp som du vill exportera"
 
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "Misslyckades med att skapa en tillfällig mapp, försök Exportera konfigurationer igen."
-
-msgid "Edit Filament"
-msgstr "Redigera filament"
 
 msgid "Filament presets under this filament"
 msgstr "Filament inställningar för detta filament"
@@ -19176,6 +19161,9 @@ msgstr "Antalet printers som används samtidigt kan inte vara lika med 0."
 
 msgid "Use External Spool"
 msgstr "Använd extern spole"
+
+msgid "Use AMS"
+msgstr "Använd AMS"
 
 msgid "Select Printers"
 msgstr "Välj printers"
@@ -19828,6 +19816,12 @@ msgstr "Redigera blandat filament"
 msgid "Effect Preview"
 msgstr "Förhandsgranska effekt"
 
+msgid "Target"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
 msgid "Select Mixed Materials"
 msgstr "Välj blandade material"
 
@@ -19865,6 +19859,9 @@ msgstr "kan inte blandas. Välj samma filament typ."
 msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
 msgstr ""
 
+msgid "No mix is available for the target color"
+msgstr ""
+
 msgid "Please select a filament for all components"
 msgstr "Välj ett filament för alla komponenter"
 
@@ -19877,73 +19874,49 @@ msgstr "Max antal komponenter uppnått"
 msgid "Remove the third material"
 msgstr "Ta bort det tredje materialet"
 
+msgid "Manual Mixing"
+msgstr ""
+
+msgid "Color Matching"
+msgstr ""
+
+msgid "Select Target Color"
+msgstr ""
+
+msgid "Match Result"
+msgstr ""
+
+msgid "Discard changes and match again"
+msgstr ""
+
+msgid "Replace the target color on models with the mixed result"
+msgstr ""
+
+msgid "No filament can be used as the target color. Gradient, multi-color, transparent and support filaments are not supported."
+msgstr ""
+
 #, c-format, boost-format
-msgid "RGB(%d, %d, %d)"
+msgid "Filament %d has the same color as the target. No mixing is needed."
 msgstr ""
 
-msgid "Decomposition result for this combination"
-msgstr "Uppdelningsresultat för denna kombination"
-
-msgid "Filament Color"
-msgstr "Filamentfärg"
-
-msgid "Decomposed Colors"
-msgstr "Uppdelade färger"
-
-msgid "Select Color Decomposition"
-msgstr "Välj färgnedbrytning"
-
-msgid "Project Filament"
-msgstr "Projekt-Filament"
-
-msgid "Material List"
-msgstr "Lista över material"
-
-msgid "Standard Palette"
-msgstr "Standardpalett"
-
-msgid "At least two filaments of the same material type are required for decomposition"
-msgstr "Minst två filament av samma typ av material krävs för nedbrytning"
-
-msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "En närmare blandning beräknas från fyra basfärger: cyan, magenta, gul och vit. För närvarande stöds endast PLA Basic. Om matchande filament inte finns i projektet läggs de till automatiskt."
-
-msgid "A closer mix is calculated from five base colors: cyan, magenta, yellow, black, and white. Currently only PLA Palette is supported. If matching filaments are not in the project, they will be added automatically."
+msgid "There is no other filament of the same type as the target color in the project."
 msgstr ""
 
-msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr "En närmare blandning beräknas utifrån fyra basfärger: röd, gul, blå och vit. För närvarande stöds endast PLA Basic. Om matchande filament inte finns i projektet läggs de till automatiskt."
+msgid "At least two other filaments of the same type as the target color are required."
+msgstr ""
+
+msgid "Fewer than two filaments of the same type use the target's nozzle diameter."
+msgstr ""
+
+msgid "No available mixing recipe was found."
+msgstr ""
+
+msgid "The current printer has no compatible PLA Palette filament."
+msgstr ""
 
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "Materiallistan stöder högst %1% färger. Efter %2% nedbrytningen, skulle materialantalet överstiga%1%. Ta bort oanvända filament på huvudskärmen innan nedbrytningen."
-
-msgid "Decompose Color (gradient not supported)"
-msgstr "Dela upp färg (gradient stöds inte)"
-
-msgid "Decompose Color (transparent not supported)"
-msgstr "Dela upp färg (transparent stöds inte)"
-
-msgid "Decompose Color (multi-color not supported)"
-msgstr "Dela upp färg (flerfärg stöds inte)"
-
-msgid "Cyan"
-msgstr "Turkos"
-
-msgid "Magenta"
+msgid "Not enough filament slots (max %1%). Only %2% of %3% official mixing kit filaments were added."
 msgstr ""
-
-msgid "Yellow"
-msgstr "Gul"
-
-msgid ", "
-msgstr ""
-
-msgid "The current filament list does not contain "
-msgstr "Den aktuella filamentlistan innehåller inte "
-
-msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ". Ett projektfilament som krävs av det blandade filamentet skapas automatiskt efter nedbrytning."
 
 msgid "Material Ratio"
 msgstr "Materialförhållande"
@@ -20278,6 +20251,298 @@ msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
 
+#~ msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+#~ msgstr "Att använda variabel lagerhöjd tillsammans med ett underlager med blandade färger kan resultera i dålig färgblandnings kvalitet."
+
+#~ msgid "Decompose Color"
+#~ msgstr "Separera färg"
+
+#~ msgid "Automatically merge identical filaments into existing filaments in the project"
+#~ msgstr "Sammanfoga identiska filament automatiskt med befintliga filament i projektet"
+
+#~ msgid "Automatically merge filaments of the same color and type"
+#~ msgstr "Sammanfoga automatiskt filament av samma färg och typ"
+
+#~ msgid "Unmapped"
+#~ msgstr "Ej kartlagd"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area: The filament from original project will be used when unmapped.\n"
+#~ "And you can click it to modify"
+#~ msgstr ""
+#~ "Övre halvan av området: Original\n"
+#~ "Nedre halvan  av området: Filamentet från originalprojektet kommer att användas när det inte är mappat.\n"
+#~ "Och du kan klicka på den för att modifiera"
+
+#~ msgid ""
+#~ "Upper half area:  Original\n"
+#~ "Lower half area:  Filament in AMS\n"
+#~ "And you cannot click it to modify"
+#~ msgstr ""
+#~ "Övre halvan  av området: Original\n"
+#~ "Nedre halvan  av området: Filament i AMS\n"
+#~ "Och du kan inte klicka på den för att ändra"
+
+#~ msgid "Printer Preview"
+#~ msgstr "Förhandsgranskning av printer"
+
+#~ msgid "No Storage"
+#~ msgstr "Ingen lagring"
+
+#~ msgid "Storage Abnormal"
+#~ msgstr "Lagring onormal"
+
+#~ msgid ""
+#~ "This file contains several objects positioned at multiple heights.\n"
+#~ "Instead of considering them as multiple objects, should \n"
+#~ "the file be loaded as a single object having multiple parts?"
+#~ msgstr ""
+#~ "Filen innehåller flera objekt som är placerade på olika höjder.\n"
+#~ "Istället för att betrakta dem som flera objekt, ska\n"
+#~ "filen laddas som ett enda objekt med flera delar?"
+
+#~ msgid "Multi-part object detected"
+#~ msgstr "Objekt i flera delar har upptäckts"
+
+#~ msgid "Don't save"
+#~ msgstr "Spara inte"
+
+#~ msgid "Open Wiki for more information >"
+#~ msgstr "Öppna Wiki för mer information >"
+
+#~ msgid "Obj file Import color"
+#~ msgstr "Obj fil Importera färg"
+
+#~ msgid "Standard 3mf Import color"
+#~ msgstr "Standard 3mf Importfärg"
+
+#~ msgid "Some faces don't have color defined."
+#~ msgstr "Vissa ytor har ingen färg definierad."
+
+#~ msgid "mtl file exist error,could not find the material:"
+#~ msgstr "mtl filen existerar fel, kunde inte hitta materialet:"
+
+#~ msgid "Please check obj or mtl file."
+#~ msgstr "Kontrollera obj eller mtl filen."
+
+#~ msgid "Specify number of colors:"
+#~ msgstr "Ange antal färger:"
+
+#~ msgid "Enter or click the adjustment button to modify number again"
+#~ msgstr "Ange eller klicka på justeringsknappen för att ändra numret igen"
+
+#~ msgid "Recommended "
+#~ msgstr "Rekommenderad "
+
+#~ msgid "view"
+#~ msgstr "visa"
+
+#~ msgid "Current filament colors"
+#~ msgstr "Aktuella filament färger"
+
+#~ msgid "Matching"
+#~ msgstr "Matchning"
+
+#~ msgid "Quick set"
+#~ msgstr "Snabb inställning"
+
+#~ msgid "There are color input errors."
+#~ msgstr "Det finns fel på färginmatningen."
+
+#~ msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+#~ msgstr "Texturimport är tillfälligt inte tillgänglig, partiell färg ersätts automatiskt med standardfärg."
+
+#~ msgid " And "
+#~ msgstr " Och "
+
+#~ msgid "Note"
+#~ msgstr "Notera"
+
+#~ msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+#~ msgstr "Färgen har valts, du kan välja OK för att fortsätta eller manuellt justera den."
+
+#~ msgid "After mapping"
+#~ msgstr "Efter mappning"
+
+#~ msgid "Color match"
+#~ msgstr "Färgmatchning"
+
+#~ msgid "Approximate color matching."
+#~ msgstr "Ungefärlig färgmatchning."
+
+#~ msgid "Append"
+#~ msgstr "Lägg till"
+
+#~ msgid "Append to existing filaments"
+#~ msgstr "Lägg till befintliga filament"
+
+#~ msgid "Reset mapped extruders."
+#~ msgstr "Återställ mappade extrudrar."
+
+#~ msgid "After overwriting"
+#~ msgstr "Efter överskrivning"
+
+#~ msgctxt "Sync_AMS"
+#~ msgid "Plate"
+#~ msgstr "Platta"
+
+#~ msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
+#~ msgstr "Den anslutna printern matchar inte med den printer som för närvarande är vald. Vänligen ändra den valda skrivaren."
+
+#~ msgid "Mapping"
+#~ msgstr "Kartläggning"
+
+#~ msgid "Overwriting"
+#~ msgstr "Skriver över"
+
+#~ msgid "Reset all filament mapping"
+#~ msgstr "Återställ all filament mappning"
+
+#~ msgid "(Recommended filament)"
+#~ msgstr "(Rekommenderat filament)"
+
+#~ msgid "Advanced Options"
+#~ msgstr "Avancerade alternativ"
+
+#~ msgid ""
+#~ "Check heatbed flatness. Leveling makes extruded height uniform.\n"
+#~ "*Automatic mode: Level first (about 10 seconds). Skip if surface is fine."
+#~ msgstr ""
+#~ "Kontrollera värmebäddens planhet. Nivellering gör extruderad höjd enhetlig.\n"
+#~ "*Automatiskt läge: Nivellera först (ca 10 sekunder). Hoppa över om ytan är fin."
+
+#~ msgid ""
+#~ "Calibrate nozzle offsets to enhance print quality.\n"
+#~ "*Automatic mode: Check for calibration before printing; skip if unnecessary."
+#~ msgstr ""
+#~ "Kalibrera nozzle offset för att förbättra utskriftskvaliteten. \n"
+#~ "*Automatiskt läge: Kontrollera efter kalibrering före utskrift; hoppa över om det är onödigt."
+
+#~ msgid "Only synchronize filament type and color, not including AMS slot information."
+#~ msgstr "Synkroniserar endast filament typ och färg, inte AMS fack information."
+
+#~ msgid "Replace the project filaments list sequentially based on printer filaments. And unused printer filaments will be automatically added to the end of the list."
+#~ msgstr "Byt ut listan med projekt filament i tur och ordning baserat på printer filament. Och oanvända printer filament kommer automatiskt att läggas till i slutet av listan."
+
+#~ msgid "Add unused AMS filaments to filaments list."
+#~ msgstr "Lägg till oanvända AMS filament i filamentlistan."
+
+#~ msgid "Automatically merge the same colors in the model after mapping."
+#~ msgstr "Sammanfoga automatiskt samma färger i modellen efter mappning."
+
+#~ msgid "After being synced, this action cannot be undone."
+#~ msgstr "Efter synkronisering kan denna åtgärd inte ångras."
+
+#~ msgid "After being synced, the project's filament presets and colors will be replaced with the mapped filament types and colors. This action cannot be undone."
+#~ msgstr "Efter synkroniseringen kommer projektets inställningar och färger för filament att ersättas med de mappade filament typerna och färgerna. Denna åtgärd kan inte ångras."
+
+#~ msgid "Are you sure to synchronize the filaments?"
+#~ msgstr "Är du säker på att synkronisera filamenten?"
+
+#~ msgid "Synchronize now"
+#~ msgstr "Synkronisera nu"
+
+#~ msgid "Synchronize Filament Information"
+#~ msgstr "Synkronisera filament information"
+
+#~ msgid "Add unused filaments to filaments list."
+#~ msgstr "Lägg till oanvända filament i filamentlistan."
+
+#~ msgid "Only synchronize filament type and color, not including slot information."
+#~ msgstr "Synkronisera endast filament typ och färg, inkluderar inte fack information."
+
+#~ msgid "Ext spool"
+#~ msgstr "Ext spole"
+
+#, c-format, boost-format
+#~ msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+#~ msgstr "Nozzle flödes inställning av %s(%s) stämmer inte överens med berednings fil(%s). Vänligen kontrollera att nozzle som installerats stämmer överens med inställningarna i printern och ställ sedan in motsvarande inställning i beredning."
+
+#~ msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
+#~ msgstr "Kontrollera om enhetens nozzle typ är densamma som den inställda nozzle typen."
+
+#, c-format, boost-format
+#~ msgid "The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s)."
+#~ msgstr "Den valda printern (%s) är inte kompatibel med den valda printer profilen i beredningen (%s)."
+
+#~ msgid "Timelapse is not supported because Print sequence is set to \"By object\"."
+#~ msgstr "Timelapse stöds inte eftersom utskrifts sekvensen är inställd på \"Per objekt\"."
+
+#~ msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+#~ msgstr "Du valde externt och AMS filament samtidigt i en extruder; du måste manuellt byta externt filament."
+
+#~ msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+#~ msgstr "Tips och råd: Om du har bytt ut din nozzle på din printer nyligen, gå till \"Enhet -> Printer delar\" för att byta din nozzle inställning."
+
+#~ msgid "Continue to sync filaments"
+#~ msgstr "Fortsätt att synkronisera filament"
+
+#~ msgctxt "Sync_Nozzle_AMS"
+#~ msgid "Cancel"
+#~ msgstr "Avbryt"
+
+#~ msgid "Successfully synchronized color and type of filament from printer."
+#~ msgstr "Framgångsrik synkronisering av färg och typ av filament från printern."
+
+#~ msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+#~ msgstr "Extruder av Bowden typ stöder inte nozzle med 0,2 diameter. Vi kan bara fortsätta med utskrift med ett enda huvud."
+
+#~ msgid "Decomposition result for this combination"
+#~ msgstr "Uppdelningsresultat för denna kombination"
+
+#~ msgid "Filament Color"
+#~ msgstr "Filamentfärg"
+
+#~ msgid "Decomposed Colors"
+#~ msgstr "Uppdelade färger"
+
+#~ msgid "Select Color Decomposition"
+#~ msgstr "Välj färgnedbrytning"
+
+#~ msgid "Project Filament"
+#~ msgstr "Projekt-Filament"
+
+#~ msgid "Material List"
+#~ msgstr "Lista över material"
+
+#~ msgid "Standard Palette"
+#~ msgstr "Standardpalett"
+
+#~ msgid "At least two filaments of the same material type are required for decomposition"
+#~ msgstr "Minst två filament av samma typ av material krävs för nedbrytning"
+
+#~ msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "En närmare blandning beräknas från fyra basfärger: cyan, magenta, gul och vit. För närvarande stöds endast PLA Basic. Om matchande filament inte finns i projektet läggs de till automatiskt."
+
+#~ msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+#~ msgstr "En närmare blandning beräknas utifrån fyra basfärger: röd, gul, blå och vit. För närvarande stöds endast PLA Basic. Om matchande filament inte finns i projektet läggs de till automatiskt."
+
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "Materiallistan stöder högst %1% färger. Efter %2% nedbrytningen, skulle materialantalet överstiga%1%. Ta bort oanvända filament på huvudskärmen innan nedbrytningen."
+
+#~ msgid "Decompose Color (gradient not supported)"
+#~ msgstr "Dela upp färg (gradient stöds inte)"
+
+#~ msgid "Decompose Color (transparent not supported)"
+#~ msgstr "Dela upp färg (transparent stöds inte)"
+
+#~ msgid "Decompose Color (multi-color not supported)"
+#~ msgstr "Dela upp färg (flerfärg stöds inte)"
+
+#~ msgid "Cyan"
+#~ msgstr "Turkos"
+
+#~ msgid "Yellow"
+#~ msgstr "Gul"
+
+#~ msgid "The current filament list does not contain "
+#~ msgstr "Den aktuella filamentlistan innehåller inte "
+
+#~ msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+#~ msgstr ". Ett projektfilament som krävs av det blandade filamentet skapas automatiskt efter nedbrytning."
+
 #~ msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
 #~ msgstr "Rekommenderas endast vid användning av filament i blandade färger, för att få en bättre effekt med lager på lager-färger."
 
@@ -20480,18 +20745,6 @@ msgstr ""
 
 #~ msgid "Printed Part Displacement Detection"
 #~ msgstr "Detektion av förflyttning av utskriven del"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "Programvaran stöder inte användning av olika diameter på nozzle för en utskrift.\n"
-#~ "Om vänster och höger nozzle är inkonsekventa kan vi bara fortsätta utskriften med en nozzle.\n"
-#~ "Bekräfta vilken nozzle du vill använda för detta projekt."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Byt diameter"
 
 #~ msgid "Do you want to sync the preset printer with the connected printer, "
 #~ msgstr "Vill du synkronisera den förinställda printern med den anslutna printern, "
@@ -20729,9 +20982,6 @@ msgstr ""
 
 #~ msgid "X-Ray Other Objects"
 #~ msgstr "Röntga andra objekt"
-
-#~ msgid "Exit"
-#~ msgstr "Avsluta"
 
 #~ msgid "Second"
 #~ msgstr "Andra"
@@ -21116,9 +21366,6 @@ msgstr ""
 
 #~ msgid "Internal Storage"
 #~ msgstr "Intern lagring"
-
-#~ msgid "External Storage"
-#~ msgstr "Extern lagring"
 
 #~ msgid "Modify paramters of right nozzle"
 #~ msgstr "Modifiera parametrar för höger nozzle"
@@ -21532,21 +21779,6 @@ msgstr ""
 
 #~ msgid " Preparing Hotend"
 #~ msgstr " Förbereder Hotend"
-
-#~ msgid "This calibration does not support the currently selected nozzle diameter"
-#~ msgstr "Denna kalibrering stöder inte den för tillfället valda nozzle diametern"
-
-#~ msgid "Current flowrate cali param is invalid"
-#~ msgstr "Aktuell flödeshastighets kalibrerings parameter är ogiltig"
-
-#~ msgid "Selected diameter and machine diameter do not match"
-#~ msgstr "Vald diameter och maskinens diameter stämmer inte överens"
-
-#~ msgid "Failed to generate cali gcode"
-#~ msgstr "Misslyckades med att generera cali G kod"
-
-#~ msgid "Calibration error"
-#~ msgstr "Fel vid kalibrering"
 
 #~ msgid "Allow Prompt Sound"
 #~ msgstr "Tillåt Prompt Ljud"
@@ -23155,9 +23387,6 @@ msgstr ""
 #~ "Inaktivera överhäng sakta ner automatiskt? \n"
 #~ "Ja - Aktivera Arachne och inaktivera överhäng sakta ner\n"
 #~ "Nej - Använd inte Arachne för denna utskrift"
-
-#~ msgid "Discard"
-#~ msgstr "Överge"
 
 #~ msgid "Discard or Keep changes"
 #~ msgstr "Överge eller Behåll ändringar"
