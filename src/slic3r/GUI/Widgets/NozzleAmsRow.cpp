@@ -149,6 +149,18 @@ void show_ams_add_menu(wxWindow *anchor, int extruder_index, PopupWindow *&curre
     }
 
     auto *popup = new RoundedPopupWindow(anchor, 8, false);
+
+    // A row inside a popup gets no native enter or leave event on macOS: its hover comes from
+    // PopupWindow synthesizing one out of the motion events the popup receives while it holds the
+    // mouse capture. wxPopupTransientWindow::OnIdle drops that capture exactly while the pointer is
+    // over the popup, which is when the hover matters, so the rows never light up. A dynamic binding
+    // is searched before the class's own event table, so not skipping here keeps that OnIdle from
+    // running at all and the capture stays where Popup() put it. See CascadeMenuPopup's ctor, which
+    // carries the same workaround and the long form of this note.
+#ifdef __WXOSX__
+    popup->Bind(wxEVT_IDLE, [](wxIdleEvent &) {});
+#endif
+
     auto *sizer = new wxBoxSizer(wxVERTICAL);
 
     PresetBundle *pb          = wxGetApp().preset_bundle;
@@ -211,7 +223,8 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
     auto                *del = new wxStaticBitmap(popup, wxID_ANY, trash_icon.bmp());
     del->SetBackgroundColour(wxGetApp().dark_mode() ? StateColor::darkModeColorFor(ThemeColor::White) : ThemeColor::White);
     del->SetToolTip(_L("Remove this AMS"));
-    del->Bind(wxEVT_LEFT_UP, [extruder_index, preview, &previews, on_changed, popup](wxMouseEvent &) {
+
+    auto remove_this_ams = [extruder_index, preview, &previews, on_changed, popup](wxMouseEvent &) {
         auto it = std::find(previews.begin(), previews.end(), preview);
         if (it != previews.end()) {
             const size_t index  = std::distance(previews.begin(), it);
@@ -223,7 +236,17 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
             if (on_changed) on_changed();
         }
         popup->Dismiss();
-    });
+    };
+
+    // The release is the usual click, except on macOS: wxStaticBitmap is an NSImageView, and
+    // wxWidgetCocoaImpl::mouseEvent hands any mouse event wx leaves unhandled to the native
+    // NSControl, whose own mouseDown takes the button sequence over so the release never arrives.
+    // Acting on the press there keeps wx from calling super at all.
+#ifdef __WXOSX__
+    del->Bind(wxEVT_LEFT_DOWN, remove_this_ams);
+#else
+    del->Bind(wxEVT_LEFT_UP, remove_this_ams);
+#endif
 
     auto *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(del, 0, wxALL, popup->FromDIP(2));
@@ -235,6 +258,18 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
     const wxSize  psize  = preview->GetSize();
     const int     offset = preview->FromDIP(4);
     const int     pw     = popup->GetSize().GetWidth();
+
+    // wxPopupTransientWindow::Popup() hands the mouse capture, and the handler that drives dismissal,
+    // to the popup's single child when it has exactly one -- here the trash bitmap. Cocoa then routes
+    // every mouse event in the application to that bitmap, bypassing PopupWindow's own hit-test
+    // forwarding, and wx reads the bitmap's rectangle as the popup's, so a press just off the icon
+    // counts as a click outside and dismisses the popup before the click lands. A hidden filler keeps
+    // the child count above one; it sits outside the sizer, so it changes no layout, and PopupWindow's
+    // hit test skips it. See CascadeMenuPopup::Popup, which carries the same workaround.
+    // Windows runs a different wxPopupTransientWindow that never moves the capture off the popup.
+#ifndef __WXMSW__
+    (new wxWindow(popup, wxID_ANY, wxDefaultPosition, wxSize(0, 0)))->Hide();
+#endif
     popup->Position(wxPoint(pos.x + psize.x - pw + offset, pos.y - offset), wxSize(0, 0));
     popup->Popup();
 }

@@ -305,7 +305,7 @@ void ExtruderPanelGroup::ShowBadge(bool show)
     if (show && m_badge == nullptr) {
         m_badge = new ScalableButton(this, wxID_ANY, "badge", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 18);
         m_badge->SetSize(m_badge->GetBestSize());
-        m_badge->SetBackgroundColour(ThemeColor::Grey200);
+        m_badge->SetBackgroundColour(GetBackgroundColour());
 
         LayoutBadge();
     }

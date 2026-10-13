@@ -599,7 +599,9 @@ void NozzleRackView::OnPaint(wxPaintEvent &)
         draw_tube(dc, cx, rc.GetBottom() + 1, hotend_top);
 
         wxDCClipper clip(dc, wxRect(cx - FromDIP(HOTEND_W) / 2, hotend_top, FromDIP(HOTEND_W), FromDIP(HOTEND_H)));
-        dc.DrawBitmap(hotend, cx - hotend.GetWidth() / 2, hotend_top, true);
+        // Logical width, not GetWidth(): on macOS the bitmap carries a 2x scale factor, so its pixel
+        // width is twice what DrawBitmap lays down and centering on it pushes the hotend a full icon left.
+        dc.DrawBitmap(hotend, cx - int(hotend.GetScaledWidth()) / 2, hotend_top, true);
     }
 }
 

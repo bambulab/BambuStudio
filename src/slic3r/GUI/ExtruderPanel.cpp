@@ -6,6 +6,7 @@
 #include <wx/button.h>
 #include <wx/settings.h>
 #include <wx/dcbuffer.h>
+#include <wx/scrolbar.h>
 #include <wx/timer.h>
 #include <wx/eventfilter.h>
 #include <wx/utils.h>
@@ -333,6 +334,29 @@ void DiameterButtonPanel::UpdateSingleButtonState(Button *btn, const wxString &d
     btn->Refresh();
 }
 
+namespace {
+// wxOSX builds a scrolled window's scrollbars as real child windows (wxWindowMac::MacCreateScrollBars),
+// created visible, and the only thing that ever hides them again is wxWindowMac::SetScrollbar, through
+// DoUpdateScrollbarVisibility. The cards here either draw their own bar (SlimScrollbar) or scroll
+// without one, so the native pair has to be taken off by hand -- the same thing the Windows branches
+// below do through ShowScrollBar().
+//
+// At construction the scrolled window owns nothing but those bars and wx's grow box, so hiding every
+// child is safe there and takes the grow box with it. Afterwards only the bars matter, and each
+// SetScrollbar call puts them back on screen as soon as the content overflows, so every such call
+// needs another pass.
+#ifdef __WXOSX__
+void hide_native_scrollbars(wxWindow *window, bool include_grow_box = false)
+{
+    if (window == nullptr) return;
+    for (auto *child : window->GetChildren())
+        if (include_grow_box || dynamic_cast<wxScrollBar *>(child)) child->Hide();
+}
+#else
+inline void hide_native_scrollbars(wxWindow *, bool = false) {}
+#endif
+} // namespace
+
 HorizontalScrollablePanel::HorizontalScrollablePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style)
     : wxScrolledWindow(parent, id, pos, size, style)
 {
@@ -341,6 +365,8 @@ HorizontalScrollablePanel::HorizontalScrollablePanel(wxWindow *parent, wxWindowI
 
     SetScrollRate(FromDIP(1), 0);
     SetBackgroundColour(ThemeColor::Grey200);
+
+    hide_native_scrollbars(this, true);
 }
 
 void HorizontalScrollablePanel::Clear()
@@ -688,7 +714,14 @@ constexpr int WHEEL_SCROLL_STEP = 40; // pixels per wheel notch
 class BarlessScrolledWindow : public wxScrolledWindow
 {
 public:
-    explicit BarlessScrolledWindow(wxWindow *parent) : wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE) {}
+    explicit BarlessScrolledWindow(wxWindow *parent) : wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    {
+        // wxScrolled::Create turns a style naming neither direction into both, so wxOSX builds a
+        // horizontal and a vertical bar here even though this window never asks for either, and the
+        // empty SetScrollbar below leaves them on screen for good. Nothing shows them again once
+        // they are hidden: MacChildAdded only raises them.
+        hide_native_scrollbars(this, true);
+    }
 
     // wxScrollHelper keeps the scroll state itself and only mirrors it onto the native bar here, so
     // dropping the mirror hides the bar while scrolling keeps working. Hiding it through
@@ -1140,6 +1173,7 @@ void DualExtruderPanel::update_ams()
             ShowScrollBar(hwnd, SB_VERT, FALSE);
         }
 #endif
+        hide_native_scrollbars(m_scroll); // the macOS half of the same cleanup
     }
 
     Refresh();
@@ -1216,6 +1250,7 @@ void DualExtruderPanel::UpdateScrollButtons()
         ShowScrollBar(hwnd, SB_VERT, FALSE);
     }
 #endif
+    hide_native_scrollbars(m_scroll); // the macOS half of the same cleanup
 
     m_left_scroll->Show(true);
     m_right_scroll->Show(true);
