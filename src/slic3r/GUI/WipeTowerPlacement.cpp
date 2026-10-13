@@ -7,6 +7,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/GCode/WipeTower.hpp"
 #include "libslic3r/Model.hpp"

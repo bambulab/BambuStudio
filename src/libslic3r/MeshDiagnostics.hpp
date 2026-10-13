@@ -2,6 +2,7 @@
 #define slic3r_MeshDiagnostics_hpp_
 
 #include <admesh/stl.h>
+#include <Point.hpp>
 
 #include <vector>
 
