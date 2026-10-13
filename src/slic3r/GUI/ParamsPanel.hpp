@@ -124,6 +124,9 @@ class ParamsPanel : public wxPanel
         wxPanel* m_current_tab { nullptr };
 
         bool m_has_object_config { false };
+        // Sidebar process section: whether there is a tab to show, and whether the user collapsed it.
+        bool m_has_content { true };
+        bool m_content_collapsed { false };
 
         struct Highlighter
         {
@@ -141,6 +144,7 @@ class ParamsPanel : public wxPanel
         } m_highlighter;
 
         void OnToggled(wxCommandEvent& event);
+        void toggle_content_collapsed();
 
 	public:
 		ParamsPanel( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1800,1080 ), long style = wxTAB_TRAVERSAL, const wxString& type = wxEmptyString );

@@ -1343,6 +1343,10 @@ void Sidebar::priv::layout_printer(bool isBBL, NozzleLayout layout)
     single_panel->Show(isBBL && layout == NozzleLayout::SingleExtruderRack);
     if (!vsizer_printer->IsShown(hsizer_extruder))
         update_extruder_separator_icon(false, false);
+
+    // Single-extruder multi-nozzle printers end with the nozzle card, which needs 16px below it.
+    if (wxSizerItem *bottom_gap = vsizer_printer->GetItem(vsizer_printer->GetItemCount() - 1); bottom_gap != nullptr && bottom_gap->IsSpacer())
+        bottom_gap->AssignSpacer(0, FromDIP(supports_multi_diameter ? 16 : 4));
 }
 
 void Sidebar::priv::flush_printer_sync(bool restart)
@@ -3755,7 +3759,7 @@ Sidebar::Sidebar(Plater *parent)
     auto* scrolled_sizer = m_scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     p->scrolled->SetSizer(scrolled_sizer);
 
-    wxColour title_bg = wxColour(248, 248, 248);
+    wxColour title_bg = ThemeColor::Grey350;
     wxColour inactive_text = wxColour(86, 86, 86);
     wxColour active_text = wxColour(0, 0, 0);
     wxColour static_line_col = wxColour(166, 169, 170);
@@ -3770,14 +3774,27 @@ Sidebar::Sidebar(Plater *parent)
         // 1.1 create title bar resources
         p->m_panel_printer_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
         p->m_panel_printer_title->SetBackgroundColor(title_bg);
-        p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
+        p->m_panel_printer_title->SetBackgroundColor2(title_bg);
 
-        p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
+        p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "sidebar_menu_up");
+        p->m_printer_icon->SetToolTip(_L("Collapse panel"));
         p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"), LB_PROPAGATE_MOUSE_EVENT);
 
-        p->m_printer_icon->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        auto toggle_printer_content = [this]() {
+            if (p->m_panel_printer_content->GetMaxHeight() == 0) {
+                p->m_panel_printer_content->SetMaxSize({-1, -1});
+                p->m_printer_icon->SetToolTip(_L("Collapse panel"));
+            } else {
+                p->m_panel_printer_content->SetMaxSize({-1, 0});
+                p->m_printer_icon->SetToolTip(_L("Expand panel"));
+            }
+            m_scrolled_sizer->Layout();
+        };
+
+        p->m_printer_icon->Bind(wxEVT_BUTTON, [toggle_printer_content](wxCommandEvent& e) {
             //auto wizard_t = new ConfigWizard(wxGetApp().mainframe);
             //wizard_t->run(ConfigWizard::RR_USER, ConfigWizard::SP_CUSTOM);
+            toggle_printer_content();
             });
 
 
@@ -3809,12 +3826,8 @@ Sidebar::Sidebar(Plater *parent)
 
         // add printer title
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
-        p->m_panel_printer_title->Bind(wxEVT_LEFT_DOWN, [this] (auto & e) {
-            if (p->m_panel_printer_content->GetMaxHeight() == 0)
-                p->m_panel_printer_content->SetMaxSize({-1, -1});
-            else
-                p->m_panel_printer_content->SetMaxSize({-1, 0});
-            m_scrolled_sizer->Layout();
+        p->m_panel_printer_title->Bind(wxEVT_LEFT_DOWN, [toggle_printer_content] (auto & e) {
+            toggle_printer_content();
         });
 
         // add spliter 2
@@ -4284,21 +4297,26 @@ Sidebar::Sidebar(Plater *parent)
     // add filament title
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
-    p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
-    p->m_panel_filament_title->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        if (p->m_flushing_volume_btn->IsShown() && e.GetPosition().x > p->m_flushing_volume_btn->GetPosition().x)
-            return;
-        if (p->m_purge_mode_btn->IsShown() && e.GetPosition().x > p->m_purge_mode_btn->GetPosition().x)
-            return;
+    p->m_panel_filament_title->SetBackgroundColor2(title_bg);
+    auto toggle_filament_content = [this]() {
         if (!p->m_filament_area_wrapper->IsShown()) {
             p->m_filament_area_wrapper->Show();
             p->m_panel_filament_subtitle->Show();
+            p->m_filament_icon->SetToolTip(_L("Collapse panel"));
             recalc_filament_scroll_sizes();
         } else {
             p->m_filament_area_wrapper->Hide();
             p->m_panel_filament_subtitle->Hide();
+            p->m_filament_icon->SetToolTip(_L("Expand panel"));
         }
         m_scrolled_sizer->Layout();
+    };
+    p->m_panel_filament_title->Bind(wxEVT_LEFT_DOWN, [this, toggle_filament_content](wxMouseEvent &e) {
+        if (p->m_flushing_volume_btn->IsShown() && e.GetPosition().x > p->m_flushing_volume_btn->GetPosition().x)
+            return;
+        if (p->m_purge_mode_btn->IsShown() && e.GetPosition().x > p->m_purge_mode_btn->GetPosition().x)
+            return;
+        toggle_filament_content();
         e.Skip();
     });
     p->m_panel_filament_title->Bind(wxEVT_SIZE, [this](wxSizeEvent &event) {
@@ -4310,7 +4328,9 @@ Sidebar::Sidebar(Plater *parent)
 
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
-    p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "filament");
+    p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "sidebar_menu_up");
+    p->m_filament_icon->SetToolTip(_L("Collapse panel"));
+    p->m_filament_icon->Bind(wxEVT_BUTTON, [toggle_filament_content](wxCommandEvent &) { toggle_filament_content(); });
     p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, _L("Project Filaments"), LB_PROPAGATE_MOUSE_EVENT);
     bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
@@ -4564,7 +4584,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_btn_add_mixed_filament->SetCursor(wxCursor(wxCURSOR_HAND));
         p->m_btn_add_mixed_filament->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) { add_mixed_filament(); });
         add_label->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) { add_mixed_filament(); });
-        wrapper_sizer->Add(p->m_btn_add_mixed_filament, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(8));
+        wrapper_sizer->Add(p->m_btn_add_mixed_filament, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
     }
 
     // 2) Title row: "Mixed Filament ------- + -"
@@ -4629,7 +4649,7 @@ Sidebar::Sidebar(Plater *parent)
         auto* sizer_mixed2 = new wxBoxSizer(wxVERTICAL);
         sizer_mixed2->Add(p->m_sizer_mixed_filaments, 0, wxEXPAND, 0);
         p->m_panel_mixed_content->SetSizer(sizer_mixed2);
-        mix_scroll_sizer->Add(p->m_panel_mixed_content, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+        mix_scroll_sizer->Add(p->m_panel_mixed_content, 0, wxEXPAND, 0);
     }
     p->m_mixed_scroll_area->SetSizer(mix_scroll_sizer);
     p->m_mixed_scroll_area->EnableScrolling(false, true);
@@ -4666,6 +4686,8 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_mixed_warning->SetSizer(warn_sizer);
         wrapper_sizer->Add(p->m_panel_mixed_warning, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
     }
+    // Bottom margin of the filament content, above the process title bar.
+    wrapper_sizer->AddSpacer(FromDIP(16));
 
     // Initially hide mixed filament UI
     p->m_btn_add_mixed_filament->Hide();
@@ -7332,6 +7354,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         c->update();
     // Expand filament list
     p->m_filament_area_wrapper->Show();
+    p->m_filament_icon->SetToolTip(_L("Collapse panel"));
     recalc_filament_scroll_sizes();
     // BBS:Synchronized consumables information
     // auto calculation of flushing volumes

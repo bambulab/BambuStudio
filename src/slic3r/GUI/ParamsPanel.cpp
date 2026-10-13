@@ -272,12 +272,18 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
     if (dynamic_cast<Notebook*>(parent)) {
         // BBS: new layout
         m_top_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition);
-        m_top_panel->SetBackgroundColor(0xF8F8F8);
-        m_top_panel->SetBackgroundColor2(0xF1F1F1);
+        m_top_panel->SetBackgroundColor(ThemeColor::Grey350);
+        m_top_panel->SetBackgroundColor2(ThemeColor::Grey350);
 
-        m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "process");
+        m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "sidebar_menu_up");
+        m_process_icon->SetToolTip(_L("Collapse panel"));
+        m_process_icon->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { toggle_content_collapsed(); });
 
-        m_title_label = new Label(m_top_panel, _L("Process"));
+        m_title_label = new Label(m_top_panel, _L("Process"), LB_PROPAGATE_MOUSE_EVENT);
+        m_top_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+            toggle_content_collapsed();
+            e.Skip();
+        });
 
         //int width, height;
         // BBS: new layout
@@ -627,8 +633,9 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
         } else if (m_tab_print_plate && ((TabPrintPlate*)m_tab_print_plate)->has_model_config()) {
             cur_tab = (Tab*)m_tab_print_plate;
         }
-        Show(cur_tab != nullptr);
-        wxGetApp().sidebar().show_object_list(m_mode_region->GetValue());
+        m_has_content = cur_tab != nullptr;
+        Show(m_has_content && !m_content_collapsed);
+        wxGetApp().sidebar().show_object_list(m_mode_region->GetValue() && !m_content_collapsed);
         if (m_current_tab == cur_tab)
             return;
         if (cur_tab)
@@ -660,6 +667,16 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
         wxString title = cur_tab->type() == Preset::TYPE_FILAMENT ? _L("Filament settings") : _L("Printer settings");
         dialog->SetTitle(title);
     }
+}
+
+void ParamsPanel::toggle_content_collapsed()
+{
+    m_content_collapsed = !m_content_collapsed;
+    m_process_icon->SetToolTip(m_content_collapsed ? _L("Expand panel") : _L("Collapse panel"));
+    Show(m_has_content && !m_content_collapsed);
+    // The object list lives in the sidebar but belongs to the process section, so it folds too.
+    wxGetApp().sidebar().show_object_list(m_mode_region->GetValue() && !m_content_collapsed);
+    GetParent()->Layout();
 }
 
 bool ParamsPanel::is_active_and_shown_tab(wxPanel* tab)

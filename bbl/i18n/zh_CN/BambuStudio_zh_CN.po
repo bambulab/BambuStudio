@@ -6214,6 +6214,12 @@ msgstr "点击展开"
 msgid "Click to Collapse"
 msgstr "点击折叠"
 
+msgid "Collapse panel"
+msgstr "折叠面板"
+
+msgid "Expand panel"
+msgstr "展开面板"
+
 msgid "Overview"
 msgstr "整体视图"
 
