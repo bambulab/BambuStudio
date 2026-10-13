@@ -912,6 +912,7 @@ static std::vector<wxLanguage> s_supported_languages = {
     wxLANGUAGE_FRENCH,
     wxLANGUAGE_SPANISH,
     wxLANGUAGE_SWEDISH,
+    wxLANGUAGE_FINNISH,
     wxLANGUAGE_DUTCH,
     wxLANGUAGE_HUNGARIAN,
     wxLANGUAGE_JAPANESE,
