@@ -333,23 +333,32 @@ bool has_high_temp_filament(MachineObject *obj)
 }
 
 /**
- * \brief The warning that high- and low-temperature filaments must not be mixed.
+ * \brief The warning that high- and low-temperature filaments must not be mixed, with a link to the help page.
  *
  * \param parent  the card to place it on
  * \param bg      the card's background colour
  */
 wxSizer *build_high_temp_tip(wxWindow *parent, const wxColour &bg)
 {
-    auto *icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap("warning", parent, 16));
     auto *text = new ::Label(parent, _L("High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."), LB_AUTO_WRAP);
-    text->SetFont(::Label::Body_13);
-    text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::Warning));
-    text->SetBackgroundColour(bg);
+    auto *link = new ::Label(parent, _L("Click Wiki for help."));
+    for (::Label *l : {text, link}) {
+        l->SetFont(::Label::Body_12);
+        l->SetBackgroundColour(bg);
+    }
+    text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextMuted));
+    link->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::BrandGreen));
+    link->SetCursor(wxCursor(wxCURSOR_HAND));
+    link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &) {
+        const bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+        wxLaunchDefaultBrowser(is_zh ? "https://wiki.bambulab.com/zh/filament-acc/filament/h2d-filament-config-limit" :
+                                       "https://wiki.bambulab.com/en/filament-acc/filament/h2d-filament-config-limit");
+    });
 
-    auto *h = new wxBoxSizer(wxHORIZONTAL);
-    h->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, parent->FromDIP(4));
-    h->Add(text, 1, wxALIGN_CENTER_VERTICAL);
-    return h;
+    auto *v = new wxBoxSizer(wxVERTICAL);
+    v->Add(text, 0, wxEXPAND);
+    v->Add(link, 0);
+    return v;
 }
 
 /**
