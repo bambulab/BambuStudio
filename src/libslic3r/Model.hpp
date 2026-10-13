@@ -1523,6 +1523,9 @@ public:
     // Transform an external bounding box.
     BoundingBoxf3 transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
     BoundingBoxf3 transform_bounding_box_in_assembly_view(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
+    // World AABB of one part in assemble space. Same as GLVolume::transformed_bounding_box()
+    // at explosion_ratio 1: instance assemble matrix * volume assemble matrix * raw mesh box.
+    BoundingBoxf3 transform_bounding_box_in_assembly_view(const ModelVolume &volume) const;
     // Transform an external vector.
     Vec3d transform_vector(const Vec3d& v, bool dont_translate = false) const;
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
@@ -1762,6 +1765,10 @@ public:
     std::string&       get_assembly_model_json_str()       { return m_assembly_model_json_str; }
     void               set_assembly_model_json_str(std::string json_str) { m_assembly_model_json_str = std::move(json_str); }
 
+    // Captured from assembly_step.json before qualified_assembly is stripped on load.
+    void note_loaded_assembly_steps_meta(AssemblyStepsFileMeta meta) { m_loaded_assembly_steps_meta = meta; }
+    const AssemblyStepsFileMeta &loaded_assembly_steps_meta() const { return m_loaded_assembly_steps_meta; }
+
     // Drop assembly tree / steps / a_model JSON. clear_objects() does not touch these; call on project
     // reset so the next STEP/3mf open does not re-derive leftover empty steps from the prepare model.
     void clear_assembly_artifacts();
@@ -1941,6 +1948,7 @@ private:
     AssemblyStepsTreeData m_assembly_steps_tree_data;
     std::string           m_assembly_steps_json_str;
     std::string           m_assembly_model_json_str;
+    AssemblyStepsFileMeta m_loaded_assembly_steps_meta;
 };
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE

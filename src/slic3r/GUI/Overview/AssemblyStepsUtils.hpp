@@ -1226,6 +1226,11 @@ public://imgui
     void render_assembly_label_settings_popup(const char *popup_id, float sc, const ImVec2 &anchor);
 
 private://logic
+    // Checking every listed object marks this step as final assembly.
+    // Clearing that check turns this step back into a normal step. Other final-assembly steps stay.
+    bool mark_step_final_assembly_if_all_objects_checked(int folder_idx,
+                                                         const AssemblyTreeData &tree,
+                                                         const std::unordered_map<std::string, bool> &checked);
     bool          is_part_number_label_layout_overlapped(const ImVec2 &rect_min, const ImVec2 &rect_max) const;
     static ImVec2 nearest_rect_anchor(const ImVec2 &rect_min, const ImVec2 &rect_max, const ImVec2 &from, bool include_corners = false);
     // Assign each `from` point a distinct edge/corner on the rect (min total distance).

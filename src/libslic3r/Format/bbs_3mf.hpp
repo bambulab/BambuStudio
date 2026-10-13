@@ -282,6 +282,8 @@ struct StoreParams
     std::vector<PlateBBoxData*> id_bboxes;
     BBLProject* project = nullptr;
     BBLProfile* profile = nullptr;
+    // Written into Metadata/assembly_step.json when the saved project is a qualified assembly.
+    bool qualified_assembly = false;
 
     StoreParams() {}
 };

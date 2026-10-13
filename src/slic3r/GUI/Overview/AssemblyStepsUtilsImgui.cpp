@@ -3608,6 +3608,19 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                     ImVec2(tag_min.x + tag_h_pad, tag_min.y + (tag_h - fs_small) * 0.5f),
                     tag_txt, c.tag_text.c_str());
 
+#if !BBL_RELEASE_TO_PUBLIC
+        // Debug-only: hover the step tag text itself to see the final-assembly flag.
+        if (c.is_final_assembly == AssemblyStepKind::FinalAssembly) {
+            ImGui::SetCursorScreenPos(tag_min);
+            ImGui::InvisibleButton((std::string("##asp_final_asm_tip_") + std::to_string(ci)).c_str(),
+                                   ImVec2(tag_w, tag_h));
+            if (ImGui::IsItemHovered()) {
+                suppress_card_click = true;
+                render_panel_tooltip("Final assembly");
+            }
+        }
+#endif
+
         // Inheritance marker: drawn to the right of the tag pill on the inheriting
         // (child) step; hovering shows the parent step it inherited from (resolved
         // live so it stays correct after steps are reordered).
@@ -7591,6 +7604,8 @@ void AssemblyStepsUtils::apply_assembly_tree_checked_to_step(
     }
     m_assembly_tree_ui_original_checked = checked_snapshot;
     invalidate_play_frame_refs();
+    // Checking every object in the list and confirming marks this step as final assembly.
+    mark_step_final_assembly_if_all_objects_checked(active_step_node, tree, checked_snapshot);
     save_assembly_steps_json_to_model();
     apply_keyframe_display_mode();
 }
@@ -8180,6 +8195,8 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
         } else {
             // Membership unchanged, but OK still clears the preview selection when
             // m_select_all_when_click_in_step_card is false (default).
+            if (active_step_node >= 0)
+                mark_step_final_assembly_if_all_objects_checked(active_step_node, *tree, checked);
             if (m_selection && !m_select_all_when_click_in_step_card) {
                 clear_selection_and_lock_volume_mode();
             }

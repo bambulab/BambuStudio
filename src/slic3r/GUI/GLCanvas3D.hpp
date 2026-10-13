@@ -1084,6 +1084,11 @@ public:
     static int                             s_assemble_candidate_volumes_size;
     static bool                            s_isolated_notification_shown;
     static int                             s_assemble_ratio;
+    // Same ratio as the assemble canvas, from world AABBs. No canvas, OpenGL, or notifications.
+    // 0 when there are fewer than two parts or the expanded boxes do not intersect.
+    static int compute_assemble_ratio(const std::vector<GLVolume *> &             volumes,
+                                      const std::vector<BoundingBoxf3> &          boxes,
+                                      const std::vector<AssemblePoseTarget> &     targets);
     static int                             s_assemble_volume_ratio;
     static bool                            s_far_from_origin_notification_shown;
     static BoundingBoxf3                   s_bvh_primary_bounds;

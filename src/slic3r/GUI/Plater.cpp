@@ -27701,6 +27701,23 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         }
     }
 
+    // Qualified assembly: assembly rate >= 80, the 3mf already has assembly steps,
+    // and the last step is final assembly. The flag is written into assembly_step.json.
+    {
+        const std::string &steps_json = p->model.get_assembly_steps_json_str();
+        const AssemblyStepsFileMeta steps_meta = p->model.loaded_assembly_steps_meta();
+        // A file already judged at >= 1.2 keeps that flag. Canvas ratio is 0 until the
+        // assembly view rebuilds, so recomputing here would wipe a stored true.
+        if (steps_meta.has_qualified && !assembly_steps_version_needs_recompute(steps_meta.version))
+            store_params.qualified_assembly = steps_meta.qualified;
+        else
+            store_params.qualified_assembly = GLCanvas3D::s_assemble_ratio >= 80
+                && assembly_steps_json_last_step_is_final_assembly(steps_json);
+        BOOST_LOG_TRIVIAL(info) << "export_3mf qualified_assembly=" << store_params.qualified_assembly
+                                << " s_assemble_ratio=" << GLCanvas3D::s_assemble_ratio
+                                << " kept_stored=" << (steps_meta.has_qualified && !assembly_steps_version_needs_recompute(steps_meta.version));
+    }
+
     bool store_result = Slic3r::store_bbs_3mf(store_params);
     // reset designed info
     if (!has_design_info)

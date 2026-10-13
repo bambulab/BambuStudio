@@ -2239,8 +2239,8 @@ void GLCanvas3D::_rebuild_assembly_bvh_from_canvas()
         targets.push_back(std::move(target));
     }
 
-    s_assemble_candidate_volumes_size = (int) volumes.size();
-    if (!s_enable_bvh || volumes.size() <= 1) {
+    if (!s_enable_bvh) {
+        s_assemble_candidate_volumes_size = (int) volumes.size();
         s_isolated_volumes.clear();
         s_bvh_primary_bounds.reset();
         s_bvh_expanded_bounds.reset();
@@ -2251,11 +2251,30 @@ void GLCanvas3D::_rebuild_assembly_bvh_from_canvas()
         return;
     }
 
+    compute_assemble_ratio(volumes, boxes, targets);
+    refresh_isolated_volumes_notification();
+}
+
+int GLCanvas3D::compute_assemble_ratio(const std::vector<GLVolume *> &         volumes,
+                                       const std::vector<BoundingBoxf3> &      boxes,
+                                       const std::vector<AssemblePoseTarget> & targets)
+{
+    s_assemble_candidate_volumes_size = (int) volumes.size();
+    s_isolated_volumes.clear();
+    s_bvh_primary_bounds.reset();
+    s_bvh_expanded_bounds.reset();
+    s_first_primary_bounds.reset();
+    s_assemble_volume_ratio = 0;
+    if (volumes.size() <= 1) {
+        s_assemble_ratio = 0;
+        return 0;
+    }
+
     std::vector<bool> include(volumes.size(), true);
     _filter_assembly_thumbnail_candidates_by_bvh(volumes, boxes, targets, false, true, include);
     s_assemble_ratio = s_assemble_candidate_volumes_size == 0 ? 0
                        : 100 - (int) (s_isolated_volumes.size() * 100 / s_assemble_candidate_volumes_size);
-    refresh_isolated_volumes_notification();
+    return s_assemble_ratio;
 }
 
 void GLCanvas3D::refresh_isolated_volumes_notification()

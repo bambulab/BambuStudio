@@ -3741,6 +3741,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return;
         }
         // NOTE: do NOT deserialize into m_assembly_steps_tree_data here. This handler is invoked from the zip iteration loop in _load_model_from_file, which runs *before* the "assemble objects"
+        // Remember version and qualified_assembly, then strip the flag so a reload
+        // does not look like an assembly-guide edit.
+        m_model->note_loaded_assembly_steps_meta(assembly_steps_json_file_meta(buffer));
+        buffer = assembly_steps_json_with_qualified_assembly(buffer, false);
         m_model->set_assembly_steps_json_str(std::move(buffer));
     }
 
@@ -6574,6 +6578,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool m_skip_auxiliary { false };    // skip normal axuiliary files
         bool m_use_loaded_id { false };        // whether to use loaded id for identify_id
         bool m_share_mesh { false };        // whether to share mesh between objects
+        bool m_qualified_assembly{false};   // stamp qualified_assembly into assembly_step.json
         std::string m_thumbnail_middle = PRINTER_THUMBNAIL_MIDDLE_FILE;
         std::string m_thumbnail_small  = PRINTER_THUMBNAIL_SMALL_FILE;
         std::map<void const *, std::pair<ObjectData*, ModelVolume const *>> m_shared_meshes;
@@ -6675,6 +6680,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_from_backup_save = store_params.strategy & SaveStrategy::Backup;
 
         m_use_loaded_id = store_params.strategy & SaveStrategy::UseLoadedId;
+        m_qualified_assembly = store_params.qualified_assembly;
 
         // Mirrors the "read archive" trace on the load side. Auto-backup saves run on a timer
         // (10 s by default) and share this path, so they are excluded to keep the log readable.
@@ -9488,7 +9494,8 @@ bool _BBS_3MF_Exporter::_add_assembly_stpes_json_file_to_archive(mz_zip_archive 
     const std::string& steps_json_str = model.get_assembly_steps_json_str();
     if (steps_json_str.empty())
         return true;
-    if (!mz_zip_writer_add_mem(&archive, ASSEMBLY_STEP_JSON_FILE.c_str(), steps_json_str.c_str(), steps_json_str.size(),
+    const std::string payload = assembly_steps_json_with_qualified_assembly(steps_json_str, m_qualified_assembly);
+    if (!mz_zip_writer_add_mem(&archive, ASSEMBLY_STEP_JSON_FILE.c_str(), payload.c_str(), payload.size(),
                                MZ_DEFAULT_COMPRESSION)) {
         add_error("Unable to add assembly.json to archive");
         BOOST_LOG_TRIVIAL(error) << boost::format("store assembly.json to 3mf, length %1%, failed\n") % steps_json_str.size();

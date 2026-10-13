@@ -119,6 +119,7 @@ Model& Model::assign_copy(const Model &rhs)
     this->m_assembly_steps_tree_data = rhs.m_assembly_steps_tree_data;
     this->m_assembly_steps_json_str = rhs.m_assembly_steps_json_str;
     this->m_assembly_model_json_str = rhs.m_assembly_model_json_str;
+    this->m_loaded_assembly_steps_meta = rhs.m_loaded_assembly_steps_meta;
     this->texture_mesh = rhs.texture_mesh;
 
     return *this;
@@ -176,6 +177,7 @@ Model& Model::assign_copy(Model &&rhs)
     this->m_assembly_steps_tree_data = std::move(rhs.m_assembly_steps_tree_data);
     this->m_assembly_steps_json_str  = std::move(rhs.m_assembly_steps_json_str);
     this->m_assembly_model_json_str  = std::move(rhs.m_assembly_model_json_str);
+    this->m_loaded_assembly_steps_meta = std::move(rhs.m_loaded_assembly_steps_meta);
 
     return *this;
 }
@@ -209,6 +211,7 @@ void Model::clear_assembly_artifacts()
     m_assembly_steps_tree_data.clear();
     m_assembly_steps_json_str.clear();
     m_assembly_model_json_str.clear();
+    m_loaded_assembly_steps_meta = {};
 }
 
 Model::~Model()
@@ -1240,6 +1243,7 @@ void Model::load_from(Model& model)
     m_assembly_steps_tree_data = model.m_assembly_steps_tree_data;
     m_assembly_steps_json_str = model.m_assembly_steps_json_str;
     m_assembly_model_json_str = model.m_assembly_model_json_str;
+    m_loaded_assembly_steps_meta = model.m_loaded_assembly_steps_meta;
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
@@ -4029,6 +4033,12 @@ BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, b
 
 BoundingBoxf3 ModelInstance::transform_bounding_box_in_assembly_view(const BoundingBoxf3 &bbox, bool dont_translate) const {
     return bbox.transformed(get_assemble_transformation().get_matrix());
+}
+
+BoundingBoxf3 ModelInstance::transform_bounding_box_in_assembly_view(const ModelVolume &volume) const
+{
+    const Transform3d world = get_assemble_transformation().get_matrix() * volume.get_assemble_transformation().get_matrix();
+    return volume.mesh().bounding_box().transformed(world);
 }
 
 Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
