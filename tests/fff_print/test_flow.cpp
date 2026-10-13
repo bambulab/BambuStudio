@@ -6,6 +6,7 @@
 #include "test_data.hpp" // get access to init_print, etc
 
 #include "libslic3r/Config.hpp"
+#include "libslic3r/Calib.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/GCodeReader.hpp"
@@ -14,6 +15,32 @@
 
 using namespace Slic3r::Test;
 using namespace Slic3r;
+
+TEST_CASE("Max volumetric speed calibration respects the layer-height limit", "[Flow][Calib]")
+{
+    struct TestCase {
+        double nozzle_diameter;
+        double expected_layer_height;
+    };
+
+    const TestCase test_cases[] = {
+        {0.4, 0.32},
+        {0.6, 0.48},
+        {0.8, 0.60},
+    };
+
+    for (const TestCase &test_case : test_cases) {
+        const double layer_height = max_volumetric_speed_calibration_layer_height(test_case.nozzle_diameter);
+        const double line_width   = test_case.nozzle_diameter * 1.75;
+        const Flow   flow(line_width, layer_height, test_case.nozzle_diameter);
+        const double target_volumetric_speed = 20.0;
+        const double linear_speed            = target_volumetric_speed / flow.mm3_per_mm();
+
+        CAPTURE(test_case.nozzle_diameter);
+        REQUIRE(layer_height == Approx(test_case.expected_layer_height));
+        REQUIRE(linear_speed * flow.mm3_per_mm() == Approx(target_volumetric_speed));
+    }
+}
 
 SCENARIO("Extrusion width specifics", "[Flow]") {
     GIVEN("A config with a skirt, brim, some fill density, 3 perimeters, and 1 bottom solid layer and a 20mm cube mesh") {

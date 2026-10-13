@@ -21418,7 +21418,7 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
     assert(nozzle_diameter_config->values.size() > 0);
     double nozzle_diameter = nozzle_diameter_config->values[0];
     double line_width      = nozzle_diameter * 1.75;
-    double layer_height    = nozzle_diameter * 0.8;
+    double layer_height    = max_volumetric_speed_calibration_layer_height(nozzle_diameter);
 
     auto max_lh = printer_config->option<ConfigOptionFloatsNullable>("max_layer_height");
     for (size_t i = 0; i < max_lh->values.size(); ++i) {
