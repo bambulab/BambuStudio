@@ -626,6 +626,12 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
     set_property(TARGET libslic3r_cgal PROPERTY CXX_EXTENSIONS OFF)
 endif()
 
+# Apple clang 21 segfaults in the loop vectorizer (VPlanTransforms::narrowInterleaveGroups) on
+# the per-nozzle volume type code. The loops here are not hot, so skip vectorizing these files.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set_source_files_properties(PrintConfig.cpp PresetBundle.cpp PROPERTIES COMPILE_OPTIONS -fno-vectorize)
+endif()
+
 target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
 if(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN)
     # GMP/MPFR usually come with CGAL/DEP, but may not be visible to find_library
