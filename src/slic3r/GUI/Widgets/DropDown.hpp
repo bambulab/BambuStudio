@@ -51,6 +51,8 @@ private:
     bool   align_icon        = false;
     bool   text_off          = false;
     int    max_visible_rows  = 15;
+    bool   count_split_items_in_visible_rows = true;
+    size_t visible_row_limit = 15;
 
     wxSize textSize;
     wxSize iconSize;
@@ -98,6 +100,8 @@ public:
     void SetSelectorBackgroundColor(StateColor const &color);
 
     void SetUseContentWidth(bool use, bool limit_max_content_width = false);
+
+    void SetMaxVisibleRows(int rows, bool count_split_items = true);
 
     void SetAlignIcon(bool align);
 

@@ -375,6 +375,10 @@ void AppConfig::set_defaults()
         set("auto_transfer_when_switch_preset", "true");
     }
 
+    if (get("filament_dropdown_visible_items").empty()) {
+        set("filament_dropdown_visible_items", "15");
+    }
+
     if (get("sync_user_preset").empty()) {
         set_bool("sync_user_preset", false);
     }

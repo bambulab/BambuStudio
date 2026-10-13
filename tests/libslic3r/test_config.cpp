@@ -35,6 +35,24 @@ SCENARIO("Generic config validation performs as expected.", "[Config]") {
     }
 }
 
+SCENARIO("External bridge density has compatible defaults and limits", "[Config][BridgeDensity]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    const ConfigOptionDef *definition = print_config_def.get("bridge_density");
+
+    REQUIRE(definition != nullptr);
+    REQUIRE(definition->min == Approx(10.0));
+    REQUIRE(definition->max == Approx(125.0));
+
+    const ConfigOptionPercent *density = config.option<ConfigOptionPercent>("bridge_density");
+    REQUIRE(density != nullptr);
+    REQUIRE(density->value == Approx(100.0));
+    REQUIRE(density->get_abs_value(1.0) == Approx(1.0));
+
+    config.set_deserialize_strict("bridge_density", "125%");
+    REQUIRE(config.option<ConfigOptionPercent>("bridge_density")->get_abs_value(1.0) == Approx(1.25));
+    REQUIRE(config.validate().empty());
+}
+
 SCENARIO("Config accessor functions perform as expected.", "[Config]") {
     GIVEN("A config generated from default options") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
