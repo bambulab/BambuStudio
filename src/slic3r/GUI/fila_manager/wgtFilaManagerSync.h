@@ -2,6 +2,7 @@
 #define slic3r_wgtFilaManagerSync_h_
 
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -14,12 +15,13 @@ class DevAmsTray;
 namespace Slic3r { namespace GUI {
 
 class wgtFilaManagerStore;
+class wgtFilaManagerUsageTracker;
 struct FilamentSpool;
 
 class wgtFilaManagerSync {
 public:
     explicit wgtFilaManagerSync(wgtFilaManagerStore* store);
-    ~wgtFilaManagerSync() = default;
+    ~wgtFilaManagerSync();
 
     bool on_device_update(MachineObject* obj);
     bool sync_all_trays(MachineObject* obj);
@@ -38,6 +40,8 @@ private:
                                      const DevAmsTray&    tray);
 
     wgtFilaManagerStore* m_store;
+    // Estimates usage of non-RFID spools from the cloud print history.
+    std::unique_ptr<wgtFilaManagerUsageTracker> m_usage_tracker;
     std::map<std::string, bool> m_prev_tray_exists;
     std::set<std::string> m_auto_added_rfid_uuids;
     std::map<std::string, std::string> m_pending_badges;
