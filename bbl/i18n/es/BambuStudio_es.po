@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.9\n"
 
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
 msgstr "Es posible que el filamento no sea compatible con la configuración actual de la máquina. Se utilizarán preajustes de filamento genéricos."
@@ -1351,7 +1351,7 @@ msgid "(Moving)"
 msgstr "(Moviéndose)"
 
 msgid "Face and face assembly"
-msgstr "Ensamblaje cara a cara."
+msgstr "Montaje cara a cara."
 
 msgid "Point and point assembly"
 msgstr "Montaje punto a punto."
@@ -2332,7 +2332,7 @@ msgid "Printable"
 msgstr "Imprimible"
 
 msgid "Fix model"
-msgstr "Modelo fijo"
+msgstr "Reparar modelo"
 
 msgid "Export as one STL"
 msgstr "Exportar como un STL"
@@ -3129,7 +3129,7 @@ msgid "Parts"
 msgstr "Pieza"
 
 msgid "Aux"
-msgstr "aux"
+msgstr "Aux"
 
 msgid "Nozzle1"
 msgstr "Boquilla1"
@@ -3780,10 +3780,10 @@ msgid "Please check the printer network connection."
 msgstr "Por favor, comprueba la conexión de red de la impresora."
 
 msgid "Abnormal print file data. Please slice again."
-msgstr "Datos anormales del archivo de impresión. Por favor, procese de nuevo"
+msgstr "Datos anormales del archivo de impresión. Por favor, procese de nuevo."
 
 msgid "Task canceled."
-msgstr "Tarea cancelada"
+msgstr "Tarea cancelada."
 
 msgid "Upload task timed out. Please check the network status and try again."
 msgstr "Se ha agotado el tiempo de carga. Compruebe el estado de la red e inténtelo de nuevo."
@@ -3792,10 +3792,10 @@ msgid "Cloud service connection failed. Please try again."
 msgstr "Ha fallado la conexión con el servicio de la nube. Por favor, inténtelo de nuevo."
 
 msgid "Print file not found. please slice again."
-msgstr "No se ha encontrado el archivo de impresión, por favor, vuelva a procesarlo"
+msgstr "No se ha encontrado el archivo de impresión, por favor, vuelva a laminarlo."
 
 msgid "The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again."
-msgstr "El archivo de impresión supera el tamaño máximo permitido (1GB). Por favor, simplifique el modelo y vuelva a procesarlo"
+msgstr "El archivo de impresión supera el tamaño máximo permitido (1GB). Por favor, simplifique el modelo y vuelva a laminarlo."
 
 msgid "Failed to send the print job. Please try again."
 msgstr "No se pudo enviar la impresión. Vuelve a intentarlo."
@@ -10397,7 +10397,7 @@ msgid "Task canceled"
 msgstr "Tarea cancelada"
 
 msgid "Bambu Cool Plate"
-msgstr "Placa frío Bambu"
+msgstr "Placa fría Bambu"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Placa de Ingenieria Bambu"
@@ -10412,7 +10412,7 @@ msgid "Bamabu Textured PEI Plate"
 msgstr "Placa PEI texturizada Bambu"
 
 msgid "Bambu Cool Plate SuperTack"
-msgstr "Placa enfriamiento de Bambu SuperTack"
+msgstr "Placa fría de Bambu SuperTack"
 
 msgid "Send print job"
 msgstr "Enviar trabajo de impresión"
@@ -10705,7 +10705,7 @@ msgid "The filament in auto refill groups %s may be insufficient for this print.
 msgstr ""
 
 msgid "Cool"
-msgstr "Genial"
+msgstr "Fría"
 
 msgid "Engineering"
 msgstr "Ingeniería"
@@ -10714,7 +10714,7 @@ msgid "High Temp"
 msgstr "Temperatura alta"
 
 msgid "Cool(Supertack)"
-msgstr "Genial (Supertack)"
+msgstr "Fría (Supertack)"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Haga clic aquí si no puede conectarse a la impresora"
@@ -11257,7 +11257,7 @@ msgid "Print temperature"
 msgstr "Temperatura de impresión"
 
 msgid "Bed temperature when cool plate is installed. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
-msgstr "La temperatura de la cama cuando se instala la placa de enfriamiento. El valor 0 significa que el filamento no admite la impresión en la placa Bambu Cool (SuperTack)."
+msgstr "La temperatura de la cama cuando se instala la placa de enfriamiento. El valor 0 significa que el filamento no admite la impresión en la placa Fría Bambu (SuperTack)."
 
 msgid "Cool Plate"
 msgstr "Placa fría"
@@ -13586,7 +13586,7 @@ msgid "Initial layer bed temperature"
 msgstr "Temperatura inicial de la capa"
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the Bambu Cool Plate SuperTack"
-msgstr "Temperatura de la cama de la capa inicial. Un valor de 0 significa que el filamento no admite la impresión en la placa Bambu Cool SuperTack."
+msgstr "Temperatura de la cama de la capa inicial. Un valor de 0 significa que el filamento no admite la impresión en la placa Fría Bambu SuperTack."
 
 msgid "Bed temperature of the initial layer. Value 0 means the filament does not support to print on the Cool Plate"
 msgstr "Esta es la temperatura de la cama de la capa inicial. Un valor de 0 significa que el filamento no admite la impresión en la placa fría."
@@ -19339,8 +19339,7 @@ msgstr ""
 "Divide tus impresiones en planchas\n"
 "¿Sabías que puedes dividir un modelo con muchas piezas en placas individuales listas para imprimir? Esto simplificará el proceso de seguimiento de todas las piezas."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -19412,8 +19411,7 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno dispersa más alta para mejorar la resistencia del modelo?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door
-#: opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -19437,8 +19435,7 @@ msgstr ""
 "Contracción del filamento\n"
 "Los filamentos como %s presentan tasas de contracción más elevadas, lo que puede provocar ligeras desviaciones dimensionales tras el enfriamiento y afectar al ajuste del ensamblaje. Se recomienda consultar la Wiki de calibración de la contracción para obtener resultados de impresión más precisos."
 
-#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
-#: materials) Like a Pro]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced materials) Like a Pro]
 msgid ""
 "Run Nylon & PC (and other advanced materials) Like a Pro\n"
 "Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
@@ -19446,8 +19443,7 @@ msgstr ""
 "Imprima Nylon y PC (y otros materiales avanzados) como un profesional\n"
 "¿Imprimiendo Nylon 612, policarbonato u otros materiales avanzados? Helio le ayuda a evitar el fallo de \"casi funcionó\"."
 
-#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
-#: (Safely)]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster (Safely)]
 msgid ""
 "Make Prints up to 30% Faster (Safely)\n"
 "Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
@@ -19455,15 +19451,13 @@ msgstr ""
 "Realice impresiones hasta un 30 % más rápidas (de forma segura)\n"
 "Obtenga rendimiento real, no un \"modo rápido\" riesgoso. Una impresión que normalmente toma 8 horas podría reducirse a ~5,6 horas."
 
-#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
-#: Tuning]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on Tuning]
 msgid ""
 "Stop Wasting Precious Design Time on Tuning\n"
 "Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
 msgstr "Deje de perder valioso tiempo de diseño ajustando. Menos impresiones de prueba, ajustes más rápidos. En lugar de múltiples pruebas, detecta problemas y acierte a la primera."
 
-#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
-#: advanced materials]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other advanced materials]
 msgid ""
 "Cut Warping on ASA/ABS and other advanced materials\n"
 "Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
