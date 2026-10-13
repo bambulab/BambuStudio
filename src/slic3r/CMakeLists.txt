@@ -813,14 +813,18 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
     FIND_LIBRARY(WAYLAND_CLIENT_LIBRARIES NAMES wayland-client)
     find_package(CURL REQUIRED)
-    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES} OSMesa)
+    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES})
     target_link_libraries(libslic3r_gui
-        OpenGL::EGL
         ${WAYLAND_SERVER_LIBRARIES}
         ${WAYLAND_EGL_LIBRARIES}
         ${WAYLAND_CLIENT_LIBRARIES}
         ${CURL_LIBRARIES}
     )
+    
+    # Link EGL for headless rendering if enabled
+    if(SLIC3R_HEADLESS)
+        target_link_libraries(libslic3r_gui OpenGL::EGL)
+    endif()
 elseif (APPLE)
     target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
 endif()
