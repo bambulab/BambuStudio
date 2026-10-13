@@ -6892,7 +6892,12 @@ int CLI::run(int argc, char **argv)
                                     if (!per_slot_nozzle_options_consistent(m_print_config)) {
                                         // 旧工程缺少完整逐槽布局时，仍按代表喷嘴类型和聚合统计兜底。
                                         for (size_t eid = 0; eid < new_nozzle_volume_type.size(); ++eid) {
-                                            nozzle_stats_obj.on_volume_type_switch(eid, new_nozzle_volume_type[eid]);
+                                            // 单挤出机多喷嘴结构按目标流量类型保留已有数量，避免合并计算不同类型的物理喷嘴。
+                                            if (is_single_ext_multi_nozzle(m_print_config))
+                                                nozzle_stats_obj.on_volume_type_switch(eid, new_nozzle_volume_type[eid]);
+                                            // 常规挤出机结构保留喷嘴总数，再清空旧统计并写入 CLI 指定的流量类型。
+                                            else if (new_nozzle_volume_type[eid] != nvtHybrid)
+                                                nozzle_stats_obj.set_extruder_nozzle_count(eid, new_nozzle_volume_type[eid], nozzle_stats_obj.get_extruder_nozzle_count(eid, std::nullopt), true);
                                         }
 
                                         const std::string diameter_str   = m_print_config.opt_string("printer_variant");
