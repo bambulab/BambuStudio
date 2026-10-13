@@ -1094,7 +1094,7 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
         }
         else
         {
-            bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+            bool use_12h_format = wxGetApp().app_config->get_bool("use_12h_time_format");
             std::string time_str = Slic3r::format_time_hm(local_tm, use_12h_format);
 
             msg += wxString::Format(_T(" <%02d-%02d %s>"),
