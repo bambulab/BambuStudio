@@ -1225,10 +1225,13 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
         lt.has_wipe_tower = config.enable_wrapping_detection;
     }
 
-    //FIXME this is a hack to get the ball rolling.
-    for (LayerTools &lt : m_layer_tools)
-        lt.has_wipe_tower |= ((lt.has_object || lt.has_support) && (config.timelapse_type == TimelapseType::tlSmooth || lt.wipe_tower_partitions > 0))
-            || lt.print_z < object_bottom_z + EPSILON;
+    for (LayerTools &lt : m_layer_tools) {
+        const bool tower_needed = config.timelapse_type == TimelapseType::tlSmooth || lt.wipe_tower_partitions > 0;
+        // Below the object bottom sit raft layers and, with multi-diameter adaptive merging, empty grid layers
+        // swallowed by the first band. They only carry the tower down to the bed when a tower is needed at all;
+        // wipe_tower_partitions was propagated downwards above, so any tool change higher up reaches them.
+        lt.has_wipe_tower |= (lt.has_object || lt.has_support || lt.print_z < object_bottom_z + EPSILON) && tower_needed;
+    }
 
     // Test for a raft, insert additional wipe tower layer to fill in the raft separation gap.
     for (size_t i = 0; i + 1 < m_layer_tools.size(); ++ i) {

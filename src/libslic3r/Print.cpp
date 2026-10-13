@@ -4264,6 +4264,11 @@ void Print::_make_wipe_tower()
     // Generate the wipe tower layers.
     m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
     wipe_tower.generate_new(m_wipe_tower_data.tool_changes);
+    // generate_new() keeps an empty slot per planned layer for G-code indexing. A tower with no content at all
+    // must still leave tool_changes empty, which consumers read as "no wipe tower was generated".
+    if (std::all_of(m_wipe_tower_data.tool_changes.begin(), m_wipe_tower_data.tool_changes.end(),
+                    [](const std::vector<WipeTower::ToolChangeResult> &layer) { return layer.empty(); }))
+        m_wipe_tower_data.tool_changes.clear();
     m_wipe_tower_data.depth = wipe_tower.get_depth();
     m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
     m_wipe_tower_data.bbx = wipe_tower.get_bbx();
