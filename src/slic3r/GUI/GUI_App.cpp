@@ -1673,6 +1673,13 @@ static std::string decode(std::string const& extra, std::string const& path = {}
 
 int GUI_App::download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
+#ifdef FULLY_OPEN_BUILD
+    // Fully-open build: closed-source binary add-on packages (the network
+    // plugin and cameratools) are never downloaded. The open-source
+    // replacement is built from source and bundled with the application.
+    BOOST_LOG_TRIVIAL(warning) << "[download_plugin] disabled in fully-open build, package: " << package_name;
+    return -1;
+#endif
     int result = 0;
     json j;
     std::string err_msg;
@@ -1863,6 +1870,12 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
 
 int GUI_App::install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
+#ifdef FULLY_OPEN_BUILD
+    // Fully-open build: installing downloaded binary packages is disabled;
+    // the open-source replacement is bundled with the application.
+    BOOST_LOG_TRIVIAL(warning) << "[install_plugin] disabled in fully-open build, package: " << package_name;
+    return -1;
+#endif
     bool cancel = false;
     std::string target_file_path = (fs::temp_directory_path() / package_name).string();
 
@@ -2075,6 +2088,12 @@ void GUI_App::remove_old_networking_plugins()
 
 int GUI_App::updating_bambu_networking()
 {
+#ifdef FULLY_OPEN_BUILD
+    // Fully-open build: nothing to download; the open-source network plugin
+    // is bundled with the application.
+    BOOST_LOG_TRIVIAL(warning) << "updating_bambu_networking is disabled in fully-open build";
+    return 0;
+#endif
     DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
     dlg.ShowModal();
     return 0;
@@ -3778,6 +3797,12 @@ void GUI_App::open_new_official_filament_hint(const std::string& ams_id, const s
 
 void GUI_App::copy_network_if_available()
 {
+#ifdef FULLY_OPEN_BUILD
+    // Fully-open build: never copy a downloaded closed-source plugin package
+    // from the OTA cache into the live plugins directory.
+    BOOST_LOG_TRIVIAL(info) << "copy_network_if_available is disabled in fully-open build";
+    return;
+#endif
     if (app_config->get("update_network_plugin") != "true")
         return;
     std::string data_dir_str = data_dir();
@@ -5093,7 +5118,13 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 }
             }
             else if (command_str.compare("begin_network_plugin_download") == 0) {
+#ifdef FULLY_OPEN_BUILD
+                // Fully-open build: the network plug-in is bundled with the
+                // application; there is nothing to download.
+                BOOST_LOG_TRIVIAL(warning) << "begin_network_plugin_download ignored in fully-open build";
+#else
                 CallAfter([this] { wxGetApp().ShowDownNetPluginDlg(); });
+#endif
             }
             else if (command_str.compare("get_web_shortcut") == 0) {
                 if (root.get_child_optional("key_event") != boost::none) {

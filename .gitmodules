@@ -1,0 +1,3 @@
+[submodule "open-bamboo-networking"]
+	path = open-bamboo-networking
+	url = https://github.com/ClusterM/open-bamboo-networking.git
