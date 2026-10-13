@@ -1010,6 +1010,7 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     m_guide_title_label = new Label(parent, _L("Please remove and store the filament (as shown)."));
     m_guide_title_label->SetForegroundColour(*wxBLACK);
     m_guide_title_label->SetFont(Label::Head_18);
+    m_guide_title_label->Wrap(FromDIP(300)); // Wrap text to fit within panel
     info_section->Add(m_guide_title_label, 0, wxEXPAND | wxALL, FromDIP(5));
 
     // Part 2: Description
@@ -1022,6 +1023,27 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     // Part 3: filament panel
     wxBoxSizer* fila_section = create_guide_info_filament(parent);
     info_section->Add(fila_section, 0, wxEXPAND | wxALL, FromDIP(5));
+
+    // Part 4: Circular toggle with description
+    wxBoxSizer* toggle_section = new wxBoxSizer(wxHORIZONTAL);
+
+    m_rotate_spool_toggle = new wxCheckBox(parent, wxID_ANY, "");
+    m_rotate_spool_toggle->SetValue(false);
+
+    m_rotate_spool_toggle->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
+        bool is_checked = event.IsChecked();
+        // Add toggle behavior logic here
+    });
+
+    toggle_section->Add(m_rotate_spool_toggle, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
+
+    // Toggle description
+    m_rotate_spool_toggle_description = new Label(parent, _L("Rotate spool when drying"), LB_AUTO_WRAP);
+    m_rotate_spool_toggle_description->SetForegroundColour(*wxBLACK);
+    m_rotate_spool_toggle_description->SetFont(Label::Body_12);
+    toggle_section->Add(m_rotate_spool_toggle_description, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
+
+    info_section->Add(toggle_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
     return info_section;
 }
@@ -1131,6 +1153,9 @@ void AMSDryCtrWin::start_sending_drying_command()
     }
 
     bool rotate_spool = false;
+    // Types without auto-retract cannot rotate the spool; never ask the
+    // firmware to, even if the (hidden) toggle somehow retained a value.
+    rotate_spool = m_can_auto_retract && m_rotate_spool_toggle->GetValue();
 
     fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), 0, get_drying_filament_type_for_command(m_tray_ids[tray_index]),
         temperature, time, rotate_spool, cooling_temp, false);
@@ -1933,6 +1958,11 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
     m_ams_filament_panel->Clear();
     m_ams_filament_panel->SetAmsName(dev_ams->GetDisplayName());
 
+    if (m_rotate_spool_toggle && m_rotate_spool_toggle_description) {
+        m_rotate_spool_toggle->Show(m_can_auto_retract);
+        m_rotate_spool_toggle_description->Show(m_can_auto_retract);
+    }
+
     // Get the temperature input value
     long input_temp = 0;
     bool valid_temp = !m_temperature_input->GetValue().IsEmpty() &&
@@ -1981,15 +2011,23 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
     }
 
     if (can_start) {
-        m_guide_title_label->SetLabel(_L("For better drying results, remove the filament and allow it to rotate."));
-        m_guide_description_label->SetLabel(_L("The AMS will automatically rotate the stored filament slots to enhance the drying performance.") +
-            "\n" + _L("Alternatively, you can dry the filament without removing it.") +
-            "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
+        if (m_can_auto_retract) {
+            m_guide_title_label->SetLabel(_L("For better drying results, remove the filament and allow it to rotate."));
+            m_guide_description_label->SetLabel(_L("The AMS will automatically rotate the stored filament slots to enhance the drying performance.") +
+                "\n" + _L("Alternatively, you can dry the filament without removing it.") +
+                "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
+        } else {
+            m_guide_title_label->SetLabel(_L("For better drying results, remove the filament."));
+            m_guide_description_label->SetLabel(_L("Alternatively, you can dry the filament without removing it.") +
+                "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
+        }
+        m_guide_title_label->Wrap(FromDIP(300));
         m_guide_description_label->Wrap(FromDIP(300));
     } else {
         m_guide_title_label->SetLabel(_L("Please store the filament marked with an exclamation mark."));
         m_guide_description_label->SetLabel(_L("Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU.") +
             "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
+        m_guide_title_label->Wrap(FromDIP(300));
         m_guide_description_label->Wrap(FromDIP(300));
     }
 
@@ -2245,6 +2283,8 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
         close_once();
         return;
     }
+
+    m_can_auto_retract = devAmsTypeUtil::CanAutoRetract(dev_ams->GetAmsType());
 
     update_ams_change(dev_ams);
 

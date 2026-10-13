@@ -162,6 +162,7 @@ private:
     Label* m_guide_description_label{nullptr};
 
     wxCheckBox* m_rotate_spool_toggle{nullptr};
+    Label* m_rotate_spool_toggle_description{nullptr};
 
     wxPanel* m_progress_page;
     ProgressBar* m_progress_gauge;
@@ -193,6 +194,8 @@ private:
 
     bool m_is_ams_changed = false;
     bool m_is_closing      = false;
+
+    bool m_can_auto_retract = false;
     std::weak_ptr<DevFilaSystem> m_fila_system;
     struct {
         std::string m_ams_id;
