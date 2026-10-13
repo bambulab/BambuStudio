@@ -11,6 +11,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
@@ -145,6 +146,16 @@ bool resolve_slot(const nlohmann::json& task, const nlohmann::json& detail, int&
         return true;
     }
     return false;
+}
+
+// Material type ("ASA", "PLA", ...) of the filament preset with this id, or
+// empty when no loaded preset carries it.
+std::string filament_type_of(const std::string& filament_id)
+{
+    auto* bundle = wxGetApp().preset_bundle;
+    if (!bundle || filament_id.empty()) return {};
+    auto info = bundle->get_filament_by_filament_id(filament_id);
+    return info ? info->filament_type : std::string();
 }
 
 const DevAmsTray* find_tray(MachineObject* obj, int ams_id, int slot_id)
@@ -415,8 +426,17 @@ void wgtFilaManagerUsageTracker::on_tasks_fetched(const std::string& dev_id, boo
             if (!tray || !tray->is_exists) { skip("slot is empty now"); continue; }
             if (printer_reports_remaining(*tray, external)) { skip("printer reports remaining for this spool"); continue; }
             if (!u.filament_id.empty() && !tray->setting_id.empty() && u.filament_id != tray->setting_id) {
-                skip("slot filament changed since the print (" + u.filament_id + " -> " + tray->setting_id + ")");
-                continue;
+                // Two presets for the same spool (e.g. a renamed copy of Generic ASA
+                // and a custom-vendor ASA) carry different ids. Only a change of
+                // material means a different spool; the colour check below still
+                // catches a swap to another spool of the same material.
+                const std::string was = filament_type_of(u.filament_id);
+                const std::string now = tray->m_fila_type.empty() ? filament_type_of(tray->setting_id) : tray->m_fila_type;
+                if (was.empty() || now.empty() || !boost::iequals(was, now)) {
+                    skip("slot filament changed since the print (" + u.filament_id + " -> " + tray->setting_id + ")");
+                    continue;
+                }
+                e["preset_changed"] = u.filament_id + " -> " + tray->setting_id + " (same material " + now + ")";
             }
             if (!u.color.empty() && !tray->color.empty() && norm_color(u.color) != norm_color(tray->color)) {
                 skip("slot colour changed since the print");
