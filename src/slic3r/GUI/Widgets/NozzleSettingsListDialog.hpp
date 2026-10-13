@@ -15,7 +15,7 @@ namespace Slic3r::GUI {
 class DiameterButtonPanel;
 class NozzleColumn;
 
-// Editable per-extruder nozzle configuration dialog.
+// Editable nozzle configuration dialog for dual-extruder printers with a nozzle rack.
 //
 // Seeded from the caller's maintained in-memory configs (NOT re-collected from a
 // MachineObject): the machine may be absent/disconnected, and the user may have
@@ -26,14 +26,13 @@ class NozzleSettingsListDialog : public DPIDialog
 {
 public:
     NozzleSettingsListDialog(wxWindow                        *parent,
-                           bool                             is_dual,
                            const wxString                  &selected_diameter,
                            const std::vector<NozzleConfig> &left_configs,
-                           const std::vector<NozzleConfig> &right_configs   = {},
+                           const std::vector<NozzleConfig> &right_configs,
                            CustomSeparator::State           separator_state = CustomSeparator::State::Hidden);
 
     wxString                  GetSelectedDiameter() const;
-    std::vector<NozzleConfig> GetExtruderConfigs(int index) const; // 0 = left/single, 1 = right
+    std::vector<NozzleConfig> GetExtruderConfigs(int index) const; // 0 = left, 1 = right
 
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
@@ -49,8 +48,6 @@ private:
     void on_ams_count_changed(); // relayout/grow when a column's AMS preview count changes
     void show_badge(bool show);  // machine-wide synced badge (all extruders synced)
     void layout_badge();
-
-    bool m_is_dual{false};
 
     // What the printer reported when this dialog opened. The synced badge shows only when the
     // printer is synced AND the edited configs still match it, slot-for-slot.

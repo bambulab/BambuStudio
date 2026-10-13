@@ -49,6 +49,21 @@ wxString format_nozzle_spec(const NozzleConfig &cfg)
     return cfg.diameter + "mm " + flow_label;
 }
 
+NozzleLayout nozzle_layout_of(const ConfigBase &printer_config)
+{
+    const auto *variants   = printer_config.option<ConfigOptionStrings>("extruder_variant_list");
+    const auto *max_counts = printer_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    const bool  dual       = variants != nullptr && variants->size() == 2;
+    const bool  rack       = max_counts != nullptr && std::any_of(max_counts->values.begin(), max_counts->values.end(), [](int count) { return count > 1; });
+    if (dual)
+        return rack ? NozzleLayout::DualExtruderRack : NozzleLayout::DualExtruder;
+    return rack ? NozzleLayout::SingleExtruderRack : NozzleLayout::SingleExtruder;
+}
+
+bool is_dual_extruder(NozzleLayout layout) { return layout == NozzleLayout::DualExtruder || layout == NozzleLayout::DualExtruderRack; }
+
+bool has_nozzle_rack(NozzleLayout layout) { return layout == NozzleLayout::DualExtruderRack || layout == NozzleLayout::SingleExtruderRack; }
+
 std::string slot_name(MachineObject *obj, int ams_id, int slot_id)
 {
     const auto &units = obj->GetFilaSystem()->GetAmsList();

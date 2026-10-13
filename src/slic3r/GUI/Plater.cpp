@@ -966,9 +966,12 @@ struct Sidebar::priv
     std::shared_ptr<int> counter_sync_printer = std::make_shared<int>();
     wxTimer *            timer_sync_printer = new wxTimer();
     // Printer - ams
+    // left/right_extruder serve dual-extruder printers with one nozzle per extruder;
+    // dual-extruder printers with a nozzle rack use dual_panel instead.
     ExtruderGroup *left_extruder = nullptr;
     ExtruderGroup *right_extruder = nullptr;
     ExtruderGroup *single_extruder = nullptr;
+    wxBoxSizer    *hsizer_extruder = nullptr;
     bool                      extruder_panel_update_pending = false;
     std::vector<NozzleConfig> l_ext_cfg;
     std::vector<NozzleConfig> r_ext_cfg;
@@ -1001,7 +1004,7 @@ struct Sidebar::priv
     std::optional<MultiNozzleAutoProcessCache> m_process_auto_cache;
 
     int  FromDIP(int n) { return plater->FromDIP(n); }
-    void layout_printer(bool isBBL, bool isDual, bool isMultiNozzle);
+    void layout_printer(bool isBBL, NozzleLayout layout);
     void update_extruder_panel();
     void open_extruder_settings_dialog(const wxString &preselect_diameter = wxString());
     bool apply_multi_nozzle_diameter_mode(bool enabled);
@@ -1173,11 +1176,44 @@ struct Sidebar::priv
     bool sync_extruder_list(bool &only_external_material, bool is_manual = false);
     void sync_extruder_volume_type(MachineObject *obj, std::optional<float> synced_diameter, int extruder_nums);
 
-    bool switch_diameter(bool single);
+    /**
+     * \brief Switch the printer preset to the given nozzle diameter
+     *
+     * \return false if no preset matches or the switch was rejected
+     */
+    bool switch_diameter(const wxString &diameter);
+    /**
+     * \brief Diameter picked on the left/right extruder groups
+     *
+     * Asks the user to pick one side when the two differ, as a print uses a single diameter.
+     *
+     * \return the diameter to switch to, or nothing if the user cancelled
+     */
+    std::optional<wxString> resolve_dual_diameter();
+    /**
+     * \brief Pick the diameter to print with from each extruder's synced nozzle
+     *
+     * Asks the user to pick one side when the two differ. The groups show the synced nozzles
+     * meanwhile; call show_preset_diameter_on_dual_groups() once the switch is done.
+     *
+     * \param nozzle_diameters  diameter of the nozzle mounted on each extruder
+     * \return the diameter to switch to, or nothing to keep the current preset
+     */
+    std::optional<wxString> sync_dual_extruder_diameters(const std::vector<float> &nozzle_diameters);
+    /**
+     * \brief Point the left/right extruder groups at the printer preset's diameter
+     *
+     * A print uses one diameter, so both groups mirror the preset. Call after every diameter switch
+     * attempt: switching to the current preset is a no-op that does not refresh the sidebar.
+     */
+    void show_preset_diameter_on_dual_groups();
+    void create_dual_extruder_groups();
+    void update_dual_extruder_titles(const std::string &printer_type);
     void update_sync_status(const MachineObject* obj);
     void adjust_filament_title_layout();
     bool is_fila_switch_ready();
     void update_extruder_separator_icon(bool show, bool ready);
+    void position_extruder_separator_icon();
     void show_fila_switch_msg(bool ready);
 
 #ifdef _WIN32
@@ -1187,10 +1223,9 @@ struct Sidebar::priv
 #endif
 };
 
-void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
+void Sidebar::priv::layout_printer(bool isBBL, NozzleLayout layout)
 {
-    isDual = isDual && isBBL;  // It indicates a multi-extruder layout.
-    const bool supports_multi_diameter = isBBL && !isDual && isMultiNozzle;
+    const bool supports_multi_diameter = isBBL && layout == NozzleLayout::SingleExtruderRack;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     const bool current_multi_diameter_mode =
         multi_nozzle_diameter_mode_enabled(preset_bundle->project_config);
@@ -1258,15 +1293,15 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
         vsizer_printer->AddSpacer(FromDIP(4));
         // Printer - extruder
 
-        // double
-        // hsizer_extruder = new wxBoxSizer(wxHORIZONTAL);
-        //hsizer_extruder->Add(left_extruder->sizer, 1, wxEXPAND, 0);
-        //hsizer_extruder->AddSpacer(FromDIP(4));
-        //hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
-
         // single
         vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
 
+        // double
+        hsizer_extruder = new wxBoxSizer(wxHORIZONTAL);
+        hsizer_extruder->Add(left_extruder->sizer, 1, wxEXPAND, 0);
+        hsizer_extruder->AddSpacer(FromDIP(4));
+        hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
+        vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->AddSpacer(FromDIP(4));
 
         // The host is used by dual-extruder layouts. On a single-extruder multi-nozzle printer the
@@ -1290,18 +1325,23 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
             diameter_btns_host->Add(diameter_btns, 0, wxEXPAND);
     }
     if (wxSizerItem *host_item = vsizer_printer->GetItem(diameter_btns_host))
-        host_item->Show(!supports_multi_diameter);
+        host_item->Show(has_nozzle_rack(layout) && !supports_multi_diameter);
 
     btn_connect_printer->Show(!isBBL);
     btn_sync_printer->Show(isBBL);
     panel_printer_bed->Show(isBBL);
-    vsizer_printer->GetItem(2)->Show(isBBL && !isDual && !isMultiNozzle);
+    // One nozzle per extruder: diameter and flow are picked on the extruder groups.
+    // A nozzle rack: the nozzle panels and the diameter buttons take over.
+    vsizer_printer->Show(single_extruder->sizer, isBBL && layout == NozzleLayout::SingleExtruder);
+    vsizer_printer->Show(hsizer_extruder, isBBL && layout == NozzleLayout::DualExtruder);
 
-    diameter_btns->Show(isBBL && (isDual || isMultiNozzle));
+    diameter_btns->Show(isBBL && has_nozzle_rack(layout));
     // The single-/multi-diameter mode selector belongs to single-extruder multi-nozzle printers only.
     diameter_btns->ShowModeSelector(supports_multi_diameter);
-    dual_panel->Show(isBBL && isDual);
-    single_panel->Show(isBBL && !isDual && isMultiNozzle);
+    dual_panel->Show(isBBL && layout == NozzleLayout::DualExtruderRack);
+    single_panel->Show(isBBL && layout == NozzleLayout::SingleExtruderRack);
+    if (!vsizer_printer->IsShown(hsizer_extruder))
+        update_extruder_separator_icon(false, false);
 }
 
 void Sidebar::priv::flush_printer_sync(bool restart)
@@ -1417,6 +1457,8 @@ bool Sidebar::priv::is_fila_switch_ready()
 void Sidebar::priv::update_extruder_separator_icon(bool show, bool ready)
 {
     if (!extruder_separator_icon) return;
+    // The icon sits between the left/right extruder groups, so it has no place in other layouts.
+    show = show && vsizer_printer && vsizer_printer->IsShown(hsizer_extruder);
     static bool last_show = false;
     static bool last_ready = false;
     static bool first_call = true;
@@ -1434,18 +1476,7 @@ void Sidebar::priv::update_extruder_separator_icon(bool show, bool ready)
         return;
     }
     if (show) {
-        wxPoint left_box_pos = left_extruder->GetPosition();
-        wxSize  left_box_size = left_extruder->GetSize();
-        wxPoint ams_local_pos = left_extruder->hsizer_ams->GetPosition();
-        wxSize  left_size = left_extruder->sizer->GetSize();
-        wxSize  ams_size = left_extruder->hsizer_ams->GetSize();
-        wxSize  icon_size = extruder_separator_icon->GetSize();
-        int ams_abs_y = left_box_pos.y + ams_local_pos.y + FromDIP(4);
-        int     center_x  = left_size.GetWidth() + FromDIP(6);
-        int     center_y  = ams_abs_y + (ams_size.GetHeight() - icon_size.GetHeight()) / 2;
-        center_x -= icon_size.GetWidth() / 2;
-        center_y -= icon_size.GetHeight() / 2;
-        extruder_separator_icon->SetPosition(wxPoint(center_x, center_y));
+        position_extruder_separator_icon();
 
         auto normal_bitmap = ScalableBitmap(m_panel_printer_content, "fila_switch", 10);
         auto error_bitmap  = ScalableBitmap(m_panel_printer_content, "fila_switch_error", 10);
@@ -1463,6 +1494,22 @@ void Sidebar::priv::update_extruder_separator_icon(bool show, bool ready)
     }
 
     m_panel_printer_content->Refresh();
+}
+
+void Sidebar::priv::position_extruder_separator_icon()
+{
+    // The icon overlaps the gap between the two groups, centred on the AMS row, which a sizer cannot express.
+    wxPoint left_box_pos  = left_extruder->GetPosition();
+    wxPoint ams_local_pos = left_extruder->hsizer_ams->GetPosition();
+    wxSize  left_size     = left_extruder->sizer->GetSize();
+    wxSize  ams_size      = left_extruder->hsizer_ams->GetSize();
+    wxSize  icon_size     = extruder_separator_icon->GetSize();
+    int     ams_abs_y     = left_box_pos.y + ams_local_pos.y + FromDIP(4);
+    int     center_x      = left_size.GetWidth() + FromDIP(6);
+    int     center_y      = ams_abs_y + (ams_size.GetHeight() - icon_size.GetHeight()) / 2;
+    center_x -= icon_size.GetWidth() / 2;
+    center_y -= icon_size.GetHeight() / 2;
+    extruder_separator_icon->SetPosition(wxPoint(center_x, center_y));
 }
 
 void Sidebar::priv::show_fila_switch_msg(bool ready)
@@ -1854,6 +1901,8 @@ void Sidebar::priv::update_extruder_panel()
     if (is_dual_extruder) {
         AMSCountPopupWindow::UpdateAMSCount(0, l_extruder_panel);
         AMSCountPopupWindow::UpdateAMSCount(1, r_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
+        AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
         dual_panel->UpdateNozzles(0, l_ext_cfg, diameter);
         dual_panel->UpdateNozzles(1, r_ext_cfg, diameter);
         l_extruder_panel->UpdateScrollButtons();
@@ -2387,8 +2436,11 @@ static std::optional<wxString> common_nozzle_diameter(const std::vector<NozzleCo
 
 void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diameter)
 {
-    auto extruder_variants = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
-    bool is_dual           = extruder_variants && extruder_variants->size() == 2;
+    const NozzleLayout layout = nozzle_layout_of(wxGetApp().preset_bundle->printers.get_edited_preset().config);
+    // Without a rack, nozzles are picked on the sidebar's combo boxes, so there is nothing to edit here.
+    if (!has_nozzle_rack(layout))
+        return;
+    const bool is_dual = is_dual_extruder(layout);
 
     auto diameter = preselect_diameter.IsEmpty() ? diameter_btns->GetSelectedDiameter() : preselect_diameter;
 
@@ -2408,15 +2460,13 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
 
     auto fila_state = is_dual ? dual_panel->GetSeparatorState() : CustomSeparator::State::Hidden;
 
-    // Single-extruder multi-nozzle printers use the card-grid dialog; every other printer uses the list dialog.
-    const bool use_card_dialog = is_single_ext_multi_nozzle(wxGetApp().preset_bundle->printers.get_edited_preset().config);
-
     bool                      accepted = false;
     wxString                  selected_diameter;
     std::vector<NozzleConfig> new_left, new_right, new_single;
     std::optional<bool>       new_multi_diameter_mode; // set only by the card dialog's auto-exit below
     bool                      auto_left_multi_diameter = false;
 
+    const bool use_card_dialog = layout == NozzleLayout::SingleExtruderRack;
     if (use_card_dialog) {
         NozzleSettingsCardDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), diameter, s_ext_cfg);
         accepted = dlg.ShowModal() == wxID_OK;
@@ -2436,16 +2486,12 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             }
         }
     } else {
-        NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), is_dual, diameter, is_dual ? l_ext_cfg : s_ext_cfg, r_ext_cfg, fila_state);
+        NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), diameter, l_ext_cfg, r_ext_cfg, fila_state);
         accepted = dlg.ShowModal() == wxID_OK;
         if (accepted) {
             selected_diameter = dlg.GetSelectedDiameter();
-            if (is_dual) {
-                new_left  = dlg.GetExtruderConfigs(0);
-                new_right = dlg.GetExtruderConfigs(1);
-            } else {
-                new_single = dlg.GetExtruderConfigs(0);
-            }
+            new_left          = dlg.GetExtruderConfigs(0);
+            new_right         = dlg.GetExtruderConfigs(1);
         }
     }
 
@@ -2499,7 +2545,7 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             diameter_btns->SetSelectedDiameter(selected_diameter);
             is_switching_diameter = true;
             wxGetApp().preset_bundle->block_filament_fallback_substitution = true;
-            auto result = switch_diameter(!is_dual);
+            auto result = switch_diameter(selected_diameter);
             if (!result)
                 diameter_btns->SetSelectedDiameter(selected_diameter);
             // Must run the validation/notification pass while the guard flag above is still
@@ -2939,13 +2985,10 @@ void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<DevAms *> con
         update_ams();
 }
 
-bool Sidebar::priv::switch_diameter(bool single)
+bool Sidebar::priv::switch_diameter(const wxString &diameter)
 {
     PERF_TRACE("switch diameter");
 
-    // Dual-extruder and multi-nozzle printers pick the diameter on the shared diameter buttons;
-    // callers select the target button before switching.
-    const wxString diameter = single ? single_extruder->combo_diameter->GetValue() : diameter_btns->GetSelectedDiameter();
     auto preset          = wxGetApp().preset_bundle->get_similar_printer_preset({}, diameter.ToStdString());
     if (preset == nullptr) {
         MessageDialog dlg(this->plater, _L(""), _L(""));
@@ -2954,6 +2997,94 @@ bool Sidebar::priv::switch_diameter(bool single)
     }
     preset->is_visible = true; // force visible
     return wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
+}
+
+void Sidebar::priv::create_dual_extruder_groups()
+{
+    left_extruder  = new ExtruderGroup(m_panel_printer_content, 0, _L("Left Nozzle"));
+    right_extruder = new ExtruderGroup(m_panel_printer_content, 1, _L("Right Nozzle"));
+    left_extruder->SetEditEnabled(false);
+    right_extruder->SetEditEnabled(false);
+
+    auto bitmap             = ScalableBitmap(m_panel_printer_content, "fila_switch", 10);
+    extruder_separator_icon = new wxStaticBitmap(m_panel_printer_content, wxID_ANY, bitmap.bmp(), wxDefaultPosition, bitmap.GetBmpSize());
+    extruder_separator_icon->Hide();
+    extruder_separator_icon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &evt) {
+        show_fila_switch_msg(is_fila_switch_ready());
+        evt.Skip();
+    });
+    left_extruder->Bind(wxEVT_SIZE, [this](wxSizeEvent &evt) {
+        evt.Skip();
+        // The group lays out its children only after this handler, so measure once that is done.
+        left_extruder->CallAfter([this]() {
+            if (!extruder_separator_icon->IsShown())
+                return;
+            position_extruder_separator_icon();
+            m_panel_printer_content->Refresh();
+        });
+    });
+}
+
+void Sidebar::priv::show_preset_diameter_on_dual_groups()
+{
+    const wxString diameter = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+    for (auto group : {left_extruder, right_extruder}) {
+        group->combo_diameter->SetValue(diameter);
+        group->diameter = diameter;
+    }
+}
+
+void Sidebar::priv::update_dual_extruder_titles(const std::string &printer_type)
+{
+    // The left group shows the deputy extruder, the right group the main one.
+    auto title_of = [&printer_type](int extruder_id) {
+        return _L(DevPrinterConfigUtil::get_toolhead_display_name(printer_type, extruder_id, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase));
+    };
+    left_extruder->SetTitle(title_of(DEPUTY_EXTRUDER_ID));
+    right_extruder->SetTitle(title_of(MAIN_EXTRUDER_ID));
+}
+
+std::optional<wxString> Sidebar::priv::resolve_dual_diameter()
+{
+    const wxString diameter_left  = left_extruder->combo_diameter->GetValue();
+    const wxString diameter_right = right_extruder->combo_diameter->GetValue();
+    if (diameter_left == diameter_right)
+        return diameter_left;
+
+    std::string sd_printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    auto sd_left_name  = _L(DevPrinterConfigUtil::get_toolhead_display_name(sd_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase));
+    auto sd_right_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(sd_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase));
+    MessageDialog dlg(this->plater,
+                      _L("The software does not support using different diameter of nozzles for one print.\n"
+                         "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+                         "Please confirm which nozzle you would like to use for this project."),
+                      _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT);
+    dlg.SetButtonLabel(wxID_YES, wxString::Format("%s: %smm", sd_left_name, diameter_left));
+    dlg.SetButtonLabel(wxID_NO, wxString::Format("%s: %smm", sd_right_name, diameter_right));
+    switch (dlg.ShowModal()) {
+    case wxID_YES: return diameter_left;
+    case wxID_NO: return diameter_right;
+    default: return std::nullopt;
+    }
+}
+
+std::optional<wxString> Sidebar::priv::sync_dual_extruder_diameters(const std::vector<float> &nozzle_diameters)
+{
+    // A diameter this printer does not offer leaves the group on the preset's.
+    auto show_diameter = [](ExtruderGroup *group, float diameter) {
+        ComboBox      *combo = group->combo_diameter;
+        const wxString text  = wxString::FromUTF8(get_diameter_string(diameter));
+        for (int i = 0; i < (int) combo->GetCount(); ++i)
+            if (combo->GetString(i).StartsWith(text)) {
+                combo->SetSelection(i);
+                return;
+            }
+        combo->SetValue(group->diameter);
+    };
+    show_diameter(left_extruder, nozzle_diameters[0]);
+    show_diameter(right_extruder, nozzle_diameters[1]);
+
+    return resolve_dual_diameter();
 }
 
 // Write nozzle_volume_type into project_config for every extruder, derived from extruder_full_stat
@@ -3120,8 +3251,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         wanted_diameter = (float) string_to_double_decimal_point(*target_diameters.begin());
     else if (preset_nozzle_diameters != nullptr && !preset_nozzle_diameters->values.empty())
         wanted_diameter = (float) preset_nozzle_diameters->values[0];
+    // One nozzle per extruder: each extruder reports the nozzle it carries, and the user settles a
+    // mismatch below. Keeping the project's diameter would hide the other extruder's nozzle.
+    const bool           one_nozzle_per_extruder = nozzle_layout_of(cur_preset.config) == NozzleLayout::DualExtruder;
     std::optional<float> synced_diameter;
-    for (int index = 0; index < extruder_nums && !synced_diameter; ++index)
+    for (int index = 0; index < extruder_nums && !synced_diameter && !one_nozzle_per_extruder; ++index)
         if (machine_has_nozzle_diameter(obj, index, wanted_diameter))
             synced_diameter = wanted_diameter;
 
@@ -3151,10 +3285,19 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         wxString selected_diameter = wxString::FromUTF8(get_diameter_string(nozzle_diameters[0]));
         l_ext_cfg                  = collect_nozzle_configs_from_machine(obj, LOGIC_L_EXTRUDER_ID, extruder_max_nozzle_count[0]);
         r_ext_cfg                  = collect_nozzle_configs_from_machine(obj, LOGIC_R_EXTRUDER_ID, extruder_max_nozzle_count[1]);
-        update_extruder_full_stats(LOGIC_L_EXTRUDER_ID, selected_diameter, l_ext_cfg);
-        update_extruder_full_stats(LOGIC_R_EXTRUDER_ID, selected_diameter, r_ext_cfg);
 
-        diameter_btns->SetSelectedDiameter(selected_diameter);
+        // One nozzle per extruder: each group shows its own nozzle, and one side is picked when they
+        // differ. A rack: the diameter buttons carry the dominant diameter.
+        std::optional<wxString> target_diameter = selected_diameter;
+        if (one_nozzle_per_extruder)
+            target_diameter = sync_dual_extruder_diameters(nozzle_diameters);
+        else
+            diameter_btns->SetSelectedDiameter(selected_diameter);
+        // The stats count nozzles of the diameter the print will use, which stays the preset's
+        // when the user declined to switch.
+        const wxString stats_diameter = target_diameter.value_or(left_extruder->diameter);
+        update_extruder_full_stats(LOGIC_L_EXTRUDER_ID, stats_diameter, l_ext_cfg);
+        update_extruder_full_stats(LOGIC_R_EXTRUDER_ID, stats_diameter, r_ext_cfg);
         // switch_diameter() -> Tab::select_preset() runs update_compatible(Always) internally, same
         // cascade the single-extruder branch below already guards -- without this, a dual-extruder
         // machine reporting a new diameter here would silently substitute an incompatible filament.
@@ -3162,7 +3305,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         // (see dual_diameter_switched), not reset immediately like is_switching_diameter.
         preset_bundle->block_filament_fallback_substitution = true;
         is_switching_diameter = true;
-        switch_diameter(false);
+        if (target_diameter)
+            switch_diameter(*target_diameter);
+        if (one_nozzle_per_extruder)
+            show_preset_diameter_on_dual_groups();
         is_switching_diameter = false;
         dual_diameter_switched = true;
         AMSCountPopupWindow::SetAMSCount(DEPUTY_EXTRUDER_ID, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
@@ -3170,6 +3316,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
 
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_L_EXTRUDER_ID, l_extruder_panel);
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_R_EXTRUDER_ID, r_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(LOGIC_L_EXTRUDER_ID, left_extruder);
+        AMSCountPopupWindow::UpdateAMSCount(LOGIC_R_EXTRUDER_ID, right_extruder);
     } else {
         int index = find_string(single_extruder->combo_diameter, get_diameter_string(nozzle_diameters[0]));
         assert(index != -1);
@@ -3202,7 +3350,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
 
             is_switching_diameter = true;
             preset_bundle->block_filament_fallback_substitution = true;
-            switch_diameter(true);
+            switch_diameter(single_extruder->combo_diameter->GetValue());
             is_switching_diameter = false;
             single_diameter_switched = true;
         }
@@ -3294,6 +3442,10 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         panel_printer_bed->ShowBadge(false);
         single_extruder->ShowBadge(false);
         single_extruder->sync_ams(nullptr, {}, {});
+        for (auto group : {left_extruder, right_extruder}) {
+            group->ShowBadge(false);
+            group->sync_ams(nullptr, {}, {});
+        }
         l_extruder_panel->sync_ams(nullptr, {}, {}, {}, {});
         r_extruder_panel->sync_ams(nullptr, {}, {}, {}, {});
         dual_panel->ShowBadge(false);
@@ -3444,26 +3596,26 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         bool left_synced = is_extruder_stat_synced(0);
         bool right_synced = is_extruder_stat_synced(1);
         if (left_synced) {
-            //left_extruder->ShowBadge(true);
-            //left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
+            left_extruder->ShowBadge(true);
+            left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
             l_extruder_panel->sync_ams(obj, {}, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
             extruder_synced[0] = true;
         }
         else {
-            //left_extruder->ShowBadge(false);
-            //left_extruder->sync_ams(obj, {}, {});
+            left_extruder->ShowBadge(false);
+            left_extruder->sync_ams(obj, {}, {});
             l_extruder_panel->sync_ams(obj, {}, {}, {}, {});
         }
 
         if (right_synced) {
-            //right_extruder->ShowBadge(true);
-            //right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
+            right_extruder->ShowBadge(true);
+            right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
             r_extruder_panel->sync_ams(obj, {}, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1, machine_extruder_infos[1].ext_v);
             extruder_synced[1] = true;
         }
         else {
-            //right_extruder->ShowBadge(false);
-            //right_extruder->sync_ams(obj, {}, {});
+            right_extruder->ShowBadge(false);
+            right_extruder->sync_ams(obj, {}, {});
             r_extruder_panel->sync_ams(obj, {}, {}, {}, {});
         }
 
@@ -3949,7 +4101,7 @@ Sidebar::Sidebar(Plater *parent)
             auto *preset_bundle = wxGetApp().preset_bundle;
             p->is_switching_diameter = true;
             preset_bundle->block_filament_fallback_substitution = true;
-            auto result = p->switch_diameter(false);
+            auto result = p->switch_diameter(selected_diameter);
             p->is_switching_diameter = false;
             if (!result) {
                 auto previous_diameter = preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
@@ -4036,23 +4188,29 @@ Sidebar::Sidebar(Plater *parent)
         p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
 
         p->single_extruder->SetEditEnabled(false);
+        p->create_dual_extruder_groups();
 
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
+            auto diameter = extruder == p->single_extruder ? std::optional<wxString>(extruder->combo_diameter->GetValue()) : p->resolve_dual_diameter();
             auto *preset_bundle = wxGetApp().preset_bundle;
             p->is_switching_diameter = true;
             preset_bundle->block_filament_fallback_substitution = true;
-            auto result              = p->switch_diameter(extruder == p->single_extruder);
+            auto result              = diameter && p->switch_diameter(*diameter);
             p->is_switching_diameter = false;
-            if (!result)
+            if (extruder != p->single_extruder)
+                p->show_preset_diameter_on_dual_groups();
+            else if (!result)
                 extruder->combo_diameter->SetValue(extruder->diameter);
             refresh_filament_diameter_buttons(true);
             preset_bundle->block_filament_fallback_substitution = false;
         };
         p->single_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);
+        p->left_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);
+        p->right_extruder->combo_diameter->Bind(wxEVT_COMBOBOX, switch_diameter);
 
         p->vsizer_printer = new wxBoxSizer(wxVERTICAL);
-        p->layout_printer(true, true, false);
+        p->layout_printer(true, NozzleLayout::DualExtruder);
         p->m_panel_printer_content->SetSizer(p->vsizer_printer);
         p->m_panel_printer_content->Layout();
         scrolled_sizer->Add(p->m_panel_printer_content, 0, wxEXPAND, 0);
@@ -5262,9 +5420,6 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
         return;
     }
 
-    const auto *extruder_variants =
-        preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
-    const bool is_dual = extruder_variants != nullptr && extruder_variants->size() == 2;
     p->diameter_btns->SetSelectedDiameter(canonical_multi_nozzle_printer_variant());
     // switch_diameter() -> Tab::select_preset() runs PresetBundle::update_compatible(Always)
     // internally, same cascade the sidebar's diameter-switch entry points guard against -- without
@@ -5272,7 +5427,7 @@ void Sidebar::sync_multi_nozzle_mode_from_project()
     // while loading a project that was saved in multi-diameter mode on a different printer_variant.
     preset_bundle->block_filament_fallback_substitution = true;
     p->is_switching_diameter = true;
-    const bool switched = p->switch_diameter(!is_dual);
+    const bool switched = p->switch_diameter(canonical_multi_nozzle_printer_variant());
     p->is_switching_diameter = false;
     preset_bundle->block_filament_fallback_substitution = false;
     if (!switched)
@@ -5615,8 +5770,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
         auto diameter = printer_preset.config.opt_string("printer_variant");
         auto extruder_max_nozzle_count = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-        bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
-        p->layout_printer(isBBL, is_dual_extruder, has_multiple_nozzle);
+        p->layout_printer(isBBL, nozzle_layout_of(printer_preset.config));
         auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter,extruder_max_nozzle_count](ExtruderGroup & extruder, int index) {
             extruder.combo_flow->Clear();
             auto type = extruders_def->enum_labels[extruders->values[index]];
@@ -5706,6 +5860,12 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto image_path = get_cur_select_bed_image(exist);
         if (exist) {
             if (is_dual_extruder) {
+                p->update_dual_extruder_titles(printer_preset.get_printer_type(wxGetApp().preset_bundle));
+                for (auto [group, index] : {std::pair{p->left_extruder, 0}, std::pair{p->right_extruder, 1}}) {
+                    AMSCountPopupWindow::UpdateAMSCount(index, group);
+                    update_extruder_variant(*group, index);
+                    update_extruder_diameter(*group);
+                }
                 update_extruder_config(p->l_ext_cfg, 0);
                 update_extruder_config(p->r_ext_cfg, 1);
                 update_bed_thumbnail(image_path);
@@ -5966,6 +6126,8 @@ void Sidebar::msw_rescale()
     p->dual_panel->Rescale();
     p->single_panel->Rescale();
     p->single_extruder->Rescale();
+    p->left_extruder->Rescale();
+    p->right_extruder->Rescale();
 
     p->btn_sync_printer->SetPaddingSize({FromDIP(6), FromDIP(12)});
     p->btn_sync_printer->SetMinSize(BTN_SYNC_SIZE);
@@ -6787,13 +6949,18 @@ void Sidebar::get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size) {
 
 void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
 {
-    if (extruder_id == 0)
+    if (extruder_id == 0) {
+        p->left_extruder->SetCount(nozzle_count);
         p->single_extruder->SetCount(nozzle_count);
+    } else if (extruder_id == 1) {
+        p->right_extruder->SetCount(nozzle_count);
+    }
 }
 
 void Sidebar::reset_fila_switch()
 {
     p->dual_panel->SetSeparatorState(CustomSeparator::State::Hidden);
+    p->update_extruder_separator_icon(false, false);
 }
 
 void Sidebar::enable_nozzle_count_edit(bool enable){

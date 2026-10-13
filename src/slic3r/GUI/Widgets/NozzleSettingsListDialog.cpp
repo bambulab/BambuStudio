@@ -156,7 +156,7 @@ public:
     wxSizer     *GetSizer() const { return m_sizer; }
     NozzleConfig GetConfig() const;
     wxString     GetDiameter() const; // parsed value ("" when Empty)
-    void         UpdateWarningState(const wxString &selected_diameter, bool show_diameter_warning, bool &title_matches);
+    void         UpdateWarningState(const wxString &selected_diameter, bool &title_matches);
     void         Rescale();
 
 private:
@@ -505,7 +505,7 @@ bool NozzleRow::apply_error_state()
     return true;
 }
 
-void NozzleRow::UpdateWarningState(const wxString &selected_diameter, bool show_diameter_warning, bool &title_matches)
+void NozzleRow::UpdateWarningState(const wxString &selected_diameter, bool &title_matches)
 {
     if (!m_warning_icon) return;
 
@@ -534,7 +534,7 @@ void NozzleRow::UpdateWarningState(const wxString &selected_diameter, bool show_
     if (m_label) m_label->SetForegroundColour(ThemeColor::TextPrimary);
     diameter.Replace(" mm", "");
     if (diameter == selected_diameter) title_matches = true;
-    m_warning_icon->Show(show_diameter_warning && diameter != selected_diameter);
+    m_warning_icon->Show(diameter != selected_diameter);
 }
 
 void NozzleRow::Rescale()
@@ -558,14 +558,13 @@ class NozzleColumn : public wxPanel
 public:
     NozzleColumn(wxWindow                        *parent,
                  int                              extruder_index,
-                 bool                             is_single,
                  const std::vector<NozzleConfig> &seeds,
                  std::function<void()>            on_changed,
                  std::function<void()>            on_error_click,
                  std::function<void()>            on_ams_count_changed);
 
     std::vector<NozzleConfig> GetConfigs() const;
-    void                      UpdateWarnings(const wxString &selected_diameter, bool show_diameter_warning);
+    void                      UpdateWarnings(const wxString &selected_diameter);
     void                      Rescale();
     bool                      HasDiameter(const wxString &diameter) const;
     void                      RestoreAms(); // revert this column's AMS-count edits (Cancel)
@@ -580,7 +579,6 @@ private:
 
 NozzleColumn::NozzleColumn(wxWindow                        *parent,
                            int                              extruder_index,
-                           bool                             is_single,
                            const std::vector<NozzleConfig> &seeds,
                            std::function<void()>            on_changed,
                            std::function<void()>            on_error_click,
@@ -591,18 +589,12 @@ NozzleColumn::NozzleColumn(wxWindow                        *parent,
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
 
-    // Title: extruder display name (hidden for single-extruder machines).
-    wxString title;
-    if (is_single) {
-        title = _L("Extruder");
-    } else {
-        std::string pt      = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-        const int   head_id = extruder_index == 0 ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
-        title               = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, head_id, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
-    }
+    // Title: extruder display name. The left column shows the deputy extruder, the right one the main.
+    std::string    pt      = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    const int      head_id = extruder_index == 0 ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+    const wxString title   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, head_id, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
     m_title_label = new Label(this, title);
     m_title_label->SetFont(Label::Body_14.Bold());
-    m_title_label->Show(!is_single);
     sizer->Add(m_title_label, 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(8));
 
     auto      diameters    = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
@@ -610,7 +602,7 @@ NozzleColumn::NozzleColumn(wxWindow                        *parent,
 
     for (int i = 0; i < nozzle_count; ++i) {
         NozzleRowFeatures features;
-        features.label = is_single;
+        features.label = false;
 
         auto row = std::make_unique<NozzleRow>(this, i, nozzle_count, extruder_index, seeds[i], features, diameters, on_changed, on_error_click);
         sizer->Add(row->GetSizer(), 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(8));
@@ -649,12 +641,12 @@ bool NozzleColumn::HasDiameter(const wxString &diameter) const
     return false;
 }
 
-void NozzleColumn::UpdateWarnings(const wxString &selected_diameter, bool show_diameter_warning)
+void NozzleColumn::UpdateWarnings(const wxString &selected_diameter)
 {
     bool title_matches = false;
-    for (const auto &row : m_rows) row->UpdateWarningState(selected_diameter, show_diameter_warning, title_matches);
+    for (const auto &row : m_rows) row->UpdateWarningState(selected_diameter, title_matches);
 
-    m_title_label->SetForegroundColour(!show_diameter_warning || title_matches ? ThemeColor::TextPrimary : ThemeColor::Warning);
+    m_title_label->SetForegroundColour(title_matches ? ThemeColor::TextPrimary : ThemeColor::Warning);
 
     Layout();
     Refresh();
@@ -674,20 +666,19 @@ void NozzleColumn::RestoreAms()
 }
 
 NozzleSettingsListDialog::NozzleSettingsListDialog(wxWindow                        *parent,
-                                               bool                             is_dual,
                                                const wxString                  &selected_diameter,
                                                const std::vector<NozzleConfig> &left_configs,
                                                const std::vector<NozzleConfig> &right_configs,
                                                CustomSeparator::State           separator_state)
-    : DPIDialog(parent, wxID_ANY, _L("Extruder Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE), m_is_dual(is_dual)
+    : DPIDialog(parent, wxID_ANY, _L("Extruder Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
     std::vector<NozzleConfig> left_seeds  = left_configs;
-    std::vector<NozzleConfig> right_seeds = m_is_dual ? right_configs : std::vector<NozzleConfig>{};
+    std::vector<NozzleConfig> right_seeds = right_configs;
     if (left_seeds.empty()) left_seeds.emplace_back();
 
     // What the printer reports right now — the synced badge compares the edits against this
     // Must precede create_layout(), which calls update_dialog_state().
-    m_machine_baseline = collect_machine_nozzle_baseline(m_is_dual);
+    m_machine_baseline = collect_machine_nozzle_baseline(true);
 
     SetBackgroundColour(*wxWHITE);
     create_layout(selected_diameter, left_seeds, right_seeds);
@@ -714,7 +705,7 @@ void NozzleSettingsListDialog::create_layout(const wxString &selected_diameter, 
     setup_callbacks();
     update_dialog_state();
 
-    if (m_is_dual && m_separator) CallAfter([this]() { align_separator_icon(); });
+    CallAfter([this]() { align_separator_icon(); });
 }
 
 void NozzleSettingsListDialog::build_diameter_selector(wxBoxSizer *main_sizer, const wxString &selected_diameter)
@@ -751,15 +742,13 @@ void NozzleSettingsListDialog::build_columns(wxBoxSizer *main_sizer, const std::
     };
     auto on_ams_changed = [this]() { on_ams_count_changed(); };
 
-    m_left_column = new NozzleColumn(m_columns_container, 0, !m_is_dual, left_seeds, on_changed, on_error_click, on_ams_changed);
+    m_left_column = new NozzleColumn(m_columns_container, 0, left_seeds, on_changed, on_error_click, on_ams_changed);
     container_sizer->Add(m_left_column, 1, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, FromDIP(20));
+    m_separator = new CustomSeparator(m_columns_container, false);
+    container_sizer->Add(m_separator, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(20));
+    m_right_column = new NozzleColumn(m_columns_container, 1, right_seeds, on_changed, on_error_click, on_ams_changed);
+    container_sizer->Add(m_right_column, 1, wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(20));
 
-    if (m_is_dual) {
-        m_separator = new CustomSeparator(m_columns_container, false);
-        container_sizer->Add(m_separator, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(20));
-        m_right_column = new NozzleColumn(m_columns_container, 1, false, right_seeds, on_changed, on_error_click, on_ams_changed);
-        container_sizer->Add(m_right_column, 1, wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(20));
-    }
     m_columns_container->SetSizer(container_sizer);
     main_sizer->Add(m_columns_container, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
@@ -877,7 +866,7 @@ void NozzleSettingsListDialog::update_dialog_state()
 
     auto scan = [&](NozzleColumn *col, int extruder_idx) {
         if (!col) return;
-        col->UpdateWarnings(selected, true);
+        col->UpdateWarnings(selected);
         if (all_synced && !extruder_configs_match(col->GetConfigs(), m_machine_baseline.configs[extruder_idx])) all_synced = false;
         for (const auto &cfg : col->GetConfigs()) {
             if (cfg.diameter.IsEmpty())

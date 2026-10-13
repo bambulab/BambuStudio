@@ -45,6 +45,34 @@ struct NozzleConfig
  */
 wxString format_nozzle_spec(const NozzleConfig &cfg);
 
+/**
+ * \brief How a printer's nozzles are arranged, which decides the sidebar nozzle controls and the nozzle settings dialog
+ */
+enum class NozzleLayout
+{
+    SingleExtruder,     ///< one extruder with one nozzle, picked on a single combo box
+    DualExtruder,       ///< two extruders with one nozzle each, picked on a combo box per extruder
+    DualExtruderRack,   ///< two extruders, one of them drawing from a nozzle rack; edited in the list dialog
+    SingleExtruderRack, ///< one extruder drawing from a nozzle rack; edited in the card dialog
+};
+
+/**
+ * \brief Nozzle layout of a printer
+ *
+ * \param printer_config  a printer preset's config
+ */
+NozzleLayout nozzle_layout_of(const ConfigBase &printer_config);
+
+/**
+ * \brief True if the layout has two extruders
+ */
+bool is_dual_extruder(NozzleLayout layout);
+
+/**
+ * \brief True if the layout holds several nozzles on an extruder, so nozzles are edited in a settings dialog
+ */
+bool has_nozzle_rack(NozzleLayout layout);
+
 // Plater-side helpers that read device (MachineObject) state and turn it into slicer
 // config, sync-status, and serialized strings. These do NOT drive the hardware; the
 // DeviceCore/Dev* files own the actual machine interaction.
