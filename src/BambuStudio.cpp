@@ -4261,7 +4261,7 @@ int CLI::run(int argc, char **argv)
 
             while ( item_iter != gcode_info.gcodes.end() )
             {
-                if (item_iter->type == CustomGCode::Custom) {
+                if (item_iter->type == CustomGCode::Custom || item_iter->type == CustomGCode::Unknown || item_iter->type == CustomGCode::Template) {
                     BOOST_LOG_TRIVIAL(warning) << boost::format("skip_modified_gcodes: remove custom gcodes %1% in plate %2%") %item_iter->extra %gcodes_iter->first;
                     item_iter = gcode_info.gcodes.erase(item_iter);
                 }
