@@ -154,14 +154,25 @@ EmbossShape select_shape(std::string_view filepath, double tesselation_tolerance
         return {};
     }
 
+    // Set default and unchanging scale
+    NSVGLineParams params{tesselation_tolerance};
+
+    // The parser reads neither <style> rules nor clip paths, so a file that keeps its colors
+    // in a style block would lose them and clipped artwork would arrive whole.
+    std::unique_ptr<std::string> file_data = read_from_disk(svg.path);
+    if (file_data == nullptr) {
+        show_error(nullptr, GUI::format(_u8L("File does NOT exist (%1%)."), svg.path));
+        return {};
+    }
+    svg.file_data = std::make_unique<std::string>(prepare_svg(*file_data));
+
     if (init_image(svg) == nullptr) {
         show_error(nullptr, GUI::format(_u8L("Nano SVG parser can't load from file (%1%)."), svg.path));
         return {};
     }
 
-    // Set default and unchanging scale
-    NSVGLineParams params{tesselation_tolerance};
-    shape.shapes_with_ids = create_shape_with_ids(*svg.image, params);
+    const std::vector<ExPolygons> clips = collect_clip_regions(*svg.image, params);
+    shape.shapes_with_ids = create_shape_with_ids(*svg.image, params, &clips);
 
     // Must contain some shapes !!!
     if (shape.shapes_with_ids.empty()) {

@@ -53,7 +53,34 @@ struct NSVGLineParams
 /// <param name="scale">Multiplicator of point coors
 /// NOTE: Every point coor from image(float) is multiplied by scale and rounded to integer</param>
 /// <returns>Shapes from svg image - fill + stroke</returns>
-ExPolygonsWithIds create_shape_with_ids(const NSVGimage &image, const NSVGLineParams &param);
+// Fold what the parser cannot read into the elements themselves: <style> class rules become
+// fill and stroke attributes, and clip paths are marked and their shapes copied into the
+// drawing for collect_clip_regions() to pick up. Returns the document unchanged when it
+// carries neither.
+std::string prepare_svg(const std::string &svg);
+
+// Clip regions of a document prepared by prepare_svg, indexed as its marks refer to them.
+std::vector<ExPolygons> collect_clip_regions(const NSVGimage &image, const NSVGLineParams &param);
+
+// clips, when given, trims the shapes a clip path applies to.
+ExPolygonsWithIds create_shape_with_ids(const NSVGimage &image, const NSVGLineParams &param,
+                                        const std::vector<ExPolygons> *clips = nullptr);
+
+// One planar region of an SVG import, and the color that region should print in.
+// Color is packed the way NanoSVG stores it (0xAABBGGRR).
+struct SvgColorRegion
+{
+    ExPolygons expoly;
+    unsigned   color = 0;
+};
+using SvgColorRegions = std::vector<SvgColorRegion>;
+
+// Partition the artwork into the colored regions it is drawn as, resolving overlaps the way
+// the drawing does: a shape keeps only what nothing painted after it covers, so the regions
+// never overlap. Unlike plain import, which draws the lines themselves, this takes the areas
+// those lines enclose - which is what outline artwork means but never states.
+SvgColorRegions create_color_regions(const NSVGimage &image, const NSVGLineParams &param,
+                                     const std::vector<ExPolygons> *clips = nullptr);
 
 // help functions - prepare to be tested
 /// <param name="is_y_negative">Flag is y negative, when true than y coor is multiplied by -1</param>
