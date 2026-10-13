@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <set>
 
 namespace Slic3r {
 class MachineObject;

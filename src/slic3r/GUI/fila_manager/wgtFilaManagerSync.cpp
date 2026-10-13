@@ -15,7 +15,6 @@
 #include <boost/log/trivial.hpp>
 
 #include <cmath>
-#include <set>
 
 namespace Slic3r { namespace GUI {
 
