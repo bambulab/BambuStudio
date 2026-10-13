@@ -396,10 +396,9 @@ void Button::messureSize()
         return;
     }
 
-    if (minSize.GetWidth() > size.GetWidth())
-        wxWindow::SetMinSize(minSize);
-    else
-        wxWindow::SetMinSize(size);
+    // A min width wider than the content must not drop the content height: minSize may
+    // leave its height unspecified (-1), and wx would then fall back to a 1px best height.
+    wxWindow::SetMinSize(wxSize(std::max(minSize.GetWidth(), size.GetWidth()), size.GetHeight()));
 }
 
 void Button::mouseDown(wxMouseEvent& event)

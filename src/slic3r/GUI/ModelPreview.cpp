@@ -125,10 +125,35 @@ void reblend_mixed_colors(std::vector<std::array<float, 4>> &colors)
             colors[i] = {palette[i].Red() / 255.f, palette[i].Green() / 255.f, palette[i].Blue() / 255.f, palette[i].Alpha() / 255.f};
 }
 
+/**
+ * \brief Move the camera so the scene point under from_px ends up under to_px, i.e. the scene follows the cursor.
+ *
+ * Works for perspective and orthographic cameras alike. Points are framebuffer pixels, y down.
+ * Caution: needs the viewport and projection of the last paint; it does nothing before the first one.
+ */
+void pan_camera(Camera &camera, const Vec2d &from_px, const Vec2d &to_px)
+{
+    const std::array<int, 4> &vp = camera.get_viewport();
+    if (vp[2] <= 0 || vp[3] <= 0) return;
+
+    const Matrix4d view_proj = camera.get_projection_matrix().matrix() * camera.get_view_matrix().matrix();
+    const Matrix4d inv       = view_proj.inverse();
+    const Vec3d    target    = camera.get_target();
+    const Vec4d    clip      = view_proj * target.homogeneous();
+    const double   ndc_z     = clip.z() / clip.w(); // pan in the plane through the orbit target
+
+    const auto to_world = [&](const Vec2d &px) {
+        const Vec4d ndc(2. * (px.x() - vp[0]) / vp[2] - 1., 1. - 2. * (px.y() - vp[1]) / vp[3], ndc_z, 1.);
+        const Vec4d w = inv * ndc;
+        return Vec3d(w.head<3>() / w.w());
+    };
+    camera.set_target(target + to_world(from_px) - to_world(to_px));
+}
+
 } // namespace
 
 // -------------------------------------------------------------------------------------------------
-// ModelPreview — the canvas: owns the camera, the full per-frame GL state, and the orbit interaction.
+// ModelPreview — the canvas: owns the camera, the full per-frame GL state, and the orbit/pan interaction.
 // -------------------------------------------------------------------------------------------------
 ModelPreview::ModelPreview(wxWindow *parent) : wxWindow(parent, wxID_ANY), m_camera(std::make_unique<Camera>())
 {
@@ -151,6 +176,11 @@ ModelPreview::ModelPreview(wxWindow *parent) : wxWindow(parent, wxID_ANY), m_cam
     m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent &) { m_canvas->Refresh(); });
     m_canvas->Bind(wxEVT_LEFT_DOWN, &ModelPreview::on_mouse, this);
     m_canvas->Bind(wxEVT_LEFT_UP, &ModelPreview::on_mouse, this);
+    m_canvas->Bind(wxEVT_RIGHT_DOWN, &ModelPreview::on_mouse, this);
+    m_canvas->Bind(wxEVT_RIGHT_UP, &ModelPreview::on_mouse, this);
+    m_canvas->Bind(wxEVT_MIDDLE_DOWN, &ModelPreview::on_mouse, this);
+    m_canvas->Bind(wxEVT_MIDDLE_UP, &ModelPreview::on_mouse, this);
+    m_canvas->Bind(wxEVT_MOUSE_CAPTURE_LOST, [this](wxMouseCaptureLostEvent &) { m_drag = Drag::None; });
     m_canvas->Bind(wxEVT_MOTION, &ModelPreview::on_mouse, this);
     m_canvas->Bind(wxEVT_MOUSEWHEEL, &ModelPreview::on_wheel, this);
 }
@@ -190,7 +220,8 @@ void ModelPreview::on_paint()
     // rendering), which would swallow this frame; bind the window framebuffer so the draw reaches the canvas.
     glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
-    const wxSize sz = m_canvas->GetClientSize();
+    // GL works in framebuffer pixels; client size is in points, which differ on HiDPI (Retina) displays.
+    const wxSize sz = m_canvas->GetClientSize() * m_canvas->GetContentScaleFactor();
     glsafe(::glViewport(0, 0, sz.x, sz.y));
     const wxColour bg = GetBackgroundColour(); // themed viewport background, tracks light/dark
     glsafe(::glClearColor(bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f, 1.f));
@@ -222,16 +253,24 @@ void ModelPreview::on_paint()
 
 void ModelPreview::on_mouse(wxMouseEvent &e)
 {
-    if (e.LeftDown()) {
-        m_dragging = true;
-        m_last     = e.GetPosition();
+    // Left orbits; right and middle pan, as in the main 3D view. The first pressed button owns the drag.
+    if (e.ButtonDown() && m_drag == Drag::None) {
+        m_drag = e.LeftDown() ? Drag::Orbit : Drag::Pan;
+        m_last = e.GetPosition();
         if (!m_canvas->HasCapture()) m_canvas->CaptureMouse();
-    } else if (e.LeftUp()) {
-        m_dragging = false;
+    } else if (e.ButtonUp() && m_drag != Drag::None) {
+        if ((m_drag == Drag::Orbit) != e.LeftUp()) return; // another button's release; keep dragging
+        m_drag = Drag::None;
         if (m_canvas->HasCapture()) m_canvas->ReleaseMouse();
-    } else if (e.Dragging() && m_dragging) {
+    } else if (e.Dragging() && m_drag != Drag::None) {
         const wxPoint p = e.GetPosition();
-        m_camera->rotate_on_sphere((p.x - m_last.x) * 0.01, (p.y - m_last.y) * 0.01, true);
+        if (m_drag == Drag::Orbit) {
+            m_camera->rotate_on_sphere((p.x - m_last.x) * 0.01, (p.y - m_last.y) * 0.01, true);
+        } else {
+            // Mouse positions are in points; the camera viewport is in framebuffer pixels (HiDPI).
+            const double scale = m_canvas->GetContentScaleFactor();
+            pan_camera(*m_camera, Vec2d(m_last.x, m_last.y) * scale, Vec2d(p.x, p.y) * scale);
+        }
         m_last = p;
         if (m_camera_changed) m_camera_changed(*m_camera);
         m_canvas->Refresh();

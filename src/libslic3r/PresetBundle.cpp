@@ -2229,6 +2229,10 @@ void PresetBundle::switch_extruder_nozzle_volume_type(int extruder_id, NozzleVol
 
     // Hybrid only summarises mixed slots, and machine data describes what is physically installed.
     if (type == nvtHybrid || extruder_nozzle_stat.get_nozzle_data_flag() == ExtruderNozzleStat::ndfMachine) return;
+    // Multi-diameter mode keeps per-slot types authoritative: the extruder type there describes the
+    // mounted nozzle, which need not have the canonical preset's diameter, so stamping it onto that
+    // diameter's slots would overwrite real nozzles (e.g. a 0.4 TPU285 turning 0.4 Standard).
+    if (multi_nozzle_diameter_mode_enabled(project_config)) return;
 
     const auto *nozzle_diameter_opt = printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
     if (!nozzle_diameter_opt || extruder_id < 0 || extruder_id >= int(nozzle_diameter_opt->values.size())) return;

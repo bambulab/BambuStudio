@@ -208,15 +208,16 @@ protected:
     wxWindow *BorderStraddlingWidget() const override;
 
     // Only the header's settings entry opens the dialog; the rest of the card is for picking diameters.
-    std::vector<wxWindow *> ClickSurfaces() override { return m_settings_entry; }
+    std::vector<wxWindow *> ClickSurfaces() override { return {m_settings_entry}; }
 
 private:
     // StaticBox keeps its colours rather than re-reading them at paint time, so the pill's theming
     // has to be re-applied whenever the card is rescaled or the system colours change.
     void StyleModePill();
+    wxWindow *CreateSettingsEntry();
 
     ComboBox               *m_mode_pill{nullptr};
-    std::vector<wxWindow *> m_settings_entry; // gear, label and chevron of the header's settings entry
+    wxPanel                *m_settings_entry{nullptr}; // the header's settings entry: gear, label and chevron
     HorizontalScrollView   *m_body{nullptr};  // diameter buttons + nozzle panel, scrolled together
     DiameterButtonPanel    *m_diameter_panel{nullptr};
     wxBoxSizer             *m_diameter_sizer{nullptr};

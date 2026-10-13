@@ -23,17 +23,19 @@ class CascadeMenuPopup;
  * \brief Geometry and colours of the two-level nozzle menu, from the design.
  *
  * A 4px inset inside the 0.5px stroke, rows 24 tall with 4 between them. A first-level row is
- * [4 | tick 14 | 4 | label | 4 | chevron 16 | 7]; a second-level row drops the chevron and keeps
- * the label left-aligned in the same tick column.
+ * [4 | tick 14 | 4 | label | 24 | 4 | chevron 16 | 7]; a second-level row drops the chevron and
+ * keeps the label left-aligned in the same tick column. The 24 after the label is a minimum: a row
+ * stretched by a wider sibling grows there, since the label is left-aligned.
  */
 namespace CascadeMenu {
 
-constexpr int Pad      = 4;
-constexpr int Gap      = 4;
-constexpr int ItemH    = 24;
-constexpr int ItemPadR = 7;
-constexpr int TickD    = 14;
-constexpr int ChevronD = 16;
+constexpr int Pad       = 4;
+constexpr int Gap       = 4;
+constexpr int ItemH     = 24;
+constexpr int ItemPadR  = 7;
+constexpr int LabelPadR = 24; // free space after the label, so a short label does not make a cramped panel
+constexpr int TickD     = 14;
+constexpr int ChevronD  = 16;
 
 // The design's selected-row fill. Close to ThemeColor::LightGreen but a step more saturated, and the
 // two are used side by side on this screen, so it does not fold into that token.

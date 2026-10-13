@@ -75,6 +75,8 @@ public:
     void    sync_camera(const Camera &src);
 
 private:
+    enum class Drag { None, Orbit, Pan };
+
     void on_paint();
     void on_mouse(wxMouseEvent &e);
     void on_wheel(wxMouseEvent &e);
@@ -85,7 +87,7 @@ private:
     std::shared_ptr<PreviewScene>       m_scene;
     std::function<void(const Camera &)> m_camera_changed;
     bool                                m_framed{false};
-    bool                                m_dragging{false};
+    Drag                                m_drag{Drag::None};
     wxPoint                             m_last;
 };
 

@@ -80,6 +80,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/FilamentView.hpp
     GUI/Widgets/AmsSlotPopup.cpp
     GUI/Widgets/AmsSlotPopup.hpp
+    GUI/Widgets/IconView.cpp
+    GUI/Widgets/IconView.hpp
     GUI/Widgets/MappingRow.cpp
     GUI/Widgets/MappingRow.hpp
     GUI/Widgets/PillView.cpp

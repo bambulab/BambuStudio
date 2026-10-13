@@ -96,8 +96,8 @@ private:
     /**
      * \brief Repaint the right preview card to match the current mode.
      *
-     * Mapping mode recolours each mapped source to its destination slot's colour; overwrite mode shows the
-     * plate in its own colours, since an overwrite replaces the whole list rather than remapping per source.
+     * Mapping mode recolours each mapped source to its destination slot's colour; overwrite mode recolours
+     * project filament i to the i-th synced tray's colour, as the overwrite replaces the list in tray order.
      *
      * \param reframe  true only when the plate geometry changed; false for a colour-only refresh (a pick,
      *                 policy change or mode switch) so the viewer keeps its orientation

@@ -157,6 +157,15 @@ void DropDown::SetUseContentWidth(bool use, bool limit_max_content_width)
 
 void DropDown::SetAlignIcon(bool align) { align_icon = align; }
 
+void DropDown::SetTrailingPadding(int padding)
+{
+    if (trailing_padding == padding)
+        return;
+    trailing_padding = padding;
+    need_sync = true;
+    messureSize();
+}
+
 void DropDown::Rescale()
 {
     need_sync = true;
@@ -598,7 +607,7 @@ void DropDown::messureSize()
     wxSize szContent = textSize;
     if (szContent.x < FromDIP(120))
         szContent.x = FromDIP(120);
-    szContent.x += 10;
+    szContent.x += 10 + FromDIP(trailing_padding);
     if (check_bitmap.bmp().IsOk()) {
         auto szBmp = check_bitmap.GetBmpSize();
         szContent.x += szBmp.x + 5;

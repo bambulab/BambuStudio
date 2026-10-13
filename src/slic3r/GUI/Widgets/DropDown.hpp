@@ -53,6 +53,7 @@ private:
     bool   align_icon        = false;
     bool   text_off          = false;
     int    max_visible_rows  = 15;
+    int    trailing_padding  = 0; // DIP
 
     wxSize textSize;
     wxSize iconSize;
@@ -103,6 +104,13 @@ public:
     void SetUseContentWidth(bool use, bool limit_max_content_width = false);
 
     void SetAlignIcon(bool align);
+
+    /**
+     * \brief Reserve extra blank space after each item's content, which widens the list
+     *
+     * \param padding    extra width in DIP; only grows the list when it sizes to its content
+     */
+    void SetTrailingPadding(int padding);
 
 public:
     void Rescale();

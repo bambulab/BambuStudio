@@ -1,10 +1,12 @@
 #include "SyncAmsDialog.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdlib>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -12,6 +14,7 @@
 #include <wx/bitmap.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
+#include <wx/display.h>
 #include <wx/gdicmn.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -293,6 +296,35 @@ MachineObject *selected_machine()
 }
 
 /**
+ * \brief The colour each project filament takes after an overwrite sync, keyed by 0-based filament id.
+ *
+ * Mirrors the overwrite branch of PresetBundle::sync_ams_list(): project filament i takes the colour of the
+ * i-th synced tray. Filaments past the synced tray count are left out and keep their project colour.
+ *
+ * \note Keep the tray filter in step with sync_ams_list() and the skip_ext rule in Plater.
+ */
+std::map<int, std::array<float, 4>> overwrite_colors()
+{
+    std::map<int, std::array<float, 4>> colors;
+    auto *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) return colors;
+
+    MachineObject *obj      = selected_machine();
+    const bool     skip_ext = obj && obj->GetFilaSwitch()->IsInstalled() && obj->GetFilaSwitch()->IsReady();
+    std::set<std::pair<std::string, std::string>> added;
+    int next = 0;
+    for (const auto &[tray_id, tray] : preset_bundle->filament_ams_list) {
+        const std::string filament_id = tray.opt_string("filament_id", 0u);
+        const std::string tray_name   = tray.opt_string("tray_name", 0u);
+        if (skip_ext && (tray_name == "Ext" || !added.insert({tray_name, filament_id}).second)) continue;
+        if (filament_id.empty()) continue; // an unknown tray is not synced in overwrite mode
+        const wxColour c(wxString::FromUTF8(tray.opt_string("filament_colour", 0u)));
+        colors[next++] = {c.Red() / 255.f, c.Green() / 255.f, c.Blue() / 255.f, c.Alpha() / 255.f};
+    }
+    return colors;
+}
+
+/**
  * \brief A destination slot's name on the selected printer, e.g. "A1".
  *
  * \param slot  the destination; empty when unmapped or no printer is selected
@@ -341,6 +373,7 @@ bool has_high_temp_filament(MachineObject *obj)
 wxSizer *build_high_temp_tip(wxWindow *parent, const wxColour &bg)
 {
     auto *icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap("warning", parent, 16));
+    icon->SetBackgroundColour(bg);
     auto *text = new ::Label(parent, _L("High-temperature filament detected in AMS. Do not mix it with low-temperature filaments."), LB_AUTO_WRAP);
     text->SetFont(::Label::Body_13);
     text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::Warning));
@@ -353,9 +386,15 @@ wxSizer *build_high_temp_tip(wxWindow *parent, const wxColour &bg)
 }
 
 /**
- * \brief The dialog's main column. Extra height first grows the mapping section until all its rows show,
- *        then goes to the preview; every other item keeps its min height.
+ * \brief The dialog's main column. The preview and the mapping section are flexible; every other item keeps
+ *        its min height, so the footer always stays inside the window.
  *
+ * Each flexible item has a floor and a natural height (its min size). The mapping section has priority over
+ * the preview: extra height grows it first, and a short window shrinks it first. From the floor upward,
+ * height goes to the preview up to its natural height, then to the mapping section until all its rows show,
+ * then to the preview.
+ *
+ * \note CalcMin() reports the floor, so Fit() sizes a window to the floor; use natural_height() to open it.
  * \note Items are laid out at full width, so alignment flags are ignored.
  */
 class MappingFirstSizer : public wxBoxSizer
@@ -367,13 +406,18 @@ public:
      * \brief Add the preview, which takes the height the mapping section leaves over.
      *
      * \param border  left and right inset
+     * \param floor   the height the preview may shrink to in a short window
      */
-    void add_preview(wxSizer *preview, int border) { m_preview = Add(preview, 0, wxEXPAND | wxLEFT | wxRIGHT, border); }
+    void add_preview(wxSizer *preview, int border, int floor)
+    {
+        m_preview       = Add(preview, 0, wxEXPAND | wxLEFT | wxRIGHT, border);
+        m_preview_floor = floor;
+    }
 
     /**
-     * \brief Add the mapping section, which grows first; a hidden section takes nothing.
+     * \brief Add the mapping section; a hidden section takes nothing.
      *
-     * \param list    the mapping list inside the section; its rows bound the section's growth
+     * \param list    the mapping list inside the section; it shrinks to one row and grows to all its rows
      * \param border  left and right inset
      */
     void add_mapping(wxWindow *section, MappingList *list, int border)
@@ -382,33 +426,70 @@ public:
         m_list    = list;
     }
 
+    /// The column height with both flexible items at their natural height.
+    int natural_height() { return wxBoxSizer::CalcMin().y; }
+
+    wxSize CalcMin() override
+    {
+        wxSize min = wxBoxSizer::CalcMin();
+        min.y -= preview_give() + mapping_give();
+        return min;
+    }
+
 protected:
     void RepositionChildren(const wxSize &min_size) override
     {
-        // The height of the rows the list scrolls away at its min height.
-        int hidden = 0;
-        if (m_mapping && m_mapping->IsShown() && m_list && m_list->GetSizer())
-            hidden = std::max(0, m_list->GetSizer()->CalcMin().y - m_list->GetMinSize().y);
-        const int slack        = std::max(0, m_size.y - min_size.y);
-        const int mapping_grow = std::min(slack, hidden);
+        // min_size is the floor; hand the height above it out in priority order.
+        int       avail        = std::max(0, m_size.y - min_size.y);
+        const int preview_back = std::min(avail, preview_give());
+        avail -= preview_back;
+        const int mapping_grow = std::min(avail, mapping_give() + hidden_rows_height());
+        avail -= mapping_grow;
 
         wxPoint pos = m_position;
         for (wxSizerItem *item : GetChildren()) {
             if (!item->IsShown()) continue;
             int h = item->GetMinSizeWithBorder().y;
             if (item == m_mapping)
-                h += mapping_grow;
+                h += mapping_grow - mapping_give();
             else if (item == m_preview)
-                h += slack - mapping_grow;
+                h += preview_back + avail - preview_give();
             item->SetDimension(pos, wxSize(m_size.x, h));
             pos.y += h;
         }
     }
 
 private:
+    bool mapping_shown() const { return m_mapping && m_mapping->IsShown() && m_list && m_list->GetSizer(); }
+
+    // How far the preview may shrink below its natural height.
+    int preview_give() const
+    {
+        if (!m_preview || !m_preview->IsShown()) return 0;
+        return std::max(0, m_preview->GetMinSizeWithBorder().y - m_preview_floor);
+    }
+
+    // How far the list may shrink below its natural height: down to one row (rows are uniform).
+    int mapping_give() const
+    {
+        if (!mapping_shown()) return 0;
+        const int rows = (int) m_list->GetSizer()->GetItemCount();
+        if (rows <= 1) return 0;
+        const int one_row = m_list->GetSizer()->CalcMin().y / rows;
+        return std::max(0, m_list->GetMinSize().y - one_row);
+    }
+
+    // The height of the rows the list scrolls away at its natural height.
+    int hidden_rows_height() const
+    {
+        if (!mapping_shown()) return 0;
+        return std::max(0, m_list->GetSizer()->CalcMin().y - m_list->GetMinSize().y);
+    }
+
     wxSizerItem *m_preview{nullptr};
     wxSizerItem *m_mapping{nullptr};
     MappingList *m_list{nullptr};
+    int          m_preview_floor{0};
 };
 
 } // namespace
@@ -429,7 +510,7 @@ SyncAmsDialog::SyncAmsDialog(wxWindow *parent, bool deferrable)
     root->AddSpacer(FromDIP(24));
     root->Add(build_header(), 0, wxEXPAND | wxLEFT | wxRIGHT, inset);
     root->AddSpacer(spacing);
-    root->add_preview(build_preview(), inset);
+    root->add_preview(build_preview(), inset, FromDIP(200));
     root->AddSpacer(spacing);
     wxWindow *mapping = build_mapping_section(); // creates m_mapping_list
     root->add_mapping(mapping, m_mapping_list, inset);
@@ -445,12 +526,11 @@ SyncAmsDialog::SyncAmsDialog(wxWindow *parent, bool deferrable)
     NppDarkMode::SetDarkTitleBar(GetHWND()); // dark title bar so the white title text reads in dark mode
 #endif
     // width is fixed by the preview cards and mapping rows, Take that width as the
-    // floor, and seed it before the first fit so the auto-wrap description wraps at its final width
-    // Height stays free to shrink; the list absorbs it as scroll.
+    // floor, and seed it before the first fit so the auto-wrap description wraps at its final width.
+    // The height floor comes from the column and changes with the mode and rows, so relayout() sets it.
     const int content_w = GetBestSize().GetWidth();
     SetClientSize(content_w, GetClientSize().GetHeight());
-    // Floor the width to the content and the height to a fixed minimum; Fit can grow past it but never below.
-    SetMinClientSize(wxSize(content_w, FromDIP(650)));
+    SetMinClientSize(wxSize(content_w, -1));
     set_mode(false);
     CentreOnScreen();
 }
@@ -476,6 +556,7 @@ wxWindow *SyncAmsDialog::build_header()
 
     auto *warn      = new wxBoxSizer(wxHORIZONTAL);
     auto *warn_icon = new wxStaticBitmap(card, wxID_ANY, create_scaled_bitmap("warning", card, 16));
+    warn_icon->SetBackgroundColour(card_bg); // the card paints its own fill; the bitmap does not inherit it
     auto *warn_text = new ::Label(card, _L("After modification, the filament list cannot be restored."));
     warn_text->SetFont(::Label::Body_12);
     warn_text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextMuted));
@@ -513,8 +594,18 @@ void SyncAmsDialog::set_mode(bool overwrite)
 
 void SyncAmsDialog::relayout()
 {
+    auto *column = static_cast<MappingFirstSizer *>(GetSizer());
+    if (!column) return; // still building; the constructor relays out once the column is set
+    // The floor changes with the mode and the row count, so refresh it on every relayout.
+    const wxSize floor = column->GetMinSize();
+    SetMinClientSize(wxSize(std::max(GetMinClientSize().x, floor.x), floor.y));
+    // Open at the natural height, but never taller than the screen; the flexible items absorb the cut.
+    // Before the first show the dialog has no position yet, so use the parent's display.
+    const wxDisplay display(IsShown() || !GetParent() ? static_cast<wxWindow *>(this) : GetParent());
+    const int       frame_h = GetSize().y - GetClientSize().y;
+    const int       h       = std::min(column->natural_height(), display.GetClientArea().height - frame_h);
+    SetClientSize(wxSize(GetMinClientSize().x, std::max(h, floor.y)));
     Layout();
-    Fit();
 }
 
 wxSizer *SyncAmsDialog::build_preview()
@@ -548,12 +639,13 @@ void SyncAmsDialog::on_plate_changed()
 
 void SyncAmsDialog::update_mapped_preview(bool reframe)
 {
-    // Overwrite mode replaces the whole project list, so there is no per-source recolour to show — the card
-    // draws the plate in its own colours (the default scene, empty overrides). Mapping mode recolours each
-    // mapped source to its destination slot's colour; unmapped sources keep their project colour. The
-    // mapping stays in m_mappings across a mode switch, so returning to mapping re-derives this identically.
+    // Mapping mode recolours each mapped source to its destination slot's colour; unmapped sources keep their
+    // project colour. The mapping stays in m_mappings across a mode switch, so returning to mapping
+    // re-derives this identically.
     std::map<int, std::array<float, 4>> overrides;
-    if (!m_overwrite) {
+    if (m_overwrite) {
+        overrides = overwrite_colors();
+    } else {
         for (const auto &[src_id, dst] : m_mappings) {
             if (src_id < 0 || !dst || dst->tray_id < 0) continue;
             const std::string &hex = dst->color.empty() && !dst->colors.empty() ? dst->colors.front() : dst->color;
@@ -629,8 +721,8 @@ void SyncAmsDialog::fill_rows(const std::vector<FilamentInfo> &source)
     // A scrolled window reports its best height as its min height, not its content, so it only gets row
     // room if we hand it one. Fit the rows up to a cap, then scroll past that; the rows are uniform, so the
     // capped height is an exact fraction of the native content height (no per-row measurement). The cap is
-    // only the floor: a taller dialog grows the list toward all its rows (see MappingFirstSizer). Width is
-    // left to the parent — the list expands to the mapping panel (see build_mapping_section).
+    // only the natural height: the column grows or shrinks the list around it (see MappingFirstSizer). Width
+    // is left to the parent — the list expands to the mapping panel (see build_mapping_section).
     auto         *list_sizer      = m_mapping_list->GetSizer();
     const int     row_count       = (int) list_sizer->GetItemCount();
     const int     content_h       = list_sizer->CalcMin().y;
@@ -902,7 +994,7 @@ void SyncAmsDialog::toggle_advanced()
     m_advanced_open = !m_advanced_open;
     m_advanced_body->Show(m_advanced_open);
     m_advanced_icon->SetBitmap(create_scaled_bitmap(m_advanced_open ? "advanced_option4" : "advanced_option3", this, 16));
-    relayout(); // the shown body enlarges the content, so Fit grows the dialog to fit it
+    relayout(); // the shown body enlarges the content, so the dialog grows to fit it
 }
 
 wxSizer *SyncAmsDialog::build_footer(bool deferrable)

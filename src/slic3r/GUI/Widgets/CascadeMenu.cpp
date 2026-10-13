@@ -135,9 +135,9 @@ CascadeMenuItem::CascadeMenuItem(wxWindow *parent, const wxString &text, bool en
     // The design sizes a panel to its widest row, so measure the label rather than reserving a
     // fixed width that a longer translation of a flow-type name would overflow.
     const int chrome = has_submenu
-        ? CascadeMenu::Pad + CascadeMenu::TickD + CascadeMenu::Gap +
+        ? CascadeMenu::Pad + CascadeMenu::TickD + CascadeMenu::Gap + CascadeMenu::LabelPadR +
               CascadeMenu::Gap + CascadeMenu::ChevronD + CascadeMenu::ItemPadR
-        : CascadeMenu::Pad + CascadeMenu::TickD + CascadeMenu::Gap + CascadeMenu::ItemPadR;
+        : CascadeMenu::Pad + CascadeMenu::TickD + CascadeMenu::Gap + CascadeMenu::LabelPadR + CascadeMenu::ItemPadR;
     SetMinSize(wxSize(GetTextExtent(m_text).x + FromDIP(chrome), FromDIP(CascadeMenu::ItemH)));
 
     if (m_checked) m_tick = create_scaled_bitmap("checked", this, CascadeMenu::TickD);

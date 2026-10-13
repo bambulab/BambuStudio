@@ -5,10 +5,7 @@
 
 #include <boost/algorithm/string/join.hpp>
 
-#include <wx/dcbuffer.h>
-#include <wx/dcgraph.h>
 #include <wx/gdicmn.h>
-#include <wx/graphics.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
@@ -28,6 +25,7 @@
 #include "slic3r/GUI/Widgets/PopupWindow.hpp"
 #include "slic3r/GUI/Widgets/RoundedPopupWindow.hpp"
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
+#include "slic3r/GUI/Widgets/CascadeMenu.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/PrintConfig.hpp"
 
@@ -83,62 +81,11 @@ void set_ams_count(int extruder_index, int ams4, int ams1)
     if (auto *plater = wxGetApp().plater()) plater->update();
 }
 
-// One "N slots AMS" menu row: a rounded blue highlight with white text on hover
-class AmsMenuItem : public wxPanel
-{
-public:
-    AmsMenuItem(wxWindow *parent, const wxString &text, bool enabled) : wxPanel(parent, wxID_ANY), m_text(text), m_enabled(enabled)
-    {
-        SetBackgroundStyle(wxBG_STYLE_PAINT);
-        SetMinSize(FromDIP(wxSize(94, 24)));
-        Bind(wxEVT_PAINT, &AmsMenuItem::OnPaint, this);
-        if (m_enabled) {
-            Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
-                m_hover = true;
-                Refresh();
-                e.Skip();
-            });
-            Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
-                m_hover = false;
-                Refresh();
-                e.Skip();
-            });
-        }
-    }
-
-private:
-    void OnPaint(wxPaintEvent &)
-    {
-        wxPaintDC          pdc(this);
-        wxGCDC             dc(pdc);
-        wxGraphicsContext *gc = dc.GetGraphicsContext();
-        if (gc == nullptr) return;
-        gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
-
-        const wxSize   sz = GetClientSize();
-        const wxColour bg = wxGetApp().dark_mode() ? StateColor::darkModeColorFor(*wxWHITE) : *wxWHITE;
-        gc->SetPen(*wxTRANSPARENT_PEN);
-        gc->SetBrush(wxBrush(bg));
-        gc->DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
-
-        if (m_hover) {
-            gc->SetBrush(wxBrush(ThemeColor::Link));
-            gc->DrawRoundedRectangle(0, 0, sz.GetWidth(), sz.GetHeight(), FromDIP(4));
-        }
-
-        const wxColour fg = m_hover ? *wxWHITE : (m_enabled ? ThemeColor::TextPrimary : ThemeColor::Grey400);
-        gc->SetFont(Label::Body_13, wxGetApp().dark_mode() && !m_hover ? StateColor::darkModeColorFor(fg) : fg);
-        double tw = 0, th = 0;
-        gc->GetTextExtent(m_text, &tw, &th);
-        gc->DrawText(m_text, FromDIP(8), (sz.GetHeight() - th) / 2.0);
-    }
-
-    wxString m_text;
-    bool     m_enabled{true};
-    bool     m_hover{false};
-};
+// Single-extruder multi-nozzle printers accept at most this many external AMS units, any mix of slot kinds.
+constexpr int kSingleExtMultiNozzleMaxAms = 4;
 
 // "Add AMS" dropdown (4 slots / 1 slot, gated by the machine-wide caps), anchored under `anchor`.
+// Built in the same single-level cascade style as the nozzle diameter menu, so the two read alike.
 void show_ams_add_menu(wxWindow *anchor, int extruder_index, PopupWindow *&current, std::function<void()> on_changed)
 {
     if (!anchor) return;
@@ -148,60 +95,49 @@ void show_ams_add_menu(wxWindow *anchor, int extruder_index, PopupWindow *&curre
         current = nullptr;
     }
 
-    auto *popup = new RoundedPopupWindow(anchor, 8, false);
-
-    // A row inside a popup gets no native enter or leave event on macOS: its hover comes from
-    // PopupWindow synthesizing one out of the motion events the popup receives while it holds the
-    // mouse capture. wxPopupTransientWindow::OnIdle drops that capture exactly while the pointer is
-    // over the popup, which is when the hover matters, so the rows never light up. A dynamic binding
-    // is searched before the class's own event table, so not skipping here keeps that OnIdle from
-    // running at all and the capture stays where Popup() put it. See CascadeMenuPopup's ctor, which
-    // carries the same workaround and the long form of this note.
-#ifdef __WXOSX__
-    popup->Bind(wxEVT_IDLE, [](wxIdleEvent &) {});
-#endif
-
-    auto *sizer = new wxBoxSizer(wxVERTICAL);
-
     PresetBundle *pb          = wxGetApp().preset_bundle;
     const int     other_idx   = 1 - extruder_index;
     const auto   &registry    = pb->extruder_ams_counts;
     const auto [self4, self1] = pb->get_ams_count(extruder_index);
     // Caps are machine-wide; the other extruder only contributes on a dual machine (registry has 2).
     const auto [oth4, oth1] = (other_idx >= 0 && other_idx < (int) registry.size()) ? pb->get_ams_count(other_idx) : std::pair<int, int>{0, 0};
+    const bool has_room     = !is_single_ext_multi_nozzle(pb->printers.get_edited_preset().config) ||
+                          self4 + self1 + oth4 + oth1 < kSingleExtMultiNozzleMaxAms;
 
-    auto add_item = [&](const wxString &label, bool enabled, std::function<void()> on_click) {
-        auto *item = new AmsMenuItem(popup, label, enabled);
+    auto *menu  = new CascadeMenuPopup(anchor);
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
+    current     = menu;
+
+    // A fresh menu is built for every gesture, so let the outgoing one go with the close rather than
+    // linger as a hidden child of the anchor. The tracked pointer is dropped with it, or the next
+    // open would dismiss a destroyed window.
+    menu->SetDestroyOnClose(true);
+    menu->SetOnClosed([&current, menu] {
+        if (current == menu) current = nullptr;
+    });
+
+    bool first_row = true;
+    auto add_item  = [&](const wxString &label, bool enabled, int add4, int add1) {
+        auto *item = new CascadeMenuItem(menu, label, enabled, false, false);
         if (enabled)
-            item->Bind(wxEVT_LEFT_DOWN, [popup, on_click](wxMouseEvent &e) {
-                on_click();
-                popup->Dismiss();
-                e.Skip();
+            item->Bind(wxEVT_LEFT_DOWN, [menu, extruder_index, add4, add1, on_changed](wxMouseEvent &) {
+                const auto [a4, a1] = wxGetApp().preset_bundle->get_ams_count(extruder_index);
+                set_ams_count(extruder_index, a4 + add4, a1 + add1);
+                if (on_changed) on_changed();
+                menu->CloseCascade();
             });
-        sizer->Add(item, 0, wxEXPAND | wxLEFT | wxRIGHT, popup->FromDIP(5));
+        CascadeMenu::AddItem(sizer, item, first_row);
+        first_row = false;
     };
+    add_item(_L("4 slots AMS"), has_room && self4 + oth4 < 4, 1, 0);
+    add_item(_L("1 slot AMS"), has_room && self1 + oth1 < 8, 0, 1);
 
-    sizer->AddSpacer(popup->FromDIP(5));
-    add_item(_L("4 slots AMS"), self4 + oth4 < 4, [extruder_index, on_changed] {
-        const auto [a4, a1] = wxGetApp().preset_bundle->get_ams_count(extruder_index);
-        set_ams_count(extruder_index, a4 + 1, a1);
-        if (on_changed) on_changed();
-    });
-    add_item(_L("1 slot AMS"), self1 + oth1 < 8, [extruder_index, on_changed] {
-        const auto [a4, a1] = wxGetApp().preset_bundle->get_ams_count(extruder_index);
-        set_ams_count(extruder_index, a4, a1 + 1);
-        if (on_changed) on_changed();
-    });
-    sizer->AddSpacer(popup->FromDIP(5));
+    CascadeMenu::Finish(menu, sizer);
 
-    popup->SetSizer(sizer);
-    popup->Finalize(); // sizes to content and clips to the rounded silhouette
-
-    current             = popup;
-    const wxPoint pos   = anchor->GetScreenPosition();
-    const wxSize  bsize = anchor->GetSize();
-    popup->Position(wxPoint(pos.x, pos.y + bsize.y), wxSize(0, 0));
-    popup->Popup();
+    // Position() is given the anchor's size so it can flip the menu above it near the bottom of the
+    // screen; the x offset lines the rows up with the anchor, past the panel's inset.
+    menu->Position(anchor->GetScreenPosition() - wxPoint(menu->FromDIP(CascadeMenu::Pad), 0), anchor->GetSize());
+    menu->Popup();
 }
 
 // Per-preview trash popup that decrements the AMS count for `preview` (4-slot if index < 4).

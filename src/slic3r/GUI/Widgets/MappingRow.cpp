@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 
 #include "FilamentView.hpp"
+#include "IconView.hpp"
 #include "PillView.hpp"
 #include "slic3r/GUI/ExtruderHelpers.hpp"
 #include "slic3r/GUI/GUI.hpp"     // from_u8
@@ -241,35 +242,6 @@ private:
         arrow.AddLineToPoint(x1, cy + h);
         gc->StrokePath(arrow);
     }
-};
-
-// -------------------------------------------------------------------------------------------------
-// Renders a named SVG asset centred on the cell fill (the loader recolours it for dark mode).
-// -------------------------------------------------------------------------------------------------
-class IconView : public wxWindow
-{
-public:
-    IconView(wxWindow *parent, const std::string &icon, int px) : wxWindow(parent, wxID_ANY), m_bmp(this, icon, px)
-    {
-        SetBackgroundStyle(wxBG_STYLE_PAINT);
-        SetBackgroundColour(c_box_fill());
-        SetInitialSize(m_bmp.GetBmpSize());
-        Bind(wxEVT_PAINT, &IconView::on_paint, this);
-    }
-
-private:
-    void on_paint(wxPaintEvent &)
-    {
-        wxAutoBufferedPaintDC dc(this);
-        dc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
-        dc.Clear();
-        if (!m_bmp.bmp().IsOk()) return;
-        const wxSize sz = GetClientSize();
-        const wxSize bs = m_bmp.GetBmpSize();
-        dc.DrawBitmap(m_bmp.bmp(), (sz.x - bs.x) / 2, (sz.y - bs.y) / 2, true);
-    }
-
-    ScalableBitmap m_bmp;
 };
 
 // -------------------------------------------------------------------------------------------------

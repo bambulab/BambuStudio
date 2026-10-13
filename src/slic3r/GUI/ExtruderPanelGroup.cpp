@@ -16,6 +16,7 @@
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/ComboBox.hpp"
+#include "Widgets/IconView.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/StateColor.hpp"
 
@@ -38,8 +39,12 @@ class ModePill : public ComboBox
 public:
     explicit ModePill(wxWindow *parent)
         : ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, parent->FromDIP(wxSize(120, MODE_PILL_H)), 0, nullptr, wxCB_READONLY)
-        , m_chevron(this, "drop_down", MODE_PILL_ICON_D)
-    {}
+        , m_chevron(this, "drop_down_green", MODE_PILL_ICON_D)
+    {
+        // The pill is sized for the current label only; the list must fit its longest option.
+        GetDropDown().SetUseContentWidth(true);
+        GetDropDown().SetTrailingPadding(14);
+    }
 
 protected:
     void render(wxDC &dc) override
@@ -92,12 +97,13 @@ void ExtruderPanelGroup::Build()
         separator->SetMinSize(wxSize(FromDIP(1), -1));
         content->Add(separator, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(4));
 
-        auto arrow = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("arrow_right", this, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
+        auto arrow = new IconView(this, "arrow_right", 20);
         arrow->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
         content->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(10));
     }
 
     m_main_sizer->Add(content, 1, wxEXPAND);
+    m_main_sizer->AddSpacer(FromDIP(4));
 
     SetSizer(m_main_sizer);
     Layout();
@@ -419,11 +425,10 @@ void SingleExtruderPanelGroup::AttachDiameterPanel(DiameterButtonPanel *panel)
     panel->SetShowTitle(false);
 
     // Above the nozzle panel, inside the body so the buttons scroll with the tiles. The body already
-    // supplies the side inset.
+    // supplies the side inset, and the nozzle panel's tile row supplies the gap below.
     m_diameter_sizer = new wxBoxSizer(wxVERTICAL);
     m_diameter_sizer->AddSpacer(FromDIP(8));
     m_diameter_sizer->Add(panel, 0, wxEXPAND);
-    m_diameter_sizer->AddSpacer(FromDIP(8));
     m_body->ContentSizer()->Insert(0, m_diameter_sizer, 0, wxEXPAND);
     m_diameter_panel = panel;
 
@@ -465,8 +470,7 @@ void SingleExtruderPanelGroup::Rescale()
 }
 
 // Two rows: the mode pill straddling the top border, then "Nozzle" on the left with the settings
-// entry (gear + label + arrow) on the right. The entry is not a control of its own; its three
-// windows are the card's only ClickSurfaces, so clicking any of them opens the dialog.
+// entry on the right.
 bool SingleExtruderPanelGroup::CreateHeader(wxBoxSizer *outer)
 {
     // Only the widget is ours; DiameterButtonPanel::AttachModePill fills it in and owns the mode.
@@ -483,27 +487,39 @@ bool SingleExtruderPanelGroup::CreateHeader(wxBoxSizer *outer)
 
     row->AddStretchSpacer();
 
-    auto *gear = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("settings", this, 16));
-    row->Add(gear, 0, wxALIGN_CENTER_VERTICAL);
-
-    auto *entry = new Label(this, _L("Settings"));
-    entry->SetFont(Label::Body_13);
-    entry->SetForegroundColour(ThemeColor::TextPrimary);
-    entry->SetBackgroundColour(ThemeColor::Grey200);
-    row->Add(entry, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
-
-    // right_arrow, not arrow_right: the design ends the row with a thin chevron, where arrow_right
-    // is a full shafted arrow.
-    auto *arrow = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("right_arrow", this, 16));
-    row->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
-
-    m_settings_entry = {gear, entry, arrow};
+    row->Add(CreateSettingsEntry(), 0, wxALIGN_CENTER_VERTICAL);
 
     // The design puts this row 20px below the card's top border. The pill above already accounts for
     // 12 of those -- its lower half sits inside the card -- so only the remainder is added here.
     outer->AddSpacer(FromDIP(8));
     outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
     return true;
+}
+
+// Gear, label and chevron share one panel, so the gaps between them are clickable too. The panel
+// is the card's only ClickSurface.
+wxWindow *SingleExtruderPanelGroup::CreateSettingsEntry()
+{
+    m_settings_entry = new wxPanel(this);
+    m_settings_entry->SetBackgroundColour(GetBackgroundColour());
+    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto *gear = new IconView(m_settings_entry, "settings", 16);
+    sizer->Add(gear, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto *label = new Label(m_settings_entry, _L("Settings"));
+    label->SetFont(Label::Body_13);
+    label->SetForegroundColour(ThemeColor::TextPrimary);
+    label->SetBackgroundColour(GetBackgroundColour());
+    sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
+
+    // right_arrow, not arrow_right: the design ends the row with a thin chevron, where arrow_right
+    // is a full shafted arrow.
+    auto *arrow = new IconView(m_settings_entry, "right_arrow", 16);
+    sizer->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
+
+    m_settings_entry->SetSizer(sizer);
+    return m_settings_entry;
 }
 
 } // namespace Slic3r::GUI

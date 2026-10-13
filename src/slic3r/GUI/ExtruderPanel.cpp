@@ -390,7 +390,7 @@ public:
 
         auto *main_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-        auto  icon        = create_scaled_bitmap("prepare_nozzle_normal", this, 24);
+        auto  icon        = create_scaled_bitmap("prepare_nozzle_normal_short", this, 24);
         auto *nozzle_icon = new wxStaticBitmap(this, wxID_ANY, icon);
 
         auto *label_sizer = new wxBoxSizer(wxVERTICAL);
@@ -496,7 +496,7 @@ class NozzleSlotTile : public wxPanel
 public:
     NozzleSlotTile(wxWindow *parent, int number, const wxString &diameter, const wxString &flow, NozzleStatus status)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
-        , m_icon(this, "prepare_nozzle_normal", TILE_ICON_H)
+        , m_icon(this, "prepare_nozzle_normal_short", TILE_ICON_H)
         , m_number(number)
         , m_diameter(diameter)
         , m_flow(flow)
@@ -564,9 +564,9 @@ void NozzleSlotTile::OnPaint(wxPaintEvent &evt)
     // The number goes on the icon, not beside it: the tile is barely wider than the icon itself.
     const double badge_d = FromDIP(TILE_BADGE_D);
     const double badge_x = (size.x - badge_d) / 2.0;
-    const double badge_y = FromDIP(TILE_BADGE_Y);
+    const double badge_y = FromDIP(0);
     gc->SetBrush(wxBrush(badge_colour));
-    gc->DrawEllipse(badge_x, badge_y, badge_d, badge_d);
+    gc->DrawEllipse(badge_x, 0, badge_d, badge_d);
 
     gc->SetFont(Label::Body_12, text_colour);
 
@@ -1448,7 +1448,7 @@ void SingleExtruderPanel::CreateContent(wxBoxSizer * /*main_sizer*/) {}
 void SingleExtruderPanel::CreateExtraRows(wxBoxSizer *main_sizer)
 {
     m_tile_row = new wxBoxSizer(wxHORIZONTAL);
-    main_sizer->Add(m_tile_row, 0, wxEXPAND | wxTOP, FromDIP(10));
+    main_sizer->Add(m_tile_row, 0, wxEXPAND | wxTOP, FromDIP(8));
 
     m_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
 
