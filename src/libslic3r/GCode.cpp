@@ -7914,17 +7914,10 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         return true;
     }
 
-    if (role == erSupportMaterial || role == erSupportTransition) {
-        const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(m_layer);
-        //FIXME support_layer->support_islands.contains should use some search structure!
-        if (support_layer != NULL)
-            // skip retraction if this is a travel move inside a support material island
-            //FIXME not retracting over a long path may cause oozing, which in turn may result in missing material
-            // at the end of the extrusion path!
-            for (const ExPolygon& support_island : support_layer->support_islands)
-                if (support_island.contains(travel))
-                    return false;
-    }
+    // Short travels, including moves inside a support island, were already
+    // filtered by retraction_minimum_travel above. Do not exempt longer support
+    // travels here: returning false would also suppress Z-hop, even when
+    // reduce_infill_retraction_mode is disabled.
 
     //BBS: need retract when long moving to print perimeter to avoid dropping of material
     // Check reduce_infill_retraction mode: Enabled=always skip, Auto=skip only for low metal stickiness, Disabled=always retract
