@@ -642,8 +642,21 @@ endif ()
 
 find_package(PNG REQUIRED)
 
-set(OpenGL_GL_PREFERENCE "LEGACY")
-find_package(OpenGL REQUIRED)
+if (APPLE)
+    if (OPENGL_gl_LIBRARY MATCHES "X11")
+        unset(OPENGL_gl_LIBRARY CACHE)
+        unset(OPENGL_glu_LIBRARY CACHE)
+        unset(OPENGL_INCLUDE_DIR CACHE)
+        unset(OPENGL_GLU_INCLUDE_DIR CACHE)
+    endif ()
+    set(_CMAKE_FIND_FRAMEWORK_BACKUP ${CMAKE_FIND_FRAMEWORK})
+    set(CMAKE_FIND_FRAMEWORK FIRST)
+    find_package(OpenGL REQUIRED)
+    set(CMAKE_FIND_FRAMEWORK ${_CMAKE_FIND_FRAMEWORK_BACKUP})
+else ()
+    set(OpenGL_GL_PREFERENCE "LEGACY")
+    find_package(OpenGL REQUIRED)
+endif ()
 
 # Find glew or use bundled version
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)

@@ -301,6 +301,12 @@ void AppConfig::set_defaults()
     if (get("disable_auto_flow_cali_tips").empty())
         set_bool("disable_auto_flow_cali_tips", false);
 
+    if (get("enable_mcp_server").empty())
+        set_bool("enable_mcp_server", false);
+
+    if (get("mcp_server_port").empty())
+        set("mcp_server_port", "27183");
+
     // BBS
     if (get("preset_folder").empty())
         set("preset_folder", "");
