@@ -196,7 +196,8 @@ static double calc_max_layer_height(const PrintConfig &config, double max_object
 {
     double max_layer_height = std::numeric_limits<double>::max();
     for (size_t i = 0; i < config.nozzle_diameter.values.size(); ++ i) {
-        double mlh = config.max_layer_height.values[i];
+        // max_layer_height may be shorter than the extruder count; get_at() clamps.
+        double mlh = config.max_layer_height.get_at(i);
         if (mlh == 0.)
             mlh = 0.75 * config.nozzle_diameter.values[i];
         max_layer_height = std::min(max_layer_height, mlh);
@@ -1422,10 +1423,10 @@ FilamentGroupContext build_filament_group_context(
 
     auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info(), extruder_ams_counts, ignore_ext_filament);
 
-    std::vector<std::string> filament_types = print_config.filament_type.values;
-    std::vector<std::string> filament_colours = print_config.filament_colour.values;
-    std::vector<unsigned char> filament_is_support = print_config.filament_is_support.values;
+    // The grouping code walks filament_ids and indexes filament_info by the same position.
     std::vector<std::string> filament_ids = print_config.filament_ids.values;
+    if (filament_ids.size() > filament_nums)
+        filament_ids.resize(filament_nums);
     std::vector<FilamentUsageType> filament_usage_types = print->get_filament_usage_type();
 
     FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
@@ -1435,12 +1436,17 @@ FilamentGroupContext build_filament_group_context(
     context.model_info.filament_ids = filament_ids;
     context.model_info.unprintable_volumes = unprintable_volumes;
 
-    for (size_t idx = 0; idx < filament_types.size(); ++idx) {
+    // Consumers index filament_info by filament id, so it must span the filament count. A partial
+    // or legacy config can leave any of these arrays short; get_at() clamps to the first entry.
+    context.model_info.filament_info.reserve(filament_nums);
+    for (size_t idx = 0; idx < filament_nums; ++idx) {
         FilamentGroupUtils::FilamentInfo info;
-        info.color = filament_colours[idx];
-        info.type = filament_types[idx];
-        info.is_support = filament_is_support[idx];
-        info.usage_type = filament_usage_types[idx];
+        info.color = print_config.filament_colour.get_at(idx);
+        info.type = print_config.filament_type.get_at(idx);
+        info.is_support = print_config.filament_is_support.get_at(idx);
+        // get_filament_usage_type() returns one entry per filament_type; beyond that, a filament
+        // is neither model nor support, which it reports as ModelOnly.
+        info.usage_type = idx < filament_usage_types.size() ? filament_usage_types[idx] : FilamentUsageType::ModelOnly;
         context.model_info.filament_info.emplace_back(std::move(info));
     }
 
