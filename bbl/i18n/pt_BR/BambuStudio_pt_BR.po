@@ -1123,10 +1123,10 @@ msgid "Dowel"
 msgstr "Cavilha"
 
 msgid "Snap"
-msgstr "Capturar tela"
+msgstr "Encaixe"
 
 msgid "Thread"
-msgstr "Discussão"
+msgstr "Rosca"
 
 msgid "Tolerance"
 msgstr "Tolerância"
@@ -1610,10 +1610,10 @@ msgstr ""
 
 #. TRN - Input label. Be short as possible
 msgid "Boldness"
-msgstr "Ousadia"
+msgstr "intensidade do negrito"
 
 msgid "Skew"
-msgstr "Inclinar"
+msgstr "Inclinação"
 
 #. TRN - Input label. Be short as possible
 #. Align Top|Middle|Bottom and Left|Center|Right
@@ -6215,7 +6215,7 @@ msgid "Slice plate"
 msgstr "Fatiar mesa"
 
 msgid "Print plate"
-msgstr "Placa de impressão"
+msgstr "Imprimir mesa"
 
 msgid ""
 "This is your first time slicing with the dual extruder machine.\n"
