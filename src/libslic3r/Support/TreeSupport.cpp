@@ -3332,19 +3332,15 @@ void TreeSupport::draw_circles()
                 ExPolygons& floor_areas = ts_layer->floor_areas;
                 ExPolygons& roof_gap_areas = ts_layer->roof_gap_areas;
 
-                // The gap under an overhang may carry no material at all, so it carves the interface here and the
-                // base below. A folded carrier answers for its whole slab span, hence the gaps the swallowed layers
-                // left behind are pulled in as well.
+                // The gap under an overhang may carry no material at all, so it carves the base below. A folded
+                // carrier answers for its whole slab span, hence the gaps the swallowed layers left behind are pulled
+                // in as well. The interface must not be carved: the gap areas are widened overhangs, which on a sloped
+                // underside cover every interface line next to the wall; union_outlines_within_top_z() keeps its gap.
                 ExPolygons gap_keep_out = roof_gap_areas;
                 if (!m_fold_carriers.empty()) {
                     const auto swallowed_it = swallowed_gap_by_carrier.find(int(layer_nr));
                     if (swallowed_it != swallowed_gap_by_carrier.end())
                         append(gap_keep_out, swallowed_it->second);
-                    if (!gap_keep_out.empty()) {
-                        gap_keep_out = union_ex(gap_keep_out);
-                        if (!roof_areas.empty()) roof_areas = diff_clipped(roof_areas, gap_keep_out);
-                        if (!roof_1st_layer.empty()) roof_1st_layer = diff_clipped(roof_1st_layer, gap_keep_out);
-                    }
                 }
 
                 ExPolygons roofs; append(roofs, roof_1st_layer); append(roofs, roof_areas);append(roofs, std::move(gap_keep_out));
