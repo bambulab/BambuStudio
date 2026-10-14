@@ -164,6 +164,10 @@ set(lisbslic3r_sources
     Format/objparser.hpp
     Format/STEP.cpp
     Format/STEP.hpp
+    Format/SLDPRT.cpp
+    Format/SLDPRT.hpp
+    Format/SLDPRTReader.cpp
+    Format/SLDPRTReader.hpp
     Format/STL.cpp
     Format/STL.hpp
     Format/SL1.hpp

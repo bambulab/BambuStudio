@@ -8587,6 +8587,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
         const bool type_step = boost::algorithm::iends_with(path.string(), ".stp") ||
                                boost::algorithm::iends_with(path.string(), ".step");
+        const bool type_sldprt = boost::algorithm::iends_with(path.string(), ".sldprt");
         // const bool type_prusa   = std::regex_match(path.string(), pattern_prusa);
         const bool may_have_texture = type_3mf
             || boost::algorithm::iends_with(path.string(), ".obj")
@@ -9403,10 +9404,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (imperial_units)
                     // Convert even if the object is big.
                     convert_from_imperial_units(model, false);
-                else if (model.looks_like_saved_in_meters()) {
+                else if (!type_sldprt && model.looks_like_saved_in_meters()) {
                     BOOST_LOG_TRIVIAL(warning) << "object loaded seems in meter units, convert to millimeters:" << filename;
                     model.convert_from_meters(true);
-                } else if (model.looks_like_imperial_units()) {
+                } else if (!type_sldprt && model.looks_like_imperial_units()) {
                     BOOST_LOG_TRIVIAL(warning) << "object loaded seems in imperial units, convert to millimeters:" << filename;
                     convert_from_imperial_units(model, true);
                 }
@@ -9563,8 +9564,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         }
         if (boost::algorithm::iends_with(path.string(), ".stl") || boost::algorithm::iends_with(path.string(), ".obj") ||
             boost::algorithm::iends_with(path.string(), ".glb") || boost::algorithm::iends_with(path.string(), ".gltf") ||
-            boost::algorithm::iends_with(path.string(), ".fbx")) {
+            boost::algorithm::iends_with(path.string(), ".fbx") || boost::algorithm::iends_with(path.string(), ".sldprt")) {
             import_obj_or_stl = true;
+        }
+        if (type_sldprt && !model.objects.empty()) {
+            notification_manager->push_notification(NotificationType::CustomNotification,
+                NotificationManager::NotificationLevel::RegularNotificationLevel,
+                _u8L("SolidWorks part imported using its saved display mesh. For finer curves, increase Image Quality in SolidWorks and save the part again, or import a STEP export."));
         }
         if (one_by_one) {
             // BBS: add load_old_project logic
@@ -22288,7 +22294,7 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
     //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|gltf|glb|fbx)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stp|step|sldprt|stl|oltp|obj|amf|3mf|svg|gltf|glb|fbx)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> normal_paths;
