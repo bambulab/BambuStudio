@@ -290,6 +290,7 @@ public:
 
     void load_tray(const DynamicPrintConfig & config);
     void set_calibrate_filaments(std::set<std::string> names) { m_calibrate_filaments = std::move(names); }
+    const std::set<std::string>& get_calibrate_filaments() const { return m_calibrate_filaments; }
 
     void update() override;
     void msw_rescale() override;

@@ -3630,6 +3630,7 @@ void SubAmsPopup::SetData(MachineObject* obj,
     if (!obj) return;
 
     m_owner = owner;
+    const std::set<std::string> cali_names = owner && owner->GetComboBox() ? owner->GetComboBox()->get_calibrate_filaments() : std::set<std::string>{};
     /* Collect (tray_id, cfg) entries for the given slots; std::set already sorted
        by (ams_id, slot_id), so rows follow that order. */
     std::vector<std::pair<int, const DynamicPrintConfig*>> rows;
@@ -3651,6 +3652,7 @@ void SubAmsPopup::SetData(MachineObject* obj,
         auto* fcb = m_fcb_list[i];
         if (i < std::min(rows.size(), m_fcb_list.size())) {
             const int tray_id = rows[i].first;
+            fcb->GetComboBox()->set_calibrate_filaments(cali_names);
             fcb->update_from_preset();
             fcb->load_tray_from_ams(tray_id, *rows[i].second);
             /* set_select_mode toggles the radio/checkbox visibility per mode. */
