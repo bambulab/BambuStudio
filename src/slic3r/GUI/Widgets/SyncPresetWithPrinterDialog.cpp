@@ -445,7 +445,7 @@ void SyncPresetWithPrinterDialog::build_layout()
     auto *root = new wxBoxSizer(wxVERTICAL);
     root->AddSpacer(FromDIP(25));
 
-    auto *description = new Label(this, _L("The printer information in the 3MF file doesn't match the connected printer. Migrate using the plan below?"));
+    auto *description = new Label(this, _L("The printer model and settings in the 3MF file don't match the connected printer. Migrate the slicing settings to the connected printer?"));
     description->SetFont(Label::Body_14);
     description->SetForegroundColour(C(ThemeColor::TextPrimary));
     description->Wrap(content_width);
@@ -461,13 +461,11 @@ void SyncPresetWithPrinterDialog::build_layout()
     // Both sides on the same model means the preset stays where it is; a table repeating it twice
     // carries nothing.
     if (m_info.model_mismatch)
-        add_block(build_section(_L("Machine model"), [this](wxWindow *parent) { return build_model_table(parent); }));
+        add_block(build_section(_L("Printer model comparison"), [this](wxWindow *parent) { return build_model_table(parent); }));
 
-    // NozzleSectionKind::None draws nothing here: every slot keeps what it had.
-    if (m_info.section_kind == NozzleSectionKind::Unavailable)
-        add_block(build_nozzle_notice(this));
-    else if (m_info.section_kind == NozzleSectionKind::Notice || m_info.section_kind == NozzleSectionKind::Table)
-        add_block(build_section(_L("Nozzle type"), [this](wxWindow *parent) { return build_nozzle_table(parent); }));
+    // NozzleSectionKind::None and Unavailable draw nothing here: every slot keeps what it had.
+    if (m_info.section_kind == NozzleSectionKind::Notice || m_info.section_kind == NozzleSectionKind::Table)
+        add_block(build_section(_L("Nozzle comparison"), [this](wxWindow *parent) { return build_nozzle_table(parent); }));
 
     root->AddSpacer(FromDIP(23));
     auto *migration_note = new Label(this, _L("Note: After migration, some print parameters will be automatically adapted to the new printer model."));
@@ -679,16 +677,6 @@ wxWindow *SyncPresetWithPrinterDialog::make_nozzle_combo(wxWindow *parent, const
     return combo;
 }
 
-wxWindow *SyncPresetWithPrinterDialog::build_nozzle_notice(wxWindow *parent)
-{
-    auto *label = new Label(parent, _L("The connected printer has not reported its nozzle information, so the nozzles are left unchanged. "
-                                       "Only the printer preset will be switched."));
-    label->SetFont(Label::Body_13);
-    label->SetForegroundColour(C(ThemeColor::Grey700));
-    label->Wrap(FromDIP(kDialogWidth) - 2 * FromDIP(kSidePadding));
-    return label;
-}
-
 wxWindow *SyncPresetWithPrinterDialog::build_detail_loss_hint(wxWindow *parent)
 {
     auto *panel = new wxPanel(parent);
@@ -739,7 +727,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
 
     if (m_info.offer_skip_future_checks) {
         m_skip_check = new CheckBox(panel);
-        auto *label = new Label(panel, _L("Don't check again when loading 3MF"));
+        auto *label = new Label(panel, _L("Don't pop-up again when open 3MF"));
         label->SetFont(Label::Body_14);
         label->SetForegroundColour(C(ThemeColor::Grey500));
         // The bitmap button has no label of its own, so the text has to forward the click.

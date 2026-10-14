@@ -11662,7 +11662,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                     // 1. add extruder for prusa model if the number of existing extruders is not enough
                     // 2. add extruder for BBS or Other model if only import geometry
-                    if (en_3mf_file_type == En3mfType::From_Prusa || (load_model && !load_config)) {
+                    const bool need_filament_add = en_3mf_file_type == En3mfType::From_Prusa || (load_model && !load_config);
+                    // Other non-Bambu models may open the color import dialog, which adds only the filaments the user
+                    // confirms there, so their filaments are added below once it is known the dialog is not shown.
+                    const bool defer_filament_add = load_model && en_3mf_file_type == En3mfType::From_Other;
+                    auto add_missing_filaments = [this, &model]() {
                         std::set<int> extruderIds;
                         for (ModelObject *o : model.objects) {
                             if (o->config.option("extruder")) extruderIds.insert(o->config.extruder());
@@ -11684,7 +11688,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             ++filament_size;
                         }
                         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
-                    }
+                    };
+                    if (need_filament_add && !defer_filament_add)
+                        add_missing_filaments();
 
                     std::string import_project_action = wxGetApp().app_config->get("import_project_action");
                     LoadType load_type;
@@ -11709,7 +11715,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         if(load_type != LoadType::LoadGeometry)
                             q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
                                 NotificationManager::NotificationLevel::WarningNotificationLevel,
-                                into_u8(_L("The 3mf is not from Bambu Lab, load geometry data only.")));
+                                into_u8(_L("The 3mf is not from Bambu Lab, load geometry data and color data only.")));
                     }
                     else if (load_config && (file_version.maj() > app_version.maj())) {
                         // version mismatch, only load geometries
@@ -11731,7 +11737,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             else
                                 q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
                                     NotificationManager::NotificationLevel::WarningNotificationLevel,
-                                    into_u8(_L("The 3mf is not from Bambu Lab, load geometry data only.")));
+                                    into_u8(_L("The 3mf is not from Bambu Lab, load geometry data and color data only.")));
                         }
                         //for (ModelObject *model_object : model.objects) {
                         //    model_object->config.reset();
@@ -11939,11 +11945,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 standard_3mf_hint += _L("Parts without color will default to gray.");
                             standard_3mf_hint.Trim(); // drops the separator a missing later part leaves behind
                             standard_3mf_color_mesh = std::move(tex_mesh);
+                            // The ids the reader derived from the color groups may exceed the project filaments. Confirm
+                            // reassigns them from the dialog's matching; skip and cancel import geometry only.
+                            for (ModelObject* object : model.objects) {
+                                object->config.erase("extruder");
+                                for (ModelVolume* volume : object->volumes)
+                                    volume->config.erase("extruder");
+                            }
                         } else if (show_source_warning) {
                             q->get_notification_manager()->push_notification(NotificationType::CustomNotification,
                                 NotificationManager::NotificationLevel::WarningNotificationLevel, into_u8(source_warning));
                         }
                     }
+                    if (need_filament_add && defer_filament_add && !standard_3mf_color_mesh)
+                        add_missing_filaments();
                 }
 
                 if (load_config) {

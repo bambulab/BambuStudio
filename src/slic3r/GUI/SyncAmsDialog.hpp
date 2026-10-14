@@ -105,7 +105,7 @@ private:
     void update_mapped_preview(bool reframe);
 
     /**
-     * \brief Show the rows for the plate combo's scope. Results, including manual picks, survive a plate switch.
+     * \brief Show the rows for every project filament. The plate combo only scopes the previews.
      */
     void rebuild_mapping();
 

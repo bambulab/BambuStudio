@@ -87,7 +87,7 @@ bool DevNozzleRack::HasUnreliableNozzles() const
 {
     for (const auto& nozzle : m_rack_nozzles)
     {
-        if (!nozzle.second.IsInfoReliable())
+        if (!nozzle.second.IsEmpty() && !nozzle.second.IsInfoReliable())
         {
             return true;
         }

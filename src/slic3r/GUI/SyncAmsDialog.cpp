@@ -656,7 +656,7 @@ void SyncAmsDialog::update_mapped_preview(bool reframe)
     m_preview_mapped->set_scene(make_current_plate_scene(current_plate(), overrides), reframe);
 }
 
-void SyncAmsDialog::rebuild_mapping() { fill_rows(collect_scope_filaments(current_plate())); }
+void SyncAmsDialog::rebuild_mapping() { fill_rows(collect_scope_filaments(-1)); }
 
 void SyncAmsDialog::remap_all()
 {
@@ -863,7 +863,6 @@ wxWindow *SyncAmsDialog::build_preview_card(const wxString &title, const wxStrin
         m_plate_combo->SetSelection(preview_plate_count() > 0 ? preview_current_plate_index() + 1 : 0); // default: current plate
         m_plate_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &) {
             on_plate_changed();
-            rebuild_mapping();
         });
         hrow->Add(m_plate_combo, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
     }

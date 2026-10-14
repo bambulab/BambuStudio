@@ -41,7 +41,7 @@ enum class NozzleSectionKind
 {
     None,        // printer already carries everything; section hidden
     Notice,      // one candidate only; a shared cell states the forced outcome
-    Unavailable, // machine reported no usable nozzle; a sentence says so
+    Unavailable, // machine reported no usable nozzle; section hidden
     Table,       // one row per project nozzle, each with a dropdown unless shared_choice
 };
 
@@ -146,7 +146,6 @@ private:
     wxWindow *build_model_table(wxWindow *parent);
     wxWindow *build_nozzle_table(wxWindow *parent);
     wxWindow *build_shared_nozzle_rows(wxWindow *parent);
-    wxWindow *build_nozzle_notice(wxWindow *parent);
     wxWindow *build_detail_loss_hint(wxWindow *parent);
     wxWindow *build_footer(wxWindow *parent);
 
