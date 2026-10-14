@@ -2038,7 +2038,14 @@ int CLI::run(int argc, char **argv)
 
                     BOOST_LOG_TRIVIAL(info) << boost::format("current_printer_name %1%, current_process_name %2%")%current_printer_name %current_process_name;
                     ConfigOptionStrings* option_strings = config.option<ConfigOptionStrings>("inherits_group");
-                    if (option_strings) {
+                    // inherits_group is expected to hold filament_count + 2 entries: the process,
+                    // one per filament, then the printer. A project exported without inherited
+                    // presets carries a shorter vector (["", ""] for instance), which sized
+                    // current_filaments_system_name to zero while filament_count stayed non-zero,
+                    // so the conversion loop below indexed past the end of the vector. An empty
+                    // vector was worse still: size - 1 wraps around. Treat any mis-sized vector
+                    // the same as a missing one and fall back to the current names.
+                    if (option_strings && option_strings->values.size() == current_filaments_name.size() + 2) {
                         current_inherits_group = option_strings->values;
                         size_t size = current_inherits_group.size();
                         if (current_inherits_group[size-1].empty()) {
