@@ -8085,8 +8085,9 @@ bool SelectMachineDialog::CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxSt
 
         // GetDisplayName() already carries the "AMS" prefix ("AMS-H3", "AMS-B").
         const wxString ams_name = sources.rack_ams->GetDisplayName();
-        warning_msg = wxString::Format(
-            _L("External AMS and %s filaments are both selected for PrintTool %d. Because %s cannot "
+        // boost::format so translations can reorder arguments (%2$d, %1$s, %3$s).
+        warning_msg = format_wxstr(
+            _L("External AMS and %1$s filaments are both selected for PrintTool %2$d. Because %3$s cannot "
                "unload automatically, you will need to change the filament manually."),
             ams_name, addr_id + 1, ams_name);
         return false;
