@@ -2005,9 +2005,14 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished" << log_memory_info();
     print->set_done(psGCodeExport);
-    //BBS: set enable_label_object
-    result->label_object_enabled = m_enable_label_object;
-    result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    // result is optional: it is null-checked above before the processor output is moved
+    // into it, so these writes need the same guard. Without it, exporting with a null
+    // result wrote through a null pointer.
+    if (result != nullptr) {
+        //BBS: set enable_label_object
+        result->label_object_enabled = m_enable_label_object;
+        result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
+    }
     // Write the profiler measurements to file
     PROFILE_UPDATE();
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
