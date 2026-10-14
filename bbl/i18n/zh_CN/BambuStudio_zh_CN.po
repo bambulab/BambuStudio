@@ -11182,6 +11182,15 @@ msgstr "如果使用最优分组可多节省%dg耗材和%d次换料"
 msgid "nozzle"
 msgstr "nozzle"
 
+msgid "Read-only, automatically calculated from the base initial layer height"
+msgstr "只读，根据基础首层高度自动计算"
+
+msgid "Read-only, automatically calculated from the base layer height"
+msgstr "只读，根据基础层高自动计算"
+
+msgid "Read-only, automatically calculated from the base value"
+msgstr "只读，根据基础值自动计算"
+
 msgid "both extruders"
 msgstr "两侧挤出机"
 

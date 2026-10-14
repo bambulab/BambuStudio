@@ -93,6 +93,8 @@ class OG_CustomCtrl :public wxPanel
         wxRect              rect_label;
         wxRect              rect_nozzle_mirror;
         wxRect              rect_nozzle_group;
+        // Read-only mirrored value boxes of the expanded rows, used for hover tooltips.
+        std::vector<wxRect> rects_nozzle_mirror_values;
     };
 
     std::vector<CtrlLine> ctrl_lines;

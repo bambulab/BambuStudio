@@ -482,6 +482,20 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
                     tooltip = *field->undo_to_sys_tooltip();
                 break;
             }
+        // Mirrored per-nozzle value boxes are read-only and derived from the base value.
+        if (tooltip.IsEmpty() && line.og_line.nozzle_diameter_mirror && !option_set.empty()) {
+            for (const wxRect& rect : line.rects_nozzle_mirror_values)
+                if (is_point_in_rect(pos, rect)) {
+                    const std::string& mirror_key = option_set.front().opt.opt_key;
+                    if (mirror_key == "initial_layer_print_height")
+                        tooltip = _L("Read-only, automatically calculated from the base initial layer height");
+                    else if (mirror_key == "layer_height")
+                        tooltip = _L("Read-only, automatically calculated from the base layer height");
+                    else
+                        tooltip = _L("Read-only, automatically calculated from the base value");
+                    break;
+                }
+        }
         if (!tooltip.IsEmpty())
             break;
     }
@@ -1156,6 +1170,7 @@ void OG_CustomCtrl::CtrlLine::render_multi_nozzle_auto(wxDC& dc, Field* field)
 
 void OG_CustomCtrl::CtrlLine::render_nozzle_mirrors(wxDC& dc, wxCoord h_pos, wxCoord v_pos, Field* field)
 {
+    rects_nozzle_mirror_values.clear();
     if (!og_line.nozzle_diameter_mirror || !ctrl->m_nozzle_mirror_enabled) {
         rect_nozzle_mirror = wxRect();
         return;
@@ -1254,6 +1269,7 @@ void OG_CustomCtrl::CtrlLine::render_nozzle_mirrors(wxDC& dc, wxCoord h_pos, wxC
         dc.SetBrush(wxBrush(box_color));
         dc.SetPen(wxPen(border_color));
         dc.DrawRoundedRectangle(box_x, box_y, box_size.x, box_size.y, 3);
+        rects_nozzle_mirror_values.emplace_back(box_x, box_y, box_size.x, box_size.y);
 
         const double value = is_line_width ?
             Flow::resolve_extrusion_width_for_nozzle(
