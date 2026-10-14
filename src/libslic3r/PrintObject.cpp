@@ -4912,18 +4912,32 @@ void PrintObject::combine_adaptive_infill()
     // must disappear. Surfaces are rebuilt one by one to keep the template (bridge angle, thickness) of the
     // parts that stay outside the area.
     auto void_fill = [this](LayerRegion *layerm, const ExPolygons &area) {
+        if (area.empty())
+            return;
+        const BoundingBox area_bbox = get_extents(area);
         Surfaces   kept;
         ExPolygons voided;
+        kept.reserve(layerm->fill_surfaces.surfaces.size());
         for (const Surface &surface : layerm->fill_surfaces.surfaces) {
             m_print->throw_if_canceled();
+            // Splitting a void surface again leaves it void; it only multiplies the surfaces every later
+            // call has to clip.
+            const BoundingBox surface_bbox = get_extents(surface.expolygon);
+            if (surface.surface_type == stInternalVoid || ! surface_bbox.overlap(area_bbox)) {
+                kept.emplace_back(surface);
+                continue;
+            }
             // The area may cover a whole layer while a surface is small; clipping it to the surface's
             // bounding box first keeps the result and avoids feeding every point of it to each operation.
             const Polygons clip = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
-                area, get_extents(surface.expolygon).inflated(SCALED_EPSILON));
+                area, surface_bbox.inflated(SCALED_EPSILON));
+            if (clip.empty()) {
+                kept.emplace_back(surface);
+                continue;
+            }
             for (ExPolygon &expolygon : diff_ex(ExPolygons{ surface.expolygon }, clip))
                 kept.emplace_back(surface, std::move(expolygon));
-            if (! clip.empty())
-                expolygons_append(voided, intersection_ex(ExPolygons{ surface.expolygon }, clip));
+            expolygons_append(voided, intersection_ex(ExPolygons{ surface.expolygon }, clip));
         }
         if (voided.empty())
             return;
@@ -4978,10 +4992,12 @@ void PrintObject::combine_adaptive_infill()
         return extrusion_footprint_cache.emplace(cache_key, union_ex(footprint)).first->second;
     };
 
+    // deferred_void: when set, the swallowed-layer voids are collected there per layer instead of applied now.
     auto apply_merged_fill = [&void_fill, &span_solid_area, &extrusion_footprint, spiral_mode, this](
                                  size_t region_id, size_t bottom_idx, size_t top_idx, double merged_height,
                                  const ExPolygons &merge_area,
-                                 bool includes_sparse, bool includes_solid, bool void_lower_layers) {
+                                 bool includes_sparse, bool includes_solid, bool void_lower_layers,
+                                 std::vector<Polygons> *deferred_void) {
         Polygons solid;
         if (includes_solid)
             for (size_t layer_idx = bottom_idx; layer_idx <= top_idx; ++layer_idx)
@@ -5004,8 +5020,12 @@ void PrintObject::combine_adaptive_infill()
             ExPolygons{} : intersection_ex(merge_area, union_ex(object_bottom));
 
         if (void_lower_layers)
-            for (size_t layer_idx = bottom_idx; layer_idx < top_idx; ++layer_idx)
-                void_fill(m_layers[layer_idx]->get_region(region_id), merge_area);
+            for (size_t layer_idx = bottom_idx; layer_idx < top_idx; ++layer_idx) {
+                if (deferred_void)
+                    polygons_append((*deferred_void)[layer_idx], to_polygons(merge_area));
+                else
+                    void_fill(m_layers[layer_idx]->get_region(region_id), merge_area);
+            }
 
         LayerRegion *layerm = m_layers[top_idx]->get_region(region_id);
         // The fine layer above may be swallowed by a later coarse-nozzle slab. Compare against that
@@ -5023,14 +5043,21 @@ void PrintObject::combine_adaptive_infill()
 
         Surfaces   kept;
         ExPolygons covered;
+        const BoundingBox merge_bbox = get_extents(merge_area);
+        kept.reserve(layerm->fill_surfaces.surfaces.size());
         for (const Surface &surface : layerm->fill_surfaces.surfaces) {
             m_print->throw_if_canceled();
-            const Polygons clip = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
-                merge_area, get_extents(surface.expolygon).inflated(SCALED_EPSILON));
+            const BoundingBox surface_bbox = get_extents(surface.expolygon);
+            const Polygons    clip         = surface_bbox.overlap(merge_bbox) ?
+                ClipperUtils::clip_clipper_polygons_with_subject_bbox(merge_area, surface_bbox.inflated(SCALED_EPSILON)) :
+                Polygons{};
+            if (clip.empty()) {
+                kept.emplace_back(surface);
+                continue;
+            }
             for (ExPolygon &expolygon : diff_ex(ExPolygons{ surface.expolygon }, clip))
                 kept.emplace_back(surface, std::move(expolygon));
-            if (! clip.empty())
-                expolygons_append(covered, intersection_ex(ExPolygons{ surface.expolygon }, clip));
+            expolygons_append(covered, intersection_ex(ExPolygons{ surface.expolygon }, clip));
         }
         if (covered.empty()) {
             if (bottom_idx != 0)
@@ -5198,7 +5225,7 @@ void PrintObject::combine_adaptive_infill()
                     if (! fill_area.empty())
                         apply_merged_fill(region_id, wall_patch.bottom_idx, wall_patch.top_idx,
                                           wall_patch.merged_height, fill_area, includes_sparse, includes_solid,
-                                          ! inherit_wall_column);
+                                          ! inherit_wall_column, nullptr);
                     for (size_t idx = wall_patch.bottom_idx; idx < wall_patch.top_idx; ++idx) {
                         LayerRegion *swallowed = m_layers[idx]->get_region(region_id);
                         // A shape that closes inside the band - the top face of a step, say - has no
@@ -5394,10 +5421,25 @@ void PrintObject::combine_adaptive_infill()
                         }
                         if (! found)
                             break;
+                        // Slivers left by Clipper rounding stay in the remainder and are voided below.
+                        common = adaptive_printable_pieces(std::move(common), nozzle);
+                        if (common.empty())
+                            break;
+
+                        // Commit only after diff_ex() really removed the patch. A patch left in the remainder
+                        // would be voided again below, wiping the merged fill just written on its group top.
+                        // Without progress nothing is committed: the remainder stays as is for the repair
+                        // passes, and whatever they cannot take is voided at the end.
+                        std::vector<ExPolygons> shrunk;
+                        shrunk.reserve(top_idx - bottom_idx + 1);
+                        for (size_t layer_idx = bottom_idx; layer_idx <= top_idx; ++ layer_idx)
+                            shrunk.emplace_back(diff_ex(remainder[layer_idx], common));
+                        if (area(remainder[top_idx]) - area(shrunk.back()) < 0.9 * area(common))
+                            break;
 
                         for (size_t layer_idx = bottom_idx; layer_idx <= top_idx; ++ layer_idx) {
                             mark_carried(layer_idx, common);
-                            remainder[layer_idx] = diff_ex(remainder[layer_idx], common);
+                            remainder[layer_idx] = std::move(shrunk[layer_idx - bottom_idx]);
                         }
                         planned_fill.push_back({ bottom_idx, top_idx, height, std::move(common) });
                         BOOST_LOG_TRIVIAL(debug) << "[adaptive_merge] fill remainder region=" << region_id
@@ -5497,17 +5539,24 @@ void PrintObject::combine_adaptive_infill()
                         planned_fill.emplace_back(std::move(grown));
                 }
 
+                // Planned patches never overlap on a layer (see carried above), and apply_merged_fill() only
+                // reads a layer inside its own merge area, so the swallowed-layer voids of every patch can be
+                // collected and applied once per layer instead of once per patch.
+                std::vector<Polygons> deferred_void(layer_count);
                 for (const PlannedFillPatch &patch : planned_fill)
                     apply_merged_fill(region_id, patch.bottom_idx, patch.top_idx, patch.merged_height,
-                                      patch.area, group.sparse, group.solid, true);
+                                      patch.area, group.sparse, group.solid, true, &deferred_void);
 
                 // A footprint that exists for less than this nozzle's minimum printable height cannot be
                 // assigned to any neighboring band. This branch plans fill whose nozzle differs from the
                 // wall nozzle, so another XY patch touching the layer does not make this remainder legal:
                 // leaving it behind would extrude it at the base layer height.
-                for (size_t layer_idx = 0; layer_idx < layer_count; ++ layer_idx)
+                for (size_t layer_idx = 0; layer_idx < layer_count; ++ layer_idx) {
                     if (! remainder[layer_idx].empty())
-                        void_fill(m_layers[layer_idx]->get_region(region_id), remainder[layer_idx]);
+                        polygons_append(deferred_void[layer_idx], to_polygons(remainder[layer_idx]));
+                    if (! deferred_void[layer_idx].empty())
+                        void_fill(m_layers[layer_idx]->get_region(region_id), union_ex(deferred_void[layer_idx]));
+                }
             }
         }
     }
