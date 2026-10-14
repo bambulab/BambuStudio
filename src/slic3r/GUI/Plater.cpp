@@ -207,6 +207,7 @@
 #include "EditFilamentWebDialog.hpp"
 #include "StepMeshDialog.hpp"
 #include "PurgeModeDialog.hpp"
+#include "MultiNozzleTpuTipsDialog.hpp"
 #include "FilamentMapDialog.hpp"
 #include "FilamentMapPanel.hpp"
 #include "FilamentNozzlePopup.hpp"
@@ -16301,11 +16302,15 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         }
     }
 
+    bool show_tpu_tips = false;
     if (preset_type == Preset::TYPE_FILAMENT) {
         std::string old_name = wxGetApp().preset_bundle->filaments.get_edited_preset().name;
+        const auto &slot_presets = wxGetApp().preset_bundle->filament_presets;
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
         if (!q->on_filament_change(idx))
             wxGetApp().preset_bundle->set_filament_preset(idx, old_name);
+        else if (idx >= 0 && idx < (int) slot_presets.size())
+            show_tpu_tips = MultiNozzleTpuTipsDialog::should_show(slot_presets[idx]);
 
         // Multi-diameter mode: also carry over the tray's nozzle diameter + flow type to this slot,
         // so the "synced" state actually matches on all four fields (filament_id, color, diameter,
@@ -16458,6 +16463,13 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     auto plate_list = partplate_list.get_plate_list();
     for (auto plate : plate_list) {
          plate->update_slice_result_valid_state(false);
+    }
+
+    if (show_tpu_tips) {
+        q->CallAfter([this]() {
+            MultiNozzleTpuTipsDialog dlg(q);
+            dlg.ShowModal();
+        });
     }
 }
 

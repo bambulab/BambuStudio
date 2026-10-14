@@ -653,6 +653,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PrintOptionsDialog.cpp
     GUI/PurgeModeDialog.hpp
     GUI/PurgeModeDialog.cpp
+    GUI/MultiNozzleTpuTipsDialog.hpp
+    GUI/MultiNozzleTpuTipsDialog.cpp
     GUI/SafetyOptionsDialog.hpp
     GUI/SafetyOptionsDialog.cpp
     GUI/CreatePresetsDialog.hpp
