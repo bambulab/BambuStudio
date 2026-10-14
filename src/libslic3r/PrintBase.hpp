@@ -65,7 +65,8 @@ public:
         SlicingEmptyGcodeLayers,
         SlicingGcodeOverlap,
         SlicingSupportIncomplete,
-        SlicingSupportIncompleteOnBuildPlate
+        SlicingSupportIncompleteOnBuildPlate,
+        SlicingPurgeVolumeNotMet
     };
 
     typedef size_t TimeStamp;

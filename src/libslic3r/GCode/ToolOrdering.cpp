@@ -3211,6 +3211,133 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
     return volume_to_wipe;
 }
 
+// Read-only sibling of mark_wiping_extrusions(): sums the volume of every entity that
+// function *would* be willing to mark on this layer, without marking anything or being
+// tied to any one old/new extruder pair. Mirrors its object/entity walk (same dedicated-
+// object-first sort, same infill/perimeter two-phase structure) but purely additively.
+//
+// One known, deliberate imprecision: mark_wiping_extrusions() also applies an extra
+// wall-must-print-first ordering check (`lt.is_extruder_order(...)`) for infill-only
+// (`flush_into_infill` without `flush_into_objects`) entities when `!is_infill_first`,
+// which depends on the specific `new_extruder` being targeted - this estimator has no
+// single target extruder to check against, so it's omitted here. Any resulting
+// overestimate of the pool self-corrects: mark_wiping_extrusions_for_layer() computes
+// each transition's actually-marked volume from mark_wiping_extrusions()'s real result,
+// not from the estimate, so a transition that can't use as much as its target implies
+// still correctly reports the shortfall as unmet.
+float WipingExtrusions::estimate_overridable_volume(const Print& print) const
+{
+    if (! this->something_overridable)
+        return 0.f;
+
+    const LayerTools& lt = *m_layer_tools;
+    const float min_infill_volume = 0.f;
+    float total = 0.f;
+
+    ConstPrintObjectPtrs object_list = print.objects().vector();
+    std::sort(object_list.begin(), object_list.end(), [object_list](const PrintObject* a, const PrintObject* b) {
+        if (a->config().flush_into_objects != b->config().flush_into_objects)
+            return a->config().flush_into_objects.getBool();
+        return a->id() < b->id();
+    });
+
+    bool perimeters_done = false;
+    for (int i = 0; i < (int)object_list.size() + (perimeters_done ? 0 : 1); ++i) {
+        if (!perimeters_done && (i == (int)object_list.size() || !object_list[i]->config().flush_into_objects)) {
+            perimeters_done = true;
+            i = -1;
+            continue;
+        }
+
+        const PrintObject* object = object_list[i];
+        const Layer* this_layer = object->get_layer_at_printz(lt.print_z, EPSILON);
+        if (this_layer == nullptr)
+            continue;
+
+        size_t num_of_copies = object->instances().size();
+        for (unsigned int copy = 0; copy < num_of_copies; ++copy) {
+            for (const LayerRegion* layerm : this_layer->regions()) {
+                const auto& region = layerm->region();
+                if (!object->config().flush_into_infill && !object->config().flush_into_objects && !object->config().flush_into_support)
+                    continue;
+                bool wipe_into_infill_only = !object->config().flush_into_objects && object->config().flush_into_infill;
+                bool is_infill_first = print.config().is_infill_first;
+                if (is_infill_first != perimeters_done || wipe_into_infill_only) {
+                    for (const ExtrusionEntity* ee : layerm->fills.entities) {
+                        auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+                        if (!is_overriddable(*fill, print.config(), *object, region))
+                            continue;
+                        if (!is_entity_overridden(fill, object, copy) && fill->total_volume() > min_infill_volume)
+                            total += float(fill->total_volume());
+                    }
+                }
+
+                if (object->config().flush_into_objects && is_infill_first == perimeters_done) {
+                    for (const ExtrusionEntity* ee : layerm->perimeters.entities) {
+                        auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+                        if (is_overriddable(*fill, print.config(), *object, region) && !is_entity_overridden(fill, object, copy) && fill->total_volume() > min_infill_volume)
+                            total += float(fill->total_volume());
+                    }
+                }
+            }
+        }
+    }
+    return total;
+}
+
+std::vector<float> WipingExtrusions::mark_wiping_extrusions_for_layer(const Print& print, const std::vector<PurgeTransition>& transitions)
+{
+    std::vector<float> unmet(transitions.size(), 0.f);
+    if (transitions.empty())
+        return unmet;
+
+    // Transitions touching a soluble or support filament are never diverted into object
+    // geometry - matches mark_wiping_extrusions()'s own long-standing guard. Their full
+    // required volume passes straight through as unmet/untouched.
+    float             R = 0.f;
+    std::vector<bool> eligible(transitions.size(), false);
+    for (size_t i = 0; i < transitions.size(); ++i) {
+        const PurgeTransition& t = transitions[i];
+        bool ok = t.required_volume > 0.f
+            && ! print.config().filament_soluble.get_at(t.old_extruder)
+            && ! print.config().filament_soluble.get_at(t.new_extruder)
+            && ! print.config().filament_is_support.get_at(t.old_extruder)
+            && ! print.config().filament_is_support.get_at(t.new_extruder);
+        eligible[i] = ok;
+        if (ok)
+            R += t.required_volume;
+        else
+            unmet[i] = std::max(0.f, t.required_volume);
+    }
+    if (R <= 0.f)
+        return unmet;
+
+    float V_total = this->estimate_overridable_volume(print);
+    if (V_total <= 0.f) {
+        for (size_t i = 0; i < transitions.size(); ++i)
+            if (eligible[i])
+                unmet[i] = transitions[i].required_volume;
+        return unmet;
+    }
+
+    // Every transition's target is scaled by the same factor, so targets always sum to
+    // V_total: short of the pool -> every transition gets a proportionally short share
+    // instead of the first one draining it; more pool than needed -> every transition
+    // gets proportionally more than it strictly requires, so the whole pool still ends
+    // up allocated rather than leaving part of an object at its own "clean" colour.
+    float scale = V_total / R;
+    for (size_t i = 0; i < transitions.size(); ++i) {
+        if (!eligible[i])
+            continue;
+        const PurgeTransition& t      = transitions[i];
+        float                  target = t.required_volume * scale;
+        float                  leftover = this->mark_wiping_extrusions(print, t.old_extruder, t.new_extruder, target);
+        float                  actually_marked = target - leftover;
+        unmet[i] = std::max(0.f, t.required_volume - actually_marked);
+    }
+    return unmet;
+}
+
 
 
 // Called after all toolchanges on a layer were mark_infill_overridden. There might still be overridable entities,
