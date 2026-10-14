@@ -547,6 +547,10 @@ public:
     void            handle_script_message(std::string msg);
     void            request_model_download(wxString url);
     std::string     sanitize_download_url(const std::string& url);
+    // "bambustudio://open?file=..." (Windows, Linux) or "bambustudioopen://..." (macOS) links coming from the browser,
+    // either at startup or forwarded by another instance.
+    static bool     is_web_open_url(const std::string& url);
+    void            open_web_url(const std::string& url);
     void            download_project(std::string project_id);
     void            request_project_download(std::string project_id);
     void            request_open_project(std::string project_id);
