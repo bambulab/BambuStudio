@@ -635,6 +635,16 @@ private:
     void bridge_over_infill();
     void clip_fill_surfaces();
     void discover_horizontal_shells();
+    // Wave overhangs: runs after every other surface-classification pass and takes
+    // authority over surface types inside the wave shadow, so the configured number of
+    // floor layers replaces the usual shell counts rather than adding to them.
+    void apply_wave_overhang_floor_layer_authority();
+    // Wave overhangs: with wave_overhangs_instead_of_bridges on, reclassify leftover
+    // bridge surfaces in the region as solid infill so no bridge patterns remain.
+    void apply_wave_overhang_bridge_suppression();
+    // Wave overhangs: tag the walls on wave layers and on the floor layers above them, so
+    // the G-code stage can apply their own speed overrides.
+    void tag_wave_overhang_perimeters();
     void merge_infill_types();
     void combine_infill();
     void discover_sub_top_surfaces();

@@ -1799,8 +1799,20 @@ void StaticConfig::set_defaults()
         for (const std::string &key : this->keys()) {
             const ConfigOptionDef   *def = defs->get(key);
             ConfigOption            *opt = this->option(key);
-            if (def != nullptr && opt != nullptr && def->default_value)
+            if (def != nullptr && opt != nullptr && def->default_value) {
                 opt->set(def->default_value.get());
+                // set() copies the values only. An enum-list option also needs its key map
+                // to serialize, and ConfigOptionDef::create_default_option() attaches one,
+                // but this path never did: every static config was left holding enum-list
+                // options with a null keys_map, and serializing one (as append_full_config
+                // does at the end of every exported G-code file) dereferenced it.
+                if (def->type == coEnums) {
+                    if (auto *e = dynamic_cast<ConfigOptionEnumsGeneric *>(opt))
+                        e->keys_map = def->enum_keys_map;
+                    else if (auto *en = dynamic_cast<ConfigOptionEnumsGenericNullable *>(opt))
+                        en->keys_map = def->enum_keys_map;
+                }
+            }
         }
     }
 }

@@ -63,6 +63,12 @@ public:
     std::pair<double, double>   m_smaller_external_overhang_dist_boundary;
     std::vector<LoopNode>       *loop_nodes;
 
+    // Footprint of the wave-overhang extrusions emitted for this region. Picked up by
+    // LayerRegion::make_perimeters and stashed on the Layer, where the surface
+    // classification passes and the support generator read it.
+    Polygons                    out_wave_overhang_floor_polygons;
+    Polygons                    out_wave_overhang_covered_polygons;
+
     PerimeterGenerator(
         // Input:
         const SurfaceCollection*    slices,
@@ -99,6 +105,9 @@ public:
     void        process_arachne();
 
     void        process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width);
+
+    // Wave overhangs: swap the unsupported part of one island for the wave pattern.
+    void        apply_wave_overhangs(const ExPolygon &island_region);
 
     // to save memory, directly modify top
     bool        should_enable_top_one_wall(const ExPolygons& original_expolys, ExPolygons& top);

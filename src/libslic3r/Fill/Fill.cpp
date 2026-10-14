@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <algorithm>
 #include <memory>
 
 #include "../ClipperUtils.hpp"
@@ -19,6 +20,30 @@
 #define NARROW_INFILL_AREA_THRESHOLD 3
 
 namespace Slic3r {
+
+// Tag every ExtrusionPath under `ent` as part of a wave-overhang floor, so the G-code stage applies
+// the wave_overhang_floor_* speed and fan overrides. `distance` is the 1-based layer offset from the
+// nearest wave layer below, which the G-code stage uses to ramp the floor speed.
+static void tag_wave_overhang_floor_recursive(ExtrusionEntity *ent, int8_t distance)
+{
+    if (ent == nullptr)
+        return;
+    auto stamp = [distance](ExtrusionPath &p) {
+        p.wave_overhang_floor          = true;
+        p.wave_overhang_floor_distance = distance;
+    };
+    if (auto *path = dynamic_cast<ExtrusionPath*>(ent))
+        stamp(*path);
+    else if (auto *loop = dynamic_cast<ExtrusionLoop*>(ent))
+        for (ExtrusionPath &p : loop->paths)
+            stamp(p);
+    else if (auto *mp = dynamic_cast<ExtrusionMultiPath*>(ent))
+        for (ExtrusionPath &p : mp->paths)
+            stamp(p);
+    else if (auto *coll = dynamic_cast<ExtrusionEntityCollection*>(ent))
+        for (ExtrusionEntity *child : coll->entities)
+            tag_wave_overhang_floor_recursive(child, distance);
+}
 
 struct SurfaceFillParams
 {
@@ -86,6 +111,12 @@ struct SurfaceFillParams
     float lattice_angle_1 = -45.0f;
     float lattice_angle_2 = 45.0f;
 
+    // Hilbert-curve floor over a wave overhang: the produced paths get tagged so the G-code stage
+    // applies the wave_overhang_floor_* overrides. The distance is the 1-based layer offset from the
+    // nearest wave layer below, 0 when this is not a wave floor.
+    bool   wave_overhang_floor          = false;
+    int8_t wave_overhang_floor_distance = 0;
+
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
@@ -128,6 +159,8 @@ struct SurfaceFillParams
         RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
         RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skin_pattern);
         RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skeleton_pattern);
+        RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, wave_overhang_floor);
+        RETURN_COMPARE_NON_EQUAL_TYPED(int, wave_overhang_floor_distance);
 		return false;
 	}
 
@@ -164,7 +197,9 @@ struct SurfaceFillParams
 			    this->lattice_angle_1 == rhs.lattice_angle_1 &&
                 this->lattice_angle_2 == rhs.lattice_angle_2&&
 				this-> skin_pattern     == rhs.skin_pattern &&
-				this-> skeleton_pattern == rhs.skeleton_pattern;
+				this-> skeleton_pattern == rhs.skeleton_pattern &&
+				this->wave_overhang_floor          == rhs.wave_overhang_floor &&
+				this->wave_overhang_floor_distance == rhs.wave_overhang_floor_distance;
 	}
 };
 
@@ -265,8 +300,37 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 						params.pattern = InfillPattern::ipFloatingConcentric;
 					else if (surface.is_sub_top())
                         params.pattern = region_config.sub_top_surface_pattern.value;
-					else if (surface.is_solid_infill())
+					else if (surface.is_solid_infill()) {
                         params.pattern = region_config.internal_solid_infill_pattern.value;
+                        // Solid layers just above a wave overhang can be printed as a Hilbert curve,
+                        // which leaves less residual stress to warp the cantilever below than long
+                        // straight lines do. Applies within the first wave_overhang_floor_hilbert_layers
+                        // layers above a wave layer (0 = all wave_overhang_floor_layers of them), and
+                        // only to surfaces that lie over the wave area.
+                        if (region_config.wave_overhangs.value && region_config.wave_overhang_floor_use_hilbert.value &&
+                            ! layer.wave_overhang_shadow_polygons.empty()) {
+                            const int floor_layers   = std::max(0, region_config.wave_overhang_floor_layers.value);
+                            const int hilbert_layers = std::max(0, region_config.wave_overhang_floor_hilbert_layers.value);
+                            const int cap            = hilbert_layers > 0 ? std::min(hilbert_layers, floor_layers) : floor_layers;
+                            int       distance       = 0;
+                            const Layer *below       = &layer;
+                            for (int d = 1; d <= cap; ++ d) {
+                                below = below->lower_layer;
+                                if (below == nullptr)
+                                    break;
+                                if (! below->wave_overhang_floor_polygons.empty()) {
+                                    distance = d;
+                                    break;
+                                }
+                            }
+                            if (distance > 0 && ! intersection(to_polygons(surface.expolygon), layer.wave_overhang_shadow_polygons).empty()) {
+                                params.pattern                      = ipHilbertCurve;
+                                params.density                      = float(std::clamp(region_config.wave_overhang_floor_hilbert_density.value, 1, 100));
+                                params.wave_overhang_floor          = true;
+                                params.wave_overhang_floor_distance = int8_t(std::min(distance, 127));
+                            }
+                        }
+                    }
                     else if (surface.is_external() && !is_bridge) {
                         params.pattern = surface.is_top() ? region_config.top_surface_pattern.value : region_config.bottom_surface_pattern.value;
                         params.density = surface.is_top() ? region_config.top_surface_density.value : region_config.bottom_surface_density.value;
@@ -794,6 +858,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		if (surface_fill.params.pattern == ipGrid || surface_fill.params.pattern == ipFloatingConcentric)
 			params.can_reverse = false;
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
+		ExtrusionEntitiesPtr &dst_entities = m_regions[surface_fill.region_id]->fills.entities;
+		const size_t          dst_size_before = dst_entities.size();
 		for (ExPolygon& expoly : surface_fill.expolygons) {
 
       f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
@@ -806,8 +872,11 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);
 			// BBS: make fill
-			f->fill_surface_extrusion(&surface_fill.surface, params, m_regions[surface_fill.region_id]->fills.entities);
+			f->fill_surface_extrusion(&surface_fill.surface, params, dst_entities);
 		}
+		if (surface_fill.params.wave_overhang_floor)
+			for (size_t i = dst_size_before; i < dst_entities.size(); ++ i)
+				tag_wave_overhang_floor_recursive(dst_entities[i], surface_fill.params.wave_overhang_floor_distance);
     }
 
     // add thin fill regions
