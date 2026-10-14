@@ -184,6 +184,8 @@ public:
 	// 0 still means "don't care". extruder() folds that 0 onto filament 1 on its way to a zero based
 	// index, so anything registering slots into LayerTools::extruders has to read them from here.
 	unsigned int filament_slot(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const;
+	// filament_slot() without extruder_override: the slot the region config assigns to these extrusions by role.
+	static unsigned int filament_slot_by_role(const ExtrusionEntityCollection &extrusions, const PrintRegionConfig &config);
 
     coordf_t 					print_z	= 0.;
     bool 						has_object = false;

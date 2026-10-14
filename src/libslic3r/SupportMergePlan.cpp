@@ -1,5 +1,6 @@
 #include "SupportMergePlan.hpp"
 
+#include "GCode/ToolOrdering.hpp"
 #include "Layer.hpp"
 #include "Model.hpp"
 #include "Print.hpp"
@@ -184,7 +185,7 @@ const SupportMergePlan::Slab *SupportMergePlan::slab_for_layer(size_t layer_idx)
 // reaches highest follows the coarsest ladder without ever stepping off it. Picking the coarsest band per
 // top layer independently would not: a fine band closing early moves the cursor off the coarse ladder and
 // the rest of the stack could never rejoin it.
-static void expand_slabs(SupportMergePlan &plan)
+static void expand_slabs(SupportMergePlan &plan, const std::vector<std::vector<int>> *extruded_per_layer)
 {
     const size_t num_layers = plan.layer_print_z.size();
     plan.slab_index_per_layer.assign(num_layers, -1);
@@ -208,6 +209,15 @@ static void expand_slabs(SupportMergePlan &plan)
                 [&entry](const SupportMergePlan::Candidate &candidate) { return candidate.filament_id == entry.first; });
             if (cand_it == at_top.end())
                 continue;
+            // A region keeping slices on a layer does not mean its filament is extruded there: its band may be
+            // emitted at another layer. Pinning the slab to such a filament adds a tool change nothing else at
+            // this height needs, and among equal nozzles the lowest filament id always wins.
+            // A support filament the user picked is not extruded by the object, so it is exempt (nullptr).
+            if (extruded_per_layer != nullptr) {
+                const std::vector<int> &extruded = (*extruded_per_layer)[band_it->top_idx];
+                if (std::find(extruded.begin(), extruded.end(), entry.first) == extruded.end())
+                    continue;
+            }
             // Reaching higher wins, and on a tie the coarser nozzle does: two filaments can share a ladder
             // while only one of them saves a tool change here.
             if (best_band == nullptr || band_it->top_idx > best_band->top_idx ||
@@ -315,12 +325,27 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
         }
 
     std::vector<std::vector<SupportMergePlan::Candidate>> object_candidates(layers.size());
+    // Filaments the object actually extrudes per layer, collected like ToolOrdering::collect_extruders():
+    // walls only where perimeters exist, one slot per fill island. Listing both infill filaments whenever
+    // any fill exists pins the slab to a filament this height never extrudes.
+    // ToolOrdering's extruder_override (per-layer tool changes of a single-filament plate) is not applied,
+    // like the candidates above; height range modifiers are already part of the region config.
+    std::vector<std::vector<int>> extruded_per_layer(layers.size());
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++ layer_idx) {
         std::vector<SupportMergePlan::Candidate> &candidates = object_candidates[layer_idx];
         for (const LayerRegion *layerm : layers[layer_idx]->regions()) {
             if (layerm->slices.empty())
                 continue;
             const PrintRegionConfig &region_config = layerm->region().config();
+            std::vector<int> &extruded = extruded_per_layer[layer_idx];
+            if (! layerm->perimeters.empty())
+                extruded.emplace_back(region_config.wall_filament.value);
+            for (const ExtrusionEntity *ee : layerm->fills.entities) {
+                const auto *fill = dynamic_cast<const ExtrusionEntityCollection *>(ee);
+                if (fill == nullptr || fill->empty())
+                    continue;
+                extruded.emplace_back(int(LayerTools::filament_slot_by_role(*fill, region_config)));
+            }
             add_candidate(candidates, region_config.wall_filament.value, false);
             add_candidate(candidates, region_config.sparse_infill_filament.value, false);
             add_candidate(candidates, region_config.solid_infill_filament.value, false);
@@ -355,7 +380,7 @@ SupportMergePlan make_support_merge_plan(const PrintObject &object)
         plan.interface_candidates_per_layer = std::move(object_candidates);
     }
 
-    expand_slabs(plan);
+    expand_slabs(plan, support_filament > 0 ? nullptr : &extruded_per_layer);
 
     // The roof is printed with the pinned interface filament, so it may only be folded onto a slab that
     // filament can actually extrude. Nothing can make a 0.4 nozzle lay down a band only a 0.8 one reaches,

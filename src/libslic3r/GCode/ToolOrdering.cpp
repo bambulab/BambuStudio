@@ -169,48 +169,50 @@ unsigned int LayerTools::filament_slot(const ExtrusionEntityCollection &extrusio
 	assert(region.config().wall_filament.value >= 0);
 	assert(region.config().sparse_infill_filament.value >= 0);
 	assert(region.config().solid_infill_filament.value >= 0);
+    // use separate filament for different features only if the potion was open
+    return this->extruder_override == 0 ? filament_slot_by_role(extrusions, region.config()) : this->extruder_override;
+}
+
+unsigned int LayerTools::filament_slot_by_role(const ExtrusionEntityCollection &extrusions, const PrintRegionConfig &config)
+{
 	// 1 based extruder ID.
     unsigned int extruder = 0;
-    // use separate filament for different features only if the potion was open
-    if (this->extruder_override == 0) {
-        ExtrusionRole extrusions_role = extrusions.role();
-        if (is_perimeter(extrusions_role)) {
-            extruder = region.config().wall_filament.value;
-        } else if (is_solid_infill(extrusions_role)) {
-            extruder = region.config().solid_infill_filament.value;
-        } else if (is_infill(extrusions_role)) {
-            extruder = region.config().sparse_infill_filament.value;
-        } else if (extrusions_role == ExtrusionRole::erMixed) {
-            //this set of extrusions contain multi roles, follow a Priority to decide which to use
-            int curr_priority = 0;
-            for (const ExtrusionEntity *ee : extrusions.entities)
-                if (ee->role() == ExtrusionRole::erTopSolidInfill) {
-                    if (curr_priority < 100) { // top surface 1st priority
-                        extruder      = region.config().solid_infill_filament.value;
-                        curr_priority = 100;
-                    }
-                } else if (is_perimeter(ee->role())) {
-                    if (curr_priority < 90) { // perimeter 2st priority
-                        extruder      = region.config().wall_filament.value;
-                        curr_priority = 90;
-                    }
-                } else if (is_solid_infill(ee->role())) {
-                    if (curr_priority < 70) { // solid infill 4st priority
-                        extruder      = region.config().solid_infill_filament.value;
-                        curr_priority = 70;
-                    }
-                } else if (is_infill(ee->role())) {
-                    if (curr_priority < 60) { // infill 5st priority
-                        extruder      = region.config().sparse_infill_filament.value;
-                        curr_priority = 60;
-                    }
+    ExtrusionRole extrusions_role = extrusions.role();
+    if (is_perimeter(extrusions_role)) {
+        extruder = config.wall_filament.value;
+    } else if (is_solid_infill(extrusions_role)) {
+        extruder = config.solid_infill_filament.value;
+    } else if (is_infill(extrusions_role)) {
+        extruder = config.sparse_infill_filament.value;
+    } else if (extrusions_role == ExtrusionRole::erMixed) {
+        //this set of extrusions contain multi roles, follow a Priority to decide which to use
+        int curr_priority = 0;
+        for (const ExtrusionEntity *ee : extrusions.entities)
+            if (ee->role() == ExtrusionRole::erTopSolidInfill) {
+                if (curr_priority < 100) { // top surface 1st priority
+                    extruder      = config.solid_infill_filament.value;
+                    curr_priority = 100;
                 }
-            if (curr_priority == 0) // default
-                extruder = region.config().wall_filament.value;
-        }else
-            extruder = region.config().wall_filament.value;
+            } else if (is_perimeter(ee->role())) {
+                if (curr_priority < 90) { // perimeter 2st priority
+                    extruder      = config.wall_filament.value;
+                    curr_priority = 90;
+                }
+            } else if (is_solid_infill(ee->role())) {
+                if (curr_priority < 70) { // solid infill 4st priority
+                    extruder      = config.solid_infill_filament.value;
+                    curr_priority = 70;
+                }
+            } else if (is_infill(ee->role())) {
+                if (curr_priority < 60) { // infill 5st priority
+                    extruder      = config.sparse_infill_filament.value;
+                    curr_priority = 60;
+                }
+            }
+        if (curr_priority == 0) // default
+            extruder = config.wall_filament.value;
     }else
-        extruder = this->extruder_override;
+        extruder = config.wall_filament.value;
 	return extruder;
 }
 
@@ -1120,7 +1122,12 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         }
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
-        bool         interface_not_for_body = object.config().support_interface_not_for_body;
+        // support_interface_not_for_body keeps the base off a filament the user dedicated to the interface.
+        // BBS multi-diameter: the merge plan pins the interface to a filament the object prints in this slab,
+        // which is not that. Keeping the base off it can leave the layer without another usable filament and
+        // send the base to the min-flush pick below, which may choose any filament of the plate.
+        bool         interface_not_for_body = object.config().support_interface_not_for_body &&
+                                              object.config().support_interface_filament.value > 0;
         // BBS multi-diameter: this support layer is thicker than the object layers, so only the filament it was
         // planned for can extrude it. Report it as a fixed filament instead of the "don't care" placeholder,
         // otherwise the tool change and the wipe tower would not be planned for it.

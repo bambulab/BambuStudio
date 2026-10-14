@@ -49,7 +49,10 @@ struct TreeSupportMeshGroupSettings {
                 scaled<coord_t>(std::min(config.support_object_xy_distance.value, 0.5 * width)));
         }
 
-        this->layer_height              = scaled<coord_t>(config.layer_height.value);
+        // The tree grows one object layer per step, and multi-diameter slicing cuts the preset's layer height
+        // into layer_grid_subdivision object layers. Every per-layer increment below is derived from this, so
+        // it has to be the grid step, or the radius growth and branch movement per mm scale with the subdivision.
+        this->layer_height              = scaled<coord_t>(slicing_params.layer_height);
         this->resolution                = scaled<coord_t>(print_config.resolution.value);
         // Arache feature
         this->min_feature_size          = scaled<coord_t>(config.min_feature_size.value);

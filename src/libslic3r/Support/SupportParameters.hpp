@@ -20,14 +20,15 @@ inline bool config_flag_or_false(const ConfigBase &cfg, const t_config_option_ke
 
 // Keep Default / Grid / Snug / mismatched-style rewrite in one place so the uncovered-overhang
 // warning names the same classic-vs-organic path as SupportParameters. Organic is refused for
-// variable layer heights (#4313), a zero Top Z gap, or a requested ring / heat preserve.
+// variable layer heights (#4313), a zero Top Z gap, a requested ring / heat preserve, or multi-diameter mode.
 inline SupportMaterialStyle resolve_support_style(
     SupportMaterialStyle support_style,
     SupportType          support_type,
     bool                 has_variable_layer_heights,
     bool                 soluble_interface,
     bool                 heat_preserve_mode,
-    bool                 enable_support_ring)
+    bool                 enable_support_ring,
+    bool                 multi_diameter_mode)
 {
     if (support_style != smsDefault) {
         if ((support_style == smsSnug || support_style == smsGrid) && is_tree(support_type))
@@ -40,7 +41,7 @@ inline SupportMaterialStyle resolve_support_style(
     if (support_style == smsDefault) {
         if (is_tree(support_type)) {
             if (!has_variable_layer_heights && !soluble_interface &&
-                !heat_preserve_mode && !enable_support_ring)
+                !heat_preserve_mode && !enable_support_ring && !multi_diameter_mode)
                 support_style = smsTreeOrganic;
             else
                 support_style = smsTreeHybrid;
@@ -191,11 +192,12 @@ struct SupportParameters {
         if (support_style == smsDefault) {
             if (is_tree(object_config.support_type)) {
                 // organic support doesn't work with variable layer heights (including adaptive layer height and height range modifier, see #4313)
-                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface) {
+                // BBS multi-diameter: default to hybrid tree as well.
+                if (!object.has_variable_layer_heights && !slicing_params.soluble_interface && !multi_nozzle_diameter_mode) {
                     BOOST_LOG_TRIVIAL(warning) << "tree support default to organic support";
                     support_style = smsTreeOrganic;
                 } else {
-                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height";
+                    BOOST_LOG_TRIVIAL(warning) << "tree support default to hybrid tree due to adaptive layer height or multi-diameter mode";
                     support_style = smsTreeHybrid;
                 }
             } else {

@@ -1899,6 +1899,10 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     }
+    // BBS multi-diameter: the support merge plan reads which filaments the walls and fills of each layer extrude.
+    if ((step == posPerimeters || step == posPrepareInfill || step == posInfill) &&
+        multi_nozzle_diameter_mode_enabled(m_print->full_print_config()))
+        invalidated |= this->invalidate_step(posSupportMaterial);
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
     // It also decides about what the flush_into_infill / wipe_into_object / flush_into_support features will do,
@@ -6052,7 +6056,8 @@ void PrintObject::warn_uncovered_overhangs()
         resolve_support_style(m_config.support_style.value, m_config.support_type.value,
                               this->has_variable_layer_heights, m_slicing_params.soluble_interface,
                               config_flag_or_false(print_config, "heat_preserve_mode"),
-                              config_flag_or_false(print_config, "enable_support_ring"));
+                              config_flag_or_false(print_config, "enable_support_ring"),
+                              multi_nozzle_diameter_mode_enabled(this->print()->full_print_config()));
     const bool classic_tree_drop = resolved_style != smsTreeOrganic;
     std::string warning_message;
     PrintStateBase::SlicingNotificationType warning_id = PrintStateBase::SlicingSupportIncomplete;
