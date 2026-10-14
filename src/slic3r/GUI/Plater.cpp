@@ -967,7 +967,7 @@ struct Sidebar::priv
     wxTimer *            timer_sync_printer = new wxTimer();
     // Printer - ams
     // left/right_extruder serve dual-extruder printers with one nozzle per extruder;
-    // dual-extruder printers with a nozzle rack use dual_panel instead.
+    // printers with a nozzle rack use nozzle_card instead.
     ExtruderGroup *left_extruder = nullptr;
     ExtruderGroup *right_extruder = nullptr;
     ExtruderGroup *single_extruder = nullptr;
@@ -977,12 +977,7 @@ struct Sidebar::priv
     std::vector<NozzleConfig> r_ext_cfg;
     std::vector<NozzleConfig> s_ext_cfg;
     DiameterButtonPanel      *diameter_btns    = nullptr;
-    ExtruderPanel            *l_extruder_panel = nullptr;
-    ExtruderPanel            *r_extruder_panel = nullptr;
-    ExtruderPanel            *s_extruder_panel = nullptr;
-    ExtruderPanelGroup       *dual_panel       = nullptr;
-    SingleExtruderPanelGroup *single_panel     = nullptr;
-    wxBoxSizer               *diameter_btns_host = nullptr;
+    NozzleRackPanelGroup     *nozzle_card      = nullptr;
     NozzleDetailPopup        *nozzle_detail_popup = nullptr;
     wxPoint                   fila_switch_pos;
 
@@ -1305,28 +1300,16 @@ void Sidebar::priv::layout_printer(bool isBBL, NozzleLayout layout)
         vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->AddSpacer(FromDIP(4));
 
-        // The host is used by dual-extruder layouts. On a single-extruder multi-nozzle printer the
-        // same control moves into the nozzle card to match the design.
-        diameter_btns_host = new wxBoxSizer(wxVERTICAL);
-        vsizer_printer->Add(diameter_btns_host, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
         vsizer_printer->AddSpacer(FromDIP(4));
-
-        vsizer_printer->Add(dual_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
-        vsizer_printer->Add(single_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
+        vsizer_printer->Add(nozzle_card, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->AddSpacer(FromDIP(4));
     }
 
-    if (supports_multi_diameter) {
-        if (diameter_btns_host->GetItem(diameter_btns))
-            diameter_btns_host->Detach(diameter_btns);
-        single_panel->AttachDiameterPanel(diameter_btns);
-    } else {
-        single_panel->DetachDiameterPanel(m_panel_printer_content);
-        if (!diameter_btns_host->GetItem(diameter_btns))
-            diameter_btns_host->Add(diameter_btns, 0, wxEXPAND);
-    }
-    if (wxSizerItem *host_item = vsizer_printer->GetItem(diameter_btns_host))
-        host_item->Show(has_nozzle_rack(layout) && !supports_multi_diameter);
+    // The diameter buttons live in the nozzle card, so they only show with a nozzle rack.
+    if (has_nozzle_rack(layout))
+        nozzle_card->AttachDiameterPanel(diameter_btns);
+    else
+        nozzle_card->DetachDiameterPanel(m_panel_printer_content);
 
     btn_connect_printer->Show(!isBBL);
     btn_sync_printer->Show(isBBL);
@@ -1339,8 +1322,7 @@ void Sidebar::priv::layout_printer(bool isBBL, NozzleLayout layout)
     diameter_btns->Show(isBBL && has_nozzle_rack(layout));
     // The single-/multi-diameter mode selector belongs to single-extruder multi-nozzle printers only.
     diameter_btns->ShowModeSelector(supports_multi_diameter);
-    dual_panel->Show(isBBL && layout == NozzleLayout::DualExtruderRack);
-    single_panel->Show(isBBL && layout == NozzleLayout::SingleExtruderRack);
+    nozzle_card->Show(isBBL && has_nozzle_rack(layout));
     if (!vsizer_printer->IsShown(hsizer_extruder))
         update_extruder_separator_icon(false, false);
 
@@ -1879,7 +1861,7 @@ public:
         extruder->set_ams_count(ams_map[4], ams_map[1]);
     }
 
-    static void UpdateAMSCount(int index, ExtruderPanel *extruder)
+    static void UpdateAMSCount(int index, NozzleRackPanel *rack)
     {
         std::vector<std::map<int, int>> &ams_counts = wxGetApp().preset_bundle->extruder_ams_counts;
         ams_counts.resize(2);
@@ -1891,7 +1873,7 @@ public:
             ams_map[1] = 0;
         }
 
-        extruder->set_ams_count(ams_map[4], ams_map[1]);
+        rack->set_ams_count(index, ams_map[4], ams_map[1]);
     }
 };
 
@@ -1901,20 +1883,18 @@ void Sidebar::priv::update_extruder_panel()
     auto    extruder_variants         = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
     bool    is_dual_extruder          = extruder_variants->size() == 2;
 
-    const wxString diameter = diameter_btns->GetSelectedDiameter();
+    const wxString   diameter = diameter_btns->GetSelectedDiameter();
+    NozzleRackPanel *rack     = nozzle_card->GetPanel();
 
     if (is_dual_extruder) {
-        AMSCountPopupWindow::UpdateAMSCount(0, l_extruder_panel);
-        AMSCountPopupWindow::UpdateAMSCount(1, r_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(0, rack);
+        AMSCountPopupWindow::UpdateAMSCount(1, rack);
         AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
         AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
-        dual_panel->UpdateNozzles(0, l_ext_cfg, diameter);
-        dual_panel->UpdateNozzles(1, r_ext_cfg, diameter);
-        l_extruder_panel->UpdateScrollButtons();
-        r_extruder_panel->UpdateScrollButtons();
+        nozzle_card->UpdateNozzles({l_ext_cfg, r_ext_cfg}, diameter);
     } else {
-        AMSCountPopupWindow::UpdateAMSCount(0, s_extruder_panel);
-        single_panel->UpdateNozzles(0, s_ext_cfg, diameter);
+        AMSCountPopupWindow::UpdateAMSCount(0, rack);
+        nozzle_card->UpdateNozzles({s_ext_cfg}, diameter);
     }
 }
 
@@ -2465,8 +2445,6 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
         }
     }
 
-    auto fila_state = is_dual ? dual_panel->GetSeparatorState() : CustomSeparator::State::Hidden;
-
     bool                      accepted = false;
     wxString                  selected_diameter;
     std::vector<NozzleConfig> new_left, new_right, new_single;
@@ -2493,10 +2471,11 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             }
         }
     } else {
-        NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), diameter, l_ext_cfg, r_ext_cfg, fila_state);
+        NozzleSettingsListDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), l_ext_cfg, r_ext_cfg, CustomSeparator::State::Hidden);
         accepted = dlg.ShowModal() == wxID_OK;
         if (accepted) {
-            selected_diameter = dlg.GetSelectedDiameter();
+            // The dialog no longer picks a diameter; the plate keeps slicing at the current one.
+            selected_diameter = diameter;
             new_left          = dlg.GetExtruderConfigs(0);
             new_right         = dlg.GetExtruderConfigs(1);
         }
@@ -2691,12 +2670,10 @@ void Sidebar::priv::open_extruder_settings_dialog(const wxString &preselect_diam
             });
         }
     } else {
-        if (is_dual) {
-            AMSCountPopupWindow::SetAMSCount(0, l_extruder_panel->m_ams_n4, l_extruder_panel->m_ams_n1);
-            AMSCountPopupWindow::SetAMSCount(1, r_extruder_panel->m_ams_n4, r_extruder_panel->m_ams_n1);
-        }
-        else {
-            AMSCountPopupWindow::SetAMSCount(0, s_extruder_panel->m_ams_n4, s_extruder_panel->m_ams_n1);
+        const NozzleRackPanel *rack = nozzle_card->GetPanel();
+        for (int extruder = 0; extruder < (is_dual ? 2 : 1); ++extruder) {
+            const auto [n4, n1] = rack->ams_count(extruder);
+            AMSCountPopupWindow::SetAMSCount(extruder, n4, n1);
         }
     }
 }
@@ -3378,8 +3355,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         AMSCountPopupWindow::SetAMSCount(DEPUTY_EXTRUDER_ID, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
         AMSCountPopupWindow::SetAMSCount(MAIN_EXTRUDER_ID, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
 
-        AMSCountPopupWindow::UpdateAMSCount(LOGIC_L_EXTRUDER_ID, l_extruder_panel);
-        AMSCountPopupWindow::UpdateAMSCount(LOGIC_R_EXTRUDER_ID, r_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(LOGIC_L_EXTRUDER_ID, nozzle_card->GetPanel());
+        AMSCountPopupWindow::UpdateAMSCount(LOGIC_R_EXTRUDER_ID, nozzle_card->GetPanel());
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_L_EXTRUDER_ID, left_extruder);
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_R_EXTRUDER_ID, right_extruder);
     } else {
@@ -3421,7 +3398,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
 
 
         AMSCountPopupWindow::SetAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, ams_cnt_map[{LOGIC_UNIQUE_EXTRUDER_ID, 4}], ams_cnt_map[{LOGIC_UNIQUE_EXTRUDER_ID, 1}]);
-        AMSCountPopupWindow::UpdateAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, s_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, nozzle_card->GetPanel());
     }
 
     // Multi-diameter mode keeps reading the flow off the mounted nozzle; each filament's own flow is
@@ -3510,10 +3487,8 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             group->ShowBadge(false);
             group->sync_ams(nullptr, {}, {});
         }
-        l_extruder_panel->sync_ams(nullptr, {}, {}, {}, {});
-        r_extruder_panel->sync_ams(nullptr, {}, {}, {}, {});
-        dual_panel->ShowBadge(false);
-        single_panel->ShowBadge(false);
+        for (int extruder : {0, 1}) nozzle_card->GetPanel()->sync_ams(extruder, nullptr, {}, {}, {}, {});
+        nozzle_card->ShowBadge(false);
         btn_sync_printer->SetBorderColor(not_synced_colour);
         btn_sync_printer->SetIcon("printer_sync");
     };
@@ -3647,8 +3622,8 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         if (is_extruder_stat_synced()) {
             single_extruder->ShowBadge(true);
             single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
-            single_panel->ShowBadge(true);
-            s_extruder_panel->sync_ams(obj, machine_extruder_infos[0].ams_internal, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
+            nozzle_card->ShowBadge(true);
+            nozzle_card->GetPanel()->sync_ams(0, obj, machine_extruder_infos[0].ams_internal, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
             extruder_synced[0] = true;
         }
         else {
@@ -3662,32 +3637,28 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         if (left_synced) {
             left_extruder->ShowBadge(true);
             left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
-            l_extruder_panel->sync_ams(obj, {}, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
+            nozzle_card->GetPanel()->sync_ams(0, obj, {}, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
             extruder_synced[0] = true;
         }
         else {
             left_extruder->ShowBadge(false);
             left_extruder->sync_ams(obj, {}, {});
-            l_extruder_panel->sync_ams(obj, {}, {}, {}, {});
+            nozzle_card->GetPanel()->sync_ams(0, obj, {}, {}, {}, {});
         }
 
         if (right_synced) {
             right_extruder->ShowBadge(true);
             right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
-            r_extruder_panel->sync_ams(obj, {}, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1, machine_extruder_infos[1].ext_v);
+            nozzle_card->GetPanel()->sync_ams(1, obj, {}, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1, machine_extruder_infos[1].ext_v);
             extruder_synced[1] = true;
         }
         else {
             right_extruder->ShowBadge(false);
             right_extruder->sync_ams(obj, {}, {});
-            r_extruder_panel->sync_ams(obj, {}, {}, {}, {});
+            nozzle_card->GetPanel()->sync_ams(1, obj, {}, {}, {}, {});
         }
 
-        if (left_synced && right_synced) {
-            dual_panel->ShowBadge(true);
-        } else {
-            dual_panel->ShowBadge(false);
-        }
+        nozzle_card->ShowBadge(left_synced && right_synced);
     }
 
     StateColor synced_colour(std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Normal));
@@ -4195,39 +4166,43 @@ Sidebar::Sidebar(Plater *parent)
             // which unconditionally re-runs validate_filament_nozzle_diameter_selections(). If the
             // guard were already cleared here, that re-run would silently substitute the
             // incompatible slot back to a default preset, undoing the marking just applied above.
-            for (auto* panel : { p->r_extruder_panel, p->l_extruder_panel, p->s_extruder_panel }) {
-                if (panel && panel->IsShownOnScreen()) {
-                    auto printer_tab = dynamic_cast<TabPrinter*>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-                    auto index = panel->GetType() == ExtruderPanel::RightExtruder ? 1 : 0;
-                    auto cfg = panel->GetType() == ExtruderPanel::RightExtruder ? p->r_ext_cfg : panel->GetType() == ExtruderPanel::LeftExtruder ? p->l_ext_cfg : p->s_ext_cfg;
-                    NozzleVolumeType volume_type = p->get_volume_type_from_configs(selected_diameter, cfg);
+            // One (extruder, nozzle configs) pair per extruder the nozzle card shows, right first.
+            std::vector<std::pair<int, std::vector<NozzleConfig>>> rack_extruders;
+            if (p->nozzle_card->IsShownOnScreen()) {
+                if (p->nozzle_card->GetPanel()->extruder_count() == 2)
+                    rack_extruders = {{1, p->r_ext_cfg}, {0, p->l_ext_cfg}};
+                else
+                    rack_extruders = {{0, p->s_ext_cfg}};
+            }
+            for (const auto &[index, cfg] : rack_extruders) {
+                auto printer_tab = dynamic_cast<TabPrinter*>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+                NozzleVolumeType volume_type = p->get_volume_type_from_configs(selected_diameter, cfg);
 
-                    auto  preset_bundle = wxGetApp().preset_bundle;
-                    std::map<NozzleVolumeType, int> volume_counts;
-                    for (const auto &c : cfg) {
-                        if (!c.diameter.IsEmpty() && c.diameter == selected_diameter) volume_counts[c.volume]++;
-                    }
-                    // Mirrors update_extruder_full_stats(): keep an extruder that only carries
-                    // non-primary diameters counted as installed.
-                    if (volume_counts.empty()) {
-                        for (const auto &c : cfg)
-                            if (!c.diameter.IsEmpty()) volume_counts[c.volume]++;
-                    }
-                    if (volume_type == nvtHybrid) {
-                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtStandard, volume_counts[nvtStandard], true);
-                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtHighFlow, volume_counts[nvtHighFlow], false);
-                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow], false);
-                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtTPU285, volume_counts[nvtTPU285], false);
-                    } else {
-                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, volume_type, volume_counts[volume_type], true);
-                    }
+                auto  preset_bundle = wxGetApp().preset_bundle;
+                std::map<NozzleVolumeType, int> volume_counts;
+                for (const auto &c : cfg) {
+                    if (!c.diameter.IsEmpty() && c.diameter == selected_diameter) volume_counts[c.volume]++;
+                }
+                // Mirrors update_extruder_full_stats(): keep an extruder that only carries
+                // non-primary diameters counted as installed.
+                if (volume_counts.empty()) {
+                    for (const auto &c : cfg)
+                        if (!c.diameter.IsEmpty()) volume_counts[c.volume]++;
+                }
+                if (volume_type == nvtHybrid) {
+                    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtStandard, volume_counts[nvtStandard], true);
+                    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtHighFlow, volume_counts[nvtHighFlow], false);
+                    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow], false);
+                    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtTPU285, volume_counts[nvtTPU285], false);
+                } else {
+                    preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, volume_type, volume_counts[volume_type], true);
+                }
 
-                    printer_tab->set_extruder_volume_type(index, volume_type);
-                    auto plater = wxGetApp().plater();
-                    if (plater) {
-                        plater->update_filament_volume_map(index, static_cast<int>(volume_type));
-                        plater->update_machine_sync_status();
-                    }
+                printer_tab->set_extruder_volume_type(index, volume_type);
+                auto plater = wxGetApp().plater();
+                if (plater) {
+                    plater->update_filament_volume_map(index, static_cast<int>(volume_type));
+                    plater->update_machine_sync_status();
                 }
             }
 
@@ -4238,25 +4213,18 @@ Sidebar::Sidebar(Plater *parent)
             refresh_filament_diameter_buttons();
         });
 
-        auto *single_panel  = new SingleExtruderPanelGroup(p->m_panel_printer_content);
-        p->dual_panel       = new DualExtruderPanelGroup(p->m_panel_printer_content);
-        p->single_panel     = single_panel;
-        p->l_extruder_panel = p->dual_panel->GetPanel(0);
-        p->r_extruder_panel = p->dual_panel->GetPanel(1);
-        p->s_extruder_panel = p->single_panel->GetPanel(0);
+        p->nozzle_card = new NozzleRackPanelGroup(p->m_panel_printer_content);
 
         // The mode selector is drawn across the nozzle card's top border, so the card owns the
         // widget; diameter_btns keeps the mode itself and adopts the widget here.
-        p->diameter_btns->AttachModePill(single_panel->GetModePill());
+        p->diameter_btns->AttachModePill(p->nozzle_card->GetModePill());
 
-        p->dual_panel->SetOnClick([this](bool is_dual) { p->open_extruder_settings_dialog(); });
-
-        p->single_panel->SetOnClick([this](bool is_dual) { p->open_extruder_settings_dialog(); });
-        // Read-only hover card listing every nozzle's status, shown beside the single-extruder card.
+        p->nozzle_card->SetOnClick([this]() { p->open_extruder_settings_dialog(); });
+        // Read-only hover card listing every nozzle's status, shown beside the nozzle card.
         p->nozzle_detail_popup = new NozzleDetailPopup(p->m_panel_printer_content);
-        // p->single_panel->SetOnHover([this](bool shown) {
+        // p->nozzle_card->SetOnHover([this](bool shown) {
         //     if (shown)
-        //         p->nozzle_detail_popup->ShowTip(p->s_ext_cfg, p->single_panel->GetScreenRect());
+        //         p->nozzle_detail_popup->ShowTip(p->s_ext_cfg, p->nozzle_card->GetScreenRect());
         //     else
         //         p->nozzle_detail_popup->HideTip();
         // });
@@ -6203,8 +6171,8 @@ void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
 
 int Sidebar::min_width() const
 {
-    int card_w = p->single_panel->MinWidth();
-    if (wxSizerItem *item = p->vsizer_printer->GetItem(p->single_panel))
+    int card_w = p->nozzle_card->MinWidth();
+    if (wxSizerItem *item = p->vsizer_printer->GetItem(p->nozzle_card))
         card_w += 2 * item->GetBorder();
     return std::max(15 * wxGetApp().em_unit(), card_w);
 }
@@ -6236,8 +6204,7 @@ void Sidebar::msw_rescale()
     p->combo_printer_bed->Rescale();
     p->combo_printer_bed->SetMinSize({-1, 3 * wxGetApp().em_unit()});
     p->diameter_btns->Rescale();
-    p->dual_panel->Rescale();
-    p->single_panel->Rescale();
+    p->nozzle_card->Rescale();
     p->single_extruder->Rescale();
     p->left_extruder->Rescale();
     p->right_extruder->Rescale();
@@ -7054,7 +7021,6 @@ void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
 
 void Sidebar::reset_fila_switch()
 {
-    p->dual_panel->SetSeparatorState(CustomSeparator::State::Hidden);
     p->update_extruder_separator_icon(false, false);
 }
 

@@ -1,5 +1,7 @@
 #include "ExtruderPanelGroup.hpp"
 
+#include <algorithm>
+
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
 #include <wx/button.h>
@@ -25,6 +27,8 @@ namespace Slic3r::GUI {
 namespace {
 constexpr int HOVER_HIDE_DELAY_MS = 150; // grace after the pointer leaves, so a re-enter cancels the hide
 constexpr int MODE_PILL_MARGIN_X  = 16;  // gap between the mode pill and the card's left edge
+constexpr int HEADER_TOP         = 20;  // top border to the header row
+constexpr int HEADER_GAP_PILL    = 8;   // the same, less the pill's lower half inside the card
 
 /**
  * \brief The single-/multi-diameter mode selector, drawn as the pill the design puts on the
@@ -69,40 +73,22 @@ private:
 };
 } // namespace
 
-ExtruderPanelGroup::ExtruderPanelGroup(wxWindow *parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+
+NozzleRackPanelGroup::NozzleRackPanelGroup(wxWindow *parent) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
-    SetBackgroundColour(ThemeColor::Grey200);
-    Bind(wxEVT_PAINT, &ExtruderPanelGroup::OnPaint, this);
+    // The design draws this card on white rather than the sidebar grey, which is what gives its
+    // nozzle tiles their contrast. Set first: the header and body read it back.
+    SetBackgroundColour(ThemeColor::White);
+    Bind(wxEVT_PAINT, &NozzleRackPanelGroup::OnPaint, this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent &) { SetHoverShown(false); }); // grace elapsed -> hide
-    Bind(wxEVT_SIZE, &ExtruderPanelGroup::OnSize, this);
+    Bind(wxEVT_SIZE, &NozzleRackPanelGroup::OnSize, this);
 #ifdef __WXOSX__
-    Bind(wxEVT_SIZE, &ExtruderPanelGroup::OnSizeBadge, this);
+    Bind(wxEVT_SIZE, &NozzleRackPanelGroup::OnSizeBadge, this);
 #endif
-}
 
-void ExtruderPanelGroup::Build()
-{
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
-
-    // A variant with a header puts its settings entry there, so it also drops the trailing arrow
-    // that would otherwise be the card's only hint that it opens a dialog.
-    const bool has_header = CreateHeader(m_main_sizer);
-
-    auto *content = new wxBoxSizer(wxHORIZONTAL);
-    CreateExtruders(content);
-
-    if (!has_header) {
-        auto separator = new wxPanel(this, wxID_ANY);
-        separator->SetBackgroundColour(ThemeColor::Grey400);
-        separator->SetMinSize(wxSize(FromDIP(1), -1));
-        content->Add(separator, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(4));
-
-        auto arrow = new IconView(this, "arrow_right", 20);
-        arrow->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
-        content->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(10));
-    }
-
-    m_main_sizer->Add(content, 1, wxEXPAND);
+    CreateHeader(m_main_sizer);
+    CreateBody(m_main_sizer);
     m_main_sizer->AddSpacer(FromDIP(4));
 
     SetSizer(m_main_sizer);
@@ -116,16 +102,102 @@ void ExtruderPanelGroup::Build()
     wxGetApp().UpdateDarkUIWin(this);
 }
 
-void ExtruderPanelGroup::OnPaint(wxPaintEvent &evt)
+// Two rows: the mode pill straddling the top border, then "Nozzle" on the left with the settings
+// entry on the right.
+void NozzleRackPanelGroup::CreateHeader(wxBoxSizer *outer)
+{
+    // Only the widget is ours; DiameterButtonPanel::AttachModePill fills it in and owns the mode.
+    m_mode_pill = new ModePill(this);
+    StyleModePill();
+    outer->Add(m_mode_pill, 0, wxLEFT, FromDIP(MODE_PILL_MARGIN_X));
+
+    auto *row = new wxBoxSizer(wxHORIZONTAL);
+
+    auto *title = new Label(this, _L("Nozzle"));
+    title->SetFont(Label::Body_12);
+    title->SetForegroundColour(ThemeColor::TextPrimary);
+    row->Add(title, 0, wxALIGN_CENTER_VERTICAL);
+
+    row->AddStretchSpacer();
+
+    row->Add(CreateSettingsEntry(), 0, wxALIGN_CENTER_VERTICAL);
+
+    // Sized by Layout, which knows whether the pill is shown.
+    m_header_gap = outer->AddSpacer(FromDIP(HEADER_GAP_PILL));
+    outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
+}
+
+// Gear, label and chevron share one panel, so the gaps between them are clickable too. The panel
+// is the card's only click surface.
+wxWindow *NozzleRackPanelGroup::CreateSettingsEntry()
+{
+    m_settings_entry = new wxPanel(this);
+    m_settings_entry->SetBackgroundColour(GetBackgroundColour());
+    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto *gear = new IconView(m_settings_entry, "settings", 16);
+    sizer->Add(gear, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto *label = new Label(m_settings_entry, _L("Settings"));
+    label->SetFont(Label::Body_13);
+    label->SetForegroundColour(ThemeColor::TextPrimary);
+    label->SetBackgroundColour(GetBackgroundColour());
+    sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
+
+    // right_arrow, not arrow_right: the design ends the row with a thin chevron, where arrow_right
+    // is a full shafted arrow.
+    auto *arrow = new IconView(m_settings_entry, "right_arrow", 16);
+    sizer->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
+
+    m_settings_entry->SetSizer(sizer);
+    return m_settings_entry;
+}
+
+void NozzleRackPanelGroup::CreateBody(wxBoxSizer *outer)
+{
+    // The spacers widen the side inset to the header row's 6px (4 here plus the body's own 2), so
+    // the tiles line up under "Nozzle" instead of starting 4px further left. A wider border on the
+    // item itself would push the top and bottom out with them, since a sizer item has only one.
+    // The header stays put; everything below it scrolls as one when the sidebar gets too narrow.
+    auto *content = new wxBoxSizer(wxHORIZONTAL);
+    m_body        = new HorizontalScrollView(this);
+    content->AddSpacer(FromDIP(4));
+    content->Add(m_body, 1, wxEXPAND | wxALL, FromDIP(2));
+    content->AddSpacer(FromDIP(4));
+
+    m_panel = new NozzleRackPanel(m_body->Content());
+    m_body->ContentSizer()->Add(m_panel, 0, wxEXPAND);
+
+    outer->Add(content, 1, wxEXPAND);
+}
+
+bool NozzleRackPanelGroup::Layout()
+{
+    // The header row sits a fixed distance below the top border. A shown pill already covers part of
+    // that distance with its lower half, so the gap shrinks by that much while the pill shows.
+    if (m_header_gap && m_mode_pill) {
+        const int gap = FromDIP(m_mode_pill->IsShown() ? HEADER_GAP_PILL : HEADER_TOP);
+        if (m_header_gap->GetMinSize().y != gap) {
+            m_header_gap->AssignSpacer(wxSize(0, gap));
+            RequestFit(); // the card's height changes with the gap
+        }
+    }
+
+    if (m_body) m_body->Layout();
+    return wxPanel::Layout();
+}
+
+int NozzleRackPanelGroup::BorderTop() const { return m_mode_pill && m_mode_pill->IsShown() ? m_mode_pill->GetSize().y / 2 : 0; }
+
+void NozzleRackPanelGroup::OnPaint(wxPaintEvent &evt)
 {
     wxAutoBufferedPaintDC dc(this);
     wxGraphicsContext    *gc   = wxGraphicsContext::Create(dc);
     wxSize                size = GetSize();
 
-    // A control hung across the top edge pushes the border down to its vertical centre; the control
-    // paints after us and its own fill covers the segment behind it, leaving the fieldset-legend look.
-    const wxWindow *straddling = BorderStraddlingWidget();
-    const int       border_top = straddling ? straddling->GetSize().y / 2 : 0;
+    // The pill paints after us and its own fill covers the segment of border behind it, which leaves
+    // the fieldset-legend look.
+    const int border_top = BorderTop();
 
     if (gc) {
         dc.Clear();
@@ -151,11 +223,10 @@ void ExtruderPanelGroup::OnPaint(wxPaintEvent &evt)
 #endif
 }
 
-// Bind LEFT_DOWN on every non-interactive window under the ClickSurfaces so they open the settings
+// Bind LEFT_DOWN on every non-interactive window under the settings entry so they open the settings
 // dialog (mouse events don't bubble to parents, so each window must carry its own handler).
-// Unbind first so re-arming after a content rebuild (RebindClick) can't stack duplicate handlers,
-// which would otherwise open the modal once per stacked bind.
-void ExtruderPanelGroup::BindClickEvents()
+// Unbind first so a second call can't stack duplicate handlers, which would open the modal once per bind.
+void NozzleRackPanelGroup::BindClickEvents()
 {
     std::function<void(wxWindow *)> bind_recursive = [this, &bind_recursive](wxWindow *window) {
         if (!window) return;
@@ -169,66 +240,64 @@ void ExtruderPanelGroup::BindClickEvents()
             return;
         }
 
-        window->Unbind(wxEVT_LEFT_DOWN, &ExtruderPanelGroup::OnPanelClick, this); // avoid stacking on a RebindClick
-        window->Bind(wxEVT_LEFT_DOWN, &ExtruderPanelGroup::OnPanelClick, this);
+        window->Unbind(wxEVT_LEFT_DOWN, &NozzleRackPanelGroup::OnPanelClick, this);
+        window->Bind(wxEVT_LEFT_DOWN, &NozzleRackPanelGroup::OnPanelClick, this);
 
         for (auto *child : window->GetChildren()) { bind_recursive(child); }
     };
 
-    for (auto *surface : ClickSurfaces()) bind_recursive(surface);
+    bind_recursive(m_settings_entry);
 }
 
-void ExtruderPanelGroup::OnPanelClick(wxMouseEvent &evt)
+void NozzleRackPanelGroup::OnPanelClick(wxMouseEvent &evt)
 {
     // Hide the hover card before opening the modal dialog. A modal steals the mouse, so the leave
     // event that normally hides the card never arrives.
     m_hover_timer.Stop();
     SetHoverShown(false);
 
-    if (m_on_click) { m_on_click(IsDual()); }
+    if (m_on_click) { m_on_click(); }
 }
 
 // Bind enter/leave on every descendant (unlike BindClickEvents, interactive controls are NOT
-// pruned): enter/leave don't propagate to parents, so the whole panel surface must be covered
+// pruned): enter/leave don't propagate to parents, so the whole card surface must be covered
 // for the hover card to stay up while the pointer moves across combos, buttons and previews.
-// Unbind first so re-arming after a content rebuild (RebindHover) can't stack duplicate handlers.
-void ExtruderPanelGroup::BindHoverEvents()
+// Unbind first so re-arming after a tile rebuild can't stack duplicate handlers.
+void NozzleRackPanelGroup::BindHoverEvents()
 {
     std::function<void(wxWindow *)> bind_recursive = [this, &bind_recursive](wxWindow *window) {
         if (!window) return;
         for (auto evt : {wxEVT_ENTER_WINDOW, wxEVT_LEAVE_WINDOW}) {
-            window->Unbind(evt, &ExtruderPanelGroup::OnHover, this); // avoid stacking on a RebindHover
-            window->Bind(evt, &ExtruderPanelGroup::OnHover, this);
+            window->Unbind(evt, &NozzleRackPanelGroup::OnHover, this);
+            window->Bind(evt, &NozzleRackPanelGroup::OnHover, this);
         }
         for (auto *child : window->GetChildren()) bind_recursive(child);
     };
     bind_recursive(this);
 }
 
-void ExtruderPanelGroup::UpdateNozzles(int index, const std::vector<NozzleConfig> &configs, const wxString &selected_diameter)
+void NozzleRackPanelGroup::UpdateNozzles(const std::vector<std::vector<NozzleConfig>> &extruders, const wxString &selected_diameter)
 {
-    ExtruderPanel *panel = GetPanel(index);
-    if (!panel || configs.empty()) return;
+    const bool all_empty = std::all_of(extruders.begin(), extruders.end(), [](const auto &configs) { return configs.empty(); });
+    if (all_empty) return;
 
-    panel->UpdateNozzles(configs, selected_diameter);
-    // The panel just rebuilt its tiles as new windows; re-arm the whole card so the body stays live.
-    BindClickEvents();
+    m_panel->UpdateNozzles(extruders, selected_diameter);
+    // The panel just rebuilt its tiles as new windows; re-arm hover so the whole card stays live.
     BindHoverEvents();
     FitToPanels();
 }
 
-// A panel that wrapped its tiles onto extra lines is taller than the size the card was fitted to, so
-// the card has to be re-fitted and the sidebar re-laid out to make room for the new height.
-void ExtruderPanelGroup::FitToPanels()
+// The card frames its content, so whenever the content's height changes the card has to be re-fitted
+// and the sidebar re-laid out to make room for the new height.
+void NozzleRackPanelGroup::FitToPanels()
 {
-    // Hand the panels their current width first: a wrapped tile row only reports its real height
-    // once it knows how wide it may be.
+    // Hand the content its current width first, so it reports the height it needs at that width.
     Layout();
 
     const int height = m_main_sizer->GetMinSize().y;
     if (height <= 0 || GetMinSize().y == height) return;
 
-    SetMinSize(wxSize(-1, height)); // the card frames its panels, so it takes their height
+    SetMinSize(wxSize(-1, height));
 
     if (wxWindow *parent = GetParent()) {
         parent->Layout();
@@ -239,12 +308,8 @@ void ExtruderPanelGroup::FitToPanels()
     Refresh();
 }
 
-// The sidebar can be resized at any time, which changes how many tiles fit on a line, so the card
-// re-fits itself whenever it is resized. Deferred and guarded: re-fitting resizes this window again.
-void ExtruderPanelGroup::OnSize(wxSizeEvent &evt)
+void NozzleRackPanelGroup::RequestFit()
 {
-    evt.Skip();
-
     if (m_fit_pending) return;
 
     m_fit_pending = true;
@@ -254,10 +319,18 @@ void ExtruderPanelGroup::OnSize(wxSizeEvent &evt)
     });
 }
 
+// The sidebar can be resized at any time, so the card re-fits itself whenever it is resized. Deferred
+// and merged: re-fitting resizes this window again.
+void NozzleRackPanelGroup::OnSize(wxSizeEvent &evt)
+{
+    evt.Skip();
+    RequestFit();
+}
+
 // Enter shows the tip synchronously; a leave that truly exits the card arms a short grace timer that a
 // re-enter cancels. Crossing between the card's own children keeps the pointer inside the rect, so it
-// does nothing. Replaces the old per-event CallAfter geometry debounce.
-void ExtruderPanelGroup::OnHover(wxMouseEvent &evt)
+// does nothing.
+void NozzleRackPanelGroup::OnHover(wxMouseEvent &evt)
 {
     evt.Skip();
     if (evt.GetEventType() == wxEVT_ENTER_WINDOW) {
@@ -269,8 +342,8 @@ void ExtruderPanelGroup::OnHover(wxMouseEvent &evt)
 }
 
 // The show is never deferred, so a stray enter can't surface the tip over a modal; it is also dropped
-// while a settings dialog owns the panel (disabled) or the app is inactive.
-void ExtruderPanelGroup::SetHoverShown(bool shown)
+// while a settings dialog owns the card (disabled) or the app is inactive.
+void NozzleRackPanelGroup::SetHoverShown(bool shown)
 {
     return;
     if (shown && (!IsEnabled() || !wxGetApp().IsActive())) shown = false;
@@ -279,16 +352,10 @@ void ExtruderPanelGroup::SetHoverShown(bool shown)
     // if (m_on_hover) m_on_hover(shown);
 }
 
-ExtruderPanel *ExtruderPanelGroup::GetPanel(int index) const
+void NozzleRackPanelGroup::Rescale()
 {
-    if (index >= 0 && index < static_cast<int>(m_panels.size())) return m_panels[index];
-    return nullptr;
-}
-
-void ExtruderPanelGroup::Rescale()
-{
-    for (auto *panel : m_panels)
-        if (panel) panel->Rescale();
+    StyleModePill();
+    m_panel->Rescale();
 
     Layout();
     Fit();
@@ -296,7 +363,7 @@ void ExtruderPanelGroup::Rescale()
     Refresh();
 }
 
-void ExtruderPanelGroup::ShowBadge(bool show)
+void NozzleRackPanelGroup::ShowBadge(bool show)
 {
 #ifdef __WXMSW__
     if (show && m_badge.name() != "badge") {
@@ -320,93 +387,33 @@ void ExtruderPanelGroup::ShowBadge(bool show)
 }
 
 #ifdef __WXOSX__
-void ExtruderPanelGroup::LayoutBadge()
+void NozzleRackPanelGroup::LayoutBadge()
 {
     if (!m_badge) return;
 
     wxSize panel_size = GetSize();
     wxSize badge_size = m_badge->GetBestSize();
 
-    const wxWindow *straddling = BorderStraddlingWidget();
-
-    int x = panel_size.x - badge_size.x;
-    int y = straddling ? straddling->GetSize().y / 2 : 0; // the card's own top edge, see OnPaint
-
-    m_badge->SetPosition(wxPoint(x, y));
+    m_badge->SetPosition(wxPoint(panel_size.x - badge_size.x, BorderTop())); // the card's own top edge, see OnPaint
 }
 
-void ExtruderPanelGroup::OnSizeBadge(wxSizeEvent &evt)
+void NozzleRackPanelGroup::OnSizeBadge(wxSizeEvent &evt)
 {
     LayoutBadge();
     evt.Skip();
 }
 #endif
 
-// ----------------------------------------------------------------------------
-// DualExtruderPanelGroup
-// ----------------------------------------------------------------------------
-
-void DualExtruderPanelGroup::CreateExtruders(wxBoxSizer *content)
-{
-    auto left = new DualExtruderPanel(this, ExtruderPanel::LeftExtruder);
-    content->Add(left, 1, wxEXPAND | wxALL, FromDIP(2));
-    m_panels.push_back(left);
-
-    m_separator = new CustomSeparator(this, true);
-    content->Add(m_separator, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(4));
-
-    auto right = new DualExtruderPanel(this, ExtruderPanel::RightExtruder);
-    content->Add(right, 1, wxEXPAND | wxTOP | wxBOTTOM | wxRIGHT, FromDIP(2));
-    m_panels.push_back(right);
-}
-
-void DualExtruderPanelGroup::SetSeparatorState(CustomSeparator::State state)
-{
-    if (m_separator) m_separator->SetState(state);
-}
-
-CustomSeparator::State DualExtruderPanelGroup::GetSeparatorState() const { return m_separator ? m_separator->GetState() : CustomSeparator::State::Hidden; }
-
-// ----------------------------------------------------------------------------
-// SingleExtruderPanelGroup
-// ----------------------------------------------------------------------------
-
-void SingleExtruderPanelGroup::CreateExtruders(wxBoxSizer *content)
-{
-    // The spacers widen the side inset to the header row's 6px (4 here plus the body's own 2), so
-    // the tiles line up under "Nozzle" instead of starting 4px further left. A wider border on the
-    // item itself would push the top and bottom out with them, since a sizer item has only one.
-    // The header stays put; everything below it scrolls as one when the sidebar gets too narrow.
-    m_body = new HorizontalScrollView(this);
-    content->AddSpacer(FromDIP(4));
-    content->Add(m_body, 1, wxEXPAND | wxALL, FromDIP(2));
-    content->AddSpacer(FromDIP(4));
-
-    auto single = new SingleExtruderPanel(m_body->Content());
-    m_body->ContentSizer()->Add(single, 0, wxEXPAND);
-    m_panels.push_back(single);
-}
-
-bool SingleExtruderPanelGroup::Layout()
-{
-    if (m_body) m_body->Layout();
-    return ExtruderPanelGroup::Layout();
-}
-
-// The mode pill rides the card's top border, so OnPaint has to know how tall it is. Reported only
-// while it is shown: on a printer without the mode selector the card has an ordinary top border.
 // Measured even while the pill is hidden, so the minimum stays put when the printer changes.
-int SingleExtruderPanelGroup::MinWidth() const
+int NozzleRackPanelGroup::MinWidth() const
 {
     return m_mode_pill ? m_mode_pill->GetEffectiveMinSize().x + 2 * FromDIP(MODE_PILL_MARGIN_X) : 0;
 }
 
-wxWindow *SingleExtruderPanelGroup::BorderStraddlingWidget() const { return m_mode_pill && m_mode_pill->IsShown() ? m_mode_pill : nullptr; }
-
 // Fully rounded with the brand outline, and opaque in the card's own background so it hides the
 // stretch of border OnPaint runs behind it -- that hidden stretch is what makes the pill read as
 // sitting on the border rather than below it.
-void SingleExtruderPanelGroup::StyleModePill()
+void NozzleRackPanelGroup::StyleModePill()
 {
     if (!m_mode_pill) return;
 
@@ -416,7 +423,7 @@ void SingleExtruderPanelGroup::StyleModePill()
     m_mode_pill->SetFont(Label::Body_13);
 }
 
-void SingleExtruderPanelGroup::AttachDiameterPanel(DiameterButtonPanel *panel)
+void NozzleRackPanelGroup::AttachDiameterPanel(DiameterButtonPanel *panel)
 {
     if (!panel || m_diameter_panel == panel)
         return;
@@ -424,18 +431,18 @@ void SingleExtruderPanelGroup::AttachDiameterPanel(DiameterButtonPanel *panel)
     panel->Reparent(m_body->Content());
     panel->SetShowTitle(false);
 
-    // Above the nozzle panel, inside the body so the buttons scroll with the tiles. The body already
-    // supplies the side inset, and the nozzle panel's tile row supplies the gap below.
+    // Above the rack panel, inside the body so the buttons scroll with the tiles. The body already
+    // supplies the side inset, and the rack panel's tile row supplies the gap below.
     m_diameter_sizer = new wxBoxSizer(wxVERTICAL);
     m_diameter_sizer->AddSpacer(FromDIP(8));
     m_diameter_sizer->Add(panel, 0, wxEXPAND);
     m_body->ContentSizer()->Insert(0, m_diameter_sizer, 0, wxEXPAND);
     m_diameter_panel = panel;
 
-    ShowDiameterPanel(!panel->IsMultiDiameterMode());
+    ShowDiameterPanel(panel->ShowsDiameterButtons());
 }
 
-void SingleExtruderPanelGroup::ShowDiameterPanel(bool show)
+void NozzleRackPanelGroup::ShowDiameterPanel(bool show)
 {
     if (!m_diameter_sizer)
         return;
@@ -445,7 +452,7 @@ void SingleExtruderPanelGroup::ShowDiameterPanel(bool show)
     FitToPanels();
 }
 
-void SingleExtruderPanelGroup::DetachDiameterPanel(wxWindow *new_parent)
+void NozzleRackPanelGroup::DetachDiameterPanel(wxWindow *new_parent)
 {
     if (!m_diameter_panel || !new_parent)
         return;
@@ -461,65 +468,6 @@ void SingleExtruderPanelGroup::DetachDiameterPanel(wxWindow *new_parent)
 
     Layout();
     FitToPanels();
-}
-
-void SingleExtruderPanelGroup::Rescale()
-{
-    StyleModePill();
-    ExtruderPanelGroup::Rescale();
-}
-
-// Two rows: the mode pill straddling the top border, then "Nozzle" on the left with the settings
-// entry on the right.
-bool SingleExtruderPanelGroup::CreateHeader(wxBoxSizer *outer)
-{
-    // Only the widget is ours; DiameterButtonPanel::AttachModePill fills it in and owns the mode.
-    m_mode_pill = new ModePill(this);
-    StyleModePill();
-    outer->Add(m_mode_pill, 0, wxLEFT, FromDIP(MODE_PILL_MARGIN_X));
-
-    auto *row = new wxBoxSizer(wxHORIZONTAL);
-
-    auto *title = new Label(this, _L("Nozzle"));
-    title->SetFont(Label::Body_12);
-    title->SetForegroundColour(ThemeColor::TextPrimary);
-    row->Add(title, 0, wxALIGN_CENTER_VERTICAL);
-
-    row->AddStretchSpacer();
-
-    row->Add(CreateSettingsEntry(), 0, wxALIGN_CENTER_VERTICAL);
-
-    // The design puts this row 20px below the card's top border. The pill above already accounts for
-    // 12 of those -- its lower half sits inside the card -- so only the remainder is added here.
-    outer->AddSpacer(FromDIP(8));
-    outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(6));
-    return true;
-}
-
-// Gear, label and chevron share one panel, so the gaps between them are clickable too. The panel
-// is the card's only ClickSurface.
-wxWindow *SingleExtruderPanelGroup::CreateSettingsEntry()
-{
-    m_settings_entry = new wxPanel(this);
-    m_settings_entry->SetBackgroundColour(GetBackgroundColour());
-    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    auto *gear = new IconView(m_settings_entry, "settings", 16);
-    sizer->Add(gear, 0, wxALIGN_CENTER_VERTICAL);
-
-    auto *label = new Label(m_settings_entry, _L("Settings"));
-    label->SetFont(Label::Body_13);
-    label->SetForegroundColour(ThemeColor::TextPrimary);
-    label->SetBackgroundColour(GetBackgroundColour());
-    sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
-
-    // right_arrow, not arrow_right: the design ends the row with a thin chevron, where arrow_right
-    // is a full shafted arrow.
-    auto *arrow = new IconView(m_settings_entry, "right_arrow", 16);
-    sizer->Add(arrow, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
-
-    m_settings_entry->SetSizer(sizer);
-    return m_settings_entry;
 }
 
 } // namespace Slic3r::GUI

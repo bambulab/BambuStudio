@@ -864,7 +864,7 @@ std::vector<NozzleConfig> NozzleSettingsCardDialog::GetExtruderConfigs(int index
 // stretches the band full width; the widget self-hides when the printer has no AMS attach point.
 void NozzleSettingsCardDialog::build_ams_row(wxBoxSizer *main_sizer)
 {
-    m_ams_row = new NozzleAmsRow(this, 0, _L("External AMS"), NozzleAmsRow::Placement::StandaloneRow, [this] {
+    m_ams_row = new NozzleAmsRow(this, 0, _L("External AMS"), NozzleAmsRow::Style::Band, [this] {
         Layout();
         Fit();
     });

@@ -212,8 +212,8 @@ void show_ams_delete_popup(int extruder_index, AMSPreview *preview, const std::v
 
 } // namespace
 
-NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString &label_text, Placement placement, std::function<void()> on_changed)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_extruder_index(extruder_index), m_placement(placement), m_on_changed(std::move(on_changed))
+NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString &label_text, Style style, std::function<void()> on_changed)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_extruder_index(extruder_index), m_on_changed(std::move(on_changed))
 {
     SetBackgroundColour(ThemeColor::Grey200);
 
@@ -225,7 +225,8 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     m_label = new Label(this, label_text);
     m_label->SetFont(Label::Body_14);
     m_label->SetBackgroundColour(ThemeColor::Grey200);
-    row->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(8));
+    const bool band = style == Style::Band;
+    row->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | (band ? wxLEFT : 0) | wxRIGHT, FromDIP(8));
 
     m_previews_container = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_previews_container->SetBackgroundColour(ThemeColor::Grey200);
@@ -248,7 +249,7 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     };
     for (int i = 0; i < 4; ++i) make_preview(DevAmsType::AMS);
     for (int i = 0; i < 8; ++i) make_preview(DevAmsType::N3S);
-    row->Add(m_previews_container, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+    row->Add(m_previews_container, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
 
     m_add_btn = new ScalableButton(this, wxID_ANY, "add_filament", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 12);
     m_add_btn->SetBackgroundColour(ThemeColor::Grey200);
@@ -258,16 +259,17 @@ NozzleAmsRow::NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString 
     });
     row->Add(m_add_btn, 0, wxALIGN_CENTER_VERTICAL);
 
-    // A standalone band pads its content; an inline row sits flush against the nozzle row it joins.
-    const int pad   = m_placement == Placement::StandaloneRow ? FromDIP(6) : 0;
-    auto     *outer = new wxBoxSizer(wxHORIZONTAL);
-    outer->Add(row, 0, wxALL, pad);
+    // A band pads its content; a plain row sits flush with the owner's other rows.
+    auto *outer = new wxBoxSizer(wxHORIZONTAL);
+    outer->Add(row, 0, wxALL, band ? FromDIP(6) : 0);
     outer->AddStretchSpacer();
 
     // Corner check, outside the content padding: this row's 4-slot and 1-slot counts match the connected printer.
-    m_sync_badge = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("badge", this, 16), wxDefaultPosition, FromDIP(wxSize(16, 16)), 0);
-    m_sync_badge->Hide();
-    outer->Add(m_sync_badge, 0, wxALIGN_TOP);
+    if (band) {
+        m_sync_badge = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("badge", this, 16), wxDefaultPosition, FromDIP(wxSize(16, 16)), 0);
+        m_sync_badge->Hide();
+        outer->Add(m_sync_badge, 0, wxALIGN_TOP);
+    }
     SetSizer(outer);
 
     if (!m_has_ams) {
@@ -302,22 +304,17 @@ void NozzleAmsRow::refresh_previews()
     m_previews_sizer->Clear(false);
     for (auto *p : m_previews) p->Close();
 
-    int shown = 0;
     for (int i = 0; i < n4 && i < 4; ++i) {
         m_previews[i]->Update(i < (int) content.ams4.size() ? content.ams4[i] : placeholder4);
         m_previews[i]->Open();
         m_previews_sizer->Add(m_previews[i], 0, wxALL, FromDIP(2));
-        ++shown;
     }
     for (int i = 0; i < n1 && i < 8; ++i) {
         AMSPreview *p = m_previews[4 + i];
         p->Update(i < (int) content.ams1.size() ? content.ams1[i] : placeholder1);
         p->Open();
         m_previews_sizer->Add(p, 0, wxALL, FromDIP(2));
-        ++shown;
     }
-
-    if (m_placement == Placement::Inline) m_label->Show(shown > 0);
 
     update_sync_badge();
     Layout();

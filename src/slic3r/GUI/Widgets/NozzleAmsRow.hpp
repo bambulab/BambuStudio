@@ -28,21 +28,21 @@ class AMSPreview; // defined in Widgets/AMSItem.hpp, in this namespace
 class NozzleAmsRow : public wxPanel
 {
 public:
-    /** \brief How the row is embedded, which governs the label and band chrome. */
-    enum class Placement
+    /** \brief The row's own chrome. */
+    enum class Style
     {
-        Inline,        ///< sits inside a nozzle row; the label hides when no AMS is attached
-        StandaloneRow, ///< its own banded row; the label stays even when no AMS is attached
+        Band,  ///< padded band with a corner check when the counts match the printer
+        Plain, ///< flush content, no corner check; lines up with the owner's other rows
     };
 
     /**
      * \param parent          window the row is embedded in
      * \param extruder_index  logical extruder whose AMS units this row edits
      * \param label_text      leading label ("AMS" / "External AMS")
-     * \param placement       embedding style; governs label-when-empty and band padding
+     * \param style           band or plain chrome
      * \param on_changed      invoked after a user count edit, for the owner to relayout
      */
-    NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString &label_text, Placement placement, std::function<void()> on_changed);
+    NozzleAmsRow(wxWindow *parent, int extruder_index, const wxString &label_text, Style style, std::function<void()> on_changed);
 
     /** \brief Revert this extruder's AMS count to its value when the row was constructed. */
     void restore();
@@ -56,7 +56,6 @@ private:
     void show_delete_popup(AMSPreview *preview);
 
     int                   m_extruder_index{0};
-    Placement             m_placement{Placement::Inline};
     std::function<void()> m_on_changed;
     bool                  m_has_ams{false};
     std::pair<int, int>   m_snapshot{0, 0}; // {n4, n1} at construction, restored on Cancel
@@ -66,7 +65,7 @@ private:
     wxBoxSizer               *m_previews_sizer{nullptr};
     std::vector<AMSPreview *> m_previews; // 4 AMS-type + 8 N3S-type, reused
     ScalableButton           *m_add_btn{nullptr};
-    wxStaticBitmap           *m_sync_badge{nullptr}; // top-right corner check when counts match the printer
+    wxStaticBitmap           *m_sync_badge{nullptr}; // top-right corner check when counts match the printer; Band only
     PopupWindow              *m_popup{nullptr}; // tracks the live add/delete popup
 };
 

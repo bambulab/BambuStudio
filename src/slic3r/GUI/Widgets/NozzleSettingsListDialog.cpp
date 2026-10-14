@@ -29,6 +29,7 @@
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include "slic3r/GUI/Widgets/StaticBox.hpp"
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
+#include "slic3r/GUI/Widgets/MultiNozzleSync.hpp"
 #include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
@@ -43,27 +44,6 @@ namespace {
 // FromDIP is a wxWindow member; NozzleRow is a plain class, so scale through a window.
 inline int    dip(const wxWindow *w, int v) { return w ? w->FromDIP(v) : v; }
 inline wxSize dip(const wxWindow *w, int x, int y) { return w ? w->FromDIP(wxSize(x, y)) : wxSize(x, y); }
-
-// The two warning bitmaps are identical for every row, so build them once and share.
-// Cached against the window's DPI scale so a DPI change (rescale) rebuilds them.
-struct WarningBitmaps
-{
-    wxBitmap normal;
-    wxBitmap serious;
-};
-
-const WarningBitmaps &warning_bitmaps(wxWindow *win)
-{
-    static WarningBitmaps cache;
-    static int            cached_scale = -1;
-    const int             scale        = win ? win->FromDIP(1000) : 1000; // DPI signature
-    if (scale != cached_scale) {
-        cache.normal  = create_scaled_bitmap("warning", win, 16);
-        cache.serious = create_scaled_bitmap("warning_serious", win, 16);
-        cached_scale  = scale;
-    }
-    return cache;
-}
 
 MachineObject *selected_machine()
 {
@@ -126,19 +106,13 @@ bool extruder_configs_match(const std::vector<NozzleConfig> &edited, const std::
 // ---------------------------------------------------------------------------
 // NozzleRow
 //
-// One nozzle's editable controls. The owning column toggles the leading "Nozzle N"
-// label via NozzleRowFeatures (hidden on H2C's combined A+B rack); the warning icon,
-// diameter/flow combos and status label are always present. One filament view is
-// added per bound AMS slot
+// One nozzle's editable controls, led by "Nozzle N" (its 1-based slot on the extruder), or
+// plain "Nozzle" when the extruder has a single slot. One filament view is added per bound
+// AMS slot
 //
 // Layout:
-//   [warn] [Nozzle N] [diameter v] [flow v] [Error|Unknown] [Filament ● name]...
+//   [Nozzle N] [diameter v] [flow v] [Error|Unknown] [Filament ● name]...
 // ---------------------------------------------------------------------------
-
-struct NozzleRowFeatures
-{
-    bool label = true;
-};
 
 class NozzleRow
 {
@@ -148,7 +122,6 @@ public:
               int                             nozzle_count,
               int                             extruder_index,
               const NozzleConfig             &seed,
-              const NozzleRowFeatures        &features,
               const std::vector<std::string> &diameters,
               std::function<void()>           on_changed,
               std::function<void()>           on_error_click);
@@ -156,7 +129,7 @@ public:
     wxSizer     *GetSizer() const { return m_sizer; }
     NozzleConfig GetConfig() const;
     wxString     GetDiameter() const; // parsed value ("" when Empty)
-    void         UpdateWarningState(const wxString &selected_diameter, bool &title_matches);
+    void         RefreshState();
     void         Rescale();
 
 private:
@@ -180,7 +153,6 @@ private:
 
     wxWindow                *m_parent{nullptr};
     int                      m_extruder_index{0};
-    NozzleRowFeatures        m_features;
     std::vector<std::string> m_diameters;
     NozzleConfig             m_seed;
     std::function<void()>    m_on_changed;
@@ -188,8 +160,7 @@ private:
 
     wxBoxSizer *m_sizer{nullptr};
 
-    wxStaticBitmap *m_warning_icon{nullptr};
-    Label          *m_label{nullptr};
+    Label          *m_label{nullptr}; // "Nozzle N"; also the click target of an Error nozzle
     ComboBox       *m_diameter_combo{nullptr};
     ComboBox       *m_flow_combo{nullptr};
     Label          *m_status_label{nullptr}; // "Error" / "Unknown" text, driven by m_status
@@ -206,13 +177,11 @@ NozzleRow::NozzleRow(wxWindow                       *parent,
                      int                             nozzle_count,
                      int                             extruder_index,
                      const NozzleConfig             &seed,
-                     const NozzleRowFeatures        &features,
                      const std::vector<std::string> &diameters,
                      std::function<void()>           on_changed,
                      std::function<void()>           on_error_click)
     : m_parent(parent)
     , m_extruder_index(extruder_index)
-    , m_features(features)
     , m_diameters(diameters)
     , m_seed(seed)
     , m_on_changed(std::move(on_changed))
@@ -222,14 +191,9 @@ NozzleRow::NozzleRow(wxWindow                       *parent,
 {
     m_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_warning_icon = new wxStaticBitmap(parent, wxID_ANY, warning_bitmaps(parent).normal, wxDefaultPosition, dip(parent, 16, 16), 0);
-    m_warning_icon->Hide();
-    m_sizer->Add(m_warning_icon, 0, wxRESERVE_SPACE_EVEN_IF_HIDDEN | wxALIGN_CENTER_VERTICAL | wxRIGHT, dip(parent, 4));
-
-    if (m_features.label) {
-        m_label = new Label(parent, nozzle_count > 1 ? wxString::Format(_L("Nozzle %d "), index + 1) : _L("Nozzle"));
-        m_sizer->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, dip(parent, 4));
-    }
+    // Same 1-based numbering as the sidebar's nozzle tiles; the seeds arrive slot-ordered.
+    m_label = new Label(parent, nozzle_count > 1 ? wxString::Format(_L("Nozzle %d "), index + 1) : _L("Nozzle"));
+    m_sizer->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, dip(parent, 4));
 
     build_combos(parent);
     build_status_label(parent);
@@ -469,28 +433,20 @@ NozzleConfig NozzleRow::GetConfig() const
     return cfg;
 }
 
-// Per-row half of the old UpdateWarningStates. `title_matches` is OR-accumulated by
-// the column to decide the extruder title color.
-// Render the Error/Unknown hotend state (serious icon, status label, tooltip, and
-// a click-to-update-firmware binding for Error). Returns true when that state applies.
+// Render the Error/Unknown hotend state (status label, tooltip, and a click-to-update-firmware
+// binding for Error). Returns true when that state applies.
 bool NozzleRow::apply_error_state()
 {
     if (m_status != NozzleStatus::nsError && m_status != NozzleStatus::nsUnknown) return false;
-
-    m_warning_icon->SetBitmap(warning_bitmaps(m_parent).serious);
-    m_warning_icon->Show();
 
     if (m_status_label) {
         m_status_label->SetLabel(m_status == NozzleStatus::nsError ? _L("Error") : _L("Unknown"));
         m_status_label->Show();
     }
-    if (m_label) m_label->SetForegroundColour(ThemeColor::Danger);
+    m_label->SetForegroundColour(ThemeColor::Danger);
 
     const wxString tip = m_status == NozzleStatus::nsError ? _L("Hotend status is abnormal and not available. Click to update firmware.") :
                                                              _L("Hotend information is unknown. Please refresh nozzle information before use.");
-    m_warning_icon->SetToolTip(tip);
-    if (!m_label) return true;
-
     m_label->SetToolTip(tip);
     if (m_status == NozzleStatus::nsError) {
         m_label->SetCursor(wxCursor(wxCURSOR_HAND));
@@ -505,45 +461,20 @@ bool NozzleRow::apply_error_state()
     return true;
 }
 
-void NozzleRow::UpdateWarningState(const wxString &selected_diameter, bool &title_matches)
+void NozzleRow::RefreshState()
 {
-    if (!m_warning_icon) return;
-
     if (m_diameter_combo->GetSelection() != -1 && m_flow_combo && m_flow_combo->GetSelection() != -1 && m_status != NozzleStatus::nsNormal) m_status = NozzleStatus::nsNormal;
 
     if (apply_error_state()) return;
 
     if (m_status_label) m_status_label->Show(false);
-    m_warning_icon->UnsetToolTip();
-    if (m_label) {
-        m_label->UnsetToolTip();
-        m_label->SetCursor(wxCursor(wxCURSOR_ARROW));
-    }
-
-    wxString diameter = m_diameter_combo->GetValue();
-    if (diameter == _L("Empty")) {
-        m_warning_icon->SetBitmap(warning_bitmaps(m_parent).serious);
-        m_warning_icon->Show();
-        if (m_label) m_label->SetForegroundColour(ThemeColor::Danger);
-        // if (m_flow_combo) m_flow_combo->Show(false);
-        return;
-    }
-    if (m_flow_combo) m_flow_combo->Show(true);
-
-    m_warning_icon->SetBitmap(warning_bitmaps(m_parent).normal);
-    if (m_label) m_label->SetForegroundColour(ThemeColor::TextPrimary);
-    diameter.Replace(" mm", "");
-    if (diameter == selected_diameter) title_matches = true;
-    m_warning_icon->Show(diameter != selected_diameter);
+    m_label->UnsetToolTip();
+    m_label->SetCursor(wxCursor(wxCURSOR_ARROW));
+    m_label->SetForegroundColour(ThemeColor::TextPrimary);
 }
 
 void NozzleRow::Rescale()
 {
-    if (m_warning_icon) {
-        // warning_bitmaps() rebuilds its shared cache on DPI change; refresh the icon.
-        m_warning_icon->SetBitmap(warning_bitmaps(m_parent).normal);
-        m_warning_icon->SetSize(dip(m_parent, 16, 16));
-    }
     m_diameter_combo->SetMinSize(dip(m_parent, 110, 24));
     m_flow_combo->SetMinSize(dip(m_parent, 110, 24));
 
@@ -564,17 +495,15 @@ public:
                  std::function<void()>            on_ams_count_changed);
 
     std::vector<NozzleConfig> GetConfigs() const;
-    void                      UpdateWarnings(const wxString &selected_diameter);
+    void                      RefreshState();
     void                      Rescale();
-    bool                      HasDiameter(const wxString &diameter) const;
     void                      RestoreAms(); // revert this column's AMS-count edits (Cancel)
 
 private:
     int                                     m_extruder_index{0};
-    Label                                  *m_title_label{nullptr};
     std::vector<std::unique_ptr<NozzleRow>> m_rows;
     std::function<void()>                   m_on_ams_count_changed;
-    NozzleAmsRow                           *m_ams_row{nullptr}; // external-AMS attach row, inline at the anchor
+    NozzleAmsRow                           *m_ams_row{nullptr}; // external-AMS attach row, below the nozzle rows
 };
 
 NozzleColumn::NozzleColumn(wxWindow                        *parent,
@@ -593,33 +522,22 @@ NozzleColumn::NozzleColumn(wxWindow                        *parent,
     std::string    pt      = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
     const int      head_id = extruder_index == 0 ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
     const wxString title   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, head_id, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
-    m_title_label = new Label(this, title);
-    m_title_label->SetFont(Label::Body_14.Bold());
-    sizer->Add(m_title_label, 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(8));
+    auto          *title_label = new Label(this, title);
+    title_label->SetFont(Label::Body_14.Bold());
+    sizer->Add(title_label, 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(8));
 
     auto      diameters    = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
     const int nozzle_count = static_cast<int>(seeds.size());
 
     for (int i = 0; i < nozzle_count; ++i) {
-        NozzleRowFeatures features;
-        features.label = false;
-
-        auto row = std::make_unique<NozzleRow>(this, i, nozzle_count, extruder_index, seeds[i], features, diameters, on_changed, on_error_click);
+        auto row = std::make_unique<NozzleRow>(this, i, nozzle_count, extruder_index, seeds[i], diameters, on_changed, on_error_click);
         sizer->Add(row->GetSizer(), 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(8));
         m_rows.push_back(std::move(row));
     }
 
-    // Attach the external-AMS row inline to the first nozzle row the machine bound AMS to (fallback row 0).
-    int anchor_row = 0;
-    for (int i = 0; i < nozzle_count; ++i)
-        if (seeds[i].has_bind_ams) {
-            anchor_row = i;
-            break;
-        }
-    if (!m_rows.empty()) {
-        m_ams_row = new NozzleAmsRow(this, m_extruder_index, _L("AMS"), NozzleAmsRow::Placement::Inline, m_on_ams_count_changed);
-        m_rows[anchor_row]->GetSizer()->Add(m_ams_row, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
-    }
+    // The AMS row closes the column.
+    m_ams_row = new NozzleAmsRow(this, m_extruder_index, _L("AMS"), NozzleAmsRow::Style::Plain, m_on_ams_count_changed);
+    sizer->Add(m_ams_row, 0, wxALIGN_LEFT);
 
     SetSizer(sizer);
     Layout();
@@ -633,20 +551,9 @@ std::vector<NozzleConfig> NozzleColumn::GetConfigs() const
     return configs;
 }
 
-bool NozzleColumn::HasDiameter(const wxString &diameter) const
+void NozzleColumn::RefreshState()
 {
-    for (const auto &row : m_rows) {
-        if (row->GetDiameter() == diameter) return true;
-    }
-    return false;
-}
-
-void NozzleColumn::UpdateWarnings(const wxString &selected_diameter)
-{
-    bool title_matches = false;
-    for (const auto &row : m_rows) row->UpdateWarningState(selected_diameter, title_matches);
-
-    m_title_label->SetForegroundColour(title_matches ? ThemeColor::TextPrimary : ThemeColor::Warning);
+    for (const auto &row : m_rows) row->RefreshState();
 
     Layout();
     Refresh();
@@ -666,7 +573,6 @@ void NozzleColumn::RestoreAms()
 }
 
 NozzleSettingsListDialog::NozzleSettingsListDialog(wxWindow                        *parent,
-                                               const wxString                  &selected_diameter,
                                                const std::vector<NozzleConfig> &left_configs,
                                                const std::vector<NozzleConfig> &right_configs,
                                                CustomSeparator::State           separator_state)
@@ -681,52 +587,32 @@ NozzleSettingsListDialog::NozzleSettingsListDialog(wxWindow                     
     m_machine_baseline = collect_machine_nozzle_baseline(true);
 
     SetBackgroundColour(*wxWHITE);
-    create_layout(selected_diameter, left_seeds, right_seeds);
+    create_layout(left_seeds, right_seeds);
     if (m_separator) m_separator->SetState(separator_state);
     CentreOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void NozzleSettingsListDialog::create_layout(const wxString &selected_diameter, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds)
+void NozzleSettingsListDialog::create_layout(const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
-    build_diameter_selector(main_sizer, selected_diameter);
     build_columns(main_sizer, left_seeds, right_seeds);
-    build_warning_panels(main_sizer);
     build_button_bar(main_sizer);
 
     SetSizer(main_sizer);
     Layout();
     Fit();
 
-    setup_callbacks();
     update_dialog_state();
 
     CallAfter([this]() { align_separator_icon(); });
 }
 
-void NozzleSettingsListDialog::build_diameter_selector(wxBoxSizer *main_sizer, const wxString &selected_diameter)
-{
-    auto *label = new Label(this, _L("Select Nozzle Diameter"));
-    label->SetFont(Label::Body_14.Bold());
-    main_sizer->Add(label, 0, wxALIGN_LEFT | wxLEFT | wxTOP, FromDIP(20));
-
-    std::vector<wxString> choices;
-    for (const auto &d : wxGetApp().preset_bundle->printers.diameters_of_selected_printer()) choices.push_back(wxString::FromUTF8(d));
-    m_diameter_panel = new DiameterButtonPanel(this, choices, false);
-    m_diameter_panel->SetSelectedDiameter(selected_diameter);
-    main_sizer->Add(m_diameter_panel, 0, wxEXPAND | wxLEFT, FromDIP(20));
-}
-
 void NozzleSettingsListDialog::build_columns(wxBoxSizer *main_sizer, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds)
 {
-    auto *label = new Label(this, _L("Configure Nozzle Settings"));
-    label->SetFont(Label::Body_14.Bold());
-    main_sizer->Add(label, 0, wxALIGN_LEFT | wxLEFT | wxTOP, FromDIP(20));
-
     m_columns_container = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_columns_container->SetBackgroundColour(wxColour("#F7F7F7"));
     auto *container_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -750,50 +636,13 @@ void NozzleSettingsListDialog::build_columns(wxBoxSizer *main_sizer, const std::
     container_sizer->Add(m_right_column, 1, wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(20));
 
     m_columns_container->SetSizer(container_sizer);
-    main_sizer->Add(m_columns_container, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(m_columns_container, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
 
     // Machine-wide synced badge, pinned to the top-right of the columns container.
     m_columns_container->Bind(wxEVT_SIZE, [this](wxSizeEvent &e) {
         layout_badge();
         e.Skip();
     });
-}
-
-// The two notices below the columns; both start hidden and are toggled by
-// update_dialog_state based on mixed-diameter / empty-nozzle conditions.
-void NozzleSettingsListDialog::build_warning_panels(wxBoxSizer *main_sizer)
-{
-    m_warning_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_warning_panel->SetBackgroundColour(*wxWHITE);
-    auto *ws = new wxBoxSizer(wxVERTICAL);
-    auto *l1 = new Label(m_warning_panel, _L("Note: BambuStudio does not support mixed-diameter slicing."));
-    l1->SetFont(Label::Body_13);
-    l1->SetForegroundColour(ThemeColor::Warning);
-    ws->Add(l1, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(4));
-    auto *icon = new wxStaticBitmap(m_warning_panel, wxID_ANY, create_scaled_bitmap("warning", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    auto *l2   = new Label(m_warning_panel, _L("Nozzles have different diameter from print setting and cannot be used during slicing/printing."));
-    l2->SetFont(Label::Body_13);
-    l2->SetForegroundColour(ThemeColor::Warning);
-    auto *row = new wxBoxSizer(wxHORIZONTAL);
-    row->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
-    row->Add(l2, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-    ws->Add(row, 0, wxEXPAND | wxALIGN_LEFT | wxBOTTOM, FromDIP(4));
-    m_warning_panel->SetSizer(ws);
-    main_sizer->Add(m_warning_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    m_warning_panel->Hide();
-
-    m_warning_serious_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_warning_serious_panel->SetBackgroundColour(*wxWHITE);
-    auto *ss = new wxBoxSizer(wxHORIZONTAL);
-    auto *sicon = new wxStaticBitmap(m_warning_serious_panel, wxID_ANY, create_scaled_bitmap("warning_serious", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    auto *sl = new Label(m_warning_serious_panel, _L("Empty nozzles cannot be used during slicing/printing."));
-    sl->SetFont(Label::Body_13);
-    sl->SetForegroundColour(ThemeColor::Danger);
-    ss->Add(sicon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
-    ss->Add(sl, 0, wxALIGN_CENTER_VERTICAL);
-    m_warning_serious_panel->SetSizer(ss);
-    main_sizer->Add(m_warning_serious_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    m_warning_serious_panel->Hide();
 }
 
 void NozzleSettingsListDialog::build_button_bar(wxBoxSizer *main_sizer)
@@ -835,61 +684,67 @@ void NozzleSettingsListDialog::build_button_bar(wxBoxSizer *main_sizer)
     });
 
     auto *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    btn_sizer->Add(build_synced_hint(), 0, wxALIGN_CENTER_VERTICAL);
     btn_sizer->AddStretchSpacer();
     btn_sizer->Add(m_confirm_btn, 0, wxRIGHT, FromDIP(12));
     btn_sizer->Add(m_cancel_btn, 0);
     main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 }
 
-void NozzleSettingsListDialog::setup_callbacks()
+// "Nozzle info synced, view installation guide": shown only while synced; the link opens the
+// rack's nozzle sync dialog for the selected machine.
+wxWindow *NozzleSettingsListDialog::build_synced_hint()
 {
-    m_diameter_panel->SetNozzleQueryCallback([this](const wxString &diameter) -> bool {
-        if (m_left_column && m_left_column->HasDiameter(diameter)) return true;
-        if (m_right_column && m_right_column->HasDiameter(diameter)) return true;
-        return false;
+    m_synced_hint = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_synced_hint->SetBackgroundColour(*wxWHITE);
+
+    auto *text = new Label(m_synced_hint, _L("Nozzle info synced, "));
+    text->SetFont(Label::Body_13);
+    text->SetForegroundColour(ThemeColor::Grey700);
+
+    auto *link = new Label(m_synced_hint, _L("view installation guide →"));
+    link->SetFont(Label::Body_13.Underlined());
+    link->SetForegroundColour(ThemeColor::Grey700);
+    link->SetCursor(wxCursor(wxCURSOR_HAND));
+    link->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &) {
+        MachineObject *obj = selected_machine();
+        if (!obj || !obj->GetNozzleSystem()) return;
+        MultiNozzleSyncDialog dlg(this, obj->GetNozzleSystem()->GetNozzleRack());
+        dlg.ShowModal();
     });
 
-    m_diameter_panel->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-        e.Skip();
-        CallAfter([this]() { update_dialog_state(); });
-    });
+    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(text, 0, wxALIGN_CENTER_VERTICAL);
+    sizer->Add(link, 0, wxALIGN_CENTER_VERTICAL);
+    m_synced_hint->SetSizer(sizer);
+    m_synced_hint->Hide();
+    return m_synced_hint;
 }
 
 void NozzleSettingsListDialog::update_dialog_state()
 {
-    const wxString selected    = m_diameter_panel->GetSelectedDiameter();
-    bool           has_warning = false;
-    bool           has_empty   = false;
     // Not synced with the printer means not synced, full stop: no amount of matching
     // between the edits and the configs we were handed can make it synced.
     bool all_synced = m_machine_baseline.synced; // machine-wide: every extruder must match
 
     auto scan = [&](NozzleColumn *col, int extruder_idx) {
         if (!col) return;
-        col->UpdateWarnings(selected);
+        col->RefreshState();
         if (all_synced && !extruder_configs_match(col->GetConfigs(), m_machine_baseline.configs[extruder_idx])) all_synced = false;
-        for (const auto &cfg : col->GetConfigs()) {
-            if (cfg.diameter.IsEmpty())
-                has_empty = true;
-            else if (cfg.diameter != selected)
-                has_warning = true;
-        }
     };
     scan(m_left_column, 0);
     scan(m_right_column, 1);
 
-    if (m_warning_panel) m_warning_panel->Show(has_warning);
-    if (m_warning_serious_panel) m_warning_serious_panel->Show(has_empty);
-    show_badge(all_synced);
+    show_synced(all_synced);
 
-    m_diameter_panel->UpdateButtonStates();
     Layout();
     Fit();
 }
 
-// Machine-wide synced badge, pinned to the top-right of the columns container.
-void NozzleSettingsListDialog::show_badge(bool show)
+// Machine-wide synced badge (top-right of the columns container) and the synced hint.
+void NozzleSettingsListDialog::show_synced(bool show)
 {
+    if (m_synced_hint) m_synced_hint->Show(show);
     if (show && !m_badge && m_columns_container) {
         m_badge = new wxStaticBitmap(m_columns_container, wxID_ANY, ScalableBitmap(m_columns_container, "badge", 18).bmp());
         m_badge->SetBackgroundColour(m_columns_container->GetBackgroundColour());
@@ -925,8 +780,6 @@ void NozzleSettingsListDialog::on_ams_count_changed()
     Refresh();
 }
 
-wxString NozzleSettingsListDialog::GetSelectedDiameter() const { return m_diameter_panel->GetSelectedDiameter(); }
-
 std::vector<NozzleConfig> NozzleSettingsListDialog::GetExtruderConfigs(int index) const
 {
     if (index == 0 && m_left_column) return m_left_column->GetConfigs();
@@ -936,7 +789,6 @@ std::vector<NozzleConfig> NozzleSettingsListDialog::GetExtruderConfigs(int index
 
 void NozzleSettingsListDialog::on_dpi_changed(const wxRect & /*suggested_rect*/)
 {
-    if (m_diameter_panel) m_diameter_panel->Rescale();
     if (m_left_column) m_left_column->Rescale();
     if (m_right_column) m_right_column->Rescale();
 
