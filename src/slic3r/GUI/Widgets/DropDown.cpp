@@ -713,10 +713,20 @@ void DropDown::mouseReleased(wxMouseEvent& event)
         }
 
         if (hover_item >= 0 && (subDropDown == nullptr || subDropDown->group.empty())) { // not moved
-            sendDropDownEvent();
+            int index = hoverIndex();
+            // Hide the popup chain (releasing its pointer grab) before the selection is
+            // dispatched: the handler may open a modal dialog (e.g. the unsaved-changes
+            // prompt on a preset switch), and a still-shown popup would cover that dialog
+            // and keep the grab for the dialog's lifetime. The dismiss notifications are
+            // still sent after the selection, so CLOSEUP keeps following COMBOBOX.
+            PopupWindow::Dismiss();
             if (mainDropDown)
-                mainDropDown->hover_item = -1; // To Dismiss mainDropDown
-            DismissAndNotify();
+                mainDropDown->PopupWindow::Dismiss();
+            sendDropDownEvent(index);
+            if (mainDropDown)
+                mainDropDown->OnDismiss();
+            else
+                OnDismiss();
         } else if (subDropDown)
             subDropDown->Popup(subDropDown);
     }
@@ -810,9 +820,8 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
 }
 
 // currently unused events
-void DropDown::sendDropDownEvent()
+void DropDown::sendDropDownEvent(int index)
 {
-    int index = hoverIndex();
     if (index < 0 || (items[index].style & DD_ITEM_STYLE_DISABLED))
         return;
     wxCommandEvent event(wxEVT_COMBOBOX, GetId());
