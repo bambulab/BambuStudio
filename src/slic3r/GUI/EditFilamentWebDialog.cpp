@@ -2,7 +2,6 @@
 
 #include <wx/webview.h>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
@@ -13,6 +12,7 @@
 #include "Widgets/WebView.hpp"
 #include "CreatePresetsDialog.hpp"
 #include "Tab.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

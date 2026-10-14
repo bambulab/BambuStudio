@@ -26,7 +26,6 @@
 #include <utility>
 
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/thread.hpp>
@@ -42,6 +41,7 @@
 
 #include <wx/msgdlg.h>
 #include <wx/progdlg.h>
+#include "libslic3r/Log.hpp"
 
 extern "C"{
 	// from rapi.h

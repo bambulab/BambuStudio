@@ -25,6 +25,7 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevStorage.h"
 #include "slic3r/Utils/FileTransferUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r {

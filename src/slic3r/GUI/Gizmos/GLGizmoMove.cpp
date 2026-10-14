@@ -11,6 +11,7 @@
 #include <GL/glew.h>
 
 #include <wx/utils.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

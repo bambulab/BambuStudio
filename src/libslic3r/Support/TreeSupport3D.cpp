@@ -37,13 +37,12 @@
 #include <string>
 #include <string_view>
 
-#include <boost/log/trivial.hpp>
-
 #define TBB_PREVIEW_GLOBAL_CONTROL 1
 #include <tbb/global_control.h>
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_for_each.h>
 #include <tbb/spin_mutex.h>
+#include "libslic3r/Log.hpp"
 
 #if defined(TREE_SUPPORT_SHOW_ERRORS) && defined(_WIN32)
     #define TREE_SUPPORT_SHOW_ERRORS_WIN32

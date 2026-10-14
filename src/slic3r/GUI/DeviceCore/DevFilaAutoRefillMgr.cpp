@@ -5,6 +5,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 
 #include <cmath>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace {

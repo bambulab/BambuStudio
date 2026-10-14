@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <algorithm>
 #include <type_traits>
-#include <boost/log/trivial.hpp>
 //
 #include <libslic3r/ClipperUtils.hpp>
 #include <libslic3r/Line.hpp>
@@ -29,6 +28,7 @@
 #include "slic3r/GUI/Jobs/Worker.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 #include <wx/regex.h>
+#include "libslic3r/Log.hpp"
 // #define EXECUTE_UPDATE_ON_MAIN_THREAD // debug execution on main thread
 using namespace Slic3r::Emboss;
 namespace Slic3r {

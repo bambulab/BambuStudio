@@ -15,7 +15,6 @@
 #include <wx/debug.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 #include "libslic3r/Print.hpp"
@@ -82,6 +81,7 @@
 #include <dwmapi.h>
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r {

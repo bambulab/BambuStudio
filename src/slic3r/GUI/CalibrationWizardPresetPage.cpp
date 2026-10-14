@@ -18,6 +18,7 @@
 
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevFilaSystem.h"
+#include "libslic3r/Log.hpp"
 
 #define CALIBRATION_LABEL_SIZE wxSize(FromDIP(150), FromDIP(24))
 #define SYNC_BUTTON_SIZE (wxSize(FromDIP(50), FromDIP(50)))

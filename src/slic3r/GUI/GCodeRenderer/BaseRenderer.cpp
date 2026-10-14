@@ -19,6 +19,7 @@
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
 #include <chrono>
+#include "libslic3r/Log.hpp"
 namespace
 {
     std::string get_view_type_string(Slic3r::GUI::gcode::EViewType view_type)

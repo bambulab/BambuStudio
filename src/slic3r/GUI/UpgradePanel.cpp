@@ -15,6 +15,7 @@
 #include "DeviceCore/DevManager.h"
 
 #include "DeviceTab/wgtDeviceNozzleRackUpdate.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

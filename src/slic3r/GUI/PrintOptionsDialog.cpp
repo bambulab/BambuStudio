@@ -11,6 +11,7 @@
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceCore/DevFan.h"
+#include "libslic3r/Log.hpp"
 
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);

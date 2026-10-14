@@ -7,7 +7,7 @@
 #include <chrono>
 #include <unordered_map>
 #include <unordered_set>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace MultiNozzleUtils {
 // ==================== 工具函数实现 ====================

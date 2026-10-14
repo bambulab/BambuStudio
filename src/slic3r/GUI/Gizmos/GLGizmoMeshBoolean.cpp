@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <unordered_set>
 #include <memory>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

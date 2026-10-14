@@ -32,6 +32,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "NotificationManager.hpp"
+#include "libslic3r/Log.hpp"
 
 #ifdef _WIN32
 #include "BitmapComboBox.hpp"

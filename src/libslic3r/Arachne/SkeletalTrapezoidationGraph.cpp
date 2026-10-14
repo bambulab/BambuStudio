@@ -4,10 +4,9 @@
 #include "SkeletalTrapezoidationGraph.hpp"
 #include <unordered_map>
 
-#include <boost/log/trivial.hpp>
-
 #include "utils/linearAlg2D.hpp"
 #include "../Line.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::Arachne
 {

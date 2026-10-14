@@ -6,7 +6,6 @@
 #include <sstream>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "DeviceCore/DevNozzleSystem.h"
 #include "GUI_App.hpp"
@@ -20,6 +19,7 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

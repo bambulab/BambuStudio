@@ -13,8 +13,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 
 #include <string>
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

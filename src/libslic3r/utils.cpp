@@ -42,8 +42,7 @@
 	#endif
 #endif
 
-#include <boost/log/trivial.hpp>
-#include "Log.hpp"
+#include "libslic3r/Log.hpp"
 
 #include <boost/locale.hpp>
 

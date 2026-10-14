@@ -15,8 +15,6 @@
 #include <functional>
 #include <memory>
 
-#include <boost/log/trivial.hpp>
-
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "ExtruderHelpers.hpp"
@@ -27,6 +25,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/StateColor.hpp"
 #include "wx/graphics.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::GUI {
 

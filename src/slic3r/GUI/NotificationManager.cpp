@@ -16,7 +16,6 @@
 #include "format.hpp"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/nowide/convert.hpp>
 
@@ -32,6 +31,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
+#include "libslic3r/Log.hpp"
 
 static constexpr float GAP_WIDTH = 10.0f;
 static constexpr float SPACE_RIGHT_PANEL = 10.0f;

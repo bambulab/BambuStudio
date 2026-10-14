@@ -17,6 +17,7 @@
 #include "BitmapCache.hpp"
 #include "GUI_ObjectTable.hpp"
 #include "GUI_ObjectList.hpp"
+#include "libslic3r/Log.hpp"
 
 //use wxGridWindow to compute position
 //#include "wx/generic/private/grid.h"

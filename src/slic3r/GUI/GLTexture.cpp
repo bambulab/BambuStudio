@@ -29,9 +29,9 @@
 
 #include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"
-#include <boost/log/trivial.hpp>
 #include <wx/dcgraph.h>
 #include "FontUtils.hpp"
+#include "libslic3r/Log.hpp"
 namespace {
     GLenum get_gl_texture_wrap_mode(Slic3r::GUI::GLTexture::ESamplerWrapMode mode) {
         switch (mode) {

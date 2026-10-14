@@ -13,7 +13,6 @@
 // To show a message box if GUI initialization ends up with an exception thrown.
 #include <wx/msgdlg.h>
 
-#include <boost/log/trivial.hpp>
 #include "libslic3r/Log.hpp"
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/convert.hpp>

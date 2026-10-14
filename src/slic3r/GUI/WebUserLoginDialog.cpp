@@ -26,6 +26,7 @@
 
 #include <sstream>
 #include <slic3r/GUI/Widgets/WebView.hpp>
+#include "libslic3r/Log.hpp"
 using namespace std;
 
 using namespace nlohmann;

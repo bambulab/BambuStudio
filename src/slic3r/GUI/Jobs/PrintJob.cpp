@@ -20,6 +20,7 @@
 #include "slic3r/GUI/DeviceCore/DevUtil.h"
 
 #include "slic3r/Utils/FileTransferUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

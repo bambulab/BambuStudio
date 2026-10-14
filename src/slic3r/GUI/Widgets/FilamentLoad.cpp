@@ -7,9 +7,8 @@
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 
-#include <boost/log/trivial.hpp>
-
 #include "CalibUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
     namespace GUI {

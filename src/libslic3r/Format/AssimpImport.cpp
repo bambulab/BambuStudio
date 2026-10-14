@@ -11,7 +11,6 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include <array>
@@ -20,6 +19,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace {

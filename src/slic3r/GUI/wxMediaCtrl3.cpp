@@ -3,12 +3,12 @@
 #include "Widgets/Label.hpp"
 #include "I18N.hpp"
 #include "libslic3r/Utils.hpp"
-#include <boost/log/trivial.hpp>
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include <wx/graphics.h>
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
+#include "libslic3r/Log.hpp"
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>

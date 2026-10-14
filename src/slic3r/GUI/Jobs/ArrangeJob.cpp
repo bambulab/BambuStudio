@@ -14,6 +14,7 @@
 #include "slic3r/GUI/format.hpp"
 
 #include "libnest2d/common.hpp"
+#include "libslic3r/Log.hpp"
 
 #define SAVE_ARRANGE_POLY 0
 #define ARRANGE_LOG(level) BOOST_LOG_TRIVIAL(level) << "arrange: "

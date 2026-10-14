@@ -17,9 +17,8 @@
 // MainFrame.hpp is deliberately not included: its OpenCASCADE `Handle` macro collides with Handle()
 #include "slic3r/GUI/GUI_App.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <algorithm>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

@@ -11,10 +11,10 @@
 #include <wx/glcanvas.h>
 
 #include <boost/nowide/convert.hpp>
-#include <boost/log/trivial.hpp>
 #include "I18N.hpp"
 
 #include <bitset>
+#include "libslic3r/Log.hpp"
 
 //unofficial linux lib
 //#include <spnav.h>

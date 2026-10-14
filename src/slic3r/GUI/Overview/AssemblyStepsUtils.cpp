@@ -26,7 +26,6 @@
 #include "../MP4/Mp4Recorder.hpp"
 
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -43,6 +42,7 @@
 #include <GL/glew.h>
 #include <wx/glcanvas.h>
 #include <imgui/imgui_internal.h>
+#include "libslic3r/Log.hpp"
 
 #define _steps_nodes m_model->get_assembly_steps_tree_data().nodes
 #define _steps_roots m_model->get_assembly_steps_tree_data().roots

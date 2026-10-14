@@ -5,7 +5,7 @@
 #include <sstream>
 #include <cmath>
 #include <optional>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace FlushPredict
 {

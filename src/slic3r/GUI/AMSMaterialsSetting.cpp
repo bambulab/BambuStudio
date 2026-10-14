@@ -5,7 +5,6 @@
 #include "MainFrame.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
-#include <boost/log/trivial.hpp>
 #include <iterator>
 #include <wx/colordlg.h>
 #include <wx/dcgraph.h>
@@ -38,6 +37,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include "libslic3r/Log.hpp"
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_MIN_TEMP       120

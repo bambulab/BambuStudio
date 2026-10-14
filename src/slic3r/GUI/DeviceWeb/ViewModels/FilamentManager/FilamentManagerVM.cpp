@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <vector>
-#include <boost/log/trivial.hpp>
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
@@ -30,6 +29,7 @@
 #include <wx/string.h>
 #include <iomanip>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

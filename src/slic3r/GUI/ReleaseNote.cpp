@@ -30,6 +30,7 @@
 
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevStorage.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

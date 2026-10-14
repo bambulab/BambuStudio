@@ -26,6 +26,7 @@
 #include <slic3r/Utils/Http.hpp>
 #include <libslic3r/miniz_extension.hpp>
 #include <libslic3r/Utils.hpp>
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

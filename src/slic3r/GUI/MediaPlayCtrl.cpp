@@ -14,7 +14,6 @@
 #include "Printer/BambuTunnel.h"
 
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/utf8_codecvt.hpp>
 #undef pid_t
@@ -33,6 +32,7 @@
 #include "wx/evtloop.h"
 #include <wx/dcgraph.h>
 #include <wx/mstream.h>
+#include "libslic3r/Log.hpp"
 
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_SESSION_END, wxCommandEvent);

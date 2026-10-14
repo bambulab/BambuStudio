@@ -5,7 +5,7 @@
 #include <assert.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 // Mark string for localization and translate.
 #define L(s) Slic3r::I18N::translate(s)

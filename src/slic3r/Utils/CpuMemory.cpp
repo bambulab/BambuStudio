@@ -1,6 +1,6 @@
 #include "CpuMemory.hpp"
+#include "libslic3r/Log.hpp"
 
-#include <boost/log/trivial.hpp>
 namespace Slic3r {
 #ifdef _WIN32
 #include <windows.h>

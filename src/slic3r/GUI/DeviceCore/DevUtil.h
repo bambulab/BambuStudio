@@ -11,10 +11,10 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <boost/log/trivial.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "nlohmann/json.hpp"
+#include "libslic3r/Log.hpp"
 
  /* Sequence Id*/
 #define STUDIO_START_SEQ_ID    20000

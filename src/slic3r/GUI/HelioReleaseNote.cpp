@@ -10,6 +10,7 @@
 #include "GUI_Preview.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
+#include "libslic3r/Log.hpp"
 
 // Forward declaration - function is defined in Plater.cpp
 namespace Slic3r {

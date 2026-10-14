@@ -16,13 +16,13 @@
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 
-#include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <chrono>
 #include <optional>
 #include <string>
 #include <utility>
 #include <wx/sizer.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

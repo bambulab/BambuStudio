@@ -1,7 +1,5 @@
 #include "PerfTrace.hpp"
-
-#include <boost/log/trivial.hpp>
-#include <boost/log/core.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 
@@ -22,7 +20,7 @@ PerfTimer::~PerfTimer()
         return;
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start).count();
     BOOST_LOG_TRIVIAL(info) << "[perf] " << m_name << " cost " << ms << " ms";
-    boost::log::core::get()->flush();
+    flush_logs();
 }
 
 } // namespace Slic3r

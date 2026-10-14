@@ -4,13 +4,12 @@
 #include <stack>
 #include <vector>
 
-#include <boost/log/trivial.hpp>
-
 #include "CSGMesh.hpp"
 
 #include "libslic3r/Execution/ExecutionTBB.hpp"
 //#include "libslic3r/Execution/ExecutionSeq.hpp"
 #include "libslic3r/MeshBoolean.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace csg {
     enum class BooleanFailReason { OK, MeshEmpty, NotBoundAVolume, SelfIntersect, NoIntersection};

@@ -11,6 +11,7 @@
 
 #include "DevUtil.h"
 #include "DevFilaSystem.h"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

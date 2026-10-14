@@ -56,6 +56,7 @@
 #include "NotificationManager.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 #include "DeviceCore/DevManager.h"
+#include "libslic3r/Log.hpp"
 
 #ifdef WIN32
 	#include <commctrl.h>

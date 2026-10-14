@@ -26,14 +26,7 @@
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_for_each.h>
 
-#include <boost/log/trivial.hpp>
-// #include <boost/log/core.hpp>
-// #include <boost/log/expressions.hpp>
-// #include <boost/log/sources/severity_logger.hpp>
-// #include <boost/log/sources/record_ostream.hpp>
-// #include <boost/log/utility/setup/file.hpp>
-// #include <boost/log/utility/setup/common_attributes.hpp>
-// #include <boost/log/utility/setup/console.hpp>
+#include "libslic3r/Log.hpp"
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
@@ -5562,7 +5555,6 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
     //assert(ret.second);
     // BOOST_LOG_TRIVIAL(debug) << format("calculate_avoidance: radius=%.2f, layer_nr=%d, recursions=%d, avoidance_areas=%d", radius, layer_nr, key.recursions,
     //                                    avoidance_areas.size());
-    // boost::log::core::get()->flush();
 
     return ret.first->second;
 }

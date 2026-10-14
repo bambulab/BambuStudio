@@ -6,6 +6,7 @@
 
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevHMSQuery.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

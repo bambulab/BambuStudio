@@ -24,7 +24,6 @@
 #include <algorithm>
 #include <type_traits>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/predef/other/endian.h>
 
@@ -32,6 +31,7 @@
 #include <Eigen/Dense>
 
 #include <assert.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

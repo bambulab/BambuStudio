@@ -3,7 +3,7 @@
 
 #include "Job.hpp"
 #include <libslic3r/Thread.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

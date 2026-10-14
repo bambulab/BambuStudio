@@ -11,14 +11,13 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <boost/log/trivial.hpp>
-
 #include "TextureToColor/TextureToColor.hpp"
 #include "TextureToColor/ColorUtils.hpp"
 
 #include "Model.hpp"
 #include "TriangleMesh.hpp"
 #include "TriangleSelector.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

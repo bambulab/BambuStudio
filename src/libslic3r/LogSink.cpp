@@ -6,6 +6,7 @@
 #include "slic3r/Utils/Http.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>

@@ -16,7 +16,6 @@
 #include <cmath>
 #include <limits>
 #include <boost/container/static_vector.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
 
@@ -36,6 +35,7 @@
 #endif
 
 #include <cassert>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

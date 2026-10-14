@@ -13,6 +13,7 @@
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include "DeviceWeb/DeviceWebHealth.hpp"
 #include "Widgets/WebViewTraceLogger.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace pt = boost::property_tree;
 

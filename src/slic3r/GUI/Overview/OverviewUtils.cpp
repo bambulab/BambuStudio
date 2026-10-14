@@ -10,12 +10,12 @@
 
 #include <wx/event.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
 
 #include <algorithm>
 #include <cmath>
 #include <unordered_set>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

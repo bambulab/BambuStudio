@@ -8,7 +8,6 @@
 #include <stack>
 
 #include <boost/container/small_vector.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/static_assert.hpp>
 
 #include "../ClipperUtils.hpp"
@@ -38,6 +37,7 @@
 
 // We want our version of assert.
 #include "../libslic3r.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

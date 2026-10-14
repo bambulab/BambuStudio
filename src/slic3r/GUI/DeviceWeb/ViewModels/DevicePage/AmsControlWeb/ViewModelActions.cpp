@@ -19,10 +19,10 @@
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <cstdlib>
 #include <utility>
 #include <vector>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

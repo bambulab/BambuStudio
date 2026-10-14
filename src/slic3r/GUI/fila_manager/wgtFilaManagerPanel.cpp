@@ -2,7 +2,6 @@
 #include "wgtFilaManagerStore.h"
 
 #include <wx/sizer.h>
-#include <boost/log/trivial.hpp>
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Widgets/WebView.hpp"
@@ -16,6 +15,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

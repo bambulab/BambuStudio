@@ -13,6 +13,7 @@
 #include "SupportParameters.hpp"
 
 #include <map>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

@@ -11,9 +11,9 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <curl/curl.h>
+#include "libslic3r/Log.hpp"
 
 #ifdef OPENSSL_CERT_OVERRIDE
 #include <openssl/x509.h>

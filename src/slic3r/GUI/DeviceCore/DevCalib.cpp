@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <boost/log/trivial.hpp>
 #include <cmath>
 #include <iterator>
 #include <set>
@@ -19,6 +18,7 @@
 #include "DevConfig.h"
 #include "DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

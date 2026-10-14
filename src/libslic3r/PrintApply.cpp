@@ -5,8 +5,7 @@
 
 #include <cfloat>
 #include <memory>
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

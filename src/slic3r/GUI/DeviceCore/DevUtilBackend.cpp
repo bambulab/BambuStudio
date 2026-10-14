@@ -8,6 +8,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <wx/string.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {

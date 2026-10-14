@@ -25,7 +25,6 @@
 #include <unordered_set>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include <tbb/blocked_range.h>
@@ -40,6 +39,7 @@
 #include "ParameterUtils.hpp"
 
 #include <codecvt>
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

@@ -11,11 +11,10 @@
 #include <sstream>
 #include <numeric>
 
-#include <boost/log/trivial.hpp>
-
 #include "ColorDecomposeRecipe.hpp"
 #include "FilamentMixerModel.hpp"
 #include "LocalesUtils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace {

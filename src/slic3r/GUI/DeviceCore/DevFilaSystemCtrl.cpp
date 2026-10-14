@@ -2,12 +2,12 @@
 #include <cctype>
 
 #include <nlohmann/json.hpp>
-#include <boost/log/trivial.hpp>
 #include "DevFilaSystem.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"// TODO: remove this include
 #include "DevFilamentWeight.h"
 #include "DevUtil.h"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 namespace Slic3r

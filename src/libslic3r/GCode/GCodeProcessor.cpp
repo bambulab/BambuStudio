@@ -5,7 +5,6 @@
 #include "libslic3r/format.hpp"
 #include "GCodeProcessor.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -24,6 +23,7 @@
 #endif
 
 #include <chrono>
+#include "libslic3r/Log.hpp"
 
 static const float DEFAULT_TOOLPATH_WIDTH = 0.4f;
 static const float DEFAULT_TOOLPATH_HEIGHT = 0.2f;

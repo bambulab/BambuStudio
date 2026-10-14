@@ -6,8 +6,8 @@
 #include "SVG.hpp"
 #include "BoundingBox.hpp"
 #include "libslic3r/AABBTreeLines.hpp"
-#include <boost/log/trivial.hpp>
 #include "PerimeterGenerator.hpp"
+#include "libslic3r/Log.hpp"
 static const int Continuitious_length = scale_(0.01);
 static const int dist_scale_threshold = 1.2;
 

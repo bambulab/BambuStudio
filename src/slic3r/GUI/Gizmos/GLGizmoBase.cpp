@@ -9,6 +9,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
+#include "libslic3r/Log.hpp"
 
 // TODO: Display tooltips quicker on Linux
 

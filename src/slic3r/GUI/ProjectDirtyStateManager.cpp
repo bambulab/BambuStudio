@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

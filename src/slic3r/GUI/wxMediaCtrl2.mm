@@ -7,7 +7,6 @@
 
 #import "wxMediaCtrl2.h"
 #import "wx/mediactrl.h"
-#include <boost/log/trivial.hpp>
 
 #import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>
@@ -20,6 +19,7 @@
 #include "Printer/LiveViewTrackContext.h"
 #include "BitmapCache.hpp"
 #include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 

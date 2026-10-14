@@ -31,8 +31,6 @@
 #include <functional>
 #include <numeric>
 
-#include <boost/log/trivial.hpp>
-
 #include <tbb/parallel_for.h>
 #include <tbb/concurrent_vector.h>
 #include <tbb/concurrent_unordered_set.h>
@@ -40,6 +38,7 @@
 #include <Shiny/Shiny.h>
 
 #include "format.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace std::literals;
 

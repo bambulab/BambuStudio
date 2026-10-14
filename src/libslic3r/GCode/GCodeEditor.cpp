@@ -2,7 +2,6 @@
 #include "GCodeEditor.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/log/trivial.hpp>
 #include <iostream>
 #include <float.h>
 
@@ -13,6 +12,7 @@
 #endif
 
 #include <assert.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

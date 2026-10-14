@@ -15,7 +15,6 @@
 #include "libslic3r/PrintBase.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/LocalesUtils.hpp"
-#include <boost/log/trivial.hpp>
 #include "../GUI/PartPlate.hpp"
 #include "../GUI/GUI_App.hpp"
 #include "../GUI/Event.hpp"
@@ -31,6 +30,7 @@
 #include <ctime>
 #include <sstream>
 #include <thread>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

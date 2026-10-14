@@ -13,6 +13,7 @@
 #include <wx/dcmemory.h>
 #include <wx/settings.h>
 #include <wx/glcanvas.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

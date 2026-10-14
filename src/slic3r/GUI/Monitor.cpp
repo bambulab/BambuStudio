@@ -34,6 +34,7 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevHMSQuery.h"
 #include "fila_manager/wgtFilaManagerCloudDispatcher.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

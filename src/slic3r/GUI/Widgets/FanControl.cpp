@@ -9,6 +9,7 @@
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
 #include <wx/translation.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

@@ -13,6 +13,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <nlohmann/json.hpp>
+#include "libslic3r/Log.hpp"
 using namespace nlohmann;
 
 namespace Slic3r {

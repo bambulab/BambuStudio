@@ -64,6 +64,7 @@
 #include "Notebook.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
+#include "libslic3r/Log.hpp"
 
 // definitions
 #define S_RACK_NOZZLE_OFFSET_CALI_WARNING _L(\

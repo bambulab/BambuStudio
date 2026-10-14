@@ -3,7 +3,6 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <thread>
 
 namespace Slic3r { namespace GUI {

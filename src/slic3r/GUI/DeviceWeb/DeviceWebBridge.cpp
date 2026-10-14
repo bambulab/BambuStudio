@@ -4,6 +4,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Widgets/WebViewTraceLogger.hpp"
 #include <wx/uri.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

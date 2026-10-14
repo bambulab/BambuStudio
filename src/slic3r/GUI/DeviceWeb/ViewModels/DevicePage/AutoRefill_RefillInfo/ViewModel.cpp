@@ -20,9 +20,9 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "libslic3r_version.h"
 
-#include <boost/log/trivial.hpp>
 #include <exception>
 #include <utility>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

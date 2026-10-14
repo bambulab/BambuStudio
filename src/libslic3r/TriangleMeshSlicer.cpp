@@ -15,8 +15,6 @@
 #include <mutex>
 #include <utility>
 
-#include <boost/log/trivial.hpp>
-
 #include <tbb/parallel_for.h>
 
 #ifndef NDEBUG
@@ -34,6 +32,7 @@
 #include <assert.h>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include "libslic3r/Log.hpp"
 
 // #define SLIC3R_DEBUG_SLICE_PROCESSING
 

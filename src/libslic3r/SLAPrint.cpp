@@ -11,7 +11,6 @@
 
 #include <tbb/parallel_for.h>
 #include <boost/filesystem/path.hpp>
-#include <boost/log/trivial.hpp>
 
 // #define SLAPRINT_DO_BENCHMARK
 
@@ -20,6 +19,7 @@
 #endif
 
 #include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 //! macro used to mark string used at localization,
 //! return same string

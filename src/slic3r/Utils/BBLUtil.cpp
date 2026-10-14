@@ -3,9 +3,8 @@
 
 #include <random>
 
-#include <boost/log/trivial.hpp>
-
 #include <openssl/aes.h>
+#include "libslic3r/Log.hpp"
 
 using namespace std;
 

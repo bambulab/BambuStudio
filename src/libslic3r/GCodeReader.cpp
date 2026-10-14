@@ -1,7 +1,6 @@
 #include "GCodeReader.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <fstream>
@@ -13,6 +12,7 @@
 
 #include <Shiny/Shiny.h>
 #include <fast_float/fast_float.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

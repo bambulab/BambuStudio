@@ -31,7 +31,6 @@
 #include <boost/algorithm/string/find.hpp>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 
 #include <boost/nowide/iostream.hpp>
@@ -41,6 +40,7 @@
 #include "SVG.hpp"
 
 #include <tbb/parallel_for.h>
+#include "libslic3r/Log.hpp"
 
 // Intel redesigned some TBB interface considerably when merging TBB with their oneAPI set of libraries, see GH #7332.
 // We are using quite an old TBB 2017 U7. Before we update our build servers, let's use the old API, which is deprecated in up to date TBB.

@@ -12,6 +12,7 @@
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevNozzleRack.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

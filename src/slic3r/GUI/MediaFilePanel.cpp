@@ -14,6 +14,7 @@
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Format/bbs_3mf.hpp>
 #include "DeviceCore/DevStorage.h"
+#include "libslic3r/Log.hpp"
 
 #ifdef __WXMSW__
 #include <shellapi.h>

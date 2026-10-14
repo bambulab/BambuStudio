@@ -22,6 +22,7 @@
 #include <libslic3r/Utils.hpp>
 
 #include <boost/foreach.hpp>
+#include "libslic3r/Log.hpp"
 
 #ifndef NDEBUG
 // #define SLIC3R_UNDOREDO_DEBUG

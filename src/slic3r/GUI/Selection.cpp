@@ -22,7 +22,6 @@
 #include <GL/glew.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/log/trivial.hpp>
 #include "libslic3r/Log.hpp"
 
 #include <CGAL/Simple_cartesian.h>

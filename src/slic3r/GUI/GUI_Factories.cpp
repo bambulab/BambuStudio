@@ -23,6 +23,7 @@
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
 #include "ParamsPanel.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {

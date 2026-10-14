@@ -4,7 +4,6 @@
 
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/Http.hpp"
-#include <boost/log/trivial.hpp>
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
@@ -29,6 +28,7 @@
 #include <sstream>
 #include <regex>
 #include <thread>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

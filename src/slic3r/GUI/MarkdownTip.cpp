@@ -8,6 +8,7 @@
 #include "I18N.hpp"
 
 #include <wx/display.h>
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 

@@ -21,6 +21,7 @@
 #include "../GUI/DeviceCore/DevNozzleSystem.h"
 #include "../GUI/DeviceCore/DevNozzleRack.h"
 #include "../GUI/DeviceCore/DevFilaSystem.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

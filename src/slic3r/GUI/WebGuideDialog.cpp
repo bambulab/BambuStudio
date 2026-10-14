@@ -34,6 +34,7 @@
 #include <libslic3r/Utils.hpp>
 #include <tbb/parallel_for.h>
 #include "CreatePresetsDialog.hpp"
+#include "libslic3r/Log.hpp"
 
 #define PARALLEL_READ 1
 

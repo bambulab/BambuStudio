@@ -25,7 +25,7 @@
 #include <memory>
 #include <vector>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace {
 

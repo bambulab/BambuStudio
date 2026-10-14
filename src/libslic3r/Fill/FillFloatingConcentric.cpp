@@ -7,8 +7,8 @@
 #include "../format.hpp"
 #include "../EdgeGrid.hpp"
 #include "FillFloatingConcentric.hpp"
-#include <boost/log/trivial.hpp>
 #include <libslic3r/ShortestPath.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

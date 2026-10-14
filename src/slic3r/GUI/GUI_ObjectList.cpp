@@ -44,6 +44,7 @@
 #include "Gizmos/GLGizmoMeshBoolean.hpp"
 #include "libslic3r/TriangleMeshDeal.hpp"
 #include "libslic3r/PaintReproject.hpp"
+#include "libslic3r/Log.hpp"
 namespace Slic3r
 {
 namespace GUI

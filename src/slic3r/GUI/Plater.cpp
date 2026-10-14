@@ -33,7 +33,6 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -221,6 +220,7 @@
 #include "ImageMessageDialog.hpp"
 
 #include "HelioReleaseNote.hpp"
+#include "libslic3r/Log.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -24051,7 +24051,7 @@ int Plater::load_project(wxString const &filename2,
         // Name only, no project path: saving must not overwrite the source 3MF.
         p->set_project_name(res.empty() ? _L("Untitled") : from_u8(path.stem().string()));
     } else if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << load_restore ? originfile : filename;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << (load_restore ? originfile : filename);
         p->set_project_filename(load_restore ? originfile : filename);
         if (load_restore && originfile.IsEmpty()) {
         p->set_project_name(_L("Untitled"));

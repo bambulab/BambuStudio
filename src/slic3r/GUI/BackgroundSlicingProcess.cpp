@@ -31,12 +31,12 @@
 
 #include <boost/format/format_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include "I18N.hpp"
 //#include "RemovableDriveManager.hpp"
 
 #include "slic3r/GUI/Plater.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

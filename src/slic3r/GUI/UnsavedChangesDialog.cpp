@@ -42,6 +42,7 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/TextTabbar.hpp"
+#include "libslic3r/Log.hpp"
 
 using boost::optional;
 

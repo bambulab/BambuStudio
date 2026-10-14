@@ -23,6 +23,7 @@
 #include "libslic3r/Time.hpp"
 
 #include <boost/thread.hpp>
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

@@ -6,6 +6,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include <wx/sizer.h>
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r::GUI{

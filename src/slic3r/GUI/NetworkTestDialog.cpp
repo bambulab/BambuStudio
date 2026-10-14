@@ -12,7 +12,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include <boost/asio/ip/address.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

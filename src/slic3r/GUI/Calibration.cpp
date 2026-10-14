@@ -12,6 +12,7 @@
 #include "Widgets/StaticBox.hpp"
 
 #include "DeviceCore/DevConfig.h"
+#include "libslic3r/Log.hpp"
 
 static wxColour FG_COLOR = wxColour(0x32, 0x3A, 0x3D);
 static wxColour BG_COLOR = wxColour(0xF8, 0xF8, 0xF8);

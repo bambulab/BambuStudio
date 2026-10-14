@@ -15,7 +15,6 @@
 #include <condition_variable>
 #include <mutex>
 
-#include <boost/log/trivial.hpp>
 #include <boost/thread.hpp>
 
 #include "GLGizmosCommon.hpp"
@@ -29,6 +28,7 @@
 
 #include <imgui/imgui_internal.h>
 #include "FixModelByWin10.hpp"
+#include "libslic3r/Log.hpp"
 namespace Slic3r {
 namespace GUI {
 

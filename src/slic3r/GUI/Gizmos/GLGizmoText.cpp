@@ -31,7 +31,6 @@
 #include <wx/utils.h>
 
 #include <numeric>
-#include <boost/log/trivial.hpp>
 
 #include <GL/glew.h>
 
@@ -43,6 +42,7 @@
 #include "libslic3r/SVG.hpp"
 
 #include "../ParamsPanel.hpp"
+#include "libslic3r/Log.hpp"
 using namespace Slic3r;
 using namespace Slic3r::GUI;
 using namespace Slic3r::GUI::Emboss;

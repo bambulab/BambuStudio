@@ -5,6 +5,7 @@
 #include "MainFrame.hpp"
 #include "GUI_App.hpp"
 #include "BBLUtil.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

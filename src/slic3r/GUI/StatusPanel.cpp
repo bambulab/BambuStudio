@@ -76,6 +76,7 @@
 
 #include <algorithm>
 #include <functional>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -4226,7 +4227,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 
     /*other*/
     bool light_on = obj->GetLamp()->IsChamberLightOn();
-    BOOST_LOG_TRIVIAL(trace) << "light: " << light_on ? "on" : "off";
+    BOOST_LOG_TRIVIAL(trace) << "light: " << (light_on ? "on" : "off");
     if (m_switch_lamp_timeout > 0)
         m_switch_lamp_timeout--;
     else {

@@ -3,10 +3,10 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
-#include <boost/log/trivial.hpp>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
 #include "DeviceCore/DevFilaSystem.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

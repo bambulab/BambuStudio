@@ -3,8 +3,6 @@
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <GL/glew.h>
 
 #include "slic3r/GUI/GUI_App.hpp"
@@ -19,6 +17,7 @@
 #include <memory>
 #include <optional>
 #include <imgui/imgui_internal.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::GUI {
 

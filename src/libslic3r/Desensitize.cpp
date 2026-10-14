@@ -3,7 +3,7 @@
 #include "nlohmann/json.hpp"
 
 #include "libslic3r_version.h"
-#include "Log.hpp"
+#include "libslic3r/Log.hpp"
 
 #if BBL_RELEASE_TO_PUBLIC
 static constexpr bool s_enable_cross_talk = true;

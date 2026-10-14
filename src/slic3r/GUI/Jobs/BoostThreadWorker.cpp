@@ -1,6 +1,7 @@
 #include <exception>
 
 #include "BoostThreadWorker.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

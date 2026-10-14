@@ -11,7 +11,6 @@
 #include <fstream>
 #include <map>
 
-#include <boost/log/trivial.hpp>
 #include <boost/locale.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -24,6 +23,7 @@
 
 //Translation
 #include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 #define _L(s) Slic3r::I18N::translate(s)
 
 namespace Slic3r {

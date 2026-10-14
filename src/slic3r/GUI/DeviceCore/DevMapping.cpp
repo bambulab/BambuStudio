@@ -14,6 +14,7 @@
 #include <cmath>
 #include <optional>
 #include <set>
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

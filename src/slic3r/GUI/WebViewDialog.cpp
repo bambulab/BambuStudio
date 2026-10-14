@@ -26,6 +26,7 @@
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include "slic3r/GUI/Widgets/StateColor.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace pt = boost::property_tree;
 

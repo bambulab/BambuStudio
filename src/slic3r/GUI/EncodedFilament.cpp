@@ -2,6 +2,7 @@
 
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {

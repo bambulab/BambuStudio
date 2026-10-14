@@ -17,6 +17,7 @@
 #include "ConfigManipulation.hpp"
 
 #include <wx/wupdlock.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {

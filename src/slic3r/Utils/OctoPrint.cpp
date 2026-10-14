@@ -4,7 +4,6 @@
 #include <sstream>
 #include <exception>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -18,6 +17,7 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "Http.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace fs = boost::filesystem;

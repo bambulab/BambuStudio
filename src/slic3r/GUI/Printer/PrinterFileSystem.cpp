@@ -10,7 +10,6 @@
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/endian/conversion.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/uuid/detail/md5.hpp>
 #include <boost/regex.hpp>
 
@@ -19,6 +18,7 @@
 #include "nlohmann/json.hpp"
 
 #include <cstring>
+#include "libslic3r/Log.hpp"
 
 #ifndef NDEBUG
 //#define PRINTER_FILE_SYSTEM_TEST

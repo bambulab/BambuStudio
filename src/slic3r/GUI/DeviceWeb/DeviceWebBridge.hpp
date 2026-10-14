@@ -9,7 +9,6 @@
 
 #include <wx/panel.h>
 #include <nlohmann/json.hpp>
-#include <boost/log/trivial.hpp>
 #include <atomic>
 #include <chrono>
 #include <deque>
@@ -21,6 +20,7 @@
 #include "DeviceWebHealth.hpp"
 #include "DeviceWebModel.hpp"
 #include "DeviceWebManager.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

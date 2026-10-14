@@ -28,7 +28,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -46,6 +45,7 @@
 
 // Transtltion
 #include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 // ModelIO support
 #ifdef __APPLE__

@@ -3,8 +3,7 @@
 #include "DeviceManager.hpp"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevUtil.h"
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 static const char* HMS_PATH = "hms";
 static const char* HMS_LOCAL_IMG_PATH = "hms/local_image";

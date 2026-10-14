@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -18,6 +17,7 @@
 #include "GUI_App.hpp"
 #include "format.hpp"
 #include "Tab.hpp"
+#include "libslic3r/Log.hpp"
 
 using Slic3r::GUI::format_wxstr;
 

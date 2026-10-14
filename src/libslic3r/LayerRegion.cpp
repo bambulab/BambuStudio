@@ -11,8 +11,8 @@
 
 #include <string>
 #include <map>
+#include "libslic3r/Log.hpp"
 
-#include <boost/log/trivial.hpp>
 static const double max_deviation = scale_(0.5);
 static const double max_variance  = 5 * scale_(0.01) * scale_(0.01);
 

@@ -27,10 +27,10 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
-#include <boost/log/trivial.hpp>
 #include <miniz/miniz.h>
 #include <mutex>
 #include <tbb/parallel_for.h>
+#include "libslic3r/Log.hpp"
 
 #define PARALLEL_LOAD_PRESET 1
 

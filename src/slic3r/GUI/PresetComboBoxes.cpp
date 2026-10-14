@@ -51,6 +51,7 @@
 #include "wxExtensions.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "libslic3r/Log.hpp"
 
 // A workaround for a set of issues related to text fitting into gtk widgets:
 #if defined(__WXGTK20__) || defined(__WXGTK3__)

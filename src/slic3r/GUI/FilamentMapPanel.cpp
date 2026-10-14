@@ -4,7 +4,6 @@
 #include "Plater.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevNozzleSystem.h"
-#include <boost/log/trivial.hpp>
 #include <cassert>
 #include <wx/dcbuffer.h>
 #include <wx/scrolwin.h>
@@ -16,6 +15,7 @@
 #include <optional>
 #include <functional>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::GUI {
 

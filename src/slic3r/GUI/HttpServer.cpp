@@ -1,9 +1,9 @@
 #include "HttpServer.hpp"
-#include <boost/log/trivial.hpp>
 #include "GUI_App.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include <algorithm>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

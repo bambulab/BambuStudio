@@ -1,11 +1,11 @@
 #include "Mp4Recorder.hpp"
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <cstring>
 #include <cstdlib>
 
 #include "minimp4/minimp4.h"
 #include "minimp4/minih264e.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

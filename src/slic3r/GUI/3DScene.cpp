@@ -36,7 +36,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include <boost/log/trivial.hpp>
 #include "libslic3r/Log.hpp"
 
 #include <boost/filesystem/operations.hpp>

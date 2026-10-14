@@ -13,7 +13,7 @@
 #include <atomic>
 #include <string>
 #include <nlohmann/json.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 // Reserved for future usage
 #define DEV_RESERVED_FOR_FUTURE(...) /* stripped */

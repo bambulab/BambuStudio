@@ -7,6 +7,7 @@
 
 #include <wx/dcclient.h>
 #include <wx/settings.h>
+#include "libslic3r/Log.hpp"
 
 wxFont Label::sysFont(int size, bool bold, std::string lang_code)
 {

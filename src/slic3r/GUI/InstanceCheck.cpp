@@ -10,7 +10,6 @@
 #include "libslic3r/Config.hpp"
 
 #include "boost/nowide/convert.hpp"
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <iostream>
 #include <unordered_map>
@@ -18,6 +17,7 @@
 #include <errno.h>
 #include <optional>
 #include <cstdint>
+#include "libslic3r/Log.hpp"
 
 #ifdef _WIN32
 #include <strsafe.h>

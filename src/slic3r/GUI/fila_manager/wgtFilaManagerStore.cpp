@@ -8,7 +8,6 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -18,6 +17,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

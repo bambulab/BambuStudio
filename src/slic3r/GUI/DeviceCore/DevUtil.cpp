@@ -1,5 +1,6 @@
 #include "DevUtil.h"
 #include "fast_float/fast_float.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {

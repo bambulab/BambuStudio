@@ -4,6 +4,7 @@
 #include "DevUtil.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
 
 wxDEFINE_EVENT(DEV_RACK_EVENT_READING_FINISHED, wxCommandEvent);
 namespace Slic3r

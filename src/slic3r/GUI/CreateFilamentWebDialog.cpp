@@ -3,7 +3,6 @@
 #include <wx/webview.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <unordered_set>
 #include <openssl/md5.h>
 #include <openssl/evp.h>
@@ -16,6 +15,7 @@
 #include "libslic3r/Utils.hpp"
 #include "Widgets/WebView.hpp"
 #include "CreatePresetsDialog.hpp"  // for CreatePresetSuccessfulDialog
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

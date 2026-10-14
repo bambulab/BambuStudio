@@ -21,10 +21,9 @@
 
 #include <string_view>
 
-#include <boost/log/trivial.hpp>
-
 #include <tbb/parallel_for.h>
 #include <tbb/task_group.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r::TreeSupport3D
 {

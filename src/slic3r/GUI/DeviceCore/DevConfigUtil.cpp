@@ -8,6 +8,7 @@
 #include <boost/filesystem/operations.hpp>
 #include "../I18N.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

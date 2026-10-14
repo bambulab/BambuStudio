@@ -6,6 +6,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r { namespace GUI {

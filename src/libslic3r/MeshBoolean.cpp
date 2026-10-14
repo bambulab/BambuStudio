@@ -27,7 +27,7 @@
 #include <CGAL/boost/graph/Face_filtered_graph.h>
 // BBS: for boolean using mcut
 #include "mcut/include/mcut/mcut.h"
-#include "boost/log/trivial.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace MeshBoolean {

@@ -16,9 +16,9 @@
 #include <wx/clipbrd.h>
 #include <wx/stattext.h>
 #include <wx/timer.h>
-#include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <chrono>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

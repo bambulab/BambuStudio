@@ -2,6 +2,7 @@
 #include "DevUtil.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

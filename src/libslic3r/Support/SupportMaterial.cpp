@@ -13,7 +13,6 @@
 #include <cmath>
 #include <map>
 #include <memory>
-#include <boost/log/trivial.hpp>
 #include <boost/container/static_vector.hpp>
 
 #include <tbb/parallel_for.h>
@@ -50,6 +49,7 @@
 
 // #undef NDEBUG
 #include <cassert>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

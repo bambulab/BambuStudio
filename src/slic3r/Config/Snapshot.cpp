@@ -8,7 +8,6 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/format.hpp"
@@ -27,6 +26,7 @@
 #include "../GUI/MsgDialog.hpp"
 
 #include <wx/richmsgdlg.h>
+#include "libslic3r/Log.hpp"
 
 #define SLIC3R_SNAPSHOTS_DIR "snapshots"
 #define SLIC3R_SNAPSHOT_FILE "snapshot.ini"

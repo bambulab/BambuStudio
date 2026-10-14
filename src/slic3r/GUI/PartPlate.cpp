@@ -11,7 +11,6 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/log/trivial.hpp>
 #include "libslic3r/Log.hpp"
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>

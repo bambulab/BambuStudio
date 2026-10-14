@@ -11,8 +11,6 @@
 //BBS
 #include "ShortestPath.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <tbb/parallel_for.h>
 
 #include <atomic>
@@ -26,6 +24,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include "libslic3r/Log.hpp"
 
 //! macro used to mark string used at localization, return same string
 #define L(s) Slic3r::I18N::translate(s)

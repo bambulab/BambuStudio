@@ -11,10 +11,9 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
-#include <boost/log/trivial.hpp>
-
 #include <map>
 #include <string>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

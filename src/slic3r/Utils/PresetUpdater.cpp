@@ -14,7 +14,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
 
 #include <wx/app.h>
@@ -40,6 +39,7 @@
 #include "slic3r/GUI/MarkdownTip.hpp"
 #include "libslic3r/miniz_extension.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace fs = boost::filesystem;
 using Slic3r::GUI::Config::Index;

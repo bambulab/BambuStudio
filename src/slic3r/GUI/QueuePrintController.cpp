@@ -21,13 +21,12 @@
 #include <expat.h>
 #include <nlohmann/json.hpp>
 
-#include <boost/log/trivial.hpp>
-
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "PrintQueueManager.hpp"
 #include "QueuePrintContext.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

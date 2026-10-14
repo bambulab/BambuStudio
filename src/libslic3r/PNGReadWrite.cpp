@@ -5,8 +5,8 @@
 #include <cstdio>
 #include <png.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace png {
 

@@ -40,9 +40,9 @@
 #include <sstream>
 
 #include <libslic3r.h>
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

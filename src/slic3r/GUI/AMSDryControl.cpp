@@ -19,6 +19,7 @@
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
 #include <wx/weakref.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

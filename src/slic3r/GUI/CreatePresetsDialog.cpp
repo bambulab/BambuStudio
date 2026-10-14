@@ -15,6 +15,7 @@
 #include "FileHelp.hpp"
 #include "Tab.hpp"
 #include "MainFrame.hpp"
+#include "libslic3r/Log.hpp"
 
 #define NAME_OPTION_COMBOBOX_SIZE wxSize(FromDIP(200), FromDIP(24))
 #define FILAMENT_PRESET_COMBOBOX_SIZE wxSize(FromDIP(300), FromDIP(24))

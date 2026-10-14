@@ -12,7 +12,6 @@
 #include <fstream>
 
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 
 // For starting another BambuStudio instance on OSX.
 // Fails to compile on Windows on the build server.
@@ -22,6 +21,7 @@
 #endif
 
 #include <wx/stdpaths.h>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

@@ -10,7 +10,6 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 /* mac need the macro while including <boost/stacktrace.hpp>*/
 #ifdef  __APPLE__
@@ -24,6 +23,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "DevUtil.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

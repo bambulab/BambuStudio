@@ -17,6 +17,7 @@
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/Button.hpp"
 #include "GUI_Factories.hpp"
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r {
@@ -644,7 +645,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     }
 
     m_current_tab = tab;
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": set current to %1%, type=%2%") % cur_tab % cur_tab?cur_tab->type():-1;
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": set current to %1%, type=%2%") % cur_tab % (cur_tab ? cur_tab->type() : -1);
     update_mode();
 
     // BBS: open/close tab

@@ -11,6 +11,7 @@
 #include "DeviceCore/DevConfigUtil.h"
 
 #include <algorithm>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

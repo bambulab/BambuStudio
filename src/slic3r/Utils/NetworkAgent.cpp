@@ -6,13 +6,13 @@
 #include <dlfcn.h>
 #endif
 
-#include <boost/log/trivial.hpp>
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/BBLUtil.hpp"
 #include "NetworkAgent.hpp"
 
 #include "slic3r/Utils/FileTransferUtils.hpp"
 #include "slic3r/Utils/CertificateVerify.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace BBL;
 

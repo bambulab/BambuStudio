@@ -1,5 +1,4 @@
 #pragma once
-#include <boost/log/trivial.hpp>
 #include "../libslic3r.h"
 #include "../Flow.hpp"
 #include "../PrintConfig.hpp"
@@ -8,6 +7,7 @@
 #include "../Print.hpp"
 #include "../Layer.hpp"
 #include "SupportLayer.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

@@ -28,7 +28,7 @@
 #include "libslic3r/libslic3r.h"  // for is_approx (nozzle dia comparison)
 
 #include <algorithm>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

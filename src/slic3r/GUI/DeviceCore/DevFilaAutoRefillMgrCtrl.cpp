@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <limits>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

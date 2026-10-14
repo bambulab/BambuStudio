@@ -11,6 +11,11 @@
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/support/date_time.hpp>
 
+// Log.hpp defines this guard to keep boost's BOOST_LOG_TRIVIAL out; fail loudly if boost renames it.
+#ifndef BOOST_LOG_TRIVIAL_HPP_INCLUDED_
+#error "<boost/log/trivial.hpp> no longer uses BOOST_LOG_TRIVIAL_HPP_INCLUDED_; update Log.hpp"
+#endif
+
 #include "Log.hpp"
 #include "LogSink.hpp"
 #include "Desensitize.hpp"
@@ -258,7 +263,10 @@ bool log_enabled(LogLevel level)
 
 LogStream::LogStream(LogLevel level, const char* file, int line, const char* func)
     : m_level(level), m_file(file), m_line(line), m_func(func)
-{}
+{
+    // Same as Boost.Log's record stream, so bools keep printing as true/false.
+    m_buf.setf(std::ios_base::boolalpha);
+}
 
 LogStream& LogStream::operator<<(std::ostream& (*manip)(std::ostream&))
 {

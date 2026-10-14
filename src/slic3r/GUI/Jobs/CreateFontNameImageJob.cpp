@@ -11,8 +11,7 @@
 #include "slic3r/GUI/Plater.hpp"
 
 #include "wx/fontenum.h"
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::GUI;

@@ -12,10 +12,10 @@
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <wx/glcanvas.h>
 #include <wx/msgdlg.h>
+#include "libslic3r/Log.hpp"
 
 #ifdef __APPLE__
 // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets

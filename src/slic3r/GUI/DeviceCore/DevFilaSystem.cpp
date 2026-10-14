@@ -16,6 +16,7 @@
 #include "DevUtilBackend.h"
 
 #include <algorithm>
+#include "libslic3r/Log.hpp"
 
 using namespace nlohmann;
 

@@ -7,7 +7,6 @@
 #include <random>
 #include <cassert>
 #include <sstream>
-#include <boost/log/trivial.hpp>
 
 namespace Slic3r
 {

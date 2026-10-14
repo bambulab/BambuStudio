@@ -13,9 +13,9 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 
 #include <wx/app.h>
-#include <boost/log/trivial.hpp>
 
 #include <cmath>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

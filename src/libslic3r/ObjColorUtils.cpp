@@ -1,11 +1,10 @@
 #include <cmath>
 
-#include <boost/log/trivial.hpp>
-
 #include "ObjColorUtils.hpp"
 #include "Model.hpp"
 #include "TexturePainting.hpp"
 #include "admesh/stl.h"
+#include "libslic3r/Log.hpp"
 
 bool obj_color_deal_algo(std::vector<Slic3r::RGBA> & input_colors,
                          std::vector<Slic3r::RGBA> & cluster_colors_from_algo,

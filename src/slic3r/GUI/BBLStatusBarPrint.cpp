@@ -12,9 +12,9 @@
 #include "I18N.hpp"
 
 #include <algorithm>
-#include <boost/log/trivial.hpp>
 #include <iostream>
 #include <regex>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

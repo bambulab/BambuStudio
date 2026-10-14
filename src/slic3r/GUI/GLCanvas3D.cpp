@@ -76,7 +76,6 @@
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <iostream>
@@ -108,6 +107,7 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include <imguizmo/ImGuizmo.h>
+#include "libslic3r/Log.hpp"
 #ifdef __APPLE__
 #include "MacIME.hpp"
 #endif

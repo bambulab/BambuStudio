@@ -6,7 +6,6 @@
 #include <stdexcept>
 
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 #include <boost/algorithm/string/predicate.hpp>
@@ -45,6 +44,7 @@
 #include "nanosvg/nanosvgrast.h"
 #include "OpenGLManager.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

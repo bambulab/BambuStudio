@@ -12,11 +12,11 @@
 
 #include <libslic3r/Utils.hpp>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include "slic3r/Utils/BBLUtil.hpp"
+#include "libslic3r/Log.hpp"
 
 using namespace std;
 using json = nlohmann::json;

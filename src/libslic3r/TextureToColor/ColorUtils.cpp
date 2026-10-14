@@ -27,7 +27,7 @@
 
 #include "CgalUtils.hpp"
 #include "libslic3r/AABBTreeIndirect.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace tex2color {
 namespace color_utils {

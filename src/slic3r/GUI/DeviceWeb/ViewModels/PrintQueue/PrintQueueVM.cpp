@@ -5,13 +5,12 @@
 #include <thread>
 #include <utility>
 
-#include <boost/log/trivial.hpp>
-
 #include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/PrintQueueManager.hpp"
 #include "slic3r/GUI/QueuePrintController.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

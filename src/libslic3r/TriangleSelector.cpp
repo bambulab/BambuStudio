@@ -3,10 +3,10 @@
 #include "Utils.hpp"
 
 #include <boost/container/small_vector.hpp>
-#include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <mutex>
 #include <queue>
+#include "libslic3r/Log.hpp"
 
 #ifndef NDEBUG
 //    #define EXPENSIVE_DEBUG_CHECKS

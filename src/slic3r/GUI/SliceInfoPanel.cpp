@@ -4,7 +4,7 @@
 #include "Widgets/Label.hpp"
 #include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"//for  ICON_SIZE (wxSize(FromDIP(16), FromDIP(16)))
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

@@ -150,3 +150,9 @@ std::string KV(std::string_view key, const T& value)
     for (bool slic3r_log_on_ = ::Slic3r::log_detail::log_enabled(::Slic3r::LogLevel::lvl);           \
          slic3r_log_on_; slic3r_log_on_ = false)                                                     \
         ::Slic3r::log_detail::LogStream(::Slic3r::LogLevel::lvl, __FILE__, __LINE__, __func__)
+
+// Occupy the include guard of <boost/log/trivial.hpp>, so including it after this header is a
+// no-op and cannot put boost's BOOST_LOG_TRIVIAL back. Log.cpp checks the guard name.
+#ifndef BOOST_LOG_TRIVIAL_HPP_INCLUDED_
+#define BOOST_LOG_TRIVIAL_HPP_INCLUDED_
+#endif

@@ -23,11 +23,11 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/spirit/include/karma.hpp>
 #include <boost/spirit/include/qi_int.hpp>
-#include <boost/log/trivial.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
+#include "libslic3r/Log.hpp"
 namespace pt = boost::property_tree;
 
 #include <expat.h>

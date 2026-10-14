@@ -10,6 +10,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "MainFrame.hpp"
 #include "DeviceCore/DevConfigUtil.h"
+#include "libslic3r/Log.hpp"
 
 
 using namespace Slic3r;

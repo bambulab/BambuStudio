@@ -15,7 +15,7 @@
 #include "ClipperUtils.hpp"
 #include "LocalesUtils.hpp"
 #include "Triangulation.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 
 namespace Slic3r

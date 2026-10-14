@@ -10,9 +10,9 @@
 #define BOOST_NO_CXX17_HDR_STRING_VIEW
 #endif
 
-#include <boost/log/trivial.hpp>
 #include <boost/multiprecision/integer.hpp>
 #include <boost/rational.hpp>
+#include "libslic3r/Log.hpp"
 
 #undef MAX3
 #define MAX3(a,b,c) std::max(std::max(a,b),c)

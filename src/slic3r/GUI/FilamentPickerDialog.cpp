@@ -12,6 +12,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
+#include "libslic3r/Log.hpp"
 
 #ifdef _WIN32
 #include <windows.h>

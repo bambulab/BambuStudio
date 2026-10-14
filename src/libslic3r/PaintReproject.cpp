@@ -8,7 +8,6 @@
 #include "TriangleSelector.hpp"
 #include "AABBTreeIndirect.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -16,6 +15,7 @@
 #include <limits>
 #include <memory>
 #include <utility>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 

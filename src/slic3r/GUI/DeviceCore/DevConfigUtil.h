@@ -14,13 +14,13 @@
 #include <algorithm>
 #include <cctype>
 
-#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <nlohmann/json.hpp>
 
 #include <wx/string.h>
 
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r
 {

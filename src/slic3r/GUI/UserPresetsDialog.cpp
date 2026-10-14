@@ -6,6 +6,7 @@
 
 #include <slic3r/GUI/Widgets/CheckBox.hpp>
 #include <slic3r/GUI/Widgets/TabCtrl.hpp>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r {
 namespace GUI {

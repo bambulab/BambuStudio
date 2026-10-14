@@ -21,7 +21,6 @@
 #include <wx/arrstr.h>
 #include <wx/tglbtn.h>
 
-#include <boost/log/trivial.hpp>
 #include <boost/system/error_code.hpp>
 
 #include <wx/base64.h>
@@ -40,6 +39,7 @@
 #include <stdexcept>
 #include <set>
 #include <cwctype>
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

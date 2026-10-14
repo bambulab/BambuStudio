@@ -4,9 +4,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
+#include "libslic3r/Log.hpp"
 
 //! macro used to mark string used at localization,
 //! return same string

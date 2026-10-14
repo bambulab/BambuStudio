@@ -10,7 +10,6 @@
 #include <set>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
 
 #include "Plater.hpp"
 
@@ -24,6 +23,7 @@
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevSliceContext.hpp"
 #include "DeviceCore/DevUtilBackend.h"
+#include "libslic3r/Log.hpp"
 
 namespace Slic3r { namespace GUI {
 

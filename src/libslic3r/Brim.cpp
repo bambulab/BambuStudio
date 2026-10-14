@@ -14,8 +14,7 @@
 #include <unordered_set>
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/Log.hpp"
 
 #ifndef NDEBUG
     // #define BRIM_DEBUG_TO_SVG
