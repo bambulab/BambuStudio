@@ -189,6 +189,8 @@ void AppConfig::set_defaults()
         set_bool("canvas_drag_to_move", true);
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
+    if (get("show_center_of_gravity_in_preview").empty())
+        set_bool("show_center_of_gravity_in_preview", false);
     if (get("enable_text_styles").empty())
         set_bool("enable_text_styles", false);
     if (get("use_last_fold_state_gcodeview_option_panel").empty())

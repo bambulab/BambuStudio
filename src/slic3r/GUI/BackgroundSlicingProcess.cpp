@@ -844,7 +844,7 @@ void BackgroundSlicingProcess::finalize_gcode()
     // so the preview reflects the post-processed toolpath.
     //
     // IMPORTANT: only update fields that reflect G-code TEXT content (moves,
-    // lines_ends). We must NOT replace the whole result — slicer-computed
+    // lines_ends, center_of_mass). We must NOT replace the whole result — slicer-computed
     // state (filament_maps, nozzle_group_result, filament_change_sequence,
     // required_nozzle_HRC, extruder_colors, print_statistics,
     // etc.) is derived from config during slicing and is not reconstructable
@@ -866,13 +866,14 @@ void BackgroundSlicingProcess::finalize_gcode()
         // by the plate's XY origin, causing the model to appear outside the bed.
         const Vec3d origin = m_fff_print->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
-        processor.process_file(m_temp_output_path);
+        processor.process_file(m_temp_output_path, m_fff_print->full_print_config());
         // extract_result() returns GCodeProcessorResult&&. We can't take a local
         // by value (copy constructor is deleted due to mutable std::mutex member),
         // so bind as an rvalue reference and move fields out directly.
         GCodeProcessorResult&& reparsed = processor.extract_result();
-        m_gcode_result->moves      = std::move(reparsed.moves);
-        m_gcode_result->lines_ends = std::move(reparsed.lines_ends);
+        m_gcode_result->moves          = std::move(reparsed.moves);
+        m_gcode_result->lines_ends     = std::move(reparsed.lines_ends);
+        m_gcode_result->center_of_mass = std::move(reparsed.center_of_mass);
     }
 
     m_print->set_status(100, _utf8(L("Successfully executed post-processing script")));

@@ -1516,6 +1516,7 @@ void GCodeProcessorResult::reset() {
     lock();
 
     moves = std::vector<GCodeProcessorResult::MoveVertex>();
+    center_of_mass.reset();
     printable_area = Pointfs();
     //BBS: add bed exclude area
     bed_exclude_area = Pointfs();
@@ -1549,6 +1550,7 @@ void GCodeProcessorResult::reset() {
     lock();
 
     moves.clear();
+    center_of_mass.reset();
     lines_ends.clear();
     printable_area = Pointfs();
     //BBS: add bed exclude area
@@ -1606,6 +1608,134 @@ const std::vector<std::pair<GCodeProcessor::EProducer, std::string>> GCodeProces
 };
 
 unsigned int GCodeProcessor::s_result_id = 0;
+
+bool GCodeProcessorResult::MassProperties::valid() const
+{
+    return volume_mm3 > 0.0 && mass_g > 0.0 && std::isfinite(volume_mm3) && std::isfinite(mass_g) && first_moment_g_mm.allFinite();
+}
+
+void GCodeProcessorResult::MassProperties::merge(const MassProperties& other)
+{
+    volume_mm3 += other.volume_mm3;
+    mass_g += other.mass_g;
+    first_moment_g_mm += other.first_moment_g_mm;
+    contains_unknown_roles |= other.contains_unknown_roles;
+    used_default_density |= other.used_default_density;
+    used_default_filament_diameter |= other.used_default_filament_diameter;
+    unsupported_flow_override |= other.unsupported_flow_override;
+    unsupported_volumetric_extrusion |= other.unsupported_volumetric_extrusion;
+}
+
+Vec3d GCodeProcessorResult::MassProperties::center_of_mass() const
+{
+    if (!valid())
+        return Vec3d::Zero();
+    return first_moment_g_mm / mass_g;
+}
+
+void GCodeProcessorResult::CenterOfMassResult::reset()
+{
+    by_role.fill(MassProperties{});
+    by_object.clear();
+    contains_unknown_roles = false;
+    used_default_density = false;
+    used_default_filament_diameter = false;
+    unsupported_flow_override = false;
+    unsupported_volumetric_extrusion = false;
+}
+
+void GCodeProcessorResult::CenterOfMassResult::ObjectMassProperties::reset()
+{
+    by_role.fill(MassProperties{});
+}
+
+GCodeProcessorResult::MassProperties& GCodeProcessorResult::CenterOfMassResult::ObjectMassProperties::for_role(ExtrusionRole role)
+{
+    const size_t index = static_cast<size_t>(role);
+    assert(index < by_role.size());
+    return by_role[index < by_role.size() ? index : static_cast<size_t>(erNone)];
+}
+
+const GCodeProcessorResult::MassProperties& GCodeProcessorResult::CenterOfMassResult::ObjectMassProperties::for_role(ExtrusionRole role) const
+{
+    const size_t index = static_cast<size_t>(role);
+    assert(index < by_role.size());
+    return by_role[index < by_role.size() ? index : static_cast<size_t>(erNone)];
+}
+
+GCodeProcessorResult::MassProperties GCodeProcessorResult::CenterOfMassResult::ObjectMassProperties::finished_model() const
+{
+    static constexpr std::array<ExtrusionRole, 11> model_roles = {
+        erPerimeter,
+        erExternalPerimeter,
+        erOverhangPerimeter,
+        erInternalInfill,
+        erSolidInfill,
+        erFloatingVerticalShell,
+        erTopSolidInfill,
+        erBottomSurface,
+        erIroning,
+        erBridgeInfill,
+        erGapFill
+    };
+
+    MassProperties result;
+    for (const ExtrusionRole role : model_roles)
+        result.merge(for_role(role));
+    return result;
+}
+
+GCodeProcessorResult::MassProperties GCodeProcessorResult::CenterOfMassResult::ObjectMassProperties::all_spatial_extrusions() const
+{
+    MassProperties result;
+    for (const MassProperties& role : by_role)
+        result.merge(role);
+    return result;
+}
+
+GCodeProcessorResult::MassProperties& GCodeProcessorResult::CenterOfMassResult::for_role(ExtrusionRole role)
+{
+    const size_t index = static_cast<size_t>(role);
+    assert(index < by_role.size());
+    return by_role[index < by_role.size() ? index : static_cast<size_t>(erNone)];
+}
+
+const GCodeProcessorResult::MassProperties& GCodeProcessorResult::CenterOfMassResult::for_role(ExtrusionRole role) const
+{
+    const size_t index = static_cast<size_t>(role);
+    assert(index < by_role.size());
+    return by_role[index < by_role.size() ? index : static_cast<size_t>(erNone)];
+}
+
+GCodeProcessorResult::MassProperties GCodeProcessorResult::CenterOfMassResult::finished_model() const
+{
+    static constexpr std::array<ExtrusionRole, 11> model_roles = {
+        erPerimeter,
+        erExternalPerimeter,
+        erOverhangPerimeter,
+        erInternalInfill,
+        erSolidInfill,
+        erFloatingVerticalShell,
+        erTopSolidInfill,
+        erBottomSurface,
+        erIroning,
+        erBridgeInfill,
+        erGapFill
+    };
+
+    MassProperties result;
+    for (const ExtrusionRole role : model_roles)
+        result.merge(for_role(role));
+    return result;
+}
+
+GCodeProcessorResult::MassProperties GCodeProcessorResult::CenterOfMassResult::all_spatial_extrusions() const
+{
+    MassProperties result;
+    for (const MassProperties& role : by_role)
+        result.merge(role);
+    return result;
+}
 
 bool GCodeProcessor::contains_reserved_tag(const std::string& gcode, std::string& found_tag)
 {
@@ -1713,6 +1843,7 @@ void GCodeProcessor::register_commands()
         {"M190", [this](const GCodeReader::GCodeLine& line) { process_M190(line); }}, // Wait bed temperature
         {"M191", [this](const GCodeReader::GCodeLine& line) { process_M191(line); }}, // Wait chamber temperature
 
+        {"M200", [this](const GCodeReader::GCodeLine& line) { process_M200(line); }}, // Set volumetric extrusion mode
         {"M201", [this](const GCodeReader::GCodeLine& line) { process_M201(line); }}, // Set max printing acceleration
         {"M203", [this](const GCodeReader::GCodeLine& line) { process_M203(line); }}, // Set maximum feedrate
         {"M204", [this](const GCodeReader::GCodeLine& line) { process_M204(line); }}, // Set default acceleration
@@ -1945,6 +2076,8 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     // BBS
     size_t filament_count = config.filament_diameter.values.size();
     m_result.filaments_count = filament_count;
+    m_filament_diameter_configured.assign(filament_count, true);
+    m_filament_density_configured.assign(filament_count, true);
 
     //assert(config.nozzle_volume.size() == config.nozzle_diameter.size());
     m_nozzle_volume.resize(config.nozzle_volume.size());
@@ -2178,6 +2311,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     m_result.filaments_count = filament_diameters != nullptr ? filament_diameters->values.size() : 0;
 
     if (filament_diameters != nullptr) {
+        m_filament_diameter_configured.assign(filament_diameters->values.size(), true);
         m_result.filament_diameters.clear();
         m_result.filament_diameters.resize(filament_diameters->values.size());
         for (size_t i = 0; i < filament_diameters->values.size(); ++i) {
@@ -2205,6 +2339,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionFloats* filament_densities = config.option<ConfigOptionFloats>("filament_density");
     if (filament_densities != nullptr) {
+        m_filament_density_configured.assign(filament_densities->values.size(), true);
         m_result.filament_densities.clear();
         m_result.filament_densities.resize(filament_densities->values.size());
         for (size_t i = 0; i < filament_densities->values.size(); ++i) {
@@ -2486,6 +2621,17 @@ void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
 void GCodeProcessor::reset()
 {
     m_units = EUnits::Millimeters;
+    m_center_of_mass_extrude_factor_override.assign(MIN_EXTRUDERS_COUNT, 1.0);
+    m_center_of_mass_unsupported_flow_override.assign(MIN_EXTRUDERS_COUNT, false);
+    m_center_of_mass_volumetric_extrusion.assign(MIN_EXTRUDERS_COUNT, VolumetricExtrusionState::Disabled);
+    m_center_of_mass_m200_filament_diameter.assign(MIN_EXTRUDERS_COUNT, 0.0);
+    m_center_of_mass_unsupported_volumetric_extrusion.assign(MIN_EXTRUDERS_COUNT, false);
+    m_center_of_mass_retraction_debt.assign(MIN_EXTRUDERS_COUNT, 0.0);
+    m_center_of_mass_ambiguous_flow_override = false;
+    m_center_of_mass_ambiguous_volumetric_extrusion = false;
+    m_filament_diameter_configured.assign(MIN_EXTRUDERS_COUNT, false);
+    m_filament_density_configured.assign(MIN_EXTRUDERS_COUNT, false);
+    m_object_label_id = -1;
     m_global_positioning_type = EPositioningType::Absolute;
     m_e_local_positioning_type = EPositioningType::Absolute;
     m_extruder_offsets = std::vector<Vec3f>(MIN_EXTRUDERS_COUNT, Vec3f::Zero());
@@ -2597,9 +2743,24 @@ DynamicConfig GCodeProcessor::export_config_for_render() const
     return config;
 }
 
+ConfigSubstitutions load_from_superslicer_gcode_file(const std::string& filename, DynamicPrintConfig& config,
+                                                     ForwardCompatibilitySubstitutionRule compatibility_rule);
+
 // Load a G-code into a stand-alone G-code viewer.
 // throws CanceledException through print->throw_if_canceled() (sent by the caller as callback).
 void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback)
+{
+    process_file(filename, std::move(cancel_callback), nullptr);
+}
+
+void GCodeProcessor::process_file(const std::string& filename, const DynamicPrintConfig& fallback_config,
+                                  std::function<void()> cancel_callback)
+{
+    process_file(filename, std::move(cancel_callback), &fallback_config);
+}
+
+void GCodeProcessor::process_file(const std::string& filename, std::function<void()> cancel_callback,
+                                  const DynamicPrintConfig* fallback_config)
 {
     CNumericLocalesSetter locales_setter;
 
@@ -2632,12 +2793,25 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
         // if the gcode was produced by BambuStudio,
         // extract the config from it
         if (m_producer == EProducer::BambuStudio || m_producer == EProducer::Slic3rPE || m_producer == EProducer::Slic3r) {
-            DynamicPrintConfig config;
-            config.apply(FullPrintConfig::defaults());
+            DynamicPrintConfig embedded_config;
             // Silently substitute unknown values by new ones for loading configurations from BambuStudio's own G-code.
             // Showing substitution log or errors may make sense, but we are not really reading many values from the G-code config,
             // thus a probability of incorrect substitution is low and the G-code viewer is a consumer-only anyways.
-            config.load_from_gcode_file(filename, ForwardCompatibilitySubstitutionRule::EnableSilent);
+            try {
+                embedded_config.load_from_gcode_file(filename, ForwardCompatibilitySubstitutionRule::EnableSilent);
+            } catch (const std::exception& e) {
+                if (fallback_config == nullptr)
+                    throw;
+                BOOST_LOG_TRIVIAL(warning) << "Ignoring invalid embedded G-code config while reparsing with live print config: "
+                                           << e.what();
+                embedded_config.clear();
+            }
+
+            DynamicPrintConfig config;
+            config.apply(FullPrintConfig::defaults());
+            if (fallback_config != nullptr)
+                config.apply(*fallback_config, true);
+            config.apply(embedded_config, true);
 
             ConfigOptionStrings *filament_color = config.opt<ConfigOptionStrings>("filament_colour");
             ConfigOptionInts    *filament_map   = config.opt<ConfigOptionInts>("filament_map", true);
@@ -2646,11 +2820,42 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
             }
 
             apply_config(config);
+
+            const bool diameter_configured =
+                (fallback_config != nullptr && fallback_config->has("filament_diameter")) ||
+                embedded_config.has("filament_diameter");
+            const bool density_configured =
+                (fallback_config != nullptr && fallback_config->has("filament_density")) ||
+                embedded_config.has("filament_density");
+            m_filament_diameter_configured.assign(m_result.filament_diameters.size(), diameter_configured);
+            m_filament_density_configured.assign(m_result.filament_densities.size(), density_configured);
         }
-        else if (m_producer == EProducer::Simplify3D)
-            apply_config_simplify3d(filename);
-        else if (m_producer == EProducer::SuperSlicer)
-            apply_config_superslicer(filename);
+        else {
+            if (fallback_config != nullptr)
+                apply_config(*fallback_config);
+            if (m_producer == EProducer::Simplify3D)
+                apply_config_simplify3d(filename);
+            else if (m_producer == EProducer::SuperSlicer) {
+                DynamicPrintConfig embedded_config;
+                load_from_superslicer_gcode_file(filename, embedded_config,
+                                                 ForwardCompatibilitySubstitutionRule::EnableSilent);
+                DynamicPrintConfig config;
+                config.apply(FullPrintConfig::defaults());
+                if (fallback_config != nullptr)
+                    config.apply(*fallback_config, true);
+                config.apply(embedded_config, true);
+                apply_config(config);
+
+                const bool diameter_configured =
+                    (fallback_config != nullptr && fallback_config->has("filament_diameter")) ||
+                    embedded_config.has("filament_diameter");
+                const bool density_configured =
+                    (fallback_config != nullptr && fallback_config->has("filament_density")) ||
+                    embedded_config.has("filament_density");
+                m_filament_diameter_configured.assign(m_result.filament_diameters.size(), diameter_configured);
+                m_filament_density_configured.assign(m_result.filament_densities.size(), density_configured);
+            }
+        }
     }
 
     // process gcode
@@ -2953,10 +3158,12 @@ void GCodeProcessor::apply_config_simplify3d(const std::string& filename)
                             extract_double(comment, "strokeYoverride", bed_size.y);
                         else if (comment.find("filamentDiameters") != comment.npos) {
                             m_result.filament_diameters.clear();
-                            extract_floats(comment, "filamentDiameters", m_result.filament_diameters);
+                            if (extract_floats(comment, "filamentDiameters", m_result.filament_diameters))
+                                m_filament_diameter_configured.assign(m_result.filament_diameters.size(), true);
                         } else if (comment.find("filamentDensities") != comment.npos) {
                             m_result.filament_densities.clear();
-                            extract_floats(comment, "filamentDensities", m_result.filament_densities);
+                            if (extract_floats(comment, "filamentDensities", m_result.filament_densities))
+                                m_filament_density_configured.assign(m_result.filament_densities.size(), true);
                         } else if (comment.find("extruderDiameter") != comment.npos) {
                             std::vector<float> extruder_diameters;
                             extract_floats(comment, "extruderDiameter", extruder_diameters);
@@ -3313,6 +3520,14 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
 
     if (boost::starts_with(comment, " PA_LINE_CALIBRATION_END")) {
         m_pa_line_calibration = false;
+        return;
+    }
+
+    // BambuStudio emits this tag for every object instance, including a plate
+    // containing just one object. Unlike the start/stop pair below, it is not
+    // conditional on object-cancellation support being enabled.
+    if (boost::starts_with(comment, " OBJECT_ID:")) {
+        m_object_label_id = get_object_label_id(comment);
         return;
     }
 
@@ -5482,6 +5697,127 @@ void GCodeProcessor::process_M191(const GCodeReader::GCodeLine& line)
         simulate_st_synchronize(wait_chamber_temp_time);
 }
 
+namespace {
+
+bool gcode_parameter_is_bare(const GCodeReader::GCodeLine& line, char parameter)
+{
+    const std::string& raw = line.raw();
+    const size_t comment = raw.find(';');
+    size_t pos = raw.find_first_of(" \t");
+    while (pos != std::string::npos && pos < comment) {
+        pos = raw.find_first_not_of(" \t", pos);
+        if (pos == std::string::npos || pos >= comment)
+            break;
+        const size_t end = raw.find_first_of(" \t;", pos);
+        const size_t token_end = end == std::string::npos ? raw.size() : end;
+        if (raw[pos] == parameter && token_end == pos + 1)
+            return true;
+        pos = end;
+    }
+    return false;
+}
+
+bool valid_tool_parameter(float value)
+{
+    return std::isfinite(value) && value >= 0.0f && value <= 254.0f && value == std::floor(value);
+}
+
+} // namespace
+
+void GCodeProcessor::ensure_center_of_mass_tool_state(size_t tool_count)
+{
+    m_center_of_mass_extrude_factor_override.resize(tool_count, 1.0);
+    m_center_of_mass_unsupported_flow_override.resize(tool_count, false);
+    m_center_of_mass_volumetric_extrusion.resize(tool_count, VolumetricExtrusionState::Disabled);
+    m_center_of_mass_m200_filament_diameter.resize(tool_count, 0.0);
+    m_center_of_mass_unsupported_volumetric_extrusion.resize(tool_count, false);
+    m_center_of_mass_retraction_debt.resize(tool_count, 0.0);
+}
+
+void GCodeProcessor::process_M200(const GCodeReader::GCodeLine& line)
+{
+    int target_tool = get_extruder_id();
+    float value_t = 0.0f;
+    if (line.has('T')) {
+        if (gcode_parameter_is_bare(line, 'T') || !line.has_value('T', value_t) || !valid_tool_parameter(value_t)) {
+            m_center_of_mass_ambiguous_volumetric_extrusion = true;
+            m_result.center_of_mass.unsupported_volumetric_extrusion = true;
+            return;
+        }
+        target_tool = static_cast<int>(value_t);
+    }
+
+    ensure_center_of_mass_tool_state(static_cast<size_t>(target_tool) + 1);
+
+    const bool has_d = line.has('D');
+    const bool has_s = line.has('S');
+    if (!has_d && !has_s)
+        return;
+
+    std::optional<VolumetricExtrusionState> requested_state;
+    double requested_diameter = 0.0;
+    bool valid = true;
+
+    if (has_d) {
+        float value_d = 0.0f;
+        if (gcode_parameter_is_bare(line, 'D')) {
+            requested_state = VolumetricExtrusionState::Disabled;
+        } else if (line.has_value('D', value_d)) {
+            if (!std::isfinite(value_d) || value_d < 0.0f) {
+                valid = false;
+            } else if (value_d == 0.0f) {
+                requested_state = VolumetricExtrusionState::Disabled;
+            } else {
+                requested_diameter = value_d;
+                if (!has_s)
+                    requested_state = VolumetricExtrusionState::Enabled;
+            }
+        } else {
+            valid = false;
+        }
+    }
+
+    if (has_s) {
+        float value_s = 0.0f;
+        std::optional<VolumetricExtrusionState> state_from_s;
+        if (gcode_parameter_is_bare(line, 'S') || !line.has_value('S', value_s) || !std::isfinite(value_s)) {
+            valid = false;
+        } else if (value_s == 0.0f) {
+            state_from_s = VolumetricExtrusionState::Disabled;
+        } else if (value_s == 1.0f) {
+            state_from_s = VolumetricExtrusionState::Enabled;
+        } else {
+            valid = false;
+        }
+
+        if (state_from_s) {
+            if (requested_state && *requested_state != *state_from_s)
+                valid = false;
+            else
+                requested_state = state_from_s;
+        }
+    }
+
+    if (!valid || !requested_state) {
+        m_center_of_mass_volumetric_extrusion[target_tool] = VolumetricExtrusionState::Invalid;
+        m_center_of_mass_unsupported_volumetric_extrusion[target_tool] = true;
+        m_result.center_of_mass.unsupported_volumetric_extrusion = true;
+        return;
+    }
+
+    if (m_center_of_mass_retraction_debt[target_tool] > 0.0 &&
+        m_center_of_mass_volumetric_extrusion[target_tool] != *requested_state) {
+        m_center_of_mass_volumetric_extrusion[target_tool] = VolumetricExtrusionState::Invalid;
+        m_center_of_mass_unsupported_volumetric_extrusion[target_tool] = true;
+        m_result.center_of_mass.unsupported_volumetric_extrusion = true;
+        return;
+    }
+
+    if (requested_diameter > 0.0)
+        m_center_of_mass_m200_filament_diameter[target_tool] = requested_diameter;
+    m_center_of_mass_volumetric_extrusion[target_tool] = *requested_state;
+}
+
 
 void GCodeProcessor::process_M201(const GCodeReader::GCodeLine& line)
 {
@@ -5643,13 +5979,44 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
 
 void GCodeProcessor::process_M221(const GCodeReader::GCodeLine& line)
 {
-    float value_s;
-    float value_t;
-    if (line.has_value('S', value_s) && !line.has_value('T', value_t)) {
-        value_s *= 0.01f;
-        for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
-            m_time_processor.machines[i].extrude_factor_override_percentage = value_s;
+    int target_tool = get_extruder_id();
+    float value_t = 0.0f;
+    if (line.has('T')) {
+        if (gcode_parameter_is_bare(line, 'T') || !line.has_value('T', value_t) || !valid_tool_parameter(value_t)) {
+            m_center_of_mass_ambiguous_flow_override = true;
+            m_result.center_of_mass.unsupported_flow_override = true;
+            return;
         }
+        target_tool = static_cast<int>(value_t);
+    }
+
+    ensure_center_of_mass_tool_state(static_cast<size_t>(target_tool) + 1);
+
+    // Bambu machine start G-code uses bare M221 S / M221 R as a state stack,
+    // not as a numeric flow override.
+    if (gcode_parameter_is_bare(line, 'S'))
+        return;
+
+    float value_s = 0.0f;
+    if (!line.has_value('S', value_s) || !std::isfinite(value_s) || value_s < 0.0f) {
+        if (line.has('S')) {
+            m_center_of_mass_unsupported_flow_override[target_tool] = true;
+            m_result.center_of_mass.unsupported_flow_override = true;
+        }
+        return;
+    }
+
+    const double factor = 0.01 * static_cast<double>(value_s);
+    if (m_center_of_mass_retraction_debt[target_tool] > 0.0 &&
+        factor != m_center_of_mass_extrude_factor_override[target_tool]) {
+        m_center_of_mass_unsupported_flow_override[target_tool] = true;
+        m_result.center_of_mass.unsupported_flow_override = true;
+        return;
+    }
+    m_center_of_mass_extrude_factor_override[target_tool] = factor;
+    if (target_tool == get_extruder_id()) {
+        for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i)
+            m_time_processor.machines[i].extrude_factor_override_percentage = static_cast<float>(factor);
     }
 }
 
@@ -5997,6 +6364,12 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
             m_filament_id[new_extruder_id] = new_filament_id;
         }
         m_extruder_id = new_extruder_id;
+        if (new_extruder_id >= 0) {
+            ensure_center_of_mass_tool_state(static_cast<size_t>(new_extruder_id) + 1);
+            const float flow_factor = static_cast<float>(m_center_of_mass_extrude_factor_override[new_extruder_id]);
+            for (TimeMachine& machine : m_time_processor.machines)
+                machine.extrude_factor_override_percentage = flow_factor;
+        }
 
         // 3. Ensure all state changes are recorded via NozzleStatusRecorder
         m_nozzle_status_recorder.set_nozzle_status(new_nozzle_id_in_extruder, new_filament_id, new_extruder_id);
@@ -6077,6 +6450,8 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_pa_line_calibration
     });
 
+    accumulate_center_of_mass(m_result.moves.back());
+
     if (type == EMoveType::Seam) {
         m_seams_count++;
     }
@@ -6091,6 +6466,180 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
             machine.stop_times.push_back({ m_g1_line_id, 0.0f });
         }
     }
+}
+
+void GCodeProcessor::accumulate_center_of_mass(const GCodeProcessorResult::MoveVertex& move)
+{
+    if (move.type != EMoveType::Retract && move.type != EMoveType::Unretract &&
+        move.type != EMoveType::Travel && move.type != EMoveType::Wipe &&
+        move.type != EMoveType::Extrude)
+        return;
+    if (!std::isfinite(move.delta_extruder) || move.delta_extruder == 0.0f)
+        return;
+
+    const size_t tool_id = static_cast<size_t>(get_extruder_id());
+    ensure_center_of_mass_tool_state(tool_id + 1);
+    if (move.delta_extruder < 0.0f) {
+        m_center_of_mass_retraction_debt[tool_id] += -static_cast<double>(move.delta_extruder);
+        return;
+    }
+
+    const double recovered_extruder = std::min(m_center_of_mass_retraction_debt[tool_id],
+                                                static_cast<double>(move.delta_extruder));
+    m_center_of_mass_retraction_debt[tool_id] -= recovered_extruder;
+    if (move.type != EMoveType::Extrude)
+        return;
+
+    const double deposited_extruder = static_cast<double>(move.delta_extruder) - recovered_extruder;
+    if (!(deposited_extruder > 0.0))
+        return;
+
+    size_t role_index = static_cast<size_t>(move.extrusion_role);
+    const bool unknown_role = role_index >= m_result.center_of_mass.by_role.size() ||
+                              move.extrusion_role == erNone || move.extrusion_role == erMixed;
+    if (role_index >= m_result.center_of_mass.by_role.size())
+        role_index = static_cast<size_t>(erNone);
+
+    GCodeProcessorResult::MassProperties& properties = m_result.center_of_mass.by_role[role_index];
+    GCodeProcessorResult::MassProperties* object_properties = nullptr;
+    if (move.object_label_id >= 0)
+        object_properties = &m_result.center_of_mass.by_object[move.object_label_id].by_role[role_index];
+
+    std::array<GCodeProcessorResult::MassProperties*, 2> property_targets = { &properties, object_properties };
+    auto for_each_property = [&property_targets](const auto& visitor) {
+        for (GCodeProcessorResult::MassProperties* target : property_targets) {
+            if (target != nullptr)
+                visitor(*target);
+        }
+    };
+
+    const bool unsupported_flow_override = m_center_of_mass_ambiguous_flow_override ||
+                                           m_center_of_mass_unsupported_flow_override[tool_id];
+    const bool unsupported_volumetric_extrusion = m_center_of_mass_ambiguous_volumetric_extrusion ||
+                                                  m_center_of_mass_unsupported_volumetric_extrusion[tool_id] ||
+                                                  m_center_of_mass_volumetric_extrusion[tool_id] == VolumetricExtrusionState::Invalid;
+    for_each_property([unsupported_flow_override, unsupported_volumetric_extrusion](GCodeProcessorResult::MassProperties& target) {
+        target.unsupported_flow_override |= unsupported_flow_override;
+        target.unsupported_volumetric_extrusion |= unsupported_volumetric_extrusion;
+    });
+    m_result.center_of_mass.unsupported_flow_override |= unsupported_flow_override;
+    m_result.center_of_mass.unsupported_volumetric_extrusion |= unsupported_volumetric_extrusion;
+
+    if (m_center_of_mass_ambiguous_volumetric_extrusion ||
+        m_center_of_mass_volumetric_extrusion[tool_id] == VolumetricExtrusionState::Invalid)
+        return;
+
+    const size_t filament_id = move.extruder_id;
+    const bool volumetric = m_center_of_mass_volumetric_extrusion[tool_id] == VolumetricExtrusionState::Enabled;
+    bool used_default_filament_diameter = false;
+    double filament_diameter = DEFAULT_FILAMENT_DIAMETER;
+    if (volumetric) {
+        // E is already expressed in mm^3, so filament diameter is not part of
+        // the mass calculation and must not produce a fallback warning.
+    } else if (m_center_of_mass_m200_filament_diameter[tool_id] > 0.0 &&
+        std::isfinite(m_center_of_mass_m200_filament_diameter[tool_id])) {
+        filament_diameter = m_center_of_mass_m200_filament_diameter[tool_id];
+    } else if (filament_id < m_result.filament_diameters.size() &&
+        filament_id < m_filament_diameter_configured.size() &&
+        m_filament_diameter_configured[filament_id] &&
+        m_result.filament_diameters[filament_id] > 0.0f &&
+        std::isfinite(m_result.filament_diameters[filament_id])) {
+        filament_diameter = m_result.filament_diameters[filament_id];
+    } else {
+        used_default_filament_diameter = true;
+    }
+
+    bool used_default_density = false;
+    double density = DEFAULT_FILAMENT_DENSITY;
+    if (filament_id < m_result.filament_densities.size() &&
+        filament_id < m_filament_density_configured.size() &&
+        m_filament_density_configured[filament_id] &&
+        m_result.filament_densities[filament_id] > 0.0f &&
+        std::isfinite(m_result.filament_densities[filament_id])) {
+        density = m_result.filament_densities[filament_id];
+    } else {
+        used_default_density = true;
+    }
+
+    const double flow_factor = m_center_of_mass_extrude_factor_override[tool_id];
+    const double volume_mm3 = deposited_extruder * flow_factor *
+                              (volumetric ? 1.0 : PI * sqr(0.5 * filament_diameter));
+    const double mass_g = volume_mm3 * density * 0.001;
+    if (!(volume_mm3 > 0.0) || !(mass_g > 0.0) || !std::isfinite(volume_mm3) || !std::isfinite(mass_g))
+        return;
+
+    for_each_property([unknown_role, used_default_filament_diameter, used_default_density, volume_mm3, mass_g](GCodeProcessorResult::MassProperties& target) {
+        target.contains_unknown_roles |= unknown_role;
+        target.used_default_filament_diameter |= used_default_filament_diameter;
+        target.used_default_density |= used_default_density;
+        target.volume_mm3 += volume_mm3;
+        target.mass_g += mass_g;
+    });
+    m_result.center_of_mass.contains_unknown_roles |= unknown_role;
+    m_result.center_of_mass.used_default_filament_diameter |= used_default_filament_diameter;
+    m_result.center_of_mass.used_default_density |= used_default_density;
+
+    const Vec3d offset = m_extruder_offsets[filament_id].cast<double>();
+    const double start_z = m_processing_start_custom_gcode ? m_first_layer_height : m_start_position[Z];
+    const Vec3d start(m_start_position[X] + m_x_offset + offset.x(),
+                      m_start_position[Y] + m_y_offset + offset.y(),
+                      start_z + offset.z());
+    const Vec3d end = move.position.cast<double>();
+    const double bead_z_offset = move.height > 0.0f && std::isfinite(move.height) ? 0.5 * move.height : 0.0;
+
+    auto add_midpoint_moment = [&for_each_property, mass_g, bead_z_offset](const Vec3d& from, const Vec3d& to, double fraction) {
+        Vec3d centroid = 0.5 * (from + to);
+        centroid.z() -= bead_z_offset;
+        const Vec3d moment = centroid * (mass_g * fraction);
+        for_each_property([&moment](GCodeProcessorResult::MassProperties& target) {
+            target.first_moment_g_mm += moment;
+        });
+    };
+
+    std::vector<Vec3d> points;
+    points.reserve(move.interpolation_points.size() + 2);
+    points.emplace_back(start);
+    if (move.is_arc_move_with_interpolation_points()) {
+        for (const Vec3f& point : move.interpolation_points)
+            points.emplace_back(point.cast<double>());
+    }
+    points.emplace_back(end);
+
+    double total_length = 0.0;
+    bool valid_segments = true;
+    for (size_t i = 1; i < points.size(); ++i) {
+        const double length = (points[i] - points[i - 1]).norm();
+        if (!points[i].allFinite() || !std::isfinite(length)) {
+            valid_segments = false;
+            break;
+        }
+        total_length += length;
+    }
+
+    const double recovery_fraction = recovered_extruder / static_cast<double>(move.delta_extruder);
+    if (valid_segments && total_length > 0.0 && std::isfinite(total_length)) {
+        const double deposition_start = recovery_fraction * total_length;
+        const double deposited_length = total_length - deposition_start;
+        double traversed = 0.0;
+        for (size_t i = 1; i < points.size(); ++i) {
+            const Vec3d& segment_start = points[i - 1];
+            const Vec3d& segment_end = points[i];
+            const double segment_length = (segment_end - segment_start).norm();
+            const double segment_end_distance = traversed + segment_length;
+            if (segment_end_distance > deposition_start && segment_length > 0.0) {
+                const double local_start = std::max(0.0, deposition_start - traversed);
+                const Vec3d deposited_start = segment_start +
+                    (segment_end - segment_start) * (local_start / segment_length);
+                add_midpoint_moment(deposited_start, segment_end,
+                                    (segment_length - local_start) / deposited_length);
+            }
+            traversed = segment_end_distance;
+        }
+        return;
+    }
+
+    const Vec3d deposited_start = start + (end - start) * recovery_fraction;
+    add_midpoint_moment(deposited_start, end, 1.0);
 }
 
 void GCodeProcessor::set_extrusion_role(ExtrusionRole role)
@@ -6855,4 +7404,3 @@ void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vec
 }
 
 } /* namespace Slic3r */
-
