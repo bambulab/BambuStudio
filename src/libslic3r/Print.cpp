@@ -173,6 +173,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retract_when_changing_layer",
         "retraction_length",
         "retract_length_toolchange",
+        "filament_retract_length_toolchange",
         "z_hop",
         "filament_retract_length_nc",
         "retract_restart_extra",

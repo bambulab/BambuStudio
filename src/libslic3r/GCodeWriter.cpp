@@ -81,6 +81,20 @@ void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
         (even if prints only uses that one) since we need to output Tx commands
         first extruder has index 0 */
     this->multiple_extruders = (*std::max_element(extruder_ids.begin(), extruder_ids.end())) > 0;
+
+    update_exclusive_nozzles();
+}
+
+void GCodeWriter::update_exclusive_nozzles()
+{
+    const std::vector<int> &nozzle_map = config.filament_nozzle_map.values;
+    std::map<int, int> filaments_per_nozzle;
+    for (const Extruder &e : m_filament_extruders)
+        if (e.id() < nozzle_map.size())
+            ++filaments_per_nozzle[nozzle_map[e.id()]];
+
+    for (Extruder &e : m_filament_extruders)
+        e.set_exclusive_nozzle(e.id() < nozzle_map.size() && filaments_per_nozzle[nozzle_map[e.id()]] == 1);
 }
 
 std::string GCodeWriter::preamble()

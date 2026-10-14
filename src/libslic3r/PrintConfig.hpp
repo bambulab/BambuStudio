@@ -781,6 +781,9 @@ extern std::set<std::string> filament_dev_options;
 extern void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPrintConfig& dest_config, std::vector<int> variant_index, std::set<std::string>& key_set1, int stride = 1);
 extern void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
     t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_map_indices);
+// A filament override stored once per filament is spread across that filament's variant slots
+// so later lookups by filament_extruder_variant hit the value the user edited.
+extern void align_filament_variant_overrides(DynamicPrintConfig &config);
 
 // The P index in "M106 P<index>" is a fixed product convention: the standard
 // auxiliary part cooling fan is always P2, the optional one (fan box) is always P10.
@@ -1465,6 +1468,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // BBS
     ((ConfigOptionEnumsGenericNullable,z_hop_types))
     ((ConfigOptionFloatsNullable,      filament_retract_length_nc))
+    ((ConfigOptionFloatsNullable,      filament_retract_length_toolchange))
     ((ConfigOptionFloatsNullable,      retract_restart_extra))
     ((ConfigOptionFloatsNullable,      retract_restart_extra_toolchange))
     ((ConfigOptionFloatsNullable,      retraction_speed))

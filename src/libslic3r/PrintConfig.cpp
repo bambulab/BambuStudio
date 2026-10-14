@@ -68,6 +68,7 @@ namespace Slic3r {
 const std::vector<std::string> filament_extruder_override_keys = {
     // floats
     "filament_retraction_length",
+    "filament_retract_length_toolchange",
     "filament_z_hop",
     "filament_z_hop_types",
     "filament_retract_lift_above",  //not in filament_options_with_variant, not used?
@@ -7504,16 +7505,26 @@ void PrintConfigDef::init_fff_params()
         if (opt_key =="filament_retraction_length"||
             opt_key=="filament_z_hop" ||
             opt_key== "filament_long_retractions_when_cut" ||
-            opt_key=="filament_retraction_distances_when_cut")
+            opt_key=="filament_retraction_distances_when_cut" ||
+            opt_key=="filament_retract_length_toolchange")
             def->mode       = comSimple;
         else
             def->mode       = comAdvanced;
+        if (opt_key == "filament_retract_length_toolchange") {
+            def->label = L("Filament switch retraction length");
+            def->full_label = L("Filament switch retraction length");
+        }
         switch (def->type) {
         case coFloats: def->set_default_value(new ConfigOptionFloatsNullable(static_cast<const ConfigOptionFloatsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coPercents: def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercentsNullable*>(it_opt->second.default_value.get())->values)); break;
         case coBools: def->set_default_value(new ConfigOptionBoolsNullable(static_cast<const ConfigOptionBools*>(it_opt->second.default_value.get())->values)); break;
         case coEnums: def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGenericNullable*>(it_opt->second.default_value.get())->values)); break;
         default: assert(false);
+        }
+        if (opt_key == "filament_retract_length_toolchange") {
+            // Unchecked (N/A) is the default. A copied printer length would look checked
+            // and override every filament that does not explicitly store nil.
+            def->set_default_value(new ConfigOptionFloatsNullable{ ConfigOptionFloatsNullable::nil_value() });
         }
     }
 
@@ -8525,6 +8536,7 @@ std::set<std::string> filament_options_with_variant = {
     "filament_extruder_variant",
     "filament_retraction_length",
     "filament_retract_length_nc",
+    "filament_retract_length_toolchange",
     "filament_z_hop",
     "filament_z_hop_types",
     "filament_retract_restart_extra",
@@ -10489,6 +10501,41 @@ void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPr
     }
     else
         config.apply(dest_config, true);
+}
+
+void align_filament_variant_overrides(DynamicPrintConfig &config)
+{
+    // Only handle_hotend_as_extruder machines store filament_retract_length_toolchange as one value per filament.
+    const auto *hotend_as_extruder = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    if (!hotend_as_extruder || !hotend_as_extruder->value)
+        return;
+
+    const auto *variants = config.option<ConfigOptionStrings>("filament_extruder_variant");
+    const auto *self_idx = config.option<ConfigOptionInts>("filament_self_index");
+    if (!variants || !self_idx || variants->values.empty() || self_idx->values.size() != variants->values.size())
+        return;
+
+    const size_t variant_count = variants->values.size();
+    int filament_count = 0;
+    for (int id : self_idx->values)
+        filament_count = std::max(filament_count, id);
+    // Already one slot per variant, or the self index does not describe one group per filament.
+    if (filament_count <= 0 || static_cast<size_t>(filament_count) == variant_count)
+        return;
+
+    auto *opt = dynamic_cast<ConfigOptionVectorBase *>(config.option("filament_retract_length_toolchange", false));
+    // Only the "one value per filament" shape is realigned. A vector that already
+    // matches the variant list, or has some other length, is left alone.
+    if (!opt || opt->size() != static_cast<size_t>(filament_count))
+        return;
+    ConfigOption *src = opt->clone();
+    opt->resize(variant_count, src);
+    for (size_t i = 0; i < variant_count; ++i) {
+        const int filament = self_idx->values[i];
+        if (filament > 0 && filament <= filament_count)
+            opt->set_at(src, i, static_cast<size_t>(filament - 1));
+    }
+    delete src;
 }
 
 void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,

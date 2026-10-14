@@ -5201,6 +5201,10 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
         }
     }
 
+    // Filament overrides edited as one value per filament (the variant vector was still
+    // length 1) must be copied onto every variant slot before extruder lookup.
+    align_filament_variant_overrides(out);
+
     //BBS: add logic for settings check between different system presets
     std::string printer_inherits = this->printers.get_edited_preset().inherits();
     // Don't store the "compatible_printers_condition" for the printer profile, there is none.
@@ -5715,6 +5719,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         } else {
             assert(is_external);
             // Split the filament presets, load each of them separately.
+            // Expand per-filament overrides onto variant slots before they are split,
+            // otherwise a length-1 edit is read as the previous filament's High Flow slot.
+            align_filament_variant_overrides(config);
+
             std::vector<DynamicPrintConfig> configs(num_filaments, this->filaments.default_preset().config);
             // loop through options and scatter them into configs.
             for (const t_config_option_key &key : this->filaments.default_preset().config.keys()) {

@@ -59,6 +59,8 @@ public:
     double retract_restart_extra_toolchange() const;
 
     bool is_share_extruder() const { return m_share_extruder; }
+    // True when no other filament of the print is mapped to the same hotend.
+    void set_exclusive_nozzle(bool exclusive) { m_exclusive_nozzle = exclusive; }
     double get_single_retracted_length() const { return m_retracted; }
     double get_share_retracted_length() const;
 
@@ -87,6 +89,7 @@ private:
     // BBS.
     // Create shared E and retraction data for single extruder multi-material machine
     bool          m_share_extruder;
+    bool          m_exclusive_nozzle { false };
     static std::vector<double> m_share_E;
     static std::vector<double> m_share_retracted;
 };

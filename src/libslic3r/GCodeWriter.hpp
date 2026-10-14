@@ -50,6 +50,8 @@ public:
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
     void                 set_extruders(std::vector<unsigned int> extruder_ids);
+    // Recompute which filaments have a hotend to themselves, based on config.filament_nozzle_map.
+    void                 update_exclusive_nozzles();
     const std::vector<Extruder>& extruders() const { return m_filament_extruders; }
     std::vector<unsigned int> extruder_ids() const {
         std::vector<unsigned int> out;

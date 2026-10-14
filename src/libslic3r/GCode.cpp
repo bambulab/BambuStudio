@@ -8531,6 +8531,7 @@ void GCode::update_layer_related_config(int layer_id){
     m_writer.config.filament_map.values = extruder_map;
     m_writer.config.filament_volume_map.values = volume_map;
     m_writer.config.filament_nozzle_map.values = nozzle_map;
+    m_writer.update_exclusive_nozzles();
 
 }
 

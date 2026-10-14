@@ -217,14 +217,19 @@ double Extruder::retract_restart_extra() const
 
 double Extruder::retract_length_toolchange() const
 {
-    double retract_length = m_config->retract_length_toolchange.get_at(extruder_id());
-    // Fold PVA cut retraction into this one-shot toolchange retract; change_filament_gcode must
-    // skip its extra retraction for PVA as well.
-    size_t filament_config_idx = get_filament_config_idx(*m_config, m_id);
-    if (m_config->handle_hotend_as_extruder && m_config->filament_type.get_at(m_id) == "PVA" &&
-        m_config->long_retractions_when_cut.get_at(filament_config_idx))
-        retract_length += m_config->retraction_distances_when_cut.get_at(filament_config_idx);
-    return retract_length;
+    // filament_retract_length_toolchange only affects the retract / deretract emitted by the
+    // slicer on handle_hotend_as_extruder machines. retract_length_toolchange itself is left
+    // untouched, so change_filament_gcode still sees the printer value.
+    // The override only applies to PVA that has its hotend to itself; PVA sharing a hotend with
+    // other filaments keeps the printer value.
+    if (m_config->handle_hotend_as_extruder && m_exclusive_nozzle && m_id < m_config->filament_type.size() &&
+        m_config->filament_type.get_at(m_id) == "PVA") {
+        const ConfigOptionFloatsNullable &filament_len = m_config->filament_retract_length_toolchange;
+        size_t filament_config_idx = get_filament_config_idx(*m_config, m_id);
+        if (filament_config_idx < filament_len.size() && !filament_len.is_nil(filament_config_idx))
+            return filament_len.get_at(filament_config_idx);
+    }
+    return m_config->retract_length_toolchange.get_at(extruder_id());
 }
 
 double Extruder::retract_restart_extra_toolchange() const
