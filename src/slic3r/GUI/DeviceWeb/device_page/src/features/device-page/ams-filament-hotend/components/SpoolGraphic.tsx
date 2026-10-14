@@ -190,13 +190,20 @@ function RemainMask({ id, center, pct }: { id: string; center: number; pct: numb
   );
 }
 
+// Neutral checkerboard, same tones / tile as the auto-refill
+// FilamentColorSwatch. It must stay achromatic: a tinted backdrop shows
+// through the filament fill and gives translucent white / clear spools a
+// colour they do not have.
+const CHECKER_BG = '#ffffff';
+const CHECKER_FG = '#d9d9d9';
+
 function CheckerPattern({ id }: { id: string }) {
   const tile = 6;
   return (
     <pattern id={id} width={tile} height={tile} patternUnits="userSpaceOnUse">
-      <rect width={tile} height={tile} fill="#dfeee4" />
-      <rect width={tile / 2} height={tile / 2} fill="#9ed3ae" />
-      <rect x={tile / 2} y={tile / 2} width={tile / 2} height={tile / 2} fill="#9ed3ae" />
+      <rect width={tile} height={tile} fill={CHECKER_BG} />
+      <rect width={tile / 2} height={tile / 2} fill={CHECKER_FG} />
+      <rect x={tile / 2} y={tile / 2} width={tile / 2} height={tile / 2} fill={CHECKER_FG} />
     </pattern>
   );
 }
@@ -218,14 +225,20 @@ function isTransparentColor(color: string) {
 }
 
 function opaqueColor(color: string) {
-  if (color === 'transparent') return '#9ed3ae';
+  if (color === 'transparent') return CHECKER_BG;
   if (/^#[0-9a-fA-F]{8}$/.test(color)) return color.slice(0, 7);
   return color;
 }
 
+// Firmware alpha drives the paint opacity. A fully clear spool paints nothing
+// so only the checker shows; a partially translucent one keeps its own hue at
+// the reported alpha, floored so a near-clear spool still tints the checker.
 function colorOpacity(color: string) {
+  if (color === 'transparent') return 0;
   const alpha = alphaFromHex(color);
-  return alpha === null ? 1 : Math.max(0.2, alpha / 255);
+  if (alpha === null) return 1;
+  if (alpha === 0) return 0;
+  return Math.max(0.2, alpha / 255);
 }
 
 // Firmware reports the colour list from the inside of the spool outwards, so

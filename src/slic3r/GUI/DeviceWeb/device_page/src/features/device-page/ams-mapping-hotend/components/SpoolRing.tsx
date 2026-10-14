@@ -30,10 +30,12 @@ const COLOR_OUTER = 23;
 const COLOR_INNER = 11.5;
 const INNER_STROKE_R = 9;
 // Checker backdrop for translucent filament. Same tile / tones as the device
-// page spool (SpoolGraphic.tsx) so both surfaces read identically.
+// page spool (SpoolGraphic.tsx) so both surfaces read identically. It must
+// stay achromatic: a tinted backdrop shows through the filament fill and gives
+// translucent white / clear spools a colour they do not have.
 const CHECKER_TILE = 6;
-const CHECKER_BG = '#dfeee4';
-const CHECKER_FG = '#9ed3ae';
+const CHECKER_BG = '#ffffff';
+const CHECKER_FG = '#d9d9d9';
 
 interface SpoolRingProps {
   size?: number;
@@ -54,7 +56,7 @@ function nextUid(prefix: string) {
 // Strip optional alpha. C++ side now emits #RRGGBBAA; legacy callers may
 // still pass #RRGGBB. Returns the 6-digit RGB form for non-alpha consumers.
 function stripAlpha(hex: string): string {
-  if (hex === 'transparent') return CHECKER_FG;
+  if (hex === 'transparent') return CHECKER_BG;
   if (typeof hex !== 'string' || hex.length !== 9 || hex[0] !== '#') return hex;
   return hex.slice(0, 7);
 }
@@ -75,8 +77,11 @@ function isTransparentColor(hex: string): boolean {
 // Firmware alpha drives the paint opacity; floor it so a near-clear spool
 // still tints the checker instead of vanishing into it.
 function colorOpacity(hex: string): number {
+  if (hex === 'transparent') return 0;
   const alpha = alphaFromHex(hex);
-  return alpha === null ? 1 : Math.max(0.2, alpha / 255);
+  if (alpha === null) return 1;
+  if (alpha === 0) return 0;
+  return Math.max(0.2, alpha / 255);
 }
 
 // A color counts as "light" when its perceived luminance reaches that of the
