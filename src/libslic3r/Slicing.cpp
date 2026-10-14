@@ -242,6 +242,35 @@ std::vector<coordf_t> layer_height_profile_from_ranges(
     return layer_height_profile;
 }
 
+std::vector<coordf_t> layer_height_profile_from_other_object(const std::vector<coordf_t> &other_layer_height_profile, coordf_t object_height, coordf_t layer_height)
+{
+    std::vector<coordf_t> out;
+    out.reserve(other_layer_height_profile.size() + 4);
+
+    size_t i = 0;
+    for (; i + 1 < other_layer_height_profile.size() && other_layer_height_profile[i] < object_height - EPSILON; i += 2) {
+        out.push_back(other_layer_height_profile[i]);
+        out.push_back(other_layer_height_profile[i + 1]);
+    }
+    if (out.empty())
+        return out;
+
+    const coordf_t z = *(out.end() - 2);
+    coordf_t height = layer_height;
+    if (i + 1 < other_layer_height_profile.size())
+        // The other object is the taller one, cut its last step where this object ends.
+        height = lerp(out.back(), other_layer_height_profile[i + 1], (object_height - z) / (other_layer_height_profile[i] - z));
+    else if (!is_approx(out.back(), layer_height)) {
+        // Step back to the default layer height for the part standing above the other object.
+        out.push_back(z);
+        out.push_back(layer_height);
+    }
+    out.push_back(object_height);
+    out.push_back(height);
+
+    return out;
+}
+
 // Based on the work of @platsch
 // Fill layer_height_profile by heights ensuring a prescribed maximum cusp height.
 std::vector<double> layer_height_profile_adaptive(const SlicingParameters& slicing_params, const ModelObject& object, float quality_factor)
