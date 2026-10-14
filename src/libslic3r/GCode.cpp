@@ -2637,7 +2637,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Use the extruder IDs collected from Regions.
         this->set_extruders(print.extruders());
 
-        has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
+        // A sequential print has one tower per object (see Print::_make_sequential_wipe_towers);
+        // enable the tower path if any object planned one. The outer `tool_ordering` here is the
+        // empty default (the per-object orderings are loop-local above), so it must not be used.
+        has_wipe_tower = print.has_wipe_tower() &&
+            std::any_of(by_obj_print_data.print_object_order.begin(), by_obj_print_data.print_object_order.end(),
+                        [&](const PrintObject *o) {
+                            auto it = by_obj_print_data.object_wipe_tower_map.find(o);
+                            return it != by_obj_print_data.object_wipe_tower_map.end() && it->second.has_tower;
+                        });
     } else {
         // Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
@@ -3173,8 +3181,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         if (print.is_BBL_Printer()) file.write("M981 S1 P20000 ;open spaghetti detector\n");
 
 
-        if (print.is_sequential_print() && !has_wipe_tower){
+        if (print.is_sequential_print()){
             const auto& by_obj_print_data = print.sequential_print_data().value();
+            // One prime tower per object; refs into print.m_sequential_print_data,
+            // stable for the whole export.
+            static const std::vector<WipeTower::ToolChangeResult> s_no_priming;
 
             const PrintObject * prev_object = nullptr;
             size_t finished_objects = 0;
@@ -3193,6 +3204,23 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 final_extruder_id   = tool_ordering.last_extruder();
                 print.throw_if_canceled();
                 this->set_origin(unscale(instance->shift));
+
+                // Per-object prime tower.
+                m_wipe_tower.reset();
+                if (has_wipe_tower) {
+                    auto it_plan = by_obj_print_data.object_wipe_tower_map.find(object);
+                    if (it_plan != by_obj_print_data.object_wipe_tower_map.end() && it_plan->second.has_tower) {
+                        const ObjectWipeTowerPlan &plan = it_plan->second;
+                        m_wipe_tower.reset(new WipeTowerIntegration(
+                            print.config(), print.get_plate_index(), print.get_plate_origin(),
+                            s_no_priming, plan.tool_changes, plan.final_purge,
+                            print.get_slice_used_filaments(false)));
+                        m_wipe_tower->set_wipe_tower_depth(plan.depth);
+                        m_wipe_tower->set_wipe_tower_bbx(plan.bbx);
+                        m_wipe_tower->set_rib_offset(plan.rib_offset);
+                        m_wipe_tower->set_wipe_tower_pos(plan.position);
+                    }
+                }
 
                 // BBS: prime extruder if extruder change happens before this object instance
                 bool prime_extruder = false;
@@ -3265,6 +3293,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 #ifdef HAS_PRESSURE_EQUALIZER
                 if (m_pressure_equalizer) file.write(m_pressure_equalizer->process("", true));
 #endif /* HAS_PRESSURE_EQUALIZER */
+                // Purge/finish this object's prime tower before moving on. Nothing
+                // may revisit it once the next object starts.
+                if (m_wipe_tower) {
+                    file.write(m_wipe_tower->finalize(*this));
+                    m_wipe_tower.reset();
+                }
                 ++finished_objects;
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
@@ -3785,7 +3819,11 @@ void GCode::process_layers(
                 //BBS
                 check_placeholder_parser_failed();
                 print.throw_if_canceled();
-                GCode::LayerResult res = this->process_layer(print, {std::move(layer)}, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, tool_ordering.get_most_used_extruder(), single_object_idx, prime_extruder);
+                const LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.print_z());
+                // Advance the per-object prime tower one layer (sequential printing).
+                if (m_wipe_tower && layer_tools.has_wipe_tower)
+                    m_wipe_tower->next_layer();
+                GCode::LayerResult res = this->process_layer(print, {std::move(layer)}, layer_tools, &layer == &layers_to_print.back(), nullptr, tool_ordering.get_most_used_extruder(), single_object_idx, prime_extruder);
                 res.gcode_store_pos = layer_to_print_idx - 1;
                 return std::move(res);
             }

@@ -1331,8 +1331,15 @@ void Selection::translate(const Vec3d &displacement, TransformationType transfor
             } else
                 transform_instance_relative(v, volume_data, transformation_type, Geometry::translation_transform(displacement), m_cache.dragging_center);
         } else {
-            if (v.is_wipe_tower) {//in world cs
-                int           plate_idx           = v.object_idx() - 1000;
+            // By-Object per-object tower previews (object_idx >= WIPE_TOWER_PER_OBJECT_ID_BASE)
+            // aren't bound to a plate-clamped drag yet -- decode defensively and just move the
+            // volume like any other mesh rather than indexing a per-plate container with a bogus
+            // index (that used to crash: plate_idx used to be object_idx() - 1000 unconditionally,
+            // which is nowhere near a valid plate index for these ids).
+            const int wt_plate_idx = wipe_tower_plate_id_from_object_id(v.object_idx());
+            const int wt_n_plates  = (int) wxGetApp().plater()->get_partplate_list().get_plate_count();
+            if (v.is_wipe_tower && wt_plate_idx >= 0 && wt_plate_idx < wt_n_plates) {//in world cs
+                int           plate_idx           = wt_plate_idx;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->get_build_volume(true);
                 BoundingBox   plate_bbox2d        = BoundingBox(scaled(Vec2f(plate_bbox.min[0], plate_bbox.min[1])), scaled(Vec2f(plate_bbox.max[0], plate_bbox.max[1])));
                 Vec3d         tower_size          = v.bounding_box().size();
@@ -2635,6 +2642,12 @@ void Selection::update_type()
                 {
                     bool               is_wipe_tower   = it->first >= 1000;
                     int                actual_obj_id   = is_wipe_tower ? it->first - 1000 : it->first;
+                    if (actual_obj_id < 0 || actual_obj_id >= (int) m_model->objects.size())
+                        // Per-object tower preview ids (>= WIPE_TOWER_PER_OBJECT_ID_BASE) don't
+                        // decode to a real object index this way -- don't index m_model->objects
+                        // with a bogus value (falls through to Mixed selection type, same as any
+                        // other selection this loop can't fully account for).
+                        continue;
                     const ModelObject *model_object    = m_model->objects[actual_obj_id];
                     unsigned int volumes_count = (unsigned int)model_object->volumes.size();
                     unsigned int instances_count = (unsigned int)model_object->instances.size();

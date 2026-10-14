@@ -1495,7 +1495,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
 #endif
 
-        if (m_objects.size() > 1) {
+        // These checks all compare *different* objects' layer Z sequences against each
+        // other, because the classic wipe tower is one shared shape spanning every
+        // object's Z range. Sequential (By-Object) printing builds one independent
+        // tower per object, following that object's own layer heights (see
+        // _make_sequential_wipe_towers()/ByObjectPrintData), so cross-object agreement
+        // is neither required nor meaningful here.
+        if (m_objects.size() > 1 && !this->is_sequential_print()) {
             // Some of the objects has variable layer height applied by painting or by a table.
             bool has_custom_layering = std::any_of(m_objects.begin(), m_objects.end(),
                 [](const PrintObject* object) { return object->model_object()->has_custom_layering(); });
@@ -2357,6 +2363,13 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
         if (this->has_wipe_tower()) {
             m_nozzle_group_result.reset();
+            if (is_sequential_print()) {
+                // Sequential (By Object) printing: the per-object tool orderings and the
+                // plate nozzle-group result must exist before any tower can be planned.
+                // ByObjectPrintData::build() populates m_nozzle_group_result; without it
+                // _make_wipe_tower()'s global ToolOrdering dereferences a null group result.
+                m_sequential_print_data = ByObjectPrintData::build(this);
+            }
             this->_make_wipe_tower();
         } else if (!is_sequential_print()) {
             // Non-sequential print (by-layer) or single object: use global tool ordering
@@ -2414,7 +2427,9 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         std::vector<unsigned int> printExtruders;
 
         if (is_sequential_print()) {
-            m_sequential_print_data = ByObjectPrintData::build(this);
+            // Already built in the psWipeTower step when a prime tower is enabled.
+            if (!m_sequential_print_data)
+                m_sequential_print_data = ByObjectPrintData::build(this);
 
             std::vector<unsigned int> first_layer_filaments;
             std::vector<unsigned int> used_filaments;
@@ -2569,7 +2584,11 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         using Clock                 = std::chrono::high_resolution_clock;
         auto            startTime   = Clock::now();
         std::optional<const FakeWipeTower *> wipe_tower_opt = {};
-        if (this->has_wipe_tower()) {
+        // Sequential (By Object) printing has one tower per object, which the single
+        // m_fake_wipe_tower cannot represent, and this by-layer "same layer, different
+        // object" conflict notion does not apply between sequential objects anyway.
+        // Per-object tower clearance is handled by sequential_print_clearance_valid().
+        if (this->has_wipe_tower() && !is_sequential_print()) {
             m_fake_wipe_tower.set_pos({m_config.wipe_tower_x.get_at(m_plate_index), m_config.wipe_tower_y.get_at(m_plate_index)});
             wipe_tower_opt = std::make_optional<const FakeWipeTower *>(&m_fake_wipe_tower);
         }
@@ -3851,10 +3870,13 @@ void Print::validate_compacted_wipe_tower_clearance() const
 
 void Print::_make_wipe_tower()
 {
-    m_wipe_tower_data.clear();
+    // Sequential (By Object) printing plans one tower per object instead.
+    if (is_sequential_print()) {
+        this->_make_sequential_wipe_towers();
+        return;
+    }
 
-    // BBS
-    const unsigned int number_of_extruders = (unsigned int)(m_config.filament_colour.values.size());
+    m_wipe_tower_data.clear();
 
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     // BBS: priming logic is removed, so don't consider it in tool ordering
@@ -3865,7 +3887,258 @@ void Print::_make_wipe_tower()
         // Don't generate any wipe tower.
         return;
 
-    // Check whether there are any layers in m_tool_ordering, which are marked with has_wipe_tower,
+    this->_make_wipe_tower_geometry(m_objects.front());
+}
+
+// Choose a plate-frame position (the tower footprint's min corner) for one
+// object's prime tower: beside the object, on the bed, clear of everything in
+// `occupied` (earlier objects + towers) and of `exclude_areas`. Tries each side
+// of the object; falls back to the object's right side clamped onto the bed.
+// `fitted` reports whether a non-overlapping spot was actually found.
+Vec2d place_one_wipe_tower(const BoundingBoxf &object_box, const Vec2d &tower_size,
+                          const BoundingBoxf &printable_area,
+                          const std::vector<BoundingBoxf> &occupied,
+                          const std::vector<BoundingBoxf> &exclude_areas,
+                          double clearance, bool &fitted)
+{
+    const double gap = std::max(0.0, clearance) + 1.0;
+    auto boxes_overlap = [](const BoundingBoxf &a, const BoundingBoxf &b) {
+        return a.min.x() < b.max.x() && b.min.x() < a.max.x() &&
+               a.min.y() < b.max.y() && b.min.y() < a.max.y();
+    };
+    auto fits = [&](const Vec2d &tmin) {
+        BoundingBoxf t(tmin, tmin + tower_size);
+        if (printable_area.defined &&
+            (t.min.x() < printable_area.min.x() || t.min.y() < printable_area.min.y() ||
+             t.max.x() > printable_area.max.x() || t.max.y() > printable_area.max.y()))
+            return false;
+        BoundingBoxf grown(t.min - Vec2d(clearance, clearance), t.max + Vec2d(clearance, clearance));
+        for (const BoundingBoxf &o : occupied)
+            if (boxes_overlap(grown, o)) return false;
+        for (const BoundingBoxf &e : exclude_areas)
+            if (boxes_overlap(t, e)) return false;
+        return true;
+    };
+
+    const std::vector<Vec2d> candidates = {
+        { object_box.max.x() + gap,                 object_box.min.y() },
+        { object_box.min.x() - gap - tower_size.x(), object_box.min.y() },
+        { object_box.min.x(),                       object_box.max.y() + gap },
+        { object_box.min.x(),                       object_box.min.y() - gap - tower_size.y() },
+    };
+    fitted = false;
+    Vec2d chosen = candidates.front();
+    for (const Vec2d &c : candidates) { if (fits(c)) { chosen = c; fitted = true; break; } }
+    if (printable_area.defined) {
+        chosen.x() = std::min(std::max(chosen.x(), printable_area.min.x()), printable_area.max.x() - tower_size.x());
+        chosen.y() = std::min(std::max(chosen.y(), printable_area.min.y()), printable_area.max.y() - tower_size.y());
+    }
+    return chosen;
+}
+
+// Sequential (By Object) printing: build one prime tower per object from that
+// object's own ToolOrdering. Results land in m_sequential_print_data->object_wipe_tower_map.
+void Print::_make_sequential_wipe_towers()
+{
+    m_wipe_tower_data.clear();
+    if (!m_sequential_print_data)
+        return;
+    ByObjectPrintData &pod = *m_sequential_print_data;
+
+    // Save the plate-global nozzle group result; _make_wipe_tower_geometry
+    // queries the current one, and we swap in each object's below.
+    auto saved_nozzle_group_result = m_nozzle_group_result;
+
+    // Plate-local printable-area bounding box, for keeping towers on the bed.
+    BoundingBoxf bed_bb;
+    for (const Vec2d &p : m_config.printable_area.values)
+        bed_bb.merge(p);
+
+    // Rectangles [plate-frame] already claimed on the bed: every object plus any
+    // tower we've placed so far. New towers must avoid these.
+    std::vector<BoundingBoxf> occupied;
+    for (const PrintObject *o : m_objects) {
+        if (o->model_object()->instances.empty()) continue;
+        BoundingBoxf3 b = o->model_object()->instance_bounding_box(0);
+        occupied.emplace_back(Vec2d(b.min.x(), b.min.y()), Vec2d(b.max.x(), b.max.y()));
+    }
+
+    // Bed exclusion areas (quads).
+    std::vector<BoundingBoxf> exclude_boxes;
+    {
+        const Pointfs &pts = m_config.bed_exclude_area.values;
+        for (size_t i = 0; i + 3 < pts.size(); i += 4) {
+            std::vector<Vec2d> corners(pts.begin() + i, pts.begin() + i + 4);
+            exclude_boxes.emplace_back(corners);
+        }
+    }
+
+    const double clearance = std::max(0.0, 0.5 * m_config.extruder_clearance_max_radius.value - 0.1);
+
+    for (const PrintObject *obj_const : pod.print_object_order) {
+        auto it_to = pod.object_tool_ordering_map.find(obj_const);
+        if (it_to == pod.object_tool_ordering_map.end())
+            continue;
+        ToolOrdering &obj_ordering = it_to->second;
+        if (!obj_ordering.has_wipe_tower())
+            continue;
+
+        PrintObject *obj = const_cast<PrintObject *>(obj_const);
+
+        // Scratch state for _make_wipe_tower_geometry: it reads the ordering from
+        // m_wipe_tower_data.tool_ordering and writes tool_changes / depth / bbx
+        // etc. back into m_wipe_tower_data.
+        // NOTE: this is a copy of the object's ordering, so the infill-wiping
+        // marks made during planning are not propagated back to the ordering the
+        // emitter uses. Consequence: the tower purges the full volume instead of
+        // offloading some into object infill. Correct, just slightly more waste.
+        m_wipe_tower_data.clear();
+        m_wipe_tower_data.tool_ordering = obj_ordering;
+        m_nozzle_group_result = std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(
+            obj_ordering.get_layered_nozzle_group_result());
+
+        this->_make_wipe_tower_geometry(obj, /*insert_virtual_layers=*/false);
+
+        ObjectWipeTowerPlan plan;
+        plan.tool_changes          = m_wipe_tower_data.tool_changes;
+        plan.final_purge           = m_wipe_tower_data.final_purge ? *m_wipe_tower_data.final_purge : WipeTower::ToolChangeResult{};
+        plan.depth                 = m_wipe_tower_data.depth;
+        plan.brim_width            = m_wipe_tower_data.brim_width;
+        plan.bbx                   = m_wipe_tower_data.bbx;
+        plan.rib_offset            = m_wipe_tower_data.rib_offset;
+        plan.used_filament         = m_wipe_tower_data.used_filament;
+        plan.number_of_toolchanges = m_wipe_tower_data.number_of_toolchanges;
+        plan.has_tower             = !plan.tool_changes.empty();
+        if (m_wipe_tower_data.wipe_tower_mesh_data) {
+            plan.preview_bottom     = m_wipe_tower_data.wipe_tower_mesh_data->bottom;
+            plan.preview_tower_mesh = m_wipe_tower_data.wipe_tower_mesh_data->real_wipe_tower_mesh;
+            plan.preview_brim_mesh  = m_wipe_tower_data.wipe_tower_mesh_data->real_brim_mesh;
+        }
+
+        // Place the tower next to its own object (shared with the plater preview
+        // via place_one_wipe_tower).
+        BoundingBoxf obj_bb;
+        if (!obj->model_object()->instances.empty()) {
+            BoundingBoxf3 b = obj->model_object()->instance_bounding_box(0);
+            obj_bb = BoundingBoxf(Vec2d(b.min.x(), b.min.y()), Vec2d(b.max.x(), b.max.y()));
+        }
+        const Vec2d tsz(plan.bbx.size().x(), plan.bbx.size().y());   // tower footprint incl. brim
+        Vec2d tower_min;
+        const ModelConfig &obj_cfg = obj->model_object()->config;
+        if (obj_cfg.has("sequential_wipe_tower_x") && obj_cfg.has("sequential_wipe_tower_y")) {
+            // User dragged this object's tower in the plater (GLCanvas3D::do_move()
+            // persists the drop here); honour it instead of auto-placing. Still fed
+            // through `occupied` below, so check_sequential_wipe_tower_clearance()
+            // rejects the slice if the manual spot collides with anything.
+            plan.position = Vec2f(float(obj_cfg.opt_float("sequential_wipe_tower_x")),
+                                  float(obj_cfg.opt_float("sequential_wipe_tower_y")));
+            tower_min = Vec2d(plan.position.x() + plan.bbx.min.x() + plan.rib_offset.x(),
+                              plan.position.y() + plan.bbx.min.y() + plan.rib_offset.y());
+        } else {
+            bool fitted = false;
+            tower_min = place_one_wipe_tower(obj_bb, tsz, bed_bb, occupied, exclude_boxes, clearance, fitted);
+            // Emission translates by (position + bbx.min + rib_offset); solve for
+            // position so the footprint's min lands at tower_min.
+            plan.position = Vec2f(float(tower_min.x() - plan.bbx.min.x() - plan.rib_offset.x()),
+                                  float(tower_min.y() - plan.bbx.min.y() - plan.rib_offset.y()));
+        }
+        occupied.emplace_back(tower_min, tower_min + tsz);
+
+        pod.object_wipe_tower_map[obj_const] = std::move(plan);
+    }
+
+    m_nozzle_group_result = saved_nozzle_group_result;
+    m_wipe_tower_data.clear();
+    // m_tool_ordering was used as scratch above; sequential emission drives off
+    // the per-object orderings, not this.
+    m_tool_ordering.clear();
+
+    this->check_sequential_wipe_tower_clearance();
+}
+
+void Print::check_sequential_wipe_tower_clearance() const
+{
+    if (!m_sequential_print_data)
+        return;
+    const ByObjectPrintData &pod = *m_sequential_print_data;
+
+    // Clearance margin, mirroring sequential_print_clearance_valid().
+    const bool  all_short   = this->is_all_objects_are_short();
+    double      clearance   = all_short ? 0.5 * MAX_OUTER_NOZZLE_RADIUS - 0.1
+                                        : 0.5 * m_config.extruder_clearance_max_radius.value - 0.1;
+    clearance = std::max(0.0, clearance);
+
+    const Vec3d plate_origin = this->get_plate_origin();
+
+    struct Item { std::string name; BoundingBoxf obj, tower; bool has_tower = false; };
+    std::vector<Item> items;
+    items.reserve(pod.print_object_order.size());
+
+    for (const PrintObject *obj : pod.print_object_order) {
+        Item it;
+        it.name = obj->model_object()->name;
+        // Object AABB in plate frame (first instance).
+        BoundingBoxf3 bb3 = obj->model_object()->instances.empty()
+            ? obj->model_object()->bounding_box()
+            : obj->model_object()->instance_bounding_box(0);
+        it.obj = BoundingBoxf(Vec2d(bb3.min.x() + plate_origin.x(), bb3.min.y() + plate_origin.y()),
+                              Vec2d(bb3.max.x() + plate_origin.x(), bb3.max.y() + plate_origin.y()));
+        auto p = pod.object_wipe_tower_map.find(obj);
+        if (p != pod.object_wipe_tower_map.end() && p->second.has_tower) {
+            const ObjectWipeTowerPlan &plan = p->second;
+            Vec2d off(plan.position.x() + plan.rib_offset.x() + plate_origin.x(),
+                      plan.position.y() + plan.rib_offset.y() + plate_origin.y());
+            it.tower = BoundingBoxf(plan.bbx.min + off, plan.bbx.max + off);
+            it.has_tower = true;
+        }
+        items.push_back(std::move(it));
+    }
+
+    auto grown = [clearance](BoundingBoxf b) { b.min -= Vec2d(clearance, clearance); b.max += Vec2d(clearance, clearance); return b; };
+    auto overlaps = [](const BoundingBoxf &a, const BoundingBoxf &b) {
+        return a.min.x() < b.max.x() && b.min.x() < a.max.x() &&
+               a.min.y() < b.max.y() && b.min.y() < a.max.y();
+    };
+
+    // Bed exclusion areas.
+    std::vector<BoundingBoxf> exclude;
+    {
+        const Pointfs &pts = m_config.bed_exclude_area.values;
+        for (size_t i = 0; i + 3 < pts.size(); i += 4) {
+            std::vector<Vec2d> corners;
+            for (size_t k = 0; k < 4; ++k)
+                corners.emplace_back(pts[i + k].x() + plate_origin.x(), pts[i + k].y() + plate_origin.y());
+            exclude.emplace_back(corners);
+        }
+    }
+
+    for (size_t j = 0; j < items.size(); ++j) {
+        if (!items[j].has_tower)
+            continue;
+        const BoundingBoxf tj = grown(items[j].tower);
+        for (const BoundingBoxf &e : exclude)
+            if (overlaps(items[j].tower, e))
+                throw Slic3r::SlicingError((boost::format(
+                    L("The prime tower for \"%1%\" overlaps the bed exclusion area in By Object printing. "
+                      "Move the object or the tower.")) % items[j].name).str());
+        // Every earlier item (object + its tower) is already on the bed when
+        // object j / tower j prints.
+        for (size_t i = 0; i < j; ++i) {
+            if (overlaps(tj, items[i].obj) ||
+                (items[i].has_tower && overlaps(tj, items[i].tower)) ||
+                (items[i].has_tower && overlaps(grown(items[j].obj), items[i].tower)))
+                throw Slic3r::SlicingError((boost::format(
+                    L("The prime tower for \"%1%\" would collide with \"%2%\" (or its tower) already printed "
+                      "in By Object printing. Increase the spacing between objects.")) % items[j].name % items[i].name).str());
+        }
+    }
+}
+
+void Print::_make_wipe_tower_geometry(PrintObject *virtual_layer_object, bool insert_virtual_layers)
+{
+    const unsigned int number_of_extruders = (unsigned int)(m_config.filament_colour.values.size());
+
+    // Check whether there are any layers in the tool ordering, which are marked with has_wipe_tower,
     // they print neither object, nor support. Each such layer needs a virtual support layer
     // counterpart in m_objects.front() so that GCode::collect_layers_to_print picks it up and the
     // wipe tower G-code is actually emitted for that z. Such layers appear in two scenarios:
@@ -3876,8 +4149,12 @@ void Print::_make_wipe_tower()
     //     neither object nor support (continuity fill in ToolOrdering::fill_wipe_tower_partitions).
     // The previous implementation only handled the first contiguous run starting at the first
     // virtual layer, which made the second scenario silently produce empty wipe-tower layers.
-    {
-        auto &support_layers = m_objects.front()->support_layers();
+    // NOTE: not done for the per-object sequential path -- inserting a fake support
+    // layer at/below the object's first layer makes collect_layers_to_print() reject
+    // it as an "empty initial layer". Sequential raft/floating-object tower support
+    // is a follow-up.
+    if (insert_virtual_layers) {
+        auto &support_layers = virtual_layer_object->support_layers();
         auto it_layer = support_layers.begin();
         const size_t idx_end = m_wipe_tower_data.tool_ordering.layer_tools().size();
         for (size_t i = 0; i < idx_end; ++ i) {
@@ -3894,7 +4171,7 @@ void Print::_make_wipe_tower()
             lt.has_support = true;
             double height = lt.print_z - (i == 0 ? 0. : m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z);
             //FIXME the support layer ID is set to -1, as Vojtech hopes it is not being used anyway.
-            it_layer = m_objects.front()->insert_support_layer(it_layer, -1, 0, height, lt.print_z, lt.print_z - 0.5 * height);
+            it_layer = virtual_layer_object->insert_support_layer(it_layer, -1, 0, height, lt.print_z, lt.print_z - 0.5 * height);
             ++ it_layer;
         }
     }
@@ -4022,7 +4299,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.rib_offset = wipe_tower.get_rib_offset();
 
     // Unload the current filament over the purge tower.
-    coordf_t layer_height = m_objects.front()->config().layer_height.value;
+    coordf_t layer_height = virtual_layer_object->config().layer_height.value;
     if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
         // The wipe tower goes up to the last layer of the print.
         if (wipe_tower.layer_finished()) {

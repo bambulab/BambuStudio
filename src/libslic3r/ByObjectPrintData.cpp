@@ -205,6 +205,8 @@ void ByObjectPrintData::clear()
 {
     print_instance_order.clear();
     object_tool_ordering_map.clear();
+    print_object_order.clear();
+    object_wipe_tower_map.clear();
 }
 
 
