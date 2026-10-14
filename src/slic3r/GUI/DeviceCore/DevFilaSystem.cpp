@@ -298,7 +298,7 @@ std::string DevAmsTray::get_slot_name(MachineObject* obj) const
         } else if (ams_type == DevAmsType::ZMULTI_B) {
             return wxString::Format("%d", slot_id + 1).ToStdString();
         } else {
-            return val_char + wxString::Format("%d", slot_id).ToStdString();
+            return val_char + wxString::Format("%d", slot_id + 1).ToStdString();
         }
     } else {
         int total_extruder_count = obj->GetExtderSystem()->GetTotalExtderCount();
