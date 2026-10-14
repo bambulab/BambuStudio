@@ -91,7 +91,7 @@ std::string DevicePageFilamentSlotStateResolver::ResolveCardState(MachineObject*
 
     bool filament_at_nozzle_inlet = nozzle_opt.has_value() && nozzle_opt->HasFilamentAtNozzleInlet();
     if (filament_changing && current_filament_changing) {
-        return filament_at_nozzle_inlet ? SV::card_state::unloading : SV::card_state::loading;//TODO
+        return obj_ && obj_->is_target_slot_unload() ? SV::card_state::unloading : SV::card_state::loading;
     }
 
     return filament_at_nozzle_inlet ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;

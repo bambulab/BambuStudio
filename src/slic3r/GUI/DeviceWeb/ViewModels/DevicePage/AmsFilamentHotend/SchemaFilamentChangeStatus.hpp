@@ -82,6 +82,10 @@ namespace filament_change_mode {
 
 namespace filament_change_operation {
     inline constexpr const char* change  = "change";
+    // Direction of a single-slot change, reported so the Web layer can name it
+    // instead of falling back to a merged "loading/unloading" label.
+    inline constexpr const char* load    = "load";
+    inline constexpr const char* unload  = "unload";
     inline constexpr const char* unknown = "unknown";
 }
 

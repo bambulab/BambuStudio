@@ -55,8 +55,11 @@ function filamentStepLabel(stepId: number, t: TFunction): string {
   }
 }
 
-function operationText(t: TFunction, _operation?: FilamentChangeStatus['operation'] | 'load' | 'unload') {
-  // Data layer uses unified `change` semantics; UI label is the same regardless.
+function operationText(t: TFunction, operation?: FilamentChangeStatus['operation']) {
+  // A single-slot change reports its direction, so name it. Batch runs can mix
+  // both directions and keep the merged label.
+  if (operation === 'load') return t('Loading Filament');
+  if (operation === 'unload') return t('Unloading Filament');
   return t('Loading/Unloading Filament');
 }
 

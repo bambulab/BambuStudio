@@ -315,7 +315,9 @@ export interface FilamentChangeStatus {
   // a horizontal step strip rendering. Single-slot runs (or batches that the
   // firmware reports as a 1-element queue) keep `single`.
   mode: 'idle' | 'single' | 'batch_reserved' | 'batch_running' | 'batch_manual_pull';
-  operation?: 'change' | 'unknown';
+  // `load` / `unload` carry the direction of a single-slot change; `change` is
+  // the direction-agnostic fallback used by batch runs.
+  operation?: 'change' | 'load' | 'unload' | 'unknown';
   running_slot?: FilamentChangeSlotRef | null;
   current_step?: number | null;
   current_step_name?: string;

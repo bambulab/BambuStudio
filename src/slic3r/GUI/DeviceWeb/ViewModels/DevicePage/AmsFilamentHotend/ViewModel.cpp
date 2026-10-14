@@ -482,7 +482,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
 
     std::string fallback_unloading_tip;
     nlohmann::json running_change_slot = nullptr;
-    std::string running_change_operation = "change";
+    std::string running_change_operation = SV::filament_change_operation::change;
     std::string running_change_message;
     for (int addr_id : addr_ids) {
         nlohmann::json full_slot = BuildSlot(machine_obj, addr_id, addr_slots[addr_id], fallback_dryer_unit);
@@ -490,14 +490,15 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             const auto& line_section = full_slot.value(SK::filament_slot::filament_line, nlohmann::json::object());
             const std::string line_state = line_section.value(SK::filament_line::state, std::string());
             auto& tips = fp[SK::filament_page::actions][SK::filament_actions::tips];
-            // "Slot N filament loading/unloading in progress" ??translated on
-            // the C++ side so the Web only prints the localized string.
-            const std::string change_op = _u8L("loading/unloading");
+            // The tip names the actual direction: a merged
+            // "loading/unloading" label left the user guessing which way the
+            // filament was moving. Translated on the C++ side so the Web only
+            // prints the localized string.
             if (line_state == SV::line_state::loading) {
-                tips = (boost::format(_u8L("Slot %1% filament %2% in progress"))
-                    % full_slot.value(SK::filament_slot::display_index, 0)
-                    % change_op).str();
+                tips = (boost::format(_u8L("Slot %1% filament loading in progress"))
+                    % full_slot.value(SK::filament_slot::display_index, 0)).str();
                 if (running_change_slot.is_null()) {
+                    running_change_operation = SV::filament_change_operation::load;
                     running_change_message = tips.get<std::string>();
                     running_change_slot = {
                         {SK::running_slot::ams_id,        full_slot.value(SK::filament_slot::ams_id, std::string())},
@@ -506,10 +507,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
                     };
                 }
             } else if (line_state == SV::line_state::unloading && fallback_unloading_tip.empty()) {
-                fallback_unloading_tip = (boost::format(_u8L("Slot %1% filament %2% in progress"))
-                    % full_slot.value(SK::filament_slot::display_index, 0)
-                    % change_op).str();
+                fallback_unloading_tip = (boost::format(_u8L("Slot %1% filament unloading in progress"))
+                    % full_slot.value(SK::filament_slot::display_index, 0)).str();
                 if (running_change_slot.is_null()) {
+                    running_change_operation = SV::filament_change_operation::unload;
                     running_change_message = fallback_unloading_tip;
                     running_change_slot = {
                         {SK::running_slot::ams_id,        full_slot.value(SK::filament_slot::ams_id, std::string())},
