@@ -11,7 +11,7 @@ namespace Slic3r {
 	class GuiTextShape
 	{
 	public:
-        static ExPolygons letter2shapes(wchar_t letter, Point &cursor, FontFileWithCache &font_with_cache, const FontProp &font_prop, fontinfo_opt &font_info_cache);
+        static ExPolygons letter2shapes(char32_t letter, Point &cursor, FontFileWithCache &font_with_cache, const FontProp &font_prop, fontinfo_opt &font_info_cache);
 
 	private:
 	};

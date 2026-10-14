@@ -51,6 +51,8 @@ class BackupFonts
 public:
     static void generate_backup_fonts();
     static Slic3r::Emboss::FontFileWithCache              gener_font_with_cache(const wxString &font_name, const wxFontEncoding& encoding);
+    // Load a backup font packed with the application instead of one installed in the OS.
+    static Slic3r::Emboss::FontFileWithCache              gener_font_with_cache_from_file(const std::string &font_path);
     static std::vector<Slic3r::Emboss::FontFileWithCache> backup_fonts;
 };
 

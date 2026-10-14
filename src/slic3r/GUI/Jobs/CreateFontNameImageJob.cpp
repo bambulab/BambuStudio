@@ -2,6 +2,7 @@
 
 // rasterization of ExPoly
 #include "libslic3r/SLA/AGGRaster.hpp"
+#include "libslic3r/Utils.hpp" // resources_dir
 
 #include "slic3r/Utils/WxFontUtils.hpp"
 #include "slic3r/GUI/3DScene.hpp" // ::glsafe
@@ -201,7 +202,22 @@ void Slic3r::GUI::BackupFonts::generate_backup_fonts() {
          for (int i = 0; i < font_names.size(); i++) {
              backup_fonts.emplace_back(gener_font_with_cache(font_names[i], wxFontEncoding::wxFONTENCODING_SYSTEM));
          }
+         // emoji outlines, last so the fonts above keep priority (OS emoji fonts are bitmap/COLR, nothing to extrude)
+         backup_fonts.emplace_back(gener_font_with_cache_from_file(Slic3r::resources_dir() + "/fonts/Symbola.ttf"));
     }
+}
+
+Slic3r::Emboss::FontFileWithCache Slic3r::GUI::BackupFonts::gener_font_with_cache_from_file(const std::string &font_path)
+{
+    Emboss::FontFileWithCache font_file_with_cache;
+    std::unique_ptr<Emboss::FontFile> font_file = Emboss::create_font_file(font_path.c_str());
+    if (font_file == nullptr) {
+        BOOST_LOG_TRIVIAL(warning) << "Backup font could not be loaded: " << font_path;
+        return font_file_with_cache;
+    }
+
+    font_file_with_cache = Emboss::FontFileWithCache(std::move(font_file));
+    return font_file_with_cache;
 }
 
 Slic3r::Emboss::FontFileWithCache Slic3r::GUI::BackupFonts::gener_font_with_cache(const wxString &font_name, const wxFontEncoding &encoding)
