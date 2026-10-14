@@ -129,6 +129,10 @@ public:
     coordf_t    overlap;
     // in radians, ccw, 0 = East
     float       angle;
+    // Set when angle came from a rotate_template config option: suppresses the default
+    // per-layer 90-degree alternation in _layer_angle() below, so the caller's explicit
+    // per-layer angle is used as-is.
+    bool        fixed_angle{false};
     // In scaled coordinates. Maximum lenght of a perimeter segment connecting two infill lines.
     // Used by the FillRectilinear2, FillGrid2, FillTriangles, FillStars and FillCubic.
     // If left to zero, the links will not be limited.
@@ -180,6 +184,7 @@ public:
         spacing               = f->spacing;
         overlap               = f->overlap;
         angle                 = f->angle;
+        fixed_angle           = f->fixed_angle;
         link_max_length       = f->link_max_length;
         loop_clipping         = f->loop_clipping;
         bounding_box          = f->bounding_box;
