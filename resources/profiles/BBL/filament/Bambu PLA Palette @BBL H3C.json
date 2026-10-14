@@ -43,13 +43,9 @@
         "0",
         "0"
     ],
-    "filament_retraction_distances_when_cut": [
+    "filament_retraction_length": [
         "0.4",
         "0.4"
-    ],
-    "filament_retraction_length": [
-        "0.6",
-        "0.6"
     ],
     "filament_wipe": [
         "1",

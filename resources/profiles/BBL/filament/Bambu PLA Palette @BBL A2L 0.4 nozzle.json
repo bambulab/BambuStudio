@@ -24,7 +24,7 @@
         "18"
     ],
     "filament_retraction_length": [
-        "0.8"
+        "1.2"
     ],
     "filament_wipe": [
         "1"
@@ -42,7 +42,7 @@
         "2"
     ],
     "slow_down_layer_time": [
-        "8"
+        "4"
     ],
     "compatible_printers": [
         "Bambu Lab A2L 0.4 nozzle"
