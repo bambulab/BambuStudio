@@ -37,6 +37,7 @@ public:
 private:
     std::vector<Item> &items;
     size_t             count = 0;
+    bool               has_groups = false; // set by messureSize()
     wxString           group;
     bool               need_sync  = false;
     int                selection  = -1;
