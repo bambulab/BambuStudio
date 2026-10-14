@@ -390,6 +390,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("Auto dynamic flow calibration is not supported for TPU filament.");
             L("Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles.");
             L("When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material.");
+            L("%s is not supported by the current %s hotend. Please confirm the filament type and try again.");
+            L("%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again.");
             L("PPA-CF does not support AMS feeding. Use an external spool instead.");
 
             // Warning in description

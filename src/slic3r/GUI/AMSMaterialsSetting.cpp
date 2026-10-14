@@ -1003,7 +1003,19 @@ sCheckFilamentInfo(PresetBundle* preset_bundle,
         check_info.slot_id = slot_id;
         check_info.extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
 
-        if (check_info.extruder_id == MAIN_EXTRUDER_ID && obj->GetNozzleRack()->IsSupported()) {
+        // A direct connected rack binds every slot to one hotend, so the nozzle resolves per
+        // slot. Other racks let the extruder pick any nozzle, which keeps it unknown.
+        std::optional<DevNozzle> slot_nozzle;
+        if (const auto& rack = obj->GetNozzleRack(); rack && rack->IsDirectConnectedRack()) {
+            if (const auto& tray = obj->get_tray(ams_id, slot_id); tray.has_value()) {
+                slot_nozzle = tray->get_nozzle(obj);
+            }
+        }
+
+        if (slot_nozzle.has_value() && !slot_nozzle->IsEmpty()) {
+            check_info.nozzle_flow = DevNozzle::GetNozzleFlowTypeString(slot_nozzle->GetNozzleFlowType());
+            check_info.nozzle_diameter = slot_nozzle->GetNozzleDiameter();
+        } else if (check_info.extruder_id == MAIN_EXTRUDER_ID && obj->GetNozzleRack()->IsSupported()) {
             ;// the extruder have serval nozzles, do nothing here
         } else {
             check_info.nozzle_flow = obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id));

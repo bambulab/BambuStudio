@@ -67,6 +67,18 @@
       "description": "The current filament doesn't support the TPU high-flow nozzle and can't be used."
     },
     {
+      "white_fila_ids": ["GFU06", "GFU97"],
+      "nozzle_flows": ["TPU285"],
+      "action": "prohibition",
+      "description": "%s is not supported by the current 2.85 mm TPU hotend. Please confirm the filament type and try again."
+    },
+    {
+      "filament_id_vec": ["GFU06", "GFU97"],
+      "nozzle_flows": ["Standard", "High Flow", "TPU High Flow", "E3D High Flow"],
+      "action": "prohibition",
+      "description": "%s is not supported by the current %s hotend. Please confirm the filament type and try again."
+    },
+    {
       "type": "TPU",
       "action": "prohibition",
       "calib_mode": "auto_pa",
@@ -207,7 +219,7 @@
       "model_id": ["N10"],
       "action": "prohibition",
       "slot": "ams",
-      "ams_type_id": [6],
+      "ams_type_id": [1, 2, 3, 4, 5, 6],
       "group": "cf_gf_ams",
       "priority": 2,
       "description": "PPA-CF does not support AMS feeding. Use an external spool instead."
@@ -217,7 +229,7 @@
       "model_id": ["N10"],
       "action": "warning",
       "slot": "ams",
-      "ams_type_id": [6],
+      "ams_type_id": [1, 2, 3, 4, 5, 6],
       "description": "%s filament is brittle. Use AMS feeding with caution."
     },
     {
