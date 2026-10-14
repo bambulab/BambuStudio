@@ -7237,7 +7237,7 @@ bool Tab::select_preset(
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.
 // if the current preset was not dirty, or the user agreed to discard the changes, 1 is returned.
-bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer, ForceOption force_op, bool allow_save)
+bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr*/, const std::string& new_printer_name /*= ""*/, bool no_transfer, ForceOption force_op)
 {
     if (presets == nullptr) presets = m_presets;
 
@@ -7258,7 +7258,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     } searcher_mode_guard;
     wxGetApp().sidebar().update_searcher(comDevelop);
 
-    UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer, allow_save);
+    UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer);
 
     auto handle_save_action = [&dlg, this, presets]() {
         const std::vector<std::string>& unselected_options = dlg.get_unselected_options(presets->type());

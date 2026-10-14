@@ -928,7 +928,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, bool no_transfer, bool allow_save)
+UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, bool no_transfer)
     : m_new_selected_preset_name(new_selected_preset)
     , DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
@@ -944,7 +944,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
 {
     if (new_selected_preset.empty() || no_transfer)
         m_buttons &= ~ActionButtons::TRANSFER;
-    if (!allow_save && dependent_presets && (dependent_presets->type() == Preset::Type::TYPE_PRINT || !dependent_presets->find_preset(new_selected_preset)))
+    if (dependent_presets && (dependent_presets->type() == Preset::Type::TYPE_PRINT || !dependent_presets->find_preset(new_selected_preset)))
         m_buttons &= ~ActionButtons::SAVE;
     build(type, dependent_presets, new_selected_preset);
     this->CenterOnScreen();

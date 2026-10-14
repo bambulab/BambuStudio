@@ -2086,30 +2086,24 @@ static void reload_print_tab_from_edited_preset()
     }
 }
 
-// Turning the mode on from a non-canonical single-diameter printer moves the project onto the canonical
-// printer variant, which the edited process was not tuned for. Its unsaved edits are saved or dropped
-// first instead of being offered for transfer (or silently transferred by auto_transfer_when_switch_preset).
-// Returns false when the user cancels.
-static bool save_or_discard_process_before_multi_nozzle_mode()
+// Unsaved process edits only carry over into multi-diameter mode when it is turned on from the canonical
+// printer variant and auto_transfer_when_switch_preset is enabled. Otherwise they are dropped silently
+// before the switch: from a non-canonical variant the process was tuned for another nozzle, and leaving
+// them to the printer switch would offer them for transfer.
+static void discard_process_edits_before_multi_nozzle_mode()
 {
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle->prints.current_is_dirty())
-        return true;
+        return;
     const Preset *base = preset_bundle->printers.get_preset_base(preset_bundle->printers.get_edited_preset());
-    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config) ||
-        base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant())
-        return true;
+    if (base == nullptr || !base->is_system || !is_single_ext_multi_nozzle(base->config))
+        return;
+    if (base->config.opt_string("printer_variant") == canonical_multi_nozzle_printer_variant() &&
+        wxGetApp().app_config->get("auto_transfer_when_switch_preset") == "true")
+        return;
 
-    Tab *print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
-    if (print_tab == nullptr)
-        return true;
-    if (!print_tab->may_discard_current_dirty_preset(nullptr, "", true, ForceOption::fopNone, true))
-        return false;
-    if (preset_bundle->prints.current_is_dirty()) {
-        preset_bundle->prints.discard_current_changes();
-        reload_print_tab_from_edited_preset();
-    }
-    return true;
+    preset_bundle->prints.discard_current_changes();
+    reload_print_tab_from_edited_preset();
 }
 
 // Auto options keep their single-diameter edits out of the multi-diameter process: there they are
@@ -2167,8 +2161,7 @@ bool Sidebar::priv::apply_multi_nozzle_diameter_mode(bool enabled)
         return true;
 
     if (enabled) {
-        if (!save_or_discard_process_before_multi_nozzle_mode())
-            return false;
+        discard_process_edits_before_multi_nozzle_mode();
         // Capture the return point before select_preset() moves the project onto the canonical printer.
         const std::string preset_before = wxGetApp().preset_bundle->printers.get_edited_preset().name;
         if (!select_printer_preset_for_multi_nozzle_mode(true))
