@@ -334,3 +334,5 @@ src/slic3r/GUI/Jobs/PlaterWorker.hpp
 src/slic3r/GUI/CreateFilamentWebDialog.cpp
 src/slic3r/GUI/ExtruderPanel.cpp
 src/slic3r/GUI/ExtruderPanel.hpp
+src/slic3r/GUI/Widgets/NozzleSettingsCardDialog.cpp
+src/slic3r/GUI/FilamentNozzlePopup.cpp
