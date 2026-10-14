@@ -221,10 +221,28 @@ private:
 
     size_t    m_items_count { size_t(-1) };
 
+#ifdef __WXGTK__
+    bool      m_ensure_visible_pending { false };
+#endif
+
     inline void ensure_current_item_visible()
     {
+#ifdef __WXGTK__
+        // wxGTK keeps the raw item for EnsureVisible() until idle time, but the caller (e.g. arrange
+        // via update_selections()) may delete it before then (reload_all_plates()), so the idle
+        // handler dereferences a freed node. Look up the current item only once the handler is done.
+        if (m_ensure_visible_pending)
+            return;
+        m_ensure_visible_pending = true;
+        this->CallAfter([this]() {
+            m_ensure_visible_pending = false;
+            if (const auto &item = this->GetCurrentItem())
+                this->EnsureVisible(item);
+        });
+#else
         if (const auto &item = this->GetCurrentItem())
             this->EnsureVisible(item);
+#endif
     }
 
 public:
