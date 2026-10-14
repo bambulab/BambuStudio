@@ -353,6 +353,8 @@ public:
     void render_notifications(GLCanvas3D &canvas, float overlay_width, float bottom_margin, float right_margin);
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
+    // Closes the notifications of type whose text matches none of keep_texts (compared like compare_text()).
+    void close_notifications_of_type_except(const NotificationType type, const std::vector<std::string> &keep_texts);
     void remove_notification_of_type(const NotificationType type, bool remove_all = false);
     bool has_notification_of_type(const NotificationType type);
     void clear_all();
@@ -950,7 +952,8 @@ private:
 		NotificationType::PlaterWarning,
 		NotificationType::ProgressBar,
 		NotificationType::PrintHostUpload,
-        NotificationType::SimplifySuggestion
+        NotificationType::SimplifySuggestion,
+        NotificationType::ValidateWarning
 	};
 	//prepared (basic) notifications
 	// non-static so its not loaded too early. If static, the translations wont load correctly.

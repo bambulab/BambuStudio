@@ -2212,6 +2212,17 @@ void NotificationManager::close_notification_of_type(const NotificationType type
 	}
 }
 
+void NotificationManager::close_notifications_of_type_except(const NotificationType type, const std::vector<std::string> &keep_texts)
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() != type || notification->is_finished())
+            continue;
+        bool keep = std::any_of(keep_texts.begin(), keep_texts.end(), [&notification](const std::string &text) { return notification->compare_text(text); });
+        if (!keep)
+            notification->close();
+    }
+}
+
 void NotificationManager::close_and_delete_self(PopNotification * self)
 {
     for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
@@ -2646,7 +2657,7 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 		if (ui_ready) { // ignore update action until both notification manager and GUI/ImGui are ready
 			// SlicingWarning duplicates are suppressed in activate_existing(): one notification
 			// per warning category; the jump-to hyperlink can only target one object.
-			// The single ValidateWarning slot is shared by warnings of different levels.
+			// ValidateWarning entries are matched by text, the level is refreshed together with it.
 			if (notification->get_type() != NotificationType::SlicingWarning)
                 m_pop_notifications.back()->update(notification->get_data(), notification->get_type() == NotificationType::ValidateWarning);
 		}

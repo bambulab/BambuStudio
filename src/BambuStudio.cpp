@@ -7226,10 +7226,16 @@ int CLI::run(int argc, char **argv)
                         add_plate_other(apply_begin_time);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
-                        StringObjectException warning;
+                        std::vector<StringObjectException> warnings;
                         const long long validate_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
-                        auto err = print->validate(&warning);
+                        auto err = print->validate(&warnings);
                         add_plate_other(validate_begin_time);
+                        StringObjectException warning;
+                        for (const StringObjectException &item : warnings) {
+                            if (!warning.string.empty() && warning.string.back() != '\n')
+                                warning.string += "\n";
+                            warning.string += item.string;
+                        }
                         if (!err.string.empty()) {
                             if ((STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT == err.type) && no_check) {
                                 BOOST_LOG_TRIVIAL(warning) << "got warnings: "<< err.string << std::endl;

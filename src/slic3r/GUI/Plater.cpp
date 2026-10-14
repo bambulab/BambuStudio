@@ -10196,7 +10196,8 @@ public:
         if (m_single == single) m_single = nullptr;
     }
 
-    void process_validation_warning(StringObjectException const &warning) const;
+    void process_validation_warnings(std::vector<StringObjectException> const &warnings) const;
+    std::string push_validation_warning(StringObjectException const &warning) const;
 
     bool background_processing_enabled() const {
 #ifdef SUPPORT_BACKGROUND_PROCESSING
@@ -14584,10 +14585,34 @@ void Plater::priv::update_print_volume_state()
     this->model.update_print_volume_state(build_volume);
 }
 
-void Plater::priv::process_validation_warning(StringObjectException const &warning) const
+static std::string join_validation_warnings(std::vector<StringObjectException> const &warnings)
+{
+    std::string joined;
+    for (const StringObjectException &warning : warnings) {
+        if (!joined.empty())
+            joined += " | ";
+        joined += warning.string;
+    }
+    return joined;
+}
+
+// Every validation warning gets its own notification; the ones not reported this time are closed.
+void Plater::priv::process_validation_warnings(std::vector<StringObjectException> const &warnings) const
+{
+    std::vector<std::string> shown_texts;
+    for (const StringObjectException &warning : warnings) {
+        std::string text = push_validation_warning(warning);
+        if (!text.empty())
+            shown_texts.push_back(text);
+    }
+    notification_manager->close_notifications_of_type_except(NotificationType::ValidateWarning, shown_texts);
+}
+
+// Returns the text the notification is shown with, empty if nothing was pushed.
+std::string Plater::priv::push_validation_warning(StringObjectException const &warning) const
 {
     if (warning.string.empty())
-        notification_manager->close_notification_of_type(NotificationType::ValidateWarning);
+        return {};
     else {
         std::string text = warning.string;
         auto po = dynamic_cast<PrintObjectBase const *>(warning.object);
@@ -14626,7 +14651,8 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
                     wxGetApp().app_config->save();
                     return true;
                 });
-            return;
+            // Keep in sync with the prefix added by push_validate_serious_warning_notification().
+            return _u8L("Serious warning:") + "\n" + text;
         }
 
         std::string hypertext;
@@ -14656,11 +14682,13 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
         //    };
         //}
 
+        std::string shown_text = _u8L("WARNING:") + "\n" + text;
         notification_manager->push_notification(
             NotificationType::ValidateWarning,
             NotificationManager::NotificationLevel::WarningNotificationLevel,
-            _u8L("WARNING:") + "\n" + text, hypertext, action_fn
+            shown_text, hypertext, action_fn
         );
+        return shown_text;
     }
 }
 
@@ -14822,14 +14850,14 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         // The state of the Print changed, and it is non-zero. Let's validate it and give the user feedback on errors.
 
         //BBS: add is_warning logic
-        StringObjectException warning;
+        std::vector<StringObjectException> warnings;
         //BBS: refine seq-print logic
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
-        StringObjectException err = background_process.validate(&warning, &polygons, &height_polygons);
+        StringObjectException err = background_process.validate(&warnings, &polygons, &height_polygons);
         // update string by type
         q->post_process_string_object_exception(err);
-        BOOST_LOG_TRIVIAL(info) << boost::format("validate err=%1%, warning=%2%")%err.string%warning.string;
+        BOOST_LOG_TRIVIAL(info) << boost::format("validate err=%1%, warning=%2%")%err.string%join_validation_warnings(warnings);
 
         if (err.string.empty()) {
             this->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
@@ -14840,9 +14868,9 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
 
-            // Pass a warning from validation and either show a notification,
-            // or hide the old one.
-            process_validation_warning(warning);
+            // Pass the warnings from validation and either show notifications,
+            // or hide the old ones.
+            process_validation_warnings(warnings);
             if (printer_technology == ptFFF) {
                 view3D->get_canvas3d()->reset_sequential_print_clearance();
                 view3D->get_canvas3d()->set_as_dirty();
@@ -14855,7 +14883,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             // Show error as notification.
             notification_manager->push_validate_error_notification(err);
             //also update the warnings
-            process_validation_warning(warning);
+            process_validation_warnings(warnings);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
             if (printer_technology == ptFFF) {
                 const Print* print = background_process.fff_print();
@@ -14876,7 +14904,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     //actualizate warnings
     if (invalidated != Print::APPLY_STATUS_UNCHANGED || background_process.empty()) {
         if (background_process.empty())
-            process_validation_warning({});
+            process_validation_warnings({});
         actualize_slicing_warnings(*this->background_process.current_print());
         actualize_object_warnings(*this->background_process.current_print());
         show_warning_dialog = false;
@@ -30436,15 +30464,15 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
     if (p->printer_technology == ptFFF) {
         //std::string plater_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
         //            "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");;
-        StringObjectException warning;
+        std::vector<StringObjectException> warnings;
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
         p->background_process.fff_print()->set_show_high_temp_filament_warning(wxGetApp().app_config->get("no_warn_high_temp_filament") != "true");
         p->background_process.fff_print()->set_disable_fins_extrude_safe_temp(wxGetApp().app_config->get("disable_fins_extrude_safe_temp") == "true");
-        StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
+        StringObjectException err = p->background_process.validate(&warnings, &polygons, &height_polygons);
         // update string by type
         post_process_string_object_exception(err);
-        BOOST_LOG_TRIVIAL(info) << boost::format("validate err=%1%, warning=%2%, model_fits %3%")%err.string%warning.string %model_fits;
+        BOOST_LOG_TRIVIAL(info) << boost::format("validate err=%1%, warning=%2%, model_fits %3%")%err.string%join_validation_warnings(warnings) %model_fits;
 
         if (err.string.empty()) {
             p->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
@@ -30452,9 +30480,9 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
             p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
             p->notification_manager->bbl_close_3mf_warn_notification();
 
-            // Pass a warning from validation and either show a notification,
-            // or hide the old one.
-            p->process_validation_warning(warning);
+            // Pass the warnings from validation and either show notifications,
+            // or hide the old ones.
+            p->process_validation_warnings(warnings);
             p->view3D->get_canvas3d()->reset_sequential_print_clearance();
             p->view3D->get_canvas3d()->set_as_dirty();
             p->view3D->get_canvas3d()->request_extra_frame();
@@ -30464,7 +30492,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
             p->partplate_list.get_curr_plate()->update_apply_result_invalid(true);
             // Show error as notification.
             p->notification_manager->push_validate_error_notification(err);
-            p->process_validation_warning(warning);
+            p->process_validation_warnings(warnings);
             //model_fits = false;
             validate_error = true;
             p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);

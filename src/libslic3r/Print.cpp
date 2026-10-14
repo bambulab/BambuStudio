@@ -1021,7 +1021,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 }
 
 //BBS
-static StringObjectException layered_print_cleareance_valid(const Print &print, StringObjectException *warning)
+static StringObjectException layered_print_cleareance_valid(const Print &print, std::vector<StringObjectException> *warnings)
 {
     std::vector<const PrintInstance*> print_instances_ordered = sort_object_instances_by_model_order(print, true);
     if (print_instances_ordered.size() < 1)
@@ -1121,11 +1121,11 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
             convex_hulls_temp = offset(convex_hulls_temp, float(scaled(side_scrape_margin)));
     }
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
-        if (warning) {
-            // the high-temp filament warning may already be in the slot, keep the two on separate lines
-            if (!warning->string.empty() && warning->string.back() != '\n')
-                warning->string += "\n";
-            warning->string += L("Prime Tower") + L(" is too close to others, and collisions may be caused.\n");
+        if (warnings) {
+            StringObjectException warningtemp;
+            warningtemp.string     = L("Prime Tower") + L(" is too close to others, and collisions may be caused.\n");
+            warningtemp.is_warning = true;
+            warnings->push_back(std::move(warningtemp));
         }
     }
     if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
@@ -1329,8 +1329,8 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
 }
 
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
-//BBS: refine seq-print validation logic.....FIXME:StringObjectException *warning can only contain one warning, but there might be many warnings, need a vector<StringObjectException>
-StringObjectException Print::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
+//BBS: refine seq-print validation logic
+StringObjectException Print::validate(std::vector<StringObjectException> *warnings, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
 {
     std::vector<unsigned int> extruders = this->extruders();
 
@@ -1340,11 +1340,11 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
 
-    if (warning != nullptr) {
+    if (warnings != nullptr) {
         auto ret = check_multi_filament_valid(*this);
         if (!ret.string.empty()) {
             ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
-            *warning = ret;
+            warnings->push_back(std::move(ret));
         }
     }
 
@@ -1368,7 +1368,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     }
     else {
         //BBS
-        auto ret = layered_print_cleareance_valid(*this, warning);
+        auto ret = layered_print_cleareance_valid(*this, warnings);
         if (!ret.string.empty()) {
             ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT;
             return ret;
@@ -1387,13 +1387,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
     if (m_config.enable_prime_tower) {
     } else {
-        if (m_config.enable_wrapping_detection && warning!=nullptr) {
+        if (m_config.enable_wrapping_detection && warnings!=nullptr) {
             StringObjectException warningtemp;
             warningtemp.string     = L("Prime tower is required for clumping detection; otherwise, there may be flaws on the model.");
             warningtemp.opt_key    = "enable_prime_tower";
             warningtemp.is_warning = true;
             warningtemp.hypetext   = L("Jump to: Prime tower");
-            *warning               = warningtemp;
+            warnings->push_back(std::move(warningtemp));
         }
     }
 
@@ -1462,24 +1462,18 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         // Different nozzle diameters are supported by the prime tower's per-filament extrusion planning.
-        // The high-temp filament reminder must stay visible together with its own links, so the nozzle
-        // diameter warning is appended to it instead of replacing it.
-        auto set_nozzle_diameter_warning = [warning](const std::string &text) {
-            if (warning->hypetext == "filament_mix_print") {
-                if (!warning->string.empty() && warning->string.back() != '\n')
-                    warning->string += "\n";
-                warning->string += text;
-                return;
-            }
-            warning->string     = text;
-            warning->is_warning = true;
+        auto set_nozzle_diameter_warning = [warnings](const std::string &text) {
+            StringObjectException warningtemp;
+            warningtemp.string     = text;
+            warningtemp.is_warning = true;
+            warnings->push_back(std::move(warningtemp));
         };
 
         double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders.front());
         for (const auto& extruder_idx : extruders) {
             double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
             if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam) {
-                if (warning) {
+                if (warnings) {
                     set_nozzle_diameter_warning(L("Printing with different nozzle diameters and prime tower is experimental. "
                                                   "The prime tower may not work correctly with mismatched nozzle sizes."));
                 }
@@ -1607,7 +1601,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         // 与同时勾选 precise_z_height + 料塔时弹出的确认框保持同一口径：只要全局或对象级开启了
         // precise_z_height，无论盘上有几个对象都要给出警告，不依赖上面那段 Z 序列比对
         //（它要求多对象且带手工层高数据，而单个对象的顶部层同样会被改写）。
-        if (warning != nullptr) {
+        if (warnings != nullptr) {
             for (const PrintObject *object : m_objects)
                 if (object->config().precise_z_height.value) {
                     StringObjectException warningtemp;
@@ -1616,7 +1610,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     warningtemp.opt_key    = "precise_z_height";
                     warningtemp.is_warning = true;
                     warningtemp.hypetext   = L("Jump to: Precise Z height");
-                    *warning               = warningtemp;
+                    warnings->push_back(std::move(warningtemp));
                     break;
                 }
         }
@@ -1664,6 +1658,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 			}
 			return true;
 		};
+        // One entry is enough for the enforcer warning, the text is identical for every object.
+        bool support_enforcer_warned = false;
         for (PrintObject *object : m_objects) {
             if (object->has_support_material()) {
                 // BBS: remove useless logics and L()
@@ -1688,7 +1684,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
             // Do we have custom support data that would not be used?
             // Notify the user in that case.
-            if (! object->has_support() && warning) {
+            if (! object->has_support() && warnings && ! support_enforcer_warned) {
                 for (const ModelVolume* mv : object->model_object()->volumes) {
                     bool has_enforcers = mv->is_support_enforcer() ||
                         (mv->is_model_part() && mv->supported_facets.has_facets(*mv, EnforcerBlockerType::ENFORCER));
@@ -1696,7 +1692,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         StringObjectException warningtemp;
                         warningtemp.string = L("Support enforcers are used but support is not enabled. Please enable support.");
                         warningtemp.object  = object;
-                        *warning            = warningtemp;
+                        warnings->push_back(std::move(warningtemp));
+                        support_enforcer_warned = true;
                         break;
                     }
                 }
@@ -1762,13 +1759,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
 		// check wall sequence and precise outer wall
 		if (m_default_region_config.precise_outer_wall && m_default_region_config.wall_sequence != WallSequence::InnerOuter)
-		if (warning != nullptr)
+		if (warnings != nullptr)
 		{
-			// assign the whole object, otherwise the hypetext of an earlier warning (e.g. the high-temp filament one) would be kept
 			StringObjectException warningtemp;
 			warningtemp.string  = L("Precise outer wall will be ignored unless the order of walls is set to inner/outer");
 			warningtemp.opt_key = "precise_outer_wall";
-			*warning            = warningtemp;
+			warnings->push_back(std::move(warningtemp));
 		}
     }
 
