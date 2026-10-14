@@ -39,6 +39,8 @@ class StaticBox;
 namespace Slic3r {
 namespace GUI {
 
+class AdvancedModeTip;
+
 ///////////////////////////////////////////////////////////////////////////
 
 class TipsDialog : public DPIDialog
@@ -88,6 +90,7 @@ class ParamsPanel : public wxPanel
         bool m_tips_arror_blink{false};
         wxStaticText* m_title_view { nullptr };
         SwitchButton* m_mode_view { nullptr };
+        AdvancedModeTip* m_advanced_mode_tip { nullptr };
         //wxBitmapButton* m_search_button { nullptr };
         wxStaticLine* m_staticline_print { nullptr };
         //wxBoxSizer* m_print_sizer { nullptr };

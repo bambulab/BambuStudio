@@ -18,6 +18,7 @@
 #include "Widgets/Button.hpp"
 #include "GUI_Factories.hpp"
 #include "libslic3r/Log.hpp"
+#include "AdvancedModeTip.hpp"
 
 
 namespace Slic3r {
@@ -297,6 +298,30 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
         m_title_view = new Label(m_top_panel, _L("Advance"));
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
+
+        m_advanced_mode_tip = new AdvancedModeTip(m_top_panel);
+        auto show_advanced_mode_tip = [this]() {
+            // Left edge anchored at the switch itself (not the label), with a small
+            // gap below it; it's a floating popup, not clipped to the panel, so
+            // it's fine for it to spill over into the 3D view to the right.
+            wxPoint anchor = m_mode_view->ClientToScreen(wxPoint(0, m_mode_view->GetSize().GetHeight() + FromDIP(2)));
+            m_advanced_mode_tip->ShowTip(anchor);
+        };
+        // No hide-on-leave: once shown, the card is a wxPopupTransientWindow with
+        // wxPU_CONTAINS_CONTROLS, so it stays open — including while the mouse is
+        // over its own link — until the user clicks anywhere outside it.
+        m_mode_view->Bind(wxEVT_ENTER_WINDOW, [show_advanced_mode_tip](wxMouseEvent &e) { show_advanced_mode_tip(); e.Skip(); });
+        // When Develop mode (update_mode()) disables the switch, it stops being hit-test
+        // target for the OS and its own ENTER event goes silent; the mouse motion lands
+        // on m_top_panel instead, so cover that case with an explicit rect test.
+        m_top_panel->Bind(wxEVT_MOTION, [this, show_advanced_mode_tip](wxMouseEvent &e) {
+            if (!m_mode_view->IsEnabled()) {
+                wxRect switch_rect(m_mode_view->GetPosition(), m_mode_view->GetSize());
+                if (switch_rect.Contains(e.GetPosition()))
+                    show_advanced_mode_tip();
+            }
+            e.Skip();
+        });
 
         // BBS: new layout
         //m_search_btn = new ScalableButton(m_top_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
@@ -831,6 +856,12 @@ void ParamsPanel::delete_subwindows()
     {
         delete m_title_view;
         m_title_view = nullptr;
+    }
+
+    if (m_advanced_mode_tip)
+    {
+        delete m_advanced_mode_tip;
+        m_advanced_mode_tip = nullptr;
     }
 
     if (m_search_btn)

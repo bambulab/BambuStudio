@@ -830,9 +830,10 @@ function UpdateWizardFinishBtnLabel() {
     if (!isWizard) return;
     var acceptBtn = document.getElementById('AcceptBtn');
     if (!acceptBtn) return;
-    var needNetPlugin = m_ProfileItem && (m_ProfileItem["network_plugin_install"] != '1' ||
-        (m_ProfileItem["network_plugin_install"] == '1' && m_ProfileItem["network_plugin_compability"] == '0'));
-    var tid = needNetPlugin ? 't9' : 't25';
+    // This page never finishes the wizard directly anymore: it always moves on
+    // to either guide/5 (network plugin) or guide/7 (completion page), so the
+    // button always reads "Next" here, never "Finish".
+    var tid = 't9';
     acceptBtn.setAttribute('tid', tid);
     // Translate just this button, not the whole page: calling TranslatePage()
     // here would also re-stamp #filterResultText (tid t241) with its static
@@ -840,7 +841,7 @@ function UpdateWizardFinishBtnLabel() {
     // just computed.
     var lang = localStorage.getItem('BambuWebLang') || 'en';
     if (!LangText.hasOwnProperty(lang)) lang = 'en';
-    var text = (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || (tid === 't9' ? 'Next' : 'Finish');
+    var text = (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || 'Next';
     acceptBtn.textContent = text;
     acceptBtn.style.visibility = 'visible';
 }
@@ -848,16 +849,15 @@ function UpdateWizardFinishBtnLabel() {
 function ConfirmSelectWizard() {
     var bRet = ResponseFilamentResult();
     if (!bRet) return;
+    // Carry the language forward explicitly instead of relying solely on
+    // localStorage, which the next page would otherwise have to fall back on.
+    var lang = GetQueryString('lang') || localStorage.getItem(LANG_COOKIE_NAME);
+    var langParam = lang ? ('?lang=' + lang) : '';
     if (m_ProfileItem && (m_ProfileItem["network_plugin_install"] != '1' ||
         (m_ProfileItem["network_plugin_install"] == '1' && m_ProfileItem["network_plugin_compability"] == '0'))) {
-        window.open('../5/index.html', '_self');
+        window.open('../5/index.html' + langParam, '_self');
     } else {
-        var tSend = {};
-        tSend['sequence_id'] = Math.round(new Date() / 1000);
-        tSend['command'] = "user_guide_finish";
-        tSend['data'] = {};
-        tSend['data']['action'] = "finish";
-        SendWXMessage(JSON.stringify(tSend));
+        window.open('../7/index.html' + langParam, '_self');
     }
 }
 

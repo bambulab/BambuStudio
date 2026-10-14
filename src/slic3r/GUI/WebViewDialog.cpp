@@ -2437,6 +2437,11 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         SetWebviewShow("wiki", false);
 
     } else if (modelname.compare("manual") == 0){
+        if (NetworkAgent *agent = GUI::wxGetApp().getAgent()) {
+            json j = json::object();
+            agent->track_event("homepage_learning_click", j.dump());
+        }
+
         wxString wikiUrl = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
         wxString wiki_region_param;
         if (!m_Region.empty())

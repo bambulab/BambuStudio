@@ -655,6 +655,18 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 
             wxLaunchDefaultBrowser(strUrl);
         }
+        else if (strCmd == "user_guide_academy_click")
+        {
+            std::string strUrl = j["url"];
+
+            if (NetworkAgent *agent = wxGetApp().getAgent()) {
+                json jt;
+                jt["url"] = strUrl;
+                agent->track_event("setup_wizard_academy_click", jt.dump());
+            }
+
+            wxLaunchDefaultBrowser(strUrl);
+        }
         else if (strCmd == "show_ux_program_terms")
         {
             wxGetApp().CallAfter([this] {
