@@ -42,6 +42,8 @@
 #include "MsgDialog.hpp"
 #include "ParamsDialog.hpp"
 #include "FilamentPickerDialog.hpp"
+#include "FilamentSelectDialog.hpp"
+#include "fila_manager/wgtFilaManagerStore.h"
 #include "wxExtensions.hpp"
 
 #include "DeviceCore/DevManager.h"
@@ -969,6 +971,10 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
         evt.StopPropagation();
         if (marker == LABEL_ITEM_MARKER || marker == LABEL_ITEM_DISABLED)
             return;
+        if (marker == LABEL_ITEM_FILAMENT_MANAGER) {
+            wxTheApp->CallAfter([this]() { open_filament_manager_picker(); });
+            return;
+        }
         //if (marker == LABEL_ITEM_WIZARD_PRINTERS)
         //    show_add_menu();
         //else {
@@ -989,6 +995,113 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
     }
 
     evt.Skip();
+}
+
+void PlaterPresetComboBox::open_filament_manager_picker()
+{
+    if (m_type != Preset::TYPE_FILAMENT || !m_collection || !m_preset_bundle)
+        return;
+
+    // Build the same (alias -> vendor/type) picker data PlaterPresetComboBox::update()
+    // uses for its System presets bucket, so the "System Presets" tab of the dialog
+    // stays consistent with what this combo would normally offer.
+    wxArrayString                           filament_items;
+    std::unordered_map<wxString, wxString>  vendors;
+    std::unordered_map<wxString, wxString>  types;
+    for (const Preset& preset : m_collection->get_presets()) {
+        if (!preset.is_system || !preset.is_visible)
+            continue;
+        wxString name = get_preset_name(preset);
+        if (filament_items.Index(name) != wxNOT_FOUND)
+            continue;
+        filament_items.Add(name);
+        if (auto* fv = preset.config.option<ConfigOptionStrings>("filament_vendor"); fv && !fv->values.empty())
+            vendors[name] = wxString::FromUTF8(fv->values[0]);
+        if (auto* ft = preset.config.option<ConfigOptionStrings>("filament_type"); ft && !ft->values.empty())
+            types[name] = wxString::FromUTF8(ft->values[0]);
+    }
+
+    wxString current_alias;
+    if (m_filament_idx >= 0 && (size_t)m_filament_idx < m_preset_bundle->filament_presets.size()) {
+        const std::string& current_name = m_preset_bundle->filament_presets[m_filament_idx];
+        if (const Preset* cur = m_collection->find_preset(current_name, false))
+            current_alias = get_preset_name(*cur);
+    }
+
+    const std::string      printer_name = m_preset_bundle->printers.get_edited_preset().name;
+    std::set<std::string>  printer_names{ printer_name };
+
+    FilamentSelectDialog dlg(this);
+    dlg.Popup(filament_items, vendors, types, current_alias, printer_names);
+
+    const auto& res = dlg.get_result();
+    if (!res.is_valid())
+        return;
+
+    std::string preset_name;
+    wgtFilaManagerStore*  store = nullptr;
+    if (!res.spool_id.empty()) {
+        store = wxGetApp().fila_manager_store();
+        const FilamentSpool* sp = store ? store->get_spool(res.spool_id) : nullptr;
+        if (!sp || (sp->filament_id.empty() && sp->preset_name.empty())) {
+            wxMessageBox(_L("This spool isn't linked to a filament profile yet. "
+                             "Add one from the Filament Manager, then try again."),
+                         _L("Filament Manager"), wxOK | wxICON_INFORMATION, this);
+            return;
+        }
+        // Prefer the exact preset this spool was last paired with (which may carry
+        // spool-specific tweaks, e.g. a nozzle temp or scarf setting saved under a
+        // modified/user preset name) over the generic filament_id lookup, which only
+        // ever resolves to today's default preset for that filament type and would
+        // silently discard any such customization.
+        if (!sp->preset_name.empty()) {
+            if (const Preset* remembered = m_collection->find_preset(sp->preset_name, false);
+                remembered && remembered->is_compatible)
+                preset_name = remembered->name;
+        }
+        if (preset_name.empty() && !sp->filament_id.empty()) {
+            auto info = m_preset_bundle->get_filament_by_filament_id(sp->filament_id, printer_name);
+            if (info)
+                preset_name = m_preset_bundle->get_preset_name_by_alias(Preset::TYPE_FILAMENT, info->filament_name);
+        }
+        if (preset_name.empty()) {
+            wxMessageBox(_L("No filament profile compatible with the current printer was found for this spool."),
+                         _L("Filament Manager"), wxOK | wxICON_INFORMATION, this);
+            return;
+        }
+    } else {
+        preset_name = m_preset_bundle->get_preset_name_by_alias(Preset::TYPE_FILAMENT,
+            Preset::remove_suffix_modified(res.preset_alias.ToUTF8().data()));
+    }
+    if (preset_name.empty() || m_filament_idx < 0)
+        return;
+
+    // Mirrors Plater::priv::on_select_preset()'s filament-apply path so this behaves
+    // identically to picking a normal item from the dropdown.
+    const std::string old_name = m_preset_bundle->filaments.get_edited_preset().name;
+    m_preset_bundle->set_filament_preset((size_t)m_filament_idx, preset_name);
+    Plater* plater = wxGetApp().plater();
+    bool applied = true;
+    if (plater && !plater->on_filament_change((size_t)m_filament_idx)) {
+        m_preset_bundle->set_filament_preset((size_t)m_filament_idx, old_name);
+        applied = false;
+    }
+    if (plater)
+        plater->update_project_dirty_from_presets();
+    m_preset_bundle->export_selections(*wxGetApp().app_config);
+
+    // Remember whatever preset actually ended up applied (including any tweak the
+    // user makes afterwards and re-picks this same spool for) so the next time this
+    // spool is chosen here, its own last-used preset comes back rather than the
+    // generic default for its filament type.
+    if (applied && store && !res.spool_id.empty()) {
+        if (const FilamentSpool* sp = store->get_spool(res.spool_id); sp && sp->preset_name != preset_name) {
+            FilamentSpool updated = *sp;
+            updated.preset_name   = preset_name;
+            store->update_spool_if_changed(updated);
+        }
+    }
+    this->update();
 }
 
 void PlaterPresetComboBox::update_badge_according_flag() {
@@ -1415,8 +1528,17 @@ void PlaterPresetComboBox::update()
         wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
         assert(bmp);
 
-        if (m_type == Preset::TYPE_FILAMENT)
+        if (m_type == Preset::TYPE_FILAMENT) {
             set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
+            // The AMS tray settings dialog already offers a "Filament Manager" tab
+            // (FilamentSelectDialog) for recalling a previously-used spool profile,
+            // but this slicing-preset combo had no path to it at all, so a saved
+            // third-party spool (no RFID, never auto-detected) was unreachable from
+            // here. Surface the same picker here when the Filament Manager has any
+            // stored spools to offer.
+            if (wxGetApp().fila_manager_store())
+                set_label_marker(Append(separator(L("Choose from Filament Manager...")), *bmp), LABEL_ITEM_FILAMENT_MANAGER);
+        }
         else if (m_type == Preset::TYPE_SLA_MATERIAL)
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
         else {
