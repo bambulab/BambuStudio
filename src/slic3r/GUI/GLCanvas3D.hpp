@@ -208,6 +208,8 @@ wxDECLARE_EVENT(EVT_CUSTOMEVT_TICKSCHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_RESET_LAYER_HEIGHT_PROFILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, Event<float>);
 wxDECLARE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_COPY_LAYER_HEIGHT_PROFILE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_PASTE_LAYER_HEIGHT_PROFILE, SimpleEvent);
 
 class GLCanvas3D
 {
@@ -251,6 +253,9 @@ class GLCanvas3D
         // Owned by LayersEditing.
         SlicingParameters* m_slicing_parameters{ nullptr };
         std::vector<double>         m_layer_height_profile;
+        // Survives across select_object() calls (it's not per-object state), so "Copy" on one
+        // object and "Paste" on a different one works.
+        std::vector<double>         m_copied_layer_height_profile;
 
         mutable float               m_adaptive_quality{ 0.5f };
         mutable HeightProfileSmoothingParams m_smooth_params;
@@ -314,6 +319,15 @@ class GLCanvas3D
         void reset_layer_height_profile(GLCanvas3D& canvas);
         void adaptive_layer_height_profile(GLCanvas3D& canvas, float quality_factor);
         void smooth_layer_height_profile(GLCanvas3D& canvas, const HeightProfileSmoothingParams& smoothing_params);
+        // Copy this object's current (working) height profile into a buffer, and paste that
+        // buffer onto whatever object is selected when paste is invoked - lets a purge/sacrificial
+        // object pick up a main object's variable layer height without merging them into one
+        // multi-part object. If the target's own height doesn't match the copied profile's,
+        // PrintObject::update_layer_height_profile()'s existing validation silently falls back to
+        // a flat profile for it, same as it already does for any other stale/incompatible profile.
+        void copy_layer_height_profile();
+        void paste_layer_height_profile(GLCanvas3D& canvas);
+        bool has_copied_layer_height_profile() const { return ! m_copied_layer_height_profile.empty(); }
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
@@ -980,6 +994,8 @@ public:
     void reset_layer_height_profile();
     void adaptive_layer_height_profile(float quality_factor);
     void smooth_layer_height_profile(const HeightProfileSmoothingParams& smoothing_params);
+    void copy_layer_height_profile();
+    void paste_layer_height_profile();
 
     bool is_reload_delayed() const;
 
