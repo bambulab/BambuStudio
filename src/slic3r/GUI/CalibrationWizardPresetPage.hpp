@@ -234,8 +234,8 @@ public:
     }
 
     Preset* get_printer_preset(MachineObject* obj, float nozzle_value);
-    Preset* get_print_preset();
-    std::string get_print_preset_name();
+    Preset* get_print_preset(int extruder_id);
+    std::string get_print_preset_name(int extruder_id);
 
     wxArrayString get_custom_range_values();
     CalibMode     get_pa_cali_method();
