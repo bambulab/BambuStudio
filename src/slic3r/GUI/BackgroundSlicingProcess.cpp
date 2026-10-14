@@ -1,4 +1,5 @@
 #include "BackgroundSlicingProcess.hpp"
+#include "McpTools.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 #include "MainFrame.hpp"
@@ -118,11 +119,12 @@ BackgroundSlicingProcess::BackgroundSlicingProcess()
 
 BackgroundSlicingProcess::~BackgroundSlicingProcess()
 {
+    m_mcp_worker_lifetime->stop();
 	this->stop();
 	this->join_background_thread();
 	for (auto &t : m_orphaned_threads) {
 		if (t.joinable())
-			t.detach();
+			t.join();
 	}
 	m_orphaned_threads.clear();
 	//BBS: move this logic to part plate
@@ -198,7 +200,7 @@ std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::f
 
 // This function may one day be merged into the Print, but historically the print was separated
 // from the G-code generator.
-void BackgroundSlicingProcess::process_fff()
+void BackgroundSlicingProcess::process_fff(std::uint64_t mcp_run, const std::shared_ptr<GUI::McpWorkerLifetime>& worker_lifetime)
 {
     assert(m_print == m_fff_print);
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
@@ -208,10 +210,11 @@ void BackgroundSlicingProcess::process_fff()
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: skip slicing, to process previous gcode file")%__LINE__;
 		m_fff_print->set_status(80, _utf8(L("Processing G-Code from Previous file...")));
 		wxCommandEvent evt(m_event_slicing_completed_id);
+        evt.SetExtraLong(static_cast<long>(mcp_run));
 		// Post the Slicing Finished message for the G-code viewer to update.
 		// Passing the timestamp
 		evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
-		wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+		worker_lifetime->publish([this, &evt] { wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone()); });
 
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
 		if (! m_export_path.empty()) {
@@ -240,15 +243,16 @@ void BackgroundSlicingProcess::process_fff()
             m_current_plate->set_filament_nozzle_maps(f_nozzle_maps);
 		}
 		wxCommandEvent evt(m_event_slicing_completed_id);
+        evt.SetExtraLong(static_cast<long>(mcp_run));
 		// Post the Slicing Finished message for the G-code viewer to update.
 		// Passing the timestamp
 		evt.SetInt((int)(m_fff_print->step_state_with_timestamp(PrintStep::psSlicingFinished).timestamp));
-		wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+		worker_lifetime->publish([this, &evt] { wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone()); });
 
 		//BBS: add plate index into render params
 		m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
 		m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
-		finalize_gcode();
+		finalize_gcode(mcp_run);
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 	}
 	if (this->set_step_started(bspsGCodeFinalize)) {
@@ -334,12 +338,14 @@ void BackgroundSlicingProcess::thread_proc()
 		//BBS: internal cancel
 		m_internal_cancelled = false;
 		const unsigned int task_gen = m_task_generation;
+        const std::uint64_t mcp_run = m_mcp_run;
+        const auto mcp_worker_lifetime = m_mcp_worker_lifetime;
 		lck.unlock();
 		std::exception_ptr exception;
 #ifdef _WIN32
-		this->call_process_seh_throw(exception);
+		this->call_process_seh_throw(exception, mcp_run, mcp_worker_lifetime);
 #else
-		this->call_process(exception);
+		this->call_process(exception, mcp_run, mcp_worker_lifetime);
 #endif
 		m_print->finalize();
 		lck.lock();
@@ -350,18 +356,23 @@ void BackgroundSlicingProcess::thread_proc()
 			                           << ") was force-canceled (current gen " << m_task_generation
 			                           << "), orphaned thread exiting";
 			lck.unlock();
+            --mcp_worker_lifetime->orphans;
+            if (mcp_run) mcp_worker_lifetime->publish([this, mcp_run] {
+                SlicingProcessCompletedEvent event(m_event_finished_id, 0, SlicingProcessCompletedEvent::Cancelled, nullptr, mcp_run, true, true);
+                wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, event.Clone());
+            });
 			return;
 		}
 		m_state = m_print->canceled() ? STATE_CANCELED : STATE_FINISHED;
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": process finished, state %1%, print cancel_status %2%")%m_state %m_print->cancel_status();
-		if (m_print->cancel_status() != Print::CANCELED_INTERNAL) {
+		if (mcp_run || m_print->cancel_status() != Print::CANCELED_INTERNAL) {
 			// Only post the canceled event, if canceled by user.
 			// Don't post the canceled event, if canceled from Print::apply().
 			SlicingProcessCompletedEvent evt(m_event_finished_id, 0,
 				(m_state == STATE_CANCELED) ? SlicingProcessCompletedEvent::Cancelled :
-				exception ? SlicingProcessCompletedEvent::Error : SlicingProcessCompletedEvent::Finished, exception);
+				exception ? SlicingProcessCompletedEvent::Error : SlicingProcessCompletedEvent::Finished, exception, mcp_run);
 			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": send SlicingProcessCompletedEvent to main, status %1%")%evt.status();
-			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+	        mcp_worker_lifetime->publish([this, &evt] { wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone()); });
 		}
 		else {
 			//BBS: internal cancel
@@ -422,19 +433,19 @@ static void rethrow_seh_exception(unsigned long win32_seh_catched)
 }
 
 // Wrapper for Win32 structured exceptions. Win32 structured exception blocks and C++ exception blocks cannot be mixed in the same function.
-unsigned long BackgroundSlicingProcess::call_process_seh(std::exception_ptr &ex) throw()
+unsigned long BackgroundSlicingProcess::call_process_seh(std::exception_ptr &ex, std::uint64_t run, const std::shared_ptr<GUI::McpWorkerLifetime>& worker_lifetime) throw()
 {
 	unsigned long win32_seh_catched = 0;
 	__try {
-		this->call_process(ex);
+		this->call_process(ex, run, worker_lifetime);
 	} __except (is_win32_seh_harware_exception(GetExceptionCode())) {
 		win32_seh_catched = GetExceptionCode();
 	}
 	return win32_seh_catched;
 }
-void BackgroundSlicingProcess::call_process_seh_throw(std::exception_ptr &ex) throw()
+void BackgroundSlicingProcess::call_process_seh_throw(std::exception_ptr &ex, std::uint64_t run, const std::shared_ptr<GUI::McpWorkerLifetime>& worker_lifetime) throw()
 {
-	unsigned long win32_seh_catched = this->call_process_seh(ex);
+	unsigned long win32_seh_catched = this->call_process_seh(ex, run, worker_lifetime);
 	if (win32_seh_catched) {
 		// Rethrow SEH exception as Slicer::HardCrash.
 		try {
@@ -446,12 +457,12 @@ void BackgroundSlicingProcess::call_process_seh_throw(std::exception_ptr &ex) th
 }
 #endif // _WIN32
 
-void BackgroundSlicingProcess::call_process(std::exception_ptr &ex) throw()
+void BackgroundSlicingProcess::call_process(std::exception_ptr &ex, std::uint64_t run, const std::shared_ptr<GUI::McpWorkerLifetime>& worker_lifetime) throw()
 {
 	try {
 		assert(m_print != nullptr);
 		switch (m_print->technology()) {
-		case ptFFF: this->process_fff(); break;
+		case ptFFF: this->process_fff(run, worker_lifetime); break;
 		case ptSLA: this->process_sla(); break;
 		default: m_print->process(); break;
 		}
@@ -520,6 +531,7 @@ void BackgroundSlicingProcess::join_background_thread()
 
 bool BackgroundSlicingProcess::start()
 {
+    if (GUI::mcp_slice_active() && !m_mcp_pending_run) return false;
 	if (m_print->empty()) {
 		if (!m_current_plate  || !m_current_plate->is_slice_result_valid())
 			// The print is empty (no object in Model, or all objects are out of the print bed).
@@ -546,6 +558,10 @@ bool BackgroundSlicingProcess::start()
 		return false;
 	if (! this->idle())
 		throw Slic3r::RuntimeError("Cannot start a background task, the worker thread is not idle.");
+	m_mcp_worker_lifetime = std::make_shared<GUI::McpWorkerLifetime>();
+	m_mcp_run = m_mcp_pending_run;
+    m_mcp_pending_run = 0;
+    if (m_current_plate) m_current_plate->mcp_set_status_run(m_mcp_run, m_mcp_worker_lifetime);
 	m_state = STATE_STARTED;
 	m_print->set_cancel_callback([this](){ this->stop_internal(); });
 	lck.unlock();
@@ -571,24 +587,10 @@ bool BackgroundSlicingProcess::stop()
 		cancel_ui_task(m_ui_task);
 		m_print->cancel();
 		// Wait until the background processing stops by being canceled.
-		// Use timed wait to prevent permanent UI freeze when background thread
-		// is stuck in a long/non-interruptible computation (e.g. boost::polygon::construct_voronoi).
-		if (!m_condition.wait_for(lck, std::chrono::seconds(1), [this](){ return m_state == STATE_CANCELED; })) {
-			BOOST_LOG_TRIVIAL(error) << "BackgroundSlicingProcess::stop() timed out. "
-			                         << "Force-canceling (generation " << m_task_generation << " -> " << m_task_generation + 1 << "). "
-			                         << "Background thread will be orphaned until its computation completes.";
-			++m_task_generation;
-			// Orphan the stuck thread so start() can create a fresh one.
-			m_orphaned_threads.push_back(std::move(m_thread));
-			m_state = STATE_INITIAL;
-			m_print->restart();
-			m_print->set_cancel_callback([](){});
-			// Notify UI that slicing was canceled so it can clean up (hide progress bar, etc.)
-			SlicingProcessCompletedEvent evt(m_event_finished_id, 0,
-				SlicingProcessCompletedEvent::Cancelled, std::exception_ptr());
-			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", exit (force-canceled, thread orphaned)" << std::endl;
-			return true;
+		// Keep Print unchanged until its worker has stopped.
+		if (!m_condition.wait_for(lck, std::chrono::seconds(1), [this](){ return m_state == STATE_CANCELED || m_state == STATE_FINISHED; })) {
+			BOOST_LOG_TRIVIAL(warning) << "Background slicing cancellation is waiting for the native worker";
+			m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED || m_state == STATE_FINISHED; });
 		}
 		// In the "Canceled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
@@ -601,6 +603,15 @@ bool BackgroundSlicingProcess::stop()
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", exit"<<std::endl;
 //	m_export_path.clear();
 	return true;
+}
+
+bool BackgroundSlicingProcess::mcp_request_cancel(std::uint64_t run)
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    if (!run || run != m_mcp_run || (m_state != STATE_STARTED && m_state != STATE_RUNNING)) return false;
+    cancel_ui_task(m_ui_task);
+    m_print->cancel();
+    return true;
 }
 
 bool BackgroundSlicingProcess::reset()
@@ -636,18 +647,10 @@ void BackgroundSlicingProcess::stop_internal()
 		// Allow the worker thread to wake up if blocking on a milestone.
 		m_print->state_mutex().unlock();
 		// Wait until the background processing stops by being canceled.
-		// Use timed wait to prevent permanent freeze when background thread is stuck.
-		if (!m_condition.wait_for(lck, std::chrono::seconds(5), [this](){ return m_state == STATE_CANCELED; })) {
-			BOOST_LOG_TRIVIAL(error) << "BackgroundSlicingProcess::stop_internal() timed out. "
-			                         << "Force-canceling (generation " << m_task_generation << " -> " << m_task_generation + 1 << ").";
-			++m_task_generation;
-			m_orphaned_threads.push_back(std::move(m_thread));
-			m_print->state_mutex().lock();
-			m_state = STATE_INITIAL;
-			m_print->restart();
-			m_print->set_cancel_callback([](){});
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", exit (force-canceled, thread orphaned)" << std::endl;
-			return;
+		// Print::apply must not mutate Print while its worker still uses it.
+		if (!m_condition.wait_for(lck, std::chrono::seconds(5), [this](){ return m_state == STATE_CANCELED || m_state == STATE_FINISHED; })) {
+			BOOST_LOG_TRIVIAL(warning) << "Background slicing cancellation is waiting for the native worker";
+			m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED || m_state == STATE_FINISHED; });
 		}
 		// Lock it back to be in a consistent state.
 		m_print->state_mutex().lock();
@@ -824,12 +827,18 @@ void BackgroundSlicingProcess::set_skip_post_process_once(bool skip)
 }
 
 //Call post-processing script for the last step during slicing
-void BackgroundSlicingProcess::finalize_gcode()
+void BackgroundSlicingProcess::finalize_gcode(std::uint64_t mcp_run)
 {
     bool skip = false;
     {
         std::unique_lock<std::mutex> lck(m_mutex);
         skip = m_skip_post_process_once;
+    }
+    if (mcp_run) {
+        const auto* scripts = m_fff_print->full_print_config().opt<ConfigOptionStrings>("post_process");
+        if (scripts) for (const auto& script : scripts->values)
+            if (script.find_first_not_of(" \t\r\n") != std::string::npos)
+                throw std::runtime_error("MCP slicing rejects external post-processing scripts");
     }
     if (skip) {
         m_print->set_status(100, _utf8(L("Slicing complete")));

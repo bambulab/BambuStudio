@@ -440,6 +440,7 @@ public:
     void select_items(const wxDataViewItemArray& sels);
     // BBS
     void select_item(const ObjectVolumeID& ov_id);
+    void mcp_reorder_object(int from_index, int to_index);
     void select_items(const std::vector<ObjectVolumeID>& ov_ids);
     void select_all();
     void expand_collapse_plate(int plate_idx, bool expand);

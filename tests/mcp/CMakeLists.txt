@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.16)
+project(BambuStudioMcpTests LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(Threads REQUIRED)
+find_package(OpenSSL REQUIRED COMPONENTS Crypto)
+find_package(Boost 1.83 REQUIRED COMPONENTS filesystem)
+add_executable(mcp_server_tests
+    test_mcp_server.cpp
+    ../../src/slic3r/Utils/McpServer.cpp
+    ../../src/slic3r/GUI/McpCredentials.cpp)
+target_include_directories(mcp_server_tests PRIVATE ../../src)
+target_compile_definitions(mcp_server_tests PRIVATE BOOST_ERROR_CODE_HEADER_ONLY)
+target_link_libraries(mcp_server_tests PRIVATE OpenSSL::Crypto Threads::Threads Boost::filesystem)
+if(WIN32)
+    target_link_libraries(mcp_server_tests PRIVATE advapi32 ws2_32)
+endif()
+enable_testing()
+add_test(NAME mcp_server COMMAND mcp_server_tests)
+set_tests_properties(mcp_server PROPERTIES TIMEOUT 30)

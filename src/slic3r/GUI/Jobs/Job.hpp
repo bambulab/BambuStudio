@@ -2,6 +2,7 @@
 #define JOB_HPP
 
 #include <atomic>
+#include <cstdint>
 #include <exception>
 
 #include "libslic3r/libslic3r.h"
@@ -32,6 +33,7 @@ class Job : public wxEvtHandler
     int               m_thread_evt_id = wxID_ANY;
     boost::thread     m_thread;
     std::atomic<bool> m_running{false}, m_canceled{false};
+    std::uint64_t m_mcp_run = 0;
     bool              m_finalized = false, m_finalizing = false;
     std::shared_ptr<ProgressIndicator> m_progress;
     std::exception_ptr                 m_worker_error = nullptr;
@@ -93,6 +95,8 @@ public:
     bool join(int timeout_ms = 0);
 
     bool is_running() const { return m_running.load(); }
+    void mcp_set_run(std::uint64_t run) { m_mcp_run = run; }
+    std::uint64_t mcp_run() const { return m_mcp_run; }
     void cancel() { m_canceled.store(true); }
 
  public:
@@ -122,10 +126,12 @@ public:
     }
 
     void start(size_t jid);
+    void mcp_start(size_t jid, std::uint64_t run);
 
     void cancel_all() { for (auto& j : m_jobs) j->cancel(); }
 
     void join_all(int wait_ms = 0);
+    void join_mcp_jobs();
 
     void stop_all() { cancel_all(); join_all(ABORT_WAIT_MAX_MS); }
 

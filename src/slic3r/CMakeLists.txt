@@ -240,6 +240,12 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Preview.hpp
     GUI/GUI_App.cpp
     GUI/GUI_App.hpp
+    GUI/McpCredentials.cpp
+    GUI/McpCredentials.hpp
+    GUI/McpTools.cpp
+    GUI/McpTools.hpp
+    Utils/McpServer.cpp
+    Utils/McpServer.hpp
     GUI/GUI_Utils.cpp
     GUI/GUI_Utils.hpp
     GUI/I18N.cpp
@@ -807,7 +813,7 @@ target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
-    target_link_libraries(libslic3r_gui Setupapi.lib dwmapi.lib)
+    target_link_libraries(libslic3r_gui Setupapi.lib dwmapi.lib advapi32.lib)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     FIND_LIBRARY(WAYLAND_SERVER_LIBRARIES NAMES wayland-server)
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)

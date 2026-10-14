@@ -132,6 +132,14 @@ void AppConfig::set_defaults()
 
         if (get("single_instance").empty())
             set_bool("single_instance", false);
+        if (get("mcp_server_enabled").empty())
+            set_bool("mcp_server_enabled", false);
+        if (get("mcp_server_port").empty())
+            set("mcp_server_port", "27183");
+        if (get("mcp_allow_device_actions").empty())
+            set_bool("mcp_allow_device_actions", false);
+        if (get("mcp_allow_account_reads").empty())
+            set_bool("mcp_allow_account_reads", false);
         if (get("import_3mf_as_project").empty())
             set_bool("import_3mf_as_project", true);
         if (get("show_bed_heat_soak_area").empty())

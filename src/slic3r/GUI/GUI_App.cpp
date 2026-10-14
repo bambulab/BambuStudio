@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <iterator>
 #include <exception>
+#include <stdexcept>
 #include <cstdlib>
 #include <chrono>
 #include <regex>
@@ -116,6 +117,9 @@
 #include "KBShortcutsDialog.hpp"
 #include "DownloadProgressDialog.hpp"
 #include "HttpServer.hpp"
+#include "McpCredentials.hpp"
+#include "McpTools.hpp"
+#include "slic3r/Utils/McpServer.hpp"
 
 #include "BitmapCache.hpp"
 #include "Notebook.hpp"
@@ -1490,6 +1494,10 @@ void GUI_App::post_init()
                files_vec.pop_back();
            }
         }
+    }
+    if (is_editor() && app_config->get_bool("mcp_server_enabled")) {
+        std::string error;
+        mcp_set_enabled(true, error);
     }
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 #ifdef _WIN32
@@ -2921,6 +2929,8 @@ bool GUI_App::OnInit()
 
 int GUI_App::OnExit()
 {
+    m_mcp_lifetime.reset();
+    mcp_stop();
 #ifdef __APPLE__
     UnRegisterMacPowerCallBack();
 #endif
@@ -3840,6 +3850,7 @@ void GUI_App::copy_network_if_available()
 
 bool GUI_App::on_init_network(bool try_backup)
 {
+    McpTools::quiesce_external_jobs();
     int  load_agent_dll       = Slic3r::NetworkAgent::initialize_network_module(false, !app_config->get_bool("ignore_module_cert"));
     bool create_network_agent = false;
 __retry:
@@ -4402,8 +4413,20 @@ void GUI_App::check_printer_presets()
 void switch_window_pools();
 void release_window_pools();
 
-void GUI_App::recreate_GUI(const wxString &msg_name)
+bool GUI_App::can_recreate_GUI()
 {
+    if (m_mcp_call_active || m_is_recreating_gui || is_closing() || !mainframe || !plater()) return false;
+    auto &background = plater()->background_process();
+    return !plater()->is_any_job_running() && !background.running() && !background.mcp_orphans_running() &&
+           !McpTools::has_pending_native_work();
+}
+
+bool GUI_App::recreate_GUI(const wxString &msg_name)
+{
+    if (!can_recreate_GUI()) {
+        if (plater()) plater()->show_status_message("Wait for the current job to finish before rebuilding the window.");
+        return false;
+    }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
 
@@ -4474,6 +4497,10 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     update_publish_status();
 
     m_is_recreating_gui = false;
+    if (is_editor() && app_config->get_bool("mcp_server_enabled")) {
+        std::string error;
+        mcp_set_enabled(true, error);
+    }
 
 #if defined(__WXOSX__)
     // STUDIO-18472: a GUI rebuild just happened (and trigger_restore_project()
@@ -4487,6 +4514,7 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
 #endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
+    return true;
 }
 
 void GUI_App::system_info()
@@ -6700,6 +6728,199 @@ void GUI_App::stop_http_server()
     m_http_server.stop();
 }
 
+unsigned long GUI_App::mcp_port() const
+{
+    const std::string value = app_config->get("mcp_server_port");
+    if (value.empty() || value.find_first_not_of("0123456789") != std::string::npos) return 27183;
+    try {
+        const unsigned long port = std::stoul(value);
+        return port >= 1024 && port <= 65535 ? port : 27183;
+    } catch (...) {
+        return 27183;
+    }
+}
+
+std::string GUI_App::mcp_address() const
+{
+    if (!mcp_enabled() || m_mcp_active_port == 0) return {};
+    return "http://127.0.0.1:" + std::to_string(m_mcp_active_port) + "/mcp";
+}
+
+bool GUI_App::mcp_enabled() const
+{
+    return m_mcp_server && m_mcp_server->is_running();
+}
+
+void GUI_App::mcp_stop()
+{
+    ++m_mcp_generation;
+    if (m_mcp_server) m_mcp_server->stop();
+    m_mcp_active_port = 0;
+    McpTools::set_active(false);
+    McpTools::quiesce_external_jobs();
+}
+
+void GUI_App::mcp_pause_for_gui_shutdown()
+{
+    mcp_stop();
+    m_mcp_status = "Off";
+}
+
+bool GUI_App::mcp_start_on_port(unsigned long port, const std::string &token, std::string &error)
+{
+    auto candidate = std::make_unique<McpServer>();
+    const size_t generation = m_mcp_generation + 1;
+    std::weak_ptr<int> lifetime = m_mcp_lifetime;
+    McpServer::Handler handler = [this, lifetime, generation](const std::string &method, const nlohmann::json &params,
+                                                               std::shared_ptr<McpRequestTicket> ticket, McpServer::Completion completion) {
+        if (lifetime.expired()) return;
+        if (method == "tools/list") {
+            if (ticket->try_start()) completion({{"tools", McpTools::definitions()}});
+            return;
+        }
+        if (method != "tools/call" || !params.is_object() || !params.contains("name") || !params["name"].is_string()) {
+            if (ticket->try_start()) completion({{"error", {{"code", -32602}, {"message", "Invalid tool call"}}}});
+            return;
+        }
+        const std::string name = params["name"].get<std::string>();
+        const nlohmann::json arguments = params.value("arguments", nlohmann::json::object());
+        CallAfter([this, lifetime, generation, ticket, completion = std::move(completion), name, arguments]() mutable {
+            if (lifetime.expired() || is_closing() || generation != m_mcp_generation || !ticket->try_start()) return;
+            if (m_is_recreating_gui || !plater()) {
+                completion({{"content", {{{"type", "text"}, {"text", "The editor is rebuilding"}}}}, {"isError", true}});
+                return;
+            }
+            if (m_mcp_call_active) {
+                completion({{"content", {{{"type", "text"}, {"text", "Another MCP operation is active"}}}}, {"isError", true}});
+                return;
+            }
+            m_mcp_call_active = true;
+            nlohmann::json result;
+            try {
+                result = McpTools::call(*plater(), name, arguments);
+            } catch (const std::invalid_argument &e) {
+                result = {{"error", {{"code", -32602}, {"message", e.what()}}}};
+            } catch (const std::exception &e) {
+                result = {{"content", {{{"type", "text"}, {"text", e.what()}}}}, {"isError", true}};
+            } catch (...) {
+                result = {{"content", {{{"type", "text"}, {"text", "The tool failed"}}}}, {"isError", true}};
+            }
+            m_mcp_call_active = false;
+            completion(std::move(result));
+        });
+    };
+    if (!candidate->start(static_cast<uint16_t>(port), token, std::move(handler), error)) {
+        if (!mcp_enabled()) m_mcp_status = error.empty() ? "MCP server could not start" : error;
+        return false;
+    }
+    m_mcp_generation = generation;
+    auto previous = std::move(m_mcp_server);
+    m_mcp_server = std::move(candidate);
+    m_mcp_active_port = port;
+    if (previous) previous->stop();
+    McpTools::set_active(true);
+    m_mcp_status = "Listening at http://127.0.0.1:" + std::to_string(port) + "/mcp";
+    return true;
+}
+
+bool GUI_App::mcp_set_enabled(bool enabled, std::string &error)
+{
+    error.clear();
+    if (!enabled) {
+        mcp_stop();
+        app_config->set_bool("mcp_server_enabled", false);
+        app_config->save();
+        m_mcp_status = "Off";
+        return true;
+    }
+    if (!app_config->get_bool("mcp_server_enabled")) {
+        app_config->set_bool("mcp_server_enabled", true);
+        app_config->save();
+    }
+    if (!is_editor() || !initialized() || is_closing() || m_is_recreating_gui || !plater()) {
+        error = "The editor is not ready";
+        m_mcp_status = error;
+        return false;
+    }
+    if (mcp_enabled()) return true;
+    std::string token;
+    if (!load_or_create_mcp_token(data_dir(), token, error) || !mcp_start_on_port(mcp_port(), token, error)) {
+        m_mcp_status = error;
+        return false;
+    }
+    return true;
+}
+
+bool GUI_App::mcp_set_port(unsigned long port, std::string &error)
+{
+    error.clear();
+    if (port < 1024 || port > 65535) {
+        error = "Choose a port from 1024 to 65535";
+        return false;
+    }
+    const unsigned long old_port = mcp_port();
+    if (port == old_port && (mcp_enabled() || !app_config->get_bool("mcp_server_enabled"))) return true;
+    if (!mcp_enabled()) {
+        if (port != old_port) {
+            app_config->set("mcp_server_port", std::to_string(port));
+            app_config->save();
+        }
+        if (app_config->get_bool("mcp_server_enabled")) return mcp_set_enabled(true, error);
+        return true;
+    }
+    std::string token;
+    if (!load_or_create_mcp_token(data_dir(), token, error)) return false;
+    if (!mcp_start_on_port(port, token, error)) {
+        error += "; the previous port is still active";
+        return false;
+    }
+    app_config->set("mcp_server_port", std::to_string(port));
+    app_config->save();
+    return true;
+}
+
+bool GUI_App::mcp_copy_token(std::string &token, std::string &error)
+{
+    return load_or_create_mcp_token(data_dir(), token, error);
+}
+
+bool GUI_App::mcp_regenerate_token(std::string &error)
+{
+    error.clear();
+    const bool was_running = mcp_enabled();
+    std::string old_token;
+    if (was_running && !load_or_create_mcp_token(data_dir(), old_token, error)) return false;
+    if (was_running) mcp_stop();
+    std::string token;
+    if (!regenerate_mcp_token(data_dir(), token, error)) {
+        if (was_running) {
+            std::string rollback_error;
+            if (!mcp_start_on_port(mcp_port(), old_token, rollback_error)) {
+                error += "; the listener could not be restored: " + rollback_error;
+            }
+        }
+        m_mcp_status = error;
+        return false;
+    }
+    if (was_running && !mcp_start_on_port(mcp_port(), token, error)) {
+        error = "Access token regenerated; update connected clients; listener could not start: " + error;
+        m_mcp_status = error;
+        return false;
+    }
+    if (!was_running) {
+        if (app_config->get_bool("mcp_server_enabled")) {
+            if (!mcp_set_enabled(true, error)) {
+                error = "Access token regenerated; update connected clients; listener could not start: " + error;
+                m_mcp_status = error;
+                return false;
+            }
+            return true;
+        }
+        m_mcp_status = "Off";
+    }
+    return true;
+}
+
 void GUI_App::switch_staff_pick(bool on)
 {
     mainframe->m_webview->SendDesignStaffpick(on);
@@ -6707,9 +6928,10 @@ void GUI_App::switch_staff_pick(bool on)
 
 bool GUI_App::switch_language()
 {
+    if (!can_recreate_GUI())
+        return false;
     if (select_language()) {
-        recreate_GUI(_L("Switching application language") + dots);
-        return true;
+        return recreate_GUI(_L("Switching application language") + dots);
     } else {
         return false;
     }
