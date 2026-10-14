@@ -23723,6 +23723,18 @@ void Plater::reset_flags_when_new_or_close_project()
     p->m_inside_post_process_script_modal = false;
 }
 
+/**
+ * \brief Make a new project start on real process and filament presets instead of the "Default Setting"
+ */
+static void replace_default_presets_for_new_project()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle->replace_default_presets()) return;
+
+    wxGetApp().load_current_presets(false, false);
+    preset_bundle->export_selections(*wxGetApp().app_config);
+}
+
 int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_name)
 {
     model().calib_pa_pattern.reset(nullptr);
@@ -23764,6 +23776,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     //get_partplate_list().update_slice_context_to_current_plate(p->background_process);
     //p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
     reset(transfer_preset_changes);
+    replace_default_presets_for_new_project();
     wxGetApp().preset_bundle->note_per_slot_nozzle_options_from_project_file({});
     reset_project_dirty_after_save();
     reset_project_dirty_initial_presets();

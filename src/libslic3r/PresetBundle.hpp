@@ -550,6 +550,16 @@ public:
     void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible);
     void                        update_compatible(PresetSelectCompatibleType select_other_if_incompatible) { this->update_compatible(select_other_if_incompatible, select_other_if_incompatible); }
 
+    /**
+     * \brief Replace the built-in default process and filament presets with the printer's preferred ones
+     *
+     * Only compatible presets are selected. A default preset stays if no compatible preset exists.
+     * Edits on a default preset are dropped, not transferred. The caller must refresh the UI and export selections.
+     *
+     * \return true if any selection changed
+     */
+    bool                        replace_default_presets();
+
     // Set the is_visible flag for printer vendors, printer models and printer variants
     // based on the user configuration.
     // If the "vendor" section is missing, enable all models and variants of the particular vendor.

@@ -3051,6 +3051,26 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
     }
 }
 
+namespace {
+
+// Traces how a collection ends on its built-in default preset ("Default Setting" and alike), with the reason.
+// The reason comes from the compatibility flags as last computed: they can be stale if no compatibility update ran yet.
+// Grep the log for "[default-preset]" to find these records.
+void log_default_selection(const PresetCollection &presets, const std::string &context)
+{
+    const Preset &selected = presets.get_selected_preset();
+    if (!selected.is_default || presets.has_defaults_only()) return;
+
+    // begin() skips the default presets, so these count real presets only.
+    const auto  compatible = std::count_if(presets.begin(), presets.end(), [](const Preset &preset) { return preset.is_compatible; });
+    const auto  visible    = std::count_if(presets.begin(), presets.end(), [](const Preset &preset) { return preset.is_visible; });
+    const char *reason     = compatible == 0 ? "no compatible preset exists" : "chosen although compatible presets exist";
+    BOOST_LOG_TRIVIAL(warning) << "[default-preset] " << Preset::get_type_string(presets.type()) << " selects the built-in default preset \""
+                               << selected.name << "\": " << context << ", " << reason << " (" << compatible << " compatible, " << visible << " visible)";
+}
+
+} // namespace
+
 size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfile &active_printer, const PresetWithVendorProfile *active_print, PresetSelectCompatibleType unselect_if_incompatible)
 {
     DynamicPrintConfig config;
@@ -3104,6 +3124,8 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": type %1% returned m_idx_selected %2%, some_compatible %3%")%Preset::get_type_string(m_type) %m_idx_selected %some_compatible;
+    if (m_idx_selected < m_num_default_presets)
+        log_default_selection(*this, "kept for printer \"" + active_printer.preset.name + "\"");
     return m_idx_selected;
 }
 
@@ -3287,6 +3309,7 @@ Preset& PresetCollection::select_preset(size_t idx)
         preset.is_dirty = false;
     if (idx >= m_presets.size())
         idx = first_visible_idx();
+    const std::string previous_name = m_edited_preset.name;
     m_idx_selected = idx;
     m_edited_preset = m_presets[idx];
     update_saved_preset_from_current_preset();
@@ -3301,6 +3324,7 @@ Preset& PresetCollection::select_preset(size_t idx)
     }
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1% select success, m_idx_selected %2%, name %3%, is_system %4%, is_default %5%")%Preset::get_type_string(m_type) % m_idx_selected % m_edited_preset.name % m_edited_preset.is_system % m_edited_preset.is_default;
+    log_default_selection(*this, "selected, previous \"" + previous_name + "\"");
     return m_presets[idx];
 }
 
@@ -3321,6 +3345,8 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
         }
     }
     else {
+        BOOST_LOG_TRIVIAL(warning) << "[default-preset] " << Preset::get_type_string(m_type) << " \"" << name << "\" "
+                                   << (it != m_presets.end() && it->name == name ? "is invisible" : "is not found") << ", fall back to the first visible preset";
         // Find the first visible preset.
         for (size_t i = m_default_suppressed ? m_num_default_presets : 0; i < m_presets.size(); ++ i)
             if (m_presets[i].is_visible) {
