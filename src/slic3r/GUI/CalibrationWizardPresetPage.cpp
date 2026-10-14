@@ -1236,7 +1236,7 @@ wxSizer* CalibrationPresetPage::create_rack_items_sizer(wxPanel* rack_items_pane
         fcb->SetExtuderRole(ExtruderRole::SINGLE_EXTRUDER);
         fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
 
-        row_sizer->Add(radio_btn, 0, wxALIGN_CENTER);
+        row_sizer->Add(radio_btn, 0, wxALIGN_CENTER | wxBOTTOM, FromDIP(4));
         row_sizer->Add(check_box, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
         row_sizer->Add(fcb, 0, wxALIGN_CENTER);
         rack_sizer->Add(row_sizer, 0, wxBOTTOM, FromDIP(5));
