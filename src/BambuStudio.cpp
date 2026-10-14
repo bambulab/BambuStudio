@@ -2007,11 +2007,17 @@ int CLI::run(int argc, char **argv)
                             const Vec3d &instance_offset = model_instance->get_offset();
                             BOOST_LOG_TRIVIAL(info) << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
                         }*/
-                    current_printer_name = config.option<ConfigOptionString>("printer_settings_id")->value;
-                    current_process_name = config.option<ConfigOptionString>("print_settings_id")->value;
+                    // A project need not name its presets: the CLI's own --export-3mf of a bare model
+                    // writes none of these ids. Read them defensively rather than dereference null.
+                    if (const auto *opt = config.option<ConfigOptionString>("printer_settings_id"))
+                        current_printer_name = opt->value;
+                    if (const auto *opt = config.option<ConfigOptionString>("print_settings_id"))
+                        current_process_name = opt->value;
                     current_printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
-                    current_filaments_name = config.option<ConfigOptionStrings>("filament_settings_id")->values;
-                    current_extruder_count = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+                    if (const auto *opt = config.option<ConfigOptionStrings>("filament_settings_id"))
+                        current_filaments_name = opt->values;
+                    if (const auto *opt = config.option<ConfigOptionFloatsNullable>("nozzle_diameter"))
+                        current_extruder_count = opt->values.size();
                     current_printer_variant_count = config.option<ConfigOptionStrings>("printer_extruder_variant", true)->values.size();
                     current_print_variant_count = config.option<ConfigOptionStrings>("print_extruder_variant", true)->values.size();
                     current_is_multi_extruder = current_extruder_count > 1;
@@ -7644,8 +7650,9 @@ int CLI::run(int argc, char **argv)
             for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
                 std::string display_filament_type;
                 it->type  = m_print_config.get_filament_type(display_filament_type, it->id);
-                it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
-                it->filament_id = filament_id?filament_id->get_at(it->id):"";
+                // get_at() on an empty vector is undefined; the CLI's own export leaves filament_ids empty.
+                it->color = (filament_color && !filament_color->values.empty()) ? filament_color->get_at(it->id) : "#FFFFFF";
+                it->filament_id = (filament_id && !filament_id->values.empty()) ? filament_id->get_at(it->id) : "";
             }
 
             if (!plate_data->plate_thumbnail.is_valid()) {
