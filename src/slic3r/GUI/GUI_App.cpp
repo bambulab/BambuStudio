@@ -2561,8 +2561,13 @@ static LogEncOptions s_get_log_enc_opts()
 
 #if BBL_RELEASE_TO_PUBLIC
     std::string region_str;
-    if (wxGetApp().app_config && !wxGetApp().app_config->get("region").empty()) {
-        region_str = wxGetApp().app_config->get("region");
+    bool encrypt_logs = true;
+
+    if (wxGetApp().app_config) {
+        if (!wxGetApp().app_config->get("region").empty())
+            region_str = wxGetApp().app_config->get("region");
+        if (!wxGetApp().app_config->get("encrypt_logs").empty())
+            encrypt_logs = wxGetApp().app_config->get_bool("encrypt_logs");
     };
 
     const auto& config_path = AppConfig::config_path(AppConfig::EAppMode::Editor);
@@ -2575,12 +2580,18 @@ static LogEncOptions s_get_log_enc_opts()
                 if (config_jj.contains("app")) {
                     const nlohmann::json& app_jj = config_jj["app"];
                     region_str = app_jj.contains("region") ? app_jj["region"].get<std::string>() : "";
+                    encrypt_logs = app_jj.contains("encrypt_logs") ? app_jj["encrypt_logs"].get<bool>() : true;
                 }
             }
         }
     } catch (...) {
         assert(0 && "get_value_from_config failed");
     }// there are file errors
+
+    if (!encrypt_logs) {
+      enc_options.enc_type = LogEncOptions::LOG_ENC_NONE;
+      return enc_options;
+    }
 
     enc_options.enc_type = LogEncOptions::LOG_ENC_AES_256_CBC;
     if (enc_options.enc_type == LogEncOptions::LOG_ENC_AES_256_CBC) {
