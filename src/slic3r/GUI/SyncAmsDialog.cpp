@@ -390,9 +390,8 @@ wxSizer *build_high_temp_tip(wxWindow *parent, const wxColour &bg)
  *        its min height, so the footer always stays inside the window.
  *
  * Each flexible item has a floor and a natural height (its min size). The mapping section has priority over
- * the preview: extra height grows it first, and a short window shrinks it first. From the floor upward,
- * height goes to the preview up to its natural height, then to the mapping section until all its rows show,
- * then to the preview.
+ * the preview: extra height grows it first, and a short window shrinks the preview first. From the floor
+ * upward, height goes to the mapping section until all its rows show, then to the preview.
  *
  * \note CalcMin() reports the floor, so Fit() sizes a window to the floor; use natural_height() to open it.
  * \note Items are laid out at full width, so alignment flags are ignored.
@@ -441,8 +440,6 @@ protected:
     {
         // min_size is the floor; hand the height above it out in priority order.
         int       avail        = std::max(0, m_size.y - min_size.y);
-        const int preview_back = std::min(avail, preview_give());
-        avail -= preview_back;
         const int mapping_grow = std::min(avail, mapping_give() + hidden_rows_height());
         avail -= mapping_grow;
 
@@ -453,7 +450,7 @@ protected:
             if (item == m_mapping)
                 h += mapping_grow - mapping_give();
             else if (item == m_preview)
-                h += preview_back + avail - preview_give();
+                h += avail - preview_give();
             item->SetDimension(pos, wxSize(m_size.x, h));
             pos.y += h;
         }

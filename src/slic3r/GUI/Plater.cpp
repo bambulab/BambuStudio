@@ -6515,30 +6515,20 @@ void Sidebar::add_filament() {
     scroll_filament_area_to_bottom();
 }
 
-// Config keys that pin a filament (1-based) to an object/volume: the base extruder plus the
-// per-feature filament overrides shared with the delete remap (filament_index_object_keys()),
-// so any of them referencing the deleted filament must warn.
-static bool config_uses_filament(const ModelConfig &cfg, int fid1)
-{
-    if (cfg.has("extruder") && cfg.opt_int("extruder") == fid1) return true;
-    for (const std::string &key : filament_index_object_keys())
-        if (cfg.has(key) && cfg.opt_int(key) == fid1) return true;
-
-    return false;
-}
-
 // Distinct model-object names that reference filament_id (0-based) in any way a delete would reset:
-// object/volume base extruder, per-feature filament overrides, Color Painting (MMU), or a height
-// range modifier's extruder.
+// object/volume base filament, Color Painting (MMU), or a height range modifier's filament.
+// Per-feature overrides (support, wall, infill) do not count: a delete erases them and the object
+// falls back to the global value.
 static std::vector<wxString> models_using_filament(size_t filament_id)
 {
     std::vector<wxString> names;
     const int             fid1 = (int) filament_id + 1;
+    auto uses_as_base = [fid1](const ModelConfig &cfg) { return cfg.has("extruder") && cfg.opt_int("extruder") == fid1; };
     for (ModelObject *mo : wxGetApp().model().objects) {
-        bool used = config_uses_filament(mo->config, fid1);
+        bool used = uses_as_base(mo->config);
         if (!used) {
             for (ModelVolume *mv : mo->volumes) {
-                if (config_uses_filament(mv->config, fid1)) {
+                if (uses_as_base(mv->config)) {
                     used = true;
                     break;
                 }
@@ -6563,9 +6553,63 @@ static std::vector<wxString> models_using_filament(size_t filament_id)
     return names;
 }
 
-// Warn before deleting a filament that is still referenced by a model (base extruder, per-feature
-// override, Color Painting, or height range). Global support settings, mixed-filament components and
-// custom G-code tool changes are remapped automatically on delete, so they do not warn.
+// 1-based numbers of the mixed filaments that list filament_id (0-based) as a component.
+// Deleting a component leaves the mixed filament with a broken reference, so it becomes unusable.
+// Empty when filament_id is itself a mixed filament.
+static std::vector<int> mixed_filaments_using(size_t filament_id)
+{
+    std::vector<int> slots;
+    const PresetBundle &pb = *wxGetApp().preset_bundle;
+    if (pb.is_mixed_filament(filament_id)) return slots;
+    const auto *comp_opt = pb.project_config.option<ConfigOptionStrings>("filament_mixed_components");
+    if (comp_opt == nullptr) return slots;
+    const unsigned int fid1 = (unsigned int) filament_id + 1;
+    for (size_t i = 0; i < comp_opt->values.size(); ++i) {
+        if (!pb.is_mixed_filament(i)) continue;
+        const std::vector<unsigned int> comps = parse_mixed_components(comp_opt->values[i]);
+        if (std::find(comps.begin(), comps.end(), fid1) != comps.end()) slots.push_back((int) i + 1);
+    }
+    return slots;
+}
+
+// Warning text for deleting a filament used by the given models and/or mixed filaments.
+// At least one of the lists must be non-empty.
+static wxString delete_used_filament_message(const std::vector<wxString> &models, const std::vector<int> &mixed)
+{
+    wxString msg;
+    if (!models.empty()) {
+        wxString     names_str;
+        const size_t show = std::min<size_t>(models.size(), 3);
+        for (size_t i = 0; i < show; ++i) {
+            if (i) names_str += ", ";
+            names_str += models[i];
+        }
+        if (models.size() > show) names_str += wxString::Format(_L(", and %d more"), (int) (models.size() - show));
+        msg = wxString::Format(_L("The filament you are deleting is used by model \"%s\". After deletion, the model's "
+                                  "filament will be reset to the first remaining filament."),
+                               names_str);
+    }
+
+    if (mixed.empty()) {
+        msg += "\n\n" + _L("Tip: If you want to replace it with another filament, right-click the filament and use \"Merge with\".");
+        return msg;
+    }
+
+    if (!models.empty())
+        msg += "\n\n" + _L("It is also used by the following mixed filaments, which will become unusable after deletion:");
+    else
+        msg = _L("The filament you are deleting is used by the following mixed filaments, which will become unusable after deletion:");
+    for (int slot : mixed)
+        // The dialog escapes the text into HTML, so markup is unavailable and leading spaces collapse;
+        // non-breaking spaces keep the indent.
+        msg += wxString(L"\n\u00A0\u00A0\u2022 ") + wxString::Format(_L("Mixed filament %d"), slot);
+    return msg;
+}
+
+// Warn before deleting a filament that is still referenced by a model (base filament, Color Painting,
+// or height range) or by a mixed filament as a component (the mixed filament becomes unusable).
+// Per-feature overrides, global support settings and custom G-code tool changes are remapped
+// automatically on delete, so they do not warn.
 // Returns true if the delete should proceed, false if the user cancelled.
 // "Merge with" (replace_filament_id >= 0) is an intentional remap and never warns.
 static bool confirm_delete_used_filament(size_t filament_id, int replace_filament_id)
@@ -6573,24 +6617,12 @@ static bool confirm_delete_used_filament(size_t filament_id, int replace_filamen
     if (replace_filament_id != -1) return true;
     if (wxGetApp().app_config->get("no_warn_delete_used_filament") == "1") return true;
 
-    std::vector<wxString> used_by = models_using_filament(filament_id);
-    if (used_by.empty()) return true;
+    const std::vector<wxString> used_by = models_using_filament(filament_id);
+    const std::vector<int>      mixed   = mixed_filaments_using(filament_id);
+    if (used_by.empty() && mixed.empty()) return true;
 
-    wxString     names_str;
-    const size_t show = std::min<size_t>(used_by.size(), 3);
-    for (size_t i = 0; i < show; ++i) {
-        if (i) names_str += ", ";
-        names_str += used_by[i];
-    }
-    if (used_by.size() > show) names_str += wxString::Format(_L(", and %d more"), (int) (used_by.size() - show));
-    wxString subject = wxString::Format(_L("model \"%s\""), names_str);
-
-    wxString msg = wxString::Format(
-                       _L("The filament you are trying to delete is currently used by %s. After deletion, the model's filament will be reset to the first filament in the list."),
-                       subject) +
-                   "\n\n" + _L("Tips: If you wish to replace it with another filament, please use the \"Merge to\" function on the right side of the filament list.");
-
-    MessageDialog dlg(nullptr, msg, _L("Delete Filament"), wxICON_WARNING | wxOK | wxCANCEL);
+    MessageDialog dlg(nullptr, delete_used_filament_message(used_by, mixed), _L("Delete Filament"), wxICON_WARNING | wxOK | wxCANCEL);
+    dlg.SetButtonLabel(wxID_OK, _L("Continue deleting"));
     dlg.show_dsa_button();
     int res = dlg.ShowModal();
     if (dlg.get_checkbox_state()) wxGetApp().app_config->set("no_warn_delete_used_filament", "1");

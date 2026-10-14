@@ -24,6 +24,26 @@
 namespace Slic3r {
 namespace GUI {
 
+namespace {
+
+/**
+ * \brief Check whether a click on a header panel lands on one of its child controls
+ *
+ * Disabled controls do not consume clicks, so the OS delivers them to the header instead.
+ *
+ * \param header  the panel that received the click
+ * \param pos     click position in header client coordinates
+ */
+bool is_click_on_child_control(const wxWindow* header, const wxPoint& pos)
+{
+    for (const wxWindow* child : header->GetChildren())
+        if (child->IsShown() && child->GetRect().Contains(pos))
+            return true;
+    return false;
+}
+
+} // namespace
+
 
 TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key, long style,std::map<wxStandardID,wxString> option_map)
     : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX),
@@ -283,8 +303,11 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
         m_title_label = new Label(m_top_panel, _L("Process"), LB_PROPAGATE_MOUSE_EVENT);
         m_top_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-            toggle_content_collapsed();
             e.Skip();
+            // A click on a disabled control (e.g. the mode switch in develop mode) must not collapse the panel.
+            if (e.GetEventObject() == m_top_panel && is_click_on_child_control(m_top_panel, e.GetPosition()))
+                return;
+            toggle_content_collapsed();
         });
 
         //int width, height;
@@ -457,11 +480,11 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add(m_process_icon, 0, wxALIGN_CENTER);
         m_mode_sizer->AddSpacer(FromDIP(10));
         m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddStretchSpacer(2);
+        m_mode_sizer->AddSpacer(FromDIP(8));
         m_mode_sizer->Add(m_mode_region, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddStretchSpacer(1);
+        m_mode_sizer->AddSpacer(FromDIP(8));
         m_mode_sizer->Add(m_tips_arrow, 0, wxALIGN_CENTER);
-        m_mode_sizer->AddStretchSpacer(12);
+        m_mode_sizer->AddStretchSpacer(1);
         m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(FromDIP(2));
         m_mode_sizer->Add(m_mode_view, 0, wxALIGN_CENTER);
