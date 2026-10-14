@@ -1599,7 +1599,7 @@ bool GLGizmoText::on_shortcut_key() {
             queue_job(worker, std::move(job));
         }
     } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error";
+        BOOST_LOG_TRIVIAL(info) << "check error";
     }
     return true;
 }
@@ -1781,7 +1781,7 @@ void GLGizmoText::load_init_text(bool first_open_text)
                     try {
                         old_text_height = get_text_height(text_info.m_text); // old text
                     } catch (const std::exception &) {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " error:get_text_height";
+                        BOOST_LOG_TRIVIAL(info) << "error:get_text_height";
                     }
                     if (is_only_text_case()) {
                         m_really_use_surface_calc = false;
@@ -3653,7 +3653,7 @@ bool GLGizmoText::generate_text_volume()
         return false;
     m_show_calc_meshtod = 0;
     if (m_object_idx < 0) {//m_object_idx < 0 && !is_only_text_case()
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "error:m_object_idx < 0";
+        BOOST_LOG_TRIVIAL(info) << "error:m_object_idx < 0";
         return false;
     }
     if (auto text_mv = get_text_is_dragging()) { // moving or dragging;
@@ -3668,7 +3668,7 @@ bool GLGizmoText::generate_text_volume()
     }
     bool rewrite_text_tran = m_need_update_tran ? true : m_last_text_mv == nullptr;
     if (!update_text_tran_in_model_object(rewrite_text_tran)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " fail:update_text_tran_in_model_object";
+        BOOST_LOG_TRIVIAL(info) << "fail:update_text_tran_in_model_object";
         return false;
     }
 

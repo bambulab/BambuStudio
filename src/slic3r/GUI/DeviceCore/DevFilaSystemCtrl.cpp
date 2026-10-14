@@ -55,7 +55,7 @@ int DevFilaSystem::CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int
 {
     const auto validation = DevFilamentWeight::Validate(total, remain);
     if (!validation.valid) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " invalid filament weight, total=" << total << ", remain=" << remain;
+        BOOST_LOG_TRIVIAL(warning) << "invalid filament weight, total=" << total << ", remain=" << remain;
         return -1;
     }
 

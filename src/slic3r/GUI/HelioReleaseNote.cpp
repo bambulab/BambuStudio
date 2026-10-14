@@ -217,7 +217,7 @@ void HelioStatementDialog::report_consent_install()
     std::string post_body_str = consent.dump();
 
     NetworkAgent* agent = GUI::wxGetApp().getAgent();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
+    BOOST_LOG_TRIVIAL(info) << "client_id:" << wxGetApp().app_config->get("slicer_uuid") << "\nreport_consent:" << post_body_str;
 
     if (agent && agent->is_user_login()) {
         agent->report_consent(post_body_str);
@@ -2251,7 +2251,7 @@ void HelioInputDialog::update_action(int action)
         m_button_confirm->Enable();
         helio_wiki_link->setLinkUrl(wxGetApp().app_config->get("language") == "zh_CN" ? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  last simulation trace id:" << Slic3r::HelioQuery::last_simulation_trace_id;
+        BOOST_LOG_TRIVIAL(info) << "last simulation trace id:" << Slic3r::HelioQuery::last_simulation_trace_id;
 
         if (Slic3r::HelioQuery::last_simulation_trace_id.empty()) {
             last_tid_panel->Hide();
@@ -2435,7 +2435,7 @@ void HelioInputDialog::update_action(int action)
         }
         catch (...){}
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "  last optimization trace id:" << Slic3r::HelioQuery::last_optimization_trace_id;
+        BOOST_LOG_TRIVIAL(info) << "last optimization trace id:" << Slic3r::HelioQuery::last_optimization_trace_id;
 
         if (Slic3r::HelioQuery::last_optimization_trace_id.empty()) {
             last_tid_panel->Hide();

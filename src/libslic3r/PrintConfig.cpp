@@ -952,13 +952,13 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     std::string variant_string;
 
     if (extruder_type > etMaxExtruderType) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", unsupported ExtruderType=%1%")%extruder_type;
+        BOOST_LOG_TRIVIAL(error) << boost::format("unsupported ExtruderType=%1%")%extruder_type;
         //extruder_type = etDirectDrive;
         return variant_string;
     }
     auto nozzle_volume_types = get_valid_nozzle_volume_type();
     if (nozzle_volume_types.count(nozzle_volume_type) == 0) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", unsupported NozzleVolumeType=%1%")%nozzle_volume_type;
+        BOOST_LOG_TRIVIAL(error) << boost::format("unsupported NozzleVolumeType=%1%")%nozzle_volume_type;
         //extruder_type = etDirectDrive;
         return variant_string;
     }
@@ -1021,7 +1021,7 @@ int find_printer_variant_index(const DynamicPrintConfig &printer_config, const s
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
 {
     if (int(nozzle_volume_type) < 0 || nozzle_volume_type >= nvtCount) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", unsupported NozzleVolumeType=%1%") % nozzle_volume_type;
+        BOOST_LOG_TRIVIAL(error) << boost::format("unsupported NozzleVolumeType=%1%") % nozzle_volume_type;
         return "";
     }
     return s_keys_names_NozzleVolumeType[nozzle_volume_type];
@@ -1222,7 +1222,7 @@ std::vector<std::map<NozzleVolumeType,int>> get_extruder_nozzle_stats(const std:
             std::vector<std::string> attr;
             boost::algorithm::split(attr, nozzle_info, boost::is_any_of("#"));
             if (attr.size() < 2) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", malformed nozzle stat entry \"%1%\", skipped") % nozzle_info;
+                BOOST_LOG_TRIVIAL(error) << boost::format("malformed nozzle stat entry \"%1%\", skipped") % nozzle_info;
                 continue;
             }
 
@@ -1231,7 +1231,7 @@ std::vector<std::map<NozzleVolumeType,int>> get_extruder_nozzle_stats(const std:
             if (type_iter != s_keys_map_NozzleVolumeType.end())
                 volume_type = NozzleVolumeType(type_iter->second);
             else
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", unknown NozzleVolumeType \"%1%\", fall back to Standard") % attr[0];
+                BOOST_LOG_TRIVIAL(error) << boost::format("unknown NozzleVolumeType \"%1%\", fall back to Standard") % attr[0];
             int nozzle_count = std::atoi(attr[1].c_str());
             // Accumulate so that several unknown types collapsing onto Standard keep the total count.
             nozzle_count_map[volume_type] += nozzle_count;
@@ -1430,8 +1430,8 @@ void DynamicPrintConfig::repair_invalid_filament_extrusion_parameters()
 
             const double repaired = filled > 0. ? filled : parameter.fallback;
 
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
-                << boost::format(": repaired invalid %1% at index %2% (filament %3%, variant '%4%') -> %5%")
+            BOOST_LOG_TRIVIAL(warning)
+                << boost::format("repaired invalid %1% at index %2% (filament %3%, variant '%4%') -> %5%")
                    % parameter.key % i % filament_id % slot_variant % repaired;
             values[i] = repaired;
         }
@@ -9149,14 +9149,14 @@ int DynamicPrintConfig::update_values_from_single_to_multi(DynamicPrintConfig& m
 
     const ConfigDef  *config_def     = this->def();
     if (!config_def) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: can not find config define")%__LINE__;
         return -1;
     }
     for (auto& key: key_set)
     {
         const ConfigOptionDef *optdef  = config_def->get(key);
         if (!optdef) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: can not find opt define for %2%")%__LINE__%key;
             continue;
         }
         switch (optdef->type) {
@@ -9228,7 +9228,7 @@ int DynamicPrintConfig::update_values_from_single_to_multi(DynamicPrintConfig& m
                 break;
             }
             default:
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%")%__LINE__%key;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: unsupported option type for %2%")%__LINE__%key;
                 break;
         }
     }
@@ -9242,7 +9242,7 @@ int DynamicPrintConfig::update_values_from_single_to_multi(DynamicPrintConfig& m
 {
     const ConfigDef  *config_def     = this->def();
     if (!config_def) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: can not find config define")%__LINE__;
         return -1;
     }
 
@@ -9254,7 +9254,7 @@ int DynamicPrintConfig::update_values_from_single_to_multi(DynamicPrintConfig& m
 
         const ConfigOptionDef *optdef  = config_def->get(key);
         if (!optdef) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: can not find opt define for %2%")%__LINE__%key;
             continue;
         }
         switch (optdef->type) {
@@ -9287,7 +9287,7 @@ int DynamicPrintConfig::update_values_from_single_to_multi(DynamicPrintConfig& m
                 break;
             }
             default:
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%")%__LINE__%key;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: unsupported option type for %2%")%__LINE__%key;
                 break;
         }
     }
@@ -9346,14 +9346,14 @@ int DynamicPrintConfig::update_values_from_multi_to_multi(DynamicPrintConfig& ne
 
     const ConfigDef* config_def = this->def();
     if (!config_def) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define") % __LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: can not find config define") % __LINE__;
         return -1;
     }
     for (auto& key : key_set)
     {
         const ConfigOptionDef* optdef = config_def->get(key);
         if (!optdef) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%") % __LINE__ % key;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: can not find opt define for %2%") % __LINE__ % key;
             continue;
         }
         switch (optdef->type) {
@@ -9471,7 +9471,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi(DynamicPrintConfig& ne
             break;
         }
         default:
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%") % __LINE__ % key;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: unsupported option type for %2%") % __LINE__ % key;
             break;
         }
     }
@@ -9483,7 +9483,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
 {
     const ConfigDef  *config_def     = this->def();
     if (!config_def) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: can not find config define")%__LINE__;
         return -1;
     }
 
@@ -9508,7 +9508,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
             continue;
         const ConfigOptionDef* optdef = config_def->get(key);
         if(!optdef){
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: can not find opt define for %2%")%__LINE__%key;
             continue;
         }
 
@@ -9588,7 +9588,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
                 break;
             }
             default:
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%")%__LINE__%key;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: unsupported option type for %2%")%__LINE__%key;
                 break;
         }
 
@@ -9605,7 +9605,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
 {
     const ConfigDef  *config_def     = this->def();
     if (!config_def) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: can not find config define")%__LINE__;
         return -1;
     }
 
@@ -9617,7 +9617,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
 
         const ConfigOptionDef *optdef  = config_def->get(key);
         if (!optdef) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: can not find opt define for %2%")%__LINE__%key;
             continue;
         }
         switch (optdef->type) {
@@ -9679,7 +9679,7 @@ int DynamicPrintConfig::update_values_from_multi_to_multi_2(const std::vector<st
                 break;
             }
             default:
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%")%__LINE__%key;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: unsupported option type for %2%")%__LINE__%key;
                 break;
         }
     }
@@ -9762,18 +9762,18 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
     std::vector<int> variant_index;
     int variant_count = extruder_count;
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: extruder_count %2%, extruder_nozzle_volume_count %3%")%__LINE__ %extruder_count %extruder_nozzle_volume_count;
+    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: extruder_count %2%, extruder_nozzle_volume_count %3%")%__LINE__ %extruder_count %extruder_nozzle_volume_count;
 
     //if (extruder_nozzle_volume_count > 1)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: different nozzle volume processing")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: different nozzle volume processing")%__LINE__;
         //apply process settings
         //auto opt_nozzle_diameters = this->option<ConfigOptionFloats>("nozzle_diameter");
         //int extruder_count = opt_nozzle_diameters->size();
         auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("extruder_type"));
         auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("nozzle_volume_type"));
         if (!opt_extruder_type || !opt_nozzle_volume_type) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: extruder_type or nozzle_volume_type not found, skipping")%__LINE__;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: extruder_type or nozzle_volume_type not found, skipping")%__LINE__;
             return variant_index;
         }
 
@@ -9788,8 +9788,8 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 nozzle_volume_type = filament_nvt;
             }
             else if (nozzle_volume_type != filament_nvt) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                                        << boost::format(", Line %1%: nozzle_volume_type is %2%,  not equal to filament_nvt %3%") % __LINE__ % nozzle_volume_type % filament_nvt;
+                BOOST_LOG_TRIVIAL(info)
+                                        << boost::format("Line %1%: nozzle_volume_type is %2%,  not equal to filament_nvt %3%") % __LINE__ % nozzle_volume_type % filament_nvt;
                 // assert(false);
             }
 
@@ -9797,7 +9797,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             variant_index[0] = get_index_for_extruder(extruder_id, id_name, extruder_type, nozzle_volume_type, variant_name);
 
             if (variant_index[0] < 0) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, for filament")
+                BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, for filament")
                     % __LINE__ % s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type);
                 /*assert(false);*/
             }
@@ -9832,7 +9832,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                     //variant index
                     variant_index[v_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
                     if (variant_index[v_index] < 0) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, extruder_index %4%, nvt_index %5%, nvt_count %6%")
+                        BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, extruder_index %4%, nvt_index %5%, nvt_count %6%")
                             %__LINE__ %s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (e_index+1) %nvt_index %nvt_count;
                         assert(false);
                         //for some updates happens in a invalid state(caused by popup window)
@@ -9846,14 +9846,14 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
 
         const ConfigDef       *config_def     = this->def();
         if (!config_def) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
+            BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: can not find config define")%__LINE__;
             return variant_index;
         }
         for (auto& key: key_set)
         {
             const ConfigOptionDef *optdef  = config_def->get(key);
             if (!optdef) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: can not find opt define for %2%")%__LINE__%key;
                 continue;
             }
             switch (optdef->type) {
@@ -9963,7 +9963,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                     break;
                 }
                 default:
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%")%__LINE__%key;
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: unsupported option type for %2%")%__LINE__%key;
                     break;
             }
         }
@@ -9977,14 +9977,14 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
     //int extruder_count, extruder_volume_type_count;
     //bool different_extruder = printer_config.support_different_extruders(extruder_count);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: extruder_count %2%, extruder_nozzle_volume_count %3%")%__LINE__ %extruder_count %extruder_nozzle_volume_count;
+    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: extruder_count %2%, extruder_nozzle_volume_count %3%")%__LINE__ %extruder_count %extruder_nozzle_volume_count;
 
     //if (extruder_nozzle_volume_count > 1)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: different nozzle volume processing")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: different nozzle volume processing")%__LINE__;
         auto opt_filament_map = printer_config.option<ConfigOptionInts>("filament_map");
         if (!opt_filament_map) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: filament_map not found, skipping")%__LINE__;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: filament_map not found, skipping")%__LINE__;
             return;
         }
         std::vector<int> filament_maps = opt_filament_map->values;
@@ -9995,7 +9995,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
         auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("extruder_type"));
         auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("nozzle_volume_type"));
         if (!opt_extruder_type || !opt_nozzle_volume_type) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: extruder_type or nozzle_volume_type not found, skipping")%__LINE__;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: extruder_type or nozzle_volume_type not found, skipping")%__LINE__;
             return;
         }
 
@@ -10021,7 +10021,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
             //variant index
             variant_index[f_index] = get_index_for_extruder(f_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
             if (variant_index[f_index] < 0) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%")
+                BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%")
                     %__LINE__ %s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (f_index+1) %filament_maps[f_index];
                 /*assert(false);*/
                 //for some updates happens in a invalid state(caused by popup window)
@@ -10039,7 +10039,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
 
         const ConfigDef       *config_def     = this->def();
         if (!config_def) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
+            BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: can not find config define")%__LINE__;
             return;
         }
         bool has_id_key = !id_name.empty() && key_set.count(id_name) > 0;
@@ -10052,7 +10052,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 continue;
             const ConfigOptionDef *optdef  = config_def->get(key);
             if (!optdef) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: can not find opt define for %2%")%__LINE__%key;
                 continue;
             }
             switch (optdef->type) {
@@ -10155,7 +10155,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                     break;
                 }
                 default:
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%")%__LINE__%key;
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: unsupported option type for %2%")%__LINE__%key;
                     break;
             }
         }
@@ -10179,11 +10179,11 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
                                                                               std::string                                                    id_name,
                                                                               std::string                                                    variant_name)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                            << boost::format(", Line %1%: extruder_count %2%, extruder_nozzle_volume_count %3%") % __LINE__ % extruder_count % extruder_nozzle_volume_count;
+    BOOST_LOG_TRIVIAL(info)
+                            << boost::format("Line %1%: extruder_count %2%, extruder_nozzle_volume_count %3%") % __LINE__ % extruder_count % extruder_nozzle_volume_count;
 
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: different nozzle volume processing") % __LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: different nozzle volume processing") % __LINE__;
         std::vector<int> filament_maps  = printer_config.option<ConfigOptionInts>("filament_map")->values;
         size_t           filament_count = filament_maps.size();
 
@@ -10210,9 +10210,9 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
                     nozzle_volume_type = nozzle_info.nozzle_volume_type;
                     int param_index = get_index_for_extruder(f_index + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
                     if (param_index < 0) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                        BOOST_LOG_TRIVIAL(error)
                                                  << boost::format(
-                                                        ", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
+                                                        "Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
                                                         __LINE__ % s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (f_index + 1) %
                                                         filament_maps[f_index];
                         assert(false);
@@ -10238,8 +10238,8 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
                 }
                 int param_index = get_index_for_extruder(f_index + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
                 if (param_index < 0) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-                                             << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
+                    BOOST_LOG_TRIVIAL(error)
+                                             << boost::format("Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
                                                     __LINE__ % s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (f_index + 1) %
                                                     filament_maps[f_index];
                     assert(false);
@@ -10261,13 +10261,13 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
 
         const ConfigDef *config_def = this->def();
         if (!config_def) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define") % __LINE__;
+            BOOST_LOG_TRIVIAL(error) << boost::format("Line %1%: can not find config define") % __LINE__;
             return;
         }
         for (auto &key : key_set) {
             const ConfigOptionDef *optdef = config_def->get(key);
             if (!optdef) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%") % __LINE__ % key;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: can not find opt define for %2%") % __LINE__ % key;
                 continue;
             }
             switch (optdef->type) {
@@ -10299,7 +10299,7 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
                 trim_option_values<ConfigOptionEnumsGeneric, int>(this->option<ConfigOptionEnumsGeneric>(key), trim_param_indices);
                 break;
             }
-            default: BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%") % __LINE__ % key; break;
+            default: BOOST_LOG_TRIVIAL(warning) << boost::format("Line %1%: unsupported option type for %2%") % __LINE__ % key; break;
             }
         }
     }
@@ -10331,12 +10331,12 @@ void DynamicPrintConfig::update_non_diff_values_to_base_config(DynamicPrintConfi
     }
     else if ((cur_extruder_ids.size() > 0) && cur_variant_count != cur_extruder_ids.size()){
         //should not happen
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" size of %1% = %2%, not equal to size of %3% = %4%")
+        BOOST_LOG_TRIVIAL(error) << boost::format("size of %1% = %2%, not equal to size of %3% = %4%")
              %extruder_variant_name %cur_variant_count %extruder_id_name %cur_extruder_ids.size();
     }
     else if ((target_extruder_ids.size() > 0) && target_variant_count != target_extruder_ids.size()){
         //should not happen
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" size of %1% = %2%, not equal to size of %3% = %4%")
+        BOOST_LOG_TRIVIAL(error) << boost::format("size of %1% = %2%, not equal to size of %3% = %4%")
              %extruder_variant_name %target_variant_count %extruder_id_name %target_extruder_ids.size();
     }
     else {
@@ -10358,7 +10358,7 @@ void DynamicPrintConfig::update_non_diff_values_to_base_config(DynamicPrintConfi
         ConfigOption *opt_src = this->option(opt);
         const ConfigOption *opt_target = new_config.option(opt);
         if (opt_src && opt_target && (*opt_src != *opt_target)) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from old_value %2% to inherit's value %3%")
+            BOOST_LOG_TRIVIAL(debug) << boost::format("change key %1% from old_value %2% to inherit's value %3%")
                     %opt %(opt_src->serialize()) %(opt_target->serialize());
             if (different_keys.find(opt) == different_keys.end()) {
                 opt_src->set(opt_target);
@@ -10411,12 +10411,12 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
     }
     else if ((cur_extruder_ids.size() > 0) && cur_variant_count != cur_extruder_ids.size()){
         //should not happen
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" size of %1% = %2%, not equal to size of %3% = %4%")
+        BOOST_LOG_TRIVIAL(error) << boost::format("size of %1% = %2%, not equal to size of %3% = %4%")
              %extruder_variant_name %cur_variant_count %extruder_id_name %cur_extruder_ids.size();
     }
     else if ((target_extruder_ids.size() > 0) && target_variant_count != target_extruder_ids.size()){
         //should not happen
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" size of %1% = %2%, not equal to size of %3% = %4%")
+        BOOST_LOG_TRIVIAL(error) << boost::format("size of %1% = %2%, not equal to size of %3% = %4%")
              %extruder_variant_name %target_variant_count %extruder_id_name %target_extruder_ids.size();
     }
     else {
@@ -10443,7 +10443,7 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
             ConfigOption *opt_src = this->option(opt);
             const ConfigOption *opt_target = new_config.option(opt);
             if (opt_src && opt_target && (*opt_src != *opt_target)) {
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from base_value %2% to child's value %3%")
+                BOOST_LOG_TRIVIAL(debug) << boost::format("change key %1% from base_value %2% to child's value %3%")
                         %opt %(opt_src->serialize()) %(opt_target->serialize());
                 if (opt_target->is_scalar()
                     || is_filament_extruder_override_key(opt)
@@ -10461,8 +10461,8 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
                 }
             }
         } catch (const std::runtime_error &e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-                                     << boost::format(", Line %1%: exception when update_diff_values_to_child_config for key %2%, error: %3%") % __LINE__ % opt % e.what();
+            BOOST_LOG_TRIVIAL(error)
+                                     << boost::format("Line %1%: exception when update_diff_values_to_child_config for key %2%, error: %3%") % __LINE__ % opt % e.what();
             throw;
         }
     }

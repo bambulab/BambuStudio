@@ -290,8 +290,8 @@ void DevCalib::ResetPAResult()
 int DevCalib::RequestPAHistory(const PACalibExtruderInfo &calib_info)
 {
     m_fetch_queue.push_back(calib_info);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                           << " enqueue dia=" << calib_info.nozzle_diameter
+    BOOST_LOG_TRIVIAL(info)
+                           << "enqueue dia=" << calib_info.nozzle_diameter
                            << " use_dia=" << calib_info.use_nozzle_diameter
                            << " ext=" << calib_info.extruder_id
                            << " use_ext=" << calib_info.use_extruder_id
@@ -303,13 +303,13 @@ int DevCalib::RequestPAHistory(const PACalibExtruderInfo &calib_info)
 bool DevCalib::PrepareFetchQueue()
 {
     if (!m_fetch_queue.empty()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip, queue already size=" << m_fetch_queue.size();
+        BOOST_LOG_TRIVIAL(info) << "skip, queue already size=" << m_fetch_queue.size();
         return true;
     }
 
     MachineObject *obj = GetOwner();
     if (!obj || !obj->is_info_ready()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " machine info not ready, keep expired";
+        BOOST_LOG_TRIVIAL(info) << "machine info not ready, keep expired";
         return false; // keep version expired so the next tick retries
     }
 
@@ -319,7 +319,7 @@ bool DevCalib::PrepareFetchQueue()
         full.use_extruder_id        = false;
         full.use_nozzle_volume_type = false;
         m_fetch_queue.push_back(full);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " enqueue full table fetch";
+        BOOST_LOG_TRIVIAL(info) << "enqueue full table fetch";
         return true;
     }
 
@@ -334,7 +334,7 @@ bool DevCalib::PrepareFetchQueue()
 
     if (diameter_types.empty()) {
         diameter_types.insert(NozzleDiameterType::NOZZLE_DIAMETER_0_4);
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " no model supported nozzle, fallback to 0.4";
+        BOOST_LOG_TRIVIAL(warning) << "no model supported nozzle, fallback to 0.4";
     }
 
     for (NozzleDiameterType dia_type : diameter_types) {
@@ -345,7 +345,7 @@ bool DevCalib::PrepareFetchQueue()
         item.use_nozzle_volume_type = false;
         m_fetch_queue.push_back(item);
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " prepared diameter slices=" << m_fetch_queue.size();
+    BOOST_LOG_TRIVIAL(info) << "prepared diameter slices=" << m_fetch_queue.size();
     return !m_fetch_queue.empty();
 }
 
@@ -356,15 +356,15 @@ void DevCalib::SendNextFetch()
 
     const PACalibExtruderInfo next = m_fetch_queue.front();
     m_pa_table_status = CalibStatus::REQUEST;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                           << " send dia=" << next.nozzle_diameter
+    BOOST_LOG_TRIVIAL(info)
+                           << "send dia=" << next.nozzle_diameter
                            << " use_dia=" << next.use_nozzle_diameter
                            << " ext=" << next.extruder_id
                            << " use_ext=" << next.use_extruder_id
                            << " remain=" << m_fetch_queue.size();
 
     if (0 != GetOwner()->command_get_pa_calibration_tab(next)) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " publish failed, skip item remain=" << m_fetch_queue.size() - 1;
+        BOOST_LOG_TRIVIAL(error) << "publish failed, skip item remain=" << m_fetch_queue.size() - 1;
         m_fetch_queue.erase(m_fetch_queue.begin());
         m_pa_table_status = CalibStatus::IDLE;
     }
@@ -372,7 +372,7 @@ void DevCalib::SendNextFetch()
 
 void DevCalib::ResetPAHistory()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " clear tab=" << m_pa_calib_tab.size() << " queue=" << m_fetch_queue.size();
+    BOOST_LOG_TRIVIAL(info) << "clear tab=" << m_pa_calib_tab.size() << " queue=" << m_fetch_queue.size();
     m_pa_calib_tab.clear();
     m_fetch_queue.clear();
     m_pa_table_status = CalibStatus::IDLE;
@@ -465,7 +465,7 @@ void DevCalib::ExtrusionCalibSelectParse(const json &jj){
 void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
     if (GetPAHistoryStatus() == CalibStatus::REQUEST ) {
         if (m_fetch_queue.empty()) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " drop stale reply, queue empty";
+            BOOST_LOG_TRIVIAL(info) << "drop stale reply, queue empty";
             m_pa_table_status = CalibStatus::IDLE;
             return;
         }
@@ -508,8 +508,8 @@ void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
                                 m_pa_calib_tab.end());
             m_pa_calib_tab.insert(m_pa_calib_tab.end(), new_rows.begin(), new_rows.end());
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                                   << " cover dia=" << active.nozzle_diameter
+            BOOST_LOG_TRIVIAL(info)
+                                   << "cover dia=" << active.nozzle_diameter
                                    << " use_dia=" << active.use_nozzle_diameter
                                    << " ext=" << active.extruder_id
                                    << " use_ext=" << active.use_extruder_id
@@ -520,7 +520,7 @@ void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
         }
 
         m_fetch_queue.erase(m_fetch_queue.begin());
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " pop queue remain=" << m_fetch_queue.size() << " status=" << static_cast<int>(GetPAHistoryStatus());
+        BOOST_LOG_TRIVIAL(info) << "pop queue remain=" << m_fetch_queue.size() << " status=" << static_cast<int>(GetPAHistoryStatus());
         if (GetPAHistoryStatus() == CalibStatus::WAITING)
             m_pa_table_status = CalibStatus::IDLE;
         // notify cali history to update
@@ -567,7 +567,7 @@ void DevCalib::ExtrusionCalibGetResultParse(const json &jj)
         if (m_pa_calib_results.empty()) { BOOST_LOG_TRIVIAL(info) << "empty pa calib result"; }
     } catch (...) {
         m_pa_calib_results.clear();
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "pa calibration results missing fileds, current json: \n"<<jj.dump();
+        BOOST_LOG_TRIVIAL(error) << "pa calibration results missing fileds, current json: \n"<<jj.dump();
     }
 }
 
@@ -580,7 +580,7 @@ void DevCalib::FlowrateGetResultParse(const json &jj){
     try {
         m_flow_ratio_results = jj["filaments"].get<std::vector<FlowRatioCalibResult>>();
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "flow ratio calibration results missing fileds, current json:\n"<<jj.dump();
+        BOOST_LOG_TRIVIAL(error) << "flow ratio calibration results missing fileds, current json:\n"<<jj.dump();
     }
 }
 

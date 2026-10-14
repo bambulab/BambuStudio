@@ -875,7 +875,7 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
     };
     auto cancelled = [&]() -> bool {
         if (cancel_callback && cancel_callback()) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " cancelled";
+            BOOST_LOG_TRIVIAL(debug) << "cancelled";
             return true;
         }
         return false;
@@ -1059,7 +1059,7 @@ bool ClusterAndSmooth(const TriMesh& mesh,
     };
     auto cancelled = [&]() -> bool {
         if (cancel_callback && cancel_callback()) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " cancelled";
+            BOOST_LOG_TRIVIAL(debug) << "cancelled";
             return true;
         }
         return false;

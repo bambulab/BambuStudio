@@ -738,7 +738,7 @@ bool PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                 has_new_update = true;
             }
             catch(std::exception &err) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<changelog_file<<" got a generic exception, reason = " << err.what();
+                BOOST_LOG_TRIVIAL(error) << "save to "<<changelog_file<<" got a generic exception, reason = " << err.what();
             }
 
             resource_it.second = resource_update->second;
@@ -799,11 +799,11 @@ void PresetUpdater::priv::parse_ota_files(std::string ota_json, std::string& ver
             if (j.contains("description"))
                 description = j["description"];
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                                    << boost::format(": ota_json %1%, version %2%, force %3%, description %4%") % PathSanitizer::sanitize(ota_json) % version % force_upgrade % description;
+            BOOST_LOG_TRIVIAL(info)
+                                    << boost::format("ota_json %1%, version %2%, force %3%, description %4%") % PathSanitizer::sanitize(ota_json) % version % force_upgrade % description;
         }
         catch(nlohmann::detail::parse_error &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << PathSanitizer::sanitize(ota_json) << " got a nlohmann::detail::parse_error, reason = " << err.what();
+            BOOST_LOG_TRIVIAL(error) << "parse " << PathSanitizer::sanitize(ota_json) << " got a nlohmann::detail::parse_error, reason = " << err.what();
         }
     }
     return;
@@ -999,17 +999,17 @@ bool PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
                             if (boost::iequals(iter.key(), "version")) {
                                 cloud_version = *(Semver::parse(iter.value()));
                                 GUI::wxGetApp().app_config->set("app", "cloud_version",cloud_version.to_string());
-                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio has newer version and the version is: " << cloud_version.to_string();
+                                BOOST_LOG_TRIVIAL(info) << "Bambu Studio has newer version and the version is: " << cloud_version.to_string();
                             } else if (boost::iequals(iter.key(), "url")) {
                                 std::string url = iter.value();
                                 GUI::wxGetApp().app_config->set("app", "cloud_software_url", url);
-                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio has newer version and download url is: " << url;
+                                BOOST_LOG_TRIVIAL(info) << "Bambu Studio has newer version and download url is: " << url;
                             }
                         }
                     } else {
                         GUI::wxGetApp().app_config->erase("app", "cloud_version");
                         GUI::wxGetApp().app_config->erase("app", "cloud_software_url");
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Bambu Studio is newest version.";
+                        BOOST_LOG_TRIVIAL(info) << "Bambu Studio is newest version.";
                     }
                     GUI::wxGetApp().CallAfter([]() { GUI::wxGetApp().app_config->save(); });
                 }

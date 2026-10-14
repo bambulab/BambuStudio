@@ -49,7 +49,7 @@ std::unordered_map<NozzleDef, int> DevUtilBackend::CollectNozzleInfo(MultiNozzle
             need_nozzle_map[data]++;
         } catch (const std::exception& e) {
             assert(0);
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "exception: " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         }
     }
 
@@ -174,7 +174,7 @@ std::optional<Slic3r::DevFilamentDryingPreset> DevUtilBackend::GetFilamentDrying
         try {
             return FillDryingPresetFromConfig(filament_preset.config, fila_id);
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " exception: " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
             return std::nullopt;
         }
     };

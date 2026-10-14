@@ -1879,7 +1879,7 @@ FilamentGroupContext build_filament_group_context(
                 for (int c : counts)
                     count_sum += c;
                 BOOST_LOG_TRIVIAL(error)
-                    << __FUNCTION__ << ": no valid nozzle."
+                    << "no valid nozzle."
                     << " ordered_size=" << ordered.size()
                     << " ams_slot_ok=" << ams_slot_ok
                     << " ams_nozzle_idx=" << ams_nozzle_idx_ctx

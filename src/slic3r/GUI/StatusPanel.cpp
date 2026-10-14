@@ -1693,7 +1693,7 @@ void PrintingTaskPanel::update_title(const wxString &title)
 {
     if (m_type == CALIBRATION) return;
 
-    if (m_staticText_title->GetLabelText() != title) { BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << title; }
+    if (m_staticText_title->GetLabelText() != title) { BOOST_LOG_TRIVIAL(info) << title; }
     m_staticText_title->SetLabelText(title);
 }
 
@@ -3479,15 +3479,15 @@ void StatusPanel::init_scaled_buttons()
 void StatusPanel::on_market_scoring(wxCommandEvent &event)
 {
     if (obj && obj->is_makeworld_subtask() && obj->rating_info && obj->rating_info->request_successful) { // model is mall model and has rating_id
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_market_scoring";
+        BOOST_LOG_TRIVIAL(info) << "on_market_scoring";
         if (m_score_data && m_score_data->rating_id == obj->rating_info->rating_id) { // current score data for model is same as mall model
             if (m_score_data->star_count != m_project_task_panel->get_star_count()) m_score_data->star_count = m_project_task_panel->get_star_count();
             ScoreDialog m_score_dlg(this, m_score_data);
             int         ret = m_score_dlg.ShowModal();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": old data";
+            BOOST_LOG_TRIVIAL(info) << "old data";
 
             if (ret == wxID_OK) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": old data is upload";
+                BOOST_LOG_TRIVIAL(info) << "old data is upload";
                 m_score_data->rating_id = -1;
                 m_project_task_panel->set_star_count_dirty(false);
                 if (obj) obj->get_model_mall_result_need_retry = true;
@@ -3504,7 +3504,7 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event)
             bool        success_print = obj->rating_info->success_printed;
             ScoreDialog m_score_dlg(this, obj->get_modeltask()->design_id, obj->get_modeltask()->model_id, obj->get_modeltask()->profile_id, obj->rating_info->rating_id,
                                     success_print, star_count);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": new data";
+            BOOST_LOG_TRIVIAL(info) << "new data";
 
             std::string comment = obj->rating_info->content;
             if (!comment.empty()) { m_score_dlg.set_comment(comment); }
@@ -3516,7 +3516,7 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event)
             int ret = m_score_dlg.ShowModal();
 
             if (ret == wxID_OK) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": new data is upload";
+                BOOST_LOG_TRIVIAL(info) << "new data is upload";
                 m_score_data->rating_id = -1;
                 m_project_task_panel->set_star_count_dirty(false);
                 if (obj) obj->get_model_mall_result_need_retry = true;
@@ -3537,7 +3537,7 @@ void StatusPanel::on_market_retry(wxCommandEvent &event)
     if (obj) {
         obj->get_model_mall_result_need_retry = true;
     } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "retury failed";
+        BOOST_LOG_TRIVIAL(info) << "retury failed";
     }
 }
 
@@ -4259,7 +4259,7 @@ void StatusPanel::update_calib_history(MachineObject *obj)
     if (obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
         if (obj->GetCalib()->PrepareFetchQueue()) {
             obj->GetCalib()->SyncCalibVersion();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: rebuild history fetch queue for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
+            BOOST_LOG_TRIVIAL(info) << "calibration: rebuild history fetch queue for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
         }
     }
 
@@ -6918,7 +6918,7 @@ std::pair<wxStaticBitmap *, ScoreDialog::ImageMsg> ScoreDialog::create_local_thu
 
     bitmap_to_image_msg.first  = imageCtrl;
     bitmap_to_image_msg.second = cur_image_msg;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": local picture is download";
+    BOOST_LOG_TRIVIAL(info) << "local picture is download";
     return bitmap_to_image_msg;
 }
 
@@ -6961,7 +6961,7 @@ std::pair<wxStaticBitmap *, ScoreDialog::ImageMsg> ScoreDialog::create_oss_thumb
 
     bitmap_to_image_msg.first  = imageCtrl;
     bitmap_to_image_msg.second = cur_image_msg;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": oss picture is download";
+    BOOST_LOG_TRIVIAL(info) << "oss picture is download";
     return bitmap_to_image_msg;
 }
 
@@ -7216,7 +7216,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         }
 
         std::set<std::pair<wxStaticBitmap *, wxString>> need_upload_images = add_need_upload_imgs();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": get need upload picture count: " << need_upload_images.size();
+        BOOST_LOG_TRIVIAL(info) << "get need upload picture count: " << need_upload_images.size();
 
         std::string  comment = into_u8(m_comment_text->GetValue());
         unsigned int http_code;
@@ -7228,7 +7228,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
             int         ret = wxGetApp().getAgent()->get_oss_config(config, wxGetApp().app_config->get_country_code(), http_code, http_error);
             if (ret == -1) {
                 error_info += into_u8(_L("Get oss config failed.")) + "\n\thttp code: " + std::to_string(http_code) + "\n\thttp error: " + http_error;
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": get oss config filed and http_error: " << http_error;
+                BOOST_LOG_TRIVIAL(info) << "get oss config filed and http_error: " << http_error;
                 m_upload_status_code = StatusCode::UPLOAD_EXIST_ISSUE;
             }
             if (m_upload_status_code == StatusCode::UPLOAD_PROGRESS) {
@@ -7319,7 +7319,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                                              _L("Your comment result cannot be uploaded due to some reasons. As follows:\n\n  error code: ") + std::to_string(http_code) +
                                                  "\n  " + _L("error message: ") + http_error + _L("\n\nWould you like to redirect to the webpage for rating?"),
                                              wxString(_L("info")), wxOK | wxNO | wxCENTER);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed and http error" << http_error;
+                BOOST_LOG_TRIVIAL(info) << "upload rating picture failed and http error" << http_error;
                 if (dlg_info->ShowModal() == wxID_OK) {
                     market_model_scoring_page(m_design_id);
                     EndModal(wxID_OK);
@@ -7330,7 +7330,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         } else if (m_upload_status_code == StatusCode::UPLOAD_IMG_FAILED) {
             MessageDialog *dlg_info = new MessageDialog(this, _L("Some of your images failed to upload. Would you like to redirect to the webpage for rating?"),
                                                         wxString(_L("info")), wxOK | wxNO | wxCENTER);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed or get oss config failed";
+            BOOST_LOG_TRIVIAL(info) << "upload rating picture failed or get oss config failed";
             if (dlg_info->ShowModal() == wxID_OK) {
                 market_model_scoring_page(m_design_id);
                 EndModal(wxID_OK);

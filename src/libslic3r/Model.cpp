@@ -526,7 +526,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     bool cb_cancel;
     if (options & LoadStrategy::AddDefaultInstances) {
         model.add_default_instances();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format("import 3mf IMPORT_STAGE_ADD_INSTANCE\n");
+        BOOST_LOG_TRIVIAL(info) << boost::format("import 3mf IMPORT_STAGE_ADD_INSTANCE\n");
         if (proFn) {
             proFn(IMPORT_STAGE_ADD_INSTANCE, 0, 1, cb_cancel);
             if (cb_cancel)
@@ -537,7 +537,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     //BBS
     //CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_UPDATE_GCODE\n");
+    BOOST_LOG_TRIVIAL(info) << boost::format("import 3mf IMPORT_STAGE_UPDATE_GCODE\n");
     if (proFn) {
         proFn(IMPORT_STAGE_UPDATE_GCODE, 0, 1, cb_cancel);
         if (cb_cancel)
@@ -548,7 +548,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     for (auto& plate_gcodes : model.plates_custom_gcodes)
         CustomGCode::check_mode_for_custom_gcode_per_print_z(plate_gcodes.second);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_CHECK_MODE_GCODE\n");
+    BOOST_LOG_TRIVIAL(info) << boost::format("import 3mf IMPORT_STAGE_CHECK_MODE_GCODE\n");
     if (proFn) {
         proFn(IMPORT_STAGE_CHECK_MODE_GCODE, 0, 1, cb_cancel);
         if (cb_cancel)
@@ -826,7 +826,7 @@ unsigned int Model::update_print_volume_state(const BuildVolume &build_volume)
         num_printable += model_object->update_instances_print_volume_state(build_volume);
     //BBS: add logs for build_volume
     const BoundingBoxf3& print_volume = build_volume.bounding_volume();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", print_volume {%1%, %2%, %3%} to {%4%, %5%, %6%}, got %7% printable istances")\
+    BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%, %2%, %3%} to {%4%, %5%, %6%}, got %7% printable istances")\
         %print_volume.min.x() %print_volume.min.y() %print_volume.min.z()%print_volume.max.x() %print_volume.max.y() %print_volume.max.z() %num_printable;
     return num_printable;
 }
@@ -1176,7 +1176,7 @@ void Model::remove_backup_path_if_exist()
         boost::filesystem::path temp_path(backup_path);
         if (boost::filesystem::exists(temp_path))
         {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("model %1%, id %2% remove backup_path %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
+            BOOST_LOG_TRIVIAL(info) << boost::format("model %1%, id %2% remove backup_path %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
             boost::filesystem::remove_all(temp_path);
         }
 	backup_path.clear();
@@ -1206,11 +1206,11 @@ void Model::set_backup_path(std::string const& path)
         return;
     }
     if (!backup_path.empty()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", model %1%, id %2%, remove previous backup %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
+        BOOST_LOG_TRIVIAL(info) << boost::format("model %1%, id %2%, remove previous backup %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
         Slic3r::remove_backup(*this, true);
     }
     backup_path = path;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", model %1%, id %2%, set backup to %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
+    BOOST_LOG_TRIVIAL(info) << boost::format("model %1%, id %2%, set backup to %3%") % this % this->id().id % PathSanitizer::sanitize(backup_path);
 }
 
 void Model::load_from(Model& model)
@@ -1817,7 +1817,7 @@ Polygon ModelObject::convex_hull_2d(const Transform3d& trafo_instance) const
 
     bbox_svg.merge(get_extents(pts));
     bbox_svg.merge(get_extents(hull));
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": bbox_svg.min{%1%,%2%} max{%3%,%4%}, points count %5%")% bbox_svg.min.x()% bbox_svg.min.y()% bbox_svg.max.x()% bbox_svg.max.y()%points[0].size();
+    BOOST_LOG_TRIVIAL(info) << boost::format("bbox_svg.min{%1%,%2%} max{%3%,%4%}, points count %5%")% bbox_svg.min.x()% bbox_svg.min.y()% bbox_svg.max.x()% bbox_svg.max.y()%points[0].size();
     {
         std::stringstream stri;
         stri << "convex_2d_hull_" << irun << ".svg";
@@ -1828,7 +1828,7 @@ Polygon ModelObject::convex_hull_2d(const Transform3d& trafo_instance) const
         svg.draw(to_polylines(points), "blue");
         svg.draw(to_polylines(hulls), "red");
         svg.Close();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": stri %1%, Polygon.size %2%, point[0] {%3%, %4%}, point[1] {%5%, %6%}")% stri.str()% hull.size()% hull[0].x()% hull[0].y()% hull[1].x()% hull[1].y();
+        BOOST_LOG_TRIVIAL(info) << boost::format("stri %1%, Polygon.size %2%, point[0] {%3%, %4%}, point[1] {%5%, %6%}")% stri.str()% hull.size()% hull[0].x()% hull[0].y()% hull[1].x()% hull[1].y();
     }
     ++ irun;
     return hull;*/
@@ -3064,7 +3064,7 @@ unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume 
                 BoundingBoxf3 bb = vol->get_convex_hull().bounding_box();
                 Vec3d size = bb.size();
                 if ((size.x() == 0.f) || (size.y() == 0.f) || (size.z() == 0.f)) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", object %1%'s vol %2% is empty, skip it, box: {%3%, %4%, %5%} to {%6%, %7%, %8%}")%this->name %vol->name\
+                    BOOST_LOG_TRIVIAL(info) << boost::format("object %1%'s vol %2% is empty, skip it, box: {%3%, %4%, %5%} to {%6%, %7%, %8%}")%this->name %vol->name\
                         %bb.min.x() %bb.min.y() %bb.min.z()%bb.max.x() %bb.max.y() %bb.max.z();
                     continue;
                 }
@@ -4146,7 +4146,7 @@ static void get_real_filament_id(const unsigned char &id, std::string &result) {
     if (id < CONST_FILAMENTS.size()) {
         result = CONST_FILAMENTS[id];
     } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error:CONST_FILAMENTS out of array ";
+        BOOST_LOG_TRIVIAL(info) << "check error:CONST_FILAMENTS out of array ";
         result = "";//error
     }
 };
@@ -4524,7 +4524,7 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
         if (object->volumes[i]->is_model_part()) {
             volume = object->volumes[i];
             if (!volume) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
+                BOOST_LOG_TRIVIAL(error) << "invalid object, should not happen";
                 return;
             }
             auto ve = object->volumes[i]->get_extruders(GlobalFeatureFilaments::from_full_config(config_global));

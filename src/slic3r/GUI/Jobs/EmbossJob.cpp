@@ -1309,7 +1309,7 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, st
     bool              is_all_space = re.Matches(input_text);
     if (is_all_space) { return; }
     if (input_text.size() != shape.shapes_with_ids.size()) {
-        BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< "error: input_text.size() != shape.shapes_with_ids.size()";
+        BOOST_LOG_TRIVIAL(info) << "error: input_text.size() != shape.shapes_with_ids.size()";
     }
     for (int i = 0; i < shape.shapes_with_ids.size(); i++) {
         auto &temp_shape = shape.shapes_with_ids[i];

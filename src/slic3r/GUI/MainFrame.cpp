@@ -493,11 +493,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": mainframe received close_widow event";
+        BOOST_LOG_TRIVIAL(info) << "mainframe received close_widow event";
         if (event.CanVeto() && m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true)) {
             // prevents to open the save dirty project dialog
             event.Veto();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by gizmo in editing";
+            BOOST_LOG_TRIVIAL(info) << "cancelled by gizmo in editing";
             return;
         }
 
@@ -510,7 +510,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         // the plater dirty in time for the "save project" prompt to pick it up.
         if (event.CanVeto() && !confirm_project_page_can_leave([this] { Close(); })) {
             event.Veto();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "cancelled or deferred by the project page";
+            BOOST_LOG_TRIVIAL(info) << "cancelled or deferred by the project page";
             return;
         }
 
@@ -524,7 +524,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         int result;
         if (((result = m_plater->close_with_confirm(check, event.CanVeto())) == wxID_CANCEL) && event.CanVeto()) {
             event.Veto();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by close_with_confirm selection";
+            BOOST_LOG_TRIVIAL(info) << "cancelled by close_with_confirm selection";
             return;
         }
         if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
@@ -641,7 +641,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         wxGetApp().remove_mall_system_dialog();
         event.Skip();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": mainframe finished process close_widow event";
+        BOOST_LOG_TRIVIAL(info) << "mainframe finished process close_widow event";
     });
 
     //FIXME it seems this method is not called on application start-up, at least not on Windows. Why?
@@ -1147,7 +1147,7 @@ void MainFrame::update_layout()
 // Called when closing the application and when switching the application language.
 void MainFrame::shutdown()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown enter";
+    BOOST_LOG_TRIVIAL(info) << "MainFrame::shutdown enter";
 
     // The rich parameter tooltip is a wxPopupTransientWindow parented to this frame. Both teardown
     // paths funnel through here (app close, and the language-switch GUI rebuild via recreate_GUI),
@@ -1233,7 +1233,7 @@ void MainFrame::shutdown()
     // BBS: why clear ?
     //wxGetApp().plater_ = nullptr;
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown exit";
+    BOOST_LOG_TRIVIAL(info) << "MainFrame::shutdown exit";
 }
 
 void MainFrame::update_filament_tab_ui()
@@ -2515,11 +2515,11 @@ bool MainFrame::get_enable_slice_status()
 
     bool on_slicing = m_plater->is_background_process_slicing();
     if (on_slicing) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": on slicing, return false directly!");
+        BOOST_LOG_TRIVIAL(info) << boost::format("on slicing, return false directly!");
         return false;
     }
     else if  (m_plater->only_gcode_mode() || m_plater->using_exported_file()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": in gcode/exported 3mf mode, return false directly!");
+        BOOST_LOG_TRIVIAL(info) << boost::format("in gcode/exported 3mf mode, return false directly!");
         return false;
     }
 
@@ -2560,7 +2560,7 @@ bool MainFrame::get_enable_slice_status()
     if (enable && m_plater->sidebar().has_broken_mixed_filament())
         enable = false;
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": m_slice_select %1%, enable= %2% ")%m_slice_select %enable;
+    BOOST_LOG_TRIVIAL(info) << boost::format("m_slice_select %1%, enable= %2% ")%m_slice_select %enable;
     return enable;
 }
 
@@ -2662,7 +2662,7 @@ bool MainFrame::get_enable_print_status()
         enable = enable && !is_all_plates;
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": m_print_select %1%, enable= %2% ")%m_print_select %enable;
+    BOOST_LOG_TRIVIAL(info) << boost::format("m_print_select %1%, enable= %2% ")%m_print_select %enable;
 
     return enable;
 }
@@ -2728,7 +2728,7 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
 
     bool old_slice_status = m_slice_btn->IsEnabled();
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" m_slice_select %1%: can_slice= %2%, can_print %3%, enable_slice %4%, enable_print %5% ")%m_slice_select % can_slice %can_print %enable_slice %enable_print;
+    BOOST_LOG_TRIVIAL(info) << boost::format("m_slice_select %1%: can_slice= %2%, can_print %3%, enable_slice %4%, enable_print %5% ")%m_slice_select % can_slice %can_print %enable_slice %enable_print;
     m_print_btn->Enable(enable_print);
     m_slice_btn->Enable(enable_slice);
     m_slice_enable = enable_slice;
@@ -4165,11 +4165,11 @@ void MainFrame::load_config_file()
     if (!cfiles.empty()) {
         wxGetApp().app_config->update_config_dir(get_dir_name(cfiles.back()));
         wxGetApp().load_current_presets();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " presets has been import,and size is" << cfiles.size();
+        BOOST_LOG_TRIVIAL(info) << "presets has been import,and size is" << cfiles.size();
         NetworkAgent* agent = wxGetApp().getAgent();
         if (agent) {
 #if !BBL_RELEASE_TO_PUBLIC
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " user is: " << agent->get_user_id();
+            BOOST_LOG_TRIVIAL(info) << "user is: " << agent->get_user_id();
 #endif
         }
     }
@@ -4495,7 +4495,7 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
     // recent-file list. Plater::load_project() rejects these too; this keeps any other caller safe.
     // The whole path is checked, not just the file name: the home page renders the full path.
     if (Plater::has_html_unsafe_path_characters(filename)) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": skipped project with unsafe characters in its path";
+        BOOST_LOG_TRIVIAL(warning) << "skipped project with unsafe characters in its path";
         return;
     }
 
@@ -4833,11 +4833,11 @@ bool MainFrame::check_bbl_farm_client_installed()
     LONG result_backup = RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("HKEY_CLASSES_ROOT\\bambu-farm-client\\shell\\open\\command"), 0, KEY_READ, &hKey);
 
     if (result == ERROR_SUCCESS || result_backup == ERROR_SUCCESS) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Bambu Farm Manager Client found.";
+        BOOST_LOG_TRIVIAL(info) << "Bambu Farm Manager Client found.";
         RegCloseKey(hKey);
         return true;
     } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Bambu Farm Manager Client Not found.";
+        BOOST_LOG_TRIVIAL(info) << "Bambu Farm Manager Client Not found.";
         return false;
     }
 
@@ -4892,13 +4892,13 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
         case wxID_YES: {
             wxGetApp().app_config->set_bool("sync_user_preset", true);
             wxGetApp().start_sync_user_preset(true);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: true";
+            BOOST_LOG_TRIVIAL(info) << "sync_user_preset: true";
             break;
         }
         case wxID_NO:
             wxGetApp().app_config->set_bool("sync_user_preset", false);
             wxGetApp().stop_sync_user_preset();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: false";
+            BOOST_LOG_TRIVIAL(info) << "sync_user_preset: false";
             break;
         default:
             break;

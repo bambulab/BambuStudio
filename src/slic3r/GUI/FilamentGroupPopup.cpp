@@ -59,7 +59,7 @@ static FilamentMapMode get_prefered_map_mode()
     std::string                             mode_str      = app_config->get("prefered_filament_map_mode");
     auto                                    iter          = enum_keys_map.find(mode_str);
     if (iter == enum_keys_map.end()) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("Could not get prefered_filament_map_mode from app config, use AutoForFlsuh mode");
+        BOOST_LOG_TRIVIAL(warning) << boost::format("Could not get prefered_filament_map_mode from app config, use AutoForFlsuh mode");
         return FilamentMapMode::fmmAutoForFlush;
     }
     return FilamentMapMode(iter->second);
@@ -72,7 +72,7 @@ static void set_prefered_map_mode(FilamentMapMode mode)
     std::string                           mode_str;
     if (mode < enum_values.size()) mode_str = enum_values[mode];
 
-    if (mode_str.empty()) BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("Set empty prefered_filament_map_mode to app config");
+    if (mode_str.empty()) BOOST_LOG_TRIVIAL(warning) << boost::format("Set empty prefered_filament_map_mode to app config");
     app_config->set("prefered_filament_map_mode", mode_str);
 }
 
@@ -80,10 +80,10 @@ bool play_dual_extruder_slice_video()
 {
     const wxString video_url = "https://e.bambulab.com/t?c=HDB24RlwSmt77YFH";
     if (wxLaunchDefaultBrowser(video_url)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Video is being played using the system's default browser.");
+        BOOST_LOG_TRIVIAL(info) << boost::format("Video is being played using the system's default browser.");
         return true;
     }
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default browser failed");
+    BOOST_LOG_TRIVIAL(error) << boost::format("launch system's default browser failed");
     return false;
 }
 
@@ -91,10 +91,10 @@ bool play_dual_extruder_print_tpu_video()
 {
     const wxString video_url = "https://e.bambulab.com/t?c=fwWqpBg37Liel92N";
     if (wxLaunchDefaultBrowser(video_url)){
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Print Tpu Video is being played using the system's default browser.");
+        BOOST_LOG_TRIVIAL(info) << boost::format("Print Tpu Video is being played using the system's default browser.");
         return true;
     }
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default browser failed");
+    BOOST_LOG_TRIVIAL(error) << boost::format("launch system's default browser failed");
     return false;
 }
 
@@ -102,10 +102,10 @@ bool open_filament_group_wiki()
 {
     const wxString wiki_url = "https://e.bambulab.com/t?c=mOkvsXkJ9pldGYp9";
     if (wxLaunchDefaultBrowser(wiki_url)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Wiki is being displayed using the system's default browser.");
+        BOOST_LOG_TRIVIAL(info) << boost::format("Wiki is being displayed using the system's default browser.");
         return true;
     }
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("launch system's default browser failed");
+    BOOST_LOG_TRIVIAL(error) << boost::format("launch system's default browser failed");
     return false;
 }
 

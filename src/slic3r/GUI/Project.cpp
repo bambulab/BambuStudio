@@ -65,7 +65,7 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 
     m_browser = WebView::CreateWebView(this, m_project_home_url, "Project");
     if (m_browser == nullptr) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("load web view of project page failed");
+        BOOST_LOG_TRIVIAL(info) << boost::format("load web view of project page failed");
         return;
     }
     //m_browser->Hide();
@@ -94,7 +94,7 @@ std::string trim(const std::string &str, const std::string &charsToTrim)
  */
 void ProjectPanel::OnNewWindow(wxWebViewEvent &evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << evt.GetURL().ToUTF8().data();
     wxString flag = " (other)";
 
     if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER) { flag = " (user)"; }

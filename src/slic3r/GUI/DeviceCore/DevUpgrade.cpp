@@ -18,7 +18,7 @@ int DevUpgrade::GetUpgradeProgressInt() const
     try {
         return std::stoi(m_upgrade_progress);
     } catch (const std::exception &e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+        BOOST_LOG_TRIVIAL(error) << e.what();
     }
 
     return 0;

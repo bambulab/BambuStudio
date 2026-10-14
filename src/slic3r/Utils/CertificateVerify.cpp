@@ -143,7 +143,7 @@ namespace Slic3r {
         try {
             return summarize_file_win(wself_path());
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(info) << e.what();
             return std::nullopt;
         }
     }
@@ -152,7 +152,7 @@ namespace Slic3r {
         try {
             return summarize_file_win(utf8_to_w(path_utf8));
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(info) << e.what();
             return std::nullopt;
         }
     }
@@ -280,7 +280,7 @@ namespace Slic3r {
             CFRelease(st);
             return ok ? std::optional<SignerSummary>(s) : std::nullopt;
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(info) << e.what();
             return std::nullopt;
         }
     }
@@ -300,7 +300,7 @@ namespace Slic3r {
             CFRelease(code);
             return ok ? std::optional<SignerSummary>(s) : std::nullopt;
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(info) << e.what();
             return std::nullopt;
         }
     }

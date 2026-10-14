@@ -572,7 +572,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         throw Slic3r::RuntimeError(std::string("Time estimator post process export failed.\nCannot open file for reading.\n"));
 
     std::string filename_safe = PathSanitizer::sanitize(filename);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before process %1%") % filename_safe;
+    BOOST_LOG_TRIVIAL(info) << boost::format("before process %1%") % filename_safe;
     // temporary file to contain modified gcode
     std::string filename_in = filename;
     std::string filename_out = filename + ".postprocess";
@@ -1285,15 +1285,15 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     in.close();
     out.close();
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  after process %1%") % filename_safe;
+    BOOST_LOG_TRIVIAL(info) << boost::format("after process %1%") % filename_safe;
 
     if (boost::nowide::remove(filename_in.c_str()) != 0) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to remove the temporary G-code file %1%") % filename_in_safe;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Failed to remove the temporary G-code file %1%") % filename_in_safe;
         throw Slic3r::RuntimeError(std::string("Failed to remove the temporary G-code file ") + filename_in_safe + '\n' +
             "Is " + filename_in_safe + " locked?" + '\n');
     }
     if (rename_file(filename_out, filename)) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  Failed to rename the output G-code file from %1% to %2%") % filename_out_safe % filename_safe;
+        BOOST_LOG_TRIVIAL(info) << boost::format("Failed to rename the output G-code file from %1% to %2%") % filename_out_safe % filename_safe;
         throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + filename_out_safe + " to " + filename_safe + '\n' +
             "Is " + filename_out_safe + " locked?" + '\n');
     }
@@ -1606,7 +1606,7 @@ void GCodeProcessorResult::reset() {
     //BBS: add mutex for protection of gcode result
     unlock();
     //BBS: add logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: this=%2% reset finished")%__LINE__%this;
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1%: this=%2% reset finished")%__LINE__%this;
 }
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
@@ -6889,7 +6889,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         if (!command_only_active)
             cooling_budget = std::min(cooling_budget, partial_free_time_gap * ext_cooling_rate_post_extrusion);
         float max_cooling_temp = std::min(curr_temp, cooling_budget);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": partial cooling for %1% %2%") % max_cooling_temp % curr_temp;
+        BOOST_LOG_TRIVIAL(info) << boost::format("partial cooling for %1% %2%") % max_cooling_temp % curr_temp;
         curr_temp = std::max(min_temperature, curr_temp - max_cooling_temp); // set the temperature after doing cooling when post-extruding
         add_M104_lines(block.partial_free_lower_id, extruder_id, curr_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling in post extrusion");
         if (command_only_active)

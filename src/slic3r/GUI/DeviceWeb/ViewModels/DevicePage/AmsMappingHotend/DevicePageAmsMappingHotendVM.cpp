@@ -181,7 +181,7 @@ void DevicePageAmsMappingHotendVM::ReportStateImpl(const std::string& submod, co
     try {
         state_key = state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " state.dump() failed: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "state.dump() failed: " << e.what();
         return;
     }
     if (state_key == m_last_report_state) {

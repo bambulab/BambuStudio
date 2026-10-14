@@ -1685,7 +1685,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, int extruder_
     try {
         can_index = atoi(canid.c_str());
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[dev][error] e=:" << e.what();
+        BOOST_LOG_TRIVIAL(error) << "[dev][error] e=:" << e.what();
         return;
     }
 

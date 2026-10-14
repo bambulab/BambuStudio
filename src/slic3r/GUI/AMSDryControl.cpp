@@ -173,7 +173,7 @@ void FilamentItemPanel::SetIcon(const std::string& icon_name)
             m_icon.msw_rescale();
             m_icon_bitmap->SetBitmap(m_icon.bmp());
         } catch (Exception& e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed to load filament icon";
+            BOOST_LOG_TRIVIAL(info) << "failed to load filament icon";
             m_icon_bitmap->SetBitmap(wxNullBitmap);
         }
     } else {
@@ -1486,7 +1486,7 @@ void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DryS
         m_image_description_icon->SetBitmap(m_description_icon_bitmap.bmp());
         m_image_description_icon->Show(true);
     } catch (Exception& e) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Error loading drying icon";
+        BOOST_LOG_TRIVIAL(info) << "Error loading drying icon";
         m_image_description_icon->Show(false);
     }
 }
@@ -1748,7 +1748,7 @@ wxString get_cannot_reason_text(DevAms::CannotDryReason reason)
     default:
         cannot_reason_text = "*" + _L("System is busy") + "\n";
         cannot_reason_text += _L("  Initiating other drying processes, please wait a few seconds...") + "\n";
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": unknown cannot dry reason";
+        BOOST_LOG_TRIVIAL(info) << "unknown cannot dry reason";
         break;
     }
     return cannot_reason_text;
@@ -2022,7 +2022,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         std::ostringstream stream;
         int extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(m_ams_info.m_ams_id);
         if (!obj->GetExtderSystem()->GetExtderById(extruder_id)) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " get extruder id failed";
+            BOOST_LOG_TRIVIAL(info) << "get extruder id failed";
             extruder_id = 0;
         }
         stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
@@ -2113,8 +2113,8 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
             if (!settings.dry_filament.empty()) {
                 m_trays_combo->SetLabel(wxString::FromUTF8(settings.dry_filament));
             } else {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                    << ": dry_settings.dry_filament is empty, fallback to local filament list";
+                BOOST_LOG_TRIVIAL(info)
+                    << "dry_settings.dry_filament is empty, fallback to local filament list";
                 set_filament_label_by_type(settings.dry_filament);
             }
         } else {

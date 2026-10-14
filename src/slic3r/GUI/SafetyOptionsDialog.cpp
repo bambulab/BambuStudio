@@ -96,7 +96,7 @@ SafetyOptionsDialog::SafetyOptionsDialog(wxWindow* parent)
         }
         else
         {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "obj is empty";
+            BOOST_LOG_TRIVIAL(warning) << "obj is empty";
         }
             evt.Skip();
     });

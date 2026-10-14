@@ -124,7 +124,7 @@ static bool volume_to_textured_mesh(
     if (colored_faces < face_count)
         has_uncolored = true;
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": built textured mesh from standard 3mf colors, faces=" << face_count
+    BOOST_LOG_TRIVIAL(info) << "built textured mesh from standard 3mf colors, faces=" << face_count
                             << ", colored faces=" << colored_faces;
     return true;
 }

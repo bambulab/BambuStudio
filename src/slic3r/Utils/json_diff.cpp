@@ -108,13 +108,13 @@ bool json_diff::load_compatible_settings(std::string const &type, std::string co
                 diff2all_base_reset(full_message);
             }
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": "<< type << " " << version << ", merged " << Slic3r::BBLCrossTalk::Crosstalk_JsonLog(versions);
+            BOOST_LOG_TRIVIAL(info) << type << " " << version << ", merged " << Slic3r::BBLCrossTalk::Crosstalk_JsonLog(versions);
             return true;
         } else {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << type << " " << version << ", failed open file";
+            BOOST_LOG_TRIVIAL(error) << type << " " << version << ", failed open file";
         }
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << type << " " << version << ", unknown exception";
+        BOOST_LOG_TRIVIAL(error) << type << " " << version << ", unknown exception";
     }
 
 

@@ -1449,7 +1449,7 @@ static bool s_is_ams_mapping_result_valid(const std::string& mapping_array_str, 
             }
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to parse the ams mapping payload, " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "failed to parse the ams mapping payload, " << e.what();
         return true;
     }
 
@@ -1486,11 +1486,11 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
             for (auto fila : m_filaments_map) {
                 filament_map_str += std::to_string(fila) + " ";
             };
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "[info]: m_filaments_map(fila2extuder)=[ " << filament_map_str << "]";
+            BOOST_LOG_TRIVIAL(info) << "[info]: m_filaments_map(fila2extuder)=[ " << filament_map_str << "]";
 
             for (auto it = m_filaments.begin(); it != m_filaments.end(); it++){
                 if (it->id < 0 || it->id > m_filaments_map.size()){
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: m_filaments_map is invalid";
+                    BOOST_LOG_TRIVIAL(error) << "[error]: m_filaments_map is invalid";
                     return false;
                 }
 
@@ -2070,7 +2070,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     }
 
     if (m_print_status != status) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": update_status: " << status << "(" << PrePrintChecker::get_print_status_info(status) << ")";
+        BOOST_LOG_TRIVIAL(info) << "update_status: " << status << "(" << PrePrintChecker::get_print_status_info(status) << ")";
     }
     m_print_status = status;
 
@@ -2437,7 +2437,7 @@ void SelectMachineDialog::show_errors(wxString &info)
 
 void SelectMachineDialog::on_reselect_dialog_btn_clicked(wxMouseEvent&)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_reselect_dialog_btn_clicked";
+    BOOST_LOG_TRIVIAL(info) << "on_reselect_dialog_btn_clicked";
     if (m_best_pos_dialog == nullptr)
     {
         m_best_pos_dialog = new ReselectMachineDialog(static_cast<wxWindow*>(this));
@@ -2474,7 +2474,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
     if (event.GetEventObject() == m_button_ensure)
         m_add_to_queue = false;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_ok_btn";
+    BOOST_LOG_TRIVIAL(info) << "on_ok_btn";
 
     bool has_slice_warnings = false;
     bool is_printing_block  = false;
@@ -2651,7 +2651,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e)
             {
                 confirm_dlg.on_hide();
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": confirm_dlg to send print job after warnings.";
+                BOOST_LOG_TRIVIAL(info) << "confirm_dlg to send print job after warnings.";
                 this->on_send_print();
             });
 
@@ -2714,7 +2714,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
 
         confirm_dlg.on_show();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": confirm_dlg on_show.";
+        BOOST_LOG_TRIVIAL(info) << "confirm_dlg on_show.";
     }
     else
     {
@@ -3505,7 +3505,7 @@ void SelectMachineDialog::on_send_print()
     if (obj_ == nullptr) { return; }
 
     if (!DevMappingUtil::is_valid_mapping_result(obj_, m_ams_mapping_result)) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "print_job: invalid mapping";
+        BOOST_LOG_TRIVIAL(error) << "print_job: invalid mapping";
         Enable_Send_Button(true);
         return;
     }
@@ -3515,15 +3515,15 @@ void SelectMachineDialog::on_send_print()
     std::string ams_mapping_info;
     get_ams_mapping_result(ams_mapping_array, ams_mapping_array2, ams_mapping_info);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result begin";
+    BOOST_LOG_TRIVIAL(info) << "print_job: get_ams_mapping_result begin";
     print_ams_mapping_result(m_ams_mapping_result);
     BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_array = " << ams_mapping_array;
     BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_array2 = " << ams_mapping_array2;
     BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_info = " << ams_mapping_info;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result end";
+    BOOST_LOG_TRIVIAL(info) << "print_job: get_ams_mapping_result end";
 
     if (!s_is_ams_mapping_result_valid(ams_mapping_array, ams_mapping_array2)) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "print_job: invalid ams mapping result, the send is aborted";
+        BOOST_LOG_TRIVIAL(error) << "print_job: invalid ams mapping result, the send is aborted";
         MessageDialog dlg(this, _L("The current filament mapping is invalid and the print would fail. Please select the filaments manually again."),
                           _L("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
@@ -3531,7 +3531,7 @@ void SelectMachineDialog::on_send_print()
         return;
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "print_job: for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
 
     m_status_bar->reset();
@@ -4189,8 +4189,7 @@ void SelectMachineDialog::update_user_printer()
         if (m_print_type != FROM_PRINT_QUEUE && m_printer_last_select.empty()) {
             prefer_idx = find_preset_matched_index();
             BOOST_LOG_TRIVIAL(info)
-                << __FUNCTION__
-                << ": pick printer by source model, dev_id = "
+                << "pick printer by source model, dev_id = "
                 << BBLCrossTalk::Crosstalk_DevId(m_list[prefer_idx]->get_dev_id());
         }
 
@@ -4207,7 +4206,7 @@ void SelectMachineDialog::update_user_printer()
         m_printer_box->GetPrinterComboBox()->SetTextLabel("");
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
     update_by_obj(get_current_machine());
 }
 
@@ -4395,7 +4394,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
             m_printer_last_select = m_list[i]->get_dev_id();
             obj = m_list[i];
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+            BOOST_LOG_TRIVIAL(info) << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
             break;
         }
     }
@@ -5189,7 +5188,7 @@ void SelectMachineDialog::set_default()
         try{
             reset_and_sync_ams_list();
         } catch (std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(error) << e.what();
         };
 
         set_default_normal(m_plater->get_partplate_list().get_curr_plate()->thumbnail_data);
@@ -5396,7 +5395,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     for (auto i = 0; i < used_filaments.size(); i++) {
         auto          used_filament = used_filaments[i] - 1;
         if (used_filament >= preset_filament_vec.size()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " used_filament index out of range: " << used_filament;
+            BOOST_LOG_TRIVIAL(error) << "used_filament index out of range: " << used_filament;
             continue;
         };
         const auto& preset_filament = preset_filament_vec[used_filament];
@@ -5547,7 +5546,7 @@ void SelectMachineDialog::rebuild_material_items_on_rack_change()
         try {
             reset_and_sync_ams_list();
         } catch (std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << e.what();
+            BOOST_LOG_TRIVIAL(error) << e.what();
         }
     } else if (m_print_plate_idx >= 0 && m_print_plate_idx < (int) m_required_data_plate_data_list.size()) {
         set_default_from_sdcard();
@@ -6428,7 +6427,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
             need_nozzle_map[data]++;
         } catch (const std::exception& e) {
             assert(0);
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "exception: " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         }
     }
 
@@ -6483,7 +6482,7 @@ static bool s_get_queue_slicing_extruder_nozzles(const QueuePrintContext& contex
 {
     used_nozzles.clear();
     if (total_ext_count != 1 && total_ext_count != 2) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unexpected extruder count " << total_ext_count;
+        BOOST_LOG_TRIVIAL(error) << "unexpected extruder count " << total_ext_count;
         return false;
     }
 
@@ -6582,20 +6581,20 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles(Mac
                             nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(slicing_nozzle.volume_type);
                             used_extuder_nozzles.insert({ physical_idx, nozzle_data });
                         } catch (const std::exception& e) {
-                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "exception: " << e.what();
+                            BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
                         }
                     }
                     continue;
                 }
             } else {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid nozzle volume type: " << int(volume_type);
+                BOOST_LOG_TRIVIAL(error) << "invalid nozzle volume type: " << int(volume_type);
                 assert(0);
             }
 
             used_extuder_nozzles.insert({ physical_idx, nozzle_data });
         };
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
     }
 
     return used_extuder_nozzles;
@@ -6812,7 +6811,7 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
     int total_ext_count = get_print_task_total_extruder_count();
 
     if (total_ext_count != obj_->GetExtderSystem()->GetTotalExtderCount()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": total_ext_count not match";
+        BOOST_LOG_TRIVIAL(error) << "total_ext_count not match";
         return nozzle_map;
     }
 
@@ -6906,19 +6905,19 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
                 }
             }
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": e=" << e.what();
+            BOOST_LOG_TRIVIAL(error) << "e=" << e.what();
         }
 
         return "?";
     }
 
     if (m_print_type == FROM_SDCARD_VIEW && !obj_->GetNozzleRack()->IsSupported()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": from sdcard (no nozzle rack)";
+        BOOST_LOG_TRIVIAL(info) << "from sdcard (no nozzle rack)";
         return wxEmptyString;
     }
 
     if (use_dynamic_nozzle_map() && !obj_->GetFilaSwitch()->IsInstalled()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the obj not have fila switch";
+        BOOST_LOG_TRIVIAL(error) << "the obj not have fila switch";
         return "?";// the nozzle mapping is not supported if fila switch is not installed
     }
 
@@ -7095,7 +7094,7 @@ bool SelectMachineDialog::CheckErrorMultiNozzleDiameterFromSdcard()
         return true;
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": blocked, the project was sliced with multi nozzle diameter mode on";
+    BOOST_LOG_TRIVIAL(info) << "blocked, the project was sliced with multi nozzle diameter mode on";
     show_status(PrintDialogStatus::PrintStatusNotSupportedMultiNozzleDiameterFromSdcard);
     return false;
 }
@@ -7155,7 +7154,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV1(MachineObject* obj
         if (m_nozzle_mapping_result != mapping_map) {
             m_nozzle_mapping_result = mapping_map;
             sync_ams_mapping_result(m_ams_mapping_result);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": sync_ams_mapping_result done.";
+            BOOST_LOG_TRIVIAL(info) << "sync_ams_mapping_result done.";
         }
 
         float flush_waste_base = obj_->get_nozzle_mapping_result()->GetFlushWeightBase();
@@ -7169,7 +7168,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV1(MachineObject* obj
         return true;
     }
 
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "empty";
+    BOOST_LOG_TRIVIAL(error) << "empty";
     const wxString& err_msg = wxString::Format(_L("Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."), "empty table");
     show_status(PrintDialogStatus::PrintStatusRackNozzleMappingError, { err_msg });
     return true;
@@ -7238,7 +7237,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV0(MachineObject* obj
         if (m_nozzle_mapping_result != mapping_map) {
             m_nozzle_mapping_result = mapping_map;
             sync_ams_mapping_result(m_ams_mapping_result);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": sync_ams_mapping_result done.";
+            BOOST_LOG_TRIVIAL(info) << "sync_ams_mapping_result done.";
         }
 
         float flush_waste_base = obj_->get_nozzle_mapping_result()->GetFlushWeightBase();
@@ -7252,7 +7251,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV0(MachineObject* obj
         return true;
     }
 
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "empty";
+    BOOST_LOG_TRIVIAL(error) << "empty";
     const wxString& err_msg = wxString::Format(_L("Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."), "empty table");
     show_status(PrintDialogStatus::PrintStatusRackNozzleMappingError, { err_msg });
     return true;
@@ -7363,7 +7362,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         const auto &nozzle_map = get_mapped_nozzles(fila.id);
         for (const auto &[pos_id, nozzle] : nozzle_map) {
             if (nozzle.IsEmpty()) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle is not found: " << pos_id;
+                BOOST_LOG_TRIVIAL(error) << "nozzle is not found: " << pos_id;
                 continue;
             };
 
@@ -7564,7 +7563,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                     }
                     fila_ids_in_slot[key].push_back(fila.id);
                 } else {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "the list of filament densities can't find "<< fila.id;
+                    BOOST_LOG_TRIVIAL(error) << "the list of filament densities can't find "<< fila.id;
                     return true;
                 }
             }
@@ -7576,13 +7575,13 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
         for (auto [key, used] : fila_used_map) {
             record_used_log += wxString::Format("ams_id: %s, slot_id: %s, fila_id: %d, used: %0.2f;", key.first, key.second, used.id, used.used_g);
         }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "fila_used_map: " << record_used_log;
+        BOOST_LOG_TRIVIAL(info) << "fila_used_map: " << record_used_log;
 
         wxString record_remain_log;
         for (auto& [key, remain] : fila_remain_map) {
             record_remain_log += wxString::Format("ams_id: %s, slot_id: %s, remain: %0.2f;", key.first, key.second, remain);
         }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "fila_remain_map: " << record_remain_log;
+        BOOST_LOG_TRIVIAL(info) << "fila_remain_map: " << record_remain_log;
     }
 
     double tolerance = DevAmsTray::get_fila_remain_tolerance();
@@ -7606,7 +7605,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
             try {
                 ams_slot_id = DevAmsSlotId{stoi(ams_slot_key.first), stoi(ams_slot_key.second)};
             } catch(...) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_slot_key.first
+                BOOST_LOG_TRIVIAL(warning) << "invalid ams id: " << ams_slot_key.first
                                            << " or slot id: " << ams_slot_key.second;
                 return true;
             }
@@ -7664,7 +7663,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                         group_slots.insert(group_slots.end(), ams_slot_list.begin(), ams_slot_list.end());
                         insufficient_groups.emplace_back(std::move(group_slots));
 
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams: "
+                        BOOST_LOG_TRIVIAL(warning) << "The filament is not enough in ams: "
                                                    << ams_slot_key.first << " slot: " << ams_slot_key.second
                                                    << ", used: " << fila_used << ", available: " << total_remain;
                     }
@@ -7677,7 +7676,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                 const auto& slot_ids = fila_ids_in_slot[ams_slot_key];
                 filaments_not_enough.insert(filaments_not_enough.end(), slot_ids.begin(), slot_ids.end());
                 insufficient_groups.push_back({ams_slot_id});
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams slot: "
+                BOOST_LOG_TRIVIAL(warning) << "The filament is not enough in ams slot: "
                                            << ams_slot_key.first << " slot: " << ams_slot_key.second
                                            << ", used: " << fila_used << ", available: " << fila_remain;
             }
@@ -8240,7 +8239,7 @@ ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_
             return ShowType::RIGHT;
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
     }
 
     return ShowType::LEFT_AND_RIGHT;
@@ -8254,7 +8253,7 @@ std::optional<FilamentInfo> SelectMachineDialog::get_slicing_filament_info(int f
         }
     }
 
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": not found for logic id " << fila_logic_id;
+    BOOST_LOG_TRIVIAL(error) << "not found for logic id " << fila_logic_id;
     return std::nullopt;
 }
 
@@ -8266,7 +8265,7 @@ std::optional<FilamentInfo> SelectMachineDialog::get_mapped_filament_info(int fi
         }
     }
 
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": not found for logic id " << fila_logic_id;
+    BOOST_LOG_TRIVIAL(error) << "not found for logic id " << fila_logic_id;
     return std::nullopt;
 }
 
@@ -8397,7 +8396,7 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
                                                                          params,
                                                                          ams_preload_enabled);
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
         return std::nullopt;
     }
 
@@ -9008,7 +9007,7 @@ void PrintOptionItem::render(wxDC& dc)
 
 void PrintOptionItem::on_left_down(wxMouseEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", enable status is " << m_enable;
+    BOOST_LOG_TRIVIAL(info) << "enable status is " << m_enable;
     if (!m_enable)
     {
         return;
@@ -9032,17 +9031,17 @@ void PrintOptionItem::on_left_down(wxMouseEvent& evt)
         i++;
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", new select key= " << selected_key;
+    BOOST_LOG_TRIVIAL(info) << "new select key= " << selected_key;
     if (selected_key.empty()) /* make some log if not find*/
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", local_x=" << local_x << ", width=" << GetSize().x;
+        BOOST_LOG_TRIVIAL(info) << "local_x=" << local_x << ", width=" << GetSize().x;
 
         int i = 0;
         for (const auto& entry : m_ops)
         {
             auto left_edge = i * select_size;
             auto right_edge = (i + 1) * select_size;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", i= " << i
+            BOOST_LOG_TRIVIAL(info) << "i= " << i
                                     << ", entry.key= " << entry.key
                                     << ", left_edge= " << left_edge
                                     << ", right_edge= " << right_edge;

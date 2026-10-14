@@ -174,7 +174,7 @@ void MonitorPanel::init_tabpanel()
             m_print_queue_panel->NavigateTo("/device_page/print_queue", true);
             update_print_queue_device(obj);
         }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " select :" << get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()))
+        BOOST_LOG_TRIVIAL(info) << "select :" << get_string_from_tab(PrinterTab(m_tabpanel->GetSelection()))
             << " wxString:" << m_tabpanel->GetPageText(m_tabpanel->GetSelection()).ToStdString();
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
         if (agent) {
@@ -188,7 +188,7 @@ void MonitorPanel::init_tabpanel()
                         count = std::stoi(value);
                     }
                     catch (...) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << __LINE__ << " String to integer error!";
+                        BOOST_LOG_TRIVIAL(error) << "String to integer error!";
                         count = 0;
                     }
                 }

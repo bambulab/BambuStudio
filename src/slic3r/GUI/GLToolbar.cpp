@@ -186,7 +186,7 @@ void GLToolbarItem::set_state(EState state)
                     }
                     catch (...) {}
 
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
+                    BOOST_LOG_TRIVIAL(info) << "tool name:" << name << " duration: " << times + existing_time;
                     agent->track_update_property(name, std::to_string(times + existing_time));
                 }
             }

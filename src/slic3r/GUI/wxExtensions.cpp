@@ -491,7 +491,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     /* An empty name means the caller failed to resolve the icon (eg. missing printer config).
        Do not throw in this case, a missing icon must not take down the whole process */
     if (bmp_name_in.empty() || bmp_name_in == ".png") {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": empty bitmap name";
+        BOOST_LOG_TRIVIAL(error) << "empty bitmap name";
         return wxNullBitmap;
     }
 

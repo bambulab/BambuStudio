@@ -668,7 +668,7 @@ HMSSubscription HMSQueryMgr::subscribe_device(const std::string& dev_type, std::
 {
     if (!wxThread::IsMain()) {
         assert(false && "HMS subscriptions must run on the main thread");
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " called from non-main thread, callstack: " << boost::stacktrace::stacktrace();
+        BOOST_LOG_TRIVIAL(error) << "called from non-main thread, callstack: " << boost::stacktrace::stacktrace();
         return {};
     }
 
@@ -720,7 +720,7 @@ HMSResult HMSQueryMgr::query_error(const std::string& dev_id, int error_code, On
 {
     if (!wxThread::IsMain()) {
         assert(false && "HMS subscriptions must run on the main thread");
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " called from non-main thread, callstack: " << boost::stacktrace::stacktrace();
+        BOOST_LOG_TRIVIAL(error) << "called from non-main thread, callstack: " << boost::stacktrace::stacktrace();
         return {};
     }
     return subscribe_query(dev_id, std::move(on_changed), [this, dev_id, error_code] { return query_error(dev_id, error_code); }, sub);
@@ -730,7 +730,7 @@ HMSResult HMSQueryMgr::query_hms(const std::string& dev_id, const std::string& l
 {
     if (!wxThread::IsMain()) {
         assert(false && "HMS subscriptions must run on the main thread");
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " called from non-main thread, callstack: " << boost::stacktrace::stacktrace();
+        BOOST_LOG_TRIVIAL(error) << "called from non-main thread, callstack: " << boost::stacktrace::stacktrace();
         return {};
     }
     return subscribe_query(dev_id, std::move(on_changed), [this, dev_id, long_error_code] { return query_hms(dev_id, long_error_code); }, sub);
@@ -740,7 +740,7 @@ HMSResult HMSQueryMgr::query_action(const std::string& dev_id, int error_code, O
 {
     if (!wxThread::IsMain()) {
         assert(false && "HMS subscriptions must run on the main thread");
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " called from non-main thread, callstack: " << boost::stacktrace::stacktrace();
+        BOOST_LOG_TRIVIAL(error) << "called from non-main thread, callstack: " << boost::stacktrace::stacktrace();
         return {};
     }
     return subscribe_query(dev_id, std::move(on_changed), [this, dev_id, error_code] { return query_action(dev_id, error_code); }, sub);

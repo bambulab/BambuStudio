@@ -233,7 +233,7 @@ std::map<int, DynamicPrintConfig> CalibUtils::build_filament_ams_list(MachineObj
                     filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
                 }
             } catch(...) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
+                BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
             }
         }
     }
@@ -1075,7 +1075,7 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
 {
     assert(!calib_infos.empty());
     if (calib_infos.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, skip auto PA model/config setup";
+        BOOST_LOG_TRIVIAL(error) << "calib_infos is empty, skip auto PA model/config setup";
         return;
     }
 
@@ -1216,7 +1216,7 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
 bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_infos, wxString &error_message)
 {
     if (calib_infos.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, abort auto PA calibration";
+        BOOST_LOG_TRIVIAL(error) << "calib_infos is empty, abort auto PA calibration";
         error_message = _L("Please select filament to calibrate.");
         return false;
     }
@@ -1891,7 +1891,7 @@ ExtruderType CalibUtils::get_extruder_type(const MachineObject* obj, int extrude
             if (logic_extruder_id >=0 && logic_extruder_id < opt_extruder_type->values.size()) {
                 extruder_type = (ExtruderType)(opt_extruder_type->values[logic_extruder_id]);
             } else {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Invalid extruder_id " << extruder_id;
+                BOOST_LOG_TRIVIAL(warning) << "Invalid extruder_id " << extruder_id;
             }
         }
     }
@@ -2446,7 +2446,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
 void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxString &error_message, int flow_ratio_mode)
 {
     if (calib_infos.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, abort sending calibration job";
+        BOOST_LOG_TRIVIAL(error) << "calib_infos is empty, abort sending calibration job";
         error_message = _L("Please select filament to calibrate.");
         return;
     }

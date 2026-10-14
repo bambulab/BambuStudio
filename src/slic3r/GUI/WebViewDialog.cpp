@@ -422,7 +422,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
 WebViewPanel::~WebViewPanel()
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " Start";
+    BOOST_LOG_TRIVIAL(trace) << "Start";
     SetEvtHandlerEnabled(false);
 
     delete m_tools_menu;
@@ -432,7 +432,7 @@ WebViewPanel::~WebViewPanel()
         delete m_LoginUpdateTimer;
         m_LoginUpdateTimer = NULL;
     }
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " End";
+    BOOST_LOG_TRIVIAL(trace) << "End";
 }
 
 void WebViewPanel::ResetWholePage()
@@ -942,12 +942,12 @@ void WebViewPanel::SendDesignStaffpick(bool on)
             SetLeftMenuShow("online", 0);
         }
     } catch (nlohmann::detail::parse_error &err) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got a nlohmann::detail::parse_error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << "parse got a nlohmann::detail::parse_error, reason = " << err.what();
         return;
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "", MB_OK);
         // wxLogMessage("GUIDE: LoadFamily Error: %s", e.what());
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "parse got exception: " << e.what();
         return;
     }
 
@@ -1073,12 +1073,12 @@ void WebViewPanel::SendMakerlabList(  )
             });
         });
     } catch (nlohmann::detail::parse_error &err) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got a nlohmann::detail::parse_error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << "parse got a nlohmann::detail::parse_error, reason = " << err.what();
         return;
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "", MB_OK);
         // wxLogMessage("GUIDE: LoadFamily Error: %s", e.what());
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse got exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "parse got exception: " << e.what();
         return;
     }
 }
@@ -1109,7 +1109,7 @@ void WebViewPanel::ShowNetpluginTip()
     int nShow = 0;
     if (!bValid) nShow = 1;
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": bValid=%1%, nShow=%2%")%bValid %nShow;
+    BOOST_LOG_TRIVIAL(info) << boost::format("bValid=%1%, nShow=%2%")%bValid %nShow;
 
     json m_Res           = json::object();
     m_Res["command"]     = "network_plugin_installtip";
@@ -1197,7 +1197,7 @@ bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName
     char *DstBuf = new char[nSize + 1];
     if (!DstBuf)
     {
-        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": New Failed. Memory Not Enough";
+        BOOST_LOG_TRIVIAL(trace) << "New Failed. Memory Not Enough";
         return false;
     }
     memset(DstBuf, 0, nSize + 1);
@@ -1854,7 +1854,7 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << evt.GetString().ToUTF8().data();
     // wxGetApp().CallAfter([this] { SendRecentList(); });
 }
 
@@ -1937,10 +1937,10 @@ bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
 
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << evt.GetString().ToUTF8().data();
     // update login status
     if (m_LoginUpdateTimer == nullptr) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Create Timer";
+        BOOST_LOG_TRIVIAL(info) << "Create Timer";
         m_LoginUpdateTimer = new wxTimer(this, LOGIN_INFO_UPDATE_TIMER_ID);
         m_LoginUpdateTimer->Start(2000);
     }
@@ -2369,7 +2369,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         } else {
             if (m_online_LastUrl != "") {
                 m_browserMW->LoadURL(m_online_LastUrl);
-                BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": LoadURL " << m_online_LastUrl.ToStdString();
+                BOOST_LOG_TRIVIAL(trace) << "LoadURL " << m_online_LastUrl.ToStdString();
                 m_online_LastUrl = "";
             } else {
                 std::string TmpNowUrl = m_browserMW->GetCurrentURL().ToStdString();

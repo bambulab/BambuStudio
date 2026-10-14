@@ -118,7 +118,7 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* 
 
                     filament_ams_list.emplace(extruder + tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
                 } catch(...) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
+                    BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
                 }
             }
         }
@@ -2602,7 +2602,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
                     m_filament_ams_list[tray_id] = it->second;
                 }
             } catch(...) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams_item.second->GetAmsId() << " or slot_id:" << tray_item.second->id;
+                BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams_item.second->GetAmsId() << " or slot_id:" << tray_item.second->id;
             }
         }
     }
@@ -2617,7 +2617,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
                 m_filament_ams_list[vt_tray_id] = get_empty_dynamic_print_config();
             }
         } catch(...) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " invalid vt_id:" << vt_id;
+            BOOST_LOG_TRIVIAL(error) << "invalid vt_id:" << vt_id;
         }
     }
 
@@ -2656,7 +2656,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
             } else if (obj->GetNozzleRack()->IsDirectConnectedRack()) {
                 ams_info.push_back(info);
             } else {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " may be a unknown virtual tray id:" << vt_tray.id;
+                BOOST_LOG_TRIVIAL(warning) << "may be a unknown virtual tray id:" << vt_tray.id;
             }
         }
     }
@@ -3135,13 +3135,13 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
             if (flow_ratio_opt) {
                 m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
                 value = flow_ratio_opt->get_at(0);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " set flow ratio value:" << value;
+                BOOST_LOG_TRIVIAL(info) << "set flow ratio value:" << value;
             }
             else {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " selected filament preset has no flow ratio option";
+                BOOST_LOG_TRIVIAL(warning) << "selected filament preset has no flow ratio option";
             }
         } else {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " no filament selected, can't set flow ratio value";
+            BOOST_LOG_TRIVIAL(warning) << "no filament selected, can't set flow ratio value";
         }
     }
 }
@@ -3155,7 +3155,7 @@ void CalibrationPresetPage::update_slots_panel(FilamentComboBoxList& fila_combox
     try {
         int_ams_id = std::stoi(ams_id);
     } catch(...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams_id;
+        BOOST_LOG_TRIVIAL(error) << "invalid ams_id:"<< ams_id;
         return;
     }
 
@@ -3204,7 +3204,7 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
             if (auto opt_nozzle = obj->GetNozzleSystem()->GetNozzleOptByAddrId(i); opt_nozzle.has_value()) {
                 nozzle = opt_nozzle.value();
             } else {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " rack nozzle addr_id:" << i << " not found in nozzle system";
+                BOOST_LOG_TRIVIAL(warning) << "rack nozzle addr_id:" << i << " not found in nozzle system";
             }
 
             // Per-slot nozzle: rack slots can hold different diameters than the machine default.

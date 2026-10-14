@@ -90,19 +90,19 @@ std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromNormal(GUI::PrintFro
     };
 
     if (!plater) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": plater is nullptr";
+        BOOST_LOG_TRIVIAL(error) << "plater is nullptr";
         return ctx;
     }
 
     GCodeProcessorResult* gcode_result = plater->background_process().get_current_gcode_result();
     if (!gcode_result) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result is nullptr";
+        BOOST_LOG_TRIVIAL(error) << "gcode_result is nullptr";
         return ctx;
     }
 
     auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(plater);
     if (!nozzle_group_res) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_group_result is nullptr";
+        BOOST_LOG_TRIVIAL(error) << "nozzle_group_result is nullptr";
         return ctx;
     }
 
@@ -119,7 +119,7 @@ std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromNormal(GUI::PrintFro
     if (Slic3r::GUI::wxGetApp().preset_bundle) {
         ctx->flush_matrix = Slic3r::GUI::wxGetApp().preset_bundle->get_full_flush_matrix();
     } else {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": preset_bundle is nullptr";
+        BOOST_LOG_TRIVIAL(error) << "preset_bundle is nullptr";
     }
 
     return ctx;
@@ -158,7 +158,7 @@ std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromSDCard(GUI::PrintFro
         ctx->flush_matrix = build_flush_matrix_from_config(plate_data.config);
     }
     if (ctx->flush_matrix.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to build flush_matrix from plate/print config";
+        BOOST_LOG_TRIVIAL(error) << "failed to build flush_matrix from plate/print config";
     }
 
     return ctx;
@@ -174,7 +174,7 @@ std::shared_ptr<DevSliceContext> DevSliceContext::CreateFromQueue(GUI::PrintFrom
     };
 
     if (!queue_ctx.plate_data) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": plate_data is nullptr";
+        BOOST_LOG_TRIVIAL(error) << "plate_data is nullptr";
         return ctx;
     }
 

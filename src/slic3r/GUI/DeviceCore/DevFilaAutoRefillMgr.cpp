@@ -139,7 +139,7 @@ std::map<int, DevAmsSlotId> sGetRefillIndexMap(DevFilaSystem* fila_sys)
             int virtual_tray_id_int = stoi(virtual_tray_id);
             tray_id_map[virtual_tray_id_int] = DevAmsSlotId{ virtual_tray_id_int, 0 };
         } catch (...) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " invalid virtual tray id: " << virtual_tray_id;
+            BOOST_LOG_TRIVIAL(warning) << "invalid virtual tray id: " << virtual_tray_id;
         }
     }
 
@@ -163,7 +163,7 @@ std::map<int, DevAmsSlotId> sGetRefillIndexMap(DevFilaSystem* fila_sys)
                     }
                     tray_id_map[tray_index] = { ams_id_int, slot_id_int };
                 } catch (...) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
+                    BOOST_LOG_TRIVIAL(warning) << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
                 }
             }
         }

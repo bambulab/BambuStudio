@@ -1196,7 +1196,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 #endif /* _DEBUG */
 
     //BBS: add more logs
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: enter")%__LINE__;
+    BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: enter")%__LINE__;
     // Normalize the config.
 	new_full_config.option("print_settings_id",            true);
 	new_full_config.option("filament_settings_id",         true);
@@ -1219,10 +1219,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     DynamicConfig changed_keys_ori_values;
     t_config_option_keys changed_keys = new_full_config.normalize_fdm_2(objects().size(), used_filaments.size(), &changed_keys_ori_values);
     if (changed_keys.size() > 0) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", got changed_keys, size=%1%")%changed_keys.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("got changed_keys, size=%1%")%changed_keys.size();
         for (int i = 0; i < changed_keys.size(); i++)
         {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", i=%1%, key=%2%")%i %changed_keys[i];
+            BOOST_LOG_TRIVIAL(info) << boost::format("i=%1%, key=%2%")%i %changed_keys[i];
         }
     }
     const ConfigOption* enable_support_option = new_full_config.option("enable_support");
@@ -1306,7 +1306,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             new_full_config.set("has_scarf_joint_seam", true);
         }
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
+        BOOST_LOG_TRIVIAL(info) << "has_scarf_joint_seam:" << has_scarf_joint_seam;
     }
 
     if (!has_scarf_joint_seam) { // check scarf seam setting
@@ -1328,7 +1328,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             new_full_config.set("has_scarf_joint_seam", true);
         }
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", has_scarf_joint_seam:" << has_scarf_joint_seam;
+        BOOST_LOG_TRIVIAL(info) << "has_scarf_joint_seam:" << has_scarf_joint_seam;
     }
 
     //apply extruder related values
@@ -1525,7 +1525,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     if (! (print_diff.empty() && object_diff.empty() && region_diff.empty())) {
         update_apply_status(false);
         //BBS: add more logs
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", got print_diff %1%, object_diff %2%, region_diff %3%, set status to APPLY_STATUS_CHANGED")%print_diff.size() %object_diff.size() %region_diff.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("got print_diff %1%, object_diff %2%, region_diff %3%, set status to APPLY_STATUS_CHANGED")%print_diff.size() %object_diff.size() %region_diff.size();
     }
 
     // Grab the lock for the Print / PrintObject milestones.
@@ -1541,7 +1541,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     bool   num_extruders_changed  = false;
     if (! full_config_diff.empty()) {
         //BBS: add more logs
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: found full_config_diff changed.")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%: found full_config_diff changed.")%__LINE__;
         update_apply_status(this->invalidate_step(psGCodeExport));
         m_placeholder_parser.clear_config();
         // Set the profile aliases for the PrintBase::output_filename()
@@ -1640,10 +1640,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				m_model.objects.back()->set_model(&m_model);
             }
             //BBS: add more logs
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: new model objects added.")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: new model objects added.")%__LINE__;
         } else {
             //BBS: add more logs
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: model object changed.")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: model object changed.")%__LINE__;
             // Reorder the objects, add new objects.
             // First stop background processing before shuffling or deleting the PrintObjects in the object list.
             this->call_cancel_callback();
@@ -1898,7 +1898,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
         if (m_objects != print_objects_new) {
             //BBS: add more logs
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: found print object changed.")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: found print object changed.")%__LINE__;
             this->call_cancel_callback();
 			update_apply_status(this->invalidate_all_steps());
             m_objects = print_objects_new;
@@ -1931,10 +1931,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     int new_used_filaments = this->extruders(true).size();
     t_config_option_keys new_changed_keys   = new_full_config.normalize_fdm_2(objects().size(), new_used_filaments, &changed_keys_ori_values);
     if (new_changed_keys.size() > 0) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", got new_changed_keys, size=%1%")%new_changed_keys.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("got new_changed_keys, size=%1%")%new_changed_keys.size();
         for (int i = 0; i < new_changed_keys.size(); i++)
         {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", i=%1%, key=%2%")%i %new_changed_keys[i];
+            BOOST_LOG_TRIVIAL(info) << boost::format("i=%1%, key=%2%")%i %new_changed_keys[i];
         }
 
         update_apply_status(false);
@@ -1946,7 +1946,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
         if (full_config_diff.empty()) {
             //BBS: previous empty
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: full_config_diff previous empty, need to apply now.")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: full_config_diff previous empty, need to apply now.")%__LINE__;
 
             m_placeholder_parser.clear_config();
             // Set the profile aliases for the PrintBase::output_filename()
@@ -2184,7 +2184,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	//BBS: add timestamp logic
 	if (apply_status != APPLY_STATUS_UNCHANGED)
 		m_modified_count++;
-	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: finished,  this %2%, m_modified_count %3%, apply_status %4%, m_support_used %5%")%__LINE__ %this %m_modified_count %apply_status %m_support_used;
+	BOOST_LOG_TRIVIAL(info) << boost::format("%1%: finished,  this %2%, m_modified_count %3%, apply_status %4%, m_support_used %5%")%__LINE__ %this %m_modified_count %apply_status %m_support_used;
 	return static_cast<ApplyStatus>(apply_status);
 }
 

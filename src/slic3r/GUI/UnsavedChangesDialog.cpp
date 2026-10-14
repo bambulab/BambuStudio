@@ -1984,7 +1984,7 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
                     category = category.substr(0, 8);
 
                 if (variant_index >= (int) extruder_variant->values.size()) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": variant_index " << variant_index
+                    BOOST_LOG_TRIVIAL(warning) << "variant_index " << variant_index
                             << " out of range for extruder_variant (size=" << extruder_variant->values.size()
                             << ") on opt_key=" << opt_key << "; skip variant suffix";
                 } else {

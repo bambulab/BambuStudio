@@ -86,12 +86,12 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentI
     Clear();
 
     if (!HasSliceContext()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": slice context is invalid";
+        BOOST_LOG_TRIVIAL(error) << "slice context is invalid";
         return -1;
     }
 
     if (ams_mapping.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the ams mapping is empty";
+        BOOST_LOG_TRIVIAL(error) << "the ams mapping is empty";
         return -1;// the ams mapping is empty
     }
 
@@ -132,7 +132,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentI
             ams_mapping_vec[item.id + 1] = (ams_id << 8) | slot_id;/*using ams_id << 8 | slot_id*/
         } catch (std::exception& e) {
             assert(false && "invalid ams_id or slot_id");
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " exception: " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
             ams_mapping_vec[item.id + 1] = item.tray_id;
         }
     }
@@ -145,7 +145,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentI
         auto nozzle_iter = m_slice_ctx->nozzles_by_filament.find(fila.id);
         if (nozzle_iter == m_slice_ctx->nozzles_by_filament.end() || nozzle_iter->second.empty()) {
             assert(false && "nozzle_list should not be empty");
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "nozzle_list should not be nullptr";
+            BOOST_LOG_TRIVIAL(error) << "nozzle_list should not be nullptr";
             continue;
         }
 
@@ -211,7 +211,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentI
 int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1()
 {
     if (!HasSliceContext()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": slice context is invalid";
+        BOOST_LOG_TRIVIAL(error) << "slice context is invalid";
         return -1;
     }
 
@@ -245,7 +245,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(const std::vector<MultiNozz
         // (format_diameter_to_str), so std::stof would misread it as 0 under comma-decimal
         // locales (de/it). Keep skipping entries whose diameter string is empty.
         if (used_logic_nozzle.diameter.empty()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": empty nozzle diameter, skip";
+            BOOST_LOG_TRIVIAL(error) << "empty nozzle diameter, skip";
             continue;
         }
         nozzle_info["dia"] = string_to_double_decimal_point(used_logic_nozzle.diameter);
@@ -295,7 +295,7 @@ void DevNozzleMappingCtrl::ParseAutoNozzleMapping(const json& print_jj)
             }
 
             m_flush_weight_base = GetFlushWeight(m_obj);
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": get_auto_nozzle_mapping: " << m_result;
+            BOOST_LOG_TRIVIAL(error) << "get_auto_nozzle_mapping: " << m_result;
         }
     }
 }
@@ -327,7 +327,7 @@ void DevNozzleMappingCtrl::SetManualNozzleMappingByFila(int fila_id, int nozzle_
     if (m_nozzle_mapping[fila_id] != nozzle_pos_id) {
         m_nozzle_mapping[fila_id] = nozzle_pos_id;
         m_flush_weight_current = GetFlushWeight(m_obj);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": fila_id=" << fila_id << ", nozzle_pos_id=" << nozzle_pos_id;
+        BOOST_LOG_TRIVIAL(info) << "fila_id=" << fila_id << ", nozzle_pos_id=" << nozzle_pos_id;
     }
 
     try {
@@ -335,10 +335,10 @@ void DevNozzleMappingCtrl::SetManualNozzleMappingByFila(int fila_id, int nozzle_
         if (mapping.at(fila_id) != nozzle_pos_id) {
             mapping[fila_id] = nozzle_pos_id;
             m_nozzle_mapping_json = mapping;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": updated to " << m_nozzle_mapping_json.dump();
+            BOOST_LOG_TRIVIAL(info) << "updated to " << m_nozzle_mapping_json.dump();
         }
     } catch (std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": exception: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "exception: " << e.what();
     };
 }
 
@@ -427,17 +427,17 @@ wxString DevNozzleMappingCtrl::GetMappedNozzlePosStrByFilaId(int fila_id, const 
 float DevNozzleMappingCtrl::GetFlushWeight(Slic3r::MachineObject* obj) const
 {
     if (!HasSliceContext()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": slice context is invalid";
+        BOOST_LOG_TRIVIAL(error) << "slice context is invalid";
         return -1;
     }
 
     if (m_slice_ctx->filament_change_sequence.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": filament_change_sequence is empty";
+        BOOST_LOG_TRIVIAL(error) << "filament_change_sequence is empty";
         return -1;
     }
 
     if (m_slice_ctx->flush_matrix.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": flush_matrix is empty";
+        BOOST_LOG_TRIVIAL(error) << "flush_matrix is empty";
         return -1;
     }
 
@@ -453,13 +453,13 @@ float DevNozzleMappingCtrl::GetFlushWeight(Slic3r::MachineObject* obj) const
 
         auto nozzle_pos = nozzle_pos_vec.at(0);
         if (nozzle_pos == -1){
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_pos is -1 for fila_id=" << filament;
+            BOOST_LOG_TRIVIAL(error) << "nozzle_pos is -1 for fila_id=" << filament;
             continue;
         }
 
         auto nozzle_info = obj->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
         if (nozzle_info.IsEmpty()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": nozzle_info IsEmpty for fila_id=" << filament << ", nozzle_pos=" << nozzle_pos;
+            BOOST_LOG_TRIVIAL(error) << "nozzle_info IsEmpty for fila_id=" << filament << ", nozzle_pos=" << nozzle_pos;
             continue;
         }
 
@@ -475,7 +475,7 @@ float DevNozzleMappingCtrl::GetFlushWeight(Slic3r::MachineObject* obj) const
             }
             else{
                 assert(false && "missing flush volume");
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": missing flush volume for extruder_id=" << extruder_id
+                BOOST_LOG_TRIVIAL(error) << "missing flush volume for extruder_id=" << extruder_id
                                            << ", last_filament=" << last_filament << ", filament=" << filament;
             }
         }

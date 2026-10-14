@@ -211,7 +211,7 @@ std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
     });
 
     if(!has_nozzle_info && !has_valid_filament_info){
-        BOOST_LOG_TRIVIAL(warning)<<__FUNCTION__ << ": building nozzle list from filament map and volume types";
+        BOOST_LOG_TRIVIAL(warning)<< "building nozzle list from filament map and volume types";
 
         // Backward compatibility for older gcode.3mf:
         // - nozzle_diameter is always present and its size defines extruder count.
@@ -236,7 +236,7 @@ std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
     }
 
     if(!has_nozzle_info){
-        BOOST_LOG_TRIVIAL(info)<<__FUNCTION__ << ": building nozzle list from filament info";
+        BOOST_LOG_TRIVIAL(info)<< "building nozzle list from filament info";
         std::map<int, NozzleInfo> nozzle_map; // group_id->NozzleInfo
         for(auto& filament : filament_infos){
             int group_id = filament.group_id.front();
@@ -270,7 +270,7 @@ std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
 
     auto result = nozzle_infos;
     std::sort(result.begin(), result.end());
-    BOOST_LOG_TRIVIAL(info)<<__FUNCTION__ << ": using new 3mf format with " << result.size() << " nozzle infos.";
+    BOOST_LOG_TRIVIAL(info)<< "using new 3mf format with " << result.size() << " nozzle infos.";
     return result;
 }
 
@@ -1046,8 +1046,8 @@ std::vector<int> find_optimal_physical_assignment(
     }
 
     if (timed_out) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
-            << ": timed out after " << max_ms << "ms"
+        BOOST_LOG_TRIVIAL(warning)
+            << "timed out after " << max_ms << "ms"
             << ", filament_count=" << count
             << ", group_count=" << group_count
             << ", returning best assignment found so far";
@@ -1160,7 +1160,7 @@ bool resolve_ams_load_unload(const std::vector<double>& loads,
 
     const size_t idx = static_cast<size_t>(ams_type);
     if (idx >= loads.size() || idx >= unloads.size()) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ams_type=" << ams_type
+        BOOST_LOG_TRIVIAL(warning) << "ams_type=" << ams_type
                                    << " is out of range of the AMS load/unload time table, "
                                    << "fallback to legacy machine_load/unload_filament_time";
         return false;

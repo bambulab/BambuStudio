@@ -1049,7 +1049,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             } else {
                 wxGetApp().stop_sync_user_preset();
             }
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: " << (sync ? "true" : "false");
+            BOOST_LOG_TRIVIAL(info) << "sync_user_preset: " << (sync ? "true" : "false");
         }
 
         #ifdef __WXMSW__
@@ -1368,7 +1368,7 @@ void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
             // Keep the fixed Figma-matched size (capped to the screen) on a
             // DPI/monitor switch instead of stretching to a fraction of the screen.
             this->SetSize(FromDIP(640), std::min(FromDIP(640), int(m_screen_height * 0.7)));
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " The display screen has switched";
+            BOOST_LOG_TRIVIAL(info) << "The display screen has switched";
         }
     }
 }

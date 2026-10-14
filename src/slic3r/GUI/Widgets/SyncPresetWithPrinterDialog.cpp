@@ -385,7 +385,7 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
     // Checked before the rows are folded: those drop what the printer already carries, so an empty
     // row list is a normal outcome rather than a project without nozzles.
     if (slot_specs.empty()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": the project declares no nozzle, nothing to compare";
+        BOOST_LOG_TRIVIAL(info) << "the project declares no nozzle, nothing to compare";
         return std::nullopt;
     }
 

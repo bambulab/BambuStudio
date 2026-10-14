@@ -607,7 +607,7 @@ bool standard_3mf_colors_to_painting(
     }
     report(100, "Completed");
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": clustered " << unique_colors.size()
+    BOOST_LOG_TRIVIAL(info) << "clustered " << unique_colors.size()
                             << " source colors into " << painted.cluster_colors.size();
     return true;
 }

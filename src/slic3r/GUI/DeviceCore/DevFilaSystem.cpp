@@ -26,7 +26,7 @@ namespace Slic3r
 wxColour DevAmsTray::decode_color(const std::string& color)
 {
     if (color.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": empty";
+        BOOST_LOG_TRIVIAL(error) << "empty";
         return wxColour(255, 255, 255, 255);//default white
     }
 
@@ -40,7 +40,7 @@ wxColour DevAmsTray::decode_color(const std::string& color)
         return clr;
     }
 
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << clr_str;
+    BOOST_LOG_TRIVIAL(error) << clr_str;
     return wxColour(255, 255, 255, 255);//default white
 }
 
@@ -173,7 +173,7 @@ std::optional<int> DevAmsTray::get_filament_remain_weight() const
         weight_int = stoi(weight) * remain / 100;
     } catch (...) {
         weight_int = std::nullopt;
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid filament weight " << weight;
+        BOOST_LOG_TRIVIAL(error) << "invalid filament weight " << weight;
     }
 
     if (weight_int.has_value() && weight_int.value() > 0) {
@@ -208,7 +208,7 @@ std::optional<int> DevAmsTray::get_nozzle_addr_id(MachineObject* obj) const
             }
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: exception=" << e.what();
+        BOOST_LOG_TRIVIAL(error) << "[error]: exception=" << e.what();
     };
 
     return std::nullopt;
@@ -241,7 +241,7 @@ std::optional<int> DevAmsTray::get_nozzle_pos_id(MachineObject* obj) const
             }
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: exception=" << e.what();
+        BOOST_LOG_TRIVIAL(error) << "[error]: exception=" << e.what();
     };
 
     int total_extruder_count = obj->GetExtderSystem()->GetTotalExtderCount();
@@ -275,7 +275,7 @@ std::string DevAmsTray::get_slot_name(MachineObject* obj) const
     try {
         slot_id = std::stoi(this->id);
     } catch (const std::exception& e){
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+        BOOST_LOG_TRIVIAL(error) << "[error] e=" << e.what();
         return "";
     }
 
@@ -331,7 +331,7 @@ DevAmsSlotId DevAmsTray::get_ams_slot_id() const
     try {
         ams_slot_id.first = std::stoi(this->ams_id);
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+        BOOST_LOG_TRIVIAL(error) << "[error] e=" << e.what();
     }
 
     if (ams_type == DevAmsType::EXT_SPOOL) {
@@ -340,7 +340,7 @@ DevAmsSlotId DevAmsTray::get_ams_slot_id() const
         try {
             ams_slot_id.second = std::stoi(id);
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+            BOOST_LOG_TRIVIAL(error) << "[error] e=" << e.what();
         }
     }
 
@@ -577,7 +577,7 @@ int DevAms::GetTrayId(int slot_id) const
     try {
         ams_id = std::stoi(m_ams_id);
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": invalid ams_id " << m_ams_id << ", error: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "invalid ams_id " << m_ams_id << ", error: " << e.what();
         return -1;
     }
 
@@ -593,7 +593,7 @@ int DevAms::GetTrayId(int slot_id) const
         return 37 + slot_id;
     } else {
         assert(0);
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << m_ams_type;
+        BOOST_LOG_TRIVIAL(error) << m_ams_type;
     }
 
     return -1;
@@ -626,7 +626,7 @@ bool DevAms::IsExist() const
             return DevUtil::get_flag_bits(obj_->ams_exist_bits, 4 + (ams_id_int - 128));
         }
     } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid ams_id:" << m_ams_id << ", error: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "[error]: invalid ams_id:" << m_ams_id << ", error: " << e.what();
     }
 
     return true;
@@ -803,7 +803,7 @@ bool DevFilaSystem::UpdateVirtualTray(const std::string& virtual_tray_id, const 
 {
     auto it = m_vt_trays.find(virtual_tray_id);
     if (it == m_vt_trays.end()) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": virtual tray " << virtual_tray_id << " not found";
+        BOOST_LOG_TRIVIAL(warning) << "virtual tray " << virtual_tray_id << " not found";
         return false;
     }
 
@@ -833,7 +833,7 @@ std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
             int virtual_tray_id_int = stoi(virtual_tray_id);
             tray_id_map[virtual_tray_id_int] = DevAmsSlotId{ virtual_tray_id_int, 0 };
         } catch (...) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " invalid virtual tray id: " << virtual_tray_id;
+            BOOST_LOG_TRIVIAL(warning) << "invalid virtual tray id: " << virtual_tray_id;
         }
     }
 
@@ -857,7 +857,7 @@ std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
                     }
                     tray_id_map[tray_index] = { ams_id_int, slot_id_int };
                 } catch (...) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
+                    BOOST_LOG_TRIVIAL(warning) << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
                 }
             }
         }
@@ -974,7 +974,7 @@ int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
     } else if (ams_id == VIRTUAL_AMS_DEPUTY_ID_STR) {
         return DEPUTY_EXTRUDER_ID;
     }
-    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ams_id " << ams_id << " not found";
+    BOOST_LOG_TRIVIAL(warning) << "ams_id " << ams_id << " not found";
     return -1; // not found
 }
 
@@ -1236,7 +1236,7 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                                 system->m_filament_changing_slots.push_back({ tar_first, 0 });
                             };
                         }  catch(const std::exception& e){
-                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[exception]:" << e.what();
+                            BOOST_LOG_TRIVIAL(error) << "[exception]:" << e.what();
                         }
                     }
                 } else {
@@ -1404,7 +1404,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
         try {
             curr_ams->m_humidity_level = atoi(humidity.c_str());
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid humidity, error: " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "[error]: invalid humidity, error: " << e.what();
         }
     }
 
@@ -1413,7 +1413,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
         try {
             curr_ams->m_humidity_percent = atoi(humidity_raw.c_str());
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid humidity_raw, error: " << e.what();
+            BOOST_LOG_TRIVIAL(error) << "[error]: invalid humidity_raw, error: " << e.what();
         }
     }
 
@@ -1457,7 +1457,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
                             zone.zone_slots.insert(std::stoi(j_slot.get<std::string>()));
                         }
                     } catch (const std::exception& e) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid zone slot, error: " << e.what();
+                        BOOST_LOG_TRIVIAL(error) << "[error]: invalid zone slot, error: " << e.what();
                     }
                 }
             }
@@ -1476,7 +1476,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
                 try {
                     zone.humidity_level = atoi(humidity.c_str());
                 } catch (const std::exception& e) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid zone humidity, error: " << e.what();
+                    BOOST_LOG_TRIVIAL(error) << "[error]: invalid zone humidity, error: " << e.what();
                 }
             }
 
@@ -1485,7 +1485,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
                 try {
                     zone.humidity_percent = atoi(humidity_raw.c_str());
                 } catch (const std::exception& e) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid zone humidity_raw, error: " << e.what();
+                    BOOST_LOG_TRIVIAL(error) << "[error]: invalid zone humidity_raw, error: " << e.what();
                 }
             }
 

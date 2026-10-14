@@ -6,7 +6,6 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/utility/manipulators/add_value.hpp>
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/support/date_time.hpp>
@@ -21,6 +20,7 @@
 #include "Desensitize.hpp"
 
 #include <atomic>
+#include <iomanip>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -152,8 +152,10 @@ void set_log_path_and_level(const std::string& log_dir, unsigned int level, cons
 	g_log_sink->set_formatter(
 		expr::stream
 		<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-		<< "[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
-		<< ":" << expr::smessage
+		<< " [" << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
+		// padded to the longest name, "warning", so the columns line up
+		<< " [" << std::left << std::setw(7) << boost::log::trivial::severity << "] "
+		<< expr::smessage
 	);
 	boost::log::core::get()->add_sink(g_log_sink);
 
@@ -262,10 +264,12 @@ bool log_enabled(LogLevel level)
 }
 
 LogStream::LogStream(LogLevel level, const char* file, int line, const char* func)
-    : m_level(level), m_file(file), m_line(line), m_func(func)
+    : m_level(level)
 {
     // Same as Boost.Log's record stream, so bools keep printing as true/false.
     m_buf.setf(std::ios_base::boolalpha);
+    // The location leads the message; records from code outside our macro simply have none.
+    m_buf << file_basename(file) << ':' << line << ' ' << func << ": ";
 }
 
 LogStream& LogStream::operator<<(std::ostream& (*manip)(std::ostream&))
@@ -279,9 +283,6 @@ LogStream::~LogStream()
     try {
         BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),
                                      (::boost::log::keywords::severity = static_cast<boost::log::trivial::severity_level>(m_level)))
-            << ::boost::log::add_value("File", file_basename(m_file))
-            << ::boost::log::add_value("Line", m_line)
-            << ::boost::log::add_value("Func", m_func)
             << m_buf.str();
     } catch (...) {
         // A destructor must not throw, and a failure to log has nowhere else to be reported.

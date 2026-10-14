@@ -268,7 +268,7 @@ void wxMediaCtrl2::create_player()
 	auto module = Slic3r::NetworkAgent::get_bambu_source_entry();
 	if (!module) {
 		//not ready yet
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Network plugin not ready currently!";
+		BOOST_LOG_TRIVIAL(info) << "Network plugin not ready currently!";
 		return;
 	}
     Class cls = (__bridge Class) dlsym(module, "OBJC_CLASS_$_BambuPlayer");
@@ -294,7 +294,7 @@ void wxMediaCtrl2::Load(wxURI url, std::chrono::system_clock::time_point play_st
 	if (!m_player) {
 		create_player();
 		if (!m_player) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			BOOST_LOG_TRIVIAL(info) << "create_player failed currently!";
 			return;
 		}
 	}
@@ -331,7 +331,7 @@ void wxMediaCtrl2::Play()
 	if (!m_player) {
 		create_player();
 		if (!m_player) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			BOOST_LOG_TRIVIAL(info) << "create_player failed currently!";
 			return;
 		}
 	}
@@ -356,7 +356,7 @@ void wxMediaCtrl2::Stop()
 	if (!m_player) {
 		create_player();
 		if (!m_player) {
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			BOOST_LOG_TRIVIAL(info) << "create_player failed currently!";
 			return;
 		}
 	}

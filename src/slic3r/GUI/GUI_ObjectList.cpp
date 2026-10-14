@@ -2727,7 +2727,7 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
     auto            mo = (*m_objects)[obj_idx];
     for (int i = vol_idxs.size() - 1; i >= 0; i--) {
         if (vol_idxs[i] > mo->volumes.size()) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error:array bound";
+            BOOST_LOG_TRIVIAL(info) << "check error:array bound";
             continue;
         }
         auto vol_idx = vol_idxs[i];

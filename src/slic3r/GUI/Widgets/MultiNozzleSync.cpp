@@ -552,7 +552,7 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
 
     m_web_view->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this,sizer](wxWebViewEvent& evt) {
         std::string message = evt.GetString().ToStdString();
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << "Received message: " << message;
+        BOOST_LOG_TRIVIAL(debug) << "Received message: " << message;
         try {
             json j = json::parse(message);
             if (j["msg"].get<std::string>() == "init") {
@@ -592,7 +592,7 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
             }
         }
         catch (...) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Failed to parse json message: " << message;
+            BOOST_LOG_TRIVIAL(error) << "Failed to parse json message: " << message;
         }
         });
 
@@ -660,7 +660,7 @@ void NozzleListTable::SetOptions(const std::vector<NozzleOption>& options,int de
     m_selected_idx = default_select;
     auto table_obj_str = BuildTableObjStr();
     wxString script1 = wxString::Format("updateTable(%s)", table_obj_str);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "update table " << script1;
+    BOOST_LOG_TRIVIAL(info) << "update table " << script1;
 
 #if 1
     m_web_view->RunScript(script1);

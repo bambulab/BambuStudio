@@ -62,7 +62,7 @@ public:
         catch (const nlohmann::json::exception& e)
         {
             assert(0 && __FUNCTION__);
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+            BOOST_LOG_TRIVIAL(error) << e.what();
         }
 
         return default_val;
@@ -78,7 +78,7 @@ public:
         catch (const nlohmann::json::exception& e)
         {
             assert(0 && __FUNCTION__);
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+            BOOST_LOG_TRIVIAL(error) << e.what();
         }
     }
 
@@ -94,7 +94,7 @@ public:
         catch (const nlohmann::json::exception& e)
         {
             assert(0 && __FUNCTION__);
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+            BOOST_LOG_TRIVIAL(error) << e.what();
         }
     }
 
@@ -181,7 +181,7 @@ static std::string s_get_diameter_str(const std::string& diameter)
         float dia = boost::lexical_cast<float>(diameter);
         return s_get_diameter_str(dia);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to boost::lexical_cast: " << diameter;
+        BOOST_LOG_TRIVIAL(error) << "failed to boost::lexical_cast: " << diameter;
         return diameter;
     }
 
@@ -189,7 +189,7 @@ static std::string s_get_diameter_str(const std::string& diameter)
         float dia = std::stof(diameter);
         return s_get_diameter_str(dia);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " std::stof: " << diameter;
+        BOOST_LOG_TRIVIAL(error) << "std::stof: " << diameter;
         return diameter;
     }
 }
@@ -199,13 +199,13 @@ static float s_get_diameter(const std::string& diameter)
     try {
         return boost::lexical_cast<float>(diameter);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to boost::lexical_cast: " << diameter;
+        BOOST_LOG_TRIVIAL(error) << "failed to boost::lexical_cast: " << diameter;
     }
 
     try {
         return std::stof(diameter);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " std::stof: " << diameter;
+        BOOST_LOG_TRIVIAL(error) << "std::stof: " << diameter;
     }
 
     return 0.0;

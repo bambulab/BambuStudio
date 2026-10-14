@@ -792,7 +792,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                     nozzle_id_str += wxString::Format("%d | ", (item.nozzle_pos_id & 0x0f) + 1);
                 }else{
                     nozzle_id_str += "N/A | ";
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
+                    BOOST_LOG_TRIVIAL(warning) << "Nozzle position id is -1 or invalid.";
                 }
                 nozzle_id_str += wxString::Format("%.1f mm ", item.nozzle_diameter);
                 switch(item.nozzle_volume_type){

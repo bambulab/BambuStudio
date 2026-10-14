@@ -2117,7 +2117,7 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
         reset(); // dump any current state
     for (auto [triangle_id, ibit] : data.first) {
         if (triangle_id >= int(m_triangles.size())) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "array bound:error:triangle_id >= int(m_triangles.size())";
+            BOOST_LOG_TRIVIAL(info) << "array bound:error:triangle_id >= int(m_triangles.size())";
             return;
         }
     }

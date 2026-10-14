@@ -243,7 +243,7 @@ namespace Slic3r
                 set_move_type_visible(EMoveType::Seam, true);
                 set_move_type_visible(EMoveType::Extrude, true);
                 m_gl_data_initialized = true;
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
+                BOOST_LOG_TRIVIAL(info) << boost::format("finished");
             }
 
             void AdvancedRenderer::update_sequential_view_current(unsigned int first, unsigned int last)
@@ -1001,7 +1001,7 @@ namespace Slic3r
                 if (p_sequential_view) {
                     m_max_bounding_box.merge(m_paths_bounding_box.max + p_sequential_view->marker.get_bounding_box().size().z() * Vec3d::UnitZ());
                 }
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",m_paths_bounding_box {%1%, %2%}-{%3%, %4%}\n")
+                BOOST_LOG_TRIVIAL(info) << boost::format("m_paths_bounding_box {%1%, %2%}-{%3%, %4%}\n")
                     % m_paths_bounding_box.min.x() % m_paths_bounding_box.min.y() % m_paths_bounding_box.max.x() % m_paths_bounding_box.max.y();
                 //if (wxGetApp().is_editor())
                 {

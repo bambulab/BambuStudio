@@ -66,19 +66,39 @@ namespace Slic3r::log_detail {
 bool log_enabled(LogLevel level);
 
 /**
- * \brief Write a value to a log stream; a null char pointer is written as "(null)"
+ * \brief Whether T holds a small number in a char-sized type: signed/unsigned char or an enum based on one
  *
- * Streaming a null char pointer is undefined behaviour, so it is caught here.
+ * std::ostream writes these as characters, so the number 0 would come out as a NUL byte.
+ */
+template<class T>
+constexpr bool is_char_number()
+{
+    if constexpr (std::is_enum_v<T>)
+        return is_char_number<std::underlying_type_t<T>>() || std::is_same_v<std::underlying_type_t<T>, char>;
+    else
+        return std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>;
+}
+
+/**
+ * \brief Write a value to a log stream
+ *
+ * A null char pointer is written as "(null)", and char-sized numbers are written as numbers.
+ * Plain char is written as a character.
  */
 template<class T>
 void write_value(std::ostream& os, const T& value)
 {
-    if constexpr (std::is_pointer_v<T> && std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>, char>)
+    if constexpr (std::is_pointer_v<T> && std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>, char>) {
         if (value == nullptr) {
             os << "(null)";
             return;
         }
-    os << value;
+        os << value;
+    } else if constexpr (is_char_number<T>()) {
+        os << static_cast<int>(value);
+    } else {
+        os << value;
+    }
 }
 
 /**
@@ -106,9 +126,6 @@ public:
 
 private:
     LogLevel           m_level;
-    const char*        m_file;
-    int                m_line;
-    const char*        m_func;
     std::ostringstream m_buf;
 };
 

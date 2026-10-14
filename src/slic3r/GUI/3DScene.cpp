@@ -198,7 +198,7 @@ void GLIndexedVertexArray::load_its_flat_shading(const indexed_triangle_set &its
         this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
         vertices_count += 3;
     }
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, indices size %2%, vertices %3%, triangles %4% ")
+    BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, indices size %2%, vertices %3%, triangles %4% ")
             %this %its.indices.size() %this->vertices_and_normals_interleaved.size() %this->triangle_indices.size() ;
 }
 
@@ -214,7 +214,7 @@ void GLIndexedVertexArray::finalize_geometry(bool opengl_initialized)
 		return;
 	}
 
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1% ") %this;
+    BOOST_LOG_TRIVIAL(debug) << boost::format("this %1% ") %this;
     if (! this->vertices_and_normals_interleaved.empty()) {
         glsafe(::glGenBuffers(1, &this->vertices_and_normals_interleaved_VBO_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
@@ -888,7 +888,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
 
             color_volume = true;
             if (mv->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
+                BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
                     %this %this->name %mmuseg_ts %mmuseg_ivas.size() ;
                 mmuseg_ivas.clear();
                 std::vector<indexed_triangle_set> its_per_color;
@@ -902,7 +902,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                     }
                 }
                 mmuseg_ts = mv->mmu_segmentation_facets.timestamp();
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
+                BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
                     %this %this->name %mmuseg_ts  %mmuseg_ivas.size();
             }
         } while (0);
@@ -951,7 +951,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                 }
                 iva->render(shader, this->tverts_range, this->qverts_range);
                 /*if (force_native_color && (render_color[3] < 1.0)) {
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, tverts_range {%3,%4}, qverts_range{%5%, %6%}")
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("this %1%, name %2%, tverts_range {%3,%4}, qverts_range{%5%, %6%}")
                      %this %this->name %this->tverts_range.first  %this->tverts_range.second
                      % this->qverts_range.first % this->qverts_range.second;
                 }*/

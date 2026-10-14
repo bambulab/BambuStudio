@@ -390,13 +390,13 @@ namespace Slic3r
 
             void BaseRenderer::load_shells(const Print& print, bool initialized, bool force_previewing)
             {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": initialized=%1%, force_previewing=%2%") % initialized % force_previewing;
+                BOOST_LOG_TRIVIAL(info) << boost::format("initialized=%1%, force_previewing=%2%") % initialized % force_previewing;
                 if ((print.id().id == m_shells.print_id) && (print.get_modified_count() == m_shells.print_modify_count)) {
                     //BBS: update force previewing logic
                     if (force_previewing)
                         m_shells.previewing = force_previewing;
                     //already loaded
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": already loaded, print=%1% print_id=%2%, print_modify_count=%3%, force_previewing %4%") % (&print) % m_shells.print_id % m_shells.print_modify_count % force_previewing;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("already loaded, print=%1% print_id=%2%, print_modify_count=%3%, force_previewing %4%") % (&print) % m_shells.print_id % m_shells.print_modify_count % force_previewing;
                     return;
                 }
                 //reset shell firstly
@@ -487,7 +487,7 @@ namespace Slic3r
                 m_shells.print_id = print.id().id;
                 m_shells.print_modify_count = print.get_modified_count();
                 m_shells.previewing = true;
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": shell loaded, id change to %1%, modify_count %2%, object count %3%, glvolume count %4%")
+                BOOST_LOG_TRIVIAL(debug) << boost::format("shell loaded, id change to %1%, modify_count %2%, object count %3%, glvolume count %4%")
                     % m_shells.print_id % m_shells.print_modify_count % object_count % m_shells.volumes.volumes.size();
             }
 
@@ -563,11 +563,11 @@ namespace Slic3r
                 // avoid processing if called with the same gcode_result
                 if (m_last_result_id == gcode_result.id) {
                     //BBS: add logs
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": the same id %1%, return directly, result %2% ") % m_last_result_id % (&gcode_result);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("the same id %1%, return directly, result %2% ") % m_last_result_id % (&gcode_result);
                     return;
                 }
                 //BBS: add logs
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": gcode result %1%, new id %2%, gcode file %3% ") % (&gcode_result) % m_last_result_id % PathSanitizer::sanitize(gcode_result.filename);
+                BOOST_LOG_TRIVIAL(info) << boost::format("gcode result %1%, new id %2%, gcode file %3% ") % (&gcode_result) % m_last_result_id % PathSanitizer::sanitize(gcode_result.filename);
                 // release gpu memory, if used
                 reset();
                 //BBS: add mutex for protection of gcode result
@@ -576,7 +576,7 @@ namespace Slic3r
                 //BBS: add safe check
                 if (gcode_result.moves.size() == 0) {
                     //result cleaned before slicing ,should return here
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result reset before, return directly!");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("gcode result reset before, return directly!");
                     gcode_result.unlock();
                     wxGetApp().plater()->schedule_background_process();
                     return;
@@ -633,7 +633,7 @@ namespace Slic3r
                         && extruder_id < support_filament_opt.size()
                         && (m_single_ext_multi_nozzle || extruder_id < filament_maps.size());
                     if (!arrays_ok) {
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament_* config arrays too short for extruder_id=" << int(extruder_id)
+                        BOOST_LOG_TRIVIAL(warning) << "filament_* config arrays too short for extruder_id=" << int(extruder_id)
                             << ", sizes=[map " << filament_maps.size()
                             << ", type " << type_opt.size()
                             << ", color " << color_opt.size()
@@ -1231,7 +1231,7 @@ namespace Slic3r
             void BaseRenderer::reset()
             {
                 //BBS: should also reset the result id
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": current result id %1% ") % m_last_result_id;
+                BOOST_LOG_TRIVIAL(info) << boost::format("current result id %1% ") % m_last_result_id;
                 m_last_result_id = -1;
                 m_conflict_result.reset();
                 m_gcode_check_result.reset();
@@ -1282,14 +1282,14 @@ namespace Slic3r
                 //BBS: add safe check
                 if (gcode_result.moves.size() == 0) {
                     //result cleaned before slicing ,should return here
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result reset before, return directly!");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("gcode result reset before, return directly!");
                     gcode_result.unlock();
                     return;
                 }
                 const auto t_move_count = gcode_result.moves.size();
                 //BBS: add mutex for protection of gcode result
                 if (t_move_count == 0) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": gcode result m_moves_count is 0, return directly!");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("gcode result m_moves_count is 0, return directly!");
                     gcode_result.unlock();
                     return;
                 }
@@ -3406,7 +3406,7 @@ namespace Slic3r
                 try
                 {
                     m_file.open(boost::filesystem::path(m_filename));
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mapping file " << PathSanitizer::sanitize(m_filename);
+                    BOOST_LOG_TRIVIAL(info) << "mapping file " << PathSanitizer::sanitize(m_filename);
                 }
                 catch (...)
                 {
@@ -3717,7 +3717,7 @@ namespace Slic3r
                 //BBS: add log to trace the gcode file issue
                 if (m_file.is_open()) {
                     m_file.close();
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << PathSanitizer::sanitize(m_filename);
+                    BOOST_LOG_TRIVIAL(info) << "finished mapping file " << PathSanitizer::sanitize(m_filename);
                 }
             }
 

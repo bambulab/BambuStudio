@@ -2240,7 +2240,7 @@ bool AMSMaterialsSetting::save_pa_profile_selection()
         n_text.ToDouble(&n);
     }
     catch (...) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
+        BOOST_LOG_TRIVIAL(warning) << "Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
     }
 
     if (is_virtual_tray()) {
@@ -2394,7 +2394,7 @@ void AMSMaterialsSetting::update_pa_profile_items()
     const auto extruder_ids = slot_bound_extruder_ids();
     const auto effective = get_effective_nozzle();
     if (!effective && is_nozzle_combo_selector()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " no effective nozzle, show Default only"
+        BOOST_LOG_TRIVIAL(info) << "no effective nozzle, show Default only"
                                  << ", ams_id=" << ams_id
                                  << ", combo_selector=true"
                                  << ", extruder_ids=" << extruder_ids.size();
@@ -2414,12 +2414,12 @@ void AMSMaterialsSetting::update_pa_profile_items()
             nozzle_flow_type = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
         }
         if (dia_type == NozzleDiameterType::NONE_DIAMETER_TYPE) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip unknown nozzle diameter, extruder_id=" << extruder_id;
+            BOOST_LOG_TRIVIAL(info) << "skip unknown nozzle diameter, extruder_id=" << extruder_id;
             continue;
         }
         // Empty tray filament: no historical profile is offered.
         if (ams_filament_id.empty()) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip empty filament_id, extruder_id=" << extruder_id;
+            BOOST_LOG_TRIVIAL(info) << "skip empty filament_id, extruder_id=" << extruder_id;
             continue;
         }
 
@@ -2432,12 +2432,12 @@ void AMSMaterialsSetting::update_pa_profile_items()
         std::vector<PACalibResult> matched = pa_history_filter.get();
         std::sort(matched.begin(), matched.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " PaHistoryFilter extruder_id=" << extruder_id
+        BOOST_LOG_TRIVIAL(info) << "PaHistoryFilter extruder_id=" << extruder_id
                                  << ", nozzle_diameter=" << DevNozzle::ToNozzleDiameterFloat(dia_type)
                                  << ", filament_id=" << ams_filament_id
                                  << ", matched=" << matched.size();
         for (const auto &cali_item : matched) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cali_item: cali_idx=" << cali_item.cali_idx
+            BOOST_LOG_TRIVIAL(info) << "cali_item: cali_idx=" << cali_item.cali_idx
                                      << ", name=" << cali_item.name
                                      << ", filament_id=" << cali_item.filament_id
                                      << ", k_value=" << cali_item.k_value
@@ -2459,7 +2459,7 @@ void AMSMaterialsSetting::update_pa_profile_items()
                     items.push_back(wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name)));
                 } else {
                     items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
+                    BOOST_LOG_TRIVIAL(warning) << "Nozzle position id is -1 or invalid.";
                 }
             } else {
                 items.push_back(wxString::Format("%s", from_u8(cali_item.name)));

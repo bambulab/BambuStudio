@@ -134,14 +134,14 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
     if (DevFilaBlacklist::filaments_blacklist.contains("blacklist"))
     {
         int item_count = DevFilaBlacklist::filaments_blacklist["blacklist"].size();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": filaments_blacklist item count=" << item_count;
+        BOOST_LOG_TRIVIAL(info) << "filaments_blacklist item count=" << item_count;
         for (auto filament_item : DevFilaBlacklist::filaments_blacklist["blacklist"])
         {
             std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
             std::string description = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
             if (action.empty() || description.empty()) {
                 assert(false);
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": ERROR: filaments_blacklist item missing action or description";
+                BOOST_LOG_TRIVIAL(error) << "ERROR: filaments_blacklist item missing action or description";
             }
 
             // blacklist items
@@ -529,7 +529,7 @@ DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(con
 {
     CheckResult result;
     if (info.ams_id < 0 || info.slot_id < 0) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": ERROR: check_filaments_in_blacklist invalid ams_id or slot_id";
+        BOOST_LOG_TRIVIAL(error) << "ERROR: check_filaments_in_blacklist invalid ams_id or slot_id";
         return result;
     }
 

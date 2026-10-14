@@ -128,7 +128,7 @@ NozzleVolumeType DevNozzle::ToNozzleVolumeType(const NozzleFlowType& type)
         case NozzleFlowType::T_FLOW: return NozzleVolumeType::nvtTPU285;
         case NozzleFlowType::E_FLOW: return NozzleVolumeType::nvtE3DHighFlow;
         default: {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "nozzle flow type None convert to nozzle volume type Standard";
+            BOOST_LOG_TRIVIAL(warning) << "nozzle flow type None convert to nozzle volume type Standard";
             return NozzleVolumeType::nvtStandard;
         }
     }
@@ -681,7 +681,7 @@ void DevNozzleSystem::AddFirmwareInfoWTM(const DevFirmwareVersionInfo& info)
         }
         catch (const std::exception& e)
         {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid nozzle ID in firmware name:  "
+            BOOST_LOG_TRIVIAL(error) << "Invalid nozzle ID in firmware name:  "
                                      << info.name << ", error: " << e.what();
         }
     }
@@ -696,7 +696,7 @@ void DevNozzleSystem::AddFirmwareInfoHE(const DevFirmwareVersionInfo& info)
             int rack_nozzle_id = std::stoi(str);
             m_nozzle_rack->AddNozzleFirmwareInfo(rack_nozzle_id, info);
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid nozzle ID in firmware name:  "
+            BOOST_LOG_TRIVIAL(error) << "Invalid nozzle ID in firmware name:  "
                 << info.name << ", error: " << e.what();
         }
     }

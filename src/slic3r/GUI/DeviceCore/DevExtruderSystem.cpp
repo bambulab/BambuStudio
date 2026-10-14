@@ -256,12 +256,12 @@ namespace Slic3r
     std::optional<DevExtder> DevExtderSystem::GetExtderById(int extder_id) const
     {
         if (extder_id == 0xF) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " the extruder maybe changing: " << extder_id;
+            BOOST_LOG_TRIVIAL(info) << "the extruder maybe changing: " << extder_id;
             return std::nullopt;
         }
 
         if (extder_id < 0 || extder_id >= m_extders.size()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "No extruder found for " << extder_id;
+            BOOST_LOG_TRIVIAL(error) << "No extruder found for " << extder_id;
             return std::nullopt;
         }
 

@@ -634,7 +634,7 @@ void PressureAdvanceWizard::update(MachineObject* obj)
         if (obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
             if (obj->GetCalib()->PrepareFetchQueue()) {
                 obj->GetCalib()->SyncCalibVersion();
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: rebuild history fetch queue for device " << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
+                BOOST_LOG_TRIVIAL(info) << "calibration: rebuild history fetch queue for device " << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
             }
         }
         obj->GetCalib()->SendNextFetch();
@@ -878,7 +878,7 @@ void PressureAdvanceWizard::on_cali_start()
 
             auto tray_ams_slot_map = curr_obj->GetFilaSystem()->GetTrayIndexMap();
             if (tray_ams_slot_map.find(item.tray_id) == tray_ams_slot_map.end()) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " can't find tray_id:" << item.tray_id;
+                BOOST_LOG_TRIVIAL(warning) << "can't find tray_id:" << item.tray_id;
                 continue;
             }
 

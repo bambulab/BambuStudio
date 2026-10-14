@@ -190,7 +190,7 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
     if (m_status < RACK_STATUS_UNKNOWN || m_status >= RACK_STATUS_END)
     {
         m_status = RACK_STATUS_UNKNOWN; // Reset to default if out of range
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid rack status: " << m_status << ", reset";
+        BOOST_LOG_TRIVIAL(error) << "Invalid rack status: " << m_status << ", reset";
     }
 
     DevJsonValParser::ParseVal(rack_info, "info", m_cali_status);

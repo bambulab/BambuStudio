@@ -152,7 +152,7 @@ namespace Slic3r
             const std::string type_by_sn  = DevPrinterConfigUtil::get_printer_type_by_dev_id(dev_id);
             if (!DevPrinterConfigUtil::is_printer_visible_in_this_build(parsed_type) ||
                 (!type_by_sn.empty() && !DevPrinterConfigUtil::is_printer_visible_in_this_build(type_by_sn))) {
-                BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " skip printer without fdm mode"
+                BOOST_LOG_TRIVIAL(trace) << "skip printer without fdm mode"
                     << ", type=" << parsed_type
                     << ", sn_type=" << type_by_sn
                     << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
@@ -179,7 +179,7 @@ namespace Slic3r
                     it->second->bind_sec_link       = sec_link;
                     it->second->GetInfo()->SetConnectionType(connect_type);
                     it->second->bind_ssdp_version   = ssdp_version;
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateUserMachineInfo"
+                    BOOST_LOG_TRIVIAL(info) << "UpdateUserMachineInfo"
                         << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
                         << ", ip = "  << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
                         << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
@@ -225,7 +225,7 @@ namespace Slic3r
                         obj->bind_ssdp_version != ssdp_version ||
                         obj->printer_type != _parse_printer_type(printer_type_str))
                     {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateLocalMachineInfo"
+                        BOOST_LOG_TRIVIAL(info) << "UpdateLocalMachineInfo"
                             << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
                             << ", ip = " << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
                             << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
@@ -234,7 +234,7 @@ namespace Slic3r
                     }
                     else
                     {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " UpdateLocalMachineInfo_WIFI"
+                        BOOST_LOG_TRIVIAL(info) << "UpdateLocalMachineInfo_WIFI"
                             << ", dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
                             << ", ip = "  << BBLCrossTalk::Crosstalk_DevIP(dev_ip)
                             << ", printer_name= " << BBLCrossTalk::Crosstalk_DevName(dev_name)
@@ -285,7 +285,7 @@ namespace Slic3r
                 Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
                 Slic3r::GUI::wxGetApp().app_config->save();
                 }*/
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " New Machine, dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
+                BOOST_LOG_TRIVIAL(info) << "New Machine, dev_id= " << BBLCrossTalk::Crosstalk_DevId(dev_id)
                     << ", ip = " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) <<", printer_name = " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                     << ", con_type= " << connect_type <<", signal= " << printer_signal << ", bind_state= " << bind_state;
             }
@@ -308,7 +308,7 @@ namespace Slic3r
         const std::string type_by_sn    = DevPrinterConfigUtil::get_printer_type_by_dev_id(dev_id);
         if (!DevPrinterConfigUtil::is_printer_visible_in_this_build(resolved_type) ||
             (!type_by_sn.empty() && !DevPrinterConfigUtil::is_printer_visible_in_this_build(type_by_sn))) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip printer without fdm mode"
+            BOOST_LOG_TRIVIAL(info) << "skip printer without fdm mode"
                 << ", type=" << resolved_type
                 << ", sn_type=" << type_by_sn
                 << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
@@ -370,7 +370,7 @@ namespace Slic3r
 
             const auto dev_ip = BBLCrossTalk::Decode_DevIp(encoded_dev_ip, slicer_uuid);
             if (dev_ip.empty()) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Decode_DevIp failed, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                BOOST_LOG_TRIVIAL(error) << "Decode_DevIp failed, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
                 continue;
             }
 
@@ -413,7 +413,7 @@ namespace Slic3r
                 }
 
                 if (reject_reason) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << reject_reason << ", code=" << result
+                    BOOST_LOG_TRIVIAL(warning) << reject_reason << ", code=" << result
                                                << ", falling back to the persisted local info, dev_id="
                                                << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id)
                                                << ", detected dev_id=" << BBLCrossTalk::Crosstalk_DevId(detectData.dev_id);
@@ -553,13 +553,13 @@ namespace Slic3r
 
         // Check the dev_id is in my_machine_list
         if (!dev_id.empty() && it == my_machine_list.end()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": "
+            BOOST_LOG_TRIVIAL(error)
                 << BBLCrossTalk::Crosstalk_DevId(dev_id) << " not in my_machine_list";
 
             static std::unordered_set<std::string> s_unknown_devs;
             if (s_unknown_devs.find(dev_id) == s_unknown_devs.end()) {
                 s_unknown_devs.insert(dev_id);
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::stacktrace::stacktrace();
+                BOOST_LOG_TRIVIAL(error) << boost::stacktrace::stacktrace();
             };
 
             return false;
@@ -805,7 +805,7 @@ namespace Slic3r
             json j = json::parse(body);
 
 #if !BBL_RELEASE_TO_PUBLIC
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << BBLCrossTalk::Crosstalk_JsonLog(j);
+            BOOST_LOG_TRIVIAL(info) << BBLCrossTalk::Crosstalk_JsonLog(j);
 #endif
 
             if (j.contains("devices") && !j["devices"].is_null())
@@ -838,7 +838,7 @@ namespace Slic3r
                     if (resolved_type.empty())
                         resolved_type = DevPrinterConfigUtil::get_printer_type_by_dev_id(dev_id);
                     if (!DevPrinterConfigUtil::is_printer_visible_in_this_build(resolved_type)) {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip printer without fdm mode"
+                        BOOST_LOG_TRIVIAL(info) << "skip printer without fdm mode"
                             << ", type=" << resolved_type
                             << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
                         continue;
@@ -906,7 +906,7 @@ namespace Slic3r
         }
         catch (std::exception& e)
         {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " exception=" << e.what();
+            BOOST_LOG_TRIVIAL(error) << "exception=" << e.what();
             return false;
         }
 

@@ -1665,7 +1665,7 @@ bool GLCanvas3D::init()
     // init dark mode status
     on_change_color_mode(wxGetApp().app_config->get("dark_color_mode") == "1", false);
 
-    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< " enter";
+    BOOST_LOG_TRIVIAL(info) << "enter";
     glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
     glsafe(::glClearDepth(1.0f));
 
@@ -1683,7 +1683,7 @@ bool GLCanvas3D::init()
     if (m_multisample_allowed)
         glsafe(::glEnable(GL_MULTISAMPLE));
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": before m_layers_editing init";
+    BOOST_LOG_TRIVIAL(info) << "before m_layers_editing init";
     if (m_canvas_type == ECanvasType::CanvasView3D)
         m_layers_editing.init();
 
@@ -1691,19 +1691,19 @@ bool GLCanvas3D::init()
     // we defer the geometry finalization of volumes until the first call to render()
     m_volumes.finalize_geometry(true);
 
-    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": before gizmo init";
+    BOOST_LOG_TRIVIAL(info) << "before gizmo init";
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
 
-    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": before _init_toolbars";
+    BOOST_LOG_TRIVIAL(info) << "before _init_toolbars";
     if (!_init_toolbars())
         return false;
 
-    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": finish _init_toolbars";
+    BOOST_LOG_TRIVIAL(info) << "finish _init_toolbars";
     if (m_selection.is_enabled() && !m_selection.init())
         return false;
 
-    BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": finish m_selection";
+    BOOST_LOG_TRIVIAL(info) << "finish m_selection";
 
 #if ENABLE_IMGUI_STYLE_EDITOR
     //BBS load render color for style editor
@@ -1836,7 +1836,7 @@ bool GLCanvas3D::is_in_same_model_object(const std::vector<int> volume_ids) {
                     auto temp_object_idx = temp_volume->object_idx();
                     if (object_sets.find(temp_object_idx) == object_sets.end()) { return false; }
                 } else {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check code";
+                    BOOST_LOG_TRIVIAL(info) << "check code";
                 }
             }
             if (object_sets.size() == 1) {
@@ -2654,7 +2654,7 @@ void GLCanvas3D::_exit_assembly_to_3d_view()
             int         existing_time = 0;
             agent->track_get_property(name, value);
             try { if (value != "") { existing_time = std::stoi(value); } } catch (...) {}
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
+            BOOST_LOG_TRIVIAL(info) << "tool name:" << name << " duration: " << times + existing_time;
             agent->track_update_property(name, std::to_string(times + existing_time));
         }
     }

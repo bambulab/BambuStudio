@@ -525,7 +525,7 @@ bool ExtrusionCalibration::check_k_n_validation(wxString k_text, wxString n_text
         k_text.ToDouble(&k);
         n_text.ToDouble(&n);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
+        BOOST_LOG_TRIVIAL(warning) << "Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
     }
 
     if (k <= MIN_PA_K_VALUE || k >= MAX_PA_K_VALUE)
@@ -553,7 +553,7 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
         k_text.ToDouble(&k);
         n_text.ToDouble(&n);
     } catch (...) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
+        BOOST_LOG_TRIVIAL(warning) << "Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
     }
 
     // set values

@@ -64,7 +64,7 @@ wxString nozzle_id_code_to_string(int code){
     } else if(code >= 0x10){
         return wxString::Format("%d", code - 0x10 +1);
     } else {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
+        BOOST_LOG_TRIVIAL(warning) << "Nozzle position id is -1 or invalid.";
         return "N/A";
     }
 }
@@ -231,8 +231,8 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
             .set_nozzle_diameter(dia)
             .set_extruder_id(extruder_id)
             .get();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
-                               << " dia=" << (dia.has_value() ? static_cast<int>(dia.value()) : -1)
+        BOOST_LOG_TRIVIAL(info)
+                               << "dia=" << (dia.has_value() ? static_cast<int>(dia.value()) : -1)
                                << " ext=" << (extruder_id.has_value() ? extruder_id.value() : -1)
                                << " matched=" << m_calib_results_history.size();
     }
@@ -308,7 +308,7 @@ void HistoryWindow::update(MachineObject* obj)
 
     auto calib = obj->GetCalib();
     if (calib->IsVersionExpired()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " version expired, prepare fetch queue";
+        BOOST_LOG_TRIVIAL(info) << "version expired, prepare fetch queue";
         if (calib->PrepareFetchQueue()) {
             calib->SyncCalibVersion();
         }
@@ -318,7 +318,7 @@ void HistoryWindow::update(MachineObject* obj)
 
     // Combo/extruder change clears the local view; sync once when the fetch queue drains.
     if (calib->IsPAHistoryReady() && m_pending_sync) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " history ready, sync pending view";
+        BOOST_LOG_TRIVIAL(info) << "history ready, sync pending view";
         m_pending_sync = false;
         sync_history_result(curr_obj);
     }
@@ -351,7 +351,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             m_calib_results_history.clear();
             sync_history_data();
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " request history dia=" << nozzle_value << " extruder_id=" << extruder_id;
+            BOOST_LOG_TRIVIAL(info) << "request history dia=" << nozzle_value << " extruder_id=" << extruder_id;
         }
     }
 }
@@ -1220,7 +1220,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         nozzle_value = DevNozzle::ToNozzleDiameterFloat(NozzleDiameterType(*(int *) m_comboBox_nozzle_diameter->GetClientData(sel)));
     } else {
         nozzle_value = DevNozzle::ToNozzleDiameterFloat(NozzleDiameterType::NONE_DIAMETER_TYPE);
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle diameter type sel";
+        BOOST_LOG_TRIVIAL(warning) << "invalid nozzle diameter type sel";
     }
 
     std::string filament_name = m_comboBox_filament->GetValue().ToStdString();
@@ -1252,7 +1252,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
             m_new_result.nozzle_volume_type = NozzleVolumeType(*(int*)m_comboBox_nozzle_type->GetClientData(sel));
         } else {
             m_new_result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle flow type sel";
+            BOOST_LOG_TRIVIAL(warning) << "invalid nozzle flow type sel";
         }
     }
 

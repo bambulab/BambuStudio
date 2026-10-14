@@ -67,10 +67,10 @@ PrinterWebView::PrinterWebView(wxWindow *parent, const wxString &view_name, WebV
 
 PrinterWebView::~PrinterWebView()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Start";
+    BOOST_LOG_TRIVIAL(info) << "Start";
     SetEvtHandlerEnabled(false);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
+    BOOST_LOG_TRIVIAL(info) << "End";
 }
 
 

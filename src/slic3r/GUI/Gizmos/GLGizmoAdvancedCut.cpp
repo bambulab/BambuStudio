@@ -1286,7 +1286,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         if (!canceled)
             return;
         if (plater->get_active_snapshot_time() != pre_cut_snapshot_time + 1)
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": snapshots were taken while the cut was running, "
+            BOOST_LOG_TRIVIAL(warning) << "snapshots were taken while the cut was running, "
                                        << "rolling back to " << pre_cut_snapshot_time;
         plater->undo_redo_to(pre_cut_snapshot_time);
     });
@@ -1426,7 +1426,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
             if (!cut_error.empty()) {
                 // Treat a failure like a cancellation: nothing gets written back and the model is
                 // rolled back, rather than letting the exception cross the thread boundary.
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the cut failed: " << cut_error;
+                BOOST_LOG_TRIVIAL(error) << "the cut failed: " << cut_error;
                 canceled = true;
             }
             if (cut.was_canceled() || new_objects_ptr == nullptr)
@@ -1437,7 +1437,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         }
 
         if (canceled) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": the cut was canceled, rolling back";
+            BOOST_LOG_TRIVIAL(info) << "the cut was canceled, rolling back";
             // cut_rollback below undoes the snapshot once this scope closes.
             return;
         }
@@ -1482,7 +1482,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
 
                         auto model_name = new_objects[i]->name;
                         if (!fix_and_update_progress(new_objects[i], j, model_name, progress_dlg, succes_models, failed_models)) {
-                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "run fix_and_update_progress error";
+                            BOOST_LOG_TRIVIAL(error) << "run fix_and_update_progress error";
                             plater->take_snapshot("RepairingModelObjectInCut");
                             all_break = true;
                             break;

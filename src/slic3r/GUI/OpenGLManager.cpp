@@ -452,7 +452,7 @@ bool OpenGLManager::init_gl(bool popup_error)
                 BOOST_LOG_TRIVIAL(error) << "Not recognized format of version.";
             }
         } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "not AMD driver.";
+            BOOST_LOG_TRIVIAL(info) << "not AMD driver.";
         }
 #endif
     }
