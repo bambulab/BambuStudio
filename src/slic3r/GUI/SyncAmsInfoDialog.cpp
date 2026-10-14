@@ -96,7 +96,9 @@ bool SyncAmsInfoDialog::Show(bool show)
             m_mode_combox_sizer->Show(true);
             m_reset_all_btn->Hide();
         }
-        m_confirm_title->SetLabel(m_undone_str);
+        auto mode = wxGetApp().app_config->get_bool("ams_sync_default_overwrite") ? PageType::ptOverride : PageType::ptColorMap;
+        update_panel_status(mode);
+        update_when_change_map_mode(mode);
     }
     m_scrolledWindow->FitInside();
     m_scrolledWindow->Scroll(0, 0);

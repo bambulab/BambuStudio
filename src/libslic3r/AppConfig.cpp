@@ -175,6 +175,8 @@ void AppConfig::set_defaults()
         set_bool("enable_append_color_by_sync_ams", true);
     if (get("enable_merge_color_by_sync_ams").empty())
         set_bool("enable_merge_color_by_sync_ams", false);
+    if (get("ams_sync_default_overwrite").empty())
+        set_bool("ams_sync_default_overwrite", false);
     if (get("ams_sync_match_full_use_color_dist").empty())
         set_bool("ams_sync_match_full_use_color_dist", false);
     if (get("enable_sidebar_floatable").empty())
