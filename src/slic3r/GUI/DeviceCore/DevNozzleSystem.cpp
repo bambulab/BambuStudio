@@ -887,7 +887,7 @@ static void s_parse_nozzle_type(const std::string& nozzle_type_str, DevNozzle& n
     }
     else if (nozzle_type_str == "N/A")
     {
-        nozzle.m_tool_defs.tool_type = DevNozzleToolType::None;
+        nozzle.m_tool_defs.tool_type = DevNozzleToolType::Nozzle;// N/A means unknown nozzle by AP
         nozzle.m_nozzle_type = NozzleType::ntUndefine;
         nozzle.m_nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
     }

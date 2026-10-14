@@ -61,7 +61,10 @@ export function HotendCard({
   // Taken (on-extruder) uses its own muted UX; do not paint the green selected chrome.
   const isSelected = !isTaken && !!hot.selected;
   // `None` is authoritative for "no tool"; tool_kind may still say "nozzle".
-  const isEmpty = op === 'None' || (hot.tool_kind ?? 'empty') === 'empty';
+  // An Unknown nozzle is physically present but not identified yet, so it must
+  // not fall through to the empty-slot readout just because tool_kind has not
+  // been resolved.
+  const isEmpty = op !== 'Unknown' && (op === 'None' || (hot.tool_kind ?? 'empty') === 'empty');
   // Fault states (Error / Lost / Unknown) keep the temperature readout; only the icon changes.
   const isStatusReplaced = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing';
   const [menuOpen, setMenuOpen] = useState(false);
@@ -535,11 +538,13 @@ function ToolLabel({
   op: HotendOpState;
   taken?: boolean;
 }) {
+  const { t } = useTranslation();
   const isMuted = taken || kind === 'empty' || kind === 'unknown' || op === 'Reading' || op === 'Unknown' || op === 'None';
   // Unknown and None have no spec to show. Taken slots still show diameter /
-  // flow when present.
+  // flow when present. Unknown still names itself so the card does not read as
+  // an empty slot.
   const blanked = op === 'Unknown' || op === 'None';
-  const primary = blanked ? '--' : (label ?? (isMuted ? '--' : ''));
+  const primary = op === 'Unknown' ? t('Unknown') : (blanked ? '--' : (label ?? (isMuted ? '--' : '')));
   const secondary = blanked ? '--' : (subtext ?? (isMuted ? '--' : ''));
   return (
     <div className={`hotend-tool-label${isMuted ? ' muted' : ''}`}>

@@ -195,7 +195,7 @@ nlohmann::json build_hotend_menu_actions(const std::string& op_state,
     const bool can_operate = has_hotend_slot && !busy && !error;
     const bool can_move = can_operate && !lost;
 
-    const bool can_read = can_move && is_nozzle;
+    const bool can_read = can_operate;
     const bool can_detail = has_hotend_slot && !error;
     const bool can_set_temp = can_operate && is_nozzle && !is_on_extruder;
     const bool can_take_place = can_move;
