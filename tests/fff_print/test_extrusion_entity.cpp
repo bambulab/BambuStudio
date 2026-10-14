@@ -7,15 +7,17 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/libslic3r.h"
 
-#include "test_data.hpp"
+#include "test_helpers.hpp"
 
 using namespace Slic3r;
 
-static inline Slic3r::Point random_point(float LO=-50, float HI=50) 
+// BambuStudio's extrusion polylines are 2D; OrcaSlicer's carry Z as well.
+static inline Slic3r::Point random_point(float LO=-50, float HI=50)
 {
     Vec2f pt = Vec2f(LO, LO) + (Vec2d(rand(), rand()) * (HI-LO) / RAND_MAX).cast<float>();
-	return pt.cast<coord_t>();
+	return Point(pt.cast<coord_t>());
 }
+
 
 // build a sample extrusion entity collection with random start and end points.
 static Slic3r::ExtrusionPath random_path(size_t length = 20, float LO = -50, float HI = 50)
@@ -34,7 +36,7 @@ static Slic3r::ExtrusionPaths random_paths(size_t count = 10, size_t length = 20
     return p;
 }
 
-SCENARIO("ExtrusionEntityCollection: Polygon flattening", "[ExtrusionEntity]") {
+SCENARIO("Polygon flattening", "[ExtrusionEntity]") {
     srand(0xDEADBEEF); // consistent seed for test reproducibility.
 
     // Generate one specific random path set and save it for later comparison

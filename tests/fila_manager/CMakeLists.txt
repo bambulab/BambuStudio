@@ -1,12 +1,11 @@
 # STUDIO-17977 / openspec 20260506耗材管理器AMS同步渐变多拼色:
 # fila_manager unit tests target.
 #
-# Why this target stays slim (no libslic3r_gui dependency):
-#   wgtFilaManagerStore.{h,cpp} only depends on nlohmann::json, std,
-#   boost (uuid / filesystem / log) and libslic3r/Utils.hpp - none of
-#   which require wxWidgets. Compiling wgtFilaManagerStore.cpp directly
-#   into the test binary avoids dragging the entire GUI into the test,
-#   which would significantly slow down the per-PR test cycle on Windows.
+# wgtFilaManagerStore.cpp is compiled directly into the test binary. It used to
+# need only nlohmann::json, std, boost and libslic3r/Utils.hpp, so the target did
+# not link the GUI. It now includes slic3r/GUI/GUI_App.hpp and calls
+# wxGetApp().transition_tridid() for the tray label, so it links libslic3r_gui,
+# which also provides wxWidgets' include paths.
 #
 # When the parallel change "20260506耗材管理器AMS自动同步云端" lands its
 # AmsAutoPushThrottle / wgtFilaManagerCloudSync tests, append the
@@ -26,6 +25,7 @@ target_include_directories(${_TEST_NAME}_tests PRIVATE
 
 target_link_libraries(${_TEST_NAME}_tests
     test_common
+    libslic3r_gui
     libslic3r
 )
 

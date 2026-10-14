@@ -829,8 +829,18 @@ protected:
                 m_keys.emplace_back(kvp.first);
                 const ConfigOptionDef *def = defs->get(kvp.first);
                 assert(def != nullptr);
-                if (def->default_value)
+                if (def->default_value) {
                     opt->set(def->default_value.get());
+                    // set() copies values but not keys_map for enum-list options; attach it from
+                    // the definition, or serialize() later dereferences a null keys_map (see
+                    // ConfigOptionEnumsGenericTempl::serialize_single_value).
+                    if (opt->type() == coEnums) {
+                        if (opt->nullable())
+                            static_cast<ConfigOptionEnumsGenericNullable*>(opt)->keys_map = def->enum_keys_map;
+                        else
+                            static_cast<ConfigOptionEnumsGeneric*>(opt)->keys_map = def->enum_keys_map;
+                    }
+                }
             }
         }
 

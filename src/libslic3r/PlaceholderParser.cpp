@@ -923,12 +923,13 @@ namespace client
 			            	const ConfigOption *opt_parent = opt_def->ratio_over.empty() ? nullptr : ctx->resolve_symbol(opt_def->ratio_over);
 			            	if (opt_parent == nullptr)
 			                    ctx->throw_exception("FloatOrPercent variable failed to resolve the \"ratio_over\" dependencies", opt.it_range);
-			                if (boost::ends_with(opt_def->ratio_over, "line_width")) {
+			                if (boost::ends_with(opt_def->ratio_over, "line_width") && opt_parent->type() == coFloatOrPercent) {
                     			// Extrusion width supports defaults and a complex graph of dependencies.
-                                assert(opt_parent->type() == coFloatOrPercent);
                         		v *= Flow::extrusion_width(opt_def->ratio_over, static_cast<const ConfigOptionFloatOrPercent*>(opt_parent), *ctx, static_cast<unsigned int>(ctx->current_extruder_id));
                         		break;
                         	}
+                        	// BambuStudio's *_line_width options are plain coFloat, handled below. Casting one to
+                        	// ConfigOptionFloatOrPercent here, as the line above used to, read past the object.
                         	if (opt_parent->type() == coFloat || opt_parent->type() == coFloatOrPercent) {
 			            		v *= opt_parent->getFloat();
 			            		if (opt_parent->type() == coFloat || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_parent)->percent)
