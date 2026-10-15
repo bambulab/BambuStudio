@@ -17935,7 +17935,8 @@ msgstr ""
 msgid "Ams Status"
 msgstr ""
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
+#, possible-c-format, possible-boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
 msgstr ""
 
 msgid "Printing Options"
@@ -17969,7 +17970,7 @@ msgid "Select connected printers (0/6)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Select Connected Printers (%d/6)"
+msgid "Select Connected Printers (%d/%d)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

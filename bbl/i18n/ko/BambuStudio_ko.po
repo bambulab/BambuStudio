@@ -18463,8 +18463,9 @@ msgstr "장치 상태"
 msgid "Ams Status"
 msgstr "AMS 상태"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "여기에서 관리하려는 장치를 선택하세요(최대 6개 장치)."
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "여기에서 관리하려는 장치를 선택하세요(최대 %d개 장치)."
 
 msgid "Printing Options"
 msgstr "출력 옵션"
@@ -18497,8 +18498,8 @@ msgid "Select connected printers (0/6)"
 msgstr "연결된 프린터 선택(0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "연결된 프린터 선택(%d/6)"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "연결된 프린터 선택(%d/%d)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"

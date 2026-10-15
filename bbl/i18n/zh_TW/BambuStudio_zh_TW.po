@@ -18392,8 +18392,9 @@ msgstr "裝置狀態"
 msgid "Ams Status"
 msgstr "AMS狀態"
 
-msgid "Please select the devices you would like to manage here (up to 6 devices)"
-msgstr "請在此處選擇您想管理的裝置（最多6個裝置）。"
+#, c-format, boost-format
+msgid "Please select the devices you would like to manage here (up to %d devices)"
+msgstr "請在此處選擇您想管理的裝置（最多%d個裝置）。"
 
 msgid "Printing Options"
 msgstr "列印選項"
@@ -18426,8 +18427,8 @@ msgid "Select connected printers (0/6)"
 msgstr "選擇已連線的印表機 (0/6)"
 
 #, c-format, boost-format
-msgid "Select Connected Printers (%d/6)"
-msgstr "選擇已連線的印表機 (%d/6)"
+msgid "Select Connected Printers (%d/%d)"
+msgstr "選擇已連線的印表機 (%d/%d)"
 
 #, c-format, boost-format
 msgid "The maximum number of printers that can be selected is %d"
