@@ -2515,6 +2515,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_main_extruder_nozzle_idx->SetMaxSize(wxSize(FromDIP(16), FromDIP(16)));
     m_main_extruder_nozzle_idx->SetMinSize(wxSize(FromDIP(16), FromDIP(16)));
     m_main_extruder_nozzle_idx->SetValue(1);
+    m_main_extruder_nozzle_idx->Hide();
 
     m_nozzle_empty_hint = new wxPanel(parent);
     m_nozzle_empty_hint->SetBackgroundColour(*wxWHITE);
@@ -2663,6 +2664,9 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_nozzle->Show();
     if (m_nozzle_empty_hint) {
         m_nozzle_empty_hint->Hide();
+    }
+    if (m_main_extruder_nozzle_idx) {
+        m_main_extruder_nozzle_idx->Hide();
     }
 
     m_tempCtrl_nozzle_deputy->SetIconNormal();
@@ -4042,6 +4046,12 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     } else if (nozzle_num == 2) {
         if (m_nozzle_empty_hint && m_nozzle_empty_hint->IsShown()) {
             m_nozzle_empty_hint->Hide();
+            to_update_layout = true;
+        }
+        // A rack position means nothing with two extruders, and leaving it shown
+        // strands the value from a previously selected single-extruder printer.
+        if (m_main_extruder_nozzle_idx && m_main_extruder_nozzle_idx->IsShown()) {
+            m_main_extruder_nozzle_idx->Hide();
             to_update_layout = true;
         }
         m_tempCtrl_nozzle->SetCurrType(TEMP_OF_MAIN_NOZZLE_TYPE);
