@@ -486,27 +486,25 @@ FilamentExtendComboBox::FilamentExtendComboBox(wxWindow* parent, int nozzle_id, 
     m_id_label = new Label(this, wxString::Format("%d", m_nozzle_id + 1));
     m_id_label->SetBackgroundColour(*wxWHITE);
     m_id_label->SetForegroundColour(wxColour("#7d7d7d"));
-    main_sizer->Add(m_id_label, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+    main_sizer->Add(m_id_label, 0, wxALIGN_CENTER | wxRIGHT, CALIBRATION_NOZZLE_ITEM_GAP);
 
     m_nozzle_info_label = new Label(this, _L("Nozzle Type and Diameter"));
     m_nozzle_info_label->SetBackgroundColour(*wxWHITE);
-    main_sizer->Add(m_nozzle_info_label, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+    main_sizer->Add(m_nozzle_info_label, 0, wxALIGN_CENTER | wxRIGHT, CALIBRATION_NOZZLE_ITEM_GAP);
 
-    const wxSize NOZZLE_COMBO_SIZE(FromDIP(160), CALIBRATION_FILAMENT_COMBOX_SIZE.y);
-
-    m_diameter_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NOZZLE_COMBO_SIZE, 0, nullptr, wxCB_READONLY);
-    m_diameter_combo->SetMinSize(NOZZLE_COMBO_SIZE);
+    m_diameter_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, CALIBRATION_NOZZLE_COMBO_SIZE, 0, nullptr, wxCB_READONLY);
+    m_diameter_combo->SetMinSize(CALIBRATION_NOZZLE_COMBO_SIZE);
     m_diameter_combo->Disable();
-    main_sizer->Add(m_diameter_combo, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+    main_sizer->Add(m_diameter_combo, 0, wxALIGN_CENTER | wxRIGHT, CALIBRATION_NOZZLE_ITEM_GAP);
 
-    m_flow_type_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NOZZLE_COMBO_SIZE, 0, nullptr, wxCB_READONLY);
-    m_flow_type_combo->SetMinSize(NOZZLE_COMBO_SIZE);
+    m_flow_type_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, CALIBRATION_NOZZLE_COMBO_SIZE, 0, nullptr, wxCB_READONLY);
+    m_flow_type_combo->SetMinSize(CALIBRATION_NOZZLE_COMBO_SIZE);
     m_flow_type_combo->Disable();
-    main_sizer->Add(m_flow_type_combo, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(60));
+    main_sizer->Add(m_flow_type_combo, 0, wxALIGN_CENTER | wxRIGHT, CALIBRATION_NOZZLE_SECTION_GAP);
 
     if (m_comboBox) {
         if (m_comboBox->clr_picker)
-            main_sizer->Add(m_comboBox->clr_picker, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+            main_sizer->Add(m_comboBox->clr_picker, 0, wxALIGN_CENTER | wxRIGHT, CALIBRATION_NOZZLE_ITEM_GAP);
         main_sizer->Add(m_comboBox, 0, wxALIGN_CENTER);
     }
 
@@ -633,9 +631,13 @@ void FilamentExtendComboBox::RefreshSubAmsLabel(const wxString& empty_fallback)
         if (added >= visible_count) break;
 
         auto* picker = ensure_picker(added);
-        if (auto it = m_subams_picker_bitmaps.find(tray_id); it != m_subams_picker_bitmaps.end() && it->second.IsOk()) {
-            picker->SetBitmap(it->second);
-            picker->SetBitmapDisabled(it->second);
+        picker->SetMinSize(wxSize(picker_w, picker_h));
+        picker->SetSize(wxSize(picker_w, picker_h));
+        if (auto it = m_subams_picker_chips.find(tray_id); it != m_subams_picker_chips.end()) {
+            if (wxBitmap* bmp = get_extruder_color_icon(it->second.first, it->second.second, picker_w, picker_h)) {
+                picker->SetBitmap(*bmp);
+                picker->SetBitmapDisabled(*bmp);
+            }
         }
         picker->Show(true);
         m_subams_picker_sizer->Add(picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, picker_gap);
@@ -650,6 +652,8 @@ void FilamentExtendComboBox::RefreshSubAmsLabel(const wxString& empty_fallback)
             m_subams_ellipsis_picker->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
             forward_click(m_subams_ellipsis_picker);
         }
+        m_subams_ellipsis_picker->SetMinSize(wxSize(picker_w, picker_h));
+        m_subams_ellipsis_picker->SetSize(wxSize(picker_w, picker_h));
         m_subams_ellipsis_picker->Show(true);
         m_subams_picker_sizer->Add(m_subams_ellipsis_picker, 0, wxALIGN_CENTER_VERTICAL);
     }
@@ -662,25 +666,25 @@ bool FilamentExtendComboBox::GetSubAmsSelected(int tray_id) const
     return m_subams_selection.find(tray_id) != m_subams_selection.end();
 }
 
-void FilamentExtendComboBox::SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info, const wxBitmap& picker_bmp)
+void FilamentExtendComboBox::SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info, const CalibrateFilamentComboBox* chip_src)
 {
     m_subams_selection[tray_id] = info;
-    if (picker_bmp.IsOk())
-        m_subams_picker_bitmaps[tray_id] = picker_bmp;
+    if (chip_src)
+        m_subams_picker_chips[tray_id] = {chip_src->get_chip_color(), chip_src->get_tray_name()};
     SyncSelectionEnableState();
 }
 
 void FilamentExtendComboBox::ClearSubAmsSelected(int tray_id)
 {
     m_subams_selection.erase(tray_id);
-    m_subams_picker_bitmaps.erase(tray_id);
+    m_subams_picker_chips.erase(tray_id);
     SyncSelectionEnableState();
 }
 
 void FilamentExtendComboBox::ClearSubAmsSelection(bool refresh)
 {
     m_subams_selection.clear();
-    m_subams_picker_bitmaps.clear();
+    m_subams_picker_chips.clear();
     SyncSelectionEnableState();
     if (refresh)
         RefreshSubAmsLabel(_L("Not Selected"));
@@ -806,23 +810,46 @@ bool FilamentExtendComboBox::Enable(bool enable)
 void FilamentExtendComboBox::msw_rescale()
 {
     FilamentComboBox::msw_rescale();
+    // m_chip_size is stored in pixels, so the base rescale reuses the old-DPI chip.
+    if (m_comboBox) m_comboBox->SetChipSize(CALIBRATION_FILAMENT_CHIP_SIZE);
+
     if (m_diameter_combo) {
-        m_diameter_combo->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
-        m_diameter_combo->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+        m_diameter_combo->SetSize(CALIBRATION_NOZZLE_COMBO_SIZE);
+        m_diameter_combo->SetMinSize(CALIBRATION_NOZZLE_COMBO_SIZE);
         m_diameter_combo->Rescale();
     }
     if (m_flow_type_combo) {
-        m_flow_type_combo->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
-        m_flow_type_combo->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+        m_flow_type_combo->SetSize(CALIBRATION_NOZZLE_COMBO_SIZE);
+        m_flow_type_combo->SetMinSize(CALIBRATION_NOZZLE_COMBO_SIZE);
         m_flow_type_combo->Rescale();
     }
+
+    /* A sizer border is resolved to pixels in Add(), so it still holds the old-DPI value;
+       re-apply the same macros the constructor used. */
+    if (wxSizer* sizer = GetSizer()) {
+        auto set_border = [sizer](wxWindow* window, int border) {
+            if (!window) return;
+            if (wxSizerItem* item = sizer->GetItem(window))
+                item->SetBorder(border);
+        };
+        set_border(m_id_label, CALIBRATION_NOZZLE_ITEM_GAP);
+        set_border(m_nozzle_info_label, CALIBRATION_NOZZLE_ITEM_GAP);
+        set_border(m_diameter_combo, CALIBRATION_NOZZLE_ITEM_GAP);
+        set_border(m_flow_type_combo, CALIBRATION_NOZZLE_SECTION_GAP);
+        set_border(m_comboBox ? m_comboBox->clr_picker : nullptr, CALIBRATION_NOZZLE_ITEM_GAP);
+    }
+
     if (m_subams_panel) {
         const wxSize subams_panel_size(CALIBRATION_FILAMENT_CHIP_SIZE.x + FromDIP(8) + CALIBRATION_FILAMENT_COMBOX_SIZE.x, CALIBRATION_FILAMENT_COMBOX_SIZE.y);
         m_subams_panel->SetMinSize(subams_panel_size);
         m_subams_panel->SetSize(subams_panel_size);
+        if (m_subams_label) m_subams_label->Rescale();
         RefreshSubAmsLabel(_L("Not Selected"));
         m_subams_panel->Refresh();
     }
+
+    Layout();
+    if (auto* sizer = GetSizer()) sizer->Fit(this);
 }
 
 CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,

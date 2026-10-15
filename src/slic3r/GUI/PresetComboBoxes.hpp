@@ -297,7 +297,9 @@ public:
     void OnSelect(wxCommandEvent &evt) override;
     void SetChipSize(const wxSize &size);
     const Preset* get_selected_preset() { return m_selected_preset; }
-    std::string get_tray_name() { return m_tray_name; }
+    std::string get_tray_name() const { return m_tray_name; }
+    // Colour actually painted on clr_picker (an empty tray is drawn grey).
+    std::string get_chip_color() const { return m_filament_exist ? m_filament_color : std::string("#F0F0F0FF"); }
     std::string get_tag_uid() { return m_tag_uid; }
     bool is_tray_exist() { return m_filament_exist; }
     bool is_compatible_with_printer() { return m_is_compatible; }

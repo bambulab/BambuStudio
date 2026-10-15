@@ -40,6 +40,7 @@ public:
                  FilamentExtendComboBox* owner,
                  const std::set<DevAmsSlotId>& slots = {});
     void PopupAt(wxWindow* anchor);
+    void msw_rescale();
 
     FilamentExtendComboBox* GetOwner() const { return m_owner; }
     /* Page-driven visual sync used when another fcb claims the radio under SINGLE mode. */
@@ -58,6 +59,9 @@ private:
     void OnActivateAppOSX(wxActivateEvent& evt);
     bool m_activate_app_bound{false};
 #endif
+
+    // Size the popup to the anchor's width / content height and place it right below the anchor.
+    void FitToAnchor(wxWindow* anchor);
 
     wxScrolledWindow*           m_scroll{nullptr};
     wxBoxSizer*                 m_list_sizer{nullptr};

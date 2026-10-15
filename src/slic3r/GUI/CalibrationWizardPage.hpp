@@ -29,6 +29,10 @@ namespace Slic3r { namespace GUI {
 #define CALIBRATION_FILAMENT_COMBOX_SIZE   wxSize(FromDIP(250), FromDIP(24))
 #define CALIBRATION_OPTIMAL_INPUT_SIZE     wxSize(FromDIP(300), FromDIP(24))
 #define CALIBRATION_FROM_TO_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
+#define CALIBRATION_NOZZLE_COMBO_SIZE      wxSize(FromDIP(160), FromDIP(24))
+
+#define CALIBRATION_NOZZLE_ITEM_GAP        FromDIP(8)
+#define CALIBRATION_NOZZLE_SECTION_GAP     FromDIP(60)
 #define CALIBRATION_FGSIZER_HGAP           FromDIP(50)
 #define CALIBRATION_TEXT_MAX_LENGTH        FromDIP(90) + CALIBRATION_FGSIZER_HGAP + 2 * CALIBRATION_FILAMENT_COMBOX_SIZE.x
 #define CALIBRATION_PROGRESSBAR_LENGTH     FromDIP(690)
@@ -131,7 +135,7 @@ public:
     virtual bool Show(bool show = true);
     virtual bool Enable(bool enable);
     virtual void SetValue(bool value, bool send_event = true);
-    void msw_rescale();
+    virtual void msw_rescale();
 
     void ShowPanel();
     void HidePanel();
@@ -178,7 +182,8 @@ public:
 
     /* SubAms selection state — owned per ext_fcb so popup can restore last picks and the page can collect them at calibration start.*/
     bool GetSubAmsSelected(int tray_id) const;
-    void SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info, const wxBitmap& picker_bmp = wxNullBitmap);
+    /* chip_src: the popup row's combo whose colour chip is mirrored on the panel (nullptr keeps the old chip). */
+    void SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info, const CalibrateFilamentComboBox* chip_src = nullptr);
     void ClearSubAmsSelected(int tray_id);
     void ClearSubAmsSelection(bool refresh = true);
     const std::map<int, SelectedFilamentInfo>& GetSubAmsSelection() const { return m_subams_selection; }
@@ -203,7 +208,7 @@ public:
     void RefreshSubAmsLabel(const wxString& empty_fallback = wxEmptyString);
 
     bool Enable(bool enable) override;
-    void msw_rescale();
+    void msw_rescale() override;
 
 private:
     void init_diameter_combo(MachineObject* obj, const NozzleVolumeType& volume_type);
@@ -232,7 +237,8 @@ private:
     bool      m_subams_hover{false};
     bool      m_nozzle_selectable{true};
     std::map<int, SelectedFilamentInfo> m_subams_selection;
-    std::map<int, wxBitmap> m_subams_picker_bitmaps;
+    /* tray_id -> (chip colour, chip label); bitmaps are rebuilt at the current DPI on every refresh. */
+    std::map<int, std::pair<std::string, std::string>> m_subams_picker_chips;
     std::set<DevAmsSlotId> m_subams_slot_set;  // cached (ams_id, slot_id) union for the shared popup
     std::map<int, int> m_subams_model_index;          // tray_id -> model index (data-side, popup-independent)
 };

@@ -645,6 +645,12 @@ void CalibrationPresetPage::msw_rescale()
 
     m_cali_stage_panel->msw_rescale();
     m_custom_range_panel->msw_rescale();
+
+    // Popup last: an open one re-anchors to the sub-AMS panel, so the page must be laid out first.
+    if (m_shared_subams_popup) {
+        Layout();
+        m_shared_subams_popup->msw_rescale();
+    }
 }
 
 void CalibrationPresetPage::on_sys_color_changed()
@@ -3468,6 +3474,13 @@ wxDEFINE_EVENT(EVT_SUBAMS_RADIO_SELECTED, wxCommandEvent);
 
 // -------------------- SubAmsPopup --------------------
 
+/* Row/scroll metrics of SubAmsPopup. They are applied when the pool is built and must be
+   re-applied on DPI change, so both places read the same macro instead of a literal. */
+#define SUBAMS_ROW_BOTTOM_GAP   FromDIP(5)
+#define SUBAMS_CHECK_GAP        FromDIP(8)
+#define SUBAMS_SCROLL_PADDING   FromDIP(4)
+#define SUBAMS_SCROLL_RATE      FromDIP(10)
+
 SubAmsPopup::SubAmsPopup(wxWindow* parent)
     : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
@@ -3527,11 +3540,8 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             SelectedFilamentInfo info = fcb->get_selected_filament_info();
             info.nozzle_pos_id = m_owner->GetNozzlePosId();  // row fcb has no combo; pos id comes from the owning ext_fcb
 
-            wxBitmap picker_bmp;
-            if (auto* combo = fcb->GetComboBox(); combo && combo->clr_picker) picker_bmp = combo->clr_picker->GetBitmap();
-
             m_owner->ClearSubAmsSelection(false);
-            m_owner->SetSubAmsSelected(tray_id, info, picker_bmp);
+            m_owner->SetSubAmsSelected(tray_id, info, fcb->GetComboBox());
             m_owner->RefreshSubAmsLabel(_L("Not Selected"));
             // Mirror selection on parent ext_fcb so it counts as picked at page level.
             m_owner->SetValue(true, /*send_event=*/false);
@@ -3555,9 +3565,7 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             if (check_box->GetValue()) {
                 SelectedFilamentInfo info = fcb->get_selected_filament_info();
                 info.nozzle_pos_id = m_owner->GetNozzlePosId();  // row fcb has no combo; pos id comes from the owning ext_fcb
-                wxBitmap picker_bmp;
-                if (auto* combo = fcb->GetComboBox(); combo && combo->clr_picker) picker_bmp = combo->clr_picker->GetBitmap();
-                m_owner->SetSubAmsSelected(tray_id, info, picker_bmp);
+                m_owner->SetSubAmsSelected(tray_id, info, fcb->GetComboBox());
             } else {
                 m_owner->ClearSubAmsSelected(tray_id);
             }
@@ -3579,17 +3587,15 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
 
             SelectedFilamentInfo info = fcb->get_selected_filament_info();
             info.nozzle_pos_id = m_owner->GetNozzlePosId();  // row fcb has no combo; pos id comes from the owning ext_fcb
-            wxBitmap picker_bmp;
-            if (auto* combo = fcb->GetComboBox(); combo && combo->clr_picker) picker_bmp = combo->clr_picker->GetBitmap();
-            m_owner->SetSubAmsSelected(tray_id, info, picker_bmp);
+            m_owner->SetSubAmsSelected(tray_id, info, fcb->GetComboBox());
             m_owner->RefreshSubAmsLabel(_L("Not Selected"));
         });
 
         row->Add(radio_btn, 0, wxALIGN_CENTER);
-        row->Add(check_box, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+        row->Add(check_box, 0, wxALIGN_CENTER | wxRIGHT, SUBAMS_CHECK_GAP);
         row->Add(fcb,       0, wxALIGN_CENTER);
 
-        m_list_sizer->Add(row, 0, wxBOTTOM, FromDIP(5));
+        m_list_sizer->Add(row, 0, wxBOTTOM, SUBAMS_ROW_BOTTOM_GAP);
 
         radio_btn->Hide();
         check_box->Hide();
@@ -3598,8 +3604,18 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
         m_fcb_list.push_back(fcb);
     }
 
-    root->Add(m_scroll, 1, wxEXPAND | wxALL, FromDIP(4));
+    root->Add(m_scroll, 1, wxEXPAND | wxALL, SUBAMS_SCROLL_PADDING);
     SetSizer(root);
+
+    /* The popup is its own top-level HWND: crossing monitors rescales it by the DPI ratio, not to
+       the anchor width. Rescale rows now; re-fit after wx has applied its suggested rect. */
+    Bind(wxEVT_DPI_CHANGED, [this](wxDPIChangedEvent& evt) {
+        evt.Skip();
+        msw_rescale();
+        CallAfter([this] {
+            if (IsShown() && m_owner) FitToAnchor(m_owner->GetSubAmsPanel());
+        });
+    });
 
     wxGetApp().UpdateDarkUIWin(this);
 }
@@ -3672,7 +3688,7 @@ void SubAmsPopup::SetData(MachineObject* obj,
         }
     }
 
-    m_scroll->SetScrollRate(0, FromDIP(10));
+    m_scroll->SetScrollRate(0, SUBAMS_SCROLL_RATE);
     m_scroll->FitInside();
     m_scroll->Layout();
     Layout();
@@ -3735,8 +3751,45 @@ void SubAmsPopup::ClearAllRadioVisuals()
     }
 }
 
-void SubAmsPopup::PopupAt(wxWindow* anchor)
+void SubAmsPopup::msw_rescale()
 {
+    for (auto* fcb : m_fcb_list) {
+        fcb->msw_rescale();
+        fcb->SetChipSize(CALIBRATION_FILAMENT_CHIP_SIZE);
+    }
+
+    /* A sizer border is resolved to pixels in Add(), so it still holds the old-DPI value;
+       re-apply the same macros the constructor used. */
+    size_t row_idx = 0;
+    for (wxSizerItem* row_item : m_list_sizer->GetChildren()) {
+        row_item->SetBorder(SUBAMS_ROW_BOTTOM_GAP);
+
+        wxSizer* row = row_item->GetSizer();
+        if (row && row_idx < m_fcb_list.size()) {
+            if (wxSizerItem* check_item = row->GetItem(m_fcb_list[row_idx]->GetCheckBox()))
+                check_item->SetBorder(SUBAMS_CHECK_GAP);
+        }
+        ++row_idx;
+    }
+    if (wxSizerItem* scroll_item = GetSizer()->GetItem(m_scroll))
+        scroll_item->SetBorder(SUBAMS_SCROLL_PADDING);
+
+    m_scroll->SetScrollRate(0, SUBAMS_SCROLL_RATE);
+    m_scroll->FitInside();
+    m_scroll->Layout();
+
+    if (IsShown() && m_owner)
+        FitToAnchor(m_owner->GetSubAmsPanel());
+    Refresh();
+}
+
+void SubAmsPopup::FitToAnchor(wxWindow* anchor)
+{
+    /* Move first: landing on a monitor with another DPI fires WM_DPICHANGED, which must not
+       override the size computed below. */
+    if (anchor)
+        SetPosition(anchor->ClientToScreen(wxPoint(0, anchor->GetSize().GetHeight())));
+
     /* width strictly matches anchor (subams panel); height auto-fits content, capped. */
     const int max_h = FromDIP(400);
 
@@ -3751,11 +3804,11 @@ void SubAmsPopup::PopupAt(wxWindow* anchor)
     m_scroll->SetMinSize(wxSize(width - FromDIP(12), height - FromDIP(12)));
     SetClientSize(wxSize(width, height));
     Layout();
+}
 
-    if (anchor) {
-        wxPoint pos = anchor->ClientToScreen(wxPoint(0, anchor->GetSize().GetHeight()));
-        SetPosition(pos);
-    }
+void SubAmsPopup::PopupAt(wxWindow* anchor)
+{
+    FitToAnchor(anchor);
 
 #ifdef __WXOSX__
     if (wxTheApp && !m_activate_app_bound) {
