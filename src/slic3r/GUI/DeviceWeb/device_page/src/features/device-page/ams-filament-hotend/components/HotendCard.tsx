@@ -543,8 +543,35 @@ function ToolLabel({
   const secondary = blanked ? '--' : (subtext ?? (isMuted ? '--' : ''));
   return (
     <div className={`hotend-tool-label${isMuted ? ' muted' : ''}`}>
-      <div className="hotend-tool-name">{primary || '\u00A0'}</div>
-      <div className="hotend-tool-sub">{secondary || '\u00A0'}</div>
+      <ToolLabelRow className="hotend-tool-name" text={primary} />
+      <ToolLabelRow className="hotend-tool-sub" text={secondary} />
+    </div>
+  );
+}
+
+// A label row stays on one line and ellipsises, so a flow wider than the card
+// shows up as "TPU ...". Hand the full text to the native tooltip, but only
+// while the row is actually cut off, so a row that fits stays tooltip-free.
+function ToolLabelRow({ className, text }: { className: string; text: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [clipped, setClipped] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    // Sub-pixel layout can leave scrollWidth a hair above clientWidth on a row
+    // that is not truncated at all.
+    const measure = () => setClipped(node.scrollWidth > node.clientWidth + 1);
+    measure();
+    if (typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [text]);
+
+  return (
+    <div ref={ref} className={className} title={clipped ? text : undefined}>
+      {text || '\u00A0'}
     </div>
   );
 }
