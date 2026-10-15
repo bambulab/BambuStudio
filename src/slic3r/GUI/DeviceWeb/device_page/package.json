@@ -13,9 +13,9 @@
     "i18n": "npx i18next-parser --config i18next-parser.config.js"
   },
   "browserslist": [
-    "chrome >= 111",
-    "edge >= 111",
-    "safari >= 16.4"
+    "chrome >= 109",
+    "edge >= 109",
+    "safari >= 13.1"
   ],
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",

@@ -63,8 +63,12 @@ export default defineConfig({
 
   build: {
     // Keep in step with package.json browserslist; unset lets Vite's default drift.
-    target: ['chrome111', 'edge111', 'safari16.4'],
-    cssTarget: ['chrome111', 'edge111', 'safari16.4'],
+    // The floor is the oldest engine the installer can reach, not the newest:
+    // WKWebView is tied to the macOS version and CMAKE_OSX_DEPLOYMENT_TARGET is
+    // 10.15, whose shipping Safari is 13.1. Chromium 109 is the last WebView2 /
+    // Chrome line for Windows 8.1 and earlier.
+    target: ['chrome109', 'edge109', 'safari13.1'],
+    cssTarget: ['chrome109', 'edge109', 'safari13.1'],
     // Debug: emit `assets/index.js.map` so Chrome DevTools can
     // attach to the live WebView2 over CDP and let the developer set
     // source-level breakpoints inside .ts source. This adds ~1MB to dist/
