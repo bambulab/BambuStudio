@@ -585,6 +585,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ExtruderPanelGroup.hpp
     GUI/ExtruderHelpers.cpp
     GUI/ExtruderHelpers.hpp
+    GUI/NozzleSetupTelemetry.cpp
+    GUI/NozzleSetupTelemetry.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
     GUI/RecenterDialog.cpp

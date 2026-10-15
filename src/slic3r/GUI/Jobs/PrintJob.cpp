@@ -787,7 +787,11 @@ void PrintJob::process()
         }
         // wait for printer mqtt ready the same job id
 
-        wxGetApp().plater()->record_slice_preset("print");
+        // process() runs on the worker thread; the record reads UI-owned state.
+        wxGetApp().CallAfter([] {
+            if (Plater *plater = wxGetApp().plater())
+                plater->record_slice_preset("print");
+        });
 
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);

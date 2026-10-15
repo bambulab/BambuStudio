@@ -7,6 +7,7 @@
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/ExtruderPanel.hpp"
+#include "slic3r/GUI/NozzleSetupTelemetry.hpp"
 
 class wxBoxSizer;
 class PopupWindow;
@@ -51,6 +52,8 @@ private:
     std::vector<NozzleCard *> m_cards;
 
     NozzleAmsRow *m_ams_row{nullptr};
+
+    NozzleSetupEditTally m_edit_tally; // edits of this session; reported only when confirmed
 
     Button *m_confirm_btn{nullptr};
     Button *m_cancel_btn{nullptr};

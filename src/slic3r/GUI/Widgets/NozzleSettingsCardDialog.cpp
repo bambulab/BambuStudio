@@ -123,9 +123,12 @@ wxString flow_label(NozzleVolumeType volume)
 class NozzleCard : public wxPanel
 {
 public:
+    // Told after the user picks a new value, with the slot as it was and as it is now.
+    using ChangedFn = std::function<void(const NozzleConfig &from, const NozzleConfig &to)>;
+
     // machine_cfg: what the connected printer reports for this nozzle slot right now, or nullptr when
     // no printer is connected. The synced badge compares the card against this, never against the seed.
-    NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, std::function<void()> on_changed);
+    NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, ChangedFn on_changed);
     ~NozzleCard() override;
 
     // Consulted by apply_pick() before the card changes. Returning false abandons the pick, leaving
@@ -151,7 +154,7 @@ private:
     NozzleConfig                     m_seed;
     std::optional<NozzleConfig>      m_machine_cfg; // connected printer's config for this slot; unset when disconnected
     std::vector<std::string>         m_diameters;
-    std::function<void()>            m_on_changed;
+    ChangedFn                        m_on_changed;
     std::function<bool(const NozzleConfig &)> m_confirm_change;
     NozzleStatus                     m_status{NozzleStatus::nsUnknown};
     std::vector<std::pair<int, int>> m_ams_slots;   // preserved and passed back through GetConfig
@@ -173,7 +176,7 @@ private:
     wxWeakRef<CascadeMenuPopup> m_sub_menu; // the open flow menu, if any
 };
 
-NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, std::function<void()> on_changed)
+NozzleCard::NozzleCard(wxWindow *parent, int number, int extruder_index, const NozzleConfig &seed, const NozzleConfig *machine_cfg, const std::vector<std::string> &diameters, ChangedFn on_changed)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_extruder_index(extruder_index)
     , m_seed(seed)
@@ -277,11 +280,12 @@ void NozzleCard::apply_pick(const wxString &diameter, NozzleVolumeType volume)
     // Ask before the value moves, not when the dialog is confirmed: by then the user has made
     // several picks and would be told, at the end, that some of them displace project filaments --
     // with no way to tell which pick caused what. Declining here just abandons this one pick.
-    if (m_confirm_change && !m_confirm_change(GetConfig())) return;
+    const NozzleConfig from = GetConfig();
+    if (m_confirm_change && !m_confirm_change(from)) return;
     m_diameter = diameter;
     m_volume   = volume;
     refresh_values();
-    if (m_on_changed) m_on_changed();
+    if (m_on_changed) m_on_changed(from, GetConfig());
 }
 
 // Diameters at the first level, each opening the flow types that diameter is made in. The pair is
@@ -619,7 +623,10 @@ void NozzleSettingsCardDialog::build_card_grid(wxBoxSizer *main_sizer, const std
 
     auto *rack = new NozzleRackView(this);
 
-    auto on_changed = [this]() { update_state(); };
+    auto on_changed = [this](const NozzleConfig &from, const NozzleConfig &to) {
+        m_edit_tally.record_nozzle_pick(from, to);
+        update_state();
+    };
     auto diameters  = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
 
     // What the connected printer reports right now; the per-card synced badge compares against this,
@@ -665,6 +672,11 @@ void NozzleSettingsCardDialog::build_button_bar(wxBoxSizer *main_sizer)
     m_cancel_btn->SetBorderColor(cancel_bd);
     m_cancel_btn->SetTextColor(cancel_bd);
     m_cancel_btn->SetId(wxID_CANCEL);
+    // Skip lets wxDialog end the modal with wxID_OK as before.
+    m_confirm_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        m_edit_tally.commit();
+        e.Skip();
+    });
     m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { Close(); });
 
     // AMS edits persist to the live registry the moment they are made, so every dismissal other than
@@ -767,6 +779,7 @@ std::vector<NozzleConfig> NozzleSettingsCardDialog::GetExtruderConfigs(int index
 void NozzleSettingsCardDialog::build_ams_row(wxBoxSizer *main_sizer)
 {
     m_ams_row = new NozzleAmsRow(this, 0, _L("External AMS"), NozzleAmsRow::Style::Band, [this] {
+        m_edit_tally.observe_ams_counts();
         Layout();
         Fit();
     });

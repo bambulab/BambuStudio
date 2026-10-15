@@ -181,6 +181,7 @@
 #include "Widgets/SyncPresetWithPrinterDialog.hpp"
 #include "Widgets/NozzleSettingsListDialog.hpp"
 #include "Widgets/NozzleSettingsCardDialog.hpp"
+#include "NozzleSetupTelemetry.hpp"
 #include "Widgets/NozzleDetailPopup.hpp"
 #include "ExtruderHelpers.hpp"
 
@@ -28238,6 +28239,8 @@ static json build_mixed_filaments_telemetry()
 
 void Plater::record_slice_preset(std::string action)
 {
+    // Reads the UI-owned presets and the queued nozzle edits.
+    assert(wxThread::IsMain());
     // record slice preset
     try
     {
@@ -28270,6 +28273,10 @@ void Plater::record_slice_preset(std::string action)
         }
 
         j["mixed_filaments"] = build_mixed_filaments_telemetry();
+
+        const json nozzle_setup = nozzle_setup_telemetry(*wxGetApp().preset_bundle);
+        if (!nozzle_setup.is_null())
+            j["nozzle_setup"] = nozzle_setup;
 
         Preset& print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
         if (print_preset.is_system) {
@@ -28307,7 +28314,8 @@ void Plater::record_slice_preset(std::string action)
         j["record_event"] = action;
         NetworkAgent* agent = wxGetApp().getAgent();
         if (agent) {
-            agent->track_event("slice_completed", j.dump());
+            if (agent->track_event("slice_completed", j.dump()) == 0)
+                on_nozzle_setup_telemetry_sent(nozzle_setup);
             agent->track_update_property("different_settings_to_system", j["different_settings_to_system"].dump());
         }
     }
