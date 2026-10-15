@@ -8,6 +8,7 @@
 
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "libslic3r/LocalesUtils.hpp"
+#include "libslic3r/Model.hpp"
 
 #include "slic3r/GUI/DeviceManager.hpp"
 
@@ -102,12 +103,22 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentI
     command_jj["print"]["calibration"] = flow_cali_opt;
     command_jj["print"]["extrude_cali_manual_mode"] = pa_value;
 
+    // The printer protocol only addresses physical filaments; keep filament_seq, ams_mapping and
+    // fila_info on the same range so the request stays consistent.
+    auto is_physical_filament_id = [](int fila_id) {
+        return fila_id >= 0 && fila_id < (int)MAX_PHYSICAL_FILAMENT_COUNT;
+    };
+
     // filament seq
     json filament_seq_jj;
     int max_fila_id = 0;
     std::unordered_set<int> filaid_set;
     for (int idx = 0; idx < m_slice_ctx->filament_change_sequence.size(); idx++) {
         int fila_id = m_slice_ctx->filament_change_sequence[idx];
+        if (!is_physical_filament_id(fila_id)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " filament id out of filament_seq range: " << fila_id;
+            continue;
+        }
         if (filaid_set.count(fila_id) == 0) {
             filaid_set.insert(fila_id);
             filament_seq_jj[fila_id + 1] = idx;
@@ -124,8 +135,12 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentI
     command_jj["print"]["filament_seq"] = filament_seq_jj;
 
     // ams mapping
-    std::vector<int> ams_mapping_vec(33, 0xFFFF);/* AP ask to fill them*/
+    std::vector<int> ams_mapping_vec(MAX_PHYSICAL_FILAMENT_COUNT + 1, 0xFFFF);/* AP ask to fill them*/
     for (auto item :  ams_mapping) {
+        if (!is_physical_filament_id(item.id)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " filament id out of ams_mapping range: " << item.id;
+            continue;
+        }
         try {
             int ams_id = stoi(item.ams_id);
             int slot_id = !item.slot_id.empty() ? stoi(item.slot_id) : 0;
@@ -142,6 +157,10 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(const std::vector<FilamentI
     json filament_info_jj;
     for (int fila_id = 0; fila_id < ams_mapping.size(); fila_id++) {
         const auto& fila = ams_mapping[fila_id];
+        if (!is_physical_filament_id(fila.id)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " filament id out of fila_info range: " << fila.id;
+            continue;
+        }
         auto nozzle_iter = m_slice_ctx->nozzles_by_filament.find(fila.id);
         if (nozzle_iter == m_slice_ctx->nozzles_by_filament.end() || nozzle_iter->second.empty()) {
             assert(false && "nozzle_list should not be empty");

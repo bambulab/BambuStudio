@@ -3006,6 +3006,20 @@ std::vector<size_t> PresetBundle::physical_filament_config_indices() const
     return indices;
 }
 
+size_t PresetBundle::physical_filament_count() const
+{
+    return filament_presets.size() - mixed_filament_count();
+}
+
+size_t PresetBundle::mixed_filament_count() const
+{
+    size_t count = 0;
+    for (size_t i = 0; i < filament_presets.size(); ++i)
+        if (is_mixed_filament(i))
+            ++count;
+    return count;
+}
+
 void PresetBundle::get_ams_cobox_infos(AMSComboInfo &combox_info, bool skip_ext)
 {
     combox_info.clear();
@@ -3446,8 +3460,10 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 return -1;
             };
             for (size_t i = 0; i < need_append_colors.size(); i++){
-                // Mixed slots are re-appended after the sync and count towards the limit as well.
-                if (exist_filament_presets.size() + mixed_snapshots.size() >= size_t(EnforcerBlockerType::ExtruderMax)){
+                // Mixed slots are stripped here and re-appended after the sync, so exist_filament_presets holds
+                // physical filaments only; the total still has to leave room for the mixed ones.
+                if (exist_filament_presets.size() >= MAX_PHYSICAL_FILAMENT_COUNT ||
+                    exist_filament_presets.size() + mixed_snapshots.size() >= MAX_FILAMENT_COUNT) {
                     break;
                 }
                 auto idx = get_idx_in_array(exist_filament_presets, exist_colors, need_append_colors[i].filament_preset, need_append_colors[i].filament_color);

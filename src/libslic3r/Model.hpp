@@ -713,13 +713,20 @@ private:
     unsigned int update_instances_print_volume_state(const BuildVolume &build_volume);
 };
 
+// Physical filaments come first in the project filament list, mixed (virtual) filaments are appended after them,
+// so a 1-based filament id can reach MAX_FILAMENT_COUNT while physical ids never exceed MAX_PHYSICAL_FILAMENT_COUNT.
+constexpr size_t MAX_PHYSICAL_FILAMENT_COUNT = 32;
+constexpr size_t MAX_MIXED_FILAMENT_COUNT    = 64;
+constexpr size_t MAX_FILAMENT_COUNT          = MAX_PHYSICAL_FILAMENT_COUNT + MAX_MIXED_FILAMENT_COUNT;
+
 enum class EnforcerBlockerType : int8_t {
     // Maximum is 3. The value is serialized in TriangleSelector into 2 bits.
     NONE      = 0,
     ENFORCER  = 1,
     BLOCKER   = 2,
     FUZZY_SKIN = ENFORCER,
-    // Maximum is 15. The value is serialized in TriangleSelector into 6 bits using a 2 bit prefix code.
+    // Filament states are 1-based filament ids. TriangleSelector serializes states >= 3 as a prefix nibble followed by
+    // variable-length nibbles, so the limit is set by ExtruderMax and the int8_t storage, not by the bitstream.
     Extruder1 = ENFORCER,
     Extruder2 = BLOCKER,
     Extruder3,
@@ -752,8 +759,11 @@ enum class EnforcerBlockerType : int8_t {
     Extruder30,
     Extruder31,
     Extruder32,
-    ExtruderMax = Extruder32
+    // Mixed filament ids extend past Extruder32 without dedicated enumerators.
+    ExtruderMax = int8_t(MAX_FILAMENT_COUNT)
 };
+static_assert(size_t(EnforcerBlockerType::ExtruderMax) == MAX_FILAMENT_COUNT, "ExtruderMax must cover every filament id");
+static_assert(MAX_FILAMENT_COUNT <= 127, "Filament ids are stored in the int8_t EnforcerBlockerType");
 
 enum class ConversionType : int {
     CONV_TO_INCH,

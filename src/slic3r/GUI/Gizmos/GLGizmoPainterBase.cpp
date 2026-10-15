@@ -1511,10 +1511,22 @@ void TriangleSelectorPatch::update_triangles_per_type()
 {
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", enter");
     m_triangle_patches.resize((int)EnforcerBlockerType::ExtruderMax + 1);
+    // Reserve per state from an exact count: a flat per-patch guess multiplied by every possible
+    // filament state wastes memory on large meshes.
+    std::vector<size_t> triangles_per_state(m_triangle_patches.size(), 0);
+    for (const auto& triangle : m_triangles) {
+        if (!triangle.valid() || triangle.is_split())
+            continue;
+        int state = (int)triangle.get_state();
+        if (state < 0 || state >= int(m_triangle_patches.size()))
+            state = 0;
+        ++triangles_per_state[state];
+    }
     for (int i = 0; i < m_triangle_patches.size(); i++) {
         auto& patch = m_triangle_patches[i];
         patch.type = (EnforcerBlockerType)i;
-        patch.triangle_indices.reserve(m_triangles.size() / 3);
+        patch.triangle_indices.reserve(triangles_per_state[i] * 3);
+        patch.patch_vertices.reserve(triangles_per_state[i] * 3 * 6);
     }
 
     for (auto& triangle : m_triangles) {

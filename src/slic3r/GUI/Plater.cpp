@@ -6630,11 +6630,9 @@ void Sidebar::on_filaments_delete(size_t filament_id)
 }
 
 void Sidebar::add_filament() {
-    // BBS: limit filament choices to ExtruderMax
-    // Counted over the whole filament list, not just the physical rows: mixed filaments occupy slots
-    // from the same pool, so counting only the physical ones let the list grow past the limit once
-    // any mixed filament existed (and left this button live while the mixed one had already gone dead).
-    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
+    // Physical and mixed filaments have separate caps; combos_filament holds the physical rows only.
+    if (p->combos_filament.size() >= MAX_PHYSICAL_FILAMENT_COUNT) return;
+    if (wxGetApp().preset_bundle->filament_presets.size() >= MAX_FILAMENT_COUNT) return;
     wxColour    new_col        = Plater::get_next_color_for_filament();
     add_custom_filament(new_col);
     // Reveal the just-added filament: it is appended at the end of the physical
@@ -6869,14 +6867,13 @@ size_t Sidebar::add_custom_filaments(const std::vector<std::pair<wxColour, std::
     if (items.empty() || is_new_project_in_gcode3mf())
         return size_t(-1);
 
-    const size_t max_n = size_t(EnforcerBlockerType::ExtruderMax);
-    if (p->combos_filament.size() >= max_n)
+    if (p->combos_filament.size() >= MAX_PHYSICAL_FILAMENT_COUNT)
         return size_t(-1);
-    if (wxGetApp().preset_bundle->filament_presets.size() >= max_n)
+    if (wxGetApp().preset_bundle->filament_presets.size() >= MAX_FILAMENT_COUNT)
         return size_t(-1);
     const size_t total = wxGetApp().preset_bundle->filament_presets.size();
     const size_t insert_pos = p->combos_filament.size();
-    const size_t k = std::min({ items.size(), max_n - total, max_n - insert_pos });
+    const size_t k = std::min({ items.size(), MAX_FILAMENT_COUNT - total, MAX_PHYSICAL_FILAMENT_COUNT - insert_pos });
     if (k == 0)
         return size_t(-1);
 
@@ -8139,7 +8136,7 @@ static wxString mixed_slot_break_tooltip(unsigned reasons)
 // set on one never appears -- exactly when the user most needs to be told why the button does
 // nothing. The bitmap is greyed to read as disabled while the button stays live enough to show the
 // tooltip; add_filament()/add_mixed_filament() both return early at the limit, so it is inert anyway.
-static void update_add_filament_button_limit(ScalableButton *button, bool at_limit, const wxString &normal_tooltip)
+static void update_add_filament_button_limit(ScalableButton *button, bool at_limit, const wxString &normal_tooltip, const wxString &limit_tooltip)
 {
     if (button == nullptr)
         return;
@@ -8148,9 +8145,7 @@ static void update_add_filament_button_limit(ScalableButton *button, bool at_lim
     // copy is the same glyph drawn in the dimmed grey the panel's own labels use.
     button->SetBitmap_(ScalableBitmap(button->GetParent(),
                                       at_limit ? "add_filament_disabled" : "add_filament", 16));
-    button->SetToolTip(at_limit ? wxString::Format(_L("Up to %d filaments can be created"),
-                                                   int(EnforcerBlockerType::ExtruderMax))
-                                : normal_tooltip);
+    button->SetToolTip(at_limit ? limit_tooltip : normal_tooltip);
 }
 
 void Sidebar::update_mixed_filament_list(bool reload_3d)
@@ -8189,15 +8184,18 @@ void Sidebar::update_mixed_filament_list(bool reload_3d)
         broken_slots.push_back(entry.first);
     }
 
-    bool at_limit = (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax));
-    p->m_btn_add_mixed_filament->Show(can_mix && !has_mixed && !at_limit);
+    const size_t total_filaments = wxGetApp().preset_bundle->filament_presets.size();
+    const bool   total_at_limit  = total_filaments >= MAX_FILAMENT_COUNT;
+    const bool   phys_at_limit   = num_physical >= MAX_PHYSICAL_FILAMENT_COUNT || total_at_limit;
+    const bool   mixed_at_limit  = mixed_indices.size() >= MAX_MIXED_FILAMENT_COUNT || total_at_limit;
+    p->m_btn_add_mixed_filament->Show(can_mix && !has_mixed && !mixed_at_limit);
     p->m_panel_mixed_title->Show(has_mixed);
     p->m_mixed_scroll_area->Show(has_mixed);
     p->m_panel_mixed_content->Show(has_mixed);
-    // Both lists draw from one pool of ExtruderMax slots, so the physical list's "+" has to go dead
-    // at the same point the mixed one does -- it was left live because nothing refreshed it here.
-    update_add_filament_button_limit(p->m_btn_mixed_add, at_limit, _L("Add mixed filament"));
-    update_add_filament_button_limit(p->m_bpButton_add_filament, at_limit, _L("Add one filament"));
+    update_add_filament_button_limit(p->m_btn_mixed_add, mixed_at_limit, _L("Add mixed filament"),
+                                     wxString::Format(_L("Up to %d mixed filaments can be created"), int(MAX_MIXED_FILAMENT_COUNT)));
+    update_add_filament_button_limit(p->m_bpButton_add_filament, phys_at_limit, _L("Add one filament"),
+                                     wxString::Format(_L("Up to %d filaments can be created"), int(MAX_PHYSICAL_FILAMENT_COUNT)));
     p->m_panel_mixed_warning->Show(false);
 
     if (has_mixed) {
@@ -9286,9 +9284,9 @@ static std::vector<int> create_mixed_filaments_from_results(
     if (num_physical < 2)
         return created;
 
-    const size_t max_n = size_t(EnforcerBlockerType::ExtruderMax);
-    const size_t total = wxGetApp().preset_bundle->filament_presets.size();
-    if (total >= max_n)
+    const size_t total     = wxGetApp().preset_bundle->filament_presets.size();
+    const size_t num_mixed = wxGetApp().preset_bundle->mixed_filament_count();
+    if (total >= MAX_FILAMENT_COUNT || num_mixed >= MAX_MIXED_FILAMENT_COUNT)
         return created;
 
     std::vector<size_t> valid_input_indices;
@@ -9297,7 +9295,7 @@ static std::vector<int> create_mixed_filaments_from_results(
         if (results[i].components.size() >= 2 && results[i].ratios.size() >= 2)
             valid_input_indices.push_back(i);
     }
-    const size_t m = std::min(valid_input_indices.size(), max_n - total);
+    const size_t m = std::min({ valid_input_indices.size(), MAX_MIXED_FILAMENT_COUNT - num_mixed, MAX_FILAMENT_COUNT - total });
     if (m == 0)
         return created;
 
@@ -9399,7 +9397,8 @@ void Sidebar::add_mixed_filament()
 
     size_t num_physical = p->combos_filament.size();
     if (num_physical < 2) return;
-    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
+    if (wxGetApp().preset_bundle->mixed_filament_count() >= MAX_MIXED_FILAMENT_COUNT) return;
+    if (wxGetApp().preset_bundle->filament_presets.size() >= MAX_FILAMENT_COUNT) return;
 
     // Re-read on demand: the color matching tab can add the official mixing kit while open.
     auto load_physical = [this]() {
@@ -11861,7 +11860,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         int size = extruderIds.size() == 0 ? 0 : *(extruderIds.rbegin());
 
                         int filament_size = sidebar->combos_filament().size();
-                        while (filament_size < (int)EnforcerBlockerType::ExtruderMax && filament_size < size) {
+                        while (filament_size < (int)MAX_PHYSICAL_FILAMENT_COUNT && filament_size < size) {
                             int         filament_count = filament_size + 1;
                             wxColour    new_col        = Plater::get_next_color_for_filament();
                             std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();

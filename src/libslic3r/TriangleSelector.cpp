@@ -1780,27 +1780,32 @@ indexed_triangle_set TriangleSelector::get_facets(EnforcerBlockerType state) con
 // BBS
 void TriangleSelector::get_facets(std::vector<indexed_triangle_set>& facets_per_type) const
 {
+    const size_t num_types = size_t(EnforcerBlockerType::ExtruderMax) + 1;
     facets_per_type.clear();
+    facets_per_type.resize(num_types);
 
-    for (int type = (int)EnforcerBlockerType::NONE; type <= (int)EnforcerBlockerType::ExtruderMax; type++) {
-        facets_per_type.emplace_back();
-        indexed_triangle_set& its = facets_per_type.back();
-        std::vector<int> vertex_map(m_vertices.size(), -1);
-
-        for (const Triangle& tr : m_triangles) {
-            if (tr.valid() && !tr.is_split() && tr.get_state() == (EnforcerBlockerType)type) {
-                stl_triangle_vertex_indices indices;
-                for (int i = 0; i < 3; ++i) {
-                    int j = tr.verts_idxs[i];
-                    if (vertex_map[j] == -1) {
-                        vertex_map[j] = int(its.vertices.size());
-                        its.vertices.emplace_back(m_vertices[j].v);
-                    }
-                    indices[i] = vertex_map[j];
-                }
-                its.indices.emplace_back(indices);
+    // Single pass over the triangles; a vertex map is only allocated for states that actually occur.
+    std::vector<std::vector<int>> vertex_maps(num_types);
+    for (const Triangle& tr : m_triangles) {
+        if (!tr.valid() || tr.is_split())
+            continue;
+        const int type = int(tr.get_state());
+        if (type < 0 || type >= int(num_types))
+            continue;
+        std::vector<int>&     vertex_map = vertex_maps[type];
+        indexed_triangle_set& its        = facets_per_type[type];
+        if (vertex_map.empty())
+            vertex_map.assign(m_vertices.size(), -1);
+        stl_triangle_vertex_indices indices;
+        for (int i = 0; i < 3; ++i) {
+            int j = tr.verts_idxs[i];
+            if (vertex_map[j] == -1) {
+                vertex_map[j] = int(its.vertices.size());
+                its.vertices.emplace_back(m_vertices[j].v);
             }
+            indices[i] = vertex_map[j];
         }
+        its.indices.emplace_back(indices);
     }
 }
 

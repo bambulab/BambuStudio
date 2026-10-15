@@ -1652,15 +1652,21 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
             }
 
             const int preset_count = (int) wxGetApp().preset_bundle->filament_presets.size();
+            // The printer rejects mapping arrays longer than the physical limit. Mixed filaments sit after the
+            // physical ones and never carry a mapping, so dropping the tail loses nothing.
+            const int mapping_count = std::min(preset_count, (int) MAX_PHYSICAL_FILAMENT_COUNT);
             for (const FilamentInfo &item : m_ams_mapping_result) {
                 if (item.id < 0 || item.id >= preset_count) {
                     BOOST_LOG_TRIVIAL(error) << "mapping entry id=" << item.id
                                              << " is outside the project filament range [0," << preset_count
                                              << "), that slot will ship as tray -1 with ams/slot 255/255";
+                } else if (item.id >= mapping_count) {
+                    BOOST_LOG_TRIVIAL(error) << "get_ams_mapping_result: mapping entry id=" << item.id
+                                             << " is beyond the truncated mapping length " << mapping_count << ", dropped";
                 }
             }
 
-            for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
+            for (int i = 0; i < mapping_count; i++) {
                 int  tray_id = -1;
                 json mapping_item_v1;
                 mapping_item_v1["ams_id"]  = 0xff;
@@ -1711,7 +1717,8 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
             json mapping_v0_json   = json::array();
             json mapping_v1_json   = json::array();
 
-            for (int  i = 0; i < m_filaments_map.size(); i++) {
+            const int mapping_count = std::min((int) m_filaments_map.size(), (int) MAX_PHYSICAL_FILAMENT_COUNT);
+            for (int  i = 0; i < mapping_count; i++) {
                 int mapping_result = -1;
                 json mapping_item_v1;
                 mapping_item_v1["ams_id"]  = 0xff;
@@ -3676,7 +3683,11 @@ void SelectMachineDialog::on_send_print()
     m_print_job->task_ams_mapping_info = ams_mapping_info;
     if ((use_dynamic_nozzle_map() || queue_needs_nozzle_mapping) &&
         !obj_->get_nozzle_mapping_result()->GetNozzleMappingJson().empty()) {
-        m_print_job->task_nozzle_mapping = obj_->get_nozzle_mapping_result()->GetNozzleMappingJson().dump();
+        nlohmann::json nozzle_mapping = obj_->get_nozzle_mapping_result()->GetNozzleMappingJson();
+        // Same physical-length cap as the ams mapping arrays.
+        if (nozzle_mapping.is_array() && nozzle_mapping.size() > MAX_PHYSICAL_FILAMENT_COUNT)
+            nozzle_mapping.erase(nozzle_mapping.begin() + MAX_PHYSICAL_FILAMENT_COUNT, nozzle_mapping.end());
+        m_print_job->task_nozzle_mapping = nozzle_mapping.dump();
     }
 
     /* build nozzles info for multi extruders printers */
@@ -4755,7 +4766,8 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     }
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         const int    max_color = obj_->get_max_filament_color_count();
-        const size_t fila_cnt  = wxGetApp().preset_bundle->filament_presets.size();
+        // Mixed filaments resolve to physical ones before G-code, so only physical filaments count here.
+        const size_t fila_cnt  = wxGetApp().preset_bundle->physical_filament_count();
         if (max_color > 0 && fila_cnt > (size_t) max_color) {
             show_status(PrintDialogStatus::PrintStatusColorQuantityExceed, {wxString::Format("%d", max_color)});
             return;

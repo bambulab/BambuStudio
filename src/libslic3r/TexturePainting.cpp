@@ -542,7 +542,7 @@ bool standard_3mf_colors_to_painting(
         vertex_source_ids[i] = inserted.first->second;
     }
 
-    const std::size_t max_cluster = static_cast<std::size_t>(EnforcerBlockerType::ExtruderMax);
+    const std::size_t max_cluster = MAX_PHYSICAL_FILAMENT_COUNT;
     const std::size_t target = settings.target_colors_num == 0
         ? std::min(unique_colors.size(), max_cluster)
         : std::min(settings.target_colors_num, max_cluster);

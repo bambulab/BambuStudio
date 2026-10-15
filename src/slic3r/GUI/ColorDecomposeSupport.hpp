@@ -96,8 +96,8 @@ int find_existing_decompose_component(
 // Official PLA Palette CMYKW mixing kit, one entry per base (white / cyan / magenta / yellow / black).
 std::vector<DecomposeOfficialComponent> pla_palette_cmykw_official_components();
 
-// Appends the kit filaments the project is missing as physical slots, keeping reserve_slots
-// free below the filament limit. Warns the user when not every missing filament fits. Returns
+// Appends the kit filaments the project is missing as physical slots, up to the physical filament
+// limit and keeping reserve_slots free below the total filament limit. Warns the user when not every missing filament fits. Returns
 // false, after telling the user, when the active printer has no compatible PLA Palette preset
 // or none of the missing filaments could be added.
 bool add_official_mixing_kit_to_project(wxWindow* parent, size_t reserve_slots = 0);

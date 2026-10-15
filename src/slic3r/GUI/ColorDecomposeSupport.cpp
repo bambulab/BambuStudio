@@ -366,14 +366,15 @@ bool add_official_mixing_kit_to_project(wxWindow* parent, size_t reserve_slots)
 
     std::vector<std::pair<wxColour, std::string>> to_add;
     std::vector<DecomposeOfficialComponent> officials;
-    const size_t max_count = static_cast<size_t>(EnforcerBlockerType::ExtruderMax);
+    const size_t max_count = MAX_PHYSICAL_FILAMENT_COUNT;
     const size_t current_count = pb.filament_presets.size();
     size_t missing_count = 0;
     for (const DecomposeOfficialComponent& official : pla_palette_cmykw_official_components()) {
         if (find_existing_decompose_component(official, physical_colors, physical_indices) >= 0)
             continue;
         ++missing_count;
-        if (current_count + to_add.size() + reserve_slots >= max_count)
+        if (physical_indices.size() + to_add.size() >= max_count ||
+            current_count + to_add.size() + reserve_slots >= MAX_FILAMENT_COUNT)
             continue;
         wxColour col(official.color_hex);
         if (!col.IsOk())

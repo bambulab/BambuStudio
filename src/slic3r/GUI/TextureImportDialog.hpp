@@ -368,7 +368,9 @@ private:
                                     const std::vector<int>& component_dialog_indices,
                                     const std::vector<int>& ratios);
     bool remove_virtual_filament(int dialog_index);
-    size_t max_filament_count() const;
+    size_t max_physical_filament_count() const;
+    size_t physical_filament_entry_count() const;
+    size_t mixed_filament_entry_count() const;
     int    max_color_count() const;
     void   update_color_count_controls();
     void   set_color_count_exceeded(bool exceeded);
@@ -382,7 +384,7 @@ private:
     // True when at least one mapping row / match has no filament assigned.
     bool has_unmatched_mapping() const;
     // Bind every unmatched color without changing matched rows or exceeding
-    // max_filament_count(). Larger colors get the free slots first: a NewPhysical
+    // the physical / mixed filament limits. Larger colors get the free slots first: a NewPhysical
     // slot of the auto-match family, or with Color Mixing on a mixed recipe before
     // that. Colors left without a slot take closest_filament_ignoring_threshold().
     void complete_unmatched_filaments();
@@ -395,7 +397,8 @@ private:
     // Indices into m_current_matches with no filament, larger color area first.
     std::vector<size_t> unmatched_match_indices_by_area() const;
     // Drops created filaments no color references, then returns the free slots.
-    size_t remaining_filament_capacity();
+    size_t remaining_physical_filament_capacity();
+    size_t remaining_mixed_filament_capacity();
     // Closest filament of family_type by CIEDE2000, ignoring m_match_delta_threshold.
     // Mixed slots are candidates only while Color Mixing is on. Falls back to any
     // family when none matches.

@@ -280,6 +280,8 @@ public:
 
     bool is_mixed_filament(size_t idx) const;
     std::vector<size_t> physical_filament_config_indices() const;
+    size_t physical_filament_count() const;
+    size_t mixed_filament_count() const;
 
     void         get_ams_cobox_infos(AMSComboInfo &combox_info,bool skip_ext = false);
     unsigned int sync_ams_list(std::vector<std::pair<DynamicPrintConfig *, std::string>> &unknowns,
