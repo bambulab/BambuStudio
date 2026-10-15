@@ -879,6 +879,9 @@ public:
     DoorOpenCheckState get_door_open_check_state() const { return xcam_door_open_check;};
     void               command_set_door_open_check(DoorOpenCheckState state);
 
+    /* door hall sensor state, parsed from print.stat[23-26] */
+    bool               is_front_door_open() const { return m_front_door_open; };
+
     /* xcam save remove print file to local*/
     bool get_save_remote_print_file_to_storage() const { return xcam__save_remote_print_file_to_storage; };
     void command_set_save_remote_print_file_to_storage(bool save);
@@ -890,6 +893,9 @@ private:
     bool is_support_door_open_check_slow_down = false;
     DoorOpenCheckState xcam_door_open_check  = DoorOpenCheckState::DOOR_OPEN_CHECK_DISABLE;
     time_t xcam_door_open_check_start_time   = 0;
+
+    /* door hall sensor state */
+    bool m_front_door_open = false;
 
     /* xcam save remove print file to local*/
     bool xcam__save_remote_print_file_to_storage      = false;

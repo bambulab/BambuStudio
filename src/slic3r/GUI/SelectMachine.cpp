@@ -4888,9 +4888,13 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
             }
 
             if (obj_->GetConfig()->HasChamber()) {
-                const auto& msg = wxString::Format(_L("[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."), filament_strs);
-                show_status(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor, { msg });
-                if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor)) { return; }
+                // Hotend-rack machines report the front door hall state, only remind when the door is open
+                const bool skip_close_door_warning = warn_soften_on_unknown_only && !obj_->is_front_door_open();
+                if (!skip_close_door_warning) {
+                    const auto& msg = wxString::Format(_L("[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."), filament_strs);
+                    show_status(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor, { msg });
+                    if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor)) { return; }
+                }
             } else {
                 const auto& msg = wxString::Format(_L("[ %s ] requires printing in a high-temperature environment."), filament_strs);
                 show_status(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTemp, { msg });

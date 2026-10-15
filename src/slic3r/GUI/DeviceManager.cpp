@@ -4796,6 +4796,8 @@ void MachineObject::parse_new_info(json print)
 
     if (!stat.empty()) {
         camera_recording = get_flag_bits(stat, 7);
+        // stat[23-26]: door hall state, bit0 front door, bit1 top cover, bit2 left door, bit3 right door
+        m_front_door_open = (get_flag_bits(stat, 23) == 1);
         m_lamp->SetLampCloseRecheck((get_flag_bits(stat, 36) == 1));
 
         if (get_flag_bits(stat, 30) == 0) {
