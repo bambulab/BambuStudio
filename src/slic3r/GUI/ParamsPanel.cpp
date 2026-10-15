@@ -722,6 +722,7 @@ void ParamsPanel::toggle_content_collapsed()
 {
     m_content_collapsed = !m_content_collapsed;
     m_process_icon->SetToolTip(m_content_collapsed ? _L("Expand panel") : _L("Collapse panel"));
+    m_process_icon->SetBitmap_(m_content_collapsed ? "sidebar_menu_down" : "sidebar_menu_up");
     Show(m_has_content && !m_content_collapsed);
     // The object list lives in the sidebar but belongs to the process section, so it folds too.
     wxGetApp().sidebar().show_object_list(m_mode_region->GetValue() && !m_content_collapsed);

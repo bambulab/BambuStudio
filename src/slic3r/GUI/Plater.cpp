@@ -3763,9 +3763,11 @@ Sidebar::Sidebar(Plater *parent)
             if (p->m_panel_printer_content->GetMaxHeight() == 0) {
                 p->m_panel_printer_content->SetMaxSize({-1, -1});
                 p->m_printer_icon->SetToolTip(_L("Collapse panel"));
+                p->m_printer_icon->SetBitmap_("sidebar_menu_up");
             } else {
                 p->m_panel_printer_content->SetMaxSize({-1, 0});
                 p->m_printer_icon->SetToolTip(_L("Expand panel"));
+                p->m_printer_icon->SetBitmap_("sidebar_menu_down");
             }
             m_scrolled_sizer->Layout();
         };
@@ -4279,11 +4281,13 @@ Sidebar::Sidebar(Plater *parent)
             p->m_filament_area_wrapper->Show();
             p->m_panel_filament_subtitle->Show();
             p->m_filament_icon->SetToolTip(_L("Collapse panel"));
+            p->m_filament_icon->SetBitmap_("sidebar_menu_up");
             recalc_filament_scroll_sizes();
         } else {
             p->m_filament_area_wrapper->Hide();
             p->m_panel_filament_subtitle->Hide();
             p->m_filament_icon->SetToolTip(_L("Expand panel"));
+            p->m_filament_icon->SetBitmap_("sidebar_menu_down");
         }
         m_scrolled_sizer->Layout();
     };
@@ -7361,6 +7365,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     // Expand filament list
     p->m_filament_area_wrapper->Show();
     p->m_filament_icon->SetToolTip(_L("Collapse panel"));
+    p->m_filament_icon->SetBitmap_("sidebar_menu_up");
     recalc_filament_scroll_sizes();
     // BBS:Synchronized consumables information
     // auto calculation of flushing volumes
