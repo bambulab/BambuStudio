@@ -8885,7 +8885,15 @@ void Sidebar::update_incompatible_nozzle_notifications()
     if (missing_text != p->m_notified_nozzle_missing_text || missing_dismissed) {
         if (notify) {
             if (!missing_text.empty())
-                notify->push_error_border_notification(NotificationType::BBLFilamentNozzleNotInstalled, missing_text);
+                // This card is the one a nozzle change actually resolves -- the filament is fine, the
+                // rack just has nothing of that kind on it -- so it carries the link to where nozzles
+                // are added. Deferred like every other dialog opened from a notification: the card is
+                // torn down as the callback returns, and a modal opened inline goes down with it.
+                notify->push_error_border_notification(NotificationType::BBLFilamentNozzleNotInstalled,
+                    missing_text, _u8L("Add the nozzle"), [](wxEvtHandler *) {
+                        wxGetApp().CallAfter([]() { wxGetApp().sidebar().open_extruder_settings_dialog(); });
+                        return false;
+                    });
             else
                 notify->close_notification_of_type(NotificationType::BBLFilamentNozzleNotInstalled);
         }
@@ -16363,7 +16371,11 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
             const auto *tray_nd = selected_tray->option<ConfigOptionFloats>("tray_nozzle_diameter");
             if (tray_nd && !tray_nd->values.empty()) {
                 const std::string tray_diameter_str = format_diameter_to_str(tray_nd->values.front());
-                wxGetApp().preset_bundle->set_filament_nozzle_diameter((size_t) idx, tray_diameter_str);
+                // The user picked this tray from the list, so the nozzle it names is carried over even
+                // when the rack no longer has one: the slot shows what was picked and flags itself,
+                // rather than staying on its previous nozzle with no sign the pick was dropped.
+                wxGetApp().preset_bundle->set_filament_nozzle_diameter((size_t) idx, tray_diameter_str,
+                                                                       nullptr, /*diameter_picked_by_user*/ true);
             }
             const auto *tray_vt = selected_tray->option<ConfigOptionInts>("tray_nozzle_volume_type");
             if (tray_vt && !tray_vt->values.empty()) {

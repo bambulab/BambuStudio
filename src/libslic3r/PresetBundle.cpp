@@ -4309,10 +4309,16 @@ static bool set_filament_nozzle_diameter(
 }
 
 bool PresetBundle::set_filament_nozzle_diameter(size_t filament_index, const std::string &diameter,
-                                                std::string *selected_preset_name)
+                                                std::string *selected_preset_name,
+                                                bool diameter_picked_by_user)
 {
     const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
-    const auto configured = collect_configured_nozzle_diameters(*this);
+    auto       configured = collect_configured_nozzle_diameters(*this);
+    // Admitting the requested diameter to the configured set only widens what the options below may
+    // intersect with; the filament still has to have a preset for it, so an outright unsupported
+    // diameter is refused exactly as before.
+    if (diameter_picked_by_user && !diameter.empty())
+        configured.insert(format_diameter_to_str(string_to_double_decimal_point(diameter.c_str())));
     const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
         *this, filament_index, printer_name_to_diameter, configured);
     const bool updated = ::Slic3r::set_filament_nozzle_diameter(

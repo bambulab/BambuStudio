@@ -368,8 +368,14 @@ public:
     // says what the model could take and must not be used to offer flow types on its own.
     std::set<std::pair<std::string, NozzleVolumeType>> get_installed_nozzle_variants() const;
     // Updates the selected diameter and switches to a matching system preset when the current preset cannot serve it.
+    // `diameter_picked_by_user` keeps a diameter the machine does not currently carry: the request then
+    // only has to be one the filament has a preset for. Picking a tray by hand is such a case -- the
+    // tray reports the nozzle it was loaded on, which may since have been retyped in the nozzle
+    // settings -- and refusing it leaves the slot silently on its old nozzle, as if the pick had not
+    // happened. The slot is flagged afterwards instead, which is what tells the user to add that nozzle.
     bool                        set_filament_nozzle_diameter(size_t filament_index, const std::string &diameter,
-                                                           std::string *selected_preset_name = nullptr);
+                                                           std::string *selected_preset_name = nullptr,
+                                                           bool diameter_picked_by_user = false);
     // Nozzle diameter the machine reports for the tray this slot's filament came from, or an empty
     // string when no tray matches. Matched on filament_id + colour, the same pair the sync badge
     // uses to decide whether a slot still corresponds to a tray.

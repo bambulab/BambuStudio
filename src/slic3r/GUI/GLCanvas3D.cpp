@@ -4269,8 +4269,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool tpu_valid = cur_plate->check_tpu_printable_status(full_config_temp, wxGetApp().preset_bundle->get_used_tpu_filaments(cur_plate->get_extruders(true)));
             _set_warning_notification(EWarning::TPUPrintableError, !tpu_valid);
 
+            // Still computed: it suppresses the generic printable-filament error below, which would
+             // otherwise report the same rack in less useful terms. The notification it used to raise
+             // is gone -- the flagged-slot card for "no nozzle of that kind in the nozzle settings"
+             // says the same thing, names the slots it affects, and links to the same dialog.
             bool tpu285_missing = cur_plate->check_missing_tpu285_nozzle(full_config_temp);
-            _set_warning_notification(EWarning::MissingTPU285Nozzle, tpu285_missing);
 
             bool filament_printable = cur_plate->check_filament_printable(full_config_temp, filament_printable_error_msg);
             _set_warning_notification(EWarning::FilamentPrintableError, !filament_printable && !tpu285_missing);
@@ -4317,7 +4320,6 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             //_set_warning_notification(EWarning::SlaSupportsOutside, false);
            _set_warning_notification(EWarning::TPUPrintableError, false);
            _set_warning_notification(EWarning::FilamentPrintableError, false);
-           _set_warning_notification(EWarning::MissingTPU285Nozzle, false);
            _set_warning_notification(EWarning::MixUsePLAAndPETG, false);
            _set_warning_notification(EWarning::BrittleFilament, false);
            _set_warning_notification(EWarning::MultiFilaNoWipeTower, false);
@@ -13967,11 +13969,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         error = ErrorType::SLICING_ERROR;
         break;
     }
-    case EWarning::MissingTPU285Nozzle: {
-        text  = _u8L("The printer preset is missing a TPU285 nozzle.");
-        error = ErrorType::SLICING_ERROR;
-        break;
-    }
     case EWarning::PrintedWeightOverLimitWarn: {
         text  = _u8L("The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects.");
         error = ErrorType::PLATER_WARNING;
@@ -14314,17 +14311,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             else
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLFilamentPrintableError, NotificationLevel::ErrorNotificationLevel);
-        }
-        else if (warning == EWarning::MissingTPU285Nozzle) {
-            if (state) {
-                auto callback = [](wxEvtHandler *) {
-                    wxGetApp().CallAfter([]() { wxGetApp().sidebar().open_extruder_settings_dialog(); });
-                    return false;
-                };
-                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLMissingTPU285Nozzle, NotificationLevel::ErrorNotificationLevel, text,
-                                                                               _u8L("Click to add a TPU285 nozzle"), callback);
-            } else
-                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLMissingTPU285Nozzle, NotificationLevel::ErrorNotificationLevel);
         }
         else if (warning == EWarning::FlushingVolumeZero) {
             if (state) {
