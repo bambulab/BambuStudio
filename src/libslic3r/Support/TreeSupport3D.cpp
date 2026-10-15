@@ -5280,7 +5280,9 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         merge_support_layers_multi_diameter(print_object, support_params, print_object.slicing_parameters(), raft_layers,
             bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
             planned_filaments, planned_interface_filaments, planned_base_heights, planned_interface_heights,
-            &per_layer_area_print_z, &cooldown_areas, nullptr);
+            &per_layer_area_print_z, &cooldown_areas, nullptr,
+            // The tips were placed with the tree's own gap, which follows the nozzles in multi-diameter mode.
+            double(config.z_distance_top_layers) * unscaled<double>(config.layer_height));
 
         SupportGeneratorLayersPtr layers_sorted = generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
@@ -5610,6 +5612,47 @@ static PreparedSplitCap prepare_split_cap(
     out.layer_begin = std::max(out.layer_begin, LayerIndex(0));
     out.layer_end   = std::min(out.layer_end, num_layers);
     return out;
+}
+
+// BBS multi-diameter: per support layer, the merged bands starting within the top gap above it, kept at the
+// XY gap the collision would apply to them. The collision only knows the lslices, so a branch growing next to
+// such a band may end up under it and leave base slivers the roof does not cover. Only the finished areas are
+// clipped: feeding the bands into the collision would also grow the avoidance and drop branches that have to
+// pass close to them.
+static std::vector<Polygons> merged_band_keep_out(const PrintObject &print_object, const TreeSupportSettings &config, size_t num_support_layers)
+{
+    const size_t          num_raft_layers = config.raft_layers.size();
+    std::vector<Polygons> band_keep_out(num_support_layers);
+    std::vector<Polygons> band_footprint(print_object.layer_count());
+    bool                  has_band = false;
+    for (size_t obj_layer_idx = 0; obj_layer_idx < band_footprint.size(); ++ obj_layer_idx) {
+        if (Polygons band = merged_band_footprint(*print_object.get_layer(int(obj_layer_idx)), obj_layer_idx); ! band.empty()) {
+            band_footprint[obj_layer_idx] = union_(band);
+            has_band = true;
+        }
+    }
+    if (has_band && num_support_layers > num_raft_layers) {
+        // Same XY gap as TreeModelVolumes::calculateCollision(): the full gap on the layer itself, fading out
+        // over the layers of the top gap above it, down to the bare footprint.
+        const size_t         z_distance_top_layers = config.z_distance_top_layers;
+        std::vector<coord_t> xy_gap(z_distance_top_layers + 1, config.xy_min_distance);
+        for (size_t dz = 1; dz <= z_distance_top_layers; ++ dz)
+            xy_gap[dz] = std::max<coord_t>(0, coord_t(double(config.xy_min_distance) *
+                (1. - (double(dz) - (z_distance_top_layers == 1 ? 0.5 : 0.)) / double(z_distance_top_layers))));
+        tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers, num_support_layers),
+            [&](const tbb::blocked_range<size_t> &range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                const size_t obj_layer_idx = layer_idx - num_raft_layers;
+                Polygons     band;
+                for (size_t dz = 0; dz <= z_distance_top_layers && obj_layer_idx + dz < band_footprint.size(); ++ dz)
+                    if (const Polygons &footprint = band_footprint[obj_layer_idx + dz]; ! footprint.empty())
+                        polygons_append(band, xy_gap[dz] > 0 ? offset(footprint, float(xy_gap[dz])) : footprint);
+                if (! band.empty())
+                    band_keep_out[layer_idx] = union_(band);
+            }
+        });
+    }
+    return band_keep_out;
 }
 
 void organic_draw_branches(
@@ -6173,8 +6216,11 @@ void organic_draw_branches(
                 }
         }
 
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, std::min(move_bounds.size(), slices.size()), 1),
-        [&print_object, &config, &slices, &bottom_contacts, &top_contacts, &intermediate_layers, &layer_storage, &throw_on_cancel](const tbb::blocked_range<size_t>& range) {
+    const size_t                num_final_layers = std::min(move_bounds.size(), slices.size());
+    const std::vector<Polygons> band_keep_out    = merged_band_keep_out(print_object, config, num_final_layers);
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_final_layers, 1),
+        [&print_object, &config, &slices, &band_keep_out, &bottom_contacts, &top_contacts, &intermediate_layers, &layer_storage, &throw_on_cancel](const tbb::blocked_range<size_t>& range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
                 Slice& slice = slices[layer_idx];
                 assert(intermediate_layers[layer_idx] == nullptr);
@@ -6187,6 +6233,12 @@ void organic_draw_branches(
                     //smooth_outward(closing(std::move(bottom), closing_distance + minimum_island_radius, closing_distance, SUPPORT_SURFACES_OFFSET_PARAMETERS), smoothing_distance) :
                     // simplify a bit, to ensure the output does not contain outrageous amounts of vertices. Should not be necessary, just a precaution.
                     base_layer_polygons = polygons_simplify(base_layer_polygons, std::min(scaled<double>(0.03), double(config.resolution)));
+                }
+                if (const Polygons &band = band_keep_out[layer_idx]; ! band.empty()) {
+                    if (! base_layer_polygons.empty())
+                        base_layer_polygons = diff(base_layer_polygons, band);
+                    if (! bottom_contact_polygons.empty())
+                        bottom_contact_polygons = diff(bottom_contact_polygons, band);
                 }
 
                 // Subtract top contact layer polygons from support base.

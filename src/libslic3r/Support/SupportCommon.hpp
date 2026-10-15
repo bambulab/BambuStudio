@@ -20,6 +20,12 @@ namespace Slic3r {
 class PrintObject;
 class SupportLayer;
 
+// BBS multi-diameter: the XY the merged bands occupy on object layer layer_idx. A band is extruded with its
+// retained footprint from the band bottom up, so on its lower layers it occupies XY their lslices do not
+// hold. Only patches spanning the layer count: marker copies reach down to the band's planned floor, below a
+// locally clipped patch's own bottom_idx. Not unioned.
+Polygons merged_band_footprint(const Layer &layer, size_t layer_idx);
+
 // BBS multi-diameter: merge the generated support areas into slabs a coarse nozzle can actually extrude, and
 // report the filament every merged slab was planned for, keyed by its print_z.
 //
@@ -30,6 +36,8 @@ class SupportLayer;
 // cooldown_areas / lightning_infill_areas are rebuilt to use the support layer id generate_support_layers()
 // will assign. per_layer_area_print_z carries the source grid's real Z coordinates when its indices do not
 // already match the generated layer arrays. Pass nullptr when the generator has no per-grid areas.
+// top_gap is the support to object gap the top contacts were placed with; negative means
+// slicing_params.gap_support_object.
 void merge_support_layers_multi_diameter(
     const PrintObject                               &object,
     const SupportParameters                         &support_params,
@@ -46,7 +54,8 @@ void merge_support_layers_multi_diameter(
     std::map<coordf_t, coordf_t>                     &planned_interface_heights,
     const std::vector<coordf_t>                     *per_layer_area_print_z = nullptr,
     std::vector<ExPolygons>                         *cooldown_areas = nullptr,
-    std::vector<ExPolygons>                         *lightning_infill_areas = nullptr);
+    std::vector<ExPolygons>                         *lightning_infill_areas = nullptr,
+    coordf_t                                         top_gap = -1.);
 
 // Turn some of the base layers into base interface layers.
 // For soluble interfaces with non-soluble bases, print maximum two first interface layers with the base

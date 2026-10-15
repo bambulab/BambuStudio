@@ -645,18 +645,6 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     BOOST_LOG_TRIVIAL(debug) << "tree support construct finish";
 }
 
-// BBS multi-diameter: top gap per nozzle diameter. Only these four diameters ship; anything else takes the
-// nearest one.
-static float top_z_for_nozzle(double nozzle_diameter)
-{
-    static constexpr std::pair<double, float> table[] = {{0.2, 0.1f}, {0.4, 0.2f}, {0.6, 0.2f}, {0.8, 0.3f}};
-    const std::pair<double, float> *best = &table[0];
-    for (const std::pair<double, float> &entry : table)
-        if (std::abs(entry.first - nozzle_diameter) < std::abs(best->first - nozzle_diameter))
-            best = &entry;
-    return best->second;
-}
-
 void TreeSupport::init_top_z_by_nozzle()
 {
     m_top_z_outlines.clear();
@@ -674,7 +662,7 @@ void TreeSupport::init_top_z_by_nozzle()
     auto region_gap = [&print_config, min_gap](const PrintRegionConfig &config) {
         const double nozzle = std::max(nozzle_diameter_for_filament(print_config, config.wall_filament.value),
                                        nozzle_diameter_for_filament(print_config, config.solid_infill_filament.value));
-        return std::max(top_z_for_nozzle(nozzle), min_gap);
+        return std::max(support_top_z_for_nozzle(nozzle), min_gap);
     };
 
     m_top_z_outlines.resize(m_object->layer_count());
@@ -3151,6 +3139,9 @@ void TreeSupport::draw_circles()
                     }
                     return collision;
                 };
+                // A folded interface is one extrusion over the slab span as well. Its areas come from the overhang
+                // and skip the node collision, so the span has to be cleared when the roof segments are joined.
+                const SupportNode *roof_span_node = nullptr;
 
                 BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << curr_layer_nodes.size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
@@ -3247,8 +3238,10 @@ void TreeSupport::draw_circles()
                              node.distance_to_top >= m_support_params.num_top_interface_layers) {
                         append(roof_1st_layer, area);
                         max_layers_above_roof1 = std::max(max_layers_above_roof1, node.dist_mm_to_top);
+                        if (node.slab_height > EPSILON) roof_span_node = &node;
                     } else if (m_support_params.num_top_interface_layers > 0 && obj_layer_nr > 0 && node.support_roof_layers_below > 0) {
                         append(roof_areas, area);
+                        if (node.slab_height > EPSILON) roof_span_node = &node;
                         max_layers_above_roof = top_z_distance == 0 ? node.height : std::max(max_layers_above_roof, node.dist_mm_to_top);
                         // BBS multi-diameter: consecutive folded slabs sit several object layers apart, so the
                         // object layer number modulo the interface layer count repeats and the interface pattern
@@ -3265,11 +3258,14 @@ void TreeSupport::draw_circles()
                 //m_object->print()->set_status(65, (boost::format( _u8L("Support: generate polygons at layer %d")) % layer_nr).str());
 
                 // join roof segments
-                roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_collision(z_overrides));
+                auto get_roof_collision = [&](bool sharp_tail) -> ExPolygons & {
+                    return roof_span_node != nullptr ? get_node_collision(*roof_span_node, sharp_tail) : get_collision(sharp_tail);
+                };
+                roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_roof_collision(z_overrides));
                 roof_areas     = intersection_ex(roof_areas, m_machine_border);
                 roof_areas     = union_ex(roof_areas);
                 roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled),
-                                              z_overrides ? offset_ex(get_collision(z_overrides), line_width_scaled / 2) : get_collision(false));
+                                              z_overrides ? offset_ex(get_roof_collision(z_overrides), line_width_scaled / 2) : get_roof_collision(false));
 
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = diff_ex(roof_1st_layer, ClipperUtils::clip_clipper_polygons_with_subject_bbox(roof_areas,get_extents(roof_1st_layer)));

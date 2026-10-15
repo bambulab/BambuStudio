@@ -77,6 +77,10 @@ struct AdaptiveLayerBand
 
 AdaptiveLayerHeightRange adaptive_layer_height_range(double nozzle_diameter);
 
+// Top gap between support and the object above it for a nozzle diameter. Only 0.2 / 0.4 / 0.6 / 0.8 ship;
+// anything else takes the nearest one.
+float support_top_z_for_nozzle(double nozzle_diameter);
+
 // Keep only the pieces a nozzle of this diameter could really lay a bead into. Two contours polygonised
 // apart - consecutive slices of a shrinking shape, a slice and the paint covering it - never coincide point
 // for point, and what one has over the other is a fringe of degenerate, near zero area slivers. Offsetting a

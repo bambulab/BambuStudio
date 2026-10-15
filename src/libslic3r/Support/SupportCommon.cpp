@@ -1464,6 +1464,16 @@ struct SupportMergeLevel
 
 } // namespace
 
+Polygons merged_band_footprint(const Layer &layer, size_t layer_idx)
+{
+    Polygons band;
+    for (const LayerRegion *layerm : layer.regions())
+        for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches)
+            if (patch.bottom_idx <= layer_idx && layer_idx <= patch.top_idx)
+                polygons_append(band, to_polygons(patch.area()));
+    return band;
+}
+
 void merge_support_layers_multi_diameter(
     const PrintObject                               &object,
     const SupportParameters                         &support_params,
@@ -1480,9 +1490,12 @@ void merge_support_layers_multi_diameter(
     std::map<coordf_t, coordf_t>                     &planned_interface_heights,
     const std::vector<coordf_t>                     *per_layer_area_print_z,
     std::vector<ExPolygons>                         *cooldown_areas,
-    std::vector<ExPolygons>                         *lightning_infill_areas)
+    std::vector<ExPolygons>                         *lightning_infill_areas,
+    coordf_t                                         top_gap)
 {
     const SupportMergePlan plan = make_support_merge_plan(object);
+    if (top_gap < 0.)
+        top_gap = slicing_params.gap_support_object;
 
     SupportGeneratorLayersPtr *arrays[smaCount] {
         &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers };
@@ -1564,21 +1577,60 @@ void merge_support_layers_multi_diameter(
         return idx < 0 ? nullptr : (*arrays[array_id])[idx];
     };
 
+    // The object slices grown by the XY gap, per object layer. Every slab asks for the same layers again.
+    const ConstLayerPtrsAdaptor object_layers = object.layers();
+    std::vector<std::optional<Polygons>> object_keep_out_cache(object_layers.size());
+    auto object_keep_out = [&object_layers, &object_keep_out_cache, gap_xy_scaled](size_t object_layer_idx) -> const Polygons & {
+        std::optional<Polygons> &keep_out = object_keep_out_cache[object_layer_idx];
+        if (! keep_out)
+            keep_out = offset(object_layers[object_layer_idx]->lslices, float(gap_xy_scaled));
+        return *keep_out;
+    };
+    std::vector<std::optional<Polygons>> band_keep_out_cache(object_layers.size());
+    auto band_keep_out = [&object_layers, &band_keep_out_cache, gap_xy_scaled](size_t object_layer_idx) -> const Polygons & {
+        std::optional<Polygons> &keep_out = band_keep_out_cache[object_layer_idx];
+        if (! keep_out) {
+            const Polygons band = merged_band_footprint(*object_layers[object_layer_idx], object_layer_idx);
+            keep_out = band.empty() ? Polygons() : offset(union_(band), float(gap_xy_scaled));
+        }
+        return *keep_out;
+    };
+    auto first_object_layer_above = [&object_layers](coordf_t z) {
+        return size_t(std::lower_bound(object_layers.begin(), object_layers.end(), z + EPSILON,
+            [](const Layer *layer, coordf_t print_z) { return layer->print_z < print_z; }) - object_layers.begin());
+    };
+
     // A support area is only kept clear of the object at its own level. A slab is a single extrusion over
     // its whole Z span, so it covers the XY the object occupies further down as well - a shape widening
     // towards the bed is the canonical case - and has to be cut back to the same clearance there.
-    auto object_clearance = [&object, gap_xy_scaled](coordf_t bottom_z, coordf_t top_z) {
+    auto object_clearance = [&object_layers, &object_keep_out, &first_object_layer_above](coordf_t bottom_z, coordf_t top_z) {
         Polygons trimming;
-        const ConstLayerPtrsAdaptor object_layers = object.layers();
-        auto object_layer_it = std::lower_bound(object_layers.begin(), object_layers.end(), bottom_z + EPSILON,
-            [](const Layer *layer, coordf_t print_z) { return layer->print_z < print_z; });
-        for (; object_layer_it != object_layers.end(); ++ object_layer_it) {
-            const Layer *object_layer = *object_layer_it;
+        for (size_t idx = first_object_layer_above(bottom_z); idx < object_layers.size(); ++ idx) {
+            const Layer *object_layer = object_layers[idx];
             if (object_layer->print_z - object_layer->height > top_z - EPSILON)
                 break;
-            polygons_append(trimming, offset(object_layer->lslices, float(gap_xy_scaled)));
+            polygons_append(trimming, object_keep_out(idx));
         }
         return trimming.empty() ? Polygons() : union_(trimming);
+    };
+    // The XY of the object starting within the top gap above top_z. An area lifted to top_z from below was
+    // placed against an object surface higher up; where that surface starts in here, lifting it eats into
+    // the gap, down to none when the lift equals the gap. object_clearance() only covers what starts lower.
+    auto top_gap_zone = [&object_layers, &object_keep_out, &band_keep_out, &first_object_layer_above, top_gap](coordf_t top_z) {
+        Polygons zone;
+        if (top_gap <= EPSILON)
+            return zone;
+        for (size_t idx = first_object_layer_above(top_z); idx < object_layers.size(); ++ idx) {
+            const Layer   *object_layer   = object_layers[idx];
+            const coordf_t layer_bottom_z = object_layer->print_z - object_layer->height;
+            if (layer_bottom_z > top_z + top_gap - EPSILON)
+                break;
+            if (layer_bottom_z < top_z - EPSILON)
+                continue;
+            polygons_append(zone, object_keep_out(idx));
+            polygons_append(zone, band_keep_out(idx));
+        }
+        return zone.empty() ? Polygons() : union_(zone);
     };
 
     // Resolve the top contact stack from the model downwards. A thin level stays untouched when that does not
@@ -1641,7 +1693,7 @@ void merge_support_layers_multi_diameter(
 
     // Returns false when the slab was left alone, in which case the areas keep their own levels.
     auto merge_interface_slab =
-        [&levels, &arrays, &layer_of, &first_top_interface, &level_bottom_z, &object_clearance,
+        [&levels, &arrays, &layer_of, &first_top_interface, &level_bottom_z, &object_clearance, &top_gap_zone,
          &interface_borrowed_areas, &planned_interface_filaments,
          &planned_interface_heights](int owner_idx, int bottom_idx,
                                      const SupportMergePlan::Candidate &candidate) {
@@ -1652,6 +1704,9 @@ void merge_support_layers_multi_diameter(
         const coordf_t top_z       = levels[owner_idx].print_z;
         const coordf_t bottom_z    = level_bottom_z(levels[bottom_idx]);
         const coordf_t slab_height = top_z - bottom_z;
+        // What a lower level holds under an object surface starting within the gap above top_z stays at its
+        // own level: lifted, it would print into that gap.
+        const Polygons gap_zone = top_gap_zone(top_z);
         // Refuse a slab the object leaves no room for at all rather than merge the areas away: printing
         // them at their own level is unprintably thin, but dropping them removes the support entirely.
         const Polygons clearance = object_clearance(bottom_z, top_z);
@@ -1660,16 +1715,25 @@ void merge_support_layers_multi_diameter(
             for (int i = owner_idx; i >= bottom_idx; -- i)
                 for (int array_id : top_interface_arrays)
                     if (const SupportGeneratorLayer *source = layer_of(levels[i], array_id); source != nullptr)
-                        polygons_append(slab, source->polygons);
+                        polygons_append(slab, i < owner_idx && ! gap_zone.empty() ? diff(source->polygons, gap_zone) : source->polygons);
             if (diff(union_(slab), clearance).empty())
                 return false;
         }
 
+        std::vector<std::pair<int, int>> kept_sources;
         for (int i = owner_idx; i >= bottom_idx; -- i)
             for (int array_id : top_interface_arrays) {
                 SupportGeneratorLayer *source = layer_of(levels[i], array_id);
                 if (source == nullptr || source == interface_top)
                     continue;
+                if (i < owner_idx && ! gap_zone.empty()) {
+                    if (Polygons kept = intersection(source->polygons, gap_zone); ! kept.empty()) {
+                        interface_top->polygons = union_(interface_top->polygons, diff(source->polygons, gap_zone));
+                        source->polygons = std::move(kept);
+                        kept_sources.emplace_back(i, array_id);
+                        continue;
+                    }
+                }
                 interface_top->merge(std::move(*source));
                 (*arrays[array_id])[levels[i].layer_idx[array_id]] = nullptr;
                 levels[i].layer_idx[array_id] = -1;
@@ -1682,6 +1746,15 @@ void merge_support_layers_multi_diameter(
             interface_top->polygons = diff(interface_top->polygons, clearance);
 
         const Polygons borrowed_area = union_(interface_top->polygons);
+        // The slab now spans the levels its kept areas stay on, so they must not overlap it.
+        for (const auto &[i, array_id] : kept_sources) {
+            SupportGeneratorLayer *source = layer_of(levels[i], array_id);
+            source->polygons = diff(source->polygons, borrowed_area);
+            if (source->polygons.empty()) {
+                (*arrays[array_id])[levels[i].layer_idx[array_id]] = nullptr;
+                levels[i].layer_idx[array_id] = -1;
+            }
+        }
         for (int i = bottom_idx; i <= owner_idx; ++ i) {
             polygons_append(interface_borrowed_areas[size_t(i)], borrowed_area);
             if (SupportGeneratorLayer *base = layer_of(levels[i], smaIntermediate);
@@ -1744,7 +1817,15 @@ void merge_support_layers_multi_diameter(
             candidate   = interface_candidate(levels[top], top_z, slab_height);
         }
         if (candidate.valid() && merge_interface_slab(top, bottom, candidate)) {
-            top = bottom;
+            // Resume at the highest level still holding an area kept out of the top gap, so it gets planned
+            // at its own height or merged with what lies below it.
+            int resume = bottom;
+            for (int i = top - 1; i >= bottom; -- i)
+                if (first_top_interface(levels[i]) != nullptr) {
+                    resume = i + 1;
+                    break;
+                }
+            top = resume;
             continue;
         }
 
@@ -1935,16 +2016,11 @@ void merge_support_layers_multi_diameter(
 
             // The base slab merge keeps its distance to the object, and so must an interface growing down.
             bool hits_object = false;
-            const ConstLayerPtrsAdaptor object_layers = object.layers();
-            auto object_layer_it = std::lower_bound(object_layers.begin(), object_layers.end(),
-                landing_z + EPSILON,
-                [](const Layer *layer, coordf_t print_z) { return layer->print_z < print_z; });
-            for (; object_layer_it != object_layers.end() && ! hits_object; ++ object_layer_it) {
-                const Layer *object_layer = *object_layer_it;
+            for (size_t idx = first_object_layer_above(landing_z); idx < object_layers.size() && ! hits_object; ++ idx) {
+                const Layer *object_layer = object_layers[idx];
                 if (object_layer->print_z - object_layer->height > bottom_z - EPSILON)
                     break;
-                hits_object = ! intersection(offset(object_layer->lslices, float(gap_xy_scaled)),
-                                             interface_top->polygons).empty();
+                hits_object = ! intersection(object_keep_out(idx), interface_top->polygons).empty();
             }
             if (hits_object)
                 continue;

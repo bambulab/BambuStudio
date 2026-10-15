@@ -69,6 +69,25 @@ struct TreeSupportMeshGroupSettings {
             0;
         this->support_material_buildplate_only = config.support_on_build_plate_only;
         this->support_top_distance      = scaled<coord_t>(slicing_params.gap_support_object);
+        // Multi-diameter: the gap follows the nozzle printing the overhang, as in TreeSupport::init_top_z_by_nozzle().
+        // One gap serves the whole object here, so take the largest region gap. It also applies to the fine
+        // regions of the object, so it is capped at 0.2 mm instead of the classic tree's 0.3 mm for 0.8 nozzles.
+        // A zero gap is the soluble interface contract and is never replaced.
+        if (slicing_params.gap_support_object > EPSILON && print_object.print()->uses_multiple_nozzle_diameters()) {
+            static constexpr double max_organic_top_gap = 0.2;
+            double top_gap = 0.;
+            for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {
+                const PrintRegionConfig &region_config = print_object.printing_region(region_id).config();
+                const double nozzle = std::max(nozzle_diameter_for_filament(print_config, region_config.wall_filament.value),
+                                               nozzle_diameter_for_filament(print_config, region_config.solid_infill_filament.value));
+                top_gap = std::max(top_gap, std::min(double(support_top_z_for_nozzle(nozzle)), max_organic_top_gap));
+            }
+            if (top_gap > EPSILON) {
+                // The collision is built from whole object layers, see TreeModelVolumes.
+                top_gap = std::ceil(top_gap / slicing_params.layer_height - EPSILON) * slicing_params.layer_height;
+                this->support_top_distance = scaled<coord_t>(top_gap);
+            }
+        }
         this->support_bottom_distance   = scaled<coord_t>(slicing_params.gap_object_support);
         this->support_xy_distance           = scaled<coord_t>(std::max(0.01, config.support_object_xy_distance.value));
         if (print_config.top_z_overrides_xy_distance)
