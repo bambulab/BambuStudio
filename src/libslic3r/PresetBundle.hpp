@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include <optional>
 #include <utility>
-#include <variant>
 #include <map>
 #include <set>
 #include <functional>
@@ -90,41 +89,6 @@ struct FilamentBaseInfo
 
 private:
     int  m_filament_extruder_compatibility = 0;
-};
-
-// Recommended parameters for support filament combination
-struct FilamentCombinationParams
-{
-    // 山苍: 使用 variant 支持多种类型: double, bool, string, int, vector<double>
-    using ParamValue = std::variant<double, bool, std::string, int, std::vector<double>>;
-    std::map<std::string, ParamValue> params;  // 通用参数存储
-    bool hasRecommendedParams() const {
-        return !params.empty();
-    }
-
-    // 辅助函数：获取参数值
-    template<typename T>
-    std::optional<T> get(const std::string& key) const {
-        auto it = params.find(key);
-        if (it != params.end()) {
-            if (auto* val = std::get_if<T>(&it->second)) {
-                return *val;
-            }
-        }
-        return std::nullopt;
-    }
-};
-
-// 支撑推荐参数：通过 (support_material, model_material, printer_model) 查询
-struct SupportRecommendedParams
-{
-    std::string model_material;                     // 主体料（类型或名称）
-    std::string model_material_type;                // "name" 或 "type"
-    std::vector<std::string> support_material_list; // 支撑料列表（类型或名称）
-    std::string support_material_type;              // "name" 或 "type"
-    std::vector<std::string> printer_models;        // 适用机型（printer_model 原名），为空则该条目不生效
-    int priority{0};                                // 优先级，数字越大优先级越高
-    FilamentCombinationParams params;               // 推荐参数
 };
 
 class PresetBundle;
@@ -296,11 +260,6 @@ public:
     Semver get_vendor_profile_version(std::string vendor_name);
 
     std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string(), bool only_system = false) const;
-
-    // Load support recommended params from JSON file
-    void load_support_recommended_params();
-    // Get support recommended params by (support_material, model_material, printer_model)
-    std::optional<SupportRecommendedParams> get_support_recommended_params(const std::string& support_material, const std::string& model_material, const std::string& printer_model) const;
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
@@ -476,9 +435,6 @@ public:
         std::vector<std::string> printers;
     };
     ObsoletePresets             obsolete_presets;
-
-    // Support recommended params: key = "support_material|model_material|printer_model"
-    std::map<std::string, SupportRecommendedParams> support_recommended_params_map;
 
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }

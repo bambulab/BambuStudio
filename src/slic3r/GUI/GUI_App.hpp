@@ -910,6 +910,7 @@ bool is_support_filament(int extruder_id, bool strict_check = true);
 bool is_soluble_filament(int extruder_id);
 // check if the filament for model is in the list
 bool has_filaments(const std::vector<string>& model_filaments);
+std::vector<bool> has_filament_groups(const std::vector<std::vector<string>> &model_filament_groups);
 
 static std::vector<wxLanguage> s_supported_languages = {
     wxLANGUAGE_ENGLISH,

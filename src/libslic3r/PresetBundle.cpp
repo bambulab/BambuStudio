@@ -9,6 +9,7 @@
 #include "Utils.hpp"
 #include "LocalesUtils.hpp"
 #include "Model.hpp"
+#include "SupportRecommendedParams.hpp"
 #include "format.hpp"
 
 #include <algorithm>
@@ -602,7 +603,7 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_presets(Ap
     set_calibrate_printer("");
 
     // Load support recommended params from JSON
-    this->load_support_recommended_params();
+    load_support_recommended_params();
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << boost::format("finished, returned substitutions %1%")%substitutions.size();
@@ -7955,139 +7956,6 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
     sla_prints.set_default_suppressed(default_suppressed);
     sla_materials.set_default_suppressed(default_suppressed);
     printers.set_default_suppressed(default_suppressed);
-}
-
-void PresetBundle::load_support_recommended_params()
-{
-    support_recommended_params_map.clear();
-    boost::filesystem::path json_path = (boost::filesystem::path(resources_dir()) / "profiles" / "BBL" / "filament" / "support_recommended_params.json").make_preferred();
-
-    if (!boost::filesystem::exists(json_path)) {
-        BOOST_LOG_TRIVIAL(warning) << "Support recommended params JSON file not found: " << json_path.string();
-        return;
-    }
-
-    try {
-        boost::nowide::ifstream ifs(json_path.string());
-        if (!ifs.is_open()) {
-            BOOST_LOG_TRIVIAL(error) << "Failed to open support recommended params JSON file";
-            return;
-        }
-
-        nlohmann::json j;
-        ifs >> j;
-
-        if (j.contains("combinations") && j["combinations"].is_array()) {
-            for (const auto &combo : j["combinations"]) {
-                SupportRecommendedParams rec_params;
-
-                // Load model_material (single string)
-                if (combo.contains("model_material") && combo["model_material"].is_string()) {
-                    rec_params.model_material = combo["model_material"].get<std::string>();
-                }
-
-                // Load model_material_type (default to "type")
-                if (combo.contains("model_material_type") && combo["model_material_type"].is_string()) {
-                    rec_params.model_material_type = combo["model_material_type"].get<std::string>();
-                } else {
-                    rec_params.model_material_type = "type";
-                }
-
-                // Load support_material_list (array)
-                if (combo.contains("support_material_list") && combo["support_material_list"].is_array()) {
-                    for (const auto &mat : combo["support_material_list"]) {
-                        if (mat.is_string()) {
-                            rec_params.support_material_list.push_back(mat.get<std::string>());
-                        }
-                    }
-                }
-
-                // Load support_material_type (default to "type")
-                if (combo.contains("support_material_type") && combo["support_material_type"].is_string()) {
-                    rec_params.support_material_type = combo["support_material_type"].get<std::string>();
-                } else {
-                    rec_params.support_material_type = "type";
-                }
-
-                // Load printer_models (array)
-                if (combo.contains("printer_models") && combo["printer_models"].is_array()) {
-                    for (const auto &pm : combo["printer_models"]) {
-                        if (pm.is_string()) {
-                            rec_params.printer_models.push_back(pm.get<std::string>());
-                        }
-                    }
-                }
-
-                // Load priority (default to 0)
-                if (combo.contains("priority") && combo["priority"].is_number_integer()) {
-                    rec_params.priority = combo["priority"].get<int>();
-                }
-
-                // An entry without printer_models would apply to every machine, including those it was
-                // never validated on, so require the scope to be explicit.
-                if (rec_params.model_material.empty() || rec_params.support_material_list.empty() || rec_params.printer_models.empty()) {
-                    continue;
-                }
-
-                // Load recommended params
-                if (combo.contains("recommended_params") && combo["recommended_params"].is_object()) {
-                    const auto &params = combo["recommended_params"];
-
-                    for (auto it = params.begin(); it != params.end(); ++it) {
-                        const std::string &key = it.key();
-                        const auto &value = it.value();
-
-                        if (value.is_number_float() || value.is_number_integer()) {
-                            rec_params.params.params[key] = value.get<double>();
-                        } else if (value.is_boolean()) {
-                            rec_params.params.params[key] = value.get<bool>();
-                        } else if (value.is_string()) {
-                            rec_params.params.params[key] = value.get<std::string>();
-                        } else if (value.is_array()) {
-                            std::vector<double> vec;
-                            for (const auto& elem : value) {
-                                if (elem.is_number()) {
-                                    vec.push_back(elem.get<double>());
-                                } else if (elem.is_string()) {
-                                    try {
-                                        vec.push_back(std::stod(elem.get<std::string>()));
-                                    } catch (...) {
-                                        BOOST_LOG_TRIVIAL(warning) << "Failed to parse array element as double for " << key;
-                                    }
-                                }
-                            }
-                            if (!vec.empty()) {
-                                rec_params.params.params[key] = vec;
-                            }
-                        }
-                    }
-                }
-
-                // Create key for each (support_material, printer_model): "support_material|model_material|printer_model"
-                for (const auto &support_mat : rec_params.support_material_list) {
-                    for (const auto &printer_model : rec_params.printer_models) {
-                        std::string map_key = support_mat + "|" + rec_params.model_material + "|" + printer_model;
-                        support_recommended_params_map[map_key] = rec_params;
-                    }
-                }
-            }
-        }
-
-        BOOST_LOG_TRIVIAL(info) << "Loaded " << support_recommended_params_map.size() << " support recommended params from JSON";
-    }
-    catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "Error loading support recommended params JSON: " << e.what();
-    }
-}
-
-std::optional<SupportRecommendedParams> PresetBundle::get_support_recommended_params(const std::string& support_material, const std::string& model_material, const std::string& printer_model) const
-{
-    std::string key = support_material + "|" + model_material + "|" + printer_model;
-    auto it = support_recommended_params_map.find(key);
-    if (it != support_recommended_params_map.end()) {
-        return it->second;
-    }
-    return std::nullopt;
 }
 
 } // namespace Slic3r

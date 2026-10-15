@@ -348,6 +348,8 @@ set(lisbslic3r_sources
     SLAPrint.hpp
     Slicing.cpp
     Slicing.hpp
+    SupportRecommendedParams.cpp
+    SupportRecommendedParams.hpp
     SlicesToTriangleMesh.hpp
     SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp

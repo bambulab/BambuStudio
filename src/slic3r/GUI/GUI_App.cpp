@@ -8859,9 +8859,15 @@ bool is_soluble_filament(int extruder_id)
     return support_option->get_at(0);
 };
 
-bool has_filaments(const std::vector<string>& model_filaments) {
+std::vector<bool> has_filament_groups(const std::vector<std::vector<string>> &model_filament_groups)
+{
+    std::vector<bool> matches(model_filament_groups.size(), false);
+    size_t remaining = matches.size();
+    if (remaining == 0)
+        return matches;
+
     auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
-    if (!Slic3r::GUI::wxGetApp().plater()) return false;
+    if (!Slic3r::GUI::wxGetApp().plater()) return matches;
     auto model_objects = Slic3r::GUI::wxGetApp().plater()->model().objects;
     const Slic3r::DynamicPrintConfig &config = wxGetApp().preset_bundle->full_config();
     Model::setExtruderParams(config, filament_presets.size());
@@ -8873,11 +8879,23 @@ bool has_filaments(const std::vector<string>& model_filaments) {
             auto ve = vol->get_extruders(global_features);
             for (auto id : ve) {
                 auto name = get_filament_name(id);
-                if (find(model_filaments.begin(), model_filaments.end(), name) != model_filaments.end()) return true;
+                for (size_t i = 0; i < model_filament_groups.size(); ++i) {
+                    if (! matches[i] &&
+                        find(model_filament_groups[i].begin(), model_filament_groups[i].end(), name) != model_filament_groups[i].end()) {
+                        matches[i] = true;
+                        if (--remaining == 0)
+                            return matches;
+                    }
+                }
             }
         }
     }
-    return false;
+    return matches;
+}
+
+bool has_filaments(const std::vector<string>& model_filaments)
+{
+    return has_filament_groups({model_filaments}).front();
 }
 
 bool is_support_filament(int extruder_id, bool strict_check)

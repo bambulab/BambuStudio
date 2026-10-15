@@ -2,9 +2,11 @@
 #include "Model.hpp"
 #include "Print.hpp"
 #include "FilamentMixer.hpp"
+#include "SupportRecommendedParams.hpp"
 
 #include <cfloat>
 #include <memory>
+#include <set>
 #include "libslic3r/Log.hpp"
 
 namespace Slic3r {
@@ -1189,6 +1191,108 @@ static bool same_ams_grouping(const std::vector<int> &old_map, const std::vector
                    [ams_idx](int old_nozzle, int new_nozzle) { return (old_nozzle == ams_idx) == (new_nozzle == ams_idx); });
 }
 
+// Materials printed by this object. The effective support gap is stored in PrintObjectConfig, so each object
+// must be classified independently rather than inheriting a plate-wide material combination.
+static std::vector<SupportMaterialProperties> collect_model_filament_materials(const ModelObject &model_object,
+                                                                               const DynamicPrintConfig &full_config)
+{
+    std::vector<SupportMaterialProperties> out;
+    std::set<int> filament_ids;
+    const auto *types = full_config.option<ConfigOptionStrings>("filament_type");
+    const auto *names = full_config.option<ConfigOptionStrings>("filament_settings_id");
+    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(full_config);
+    auto collect_explicit_filaments = [&filament_ids](const auto &config) {
+        for (const char *key : {"extruder", "wall_filament", "sparse_infill_filament", "solid_infill_filament"}) {
+            if (config.has(key)) {
+                const int filament_id = config.option(key)->getInt();
+                if (filament_id > 0)
+                    filament_ids.insert(filament_id);
+            }
+        }
+    };
+    for (const ModelVolume *mv : model_object.volumes) {
+        if (mv == nullptr)
+            continue;
+        if (mv->is_model_part()) {
+            for (int filament_id : mv->get_extruders(global_features))
+                if (filament_id > 0)
+                    filament_ids.insert(filament_id);
+        } else if (mv->is_modifier())
+            collect_explicit_filaments(mv->config);
+    }
+    for (const auto &layer_range : model_object.layer_config_ranges)
+        collect_explicit_filaments(layer_range.second);
+    out.reserve(filament_ids.size());
+    for (int filament_id : filament_ids) {
+        const size_t idx = size_t(filament_id - 1);
+        SupportMaterialProperties material;
+        if (types != nullptr && idx < types->values.size())
+            material.type = types->values[idx];
+        if (names != nullptr && idx < names->values.size())
+            material.name = support_recommended_material_name(names->values[idx]);
+        // Keep unknown materials: they must fail name/type rules instead of being omitted from "all materials".
+        out.emplace_back(std::move(material));
+    }
+    return out;
+}
+
+struct MultiNozzleSupportCombo
+{
+    bool zero_top    { false };
+    bool zero_bottom { false };
+};
+
+// BBS multi-diameter: the support z distances are resolved per nozzle here, which would override the zero gap a
+// support material combination needs. Only an object whose materials all match the selected interface may use
+// an object-wide zero top or bottom gap.
+static MultiNozzleSupportCombo multi_nozzle_support_combo(const DynamicPrintConfig &full_config, const PrintObjectConfig &object_config,
+                                                          const ModelObject &model_object)
+{
+    MultiNozzleSupportCombo combo;
+    const int interface = object_config.support_interface_filament.value;
+    // Without top interface layers there is no support contact surface to classify. Keep the regular
+    // multi-diameter automatic gap; a default interface is likewise resolved dynamically.
+    if (object_config.support_interface_top_layers.value <= 0 || interface <= 0)
+        return combo;
+
+    const std::vector<SupportMaterialProperties> model_materials =
+        collect_model_filament_materials(model_object, full_config);
+    if (model_materials.empty())
+        return combo;
+
+    const auto *types   = full_config.option<ConfigOptionStrings>("filament_type");
+    const auto *names   = full_config.option<ConfigOptionStrings>("filament_settings_id");
+    const auto *soluble = full_config.option<ConfigOptionBools>("filament_soluble");
+    const auto *support = full_config.option<ConfigOptionBools>("filament_is_support");
+    auto string_at = [](const ConfigOptionStrings *opt, int id) {
+        return opt != nullptr && id > 0 && size_t(id) <= opt->values.size() ? opt->values[id - 1] : std::string();
+    };
+    auto bool_at = [](const ConfigOptionBools *opt, int id) {
+        return opt != nullptr && id > 0 && size_t(id) <= opt->values.size() && opt->values[id - 1];
+    };
+    const SupportMaterialProperties interface_material {
+        support_recommended_material_name(string_at(names, interface)),
+        string_at(types, interface),
+        bool_at(soluble, interface),
+        bool_at(support, interface)
+    };
+
+    const auto       *printer_model_opt = full_config.option<ConfigOptionString>("printer_model");
+    const std::string printer_model     = printer_model_opt != nullptr ? printer_model_opt->value : std::string();
+
+    combo.zero_top = true;
+    combo.zero_bottom = true;
+    for (const SupportMaterialProperties &material : model_materials) {
+        const SupportMaterialCombination material_result =
+            evaluate_support_material_combination(interface_material, material, printer_model);
+        combo.zero_top &= material_result.zero_top;
+        combo.zero_bottom &= material_result.zero_bottom;
+        if (! combo.zero_top && ! combo.zero_bottom)
+            break;
+    }
+    return combo;
+}
+
 Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_config, bool extruder_applied)
 {
 #ifdef _DEBUG
@@ -1573,19 +1677,25 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         }
     }
 
-    auto apply_multi_diameter_object_tuning = [this, &new_full_config](PrintObjectConfig &config) {
-        if (!multi_nozzle_diameter_mode_enabled(new_full_config))
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(new_full_config);
+    auto apply_multi_diameter_object_tuning =
+        [this, &new_full_config, multi_diameter_mode](PrintObjectConfig &config, const ModelObject &model_object) {
+        if (! multi_diameter_mode)
             return;
         const unsigned int support_filament = config.support_interface_filament.value > 0 ?
             (unsigned int) config.support_interface_filament.value :
             (unsigned int) config.support_filament.value;
         const double nozzle_diameter = nozzle_diameter_for_filament(m_config, support_filament);
-        config.support_top_z_distance.value = multi_nozzle_support_z_distance(
+        const MultiNozzleSupportCombo combo = multi_nozzle_support_combo(new_full_config, config, model_object);
+        config.support_top_z_distance.value = combo.zero_top ? 0. : multi_nozzle_support_z_distance(
             nozzle_diameter, config.support_top_z_distance.value);
-        config.support_bottom_z_distance.value = multi_nozzle_support_z_distance(
+        config.support_bottom_z_distance.value = combo.zero_bottom ? 0. : multi_nozzle_support_z_distance(
             nozzle_diameter, config.support_bottom_z_distance.value);
     };
-    const bool multi_diameter_tuning_changed =
+    // The support combination also depends on the filament properties, the volume filaments and the printer model,
+    // so the tuning is redone on every apply in multi-diameter mode. An unchanged result diffs empty and
+    // invalidates nothing.
+    const bool multi_diameter_tuning_changed = multi_diameter_mode ||
         std::find(print_diff.begin(), print_diff.end(), "multi_nozzle_diameter_mode") != print_diff.end() ||
         std::find(print_diff.begin(), print_diff.end(), "filament_diameter_map") != print_diff.end();
 
@@ -1783,7 +1893,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 				model_object.config.assign_config(model_object_new.config);
             if (! object_diff.empty() || object_config_changed || num_extruders_changed || multi_diameter_tuning_changed) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders, print_variant_index);
-                apply_multi_diameter_object_tuning(new_config);
+                // model_object's volume configs are synchronized below, so classify the incoming object.
+                apply_multi_diameter_object_tuning(new_config, model_object_new);
                 for (const PrintObjectStatus &print_object_status : print_object_status_db.get_range(model_object)) {
                     t_config_option_keys diff = print_object_status.print_object->config().diff(new_config);
                     if (! diff.empty()) {
@@ -1855,7 +1966,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 } else {
                     PrintObjectConfig config = PrintObject::object_config_from_model_object(
                         m_default_object_config, *model_object, num_extruders, print_variant_index);
-                    apply_multi_diameter_object_tuning(config);
+                    apply_multi_diameter_object_tuning(config, *model_object);
                     print_object->config_apply(config);
                 }
                 print_object_last = print_object;

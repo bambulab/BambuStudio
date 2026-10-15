@@ -7,6 +7,7 @@
 #include "format.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/SupportRecommendedParams.hpp"
 #include "MsgDialog.hpp"
 
 #include <wx/msgdlg.h>
@@ -1313,6 +1314,9 @@ bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &
     return range_low_exist && range_high_exist;
 }
 
+static bool build_support_recommended_config(const SupportRecommendedParams &recommended_params,
+                                             DynamicPrintConfig &out_config);
+
 // 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
 bool query_support_recommended_params_for_combination(int support_filament_index, const std::string& model_material_type, const std::string& model_material_name, DynamicPrintConfig& out_config)
 {
@@ -1325,47 +1329,37 @@ bool query_support_recommended_params_for_combination(int support_filament_index
     Slic3r::Preset* support_preset = filaments.find_preset(filament_presets[support_filament_index]);
     if (!support_preset) return false;
 
-    std::string support_type = support_preset->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
-    std::string support_name = support_preset->alias;
+    const std::string support_type = support_preset->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
+    const std::string alias = filaments.get_preset_alias(*support_preset, true);
+    const SupportMaterialProperties support_material {
+        support_recommended_material_name(alias.empty() ? support_preset->name : alias),
+        support_type,
+        is_soluble_filament(support_filament_index),
+        is_support_filament(support_filament_index, true)
+    };
+    const SupportMaterialProperties model_material {model_material_name, model_material_type};
+    const std::string printer_model =
+        Slic3r::GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+    const SupportMaterialCombination combination =
+        evaluate_support_material_combination(support_material, model_material, printer_model);
+    if (combination.recommended_params == nullptr)
+        return false;
 
-    // 按优先级尝试多种 key 组合查询推荐参数
-    // support_recommended_params_map 的 key 格式为 "support_material|model_material|printer_model"
-    // 其中 support_material 可能是 name 或 type，model_material 也可能是 name 或 type
-    // model_material_name 或 model_material_type 可能为空（当盘内模型不满足同名/同类型条件时）
-    struct QueryPair { std::string support_key; std::string model_key; };
-    std::vector<QueryPair> queries;
-
-    if (!model_material_name.empty()) {
-        queries.push_back({support_name, model_material_name});  // name + name（最精确）
-        queries.push_back({support_type, model_material_name});  // type + name
-    }
-    if (!model_material_type.empty()) {
-        queries.push_back({support_name, model_material_type});  // name + type
-        queries.push_back({support_type, model_material_type});  // type + type（最宽泛）
-    }
-
-    for (const auto& q : queries) {
-        if (build_support_recommended_config(q.support_key, q.model_key, out_config)) {
-            return true;
-        }
-    }
-
-    return false;
+    if (! build_support_recommended_config(*combination.recommended_params, out_config))
+        return false;
+    if (combination.zero_top && ! out_config.has("support_top_z_distance"))
+        out_config.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
+    if (combination.zero_bottom && ! out_config.has("support_bottom_z_distance"))
+        out_config.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
+    return true;
 }
 
 // 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
-bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, DynamicPrintConfig& out_config)
+static bool build_support_recommended_config(const SupportRecommendedParams &recommended_params,
+                                             DynamicPrintConfig &out_config)
 {
-    const PresetBundle *preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
-    auto rec_params_opt = preset_bundle->get_support_recommended_params(support_material, model_material,
-                                                                       preset_bundle->printers.get_edited_preset().config.opt_string("printer_model"));
-    if (!rec_params_opt.has_value() || !rec_params_opt->params.hasRecommendedParams()) {
-        return false;
-    }
-
-    const auto& rec_params = rec_params_opt.value();
-
-    for (const auto &[param_key, value] : rec_params.params.params) {
+    bool has_valid_param = false;
+    for (const auto &[param_key, value] : recommended_params.params.params) {
 
         auto opt_def_it = print_config_def.options.find(param_key);
         if (opt_def_it == print_config_def.options.end()) {
@@ -1398,13 +1392,14 @@ bool build_support_recommended_config(const std::string& support_material, const
         ConfigOption *opt = opt_def.create_default_option();
         if (opt && opt->deserialize(serialized)) {
             out_config.set_key_value(param_key, opt);
+            has_valid_param = true;
         }else {
             delete opt;
             BOOST_LOG_TRIVIAL(warning) << "Failed to deserialize recommended param " << param_key << ": " << serialized;
         }
     }
 
-    return true;
+    return has_valid_param;
 }
 
 } // GUI

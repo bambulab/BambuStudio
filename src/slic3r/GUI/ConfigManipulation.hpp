@@ -94,10 +94,6 @@ private:
     bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
 
-// 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
-// 返回是否有推荐参数
-bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, DynamicPrintConfig& out_config);
-
 // 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
 // support_filament_index: 用户选择的支撑料索引 (0-based)
 // model_material_type: 模型主体料类型 (如 "PLA")

@@ -10,6 +10,7 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/SupportRecommendedParams.hpp"
 
 #include "ConfigManipulation.hpp"
 #include "GUI.hpp"
@@ -239,6 +240,8 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
                                               SupportComboRecommendation &out, int plate_idx)
 {
     out = SupportComboRecommendation();
+    if (config.has("support_interface_top_layers") && config.opt_int("support_interface_top_layers") <= 0)
+        return false;
 
     DynamicPrintConfig &recommended_conf = out.conf;
     std::string        &interface_filament_type = out.interface_filament_type;
@@ -264,9 +267,17 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
         return preset_by_slot[idx];
     };
 
+    SupportMaterialProperties interface_material;
     if (Slic3r::Preset *filament = preset_for_slot(interface_filament_id)) {
         interface_filament_type            = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
-        out.support_material_display_name = filament->alias.empty() ? interface_filament_type : filament->alias;
+        const std::string alias = filaments.get_preset_alias(*filament, true);
+        out.support_material_display_name = alias.empty() ? interface_filament_type : alias;
+        interface_material = {
+            support_recommended_material_name(alias.empty() ? filament->name : alias),
+            interface_filament_type,
+            is_soluble_filament(interface_filament_id),
+            is_support_filament(interface_filament_id, true)
+        };
     }
 
     bool found_recommendation = false;
@@ -294,26 +305,45 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
         // set by then, so the rest of the plate cannot change the outcome.
         bool mixed = false;
         const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_config(config, slot_count);
+        auto collect_explicit_filaments = [](const auto &source, std::set<int> &filament_ids) {
+            for (const char *key : {"extruder", "wall_filament", "sparse_infill_filament", "solid_infill_filament"}) {
+                if (source.has(key)) {
+                    const int filament_id = source.option(key)->getInt();
+                    if (filament_id > 0)
+                        filament_ids.insert(filament_id);
+                }
+            }
+        };
         for (ModelObject *obj : model_objects) {
             if (!obj) continue;
+            std::set<int> filament_ids;
             for (const auto *vol : obj->volumes) {
                 if (!vol) continue;
-                for (auto id : vol->get_extruders(global_features)) {
-                    Slic3r::Preset *fp = preset_for_slot(static_cast<int>(id) - 1);
-                    if (!fp) continue;
-                    const std::string &ft = fp->config.option<ConfigOptionStrings>("filament_type")->values[0];
-                    used_filament_types.insert(ft);
-                    used_filament_names.insert(fp->alias);
-                    if (first_filament_type.empty()) {
-                        first_filament_type = ft;
-                        first_filament_name = fp->alias;
-                    }
-                    if (used_filament_types.size() > 1 && used_filament_names.size() > 1) {
-                        mixed = true;
-                        break;
-                    }
+                if (vol->is_model_part()) {
+                    for (int filament_id : vol->get_extruders(global_features))
+                        if (filament_id > 0)
+                            filament_ids.insert(filament_id);
+                } else if (vol->is_modifier())
+                    collect_explicit_filaments(vol->config, filament_ids);
+            }
+            for (const auto &layer_range : obj->layer_config_ranges)
+                collect_explicit_filaments(layer_range.second, filament_ids);
+            for (int filament_id : filament_ids) {
+                Slic3r::Preset *fp = preset_for_slot(filament_id - 1);
+                if (!fp) continue;
+                const std::string &ft = fp->config.option<ConfigOptionStrings>("filament_type")->values[0];
+                const std::string material_name = support_recommended_material_name(
+                    filaments.get_preset_alias(*fp, true));
+                used_filament_types.insert(ft);
+                used_filament_names.insert(material_name);
+                if (first_filament_type.empty()) {
+                    first_filament_type = ft;
+                    first_filament_name = material_name;
                 }
-                if (mixed) break;
+                if (used_filament_types.size() > 1 && used_filament_names.size() > 1) {
+                    mixed = true;
+                    break;
+                }
             }
             if (mixed) break;
         }
@@ -339,10 +369,37 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
 
     // JSON 没找到，走硬编码路径
     if (!found_recommendation) {
-        bool support_TPU          = interface_filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
-        bool soluble_interface    = is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id);
-        bool is_support_material  = is_support_filament(interface_filament_id, false);
-        bool interface_PVA        = interface_filament_type == "PVA";
+        const std::vector<bool> material_matches =
+            has_filament_groups({{"PLA"}, {"PETG"}, {"TPU", "TPU-AMS"}});
+        const bool has_pla  = material_matches[0];
+        const bool has_petg = material_matches[1];
+        const bool has_tpu  = material_matches[2];
+        SupportMaterialProperties pair_support_material = interface_material;
+        pair_support_material.soluble = false;
+        pair_support_material.support = false;
+        SupportMaterialProperties dedicated_support_material = interface_material;
+        dedicated_support_material.soluble = false;
+        auto built_in_rule_for = [&pair_support_material](const std::string &model_type) {
+            return evaluate_support_material_combination(
+                pair_support_material, SupportMaterialProperties {"", model_type}, std::string()).built_in_rule;
+        };
+        const BuiltInSupportMaterialRule interface_rule =
+            evaluate_support_material_combination(
+                interface_material, SupportMaterialProperties {}, std::string()).built_in_rule;
+        const BuiltInSupportMaterialRule dedicated_rule =
+            evaluate_support_material_combination(
+                dedicated_support_material, SupportMaterialProperties {}, std::string()).built_in_rule;
+
+        const bool support_TPU =
+            has_tpu && built_in_rule_for("TPU") == BuiltInSupportMaterialRule::PlaForTpu;
+        const bool soluble_interface =
+            interface_rule == BuiltInSupportMaterialRule::Soluble && !is_soluble_filament(filament_id);
+        const bool is_support_material =
+            dedicated_rule == BuiltInSupportMaterialRule::DedicatedSupport ||
+            (has_pla && built_in_rule_for("PLA") != BuiltInSupportMaterialRule::None) ||
+            (has_petg && built_in_rule_for("PETG") != BuiltInSupportMaterialRule::None) ||
+            support_TPU;
+        const bool interface_PVA = interface_filament_type == "PVA";
 
         if (support_TPU) {
             out.support_material_display_name = "PLA";
@@ -362,7 +419,9 @@ bool compute_support_interface_recommendation(const DynamicPrintConfig &config, 
             recommended_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
             recommended_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
             // PVA supporting PLA additionally requires 0 bottom z distance, no matter which printer is selected
-            out.soluble_bottom_z = interface_PVA && has_filaments({"PLA"});
+            out.soluble_bottom_z = has_pla &&
+                evaluate_support_material_combination(
+                    interface_material, SupportMaterialProperties {"", "PLA"}, std::string()).zero_bottom;
             if (out.soluble_bottom_z)
                 recommended_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
             recommended_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
