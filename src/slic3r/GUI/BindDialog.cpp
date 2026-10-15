@@ -351,7 +351,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 }
 
  BindMachineDialog::BindMachineDialog(Plater *plater /*= nullptr*/)
-     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log in printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
+     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log in printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
  {
 
 #ifdef __WINDOWS__
