@@ -295,6 +295,11 @@ function parseProfileData() {
             var idx = shortNameMap[mapKey];
             g_filaments[idx].models += fModel;
             g_filaments[idx].filalist += fWholeName + ';';
+            // Multiple per-machine preset variants share this one display row; if any
+            // variant is visible (e.g. the one matching the user's connected printer,
+            // just forced visible by an AMS sync), the row must show as checked —
+            // otherwise whichever variant happened to be enumerated first silently wins.
+            if (fSelect * 1 == 1) g_filaments[idx].selected = true;
         } else {
             shortNameMap[mapKey] = g_filaments.length;
             g_filaments.push({

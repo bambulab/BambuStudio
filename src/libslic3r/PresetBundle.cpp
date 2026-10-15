@@ -2705,7 +2705,12 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
 
     std::string first_visible_filament_name;
     for (auto & fp : filament_presets) {
-        if (auto it = filaments.find_preset_internal(fp); it == filaments.end() || !it->is_visible || !it->is_compatible) {
+        // Only replace a slot's preset when it genuinely can no longer be used: the preset was
+        // deleted/renamed (end()) or is incompatible with the current printer. A preset that is
+        // merely hidden (is_visible == false, e.g. the user just unchecked it in the "system
+        // materials" filter) still exists and may still be perfectly usable — hiding only keeps
+        // it out of pick lists for *new* selections, it must not evict a slot already using it.
+        if (auto it = filaments.find_preset_internal(fp); it == filaments.end() || !it->is_compatible) {
             if (first_visible_filament_name.empty())
                 first_visible_filament_name = filaments.first_compatible().name;
             fp = first_visible_filament_name;

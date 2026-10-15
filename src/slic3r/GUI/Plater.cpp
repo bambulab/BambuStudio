@@ -7339,6 +7339,16 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         dlg.ShowModal();
         return;
     }
+    // apply_synced_tray_side_effects() (PresetBundle.cpp) only flips Preset::is_visible in
+    // memory for a preset that lands in a slot — it does not persist to AppConfig. Without this,
+    // a system material the user had hidden in the "system materials" filter would show as
+    // visible for the rest of this session, then revert back to hidden the next time
+    // set_visible_from_appconfig() reloads from AppConfig (e.g. app restart).
+    for (const std::string &filament_name : wxGetApp().preset_bundle->filament_presets) {
+        const Preset *preset = wxGetApp().preset_bundle->filaments.find_preset(filament_name, false);
+        if (preset && preset->is_system)
+            wxGetApp().app_config->set(AppConfig::SECTION_FILAMENTS, preset->name, "true");
+    }
     // Sync re-appends mixed slots after the new physical list; must run before on_filament_count_change()
     // and before the merge below, which both assume model ids already match the new slot layout.
     wxGetApp().plater()->remap_mixed_filament_ids(physical_before_sync, wxGetApp().preset_bundle->physical_filament_config_indices().size());
