@@ -336,3 +336,4 @@ src/slic3r/GUI/ExtruderPanel.cpp
 src/slic3r/GUI/ExtruderPanel.hpp
 src/slic3r/GUI/Widgets/NozzleSettingsCardDialog.cpp
 src/slic3r/GUI/FilamentNozzlePopup.cpp
+src/slic3r/GUI/AdvancedModeTip.cpp
