@@ -7568,9 +7568,31 @@ static void apply_wipe_tower_tail_slowdown(std::string &gcode, float tail_volume
         line += " F" + std::to_string(fi);
     };
 
-    struct Move { int line_idx; float e; float feedrate; };
+    // A plain linear move made of G1/X/Y/E/F tokens only, which can be split in two.
+    auto is_plain_linear = [](const std::string &line) {
+        size_t i = 0, n = line.size();
+        bool first = true;
+        while (i < n) {
+            while (i < n && line[i] == ' ') ++i;
+            if (i >= n) break;
+            size_t tok = i;
+            while (i < n && line[i] != ' ') ++i;
+            if (first) {
+                if (line.compare(tok, i - tok, "G1") != 0)
+                    return false;
+                first = false;
+            } else if (std::string_view("XYEF").find(line[tok]) == std::string_view::npos)
+                return false;
+        }
+        return true;
+    };
+
+    struct Move { int line_idx; float e; float feedrate; bool splittable; Vec2f from; Vec2f to; };
     std::vector<Move> moves;
     float current_feedrate = 0.f;
+    // The writer emits absolute X/Y; the start is unknown until the first move that names both.
+    Vec2f position = Vec2f::Zero();
+    bool  has_x_known = false, has_y_known = false;
     for (int idx = 0; idx < (int) lines.size(); ++idx) {
         const std::string &line = lines[idx];
         size_t p = line.find_first_not_of(' ');
@@ -7590,8 +7612,12 @@ static void apply_wipe_tower_tail_slowdown(std::string &gcode, float tail_volume
         // but ignore pure retract/de-retract moves (E only) so retract speeds don't leak in.
         if (has_f && (is_motion || (!has_e && !has_x && !has_y)))
             current_feedrate = fval;
+        const Vec2f from        = position;
+        const bool  from_known  = has_x_known && has_y_known;
+        if (has_x) { position.x() = xval; has_x_known = true; }
+        if (has_y) { position.y() = yval; has_y_known = true; }
         if (has_e && eval > 0.f && is_motion && current_feedrate > 0.f)
-            moves.push_back({idx, eval, current_feedrate});
+            moves.push_back({idx, eval, current_feedrate, from_known && !is_arc && is_plain_linear(line), from, position});
     }
     if (moves.empty())
         return;
@@ -7601,8 +7627,30 @@ static void apply_wipe_tower_tail_slowdown(std::string &gcode, float tail_volume
     for (int m = (int) moves.size() - 1; m >= 0; --m) {
         if (acc >= tail_len - 1e-6f)
             break;
-        acc += moves[m].e;
-        set_feedrate(lines[moves[m].line_idx], moves[m].feedrate * speed_factor);
+        const Move &move      = moves[m];
+        const float remaining = tail_len - acc;
+        acc += move.e;
+        if (move.splittable && move.e > remaining + 1e-5f) {
+            // Only the end of this move is in the tail: its head keeps the original feedrate.
+            std::string &line   = lines[move.line_idx];
+            const float  t_head = 1.f - remaining / move.e;
+            const Vec2f  mid    = move.from + (move.to - move.from) * t_head;
+            const std::string e_head = float_to_string_decimal_point(move.e * t_head, 5);
+            const float  e_tail = move.e - float(string_to_double_decimal_point(e_head));
+            float f_head = 0.f;
+            const bool has_f_head = get_param(line, 'F', f_head);
+            std::string head = "G1 X" + float_to_string_decimal_point(mid.x(), 3) + " Y" +
+                               float_to_string_decimal_point(mid.y(), 3) + " E" + e_head;
+            if (has_f_head)
+                head += " F" + float_to_string_decimal_point(f_head, 3);
+            std::string tail = "G1 X" + float_to_string_decimal_point(move.to.x(), 3) + " Y" +
+                               float_to_string_decimal_point(move.to.y(), 3) + " E" +
+                               float_to_string_decimal_point(e_tail, 5);
+            set_feedrate(tail, move.feedrate * speed_factor);
+            line = head + "\n" + tail;
+            break;
+        }
+        set_feedrate(lines[move.line_idx], move.feedrate * speed_factor);
     }
 
     std::string out;
