@@ -190,6 +190,9 @@
     "filament_pre_cooling_temperature_nc": [
         "0"
     ],
+    "filament_pre_heating_enabled": [
+        "1"
+    ],
     "filament_prime_volume": [
         "45"
     ],
