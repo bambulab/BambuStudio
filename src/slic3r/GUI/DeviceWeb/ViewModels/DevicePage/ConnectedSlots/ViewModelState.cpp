@@ -433,7 +433,7 @@ nlohmann::json ConnectedSlotsVM::BuildState() const
     const int addr_id = m_addr_id >= 0 ? m_addr_id : 0;
     auto fila_sys = m_obj->GetFilaSystem();
     const auto nozzle = m_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
-    const auto feed   = nozzle.has_value() ? nozzle->GetSlotNowId() : std::nullopt;
+    const auto feed   = nozzle.has_value() && nozzle->HasFilamentAtNozzleInlet() ? nozzle->GetSlotNowId() : std::nullopt;
 
     const bool filament_changing = DevicePageFilamentChangeStatusBuilder::IsActive(m_obj);
     const TrayMenuContext menu_ctx{
