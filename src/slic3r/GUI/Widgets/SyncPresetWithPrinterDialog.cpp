@@ -426,7 +426,7 @@ std::optional<PrinterMigrationInfo> collect_printer_migration_info(MachineObject
 }
 
 SyncPresetWithPrinterDialog::SyncPresetWithPrinterDialog(wxWindow *parent, PrinterMigrationInfo info)
-    : DPIDialog(parent, wxID_ANY, _L("Sync printer information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    : DPIDialog(parent, wxID_ANY, _L("Sync Printer Information"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_info(std::move(info))
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -445,7 +445,7 @@ void SyncPresetWithPrinterDialog::build_layout()
     auto *root = new wxBoxSizer(wxVERTICAL);
     root->AddSpacer(FromDIP(25));
 
-    auto *description = new Label(this, _L("The printer model and settings in the 3MF file don't match the connected printer. Migrate the slicing settings to the connected printer?"));
+    auto *description = new Label(this, _L("The printer model and settings in this 3MF file don't match the connected printer. Do you want to adapt these slicing settings for this printer?"));
     description->SetFont(Label::Body_14);
     description->SetForegroundColour(C(ThemeColor::TextPrimary));
     description->Wrap(content_width);
@@ -468,7 +468,7 @@ void SyncPresetWithPrinterDialog::build_layout()
         add_block(build_section(_L("Nozzle comparison"), [this](wxWindow *parent) { return build_nozzle_table(parent); }));
 
     root->AddSpacer(FromDIP(23));
-    auto *migration_note = new Label(this, _L("Note: After migration, some print parameters will be automatically adapted to the new printer model."));
+    auto *migration_note = new Label(this, _L("Note: After adapting the settings, some print parameters will be automatically adjusted for the new printer model."));
     migration_note->SetFont(Label::Body_14);
     migration_note->SetForegroundColour(C(ThemeColor::TextPrimary));
     migration_note->Wrap(content_width);
@@ -477,7 +477,7 @@ void SyncPresetWithPrinterDialog::build_layout()
     m_detail_loss_hint = build_detail_loss_hint(this);
     root->Add(m_detail_loss_hint, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
     update_detail_loss_hint(false);
-    root->AddSpacer(FromDIP(26));
+    root->AddSpacer(FromDIP(m_info.offer_skip_future_checks ? 12 : 20));
     root->Add(build_footer(this), 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(kSidePadding));
     root->AddSpacer(FromDIP(23));
 
@@ -542,7 +542,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_model_table(wxWindow *parent)
     wxPanel *frame = make_table_frame(parent, rows_host);
 
     auto *rows = new wxBoxSizer(wxVERTICAL);
-    rows->Add(make_header_row(rows_host, _L("Settings in 3MF"), _L("Connected printer")), 0, wxEXPAND);
+    rows->Add(make_header_row(rows_host, _L("3MF File Settings"), _L("Connected Printer")), 0, wxEXPAND);
 
     auto *data_row = new wxPanel(rows_host);
     data_row->SetBackgroundColour(C(ThemeColor::White));
@@ -564,7 +564,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_nozzle_table(wxWindow *parent)
     wxPanel *frame = make_table_frame(parent, rows_host);
 
     auto *rows = new wxBoxSizer(wxVERTICAL);
-    rows->Add(make_header_row(rows_host, _L("Settings in 3MF"), _L("Connected printer")), 0, wxEXPAND);
+    rows->Add(make_header_row(rows_host, _L("3MF File Settings"), _L("Connected Printer")), 0, wxEXPAND);
 
     m_nozzle_combos.clear();
 
@@ -683,7 +683,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_detail_loss_hint(wxWindow *parent)
     panel->SetBackgroundColour(parent->GetBackgroundColour());
 
     auto *icon = new wxStaticBitmap(panel, wxID_ANY, create_scaled_bitmap("warning", panel, 16));
-    auto *label = new Label(panel, _L("After synchronization, switching to a larger nozzle may reduce model detail. Proceed with caution."));
+    auto *label = new Label(panel, _L("Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."));
     label->SetFont(Label::Body_14);
     label->SetForegroundColour(C(ThemeColor::Warning));
     label->Wrap(FromDIP(kDialogWidth) - 2 * FromDIP(kSidePadding) - FromDIP(16 + 6));
@@ -723,20 +723,22 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
     auto *panel = new wxPanel(parent);
     panel->SetBackgroundColour(parent->GetBackgroundColour());
 
-    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto *sizer = new wxBoxSizer(wxVERTICAL);
 
     if (m_info.offer_skip_future_checks) {
+        auto *check_row = new wxBoxSizer(wxHORIZONTAL);
         m_skip_check = new CheckBox(panel);
-        auto *label = new Label(panel, _L("Don't pop-up again when open 3MF"));
+        auto *label = new Label(panel, _L("Don't show this again when opening 3MF files"));
         label->SetFont(Label::Body_14);
         label->SetForegroundColour(C(ThemeColor::Grey500));
         // The bitmap button has no label of its own, so the text has to forward the click.
         label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { m_skip_check->SetValue(!m_skip_check->GetValue()); });
 
-        sizer->Add(m_skip_check, 0, wxALIGN_CENTER_VERTICAL);
-        sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(9));
+        check_row->Add(m_skip_check, 0, wxALIGN_CENTER_VERTICAL);
+        check_row->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(9));
+        sizer->Add(check_row, 0, wxEXPAND);
+        sizer->AddSpacer(FromDIP(20));
     }
-    sizer->AddStretchSpacer();
 
     StateColor cancel_bg(std::pair<wxColour, int>(C(ThemeColor::Grey350), StateColor::Pressed), std::pair<wxColour, int>(C(ThemeColor::Grey300), StateColor::Hovered),
                          std::pair<wxColour, int>(C(ThemeColor::White), StateColor::Normal));
@@ -760,7 +762,7 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
                               std::pair<wxColour, int>(C(ThemeColor::BrandGreenHovered), StateColor::Hovered), std::pair<wxColour, int>(C(ThemeColor::BrandGreen), StateColor::Normal));
     StateColor confirm_text(std::pair<wxColour, int>(C(ThemeColor::White), StateColor::Normal));
 
-    m_confirm_btn = new Button(panel, _L("Apply migration"), "", 0, 0, wxID_ANY);
+    m_confirm_btn = new Button(panel, _L("Adapt Settings"), "", 0, 0, wxID_ANY);
     m_confirm_btn->SetFont(Label::Body_12);
     m_confirm_btn->SetPaddingSize(wxSize(FromDIP(12), FromDIP(6)));
     m_confirm_btn->SetMinSize(wxSize(-1, FromDIP(24)));
@@ -776,8 +778,11 @@ wxWindow *SyncPresetWithPrinterDialog::build_footer(wxWindow *parent)
     if (has_plan)
         m_confirm_btn->SetFocus();
 
-    sizer->Add(m_confirm_btn, 0, wxALIGN_CENTER_VERTICAL);
-    sizer->Add(cancel_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
+    auto *button_row = new wxBoxSizer(wxHORIZONTAL);
+    button_row->AddStretchSpacer();
+    button_row->Add(m_confirm_btn, 0, wxALIGN_CENTER_VERTICAL);
+    button_row->Add(cancel_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
+    sizer->Add(button_row, 0, wxEXPAND);
 
     panel->SetSizer(sizer);
     return panel;

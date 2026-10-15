@@ -918,7 +918,7 @@ wxWindow *SyncAmsDialog::build_mapping_section()
     m_detail_loss_hint = new wxPanel(m_mapping_panel);
     m_detail_loss_hint->SetBackgroundColour(m_mapping_panel->GetBackgroundColour());
     auto *hint_icon = new wxStaticBitmap(m_detail_loss_hint, wxID_ANY, create_scaled_bitmap("warning", m_detail_loss_hint, 16));
-    auto *hint_text = new ::Label(m_detail_loss_hint, _L("After synchronization, switching to a larger nozzle may reduce model detail. Proceed with caution."),
+    auto *hint_text = new ::Label(m_detail_loss_hint, _L("Using a larger nozzle after adapting the settings may reduce fine details in your model. Please proceed with caution."),
                                   LB_AUTO_WRAP);
     hint_text->SetFont(::Label::Body_14);
     hint_text->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::Warning));
