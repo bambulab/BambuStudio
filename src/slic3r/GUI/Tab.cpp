@@ -5077,6 +5077,8 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_preheat_temperature_delta", "", 0);
         optgroup->append_single_option_line("long_retractions_when_ec", "" , 0);
         optgroup->append_single_option_line("retraction_distances_when_ec", "" , 0);
+        // Not a per-variant option, so it is appended without an index and shows no per-nozzle icon.
+        optgroup->append_single_option_line("filament_pre_heating_enabled");
         //BBS
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
@@ -5298,6 +5300,8 @@ void TabFilament::toggle_options()
         toggle_line("filament_preheat_temperature_delta", handle_hotend_as_extruder, 256 + extruder_idx);
         toggle_line("long_retractions_when_ec", is_ec_retraction_printer && is_BBL_printer, 256 + extruder_idx);
         toggle_line("retraction_distances_when_ec", is_ec_retraction_printer && is_BBL_printer && m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
+        // Pre-heating exists on both multi-extruder and single-extruder-multi-nozzle printers.
+        toggle_line("filament_pre_heating_enabled", is_ec_retraction_printer);
         m_active_page->update_visibility(m_mode, true);
         update_changed_ui();
     }

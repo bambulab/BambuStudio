@@ -798,6 +798,7 @@ namespace Slic3r {
             UsedFilaments used_filaments; // stores the accurate filament usage info
             std::vector<Extruder> filament_lists;
             std::vector<std::string> filament_types;
+            std::vector<unsigned char> filament_pre_heating_enabled;
             std::vector<int> physical_extruder_map;
 
             MultiNozzleUtils::LayeredNozzleGroupResult nozzle_group_result;
@@ -821,6 +822,7 @@ namespace Slic3r {
                 const std::vector<Extruder>& filament_lists_,
                 MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result_,
                 const std::vector<std::string>& filament_types_,
+                const std::vector<unsigned char>& filament_pre_heating_enabled_,
                 const std::vector<int>& physical_extruder_map_,
                 const size_t total_layer_num_,
                 const std::vector<double>& cooling_rate_,
@@ -840,6 +842,7 @@ namespace Slic3r {
                 filament_lists(filament_lists_),
                 nozzle_group_result(nozzle_group_result_),
                 filament_types(filament_types_),
+                filament_pre_heating_enabled(filament_pre_heating_enabled_),
                 physical_extruder_map(physical_extruder_map_),
                 total_layer_num(total_layer_num_),
                 cooling_rate(cooling_rate_),
@@ -944,6 +947,7 @@ namespace Slic3r {
             PreCoolingInjector(
                 const std::vector<GCodeProcessorResult::MoveVertex>& moves_,
                 const std::vector<std::string>& filament_types_,
+                const std::vector<unsigned char>& filament_pre_heating_enabled_,
                 const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result_,
                 const std::vector<int>& physical_extruder_map_,
                 int valid_machine_id_,
@@ -964,6 +968,7 @@ namespace Slic3r {
             ) :
                 moves(moves_),
                 filament_types(filament_types_),
+                filament_pre_heating_enabled(filament_pre_heating_enabled_),
                 nozzle_group_result(nozzle_group_result_),
                 physical_extruder_map(physical_extruder_map_),
                 valid_machine_id(valid_machine_id_),
@@ -988,6 +993,9 @@ namespace Slic3r {
             std::vector<ExtruderFreeBlock> m_extruder_free_blocks;
             const std::vector<GCodeProcessorResult::MoveVertex>& moves;
             const std::vector<std::string>& filament_types;
+            // Per-filament opt-out of pre-heating. Shorter than the filament count means "enabled",
+            // so gcode produced before this option existed keeps pre-heating.
+            const std::vector<unsigned char>& filament_pre_heating_enabled;
             const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result;
             const std::vector<int>& physical_extruder_map;
             const int valid_machine_id;
@@ -1184,6 +1192,7 @@ namespace Slic3r {
         std::vector<float> m_remaining_volume;
         std::vector<Extruder> m_filament_lists;
         std::vector<std::string> m_filament_types;
+        std::vector<unsigned char> m_filament_pre_heating_enabled;
         std::vector<double> m_nozzle_diameter;
         std::vector<double> m_hotend_cooling_rate{ 2.f };
         std::vector<double> m_hotend_cooling_rate_on_rack{ 2.f };

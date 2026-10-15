@@ -1367,6 +1367,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_vendor))
     ((ConfigOptionBools,               filament_is_support))
     ((ConfigOptionBools,               filament_idle_travel_cooling_enabled))
+    ((ConfigOptionBools,               filament_pre_heating_enabled))
     ((ConfigOptionBools,               filament_is_mixed))
     ((ConfigOptionStrings,             filament_mixed_components))
     ((ConfigOptionStrings,             filament_mixed_sublayer_ratios))

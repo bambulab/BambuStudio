@@ -3551,6 +3551,12 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comSimple;
     def->set_default_value(new ConfigOptionFloats{60.});
 
+    def = this->add("filament_pre_heating_enabled", coBools);
+    def->label   = L("Pre-heating when extruder change");
+    def->tooltip = L("0 means disabled, 1 means enabled.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{true});
+
     def = this->add("filament_preheat_temperature_delta", coFloats);
     def->label = L("Preheat temperature delta");
     def->tooltip = L("Temperature delta applied during pre-heating before tool change.");

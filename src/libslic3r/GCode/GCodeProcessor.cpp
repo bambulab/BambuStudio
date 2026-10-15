@@ -1212,6 +1212,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         auto pre_cooling_injector = std::make_unique<PreCoolingInjector>(
             moves,
             context.filament_types,
+            context.filament_pre_heating_enabled,
             context.nozzle_group_result,
             context.physical_extruder_map,
             valid_machine_id,
@@ -1984,6 +1985,10 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     for (size_t idx = 0; idx < filament_count; ++idx)
         m_filament_types[idx] = config.filament_type.get_at(idx);
 
+    m_filament_pre_heating_enabled.resize(filament_count);
+    for (size_t idx = 0; idx < filament_count; ++idx)
+        m_filament_pre_heating_enabled[idx] = config.filament_pre_heating_enabled.get_at(idx) ? 1 : 0;
+
     m_nozzle_diameter = config.nozzle_diameter.values;
     m_hotend_cooling_rate = config.hotend_cooling_rate.values;
     m_hotend_cooling_rate_on_rack = config.hotend_cooling_rate_on_rack.values;
@@ -2113,6 +2118,13 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_filament_types.resize(filament_type->size());
         for (size_t idx = 0; idx < filament_type->size(); ++idx)
             m_filament_types[idx] = filament_type->get_at(idx);
+    }
+
+    const ConfigOptionBools* filament_pre_heating_enabled = config.option<ConfigOptionBools>("filament_pre_heating_enabled");
+    if (filament_pre_heating_enabled != nullptr) {
+        m_filament_pre_heating_enabled.resize(filament_pre_heating_enabled->size());
+        for (size_t idx = 0; idx < filament_pre_heating_enabled->size(); ++idx)
+            m_filament_pre_heating_enabled[idx] = filament_pre_heating_enabled->get_at(idx) ? 1 : 0;
     }
 
     const ConfigOptionFloatsNullable* nozzle_diameter = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
@@ -2820,6 +2832,7 @@ void GCodeProcessor::finalize(bool post_process)
             m_filament_lists,
             result,
             m_filament_types,
+            m_filament_pre_heating_enabled,
             m_physical_extruder_map,
             m_layer_id,
             m_hotend_cooling_rate,
@@ -6625,6 +6638,13 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
     float first_nozzle_dia = nozzle_diameter.empty() ? 0.4 : nozzle_diameter.front();
     float switcher_temp_offset = (first_nozzle_dia >= 0.6 - EPSILON) ? 40.f : 20.f;
 
+    // Pre-heating targets the incoming filament, so this is keyed on next_filament_id.
+    auto wants_pre_heating = [&](int filament_id) -> bool {
+        if (filament_id < 0 || filament_id >= (int)filament_pre_heating_enabled.size())
+            return true;
+        return filament_pre_heating_enabled[filament_id] != 0;
+        };
+
     std::map<int, std::vector<ExtruderFreeBlock>> per_extruder_free_blocks;
 
     for (auto& block : m_extruder_free_blocks)
@@ -6638,7 +6658,7 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             bool is_begin = iter == extruder_free_blcoks.begin();
             bool  apply_pre_cooling = !is_begin || !handle_hotend_as_extruder; // TODO(小炒肉): 暂时先通过单挤出机多喷嘴来判断
             // 单挤出机多喷嘴机型，start gcode后不降温
-            bool apply_pre_heating = is_end ? false : true;
+            bool apply_pre_heating = is_end ? false : wants_pre_heating(iter->next_filament_id);
             // For N1X1 (handle_hotend_as_extruder), use filament-specific min temperature when
             // last_filament_id == -1 (extruder's first use after start gcode).
             // For other machines, fall back to original behavior: get_nozzle_temp(-1, ..., true) = 140°C.
